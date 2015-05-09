@@ -1,31 +1,19 @@
 unit googlepagespeedonline;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:56
 {$MODE objfpc}
 {$H+}
 
@@ -34,33 +22,106 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TPagespeedApiFormatStringV2 = class;
-  TPagespeedApiFormatStringV2Array = Array of TPagespeedApiFormatStringV2;
-  TPagespeedApiFormatStringV2args = class;
-  TPagespeedApiFormatStringV2argsArray = Array of TPagespeedApiFormatStringV2args;
-  TPagespeedApiFormatStringV2argsrects = class;
-  TPagespeedApiFormatStringV2argsrectsArray = Array of TPagespeedApiFormatStringV2argsrects;
-  TPagespeedApiFormatStringV2argssecondary_rects = class;
-  TPagespeedApiFormatStringV2argssecondary_rectsArray = Array of TPagespeedApiFormatStringV2argssecondary_rects;
   TPagespeedApiImageV2 = class;
-  TPagespeedApiImageV2Array = Array of TPagespeedApiImageV2;
-  TPagespeedApiImageV2page_rect = class;
-  TPagespeedApiImageV2page_rectArray = Array of TPagespeedApiImageV2page_rect;
   TResult = class;
+  TPagespeedApiFormatStringV2Array = Array of TPagespeedApiFormatStringV2;
+  TPagespeedApiImageV2Array = Array of TPagespeedApiImageV2;
   TResultArray = Array of TResult;
-  TResultformattedResults = class;
-  TResultformattedResultsArray = Array of TResultformattedResults;
-  TResultformattedResultsruleResults = class;
-  TResultformattedResultsruleResultsArray = Array of TResultformattedResultsruleResults;
-  TResultinvalidRules = class;
-  TResultinvalidRulesArray = Array of TResultinvalidRules;
-  TResultpageStats = class;
-  TResultpageStatsArray = Array of TResultpageStats;
-  TResultruleGroups = class;
-  TResultruleGroupsArray = Array of TResultruleGroups;
-  TResultversion = class;
-  TResultversionArray = Array of TResultversion;
+  //Anonymous types, using auto-generated names
+  TPagespeedApiFormatStringV2TypeargsItemTyperectsItem = class;
+  TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem = class;
+  TPagespeedApiFormatStringV2TypeargsItem = class;
+  TPagespeedApiImageV2Typepage_rect = class;
+  TResultTypeformattedResultsTyperuleResults = class;
+  TResultTypeformattedResults = class;
+  TResultTypepageStats = class;
+  TResultTyperuleGroups = class;
+  TResultTypeversion = class;
+  TPagespeedApiFormatStringV2TypeargsItemTyperectsArray = Array of TPagespeedApiFormatStringV2TypeargsItemTyperectsItem;
+  TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsArray = Array of TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem;
+  TPagespeedApiFormatStringV2TypeargsArray = Array of TPagespeedApiFormatStringV2TypeargsItem;
+  
+  { --------------------------------------------------------------------
+    TPagespeedApiFormatStringV2TypeargsItemTyperectsItem
+    --------------------------------------------------------------------}
+  
+  TPagespeedApiFormatStringV2TypeargsItemTyperectsItem = Class(TGoogleBaseObject)
+  Private
+    Fheight : integer;
+    Fleft : integer;
+    Ftop : integer;
+    Fwidth : integer;
+  Protected
+    //Property setters
+    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setleft(AIndex : Integer; AValue : integer); virtual;
+    Procedure Settop(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
+  Public
+  Published
+    Property height : integer Index 0 Read Fheight Write Setheight;
+    Property left : integer Index 8 Read Fleft Write Setleft;
+    Property top : integer Index 16 Read Ftop Write Settop;
+    Property width : integer Index 24 Read Fwidth Write Setwidth;
+  end;
+  TPagespeedApiFormatStringV2TypeargsItemTyperectsItemClass = Class of TPagespeedApiFormatStringV2TypeargsItemTyperectsItem;
+  
+  { --------------------------------------------------------------------
+    TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem
+    --------------------------------------------------------------------}
+  
+  TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem = Class(TGoogleBaseObject)
+  Private
+    Fheight : integer;
+    Fleft : integer;
+    Ftop : integer;
+    Fwidth : integer;
+  Protected
+    //Property setters
+    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setleft(AIndex : Integer; AValue : integer); virtual;
+    Procedure Settop(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
+  Public
+  Published
+    Property height : integer Index 0 Read Fheight Write Setheight;
+    Property left : integer Index 8 Read Fleft Write Setleft;
+    Property top : integer Index 16 Read Ftop Write Settop;
+    Property width : integer Index 24 Read Fwidth Write Setwidth;
+  end;
+  TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItemClass = Class of TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem;
+  
+  { --------------------------------------------------------------------
+    TPagespeedApiFormatStringV2TypeargsItem
+    --------------------------------------------------------------------}
+  
+  TPagespeedApiFormatStringV2TypeargsItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Frects : TPagespeedApiFormatStringV2TypeargsItemTyperectsArray;
+    Fsecondary_rects : TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsArray;
+    F_type : String;
+    Fvalue : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsItemTyperectsArray); virtual;
+    Procedure Setsecondary_rects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property rects : TPagespeedApiFormatStringV2TypeargsItemTyperectsArray Index 8 Read Frects Write Setrects;
+    Property secondary_rects : TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsArray Index 16 Read Fsecondary_rects Write Setsecondary_rects;
+    Property _type : String Index 24 Read F_type Write Set_type;
+    Property value : String Index 32 Read Fvalue Write Setvalue;
+  end;
+  TPagespeedApiFormatStringV2TypeargsItemClass = Class of TPagespeedApiFormatStringV2TypeargsItem;
   
   { --------------------------------------------------------------------
     TPagespeedApiFormatStringV2
@@ -68,53 +129,24 @@ type
   
   TPagespeedApiFormatStringV2 = Class(TGoogleBaseObject)
   Private
-    Fargs : TPagespeedApiFormatStringV2args;
-    Fformat : string;
+    Fargs : TPagespeedApiFormatStringV2TypeargsArray;
+    Fformat : String;
   Protected
     //Property setters
-    Procedure Setargs(AIndex : Integer; AValue : TPagespeedApiFormatStringV2args); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : string); virtual;
+    Procedure Setargs(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsArray); virtual;
+    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property args : TPagespeedApiFormatStringV2args Index 0 Read Fargs Write Setargs;
-    Property format : string Index 8 Read Fformat Write Setformat;
+    Property args : TPagespeedApiFormatStringV2TypeargsArray Index 0 Read Fargs Write Setargs;
+    Property format : String Index 8 Read Fformat Write Setformat;
   end;
   TPagespeedApiFormatStringV2Class = Class of TPagespeedApiFormatStringV2;
   
   { --------------------------------------------------------------------
-    TPagespeedApiFormatStringV2args
+    TPagespeedApiImageV2Typepage_rect
     --------------------------------------------------------------------}
   
-  TPagespeedApiFormatStringV2args = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Frects : TPagespeedApiFormatStringV2argsrects;
-    Fsecondary_rects : TPagespeedApiFormatStringV2argssecondary_rects;
-    F_type : string;
-    Fvalue : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2argsrects); virtual;
-    Procedure Setsecondary_rects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2argssecondary_rects); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property rects : TPagespeedApiFormatStringV2argsrects Index 8 Read Frects Write Setrects;
-    Property secondary_rects : TPagespeedApiFormatStringV2argssecondary_rects Index 16 Read Fsecondary_rects Write Setsecondary_rects;
-    Property _type : string Index 24 Read F_type Write Set_type;
-    Property value : string Index 32 Read Fvalue Write Setvalue;
-  end;
-  TPagespeedApiFormatStringV2argsClass = Class of TPagespeedApiFormatStringV2args;
-  
-  { --------------------------------------------------------------------
-    TPagespeedApiFormatStringV2argsrects
-    --------------------------------------------------------------------}
-  
-  TPagespeedApiFormatStringV2argsrects = Class(TGoogleBaseObject)
+  TPagespeedApiImageV2Typepage_rect = Class(TGoogleBaseObject)
   Private
     Fheight : integer;
     Fleft : integer;
@@ -133,32 +165,7 @@ type
     Property top : integer Index 16 Read Ftop Write Settop;
     Property width : integer Index 24 Read Fwidth Write Setwidth;
   end;
-  TPagespeedApiFormatStringV2argsrectsClass = Class of TPagespeedApiFormatStringV2argsrects;
-  
-  { --------------------------------------------------------------------
-    TPagespeedApiFormatStringV2argssecondary_rects
-    --------------------------------------------------------------------}
-  
-  TPagespeedApiFormatStringV2argssecondary_rects = Class(TGoogleBaseObject)
-  Private
-    Fheight : integer;
-    Fleft : integer;
-    Ftop : integer;
-    Fwidth : integer;
-  Protected
-    //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setleft(AIndex : Integer; AValue : integer); virtual;
-    Procedure Settop(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property height : integer Index 0 Read Fheight Write Setheight;
-    Property left : integer Index 8 Read Fleft Write Setleft;
-    Property top : integer Index 16 Read Ftop Write Settop;
-    Property width : integer Index 24 Read Fwidth Write Setwidth;
-  end;
-  TPagespeedApiFormatStringV2argssecondary_rectsClass = Class of TPagespeedApiFormatStringV2argssecondary_rects;
+  TPagespeedApiImageV2Typepage_rectClass = Class of TPagespeedApiImageV2Typepage_rect;
   
   { --------------------------------------------------------------------
     TPagespeedApiImageV2
@@ -166,123 +173,36 @@ type
   
   TPagespeedApiImageV2 = Class(TGoogleBaseObject)
   Private
-    Fdata : string;
+    Fdata : String;
     Fheight : integer;
-    Fkey : string;
-    Fmime_type : string;
-    Fpage_rect : TPagespeedApiImageV2page_rect;
+    Fkey : String;
+    Fmime_type : String;
+    Fpage_rect : TPagespeedApiImageV2Typepage_rect;
     Fwidth : integer;
   Protected
     //Property setters
-    Procedure Setdata(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdata(AIndex : Integer; AValue : String); virtual;
     Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmime_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpage_rect(AIndex : Integer; AValue : TPagespeedApiImageV2page_rect); virtual;
+    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmime_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpage_rect(AIndex : Integer; AValue : TPagespeedApiImageV2Typepage_rect); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property data : string Index 0 Read Fdata Write Setdata;
+    Property data : String Index 0 Read Fdata Write Setdata;
     Property height : integer Index 8 Read Fheight Write Setheight;
-    Property key : string Index 16 Read Fkey Write Setkey;
-    Property mime_type : string Index 24 Read Fmime_type Write Setmime_type;
-    Property page_rect : TPagespeedApiImageV2page_rect Index 32 Read Fpage_rect Write Setpage_rect;
+    Property key : String Index 16 Read Fkey Write Setkey;
+    Property mime_type : String Index 24 Read Fmime_type Write Setmime_type;
+    Property page_rect : TPagespeedApiImageV2Typepage_rect Index 32 Read Fpage_rect Write Setpage_rect;
     Property width : integer Index 40 Read Fwidth Write Setwidth;
   end;
   TPagespeedApiImageV2Class = Class of TPagespeedApiImageV2;
   
   { --------------------------------------------------------------------
-    TPagespeedApiImageV2page_rect
+    TResultTypeformattedResultsTyperuleResults
     --------------------------------------------------------------------}
   
-  TPagespeedApiImageV2page_rect = Class(TGoogleBaseObject)
-  Private
-    Fheight : integer;
-    Fleft : integer;
-    Ftop : integer;
-    Fwidth : integer;
-  Protected
-    //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setleft(AIndex : Integer; AValue : integer); virtual;
-    Procedure Settop(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property height : integer Index 0 Read Fheight Write Setheight;
-    Property left : integer Index 8 Read Fleft Write Setleft;
-    Property top : integer Index 16 Read Ftop Write Settop;
-    Property width : integer Index 24 Read Fwidth Write Setwidth;
-  end;
-  TPagespeedApiImageV2page_rectClass = Class of TPagespeedApiImageV2page_rect;
-  
-  { --------------------------------------------------------------------
-    TResult
-    --------------------------------------------------------------------}
-  
-  TResult = Class(TGoogleBaseObject)
-  Private
-    FformattedResults : TResultformattedResults;
-    Fid : string;
-    FinvalidRules : TResultinvalidRules;
-    Fkind : string;
-    FpageStats : TResultpageStats;
-    FresponseCode : integer;
-    FruleGroups : TResultruleGroups;
-    Fscreenshot : TPagespeedApiImageV2;
-    Ftitle : string;
-    Fversion : TResultversion;
-  Protected
-    //Property setters
-    Procedure SetformattedResults(AIndex : Integer; AValue : TResultformattedResults); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinvalidRules(AIndex : Integer; AValue : TResultinvalidRules); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpageStats(AIndex : Integer; AValue : TResultpageStats); virtual;
-    Procedure SetresponseCode(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetruleGroups(AIndex : Integer; AValue : TResultruleGroups); virtual;
-    Procedure Setscreenshot(AIndex : Integer; AValue : TPagespeedApiImageV2); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : TResultversion); virtual;
-  Public
-  Published
-    Property formattedResults : TResultformattedResults Index 0 Read FformattedResults Write SetformattedResults;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property invalidRules : TResultinvalidRules Index 16 Read FinvalidRules Write SetinvalidRules;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property pageStats : TResultpageStats Index 32 Read FpageStats Write SetpageStats;
-    Property responseCode : integer Index 40 Read FresponseCode Write SetresponseCode;
-    Property ruleGroups : TResultruleGroups Index 48 Read FruleGroups Write SetruleGroups;
-    Property screenshot : TPagespeedApiImageV2 Index 56 Read Fscreenshot Write Setscreenshot;
-    Property title : string Index 64 Read Ftitle Write Settitle;
-    Property version : TResultversion Index 72 Read Fversion Write Setversion;
-  end;
-  TResultClass = Class of TResult;
-  
-  { --------------------------------------------------------------------
-    TResultformattedResults
-    --------------------------------------------------------------------}
-  
-  TResultformattedResults = Class(TGoogleBaseObject)
-  Private
-    Flocale : string;
-    FruleResults : TResultformattedResultsruleResults;
-  Protected
-    //Property setters
-    Procedure Setlocale(AIndex : Integer; AValue : string); virtual;
-    Procedure SetruleResults(AIndex : Integer; AValue : TResultformattedResultsruleResults); virtual;
-  Public
-  Published
-    Property locale : string Index 0 Read Flocale Write Setlocale;
-    Property ruleResults : TResultformattedResultsruleResults Index 8 Read FruleResults Write SetruleResults;
-  end;
-  TResultformattedResultsClass = Class of TResultformattedResults;
-  
-  { --------------------------------------------------------------------
-    TResultformattedResultsruleResults
-    --------------------------------------------------------------------}
-  
-  TResultformattedResultsruleResults = Class(TGoogleBaseObject)
+  TResultTypeformattedResultsTyperuleResults = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -290,78 +210,84 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TResultformattedResultsruleResultsClass = Class of TResultformattedResultsruleResults;
+  TResultTypeformattedResultsTyperuleResultsClass = Class of TResultTypeformattedResultsTyperuleResults;
   
   { --------------------------------------------------------------------
-    TResultinvalidRules
+    TResultTypeformattedResults
     --------------------------------------------------------------------}
   
-  TResultinvalidRules = Class(TGoogleBaseObject)
+  TResultTypeformattedResults = Class(TGoogleBaseObject)
   Private
+    Flocale : String;
+    FruleResults : TResultTypeformattedResultsTyperuleResults;
   Protected
     //Property setters
+    Procedure Setlocale(AIndex : Integer; AValue : String); virtual;
+    Procedure SetruleResults(AIndex : Integer; AValue : TResultTypeformattedResultsTyperuleResults); virtual;
   Public
   Published
+    Property locale : String Index 0 Read Flocale Write Setlocale;
+    Property ruleResults : TResultTypeformattedResultsTyperuleResults Index 8 Read FruleResults Write SetruleResults;
   end;
-  TResultinvalidRulesClass = Class of TResultinvalidRules;
+  TResultTypeformattedResultsClass = Class of TResultTypeformattedResults;
   
   { --------------------------------------------------------------------
-    TResultpageStats
+    TResultTypepageStats
     --------------------------------------------------------------------}
   
-  TResultpageStats = Class(TGoogleBaseObject)
+  TResultTypepageStats = Class(TGoogleBaseObject)
   Private
-    FcssResponseBytes : string;
-    FflashResponseBytes : string;
-    FhtmlResponseBytes : string;
-    FimageResponseBytes : string;
-    FjavascriptResponseBytes : string;
+    FcssResponseBytes : String;
+    FflashResponseBytes : String;
+    FhtmlResponseBytes : String;
+    FimageResponseBytes : String;
+    FjavascriptResponseBytes : String;
     FnumberCssResources : integer;
     FnumberHosts : integer;
     FnumberJsResources : integer;
     FnumberResources : integer;
     FnumberStaticResources : integer;
-    FotherResponseBytes : string;
-    FtextResponseBytes : string;
-    FtotalRequestBytes : string;
+    FotherResponseBytes : String;
+    FtextResponseBytes : String;
+    FtotalRequestBytes : String;
   Protected
     //Property setters
-    Procedure SetcssResponseBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetflashResponseBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SethtmlResponseBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetimageResponseBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetjavascriptResponseBytes(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcssResponseBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetflashResponseBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SethtmlResponseBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetimageResponseBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetjavascriptResponseBytes(AIndex : Integer; AValue : String); virtual;
     Procedure SetnumberCssResources(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumberHosts(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumberJsResources(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumberResources(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumberStaticResources(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetotherResponseBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SettextResponseBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalRequestBytes(AIndex : Integer; AValue : string); virtual;
+    Procedure SetotherResponseBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SettextResponseBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SettotalRequestBytes(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property cssResponseBytes : string Index 0 Read FcssResponseBytes Write SetcssResponseBytes;
-    Property flashResponseBytes : string Index 8 Read FflashResponseBytes Write SetflashResponseBytes;
-    Property htmlResponseBytes : string Index 16 Read FhtmlResponseBytes Write SethtmlResponseBytes;
-    Property imageResponseBytes : string Index 24 Read FimageResponseBytes Write SetimageResponseBytes;
-    Property javascriptResponseBytes : string Index 32 Read FjavascriptResponseBytes Write SetjavascriptResponseBytes;
+    Property cssResponseBytes : String Index 0 Read FcssResponseBytes Write SetcssResponseBytes;
+    Property flashResponseBytes : String Index 8 Read FflashResponseBytes Write SetflashResponseBytes;
+    Property htmlResponseBytes : String Index 16 Read FhtmlResponseBytes Write SethtmlResponseBytes;
+    Property imageResponseBytes : String Index 24 Read FimageResponseBytes Write SetimageResponseBytes;
+    Property javascriptResponseBytes : String Index 32 Read FjavascriptResponseBytes Write SetjavascriptResponseBytes;
     Property numberCssResources : integer Index 40 Read FnumberCssResources Write SetnumberCssResources;
     Property numberHosts : integer Index 48 Read FnumberHosts Write SetnumberHosts;
     Property numberJsResources : integer Index 56 Read FnumberJsResources Write SetnumberJsResources;
     Property numberResources : integer Index 64 Read FnumberResources Write SetnumberResources;
     Property numberStaticResources : integer Index 72 Read FnumberStaticResources Write SetnumberStaticResources;
-    Property otherResponseBytes : string Index 80 Read FotherResponseBytes Write SetotherResponseBytes;
-    Property textResponseBytes : string Index 88 Read FtextResponseBytes Write SettextResponseBytes;
-    Property totalRequestBytes : string Index 96 Read FtotalRequestBytes Write SettotalRequestBytes;
+    Property otherResponseBytes : String Index 80 Read FotherResponseBytes Write SetotherResponseBytes;
+    Property textResponseBytes : String Index 88 Read FtextResponseBytes Write SettextResponseBytes;
+    Property totalRequestBytes : String Index 96 Read FtotalRequestBytes Write SettotalRequestBytes;
   end;
-  TResultpageStatsClass = Class of TResultpageStats;
+  TResultTypepageStatsClass = Class of TResultTypepageStats;
   
   { --------------------------------------------------------------------
-    TResultruleGroups
+    TResultTyperuleGroups
     --------------------------------------------------------------------}
   
-  TResultruleGroups = Class(TGoogleBaseObject)
+  TResultTyperuleGroups = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -369,13 +295,13 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TResultruleGroupsClass = Class of TResultruleGroups;
+  TResultTyperuleGroupsClass = Class of TResultTyperuleGroups;
   
   { --------------------------------------------------------------------
-    TResultversion
+    TResultTypeversion
     --------------------------------------------------------------------}
   
-  TResultversion = Class(TGoogleBaseObject)
+  TResultTypeversion = Class(TGoogleBaseObject)
   Private
     Fmajor : integer;
     Fminor : integer;
@@ -388,7 +314,50 @@ type
     Property major : integer Index 0 Read Fmajor Write Setmajor;
     Property minor : integer Index 8 Read Fminor Write Setminor;
   end;
-  TResultversionClass = Class of TResultversion;
+  TResultTypeversionClass = Class of TResultTypeversion;
+  
+  { --------------------------------------------------------------------
+    TResult
+    --------------------------------------------------------------------}
+  
+  TResult = Class(TGoogleBaseObject)
+  Private
+    FformattedResults : TResultTypeformattedResults;
+    Fid : String;
+    FinvalidRules : TStringArray;
+    Fkind : String;
+    FpageStats : TResultTypepageStats;
+    FresponseCode : integer;
+    FruleGroups : TResultTyperuleGroups;
+    Fscreenshot : TPagespeedApiImageV2;
+    Ftitle : String;
+    Fversion : TResultTypeversion;
+  Protected
+    //Property setters
+    Procedure SetformattedResults(AIndex : Integer; AValue : TResultTypeformattedResults); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinvalidRules(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageStats(AIndex : Integer; AValue : TResultTypepageStats); virtual;
+    Procedure SetresponseCode(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetruleGroups(AIndex : Integer; AValue : TResultTyperuleGroups); virtual;
+    Procedure Setscreenshot(AIndex : Integer; AValue : TPagespeedApiImageV2); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; AValue : TResultTypeversion); virtual;
+  Public
+  Published
+    Property formattedResults : TResultTypeformattedResults Index 0 Read FformattedResults Write SetformattedResults;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property invalidRules : TStringArray Index 16 Read FinvalidRules Write SetinvalidRules;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property pageStats : TResultTypepageStats Index 32 Read FpageStats Write SetpageStats;
+    Property responseCode : integer Index 40 Read FresponseCode Write SetresponseCode;
+    Property ruleGroups : TResultTyperuleGroups Index 48 Read FruleGroups Write SetruleGroups;
+    Property screenshot : TPagespeedApiImageV2 Index 56 Read Fscreenshot Write Setscreenshot;
+    Property title : String Index 64 Read Ftitle Write Settitle;
+    Property version : TResultTypeversion Index 72 Read Fversion Write Setversion;
+  end;
+  TResultClass = Class of TResult;
   
   { --------------------------------------------------------------------
     TPagespeedapiResource
@@ -399,11 +368,11 @@ type
   
   TPagespeedapiRunpagespeedOptions = Record
     filter_third_party_resources : boolean;
-    locale : string;
-    rule : string;
+    locale : String;
+    rule : String;
     screenshot : boolean;
-    strategy : string;
-    url : string;
+    strategy : String;
+    url : String;
   end;
   
   TPagespeedapiResource = Class(TGoogleResource)
@@ -456,25 +425,45 @@ implementation
 
 
 { --------------------------------------------------------------------
-  TPagespeedApiFormatStringV2
+  TPagespeedApiFormatStringV2TypeargsItemTyperectsItem
   --------------------------------------------------------------------}
 
 
-Procedure TPagespeedApiFormatStringV2.Setargs(AIndex : Integer; AValue : TPagespeedApiFormatStringV2args); 
+Procedure TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.Setheight(AIndex : Integer; AValue : integer); 
 
 begin
-  If (Fargs=AValue) then exit;
-  Fargs:=AValue;
+  If (Fheight=AValue) then exit;
+  Fheight:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TPagespeedApiFormatStringV2.Setformat(AIndex : Integer; AValue : string); 
+Procedure TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.Setleft(AIndex : Integer; AValue : integer); 
 
 begin
-  If (Fformat=AValue) then exit;
-  Fformat:=AValue;
+  If (Fleft=AValue) then exit;
+  Fleft:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.Settop(AIndex : Integer; AValue : integer); 
+
+begin
+  If (Ftop=AValue) then exit;
+  Ftop:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.Setwidth(AIndex : Integer; AValue : integer); 
+
+begin
+  If (Fwidth=AValue) then exit;
+  Fwidth:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -483,11 +472,58 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPagespeedApiFormatStringV2args
+  TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem
   --------------------------------------------------------------------}
 
 
-Procedure TPagespeedApiFormatStringV2args.Setkey(AIndex : Integer; AValue : string); 
+Procedure TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.Setheight(AIndex : Integer; AValue : integer); 
+
+begin
+  If (Fheight=AValue) then exit;
+  Fheight:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.Setleft(AIndex : Integer; AValue : integer); 
+
+begin
+  If (Fleft=AValue) then exit;
+  Fleft:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.Settop(AIndex : Integer; AValue : integer); 
+
+begin
+  If (Ftop=AValue) then exit;
+  Ftop:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.Setwidth(AIndex : Integer; AValue : integer); 
+
+begin
+  If (Fwidth=AValue) then exit;
+  Fwidth:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPagespeedApiFormatStringV2TypeargsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TPagespeedApiFormatStringV2TypeargsItem.Setkey(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -497,7 +533,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2args.Setrects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2argsrects); 
+Procedure TPagespeedApiFormatStringV2TypeargsItem.Setrects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsItemTyperectsArray); 
 
 begin
   If (Frects=AValue) then exit;
@@ -507,7 +543,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2args.Setsecondary_rects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2argssecondary_rects); 
+Procedure TPagespeedApiFormatStringV2TypeargsItem.Setsecondary_rects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsArray); 
 
 begin
   If (Fsecondary_rects=AValue) then exit;
@@ -517,7 +553,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2args.Set_type(AIndex : Integer; AValue : string); 
+Procedure TPagespeedApiFormatStringV2TypeargsItem.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -527,7 +563,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2args.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TPagespeedApiFormatStringV2TypeargsItem.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -537,7 +573,7 @@ end;
 
 
 
-Class Function TPagespeedApiFormatStringV2args.ExportPropertyName(Const AName : String) :String;
+Class Function TPagespeedApiFormatStringV2TypeargsItem.ExportPropertyName(Const AName : String) :String;
 
 begin
   Case AName of
@@ -551,45 +587,25 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPagespeedApiFormatStringV2argsrects
+  TPagespeedApiFormatStringV2
   --------------------------------------------------------------------}
 
 
-Procedure TPagespeedApiFormatStringV2argsrects.Setheight(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiFormatStringV2.Setargs(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsArray); 
 
 begin
-  If (Fheight=AValue) then exit;
-  Fheight:=AValue;
+  If (Fargs=AValue) then exit;
+  Fargs:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TPagespeedApiFormatStringV2argsrects.Setleft(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiFormatStringV2.Setformat(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fleft=AValue) then exit;
-  Fleft:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPagespeedApiFormatStringV2argsrects.Settop(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Ftop=AValue) then exit;
-  Ftop:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPagespeedApiFormatStringV2argsrects.Setwidth(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fwidth=AValue) then exit;
-  Fwidth:=AValue;
+  If (Fformat=AValue) then exit;
+  Fformat:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -598,11 +614,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPagespeedApiFormatStringV2argssecondary_rects
+  TPagespeedApiImageV2Typepage_rect
   --------------------------------------------------------------------}
 
 
-Procedure TPagespeedApiFormatStringV2argssecondary_rects.Setheight(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiImageV2Typepage_rect.Setheight(AIndex : Integer; AValue : integer); 
 
 begin
   If (Fheight=AValue) then exit;
@@ -612,7 +628,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2argssecondary_rects.Setleft(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiImageV2Typepage_rect.Setleft(AIndex : Integer; AValue : integer); 
 
 begin
   If (Fleft=AValue) then exit;
@@ -622,7 +638,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2argssecondary_rects.Settop(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiImageV2Typepage_rect.Settop(AIndex : Integer; AValue : integer); 
 
 begin
   If (Ftop=AValue) then exit;
@@ -632,7 +648,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2argssecondary_rects.Setwidth(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiImageV2Typepage_rect.Setwidth(AIndex : Integer; AValue : integer); 
 
 begin
   If (Fwidth=AValue) then exit;
@@ -649,7 +665,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPagespeedApiImageV2.Setdata(AIndex : Integer; AValue : string); 
+Procedure TPagespeedApiImageV2.Setdata(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -669,7 +685,7 @@ end;
 
 
 
-Procedure TPagespeedApiImageV2.Setkey(AIndex : Integer; AValue : string); 
+Procedure TPagespeedApiImageV2.Setkey(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -679,7 +695,7 @@ end;
 
 
 
-Procedure TPagespeedApiImageV2.Setmime_type(AIndex : Integer; AValue : string); 
+Procedure TPagespeedApiImageV2.Setmime_type(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmime_type=AValue) then exit;
@@ -689,7 +705,7 @@ end;
 
 
 
-Procedure TPagespeedApiImageV2.Setpage_rect(AIndex : Integer; AValue : TPagespeedApiImageV2page_rect); 
+Procedure TPagespeedApiImageV2.Setpage_rect(AIndex : Integer; AValue : TPagespeedApiImageV2Typepage_rect); 
 
 begin
   If (Fpage_rect=AValue) then exit;
@@ -712,45 +728,215 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPagespeedApiImageV2page_rect
+  TResultTypeformattedResultsTyperuleResults
   --------------------------------------------------------------------}
 
 
-Procedure TPagespeedApiImageV2page_rect.Setheight(AIndex : Integer; AValue : integer); 
+Class Function TResultTypeformattedResultsTyperuleResults.AllowAdditionalProperties : Boolean;
 
 begin
-  If (Fheight=AValue) then exit;
-  Fheight:=AValue;
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TResultTypeformattedResults
+  --------------------------------------------------------------------}
+
+
+Procedure TResultTypeformattedResults.Setlocale(AIndex : Integer; AValue : String); 
+
+begin
+  If (Flocale=AValue) then exit;
+  Flocale:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TPagespeedApiImageV2page_rect.Setleft(AIndex : Integer; AValue : integer); 
+Procedure TResultTypeformattedResults.SetruleResults(AIndex : Integer; AValue : TResultTypeformattedResultsTyperuleResults); 
 
 begin
-  If (Fleft=AValue) then exit;
-  Fleft:=AValue;
+  If (FruleResults=AValue) then exit;
+  FruleResults:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TPagespeedApiImageV2page_rect.Settop(AIndex : Integer; AValue : integer); 
+
+
+{ --------------------------------------------------------------------
+  TResultTypepageStats
+  --------------------------------------------------------------------}
+
+
+Procedure TResultTypepageStats.SetcssResponseBytes(AIndex : Integer; AValue : String); 
 
 begin
-  If (Ftop=AValue) then exit;
-  Ftop:=AValue;
+  If (FcssResponseBytes=AValue) then exit;
+  FcssResponseBytes:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TPagespeedApiImageV2page_rect.Setwidth(AIndex : Integer; AValue : integer); 
+Procedure TResultTypepageStats.SetflashResponseBytes(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fwidth=AValue) then exit;
-  Fwidth:=AValue;
+  If (FflashResponseBytes=AValue) then exit;
+  FflashResponseBytes:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTypepageStats.SethtmlResponseBytes(AIndex : Integer; AValue : String); 
+
+begin
+  If (FhtmlResponseBytes=AValue) then exit;
+  FhtmlResponseBytes:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTypepageStats.SetimageResponseBytes(AIndex : Integer; AValue : String); 
+
+begin
+  If (FimageResponseBytes=AValue) then exit;
+  FimageResponseBytes:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTypepageStats.SetjavascriptResponseBytes(AIndex : Integer; AValue : String); 
+
+begin
+  If (FjavascriptResponseBytes=AValue) then exit;
+  FjavascriptResponseBytes:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTypepageStats.SetnumberCssResources(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FnumberCssResources=AValue) then exit;
+  FnumberCssResources:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTypepageStats.SetnumberHosts(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FnumberHosts=AValue) then exit;
+  FnumberHosts:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTypepageStats.SetnumberJsResources(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FnumberJsResources=AValue) then exit;
+  FnumberJsResources:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTypepageStats.SetnumberResources(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FnumberResources=AValue) then exit;
+  FnumberResources:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTypepageStats.SetnumberStaticResources(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FnumberStaticResources=AValue) then exit;
+  FnumberStaticResources:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTypepageStats.SetotherResponseBytes(AIndex : Integer; AValue : String); 
+
+begin
+  If (FotherResponseBytes=AValue) then exit;
+  FotherResponseBytes:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTypepageStats.SettextResponseBytes(AIndex : Integer; AValue : String); 
+
+begin
+  If (FtextResponseBytes=AValue) then exit;
+  FtextResponseBytes:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTypepageStats.SettotalRequestBytes(AIndex : Integer; AValue : String); 
+
+begin
+  If (FtotalRequestBytes=AValue) then exit;
+  FtotalRequestBytes:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TResultTyperuleGroups
+  --------------------------------------------------------------------}
+
+
+Class Function TResultTyperuleGroups.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TResultTypeversion
+  --------------------------------------------------------------------}
+
+
+Procedure TResultTypeversion.Setmajor(AIndex : Integer; AValue : integer); 
+
+begin
+  If (Fmajor=AValue) then exit;
+  Fmajor:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTypeversion.Setminor(AIndex : Integer; AValue : integer); 
+
+begin
+  If (Fminor=AValue) then exit;
+  Fminor:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -763,7 +949,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResult.SetformattedResults(AIndex : Integer; AValue : TResultformattedResults); 
+Procedure TResult.SetformattedResults(AIndex : Integer; AValue : TResultTypeformattedResults); 
 
 begin
   If (FformattedResults=AValue) then exit;
@@ -773,7 +959,7 @@ end;
 
 
 
-Procedure TResult.Setid(AIndex : Integer; AValue : string); 
+Procedure TResult.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -783,7 +969,7 @@ end;
 
 
 
-Procedure TResult.SetinvalidRules(AIndex : Integer; AValue : TResultinvalidRules); 
+Procedure TResult.SetinvalidRules(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FinvalidRules=AValue) then exit;
@@ -793,7 +979,7 @@ end;
 
 
 
-Procedure TResult.Setkind(AIndex : Integer; AValue : string); 
+Procedure TResult.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -803,7 +989,7 @@ end;
 
 
 
-Procedure TResult.SetpageStats(AIndex : Integer; AValue : TResultpageStats); 
+Procedure TResult.SetpageStats(AIndex : Integer; AValue : TResultTypepageStats); 
 
 begin
   If (FpageStats=AValue) then exit;
@@ -823,7 +1009,7 @@ end;
 
 
 
-Procedure TResult.SetruleGroups(AIndex : Integer; AValue : TResultruleGroups); 
+Procedure TResult.SetruleGroups(AIndex : Integer; AValue : TResultTyperuleGroups); 
 
 begin
   If (FruleGroups=AValue) then exit;
@@ -843,7 +1029,7 @@ end;
 
 
 
-Procedure TResult.Settitle(AIndex : Integer; AValue : string); 
+Procedure TResult.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -853,235 +1039,11 @@ end;
 
 
 
-Procedure TResult.Setversion(AIndex : Integer; AValue : TResultversion); 
+Procedure TResult.Setversion(AIndex : Integer; AValue : TResultTypeversion); 
 
 begin
   If (Fversion=AValue) then exit;
   Fversion:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TResultformattedResults
-  --------------------------------------------------------------------}
-
-
-Procedure TResultformattedResults.Setlocale(AIndex : Integer; AValue : string); 
-
-begin
-  If (Flocale=AValue) then exit;
-  Flocale:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultformattedResults.SetruleResults(AIndex : Integer; AValue : TResultformattedResultsruleResults); 
-
-begin
-  If (FruleResults=AValue) then exit;
-  FruleResults:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TResultformattedResultsruleResults
-  --------------------------------------------------------------------}
-
-
-Class Function TResultformattedResultsruleResults.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TResultinvalidRules
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TResultpageStats
-  --------------------------------------------------------------------}
-
-
-Procedure TResultpageStats.SetcssResponseBytes(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcssResponseBytes=AValue) then exit;
-  FcssResponseBytes:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultpageStats.SetflashResponseBytes(AIndex : Integer; AValue : string); 
-
-begin
-  If (FflashResponseBytes=AValue) then exit;
-  FflashResponseBytes:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultpageStats.SethtmlResponseBytes(AIndex : Integer; AValue : string); 
-
-begin
-  If (FhtmlResponseBytes=AValue) then exit;
-  FhtmlResponseBytes:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultpageStats.SetimageResponseBytes(AIndex : Integer; AValue : string); 
-
-begin
-  If (FimageResponseBytes=AValue) then exit;
-  FimageResponseBytes:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultpageStats.SetjavascriptResponseBytes(AIndex : Integer; AValue : string); 
-
-begin
-  If (FjavascriptResponseBytes=AValue) then exit;
-  FjavascriptResponseBytes:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultpageStats.SetnumberCssResources(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FnumberCssResources=AValue) then exit;
-  FnumberCssResources:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultpageStats.SetnumberHosts(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FnumberHosts=AValue) then exit;
-  FnumberHosts:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultpageStats.SetnumberJsResources(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FnumberJsResources=AValue) then exit;
-  FnumberJsResources:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultpageStats.SetnumberResources(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FnumberResources=AValue) then exit;
-  FnumberResources:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultpageStats.SetnumberStaticResources(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FnumberStaticResources=AValue) then exit;
-  FnumberStaticResources:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultpageStats.SetotherResponseBytes(AIndex : Integer; AValue : string); 
-
-begin
-  If (FotherResponseBytes=AValue) then exit;
-  FotherResponseBytes:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultpageStats.SettextResponseBytes(AIndex : Integer; AValue : string); 
-
-begin
-  If (FtextResponseBytes=AValue) then exit;
-  FtextResponseBytes:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultpageStats.SettotalRequestBytes(AIndex : Integer; AValue : string); 
-
-begin
-  If (FtotalRequestBytes=AValue) then exit;
-  FtotalRequestBytes:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TResultruleGroups
-  --------------------------------------------------------------------}
-
-
-Class Function TResultruleGroups.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TResultversion
-  --------------------------------------------------------------------}
-
-
-Procedure TResultversion.Setmajor(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fmajor=AValue) then exit;
-  Fmajor:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultversion.Setminor(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fminor=AValue) then exit;
-  Fminor:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1258,19 +1220,18 @@ end;
 Class Procedure TPagespeedonlineAPI.RegisterAPIResources;
 
 begin
+  TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.RegisterObject;
+  TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.RegisterObject;
+  TPagespeedApiFormatStringV2TypeargsItem.RegisterObject;
   TPagespeedApiFormatStringV2.RegisterObject;
-  TPagespeedApiFormatStringV2args.RegisterObject;
-  TPagespeedApiFormatStringV2argsrects.RegisterObject;
-  TPagespeedApiFormatStringV2argssecondary_rects.RegisterObject;
+  TPagespeedApiImageV2Typepage_rect.RegisterObject;
   TPagespeedApiImageV2.RegisterObject;
-  TPagespeedApiImageV2page_rect.RegisterObject;
+  TResultTypeformattedResultsTyperuleResults.RegisterObject;
+  TResultTypeformattedResults.RegisterObject;
+  TResultTypepageStats.RegisterObject;
+  TResultTyperuleGroups.RegisterObject;
+  TResultTypeversion.RegisterObject;
   TResult.RegisterObject;
-  TResultformattedResults.RegisterObject;
-  TResultformattedResultsruleResults.RegisterObject;
-  TResultinvalidRules.RegisterObject;
-  TResultpageStats.RegisterObject;
-  TResultruleGroups.RegisterObject;
-  TResultversion.RegisterObject;
 end;
 
 

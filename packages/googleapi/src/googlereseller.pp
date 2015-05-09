@@ -1,31 +1,19 @@
 unit googlereseller;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:57
 {$MODE objfpc}
 {$H+}
 
@@ -34,31 +22,28 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAddress = class;
-  TAddressArray = Array of TAddress;
   TChangePlanRequest = class;
-  TChangePlanRequestArray = Array of TChangePlanRequest;
   TCustomer = class;
-  TCustomerArray = Array of TCustomer;
   TRenewalSettings = class;
-  TRenewalSettingsArray = Array of TRenewalSettings;
   TSeats = class;
-  TSeatsArray = Array of TSeats;
   TSubscription = class;
-  TSubscriptionArray = Array of TSubscription;
-  TSubscriptionplan = class;
-  TSubscriptionplanArray = Array of TSubscriptionplan;
-  TSubscriptionplancommitmentInterval = class;
-  TSubscriptionplancommitmentIntervalArray = Array of TSubscriptionplancommitmentInterval;
-  TSubscriptiontransferInfo = class;
-  TSubscriptiontransferInfoArray = Array of TSubscriptiontransferInfo;
-  TSubscriptiontrialSettings = class;
-  TSubscriptiontrialSettingsArray = Array of TSubscriptiontrialSettings;
   TSubscriptions = class;
+  TAddressArray = Array of TAddress;
+  TChangePlanRequestArray = Array of TChangePlanRequest;
+  TCustomerArray = Array of TCustomer;
+  TRenewalSettingsArray = Array of TRenewalSettings;
+  TSeatsArray = Array of TSeats;
+  TSubscriptionArray = Array of TSubscription;
   TSubscriptionsArray = Array of TSubscriptions;
-  TSubscriptionssubscriptions = class;
-  TSubscriptionssubscriptionsArray = Array of TSubscriptionssubscriptions;
+  //Anonymous types, using auto-generated names
+  TSubscriptionTypeplanTypecommitmentInterval = class;
+  TSubscriptionTypeplan = class;
+  TSubscriptionTypetransferInfo = class;
+  TSubscriptionTypetrialSettings = class;
+  TSubscriptionsTypesubscriptionsArray = Array of TSubscription;
   
   { --------------------------------------------------------------------
     TAddress
@@ -66,40 +51,40 @@ type
   
   TAddress = Class(TGoogleBaseObject)
   Private
-    FaddressLine1 : string;
-    FaddressLine2 : string;
-    FaddressLine3 : string;
-    FcontactName : string;
-    FcountryCode : string;
-    Fkind : string;
-    Flocality : string;
-    ForganizationName : string;
-    FpostalCode : string;
-    Fregion : string;
+    FaddressLine1 : String;
+    FaddressLine2 : String;
+    FaddressLine3 : String;
+    FcontactName : String;
+    FcountryCode : String;
+    Fkind : String;
+    Flocality : String;
+    ForganizationName : String;
+    FpostalCode : String;
+    Fregion : String;
   Protected
     //Property setters
-    Procedure SetaddressLine1(AIndex : Integer; AValue : string); virtual;
-    Procedure SetaddressLine2(AIndex : Integer; AValue : string); virtual;
-    Procedure SetaddressLine3(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontactName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcountryCode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocality(AIndex : Integer; AValue : string); virtual;
-    Procedure SetorganizationName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpostalCode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaddressLine1(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaddressLine2(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaddressLine3(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontactName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcountryCode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocality(AIndex : Integer; AValue : String); virtual;
+    Procedure SetorganizationName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpostalCode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property addressLine1 : string Index 0 Read FaddressLine1 Write SetaddressLine1;
-    Property addressLine2 : string Index 8 Read FaddressLine2 Write SetaddressLine2;
-    Property addressLine3 : string Index 16 Read FaddressLine3 Write SetaddressLine3;
-    Property contactName : string Index 24 Read FcontactName Write SetcontactName;
-    Property countryCode : string Index 32 Read FcountryCode Write SetcountryCode;
-    Property kind : string Index 40 Read Fkind Write Setkind;
-    Property locality : string Index 48 Read Flocality Write Setlocality;
-    Property organizationName : string Index 56 Read ForganizationName Write SetorganizationName;
-    Property postalCode : string Index 64 Read FpostalCode Write SetpostalCode;
-    Property region : string Index 72 Read Fregion Write Setregion;
+    Property addressLine1 : String Index 0 Read FaddressLine1 Write SetaddressLine1;
+    Property addressLine2 : String Index 8 Read FaddressLine2 Write SetaddressLine2;
+    Property addressLine3 : String Index 16 Read FaddressLine3 Write SetaddressLine3;
+    Property contactName : String Index 24 Read FcontactName Write SetcontactName;
+    Property countryCode : String Index 32 Read FcountryCode Write SetcountryCode;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property locality : String Index 48 Read Flocality Write Setlocality;
+    Property organizationName : String Index 56 Read ForganizationName Write SetorganizationName;
+    Property postalCode : String Index 64 Read FpostalCode Write SetpostalCode;
+    Property region : String Index 72 Read Fregion Write Setregion;
   end;
   TAddressClass = Class of TAddress;
   
@@ -109,21 +94,21 @@ type
   
   TChangePlanRequest = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FplanName : string;
-    FpurchaseOrderId : string;
+    Fkind : String;
+    FplanName : String;
+    FpurchaseOrderId : String;
     Fseats : TSeats;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetplanName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpurchaseOrderId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetplanName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpurchaseOrderId(AIndex : Integer; AValue : String); virtual;
     Procedure Setseats(AIndex : Integer; AValue : TSeats); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property planName : string Index 8 Read FplanName Write SetplanName;
-    Property purchaseOrderId : string Index 16 Read FpurchaseOrderId Write SetpurchaseOrderId;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property planName : String Index 8 Read FplanName Write SetplanName;
+    Property purchaseOrderId : String Index 16 Read FpurchaseOrderId Write SetpurchaseOrderId;
     Property seats : TSeats Index 24 Read Fseats Write Setseats;
   end;
   TChangePlanRequestClass = Class of TChangePlanRequest;
@@ -134,31 +119,31 @@ type
   
   TCustomer = Class(TGoogleBaseObject)
   Private
-    FalternateEmail : string;
-    FcustomerDomain : string;
-    FcustomerId : string;
-    Fkind : string;
-    FphoneNumber : string;
+    FalternateEmail : String;
+    FcustomerDomain : String;
+    FcustomerId : String;
+    Fkind : String;
+    FphoneNumber : String;
     FpostalAddress : TAddress;
-    FresourceUiUrl : string;
+    FresourceUiUrl : String;
   Protected
     //Property setters
-    Procedure SetalternateEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomerDomain(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomerId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetphoneNumber(AIndex : Integer; AValue : string); virtual;
+    Procedure SetalternateEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomerDomain(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomerId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetphoneNumber(AIndex : Integer; AValue : String); virtual;
     Procedure SetpostalAddress(AIndex : Integer; AValue : TAddress); virtual;
-    Procedure SetresourceUiUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetresourceUiUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property alternateEmail : string Index 0 Read FalternateEmail Write SetalternateEmail;
-    Property customerDomain : string Index 8 Read FcustomerDomain Write SetcustomerDomain;
-    Property customerId : string Index 16 Read FcustomerId Write SetcustomerId;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property phoneNumber : string Index 32 Read FphoneNumber Write SetphoneNumber;
+    Property alternateEmail : String Index 0 Read FalternateEmail Write SetalternateEmail;
+    Property customerDomain : String Index 8 Read FcustomerDomain Write SetcustomerDomain;
+    Property customerId : String Index 16 Read FcustomerId Write SetcustomerId;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property phoneNumber : String Index 32 Read FphoneNumber Write SetphoneNumber;
     Property postalAddress : TAddress Index 40 Read FpostalAddress Write SetpostalAddress;
-    Property resourceUiUrl : string Index 48 Read FresourceUiUrl Write SetresourceUiUrl;
+    Property resourceUiUrl : String Index 48 Read FresourceUiUrl Write SetresourceUiUrl;
   end;
   TCustomerClass = Class of TCustomer;
   
@@ -168,16 +153,16 @@ type
   
   TRenewalSettings = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FrenewalType : string;
+    Fkind : String;
+    FrenewalType : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrenewalType(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrenewalType(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property renewalType : string Index 8 Read FrenewalType Write SetrenewalType;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property renewalType : String Index 8 Read FrenewalType Write SetrenewalType;
   end;
   TRenewalSettingsClass = Class of TRenewalSettings;
   
@@ -187,19 +172,19 @@ type
   
   TSeats = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
+    Fkind : String;
     FlicensedNumberOfSeats : integer;
     FmaximumNumberOfSeats : integer;
     FnumberOfSeats : integer;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetlicensedNumberOfSeats(AIndex : Integer; AValue : integer); virtual;
     Procedure SetmaximumNumberOfSeats(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumberOfSeats(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
+    Property kind : String Index 0 Read Fkind Write Setkind;
     Property licensedNumberOfSeats : integer Index 8 Read FlicensedNumberOfSeats Write SetlicensedNumberOfSeats;
     Property maximumNumberOfSeats : integer Index 16 Read FmaximumNumberOfSeats Write SetmaximumNumberOfSeats;
     Property numberOfSeats : integer Index 24 Read FnumberOfSeats Write SetnumberOfSeats;
@@ -207,138 +192,138 @@ type
   TSeatsClass = Class of TSeats;
   
   { --------------------------------------------------------------------
+    TSubscriptionTypeplanTypecommitmentInterval
+    --------------------------------------------------------------------}
+  
+  TSubscriptionTypeplanTypecommitmentInterval = Class(TGoogleBaseObject)
+  Private
+    FendTime : String;
+    FstartTime : String;
+  Protected
+    //Property setters
+    Procedure SetendTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property endTime : String Index 0 Read FendTime Write SetendTime;
+    Property startTime : String Index 8 Read FstartTime Write SetstartTime;
+  end;
+  TSubscriptionTypeplanTypecommitmentIntervalClass = Class of TSubscriptionTypeplanTypecommitmentInterval;
+  
+  { --------------------------------------------------------------------
+    TSubscriptionTypeplan
+    --------------------------------------------------------------------}
+  
+  TSubscriptionTypeplan = Class(TGoogleBaseObject)
+  Private
+    FcommitmentInterval : TSubscriptionTypeplanTypecommitmentInterval;
+    FisCommitmentPlan : boolean;
+    FplanName : String;
+  Protected
+    //Property setters
+    Procedure SetcommitmentInterval(AIndex : Integer; AValue : TSubscriptionTypeplanTypecommitmentInterval); virtual;
+    Procedure SetisCommitmentPlan(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetplanName(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property commitmentInterval : TSubscriptionTypeplanTypecommitmentInterval Index 0 Read FcommitmentInterval Write SetcommitmentInterval;
+    Property isCommitmentPlan : boolean Index 8 Read FisCommitmentPlan Write SetisCommitmentPlan;
+    Property planName : String Index 16 Read FplanName Write SetplanName;
+  end;
+  TSubscriptionTypeplanClass = Class of TSubscriptionTypeplan;
+  
+  { --------------------------------------------------------------------
+    TSubscriptionTypetransferInfo
+    --------------------------------------------------------------------}
+  
+  TSubscriptionTypetransferInfo = Class(TGoogleBaseObject)
+  Private
+    FminimumTransferableSeats : integer;
+    FtransferabilityExpirationTime : String;
+  Protected
+    //Property setters
+    Procedure SetminimumTransferableSeats(AIndex : Integer; AValue : integer); virtual;
+    Procedure SettransferabilityExpirationTime(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property minimumTransferableSeats : integer Index 0 Read FminimumTransferableSeats Write SetminimumTransferableSeats;
+    Property transferabilityExpirationTime : String Index 8 Read FtransferabilityExpirationTime Write SettransferabilityExpirationTime;
+  end;
+  TSubscriptionTypetransferInfoClass = Class of TSubscriptionTypetransferInfo;
+  
+  { --------------------------------------------------------------------
+    TSubscriptionTypetrialSettings
+    --------------------------------------------------------------------}
+  
+  TSubscriptionTypetrialSettings = Class(TGoogleBaseObject)
+  Private
+    FisInTrial : boolean;
+    FtrialEndTime : String;
+  Protected
+    //Property setters
+    Procedure SetisInTrial(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SettrialEndTime(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property isInTrial : boolean Index 0 Read FisInTrial Write SetisInTrial;
+    Property trialEndTime : String Index 8 Read FtrialEndTime Write SettrialEndTime;
+  end;
+  TSubscriptionTypetrialSettingsClass = Class of TSubscriptionTypetrialSettings;
+  
+  { --------------------------------------------------------------------
     TSubscription
     --------------------------------------------------------------------}
   
   TSubscription = Class(TGoogleBaseObject)
   Private
-    FbillingMethod : string;
-    FcreationTime : string;
-    FcustomerId : string;
-    Fkind : string;
-    Fplan : TSubscriptionplan;
-    FpurchaseOrderId : string;
+    FbillingMethod : String;
+    FcreationTime : String;
+    FcustomerId : String;
+    Fkind : String;
+    Fplan : TSubscriptionTypeplan;
+    FpurchaseOrderId : String;
     FrenewalSettings : TRenewalSettings;
-    FresourceUiUrl : string;
+    FresourceUiUrl : String;
     Fseats : TSeats;
-    FskuId : string;
-    Fstatus : string;
-    FsubscriptionId : string;
-    FtransferInfo : TSubscriptiontransferInfo;
-    FtrialSettings : TSubscriptiontrialSettings;
+    FskuId : String;
+    Fstatus : String;
+    FsubscriptionId : String;
+    FtransferInfo : TSubscriptionTypetransferInfo;
+    FtrialSettings : TSubscriptionTypetrialSettings;
   Protected
     //Property setters
-    Procedure SetbillingMethod(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomerId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setplan(AIndex : Integer; AValue : TSubscriptionplan); virtual;
-    Procedure SetpurchaseOrderId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbillingMethod(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomerId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setplan(AIndex : Integer; AValue : TSubscriptionTypeplan); virtual;
+    Procedure SetpurchaseOrderId(AIndex : Integer; AValue : String); virtual;
     Procedure SetrenewalSettings(AIndex : Integer; AValue : TRenewalSettings); virtual;
-    Procedure SetresourceUiUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetresourceUiUrl(AIndex : Integer; AValue : String); virtual;
     Procedure Setseats(AIndex : Integer; AValue : TSeats); virtual;
-    Procedure SetskuId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsubscriptionId(AIndex : Integer; AValue : string); virtual;
-    Procedure SettransferInfo(AIndex : Integer; AValue : TSubscriptiontransferInfo); virtual;
-    Procedure SettrialSettings(AIndex : Integer; AValue : TSubscriptiontrialSettings); virtual;
+    Procedure SetskuId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsubscriptionId(AIndex : Integer; AValue : String); virtual;
+    Procedure SettransferInfo(AIndex : Integer; AValue : TSubscriptionTypetransferInfo); virtual;
+    Procedure SettrialSettings(AIndex : Integer; AValue : TSubscriptionTypetrialSettings); virtual;
   Public
   Published
-    Property billingMethod : string Index 0 Read FbillingMethod Write SetbillingMethod;
-    Property creationTime : string Index 8 Read FcreationTime Write SetcreationTime;
-    Property customerId : string Index 16 Read FcustomerId Write SetcustomerId;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property plan : TSubscriptionplan Index 32 Read Fplan Write Setplan;
-    Property purchaseOrderId : string Index 40 Read FpurchaseOrderId Write SetpurchaseOrderId;
+    Property billingMethod : String Index 0 Read FbillingMethod Write SetbillingMethod;
+    Property creationTime : String Index 8 Read FcreationTime Write SetcreationTime;
+    Property customerId : String Index 16 Read FcustomerId Write SetcustomerId;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property plan : TSubscriptionTypeplan Index 32 Read Fplan Write Setplan;
+    Property purchaseOrderId : String Index 40 Read FpurchaseOrderId Write SetpurchaseOrderId;
     Property renewalSettings : TRenewalSettings Index 48 Read FrenewalSettings Write SetrenewalSettings;
-    Property resourceUiUrl : string Index 56 Read FresourceUiUrl Write SetresourceUiUrl;
+    Property resourceUiUrl : String Index 56 Read FresourceUiUrl Write SetresourceUiUrl;
     Property seats : TSeats Index 64 Read Fseats Write Setseats;
-    Property skuId : string Index 72 Read FskuId Write SetskuId;
-    Property status : string Index 80 Read Fstatus Write Setstatus;
-    Property subscriptionId : string Index 88 Read FsubscriptionId Write SetsubscriptionId;
-    Property transferInfo : TSubscriptiontransferInfo Index 96 Read FtransferInfo Write SettransferInfo;
-    Property trialSettings : TSubscriptiontrialSettings Index 104 Read FtrialSettings Write SettrialSettings;
+    Property skuId : String Index 72 Read FskuId Write SetskuId;
+    Property status : String Index 80 Read Fstatus Write Setstatus;
+    Property subscriptionId : String Index 88 Read FsubscriptionId Write SetsubscriptionId;
+    Property transferInfo : TSubscriptionTypetransferInfo Index 96 Read FtransferInfo Write SettransferInfo;
+    Property trialSettings : TSubscriptionTypetrialSettings Index 104 Read FtrialSettings Write SettrialSettings;
   end;
   TSubscriptionClass = Class of TSubscription;
-  
-  { --------------------------------------------------------------------
-    TSubscriptionplan
-    --------------------------------------------------------------------}
-  
-  TSubscriptionplan = Class(TGoogleBaseObject)
-  Private
-    FcommitmentInterval : TSubscriptionplancommitmentInterval;
-    FisCommitmentPlan : boolean;
-    FplanName : string;
-  Protected
-    //Property setters
-    Procedure SetcommitmentInterval(AIndex : Integer; AValue : TSubscriptionplancommitmentInterval); virtual;
-    Procedure SetisCommitmentPlan(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetplanName(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property commitmentInterval : TSubscriptionplancommitmentInterval Index 0 Read FcommitmentInterval Write SetcommitmentInterval;
-    Property isCommitmentPlan : boolean Index 8 Read FisCommitmentPlan Write SetisCommitmentPlan;
-    Property planName : string Index 16 Read FplanName Write SetplanName;
-  end;
-  TSubscriptionplanClass = Class of TSubscriptionplan;
-  
-  { --------------------------------------------------------------------
-    TSubscriptionplancommitmentInterval
-    --------------------------------------------------------------------}
-  
-  TSubscriptionplancommitmentInterval = Class(TGoogleBaseObject)
-  Private
-    FendTime : string;
-    FstartTime : string;
-  Protected
-    //Property setters
-    Procedure SetendTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property endTime : string Index 0 Read FendTime Write SetendTime;
-    Property startTime : string Index 8 Read FstartTime Write SetstartTime;
-  end;
-  TSubscriptionplancommitmentIntervalClass = Class of TSubscriptionplancommitmentInterval;
-  
-  { --------------------------------------------------------------------
-    TSubscriptiontransferInfo
-    --------------------------------------------------------------------}
-  
-  TSubscriptiontransferInfo = Class(TGoogleBaseObject)
-  Private
-    FminimumTransferableSeats : integer;
-    FtransferabilityExpirationTime : string;
-  Protected
-    //Property setters
-    Procedure SetminimumTransferableSeats(AIndex : Integer; AValue : integer); virtual;
-    Procedure SettransferabilityExpirationTime(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property minimumTransferableSeats : integer Index 0 Read FminimumTransferableSeats Write SetminimumTransferableSeats;
-    Property transferabilityExpirationTime : string Index 8 Read FtransferabilityExpirationTime Write SettransferabilityExpirationTime;
-  end;
-  TSubscriptiontransferInfoClass = Class of TSubscriptiontransferInfo;
-  
-  { --------------------------------------------------------------------
-    TSubscriptiontrialSettings
-    --------------------------------------------------------------------}
-  
-  TSubscriptiontrialSettings = Class(TGoogleBaseObject)
-  Private
-    FisInTrial : boolean;
-    FtrialEndTime : string;
-  Protected
-    //Property setters
-    Procedure SetisInTrial(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SettrialEndTime(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property isInTrial : boolean Index 0 Read FisInTrial Write SetisInTrial;
-    Property trialEndTime : string Index 8 Read FtrialEndTime Write SettrialEndTime;
-  end;
-  TSubscriptiontrialSettingsClass = Class of TSubscriptiontrialSettings;
   
   { --------------------------------------------------------------------
     TSubscriptions
@@ -346,34 +331,21 @@ type
   
   TSubscriptions = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
-    Fsubscriptions : TSubscriptionssubscriptions;
+    Fkind : String;
+    FnextPageToken : String;
+    Fsubscriptions : TSubscriptionsTypesubscriptionsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsubscriptions(AIndex : Integer; AValue : TSubscriptionssubscriptions); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsubscriptions(AIndex : Integer; AValue : TSubscriptionsTypesubscriptionsArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
-    Property subscriptions : TSubscriptionssubscriptions Index 16 Read Fsubscriptions Write Setsubscriptions;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property subscriptions : TSubscriptionsTypesubscriptionsArray Index 16 Read Fsubscriptions Write Setsubscriptions;
   end;
   TSubscriptionsClass = Class of TSubscriptions;
-  
-  { --------------------------------------------------------------------
-    TSubscriptionssubscriptions
-    --------------------------------------------------------------------}
-  
-  TSubscriptionssubscriptions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSubscriptionssubscriptionsClass = Class of TSubscriptionssubscriptions;
   
   { --------------------------------------------------------------------
     TCustomersResource
@@ -383,7 +355,7 @@ type
   //Optional query Options for TCustomersResource, method Insert
   
   TCustomersInsertOptions = Record
-    customerAuthToken : string;
+    customerAuthToken : String;
   end;
   
   TCustomersResource = Class(TGoogleResource)
@@ -406,25 +378,25 @@ type
   //Optional query Options for TSubscriptionsResource, method Delete
   
   TSubscriptionsDeleteOptions = Record
-    deletionType : string;
+    deletionType : String;
   end;
   
   
   //Optional query Options for TSubscriptionsResource, method Insert
   
   TSubscriptionsInsertOptions = Record
-    customerAuthToken : string;
+    customerAuthToken : String;
   end;
   
   
   //Optional query Options for TSubscriptionsResource, method List
   
   TSubscriptionsListOptions = Record
-    customerAuthToken : string;
-    customerId : string;
-    customerNamePrefix : string;
+    customerAuthToken : String;
+    customerId : String;
+    customerNamePrefix : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TSubscriptionsResource = Class(TGoogleResource)
@@ -497,7 +469,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAddress.SetaddressLine1(AIndex : Integer; AValue : string); 
+Procedure TAddress.SetaddressLine1(AIndex : Integer; AValue : String); 
 
 begin
   If (FaddressLine1=AValue) then exit;
@@ -507,7 +479,7 @@ end;
 
 
 
-Procedure TAddress.SetaddressLine2(AIndex : Integer; AValue : string); 
+Procedure TAddress.SetaddressLine2(AIndex : Integer; AValue : String); 
 
 begin
   If (FaddressLine2=AValue) then exit;
@@ -517,7 +489,7 @@ end;
 
 
 
-Procedure TAddress.SetaddressLine3(AIndex : Integer; AValue : string); 
+Procedure TAddress.SetaddressLine3(AIndex : Integer; AValue : String); 
 
 begin
   If (FaddressLine3=AValue) then exit;
@@ -527,7 +499,7 @@ end;
 
 
 
-Procedure TAddress.SetcontactName(AIndex : Integer; AValue : string); 
+Procedure TAddress.SetcontactName(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontactName=AValue) then exit;
@@ -537,7 +509,7 @@ end;
 
 
 
-Procedure TAddress.SetcountryCode(AIndex : Integer; AValue : string); 
+Procedure TAddress.SetcountryCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FcountryCode=AValue) then exit;
@@ -547,7 +519,7 @@ end;
 
 
 
-Procedure TAddress.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAddress.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -557,7 +529,7 @@ end;
 
 
 
-Procedure TAddress.Setlocality(AIndex : Integer; AValue : string); 
+Procedure TAddress.Setlocality(AIndex : Integer; AValue : String); 
 
 begin
   If (Flocality=AValue) then exit;
@@ -567,7 +539,7 @@ end;
 
 
 
-Procedure TAddress.SetorganizationName(AIndex : Integer; AValue : string); 
+Procedure TAddress.SetorganizationName(AIndex : Integer; AValue : String); 
 
 begin
   If (ForganizationName=AValue) then exit;
@@ -577,7 +549,7 @@ end;
 
 
 
-Procedure TAddress.SetpostalCode(AIndex : Integer; AValue : string); 
+Procedure TAddress.SetpostalCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FpostalCode=AValue) then exit;
@@ -587,7 +559,7 @@ end;
 
 
 
-Procedure TAddress.Setregion(AIndex : Integer; AValue : string); 
+Procedure TAddress.Setregion(AIndex : Integer; AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -604,7 +576,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChangePlanRequest.Setkind(AIndex : Integer; AValue : string); 
+Procedure TChangePlanRequest.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -614,7 +586,7 @@ end;
 
 
 
-Procedure TChangePlanRequest.SetplanName(AIndex : Integer; AValue : string); 
+Procedure TChangePlanRequest.SetplanName(AIndex : Integer; AValue : String); 
 
 begin
   If (FplanName=AValue) then exit;
@@ -624,7 +596,7 @@ end;
 
 
 
-Procedure TChangePlanRequest.SetpurchaseOrderId(AIndex : Integer; AValue : string); 
+Procedure TChangePlanRequest.SetpurchaseOrderId(AIndex : Integer; AValue : String); 
 
 begin
   If (FpurchaseOrderId=AValue) then exit;
@@ -651,7 +623,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomer.SetalternateEmail(AIndex : Integer; AValue : string); 
+Procedure TCustomer.SetalternateEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FalternateEmail=AValue) then exit;
@@ -661,7 +633,7 @@ end;
 
 
 
-Procedure TCustomer.SetcustomerDomain(AIndex : Integer; AValue : string); 
+Procedure TCustomer.SetcustomerDomain(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomerDomain=AValue) then exit;
@@ -671,7 +643,7 @@ end;
 
 
 
-Procedure TCustomer.SetcustomerId(AIndex : Integer; AValue : string); 
+Procedure TCustomer.SetcustomerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomerId=AValue) then exit;
@@ -681,7 +653,7 @@ end;
 
 
 
-Procedure TCustomer.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCustomer.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -691,7 +663,7 @@ end;
 
 
 
-Procedure TCustomer.SetphoneNumber(AIndex : Integer; AValue : string); 
+Procedure TCustomer.SetphoneNumber(AIndex : Integer; AValue : String); 
 
 begin
   If (FphoneNumber=AValue) then exit;
@@ -711,7 +683,7 @@ end;
 
 
 
-Procedure TCustomer.SetresourceUiUrl(AIndex : Integer; AValue : string); 
+Procedure TCustomer.SetresourceUiUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FresourceUiUrl=AValue) then exit;
@@ -728,7 +700,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRenewalSettings.Setkind(AIndex : Integer; AValue : string); 
+Procedure TRenewalSettings.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -738,7 +710,7 @@ end;
 
 
 
-Procedure TRenewalSettings.SetrenewalType(AIndex : Integer; AValue : string); 
+Procedure TRenewalSettings.SetrenewalType(AIndex : Integer; AValue : String); 
 
 begin
   If (FrenewalType=AValue) then exit;
@@ -755,7 +727,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSeats.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSeats.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -798,11 +770,129 @@ end;
 
 
 { --------------------------------------------------------------------
+  TSubscriptionTypeplanTypecommitmentInterval
+  --------------------------------------------------------------------}
+
+
+Procedure TSubscriptionTypeplanTypecommitmentInterval.SetendTime(AIndex : Integer; AValue : String); 
+
+begin
+  If (FendTime=AValue) then exit;
+  FendTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubscriptionTypeplanTypecommitmentInterval.SetstartTime(AIndex : Integer; AValue : String); 
+
+begin
+  If (FstartTime=AValue) then exit;
+  FstartTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TSubscriptionTypeplan
+  --------------------------------------------------------------------}
+
+
+Procedure TSubscriptionTypeplan.SetcommitmentInterval(AIndex : Integer; AValue : TSubscriptionTypeplanTypecommitmentInterval); 
+
+begin
+  If (FcommitmentInterval=AValue) then exit;
+  FcommitmentInterval:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubscriptionTypeplan.SetisCommitmentPlan(AIndex : Integer; AValue : boolean); 
+
+begin
+  If (FisCommitmentPlan=AValue) then exit;
+  FisCommitmentPlan:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubscriptionTypeplan.SetplanName(AIndex : Integer; AValue : String); 
+
+begin
+  If (FplanName=AValue) then exit;
+  FplanName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TSubscriptionTypetransferInfo
+  --------------------------------------------------------------------}
+
+
+Procedure TSubscriptionTypetransferInfo.SetminimumTransferableSeats(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FminimumTransferableSeats=AValue) then exit;
+  FminimumTransferableSeats:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubscriptionTypetransferInfo.SettransferabilityExpirationTime(AIndex : Integer; AValue : String); 
+
+begin
+  If (FtransferabilityExpirationTime=AValue) then exit;
+  FtransferabilityExpirationTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TSubscriptionTypetrialSettings
+  --------------------------------------------------------------------}
+
+
+Procedure TSubscriptionTypetrialSettings.SetisInTrial(AIndex : Integer; AValue : boolean); 
+
+begin
+  If (FisInTrial=AValue) then exit;
+  FisInTrial:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubscriptionTypetrialSettings.SettrialEndTime(AIndex : Integer; AValue : String); 
+
+begin
+  If (FtrialEndTime=AValue) then exit;
+  FtrialEndTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TSubscription
   --------------------------------------------------------------------}
 
 
-Procedure TSubscription.SetbillingMethod(AIndex : Integer; AValue : string); 
+Procedure TSubscription.SetbillingMethod(AIndex : Integer; AValue : String); 
 
 begin
   If (FbillingMethod=AValue) then exit;
@@ -812,7 +902,7 @@ end;
 
 
 
-Procedure TSubscription.SetcreationTime(AIndex : Integer; AValue : string); 
+Procedure TSubscription.SetcreationTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -822,7 +912,7 @@ end;
 
 
 
-Procedure TSubscription.SetcustomerId(AIndex : Integer; AValue : string); 
+Procedure TSubscription.SetcustomerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomerId=AValue) then exit;
@@ -832,7 +922,7 @@ end;
 
 
 
-Procedure TSubscription.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSubscription.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -842,7 +932,7 @@ end;
 
 
 
-Procedure TSubscription.Setplan(AIndex : Integer; AValue : TSubscriptionplan); 
+Procedure TSubscription.Setplan(AIndex : Integer; AValue : TSubscriptionTypeplan); 
 
 begin
   If (Fplan=AValue) then exit;
@@ -852,7 +942,7 @@ end;
 
 
 
-Procedure TSubscription.SetpurchaseOrderId(AIndex : Integer; AValue : string); 
+Procedure TSubscription.SetpurchaseOrderId(AIndex : Integer; AValue : String); 
 
 begin
   If (FpurchaseOrderId=AValue) then exit;
@@ -872,7 +962,7 @@ end;
 
 
 
-Procedure TSubscription.SetresourceUiUrl(AIndex : Integer; AValue : string); 
+Procedure TSubscription.SetresourceUiUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FresourceUiUrl=AValue) then exit;
@@ -892,7 +982,7 @@ end;
 
 
 
-Procedure TSubscription.SetskuId(AIndex : Integer; AValue : string); 
+Procedure TSubscription.SetskuId(AIndex : Integer; AValue : String); 
 
 begin
   If (FskuId=AValue) then exit;
@@ -902,7 +992,7 @@ end;
 
 
 
-Procedure TSubscription.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TSubscription.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -912,7 +1002,7 @@ end;
 
 
 
-Procedure TSubscription.SetsubscriptionId(AIndex : Integer; AValue : string); 
+Procedure TSubscription.SetsubscriptionId(AIndex : Integer; AValue : String); 
 
 begin
   If (FsubscriptionId=AValue) then exit;
@@ -922,7 +1012,7 @@ end;
 
 
 
-Procedure TSubscription.SettransferInfo(AIndex : Integer; AValue : TSubscriptiontransferInfo); 
+Procedure TSubscription.SettransferInfo(AIndex : Integer; AValue : TSubscriptionTypetransferInfo); 
 
 begin
   If (FtransferInfo=AValue) then exit;
@@ -932,7 +1022,7 @@ end;
 
 
 
-Procedure TSubscription.SettrialSettings(AIndex : Integer; AValue : TSubscriptiontrialSettings); 
+Procedure TSubscription.SettrialSettings(AIndex : Integer; AValue : TSubscriptionTypetrialSettings); 
 
 begin
   If (FtrialSettings=AValue) then exit;
@@ -945,129 +1035,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSubscriptionplan
-  --------------------------------------------------------------------}
-
-
-Procedure TSubscriptionplan.SetcommitmentInterval(AIndex : Integer; AValue : TSubscriptionplancommitmentInterval); 
-
-begin
-  If (FcommitmentInterval=AValue) then exit;
-  FcommitmentInterval:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TSubscriptionplan.SetisCommitmentPlan(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FisCommitmentPlan=AValue) then exit;
-  FisCommitmentPlan:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TSubscriptionplan.SetplanName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FplanName=AValue) then exit;
-  FplanName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TSubscriptionplancommitmentInterval
-  --------------------------------------------------------------------}
-
-
-Procedure TSubscriptionplancommitmentInterval.SetendTime(AIndex : Integer; AValue : string); 
-
-begin
-  If (FendTime=AValue) then exit;
-  FendTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TSubscriptionplancommitmentInterval.SetstartTime(AIndex : Integer; AValue : string); 
-
-begin
-  If (FstartTime=AValue) then exit;
-  FstartTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TSubscriptiontransferInfo
-  --------------------------------------------------------------------}
-
-
-Procedure TSubscriptiontransferInfo.SetminimumTransferableSeats(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FminimumTransferableSeats=AValue) then exit;
-  FminimumTransferableSeats:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TSubscriptiontransferInfo.SettransferabilityExpirationTime(AIndex : Integer; AValue : string); 
-
-begin
-  If (FtransferabilityExpirationTime=AValue) then exit;
-  FtransferabilityExpirationTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TSubscriptiontrialSettings
-  --------------------------------------------------------------------}
-
-
-Procedure TSubscriptiontrialSettings.SetisInTrial(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FisInTrial=AValue) then exit;
-  FisInTrial:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TSubscriptiontrialSettings.SettrialEndTime(AIndex : Integer; AValue : string); 
-
-begin
-  If (FtrialEndTime=AValue) then exit;
-  FtrialEndTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TSubscriptions
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptions.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSubscriptions.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1077,7 +1049,7 @@ end;
 
 
 
-Procedure TSubscriptions.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSubscriptions.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1087,7 +1059,7 @@ end;
 
 
 
-Procedure TSubscriptions.Setsubscriptions(AIndex : Integer; AValue : TSubscriptionssubscriptions); 
+Procedure TSubscriptions.Setsubscriptions(AIndex : Integer; AValue : TSubscriptionsTypesubscriptionsArray); 
 
 begin
   If (Fsubscriptions=AValue) then exit;
@@ -1095,13 +1067,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TSubscriptionssubscriptions
-  --------------------------------------------------------------------}
 
 
 
@@ -1529,13 +1494,12 @@ begin
   TCustomer.RegisterObject;
   TRenewalSettings.RegisterObject;
   TSeats.RegisterObject;
+  TSubscriptionTypeplanTypecommitmentInterval.RegisterObject;
+  TSubscriptionTypeplan.RegisterObject;
+  TSubscriptionTypetransferInfo.RegisterObject;
+  TSubscriptionTypetrialSettings.RegisterObject;
   TSubscription.RegisterObject;
-  TSubscriptionplan.RegisterObject;
-  TSubscriptionplancommitmentInterval.RegisterObject;
-  TSubscriptiontransferInfo.RegisterObject;
-  TSubscriptiontrialSettings.RegisterObject;
   TSubscriptions.RegisterObject;
-  TSubscriptionssubscriptions.RegisterObject;
 end;
 
 

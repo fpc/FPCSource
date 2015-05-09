@@ -1,31 +1,19 @@
 unit googletagmanager;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:58
 {$MODE objfpc}
 {$H+}
 
@@ -34,137 +22,87 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAccount = class;
-  TAccountArray = Array of TAccount;
   TAccountAccess = class;
-  TAccountAccessArray = Array of TAccountAccess;
-  TAccountAccesspermission = class;
-  TAccountAccesspermissionArray = Array of TAccountAccesspermission;
   TCondition = class;
-  TConditionArray = Array of TCondition;
-  TConditionparameter = class;
-  TConditionparameterArray = Array of TConditionparameter;
   TContainer = class;
-  TContainerArray = Array of TContainer;
-  TContainerdomainName = class;
-  TContainerdomainNameArray = Array of TContainerdomainName;
-  TContainerenabledBuiltInVariable = class;
-  TContainerenabledBuiltInVariableArray = Array of TContainerenabledBuiltInVariable;
-  TContainerusageContext = class;
-  TContainerusageContextArray = Array of TContainerusageContext;
   TContainerAccess = class;
-  TContainerAccessArray = Array of TContainerAccess;
-  TContainerAccesspermission = class;
-  TContainerAccesspermissionArray = Array of TContainerAccesspermission;
   TContainerVersion = class;
-  TContainerVersionArray = Array of TContainerVersion;
-  TContainerVersionmacro = class;
-  TContainerVersionmacroArray = Array of TContainerVersionmacro;
-  TContainerVersionrule = class;
-  TContainerVersionruleArray = Array of TContainerVersionrule;
-  TContainerVersiontag = class;
-  TContainerVersiontagArray = Array of TContainerVersiontag;
-  TContainerVersiontrigger = class;
-  TContainerVersiontriggerArray = Array of TContainerVersiontrigger;
-  TContainerVersionvariable = class;
-  TContainerVersionvariableArray = Array of TContainerVersionvariable;
   TContainerVersionHeader = class;
-  TContainerVersionHeaderArray = Array of TContainerVersionHeader;
   TCreateContainerVersionRequestVersionOptions = class;
-  TCreateContainerVersionRequestVersionOptionsArray = Array of TCreateContainerVersionRequestVersionOptions;
   TCreateContainerVersionResponse = class;
-  TCreateContainerVersionResponseArray = Array of TCreateContainerVersionResponse;
   TListAccountUsersResponse = class;
-  TListAccountUsersResponseArray = Array of TListAccountUsersResponse;
-  TListAccountUsersResponseuserAccess = class;
-  TListAccountUsersResponseuserAccessArray = Array of TListAccountUsersResponseuserAccess;
   TListAccountsResponse = class;
-  TListAccountsResponseArray = Array of TListAccountsResponse;
-  TListAccountsResponseaccounts = class;
-  TListAccountsResponseaccountsArray = Array of TListAccountsResponseaccounts;
   TListContainerVersionsResponse = class;
-  TListContainerVersionsResponseArray = Array of TListContainerVersionsResponse;
-  TListContainerVersionsResponsecontainerVersion = class;
-  TListContainerVersionsResponsecontainerVersionArray = Array of TListContainerVersionsResponsecontainerVersion;
-  TListContainerVersionsResponsecontainerVersionHeader = class;
-  TListContainerVersionsResponsecontainerVersionHeaderArray = Array of TListContainerVersionsResponsecontainerVersionHeader;
   TListContainersResponse = class;
-  TListContainersResponseArray = Array of TListContainersResponse;
-  TListContainersResponsecontainers = class;
-  TListContainersResponsecontainersArray = Array of TListContainersResponsecontainers;
   TListMacrosResponse = class;
-  TListMacrosResponseArray = Array of TListMacrosResponse;
-  TListMacrosResponsemacros = class;
-  TListMacrosResponsemacrosArray = Array of TListMacrosResponsemacros;
   TListRulesResponse = class;
-  TListRulesResponseArray = Array of TListRulesResponse;
-  TListRulesResponserules = class;
-  TListRulesResponserulesArray = Array of TListRulesResponserules;
   TListTagsResponse = class;
-  TListTagsResponseArray = Array of TListTagsResponse;
-  TListTagsResponsetags = class;
-  TListTagsResponsetagsArray = Array of TListTagsResponsetags;
   TListTriggersResponse = class;
-  TListTriggersResponseArray = Array of TListTriggersResponse;
-  TListTriggersResponsetriggers = class;
-  TListTriggersResponsetriggersArray = Array of TListTriggersResponsetriggers;
   TListVariablesResponse = class;
-  TListVariablesResponseArray = Array of TListVariablesResponse;
-  TListVariablesResponsevariables = class;
-  TListVariablesResponsevariablesArray = Array of TListVariablesResponsevariables;
   TMacro = class;
-  TMacroArray = Array of TMacro;
-  TMacrodisablingRuleId = class;
-  TMacrodisablingRuleIdArray = Array of TMacrodisablingRuleId;
-  TMacroenablingRuleId = class;
-  TMacroenablingRuleIdArray = Array of TMacroenablingRuleId;
-  TMacroparameter = class;
-  TMacroparameterArray = Array of TMacroparameter;
   TParameter = class;
-  TParameterArray = Array of TParameter;
-  TParameterlist = class;
-  TParameterlistArray = Array of TParameterlist;
-  TParametermap = class;
-  TParametermapArray = Array of TParametermap;
   TPublishContainerVersionResponse = class;
-  TPublishContainerVersionResponseArray = Array of TPublishContainerVersionResponse;
   TRule = class;
-  TRuleArray = Array of TRule;
-  TRulecondition = class;
-  TRuleconditionArray = Array of TRulecondition;
   TTag = class;
-  TTagArray = Array of TTag;
-  TTagblockingRuleId = class;
-  TTagblockingRuleIdArray = Array of TTagblockingRuleId;
-  TTagblockingTriggerId = class;
-  TTagblockingTriggerIdArray = Array of TTagblockingTriggerId;
-  TTagfiringRuleId = class;
-  TTagfiringRuleIdArray = Array of TTagfiringRuleId;
-  TTagfiringTriggerId = class;
-  TTagfiringTriggerIdArray = Array of TTagfiringTriggerId;
-  TTagparameter = class;
-  TTagparameterArray = Array of TTagparameter;
   TTrigger = class;
-  TTriggerArray = Array of TTrigger;
-  TTriggerautoEventFilter = class;
-  TTriggerautoEventFilterArray = Array of TTriggerautoEventFilter;
-  TTriggercustomEventFilter = class;
-  TTriggercustomEventFilterArray = Array of TTriggercustomEventFilter;
-  TTriggerfilter = class;
-  TTriggerfilterArray = Array of TTriggerfilter;
   TUserAccess = class;
-  TUserAccessArray = Array of TUserAccess;
-  TUserAccesscontainerAccess = class;
-  TUserAccesscontainerAccessArray = Array of TUserAccesscontainerAccess;
   TVariable = class;
+  TAccountArray = Array of TAccount;
+  TAccountAccessArray = Array of TAccountAccess;
+  TConditionArray = Array of TCondition;
+  TContainerArray = Array of TContainer;
+  TContainerAccessArray = Array of TContainerAccess;
+  TContainerVersionArray = Array of TContainerVersion;
+  TContainerVersionHeaderArray = Array of TContainerVersionHeader;
+  TCreateContainerVersionRequestVersionOptionsArray = Array of TCreateContainerVersionRequestVersionOptions;
+  TCreateContainerVersionResponseArray = Array of TCreateContainerVersionResponse;
+  TListAccountUsersResponseArray = Array of TListAccountUsersResponse;
+  TListAccountsResponseArray = Array of TListAccountsResponse;
+  TListContainerVersionsResponseArray = Array of TListContainerVersionsResponse;
+  TListContainersResponseArray = Array of TListContainersResponse;
+  TListMacrosResponseArray = Array of TListMacrosResponse;
+  TListRulesResponseArray = Array of TListRulesResponse;
+  TListTagsResponseArray = Array of TListTagsResponse;
+  TListTriggersResponseArray = Array of TListTriggersResponse;
+  TListVariablesResponseArray = Array of TListVariablesResponse;
+  TMacroArray = Array of TMacro;
+  TParameterArray = Array of TParameter;
+  TPublishContainerVersionResponseArray = Array of TPublishContainerVersionResponse;
+  TRuleArray = Array of TRule;
+  TTagArray = Array of TTag;
+  TTriggerArray = Array of TTrigger;
+  TUserAccessArray = Array of TUserAccess;
   TVariableArray = Array of TVariable;
-  TVariabledisablingTriggerId = class;
-  TVariabledisablingTriggerIdArray = Array of TVariabledisablingTriggerId;
-  TVariableenablingTriggerId = class;
-  TVariableenablingTriggerIdArray = Array of TVariableenablingTriggerId;
-  TVariableparameter = class;
-  TVariableparameterArray = Array of TVariableparameter;
+  //Anonymous types, using auto-generated names
+  TConditionTypeparameterArray = Array of TParameter;
+  TContainerVersionTypemacroArray = Array of TMacro;
+  TContainerVersionTyperuleArray = Array of TRule;
+  TContainerVersionTypetagArray = Array of TTag;
+  TContainerVersionTypetriggerArray = Array of TTrigger;
+  TContainerVersionTypevariableArray = Array of TVariable;
+  TListAccountUsersResponseTypeuserAccessArray = Array of TUserAccess;
+  TListAccountsResponseTypeaccountsArray = Array of TAccount;
+  TListContainerVersionsResponseTypecontainerVersionArray = Array of TContainerVersion;
+  TListContainerVersionsResponseTypecontainerVersionHeaderArray = Array of TContainerVersionHeader;
+  TListContainersResponseTypecontainersArray = Array of TContainer;
+  TListMacrosResponseTypemacrosArray = Array of TMacro;
+  TListRulesResponseTyperulesArray = Array of TRule;
+  TListTagsResponseTypetagsArray = Array of TTag;
+  TListTriggersResponseTypetriggersArray = Array of TTrigger;
+  TListVariablesResponseTypevariablesArray = Array of TVariable;
+  TMacroTypeparameterArray = Array of TParameter;
+  TParameterTypelistArray = Array of TParameter;
+  TParameterTypemapArray = Array of TParameter;
+  TRuleTypeconditionArray = Array of TCondition;
+  TTagTypeparameterArray = Array of TParameter;
+  TTriggerTypeautoEventFilterArray = Array of TCondition;
+  TTriggerTypecustomEventFilterArray = Array of TCondition;
+  TTriggerTypefilterArray = Array of TCondition;
+  TUserAccessTypecontainerAccessArray = Array of TContainerAccess;
+  TVariableTypeparameterArray = Array of TParameter;
   
   { --------------------------------------------------------------------
     TAccount
@@ -172,21 +110,21 @@ type
   
   TAccount = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
-    Ffingerprint : string;
-    Fname : string;
+    FaccountId : String;
+    Ffingerprint : String;
+    Fname : String;
     FshareData : boolean;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetshareData(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
-    Property fingerprint : string Index 8 Read Ffingerprint Write Setfingerprint;
-    Property name : string Index 16 Read Fname Write Setname;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property fingerprint : String Index 8 Read Ffingerprint Write Setfingerprint;
+    Property name : String Index 16 Read Fname Write Setname;
     Property shareData : boolean Index 24 Read FshareData Write SetshareData;
   end;
   TAccountClass = Class of TAccount;
@@ -197,28 +135,15 @@ type
   
   TAccountAccess = Class(TGoogleBaseObject)
   Private
-    Fpermission : TAccountAccesspermission;
+    Fpermission : TStringArray;
   Protected
     //Property setters
-    Procedure Setpermission(AIndex : Integer; AValue : TAccountAccesspermission); virtual;
+    Procedure Setpermission(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property permission : TAccountAccesspermission Index 0 Read Fpermission Write Setpermission;
+    Property permission : TStringArray Index 0 Read Fpermission Write Setpermission;
   end;
   TAccountAccessClass = Class of TAccountAccess;
-  
-  { --------------------------------------------------------------------
-    TAccountAccesspermission
-    --------------------------------------------------------------------}
-  
-  TAccountAccesspermission = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountAccesspermissionClass = Class of TAccountAccesspermission;
   
   { --------------------------------------------------------------------
     TCondition
@@ -226,32 +151,19 @@ type
   
   TCondition = Class(TGoogleBaseObject)
   Private
-    Fparameter : TConditionparameter;
-    F_type : string;
+    Fparameter : TConditionTypeparameterArray;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setparameter(AIndex : Integer; AValue : TConditionparameter); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setparameter(AIndex : Integer; AValue : TConditionTypeparameterArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property parameter : TConditionparameter Index 0 Read Fparameter Write Setparameter;
-    Property _type : string Index 8 Read F_type Write Set_type;
+    Property parameter : TConditionTypeparameterArray Index 0 Read Fparameter Write Setparameter;
+    Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TConditionClass = Class of TCondition;
-  
-  { --------------------------------------------------------------------
-    TConditionparameter
-    --------------------------------------------------------------------}
-  
-  TConditionparameter = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TConditionparameterClass = Class of TConditionparameter;
   
   { --------------------------------------------------------------------
     TContainer
@@ -259,84 +171,45 @@ type
   
   TContainer = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
-    FcontainerId : string;
-    FdomainName : TContainerdomainName;
-    FenabledBuiltInVariable : TContainerenabledBuiltInVariable;
-    Ffingerprint : string;
-    Fname : string;
-    Fnotes : string;
-    FpublicId : string;
-    FtimeZoneCountryId : string;
-    FtimeZoneId : string;
-    FusageContext : TContainerusageContext;
+    FaccountId : String;
+    FcontainerId : String;
+    FdomainName : TStringArray;
+    FenabledBuiltInVariable : TStringArray;
+    Ffingerprint : String;
+    Fname : String;
+    Fnotes : String;
+    FpublicId : String;
+    FtimeZoneCountryId : String;
+    FtimeZoneId : String;
+    FusageContext : TStringArray;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdomainName(AIndex : Integer; AValue : TContainerdomainName); virtual;
-    Procedure SetenabledBuiltInVariable(AIndex : Integer; AValue : TContainerenabledBuiltInVariable); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpublicId(AIndex : Integer; AValue : string); virtual;
-    Procedure SettimeZoneCountryId(AIndex : Integer; AValue : string); virtual;
-    Procedure SettimeZoneId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetusageContext(AIndex : Integer; AValue : TContainerusageContext); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdomainName(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetenabledBuiltInVariable(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpublicId(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimeZoneCountryId(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimeZoneId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetusageContext(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
-    Property containerId : string Index 8 Read FcontainerId Write SetcontainerId;
-    Property domainName : TContainerdomainName Index 16 Read FdomainName Write SetdomainName;
-    Property enabledBuiltInVariable : TContainerenabledBuiltInVariable Index 24 Read FenabledBuiltInVariable Write SetenabledBuiltInVariable;
-    Property fingerprint : string Index 32 Read Ffingerprint Write Setfingerprint;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property notes : string Index 48 Read Fnotes Write Setnotes;
-    Property publicId : string Index 56 Read FpublicId Write SetpublicId;
-    Property timeZoneCountryId : string Index 64 Read FtimeZoneCountryId Write SettimeZoneCountryId;
-    Property timeZoneId : string Index 72 Read FtimeZoneId Write SettimeZoneId;
-    Property usageContext : TContainerusageContext Index 80 Read FusageContext Write SetusageContext;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property containerId : String Index 8 Read FcontainerId Write SetcontainerId;
+    Property domainName : TStringArray Index 16 Read FdomainName Write SetdomainName;
+    Property enabledBuiltInVariable : TStringArray Index 24 Read FenabledBuiltInVariable Write SetenabledBuiltInVariable;
+    Property fingerprint : String Index 32 Read Ffingerprint Write Setfingerprint;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property notes : String Index 48 Read Fnotes Write Setnotes;
+    Property publicId : String Index 56 Read FpublicId Write SetpublicId;
+    Property timeZoneCountryId : String Index 64 Read FtimeZoneCountryId Write SettimeZoneCountryId;
+    Property timeZoneId : String Index 72 Read FtimeZoneId Write SettimeZoneId;
+    Property usageContext : TStringArray Index 80 Read FusageContext Write SetusageContext;
   end;
   TContainerClass = Class of TContainer;
-  
-  { --------------------------------------------------------------------
-    TContainerdomainName
-    --------------------------------------------------------------------}
-  
-  TContainerdomainName = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContainerdomainNameClass = Class of TContainerdomainName;
-  
-  { --------------------------------------------------------------------
-    TContainerenabledBuiltInVariable
-    --------------------------------------------------------------------}
-  
-  TContainerenabledBuiltInVariable = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContainerenabledBuiltInVariableClass = Class of TContainerenabledBuiltInVariable;
-  
-  { --------------------------------------------------------------------
-    TContainerusageContext
-    --------------------------------------------------------------------}
-  
-  TContainerusageContext = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContainerusageContextClass = Class of TContainerusageContext;
   
   { --------------------------------------------------------------------
     TContainerAccess
@@ -344,31 +217,18 @@ type
   
   TContainerAccess = Class(TGoogleBaseObject)
   Private
-    FcontainerId : string;
-    Fpermission : TContainerAccesspermission;
+    FcontainerId : String;
+    Fpermission : TStringArray;
   Protected
     //Property setters
-    Procedure SetcontainerId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpermission(AIndex : Integer; AValue : TContainerAccesspermission); virtual;
+    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpermission(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property containerId : string Index 0 Read FcontainerId Write SetcontainerId;
-    Property permission : TContainerAccesspermission Index 8 Read Fpermission Write Setpermission;
+    Property containerId : String Index 0 Read FcontainerId Write SetcontainerId;
+    Property permission : TStringArray Index 8 Read Fpermission Write Setpermission;
   end;
   TContainerAccessClass = Class of TContainerAccess;
-  
-  { --------------------------------------------------------------------
-    TContainerAccesspermission
-    --------------------------------------------------------------------}
-  
-  TContainerAccesspermission = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContainerAccesspermissionClass = Class of TContainerAccesspermission;
   
   { --------------------------------------------------------------------
     TContainerVersion
@@ -376,116 +236,51 @@ type
   
   TContainerVersion = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
+    FaccountId : String;
     Fcontainer : TContainer;
-    FcontainerId : string;
-    FcontainerVersionId : string;
+    FcontainerId : String;
+    FcontainerVersionId : String;
     Fdeleted : boolean;
-    Ffingerprint : string;
-    Fmacro : TContainerVersionmacro;
-    Fname : string;
-    Fnotes : string;
-    Frule : TContainerVersionrule;
-    Ftag : TContainerVersiontag;
-    Ftrigger : TContainerVersiontrigger;
-    Fvariable : TContainerVersionvariable;
+    Ffingerprint : String;
+    Fmacro : TContainerVersionTypemacroArray;
+    Fname : String;
+    Fnotes : String;
+    Frule : TContainerVersionTyperuleArray;
+    Ftag : TContainerVersionTypetagArray;
+    Ftrigger : TContainerVersionTypetriggerArray;
+    Fvariable : TContainerVersionTypevariableArray;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
     Procedure Setcontainer(AIndex : Integer; AValue : TContainer); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontainerVersionId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerVersionId(AIndex : Integer; AValue : String); virtual;
     Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmacro(AIndex : Integer; AValue : TContainerVersionmacro); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrule(AIndex : Integer; AValue : TContainerVersionrule); virtual;
-    Procedure Settag(AIndex : Integer; AValue : TContainerVersiontag); virtual;
-    Procedure Settrigger(AIndex : Integer; AValue : TContainerVersiontrigger); virtual;
-    Procedure Setvariable(AIndex : Integer; AValue : TContainerVersionvariable); virtual;
+    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmacro(AIndex : Integer; AValue : TContainerVersionTypemacroArray); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrule(AIndex : Integer; AValue : TContainerVersionTyperuleArray); virtual;
+    Procedure Settag(AIndex : Integer; AValue : TContainerVersionTypetagArray); virtual;
+    Procedure Settrigger(AIndex : Integer; AValue : TContainerVersionTypetriggerArray); virtual;
+    Procedure Setvariable(AIndex : Integer; AValue : TContainerVersionTypevariableArray); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
     Property container : TContainer Index 8 Read Fcontainer Write Setcontainer;
-    Property containerId : string Index 16 Read FcontainerId Write SetcontainerId;
-    Property containerVersionId : string Index 24 Read FcontainerVersionId Write SetcontainerVersionId;
+    Property containerId : String Index 16 Read FcontainerId Write SetcontainerId;
+    Property containerVersionId : String Index 24 Read FcontainerVersionId Write SetcontainerVersionId;
     Property deleted : boolean Index 32 Read Fdeleted Write Setdeleted;
-    Property fingerprint : string Index 40 Read Ffingerprint Write Setfingerprint;
-    Property macro : TContainerVersionmacro Index 48 Read Fmacro Write Setmacro;
-    Property name : string Index 56 Read Fname Write Setname;
-    Property notes : string Index 64 Read Fnotes Write Setnotes;
-    Property rule : TContainerVersionrule Index 72 Read Frule Write Setrule;
-    Property tag : TContainerVersiontag Index 80 Read Ftag Write Settag;
-    Property trigger : TContainerVersiontrigger Index 88 Read Ftrigger Write Settrigger;
-    Property variable : TContainerVersionvariable Index 96 Read Fvariable Write Setvariable;
+    Property fingerprint : String Index 40 Read Ffingerprint Write Setfingerprint;
+    Property macro : TContainerVersionTypemacroArray Index 48 Read Fmacro Write Setmacro;
+    Property name : String Index 56 Read Fname Write Setname;
+    Property notes : String Index 64 Read Fnotes Write Setnotes;
+    Property rule : TContainerVersionTyperuleArray Index 72 Read Frule Write Setrule;
+    Property tag : TContainerVersionTypetagArray Index 80 Read Ftag Write Settag;
+    Property trigger : TContainerVersionTypetriggerArray Index 88 Read Ftrigger Write Settrigger;
+    Property variable : TContainerVersionTypevariableArray Index 96 Read Fvariable Write Setvariable;
   end;
   TContainerVersionClass = Class of TContainerVersion;
-  
-  { --------------------------------------------------------------------
-    TContainerVersionmacro
-    --------------------------------------------------------------------}
-  
-  TContainerVersionmacro = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContainerVersionmacroClass = Class of TContainerVersionmacro;
-  
-  { --------------------------------------------------------------------
-    TContainerVersionrule
-    --------------------------------------------------------------------}
-  
-  TContainerVersionrule = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContainerVersionruleClass = Class of TContainerVersionrule;
-  
-  { --------------------------------------------------------------------
-    TContainerVersiontag
-    --------------------------------------------------------------------}
-  
-  TContainerVersiontag = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContainerVersiontagClass = Class of TContainerVersiontag;
-  
-  { --------------------------------------------------------------------
-    TContainerVersiontrigger
-    --------------------------------------------------------------------}
-  
-  TContainerVersiontrigger = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContainerVersiontriggerClass = Class of TContainerVersiontrigger;
-  
-  { --------------------------------------------------------------------
-    TContainerVersionvariable
-    --------------------------------------------------------------------}
-  
-  TContainerVersionvariable = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContainerVersionvariableClass = Class of TContainerVersionvariable;
   
   { --------------------------------------------------------------------
     TContainerVersionHeader
@@ -493,40 +288,40 @@ type
   
   TContainerVersionHeader = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
-    FcontainerId : string;
-    FcontainerVersionId : string;
+    FaccountId : String;
+    FcontainerId : String;
+    FcontainerVersionId : String;
     Fdeleted : boolean;
-    Fname : string;
-    FnumMacros : string;
-    FnumRules : string;
-    FnumTags : string;
-    FnumTriggers : string;
-    FnumVariables : string;
+    Fname : String;
+    FnumMacros : String;
+    FnumRules : String;
+    FnumTags : String;
+    FnumTriggers : String;
+    FnumVariables : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontainerVersionId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerVersionId(AIndex : Integer; AValue : String); virtual;
     Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnumMacros(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnumRules(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnumTags(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnumTriggers(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnumVariables(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnumMacros(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnumRules(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnumTags(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnumTriggers(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnumVariables(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
-    Property containerId : string Index 8 Read FcontainerId Write SetcontainerId;
-    Property containerVersionId : string Index 16 Read FcontainerVersionId Write SetcontainerVersionId;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property containerId : String Index 8 Read FcontainerId Write SetcontainerId;
+    Property containerVersionId : String Index 16 Read FcontainerVersionId Write SetcontainerVersionId;
     Property deleted : boolean Index 24 Read Fdeleted Write Setdeleted;
-    Property name : string Index 32 Read Fname Write Setname;
-    Property numMacros : string Index 40 Read FnumMacros Write SetnumMacros;
-    Property numRules : string Index 48 Read FnumRules Write SetnumRules;
-    Property numTags : string Index 56 Read FnumTags Write SetnumTags;
-    Property numTriggers : string Index 64 Read FnumTriggers Write SetnumTriggers;
-    Property numVariables : string Index 72 Read FnumVariables Write SetnumVariables;
+    Property name : String Index 32 Read Fname Write Setname;
+    Property numMacros : String Index 40 Read FnumMacros Write SetnumMacros;
+    Property numRules : String Index 48 Read FnumRules Write SetnumRules;
+    Property numTags : String Index 56 Read FnumTags Write SetnumTags;
+    Property numTriggers : String Index 64 Read FnumTriggers Write SetnumTriggers;
+    Property numVariables : String Index 72 Read FnumVariables Write SetnumVariables;
   end;
   TContainerVersionHeaderClass = Class of TContainerVersionHeader;
   
@@ -536,18 +331,18 @@ type
   
   TCreateContainerVersionRequestVersionOptions = Class(TGoogleBaseObject)
   Private
-    Fname : string;
-    Fnotes : string;
+    Fname : String;
+    Fnotes : String;
     FquickPreview : boolean;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
     Procedure SetquickPreview(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
-    Property notes : string Index 8 Read Fnotes Write Setnotes;
+    Property name : String Index 0 Read Fname Write Setname;
+    Property notes : String Index 8 Read Fnotes Write Setnotes;
     Property quickPreview : boolean Index 16 Read FquickPreview Write SetquickPreview;
   end;
   TCreateContainerVersionRequestVersionOptionsClass = Class of TCreateContainerVersionRequestVersionOptions;
@@ -577,28 +372,15 @@ type
   
   TListAccountUsersResponse = Class(TGoogleBaseObject)
   Private
-    FuserAccess : TListAccountUsersResponseuserAccess;
+    FuserAccess : TListAccountUsersResponseTypeuserAccessArray;
   Protected
     //Property setters
-    Procedure SetuserAccess(AIndex : Integer; AValue : TListAccountUsersResponseuserAccess); virtual;
+    Procedure SetuserAccess(AIndex : Integer; AValue : TListAccountUsersResponseTypeuserAccessArray); virtual;
   Public
   Published
-    Property userAccess : TListAccountUsersResponseuserAccess Index 0 Read FuserAccess Write SetuserAccess;
+    Property userAccess : TListAccountUsersResponseTypeuserAccessArray Index 0 Read FuserAccess Write SetuserAccess;
   end;
   TListAccountUsersResponseClass = Class of TListAccountUsersResponse;
-  
-  { --------------------------------------------------------------------
-    TListAccountUsersResponseuserAccess
-    --------------------------------------------------------------------}
-  
-  TListAccountUsersResponseuserAccess = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListAccountUsersResponseuserAccessClass = Class of TListAccountUsersResponseuserAccess;
   
   { --------------------------------------------------------------------
     TListAccountsResponse
@@ -606,28 +388,15 @@ type
   
   TListAccountsResponse = Class(TGoogleBaseObject)
   Private
-    Faccounts : TListAccountsResponseaccounts;
+    Faccounts : TListAccountsResponseTypeaccountsArray;
   Protected
     //Property setters
-    Procedure Setaccounts(AIndex : Integer; AValue : TListAccountsResponseaccounts); virtual;
+    Procedure Setaccounts(AIndex : Integer; AValue : TListAccountsResponseTypeaccountsArray); virtual;
   Public
   Published
-    Property accounts : TListAccountsResponseaccounts Index 0 Read Faccounts Write Setaccounts;
+    Property accounts : TListAccountsResponseTypeaccountsArray Index 0 Read Faccounts Write Setaccounts;
   end;
   TListAccountsResponseClass = Class of TListAccountsResponse;
-  
-  { --------------------------------------------------------------------
-    TListAccountsResponseaccounts
-    --------------------------------------------------------------------}
-  
-  TListAccountsResponseaccounts = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListAccountsResponseaccountsClass = Class of TListAccountsResponseaccounts;
   
   { --------------------------------------------------------------------
     TListContainerVersionsResponse
@@ -635,44 +404,18 @@ type
   
   TListContainerVersionsResponse = Class(TGoogleBaseObject)
   Private
-    FcontainerVersion : TListContainerVersionsResponsecontainerVersion;
-    FcontainerVersionHeader : TListContainerVersionsResponsecontainerVersionHeader;
+    FcontainerVersion : TListContainerVersionsResponseTypecontainerVersionArray;
+    FcontainerVersionHeader : TListContainerVersionsResponseTypecontainerVersionHeaderArray;
   Protected
     //Property setters
-    Procedure SetcontainerVersion(AIndex : Integer; AValue : TListContainerVersionsResponsecontainerVersion); virtual;
-    Procedure SetcontainerVersionHeader(AIndex : Integer; AValue : TListContainerVersionsResponsecontainerVersionHeader); virtual;
+    Procedure SetcontainerVersion(AIndex : Integer; AValue : TListContainerVersionsResponseTypecontainerVersionArray); virtual;
+    Procedure SetcontainerVersionHeader(AIndex : Integer; AValue : TListContainerVersionsResponseTypecontainerVersionHeaderArray); virtual;
   Public
   Published
-    Property containerVersion : TListContainerVersionsResponsecontainerVersion Index 0 Read FcontainerVersion Write SetcontainerVersion;
-    Property containerVersionHeader : TListContainerVersionsResponsecontainerVersionHeader Index 8 Read FcontainerVersionHeader Write SetcontainerVersionHeader;
+    Property containerVersion : TListContainerVersionsResponseTypecontainerVersionArray Index 0 Read FcontainerVersion Write SetcontainerVersion;
+    Property containerVersionHeader : TListContainerVersionsResponseTypecontainerVersionHeaderArray Index 8 Read FcontainerVersionHeader Write SetcontainerVersionHeader;
   end;
   TListContainerVersionsResponseClass = Class of TListContainerVersionsResponse;
-  
-  { --------------------------------------------------------------------
-    TListContainerVersionsResponsecontainerVersion
-    --------------------------------------------------------------------}
-  
-  TListContainerVersionsResponsecontainerVersion = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListContainerVersionsResponsecontainerVersionClass = Class of TListContainerVersionsResponsecontainerVersion;
-  
-  { --------------------------------------------------------------------
-    TListContainerVersionsResponsecontainerVersionHeader
-    --------------------------------------------------------------------}
-  
-  TListContainerVersionsResponsecontainerVersionHeader = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListContainerVersionsResponsecontainerVersionHeaderClass = Class of TListContainerVersionsResponsecontainerVersionHeader;
   
   { --------------------------------------------------------------------
     TListContainersResponse
@@ -680,28 +423,15 @@ type
   
   TListContainersResponse = Class(TGoogleBaseObject)
   Private
-    Fcontainers : TListContainersResponsecontainers;
+    Fcontainers : TListContainersResponseTypecontainersArray;
   Protected
     //Property setters
-    Procedure Setcontainers(AIndex : Integer; AValue : TListContainersResponsecontainers); virtual;
+    Procedure Setcontainers(AIndex : Integer; AValue : TListContainersResponseTypecontainersArray); virtual;
   Public
   Published
-    Property containers : TListContainersResponsecontainers Index 0 Read Fcontainers Write Setcontainers;
+    Property containers : TListContainersResponseTypecontainersArray Index 0 Read Fcontainers Write Setcontainers;
   end;
   TListContainersResponseClass = Class of TListContainersResponse;
-  
-  { --------------------------------------------------------------------
-    TListContainersResponsecontainers
-    --------------------------------------------------------------------}
-  
-  TListContainersResponsecontainers = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListContainersResponsecontainersClass = Class of TListContainersResponsecontainers;
   
   { --------------------------------------------------------------------
     TListMacrosResponse
@@ -709,28 +439,15 @@ type
   
   TListMacrosResponse = Class(TGoogleBaseObject)
   Private
-    Fmacros : TListMacrosResponsemacros;
+    Fmacros : TListMacrosResponseTypemacrosArray;
   Protected
     //Property setters
-    Procedure Setmacros(AIndex : Integer; AValue : TListMacrosResponsemacros); virtual;
+    Procedure Setmacros(AIndex : Integer; AValue : TListMacrosResponseTypemacrosArray); virtual;
   Public
   Published
-    Property macros : TListMacrosResponsemacros Index 0 Read Fmacros Write Setmacros;
+    Property macros : TListMacrosResponseTypemacrosArray Index 0 Read Fmacros Write Setmacros;
   end;
   TListMacrosResponseClass = Class of TListMacrosResponse;
-  
-  { --------------------------------------------------------------------
-    TListMacrosResponsemacros
-    --------------------------------------------------------------------}
-  
-  TListMacrosResponsemacros = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListMacrosResponsemacrosClass = Class of TListMacrosResponsemacros;
   
   { --------------------------------------------------------------------
     TListRulesResponse
@@ -738,28 +455,15 @@ type
   
   TListRulesResponse = Class(TGoogleBaseObject)
   Private
-    Frules : TListRulesResponserules;
+    Frules : TListRulesResponseTyperulesArray;
   Protected
     //Property setters
-    Procedure Setrules(AIndex : Integer; AValue : TListRulesResponserules); virtual;
+    Procedure Setrules(AIndex : Integer; AValue : TListRulesResponseTyperulesArray); virtual;
   Public
   Published
-    Property rules : TListRulesResponserules Index 0 Read Frules Write Setrules;
+    Property rules : TListRulesResponseTyperulesArray Index 0 Read Frules Write Setrules;
   end;
   TListRulesResponseClass = Class of TListRulesResponse;
-  
-  { --------------------------------------------------------------------
-    TListRulesResponserules
-    --------------------------------------------------------------------}
-  
-  TListRulesResponserules = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListRulesResponserulesClass = Class of TListRulesResponserules;
   
   { --------------------------------------------------------------------
     TListTagsResponse
@@ -767,28 +471,15 @@ type
   
   TListTagsResponse = Class(TGoogleBaseObject)
   Private
-    Ftags : TListTagsResponsetags;
+    Ftags : TListTagsResponseTypetagsArray;
   Protected
     //Property setters
-    Procedure Settags(AIndex : Integer; AValue : TListTagsResponsetags); virtual;
+    Procedure Settags(AIndex : Integer; AValue : TListTagsResponseTypetagsArray); virtual;
   Public
   Published
-    Property tags : TListTagsResponsetags Index 0 Read Ftags Write Settags;
+    Property tags : TListTagsResponseTypetagsArray Index 0 Read Ftags Write Settags;
   end;
   TListTagsResponseClass = Class of TListTagsResponse;
-  
-  { --------------------------------------------------------------------
-    TListTagsResponsetags
-    --------------------------------------------------------------------}
-  
-  TListTagsResponsetags = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListTagsResponsetagsClass = Class of TListTagsResponsetags;
   
   { --------------------------------------------------------------------
     TListTriggersResponse
@@ -796,28 +487,15 @@ type
   
   TListTriggersResponse = Class(TGoogleBaseObject)
   Private
-    Ftriggers : TListTriggersResponsetriggers;
+    Ftriggers : TListTriggersResponseTypetriggersArray;
   Protected
     //Property setters
-    Procedure Settriggers(AIndex : Integer; AValue : TListTriggersResponsetriggers); virtual;
+    Procedure Settriggers(AIndex : Integer; AValue : TListTriggersResponseTypetriggersArray); virtual;
   Public
   Published
-    Property triggers : TListTriggersResponsetriggers Index 0 Read Ftriggers Write Settriggers;
+    Property triggers : TListTriggersResponseTypetriggersArray Index 0 Read Ftriggers Write Settriggers;
   end;
   TListTriggersResponseClass = Class of TListTriggersResponse;
-  
-  { --------------------------------------------------------------------
-    TListTriggersResponsetriggers
-    --------------------------------------------------------------------}
-  
-  TListTriggersResponsetriggers = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListTriggersResponsetriggersClass = Class of TListTriggersResponsetriggers;
   
   { --------------------------------------------------------------------
     TListVariablesResponse
@@ -825,28 +503,15 @@ type
   
   TListVariablesResponse = Class(TGoogleBaseObject)
   Private
-    Fvariables : TListVariablesResponsevariables;
+    Fvariables : TListVariablesResponseTypevariablesArray;
   Protected
     //Property setters
-    Procedure Setvariables(AIndex : Integer; AValue : TListVariablesResponsevariables); virtual;
+    Procedure Setvariables(AIndex : Integer; AValue : TListVariablesResponseTypevariablesArray); virtual;
   Public
   Published
-    Property variables : TListVariablesResponsevariables Index 0 Read Fvariables Write Setvariables;
+    Property variables : TListVariablesResponseTypevariablesArray Index 0 Read Fvariables Write Setvariables;
   end;
   TListVariablesResponseClass = Class of TListVariablesResponse;
-  
-  { --------------------------------------------------------------------
-    TListVariablesResponsevariables
-    --------------------------------------------------------------------}
-  
-  TListVariablesResponsevariables = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListVariablesResponsevariablesClass = Class of TListVariablesResponsevariables;
   
   { --------------------------------------------------------------------
     TMacro
@@ -854,88 +519,49 @@ type
   
   TMacro = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
-    FcontainerId : string;
-    FdisablingRuleId : TMacrodisablingRuleId;
-    FenablingRuleId : TMacroenablingRuleId;
-    Ffingerprint : string;
-    FmacroId : string;
-    Fname : string;
-    Fnotes : string;
-    Fparameter : TMacroparameter;
-    FscheduleEndMs : string;
-    FscheduleStartMs : string;
-    F_type : string;
+    FaccountId : String;
+    FcontainerId : String;
+    FdisablingRuleId : TStringArray;
+    FenablingRuleId : TStringArray;
+    Ffingerprint : String;
+    FmacroId : String;
+    Fname : String;
+    Fnotes : String;
+    Fparameter : TMacroTypeparameterArray;
+    FscheduleEndMs : String;
+    FscheduleStartMs : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdisablingRuleId(AIndex : Integer; AValue : TMacrodisablingRuleId); virtual;
-    Procedure SetenablingRuleId(AIndex : Integer; AValue : TMacroenablingRuleId); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmacroId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : string); virtual;
-    Procedure Setparameter(AIndex : Integer; AValue : TMacroparameter); virtual;
-    Procedure SetscheduleEndMs(AIndex : Integer; AValue : string); virtual;
-    Procedure SetscheduleStartMs(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisablingRuleId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetenablingRuleId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmacroId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
+    Procedure Setparameter(AIndex : Integer; AValue : TMacroTypeparameterArray); virtual;
+    Procedure SetscheduleEndMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetscheduleStartMs(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
-    Property containerId : string Index 8 Read FcontainerId Write SetcontainerId;
-    Property disablingRuleId : TMacrodisablingRuleId Index 16 Read FdisablingRuleId Write SetdisablingRuleId;
-    Property enablingRuleId : TMacroenablingRuleId Index 24 Read FenablingRuleId Write SetenablingRuleId;
-    Property fingerprint : string Index 32 Read Ffingerprint Write Setfingerprint;
-    Property macroId : string Index 40 Read FmacroId Write SetmacroId;
-    Property name : string Index 48 Read Fname Write Setname;
-    Property notes : string Index 56 Read Fnotes Write Setnotes;
-    Property parameter : TMacroparameter Index 64 Read Fparameter Write Setparameter;
-    Property scheduleEndMs : string Index 72 Read FscheduleEndMs Write SetscheduleEndMs;
-    Property scheduleStartMs : string Index 80 Read FscheduleStartMs Write SetscheduleStartMs;
-    Property _type : string Index 88 Read F_type Write Set_type;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property containerId : String Index 8 Read FcontainerId Write SetcontainerId;
+    Property disablingRuleId : TStringArray Index 16 Read FdisablingRuleId Write SetdisablingRuleId;
+    Property enablingRuleId : TStringArray Index 24 Read FenablingRuleId Write SetenablingRuleId;
+    Property fingerprint : String Index 32 Read Ffingerprint Write Setfingerprint;
+    Property macroId : String Index 40 Read FmacroId Write SetmacroId;
+    Property name : String Index 48 Read Fname Write Setname;
+    Property notes : String Index 56 Read Fnotes Write Setnotes;
+    Property parameter : TMacroTypeparameterArray Index 64 Read Fparameter Write Setparameter;
+    Property scheduleEndMs : String Index 72 Read FscheduleEndMs Write SetscheduleEndMs;
+    Property scheduleStartMs : String Index 80 Read FscheduleStartMs Write SetscheduleStartMs;
+    Property _type : String Index 88 Read F_type Write Set_type;
   end;
   TMacroClass = Class of TMacro;
-  
-  { --------------------------------------------------------------------
-    TMacrodisablingRuleId
-    --------------------------------------------------------------------}
-  
-  TMacrodisablingRuleId = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMacrodisablingRuleIdClass = Class of TMacrodisablingRuleId;
-  
-  { --------------------------------------------------------------------
-    TMacroenablingRuleId
-    --------------------------------------------------------------------}
-  
-  TMacroenablingRuleId = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMacroenablingRuleIdClass = Class of TMacroenablingRuleId;
-  
-  { --------------------------------------------------------------------
-    TMacroparameter
-    --------------------------------------------------------------------}
-  
-  TMacroparameter = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMacroparameterClass = Class of TMacroparameter;
   
   { --------------------------------------------------------------------
     TParameter
@@ -943,54 +569,28 @@ type
   
   TParameter = Class(TGoogleBaseObject)
   Private
-    Fkey : string;
-    Flist : TParameterlist;
-    Fmap : TParametermap;
-    F_type : string;
-    Fvalue : string;
+    Fkey : String;
+    Flist : TParameterTypelistArray;
+    Fmap : TParameterTypemapArray;
+    F_type : String;
+    Fvalue : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlist(AIndex : Integer; AValue : TParameterlist); virtual;
-    Procedure Setmap(AIndex : Integer; AValue : TParametermap); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlist(AIndex : Integer; AValue : TParameterTypelistArray); virtual;
+    Procedure Setmap(AIndex : Integer; AValue : TParameterTypemapArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property list : TParameterlist Index 8 Read Flist Write Setlist;
-    Property map : TParametermap Index 16 Read Fmap Write Setmap;
-    Property _type : string Index 24 Read F_type Write Set_type;
-    Property value : string Index 32 Read Fvalue Write Setvalue;
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property list : TParameterTypelistArray Index 8 Read Flist Write Setlist;
+    Property map : TParameterTypemapArray Index 16 Read Fmap Write Setmap;
+    Property _type : String Index 24 Read F_type Write Set_type;
+    Property value : String Index 32 Read Fvalue Write Setvalue;
   end;
   TParameterClass = Class of TParameter;
-  
-  { --------------------------------------------------------------------
-    TParameterlist
-    --------------------------------------------------------------------}
-  
-  TParameterlist = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TParameterlistClass = Class of TParameterlist;
-  
-  { --------------------------------------------------------------------
-    TParametermap
-    --------------------------------------------------------------------}
-  
-  TParametermap = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TParametermapClass = Class of TParametermap;
   
   { --------------------------------------------------------------------
     TPublishContainerVersionResponse
@@ -1017,46 +617,33 @@ type
   
   TRule = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
-    Fcondition : TRulecondition;
-    FcontainerId : string;
-    Ffingerprint : string;
-    Fname : string;
-    Fnotes : string;
-    FruleId : string;
+    FaccountId : String;
+    Fcondition : TRuleTypeconditionArray;
+    FcontainerId : String;
+    Ffingerprint : String;
+    Fname : String;
+    Fnotes : String;
+    FruleId : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcondition(AIndex : Integer; AValue : TRulecondition); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetruleId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcondition(AIndex : Integer; AValue : TRuleTypeconditionArray); virtual;
+    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetruleId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
-    Property condition : TRulecondition Index 8 Read Fcondition Write Setcondition;
-    Property containerId : string Index 16 Read FcontainerId Write SetcontainerId;
-    Property fingerprint : string Index 24 Read Ffingerprint Write Setfingerprint;
-    Property name : string Index 32 Read Fname Write Setname;
-    Property notes : string Index 40 Read Fnotes Write Setnotes;
-    Property ruleId : string Index 48 Read FruleId Write SetruleId;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property condition : TRuleTypeconditionArray Index 8 Read Fcondition Write Setcondition;
+    Property containerId : String Index 16 Read FcontainerId Write SetcontainerId;
+    Property fingerprint : String Index 24 Read Ffingerprint Write Setfingerprint;
+    Property name : String Index 32 Read Fname Write Setname;
+    Property notes : String Index 40 Read Fnotes Write Setnotes;
+    Property ruleId : String Index 48 Read FruleId Write SetruleId;
   end;
   TRuleClass = Class of TRule;
-  
-  { --------------------------------------------------------------------
-    TRulecondition
-    --------------------------------------------------------------------}
-  
-  TRulecondition = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRuleconditionClass = Class of TRulecondition;
   
   { --------------------------------------------------------------------
     TTag
@@ -1064,126 +651,61 @@ type
   
   TTag = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
-    FblockingRuleId : TTagblockingRuleId;
-    FblockingTriggerId : TTagblockingTriggerId;
-    FcontainerId : string;
-    Ffingerprint : string;
-    FfiringRuleId : TTagfiringRuleId;
-    FfiringTriggerId : TTagfiringTriggerId;
+    FaccountId : String;
+    FblockingRuleId : TStringArray;
+    FblockingTriggerId : TStringArray;
+    FcontainerId : String;
+    Ffingerprint : String;
+    FfiringRuleId : TStringArray;
+    FfiringTriggerId : TStringArray;
     FliveOnly : boolean;
-    Fname : string;
-    Fnotes : string;
-    Fparameter : TTagparameter;
+    Fname : String;
+    Fnotes : String;
+    Fparameter : TTagTypeparameterArray;
     Fpriority : TParameter;
-    FscheduleEndMs : string;
-    FscheduleStartMs : string;
-    FtagId : string;
-    F_type : string;
+    FscheduleEndMs : String;
+    FscheduleStartMs : String;
+    FtagId : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetblockingRuleId(AIndex : Integer; AValue : TTagblockingRuleId); virtual;
-    Procedure SetblockingTriggerId(AIndex : Integer; AValue : TTagblockingTriggerId); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfiringRuleId(AIndex : Integer; AValue : TTagfiringRuleId); virtual;
-    Procedure SetfiringTriggerId(AIndex : Integer; AValue : TTagfiringTriggerId); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetblockingRuleId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetblockingTriggerId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfiringRuleId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetfiringTriggerId(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetliveOnly(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : string); virtual;
-    Procedure Setparameter(AIndex : Integer; AValue : TTagparameter); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
+    Procedure Setparameter(AIndex : Integer; AValue : TTagTypeparameterArray); virtual;
     Procedure Setpriority(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure SetscheduleEndMs(AIndex : Integer; AValue : string); virtual;
-    Procedure SetscheduleStartMs(AIndex : Integer; AValue : string); virtual;
-    Procedure SettagId(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure SetscheduleEndMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetscheduleStartMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SettagId(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
-    Property blockingRuleId : TTagblockingRuleId Index 8 Read FblockingRuleId Write SetblockingRuleId;
-    Property blockingTriggerId : TTagblockingTriggerId Index 16 Read FblockingTriggerId Write SetblockingTriggerId;
-    Property containerId : string Index 24 Read FcontainerId Write SetcontainerId;
-    Property fingerprint : string Index 32 Read Ffingerprint Write Setfingerprint;
-    Property firingRuleId : TTagfiringRuleId Index 40 Read FfiringRuleId Write SetfiringRuleId;
-    Property firingTriggerId : TTagfiringTriggerId Index 48 Read FfiringTriggerId Write SetfiringTriggerId;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property blockingRuleId : TStringArray Index 8 Read FblockingRuleId Write SetblockingRuleId;
+    Property blockingTriggerId : TStringArray Index 16 Read FblockingTriggerId Write SetblockingTriggerId;
+    Property containerId : String Index 24 Read FcontainerId Write SetcontainerId;
+    Property fingerprint : String Index 32 Read Ffingerprint Write Setfingerprint;
+    Property firingRuleId : TStringArray Index 40 Read FfiringRuleId Write SetfiringRuleId;
+    Property firingTriggerId : TStringArray Index 48 Read FfiringTriggerId Write SetfiringTriggerId;
     Property liveOnly : boolean Index 56 Read FliveOnly Write SetliveOnly;
-    Property name : string Index 64 Read Fname Write Setname;
-    Property notes : string Index 72 Read Fnotes Write Setnotes;
-    Property parameter : TTagparameter Index 80 Read Fparameter Write Setparameter;
+    Property name : String Index 64 Read Fname Write Setname;
+    Property notes : String Index 72 Read Fnotes Write Setnotes;
+    Property parameter : TTagTypeparameterArray Index 80 Read Fparameter Write Setparameter;
     Property priority : TParameter Index 88 Read Fpriority Write Setpriority;
-    Property scheduleEndMs : string Index 96 Read FscheduleEndMs Write SetscheduleEndMs;
-    Property scheduleStartMs : string Index 104 Read FscheduleStartMs Write SetscheduleStartMs;
-    Property tagId : string Index 112 Read FtagId Write SettagId;
-    Property _type : string Index 120 Read F_type Write Set_type;
+    Property scheduleEndMs : String Index 96 Read FscheduleEndMs Write SetscheduleEndMs;
+    Property scheduleStartMs : String Index 104 Read FscheduleStartMs Write SetscheduleStartMs;
+    Property tagId : String Index 112 Read FtagId Write SettagId;
+    Property _type : String Index 120 Read F_type Write Set_type;
   end;
   TTagClass = Class of TTag;
-  
-  { --------------------------------------------------------------------
-    TTagblockingRuleId
-    --------------------------------------------------------------------}
-  
-  TTagblockingRuleId = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTagblockingRuleIdClass = Class of TTagblockingRuleId;
-  
-  { --------------------------------------------------------------------
-    TTagblockingTriggerId
-    --------------------------------------------------------------------}
-  
-  TTagblockingTriggerId = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTagblockingTriggerIdClass = Class of TTagblockingTriggerId;
-  
-  { --------------------------------------------------------------------
-    TTagfiringRuleId
-    --------------------------------------------------------------------}
-  
-  TTagfiringRuleId = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTagfiringRuleIdClass = Class of TTagfiringRuleId;
-  
-  { --------------------------------------------------------------------
-    TTagfiringTriggerId
-    --------------------------------------------------------------------}
-  
-  TTagfiringTriggerId = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTagfiringTriggerIdClass = Class of TTagfiringTriggerId;
-  
-  { --------------------------------------------------------------------
-    TTagparameter
-    --------------------------------------------------------------------}
-  
-  TTagparameter = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTagparameterClass = Class of TTagparameter;
   
   { --------------------------------------------------------------------
     TTrigger
@@ -1191,20 +713,20 @@ type
   
   TTrigger = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
-    FautoEventFilter : TTriggerautoEventFilter;
+    FaccountId : String;
+    FautoEventFilter : TTriggerTypeautoEventFilterArray;
     FcheckValidation : TParameter;
-    FcontainerId : string;
-    FcustomEventFilter : TTriggercustomEventFilter;
+    FcontainerId : String;
+    FcustomEventFilter : TTriggerTypecustomEventFilterArray;
     FenableAllVideos : TParameter;
     FeventName : TParameter;
-    Ffilter : TTriggerfilter;
-    Ffingerprint : string;
+    Ffilter : TTriggerTypefilterArray;
+    Ffingerprint : String;
     Finterval : TParameter;
     Flimit : TParameter;
-    Fname : string;
-    FtriggerId : string;
-    F_type : string;
+    Fname : String;
+    FtriggerId : String;
+    F_type : String;
     FuniqueTriggerId : TParameter;
     FvideoPercentageList : TParameter;
     FwaitForTags : TParameter;
@@ -1212,40 +734,40 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetautoEventFilter(AIndex : Integer; AValue : TTriggerautoEventFilter); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetautoEventFilter(AIndex : Integer; AValue : TTriggerTypeautoEventFilterArray); virtual;
     Procedure SetcheckValidation(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomEventFilter(AIndex : Integer; AValue : TTriggercustomEventFilter); virtual;
+    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomEventFilter(AIndex : Integer; AValue : TTriggerTypecustomEventFilterArray); virtual;
     Procedure SetenableAllVideos(AIndex : Integer; AValue : TParameter); virtual;
     Procedure SeteventName(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure Setfilter(AIndex : Integer; AValue : TTriggerfilter); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
+    Procedure Setfilter(AIndex : Integer; AValue : TTriggerTypefilterArray); virtual;
+    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
     Procedure Setinterval(AIndex : Integer; AValue : TParameter); virtual;
     Procedure Setlimit(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SettriggerId(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SettriggerId(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure SetuniqueTriggerId(AIndex : Integer; AValue : TParameter); virtual;
     Procedure SetvideoPercentageList(AIndex : Integer; AValue : TParameter); virtual;
     Procedure SetwaitForTags(AIndex : Integer; AValue : TParameter); virtual;
     Procedure SetwaitForTagsTimeout(AIndex : Integer; AValue : TParameter); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
-    Property autoEventFilter : TTriggerautoEventFilter Index 8 Read FautoEventFilter Write SetautoEventFilter;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property autoEventFilter : TTriggerTypeautoEventFilterArray Index 8 Read FautoEventFilter Write SetautoEventFilter;
     Property checkValidation : TParameter Index 16 Read FcheckValidation Write SetcheckValidation;
-    Property containerId : string Index 24 Read FcontainerId Write SetcontainerId;
-    Property customEventFilter : TTriggercustomEventFilter Index 32 Read FcustomEventFilter Write SetcustomEventFilter;
+    Property containerId : String Index 24 Read FcontainerId Write SetcontainerId;
+    Property customEventFilter : TTriggerTypecustomEventFilterArray Index 32 Read FcustomEventFilter Write SetcustomEventFilter;
     Property enableAllVideos : TParameter Index 40 Read FenableAllVideos Write SetenableAllVideos;
     Property eventName : TParameter Index 48 Read FeventName Write SeteventName;
-    Property filter : TTriggerfilter Index 56 Read Ffilter Write Setfilter;
-    Property fingerprint : string Index 64 Read Ffingerprint Write Setfingerprint;
+    Property filter : TTriggerTypefilterArray Index 56 Read Ffilter Write Setfilter;
+    Property fingerprint : String Index 64 Read Ffingerprint Write Setfingerprint;
     Property interval : TParameter Index 72 Read Finterval Write Setinterval;
     Property limit : TParameter Index 80 Read Flimit Write Setlimit;
-    Property name : string Index 88 Read Fname Write Setname;
-    Property triggerId : string Index 96 Read FtriggerId Write SettriggerId;
-    Property _type : string Index 104 Read F_type Write Set_type;
+    Property name : String Index 88 Read Fname Write Setname;
+    Property triggerId : String Index 96 Read FtriggerId Write SettriggerId;
+    Property _type : String Index 104 Read F_type Write Set_type;
     Property uniqueTriggerId : TParameter Index 112 Read FuniqueTriggerId Write SetuniqueTriggerId;
     Property videoPercentageList : TParameter Index 120 Read FvideoPercentageList Write SetvideoPercentageList;
     Property waitForTags : TParameter Index 128 Read FwaitForTags Write SetwaitForTags;
@@ -1254,84 +776,32 @@ type
   TTriggerClass = Class of TTrigger;
   
   { --------------------------------------------------------------------
-    TTriggerautoEventFilter
-    --------------------------------------------------------------------}
-  
-  TTriggerautoEventFilter = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTriggerautoEventFilterClass = Class of TTriggerautoEventFilter;
-  
-  { --------------------------------------------------------------------
-    TTriggercustomEventFilter
-    --------------------------------------------------------------------}
-  
-  TTriggercustomEventFilter = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTriggercustomEventFilterClass = Class of TTriggercustomEventFilter;
-  
-  { --------------------------------------------------------------------
-    TTriggerfilter
-    --------------------------------------------------------------------}
-  
-  TTriggerfilter = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTriggerfilterClass = Class of TTriggerfilter;
-  
-  { --------------------------------------------------------------------
     TUserAccess
     --------------------------------------------------------------------}
   
   TUserAccess = Class(TGoogleBaseObject)
   Private
     FaccountAccess : TAccountAccess;
-    FaccountId : string;
-    FcontainerAccess : TUserAccesscontainerAccess;
-    FemailAddress : string;
-    FpermissionId : string;
+    FaccountId : String;
+    FcontainerAccess : TUserAccessTypecontainerAccessArray;
+    FemailAddress : String;
+    FpermissionId : String;
   Protected
     //Property setters
     Procedure SetaccountAccess(AIndex : Integer; AValue : TAccountAccess); virtual;
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontainerAccess(AIndex : Integer; AValue : TUserAccesscontainerAccess); virtual;
-    Procedure SetemailAddress(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpermissionId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerAccess(AIndex : Integer; AValue : TUserAccessTypecontainerAccessArray); virtual;
+    Procedure SetemailAddress(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpermissionId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property accountAccess : TAccountAccess Index 0 Read FaccountAccess Write SetaccountAccess;
-    Property accountId : string Index 8 Read FaccountId Write SetaccountId;
-    Property containerAccess : TUserAccesscontainerAccess Index 16 Read FcontainerAccess Write SetcontainerAccess;
-    Property emailAddress : string Index 24 Read FemailAddress Write SetemailAddress;
-    Property permissionId : string Index 32 Read FpermissionId Write SetpermissionId;
+    Property accountId : String Index 8 Read FaccountId Write SetaccountId;
+    Property containerAccess : TUserAccessTypecontainerAccessArray Index 16 Read FcontainerAccess Write SetcontainerAccess;
+    Property emailAddress : String Index 24 Read FemailAddress Write SetemailAddress;
+    Property permissionId : String Index 32 Read FpermissionId Write SetpermissionId;
   end;
   TUserAccessClass = Class of TUserAccess;
-  
-  { --------------------------------------------------------------------
-    TUserAccesscontainerAccess
-    --------------------------------------------------------------------}
-  
-  TUserAccesscontainerAccess = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUserAccesscontainerAccessClass = Class of TUserAccesscontainerAccess;
   
   { --------------------------------------------------------------------
     TVariable
@@ -1339,88 +809,49 @@ type
   
   TVariable = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
-    FcontainerId : string;
-    FdisablingTriggerId : TVariabledisablingTriggerId;
-    FenablingTriggerId : TVariableenablingTriggerId;
-    Ffingerprint : string;
-    Fname : string;
-    Fnotes : string;
-    Fparameter : TVariableparameter;
-    FscheduleEndMs : string;
-    FscheduleStartMs : string;
-    F_type : string;
-    FvariableId : string;
+    FaccountId : String;
+    FcontainerId : String;
+    FdisablingTriggerId : TStringArray;
+    FenablingTriggerId : TStringArray;
+    Ffingerprint : String;
+    Fname : String;
+    Fnotes : String;
+    Fparameter : TVariableTypeparameterArray;
+    FscheduleEndMs : String;
+    FscheduleStartMs : String;
+    F_type : String;
+    FvariableId : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdisablingTriggerId(AIndex : Integer; AValue : TVariabledisablingTriggerId); virtual;
-    Procedure SetenablingTriggerId(AIndex : Integer; AValue : TVariableenablingTriggerId); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : string); virtual;
-    Procedure Setparameter(AIndex : Integer; AValue : TVariableparameter); virtual;
-    Procedure SetscheduleEndMs(AIndex : Integer; AValue : string); virtual;
-    Procedure SetscheduleStartMs(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvariableId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisablingTriggerId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetenablingTriggerId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
+    Procedure Setparameter(AIndex : Integer; AValue : TVariableTypeparameterArray); virtual;
+    Procedure SetscheduleEndMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetscheduleStartMs(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvariableId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
-    Property containerId : string Index 8 Read FcontainerId Write SetcontainerId;
-    Property disablingTriggerId : TVariabledisablingTriggerId Index 16 Read FdisablingTriggerId Write SetdisablingTriggerId;
-    Property enablingTriggerId : TVariableenablingTriggerId Index 24 Read FenablingTriggerId Write SetenablingTriggerId;
-    Property fingerprint : string Index 32 Read Ffingerprint Write Setfingerprint;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property notes : string Index 48 Read Fnotes Write Setnotes;
-    Property parameter : TVariableparameter Index 56 Read Fparameter Write Setparameter;
-    Property scheduleEndMs : string Index 64 Read FscheduleEndMs Write SetscheduleEndMs;
-    Property scheduleStartMs : string Index 72 Read FscheduleStartMs Write SetscheduleStartMs;
-    Property _type : string Index 80 Read F_type Write Set_type;
-    Property variableId : string Index 88 Read FvariableId Write SetvariableId;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property containerId : String Index 8 Read FcontainerId Write SetcontainerId;
+    Property disablingTriggerId : TStringArray Index 16 Read FdisablingTriggerId Write SetdisablingTriggerId;
+    Property enablingTriggerId : TStringArray Index 24 Read FenablingTriggerId Write SetenablingTriggerId;
+    Property fingerprint : String Index 32 Read Ffingerprint Write Setfingerprint;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property notes : String Index 48 Read Fnotes Write Setnotes;
+    Property parameter : TVariableTypeparameterArray Index 56 Read Fparameter Write Setparameter;
+    Property scheduleEndMs : String Index 64 Read FscheduleEndMs Write SetscheduleEndMs;
+    Property scheduleStartMs : String Index 72 Read FscheduleStartMs Write SetscheduleStartMs;
+    Property _type : String Index 80 Read F_type Write Set_type;
+    Property variableId : String Index 88 Read FvariableId Write SetvariableId;
   end;
   TVariableClass = Class of TVariable;
-  
-  { --------------------------------------------------------------------
-    TVariabledisablingTriggerId
-    --------------------------------------------------------------------}
-  
-  TVariabledisablingTriggerId = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVariabledisablingTriggerIdClass = Class of TVariabledisablingTriggerId;
-  
-  { --------------------------------------------------------------------
-    TVariableenablingTriggerId
-    --------------------------------------------------------------------}
-  
-  TVariableenablingTriggerId = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVariableenablingTriggerIdClass = Class of TVariableenablingTriggerId;
-  
-  { --------------------------------------------------------------------
-    TVariableparameter
-    --------------------------------------------------------------------}
-  
-  TVariableparameter = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVariableparameterClass = Class of TVariableparameter;
   
   { --------------------------------------------------------------------
     TAccountsResource
@@ -1430,7 +861,7 @@ type
   //Optional query Options for TAccountsResource, method Update
   
   TAccountsUpdateOptions = Record
-    fingerprint : string;
+    fingerprint : String;
   end;
   
   TAccountsResource = Class(TGoogleResource)
@@ -1489,7 +920,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccount.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TAccount.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1499,7 +930,7 @@ end;
 
 
 
-Procedure TAccount.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TAccount.Setfingerprint(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1509,7 +940,7 @@ end;
 
 
 
-Procedure TAccount.Setname(AIndex : Integer; AValue : string); 
+Procedure TAccount.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1536,7 +967,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountAccess.Setpermission(AIndex : Integer; AValue : TAccountAccesspermission); 
+Procedure TAccountAccess.Setpermission(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fpermission=AValue) then exit;
@@ -1549,18 +980,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountAccesspermission
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TCondition
   --------------------------------------------------------------------}
 
 
-Procedure TCondition.Setparameter(AIndex : Integer; AValue : TConditionparameter); 
+Procedure TCondition.Setparameter(AIndex : Integer; AValue : TConditionTypeparameterArray); 
 
 begin
   If (Fparameter=AValue) then exit;
@@ -1570,7 +994,7 @@ end;
 
 
 
-Procedure TCondition.Set_type(AIndex : Integer; AValue : string); 
+Procedure TCondition.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1594,18 +1018,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TConditionparameter
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TContainer
   --------------------------------------------------------------------}
 
 
-Procedure TContainer.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TContainer.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1615,7 +1032,7 @@ end;
 
 
 
-Procedure TContainer.SetcontainerId(AIndex : Integer; AValue : string); 
+Procedure TContainer.SetcontainerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -1625,7 +1042,7 @@ end;
 
 
 
-Procedure TContainer.SetdomainName(AIndex : Integer; AValue : TContainerdomainName); 
+Procedure TContainer.SetdomainName(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FdomainName=AValue) then exit;
@@ -1635,7 +1052,7 @@ end;
 
 
 
-Procedure TContainer.SetenabledBuiltInVariable(AIndex : Integer; AValue : TContainerenabledBuiltInVariable); 
+Procedure TContainer.SetenabledBuiltInVariable(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FenabledBuiltInVariable=AValue) then exit;
@@ -1645,7 +1062,7 @@ end;
 
 
 
-Procedure TContainer.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TContainer.Setfingerprint(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1655,7 +1072,7 @@ end;
 
 
 
-Procedure TContainer.Setname(AIndex : Integer; AValue : string); 
+Procedure TContainer.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1665,7 +1082,7 @@ end;
 
 
 
-Procedure TContainer.Setnotes(AIndex : Integer; AValue : string); 
+Procedure TContainer.Setnotes(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -1675,7 +1092,7 @@ end;
 
 
 
-Procedure TContainer.SetpublicId(AIndex : Integer; AValue : string); 
+Procedure TContainer.SetpublicId(AIndex : Integer; AValue : String); 
 
 begin
   If (FpublicId=AValue) then exit;
@@ -1685,7 +1102,7 @@ end;
 
 
 
-Procedure TContainer.SettimeZoneCountryId(AIndex : Integer; AValue : string); 
+Procedure TContainer.SettimeZoneCountryId(AIndex : Integer; AValue : String); 
 
 begin
   If (FtimeZoneCountryId=AValue) then exit;
@@ -1695,7 +1112,7 @@ end;
 
 
 
-Procedure TContainer.SettimeZoneId(AIndex : Integer; AValue : string); 
+Procedure TContainer.SettimeZoneId(AIndex : Integer; AValue : String); 
 
 begin
   If (FtimeZoneId=AValue) then exit;
@@ -1705,7 +1122,7 @@ end;
 
 
 
-Procedure TContainer.SetusageContext(AIndex : Integer; AValue : TContainerusageContext); 
+Procedure TContainer.SetusageContext(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FusageContext=AValue) then exit;
@@ -1718,32 +1135,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TContainerdomainName
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TContainerenabledBuiltInVariable
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TContainerusageContext
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TContainerAccess
   --------------------------------------------------------------------}
 
 
-Procedure TContainerAccess.SetcontainerId(AIndex : Integer; AValue : string); 
+Procedure TContainerAccess.SetcontainerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -1753,7 +1149,7 @@ end;
 
 
 
-Procedure TContainerAccess.Setpermission(AIndex : Integer; AValue : TContainerAccesspermission); 
+Procedure TContainerAccess.Setpermission(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fpermission=AValue) then exit;
@@ -1766,18 +1162,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TContainerAccesspermission
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TContainerVersion
   --------------------------------------------------------------------}
 
 
-Procedure TContainerVersion.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TContainerVersion.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1797,7 +1186,7 @@ end;
 
 
 
-Procedure TContainerVersion.SetcontainerId(AIndex : Integer; AValue : string); 
+Procedure TContainerVersion.SetcontainerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -1807,7 +1196,7 @@ end;
 
 
 
-Procedure TContainerVersion.SetcontainerVersionId(AIndex : Integer; AValue : string); 
+Procedure TContainerVersion.SetcontainerVersionId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontainerVersionId=AValue) then exit;
@@ -1827,7 +1216,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TContainerVersion.Setfingerprint(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1837,7 +1226,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setmacro(AIndex : Integer; AValue : TContainerVersionmacro); 
+Procedure TContainerVersion.Setmacro(AIndex : Integer; AValue : TContainerVersionTypemacroArray); 
 
 begin
   If (Fmacro=AValue) then exit;
@@ -1847,7 +1236,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setname(AIndex : Integer; AValue : string); 
+Procedure TContainerVersion.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1857,7 +1246,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setnotes(AIndex : Integer; AValue : string); 
+Procedure TContainerVersion.Setnotes(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -1867,7 +1256,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setrule(AIndex : Integer; AValue : TContainerVersionrule); 
+Procedure TContainerVersion.Setrule(AIndex : Integer; AValue : TContainerVersionTyperuleArray); 
 
 begin
   If (Frule=AValue) then exit;
@@ -1877,7 +1266,7 @@ end;
 
 
 
-Procedure TContainerVersion.Settag(AIndex : Integer; AValue : TContainerVersiontag); 
+Procedure TContainerVersion.Settag(AIndex : Integer; AValue : TContainerVersionTypetagArray); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -1887,7 +1276,7 @@ end;
 
 
 
-Procedure TContainerVersion.Settrigger(AIndex : Integer; AValue : TContainerVersiontrigger); 
+Procedure TContainerVersion.Settrigger(AIndex : Integer; AValue : TContainerVersionTypetriggerArray); 
 
 begin
   If (Ftrigger=AValue) then exit;
@@ -1897,7 +1286,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setvariable(AIndex : Integer; AValue : TContainerVersionvariable); 
+Procedure TContainerVersion.Setvariable(AIndex : Integer; AValue : TContainerVersionTypevariableArray); 
 
 begin
   If (Fvariable=AValue) then exit;
@@ -1910,46 +1299,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TContainerVersionmacro
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TContainerVersionrule
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TContainerVersiontag
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TContainerVersiontrigger
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TContainerVersionvariable
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TContainerVersionHeader
   --------------------------------------------------------------------}
 
 
-Procedure TContainerVersionHeader.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TContainerVersionHeader.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1959,7 +1313,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetcontainerId(AIndex : Integer; AValue : string); 
+Procedure TContainerVersionHeader.SetcontainerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -1969,7 +1323,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetcontainerVersionId(AIndex : Integer; AValue : string); 
+Procedure TContainerVersionHeader.SetcontainerVersionId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontainerVersionId=AValue) then exit;
@@ -1989,7 +1343,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.Setname(AIndex : Integer; AValue : string); 
+Procedure TContainerVersionHeader.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1999,7 +1353,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumMacros(AIndex : Integer; AValue : string); 
+Procedure TContainerVersionHeader.SetnumMacros(AIndex : Integer; AValue : String); 
 
 begin
   If (FnumMacros=AValue) then exit;
@@ -2009,7 +1363,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumRules(AIndex : Integer; AValue : string); 
+Procedure TContainerVersionHeader.SetnumRules(AIndex : Integer; AValue : String); 
 
 begin
   If (FnumRules=AValue) then exit;
@@ -2019,7 +1373,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumTags(AIndex : Integer; AValue : string); 
+Procedure TContainerVersionHeader.SetnumTags(AIndex : Integer; AValue : String); 
 
 begin
   If (FnumTags=AValue) then exit;
@@ -2029,7 +1383,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumTriggers(AIndex : Integer; AValue : string); 
+Procedure TContainerVersionHeader.SetnumTriggers(AIndex : Integer; AValue : String); 
 
 begin
   If (FnumTriggers=AValue) then exit;
@@ -2039,7 +1393,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumVariables(AIndex : Integer; AValue : string); 
+Procedure TContainerVersionHeader.SetnumVariables(AIndex : Integer; AValue : String); 
 
 begin
   If (FnumVariables=AValue) then exit;
@@ -2056,7 +1410,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateContainerVersionRequestVersionOptions.Setname(AIndex : Integer; AValue : string); 
+Procedure TCreateContainerVersionRequestVersionOptions.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2066,7 +1420,7 @@ end;
 
 
 
-Procedure TCreateContainerVersionRequestVersionOptions.Setnotes(AIndex : Integer; AValue : string); 
+Procedure TCreateContainerVersionRequestVersionOptions.Setnotes(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -2120,7 +1474,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListAccountUsersResponse.SetuserAccess(AIndex : Integer; AValue : TListAccountUsersResponseuserAccess); 
+Procedure TListAccountUsersResponse.SetuserAccess(AIndex : Integer; AValue : TListAccountUsersResponseTypeuserAccessArray); 
 
 begin
   If (FuserAccess=AValue) then exit;
@@ -2133,18 +1487,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListAccountUsersResponseuserAccess
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListAccountsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListAccountsResponse.Setaccounts(AIndex : Integer; AValue : TListAccountsResponseaccounts); 
+Procedure TListAccountsResponse.Setaccounts(AIndex : Integer; AValue : TListAccountsResponseTypeaccountsArray); 
 
 begin
   If (Faccounts=AValue) then exit;
@@ -2157,18 +1504,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListAccountsResponseaccounts
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListContainerVersionsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListContainerVersionsResponse.SetcontainerVersion(AIndex : Integer; AValue : TListContainerVersionsResponsecontainerVersion); 
+Procedure TListContainerVersionsResponse.SetcontainerVersion(AIndex : Integer; AValue : TListContainerVersionsResponseTypecontainerVersionArray); 
 
 begin
   If (FcontainerVersion=AValue) then exit;
@@ -2178,7 +1518,7 @@ end;
 
 
 
-Procedure TListContainerVersionsResponse.SetcontainerVersionHeader(AIndex : Integer; AValue : TListContainerVersionsResponsecontainerVersionHeader); 
+Procedure TListContainerVersionsResponse.SetcontainerVersionHeader(AIndex : Integer; AValue : TListContainerVersionsResponseTypecontainerVersionHeaderArray); 
 
 begin
   If (FcontainerVersionHeader=AValue) then exit;
@@ -2191,25 +1531,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListContainerVersionsResponsecontainerVersion
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TListContainerVersionsResponsecontainerVersionHeader
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListContainersResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListContainersResponse.Setcontainers(AIndex : Integer; AValue : TListContainersResponsecontainers); 
+Procedure TListContainersResponse.Setcontainers(AIndex : Integer; AValue : TListContainersResponseTypecontainersArray); 
 
 begin
   If (Fcontainers=AValue) then exit;
@@ -2222,18 +1548,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListContainersResponsecontainers
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListMacrosResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListMacrosResponse.Setmacros(AIndex : Integer; AValue : TListMacrosResponsemacros); 
+Procedure TListMacrosResponse.Setmacros(AIndex : Integer; AValue : TListMacrosResponseTypemacrosArray); 
 
 begin
   If (Fmacros=AValue) then exit;
@@ -2246,18 +1565,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListMacrosResponsemacros
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListRulesResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListRulesResponse.Setrules(AIndex : Integer; AValue : TListRulesResponserules); 
+Procedure TListRulesResponse.Setrules(AIndex : Integer; AValue : TListRulesResponseTyperulesArray); 
 
 begin
   If (Frules=AValue) then exit;
@@ -2270,18 +1582,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListRulesResponserules
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListTagsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListTagsResponse.Settags(AIndex : Integer; AValue : TListTagsResponsetags); 
+Procedure TListTagsResponse.Settags(AIndex : Integer; AValue : TListTagsResponseTypetagsArray); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -2294,18 +1599,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListTagsResponsetags
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListTriggersResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListTriggersResponse.Settriggers(AIndex : Integer; AValue : TListTriggersResponsetriggers); 
+Procedure TListTriggersResponse.Settriggers(AIndex : Integer; AValue : TListTriggersResponseTypetriggersArray); 
 
 begin
   If (Ftriggers=AValue) then exit;
@@ -2318,18 +1616,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListTriggersResponsetriggers
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListVariablesResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListVariablesResponse.Setvariables(AIndex : Integer; AValue : TListVariablesResponsevariables); 
+Procedure TListVariablesResponse.Setvariables(AIndex : Integer; AValue : TListVariablesResponseTypevariablesArray); 
 
 begin
   If (Fvariables=AValue) then exit;
@@ -2342,18 +1633,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListVariablesResponsevariables
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMacro
   --------------------------------------------------------------------}
 
 
-Procedure TMacro.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TMacro.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -2363,7 +1647,7 @@ end;
 
 
 
-Procedure TMacro.SetcontainerId(AIndex : Integer; AValue : string); 
+Procedure TMacro.SetcontainerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -2373,7 +1657,7 @@ end;
 
 
 
-Procedure TMacro.SetdisablingRuleId(AIndex : Integer; AValue : TMacrodisablingRuleId); 
+Procedure TMacro.SetdisablingRuleId(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FdisablingRuleId=AValue) then exit;
@@ -2383,7 +1667,7 @@ end;
 
 
 
-Procedure TMacro.SetenablingRuleId(AIndex : Integer; AValue : TMacroenablingRuleId); 
+Procedure TMacro.SetenablingRuleId(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FenablingRuleId=AValue) then exit;
@@ -2393,7 +1677,7 @@ end;
 
 
 
-Procedure TMacro.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TMacro.Setfingerprint(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -2403,7 +1687,7 @@ end;
 
 
 
-Procedure TMacro.SetmacroId(AIndex : Integer; AValue : string); 
+Procedure TMacro.SetmacroId(AIndex : Integer; AValue : String); 
 
 begin
   If (FmacroId=AValue) then exit;
@@ -2413,7 +1697,7 @@ end;
 
 
 
-Procedure TMacro.Setname(AIndex : Integer; AValue : string); 
+Procedure TMacro.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2423,7 +1707,7 @@ end;
 
 
 
-Procedure TMacro.Setnotes(AIndex : Integer; AValue : string); 
+Procedure TMacro.Setnotes(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -2433,7 +1717,7 @@ end;
 
 
 
-Procedure TMacro.Setparameter(AIndex : Integer; AValue : TMacroparameter); 
+Procedure TMacro.Setparameter(AIndex : Integer; AValue : TMacroTypeparameterArray); 
 
 begin
   If (Fparameter=AValue) then exit;
@@ -2443,7 +1727,7 @@ end;
 
 
 
-Procedure TMacro.SetscheduleEndMs(AIndex : Integer; AValue : string); 
+Procedure TMacro.SetscheduleEndMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FscheduleEndMs=AValue) then exit;
@@ -2453,7 +1737,7 @@ end;
 
 
 
-Procedure TMacro.SetscheduleStartMs(AIndex : Integer; AValue : string); 
+Procedure TMacro.SetscheduleStartMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FscheduleStartMs=AValue) then exit;
@@ -2463,7 +1747,7 @@ end;
 
 
 
-Procedure TMacro.Set_type(AIndex : Integer; AValue : string); 
+Procedure TMacro.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2487,32 +1771,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMacrodisablingRuleId
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TMacroenablingRuleId
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TMacroparameter
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TParameter
   --------------------------------------------------------------------}
 
 
-Procedure TParameter.Setkey(AIndex : Integer; AValue : string); 
+Procedure TParameter.Setkey(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -2522,7 +1785,7 @@ end;
 
 
 
-Procedure TParameter.Setlist(AIndex : Integer; AValue : TParameterlist); 
+Procedure TParameter.Setlist(AIndex : Integer; AValue : TParameterTypelistArray); 
 
 begin
   If (Flist=AValue) then exit;
@@ -2532,7 +1795,7 @@ end;
 
 
 
-Procedure TParameter.Setmap(AIndex : Integer; AValue : TParametermap); 
+Procedure TParameter.Setmap(AIndex : Integer; AValue : TParameterTypemapArray); 
 
 begin
   If (Fmap=AValue) then exit;
@@ -2542,7 +1805,7 @@ end;
 
 
 
-Procedure TParameter.Set_type(AIndex : Integer; AValue : string); 
+Procedure TParameter.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2552,7 +1815,7 @@ end;
 
 
 
-Procedure TParameter.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TParameter.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2571,20 +1834,6 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TParameterlist
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TParametermap
-  --------------------------------------------------------------------}
 
 
 
@@ -2621,7 +1870,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRule.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TRule.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -2631,7 +1880,7 @@ end;
 
 
 
-Procedure TRule.Setcondition(AIndex : Integer; AValue : TRulecondition); 
+Procedure TRule.Setcondition(AIndex : Integer; AValue : TRuleTypeconditionArray); 
 
 begin
   If (Fcondition=AValue) then exit;
@@ -2641,7 +1890,7 @@ end;
 
 
 
-Procedure TRule.SetcontainerId(AIndex : Integer; AValue : string); 
+Procedure TRule.SetcontainerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -2651,7 +1900,7 @@ end;
 
 
 
-Procedure TRule.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TRule.Setfingerprint(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -2661,7 +1910,7 @@ end;
 
 
 
-Procedure TRule.Setname(AIndex : Integer; AValue : string); 
+Procedure TRule.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2671,7 +1920,7 @@ end;
 
 
 
-Procedure TRule.Setnotes(AIndex : Integer; AValue : string); 
+Procedure TRule.Setnotes(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -2681,7 +1930,7 @@ end;
 
 
 
-Procedure TRule.SetruleId(AIndex : Integer; AValue : string); 
+Procedure TRule.SetruleId(AIndex : Integer; AValue : String); 
 
 begin
   If (FruleId=AValue) then exit;
@@ -2694,18 +1943,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TRulecondition
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TTag
   --------------------------------------------------------------------}
 
 
-Procedure TTag.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TTag.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -2715,7 +1957,7 @@ end;
 
 
 
-Procedure TTag.SetblockingRuleId(AIndex : Integer; AValue : TTagblockingRuleId); 
+Procedure TTag.SetblockingRuleId(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FblockingRuleId=AValue) then exit;
@@ -2725,7 +1967,7 @@ end;
 
 
 
-Procedure TTag.SetblockingTriggerId(AIndex : Integer; AValue : TTagblockingTriggerId); 
+Procedure TTag.SetblockingTriggerId(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FblockingTriggerId=AValue) then exit;
@@ -2735,7 +1977,7 @@ end;
 
 
 
-Procedure TTag.SetcontainerId(AIndex : Integer; AValue : string); 
+Procedure TTag.SetcontainerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -2745,7 +1987,7 @@ end;
 
 
 
-Procedure TTag.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TTag.Setfingerprint(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -2755,7 +1997,7 @@ end;
 
 
 
-Procedure TTag.SetfiringRuleId(AIndex : Integer; AValue : TTagfiringRuleId); 
+Procedure TTag.SetfiringRuleId(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FfiringRuleId=AValue) then exit;
@@ -2765,7 +2007,7 @@ end;
 
 
 
-Procedure TTag.SetfiringTriggerId(AIndex : Integer; AValue : TTagfiringTriggerId); 
+Procedure TTag.SetfiringTriggerId(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FfiringTriggerId=AValue) then exit;
@@ -2785,7 +2027,7 @@ end;
 
 
 
-Procedure TTag.Setname(AIndex : Integer; AValue : string); 
+Procedure TTag.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2795,7 +2037,7 @@ end;
 
 
 
-Procedure TTag.Setnotes(AIndex : Integer; AValue : string); 
+Procedure TTag.Setnotes(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -2805,7 +2047,7 @@ end;
 
 
 
-Procedure TTag.Setparameter(AIndex : Integer; AValue : TTagparameter); 
+Procedure TTag.Setparameter(AIndex : Integer; AValue : TTagTypeparameterArray); 
 
 begin
   If (Fparameter=AValue) then exit;
@@ -2825,7 +2067,7 @@ end;
 
 
 
-Procedure TTag.SetscheduleEndMs(AIndex : Integer; AValue : string); 
+Procedure TTag.SetscheduleEndMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FscheduleEndMs=AValue) then exit;
@@ -2835,7 +2077,7 @@ end;
 
 
 
-Procedure TTag.SetscheduleStartMs(AIndex : Integer; AValue : string); 
+Procedure TTag.SetscheduleStartMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FscheduleStartMs=AValue) then exit;
@@ -2845,7 +2087,7 @@ end;
 
 
 
-Procedure TTag.SettagId(AIndex : Integer; AValue : string); 
+Procedure TTag.SettagId(AIndex : Integer; AValue : String); 
 
 begin
   If (FtagId=AValue) then exit;
@@ -2855,7 +2097,7 @@ end;
 
 
 
-Procedure TTag.Set_type(AIndex : Integer; AValue : string); 
+Procedure TTag.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2879,46 +2121,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTagblockingRuleId
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTagblockingTriggerId
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTagfiringRuleId
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTagfiringTriggerId
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTagparameter
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TTrigger
   --------------------------------------------------------------------}
 
 
-Procedure TTrigger.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TTrigger.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -2928,7 +2135,7 @@ end;
 
 
 
-Procedure TTrigger.SetautoEventFilter(AIndex : Integer; AValue : TTriggerautoEventFilter); 
+Procedure TTrigger.SetautoEventFilter(AIndex : Integer; AValue : TTriggerTypeautoEventFilterArray); 
 
 begin
   If (FautoEventFilter=AValue) then exit;
@@ -2948,7 +2155,7 @@ end;
 
 
 
-Procedure TTrigger.SetcontainerId(AIndex : Integer; AValue : string); 
+Procedure TTrigger.SetcontainerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -2958,7 +2165,7 @@ end;
 
 
 
-Procedure TTrigger.SetcustomEventFilter(AIndex : Integer; AValue : TTriggercustomEventFilter); 
+Procedure TTrigger.SetcustomEventFilter(AIndex : Integer; AValue : TTriggerTypecustomEventFilterArray); 
 
 begin
   If (FcustomEventFilter=AValue) then exit;
@@ -2988,7 +2195,7 @@ end;
 
 
 
-Procedure TTrigger.Setfilter(AIndex : Integer; AValue : TTriggerfilter); 
+Procedure TTrigger.Setfilter(AIndex : Integer; AValue : TTriggerTypefilterArray); 
 
 begin
   If (Ffilter=AValue) then exit;
@@ -2998,7 +2205,7 @@ end;
 
 
 
-Procedure TTrigger.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TTrigger.Setfingerprint(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -3028,7 +2235,7 @@ end;
 
 
 
-Procedure TTrigger.Setname(AIndex : Integer; AValue : string); 
+Procedure TTrigger.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3038,7 +2245,7 @@ end;
 
 
 
-Procedure TTrigger.SettriggerId(AIndex : Integer; AValue : string); 
+Procedure TTrigger.SettriggerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FtriggerId=AValue) then exit;
@@ -3048,7 +2255,7 @@ end;
 
 
 
-Procedure TTrigger.Set_type(AIndex : Integer; AValue : string); 
+Procedure TTrigger.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3112,27 +2319,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTriggerautoEventFilter
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTriggercustomEventFilter
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTriggerfilter
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TUserAccess
   --------------------------------------------------------------------}
 
@@ -3147,7 +2333,7 @@ end;
 
 
 
-Procedure TUserAccess.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TUserAccess.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3157,7 +2343,7 @@ end;
 
 
 
-Procedure TUserAccess.SetcontainerAccess(AIndex : Integer; AValue : TUserAccesscontainerAccess); 
+Procedure TUserAccess.SetcontainerAccess(AIndex : Integer; AValue : TUserAccessTypecontainerAccessArray); 
 
 begin
   If (FcontainerAccess=AValue) then exit;
@@ -3167,7 +2353,7 @@ end;
 
 
 
-Procedure TUserAccess.SetemailAddress(AIndex : Integer; AValue : string); 
+Procedure TUserAccess.SetemailAddress(AIndex : Integer; AValue : String); 
 
 begin
   If (FemailAddress=AValue) then exit;
@@ -3177,7 +2363,7 @@ end;
 
 
 
-Procedure TUserAccess.SetpermissionId(AIndex : Integer; AValue : string); 
+Procedure TUserAccess.SetpermissionId(AIndex : Integer; AValue : String); 
 
 begin
   If (FpermissionId=AValue) then exit;
@@ -3190,18 +2376,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TUserAccesscontainerAccess
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVariable
   --------------------------------------------------------------------}
 
 
-Procedure TVariable.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TVariable.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3211,7 +2390,7 @@ end;
 
 
 
-Procedure TVariable.SetcontainerId(AIndex : Integer; AValue : string); 
+Procedure TVariable.SetcontainerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -3221,7 +2400,7 @@ end;
 
 
 
-Procedure TVariable.SetdisablingTriggerId(AIndex : Integer; AValue : TVariabledisablingTriggerId); 
+Procedure TVariable.SetdisablingTriggerId(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FdisablingTriggerId=AValue) then exit;
@@ -3231,7 +2410,7 @@ end;
 
 
 
-Procedure TVariable.SetenablingTriggerId(AIndex : Integer; AValue : TVariableenablingTriggerId); 
+Procedure TVariable.SetenablingTriggerId(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FenablingTriggerId=AValue) then exit;
@@ -3241,7 +2420,7 @@ end;
 
 
 
-Procedure TVariable.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TVariable.Setfingerprint(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -3251,7 +2430,7 @@ end;
 
 
 
-Procedure TVariable.Setname(AIndex : Integer; AValue : string); 
+Procedure TVariable.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3261,7 +2440,7 @@ end;
 
 
 
-Procedure TVariable.Setnotes(AIndex : Integer; AValue : string); 
+Procedure TVariable.Setnotes(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -3271,7 +2450,7 @@ end;
 
 
 
-Procedure TVariable.Setparameter(AIndex : Integer; AValue : TVariableparameter); 
+Procedure TVariable.Setparameter(AIndex : Integer; AValue : TVariableTypeparameterArray); 
 
 begin
   If (Fparameter=AValue) then exit;
@@ -3281,7 +2460,7 @@ end;
 
 
 
-Procedure TVariable.SetscheduleEndMs(AIndex : Integer; AValue : string); 
+Procedure TVariable.SetscheduleEndMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FscheduleEndMs=AValue) then exit;
@@ -3291,7 +2470,7 @@ end;
 
 
 
-Procedure TVariable.SetscheduleStartMs(AIndex : Integer; AValue : string); 
+Procedure TVariable.SetscheduleStartMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FscheduleStartMs=AValue) then exit;
@@ -3301,7 +2480,7 @@ end;
 
 
 
-Procedure TVariable.Set_type(AIndex : Integer; AValue : string); 
+Procedure TVariable.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3311,7 +2490,7 @@ end;
 
 
 
-Procedure TVariable.SetvariableId(AIndex : Integer; AValue : string); 
+Procedure TVariable.SetvariableId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvariableId=AValue) then exit;
@@ -3330,27 +2509,6 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TVariabledisablingTriggerId
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVariableenablingTriggerId
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVariableparameter
-  --------------------------------------------------------------------}
 
 
 
@@ -3565,69 +2723,30 @@ Class Procedure TTagmanagerAPI.RegisterAPIResources;
 begin
   TAccount.RegisterObject;
   TAccountAccess.RegisterObject;
-  TAccountAccesspermission.RegisterObject;
   TCondition.RegisterObject;
-  TConditionparameter.RegisterObject;
   TContainer.RegisterObject;
-  TContainerdomainName.RegisterObject;
-  TContainerenabledBuiltInVariable.RegisterObject;
-  TContainerusageContext.RegisterObject;
   TContainerAccess.RegisterObject;
-  TContainerAccesspermission.RegisterObject;
   TContainerVersion.RegisterObject;
-  TContainerVersionmacro.RegisterObject;
-  TContainerVersionrule.RegisterObject;
-  TContainerVersiontag.RegisterObject;
-  TContainerVersiontrigger.RegisterObject;
-  TContainerVersionvariable.RegisterObject;
   TContainerVersionHeader.RegisterObject;
   TCreateContainerVersionRequestVersionOptions.RegisterObject;
   TCreateContainerVersionResponse.RegisterObject;
   TListAccountUsersResponse.RegisterObject;
-  TListAccountUsersResponseuserAccess.RegisterObject;
   TListAccountsResponse.RegisterObject;
-  TListAccountsResponseaccounts.RegisterObject;
   TListContainerVersionsResponse.RegisterObject;
-  TListContainerVersionsResponsecontainerVersion.RegisterObject;
-  TListContainerVersionsResponsecontainerVersionHeader.RegisterObject;
   TListContainersResponse.RegisterObject;
-  TListContainersResponsecontainers.RegisterObject;
   TListMacrosResponse.RegisterObject;
-  TListMacrosResponsemacros.RegisterObject;
   TListRulesResponse.RegisterObject;
-  TListRulesResponserules.RegisterObject;
   TListTagsResponse.RegisterObject;
-  TListTagsResponsetags.RegisterObject;
   TListTriggersResponse.RegisterObject;
-  TListTriggersResponsetriggers.RegisterObject;
   TListVariablesResponse.RegisterObject;
-  TListVariablesResponsevariables.RegisterObject;
   TMacro.RegisterObject;
-  TMacrodisablingRuleId.RegisterObject;
-  TMacroenablingRuleId.RegisterObject;
-  TMacroparameter.RegisterObject;
   TParameter.RegisterObject;
-  TParameterlist.RegisterObject;
-  TParametermap.RegisterObject;
   TPublishContainerVersionResponse.RegisterObject;
   TRule.RegisterObject;
-  TRulecondition.RegisterObject;
   TTag.RegisterObject;
-  TTagblockingRuleId.RegisterObject;
-  TTagblockingTriggerId.RegisterObject;
-  TTagfiringRuleId.RegisterObject;
-  TTagfiringTriggerId.RegisterObject;
-  TTagparameter.RegisterObject;
   TTrigger.RegisterObject;
-  TTriggerautoEventFilter.RegisterObject;
-  TTriggercustomEventFilter.RegisterObject;
-  TTriggerfilter.RegisterObject;
   TUserAccess.RegisterObject;
-  TUserAccesscontainerAccess.RegisterObject;
   TVariable.RegisterObject;
-  TVariabledisablingTriggerId.RegisterObject;
-  TVariableenablingTriggerId.RegisterObject;
-  TVariableparameter.RegisterObject;
 end;
 
 

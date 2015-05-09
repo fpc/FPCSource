@@ -1,31 +1,19 @@
 unit googleblogger;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:49
 {$MODE objfpc}
 {$H+}
 
@@ -34,95 +22,132 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TBlog = class;
-  TBlogArray = Array of TBlog;
-  TBloglocale = class;
-  TBloglocaleArray = Array of TBloglocale;
-  TBlogpages = class;
-  TBlogpagesArray = Array of TBlogpages;
-  TBlogposts = class;
-  TBlogpostsArray = Array of TBlogposts;
-  TBlogpostsitems = class;
-  TBlogpostsitemsArray = Array of TBlogpostsitems;
   TBlogList = class;
-  TBlogListArray = Array of TBlogList;
-  TBlogListblogUserInfos = class;
-  TBlogListblogUserInfosArray = Array of TBlogListblogUserInfos;
-  TBlogListitems = class;
-  TBlogListitemsArray = Array of TBlogListitems;
   TBlogPerUserInfo = class;
-  TBlogPerUserInfoArray = Array of TBlogPerUserInfo;
   TBlogUserInfo = class;
-  TBlogUserInfoArray = Array of TBlogUserInfo;
   TComment = class;
-  TCommentArray = Array of TComment;
-  TCommentauthor = class;
-  TCommentauthorArray = Array of TCommentauthor;
-  TCommentauthorimage = class;
-  TCommentauthorimageArray = Array of TCommentauthorimage;
-  TCommentblog = class;
-  TCommentblogArray = Array of TCommentblog;
-  TCommentinReplyTo = class;
-  TCommentinReplyToArray = Array of TCommentinReplyTo;
-  TCommentpost = class;
-  TCommentpostArray = Array of TCommentpost;
   TCommentList = class;
-  TCommentListArray = Array of TCommentList;
-  TCommentListitems = class;
-  TCommentListitemsArray = Array of TCommentListitems;
   TPage = class;
-  TPageArray = Array of TPage;
-  TPageauthor = class;
-  TPageauthorArray = Array of TPageauthor;
-  TPageauthorimage = class;
-  TPageauthorimageArray = Array of TPageauthorimage;
-  TPageblog = class;
-  TPageblogArray = Array of TPageblog;
   TPageList = class;
-  TPageListArray = Array of TPageList;
-  TPageListitems = class;
-  TPageListitemsArray = Array of TPageListitems;
   TPageviews = class;
-  TPageviewsArray = Array of TPageviews;
-  TPageviewscounts = class;
-  TPageviewscountsArray = Array of TPageviewscounts;
   TPost = class;
-  TPostArray = Array of TPost;
-  TPostauthor = class;
-  TPostauthorArray = Array of TPostauthor;
-  TPostauthorimage = class;
-  TPostauthorimageArray = Array of TPostauthorimage;
-  TPostblog = class;
-  TPostblogArray = Array of TPostblog;
-  TPostimages = class;
-  TPostimagesArray = Array of TPostimages;
-  TPostlabels = class;
-  TPostlabelsArray = Array of TPostlabels;
-  TPostlocation = class;
-  TPostlocationArray = Array of TPostlocation;
-  TPostreplies = class;
-  TPostrepliesArray = Array of TPostreplies;
-  TPostrepliesitems = class;
-  TPostrepliesitemsArray = Array of TPostrepliesitems;
   TPostList = class;
-  TPostListArray = Array of TPostList;
-  TPostListitems = class;
-  TPostListitemsArray = Array of TPostListitems;
   TPostPerUserInfo = class;
-  TPostPerUserInfoArray = Array of TPostPerUserInfo;
   TPostUserInfo = class;
-  TPostUserInfoArray = Array of TPostUserInfo;
   TPostUserInfosList = class;
-  TPostUserInfosListArray = Array of TPostUserInfosList;
-  TPostUserInfosListitems = class;
-  TPostUserInfosListitemsArray = Array of TPostUserInfosListitems;
   TUser = class;
+  TBlogArray = Array of TBlog;
+  TBlogListArray = Array of TBlogList;
+  TBlogPerUserInfoArray = Array of TBlogPerUserInfo;
+  TBlogUserInfoArray = Array of TBlogUserInfo;
+  TCommentArray = Array of TComment;
+  TCommentListArray = Array of TCommentList;
+  TPageArray = Array of TPage;
+  TPageListArray = Array of TPageList;
+  TPageviewsArray = Array of TPageviews;
+  TPostArray = Array of TPost;
+  TPostListArray = Array of TPostList;
+  TPostPerUserInfoArray = Array of TPostPerUserInfo;
+  TPostUserInfoArray = Array of TPostUserInfo;
+  TPostUserInfosListArray = Array of TPostUserInfosList;
   TUserArray = Array of TUser;
-  TUserblogs = class;
-  TUserblogsArray = Array of TUserblogs;
-  TUserlocale = class;
-  TUserlocaleArray = Array of TUserlocale;
+  //Anonymous types, using auto-generated names
+  TBlogTypelocale = class;
+  TBlogTypepages = class;
+  TBlogTypeposts = class;
+  TCommentTypeauthorTypeimage = class;
+  TCommentTypeauthor = class;
+  TCommentTypeblog = class;
+  TCommentTypeinReplyTo = class;
+  TCommentTypepost = class;
+  TPageTypeauthorTypeimage = class;
+  TPageTypeauthor = class;
+  TPageTypeblog = class;
+  TPageviewsTypecountsItem = class;
+  TPostTypeauthorTypeimage = class;
+  TPostTypeauthor = class;
+  TPostTypeblog = class;
+  TPostTypeimagesItem = class;
+  TPostTypelocation = class;
+  TPostTypereplies = class;
+  TUserTypeblogs = class;
+  TUserTypelocale = class;
+  TBlogTypepostsTypeitemsArray = Array of TPost;
+  TBlogListTypeblogUserInfosArray = Array of TBlogUserInfo;
+  TBlogListTypeitemsArray = Array of TBlog;
+  TCommentListTypeitemsArray = Array of TComment;
+  TPageListTypeitemsArray = Array of TPage;
+  TPageviewsTypecountsArray = Array of TPageviewsTypecountsItem;
+  TPostTypeimagesArray = Array of TPostTypeimagesItem;
+  TPostTyperepliesTypeitemsArray = Array of TComment;
+  TPostListTypeitemsArray = Array of TPost;
+  TPostUserInfosListTypeitemsArray = Array of TPostUserInfo;
+  
+  { --------------------------------------------------------------------
+    TBlogTypelocale
+    --------------------------------------------------------------------}
+  
+  TBlogTypelocale = Class(TGoogleBaseObject)
+  Private
+    Fcountry : String;
+    Flanguage : String;
+    Fvariant : String;
+  Protected
+    //Property setters
+    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvariant(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property country : String Index 0 Read Fcountry Write Setcountry;
+    Property language : String Index 8 Read Flanguage Write Setlanguage;
+    Property variant : String Index 16 Read Fvariant Write Setvariant;
+  end;
+  TBlogTypelocaleClass = Class of TBlogTypelocale;
+  
+  { --------------------------------------------------------------------
+    TBlogTypepages
+    --------------------------------------------------------------------}
+  
+  TBlogTypepages = Class(TGoogleBaseObject)
+  Private
+    FselfLink : String;
+    FtotalItems : integer;
+  Protected
+    //Property setters
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+  Public
+  Published
+    Property selfLink : String Index 0 Read FselfLink Write SetselfLink;
+    Property totalItems : integer Index 8 Read FtotalItems Write SettotalItems;
+  end;
+  TBlogTypepagesClass = Class of TBlogTypepages;
+  
+  { --------------------------------------------------------------------
+    TBlogTypeposts
+    --------------------------------------------------------------------}
+  
+  TBlogTypeposts = Class(TGoogleBaseObject)
+  Private
+    Fitems : TBlogTypepostsTypeitemsArray;
+    FselfLink : String;
+    FtotalItems : integer;
+  Protected
+    //Property setters
+    Procedure Setitems(AIndex : Integer; AValue : TBlogTypepostsTypeitemsArray); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+  Public
+  Published
+    Property items : TBlogTypepostsTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property selfLink : String Index 8 Read FselfLink Write SetselfLink;
+    Property totalItems : integer Index 16 Read FtotalItems Write SettotalItems;
+  end;
+  TBlogTypepostsClass = Class of TBlogTypeposts;
   
   { --------------------------------------------------------------------
     TBlog
@@ -130,128 +155,52 @@ type
   
   TBlog = Class(TGoogleBaseObject)
   Private
-    FcustomMetaData : string;
-    Fdescription : string;
-    Fid : string;
-    Fkind : string;
-    Flocale : TBloglocale;
-    Fname : string;
-    Fpages : TBlogpages;
-    Fposts : TBlogposts;
+    FcustomMetaData : String;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    Flocale : TBlogTypelocale;
+    Fname : String;
+    Fpages : TBlogTypepages;
+    Fposts : TBlogTypeposts;
     F_published : TDatetime;
-    FselfLink : string;
-    Fstatus : string;
+    FselfLink : String;
+    Fstatus : String;
     Fupdated : TDatetime;
-    Furl : string;
+    Furl : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetcustomMetaData(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocale(AIndex : Integer; AValue : TBloglocale); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpages(AIndex : Integer; AValue : TBlogpages); virtual;
-    Procedure Setposts(AIndex : Integer; AValue : TBlogposts); virtual;
+    Procedure SetcustomMetaData(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocale(AIndex : Integer; AValue : TBlogTypelocale); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpages(AIndex : Integer; AValue : TBlogTypepages); virtual;
+    Procedure Setposts(AIndex : Integer; AValue : TBlogTypeposts); virtual;
     Procedure Set_published(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property customMetaData : string Index 0 Read FcustomMetaData Write SetcustomMetaData;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property locale : TBloglocale Index 32 Read Flocale Write Setlocale;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property pages : TBlogpages Index 48 Read Fpages Write Setpages;
-    Property posts : TBlogposts Index 56 Read Fposts Write Setposts;
+    Property customMetaData : String Index 0 Read FcustomMetaData Write SetcustomMetaData;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property locale : TBlogTypelocale Index 32 Read Flocale Write Setlocale;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property pages : TBlogTypepages Index 48 Read Fpages Write Setpages;
+    Property posts : TBlogTypeposts Index 56 Read Fposts Write Setposts;
     Property _published : TDatetime Index 64 Read F_published Write Set_published;
-    Property selfLink : string Index 72 Read FselfLink Write SetselfLink;
-    Property status : string Index 80 Read Fstatus Write Setstatus;
+    Property selfLink : String Index 72 Read FselfLink Write SetselfLink;
+    Property status : String Index 80 Read Fstatus Write Setstatus;
     Property updated : TDatetime Index 88 Read Fupdated Write Setupdated;
-    Property url : string Index 96 Read Furl Write Seturl;
+    Property url : String Index 96 Read Furl Write Seturl;
   end;
   TBlogClass = Class of TBlog;
-  
-  { --------------------------------------------------------------------
-    TBloglocale
-    --------------------------------------------------------------------}
-  
-  TBloglocale = Class(TGoogleBaseObject)
-  Private
-    Fcountry : string;
-    Flanguage : string;
-    Fvariant : string;
-  Protected
-    //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvariant(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property country : string Index 0 Read Fcountry Write Setcountry;
-    Property language : string Index 8 Read Flanguage Write Setlanguage;
-    Property variant : string Index 16 Read Fvariant Write Setvariant;
-  end;
-  TBloglocaleClass = Class of TBloglocale;
-  
-  { --------------------------------------------------------------------
-    TBlogpages
-    --------------------------------------------------------------------}
-  
-  TBlogpages = Class(TGoogleBaseObject)
-  Private
-    FselfLink : string;
-    FtotalItems : integer;
-  Protected
-    //Property setters
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property selfLink : string Index 0 Read FselfLink Write SetselfLink;
-    Property totalItems : integer Index 8 Read FtotalItems Write SettotalItems;
-  end;
-  TBlogpagesClass = Class of TBlogpages;
-  
-  { --------------------------------------------------------------------
-    TBlogposts
-    --------------------------------------------------------------------}
-  
-  TBlogposts = Class(TGoogleBaseObject)
-  Private
-    Fitems : TBlogpostsitems;
-    FselfLink : string;
-    FtotalItems : integer;
-  Protected
-    //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TBlogpostsitems); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property items : TBlogpostsitems Index 0 Read Fitems Write Setitems;
-    Property selfLink : string Index 8 Read FselfLink Write SetselfLink;
-    Property totalItems : integer Index 16 Read FtotalItems Write SettotalItems;
-  end;
-  TBlogpostsClass = Class of TBlogposts;
-  
-  { --------------------------------------------------------------------
-    TBlogpostsitems
-    --------------------------------------------------------------------}
-  
-  TBlogpostsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBlogpostsitemsClass = Class of TBlogpostsitems;
   
   { --------------------------------------------------------------------
     TBlogList
@@ -259,47 +208,21 @@ type
   
   TBlogList = Class(TGoogleBaseObject)
   Private
-    FblogUserInfos : TBlogListblogUserInfos;
-    Fitems : TBlogListitems;
-    Fkind : string;
+    FblogUserInfos : TBlogListTypeblogUserInfosArray;
+    Fitems : TBlogListTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetblogUserInfos(AIndex : Integer; AValue : TBlogListblogUserInfos); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TBlogListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetblogUserInfos(AIndex : Integer; AValue : TBlogListTypeblogUserInfosArray); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TBlogListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property blogUserInfos : TBlogListblogUserInfos Index 0 Read FblogUserInfos Write SetblogUserInfos;
-    Property items : TBlogListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property blogUserInfos : TBlogListTypeblogUserInfosArray Index 0 Read FblogUserInfos Write SetblogUserInfos;
+    Property items : TBlogListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TBlogListClass = Class of TBlogList;
-  
-  { --------------------------------------------------------------------
-    TBlogListblogUserInfos
-    --------------------------------------------------------------------}
-  
-  TBlogListblogUserInfos = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBlogListblogUserInfosClass = Class of TBlogListblogUserInfos;
-  
-  { --------------------------------------------------------------------
-    TBlogListitems
-    --------------------------------------------------------------------}
-  
-  TBlogListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBlogListitemsClass = Class of TBlogListitems;
   
   { --------------------------------------------------------------------
     TBlogPerUserInfo
@@ -307,28 +230,28 @@ type
   
   TBlogPerUserInfo = Class(TGoogleBaseObject)
   Private
-    FblogId : string;
+    FblogId : String;
     FhasAdminAccess : boolean;
-    Fkind : string;
-    FphotosAlbumKey : string;
-    Frole : string;
-    FuserId : string;
+    Fkind : String;
+    FphotosAlbumKey : String;
+    Frole : String;
+    FuserId : String;
   Protected
     //Property setters
-    Procedure SetblogId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetblogId(AIndex : Integer; AValue : String); virtual;
     Procedure SethasAdminAccess(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetphotosAlbumKey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrole(AIndex : Integer; AValue : string); virtual;
-    Procedure SetuserId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetphotosAlbumKey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrole(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuserId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property blogId : string Index 0 Read FblogId Write SetblogId;
+    Property blogId : String Index 0 Read FblogId Write SetblogId;
     Property hasAdminAccess : boolean Index 8 Read FhasAdminAccess Write SethasAdminAccess;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property photosAlbumKey : string Index 24 Read FphotosAlbumKey Write SetphotosAlbumKey;
-    Property role : string Index 32 Read Frole Write Setrole;
-    Property userId : string Index 40 Read FuserId Write SetuserId;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property photosAlbumKey : String Index 24 Read FphotosAlbumKey Write SetphotosAlbumKey;
+    Property role : String Index 32 Read Frole Write Setrole;
+    Property userId : String Index 40 Read FuserId Write SetuserId;
   end;
   TBlogPerUserInfoClass = Class of TBlogPerUserInfo;
   
@@ -338,21 +261,110 @@ type
   
   TBlogUserInfo = Class(TGoogleBaseObject)
   Private
-    Fblog : TCommentblog;
+    Fblog : TBlog;
     Fblog_user_info : TBlogPerUserInfo;
-    Fkind : string;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setblog(AIndex : Integer; AValue : TCommentblog); virtual;
+    Procedure Setblog(AIndex : Integer; AValue : TBlog); virtual;
     Procedure Setblog_user_info(AIndex : Integer; AValue : TBlogPerUserInfo); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property blog : TCommentblog Index 0 Read Fblog Write Setblog;
+    Property blog : TBlog Index 0 Read Fblog Write Setblog;
     Property blog_user_info : TBlogPerUserInfo Index 8 Read Fblog_user_info Write Setblog_user_info;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TBlogUserInfoClass = Class of TBlogUserInfo;
+  
+  { --------------------------------------------------------------------
+    TCommentTypeauthorTypeimage
+    --------------------------------------------------------------------}
+  
+  TCommentTypeauthorTypeimage = Class(TGoogleBaseObject)
+  Private
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property url : String Index 0 Read Furl Write Seturl;
+  end;
+  TCommentTypeauthorTypeimageClass = Class of TCommentTypeauthorTypeimage;
+  
+  { --------------------------------------------------------------------
+    TCommentTypeauthor
+    --------------------------------------------------------------------}
+  
+  TCommentTypeauthor = Class(TGoogleBaseObject)
+  Private
+    FdisplayName : String;
+    Fid : String;
+    Fimage : TCommentTypeauthorTypeimage;
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setimage(AIndex : Integer; AValue : TCommentTypeauthorTypeimage); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property displayName : String Index 0 Read FdisplayName Write SetdisplayName;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property image : TCommentTypeauthorTypeimage Index 16 Read Fimage Write Setimage;
+    Property url : String Index 24 Read Furl Write Seturl;
+  end;
+  TCommentTypeauthorClass = Class of TCommentTypeauthor;
+  
+  { --------------------------------------------------------------------
+    TCommentTypeblog
+    --------------------------------------------------------------------}
+  
+  TCommentTypeblog = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+  end;
+  TCommentTypeblogClass = Class of TCommentTypeblog;
+  
+  { --------------------------------------------------------------------
+    TCommentTypeinReplyTo
+    --------------------------------------------------------------------}
+  
+  TCommentTypeinReplyTo = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+  end;
+  TCommentTypeinReplyToClass = Class of TCommentTypeinReplyTo;
+  
+  { --------------------------------------------------------------------
+    TCommentTypepost
+    --------------------------------------------------------------------}
+  
+  TCommentTypepost = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+  end;
+  TCommentTypepostClass = Class of TCommentTypepost;
   
   { --------------------------------------------------------------------
     TComment
@@ -360,135 +372,46 @@ type
   
   TComment = Class(TGoogleBaseObject)
   Private
-    Fauthor : TCommentauthor;
-    Fblog : TCommentblog;
-    Fcontent : string;
-    Fid : string;
-    FinReplyTo : TCommentinReplyTo;
-    Fkind : string;
-    Fpost : TCommentpost;
+    Fauthor : TCommentTypeauthor;
+    Fblog : TCommentTypeblog;
+    Fcontent : String;
+    Fid : String;
+    FinReplyTo : TCommentTypeinReplyTo;
+    Fkind : String;
+    Fpost : TCommentTypepost;
     F_published : TDatetime;
-    FselfLink : string;
-    Fstatus : string;
+    FselfLink : String;
+    Fstatus : String;
     Fupdated : TDatetime;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setauthor(AIndex : Integer; AValue : TCommentauthor); virtual;
-    Procedure Setblog(AIndex : Integer; AValue : TCommentblog); virtual;
-    Procedure Setcontent(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinReplyTo(AIndex : Integer; AValue : TCommentinReplyTo); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpost(AIndex : Integer; AValue : TCommentpost); virtual;
+    Procedure Setauthor(AIndex : Integer; AValue : TCommentTypeauthor); virtual;
+    Procedure Setblog(AIndex : Integer; AValue : TCommentTypeblog); virtual;
+    Procedure Setcontent(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinReplyTo(AIndex : Integer; AValue : TCommentTypeinReplyTo); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpost(AIndex : Integer; AValue : TCommentTypepost); virtual;
     Procedure Set_published(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
-    Property author : TCommentauthor Index 0 Read Fauthor Write Setauthor;
-    Property blog : TCommentblog Index 8 Read Fblog Write Setblog;
-    Property content : string Index 16 Read Fcontent Write Setcontent;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property inReplyTo : TCommentinReplyTo Index 32 Read FinReplyTo Write SetinReplyTo;
-    Property kind : string Index 40 Read Fkind Write Setkind;
-    Property post : TCommentpost Index 48 Read Fpost Write Setpost;
+    Property author : TCommentTypeauthor Index 0 Read Fauthor Write Setauthor;
+    Property blog : TCommentTypeblog Index 8 Read Fblog Write Setblog;
+    Property content : String Index 16 Read Fcontent Write Setcontent;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property inReplyTo : TCommentTypeinReplyTo Index 32 Read FinReplyTo Write SetinReplyTo;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property post : TCommentTypepost Index 48 Read Fpost Write Setpost;
     Property _published : TDatetime Index 56 Read F_published Write Set_published;
-    Property selfLink : string Index 64 Read FselfLink Write SetselfLink;
-    Property status : string Index 72 Read Fstatus Write Setstatus;
+    Property selfLink : String Index 64 Read FselfLink Write SetselfLink;
+    Property status : String Index 72 Read Fstatus Write Setstatus;
     Property updated : TDatetime Index 80 Read Fupdated Write Setupdated;
   end;
   TCommentClass = Class of TComment;
-  
-  { --------------------------------------------------------------------
-    TCommentauthor
-    --------------------------------------------------------------------}
-  
-  TCommentauthor = Class(TGoogleBaseObject)
-  Private
-    FdisplayName : string;
-    Fid : string;
-    Fimage : TCommentauthorimage;
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setimage(AIndex : Integer; AValue : TCommentauthorimage); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property displayName : string Index 0 Read FdisplayName Write SetdisplayName;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property image : TCommentauthorimage Index 16 Read Fimage Write Setimage;
-    Property url : string Index 24 Read Furl Write Seturl;
-  end;
-  TCommentauthorClass = Class of TCommentauthor;
-  
-  { --------------------------------------------------------------------
-    TCommentauthorimage
-    --------------------------------------------------------------------}
-  
-  TCommentauthorimage = Class(TGoogleBaseObject)
-  Private
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property url : string Index 0 Read Furl Write Seturl;
-  end;
-  TCommentauthorimageClass = Class of TCommentauthorimage;
-  
-  { --------------------------------------------------------------------
-    TCommentblog
-    --------------------------------------------------------------------}
-  
-  TCommentblog = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-  end;
-  TCommentblogClass = Class of TCommentblog;
-  
-  { --------------------------------------------------------------------
-    TCommentinReplyTo
-    --------------------------------------------------------------------}
-  
-  TCommentinReplyTo = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-  end;
-  TCommentinReplyToClass = Class of TCommentinReplyTo;
-  
-  { --------------------------------------------------------------------
-    TCommentpost
-    --------------------------------------------------------------------}
-  
-  TCommentpost = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-  end;
-  TCommentpostClass = Class of TCommentpost;
   
   { --------------------------------------------------------------------
     TCommentList
@@ -496,40 +419,84 @@ type
   
   TCommentList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TCommentListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FprevPageToken : string;
+    Fetag : String;
+    Fitems : TCommentListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FprevPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TCommentListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TCommentListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TCommentListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property prevPageToken : string Index 32 Read FprevPageToken Write SetprevPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TCommentListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property prevPageToken : String Index 32 Read FprevPageToken Write SetprevPageToken;
   end;
   TCommentListClass = Class of TCommentList;
   
   { --------------------------------------------------------------------
-    TCommentListitems
+    TPageTypeauthorTypeimage
     --------------------------------------------------------------------}
   
-  TCommentListitems = Class(TGoogleBaseObject)
+  TPageTypeauthorTypeimage = Class(TGoogleBaseObject)
   Private
+    Furl : String;
   Protected
     //Property setters
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property url : String Index 0 Read Furl Write Seturl;
   end;
-  TCommentListitemsClass = Class of TCommentListitems;
+  TPageTypeauthorTypeimageClass = Class of TPageTypeauthorTypeimage;
+  
+  { --------------------------------------------------------------------
+    TPageTypeauthor
+    --------------------------------------------------------------------}
+  
+  TPageTypeauthor = Class(TGoogleBaseObject)
+  Private
+    FdisplayName : String;
+    Fid : String;
+    Fimage : TPageTypeauthorTypeimage;
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setimage(AIndex : Integer; AValue : TPageTypeauthorTypeimage); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property displayName : String Index 0 Read FdisplayName Write SetdisplayName;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property image : TPageTypeauthorTypeimage Index 16 Read Fimage Write Setimage;
+    Property url : String Index 24 Read Furl Write Seturl;
+  end;
+  TPageTypeauthorClass = Class of TPageTypeauthor;
+  
+  { --------------------------------------------------------------------
+    TPageTypeblog
+    --------------------------------------------------------------------}
+  
+  TPageTypeblog = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+  end;
+  TPageTypeblogClass = Class of TPageTypeblog;
   
   { --------------------------------------------------------------------
     TPage
@@ -537,106 +504,49 @@ type
   
   TPage = Class(TGoogleBaseObject)
   Private
-    Fauthor : TPageauthor;
-    Fblog : TPageblog;
-    Fcontent : string;
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fauthor : TPageTypeauthor;
+    Fblog : TPageTypeblog;
+    Fcontent : String;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     F_published : TDatetime;
-    FselfLink : string;
-    Fstatus : string;
-    Ftitle : string;
+    FselfLink : String;
+    Fstatus : String;
+    Ftitle : String;
     Fupdated : TDatetime;
-    Furl : string;
+    Furl : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setauthor(AIndex : Integer; AValue : TPageauthor); virtual;
-    Procedure Setblog(AIndex : Integer; AValue : TPageblog); virtual;
-    Procedure Setcontent(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setauthor(AIndex : Integer; AValue : TPageTypeauthor); virtual;
+    Procedure Setblog(AIndex : Integer; AValue : TPageTypeblog); virtual;
+    Procedure Setcontent(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Set_published(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property author : TPageauthor Index 0 Read Fauthor Write Setauthor;
-    Property blog : TPageblog Index 8 Read Fblog Write Setblog;
-    Property content : string Index 16 Read Fcontent Write Setcontent;
-    Property etag : string Index 24 Read Fetag Write Setetag;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property kind : string Index 40 Read Fkind Write Setkind;
+    Property author : TPageTypeauthor Index 0 Read Fauthor Write Setauthor;
+    Property blog : TPageTypeblog Index 8 Read Fblog Write Setblog;
+    Property content : String Index 16 Read Fcontent Write Setcontent;
+    Property etag : String Index 24 Read Fetag Write Setetag;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property kind : String Index 40 Read Fkind Write Setkind;
     Property _published : TDatetime Index 48 Read F_published Write Set_published;
-    Property selfLink : string Index 56 Read FselfLink Write SetselfLink;
-    Property status : string Index 64 Read Fstatus Write Setstatus;
-    Property title : string Index 72 Read Ftitle Write Settitle;
+    Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
+    Property status : String Index 64 Read Fstatus Write Setstatus;
+    Property title : String Index 72 Read Ftitle Write Settitle;
     Property updated : TDatetime Index 80 Read Fupdated Write Setupdated;
-    Property url : string Index 88 Read Furl Write Seturl;
+    Property url : String Index 88 Read Furl Write Seturl;
   end;
   TPageClass = Class of TPage;
-  
-  { --------------------------------------------------------------------
-    TPageauthor
-    --------------------------------------------------------------------}
-  
-  TPageauthor = Class(TGoogleBaseObject)
-  Private
-    FdisplayName : string;
-    Fid : string;
-    Fimage : TPageauthorimage;
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setimage(AIndex : Integer; AValue : TPageauthorimage); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property displayName : string Index 0 Read FdisplayName Write SetdisplayName;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property image : TPageauthorimage Index 16 Read Fimage Write Setimage;
-    Property url : string Index 24 Read Furl Write Seturl;
-  end;
-  TPageauthorClass = Class of TPageauthor;
-  
-  { --------------------------------------------------------------------
-    TPageauthorimage
-    --------------------------------------------------------------------}
-  
-  TPageauthorimage = Class(TGoogleBaseObject)
-  Private
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property url : string Index 0 Read Furl Write Seturl;
-  end;
-  TPageauthorimageClass = Class of TPageauthorimage;
-  
-  { --------------------------------------------------------------------
-    TPageblog
-    --------------------------------------------------------------------}
-  
-  TPageblog = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-  end;
-  TPageblogClass = Class of TPageblog;
   
   { --------------------------------------------------------------------
     TPageList
@@ -644,37 +554,43 @@ type
   
   TPageList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TPageListitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fitems : TPageListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TPageListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TPageListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TPageListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TPageListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TPageListClass = Class of TPageList;
   
   { --------------------------------------------------------------------
-    TPageListitems
+    TPageviewsTypecountsItem
     --------------------------------------------------------------------}
   
-  TPageListitems = Class(TGoogleBaseObject)
+  TPageviewsTypecountsItem = Class(TGoogleBaseObject)
   Private
+    Fcount : String;
+    FtimeRange : String;
   Protected
     //Property setters
+    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimeRange(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property count : String Index 0 Read Fcount Write Setcount;
+    Property timeRange : String Index 8 Read FtimeRange Write SettimeRange;
   end;
-  TPageListitemsClass = Class of TPageListitems;
+  TPageviewsTypecountsItemClass = Class of TPageviewsTypecountsItem;
   
   { --------------------------------------------------------------------
     TPageviews
@@ -682,40 +598,141 @@ type
   
   TPageviews = Class(TGoogleBaseObject)
   Private
-    FblogId : string;
-    Fcounts : TPageviewscounts;
-    Fkind : string;
+    FblogId : String;
+    Fcounts : TPageviewsTypecountsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetblogId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcounts(AIndex : Integer; AValue : TPageviewscounts); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetblogId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcounts(AIndex : Integer; AValue : TPageviewsTypecountsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property blogId : string Index 0 Read FblogId Write SetblogId;
-    Property counts : TPageviewscounts Index 8 Read Fcounts Write Setcounts;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property blogId : String Index 0 Read FblogId Write SetblogId;
+    Property counts : TPageviewsTypecountsArray Index 8 Read Fcounts Write Setcounts;
+    Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TPageviewsClass = Class of TPageviews;
   
   { --------------------------------------------------------------------
-    TPageviewscounts
+    TPostTypeauthorTypeimage
     --------------------------------------------------------------------}
   
-  TPageviewscounts = Class(TGoogleBaseObject)
+  TPostTypeauthorTypeimage = Class(TGoogleBaseObject)
   Private
-    Fcount : string;
-    FtimeRange : string;
+    Furl : String;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
-    Procedure SettimeRange(AIndex : Integer; AValue : string); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property count : string Index 0 Read Fcount Write Setcount;
-    Property timeRange : string Index 8 Read FtimeRange Write SettimeRange;
+    Property url : String Index 0 Read Furl Write Seturl;
   end;
-  TPageviewscountsClass = Class of TPageviewscounts;
+  TPostTypeauthorTypeimageClass = Class of TPostTypeauthorTypeimage;
+  
+  { --------------------------------------------------------------------
+    TPostTypeauthor
+    --------------------------------------------------------------------}
+  
+  TPostTypeauthor = Class(TGoogleBaseObject)
+  Private
+    FdisplayName : String;
+    Fid : String;
+    Fimage : TPostTypeauthorTypeimage;
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setimage(AIndex : Integer; AValue : TPostTypeauthorTypeimage); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property displayName : String Index 0 Read FdisplayName Write SetdisplayName;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property image : TPostTypeauthorTypeimage Index 16 Read Fimage Write Setimage;
+    Property url : String Index 24 Read Furl Write Seturl;
+  end;
+  TPostTypeauthorClass = Class of TPostTypeauthor;
+  
+  { --------------------------------------------------------------------
+    TPostTypeblog
+    --------------------------------------------------------------------}
+  
+  TPostTypeblog = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+  end;
+  TPostTypeblogClass = Class of TPostTypeblog;
+  
+  { --------------------------------------------------------------------
+    TPostTypeimagesItem
+    --------------------------------------------------------------------}
+  
+  TPostTypeimagesItem = Class(TGoogleBaseObject)
+  Private
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property url : String Index 0 Read Furl Write Seturl;
+  end;
+  TPostTypeimagesItemClass = Class of TPostTypeimagesItem;
+  
+  { --------------------------------------------------------------------
+    TPostTypelocation
+    --------------------------------------------------------------------}
+  
+  TPostTypelocation = Class(TGoogleBaseObject)
+  Private
+    Flat : double;
+    Flng : double;
+    Fname : String;
+    Fspan : String;
+  Protected
+    //Property setters
+    Procedure Setlat(AIndex : Integer; AValue : double); virtual;
+    Procedure Setlng(AIndex : Integer; AValue : double); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setspan(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property lat : double Index 0 Read Flat Write Setlat;
+    Property lng : double Index 8 Read Flng Write Setlng;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property span : String Index 24 Read Fspan Write Setspan;
+  end;
+  TPostTypelocationClass = Class of TPostTypelocation;
+  
+  { --------------------------------------------------------------------
+    TPostTypereplies
+    --------------------------------------------------------------------}
+  
+  TPostTypereplies = Class(TGoogleBaseObject)
+  Private
+    Fitems : TPostTyperepliesTypeitemsArray;
+    FselfLink : String;
+    FtotalItems : String;
+  Protected
+    //Property setters
+    Procedure Setitems(AIndex : Integer; AValue : TPostTyperepliesTypeitemsArray); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SettotalItems(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property items : TPostTyperepliesTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property selfLink : String Index 8 Read FselfLink Write SetselfLink;
+    Property totalItems : String Index 16 Read FtotalItems Write SettotalItems;
+  end;
+  TPostTyperepliesClass = Class of TPostTypereplies;
   
   { --------------------------------------------------------------------
     TPost
@@ -723,216 +740,70 @@ type
   
   TPost = Class(TGoogleBaseObject)
   Private
-    Fauthor : TPostauthor;
-    Fblog : TPostblog;
-    Fcontent : string;
-    FcustomMetaData : string;
-    Fetag : string;
-    Fid : string;
-    Fimages : TPostimages;
-    Fkind : string;
-    Flabels : TPostlabels;
-    Flocation : TPostlocation;
+    Fauthor : TPostTypeauthor;
+    Fblog : TPostTypeblog;
+    Fcontent : String;
+    FcustomMetaData : String;
+    Fetag : String;
+    Fid : String;
+    Fimages : TPostTypeimagesArray;
+    Fkind : String;
+    Flabels : TStringArray;
+    Flocation : TPostTypelocation;
     F_published : TDatetime;
-    FreaderComments : string;
-    Freplies : TPostreplies;
-    FselfLink : string;
-    Fstatus : string;
-    Ftitle : string;
-    FtitleLink : string;
+    FreaderComments : String;
+    Freplies : TPostTypereplies;
+    FselfLink : String;
+    Fstatus : String;
+    Ftitle : String;
+    FtitleLink : String;
     Fupdated : TDatetime;
-    Furl : string;
+    Furl : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setauthor(AIndex : Integer; AValue : TPostauthor); virtual;
-    Procedure Setblog(AIndex : Integer; AValue : TPostblog); virtual;
-    Procedure Setcontent(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomMetaData(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setimages(AIndex : Integer; AValue : TPostimages); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlabels(AIndex : Integer; AValue : TPostlabels); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : TPostlocation); virtual;
+    Procedure Setauthor(AIndex : Integer; AValue : TPostTypeauthor); virtual;
+    Procedure Setblog(AIndex : Integer; AValue : TPostTypeblog); virtual;
+    Procedure Setcontent(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomMetaData(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setimages(AIndex : Integer; AValue : TPostTypeimagesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlabels(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setlocation(AIndex : Integer; AValue : TPostTypelocation); virtual;
     Procedure Set_published(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetreaderComments(AIndex : Integer; AValue : string); virtual;
-    Procedure Setreplies(AIndex : Integer; AValue : TPostreplies); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure SettitleLink(AIndex : Integer; AValue : string); virtual;
+    Procedure SetreaderComments(AIndex : Integer; AValue : String); virtual;
+    Procedure Setreplies(AIndex : Integer; AValue : TPostTypereplies); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SettitleLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property author : TPostauthor Index 0 Read Fauthor Write Setauthor;
-    Property blog : TPostblog Index 8 Read Fblog Write Setblog;
-    Property content : string Index 16 Read Fcontent Write Setcontent;
-    Property customMetaData : string Index 24 Read FcustomMetaData Write SetcustomMetaData;
-    Property etag : string Index 32 Read Fetag Write Setetag;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property images : TPostimages Index 48 Read Fimages Write Setimages;
-    Property kind : string Index 56 Read Fkind Write Setkind;
-    Property labels : TPostlabels Index 64 Read Flabels Write Setlabels;
-    Property location : TPostlocation Index 72 Read Flocation Write Setlocation;
+    Property author : TPostTypeauthor Index 0 Read Fauthor Write Setauthor;
+    Property blog : TPostTypeblog Index 8 Read Fblog Write Setblog;
+    Property content : String Index 16 Read Fcontent Write Setcontent;
+    Property customMetaData : String Index 24 Read FcustomMetaData Write SetcustomMetaData;
+    Property etag : String Index 32 Read Fetag Write Setetag;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property images : TPostTypeimagesArray Index 48 Read Fimages Write Setimages;
+    Property kind : String Index 56 Read Fkind Write Setkind;
+    Property labels : TStringArray Index 64 Read Flabels Write Setlabels;
+    Property location : TPostTypelocation Index 72 Read Flocation Write Setlocation;
     Property _published : TDatetime Index 80 Read F_published Write Set_published;
-    Property readerComments : string Index 88 Read FreaderComments Write SetreaderComments;
-    Property replies : TPostreplies Index 96 Read Freplies Write Setreplies;
-    Property selfLink : string Index 104 Read FselfLink Write SetselfLink;
-    Property status : string Index 112 Read Fstatus Write Setstatus;
-    Property title : string Index 120 Read Ftitle Write Settitle;
-    Property titleLink : string Index 128 Read FtitleLink Write SettitleLink;
+    Property readerComments : String Index 88 Read FreaderComments Write SetreaderComments;
+    Property replies : TPostTypereplies Index 96 Read Freplies Write Setreplies;
+    Property selfLink : String Index 104 Read FselfLink Write SetselfLink;
+    Property status : String Index 112 Read Fstatus Write Setstatus;
+    Property title : String Index 120 Read Ftitle Write Settitle;
+    Property titleLink : String Index 128 Read FtitleLink Write SettitleLink;
     Property updated : TDatetime Index 136 Read Fupdated Write Setupdated;
-    Property url : string Index 144 Read Furl Write Seturl;
+    Property url : String Index 144 Read Furl Write Seturl;
   end;
   TPostClass = Class of TPost;
-  
-  { --------------------------------------------------------------------
-    TPostauthor
-    --------------------------------------------------------------------}
-  
-  TPostauthor = Class(TGoogleBaseObject)
-  Private
-    FdisplayName : string;
-    Fid : string;
-    Fimage : TPostauthorimage;
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setimage(AIndex : Integer; AValue : TPostauthorimage); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property displayName : string Index 0 Read FdisplayName Write SetdisplayName;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property image : TPostauthorimage Index 16 Read Fimage Write Setimage;
-    Property url : string Index 24 Read Furl Write Seturl;
-  end;
-  TPostauthorClass = Class of TPostauthor;
-  
-  { --------------------------------------------------------------------
-    TPostauthorimage
-    --------------------------------------------------------------------}
-  
-  TPostauthorimage = Class(TGoogleBaseObject)
-  Private
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property url : string Index 0 Read Furl Write Seturl;
-  end;
-  TPostauthorimageClass = Class of TPostauthorimage;
-  
-  { --------------------------------------------------------------------
-    TPostblog
-    --------------------------------------------------------------------}
-  
-  TPostblog = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-  end;
-  TPostblogClass = Class of TPostblog;
-  
-  { --------------------------------------------------------------------
-    TPostimages
-    --------------------------------------------------------------------}
-  
-  TPostimages = Class(TGoogleBaseObject)
-  Private
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property url : string Index 0 Read Furl Write Seturl;
-  end;
-  TPostimagesClass = Class of TPostimages;
-  
-  { --------------------------------------------------------------------
-    TPostlabels
-    --------------------------------------------------------------------}
-  
-  TPostlabels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPostlabelsClass = Class of TPostlabels;
-  
-  { --------------------------------------------------------------------
-    TPostlocation
-    --------------------------------------------------------------------}
-  
-  TPostlocation = Class(TGoogleBaseObject)
-  Private
-    Flat : double;
-    Flng : double;
-    Fname : string;
-    Fspan : string;
-  Protected
-    //Property setters
-    Procedure Setlat(AIndex : Integer; AValue : double); virtual;
-    Procedure Setlng(AIndex : Integer; AValue : double); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setspan(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property lat : double Index 0 Read Flat Write Setlat;
-    Property lng : double Index 8 Read Flng Write Setlng;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property span : string Index 24 Read Fspan Write Setspan;
-  end;
-  TPostlocationClass = Class of TPostlocation;
-  
-  { --------------------------------------------------------------------
-    TPostreplies
-    --------------------------------------------------------------------}
-  
-  TPostreplies = Class(TGoogleBaseObject)
-  Private
-    Fitems : TPostrepliesitems;
-    FselfLink : string;
-    FtotalItems : string;
-  Protected
-    //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TPostrepliesitems); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property items : TPostrepliesitems Index 0 Read Fitems Write Setitems;
-    Property selfLink : string Index 8 Read FselfLink Write SetselfLink;
-    Property totalItems : string Index 16 Read FtotalItems Write SettotalItems;
-  end;
-  TPostrepliesClass = Class of TPostreplies;
-  
-  { --------------------------------------------------------------------
-    TPostrepliesitems
-    --------------------------------------------------------------------}
-  
-  TPostrepliesitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPostrepliesitemsClass = Class of TPostrepliesitems;
   
   { --------------------------------------------------------------------
     TPostList
@@ -940,37 +811,24 @@ type
   
   TPostList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TPostListitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fitems : TPostListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TPostListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TPostListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TPostListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TPostListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TPostListClass = Class of TPostList;
-  
-  { --------------------------------------------------------------------
-    TPostListitems
-    --------------------------------------------------------------------}
-  
-  TPostListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPostListitemsClass = Class of TPostListitems;
   
   { --------------------------------------------------------------------
     TPostPerUserInfo
@@ -978,25 +836,25 @@ type
   
   TPostPerUserInfo = Class(TGoogleBaseObject)
   Private
-    FblogId : string;
+    FblogId : String;
     FhasEditAccess : boolean;
-    Fkind : string;
-    FpostId : string;
-    FuserId : string;
+    Fkind : String;
+    FpostId : String;
+    FuserId : String;
   Protected
     //Property setters
-    Procedure SetblogId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetblogId(AIndex : Integer; AValue : String); virtual;
     Procedure SethasEditAccess(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpostId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetuserId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpostId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuserId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property blogId : string Index 0 Read FblogId Write SetblogId;
+    Property blogId : String Index 0 Read FblogId Write SetblogId;
     Property hasEditAccess : boolean Index 8 Read FhasEditAccess Write SethasEditAccess;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property postId : string Index 24 Read FpostId Write SetpostId;
-    Property userId : string Index 32 Read FuserId Write SetuserId;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property postId : String Index 24 Read FpostId Write SetpostId;
+    Property userId : String Index 32 Read FuserId Write SetuserId;
   end;
   TPostPerUserInfoClass = Class of TPostPerUserInfo;
   
@@ -1006,18 +864,18 @@ type
   
   TPostUserInfo = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fpost : TCommentpost;
+    Fkind : String;
+    Fpost : TPost;
     Fpost_user_info : TPostPerUserInfo;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpost(AIndex : Integer; AValue : TCommentpost); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpost(AIndex : Integer; AValue : TPost); virtual;
     Procedure Setpost_user_info(AIndex : Integer; AValue : TPostPerUserInfo); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property post : TCommentpost Index 8 Read Fpost Write Setpost;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property post : TPost Index 8 Read Fpost Write Setpost;
     Property post_user_info : TPostPerUserInfo Index 16 Read Fpost_user_info Write Setpost_user_info;
   end;
   TPostUserInfoClass = Class of TPostUserInfo;
@@ -1028,34 +886,59 @@ type
   
   TPostUserInfosList = Class(TGoogleBaseObject)
   Private
-    Fitems : TPostUserInfosListitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fitems : TPostUserInfosListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TPostUserInfosListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TPostUserInfosListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TPostUserInfosListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property items : TPostUserInfosListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TPostUserInfosListClass = Class of TPostUserInfosList;
   
   { --------------------------------------------------------------------
-    TPostUserInfosListitems
+    TUserTypeblogs
     --------------------------------------------------------------------}
   
-  TPostUserInfosListitems = Class(TGoogleBaseObject)
+  TUserTypeblogs = Class(TGoogleBaseObject)
   Private
+    FselfLink : String;
   Protected
     //Property setters
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property selfLink : String Index 0 Read FselfLink Write SetselfLink;
   end;
-  TPostUserInfosListitemsClass = Class of TPostUserInfosListitems;
+  TUserTypeblogsClass = Class of TUserTypeblogs;
+  
+  { --------------------------------------------------------------------
+    TUserTypelocale
+    --------------------------------------------------------------------}
+  
+  TUserTypelocale = Class(TGoogleBaseObject)
+  Private
+    Fcountry : String;
+    Flanguage : String;
+    Fvariant : String;
+  Protected
+    //Property setters
+    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvariant(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property country : String Index 0 Read Fcountry Write Setcountry;
+    Property language : String Index 8 Read Flanguage Write Setlanguage;
+    Property variant : String Index 16 Read Fvariant Write Setvariant;
+  end;
+  TUserTypelocaleClass = Class of TUserTypelocale;
   
   { --------------------------------------------------------------------
     TUser
@@ -1063,77 +946,39 @@ type
   
   TUser = Class(TGoogleBaseObject)
   Private
-    Fabout : string;
-    Fblogs : TUserblogs;
+    Fabout : String;
+    Fblogs : TUserTypeblogs;
     Fcreated : TDatetime;
-    FdisplayName : string;
-    Fid : string;
-    Fkind : string;
-    Flocale : TUserlocale;
-    FselfLink : string;
-    Furl : string;
+    FdisplayName : String;
+    Fid : String;
+    Fkind : String;
+    Flocale : TUserTypelocale;
+    FselfLink : String;
+    Furl : String;
   Protected
     //Property setters
-    Procedure Setabout(AIndex : Integer; AValue : string); virtual;
-    Procedure Setblogs(AIndex : Integer; AValue : TUserblogs); virtual;
+    Procedure Setabout(AIndex : Integer; AValue : String); virtual;
+    Procedure Setblogs(AIndex : Integer; AValue : TUserTypeblogs); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocale(AIndex : Integer; AValue : TUserlocale); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocale(AIndex : Integer; AValue : TUserTypelocale); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property about : string Index 0 Read Fabout Write Setabout;
-    Property blogs : TUserblogs Index 8 Read Fblogs Write Setblogs;
+    Property about : String Index 0 Read Fabout Write Setabout;
+    Property blogs : TUserTypeblogs Index 8 Read Fblogs Write Setblogs;
     Property created : TDatetime Index 16 Read Fcreated Write Setcreated;
-    Property displayName : string Index 24 Read FdisplayName Write SetdisplayName;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property kind : string Index 40 Read Fkind Write Setkind;
-    Property locale : TUserlocale Index 48 Read Flocale Write Setlocale;
-    Property selfLink : string Index 56 Read FselfLink Write SetselfLink;
-    Property url : string Index 64 Read Furl Write Seturl;
+    Property displayName : String Index 24 Read FdisplayName Write SetdisplayName;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property locale : TUserTypelocale Index 48 Read Flocale Write Setlocale;
+    Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
+    Property url : String Index 64 Read Furl Write Seturl;
   end;
   TUserClass = Class of TUser;
-  
-  { --------------------------------------------------------------------
-    TUserblogs
-    --------------------------------------------------------------------}
-  
-  TUserblogs = Class(TGoogleBaseObject)
-  Private
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property selfLink : string Index 0 Read FselfLink Write SetselfLink;
-  end;
-  TUserblogsClass = Class of TUserblogs;
-  
-  { --------------------------------------------------------------------
-    TUserlocale
-    --------------------------------------------------------------------}
-  
-  TUserlocale = Class(TGoogleBaseObject)
-  Private
-    Fcountry : string;
-    Flanguage : string;
-    Fvariant : string;
-  Protected
-    //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvariant(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property country : string Index 0 Read Fcountry Write Setcountry;
-    Property language : string Index 8 Read Flanguage Write Setlanguage;
-    Property variant : string Index 16 Read Fvariant Write Setvariant;
-  end;
-  TUserlocaleClass = Class of TUserlocale;
   
   { --------------------------------------------------------------------
     TBlogUserInfosResource
@@ -1164,15 +1009,15 @@ type
   
   TBlogsGetOptions = Record
     maxPosts : integer;
-    view : string;
+    view : String;
   end;
   
   
   //Optional query Options for TBlogsResource, method GetByUrl
   
   TBlogsGetByUrlOptions = Record
-    url : string;
-    view : string;
+    url : String;
+    view : String;
   end;
   
   
@@ -1180,9 +1025,9 @@ type
   
   TBlogsListByUserOptions = Record
     fetchUserInfo : boolean;
-    role : string;
-    status : string;
-    view : string;
+    role : String;
+    status : String;
+    view : String;
   end;
   
   TBlogsResource = Class(TGoogleResource)
@@ -1206,7 +1051,7 @@ type
   //Optional query Options for TCommentsResource, method Get
   
   TCommentsGetOptions = Record
-    view : string;
+    view : String;
   end;
   
   
@@ -1216,10 +1061,10 @@ type
     endDate : TDatetime;
     fetchBodies : boolean;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
     startDate : TDatetime;
-    status : string;
-    view : string;
+    status : String;
+    view : String;
   end;
   
   
@@ -1229,9 +1074,9 @@ type
     endDate : TDatetime;
     fetchBodies : boolean;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
     startDate : TDatetime;
-    status : string;
+    status : String;
   end;
   
   TCommentsResource = Class(TGoogleResource)
@@ -1259,7 +1104,7 @@ type
   //Optional query Options for TPageViewsResource, method Get
   
   TPageViewsGetOptions = Record
-    range : string;
+    range : String;
   end;
   
   TPageViewsResource = Class(TGoogleResource)
@@ -1279,7 +1124,7 @@ type
   //Optional query Options for TPagesResource, method Get
   
   TPagesGetOptions = Record
-    view : string;
+    view : String;
   end;
   
   
@@ -1295,9 +1140,9 @@ type
   TPagesListOptions = Record
     fetchBodies : boolean;
     maxResults : integer;
-    pageToken : string;
-    status : string;
-    view : string;
+    pageToken : String;
+    status : String;
+    view : String;
   end;
   
   
@@ -1353,13 +1198,13 @@ type
   TPostUserInfosListOptions = Record
     endDate : TDatetime;
     fetchBodies : boolean;
-    labels : string;
+    labels : String;
     maxResults : integer;
-    orderBy : string;
-    pageToken : string;
+    orderBy : String;
+    pageToken : String;
     startDate : TDatetime;
-    status : string;
-    view : string;
+    status : String;
+    view : String;
   end;
   
   TPostUserInfosResource = Class(TGoogleResource)
@@ -1384,7 +1229,7 @@ type
     fetchBody : boolean;
     fetchImages : boolean;
     maxComments : integer;
-    view : string;
+    view : String;
   end;
   
   
@@ -1392,8 +1237,8 @@ type
   
   TPostsGetByPathOptions = Record
     maxComments : integer;
-    path : string;
-    view : string;
+    path : String;
+    view : String;
   end;
   
   
@@ -1412,13 +1257,13 @@ type
     endDate : TDatetime;
     fetchBodies : boolean;
     fetchImages : boolean;
-    labels : string;
+    labels : String;
     maxResults : integer;
-    orderBy : string;
-    pageToken : string;
+    orderBy : String;
+    pageToken : String;
     startDate : TDatetime;
-    status : string;
-    view : string;
+    status : String;
+    view : String;
   end;
   
   
@@ -1444,8 +1289,8 @@ type
   
   TPostsSearchOptions = Record
     fetchBodies : boolean;
-    orderBy : string;
-    q : string;
+    orderBy : String;
+    q : String;
   end;
   
   
@@ -1572,11 +1417,112 @@ implementation
 
 
 { --------------------------------------------------------------------
+  TBlogTypelocale
+  --------------------------------------------------------------------}
+
+
+Procedure TBlogTypelocale.Setcountry(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcountry=AValue) then exit;
+  Fcountry:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBlogTypelocale.Setlanguage(AIndex : Integer; AValue : String); 
+
+begin
+  If (Flanguage=AValue) then exit;
+  Flanguage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBlogTypelocale.Setvariant(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fvariant=AValue) then exit;
+  Fvariant:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBlogTypepages
+  --------------------------------------------------------------------}
+
+
+Procedure TBlogTypepages.SetselfLink(AIndex : Integer; AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBlogTypepages.SettotalItems(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FtotalItems=AValue) then exit;
+  FtotalItems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBlogTypeposts
+  --------------------------------------------------------------------}
+
+
+Procedure TBlogTypeposts.Setitems(AIndex : Integer; AValue : TBlogTypepostsTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBlogTypeposts.SetselfLink(AIndex : Integer; AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBlogTypeposts.SettotalItems(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FtotalItems=AValue) then exit;
+  FtotalItems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TBlog
   --------------------------------------------------------------------}
 
 
-Procedure TBlog.SetcustomMetaData(AIndex : Integer; AValue : string); 
+Procedure TBlog.SetcustomMetaData(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomMetaData=AValue) then exit;
@@ -1586,7 +1532,7 @@ end;
 
 
 
-Procedure TBlog.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TBlog.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1596,7 +1542,7 @@ end;
 
 
 
-Procedure TBlog.Setid(AIndex : Integer; AValue : string); 
+Procedure TBlog.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1606,7 +1552,7 @@ end;
 
 
 
-Procedure TBlog.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBlog.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1616,7 +1562,7 @@ end;
 
 
 
-Procedure TBlog.Setlocale(AIndex : Integer; AValue : TBloglocale); 
+Procedure TBlog.Setlocale(AIndex : Integer; AValue : TBlogTypelocale); 
 
 begin
   If (Flocale=AValue) then exit;
@@ -1626,7 +1572,7 @@ end;
 
 
 
-Procedure TBlog.Setname(AIndex : Integer; AValue : string); 
+Procedure TBlog.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1636,7 +1582,7 @@ end;
 
 
 
-Procedure TBlog.Setpages(AIndex : Integer; AValue : TBlogpages); 
+Procedure TBlog.Setpages(AIndex : Integer; AValue : TBlogTypepages); 
 
 begin
   If (Fpages=AValue) then exit;
@@ -1646,7 +1592,7 @@ end;
 
 
 
-Procedure TBlog.Setposts(AIndex : Integer; AValue : TBlogposts); 
+Procedure TBlog.Setposts(AIndex : Integer; AValue : TBlogTypeposts); 
 
 begin
   If (Fposts=AValue) then exit;
@@ -1666,7 +1612,7 @@ end;
 
 
 
-Procedure TBlog.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TBlog.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1676,7 +1622,7 @@ end;
 
 
 
-Procedure TBlog.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TBlog.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1696,7 +1642,7 @@ end;
 
 
 
-Procedure TBlog.Seturl(AIndex : Integer; AValue : string); 
+Procedure TBlog.Seturl(AIndex : Integer; AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -1720,119 +1666,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TBloglocale
-  --------------------------------------------------------------------}
-
-
-Procedure TBloglocale.Setcountry(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcountry=AValue) then exit;
-  Fcountry:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBloglocale.Setlanguage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Flanguage=AValue) then exit;
-  Flanguage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBloglocale.Setvariant(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fvariant=AValue) then exit;
-  Fvariant:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBlogpages
-  --------------------------------------------------------------------}
-
-
-Procedure TBlogpages.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBlogpages.SettotalItems(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FtotalItems=AValue) then exit;
-  FtotalItems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBlogposts
-  --------------------------------------------------------------------}
-
-
-Procedure TBlogposts.Setitems(AIndex : Integer; AValue : TBlogpostsitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBlogposts.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBlogposts.SettotalItems(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FtotalItems=AValue) then exit;
-  FtotalItems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBlogpostsitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TBlogList
   --------------------------------------------------------------------}
 
 
-Procedure TBlogList.SetblogUserInfos(AIndex : Integer; AValue : TBlogListblogUserInfos); 
+Procedure TBlogList.SetblogUserInfos(AIndex : Integer; AValue : TBlogListTypeblogUserInfosArray); 
 
 begin
   If (FblogUserInfos=AValue) then exit;
@@ -1842,7 +1680,7 @@ end;
 
 
 
-Procedure TBlogList.Setitems(AIndex : Integer; AValue : TBlogListitems); 
+Procedure TBlogList.Setitems(AIndex : Integer; AValue : TBlogListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1852,7 +1690,7 @@ end;
 
 
 
-Procedure TBlogList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBlogList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1865,25 +1703,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TBlogListblogUserInfos
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TBlogListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TBlogPerUserInfo
   --------------------------------------------------------------------}
 
 
-Procedure TBlogPerUserInfo.SetblogId(AIndex : Integer; AValue : string); 
+Procedure TBlogPerUserInfo.SetblogId(AIndex : Integer; AValue : String); 
 
 begin
   If (FblogId=AValue) then exit;
@@ -1903,7 +1727,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBlogPerUserInfo.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1913,7 +1737,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.SetphotosAlbumKey(AIndex : Integer; AValue : string); 
+Procedure TBlogPerUserInfo.SetphotosAlbumKey(AIndex : Integer; AValue : String); 
 
 begin
   If (FphotosAlbumKey=AValue) then exit;
@@ -1923,7 +1747,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.Setrole(AIndex : Integer; AValue : string); 
+Procedure TBlogPerUserInfo.Setrole(AIndex : Integer; AValue : String); 
 
 begin
   If (Frole=AValue) then exit;
@@ -1933,7 +1757,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.SetuserId(AIndex : Integer; AValue : string); 
+Procedure TBlogPerUserInfo.SetuserId(AIndex : Integer; AValue : String); 
 
 begin
   If (FuserId=AValue) then exit;
@@ -1950,7 +1774,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBlogUserInfo.Setblog(AIndex : Integer; AValue : TCommentblog); 
+Procedure TBlogUserInfo.Setblog(AIndex : Integer; AValue : TBlog); 
 
 begin
   If (Fblog=AValue) then exit;
@@ -1970,7 +1794,7 @@ end;
 
 
 
-Procedure TBlogUserInfo.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBlogUserInfo.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1983,41 +1807,38 @@ end;
 
 
 { --------------------------------------------------------------------
-  TComment
+  TCommentTypeauthorTypeimage
   --------------------------------------------------------------------}
 
 
-Procedure TComment.Setauthor(AIndex : Integer; AValue : TCommentauthor); 
+Procedure TCommentTypeauthorTypeimage.Seturl(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fauthor=AValue) then exit;
-  Fauthor:=AValue;
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TComment.Setblog(AIndex : Integer; AValue : TCommentblog); 
+
+
+{ --------------------------------------------------------------------
+  TCommentTypeauthor
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentTypeauthor.SetdisplayName(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fblog=AValue) then exit;
-  Fblog:=AValue;
+  If (FdisplayName=AValue) then exit;
+  FdisplayName:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TComment.Setcontent(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcontent=AValue) then exit;
-  Fcontent:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TComment.Setid(AIndex : Integer; AValue : string); 
+Procedure TCommentTypeauthor.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2027,7 +1848,125 @@ end;
 
 
 
-Procedure TComment.SetinReplyTo(AIndex : Integer; AValue : TCommentinReplyTo); 
+Procedure TCommentTypeauthor.Setimage(AIndex : Integer; AValue : TCommentTypeauthorTypeimage); 
+
+begin
+  If (Fimage=AValue) then exit;
+  Fimage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCommentTypeauthor.Seturl(AIndex : Integer; AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCommentTypeblog
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentTypeblog.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCommentTypeinReplyTo
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentTypeinReplyTo.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCommentTypepost
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentTypepost.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TComment
+  --------------------------------------------------------------------}
+
+
+Procedure TComment.Setauthor(AIndex : Integer; AValue : TCommentTypeauthor); 
+
+begin
+  If (Fauthor=AValue) then exit;
+  Fauthor:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TComment.Setblog(AIndex : Integer; AValue : TCommentTypeblog); 
+
+begin
+  If (Fblog=AValue) then exit;
+  Fblog:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TComment.Setcontent(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcontent=AValue) then exit;
+  Fcontent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TComment.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TComment.SetinReplyTo(AIndex : Integer; AValue : TCommentTypeinReplyTo); 
 
 begin
   If (FinReplyTo=AValue) then exit;
@@ -2037,7 +1976,7 @@ end;
 
 
 
-Procedure TComment.Setkind(AIndex : Integer; AValue : string); 
+Procedure TComment.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2047,7 +1986,7 @@ end;
 
 
 
-Procedure TComment.Setpost(AIndex : Integer; AValue : TCommentpost); 
+Procedure TComment.Setpost(AIndex : Integer; AValue : TCommentTypepost); 
 
 begin
   If (Fpost=AValue) then exit;
@@ -2067,7 +2006,7 @@ end;
 
 
 
-Procedure TComment.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TComment.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2077,7 +2016,7 @@ end;
 
 
 
-Procedure TComment.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TComment.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2111,126 +2050,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCommentauthor
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentauthor.SetdisplayName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdisplayName=AValue) then exit;
-  FdisplayName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentauthor.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentauthor.Setimage(AIndex : Integer; AValue : TCommentauthorimage); 
-
-begin
-  If (Fimage=AValue) then exit;
-  Fimage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentauthor.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentauthorimage
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentauthorimage.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentblog
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentblog.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentinReplyTo
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentinReplyTo.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentpost
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentpost.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TCommentList
   --------------------------------------------------------------------}
 
 
-Procedure TCommentList.Setetag(AIndex : Integer; AValue : string); 
+Procedure TCommentList.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2240,7 +2064,7 @@ end;
 
 
 
-Procedure TCommentList.Setitems(AIndex : Integer; AValue : TCommentListitems); 
+Procedure TCommentList.Setitems(AIndex : Integer; AValue : TCommentListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2250,7 +2074,7 @@ end;
 
 
 
-Procedure TCommentList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCommentList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2260,7 +2084,7 @@ end;
 
 
 
-Procedure TCommentList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TCommentList.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2270,7 +2094,7 @@ end;
 
 
 
-Procedure TCommentList.SetprevPageToken(AIndex : Integer; AValue : string); 
+Procedure TCommentList.SetprevPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -2283,58 +2107,38 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCommentListitems
+  TPageTypeauthorTypeimage
   --------------------------------------------------------------------}
+
+
+Procedure TPageTypeauthorTypeimage.Seturl(AIndex : Integer; AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
 
 { --------------------------------------------------------------------
-  TPage
+  TPageTypeauthor
   --------------------------------------------------------------------}
 
 
-Procedure TPage.Setauthor(AIndex : Integer; AValue : TPageauthor); 
+Procedure TPageTypeauthor.SetdisplayName(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fauthor=AValue) then exit;
-  Fauthor:=AValue;
+  If (FdisplayName=AValue) then exit;
+  FdisplayName:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TPage.Setblog(AIndex : Integer; AValue : TPageblog); 
-
-begin
-  If (Fblog=AValue) then exit;
-  Fblog:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPage.Setcontent(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcontent=AValue) then exit;
-  Fcontent:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPage.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPage.Setid(AIndex : Integer; AValue : string); 
+Procedure TPageTypeauthor.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2344,7 +2148,101 @@ end;
 
 
 
-Procedure TPage.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPageTypeauthor.Setimage(AIndex : Integer; AValue : TPageTypeauthorTypeimage); 
+
+begin
+  If (Fimage=AValue) then exit;
+  Fimage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPageTypeauthor.Seturl(AIndex : Integer; AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPageTypeblog
+  --------------------------------------------------------------------}
+
+
+Procedure TPageTypeblog.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPage
+  --------------------------------------------------------------------}
+
+
+Procedure TPage.Setauthor(AIndex : Integer; AValue : TPageTypeauthor); 
+
+begin
+  If (Fauthor=AValue) then exit;
+  Fauthor:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPage.Setblog(AIndex : Integer; AValue : TPageTypeblog); 
+
+begin
+  If (Fblog=AValue) then exit;
+  Fblog:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPage.Setcontent(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcontent=AValue) then exit;
+  Fcontent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPage.Setetag(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fetag=AValue) then exit;
+  Fetag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPage.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPage.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2364,7 +2262,7 @@ end;
 
 
 
-Procedure TPage.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TPage.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2374,7 +2272,7 @@ end;
 
 
 
-Procedure TPage.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TPage.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2384,7 +2282,7 @@ end;
 
 
 
-Procedure TPage.Settitle(AIndex : Integer; AValue : string); 
+Procedure TPage.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2404,7 +2302,7 @@ end;
 
 
 
-Procedure TPage.Seturl(AIndex : Integer; AValue : string); 
+Procedure TPage.Seturl(AIndex : Integer; AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -2428,92 +2326,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPageauthor
-  --------------------------------------------------------------------}
-
-
-Procedure TPageauthor.SetdisplayName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdisplayName=AValue) then exit;
-  FdisplayName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPageauthor.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPageauthor.Setimage(AIndex : Integer; AValue : TPageauthorimage); 
-
-begin
-  If (Fimage=AValue) then exit;
-  Fimage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPageauthor.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPageauthorimage
-  --------------------------------------------------------------------}
-
-
-Procedure TPageauthorimage.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPageblog
-  --------------------------------------------------------------------}
-
-
-Procedure TPageblog.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TPageList
   --------------------------------------------------------------------}
 
 
-Procedure TPageList.Setetag(AIndex : Integer; AValue : string); 
+Procedure TPageList.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2523,7 +2340,7 @@ end;
 
 
 
-Procedure TPageList.Setitems(AIndex : Integer; AValue : TPageListitems); 
+Procedure TPageList.Setitems(AIndex : Integer; AValue : TPageListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2533,7 +2350,7 @@ end;
 
 
 
-Procedure TPageList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPageList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2543,7 +2360,7 @@ end;
 
 
 
-Procedure TPageList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TPageList.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2556,55 +2373,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPageListitems
+  TPageviewsTypecountsItem
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TPageviews
-  --------------------------------------------------------------------}
-
-
-Procedure TPageviews.SetblogId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FblogId=AValue) then exit;
-  FblogId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPageviews.Setcounts(AIndex : Integer; AValue : TPageviewscounts); 
-
-begin
-  If (Fcounts=AValue) then exit;
-  Fcounts:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPageviews.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPageviewscounts
-  --------------------------------------------------------------------}
-
-
-Procedure TPageviewscounts.Setcount(AIndex : Integer; AValue : string); 
+Procedure TPageviewsTypecountsItem.Setcount(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -2614,7 +2387,7 @@ end;
 
 
 
-Procedure TPageviewscounts.SettimeRange(AIndex : Integer; AValue : string); 
+Procedure TPageviewsTypecountsItem.SettimeRange(AIndex : Integer; AValue : String); 
 
 begin
   If (FtimeRange=AValue) then exit;
@@ -2627,81 +2400,31 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPost
+  TPageviews
   --------------------------------------------------------------------}
 
 
-Procedure TPost.Setauthor(AIndex : Integer; AValue : TPostauthor); 
+Procedure TPageviews.SetblogId(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fauthor=AValue) then exit;
-  Fauthor:=AValue;
+  If (FblogId=AValue) then exit;
+  FblogId:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TPost.Setblog(AIndex : Integer; AValue : TPostblog); 
+Procedure TPageviews.Setcounts(AIndex : Integer; AValue : TPageviewsTypecountsArray); 
 
 begin
-  If (Fblog=AValue) then exit;
-  Fblog:=AValue;
+  If (Fcounts=AValue) then exit;
+  Fcounts:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TPost.Setcontent(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcontent=AValue) then exit;
-  Fcontent:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPost.SetcustomMetaData(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcustomMetaData=AValue) then exit;
-  FcustomMetaData:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPost.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPost.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPost.Setimages(AIndex : Integer; AValue : TPostimages); 
-
-begin
-  If (Fimages=AValue) then exit;
-  Fimages:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPost.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPageviews.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2711,7 +2434,276 @@ end;
 
 
 
-Procedure TPost.Setlabels(AIndex : Integer; AValue : TPostlabels); 
+
+
+{ --------------------------------------------------------------------
+  TPostTypeauthorTypeimage
+  --------------------------------------------------------------------}
+
+
+Procedure TPostTypeauthorTypeimage.Seturl(AIndex : Integer; AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPostTypeauthor
+  --------------------------------------------------------------------}
+
+
+Procedure TPostTypeauthor.SetdisplayName(AIndex : Integer; AValue : String); 
+
+begin
+  If (FdisplayName=AValue) then exit;
+  FdisplayName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPostTypeauthor.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPostTypeauthor.Setimage(AIndex : Integer; AValue : TPostTypeauthorTypeimage); 
+
+begin
+  If (Fimage=AValue) then exit;
+  Fimage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPostTypeauthor.Seturl(AIndex : Integer; AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPostTypeblog
+  --------------------------------------------------------------------}
+
+
+Procedure TPostTypeblog.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPostTypeimagesItem
+  --------------------------------------------------------------------}
+
+
+Procedure TPostTypeimagesItem.Seturl(AIndex : Integer; AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPostTypelocation
+  --------------------------------------------------------------------}
+
+
+Procedure TPostTypelocation.Setlat(AIndex : Integer; AValue : double); 
+
+begin
+  If (Flat=AValue) then exit;
+  Flat:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPostTypelocation.Setlng(AIndex : Integer; AValue : double); 
+
+begin
+  If (Flng=AValue) then exit;
+  Flng:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPostTypelocation.Setname(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPostTypelocation.Setspan(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fspan=AValue) then exit;
+  Fspan:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPostTypereplies
+  --------------------------------------------------------------------}
+
+
+Procedure TPostTypereplies.Setitems(AIndex : Integer; AValue : TPostTyperepliesTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPostTypereplies.SetselfLink(AIndex : Integer; AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPostTypereplies.SettotalItems(AIndex : Integer; AValue : String); 
+
+begin
+  If (FtotalItems=AValue) then exit;
+  FtotalItems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPost
+  --------------------------------------------------------------------}
+
+
+Procedure TPost.Setauthor(AIndex : Integer; AValue : TPostTypeauthor); 
+
+begin
+  If (Fauthor=AValue) then exit;
+  Fauthor:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPost.Setblog(AIndex : Integer; AValue : TPostTypeblog); 
+
+begin
+  If (Fblog=AValue) then exit;
+  Fblog:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPost.Setcontent(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcontent=AValue) then exit;
+  Fcontent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPost.SetcustomMetaData(AIndex : Integer; AValue : String); 
+
+begin
+  If (FcustomMetaData=AValue) then exit;
+  FcustomMetaData:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPost.Setetag(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fetag=AValue) then exit;
+  Fetag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPost.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPost.Setimages(AIndex : Integer; AValue : TPostTypeimagesArray); 
+
+begin
+  If (Fimages=AValue) then exit;
+  Fimages:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPost.Setkind(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPost.Setlabels(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Flabels=AValue) then exit;
@@ -2721,7 +2713,7 @@ end;
 
 
 
-Procedure TPost.Setlocation(AIndex : Integer; AValue : TPostlocation); 
+Procedure TPost.Setlocation(AIndex : Integer; AValue : TPostTypelocation); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -2741,7 +2733,7 @@ end;
 
 
 
-Procedure TPost.SetreaderComments(AIndex : Integer; AValue : string); 
+Procedure TPost.SetreaderComments(AIndex : Integer; AValue : String); 
 
 begin
   If (FreaderComments=AValue) then exit;
@@ -2751,7 +2743,7 @@ end;
 
 
 
-Procedure TPost.Setreplies(AIndex : Integer; AValue : TPostreplies); 
+Procedure TPost.Setreplies(AIndex : Integer; AValue : TPostTypereplies); 
 
 begin
   If (Freplies=AValue) then exit;
@@ -2761,7 +2753,7 @@ end;
 
 
 
-Procedure TPost.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TPost.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2771,7 +2763,7 @@ end;
 
 
 
-Procedure TPost.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TPost.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2781,7 +2773,7 @@ end;
 
 
 
-Procedure TPost.Settitle(AIndex : Integer; AValue : string); 
+Procedure TPost.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2791,7 +2783,7 @@ end;
 
 
 
-Procedure TPost.SettitleLink(AIndex : Integer; AValue : string); 
+Procedure TPost.SettitleLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FtitleLink=AValue) then exit;
@@ -2811,7 +2803,7 @@ end;
 
 
 
-Procedure TPost.Seturl(AIndex : Integer; AValue : string); 
+Procedure TPost.Seturl(AIndex : Integer; AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -2835,207 +2827,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPostauthor
-  --------------------------------------------------------------------}
-
-
-Procedure TPostauthor.SetdisplayName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdisplayName=AValue) then exit;
-  FdisplayName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPostauthor.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPostauthor.Setimage(AIndex : Integer; AValue : TPostauthorimage); 
-
-begin
-  If (Fimage=AValue) then exit;
-  Fimage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPostauthor.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPostauthorimage
-  --------------------------------------------------------------------}
-
-
-Procedure TPostauthorimage.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPostblog
-  --------------------------------------------------------------------}
-
-
-Procedure TPostblog.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPostimages
-  --------------------------------------------------------------------}
-
-
-Procedure TPostimages.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPostlabels
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPostlocation
-  --------------------------------------------------------------------}
-
-
-Procedure TPostlocation.Setlat(AIndex : Integer; AValue : double); 
-
-begin
-  If (Flat=AValue) then exit;
-  Flat:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPostlocation.Setlng(AIndex : Integer; AValue : double); 
-
-begin
-  If (Flng=AValue) then exit;
-  Flng:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPostlocation.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPostlocation.Setspan(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fspan=AValue) then exit;
-  Fspan:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPostreplies
-  --------------------------------------------------------------------}
-
-
-Procedure TPostreplies.Setitems(AIndex : Integer; AValue : TPostrepliesitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPostreplies.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPostreplies.SettotalItems(AIndex : Integer; AValue : string); 
-
-begin
-  If (FtotalItems=AValue) then exit;
-  FtotalItems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPostrepliesitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TPostList
   --------------------------------------------------------------------}
 
 
-Procedure TPostList.Setetag(AIndex : Integer; AValue : string); 
+Procedure TPostList.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -3045,7 +2841,7 @@ end;
 
 
 
-Procedure TPostList.Setitems(AIndex : Integer; AValue : TPostListitems); 
+Procedure TPostList.Setitems(AIndex : Integer; AValue : TPostListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -3055,7 +2851,7 @@ end;
 
 
 
-Procedure TPostList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPostList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3065,7 +2861,7 @@ end;
 
 
 
-Procedure TPostList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TPostList.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3078,18 +2874,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPostListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TPostPerUserInfo
   --------------------------------------------------------------------}
 
 
-Procedure TPostPerUserInfo.SetblogId(AIndex : Integer; AValue : string); 
+Procedure TPostPerUserInfo.SetblogId(AIndex : Integer; AValue : String); 
 
 begin
   If (FblogId=AValue) then exit;
@@ -3109,7 +2898,7 @@ end;
 
 
 
-Procedure TPostPerUserInfo.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPostPerUserInfo.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3119,7 +2908,7 @@ end;
 
 
 
-Procedure TPostPerUserInfo.SetpostId(AIndex : Integer; AValue : string); 
+Procedure TPostPerUserInfo.SetpostId(AIndex : Integer; AValue : String); 
 
 begin
   If (FpostId=AValue) then exit;
@@ -3129,7 +2918,7 @@ end;
 
 
 
-Procedure TPostPerUserInfo.SetuserId(AIndex : Integer; AValue : string); 
+Procedure TPostPerUserInfo.SetuserId(AIndex : Integer; AValue : String); 
 
 begin
   If (FuserId=AValue) then exit;
@@ -3146,7 +2935,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostUserInfo.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPostUserInfo.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3156,7 +2945,7 @@ end;
 
 
 
-Procedure TPostUserInfo.Setpost(AIndex : Integer; AValue : TCommentpost); 
+Procedure TPostUserInfo.Setpost(AIndex : Integer; AValue : TPost); 
 
 begin
   If (Fpost=AValue) then exit;
@@ -3183,7 +2972,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostUserInfosList.Setitems(AIndex : Integer; AValue : TPostUserInfosListitems); 
+Procedure TPostUserInfosList.Setitems(AIndex : Integer; AValue : TPostUserInfosListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -3193,7 +2982,7 @@ end;
 
 
 
-Procedure TPostUserInfosList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPostUserInfosList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3203,7 +2992,7 @@ end;
 
 
 
-Procedure TPostUserInfosList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TPostUserInfosList.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3216,8 +3005,55 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPostUserInfosListitems
+  TUserTypeblogs
   --------------------------------------------------------------------}
+
+
+Procedure TUserTypeblogs.SetselfLink(AIndex : Integer; AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TUserTypelocale
+  --------------------------------------------------------------------}
+
+
+Procedure TUserTypelocale.Setcountry(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcountry=AValue) then exit;
+  Fcountry:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TUserTypelocale.Setlanguage(AIndex : Integer; AValue : String); 
+
+begin
+  If (Flanguage=AValue) then exit;
+  Flanguage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TUserTypelocale.Setvariant(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fvariant=AValue) then exit;
+  Fvariant:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -3227,7 +3063,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUser.Setabout(AIndex : Integer; AValue : string); 
+Procedure TUser.Setabout(AIndex : Integer; AValue : String); 
 
 begin
   If (Fabout=AValue) then exit;
@@ -3237,7 +3073,7 @@ end;
 
 
 
-Procedure TUser.Setblogs(AIndex : Integer; AValue : TUserblogs); 
+Procedure TUser.Setblogs(AIndex : Integer; AValue : TUserTypeblogs); 
 
 begin
   If (Fblogs=AValue) then exit;
@@ -3257,7 +3093,7 @@ end;
 
 
 
-Procedure TUser.SetdisplayName(AIndex : Integer; AValue : string); 
+Procedure TUser.SetdisplayName(AIndex : Integer; AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -3267,7 +3103,7 @@ end;
 
 
 
-Procedure TUser.Setid(AIndex : Integer; AValue : string); 
+Procedure TUser.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3277,7 +3113,7 @@ end;
 
 
 
-Procedure TUser.Setkind(AIndex : Integer; AValue : string); 
+Procedure TUser.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3287,7 +3123,7 @@ end;
 
 
 
-Procedure TUser.Setlocale(AIndex : Integer; AValue : TUserlocale); 
+Procedure TUser.Setlocale(AIndex : Integer; AValue : TUserTypelocale); 
 
 begin
   If (Flocale=AValue) then exit;
@@ -3297,7 +3133,7 @@ end;
 
 
 
-Procedure TUser.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TUser.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -3307,65 +3143,11 @@ end;
 
 
 
-Procedure TUser.Seturl(AIndex : Integer; AValue : string); 
+Procedure TUser.Seturl(AIndex : Integer; AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
   Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TUserblogs
-  --------------------------------------------------------------------}
-
-
-Procedure TUserblogs.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TUserlocale
-  --------------------------------------------------------------------}
-
-
-Procedure TUserlocale.Setcountry(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcountry=AValue) then exit;
-  Fcountry:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TUserlocale.Setlanguage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Flanguage=AValue) then exit;
-  Flanguage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TUserlocale.Setvariant(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fvariant=AValue) then exit;
-  Fvariant:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -4474,50 +4256,41 @@ end;
 Class Procedure TBloggerAPI.RegisterAPIResources;
 
 begin
+  TBlogTypelocale.RegisterObject;
+  TBlogTypepages.RegisterObject;
+  TBlogTypeposts.RegisterObject;
   TBlog.RegisterObject;
-  TBloglocale.RegisterObject;
-  TBlogpages.RegisterObject;
-  TBlogposts.RegisterObject;
-  TBlogpostsitems.RegisterObject;
   TBlogList.RegisterObject;
-  TBlogListblogUserInfos.RegisterObject;
-  TBlogListitems.RegisterObject;
   TBlogPerUserInfo.RegisterObject;
   TBlogUserInfo.RegisterObject;
+  TCommentTypeauthorTypeimage.RegisterObject;
+  TCommentTypeauthor.RegisterObject;
+  TCommentTypeblog.RegisterObject;
+  TCommentTypeinReplyTo.RegisterObject;
+  TCommentTypepost.RegisterObject;
   TComment.RegisterObject;
-  TCommentauthor.RegisterObject;
-  TCommentauthorimage.RegisterObject;
-  TCommentblog.RegisterObject;
-  TCommentinReplyTo.RegisterObject;
-  TCommentpost.RegisterObject;
   TCommentList.RegisterObject;
-  TCommentListitems.RegisterObject;
+  TPageTypeauthorTypeimage.RegisterObject;
+  TPageTypeauthor.RegisterObject;
+  TPageTypeblog.RegisterObject;
   TPage.RegisterObject;
-  TPageauthor.RegisterObject;
-  TPageauthorimage.RegisterObject;
-  TPageblog.RegisterObject;
   TPageList.RegisterObject;
-  TPageListitems.RegisterObject;
+  TPageviewsTypecountsItem.RegisterObject;
   TPageviews.RegisterObject;
-  TPageviewscounts.RegisterObject;
+  TPostTypeauthorTypeimage.RegisterObject;
+  TPostTypeauthor.RegisterObject;
+  TPostTypeblog.RegisterObject;
+  TPostTypeimagesItem.RegisterObject;
+  TPostTypelocation.RegisterObject;
+  TPostTypereplies.RegisterObject;
   TPost.RegisterObject;
-  TPostauthor.RegisterObject;
-  TPostauthorimage.RegisterObject;
-  TPostblog.RegisterObject;
-  TPostimages.RegisterObject;
-  TPostlabels.RegisterObject;
-  TPostlocation.RegisterObject;
-  TPostreplies.RegisterObject;
-  TPostrepliesitems.RegisterObject;
   TPostList.RegisterObject;
-  TPostListitems.RegisterObject;
   TPostPerUserInfo.RegisterObject;
   TPostUserInfo.RegisterObject;
   TPostUserInfosList.RegisterObject;
-  TPostUserInfosListitems.RegisterObject;
+  TUserTypeblogs.RegisterObject;
+  TUserTypelocale.RegisterObject;
   TUser.RegisterObject;
-  TUserblogs.RegisterObject;
-  TUserlocale.RegisterObject;
 end;
 
 

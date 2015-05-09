@@ -1,31 +1,19 @@
 unit googletaskqueue;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:59
 {$MODE objfpc}
 {$H+}
 
@@ -34,29 +22,21 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TTask = class;
-  TTaskArray = Array of TTask;
   TTaskQueue = class;
-  TTaskQueueArray = Array of TTaskQueue;
-  TTaskQueueacl = class;
-  TTaskQueueaclArray = Array of TTaskQueueacl;
-  TTaskQueueacladminEmails = class;
-  TTaskQueueacladminEmailsArray = Array of TTaskQueueacladminEmails;
-  TTaskQueueaclconsumerEmails = class;
-  TTaskQueueaclconsumerEmailsArray = Array of TTaskQueueaclconsumerEmails;
-  TTaskQueueaclproducerEmails = class;
-  TTaskQueueaclproducerEmailsArray = Array of TTaskQueueaclproducerEmails;
-  TTaskQueuestats = class;
-  TTaskQueuestatsArray = Array of TTaskQueuestats;
   TTasks = class;
-  TTasksArray = Array of TTasks;
-  TTasksitems = class;
-  TTasksitemsArray = Array of TTasksitems;
   TTasks2 = class;
+  TTaskArray = Array of TTask;
+  TTaskQueueArray = Array of TTaskQueue;
+  TTasksArray = Array of TTasks;
   TTasks2Array = Array of TTasks2;
-  TTasks2items = class;
-  TTasks2itemsArray = Array of TTasks2items;
+  //Anonymous types, using auto-generated names
+  TTaskQueueTypeacl = class;
+  TTaskQueueTypestats = class;
+  TTasksTypeitemsArray = Array of TTask;
+  TTasks2TypeitemsArray = Array of TTask;
   
   { --------------------------------------------------------------------
     TTask
@@ -64,36 +44,83 @@ type
   
   TTask = Class(TGoogleBaseObject)
   Private
-    FenqueueTimestamp : string;
-    Fid : string;
-    Fkind : string;
-    FleaseTimestamp : string;
-    FpayloadBase64 : string;
-    FqueueName : string;
+    FenqueueTimestamp : String;
+    Fid : String;
+    Fkind : String;
+    FleaseTimestamp : String;
+    FpayloadBase64 : String;
+    FqueueName : String;
     Fretry_count : integer;
-    Ftag : string;
+    Ftag : String;
   Protected
     //Property setters
-    Procedure SetenqueueTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetleaseTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpayloadBase64(AIndex : Integer; AValue : string); virtual;
-    Procedure SetqueueName(AIndex : Integer; AValue : string); virtual;
+    Procedure SetenqueueTimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetleaseTimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpayloadBase64(AIndex : Integer; AValue : String); virtual;
+    Procedure SetqueueName(AIndex : Integer; AValue : String); virtual;
     Procedure Setretry_count(AIndex : Integer; AValue : integer); virtual;
-    Procedure Settag(AIndex : Integer; AValue : string); virtual;
+    Procedure Settag(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property enqueueTimestamp : string Index 0 Read FenqueueTimestamp Write SetenqueueTimestamp;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property leaseTimestamp : string Index 24 Read FleaseTimestamp Write SetleaseTimestamp;
-    Property payloadBase64 : string Index 32 Read FpayloadBase64 Write SetpayloadBase64;
-    Property queueName : string Index 40 Read FqueueName Write SetqueueName;
+    Property enqueueTimestamp : String Index 0 Read FenqueueTimestamp Write SetenqueueTimestamp;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property leaseTimestamp : String Index 24 Read FleaseTimestamp Write SetleaseTimestamp;
+    Property payloadBase64 : String Index 32 Read FpayloadBase64 Write SetpayloadBase64;
+    Property queueName : String Index 40 Read FqueueName Write SetqueueName;
     Property retry_count : integer Index 48 Read Fretry_count Write Setretry_count;
-    Property tag : string Index 56 Read Ftag Write Settag;
+    Property tag : String Index 56 Read Ftag Write Settag;
   end;
   TTaskClass = Class of TTask;
+  
+  { --------------------------------------------------------------------
+    TTaskQueueTypeacl
+    --------------------------------------------------------------------}
+  
+  TTaskQueueTypeacl = Class(TGoogleBaseObject)
+  Private
+    FadminEmails : TStringArray;
+    FconsumerEmails : TStringArray;
+    FproducerEmails : TStringArray;
+  Protected
+    //Property setters
+    Procedure SetadminEmails(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetconsumerEmails(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetproducerEmails(AIndex : Integer; AValue : TStringArray); virtual;
+  Public
+  Published
+    Property adminEmails : TStringArray Index 0 Read FadminEmails Write SetadminEmails;
+    Property consumerEmails : TStringArray Index 8 Read FconsumerEmails Write SetconsumerEmails;
+    Property producerEmails : TStringArray Index 16 Read FproducerEmails Write SetproducerEmails;
+  end;
+  TTaskQueueTypeaclClass = Class of TTaskQueueTypeacl;
+  
+  { --------------------------------------------------------------------
+    TTaskQueueTypestats
+    --------------------------------------------------------------------}
+  
+  TTaskQueueTypestats = Class(TGoogleBaseObject)
+  Private
+    FleasedLastHour : String;
+    FleasedLastMinute : String;
+    FoldestTask : String;
+    FtotalTasks : integer;
+  Protected
+    //Property setters
+    Procedure SetleasedLastHour(AIndex : Integer; AValue : String); virtual;
+    Procedure SetleasedLastMinute(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoldestTask(AIndex : Integer; AValue : String); virtual;
+    Procedure SettotalTasks(AIndex : Integer; AValue : integer); virtual;
+  Public
+  Published
+    Property leasedLastHour : String Index 0 Read FleasedLastHour Write SetleasedLastHour;
+    Property leasedLastMinute : String Index 8 Read FleasedLastMinute Write SetleasedLastMinute;
+    Property oldestTask : String Index 16 Read FoldestTask Write SetoldestTask;
+    Property totalTasks : integer Index 24 Read FtotalTasks Write SettotalTasks;
+  end;
+  TTaskQueueTypestatsClass = Class of TTaskQueueTypestats;
   
   { --------------------------------------------------------------------
     TTaskQueue
@@ -101,113 +128,27 @@ type
   
   TTaskQueue = Class(TGoogleBaseObject)
   Private
-    Facl : TTaskQueueacl;
-    Fid : string;
-    Fkind : string;
+    Facl : TTaskQueueTypeacl;
+    Fid : String;
+    Fkind : String;
     FmaxLeases : integer;
-    Fstats : TTaskQueuestats;
+    Fstats : TTaskQueueTypestats;
   Protected
     //Property setters
-    Procedure Setacl(AIndex : Integer; AValue : TTaskQueueacl); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setacl(AIndex : Integer; AValue : TTaskQueueTypeacl); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetmaxLeases(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setstats(AIndex : Integer; AValue : TTaskQueuestats); virtual;
+    Procedure Setstats(AIndex : Integer; AValue : TTaskQueueTypestats); virtual;
   Public
   Published
-    Property acl : TTaskQueueacl Index 0 Read Facl Write Setacl;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property acl : TTaskQueueTypeacl Index 0 Read Facl Write Setacl;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property maxLeases : integer Index 24 Read FmaxLeases Write SetmaxLeases;
-    Property stats : TTaskQueuestats Index 32 Read Fstats Write Setstats;
+    Property stats : TTaskQueueTypestats Index 32 Read Fstats Write Setstats;
   end;
   TTaskQueueClass = Class of TTaskQueue;
-  
-  { --------------------------------------------------------------------
-    TTaskQueueacl
-    --------------------------------------------------------------------}
-  
-  TTaskQueueacl = Class(TGoogleBaseObject)
-  Private
-    FadminEmails : TTaskQueueacladminEmails;
-    FconsumerEmails : TTaskQueueaclconsumerEmails;
-    FproducerEmails : TTaskQueueaclproducerEmails;
-  Protected
-    //Property setters
-    Procedure SetadminEmails(AIndex : Integer; AValue : TTaskQueueacladminEmails); virtual;
-    Procedure SetconsumerEmails(AIndex : Integer; AValue : TTaskQueueaclconsumerEmails); virtual;
-    Procedure SetproducerEmails(AIndex : Integer; AValue : TTaskQueueaclproducerEmails); virtual;
-  Public
-  Published
-    Property adminEmails : TTaskQueueacladminEmails Index 0 Read FadminEmails Write SetadminEmails;
-    Property consumerEmails : TTaskQueueaclconsumerEmails Index 8 Read FconsumerEmails Write SetconsumerEmails;
-    Property producerEmails : TTaskQueueaclproducerEmails Index 16 Read FproducerEmails Write SetproducerEmails;
-  end;
-  TTaskQueueaclClass = Class of TTaskQueueacl;
-  
-  { --------------------------------------------------------------------
-    TTaskQueueacladminEmails
-    --------------------------------------------------------------------}
-  
-  TTaskQueueacladminEmails = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTaskQueueacladminEmailsClass = Class of TTaskQueueacladminEmails;
-  
-  { --------------------------------------------------------------------
-    TTaskQueueaclconsumerEmails
-    --------------------------------------------------------------------}
-  
-  TTaskQueueaclconsumerEmails = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTaskQueueaclconsumerEmailsClass = Class of TTaskQueueaclconsumerEmails;
-  
-  { --------------------------------------------------------------------
-    TTaskQueueaclproducerEmails
-    --------------------------------------------------------------------}
-  
-  TTaskQueueaclproducerEmails = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTaskQueueaclproducerEmailsClass = Class of TTaskQueueaclproducerEmails;
-  
-  { --------------------------------------------------------------------
-    TTaskQueuestats
-    --------------------------------------------------------------------}
-  
-  TTaskQueuestats = Class(TGoogleBaseObject)
-  Private
-    FleasedLastHour : string;
-    FleasedLastMinute : string;
-    FoldestTask : string;
-    FtotalTasks : integer;
-  Protected
-    //Property setters
-    Procedure SetleasedLastHour(AIndex : Integer; AValue : string); virtual;
-    Procedure SetleasedLastMinute(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoldestTask(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalTasks(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property leasedLastHour : string Index 0 Read FleasedLastHour Write SetleasedLastHour;
-    Property leasedLastMinute : string Index 8 Read FleasedLastMinute Write SetleasedLastMinute;
-    Property oldestTask : string Index 16 Read FoldestTask Write SetoldestTask;
-    Property totalTasks : integer Index 24 Read FtotalTasks Write SettotalTasks;
-  end;
-  TTaskQueuestatsClass = Class of TTaskQueuestats;
   
   { --------------------------------------------------------------------
     TTasks
@@ -215,31 +156,18 @@ type
   
   TTasks = Class(TGoogleBaseObject)
   Private
-    Fitems : TTasksitems;
-    Fkind : string;
+    Fitems : TTasksTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTasksitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TTasksTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TTasksitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TTasksTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TTasksClass = Class of TTasks;
-  
-  { --------------------------------------------------------------------
-    TTasksitems
-    --------------------------------------------------------------------}
-  
-  TTasksitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTasksitemsClass = Class of TTasksitems;
   
   { --------------------------------------------------------------------
     TTasks2
@@ -247,31 +175,18 @@ type
   
   TTasks2 = Class(TGoogleBaseObject)
   Private
-    Fitems : TTasks2items;
-    Fkind : string;
+    Fitems : TTasks2TypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTasks2items); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TTasks2TypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TTasks2items Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TTasks2TypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TTasks2Class = Class of TTasks2;
-  
-  { --------------------------------------------------------------------
-    TTasks2items
-    --------------------------------------------------------------------}
-  
-  TTasks2items = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTasks2itemsClass = Class of TTasks2items;
   
   { --------------------------------------------------------------------
     TTaskqueuesResource
@@ -304,7 +219,7 @@ type
     groupByTag : boolean;
     leaseSecs : integer;
     numTasks : integer;
-    tag : string;
+    tag : String;
   end;
   
   
@@ -388,7 +303,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TTask.SetenqueueTimestamp(AIndex : Integer; AValue : string); 
+Procedure TTask.SetenqueueTimestamp(AIndex : Integer; AValue : String); 
 
 begin
   If (FenqueueTimestamp=AValue) then exit;
@@ -398,7 +313,7 @@ end;
 
 
 
-Procedure TTask.Setid(AIndex : Integer; AValue : string); 
+Procedure TTask.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -408,7 +323,7 @@ end;
 
 
 
-Procedure TTask.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTask.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -418,7 +333,7 @@ end;
 
 
 
-Procedure TTask.SetleaseTimestamp(AIndex : Integer; AValue : string); 
+Procedure TTask.SetleaseTimestamp(AIndex : Integer; AValue : String); 
 
 begin
   If (FleaseTimestamp=AValue) then exit;
@@ -428,7 +343,7 @@ end;
 
 
 
-Procedure TTask.SetpayloadBase64(AIndex : Integer; AValue : string); 
+Procedure TTask.SetpayloadBase64(AIndex : Integer; AValue : String); 
 
 begin
   If (FpayloadBase64=AValue) then exit;
@@ -438,7 +353,7 @@ end;
 
 
 
-Procedure TTask.SetqueueName(AIndex : Integer; AValue : string); 
+Procedure TTask.SetqueueName(AIndex : Integer; AValue : String); 
 
 begin
   If (FqueueName=AValue) then exit;
@@ -458,7 +373,7 @@ end;
 
 
 
-Procedure TTask.Settag(AIndex : Integer; AValue : string); 
+Procedure TTask.Settag(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -471,11 +386,95 @@ end;
 
 
 { --------------------------------------------------------------------
+  TTaskQueueTypeacl
+  --------------------------------------------------------------------}
+
+
+Procedure TTaskQueueTypeacl.SetadminEmails(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (FadminEmails=AValue) then exit;
+  FadminEmails:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTaskQueueTypeacl.SetconsumerEmails(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (FconsumerEmails=AValue) then exit;
+  FconsumerEmails:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTaskQueueTypeacl.SetproducerEmails(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (FproducerEmails=AValue) then exit;
+  FproducerEmails:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TTaskQueueTypestats
+  --------------------------------------------------------------------}
+
+
+Procedure TTaskQueueTypestats.SetleasedLastHour(AIndex : Integer; AValue : String); 
+
+begin
+  If (FleasedLastHour=AValue) then exit;
+  FleasedLastHour:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTaskQueueTypestats.SetleasedLastMinute(AIndex : Integer; AValue : String); 
+
+begin
+  If (FleasedLastMinute=AValue) then exit;
+  FleasedLastMinute:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTaskQueueTypestats.SetoldestTask(AIndex : Integer; AValue : String); 
+
+begin
+  If (FoldestTask=AValue) then exit;
+  FoldestTask:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTaskQueueTypestats.SettotalTasks(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FtotalTasks=AValue) then exit;
+  FtotalTasks:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TTaskQueue
   --------------------------------------------------------------------}
 
 
-Procedure TTaskQueue.Setacl(AIndex : Integer; AValue : TTaskQueueacl); 
+Procedure TTaskQueue.Setacl(AIndex : Integer; AValue : TTaskQueueTypeacl); 
 
 begin
   If (Facl=AValue) then exit;
@@ -485,7 +484,7 @@ end;
 
 
 
-Procedure TTaskQueue.Setid(AIndex : Integer; AValue : string); 
+Procedure TTaskQueue.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -495,7 +494,7 @@ end;
 
 
 
-Procedure TTaskQueue.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTaskQueue.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -515,7 +514,7 @@ end;
 
 
 
-Procedure TTaskQueue.Setstats(AIndex : Integer; AValue : TTaskQueuestats); 
+Procedure TTaskQueue.Setstats(AIndex : Integer; AValue : TTaskQueueTypestats); 
 
 begin
   If (Fstats=AValue) then exit;
@@ -528,116 +527,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTaskQueueacl
-  --------------------------------------------------------------------}
-
-
-Procedure TTaskQueueacl.SetadminEmails(AIndex : Integer; AValue : TTaskQueueacladminEmails); 
-
-begin
-  If (FadminEmails=AValue) then exit;
-  FadminEmails:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTaskQueueacl.SetconsumerEmails(AIndex : Integer; AValue : TTaskQueueaclconsumerEmails); 
-
-begin
-  If (FconsumerEmails=AValue) then exit;
-  FconsumerEmails:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTaskQueueacl.SetproducerEmails(AIndex : Integer; AValue : TTaskQueueaclproducerEmails); 
-
-begin
-  If (FproducerEmails=AValue) then exit;
-  FproducerEmails:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TTaskQueueacladminEmails
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTaskQueueaclconsumerEmails
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTaskQueueaclproducerEmails
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTaskQueuestats
-  --------------------------------------------------------------------}
-
-
-Procedure TTaskQueuestats.SetleasedLastHour(AIndex : Integer; AValue : string); 
-
-begin
-  If (FleasedLastHour=AValue) then exit;
-  FleasedLastHour:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTaskQueuestats.SetleasedLastMinute(AIndex : Integer; AValue : string); 
-
-begin
-  If (FleasedLastMinute=AValue) then exit;
-  FleasedLastMinute:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTaskQueuestats.SetoldestTask(AIndex : Integer; AValue : string); 
-
-begin
-  If (FoldestTask=AValue) then exit;
-  FoldestTask:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTaskQueuestats.SettotalTasks(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FtotalTasks=AValue) then exit;
-  FtotalTasks:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TTasks
   --------------------------------------------------------------------}
 
 
-Procedure TTasks.Setitems(AIndex : Integer; AValue : TTasksitems); 
+Procedure TTasks.Setitems(AIndex : Integer; AValue : TTasksTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -647,7 +541,7 @@ end;
 
 
 
-Procedure TTasks.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTasks.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -655,13 +549,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TTasksitems
-  --------------------------------------------------------------------}
 
 
 
@@ -671,7 +558,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTasks2.Setitems(AIndex : Integer; AValue : TTasks2items); 
+Procedure TTasks2.Setitems(AIndex : Integer; AValue : TTasks2TypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -681,7 +568,7 @@ end;
 
 
 
-Procedure TTasks2.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTasks2.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -689,13 +576,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TTasks2items
-  --------------------------------------------------------------------}
 
 
 
@@ -1036,16 +916,11 @@ Class Procedure TTaskqueueAPI.RegisterAPIResources;
 
 begin
   TTask.RegisterObject;
+  TTaskQueueTypeacl.RegisterObject;
+  TTaskQueueTypestats.RegisterObject;
   TTaskQueue.RegisterObject;
-  TTaskQueueacl.RegisterObject;
-  TTaskQueueacladminEmails.RegisterObject;
-  TTaskQueueaclconsumerEmails.RegisterObject;
-  TTaskQueueaclproducerEmails.RegisterObject;
-  TTaskQueuestats.RegisterObject;
   TTasks.RegisterObject;
-  TTasksitems.RegisterObject;
   TTasks2.RegisterObject;
-  TTasks2items.RegisterObject;
 end;
 
 

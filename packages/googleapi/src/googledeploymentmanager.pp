@@ -1,31 +1,19 @@
 unit googledeploymentmanager;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:52
 {$MODE objfpc}
 {$H+}
 
@@ -34,47 +22,51 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TDeployment = class;
-  TDeploymentArray = Array of TDeployment;
+  TDeploymentUpdate = class;
   TDeploymentsListResponse = class;
-  TDeploymentsListResponseArray = Array of TDeploymentsListResponse;
-  TDeploymentsListResponsedeployments = class;
-  TDeploymentsListResponsedeploymentsArray = Array of TDeploymentsListResponsedeployments;
+  TImportFile = class;
   TManifest = class;
-  TManifestArray = Array of TManifest;
   TManifestsListResponse = class;
-  TManifestsListResponseArray = Array of TManifestsListResponse;
-  TManifestsListResponsemanifests = class;
-  TManifestsListResponsemanifestsArray = Array of TManifestsListResponsemanifests;
   TOperation = class;
-  TOperationArray = Array of TOperation;
-  TOperationerror = class;
-  TOperationerrorArray = Array of TOperationerror;
-  TOperationerrorerrors = class;
-  TOperationerrorerrorsArray = Array of TOperationerrorerrors;
-  TOperationwarnings = class;
-  TOperationwarningsArray = Array of TOperationwarnings;
-  TOperationwarningsdata = class;
-  TOperationwarningsdataArray = Array of TOperationwarningsdata;
   TOperationsListResponse = class;
-  TOperationsListResponseArray = Array of TOperationsListResponse;
-  TOperationsListResponseoperations = class;
-  TOperationsListResponseoperationsArray = Array of TOperationsListResponseoperations;
   TResource = class;
-  TResourceArray = Array of TResource;
-  TResourceerrors = class;
-  TResourceerrorsArray = Array of TResourceerrors;
+  TResourceUpdate = class;
   TResourcesListResponse = class;
-  TResourcesListResponseArray = Array of TResourcesListResponse;
-  TResourcesListResponseresources = class;
-  TResourcesListResponseresourcesArray = Array of TResourcesListResponseresources;
+  TTargetConfiguration = class;
   TType = class;
-  TTypeArray = Array of TType;
   TTypesListResponse = class;
+  TDeploymentArray = Array of TDeployment;
+  TDeploymentUpdateArray = Array of TDeploymentUpdate;
+  TDeploymentsListResponseArray = Array of TDeploymentsListResponse;
+  TImportFileArray = Array of TImportFile;
+  TManifestArray = Array of TManifest;
+  TManifestsListResponseArray = Array of TManifestsListResponse;
+  TOperationArray = Array of TOperation;
+  TOperationsListResponseArray = Array of TOperationsListResponse;
+  TResourceArray = Array of TResource;
+  TResourceUpdateArray = Array of TResourceUpdate;
+  TResourcesListResponseArray = Array of TResourcesListResponse;
+  TTargetConfigurationArray = Array of TTargetConfiguration;
+  TTypeArray = Array of TType;
   TTypesListResponseArray = Array of TTypesListResponse;
-  TTypesListResponsetypes = class;
-  TTypesListResponsetypesArray = Array of TTypesListResponsetypes;
+  //Anonymous types, using auto-generated names
+  TOperationTypeerrorTypeerrorsItem = class;
+  TOperationTypeerror = class;
+  TOperationTypewarningsItemTypedataItem = class;
+  TOperationTypewarningsItem = class;
+  TDeploymentsListResponseTypedeploymentsArray = Array of TDeployment;
+  TManifestTypeimportsArray = Array of TImportFile;
+  TManifestsListResponseTypemanifestsArray = Array of TManifest;
+  TOperationTypeerrorTypeerrorsArray = Array of TOperationTypeerrorTypeerrorsItem;
+  TOperationTypewarningsItemTypedataArray = Array of TOperationTypewarningsItemTypedataItem;
+  TOperationTypewarningsArray = Array of TOperationTypewarningsItem;
+  TOperationsListResponseTypeoperationsArray = Array of TOperation;
+  TResourcesListResponseTyperesourcesArray = Array of TResource;
+  TTargetConfigurationTypeimportsArray = Array of TImportFile;
+  TTypesListResponseTypetypesArray = Array of TType;
   
   { --------------------------------------------------------------------
     TDeployment
@@ -82,27 +74,61 @@ type
   
   TDeployment = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Fid : string;
-    Fmanifest : string;
-    Fname : string;
-    FtargetConfig : string;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Ffingerprint : String;
+    Fid : String;
+    Fintent : String;
+    Fmanifest : String;
+    Fname : String;
+    Fstate : String;
+    Ftarget : TTargetConfiguration;
+    Fupdate : TDeploymentUpdate;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmanifest(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetConfig(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setintent(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmanifest(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; AValue : String); virtual;
+    Procedure Settarget(AIndex : Integer; AValue : TTargetConfiguration); virtual;
+    Procedure Setupdate(AIndex : Integer; AValue : TDeploymentUpdate); virtual;
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property manifest : string Index 16 Read Fmanifest Write Setmanifest;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property targetConfig : string Index 32 Read FtargetConfig Write SettargetConfig;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property fingerprint : String Index 16 Read Ffingerprint Write Setfingerprint;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property intent : String Index 32 Read Fintent Write Setintent;
+    Property manifest : String Index 40 Read Fmanifest Write Setmanifest;
+    Property name : String Index 48 Read Fname Write Setname;
+    Property state : String Index 56 Read Fstate Write Setstate;
+    Property target : TTargetConfiguration Index 64 Read Ftarget Write Settarget;
+    Property update : TDeploymentUpdate Index 72 Read Fupdate Write Setupdate;
   end;
   TDeploymentClass = Class of TDeployment;
+  
+  { --------------------------------------------------------------------
+    TDeploymentUpdate
+    --------------------------------------------------------------------}
+  
+  TDeploymentUpdate = Class(TGoogleBaseObject)
+  Private
+    Ferrors : TStringArray;
+    Fmanifest : String;
+  Protected
+    //Property setters
+    Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setmanifest(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property errors : TStringArray Index 0 Read Ferrors Write Seterrors;
+    Property manifest : String Index 8 Read Fmanifest Write Setmanifest;
+  end;
+  TDeploymentUpdateClass = Class of TDeploymentUpdate;
   
   { --------------------------------------------------------------------
     TDeploymentsListResponse
@@ -110,31 +136,37 @@ type
   
   TDeploymentsListResponse = Class(TGoogleBaseObject)
   Private
-    Fdeployments : TDeploymentsListResponsedeployments;
-    FnextPageToken : string;
+    Fdeployments : TDeploymentsListResponseTypedeploymentsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setdeployments(AIndex : Integer; AValue : TDeploymentsListResponsedeployments); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdeployments(AIndex : Integer; AValue : TDeploymentsListResponseTypedeploymentsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property deployments : TDeploymentsListResponsedeployments Index 0 Read Fdeployments Write Setdeployments;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property deployments : TDeploymentsListResponseTypedeploymentsArray Index 0 Read Fdeployments Write Setdeployments;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TDeploymentsListResponseClass = Class of TDeploymentsListResponse;
   
   { --------------------------------------------------------------------
-    TDeploymentsListResponsedeployments
+    TImportFile
     --------------------------------------------------------------------}
   
-  TDeploymentsListResponsedeployments = Class(TGoogleBaseObject)
+  TImportFile = Class(TGoogleBaseObject)
   Private
+    Fcontent : String;
+    Fname : String;
   Protected
     //Property setters
+    Procedure Setcontent(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property content : String Index 0 Read Fcontent Write Setcontent;
+    Property name : String Index 8 Read Fname Write Setname;
   end;
-  TDeploymentsListResponsedeploymentsClass = Class of TDeploymentsListResponsedeployments;
+  TImportFileClass = Class of TImportFile;
   
   { --------------------------------------------------------------------
     TManifest
@@ -142,25 +174,34 @@ type
   
   TManifest = Class(TGoogleBaseObject)
   Private
-    Fconfig : string;
-    FevaluatedConfig : string;
-    Fid : string;
-    Fname : string;
-    FselfLink : string;
+    Fconfig : String;
+    FcreationTimestamp : String;
+    FevaluatedConfig : String;
+    Fid : String;
+    Fimports : TManifestTypeimportsArray;
+    Flayout : String;
+    Fname : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setconfig(AIndex : Integer; AValue : string); virtual;
-    Procedure SetevaluatedConfig(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setconfig(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure SetevaluatedConfig(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setimports(AIndex : Integer; AValue : TManifestTypeimportsArray); virtual;
+    Procedure Setlayout(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property config : string Index 0 Read Fconfig Write Setconfig;
-    Property evaluatedConfig : string Index 8 Read FevaluatedConfig Write SetevaluatedConfig;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property config : String Index 0 Read Fconfig Write Setconfig;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property evaluatedConfig : String Index 16 Read FevaluatedConfig Write SetevaluatedConfig;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property imports : TManifestTypeimportsArray Index 32 Read Fimports Write Setimports;
+    Property layout : String Index 40 Read Flayout Write Setlayout;
+    Property name : String Index 48 Read Fname Write Setname;
+    Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
   end;
   TManifestClass = Class of TManifest;
   
@@ -170,31 +211,97 @@ type
   
   TManifestsListResponse = Class(TGoogleBaseObject)
   Private
-    Fmanifests : TManifestsListResponsemanifests;
-    FnextPageToken : string;
+    Fmanifests : TManifestsListResponseTypemanifestsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setmanifests(AIndex : Integer; AValue : TManifestsListResponsemanifests); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setmanifests(AIndex : Integer; AValue : TManifestsListResponseTypemanifestsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property manifests : TManifestsListResponsemanifests Index 0 Read Fmanifests Write Setmanifests;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property manifests : TManifestsListResponseTypemanifestsArray Index 0 Read Fmanifests Write Setmanifests;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TManifestsListResponseClass = Class of TManifestsListResponse;
   
   { --------------------------------------------------------------------
-    TManifestsListResponsemanifests
+    TOperationTypeerrorTypeerrorsItem
     --------------------------------------------------------------------}
   
-  TManifestsListResponsemanifests = Class(TGoogleBaseObject)
+  TOperationTypeerrorTypeerrorsItem = Class(TGoogleBaseObject)
   Private
+    Fcode : String;
+    Flocation : String;
+    Fmessage : String;
   Protected
     //Property setters
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property location : String Index 8 Read Flocation Write Setlocation;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
-  TManifestsListResponsemanifestsClass = Class of TManifestsListResponsemanifests;
+  TOperationTypeerrorTypeerrorsItemClass = Class of TOperationTypeerrorTypeerrorsItem;
+  
+  { --------------------------------------------------------------------
+    TOperationTypeerror
+    --------------------------------------------------------------------}
+  
+  TOperationTypeerror = Class(TGoogleBaseObject)
+  Private
+    Ferrors : TOperationTypeerrorTypeerrorsArray;
+  Protected
+    //Property setters
+    Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+  Public
+  Published
+    Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
+  end;
+  TOperationTypeerrorClass = Class of TOperationTypeerror;
+  
+  { --------------------------------------------------------------------
+    TOperationTypewarningsItemTypedataItem
+    --------------------------------------------------------------------}
+  
+  TOperationTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TOperationTypewarningsItemTypedataItemClass = Class of TOperationTypewarningsItemTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TOperationTypewarningsItem
+    --------------------------------------------------------------------}
+  
+  TOperationTypewarningsItem = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TOperationTypewarningsItemTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TOperationTypewarningsItemTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TOperationTypewarningsItemClass = Class of TOperationTypewarningsItem;
   
   { --------------------------------------------------------------------
     TOperation
@@ -202,145 +309,78 @@ type
   
   TOperation = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
-    FendTime : string;
-    Ferror : TOperationerror;
-    FhttpErrorMessage : string;
+    FclientOperationId : String;
+    FcreationTimestamp : String;
+    FendTime : String;
+    Ferror : TOperationTypeerror;
+    FhttpErrorMessage : String;
     FhttpErrorStatusCode : integer;
-    Fid : string;
-    FinsertTime : string;
-    Fname : string;
-    FoperationType : string;
+    Fid : String;
+    FinsertTime : String;
+    Fkind : String;
+    Fname : String;
+    FoperationType : String;
     Fprogress : integer;
-    FselfLink : string;
-    FstartTime : string;
-    Fstatus : string;
-    FstatusMessage : string;
-    FtargetId : string;
-    FtargetLink : string;
-    Fuser : string;
-    Fwarnings : TOperationwarnings;
+    Fregion : String;
+    FselfLink : String;
+    FstartTime : String;
+    Fstatus : String;
+    FstatusMessage : String;
+    FtargetId : String;
+    FtargetLink : String;
+    Fuser : String;
+    Fwarnings : TOperationTypewarningsArray;
+    Fzone : String;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure SetendTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Seterror(AIndex : Integer; AValue : TOperationerror); virtual;
-    Procedure SethttpErrorMessage(AIndex : Integer; AValue : string); virtual;
+    Procedure SetclientOperationId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Seterror(AIndex : Integer; AValue : TOperationTypeerror); virtual;
+    Procedure SethttpErrorMessage(AIndex : Integer; AValue : String); virtual;
     Procedure SethttpErrorStatusCode(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinsertTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoperationType(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinsertTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoperationType(AIndex : Integer; AValue : String); virtual;
     Procedure Setprogress(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstatusMessage(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TOperationwarnings); virtual;
+    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstatusMessage(AIndex : Integer; AValue : String); virtual;
+    Procedure SettargetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SettargetLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setuser(AIndex : Integer; AValue : String); virtual;
+    Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
+    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property endTime : string Index 8 Read FendTime Write SetendTime;
-    Property error : TOperationerror Index 16 Read Ferror Write Seterror;
-    Property httpErrorMessage : string Index 24 Read FhttpErrorMessage Write SethttpErrorMessage;
-    Property httpErrorStatusCode : integer Index 32 Read FhttpErrorStatusCode Write SethttpErrorStatusCode;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property insertTime : string Index 48 Read FinsertTime Write SetinsertTime;
-    Property name : string Index 56 Read Fname Write Setname;
-    Property operationType : string Index 64 Read FoperationType Write SetoperationType;
-    Property progress : integer Index 72 Read Fprogress Write Setprogress;
-    Property selfLink : string Index 80 Read FselfLink Write SetselfLink;
-    Property startTime : string Index 88 Read FstartTime Write SetstartTime;
-    Property status : string Index 96 Read Fstatus Write Setstatus;
-    Property statusMessage : string Index 104 Read FstatusMessage Write SetstatusMessage;
-    Property targetId : string Index 112 Read FtargetId Write SettargetId;
-    Property targetLink : string Index 120 Read FtargetLink Write SettargetLink;
-    Property user : string Index 128 Read Fuser Write Setuser;
-    Property warnings : TOperationwarnings Index 136 Read Fwarnings Write Setwarnings;
+    Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property endTime : String Index 16 Read FendTime Write SetendTime;
+    Property error : TOperationTypeerror Index 24 Read Ferror Write Seterror;
+    Property httpErrorMessage : String Index 32 Read FhttpErrorMessage Write SethttpErrorMessage;
+    Property httpErrorStatusCode : integer Index 40 Read FhttpErrorStatusCode Write SethttpErrorStatusCode;
+    Property id : String Index 48 Read Fid Write Setid;
+    Property insertTime : String Index 56 Read FinsertTime Write SetinsertTime;
+    Property kind : String Index 64 Read Fkind Write Setkind;
+    Property name : String Index 72 Read Fname Write Setname;
+    Property operationType : String Index 80 Read FoperationType Write SetoperationType;
+    Property progress : integer Index 88 Read Fprogress Write Setprogress;
+    Property region : String Index 96 Read Fregion Write Setregion;
+    Property selfLink : String Index 104 Read FselfLink Write SetselfLink;
+    Property startTime : String Index 112 Read FstartTime Write SetstartTime;
+    Property status : String Index 120 Read Fstatus Write Setstatus;
+    Property statusMessage : String Index 128 Read FstatusMessage Write SetstatusMessage;
+    Property targetId : String Index 136 Read FtargetId Write SettargetId;
+    Property targetLink : String Index 144 Read FtargetLink Write SettargetLink;
+    Property user : String Index 152 Read Fuser Write Setuser;
+    Property warnings : TOperationTypewarningsArray Index 160 Read Fwarnings Write Setwarnings;
+    Property zone : String Index 168 Read Fzone Write Setzone;
   end;
   TOperationClass = Class of TOperation;
-  
-  { --------------------------------------------------------------------
-    TOperationerror
-    --------------------------------------------------------------------}
-  
-  TOperationerror = Class(TGoogleBaseObject)
-  Private
-    Ferrors : TOperationerrorerrors;
-  Protected
-    //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TOperationerrorerrors); virtual;
-  Public
-  Published
-    Property errors : TOperationerrorerrors Index 0 Read Ferrors Write Seterrors;
-  end;
-  TOperationerrorClass = Class of TOperationerror;
-  
-  { --------------------------------------------------------------------
-    TOperationerrorerrors
-    --------------------------------------------------------------------}
-  
-  TOperationerrorerrors = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Flocation : string;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property location : string Index 8 Read Flocation Write Setlocation;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TOperationerrorerrorsClass = Class of TOperationerrorerrors;
-  
-  { --------------------------------------------------------------------
-    TOperationwarnings
-    --------------------------------------------------------------------}
-  
-  TOperationwarnings = Class(TGoogleBaseObject)
-  Private
-    Fcode : TJSONSchema;
-    Fdata : TOperationwarningsdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : TJSONSchema); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TOperationwarningsdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : TJSONSchema Index 0 Read Fcode Write Setcode;
-    Property data : TOperationwarningsdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TOperationwarningsClass = Class of TOperationwarnings;
-  
-  { --------------------------------------------------------------------
-    TOperationwarningsdata
-    --------------------------------------------------------------------}
-  
-  TOperationwarningsdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TOperationwarningsdataClass = Class of TOperationwarningsdata;
   
   { --------------------------------------------------------------------
     TOperationsListResponse
@@ -348,31 +388,18 @@ type
   
   TOperationsListResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Foperations : TOperationsListResponseoperations;
+    FnextPageToken : String;
+    Foperations : TOperationsListResponseTypeoperationsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setoperations(AIndex : Integer; AValue : TOperationsListResponseoperations); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setoperations(AIndex : Integer; AValue : TOperationsListResponseTypeoperationsArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property operations : TOperationsListResponseoperations Index 8 Read Foperations Write Setoperations;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property operations : TOperationsListResponseTypeoperationsArray Index 8 Read Foperations Write Setoperations;
   end;
   TOperationsListResponseClass = Class of TOperationsListResponse;
-  
-  { --------------------------------------------------------------------
-    TOperationsListResponseoperations
-    --------------------------------------------------------------------}
-  
-  TOperationsListResponseoperations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TOperationsListResponseoperationsClass = Class of TOperationsListResponseoperations;
   
   { --------------------------------------------------------------------
     TResource
@@ -380,50 +407,68 @@ type
   
   TResource = Class(TGoogleBaseObject)
   Private
-    Ferrors : TResourceerrors;
-    Fid : string;
-    Fintent : string;
-    Fmanifest : string;
-    Fname : string;
-    Fstate : string;
-    F_type : string;
-    Furl : string;
+    FfinalProperties : String;
+    Fid : String;
+    Fmanifest : String;
+    Fname : String;
+    Fproperties : String;
+    F_type : String;
+    Fupdate : TResourceUpdate;
+    Furl : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TResourceerrors); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setintent(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmanifest(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetfinalProperties(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmanifest(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setproperties(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setupdate(AIndex : Integer; AValue : TResourceUpdate); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property errors : TResourceerrors Index 0 Read Ferrors Write Seterrors;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property intent : string Index 16 Read Fintent Write Setintent;
-    Property manifest : string Index 24 Read Fmanifest Write Setmanifest;
-    Property name : string Index 32 Read Fname Write Setname;
-    Property state : string Index 40 Read Fstate Write Setstate;
-    Property _type : string Index 48 Read F_type Write Set_type;
-    Property url : string Index 56 Read Furl Write Seturl;
+    Property finalProperties : String Index 0 Read FfinalProperties Write SetfinalProperties;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property manifest : String Index 16 Read Fmanifest Write Setmanifest;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property properties : String Index 32 Read Fproperties Write Setproperties;
+    Property _type : String Index 40 Read F_type Write Set_type;
+    Property update : TResourceUpdate Index 48 Read Fupdate Write Setupdate;
+    Property url : String Index 56 Read Furl Write Seturl;
   end;
   TResourceClass = Class of TResource;
   
   { --------------------------------------------------------------------
-    TResourceerrors
+    TResourceUpdate
     --------------------------------------------------------------------}
   
-  TResourceerrors = Class(TGoogleBaseObject)
+  TResourceUpdate = Class(TGoogleBaseObject)
   Private
+    Ferrors : TStringArray;
+    FfinalProperties : String;
+    Fintent : String;
+    Fmanifest : String;
+    Fproperties : String;
+    Fstate : String;
   Protected
     //Property setters
+    Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetfinalProperties(AIndex : Integer; AValue : String); virtual;
+    Procedure Setintent(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmanifest(AIndex : Integer; AValue : String); virtual;
+    Procedure Setproperties(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property errors : TStringArray Index 0 Read Ferrors Write Seterrors;
+    Property finalProperties : String Index 8 Read FfinalProperties Write SetfinalProperties;
+    Property intent : String Index 16 Read Fintent Write Setintent;
+    Property manifest : String Index 24 Read Fmanifest Write Setmanifest;
+    Property properties : String Index 32 Read Fproperties Write Setproperties;
+    Property state : String Index 40 Read Fstate Write Setstate;
   end;
-  TResourceerrorsClass = Class of TResourceerrors;
+  TResourceUpdateClass = Class of TResourceUpdate;
   
   { --------------------------------------------------------------------
     TResourcesListResponse
@@ -431,31 +476,37 @@ type
   
   TResourcesListResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Fresources : TResourcesListResponseresources;
+    FnextPageToken : String;
+    Fresources : TResourcesListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TResourcesListResponseresources); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresources(AIndex : Integer; AValue : TResourcesListResponseTyperesourcesArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property resources : TResourcesListResponseresources Index 8 Read Fresources Write Setresources;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property resources : TResourcesListResponseTyperesourcesArray Index 8 Read Fresources Write Setresources;
   end;
   TResourcesListResponseClass = Class of TResourcesListResponse;
   
   { --------------------------------------------------------------------
-    TResourcesListResponseresources
+    TTargetConfiguration
     --------------------------------------------------------------------}
   
-  TResourcesListResponseresources = Class(TGoogleBaseObject)
+  TTargetConfiguration = Class(TGoogleBaseObject)
   Private
+    Fconfig : String;
+    Fimports : TTargetConfigurationTypeimportsArray;
   Protected
     //Property setters
+    Procedure Setconfig(AIndex : Integer; AValue : String); virtual;
+    Procedure Setimports(AIndex : Integer; AValue : TTargetConfigurationTypeimportsArray); virtual;
   Public
   Published
+    Property config : String Index 0 Read Fconfig Write Setconfig;
+    Property imports : TTargetConfigurationTypeimportsArray Index 8 Read Fimports Write Setimports;
   end;
-  TResourcesListResponseresourcesClass = Class of TResourcesListResponseresources;
+  TTargetConfigurationClass = Class of TTargetConfiguration;
   
   { --------------------------------------------------------------------
     TType
@@ -463,13 +514,13 @@ type
   
   TType = Class(TGoogleBaseObject)
   Private
-    Fname : string;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
+    Property name : String Index 0 Read Fname Write Setname;
   end;
   TTypeClass = Class of TType;
   
@@ -479,28 +530,18 @@ type
   
   TTypesListResponse = Class(TGoogleBaseObject)
   Private
-    Ftypes : TTypesListResponsetypes;
+    FnextPageToken : String;
+    Ftypes : TTypesListResponseTypetypesArray;
   Protected
     //Property setters
-    Procedure Settypes(AIndex : Integer; AValue : TTypesListResponsetypes); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Settypes(AIndex : Integer; AValue : TTypesListResponseTypetypesArray); virtual;
   Public
   Published
-    Property types : TTypesListResponsetypes Index 0 Read Ftypes Write Settypes;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property types : TTypesListResponseTypetypesArray Index 8 Read Ftypes Write Settypes;
   end;
   TTypesListResponseClass = Class of TTypesListResponse;
-  
-  { --------------------------------------------------------------------
-    TTypesListResponsetypes
-    --------------------------------------------------------------------}
-  
-  TTypesListResponsetypes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTypesListResponsetypesClass = Class of TTypesListResponsetypes;
   
   { --------------------------------------------------------------------
     TDeploymentsResource
@@ -510,8 +551,27 @@ type
   //Optional query Options for TDeploymentsResource, method List
   
   TDeploymentsListOptions = Record
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
+  end;
+  
+  
+  //Optional query Options for TDeploymentsResource, method Patch
+  
+  TDeploymentsPatchOptions = Record
+    createPolicy : String;
+    deletePolicy : String;
+    updatePolicy : String;
+  end;
+  
+  
+  //Optional query Options for TDeploymentsResource, method Update
+  
+  TDeploymentsUpdateOptions = Record
+    createPolicy : String;
+    deletePolicy : String;
+    updatePolicy : String;
   end;
   
   TDeploymentsResource = Class(TGoogleResource)
@@ -523,6 +583,10 @@ type
     Function Insert(project: string; aDeployment : TDeployment) : TOperation;
     Function List(project: string; AQuery : string  = '') : TDeploymentsListResponse;
     Function List(project: string; AQuery : TDeploymentslistOptions) : TDeploymentsListResponse;
+    Function Patch(deployment: string; project: string; aDeployment : TDeployment; AQuery : string  = '') : TOperation;
+    Function Patch(deployment: string; project: string; aDeployment : TDeployment; AQuery : TDeploymentspatchOptions) : TOperation;
+    Function Update(deployment: string; project: string; aDeployment : TDeployment; AQuery : string  = '') : TOperation;
+    Function Update(deployment: string; project: string; aDeployment : TDeployment; AQuery : TDeploymentsupdateOptions) : TOperation;
   end;
   
   
@@ -534,8 +598,9 @@ type
   //Optional query Options for TManifestsResource, method List
   
   TManifestsListOptions = Record
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TManifestsResource = Class(TGoogleResource)
@@ -556,8 +621,9 @@ type
   //Optional query Options for TOperationsResource, method List
   
   TOperationsListOptions = Record
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TOperationsResource = Class(TGoogleResource)
@@ -578,8 +644,9 @@ type
   //Optional query Options for TResourcesResource, method List
   
   TResourcesListOptions = Record
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TResourcesResource = Class(TGoogleResource)
@@ -600,8 +667,9 @@ type
   //Optional query Options for TTypesResource, method List
   
   TTypesListOptions = Record
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TTypesResource = Class(TGoogleResource)
@@ -678,7 +746,17 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TDeployment.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TDeployment.SetcreationTimestamp(AIndex : Integer; AValue : String); 
+
+begin
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDeployment.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -688,7 +766,17 @@ end;
 
 
 
-Procedure TDeployment.Setid(AIndex : Integer; AValue : string); 
+Procedure TDeployment.Setfingerprint(AIndex : Integer; AValue : String); 
+
+begin
+  If (Ffingerprint=AValue) then exit;
+  Ffingerprint:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDeployment.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -698,7 +786,17 @@ end;
 
 
 
-Procedure TDeployment.Setmanifest(AIndex : Integer; AValue : string); 
+Procedure TDeployment.Setintent(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fintent=AValue) then exit;
+  Fintent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDeployment.Setmanifest(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmanifest=AValue) then exit;
@@ -708,7 +806,7 @@ end;
 
 
 
-Procedure TDeployment.Setname(AIndex : Integer; AValue : string); 
+Procedure TDeployment.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -718,11 +816,58 @@ end;
 
 
 
-Procedure TDeployment.SettargetConfig(AIndex : Integer; AValue : string); 
+Procedure TDeployment.Setstate(AIndex : Integer; AValue : String); 
 
 begin
-  If (FtargetConfig=AValue) then exit;
-  FtargetConfig:=AValue;
+  If (Fstate=AValue) then exit;
+  Fstate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDeployment.Settarget(AIndex : Integer; AValue : TTargetConfiguration); 
+
+begin
+  If (Ftarget=AValue) then exit;
+  Ftarget:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDeployment.Setupdate(AIndex : Integer; AValue : TDeploymentUpdate); 
+
+begin
+  If (Fupdate=AValue) then exit;
+  Fupdate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TDeploymentUpdate
+  --------------------------------------------------------------------}
+
+
+Procedure TDeploymentUpdate.Seterrors(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (Ferrors=AValue) then exit;
+  Ferrors:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDeploymentUpdate.Setmanifest(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fmanifest=AValue) then exit;
+  Fmanifest:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -735,7 +880,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeploymentsListResponse.Setdeployments(AIndex : Integer; AValue : TDeploymentsListResponsedeployments); 
+Procedure TDeploymentsListResponse.Setdeployments(AIndex : Integer; AValue : TDeploymentsListResponseTypedeploymentsArray); 
 
 begin
   If (Fdeployments=AValue) then exit;
@@ -745,7 +890,7 @@ end;
 
 
 
-Procedure TDeploymentsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TDeploymentsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -758,48 +903,21 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDeploymentsListResponsedeployments
+  TImportFile
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TManifest
-  --------------------------------------------------------------------}
-
-
-Procedure TManifest.Setconfig(AIndex : Integer; AValue : string); 
+Procedure TImportFile.Setcontent(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fconfig=AValue) then exit;
-  Fconfig:=AValue;
+  If (Fcontent=AValue) then exit;
+  Fcontent:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TManifest.SetevaluatedConfig(AIndex : Integer; AValue : string); 
-
-begin
-  If (FevaluatedConfig=AValue) then exit;
-  FevaluatedConfig:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TManifest.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TManifest.Setname(AIndex : Integer; AValue : string); 
+Procedure TImportFile.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -809,7 +927,84 @@ end;
 
 
 
-Procedure TManifest.SetselfLink(AIndex : Integer; AValue : string); 
+
+
+{ --------------------------------------------------------------------
+  TManifest
+  --------------------------------------------------------------------}
+
+
+Procedure TManifest.Setconfig(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fconfig=AValue) then exit;
+  Fconfig:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManifest.SetcreationTimestamp(AIndex : Integer; AValue : String); 
+
+begin
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManifest.SetevaluatedConfig(AIndex : Integer; AValue : String); 
+
+begin
+  If (FevaluatedConfig=AValue) then exit;
+  FevaluatedConfig:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManifest.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManifest.Setimports(AIndex : Integer; AValue : TManifestTypeimportsArray); 
+
+begin
+  If (Fimports=AValue) then exit;
+  Fimports:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManifest.Setlayout(AIndex : Integer; AValue : String); 
+
+begin
+  If (Flayout=AValue) then exit;
+  Flayout:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManifest.Setname(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManifest.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -826,7 +1021,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TManifestsListResponse.Setmanifests(AIndex : Integer; AValue : TManifestsListResponsemanifests); 
+Procedure TManifestsListResponse.Setmanifests(AIndex : Integer; AValue : TManifestsListResponseTypemanifestsArray); 
 
 begin
   If (Fmanifests=AValue) then exit;
@@ -836,7 +1031,7 @@ end;
 
 
 
-Procedure TManifestsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TManifestsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -849,8 +1044,119 @@ end;
 
 
 { --------------------------------------------------------------------
-  TManifestsListResponsemanifests
+  TOperationTypeerrorTypeerrorsItem
   --------------------------------------------------------------------}
+
+
+Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; AValue : String); 
+
+begin
+  If (Flocation=AValue) then exit;
+  Flocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TOperationTypeerror
+  --------------------------------------------------------------------}
+
+
+Procedure TOperationTypeerror.Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); 
+
+begin
+  If (Ferrors=AValue) then exit;
+  Ferrors:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TOperationTypewarningsItemTypedataItem
+  --------------------------------------------------------------------}
+
+
+Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TOperationTypewarningsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -860,7 +1166,17 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetclientOperationId(AIndex : Integer; AValue : String); 
+
+begin
+  If (FclientOperationId=AValue) then exit;
+  FclientOperationId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SetcreationTimestamp(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -870,7 +1186,7 @@ end;
 
 
 
-Procedure TOperation.SetendTime(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetendTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -880,7 +1196,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationerror); 
+Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationTypeerror); 
 
 begin
   If (Ferror=AValue) then exit;
@@ -890,7 +1206,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorMessage(AIndex : Integer; AValue : string); 
+Procedure TOperation.SethttpErrorMessage(AIndex : Integer; AValue : String); 
 
 begin
   If (FhttpErrorMessage=AValue) then exit;
@@ -910,7 +1226,7 @@ end;
 
 
 
-Procedure TOperation.Setid(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -920,7 +1236,7 @@ end;
 
 
 
-Procedure TOperation.SetinsertTime(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetinsertTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -930,7 +1246,17 @@ end;
 
 
 
-Procedure TOperation.Setname(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setkind(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -940,7 +1266,7 @@ end;
 
 
 
-Procedure TOperation.SetoperationType(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetoperationType(AIndex : Integer; AValue : String); 
 
 begin
   If (FoperationType=AValue) then exit;
@@ -960,7 +1286,17 @@ end;
 
 
 
-Procedure TOperation.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setregion(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fregion=AValue) then exit;
+  Fregion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -970,7 +1306,7 @@ end;
 
 
 
-Procedure TOperation.SetstartTime(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetstartTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -980,7 +1316,7 @@ end;
 
 
 
-Procedure TOperation.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -990,7 +1326,7 @@ end;
 
 
 
-Procedure TOperation.SetstatusMessage(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetstatusMessage(AIndex : Integer; AValue : String); 
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -1000,7 +1336,7 @@ end;
 
 
 
-Procedure TOperation.SettargetId(AIndex : Integer; AValue : string); 
+Procedure TOperation.SettargetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FtargetId=AValue) then exit;
@@ -1010,7 +1346,7 @@ end;
 
 
 
-Procedure TOperation.SettargetLink(AIndex : Integer; AValue : string); 
+Procedure TOperation.SettargetLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FtargetLink=AValue) then exit;
@@ -1020,7 +1356,7 @@ end;
 
 
 
-Procedure TOperation.Setuser(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setuser(AIndex : Integer; AValue : String); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -1030,7 +1366,7 @@ end;
 
 
 
-Procedure TOperation.Setwarnings(AIndex : Integer; AValue : TOperationwarnings); 
+Procedure TOperation.Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -1040,119 +1376,11 @@ end;
 
 
 
-
-
-{ --------------------------------------------------------------------
-  TOperationerror
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationerror.Seterrors(AIndex : Integer; AValue : TOperationerrorerrors); 
+Procedure TOperation.Setzone(AIndex : Integer; AValue : String); 
 
 begin
-  If (Ferrors=AValue) then exit;
-  Ferrors:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperationerrorerrors
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationerrorerrors.Setcode(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationerrorerrors.Setlocation(AIndex : Integer; AValue : string); 
-
-begin
-  If (Flocation=AValue) then exit;
-  Flocation:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationerrorerrors.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperationwarnings
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationwarnings.Setcode(AIndex : Integer; AValue : TJSONSchema); 
-
-begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationwarnings.Setdata(AIndex : Integer; AValue : TOperationwarningsdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationwarnings.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperationwarningsdata
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationwarningsdata.Setkey(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkey=AValue) then exit;
-  Fkey:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationwarningsdata.Setvalue(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fvalue=AValue) then exit;
-  Fvalue:=AValue;
+  If (Fzone=AValue) then exit;
+  Fzone:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1165,7 +1393,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TOperationsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1175,7 +1403,7 @@ end;
 
 
 
-Procedure TOperationsListResponse.Setoperations(AIndex : Integer; AValue : TOperationsListResponseoperations); 
+Procedure TOperationsListResponse.Setoperations(AIndex : Integer; AValue : TOperationsListResponseTypeoperationsArray); 
 
 begin
   If (Foperations=AValue) then exit;
@@ -1188,28 +1416,21 @@ end;
 
 
 { --------------------------------------------------------------------
-  TOperationsListResponseoperations
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TResource
   --------------------------------------------------------------------}
 
 
-Procedure TResource.Seterrors(AIndex : Integer; AValue : TResourceerrors); 
+Procedure TResource.SetfinalProperties(AIndex : Integer; AValue : String); 
 
 begin
-  If (Ferrors=AValue) then exit;
-  Ferrors:=AValue;
+  If (FfinalProperties=AValue) then exit;
+  FfinalProperties:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TResource.Setid(AIndex : Integer; AValue : string); 
+Procedure TResource.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1219,17 +1440,7 @@ end;
 
 
 
-Procedure TResource.Setintent(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fintent=AValue) then exit;
-  Fintent:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResource.Setmanifest(AIndex : Integer; AValue : string); 
+Procedure TResource.Setmanifest(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmanifest=AValue) then exit;
@@ -1239,7 +1450,7 @@ end;
 
 
 
-Procedure TResource.Setname(AIndex : Integer; AValue : string); 
+Procedure TResource.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1249,17 +1460,17 @@ end;
 
 
 
-Procedure TResource.Setstate(AIndex : Integer; AValue : string); 
+Procedure TResource.Setproperties(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fstate=AValue) then exit;
-  Fstate:=AValue;
+  If (Fproperties=AValue) then exit;
+  Fproperties:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TResource.Set_type(AIndex : Integer; AValue : string); 
+Procedure TResource.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1269,7 +1480,17 @@ end;
 
 
 
-Procedure TResource.Seturl(AIndex : Integer; AValue : string); 
+Procedure TResource.Setupdate(AIndex : Integer; AValue : TResourceUpdate); 
+
+begin
+  If (Fupdate=AValue) then exit;
+  Fupdate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResource.Seturl(AIndex : Integer; AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -1293,8 +1514,68 @@ end;
 
 
 { --------------------------------------------------------------------
-  TResourceerrors
+  TResourceUpdate
   --------------------------------------------------------------------}
+
+
+Procedure TResourceUpdate.Seterrors(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (Ferrors=AValue) then exit;
+  Ferrors:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceUpdate.SetfinalProperties(AIndex : Integer; AValue : String); 
+
+begin
+  If (FfinalProperties=AValue) then exit;
+  FfinalProperties:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceUpdate.Setintent(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fintent=AValue) then exit;
+  Fintent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceUpdate.Setmanifest(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fmanifest=AValue) then exit;
+  Fmanifest:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceUpdate.Setproperties(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fproperties=AValue) then exit;
+  Fproperties:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceUpdate.Setstate(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fstate=AValue) then exit;
+  Fstate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -1304,7 +1585,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourcesListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TResourcesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1314,7 +1595,7 @@ end;
 
 
 
-Procedure TResourcesListResponse.Setresources(AIndex : Integer; AValue : TResourcesListResponseresources); 
+Procedure TResourcesListResponse.Setresources(AIndex : Integer; AValue : TResourcesListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -1327,8 +1608,28 @@ end;
 
 
 { --------------------------------------------------------------------
-  TResourcesListResponseresources
+  TTargetConfiguration
   --------------------------------------------------------------------}
+
+
+Procedure TTargetConfiguration.Setconfig(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fconfig=AValue) then exit;
+  Fconfig:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetConfiguration.Setimports(AIndex : Integer; AValue : TTargetConfigurationTypeimportsArray); 
+
+begin
+  If (Fimports=AValue) then exit;
+  Fimports:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -1338,7 +1639,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TType.Setname(AIndex : Integer; AValue : string); 
+Procedure TType.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1355,7 +1656,17 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTypesListResponse.Settypes(AIndex : Integer; AValue : TTypesListResponsetypes); 
+Procedure TTypesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTypesListResponse.Settypes(AIndex : Integer; AValue : TTypesListResponseTypetypesArray); 
 
 begin
   If (Ftypes=AValue) then exit;
@@ -1363,13 +1674,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TTypesListResponsetypes
-  --------------------------------------------------------------------}
 
 
 
@@ -1459,9 +1763,68 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(project,_Q);
+end;
+
+Function TDeploymentsResource.Patch(deployment: string; project: string; aDeployment : TDeployment; AQuery : string = '') : TOperation;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{project}/global/deployments/{deployment}';
+  _Methodid   = 'deploymentmanager.deployments.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['deployment',deployment,'project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aDeployment,TOperation) as TOperation;
+end;
+
+
+Function TDeploymentsResource.Patch(deployment: string; project: string; aDeployment : TDeployment; AQuery : TDeploymentspatchOptions) : TOperation;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'createPolicy',AQuery.createPolicy);
+  AddToQuery(_Q,'deletePolicy',AQuery.deletePolicy);
+  AddToQuery(_Q,'updatePolicy',AQuery.updatePolicy);
+  Result:=Patch(deployment,project,aDeployment,_Q);
+end;
+
+Function TDeploymentsResource.Update(deployment: string; project: string; aDeployment : TDeployment; AQuery : string = '') : TOperation;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{project}/global/deployments/{deployment}';
+  _Methodid   = 'deploymentmanager.deployments.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['deployment',deployment,'project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aDeployment,TOperation) as TOperation;
+end;
+
+
+Function TDeploymentsResource.Update(deployment: string; project: string; aDeployment : TDeployment; AQuery : TDeploymentsupdateOptions) : TOperation;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'createPolicy',AQuery.createPolicy);
+  AddToQuery(_Q,'deletePolicy',AQuery.deletePolicy);
+  AddToQuery(_Q,'updatePolicy',AQuery.updatePolicy);
+  Result:=Update(deployment,project,aDeployment,_Q);
 end;
 
 
@@ -1521,6 +1884,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(deployment,project,_Q);
@@ -1583,6 +1947,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(project,_Q);
@@ -1645,6 +2010,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(deployment,project,_Q);
@@ -1692,6 +2058,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(project,_Q);
@@ -1712,19 +2079,19 @@ end;
 Class Function TDeploymentmanagerAPI.APIVersion : String;
 
 begin
-  Result:='v2beta1';
+  Result:='v2beta2';
 end;
 
 Class Function TDeploymentmanagerAPI.APIRevision : String;
 
 begin
-  Result:='20150311';
+  Result:='20150427';
 end;
 
 Class Function TDeploymentmanagerAPI.APIID : String;
 
 begin
-  Result:='deploymentmanager:v2beta1';
+  Result:='deploymentmanager:v2beta2';
 end;
 
 Class Function TDeploymentmanagerAPI.APITitle : String;
@@ -1778,13 +2145,13 @@ end;
 Class Function TDeploymentmanagerAPI.APIbasePath : string;
 
 begin
-  Result:='/deploymentmanager/v2beta1/projects/';
+  Result:='/deploymentmanager/v2beta2/projects/';
 end;
 
 Class Function TDeploymentmanagerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/deploymentmanager/v2beta1/projects/';
+  Result:='https://www.googleapis.com/deploymentmanager/v2beta2/projects/';
 end;
 
 Class Function TDeploymentmanagerAPI.APIProtocol : string;
@@ -1796,7 +2163,7 @@ end;
 Class Function TDeploymentmanagerAPI.APIservicePath : string;
 
 begin
-  Result:='deploymentmanager/v2beta1/projects/';
+  Result:='deploymentmanager/v2beta2/projects/';
 end;
 
 Class Function TDeploymentmanagerAPI.APIbatchPath : String;
@@ -1828,25 +2195,23 @@ Class Procedure TDeploymentmanagerAPI.RegisterAPIResources;
 
 begin
   TDeployment.RegisterObject;
+  TDeploymentUpdate.RegisterObject;
   TDeploymentsListResponse.RegisterObject;
-  TDeploymentsListResponsedeployments.RegisterObject;
+  TImportFile.RegisterObject;
   TManifest.RegisterObject;
   TManifestsListResponse.RegisterObject;
-  TManifestsListResponsemanifests.RegisterObject;
+  TOperationTypeerrorTypeerrorsItem.RegisterObject;
+  TOperationTypeerror.RegisterObject;
+  TOperationTypewarningsItemTypedataItem.RegisterObject;
+  TOperationTypewarningsItem.RegisterObject;
   TOperation.RegisterObject;
-  TOperationerror.RegisterObject;
-  TOperationerrorerrors.RegisterObject;
-  TOperationwarnings.RegisterObject;
-  TOperationwarningsdata.RegisterObject;
   TOperationsListResponse.RegisterObject;
-  TOperationsListResponseoperations.RegisterObject;
   TResource.RegisterObject;
-  TResourceerrors.RegisterObject;
+  TResourceUpdate.RegisterObject;
   TResourcesListResponse.RegisterObject;
-  TResourcesListResponseresources.RegisterObject;
+  TTargetConfiguration.RegisterObject;
   TType.RegisterObject;
   TTypesListResponse.RegisterObject;
-  TTypesListResponsetypes.RegisterObject;
 end;
 
 

@@ -1,31 +1,19 @@
 unit googledns;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:53
 {$MODE objfpc}
 {$H+}
 
@@ -34,37 +22,30 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TChange = class;
-  TChangeArray = Array of TChange;
-  TChangeadditions = class;
-  TChangeadditionsArray = Array of TChangeadditions;
-  TChangedeletions = class;
-  TChangedeletionsArray = Array of TChangedeletions;
   TChangesListResponse = class;
-  TChangesListResponseArray = Array of TChangesListResponse;
-  TChangesListResponsechanges = class;
-  TChangesListResponsechangesArray = Array of TChangesListResponsechanges;
   TManagedZone = class;
-  TManagedZoneArray = Array of TManagedZone;
-  TManagedZonenameServers = class;
-  TManagedZonenameServersArray = Array of TManagedZonenameServers;
   TManagedZonesListResponse = class;
-  TManagedZonesListResponseArray = Array of TManagedZonesListResponse;
-  TManagedZonesListResponsemanagedZones = class;
-  TManagedZonesListResponsemanagedZonesArray = Array of TManagedZonesListResponsemanagedZones;
   TProject = class;
-  TProjectArray = Array of TProject;
   TQuota = class;
-  TQuotaArray = Array of TQuota;
   TResourceRecordSet = class;
-  TResourceRecordSetArray = Array of TResourceRecordSet;
-  TResourceRecordSetrrdatas = class;
-  TResourceRecordSetrrdatasArray = Array of TResourceRecordSetrrdatas;
   TResourceRecordSetsListResponse = class;
+  TChangeArray = Array of TChange;
+  TChangesListResponseArray = Array of TChangesListResponse;
+  TManagedZoneArray = Array of TManagedZone;
+  TManagedZonesListResponseArray = Array of TManagedZonesListResponse;
+  TProjectArray = Array of TProject;
+  TQuotaArray = Array of TQuota;
+  TResourceRecordSetArray = Array of TResourceRecordSet;
   TResourceRecordSetsListResponseArray = Array of TResourceRecordSetsListResponse;
-  TResourceRecordSetsListResponserrsets = class;
-  TResourceRecordSetsListResponserrsetsArray = Array of TResourceRecordSetsListResponserrsets;
+  //Anonymous types, using auto-generated names
+  TChangeTypeadditionsArray = Array of TResourceRecordSet;
+  TChangeTypedeletionsArray = Array of TResourceRecordSet;
+  TChangesListResponseTypechangesArray = Array of TChange;
+  TManagedZonesListResponseTypemanagedZonesArray = Array of TManagedZone;
+  TResourceRecordSetsListResponseTyperrsetsArray = Array of TResourceRecordSet;
   
   { --------------------------------------------------------------------
     TChange
@@ -72,56 +53,30 @@ type
   
   TChange = Class(TGoogleBaseObject)
   Private
-    Fadditions : TChangeadditions;
-    Fdeletions : TChangedeletions;
-    Fid : string;
-    Fkind : string;
-    FstartTime : string;
-    Fstatus : string;
+    Fadditions : TChangeTypeadditionsArray;
+    Fdeletions : TChangeTypedeletionsArray;
+    Fid : String;
+    Fkind : String;
+    FstartTime : String;
+    Fstatus : String;
   Protected
     //Property setters
-    Procedure Setadditions(AIndex : Integer; AValue : TChangeadditions); virtual;
-    Procedure Setdeletions(AIndex : Integer; AValue : TChangedeletions); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
+    Procedure Setadditions(AIndex : Integer; AValue : TChangeTypeadditionsArray); virtual;
+    Procedure Setdeletions(AIndex : Integer; AValue : TChangeTypedeletionsArray); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property additions : TChangeadditions Index 0 Read Fadditions Write Setadditions;
-    Property deletions : TChangedeletions Index 8 Read Fdeletions Write Setdeletions;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property startTime : string Index 32 Read FstartTime Write SetstartTime;
-    Property status : string Index 40 Read Fstatus Write Setstatus;
+    Property additions : TChangeTypeadditionsArray Index 0 Read Fadditions Write Setadditions;
+    Property deletions : TChangeTypedeletionsArray Index 8 Read Fdeletions Write Setdeletions;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property startTime : String Index 32 Read FstartTime Write SetstartTime;
+    Property status : String Index 40 Read Fstatus Write Setstatus;
   end;
   TChangeClass = Class of TChange;
-  
-  { --------------------------------------------------------------------
-    TChangeadditions
-    --------------------------------------------------------------------}
-  
-  TChangeadditions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChangeadditionsClass = Class of TChangeadditions;
-  
-  { --------------------------------------------------------------------
-    TChangedeletions
-    --------------------------------------------------------------------}
-  
-  TChangedeletions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChangedeletionsClass = Class of TChangedeletions;
   
   { --------------------------------------------------------------------
     TChangesListResponse
@@ -129,34 +84,21 @@ type
   
   TChangesListResponse = Class(TGoogleBaseObject)
   Private
-    Fchanges : TChangesListResponsechanges;
-    Fkind : string;
-    FnextPageToken : string;
+    Fchanges : TChangesListResponseTypechangesArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setchanges(AIndex : Integer; AValue : TChangesListResponsechanges); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setchanges(AIndex : Integer; AValue : TChangesListResponseTypechangesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property changes : TChangesListResponsechanges Index 0 Read Fchanges Write Setchanges;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property changes : TChangesListResponseTypechangesArray Index 0 Read Fchanges Write Setchanges;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TChangesListResponseClass = Class of TChangesListResponse;
-  
-  { --------------------------------------------------------------------
-    TChangesListResponsechanges
-    --------------------------------------------------------------------}
-  
-  TChangesListResponsechanges = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChangesListResponsechangesClass = Class of TChangesListResponsechanges;
   
   { --------------------------------------------------------------------
     TManagedZone
@@ -164,49 +106,36 @@ type
   
   TManagedZone = Class(TGoogleBaseObject)
   Private
-    FcreationTime : string;
-    Fdescription : string;
-    FdnsName : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    FnameServerSet : string;
-    FnameServers : TManagedZonenameServers;
+    FcreationTime : String;
+    Fdescription : String;
+    FdnsName : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FnameServerSet : String;
+    FnameServers : TStringArray;
   Protected
     //Property setters
-    Procedure SetcreationTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdnsName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnameServerSet(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnameServers(AIndex : Integer; AValue : TManagedZonenameServers); virtual;
+    Procedure SetcreationTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdnsName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnameServerSet(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnameServers(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property creationTime : string Index 0 Read FcreationTime Write SetcreationTime;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property dnsName : string Index 16 Read FdnsName Write SetdnsName;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property nameServerSet : string Index 48 Read FnameServerSet Write SetnameServerSet;
-    Property nameServers : TManagedZonenameServers Index 56 Read FnameServers Write SetnameServers;
+    Property creationTime : String Index 0 Read FcreationTime Write SetcreationTime;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property dnsName : String Index 16 Read FdnsName Write SetdnsName;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property nameServerSet : String Index 48 Read FnameServerSet Write SetnameServerSet;
+    Property nameServers : TStringArray Index 56 Read FnameServers Write SetnameServers;
   end;
   TManagedZoneClass = Class of TManagedZone;
-  
-  { --------------------------------------------------------------------
-    TManagedZonenameServers
-    --------------------------------------------------------------------}
-  
-  TManagedZonenameServers = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TManagedZonenameServersClass = Class of TManagedZonenameServers;
   
   { --------------------------------------------------------------------
     TManagedZonesListResponse
@@ -214,34 +143,21 @@ type
   
   TManagedZonesListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FmanagedZones : TManagedZonesListResponsemanagedZones;
-    FnextPageToken : string;
+    Fkind : String;
+    FmanagedZones : TManagedZonesListResponseTypemanagedZonesArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmanagedZones(AIndex : Integer; AValue : TManagedZonesListResponsemanagedZones); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmanagedZones(AIndex : Integer; AValue : TManagedZonesListResponseTypemanagedZonesArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property managedZones : TManagedZonesListResponsemanagedZones Index 8 Read FmanagedZones Write SetmanagedZones;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property managedZones : TManagedZonesListResponseTypemanagedZonesArray Index 8 Read FmanagedZones Write SetmanagedZones;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TManagedZonesListResponseClass = Class of TManagedZonesListResponse;
-  
-  { --------------------------------------------------------------------
-    TManagedZonesListResponsemanagedZones
-    --------------------------------------------------------------------}
-  
-  TManagedZonesListResponsemanagedZones = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TManagedZonesListResponsemanagedZonesClass = Class of TManagedZonesListResponsemanagedZones;
   
   { --------------------------------------------------------------------
     TProject
@@ -249,21 +165,21 @@ type
   
   TProject = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    Fnumber : string;
+    Fid : String;
+    Fkind : String;
+    Fnumber : String;
     Fquota : TQuota;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnumber(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnumber(AIndex : Integer; AValue : String); virtual;
     Procedure Setquota(AIndex : Integer; AValue : TQuota); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property number : string Index 16 Read Fnumber Write Setnumber;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property number : String Index 16 Read Fnumber Write Setnumber;
     Property quota : TQuota Index 24 Read Fquota Write Setquota;
   end;
   TProjectClass = Class of TProject;
@@ -274,7 +190,7 @@ type
   
   TQuota = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
+    Fkind : String;
     FmanagedZones : integer;
     FresourceRecordsPerRrset : integer;
     FrrsetAdditionsPerChange : integer;
@@ -283,7 +199,7 @@ type
     FtotalRrdataSizePerChange : integer;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetmanagedZones(AIndex : Integer; AValue : integer); virtual;
     Procedure SetresourceRecordsPerRrset(AIndex : Integer; AValue : integer); virtual;
     Procedure SetrrsetAdditionsPerChange(AIndex : Integer; AValue : integer); virtual;
@@ -292,7 +208,7 @@ type
     Procedure SettotalRrdataSizePerChange(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
+    Property kind : String Index 0 Read Fkind Write Setkind;
     Property managedZones : integer Index 8 Read FmanagedZones Write SetmanagedZones;
     Property resourceRecordsPerRrset : integer Index 16 Read FresourceRecordsPerRrset Write SetresourceRecordsPerRrset;
     Property rrsetAdditionsPerChange : integer Index 24 Read FrrsetAdditionsPerChange Write SetrrsetAdditionsPerChange;
@@ -308,41 +224,28 @@ type
   
   TResourceRecordSet = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fname : string;
-    Frrdatas : TResourceRecordSetrrdatas;
+    Fkind : String;
+    Fname : String;
+    Frrdatas : TStringArray;
     Fttl : integer;
-    F_type : string;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrrdatas(AIndex : Integer; AValue : TResourceRecordSetrrdatas); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrrdatas(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setttl(AIndex : Integer; AValue : integer); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property rrdatas : TResourceRecordSetrrdatas Index 16 Read Frrdatas Write Setrrdatas;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property rrdatas : TStringArray Index 16 Read Frrdatas Write Setrrdatas;
     Property ttl : integer Index 24 Read Fttl Write Setttl;
-    Property _type : string Index 32 Read F_type Write Set_type;
+    Property _type : String Index 32 Read F_type Write Set_type;
   end;
   TResourceRecordSetClass = Class of TResourceRecordSet;
-  
-  { --------------------------------------------------------------------
-    TResourceRecordSetrrdatas
-    --------------------------------------------------------------------}
-  
-  TResourceRecordSetrrdatas = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TResourceRecordSetrrdatasClass = Class of TResourceRecordSetrrdatas;
   
   { --------------------------------------------------------------------
     TResourceRecordSetsListResponse
@@ -350,34 +253,21 @@ type
   
   TResourceRecordSetsListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
-    Frrsets : TResourceRecordSetsListResponserrsets;
+    Fkind : String;
+    FnextPageToken : String;
+    Frrsets : TResourceRecordSetsListResponseTyperrsetsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrrsets(AIndex : Integer; AValue : TResourceRecordSetsListResponserrsets); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrrsets(AIndex : Integer; AValue : TResourceRecordSetsListResponseTyperrsetsArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
-    Property rrsets : TResourceRecordSetsListResponserrsets Index 16 Read Frrsets Write Setrrsets;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property rrsets : TResourceRecordSetsListResponseTyperrsetsArray Index 16 Read Frrsets Write Setrrsets;
   end;
   TResourceRecordSetsListResponseClass = Class of TResourceRecordSetsListResponse;
-  
-  { --------------------------------------------------------------------
-    TResourceRecordSetsListResponserrsets
-    --------------------------------------------------------------------}
-  
-  TResourceRecordSetsListResponserrsets = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TResourceRecordSetsListResponserrsetsClass = Class of TResourceRecordSetsListResponserrsets;
   
   { --------------------------------------------------------------------
     TChangesResource
@@ -388,9 +278,9 @@ type
   
   TChangesListOptions = Record
     maxResults : integer;
-    pageToken : string;
-    sortBy : string;
-    sortOrder : string;
+    pageToken : String;
+    sortBy : String;
+    sortOrder : String;
   end;
   
   TChangesResource = Class(TGoogleResource)
@@ -413,7 +303,7 @@ type
   
   TManagedZonesListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TManagedZonesResource = Class(TGoogleResource)
@@ -449,9 +339,9 @@ type
   
   TResourceRecordSetsListOptions = Record
     maxResults : integer;
-    _name : string;
-    pageToken : string;
-    _type : string;
+    _name : String;
+    pageToken : String;
+    _type : String;
   end;
   
   TResourceRecordSetsResource = Class(TGoogleResource)
@@ -523,7 +413,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TChange.Setadditions(AIndex : Integer; AValue : TChangeadditions); 
+Procedure TChange.Setadditions(AIndex : Integer; AValue : TChangeTypeadditionsArray); 
 
 begin
   If (Fadditions=AValue) then exit;
@@ -533,7 +423,7 @@ end;
 
 
 
-Procedure TChange.Setdeletions(AIndex : Integer; AValue : TChangedeletions); 
+Procedure TChange.Setdeletions(AIndex : Integer; AValue : TChangeTypedeletionsArray); 
 
 begin
   If (Fdeletions=AValue) then exit;
@@ -543,7 +433,7 @@ end;
 
 
 
-Procedure TChange.Setid(AIndex : Integer; AValue : string); 
+Procedure TChange.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -553,7 +443,7 @@ end;
 
 
 
-Procedure TChange.Setkind(AIndex : Integer; AValue : string); 
+Procedure TChange.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -563,7 +453,7 @@ end;
 
 
 
-Procedure TChange.SetstartTime(AIndex : Integer; AValue : string); 
+Procedure TChange.SetstartTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -573,7 +463,7 @@ end;
 
 
 
-Procedure TChange.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TChange.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -586,25 +476,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChangeadditions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TChangedeletions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TChangesListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TChangesListResponse.Setchanges(AIndex : Integer; AValue : TChangesListResponsechanges); 
+Procedure TChangesListResponse.Setchanges(AIndex : Integer; AValue : TChangesListResponseTypechangesArray); 
 
 begin
   If (Fchanges=AValue) then exit;
@@ -614,7 +490,7 @@ end;
 
 
 
-Procedure TChangesListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TChangesListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -624,7 +500,7 @@ end;
 
 
 
-Procedure TChangesListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TChangesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -637,18 +513,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChangesListResponsechanges
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TManagedZone
   --------------------------------------------------------------------}
 
 
-Procedure TManagedZone.SetcreationTime(AIndex : Integer; AValue : string); 
+Procedure TManagedZone.SetcreationTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -658,7 +527,7 @@ end;
 
 
 
-Procedure TManagedZone.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TManagedZone.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -668,7 +537,7 @@ end;
 
 
 
-Procedure TManagedZone.SetdnsName(AIndex : Integer; AValue : string); 
+Procedure TManagedZone.SetdnsName(AIndex : Integer; AValue : String); 
 
 begin
   If (FdnsName=AValue) then exit;
@@ -678,7 +547,7 @@ end;
 
 
 
-Procedure TManagedZone.Setid(AIndex : Integer; AValue : string); 
+Procedure TManagedZone.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -688,7 +557,7 @@ end;
 
 
 
-Procedure TManagedZone.Setkind(AIndex : Integer; AValue : string); 
+Procedure TManagedZone.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -698,7 +567,7 @@ end;
 
 
 
-Procedure TManagedZone.Setname(AIndex : Integer; AValue : string); 
+Procedure TManagedZone.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -708,7 +577,7 @@ end;
 
 
 
-Procedure TManagedZone.SetnameServerSet(AIndex : Integer; AValue : string); 
+Procedure TManagedZone.SetnameServerSet(AIndex : Integer; AValue : String); 
 
 begin
   If (FnameServerSet=AValue) then exit;
@@ -718,7 +587,7 @@ end;
 
 
 
-Procedure TManagedZone.SetnameServers(AIndex : Integer; AValue : TManagedZonenameServers); 
+Procedure TManagedZone.SetnameServers(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FnameServers=AValue) then exit;
@@ -731,18 +600,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TManagedZonenameServers
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TManagedZonesListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TManagedZonesListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TManagedZonesListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -752,7 +614,7 @@ end;
 
 
 
-Procedure TManagedZonesListResponse.SetmanagedZones(AIndex : Integer; AValue : TManagedZonesListResponsemanagedZones); 
+Procedure TManagedZonesListResponse.SetmanagedZones(AIndex : Integer; AValue : TManagedZonesListResponseTypemanagedZonesArray); 
 
 begin
   If (FmanagedZones=AValue) then exit;
@@ -762,7 +624,7 @@ end;
 
 
 
-Procedure TManagedZonesListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TManagedZonesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -775,18 +637,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TManagedZonesListResponsemanagedZones
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TProject
   --------------------------------------------------------------------}
 
 
-Procedure TProject.Setid(AIndex : Integer; AValue : string); 
+Procedure TProject.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -796,7 +651,7 @@ end;
 
 
 
-Procedure TProject.Setkind(AIndex : Integer; AValue : string); 
+Procedure TProject.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -806,7 +661,7 @@ end;
 
 
 
-Procedure TProject.Setnumber(AIndex : Integer; AValue : string); 
+Procedure TProject.Setnumber(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnumber=AValue) then exit;
@@ -833,7 +688,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuota.Setkind(AIndex : Integer; AValue : string); 
+Procedure TQuota.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -910,7 +765,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceRecordSet.Setkind(AIndex : Integer; AValue : string); 
+Procedure TResourceRecordSet.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -920,7 +775,7 @@ end;
 
 
 
-Procedure TResourceRecordSet.Setname(AIndex : Integer; AValue : string); 
+Procedure TResourceRecordSet.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -930,7 +785,7 @@ end;
 
 
 
-Procedure TResourceRecordSet.Setrrdatas(AIndex : Integer; AValue : TResourceRecordSetrrdatas); 
+Procedure TResourceRecordSet.Setrrdatas(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Frrdatas=AValue) then exit;
@@ -950,7 +805,7 @@ end;
 
 
 
-Procedure TResourceRecordSet.Set_type(AIndex : Integer; AValue : string); 
+Procedure TResourceRecordSet.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -974,18 +829,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TResourceRecordSetrrdatas
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TResourceRecordSetsListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TResourceRecordSetsListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TResourceRecordSetsListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -995,7 +843,7 @@ end;
 
 
 
-Procedure TResourceRecordSetsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TResourceRecordSetsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1005,7 +853,7 @@ end;
 
 
 
-Procedure TResourceRecordSetsListResponse.Setrrsets(AIndex : Integer; AValue : TResourceRecordSetsListResponserrsets); 
+Procedure TResourceRecordSetsListResponse.Setrrsets(AIndex : Integer; AValue : TResourceRecordSetsListResponseTyperrsetsArray); 
 
 begin
   If (Frrsets=AValue) then exit;
@@ -1013,13 +861,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TResourceRecordSetsListResponserrsets
-  --------------------------------------------------------------------}
 
 
 
@@ -1407,20 +1248,13 @@ Class Procedure TDnsAPI.RegisterAPIResources;
 
 begin
   TChange.RegisterObject;
-  TChangeadditions.RegisterObject;
-  TChangedeletions.RegisterObject;
   TChangesListResponse.RegisterObject;
-  TChangesListResponsechanges.RegisterObject;
   TManagedZone.RegisterObject;
-  TManagedZonenameServers.RegisterObject;
   TManagedZonesListResponse.RegisterObject;
-  TManagedZonesListResponsemanagedZones.RegisterObject;
   TProject.RegisterObject;
   TQuota.RegisterObject;
   TResourceRecordSet.RegisterObject;
-  TResourceRecordSetrrdatas.RegisterObject;
   TResourceRecordSetsListResponse.RegisterObject;
-  TResourceRecordSetsListResponserrsets.RegisterObject;
 end;
 
 

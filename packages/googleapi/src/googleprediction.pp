@@ -1,31 +1,19 @@
 unit googleprediction;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:57
 {$MODE objfpc}
 {$H+}
 
@@ -34,65 +22,293 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAnalyze = class;
-  TAnalyzeArray = Array of TAnalyze;
-  TAnalyzedataDescription = class;
-  TAnalyzedataDescriptionArray = Array of TAnalyzedataDescription;
-  TAnalyzedataDescriptionfeatures = class;
-  TAnalyzedataDescriptionfeaturesArray = Array of TAnalyzedataDescriptionfeatures;
-  TAnalyzedataDescriptionfeaturescategorical = class;
-  TAnalyzedataDescriptionfeaturescategoricalArray = Array of TAnalyzedataDescriptionfeaturescategorical;
-  TAnalyzedataDescriptionfeaturescategoricalvalues = class;
-  TAnalyzedataDescriptionfeaturescategoricalvaluesArray = Array of TAnalyzedataDescriptionfeaturescategoricalvalues;
-  TAnalyzedataDescriptionfeaturesnumeric = class;
-  TAnalyzedataDescriptionfeaturesnumericArray = Array of TAnalyzedataDescriptionfeaturesnumeric;
-  TAnalyzedataDescriptionfeaturestext = class;
-  TAnalyzedataDescriptionfeaturestextArray = Array of TAnalyzedataDescriptionfeaturestext;
-  TAnalyzedataDescriptionoutputFeature = class;
-  TAnalyzedataDescriptionoutputFeatureArray = Array of TAnalyzedataDescriptionoutputFeature;
-  TAnalyzedataDescriptionoutputFeaturenumeric = class;
-  TAnalyzedataDescriptionoutputFeaturenumericArray = Array of TAnalyzedataDescriptionoutputFeaturenumeric;
-  TAnalyzedataDescriptionoutputFeaturetext = class;
-  TAnalyzedataDescriptionoutputFeaturetextArray = Array of TAnalyzedataDescriptionoutputFeaturetext;
-  TAnalyzeerrors = class;
-  TAnalyzeerrorsArray = Array of TAnalyzeerrors;
-  TAnalyzemodelDescription = class;
-  TAnalyzemodelDescriptionArray = Array of TAnalyzemodelDescription;
-  TAnalyzemodelDescriptionconfusionMatrix = class;
-  TAnalyzemodelDescriptionconfusionMatrixArray = Array of TAnalyzemodelDescriptionconfusionMatrix;
-  TAnalyzemodelDescriptionconfusionMatrixRowTotals = class;
-  TAnalyzemodelDescriptionconfusionMatrixRowTotalsArray = Array of TAnalyzemodelDescriptionconfusionMatrixRowTotals;
   TInput = class;
-  TInputArray = Array of TInput;
-  TInputinput = class;
-  TInputinputArray = Array of TInputinput;
-  TInputinputcsvInstance = class;
-  TInputinputcsvInstanceArray = Array of TInputinputcsvInstance;
   TInsert = class;
-  TInsertArray = Array of TInsert;
-  TInserttrainingInstances = class;
-  TInserttrainingInstancesArray = Array of TInserttrainingInstances;
-  TInserttrainingInstancescsvInstance = class;
-  TInserttrainingInstancescsvInstanceArray = Array of TInserttrainingInstancescsvInstance;
-  TInsertutility = class;
-  TInsertutilityArray = Array of TInsertutility;
   TInsert2 = class;
-  TInsert2Array = Array of TInsert2;
-  TInsert2modelInfo = class;
-  TInsert2modelInfoArray = Array of TInsert2modelInfo;
   TList = class;
-  TListArray = Array of TList;
-  TListitems = class;
-  TListitemsArray = Array of TListitems;
   TOutput = class;
-  TOutputArray = Array of TOutput;
-  TOutputoutputMulti = class;
-  TOutputoutputMultiArray = Array of TOutputoutputMulti;
   TUpdate = class;
+  TAnalyzeArray = Array of TAnalyze;
+  TInputArray = Array of TInput;
+  TInsertArray = Array of TInsert;
+  TInsert2Array = Array of TInsert2;
+  TListArray = Array of TList;
+  TOutputArray = Array of TOutput;
   TUpdateArray = Array of TUpdate;
-  TUpdatecsvInstance = class;
-  TUpdatecsvInstanceArray = Array of TUpdatecsvInstance;
+  //Anonymous types, using auto-generated names
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem = class;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical = class;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric = class;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypetext = class;
+  TAnalyzeTypedataDescriptionTypefeaturesItem = class;
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric = class;
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem = class;
+  TAnalyzeTypedataDescriptionTypeoutputFeature = class;
+  TAnalyzeTypedataDescription = class;
+  TAnalyzeTypeerrorsItem = class;
+  TAnalyzeTypemodelDescriptionTypeconfusionMatrix = class;
+  TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals = class;
+  TAnalyzeTypemodelDescription = class;
+  TInputTypeinput = class;
+  TInsertTypetrainingInstancesItem = class;
+  TInsertTypeutilityItem = class;
+  TInsert2TypemodelInfo = class;
+  TOutputTypeoutputMultiItem = class;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray = Array of TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem;
+  TAnalyzeTypedataDescriptionTypefeaturesArray = Array of TAnalyzeTypedataDescriptionTypefeaturesItem;
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextArray = Array of TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem;
+  TAnalyzeTypeerrorsArray = Array of TAnalyzeTypeerrorsItem;
+  TInsertTypetrainingInstancesArray = Array of TInsertTypetrainingInstancesItem;
+  TInsertTypeutilityArray = Array of TInsertTypeutilityItem;
+  TListTypeitemsArray = Array of TInsert2;
+  TOutputTypeoutputMultiArray = Array of TOutputTypeoutputMultiItem;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem = Class(TGoogleBaseObject)
+  Private
+    Fcount : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property count : String Index 0 Read Fcount Write Setcount;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItemClass = Class of TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical = Class(TGoogleBaseObject)
+  Private
+    Fcount : String;
+    Fvalues : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray;
+  Protected
+    //Property setters
+    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalues(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray); virtual;
+  Public
+  Published
+    Property count : String Index 0 Read Fcount Write Setcount;
+    Property values : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray Index 8 Read Fvalues Write Setvalues;
+  end;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalClass = Class of TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric = Class(TGoogleBaseObject)
+  Private
+    Fcount : String;
+    Fmean : String;
+    Fvariance : String;
+  Protected
+    //Property setters
+    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmean(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvariance(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property count : String Index 0 Read Fcount Write Setcount;
+    Property mean : String Index 8 Read Fmean Write Setmean;
+    Property variance : String Index 16 Read Fvariance Write Setvariance;
+  end;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypenumericClass = Class of TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypedataDescriptionTypefeaturesItemTypetext
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypetext = Class(TGoogleBaseObject)
+  Private
+    Fcount : String;
+  Protected
+    //Property setters
+    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property count : String Index 0 Read Fcount Write Setcount;
+  end;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypetextClass = Class of TAnalyzeTypedataDescriptionTypefeaturesItemTypetext;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypedataDescriptionTypefeaturesItem
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypedataDescriptionTypefeaturesItem = Class(TGoogleBaseObject)
+  Private
+    Fcategorical : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical;
+    Findex : String;
+    Fnumeric : TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric;
+    Ftext : TAnalyzeTypedataDescriptionTypefeaturesItemTypetext;
+  Protected
+    //Property setters
+    Procedure Setcategorical(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical); virtual;
+    Procedure Setindex(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnumeric(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric); virtual;
+    Procedure Settext(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypetext); virtual;
+  Public
+  Published
+    Property categorical : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical Index 0 Read Fcategorical Write Setcategorical;
+    Property index : String Index 8 Read Findex Write Setindex;
+    Property numeric : TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric Index 16 Read Fnumeric Write Setnumeric;
+    Property text : TAnalyzeTypedataDescriptionTypefeaturesItemTypetext Index 24 Read Ftext Write Settext;
+  end;
+  TAnalyzeTypedataDescriptionTypefeaturesItemClass = Class of TAnalyzeTypedataDescriptionTypefeaturesItem;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric = Class(TGoogleBaseObject)
+  Private
+    Fcount : String;
+    Fmean : String;
+    Fvariance : String;
+  Protected
+    //Property setters
+    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmean(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvariance(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property count : String Index 0 Read Fcount Write Setcount;
+    Property mean : String Index 8 Read Fmean Write Setmean;
+    Property variance : String Index 16 Read Fvariance Write Setvariance;
+  end;
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumericClass = Class of TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem = Class(TGoogleBaseObject)
+  Private
+    Fcount : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property count : String Index 0 Read Fcount Write Setcount;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItemClass = Class of TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypedataDescriptionTypeoutputFeature
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypedataDescriptionTypeoutputFeature = Class(TGoogleBaseObject)
+  Private
+    Fnumeric : TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric;
+    Ftext : TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextArray;
+  Protected
+    //Property setters
+    Procedure Setnumeric(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric); virtual;
+    Procedure Settext(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextArray); virtual;
+  Public
+  Published
+    Property numeric : TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric Index 0 Read Fnumeric Write Setnumeric;
+    Property text : TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextArray Index 8 Read Ftext Write Settext;
+  end;
+  TAnalyzeTypedataDescriptionTypeoutputFeatureClass = Class of TAnalyzeTypedataDescriptionTypeoutputFeature;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypedataDescription
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypedataDescription = Class(TGoogleBaseObject)
+  Private
+    Ffeatures : TAnalyzeTypedataDescriptionTypefeaturesArray;
+    FoutputFeature : TAnalyzeTypedataDescriptionTypeoutputFeature;
+  Protected
+    //Property setters
+    Procedure Setfeatures(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesArray); virtual;
+    Procedure SetoutputFeature(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeature); virtual;
+  Public
+  Published
+    Property features : TAnalyzeTypedataDescriptionTypefeaturesArray Index 0 Read Ffeatures Write Setfeatures;
+    Property outputFeature : TAnalyzeTypedataDescriptionTypeoutputFeature Index 8 Read FoutputFeature Write SetoutputFeature;
+  end;
+  TAnalyzeTypedataDescriptionClass = Class of TAnalyzeTypedataDescription;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypeerrorsItem
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypeerrorsItem = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TAnalyzeTypeerrorsItemClass = Class of TAnalyzeTypeerrorsItem;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypemodelDescriptionTypeconfusionMatrix
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypemodelDescriptionTypeconfusionMatrix = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TAnalyzeTypemodelDescriptionTypeconfusionMatrixClass = Class of TAnalyzeTypemodelDescriptionTypeconfusionMatrix;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotalsClass = Class of TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals;
+  
+  { --------------------------------------------------------------------
+    TAnalyzeTypemodelDescription
+    --------------------------------------------------------------------}
+  
+  TAnalyzeTypemodelDescription = Class(TGoogleBaseObject)
+  Private
+    FconfusionMatrix : TAnalyzeTypemodelDescriptionTypeconfusionMatrix;
+    FconfusionMatrixRowTotals : TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals;
+    Fmodelinfo : TInsert2;
+  Protected
+    //Property setters
+    Procedure SetconfusionMatrix(AIndex : Integer; AValue : TAnalyzeTypemodelDescriptionTypeconfusionMatrix); virtual;
+    Procedure SetconfusionMatrixRowTotals(AIndex : Integer; AValue : TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals); virtual;
+    Procedure Setmodelinfo(AIndex : Integer; AValue : TInsert2); virtual;
+  Public
+  Published
+    Property confusionMatrix : TAnalyzeTypemodelDescriptionTypeconfusionMatrix Index 0 Read FconfusionMatrix Write SetconfusionMatrix;
+    Property confusionMatrixRowTotals : TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals Index 8 Read FconfusionMatrixRowTotals Write SetconfusionMatrixRowTotals;
+    Property modelinfo : TInsert2 Index 16 Read Fmodelinfo Write Setmodelinfo;
+  end;
+  TAnalyzeTypemodelDescriptionClass = Class of TAnalyzeTypemodelDescription;
   
   { --------------------------------------------------------------------
     TAnalyze
@@ -100,273 +316,46 @@ type
   
   TAnalyze = Class(TGoogleBaseObject)
   Private
-    FdataDescription : TAnalyzedataDescription;
-    Ferrors : TAnalyzeerrors;
-    Fid : string;
-    Fkind : string;
-    FmodelDescription : TAnalyzemodelDescription;
-    FselfLink : string;
+    FdataDescription : TAnalyzeTypedataDescription;
+    Ferrors : TAnalyzeTypeerrorsArray;
+    Fid : String;
+    Fkind : String;
+    FmodelDescription : TAnalyzeTypemodelDescription;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure SetdataDescription(AIndex : Integer; AValue : TAnalyzedataDescription); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TAnalyzeerrors); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmodelDescription(AIndex : Integer; AValue : TAnalyzemodelDescription); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdataDescription(AIndex : Integer; AValue : TAnalyzeTypedataDescription); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TAnalyzeTypeerrorsArray); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmodelDescription(AIndex : Integer; AValue : TAnalyzeTypemodelDescription); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property dataDescription : TAnalyzedataDescription Index 0 Read FdataDescription Write SetdataDescription;
-    Property errors : TAnalyzeerrors Index 8 Read Ferrors Write Seterrors;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property modelDescription : TAnalyzemodelDescription Index 32 Read FmodelDescription Write SetmodelDescription;
-    Property selfLink : string Index 40 Read FselfLink Write SetselfLink;
+    Property dataDescription : TAnalyzeTypedataDescription Index 0 Read FdataDescription Write SetdataDescription;
+    Property errors : TAnalyzeTypeerrorsArray Index 8 Read Ferrors Write Seterrors;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property modelDescription : TAnalyzeTypemodelDescription Index 32 Read FmodelDescription Write SetmodelDescription;
+    Property selfLink : String Index 40 Read FselfLink Write SetselfLink;
   end;
   TAnalyzeClass = Class of TAnalyze;
   
   { --------------------------------------------------------------------
-    TAnalyzedataDescription
+    TInputTypeinput
     --------------------------------------------------------------------}
   
-  TAnalyzedataDescription = Class(TGoogleBaseObject)
+  TInputTypeinput = Class(TGoogleBaseObject)
   Private
-    Ffeatures : TAnalyzedataDescriptionfeatures;
-    FoutputFeature : TAnalyzedataDescriptionoutputFeature;
+    FcsvInstance : TTJSONSchemaArray;
   Protected
     //Property setters
-    Procedure Setfeatures(AIndex : Integer; AValue : TAnalyzedataDescriptionfeatures); virtual;
-    Procedure SetoutputFeature(AIndex : Integer; AValue : TAnalyzedataDescriptionoutputFeature); virtual;
+    Procedure SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
   Public
   Published
-    Property features : TAnalyzedataDescriptionfeatures Index 0 Read Ffeatures Write Setfeatures;
-    Property outputFeature : TAnalyzedataDescriptionoutputFeature Index 8 Read FoutputFeature Write SetoutputFeature;
+    Property csvInstance : TTJSONSchemaArray Index 0 Read FcsvInstance Write SetcsvInstance;
   end;
-  TAnalyzedataDescriptionClass = Class of TAnalyzedataDescription;
-  
-  { --------------------------------------------------------------------
-    TAnalyzedataDescriptionfeatures
-    --------------------------------------------------------------------}
-  
-  TAnalyzedataDescriptionfeatures = Class(TGoogleBaseObject)
-  Private
-    Fcategorical : TAnalyzedataDescriptionfeaturescategorical;
-    Findex : string;
-    Fnumeric : TAnalyzedataDescriptionfeaturesnumeric;
-    Ftext : TAnalyzedataDescriptionfeaturestext;
-  Protected
-    //Property setters
-    Procedure Setcategorical(AIndex : Integer; AValue : TAnalyzedataDescriptionfeaturescategorical); virtual;
-    Procedure Setindex(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnumeric(AIndex : Integer; AValue : TAnalyzedataDescriptionfeaturesnumeric); virtual;
-    Procedure Settext(AIndex : Integer; AValue : TAnalyzedataDescriptionfeaturestext); virtual;
-  Public
-  Published
-    Property categorical : TAnalyzedataDescriptionfeaturescategorical Index 0 Read Fcategorical Write Setcategorical;
-    Property index : string Index 8 Read Findex Write Setindex;
-    Property numeric : TAnalyzedataDescriptionfeaturesnumeric Index 16 Read Fnumeric Write Setnumeric;
-    Property text : TAnalyzedataDescriptionfeaturestext Index 24 Read Ftext Write Settext;
-  end;
-  TAnalyzedataDescriptionfeaturesClass = Class of TAnalyzedataDescriptionfeatures;
-  
-  { --------------------------------------------------------------------
-    TAnalyzedataDescriptionfeaturescategorical
-    --------------------------------------------------------------------}
-  
-  TAnalyzedataDescriptionfeaturescategorical = Class(TGoogleBaseObject)
-  Private
-    Fcount : string;
-    Fvalues : TAnalyzedataDescriptionfeaturescategoricalvalues;
-  Protected
-    //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalues(AIndex : Integer; AValue : TAnalyzedataDescriptionfeaturescategoricalvalues); virtual;
-  Public
-  Published
-    Property count : string Index 0 Read Fcount Write Setcount;
-    Property values : TAnalyzedataDescriptionfeaturescategoricalvalues Index 8 Read Fvalues Write Setvalues;
-  end;
-  TAnalyzedataDescriptionfeaturescategoricalClass = Class of TAnalyzedataDescriptionfeaturescategorical;
-  
-  { --------------------------------------------------------------------
-    TAnalyzedataDescriptionfeaturescategoricalvalues
-    --------------------------------------------------------------------}
-  
-  TAnalyzedataDescriptionfeaturescategoricalvalues = Class(TGoogleBaseObject)
-  Private
-    Fcount : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property count : string Index 0 Read Fcount Write Setcount;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TAnalyzedataDescriptionfeaturescategoricalvaluesClass = Class of TAnalyzedataDescriptionfeaturescategoricalvalues;
-  
-  { --------------------------------------------------------------------
-    TAnalyzedataDescriptionfeaturesnumeric
-    --------------------------------------------------------------------}
-  
-  TAnalyzedataDescriptionfeaturesnumeric = Class(TGoogleBaseObject)
-  Private
-    Fcount : string;
-    Fmean : string;
-    Fvariance : string;
-  Protected
-    //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmean(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvariance(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property count : string Index 0 Read Fcount Write Setcount;
-    Property mean : string Index 8 Read Fmean Write Setmean;
-    Property variance : string Index 16 Read Fvariance Write Setvariance;
-  end;
-  TAnalyzedataDescriptionfeaturesnumericClass = Class of TAnalyzedataDescriptionfeaturesnumeric;
-  
-  { --------------------------------------------------------------------
-    TAnalyzedataDescriptionfeaturestext
-    --------------------------------------------------------------------}
-  
-  TAnalyzedataDescriptionfeaturestext = Class(TGoogleBaseObject)
-  Private
-    Fcount : string;
-  Protected
-    //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property count : string Index 0 Read Fcount Write Setcount;
-  end;
-  TAnalyzedataDescriptionfeaturestextClass = Class of TAnalyzedataDescriptionfeaturestext;
-  
-  { --------------------------------------------------------------------
-    TAnalyzedataDescriptionoutputFeature
-    --------------------------------------------------------------------}
-  
-  TAnalyzedataDescriptionoutputFeature = Class(TGoogleBaseObject)
-  Private
-    Fnumeric : TAnalyzedataDescriptionoutputFeaturenumeric;
-    Ftext : TAnalyzedataDescriptionoutputFeaturetext;
-  Protected
-    //Property setters
-    Procedure Setnumeric(AIndex : Integer; AValue : TAnalyzedataDescriptionoutputFeaturenumeric); virtual;
-    Procedure Settext(AIndex : Integer; AValue : TAnalyzedataDescriptionoutputFeaturetext); virtual;
-  Public
-  Published
-    Property numeric : TAnalyzedataDescriptionoutputFeaturenumeric Index 0 Read Fnumeric Write Setnumeric;
-    Property text : TAnalyzedataDescriptionoutputFeaturetext Index 8 Read Ftext Write Settext;
-  end;
-  TAnalyzedataDescriptionoutputFeatureClass = Class of TAnalyzedataDescriptionoutputFeature;
-  
-  { --------------------------------------------------------------------
-    TAnalyzedataDescriptionoutputFeaturenumeric
-    --------------------------------------------------------------------}
-  
-  TAnalyzedataDescriptionoutputFeaturenumeric = Class(TGoogleBaseObject)
-  Private
-    Fcount : string;
-    Fmean : string;
-    Fvariance : string;
-  Protected
-    //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmean(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvariance(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property count : string Index 0 Read Fcount Write Setcount;
-    Property mean : string Index 8 Read Fmean Write Setmean;
-    Property variance : string Index 16 Read Fvariance Write Setvariance;
-  end;
-  TAnalyzedataDescriptionoutputFeaturenumericClass = Class of TAnalyzedataDescriptionoutputFeaturenumeric;
-  
-  { --------------------------------------------------------------------
-    TAnalyzedataDescriptionoutputFeaturetext
-    --------------------------------------------------------------------}
-  
-  TAnalyzedataDescriptionoutputFeaturetext = Class(TGoogleBaseObject)
-  Private
-    Fcount : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property count : string Index 0 Read Fcount Write Setcount;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TAnalyzedataDescriptionoutputFeaturetextClass = Class of TAnalyzedataDescriptionoutputFeaturetext;
-  
-  { --------------------------------------------------------------------
-    TAnalyzeerrors
-    --------------------------------------------------------------------}
-  
-  TAnalyzeerrors = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAnalyzeerrorsClass = Class of TAnalyzeerrors;
-  
-  { --------------------------------------------------------------------
-    TAnalyzemodelDescription
-    --------------------------------------------------------------------}
-  
-  TAnalyzemodelDescription = Class(TGoogleBaseObject)
-  Private
-    FconfusionMatrix : TAnalyzemodelDescriptionconfusionMatrix;
-    FconfusionMatrixRowTotals : TAnalyzemodelDescriptionconfusionMatrixRowTotals;
-    Fmodelinfo : TInsert2;
-  Protected
-    //Property setters
-    Procedure SetconfusionMatrix(AIndex : Integer; AValue : TAnalyzemodelDescriptionconfusionMatrix); virtual;
-    Procedure SetconfusionMatrixRowTotals(AIndex : Integer; AValue : TAnalyzemodelDescriptionconfusionMatrixRowTotals); virtual;
-    Procedure Setmodelinfo(AIndex : Integer; AValue : TInsert2); virtual;
-  Public
-  Published
-    Property confusionMatrix : TAnalyzemodelDescriptionconfusionMatrix Index 0 Read FconfusionMatrix Write SetconfusionMatrix;
-    Property confusionMatrixRowTotals : TAnalyzemodelDescriptionconfusionMatrixRowTotals Index 8 Read FconfusionMatrixRowTotals Write SetconfusionMatrixRowTotals;
-    Property modelinfo : TInsert2 Index 16 Read Fmodelinfo Write Setmodelinfo;
-  end;
-  TAnalyzemodelDescriptionClass = Class of TAnalyzemodelDescription;
-  
-  { --------------------------------------------------------------------
-    TAnalyzemodelDescriptionconfusionMatrix
-    --------------------------------------------------------------------}
-  
-  TAnalyzemodelDescriptionconfusionMatrix = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TAnalyzemodelDescriptionconfusionMatrixClass = Class of TAnalyzemodelDescriptionconfusionMatrix;
-  
-  { --------------------------------------------------------------------
-    TAnalyzemodelDescriptionconfusionMatrixRowTotals
-    --------------------------------------------------------------------}
-  
-  TAnalyzemodelDescriptionconfusionMatrixRowTotals = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TAnalyzemodelDescriptionconfusionMatrixRowTotalsClass = Class of TAnalyzemodelDescriptionconfusionMatrixRowTotals;
+  TInputTypeinputClass = Class of TInputTypeinput;
   
   { --------------------------------------------------------------------
     TInput
@@ -374,44 +363,48 @@ type
   
   TInput = Class(TGoogleBaseObject)
   Private
-    Finput : TInputinput;
+    Finput : TInputTypeinput;
   Protected
     //Property setters
-    Procedure Setinput(AIndex : Integer; AValue : TInputinput); virtual;
+    Procedure Setinput(AIndex : Integer; AValue : TInputTypeinput); virtual;
   Public
   Published
-    Property input : TInputinput Index 0 Read Finput Write Setinput;
+    Property input : TInputTypeinput Index 0 Read Finput Write Setinput;
   end;
   TInputClass = Class of TInput;
   
   { --------------------------------------------------------------------
-    TInputinput
+    TInsertTypetrainingInstancesItem
     --------------------------------------------------------------------}
   
-  TInputinput = Class(TGoogleBaseObject)
+  TInsertTypetrainingInstancesItem = Class(TGoogleBaseObject)
   Private
-    FcsvInstance : TInputinputcsvInstance;
+    FcsvInstance : TTJSONSchemaArray;
+    Foutput : String;
   Protected
     //Property setters
-    Procedure SetcsvInstance(AIndex : Integer; AValue : TInputinputcsvInstance); virtual;
+    Procedure SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    Procedure Setoutput(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property csvInstance : TInputinputcsvInstance Index 0 Read FcsvInstance Write SetcsvInstance;
+    Property csvInstance : TTJSONSchemaArray Index 0 Read FcsvInstance Write SetcsvInstance;
+    Property output : String Index 8 Read Foutput Write Setoutput;
   end;
-  TInputinputClass = Class of TInputinput;
+  TInsertTypetrainingInstancesItemClass = Class of TInsertTypetrainingInstancesItem;
   
   { --------------------------------------------------------------------
-    TInputinputcsvInstance
+    TInsertTypeutilityItem
     --------------------------------------------------------------------}
   
-  TInputinputcsvInstance = Class(TGoogleBaseObject)
+  TInsertTypeutilityItem = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TInputinputcsvInstanceClass = Class of TInputinputcsvInstance;
+  TInsertTypeutilityItemClass = Class of TInsertTypeutilityItem;
   
   { --------------------------------------------------------------------
     TInsert
@@ -419,81 +412,67 @@ type
   
   TInsert = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    FmodelType : string;
-    FsourceModel : string;
-    FstorageDataLocation : string;
-    FstoragePMMLLocation : string;
-    FstoragePMMLModelLocation : string;
-    FtrainingInstances : TInserttrainingInstances;
-    Futility : TInsertutility;
+    Fid : String;
+    FmodelType : String;
+    FsourceModel : String;
+    FstorageDataLocation : String;
+    FstoragePMMLLocation : String;
+    FstoragePMMLModelLocation : String;
+    FtrainingInstances : TInsertTypetrainingInstancesArray;
+    Futility : TInsertTypeutilityArray;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmodelType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceModel(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstorageDataLocation(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstoragePMMLLocation(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstoragePMMLModelLocation(AIndex : Integer; AValue : string); virtual;
-    Procedure SettrainingInstances(AIndex : Integer; AValue : TInserttrainingInstances); virtual;
-    Procedure Setutility(AIndex : Integer; AValue : TInsertutility); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmodelType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceModel(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstorageDataLocation(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstoragePMMLLocation(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstoragePMMLModelLocation(AIndex : Integer; AValue : String); virtual;
+    Procedure SettrainingInstances(AIndex : Integer; AValue : TInsertTypetrainingInstancesArray); virtual;
+    Procedure Setutility(AIndex : Integer; AValue : TInsertTypeutilityArray); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property modelType : string Index 8 Read FmodelType Write SetmodelType;
-    Property sourceModel : string Index 16 Read FsourceModel Write SetsourceModel;
-    Property storageDataLocation : string Index 24 Read FstorageDataLocation Write SetstorageDataLocation;
-    Property storagePMMLLocation : string Index 32 Read FstoragePMMLLocation Write SetstoragePMMLLocation;
-    Property storagePMMLModelLocation : string Index 40 Read FstoragePMMLModelLocation Write SetstoragePMMLModelLocation;
-    Property trainingInstances : TInserttrainingInstances Index 48 Read FtrainingInstances Write SettrainingInstances;
-    Property utility : TInsertutility Index 56 Read Futility Write Setutility;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property modelType : String Index 8 Read FmodelType Write SetmodelType;
+    Property sourceModel : String Index 16 Read FsourceModel Write SetsourceModel;
+    Property storageDataLocation : String Index 24 Read FstorageDataLocation Write SetstorageDataLocation;
+    Property storagePMMLLocation : String Index 32 Read FstoragePMMLLocation Write SetstoragePMMLLocation;
+    Property storagePMMLModelLocation : String Index 40 Read FstoragePMMLModelLocation Write SetstoragePMMLModelLocation;
+    Property trainingInstances : TInsertTypetrainingInstancesArray Index 48 Read FtrainingInstances Write SettrainingInstances;
+    Property utility : TInsertTypeutilityArray Index 56 Read Futility Write Setutility;
   end;
   TInsertClass = Class of TInsert;
   
   { --------------------------------------------------------------------
-    TInserttrainingInstances
+    TInsert2TypemodelInfo
     --------------------------------------------------------------------}
   
-  TInserttrainingInstances = Class(TGoogleBaseObject)
+  TInsert2TypemodelInfo = Class(TGoogleBaseObject)
   Private
-    FcsvInstance : TInserttrainingInstancescsvInstance;
-    Foutput : string;
+    FclassWeightedAccuracy : String;
+    FclassificationAccuracy : String;
+    FmeanSquaredError : String;
+    FmodelType : String;
+    FnumberInstances : String;
+    FnumberLabels : String;
   Protected
     //Property setters
-    Procedure SetcsvInstance(AIndex : Integer; AValue : TInserttrainingInstancescsvInstance); virtual;
-    Procedure Setoutput(AIndex : Integer; AValue : string); virtual;
+    Procedure SetclassWeightedAccuracy(AIndex : Integer; AValue : String); virtual;
+    Procedure SetclassificationAccuracy(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmeanSquaredError(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmodelType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnumberInstances(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnumberLabels(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property csvInstance : TInserttrainingInstancescsvInstance Index 0 Read FcsvInstance Write SetcsvInstance;
-    Property output : string Index 8 Read Foutput Write Setoutput;
+    Property classWeightedAccuracy : String Index 0 Read FclassWeightedAccuracy Write SetclassWeightedAccuracy;
+    Property classificationAccuracy : String Index 8 Read FclassificationAccuracy Write SetclassificationAccuracy;
+    Property meanSquaredError : String Index 16 Read FmeanSquaredError Write SetmeanSquaredError;
+    Property modelType : String Index 24 Read FmodelType Write SetmodelType;
+    Property numberInstances : String Index 32 Read FnumberInstances Write SetnumberInstances;
+    Property numberLabels : String Index 40 Read FnumberLabels Write SetnumberLabels;
   end;
-  TInserttrainingInstancesClass = Class of TInserttrainingInstances;
-  
-  { --------------------------------------------------------------------
-    TInserttrainingInstancescsvInstance
-    --------------------------------------------------------------------}
-  
-  TInserttrainingInstancescsvInstance = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInserttrainingInstancescsvInstanceClass = Class of TInserttrainingInstancescsvInstance;
-  
-  { --------------------------------------------------------------------
-    TInsertutility
-    --------------------------------------------------------------------}
-  
-  TInsertutility = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInsertutilityClass = Class of TInsertutility;
+  TInsert2TypemodelInfoClass = Class of TInsert2TypemodelInfo;
   
   { --------------------------------------------------------------------
     TInsert2
@@ -502,75 +481,44 @@ type
   TInsert2 = Class(TGoogleBaseObject)
   Private
     Fcreated : TDatetime;
-    Fid : string;
-    Fkind : string;
-    FmodelInfo : TInsert2modelInfo;
-    FmodelType : string;
-    FselfLink : string;
-    FstorageDataLocation : string;
-    FstoragePMMLLocation : string;
-    FstoragePMMLModelLocation : string;
+    Fid : String;
+    Fkind : String;
+    FmodelInfo : TInsert2TypemodelInfo;
+    FmodelType : String;
+    FselfLink : String;
+    FstorageDataLocation : String;
+    FstoragePMMLLocation : String;
+    FstoragePMMLModelLocation : String;
     FtrainingComplete : TDatetime;
-    FtrainingStatus : string;
+    FtrainingStatus : String;
   Protected
     //Property setters
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmodelInfo(AIndex : Integer; AValue : TInsert2modelInfo); virtual;
-    Procedure SetmodelType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstorageDataLocation(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstoragePMMLLocation(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstoragePMMLModelLocation(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmodelInfo(AIndex : Integer; AValue : TInsert2TypemodelInfo); virtual;
+    Procedure SetmodelType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstorageDataLocation(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstoragePMMLLocation(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstoragePMMLModelLocation(AIndex : Integer; AValue : String); virtual;
     Procedure SettrainingComplete(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SettrainingStatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SettrainingStatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property created : TDatetime Index 0 Read Fcreated Write Setcreated;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property modelInfo : TInsert2modelInfo Index 24 Read FmodelInfo Write SetmodelInfo;
-    Property modelType : string Index 32 Read FmodelType Write SetmodelType;
-    Property selfLink : string Index 40 Read FselfLink Write SetselfLink;
-    Property storageDataLocation : string Index 48 Read FstorageDataLocation Write SetstorageDataLocation;
-    Property storagePMMLLocation : string Index 56 Read FstoragePMMLLocation Write SetstoragePMMLLocation;
-    Property storagePMMLModelLocation : string Index 64 Read FstoragePMMLModelLocation Write SetstoragePMMLModelLocation;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property modelInfo : TInsert2TypemodelInfo Index 24 Read FmodelInfo Write SetmodelInfo;
+    Property modelType : String Index 32 Read FmodelType Write SetmodelType;
+    Property selfLink : String Index 40 Read FselfLink Write SetselfLink;
+    Property storageDataLocation : String Index 48 Read FstorageDataLocation Write SetstorageDataLocation;
+    Property storagePMMLLocation : String Index 56 Read FstoragePMMLLocation Write SetstoragePMMLLocation;
+    Property storagePMMLModelLocation : String Index 64 Read FstoragePMMLModelLocation Write SetstoragePMMLModelLocation;
     Property trainingComplete : TDatetime Index 72 Read FtrainingComplete Write SettrainingComplete;
-    Property trainingStatus : string Index 80 Read FtrainingStatus Write SettrainingStatus;
+    Property trainingStatus : String Index 80 Read FtrainingStatus Write SettrainingStatus;
   end;
   TInsert2Class = Class of TInsert2;
-  
-  { --------------------------------------------------------------------
-    TInsert2modelInfo
-    --------------------------------------------------------------------}
-  
-  TInsert2modelInfo = Class(TGoogleBaseObject)
-  Private
-    FclassWeightedAccuracy : string;
-    FclassificationAccuracy : string;
-    FmeanSquaredError : string;
-    FmodelType : string;
-    FnumberInstances : string;
-    FnumberLabels : string;
-  Protected
-    //Property setters
-    Procedure SetclassWeightedAccuracy(AIndex : Integer; AValue : string); virtual;
-    Procedure SetclassificationAccuracy(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmeanSquaredError(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmodelType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnumberInstances(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnumberLabels(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property classWeightedAccuracy : string Index 0 Read FclassWeightedAccuracy Write SetclassWeightedAccuracy;
-    Property classificationAccuracy : string Index 8 Read FclassificationAccuracy Write SetclassificationAccuracy;
-    Property meanSquaredError : string Index 16 Read FmeanSquaredError Write SetmeanSquaredError;
-    Property modelType : string Index 24 Read FmodelType Write SetmodelType;
-    Property numberInstances : string Index 32 Read FnumberInstances Write SetnumberInstances;
-    Property numberLabels : string Index 40 Read FnumberLabels Write SetnumberLabels;
-  end;
-  TInsert2modelInfoClass = Class of TInsert2modelInfo;
   
   { --------------------------------------------------------------------
     TList
@@ -578,37 +526,44 @@ type
   
   TList = Class(TGoogleBaseObject)
   Private
-    Fitems : TListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fitems : TListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
+    Property items : TListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 24 Read FselfLink Write SetselfLink;
   end;
   TListClass = Class of TList;
   
   { --------------------------------------------------------------------
-    TListitems
+    TOutputTypeoutputMultiItem
     --------------------------------------------------------------------}
   
-  TListitems = Class(TGoogleBaseObject)
+  TOutputTypeoutputMultiItem = Class(TGoogleBaseObject)
   Private
+    F_label : String;
+    Fscore : String;
   Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
+    Procedure Set_label(AIndex : Integer; AValue : String); virtual;
+    Procedure Setscore(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property _label : String Index 0 Read F_label Write Set_label;
+    Property score : String Index 8 Read Fscore Write Setscore;
   end;
-  TListitemsClass = Class of TListitems;
+  TOutputTypeoutputMultiItemClass = Class of TOutputTypeoutputMultiItem;
   
   { --------------------------------------------------------------------
     TOutput
@@ -616,50 +571,30 @@ type
   
   TOutput = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    FoutputLabel : string;
-    FoutputMulti : TOutputoutputMulti;
+    Fid : String;
+    Fkind : String;
+    FoutputLabel : String;
+    FoutputMulti : TOutputTypeoutputMultiArray;
     FoutputValue : double;
-    FselfLink : string;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoutputLabel(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoutputMulti(AIndex : Integer; AValue : TOutputoutputMulti); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoutputLabel(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoutputMulti(AIndex : Integer; AValue : TOutputTypeoutputMultiArray); virtual;
     Procedure SetoutputValue(AIndex : Integer; AValue : double); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property outputLabel : string Index 16 Read FoutputLabel Write SetoutputLabel;
-    Property outputMulti : TOutputoutputMulti Index 24 Read FoutputMulti Write SetoutputMulti;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property outputLabel : String Index 16 Read FoutputLabel Write SetoutputLabel;
+    Property outputMulti : TOutputTypeoutputMultiArray Index 24 Read FoutputMulti Write SetoutputMulti;
     Property outputValue : double Index 32 Read FoutputValue Write SetoutputValue;
-    Property selfLink : string Index 40 Read FselfLink Write SetselfLink;
+    Property selfLink : String Index 40 Read FselfLink Write SetselfLink;
   end;
   TOutputClass = Class of TOutput;
-  
-  { --------------------------------------------------------------------
-    TOutputoutputMulti
-    --------------------------------------------------------------------}
-  
-  TOutputoutputMulti = Class(TGoogleBaseObject)
-  Private
-    F_label : string;
-    Fscore : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Set_label(AIndex : Integer; AValue : string); virtual;
-    Procedure Setscore(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property _label : string Index 0 Read F_label Write Set_label;
-    Property score : string Index 8 Read Fscore Write Setscore;
-  end;
-  TOutputoutputMultiClass = Class of TOutputoutputMulti;
   
   { --------------------------------------------------------------------
     TUpdate
@@ -667,31 +602,18 @@ type
   
   TUpdate = Class(TGoogleBaseObject)
   Private
-    FcsvInstance : TUpdatecsvInstance;
-    Foutput : string;
+    FcsvInstance : TTJSONSchemaArray;
+    Foutput : String;
   Protected
     //Property setters
-    Procedure SetcsvInstance(AIndex : Integer; AValue : TUpdatecsvInstance); virtual;
-    Procedure Setoutput(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    Procedure Setoutput(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property csvInstance : TUpdatecsvInstance Index 0 Read FcsvInstance Write SetcsvInstance;
-    Property output : string Index 8 Read Foutput Write Setoutput;
+    Property csvInstance : TTJSONSchemaArray Index 0 Read FcsvInstance Write SetcsvInstance;
+    Property output : String Index 8 Read Foutput Write Setoutput;
   end;
   TUpdateClass = Class of TUpdate;
-  
-  { --------------------------------------------------------------------
-    TUpdatecsvInstance
-    --------------------------------------------------------------------}
-  
-  TUpdatecsvInstance = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUpdatecsvInstanceClass = Class of TUpdatecsvInstance;
   
   { --------------------------------------------------------------------
     THostedmodelsResource
@@ -714,7 +636,7 @@ type
   
   TTrainedmodelsListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TTrainedmodelsResource = Class(TGoogleResource)
@@ -778,152 +700,11 @@ implementation
 
 
 { --------------------------------------------------------------------
-  TAnalyze
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyze.SetdataDescription(AIndex : Integer; AValue : TAnalyzedataDescription); 
-
-begin
-  If (FdataDescription=AValue) then exit;
-  FdataDescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAnalyze.Seterrors(AIndex : Integer; AValue : TAnalyzeerrors); 
-
-begin
-  If (Ferrors=AValue) then exit;
-  Ferrors:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAnalyze.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAnalyze.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAnalyze.SetmodelDescription(AIndex : Integer; AValue : TAnalyzemodelDescription); 
-
-begin
-  If (FmodelDescription=AValue) then exit;
-  FmodelDescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAnalyze.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAnalyzedataDescription
-  --------------------------------------------------------------------}
-
-
-Procedure TAnalyzedataDescription.Setfeatures(AIndex : Integer; AValue : TAnalyzedataDescriptionfeatures); 
-
-begin
-  If (Ffeatures=AValue) then exit;
-  Ffeatures:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAnalyzedataDescription.SetoutputFeature(AIndex : Integer; AValue : TAnalyzedataDescriptionoutputFeature); 
-
-begin
-  If (FoutputFeature=AValue) then exit;
-  FoutputFeature:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAnalyzedataDescriptionfeatures
-  --------------------------------------------------------------------}
-
-
-Procedure TAnalyzedataDescriptionfeatures.Setcategorical(AIndex : Integer; AValue : TAnalyzedataDescriptionfeaturescategorical); 
-
-begin
-  If (Fcategorical=AValue) then exit;
-  Fcategorical:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAnalyzedataDescriptionfeatures.Setindex(AIndex : Integer; AValue : string); 
-
-begin
-  If (Findex=AValue) then exit;
-  Findex:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAnalyzedataDescriptionfeatures.Setnumeric(AIndex : Integer; AValue : TAnalyzedataDescriptionfeaturesnumeric); 
-
-begin
-  If (Fnumeric=AValue) then exit;
-  Fnumeric:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAnalyzedataDescriptionfeatures.Settext(AIndex : Integer; AValue : TAnalyzedataDescriptionfeaturestext); 
-
-begin
-  If (Ftext=AValue) then exit;
-  Ftext:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAnalyzedataDescriptionfeaturescategorical
-  --------------------------------------------------------------------}
-
-
-Procedure TAnalyzedataDescriptionfeaturescategorical.Setcount(AIndex : Integer; AValue : string); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem.Setcount(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -933,7 +714,34 @@ end;
 
 
 
-Procedure TAnalyzedataDescriptionfeaturescategorical.Setvalues(AIndex : Integer; AValue : TAnalyzedataDescriptionfeaturescategoricalvalues); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem.Setvalue(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical
+  --------------------------------------------------------------------}
+
+
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical.Setcount(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcount=AValue) then exit;
+  Fcount:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical.Setvalues(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray); 
 
 begin
   If (Fvalues=AValue) then exit;
@@ -946,11 +754,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAnalyzedataDescriptionfeaturescategoricalvalues
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzedataDescriptionfeaturescategoricalvalues.Setcount(AIndex : Integer; AValue : string); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric.Setcount(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -960,34 +768,7 @@ end;
 
 
 
-Procedure TAnalyzedataDescriptionfeaturescategoricalvalues.Setvalue(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fvalue=AValue) then exit;
-  Fvalue:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAnalyzedataDescriptionfeaturesnumeric
-  --------------------------------------------------------------------}
-
-
-Procedure TAnalyzedataDescriptionfeaturesnumeric.Setcount(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcount=AValue) then exit;
-  Fcount:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAnalyzedataDescriptionfeaturesnumeric.Setmean(AIndex : Integer; AValue : string); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric.Setmean(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmean=AValue) then exit;
@@ -997,7 +778,7 @@ end;
 
 
 
-Procedure TAnalyzedataDescriptionfeaturesnumeric.Setvariance(AIndex : Integer; AValue : string); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric.Setvariance(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvariance=AValue) then exit;
@@ -1010,11 +791,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAnalyzedataDescriptionfeaturestext
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypetext
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzedataDescriptionfeaturestext.Setcount(AIndex : Integer; AValue : string); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypetext.Setcount(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -1027,11 +808,31 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAnalyzedataDescriptionoutputFeature
+  TAnalyzeTypedataDescriptionTypefeaturesItem
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzedataDescriptionoutputFeature.Setnumeric(AIndex : Integer; AValue : TAnalyzedataDescriptionoutputFeaturenumeric); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItem.Setcategorical(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical); 
+
+begin
+  If (Fcategorical=AValue) then exit;
+  Fcategorical:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItem.Setindex(AIndex : Integer; AValue : String); 
+
+begin
+  If (Findex=AValue) then exit;
+  Findex:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItem.Setnumeric(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric); 
 
 begin
   If (Fnumeric=AValue) then exit;
@@ -1041,7 +842,7 @@ end;
 
 
 
-Procedure TAnalyzedataDescriptionoutputFeature.Settext(AIndex : Integer; AValue : TAnalyzedataDescriptionoutputFeaturetext); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItem.Settext(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypetext); 
 
 begin
   If (Ftext=AValue) then exit;
@@ -1054,11 +855,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAnalyzedataDescriptionoutputFeaturenumeric
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzedataDescriptionoutputFeaturenumeric.Setcount(AIndex : Integer; AValue : string); 
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric.Setcount(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -1068,7 +869,7 @@ end;
 
 
 
-Procedure TAnalyzedataDescriptionoutputFeaturenumeric.Setmean(AIndex : Integer; AValue : string); 
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric.Setmean(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmean=AValue) then exit;
@@ -1078,7 +879,7 @@ end;
 
 
 
-Procedure TAnalyzedataDescriptionoutputFeaturenumeric.Setvariance(AIndex : Integer; AValue : string); 
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric.Setvariance(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvariance=AValue) then exit;
@@ -1091,11 +892,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAnalyzedataDescriptionoutputFeaturetext
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzedataDescriptionoutputFeaturetext.Setcount(AIndex : Integer; AValue : string); 
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem.Setcount(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -1105,7 +906,7 @@ end;
 
 
 
-Procedure TAnalyzedataDescriptionoutputFeaturetext.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1118,18 +919,104 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAnalyzeerrors
+  TAnalyzeTypedataDescriptionTypeoutputFeature
   --------------------------------------------------------------------}
+
+
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeature.Setnumeric(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric); 
+
+begin
+  If (Fnumeric=AValue) then exit;
+  Fnumeric:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeature.Settext(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextArray); 
+
+begin
+  If (Ftext=AValue) then exit;
+  Ftext:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
 
 { --------------------------------------------------------------------
-  TAnalyzemodelDescription
+  TAnalyzeTypedataDescription
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzemodelDescription.SetconfusionMatrix(AIndex : Integer; AValue : TAnalyzemodelDescriptionconfusionMatrix); 
+Procedure TAnalyzeTypedataDescription.Setfeatures(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesArray); 
+
+begin
+  If (Ffeatures=AValue) then exit;
+  Ffeatures:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAnalyzeTypedataDescription.SetoutputFeature(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeature); 
+
+begin
+  If (FoutputFeature=AValue) then exit;
+  FoutputFeature:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TAnalyzeTypeerrorsItem
+  --------------------------------------------------------------------}
+
+
+Class Function TAnalyzeTypeerrorsItem.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAnalyzeTypemodelDescriptionTypeconfusionMatrix
+  --------------------------------------------------------------------}
+
+
+Class Function TAnalyzeTypemodelDescriptionTypeconfusionMatrix.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals
+  --------------------------------------------------------------------}
+
+
+Class Function TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAnalyzeTypemodelDescription
+  --------------------------------------------------------------------}
+
+
+Procedure TAnalyzeTypemodelDescription.SetconfusionMatrix(AIndex : Integer; AValue : TAnalyzeTypemodelDescriptionTypeconfusionMatrix); 
 
 begin
   If (FconfusionMatrix=AValue) then exit;
@@ -1139,7 +1026,7 @@ end;
 
 
 
-Procedure TAnalyzemodelDescription.SetconfusionMatrixRowTotals(AIndex : Integer; AValue : TAnalyzemodelDescriptionconfusionMatrixRowTotals); 
+Procedure TAnalyzeTypemodelDescription.SetconfusionMatrixRowTotals(AIndex : Integer; AValue : TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals); 
 
 begin
   If (FconfusionMatrixRowTotals=AValue) then exit;
@@ -1149,7 +1036,7 @@ end;
 
 
 
-Procedure TAnalyzemodelDescription.Setmodelinfo(AIndex : Integer; AValue : TInsert2); 
+Procedure TAnalyzeTypemodelDescription.Setmodelinfo(AIndex : Integer; AValue : TInsert2); 
 
 begin
   If (Fmodelinfo=AValue) then exit;
@@ -1162,28 +1049,86 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAnalyzemodelDescriptionconfusionMatrix
+  TAnalyze
   --------------------------------------------------------------------}
 
 
-Class Function TAnalyzemodelDescriptionconfusionMatrix.AllowAdditionalProperties : Boolean;
+Procedure TAnalyze.SetdataDescription(AIndex : Integer; AValue : TAnalyzeTypedataDescription); 
 
 begin
-  Result:=True;
+  If (FdataDescription=AValue) then exit;
+  FdataDescription:=AValue;
+  MarkPropertyChanged(AIndex);
 end;
+
+
+
+Procedure TAnalyze.Seterrors(AIndex : Integer; AValue : TAnalyzeTypeerrorsArray); 
+
+begin
+  If (Ferrors=AValue) then exit;
+  Ferrors:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAnalyze.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAnalyze.Setkind(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAnalyze.SetmodelDescription(AIndex : Integer; AValue : TAnalyzeTypemodelDescription); 
+
+begin
+  If (FmodelDescription=AValue) then exit;
+  FmodelDescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAnalyze.SetselfLink(AIndex : Integer; AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
 
 
 
 { --------------------------------------------------------------------
-  TAnalyzemodelDescriptionconfusionMatrixRowTotals
+  TInputTypeinput
   --------------------------------------------------------------------}
 
 
-Class Function TAnalyzemodelDescriptionconfusionMatrixRowTotals.AllowAdditionalProperties : Boolean;
+Procedure TInputTypeinput.SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); 
 
 begin
-  Result:=True;
+  If (FcsvInstance=AValue) then exit;
+  FcsvInstance:=AValue;
+  MarkPropertyChanged(AIndex);
 end;
+
+
 
 
 
@@ -1192,7 +1137,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInput.Setinput(AIndex : Integer; AValue : TInputinput); 
+Procedure TInput.Setinput(AIndex : Integer; AValue : TInputTypeinput); 
 
 begin
   If (Finput=AValue) then exit;
@@ -1205,11 +1150,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TInputinput
+  TInsertTypetrainingInstancesItem
   --------------------------------------------------------------------}
 
 
-Procedure TInputinput.SetcsvInstance(AIndex : Integer; AValue : TInputinputcsvInstance); 
+Procedure TInsertTypetrainingInstancesItem.SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); 
 
 begin
   If (FcsvInstance=AValue) then exit;
@@ -1219,118 +1164,7 @@ end;
 
 
 
-
-
-{ --------------------------------------------------------------------
-  TInputinputcsvInstance
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TInsert
-  --------------------------------------------------------------------}
-
-
-Procedure TInsert.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInsert.SetmodelType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FmodelType=AValue) then exit;
-  FmodelType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInsert.SetsourceModel(AIndex : Integer; AValue : string); 
-
-begin
-  If (FsourceModel=AValue) then exit;
-  FsourceModel:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInsert.SetstorageDataLocation(AIndex : Integer; AValue : string); 
-
-begin
-  If (FstorageDataLocation=AValue) then exit;
-  FstorageDataLocation:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInsert.SetstoragePMMLLocation(AIndex : Integer; AValue : string); 
-
-begin
-  If (FstoragePMMLLocation=AValue) then exit;
-  FstoragePMMLLocation:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInsert.SetstoragePMMLModelLocation(AIndex : Integer; AValue : string); 
-
-begin
-  If (FstoragePMMLModelLocation=AValue) then exit;
-  FstoragePMMLModelLocation:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInsert.SettrainingInstances(AIndex : Integer; AValue : TInserttrainingInstances); 
-
-begin
-  If (FtrainingInstances=AValue) then exit;
-  FtrainingInstances:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInsert.Setutility(AIndex : Integer; AValue : TInsertutility); 
-
-begin
-  If (Futility=AValue) then exit;
-  Futility:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TInserttrainingInstances
-  --------------------------------------------------------------------}
-
-
-Procedure TInserttrainingInstances.SetcsvInstance(AIndex : Integer; AValue : TInserttrainingInstancescsvInstance); 
-
-begin
-  If (FcsvInstance=AValue) then exit;
-  FcsvInstance:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInserttrainingInstances.Setoutput(AIndex : Integer; AValue : string); 
+Procedure TInsertTypetrainingInstancesItem.Setoutput(AIndex : Integer; AValue : String); 
 
 begin
   If (Foutput=AValue) then exit;
@@ -1343,15 +1177,168 @@ end;
 
 
 { --------------------------------------------------------------------
-  TInserttrainingInstancescsvInstance
+  TInsertTypeutilityItem
   --------------------------------------------------------------------}
+
+
+Class Function TInsertTypeutilityItem.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TInsert
+  --------------------------------------------------------------------}
+
+
+Procedure TInsert.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInsert.SetmodelType(AIndex : Integer; AValue : String); 
+
+begin
+  If (FmodelType=AValue) then exit;
+  FmodelType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInsert.SetsourceModel(AIndex : Integer; AValue : String); 
+
+begin
+  If (FsourceModel=AValue) then exit;
+  FsourceModel:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInsert.SetstorageDataLocation(AIndex : Integer; AValue : String); 
+
+begin
+  If (FstorageDataLocation=AValue) then exit;
+  FstorageDataLocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInsert.SetstoragePMMLLocation(AIndex : Integer; AValue : String); 
+
+begin
+  If (FstoragePMMLLocation=AValue) then exit;
+  FstoragePMMLLocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInsert.SetstoragePMMLModelLocation(AIndex : Integer; AValue : String); 
+
+begin
+  If (FstoragePMMLModelLocation=AValue) then exit;
+  FstoragePMMLModelLocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInsert.SettrainingInstances(AIndex : Integer; AValue : TInsertTypetrainingInstancesArray); 
+
+begin
+  If (FtrainingInstances=AValue) then exit;
+  FtrainingInstances:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInsert.Setutility(AIndex : Integer; AValue : TInsertTypeutilityArray); 
+
+begin
+  If (Futility=AValue) then exit;
+  Futility:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
 
 { --------------------------------------------------------------------
-  TInsertutility
+  TInsert2TypemodelInfo
   --------------------------------------------------------------------}
+
+
+Procedure TInsert2TypemodelInfo.SetclassWeightedAccuracy(AIndex : Integer; AValue : String); 
+
+begin
+  If (FclassWeightedAccuracy=AValue) then exit;
+  FclassWeightedAccuracy:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInsert2TypemodelInfo.SetclassificationAccuracy(AIndex : Integer; AValue : String); 
+
+begin
+  If (FclassificationAccuracy=AValue) then exit;
+  FclassificationAccuracy:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInsert2TypemodelInfo.SetmeanSquaredError(AIndex : Integer; AValue : String); 
+
+begin
+  If (FmeanSquaredError=AValue) then exit;
+  FmeanSquaredError:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInsert2TypemodelInfo.SetmodelType(AIndex : Integer; AValue : String); 
+
+begin
+  If (FmodelType=AValue) then exit;
+  FmodelType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInsert2TypemodelInfo.SetnumberInstances(AIndex : Integer; AValue : String); 
+
+begin
+  If (FnumberInstances=AValue) then exit;
+  FnumberInstances:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInsert2TypemodelInfo.SetnumberLabels(AIndex : Integer; AValue : String); 
+
+begin
+  If (FnumberLabels=AValue) then exit;
+  FnumberLabels:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -1371,7 +1358,7 @@ end;
 
 
 
-Procedure TInsert2.Setid(AIndex : Integer; AValue : string); 
+Procedure TInsert2.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1381,7 +1368,7 @@ end;
 
 
 
-Procedure TInsert2.Setkind(AIndex : Integer; AValue : string); 
+Procedure TInsert2.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1391,7 +1378,7 @@ end;
 
 
 
-Procedure TInsert2.SetmodelInfo(AIndex : Integer; AValue : TInsert2modelInfo); 
+Procedure TInsert2.SetmodelInfo(AIndex : Integer; AValue : TInsert2TypemodelInfo); 
 
 begin
   If (FmodelInfo=AValue) then exit;
@@ -1401,7 +1388,7 @@ end;
 
 
 
-Procedure TInsert2.SetmodelType(AIndex : Integer; AValue : string); 
+Procedure TInsert2.SetmodelType(AIndex : Integer; AValue : String); 
 
 begin
   If (FmodelType=AValue) then exit;
@@ -1411,7 +1398,7 @@ end;
 
 
 
-Procedure TInsert2.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TInsert2.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1421,7 +1408,7 @@ end;
 
 
 
-Procedure TInsert2.SetstorageDataLocation(AIndex : Integer; AValue : string); 
+Procedure TInsert2.SetstorageDataLocation(AIndex : Integer; AValue : String); 
 
 begin
   If (FstorageDataLocation=AValue) then exit;
@@ -1431,7 +1418,7 @@ end;
 
 
 
-Procedure TInsert2.SetstoragePMMLLocation(AIndex : Integer; AValue : string); 
+Procedure TInsert2.SetstoragePMMLLocation(AIndex : Integer; AValue : String); 
 
 begin
   If (FstoragePMMLLocation=AValue) then exit;
@@ -1441,7 +1428,7 @@ end;
 
 
 
-Procedure TInsert2.SetstoragePMMLModelLocation(AIndex : Integer; AValue : string); 
+Procedure TInsert2.SetstoragePMMLModelLocation(AIndex : Integer; AValue : String); 
 
 begin
   If (FstoragePMMLModelLocation=AValue) then exit;
@@ -1461,7 +1448,7 @@ end;
 
 
 
-Procedure TInsert2.SettrainingStatus(AIndex : Integer; AValue : string); 
+Procedure TInsert2.SettrainingStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FtrainingStatus=AValue) then exit;
@@ -1474,78 +1461,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TInsert2modelInfo
-  --------------------------------------------------------------------}
-
-
-Procedure TInsert2modelInfo.SetclassWeightedAccuracy(AIndex : Integer; AValue : string); 
-
-begin
-  If (FclassWeightedAccuracy=AValue) then exit;
-  FclassWeightedAccuracy:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInsert2modelInfo.SetclassificationAccuracy(AIndex : Integer; AValue : string); 
-
-begin
-  If (FclassificationAccuracy=AValue) then exit;
-  FclassificationAccuracy:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInsert2modelInfo.SetmeanSquaredError(AIndex : Integer; AValue : string); 
-
-begin
-  If (FmeanSquaredError=AValue) then exit;
-  FmeanSquaredError:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInsert2modelInfo.SetmodelType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FmodelType=AValue) then exit;
-  FmodelType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInsert2modelInfo.SetnumberInstances(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnumberInstances=AValue) then exit;
-  FnumberInstances:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInsert2modelInfo.SetnumberLabels(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnumberLabels=AValue) then exit;
-  FnumberLabels:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TList
   --------------------------------------------------------------------}
 
 
-Procedure TList.Setitems(AIndex : Integer; AValue : TListitems); 
+Procedure TList.Setitems(AIndex : Integer; AValue : TListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1555,7 +1475,7 @@ end;
 
 
 
-Procedure TList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1565,7 +1485,7 @@ end;
 
 
 
-Procedure TList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TList.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1575,7 +1495,7 @@ end;
 
 
 
-Procedure TList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TList.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1588,8 +1508,39 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListitems
+  TOutputTypeoutputMultiItem
   --------------------------------------------------------------------}
+
+
+Procedure TOutputTypeoutputMultiItem.Set_label(AIndex : Integer; AValue : String); 
+
+begin
+  If (F_label=AValue) then exit;
+  F_label:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOutputTypeoutputMultiItem.Setscore(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fscore=AValue) then exit;
+  Fscore:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TOutputTypeoutputMultiItem.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_label' : Result:='label';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
 
 
 
@@ -1599,7 +1550,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOutput.Setid(AIndex : Integer; AValue : string); 
+Procedure TOutput.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1609,7 +1560,7 @@ end;
 
 
 
-Procedure TOutput.Setkind(AIndex : Integer; AValue : string); 
+Procedure TOutput.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1619,7 +1570,7 @@ end;
 
 
 
-Procedure TOutput.SetoutputLabel(AIndex : Integer; AValue : string); 
+Procedure TOutput.SetoutputLabel(AIndex : Integer; AValue : String); 
 
 begin
   If (FoutputLabel=AValue) then exit;
@@ -1629,7 +1580,7 @@ end;
 
 
 
-Procedure TOutput.SetoutputMulti(AIndex : Integer; AValue : TOutputoutputMulti); 
+Procedure TOutput.SetoutputMulti(AIndex : Integer; AValue : TOutputTypeoutputMultiArray); 
 
 begin
   If (FoutputMulti=AValue) then exit;
@@ -1649,7 +1600,7 @@ end;
 
 
 
-Procedure TOutput.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TOutput.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1662,49 +1613,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TOutputoutputMulti
-  --------------------------------------------------------------------}
-
-
-Procedure TOutputoutputMulti.Set_label(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_label=AValue) then exit;
-  F_label:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOutputoutputMulti.Setscore(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fscore=AValue) then exit;
-  Fscore:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TOutputoutputMulti.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_label' : Result:='label';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
   TUpdate
   --------------------------------------------------------------------}
 
 
-Procedure TUpdate.SetcsvInstance(AIndex : Integer; AValue : TUpdatecsvInstance); 
+Procedure TUpdate.SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); 
 
 begin
   If (FcsvInstance=AValue) then exit;
@@ -1714,7 +1627,7 @@ end;
 
 
 
-Procedure TUpdate.Setoutput(AIndex : Integer; AValue : string); 
+Procedure TUpdate.Setoutput(AIndex : Integer; AValue : String); 
 
 begin
   If (Foutput=AValue) then exit;
@@ -1722,13 +1635,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TUpdatecsvInstance
-  --------------------------------------------------------------------}
 
 
 
@@ -2034,35 +1940,31 @@ end;
 Class Procedure TPredictionAPI.RegisterAPIResources;
 
 begin
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem.RegisterObject;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical.RegisterObject;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric.RegisterObject;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypetext.RegisterObject;
+  TAnalyzeTypedataDescriptionTypefeaturesItem.RegisterObject;
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric.RegisterObject;
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem.RegisterObject;
+  TAnalyzeTypedataDescriptionTypeoutputFeature.RegisterObject;
+  TAnalyzeTypedataDescription.RegisterObject;
+  TAnalyzeTypeerrorsItem.RegisterObject;
+  TAnalyzeTypemodelDescriptionTypeconfusionMatrix.RegisterObject;
+  TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals.RegisterObject;
+  TAnalyzeTypemodelDescription.RegisterObject;
   TAnalyze.RegisterObject;
-  TAnalyzedataDescription.RegisterObject;
-  TAnalyzedataDescriptionfeatures.RegisterObject;
-  TAnalyzedataDescriptionfeaturescategorical.RegisterObject;
-  TAnalyzedataDescriptionfeaturescategoricalvalues.RegisterObject;
-  TAnalyzedataDescriptionfeaturesnumeric.RegisterObject;
-  TAnalyzedataDescriptionfeaturestext.RegisterObject;
-  TAnalyzedataDescriptionoutputFeature.RegisterObject;
-  TAnalyzedataDescriptionoutputFeaturenumeric.RegisterObject;
-  TAnalyzedataDescriptionoutputFeaturetext.RegisterObject;
-  TAnalyzeerrors.RegisterObject;
-  TAnalyzemodelDescription.RegisterObject;
-  TAnalyzemodelDescriptionconfusionMatrix.RegisterObject;
-  TAnalyzemodelDescriptionconfusionMatrixRowTotals.RegisterObject;
+  TInputTypeinput.RegisterObject;
   TInput.RegisterObject;
-  TInputinput.RegisterObject;
-  TInputinputcsvInstance.RegisterObject;
+  TInsertTypetrainingInstancesItem.RegisterObject;
+  TInsertTypeutilityItem.RegisterObject;
   TInsert.RegisterObject;
-  TInserttrainingInstances.RegisterObject;
-  TInserttrainingInstancescsvInstance.RegisterObject;
-  TInsertutility.RegisterObject;
+  TInsert2TypemodelInfo.RegisterObject;
   TInsert2.RegisterObject;
-  TInsert2modelInfo.RegisterObject;
   TList.RegisterObject;
-  TListitems.RegisterObject;
+  TOutputTypeoutputMultiItem.RegisterObject;
   TOutput.RegisterObject;
-  TOutputoutputMulti.RegisterObject;
   TUpdate.RegisterObject;
-  TUpdatecsvInstance.RegisterObject;
 end;
 
 

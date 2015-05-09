@@ -1,31 +1,19 @@
 unit googlefitness;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:53
 {$MODE objfpc}
 {$H+}
 
@@ -34,39 +22,37 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TApplication = class;
-  TApplicationArray = Array of TApplication;
   TDataPoint = class;
-  TDataPointArray = Array of TDataPoint;
-  TDataPointvalue = class;
-  TDataPointvalueArray = Array of TDataPointvalue;
   TDataSource = class;
-  TDataSourceArray = Array of TDataSource;
   TDataType = class;
-  TDataTypeArray = Array of TDataType;
-  TDataTypefield = class;
-  TDataTypefieldArray = Array of TDataTypefield;
+  TDataTypeField = class;
   TDataset = class;
-  TDatasetArray = Array of TDataset;
-  TDatasetpoint = class;
-  TDatasetpointArray = Array of TDatasetpoint;
   TDevice = class;
-  TDeviceArray = Array of TDevice;
   TListDataSourcesResponse = class;
-  TListDataSourcesResponseArray = Array of TListDataSourcesResponse;
-  TListDataSourcesResponsedataSource = class;
-  TListDataSourcesResponsedataSourceArray = Array of TListDataSourcesResponsedataSource;
   TListSessionsResponse = class;
-  TListSessionsResponseArray = Array of TListSessionsResponse;
-  TListSessionsResponsedeletedSession = class;
-  TListSessionsResponsedeletedSessionArray = Array of TListSessionsResponsedeletedSession;
-  TListSessionsResponsesession = class;
-  TListSessionsResponsesessionArray = Array of TListSessionsResponsesession;
   TSession = class;
-  TSessionArray = Array of TSession;
   TValue = class;
+  TApplicationArray = Array of TApplication;
+  TDataPointArray = Array of TDataPoint;
+  TDataSourceArray = Array of TDataSource;
+  TDataTypeArray = Array of TDataType;
+  TDataTypeFieldArray = Array of TDataTypeField;
+  TDatasetArray = Array of TDataset;
+  TDeviceArray = Array of TDevice;
+  TListDataSourcesResponseArray = Array of TListDataSourcesResponse;
+  TListSessionsResponseArray = Array of TListSessionsResponse;
+  TSessionArray = Array of TSession;
   TValueArray = Array of TValue;
+  //Anonymous types, using auto-generated names
+  TDataPointTypevalueArray = Array of TValue;
+  TDataTypeTypefieldArray = Array of TDataTypeField;
+  TDatasetTypepointArray = Array of TDataPoint;
+  TListDataSourcesResponseTypedataSourceArray = Array of TDataSource;
+  TListSessionsResponseTypedeletedSessionArray = Array of TSession;
+  TListSessionsResponseTypesessionArray = Array of TSession;
   
   { --------------------------------------------------------------------
     TApplication
@@ -74,22 +60,22 @@ type
   
   TApplication = Class(TGoogleBaseObject)
   Private
-    FdetailsUrl : string;
-    Fname : string;
-    FpackageName : string;
-    Fversion : string;
+    FdetailsUrl : String;
+    Fname : String;
+    FpackageName : String;
+    Fversion : String;
   Protected
     //Property setters
-    Procedure SetdetailsUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpackageName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdetailsUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpackageName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property detailsUrl : string Index 0 Read FdetailsUrl Write SetdetailsUrl;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property packageName : string Index 16 Read FpackageName Write SetpackageName;
-    Property version : string Index 24 Read Fversion Write Setversion;
+    Property detailsUrl : String Index 0 Read FdetailsUrl Write SetdetailsUrl;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property packageName : String Index 16 Read FpackageName Write SetpackageName;
+    Property version : String Index 24 Read Fversion Write Setversion;
   end;
   TApplicationClass = Class of TApplication;
   
@@ -99,49 +85,36 @@ type
   
   TDataPoint = Class(TGoogleBaseObject)
   Private
-    FcomputationTimeMillis : string;
-    FdataTypeName : string;
-    FendTimeNanos : string;
-    FmodifiedTimeMillis : string;
-    ForiginDataSourceId : string;
-    FrawTimestampNanos : string;
-    FstartTimeNanos : string;
-    Fvalue : TDataPointvalue;
+    FcomputationTimeMillis : String;
+    FdataTypeName : String;
+    FendTimeNanos : String;
+    FmodifiedTimeMillis : String;
+    ForiginDataSourceId : String;
+    FrawTimestampNanos : String;
+    FstartTimeNanos : String;
+    Fvalue : TDataPointTypevalueArray;
   Protected
     //Property setters
-    Procedure SetcomputationTimeMillis(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdataTypeName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetendTimeNanos(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmodifiedTimeMillis(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoriginDataSourceId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrawTimestampNanos(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstartTimeNanos(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : TDataPointvalue); virtual;
+    Procedure SetcomputationTimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdataTypeName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendTimeNanos(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmodifiedTimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoriginDataSourceId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrawTimestampNanos(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstartTimeNanos(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : TDataPointTypevalueArray); virtual;
   Public
   Published
-    Property computationTimeMillis : string Index 0 Read FcomputationTimeMillis Write SetcomputationTimeMillis;
-    Property dataTypeName : string Index 8 Read FdataTypeName Write SetdataTypeName;
-    Property endTimeNanos : string Index 16 Read FendTimeNanos Write SetendTimeNanos;
-    Property modifiedTimeMillis : string Index 24 Read FmodifiedTimeMillis Write SetmodifiedTimeMillis;
-    Property originDataSourceId : string Index 32 Read ForiginDataSourceId Write SetoriginDataSourceId;
-    Property rawTimestampNanos : string Index 40 Read FrawTimestampNanos Write SetrawTimestampNanos;
-    Property startTimeNanos : string Index 48 Read FstartTimeNanos Write SetstartTimeNanos;
-    Property value : TDataPointvalue Index 56 Read Fvalue Write Setvalue;
+    Property computationTimeMillis : String Index 0 Read FcomputationTimeMillis Write SetcomputationTimeMillis;
+    Property dataTypeName : String Index 8 Read FdataTypeName Write SetdataTypeName;
+    Property endTimeNanos : String Index 16 Read FendTimeNanos Write SetendTimeNanos;
+    Property modifiedTimeMillis : String Index 24 Read FmodifiedTimeMillis Write SetmodifiedTimeMillis;
+    Property originDataSourceId : String Index 32 Read ForiginDataSourceId Write SetoriginDataSourceId;
+    Property rawTimestampNanos : String Index 40 Read FrawTimestampNanos Write SetrawTimestampNanos;
+    Property startTimeNanos : String Index 48 Read FstartTimeNanos Write SetstartTimeNanos;
+    Property value : TDataPointTypevalueArray Index 56 Read Fvalue Write Setvalue;
   end;
   TDataPointClass = Class of TDataPoint;
-  
-  { --------------------------------------------------------------------
-    TDataPointvalue
-    --------------------------------------------------------------------}
-  
-  TDataPointvalue = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDataPointvalueClass = Class of TDataPointvalue;
   
   { --------------------------------------------------------------------
     TDataSource
@@ -150,31 +123,31 @@ type
   TDataSource = Class(TGoogleBaseObject)
   Private
     Fapplication : TApplication;
-    FdataStreamId : string;
-    FdataStreamName : string;
+    FdataStreamId : String;
+    FdataStreamName : String;
     FdataType : TDataType;
     Fdevice : TDevice;
-    Fname : string;
-    F_type : string;
+    Fname : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setapplication(AIndex : Integer; AValue : TApplication); virtual;
-    Procedure SetdataStreamId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdataStreamName(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdataStreamId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdataStreamName(AIndex : Integer; AValue : String); virtual;
     Procedure SetdataType(AIndex : Integer; AValue : TDataType); virtual;
     Procedure Setdevice(AIndex : Integer; AValue : TDevice); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property application : TApplication Index 0 Read Fapplication Write Setapplication;
-    Property dataStreamId : string Index 8 Read FdataStreamId Write SetdataStreamId;
-    Property dataStreamName : string Index 16 Read FdataStreamName Write SetdataStreamName;
+    Property dataStreamId : String Index 8 Read FdataStreamId Write SetdataStreamId;
+    Property dataStreamName : String Index 16 Read FdataStreamName Write SetdataStreamName;
     Property dataType : TDataType Index 24 Read FdataType Write SetdataType;
     Property device : TDevice Index 32 Read Fdevice Write Setdevice;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property _type : string Index 48 Read F_type Write Set_type;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property _type : String Index 48 Read F_type Write Set_type;
   end;
   TDataSourceClass = Class of TDataSource;
   
@@ -184,31 +157,40 @@ type
   
   TDataType = Class(TGoogleBaseObject)
   Private
-    Ffield : TDataTypefield;
-    Fname : string;
+    Ffield : TDataTypeTypefieldArray;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setfield(AIndex : Integer; AValue : TDataTypefield); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setfield(AIndex : Integer; AValue : TDataTypeTypefieldArray); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property field : TDataTypefield Index 0 Read Ffield Write Setfield;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property field : TDataTypeTypefieldArray Index 0 Read Ffield Write Setfield;
+    Property name : String Index 8 Read Fname Write Setname;
   end;
   TDataTypeClass = Class of TDataType;
   
   { --------------------------------------------------------------------
-    TDataTypefield
+    TDataTypeField
     --------------------------------------------------------------------}
   
-  TDataTypefield = Class(TGoogleBaseObject)
+  TDataTypeField = Class(TGoogleBaseObject)
   Private
+    Fformat : String;
+    Fname : String;
+    Foptional : boolean;
   Protected
     //Property setters
+    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setoptional(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
+    Property format : String Index 0 Read Fformat Write Setformat;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property optional : boolean Index 16 Read Foptional Write Setoptional;
   end;
-  TDataTypefieldClass = Class of TDataTypefield;
+  TDataTypeFieldClass = Class of TDataTypeField;
   
   { --------------------------------------------------------------------
     TDataset
@@ -216,40 +198,27 @@ type
   
   TDataset = Class(TGoogleBaseObject)
   Private
-    FdataSourceId : string;
-    FmaxEndTimeNs : string;
-    FminStartTimeNs : string;
-    FnextPageToken : string;
-    Fpoint : TDatasetpoint;
+    FdataSourceId : String;
+    FmaxEndTimeNs : String;
+    FminStartTimeNs : String;
+    FnextPageToken : String;
+    Fpoint : TDatasetTypepointArray;
   Protected
     //Property setters
-    Procedure SetdataSourceId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmaxEndTimeNs(AIndex : Integer; AValue : string); virtual;
-    Procedure SetminStartTimeNs(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpoint(AIndex : Integer; AValue : TDatasetpoint); virtual;
+    Procedure SetdataSourceId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmaxEndTimeNs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetminStartTimeNs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpoint(AIndex : Integer; AValue : TDatasetTypepointArray); virtual;
   Public
   Published
-    Property dataSourceId : string Index 0 Read FdataSourceId Write SetdataSourceId;
-    Property maxEndTimeNs : string Index 8 Read FmaxEndTimeNs Write SetmaxEndTimeNs;
-    Property minStartTimeNs : string Index 16 Read FminStartTimeNs Write SetminStartTimeNs;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property point : TDatasetpoint Index 32 Read Fpoint Write Setpoint;
+    Property dataSourceId : String Index 0 Read FdataSourceId Write SetdataSourceId;
+    Property maxEndTimeNs : String Index 8 Read FmaxEndTimeNs Write SetmaxEndTimeNs;
+    Property minStartTimeNs : String Index 16 Read FminStartTimeNs Write SetminStartTimeNs;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property point : TDatasetTypepointArray Index 32 Read Fpoint Write Setpoint;
   end;
   TDatasetClass = Class of TDataset;
-  
-  { --------------------------------------------------------------------
-    TDatasetpoint
-    --------------------------------------------------------------------}
-  
-  TDatasetpoint = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatasetpointClass = Class of TDatasetpoint;
   
   { --------------------------------------------------------------------
     TDevice
@@ -257,26 +226,26 @@ type
   
   TDevice = Class(TGoogleBaseObject)
   Private
-    Fmanufacturer : string;
-    Fmodel : string;
-    F_type : string;
-    Fuid : string;
-    Fversion : string;
+    Fmanufacturer : String;
+    Fmodel : String;
+    F_type : String;
+    Fuid : String;
+    Fversion : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setmanufacturer(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmodel(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setuid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : string); virtual;
+    Procedure Setmanufacturer(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmodel(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setuid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property manufacturer : string Index 0 Read Fmanufacturer Write Setmanufacturer;
-    Property model : string Index 8 Read Fmodel Write Setmodel;
-    Property _type : string Index 16 Read F_type Write Set_type;
-    Property uid : string Index 24 Read Fuid Write Setuid;
-    Property version : string Index 32 Read Fversion Write Setversion;
+    Property manufacturer : String Index 0 Read Fmanufacturer Write Setmanufacturer;
+    Property model : String Index 8 Read Fmodel Write Setmodel;
+    Property _type : String Index 16 Read F_type Write Set_type;
+    Property uid : String Index 24 Read Fuid Write Setuid;
+    Property version : String Index 32 Read Fversion Write Setversion;
   end;
   TDeviceClass = Class of TDevice;
   
@@ -286,28 +255,15 @@ type
   
   TListDataSourcesResponse = Class(TGoogleBaseObject)
   Private
-    FdataSource : TListDataSourcesResponsedataSource;
+    FdataSource : TListDataSourcesResponseTypedataSourceArray;
   Protected
     //Property setters
-    Procedure SetdataSource(AIndex : Integer; AValue : TListDataSourcesResponsedataSource); virtual;
+    Procedure SetdataSource(AIndex : Integer; AValue : TListDataSourcesResponseTypedataSourceArray); virtual;
   Public
   Published
-    Property dataSource : TListDataSourcesResponsedataSource Index 0 Read FdataSource Write SetdataSource;
+    Property dataSource : TListDataSourcesResponseTypedataSourceArray Index 0 Read FdataSource Write SetdataSource;
   end;
   TListDataSourcesResponseClass = Class of TListDataSourcesResponse;
-  
-  { --------------------------------------------------------------------
-    TListDataSourcesResponsedataSource
-    --------------------------------------------------------------------}
-  
-  TListDataSourcesResponsedataSource = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListDataSourcesResponsedataSourceClass = Class of TListDataSourcesResponsedataSource;
   
   { --------------------------------------------------------------------
     TListSessionsResponse
@@ -315,47 +271,21 @@ type
   
   TListSessionsResponse = Class(TGoogleBaseObject)
   Private
-    FdeletedSession : TListSessionsResponsedeletedSession;
-    FnextPageToken : string;
-    Fsession : TListSessionsResponsesession;
+    FdeletedSession : TListSessionsResponseTypedeletedSessionArray;
+    FnextPageToken : String;
+    Fsession : TListSessionsResponseTypesessionArray;
   Protected
     //Property setters
-    Procedure SetdeletedSession(AIndex : Integer; AValue : TListSessionsResponsedeletedSession); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsession(AIndex : Integer; AValue : TListSessionsResponsesession); virtual;
+    Procedure SetdeletedSession(AIndex : Integer; AValue : TListSessionsResponseTypedeletedSessionArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsession(AIndex : Integer; AValue : TListSessionsResponseTypesessionArray); virtual;
   Public
   Published
-    Property deletedSession : TListSessionsResponsedeletedSession Index 0 Read FdeletedSession Write SetdeletedSession;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
-    Property session : TListSessionsResponsesession Index 16 Read Fsession Write Setsession;
+    Property deletedSession : TListSessionsResponseTypedeletedSessionArray Index 0 Read FdeletedSession Write SetdeletedSession;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property session : TListSessionsResponseTypesessionArray Index 16 Read Fsession Write Setsession;
   end;
   TListSessionsResponseClass = Class of TListSessionsResponse;
-  
-  { --------------------------------------------------------------------
-    TListSessionsResponsedeletedSession
-    --------------------------------------------------------------------}
-  
-  TListSessionsResponsedeletedSession = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListSessionsResponsedeletedSessionClass = Class of TListSessionsResponsedeletedSession;
-  
-  { --------------------------------------------------------------------
-    TListSessionsResponsesession
-    --------------------------------------------------------------------}
-  
-  TListSessionsResponsesession = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListSessionsResponsesessionClass = Class of TListSessionsResponsesession;
   
   { --------------------------------------------------------------------
     TSession
@@ -363,37 +293,37 @@ type
   
   TSession = Class(TGoogleBaseObject)
   Private
-    FactiveTimeMillis : string;
+    FactiveTimeMillis : String;
     FactivityType : integer;
     Fapplication : TApplication;
-    Fdescription : string;
-    FendTimeMillis : string;
-    Fid : string;
-    FmodifiedTimeMillis : string;
-    Fname : string;
-    FstartTimeMillis : string;
+    Fdescription : String;
+    FendTimeMillis : String;
+    Fid : String;
+    FmodifiedTimeMillis : String;
+    Fname : String;
+    FstartTimeMillis : String;
   Protected
     //Property setters
-    Procedure SetactiveTimeMillis(AIndex : Integer; AValue : string); virtual;
+    Procedure SetactiveTimeMillis(AIndex : Integer; AValue : String); virtual;
     Procedure SetactivityType(AIndex : Integer; AValue : integer); virtual;
     Procedure Setapplication(AIndex : Integer; AValue : TApplication); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetendTimeMillis(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmodifiedTimeMillis(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstartTimeMillis(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendTimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmodifiedTimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstartTimeMillis(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property activeTimeMillis : string Index 0 Read FactiveTimeMillis Write SetactiveTimeMillis;
+    Property activeTimeMillis : String Index 0 Read FactiveTimeMillis Write SetactiveTimeMillis;
     Property activityType : integer Index 8 Read FactivityType Write SetactivityType;
     Property application : TApplication Index 16 Read Fapplication Write Setapplication;
-    Property description : string Index 24 Read Fdescription Write Setdescription;
-    Property endTimeMillis : string Index 32 Read FendTimeMillis Write SetendTimeMillis;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property modifiedTimeMillis : string Index 48 Read FmodifiedTimeMillis Write SetmodifiedTimeMillis;
-    Property name : string Index 56 Read Fname Write Setname;
-    Property startTimeMillis : string Index 64 Read FstartTimeMillis Write SetstartTimeMillis;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
+    Property endTimeMillis : String Index 32 Read FendTimeMillis Write SetendTimeMillis;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property modifiedTimeMillis : String Index 48 Read FmodifiedTimeMillis Write SetmodifiedTimeMillis;
+    Property name : String Index 56 Read Fname Write Setname;
+    Property startTimeMillis : String Index 64 Read FstartTimeMillis Write SetstartTimeMillis;
   end;
   TSessionClass = Class of TSession;
   
@@ -472,7 +402,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TApplication.SetdetailsUrl(AIndex : Integer; AValue : string); 
+Procedure TApplication.SetdetailsUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FdetailsUrl=AValue) then exit;
@@ -482,7 +412,7 @@ end;
 
 
 
-Procedure TApplication.Setname(AIndex : Integer; AValue : string); 
+Procedure TApplication.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -492,7 +422,7 @@ end;
 
 
 
-Procedure TApplication.SetpackageName(AIndex : Integer; AValue : string); 
+Procedure TApplication.SetpackageName(AIndex : Integer; AValue : String); 
 
 begin
   If (FpackageName=AValue) then exit;
@@ -502,7 +432,7 @@ end;
 
 
 
-Procedure TApplication.Setversion(AIndex : Integer; AValue : string); 
+Procedure TApplication.Setversion(AIndex : Integer; AValue : String); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -519,7 +449,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataPoint.SetcomputationTimeMillis(AIndex : Integer; AValue : string); 
+Procedure TDataPoint.SetcomputationTimeMillis(AIndex : Integer; AValue : String); 
 
 begin
   If (FcomputationTimeMillis=AValue) then exit;
@@ -529,7 +459,7 @@ end;
 
 
 
-Procedure TDataPoint.SetdataTypeName(AIndex : Integer; AValue : string); 
+Procedure TDataPoint.SetdataTypeName(AIndex : Integer; AValue : String); 
 
 begin
   If (FdataTypeName=AValue) then exit;
@@ -539,7 +469,7 @@ end;
 
 
 
-Procedure TDataPoint.SetendTimeNanos(AIndex : Integer; AValue : string); 
+Procedure TDataPoint.SetendTimeNanos(AIndex : Integer; AValue : String); 
 
 begin
   If (FendTimeNanos=AValue) then exit;
@@ -549,7 +479,7 @@ end;
 
 
 
-Procedure TDataPoint.SetmodifiedTimeMillis(AIndex : Integer; AValue : string); 
+Procedure TDataPoint.SetmodifiedTimeMillis(AIndex : Integer; AValue : String); 
 
 begin
   If (FmodifiedTimeMillis=AValue) then exit;
@@ -559,7 +489,7 @@ end;
 
 
 
-Procedure TDataPoint.SetoriginDataSourceId(AIndex : Integer; AValue : string); 
+Procedure TDataPoint.SetoriginDataSourceId(AIndex : Integer; AValue : String); 
 
 begin
   If (ForiginDataSourceId=AValue) then exit;
@@ -569,7 +499,7 @@ end;
 
 
 
-Procedure TDataPoint.SetrawTimestampNanos(AIndex : Integer; AValue : string); 
+Procedure TDataPoint.SetrawTimestampNanos(AIndex : Integer; AValue : String); 
 
 begin
   If (FrawTimestampNanos=AValue) then exit;
@@ -579,7 +509,7 @@ end;
 
 
 
-Procedure TDataPoint.SetstartTimeNanos(AIndex : Integer; AValue : string); 
+Procedure TDataPoint.SetstartTimeNanos(AIndex : Integer; AValue : String); 
 
 begin
   If (FstartTimeNanos=AValue) then exit;
@@ -589,7 +519,7 @@ end;
 
 
 
-Procedure TDataPoint.Setvalue(AIndex : Integer; AValue : TDataPointvalue); 
+Procedure TDataPoint.Setvalue(AIndex : Integer; AValue : TDataPointTypevalueArray); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -597,13 +527,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TDataPointvalue
-  --------------------------------------------------------------------}
 
 
 
@@ -623,7 +546,7 @@ end;
 
 
 
-Procedure TDataSource.SetdataStreamId(AIndex : Integer; AValue : string); 
+Procedure TDataSource.SetdataStreamId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdataStreamId=AValue) then exit;
@@ -633,7 +556,7 @@ end;
 
 
 
-Procedure TDataSource.SetdataStreamName(AIndex : Integer; AValue : string); 
+Procedure TDataSource.SetdataStreamName(AIndex : Integer; AValue : String); 
 
 begin
   If (FdataStreamName=AValue) then exit;
@@ -663,7 +586,7 @@ end;
 
 
 
-Procedure TDataSource.Setname(AIndex : Integer; AValue : string); 
+Procedure TDataSource.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -673,7 +596,7 @@ end;
 
 
 
-Procedure TDataSource.Set_type(AIndex : Integer; AValue : string); 
+Procedure TDataSource.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -701,7 +624,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataType.Setfield(AIndex : Integer; AValue : TDataTypefield); 
+Procedure TDataType.Setfield(AIndex : Integer; AValue : TDataTypeTypefieldArray); 
 
 begin
   If (Ffield=AValue) then exit;
@@ -711,7 +634,7 @@ end;
 
 
 
-Procedure TDataType.Setname(AIndex : Integer; AValue : string); 
+Procedure TDataType.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -724,8 +647,38 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDataTypefield
+  TDataTypeField
   --------------------------------------------------------------------}
+
+
+Procedure TDataTypeField.Setformat(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fformat=AValue) then exit;
+  Fformat:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDataTypeField.Setname(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDataTypeField.Setoptional(AIndex : Integer; AValue : boolean); 
+
+begin
+  If (Foptional=AValue) then exit;
+  Foptional:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -735,7 +688,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataset.SetdataSourceId(AIndex : Integer; AValue : string); 
+Procedure TDataset.SetdataSourceId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdataSourceId=AValue) then exit;
@@ -745,7 +698,7 @@ end;
 
 
 
-Procedure TDataset.SetmaxEndTimeNs(AIndex : Integer; AValue : string); 
+Procedure TDataset.SetmaxEndTimeNs(AIndex : Integer; AValue : String); 
 
 begin
   If (FmaxEndTimeNs=AValue) then exit;
@@ -755,7 +708,7 @@ end;
 
 
 
-Procedure TDataset.SetminStartTimeNs(AIndex : Integer; AValue : string); 
+Procedure TDataset.SetminStartTimeNs(AIndex : Integer; AValue : String); 
 
 begin
   If (FminStartTimeNs=AValue) then exit;
@@ -765,7 +718,7 @@ end;
 
 
 
-Procedure TDataset.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TDataset.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -775,7 +728,7 @@ end;
 
 
 
-Procedure TDataset.Setpoint(AIndex : Integer; AValue : TDatasetpoint); 
+Procedure TDataset.Setpoint(AIndex : Integer; AValue : TDatasetTypepointArray); 
 
 begin
   If (Fpoint=AValue) then exit;
@@ -788,18 +741,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDatasetpoint
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TDevice
   --------------------------------------------------------------------}
 
 
-Procedure TDevice.Setmanufacturer(AIndex : Integer; AValue : string); 
+Procedure TDevice.Setmanufacturer(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmanufacturer=AValue) then exit;
@@ -809,7 +755,7 @@ end;
 
 
 
-Procedure TDevice.Setmodel(AIndex : Integer; AValue : string); 
+Procedure TDevice.Setmodel(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmodel=AValue) then exit;
@@ -819,7 +765,7 @@ end;
 
 
 
-Procedure TDevice.Set_type(AIndex : Integer; AValue : string); 
+Procedure TDevice.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -829,7 +775,7 @@ end;
 
 
 
-Procedure TDevice.Setuid(AIndex : Integer; AValue : string); 
+Procedure TDevice.Setuid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fuid=AValue) then exit;
@@ -839,7 +785,7 @@ end;
 
 
 
-Procedure TDevice.Setversion(AIndex : Integer; AValue : string); 
+Procedure TDevice.Setversion(AIndex : Integer; AValue : String); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -867,7 +813,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListDataSourcesResponse.SetdataSource(AIndex : Integer; AValue : TListDataSourcesResponsedataSource); 
+Procedure TListDataSourcesResponse.SetdataSource(AIndex : Integer; AValue : TListDataSourcesResponseTypedataSourceArray); 
 
 begin
   If (FdataSource=AValue) then exit;
@@ -880,18 +826,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListDataSourcesResponsedataSource
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListSessionsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListSessionsResponse.SetdeletedSession(AIndex : Integer; AValue : TListSessionsResponsedeletedSession); 
+Procedure TListSessionsResponse.SetdeletedSession(AIndex : Integer; AValue : TListSessionsResponseTypedeletedSessionArray); 
 
 begin
   If (FdeletedSession=AValue) then exit;
@@ -901,7 +840,7 @@ end;
 
 
 
-Procedure TListSessionsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListSessionsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -911,7 +850,7 @@ end;
 
 
 
-Procedure TListSessionsResponse.Setsession(AIndex : Integer; AValue : TListSessionsResponsesession); 
+Procedure TListSessionsResponse.Setsession(AIndex : Integer; AValue : TListSessionsResponseTypesessionArray); 
 
 begin
   If (Fsession=AValue) then exit;
@@ -924,25 +863,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListSessionsResponsedeletedSession
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TListSessionsResponsesession
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSession
   --------------------------------------------------------------------}
 
 
-Procedure TSession.SetactiveTimeMillis(AIndex : Integer; AValue : string); 
+Procedure TSession.SetactiveTimeMillis(AIndex : Integer; AValue : String); 
 
 begin
   If (FactiveTimeMillis=AValue) then exit;
@@ -972,7 +897,7 @@ end;
 
 
 
-Procedure TSession.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TSession.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -982,7 +907,7 @@ end;
 
 
 
-Procedure TSession.SetendTimeMillis(AIndex : Integer; AValue : string); 
+Procedure TSession.SetendTimeMillis(AIndex : Integer; AValue : String); 
 
 begin
   If (FendTimeMillis=AValue) then exit;
@@ -992,7 +917,7 @@ end;
 
 
 
-Procedure TSession.Setid(AIndex : Integer; AValue : string); 
+Procedure TSession.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1002,7 +927,7 @@ end;
 
 
 
-Procedure TSession.SetmodifiedTimeMillis(AIndex : Integer; AValue : string); 
+Procedure TSession.SetmodifiedTimeMillis(AIndex : Integer; AValue : String); 
 
 begin
   If (FmodifiedTimeMillis=AValue) then exit;
@@ -1012,7 +937,7 @@ end;
 
 
 
-Procedure TSession.Setname(AIndex : Integer; AValue : string); 
+Procedure TSession.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1022,7 +947,7 @@ end;
 
 
 
-Procedure TSession.SetstartTimeMillis(AIndex : Integer; AValue : string); 
+Procedure TSession.SetstartTimeMillis(AIndex : Integer; AValue : String); 
 
 begin
   If (FstartTimeMillis=AValue) then exit;
@@ -1216,18 +1141,13 @@ Class Procedure TFitnessAPI.RegisterAPIResources;
 begin
   TApplication.RegisterObject;
   TDataPoint.RegisterObject;
-  TDataPointvalue.RegisterObject;
   TDataSource.RegisterObject;
   TDataType.RegisterObject;
-  TDataTypefield.RegisterObject;
+  TDataTypeField.RegisterObject;
   TDataset.RegisterObject;
-  TDatasetpoint.RegisterObject;
   TDevice.RegisterObject;
   TListDataSourcesResponse.RegisterObject;
-  TListDataSourcesResponsedataSource.RegisterObject;
   TListSessionsResponse.RegisterObject;
-  TListSessionsResponsedeletedSession.RegisterObject;
-  TListSessionsResponsesession.RegisterObject;
   TSession.RegisterObject;
   TValue.RegisterObject;
 end;

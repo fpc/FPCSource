@@ -1,31 +1,19 @@
 unit googletasks;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:59
 {$MODE objfpc}
 {$H+}
 
@@ -34,21 +22,44 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TTask = class;
-  TTaskArray = Array of TTask;
-  TTasklinks = class;
-  TTasklinksArray = Array of TTasklinks;
   TTaskList = class;
-  TTaskListArray = Array of TTaskList;
   TTaskLists = class;
-  TTaskListsArray = Array of TTaskLists;
-  TTaskListsitems = class;
-  TTaskListsitemsArray = Array of TTaskListsitems;
   TTasks = class;
+  TTaskArray = Array of TTask;
+  TTaskListArray = Array of TTaskList;
+  TTaskListsArray = Array of TTaskLists;
   TTasksArray = Array of TTasks;
-  TTasksitems = class;
-  TTasksitemsArray = Array of TTasksitems;
+  //Anonymous types, using auto-generated names
+  TTaskTypelinksItem = class;
+  TTaskTypelinksArray = Array of TTaskTypelinksItem;
+  TTaskListsTypeitemsArray = Array of TTaskList;
+  TTasksTypeitemsArray = Array of TTask;
+  
+  { --------------------------------------------------------------------
+    TTaskTypelinksItem
+    --------------------------------------------------------------------}
+  
+  TTaskTypelinksItem = Class(TGoogleBaseObject)
+  Private
+    Fdescription : String;
+    Flink : String;
+    F_type : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlink(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property link : String Index 8 Read Flink Write Setlink;
+    Property _type : String Index 16 Read F_type Write Set_type;
+  end;
+  TTaskTypelinksItemClass = Class of TTaskTypelinksItem;
   
   { --------------------------------------------------------------------
     TTask
@@ -59,77 +70,54 @@ type
     Fcompleted : TDatetime;
     Fdeleted : boolean;
     Fdue : TDatetime;
-    Fetag : string;
+    Fetag : String;
     Fhidden : boolean;
-    Fid : string;
-    Fkind : string;
-    Flinks : TTasklinks;
-    Fnotes : string;
-    Fparent : string;
-    Fposition : string;
-    FselfLink : string;
-    Fstatus : string;
-    Ftitle : string;
+    Fid : String;
+    Fkind : String;
+    Flinks : TTaskTypelinksArray;
+    Fnotes : String;
+    Fparent : String;
+    Fposition : String;
+    FselfLink : String;
+    Fstatus : String;
+    Ftitle : String;
     Fupdated : TDatetime;
   Protected
     //Property setters
     Procedure Setcompleted(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setdue(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
     Procedure Sethidden(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlinks(AIndex : Integer; AValue : TTasklinks); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : string); virtual;
-    Procedure Setparent(AIndex : Integer; AValue : string); virtual;
-    Procedure Setposition(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlinks(AIndex : Integer; AValue : TTaskTypelinksArray); virtual;
+    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
+    Procedure Setparent(AIndex : Integer; AValue : String); virtual;
+    Procedure Setposition(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
     Property completed : TDatetime Index 0 Read Fcompleted Write Setcompleted;
     Property deleted : boolean Index 8 Read Fdeleted Write Setdeleted;
     Property due : TDatetime Index 16 Read Fdue Write Setdue;
-    Property etag : string Index 24 Read Fetag Write Setetag;
+    Property etag : String Index 24 Read Fetag Write Setetag;
     Property hidden : boolean Index 32 Read Fhidden Write Sethidden;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property kind : string Index 48 Read Fkind Write Setkind;
-    Property links : TTasklinks Index 56 Read Flinks Write Setlinks;
-    Property notes : string Index 64 Read Fnotes Write Setnotes;
-    Property parent : string Index 72 Read Fparent Write Setparent;
-    Property position : string Index 80 Read Fposition Write Setposition;
-    Property selfLink : string Index 88 Read FselfLink Write SetselfLink;
-    Property status : string Index 96 Read Fstatus Write Setstatus;
-    Property title : string Index 104 Read Ftitle Write Settitle;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property kind : String Index 48 Read Fkind Write Setkind;
+    Property links : TTaskTypelinksArray Index 56 Read Flinks Write Setlinks;
+    Property notes : String Index 64 Read Fnotes Write Setnotes;
+    Property parent : String Index 72 Read Fparent Write Setparent;
+    Property position : String Index 80 Read Fposition Write Setposition;
+    Property selfLink : String Index 88 Read FselfLink Write SetselfLink;
+    Property status : String Index 96 Read Fstatus Write Setstatus;
+    Property title : String Index 104 Read Ftitle Write Settitle;
     Property updated : TDatetime Index 112 Read Fupdated Write Setupdated;
   end;
   TTaskClass = Class of TTask;
-  
-  { --------------------------------------------------------------------
-    TTasklinks
-    --------------------------------------------------------------------}
-  
-  TTasklinks = Class(TGoogleBaseObject)
-  Private
-    Fdescription : string;
-    Flink : string;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlink(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property link : string Index 8 Read Flink Write Setlink;
-    Property _type : string Index 16 Read F_type Write Set_type;
-  end;
-  TTasklinksClass = Class of TTasklinks;
   
   { --------------------------------------------------------------------
     TTaskList
@@ -137,27 +125,27 @@ type
   
   TTaskList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
-    FselfLink : string;
-    Ftitle : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
+    FselfLink : String;
+    Ftitle : String;
     Fupdated : TDatetime;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
-    Property title : string Index 32 Read Ftitle Write Settitle;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property selfLink : String Index 24 Read FselfLink Write SetselfLink;
+    Property title : String Index 32 Read Ftitle Write Settitle;
     Property updated : TDatetime Index 40 Read Fupdated Write Setupdated;
   end;
   TTaskListClass = Class of TTaskList;
@@ -168,37 +156,24 @@ type
   
   TTaskLists = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TTaskListsitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fitems : TTaskListsTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTaskListsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TTaskListsTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TTaskListsitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TTaskListsTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TTaskListsClass = Class of TTaskLists;
-  
-  { --------------------------------------------------------------------
-    TTaskListsitems
-    --------------------------------------------------------------------}
-  
-  TTaskListsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTaskListsitemsClass = Class of TTaskListsitems;
   
   { --------------------------------------------------------------------
     TTasks
@@ -206,37 +181,24 @@ type
   
   TTasks = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TTasksitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fitems : TTasksTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTasksitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TTasksTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TTasksitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TTasksTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TTasksClass = Class of TTasks;
-  
-  { --------------------------------------------------------------------
-    TTasksitems
-    --------------------------------------------------------------------}
-  
-  TTasksitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTasksitemsClass = Class of TTasksitems;
   
   { --------------------------------------------------------------------
     TTasklistsResource
@@ -247,7 +209,7 @@ type
   
   TTasklistsListOptions = Record
     maxResults : int64;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TTasklistsResource = Class(TGoogleResource)
@@ -272,32 +234,32 @@ type
   //Optional query Options for TTasksResource, method Insert
   
   TTasksInsertOptions = Record
-    parent : string;
-    previous : string;
+    parent : String;
+    previous : String;
   end;
   
   
   //Optional query Options for TTasksResource, method List
   
   TTasksListOptions = Record
-    completedMax : string;
-    completedMin : string;
-    dueMax : string;
-    dueMin : string;
+    completedMax : String;
+    completedMin : String;
+    dueMax : String;
+    dueMin : String;
     maxResults : int64;
-    pageToken : string;
+    pageToken : String;
     showCompleted : boolean;
     showDeleted : boolean;
     showHidden : boolean;
-    updatedMin : string;
+    updatedMin : String;
   end;
   
   
   //Optional query Options for TTasksResource, method Move
   
   TTasksMoveOptions = Record
-    parent : string;
-    previous : string;
+    parent : String;
+    previous : String;
   end;
   
   TTasksResource = Class(TGoogleResource)
@@ -364,6 +326,54 @@ implementation
 
 
 { --------------------------------------------------------------------
+  TTaskTypelinksItem
+  --------------------------------------------------------------------}
+
+
+Procedure TTaskTypelinksItem.Setdescription(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTaskTypelinksItem.Setlink(AIndex : Integer; AValue : String); 
+
+begin
+  If (Flink=AValue) then exit;
+  Flink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTaskTypelinksItem.Set_type(AIndex : Integer; AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TTaskTypelinksItem.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
   TTask
   --------------------------------------------------------------------}
 
@@ -398,7 +408,7 @@ end;
 
 
 
-Procedure TTask.Setetag(AIndex : Integer; AValue : string); 
+Procedure TTask.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -418,7 +428,7 @@ end;
 
 
 
-Procedure TTask.Setid(AIndex : Integer; AValue : string); 
+Procedure TTask.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -428,7 +438,7 @@ end;
 
 
 
-Procedure TTask.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTask.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -438,7 +448,7 @@ end;
 
 
 
-Procedure TTask.Setlinks(AIndex : Integer; AValue : TTasklinks); 
+Procedure TTask.Setlinks(AIndex : Integer; AValue : TTaskTypelinksArray); 
 
 begin
   If (Flinks=AValue) then exit;
@@ -448,7 +458,7 @@ end;
 
 
 
-Procedure TTask.Setnotes(AIndex : Integer; AValue : string); 
+Procedure TTask.Setnotes(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -458,7 +468,7 @@ end;
 
 
 
-Procedure TTask.Setparent(AIndex : Integer; AValue : string); 
+Procedure TTask.Setparent(AIndex : Integer; AValue : String); 
 
 begin
   If (Fparent=AValue) then exit;
@@ -468,7 +478,7 @@ end;
 
 
 
-Procedure TTask.Setposition(AIndex : Integer; AValue : string); 
+Procedure TTask.Setposition(AIndex : Integer; AValue : String); 
 
 begin
   If (Fposition=AValue) then exit;
@@ -478,7 +488,7 @@ end;
 
 
 
-Procedure TTask.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TTask.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -488,7 +498,7 @@ end;
 
 
 
-Procedure TTask.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TTask.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -498,7 +508,7 @@ end;
 
 
 
-Procedure TTask.Settitle(AIndex : Integer; AValue : string); 
+Procedure TTask.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -521,59 +531,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTasklinks
-  --------------------------------------------------------------------}
-
-
-Procedure TTasklinks.Setdescription(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdescription=AValue) then exit;
-  Fdescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTasklinks.Setlink(AIndex : Integer; AValue : string); 
-
-begin
-  If (Flink=AValue) then exit;
-  Flink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTasklinks.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TTasklinks.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
   TTaskList
   --------------------------------------------------------------------}
 
 
-Procedure TTaskList.Setetag(AIndex : Integer; AValue : string); 
+Procedure TTaskList.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -583,7 +545,7 @@ end;
 
 
 
-Procedure TTaskList.Setid(AIndex : Integer; AValue : string); 
+Procedure TTaskList.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -593,7 +555,7 @@ end;
 
 
 
-Procedure TTaskList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTaskList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -603,7 +565,7 @@ end;
 
 
 
-Procedure TTaskList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TTaskList.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -613,7 +575,7 @@ end;
 
 
 
-Procedure TTaskList.Settitle(AIndex : Integer; AValue : string); 
+Procedure TTaskList.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -640,7 +602,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskLists.Setetag(AIndex : Integer; AValue : string); 
+Procedure TTaskLists.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -650,7 +612,7 @@ end;
 
 
 
-Procedure TTaskLists.Setitems(AIndex : Integer; AValue : TTaskListsitems); 
+Procedure TTaskLists.Setitems(AIndex : Integer; AValue : TTaskListsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -660,7 +622,7 @@ end;
 
 
 
-Procedure TTaskLists.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTaskLists.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -670,7 +632,7 @@ end;
 
 
 
-Procedure TTaskLists.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TTaskLists.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -678,13 +640,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TTaskListsitems
-  --------------------------------------------------------------------}
 
 
 
@@ -694,7 +649,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTasks.Setetag(AIndex : Integer; AValue : string); 
+Procedure TTasks.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -704,7 +659,7 @@ end;
 
 
 
-Procedure TTasks.Setitems(AIndex : Integer; AValue : TTasksitems); 
+Procedure TTasks.Setitems(AIndex : Integer; AValue : TTasksTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -714,7 +669,7 @@ end;
 
 
 
-Procedure TTasks.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTasks.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -724,7 +679,7 @@ end;
 
 
 
-Procedure TTasks.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TTasks.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -732,13 +687,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TTasksitems
-  --------------------------------------------------------------------}
 
 
 
@@ -1169,13 +1117,11 @@ end;
 Class Procedure TTasksAPI.RegisterAPIResources;
 
 begin
+  TTaskTypelinksItem.RegisterObject;
   TTask.RegisterObject;
-  TTasklinks.RegisterObject;
   TTaskList.RegisterObject;
   TTaskLists.RegisterObject;
-  TTaskListsitems.RegisterObject;
   TTasks.RegisterObject;
-  TTasksitems.RegisterObject;
 end;
 
 

@@ -1,31 +1,19 @@
 unit googlestorage;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:58
 {$MODE objfpc}
 {$H+}
 
@@ -34,298 +22,104 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TBucket = class;
-  TBucketArray = Array of TBucket;
-  TBucketacl = class;
-  TBucketaclArray = Array of TBucketacl;
-  TBucketcors = class;
-  TBucketcorsArray = Array of TBucketcors;
-  TBucketcorsmethod = class;
-  TBucketcorsmethodArray = Array of TBucketcorsmethod;
-  TBucketcorsorigin = class;
-  TBucketcorsoriginArray = Array of TBucketcorsorigin;
-  TBucketcorsresponseHeader = class;
-  TBucketcorsresponseHeaderArray = Array of TBucketcorsresponseHeader;
-  TBucketdefaultObjectAcl = class;
-  TBucketdefaultObjectAclArray = Array of TBucketdefaultObjectAcl;
-  TBucketlifecycle = class;
-  TBucketlifecycleArray = Array of TBucketlifecycle;
-  TBucketlifecyclerule = class;
-  TBucketlifecycleruleArray = Array of TBucketlifecyclerule;
-  TBucketlifecycleruleaction = class;
-  TBucketlifecycleruleactionArray = Array of TBucketlifecycleruleaction;
-  TBucketlifecyclerulecondition = class;
-  TBucketlifecycleruleconditionArray = Array of TBucketlifecyclerulecondition;
-  TBucketlogging = class;
-  TBucketloggingArray = Array of TBucketlogging;
-  TBucketowner = class;
-  TBucketownerArray = Array of TBucketowner;
-  TBucketversioning = class;
-  TBucketversioningArray = Array of TBucketversioning;
-  TBucketwebsite = class;
-  TBucketwebsiteArray = Array of TBucketwebsite;
   TBucketAccessControl = class;
-  TBucketAccessControlArray = Array of TBucketAccessControl;
-  TBucketAccessControlprojectTeam = class;
-  TBucketAccessControlprojectTeamArray = Array of TBucketAccessControlprojectTeam;
   TBucketAccessControls = class;
-  TBucketAccessControlsArray = Array of TBucketAccessControls;
-  TBucketAccessControlsitems = class;
-  TBucketAccessControlsitemsArray = Array of TBucketAccessControlsitems;
   TBuckets = class;
-  TBucketsArray = Array of TBuckets;
-  TBucketsitems = class;
-  TBucketsitemsArray = Array of TBucketsitems;
   TChannel = class;
-  TChannelArray = Array of TChannel;
-  TChannelparams = class;
-  TChannelparamsArray = Array of TChannelparams;
   TComposeRequest = class;
-  TComposeRequestArray = Array of TComposeRequest;
-  TComposeRequestsourceObjects = class;
-  TComposeRequestsourceObjectsArray = Array of TComposeRequestsourceObjects;
-  TComposeRequestsourceObjectsobjectPreconditions = class;
-  TComposeRequestsourceObjectsobjectPreconditionsArray = Array of TComposeRequestsourceObjectsobjectPreconditions;
   TObject = class;
-  TObjectArray = Array of TObject;
-  TObjectacl = class;
-  TObjectaclArray = Array of TObjectacl;
-  TObjectmetadata = class;
-  TObjectmetadataArray = Array of TObjectmetadata;
-  TObjectowner = class;
-  TObjectownerArray = Array of TObjectowner;
   TObjectAccessControl = class;
-  TObjectAccessControlArray = Array of TObjectAccessControl;
-  TObjectAccessControlprojectTeam = class;
-  TObjectAccessControlprojectTeamArray = Array of TObjectAccessControlprojectTeam;
   TObjectAccessControls = class;
-  TObjectAccessControlsArray = Array of TObjectAccessControls;
-  TObjectAccessControlsitems = class;
-  TObjectAccessControlsitemsArray = Array of TObjectAccessControlsitems;
   TObjects = class;
-  TObjectsArray = Array of TObjects;
-  TObjectsitems = class;
-  TObjectsitemsArray = Array of TObjectsitems;
-  TObjectsprefixes = class;
-  TObjectsprefixesArray = Array of TObjectsprefixes;
   TRewriteResponse = class;
+  TBucketArray = Array of TBucket;
+  TBucketAccessControlArray = Array of TBucketAccessControl;
+  TBucketAccessControlsArray = Array of TBucketAccessControls;
+  TBucketsArray = Array of TBuckets;
+  TChannelArray = Array of TChannel;
+  TComposeRequestArray = Array of TComposeRequest;
+  TObjectArray = Array of TObject;
+  TObjectAccessControlArray = Array of TObjectAccessControl;
+  TObjectAccessControlsArray = Array of TObjectAccessControls;
+  TObjectsArray = Array of TObjects;
   TRewriteResponseArray = Array of TRewriteResponse;
+  //Anonymous types, using auto-generated names
+  TBucketTypecorsItem = class;
+  TBucketTypelifecycleTyperuleItemTypeaction = class;
+  TBucketTypelifecycleTyperuleItemTypecondition = class;
+  TBucketTypelifecycleTyperuleItem = class;
+  TBucketTypelifecycle = class;
+  TBucketTypelogging = class;
+  TBucketTypeowner = class;
+  TBucketTypeversioning = class;
+  TBucketTypewebsite = class;
+  TBucketAccessControlTypeprojectTeam = class;
+  TChannelTypeparams = class;
+  TComposeRequestTypesourceObjectsItemTypeobjectPreconditions = class;
+  TComposeRequestTypesourceObjectsItem = class;
+  TObjectTypemetadata = class;
+  TObjectTypeowner = class;
+  TObjectAccessControlTypeprojectTeam = class;
+  TBucketTypeaclArray = Array of TBucketAccessControl;
+  TBucketTypecorsArray = Array of TBucketTypecorsItem;
+  TBucketTypedefaultObjectAclArray = Array of TObjectAccessControl;
+  TBucketTypelifecycleTyperuleArray = Array of TBucketTypelifecycleTyperuleItem;
+  TBucketAccessControlsTypeitemsArray = Array of TBucketAccessControl;
+  TBucketsTypeitemsArray = Array of TBucket;
+  TComposeRequestTypesourceObjectsArray = Array of TComposeRequestTypesourceObjectsItem;
+  TObjectTypeaclArray = Array of TObjectAccessControl;
+  TObjectsTypeitemsArray = Array of TObject;
   
   { --------------------------------------------------------------------
-    TBucket
+    TBucketTypecorsItem
     --------------------------------------------------------------------}
   
-  TBucket = Class(TGoogleBaseObject)
-  Private
-    Facl : TBucketacl;
-    Fcors : TBucketcors;
-    FdefaultObjectAcl : TBucketdefaultObjectAcl;
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
-    Flifecycle : TBucketlifecycle;
-    Flocation : string;
-    Flogging : TBucketlogging;
-    Fmetageneration : string;
-    Fname : string;
-    Fowner : TBucketowner;
-    FprojectNumber : string;
-    FselfLink : string;
-    FstorageClass : string;
-    FtimeCreated : TDatetime;
-    Fversioning : TBucketversioning;
-    Fwebsite : TBucketwebsite;
-  Protected
-    //Property setters
-    Procedure Setacl(AIndex : Integer; AValue : TBucketacl); virtual;
-    Procedure Setcors(AIndex : Integer; AValue : TBucketcors); virtual;
-    Procedure SetdefaultObjectAcl(AIndex : Integer; AValue : TBucketdefaultObjectAcl); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlifecycle(AIndex : Integer; AValue : TBucketlifecycle); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlogging(AIndex : Integer; AValue : TBucketlogging); virtual;
-    Procedure Setmetageneration(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setowner(AIndex : Integer; AValue : TBucketowner); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstorageClass(AIndex : Integer; AValue : string); virtual;
-    Procedure SettimeCreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setversioning(AIndex : Integer; AValue : TBucketversioning); virtual;
-    Procedure Setwebsite(AIndex : Integer; AValue : TBucketwebsite); virtual;
-  Public
-  Published
-    Property acl : TBucketacl Index 0 Read Facl Write Setacl;
-    Property cors : TBucketcors Index 8 Read Fcors Write Setcors;
-    Property defaultObjectAcl : TBucketdefaultObjectAcl Index 16 Read FdefaultObjectAcl Write SetdefaultObjectAcl;
-    Property etag : string Index 24 Read Fetag Write Setetag;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property kind : string Index 40 Read Fkind Write Setkind;
-    Property lifecycle : TBucketlifecycle Index 48 Read Flifecycle Write Setlifecycle;
-    Property location : string Index 56 Read Flocation Write Setlocation;
-    Property logging : TBucketlogging Index 64 Read Flogging Write Setlogging;
-    Property metageneration : string Index 72 Read Fmetageneration Write Setmetageneration;
-    Property name : string Index 80 Read Fname Write Setname;
-    Property owner : TBucketowner Index 88 Read Fowner Write Setowner;
-    Property projectNumber : string Index 96 Read FprojectNumber Write SetprojectNumber;
-    Property selfLink : string Index 104 Read FselfLink Write SetselfLink;
-    Property storageClass : string Index 112 Read FstorageClass Write SetstorageClass;
-    Property timeCreated : TDatetime Index 120 Read FtimeCreated Write SettimeCreated;
-    Property versioning : TBucketversioning Index 128 Read Fversioning Write Setversioning;
-    Property website : TBucketwebsite Index 136 Read Fwebsite Write Setwebsite;
-  end;
-  TBucketClass = Class of TBucket;
-  
-  { --------------------------------------------------------------------
-    TBucketacl
-    --------------------------------------------------------------------}
-  
-  TBucketacl = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBucketaclClass = Class of TBucketacl;
-  
-  { --------------------------------------------------------------------
-    TBucketcors
-    --------------------------------------------------------------------}
-  
-  TBucketcors = Class(TGoogleBaseObject)
+  TBucketTypecorsItem = Class(TGoogleBaseObject)
   Private
     FmaxAgeSeconds : integer;
-    Fmethod : TBucketcorsmethod;
-    Forigin : TBucketcorsorigin;
-    FresponseHeader : TBucketcorsresponseHeader;
+    Fmethod : TStringArray;
+    Forigin : TStringArray;
+    FresponseHeader : TStringArray;
   Protected
     //Property setters
     Procedure SetmaxAgeSeconds(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : TBucketcorsmethod); virtual;
-    Procedure Setorigin(AIndex : Integer; AValue : TBucketcorsorigin); virtual;
-    Procedure SetresponseHeader(AIndex : Integer; AValue : TBucketcorsresponseHeader); virtual;
+    Procedure Setmethod(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setorigin(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetresponseHeader(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
     Property maxAgeSeconds : integer Index 0 Read FmaxAgeSeconds Write SetmaxAgeSeconds;
-    Property method : TBucketcorsmethod Index 8 Read Fmethod Write Setmethod;
-    Property origin : TBucketcorsorigin Index 16 Read Forigin Write Setorigin;
-    Property responseHeader : TBucketcorsresponseHeader Index 24 Read FresponseHeader Write SetresponseHeader;
+    Property method : TStringArray Index 8 Read Fmethod Write Setmethod;
+    Property origin : TStringArray Index 16 Read Forigin Write Setorigin;
+    Property responseHeader : TStringArray Index 24 Read FresponseHeader Write SetresponseHeader;
   end;
-  TBucketcorsClass = Class of TBucketcors;
+  TBucketTypecorsItemClass = Class of TBucketTypecorsItem;
   
   { --------------------------------------------------------------------
-    TBucketcorsmethod
+    TBucketTypelifecycleTyperuleItemTypeaction
     --------------------------------------------------------------------}
   
-  TBucketcorsmethod = Class(TGoogleBaseObject)
+  TBucketTypelifecycleTyperuleItemTypeaction = Class(TGoogleBaseObject)
   Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBucketcorsmethodClass = Class of TBucketcorsmethod;
-  
-  { --------------------------------------------------------------------
-    TBucketcorsorigin
-    --------------------------------------------------------------------}
-  
-  TBucketcorsorigin = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBucketcorsoriginClass = Class of TBucketcorsorigin;
-  
-  { --------------------------------------------------------------------
-    TBucketcorsresponseHeader
-    --------------------------------------------------------------------}
-  
-  TBucketcorsresponseHeader = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBucketcorsresponseHeaderClass = Class of TBucketcorsresponseHeader;
-  
-  { --------------------------------------------------------------------
-    TBucketdefaultObjectAcl
-    --------------------------------------------------------------------}
-  
-  TBucketdefaultObjectAcl = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBucketdefaultObjectAclClass = Class of TBucketdefaultObjectAcl;
-  
-  { --------------------------------------------------------------------
-    TBucketlifecycle
-    --------------------------------------------------------------------}
-  
-  TBucketlifecycle = Class(TGoogleBaseObject)
-  Private
-    Frule : TBucketlifecyclerule;
-  Protected
-    //Property setters
-    Procedure Setrule(AIndex : Integer; AValue : TBucketlifecyclerule); virtual;
-  Public
-  Published
-    Property rule : TBucketlifecyclerule Index 0 Read Frule Write Setrule;
-  end;
-  TBucketlifecycleClass = Class of TBucketlifecycle;
-  
-  { --------------------------------------------------------------------
-    TBucketlifecyclerule
-    --------------------------------------------------------------------}
-  
-  TBucketlifecyclerule = Class(TGoogleBaseObject)
-  Private
-    Faction : TBucketlifecycleruleaction;
-    Fcondition : TBucketlifecyclerulecondition;
-  Protected
-    //Property setters
-    Procedure Setaction(AIndex : Integer; AValue : TBucketlifecycleruleaction); virtual;
-    Procedure Setcondition(AIndex : Integer; AValue : TBucketlifecyclerulecondition); virtual;
-  Public
-  Published
-    Property action : TBucketlifecycleruleaction Index 0 Read Faction Write Setaction;
-    Property condition : TBucketlifecyclerulecondition Index 8 Read Fcondition Write Setcondition;
-  end;
-  TBucketlifecycleruleClass = Class of TBucketlifecyclerule;
-  
-  { --------------------------------------------------------------------
-    TBucketlifecycleruleaction
-    --------------------------------------------------------------------}
-  
-  TBucketlifecycleruleaction = Class(TGoogleBaseObject)
-  Private
-    F_type : string;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _type : string Index 0 Read F_type Write Set_type;
+    Property _type : String Index 0 Read F_type Write Set_type;
   end;
-  TBucketlifecycleruleactionClass = Class of TBucketlifecycleruleaction;
+  TBucketTypelifecycleTyperuleItemTypeactionClass = Class of TBucketTypelifecycleTyperuleItemTypeaction;
   
   { --------------------------------------------------------------------
-    TBucketlifecyclerulecondition
+    TBucketTypelifecycleTyperuleItemTypecondition
     --------------------------------------------------------------------}
   
-  TBucketlifecyclerulecondition = Class(TGoogleBaseObject)
+  TBucketTypelifecycleTyperuleItemTypecondition = Class(TGoogleBaseObject)
   Private
     Fage : integer;
     FcreatedBefore : TDate;
@@ -344,51 +138,86 @@ type
     Property isLive : boolean Index 16 Read FisLive Write SetisLive;
     Property numNewerVersions : integer Index 24 Read FnumNewerVersions Write SetnumNewerVersions;
   end;
-  TBucketlifecycleruleconditionClass = Class of TBucketlifecyclerulecondition;
+  TBucketTypelifecycleTyperuleItemTypeconditionClass = Class of TBucketTypelifecycleTyperuleItemTypecondition;
   
   { --------------------------------------------------------------------
-    TBucketlogging
+    TBucketTypelifecycleTyperuleItem
     --------------------------------------------------------------------}
   
-  TBucketlogging = Class(TGoogleBaseObject)
+  TBucketTypelifecycleTyperuleItem = Class(TGoogleBaseObject)
   Private
-    FlogBucket : string;
-    FlogObjectPrefix : string;
+    Faction : TBucketTypelifecycleTyperuleItemTypeaction;
+    Fcondition : TBucketTypelifecycleTyperuleItemTypecondition;
   Protected
     //Property setters
-    Procedure SetlogBucket(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlogObjectPrefix(AIndex : Integer; AValue : string); virtual;
+    Procedure Setaction(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleItemTypeaction); virtual;
+    Procedure Setcondition(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleItemTypecondition); virtual;
   Public
   Published
-    Property logBucket : string Index 0 Read FlogBucket Write SetlogBucket;
-    Property logObjectPrefix : string Index 8 Read FlogObjectPrefix Write SetlogObjectPrefix;
+    Property action : TBucketTypelifecycleTyperuleItemTypeaction Index 0 Read Faction Write Setaction;
+    Property condition : TBucketTypelifecycleTyperuleItemTypecondition Index 8 Read Fcondition Write Setcondition;
   end;
-  TBucketloggingClass = Class of TBucketlogging;
+  TBucketTypelifecycleTyperuleItemClass = Class of TBucketTypelifecycleTyperuleItem;
   
   { --------------------------------------------------------------------
-    TBucketowner
+    TBucketTypelifecycle
     --------------------------------------------------------------------}
   
-  TBucketowner = Class(TGoogleBaseObject)
+  TBucketTypelifecycle = Class(TGoogleBaseObject)
   Private
-    Fentity : string;
-    FentityId : string;
+    Frule : TBucketTypelifecycleTyperuleArray;
   Protected
     //Property setters
-    Procedure Setentity(AIndex : Integer; AValue : string); virtual;
-    Procedure SetentityId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setrule(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleArray); virtual;
   Public
   Published
-    Property entity : string Index 0 Read Fentity Write Setentity;
-    Property entityId : string Index 8 Read FentityId Write SetentityId;
+    Property rule : TBucketTypelifecycleTyperuleArray Index 0 Read Frule Write Setrule;
   end;
-  TBucketownerClass = Class of TBucketowner;
+  TBucketTypelifecycleClass = Class of TBucketTypelifecycle;
   
   { --------------------------------------------------------------------
-    TBucketversioning
+    TBucketTypelogging
     --------------------------------------------------------------------}
   
-  TBucketversioning = Class(TGoogleBaseObject)
+  TBucketTypelogging = Class(TGoogleBaseObject)
+  Private
+    FlogBucket : String;
+    FlogObjectPrefix : String;
+  Protected
+    //Property setters
+    Procedure SetlogBucket(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlogObjectPrefix(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property logBucket : String Index 0 Read FlogBucket Write SetlogBucket;
+    Property logObjectPrefix : String Index 8 Read FlogObjectPrefix Write SetlogObjectPrefix;
+  end;
+  TBucketTypeloggingClass = Class of TBucketTypelogging;
+  
+  { --------------------------------------------------------------------
+    TBucketTypeowner
+    --------------------------------------------------------------------}
+  
+  TBucketTypeowner = Class(TGoogleBaseObject)
+  Private
+    Fentity : String;
+    FentityId : String;
+  Protected
+    //Property setters
+    Procedure Setentity(AIndex : Integer; AValue : String); virtual;
+    Procedure SetentityId(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property entity : String Index 0 Read Fentity Write Setentity;
+    Property entityId : String Index 8 Read FentityId Write SetentityId;
+  end;
+  TBucketTypeownerClass = Class of TBucketTypeowner;
+  
+  { --------------------------------------------------------------------
+    TBucketTypeversioning
+    --------------------------------------------------------------------}
+  
+  TBucketTypeversioning = Class(TGoogleBaseObject)
   Private
     Fenabled : boolean;
   Protected
@@ -398,26 +227,112 @@ type
   Published
     Property enabled : boolean Index 0 Read Fenabled Write Setenabled;
   end;
-  TBucketversioningClass = Class of TBucketversioning;
+  TBucketTypeversioningClass = Class of TBucketTypeversioning;
   
   { --------------------------------------------------------------------
-    TBucketwebsite
+    TBucketTypewebsite
     --------------------------------------------------------------------}
   
-  TBucketwebsite = Class(TGoogleBaseObject)
+  TBucketTypewebsite = Class(TGoogleBaseObject)
   Private
-    FmainPageSuffix : string;
-    FnotFoundPage : string;
+    FmainPageSuffix : String;
+    FnotFoundPage : String;
   Protected
     //Property setters
-    Procedure SetmainPageSuffix(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnotFoundPage(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmainPageSuffix(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnotFoundPage(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property mainPageSuffix : string Index 0 Read FmainPageSuffix Write SetmainPageSuffix;
-    Property notFoundPage : string Index 8 Read FnotFoundPage Write SetnotFoundPage;
+    Property mainPageSuffix : String Index 0 Read FmainPageSuffix Write SetmainPageSuffix;
+    Property notFoundPage : String Index 8 Read FnotFoundPage Write SetnotFoundPage;
   end;
-  TBucketwebsiteClass = Class of TBucketwebsite;
+  TBucketTypewebsiteClass = Class of TBucketTypewebsite;
+  
+  { --------------------------------------------------------------------
+    TBucket
+    --------------------------------------------------------------------}
+  
+  TBucket = Class(TGoogleBaseObject)
+  Private
+    Facl : TBucketTypeaclArray;
+    Fcors : TBucketTypecorsArray;
+    FdefaultObjectAcl : TBucketTypedefaultObjectAclArray;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
+    Flifecycle : TBucketTypelifecycle;
+    Flocation : String;
+    Flogging : TBucketTypelogging;
+    Fmetageneration : String;
+    Fname : String;
+    Fowner : TBucketTypeowner;
+    FprojectNumber : String;
+    FselfLink : String;
+    FstorageClass : String;
+    FtimeCreated : TDatetime;
+    Fversioning : TBucketTypeversioning;
+    Fwebsite : TBucketTypewebsite;
+  Protected
+    //Property setters
+    Procedure Setacl(AIndex : Integer; AValue : TBucketTypeaclArray); virtual;
+    Procedure Setcors(AIndex : Integer; AValue : TBucketTypecorsArray); virtual;
+    Procedure SetdefaultObjectAcl(AIndex : Integer; AValue : TBucketTypedefaultObjectAclArray); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlifecycle(AIndex : Integer; AValue : TBucketTypelifecycle); virtual;
+    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlogging(AIndex : Integer; AValue : TBucketTypelogging); virtual;
+    Procedure Setmetageneration(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setowner(AIndex : Integer; AValue : TBucketTypeowner); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstorageClass(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimeCreated(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setversioning(AIndex : Integer; AValue : TBucketTypeversioning); virtual;
+    Procedure Setwebsite(AIndex : Integer; AValue : TBucketTypewebsite); virtual;
+  Public
+  Published
+    Property acl : TBucketTypeaclArray Index 0 Read Facl Write Setacl;
+    Property cors : TBucketTypecorsArray Index 8 Read Fcors Write Setcors;
+    Property defaultObjectAcl : TBucketTypedefaultObjectAclArray Index 16 Read FdefaultObjectAcl Write SetdefaultObjectAcl;
+    Property etag : String Index 24 Read Fetag Write Setetag;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property lifecycle : TBucketTypelifecycle Index 48 Read Flifecycle Write Setlifecycle;
+    Property location : String Index 56 Read Flocation Write Setlocation;
+    Property logging : TBucketTypelogging Index 64 Read Flogging Write Setlogging;
+    Property metageneration : String Index 72 Read Fmetageneration Write Setmetageneration;
+    Property name : String Index 80 Read Fname Write Setname;
+    Property owner : TBucketTypeowner Index 88 Read Fowner Write Setowner;
+    Property projectNumber : String Index 96 Read FprojectNumber Write SetprojectNumber;
+    Property selfLink : String Index 104 Read FselfLink Write SetselfLink;
+    Property storageClass : String Index 112 Read FstorageClass Write SetstorageClass;
+    Property timeCreated : TDatetime Index 120 Read FtimeCreated Write SettimeCreated;
+    Property versioning : TBucketTypeversioning Index 128 Read Fversioning Write Setversioning;
+    Property website : TBucketTypewebsite Index 136 Read Fwebsite Write Setwebsite;
+  end;
+  TBucketClass = Class of TBucket;
+  
+  { --------------------------------------------------------------------
+    TBucketAccessControlTypeprojectTeam
+    --------------------------------------------------------------------}
+  
+  TBucketAccessControlTypeprojectTeam = Class(TGoogleBaseObject)
+  Private
+    FprojectNumber : String;
+    Fteam : String;
+  Protected
+    //Property setters
+    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure Setteam(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property projectNumber : String Index 0 Read FprojectNumber Write SetprojectNumber;
+    Property team : String Index 8 Read Fteam Write Setteam;
+  end;
+  TBucketAccessControlTypeprojectTeamClass = Class of TBucketAccessControlTypeprojectTeam;
   
   { --------------------------------------------------------------------
     TBucketAccessControl
@@ -425,64 +340,45 @@ type
   
   TBucketAccessControl = Class(TGoogleBaseObject)
   Private
-    Fbucket : string;
-    Fdomain : string;
-    Femail : string;
-    Fentity : string;
-    FentityId : string;
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
-    FprojectTeam : TBucketAccessControlprojectTeam;
-    Frole : string;
-    FselfLink : string;
+    Fbucket : String;
+    Fdomain : String;
+    Femail : String;
+    Fentity : String;
+    FentityId : String;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
+    FprojectTeam : TBucketAccessControlTypeprojectTeam;
+    Frole : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setbucket(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdomain(AIndex : Integer; AValue : string); virtual;
-    Procedure Setemail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setentity(AIndex : Integer; AValue : string); virtual;
-    Procedure SetentityId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectTeam(AIndex : Integer; AValue : TBucketAccessControlprojectTeam); virtual;
-    Procedure Setrole(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setbucket(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdomain(AIndex : Integer; AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setentity(AIndex : Integer; AValue : String); virtual;
+    Procedure SetentityId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectTeam(AIndex : Integer; AValue : TBucketAccessControlTypeprojectTeam); virtual;
+    Procedure Setrole(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property bucket : string Index 0 Read Fbucket Write Setbucket;
-    Property domain : string Index 8 Read Fdomain Write Setdomain;
-    Property email : string Index 16 Read Femail Write Setemail;
-    Property entity : string Index 24 Read Fentity Write Setentity;
-    Property entityId : string Index 32 Read FentityId Write SetentityId;
-    Property etag : string Index 40 Read Fetag Write Setetag;
-    Property id : string Index 48 Read Fid Write Setid;
-    Property kind : string Index 56 Read Fkind Write Setkind;
-    Property projectTeam : TBucketAccessControlprojectTeam Index 64 Read FprojectTeam Write SetprojectTeam;
-    Property role : string Index 72 Read Frole Write Setrole;
-    Property selfLink : string Index 80 Read FselfLink Write SetselfLink;
+    Property bucket : String Index 0 Read Fbucket Write Setbucket;
+    Property domain : String Index 8 Read Fdomain Write Setdomain;
+    Property email : String Index 16 Read Femail Write Setemail;
+    Property entity : String Index 24 Read Fentity Write Setentity;
+    Property entityId : String Index 32 Read FentityId Write SetentityId;
+    Property etag : String Index 40 Read Fetag Write Setetag;
+    Property id : String Index 48 Read Fid Write Setid;
+    Property kind : String Index 56 Read Fkind Write Setkind;
+    Property projectTeam : TBucketAccessControlTypeprojectTeam Index 64 Read FprojectTeam Write SetprojectTeam;
+    Property role : String Index 72 Read Frole Write Setrole;
+    Property selfLink : String Index 80 Read FselfLink Write SetselfLink;
   end;
   TBucketAccessControlClass = Class of TBucketAccessControl;
-  
-  { --------------------------------------------------------------------
-    TBucketAccessControlprojectTeam
-    --------------------------------------------------------------------}
-  
-  TBucketAccessControlprojectTeam = Class(TGoogleBaseObject)
-  Private
-    FprojectNumber : string;
-    Fteam : string;
-  Protected
-    //Property setters
-    Procedure SetprojectNumber(AIndex : Integer; AValue : string); virtual;
-    Procedure Setteam(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property projectNumber : string Index 0 Read FprojectNumber Write SetprojectNumber;
-    Property team : string Index 8 Read Fteam Write Setteam;
-  end;
-  TBucketAccessControlprojectTeamClass = Class of TBucketAccessControlprojectTeam;
   
   { --------------------------------------------------------------------
     TBucketAccessControls
@@ -490,31 +386,18 @@ type
   
   TBucketAccessControls = Class(TGoogleBaseObject)
   Private
-    Fitems : TBucketAccessControlsitems;
-    Fkind : string;
+    Fitems : TBucketAccessControlsTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TBucketAccessControlsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TBucketAccessControlsTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TBucketAccessControlsitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TBucketAccessControlsTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TBucketAccessControlsClass = Class of TBucketAccessControls;
-  
-  { --------------------------------------------------------------------
-    TBucketAccessControlsitems
-    --------------------------------------------------------------------}
-  
-  TBucketAccessControlsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBucketAccessControlsitemsClass = Class of TBucketAccessControlsitems;
   
   { --------------------------------------------------------------------
     TBuckets
@@ -522,84 +405,27 @@ type
   
   TBuckets = Class(TGoogleBaseObject)
   Private
-    Fitems : TBucketsitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fitems : TBucketsTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TBucketsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TBucketsTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TBucketsitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property items : TBucketsTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TBucketsClass = Class of TBuckets;
   
   { --------------------------------------------------------------------
-    TBucketsitems
+    TChannelTypeparams
     --------------------------------------------------------------------}
   
-  TBucketsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBucketsitemsClass = Class of TBucketsitems;
-  
-  { --------------------------------------------------------------------
-    TChannel
-    --------------------------------------------------------------------}
-  
-  TChannel = Class(TGoogleBaseObject)
-  Private
-    Faddress : string;
-    Fexpiration : string;
-    Fid : string;
-    Fkind : string;
-    Fparams : TChannelparams;
-    Fpayload : boolean;
-    FresourceId : string;
-    FresourceUri : string;
-    Ftoken : string;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setaddress(AIndex : Integer; AValue : string); virtual;
-    Procedure Setexpiration(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setparams(AIndex : Integer; AValue : TChannelparams); virtual;
-    Procedure Setpayload(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetresourceId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetresourceUri(AIndex : Integer; AValue : string); virtual;
-    Procedure Settoken(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property address : string Index 0 Read Faddress Write Setaddress;
-    Property expiration : string Index 8 Read Fexpiration Write Setexpiration;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property params : TChannelparams Index 32 Read Fparams Write Setparams;
-    Property payload : boolean Index 40 Read Fpayload Write Setpayload;
-    Property resourceId : string Index 48 Read FresourceId Write SetresourceId;
-    Property resourceUri : string Index 56 Read FresourceUri Write SetresourceUri;
-    Property token : string Index 64 Read Ftoken Write Settoken;
-    Property _type : string Index 72 Read F_type Write Set_type;
-  end;
-  TChannelClass = Class of TChannel;
-  
-  { --------------------------------------------------------------------
-    TChannelparams
-    --------------------------------------------------------------------}
-  
-  TChannelparams = Class(TGoogleBaseObject)
+  TChannelTypeparams = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -607,7 +433,89 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TChannelparamsClass = Class of TChannelparams;
+  TChannelTypeparamsClass = Class of TChannelTypeparams;
+  
+  { --------------------------------------------------------------------
+    TChannel
+    --------------------------------------------------------------------}
+  
+  TChannel = Class(TGoogleBaseObject)
+  Private
+    Faddress : String;
+    Fexpiration : String;
+    Fid : String;
+    Fkind : String;
+    Fparams : TChannelTypeparams;
+    Fpayload : boolean;
+    FresourceId : String;
+    FresourceUri : String;
+    Ftoken : String;
+    F_type : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Setaddress(AIndex : Integer; AValue : String); virtual;
+    Procedure Setexpiration(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setparams(AIndex : Integer; AValue : TChannelTypeparams); virtual;
+    Procedure Setpayload(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetresourceId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetresourceUri(AIndex : Integer; AValue : String); virtual;
+    Procedure Settoken(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property address : String Index 0 Read Faddress Write Setaddress;
+    Property expiration : String Index 8 Read Fexpiration Write Setexpiration;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property params : TChannelTypeparams Index 32 Read Fparams Write Setparams;
+    Property payload : boolean Index 40 Read Fpayload Write Setpayload;
+    Property resourceId : String Index 48 Read FresourceId Write SetresourceId;
+    Property resourceUri : String Index 56 Read FresourceUri Write SetresourceUri;
+    Property token : String Index 64 Read Ftoken Write Settoken;
+    Property _type : String Index 72 Read F_type Write Set_type;
+  end;
+  TChannelClass = Class of TChannel;
+  
+  { --------------------------------------------------------------------
+    TComposeRequestTypesourceObjectsItemTypeobjectPreconditions
+    --------------------------------------------------------------------}
+  
+  TComposeRequestTypesourceObjectsItemTypeobjectPreconditions = Class(TGoogleBaseObject)
+  Private
+    FifGenerationMatch : String;
+  Protected
+    //Property setters
+    Procedure SetifGenerationMatch(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property ifGenerationMatch : String Index 0 Read FifGenerationMatch Write SetifGenerationMatch;
+  end;
+  TComposeRequestTypesourceObjectsItemTypeobjectPreconditionsClass = Class of TComposeRequestTypesourceObjectsItemTypeobjectPreconditions;
+  
+  { --------------------------------------------------------------------
+    TComposeRequestTypesourceObjectsItem
+    --------------------------------------------------------------------}
+  
+  TComposeRequestTypesourceObjectsItem = Class(TGoogleBaseObject)
+  Private
+    Fgeneration : String;
+    Fname : String;
+    FobjectPreconditions : TComposeRequestTypesourceObjectsItemTypeobjectPreconditions;
+  Protected
+    //Property setters
+    Procedure Setgeneration(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetobjectPreconditions(AIndex : Integer; AValue : TComposeRequestTypesourceObjectsItemTypeobjectPreconditions); virtual;
+  Public
+  Published
+    Property generation : String Index 0 Read Fgeneration Write Setgeneration;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property objectPreconditions : TComposeRequestTypesourceObjectsItemTypeobjectPreconditions Index 16 Read FobjectPreconditions Write SetobjectPreconditions;
+  end;
+  TComposeRequestTypesourceObjectsItemClass = Class of TComposeRequestTypesourceObjectsItem;
   
   { --------------------------------------------------------------------
     TComposeRequest
@@ -616,162 +524,26 @@ type
   TComposeRequest = Class(TGoogleBaseObject)
   Private
     Fdestination : TObject;
-    Fkind : string;
-    FsourceObjects : TComposeRequestsourceObjects;
+    Fkind : String;
+    FsourceObjects : TComposeRequestTypesourceObjectsArray;
   Protected
     //Property setters
     Procedure Setdestination(AIndex : Integer; AValue : TObject); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceObjects(AIndex : Integer; AValue : TComposeRequestsourceObjects); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceObjects(AIndex : Integer; AValue : TComposeRequestTypesourceObjectsArray); virtual;
   Public
   Published
     Property destination : TObject Index 0 Read Fdestination Write Setdestination;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property sourceObjects : TComposeRequestsourceObjects Index 16 Read FsourceObjects Write SetsourceObjects;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property sourceObjects : TComposeRequestTypesourceObjectsArray Index 16 Read FsourceObjects Write SetsourceObjects;
   end;
   TComposeRequestClass = Class of TComposeRequest;
   
   { --------------------------------------------------------------------
-    TComposeRequestsourceObjects
+    TObjectTypemetadata
     --------------------------------------------------------------------}
   
-  TComposeRequestsourceObjects = Class(TGoogleBaseObject)
-  Private
-    Fgeneration : string;
-    Fname : string;
-    FobjectPreconditions : TComposeRequestsourceObjectsobjectPreconditions;
-  Protected
-    //Property setters
-    Procedure Setgeneration(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetobjectPreconditions(AIndex : Integer; AValue : TComposeRequestsourceObjectsobjectPreconditions); virtual;
-  Public
-  Published
-    Property generation : string Index 0 Read Fgeneration Write Setgeneration;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property objectPreconditions : TComposeRequestsourceObjectsobjectPreconditions Index 16 Read FobjectPreconditions Write SetobjectPreconditions;
-  end;
-  TComposeRequestsourceObjectsClass = Class of TComposeRequestsourceObjects;
-  
-  { --------------------------------------------------------------------
-    TComposeRequestsourceObjectsobjectPreconditions
-    --------------------------------------------------------------------}
-  
-  TComposeRequestsourceObjectsobjectPreconditions = Class(TGoogleBaseObject)
-  Private
-    FifGenerationMatch : string;
-  Protected
-    //Property setters
-    Procedure SetifGenerationMatch(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property ifGenerationMatch : string Index 0 Read FifGenerationMatch Write SetifGenerationMatch;
-  end;
-  TComposeRequestsourceObjectsobjectPreconditionsClass = Class of TComposeRequestsourceObjectsobjectPreconditions;
-  
-  { --------------------------------------------------------------------
-    TObject
-    --------------------------------------------------------------------}
-  
-  TObject = Class(TGoogleBaseObject)
-  Private
-    Facl : TObjectacl;
-    Fbucket : string;
-    FcacheControl : string;
-    FcomponentCount : integer;
-    FcontentDisposition : string;
-    FcontentEncoding : string;
-    FcontentLanguage : string;
-    FcontentType : string;
-    Fcrc32c : string;
-    Fetag : string;
-    Fgeneration : string;
-    Fid : string;
-    Fkind : string;
-    Fmd5Hash : string;
-    FmediaLink : string;
-    Fmetadata : TObjectmetadata;
-    Fmetageneration : string;
-    Fname : string;
-    Fowner : TObjectowner;
-    FselfLink : string;
-    Fsize : string;
-    FstorageClass : string;
-    FtimeDeleted : TDatetime;
-    Fupdated : TDatetime;
-  Protected
-    //Property setters
-    Procedure Setacl(AIndex : Integer; AValue : TObjectacl); virtual;
-    Procedure Setbucket(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcacheControl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcomponentCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetcontentDisposition(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontentEncoding(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontentLanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontentType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcrc32c(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setgeneration(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmd5Hash(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmediaLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmetadata(AIndex : Integer; AValue : TObjectmetadata); virtual;
-    Procedure Setmetageneration(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setowner(AIndex : Integer; AValue : TObjectowner); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsize(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstorageClass(AIndex : Integer; AValue : string); virtual;
-    Procedure SettimeDeleted(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-  Public
-  Published
-    Property acl : TObjectacl Index 0 Read Facl Write Setacl;
-    Property bucket : string Index 8 Read Fbucket Write Setbucket;
-    Property cacheControl : string Index 16 Read FcacheControl Write SetcacheControl;
-    Property componentCount : integer Index 24 Read FcomponentCount Write SetcomponentCount;
-    Property contentDisposition : string Index 32 Read FcontentDisposition Write SetcontentDisposition;
-    Property contentEncoding : string Index 40 Read FcontentEncoding Write SetcontentEncoding;
-    Property contentLanguage : string Index 48 Read FcontentLanguage Write SetcontentLanguage;
-    Property contentType : string Index 56 Read FcontentType Write SetcontentType;
-    Property crc32c : string Index 64 Read Fcrc32c Write Setcrc32c;
-    Property etag : string Index 72 Read Fetag Write Setetag;
-    Property generation : string Index 80 Read Fgeneration Write Setgeneration;
-    Property id : string Index 88 Read Fid Write Setid;
-    Property kind : string Index 96 Read Fkind Write Setkind;
-    Property md5Hash : string Index 104 Read Fmd5Hash Write Setmd5Hash;
-    Property mediaLink : string Index 112 Read FmediaLink Write SetmediaLink;
-    Property metadata : TObjectmetadata Index 120 Read Fmetadata Write Setmetadata;
-    Property metageneration : string Index 128 Read Fmetageneration Write Setmetageneration;
-    Property name : string Index 136 Read Fname Write Setname;
-    Property owner : TObjectowner Index 144 Read Fowner Write Setowner;
-    Property selfLink : string Index 152 Read FselfLink Write SetselfLink;
-    Property size : string Index 160 Read Fsize Write Setsize;
-    Property storageClass : string Index 168 Read FstorageClass Write SetstorageClass;
-    Property timeDeleted : TDatetime Index 176 Read FtimeDeleted Write SettimeDeleted;
-    Property updated : TDatetime Index 184 Read Fupdated Write Setupdated;
-  end;
-  TObjectClass = Class of TObject;
-  
-  { --------------------------------------------------------------------
-    TObjectacl
-    --------------------------------------------------------------------}
-  
-  TObjectacl = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TObjectaclClass = Class of TObjectacl;
-  
-  { --------------------------------------------------------------------
-    TObjectmetadata
-    --------------------------------------------------------------------}
-  
-  TObjectmetadata = Class(TGoogleBaseObject)
+  TObjectTypemetadata = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -779,26 +551,130 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TObjectmetadataClass = Class of TObjectmetadata;
+  TObjectTypemetadataClass = Class of TObjectTypemetadata;
   
   { --------------------------------------------------------------------
-    TObjectowner
+    TObjectTypeowner
     --------------------------------------------------------------------}
   
-  TObjectowner = Class(TGoogleBaseObject)
+  TObjectTypeowner = Class(TGoogleBaseObject)
   Private
-    Fentity : string;
-    FentityId : string;
+    Fentity : String;
+    FentityId : String;
   Protected
     //Property setters
-    Procedure Setentity(AIndex : Integer; AValue : string); virtual;
-    Procedure SetentityId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setentity(AIndex : Integer; AValue : String); virtual;
+    Procedure SetentityId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property entity : string Index 0 Read Fentity Write Setentity;
-    Property entityId : string Index 8 Read FentityId Write SetentityId;
+    Property entity : String Index 0 Read Fentity Write Setentity;
+    Property entityId : String Index 8 Read FentityId Write SetentityId;
   end;
-  TObjectownerClass = Class of TObjectowner;
+  TObjectTypeownerClass = Class of TObjectTypeowner;
+  
+  { --------------------------------------------------------------------
+    TObject
+    --------------------------------------------------------------------}
+  
+  TObject = Class(TGoogleBaseObject)
+  Private
+    Facl : TObjectTypeaclArray;
+    Fbucket : String;
+    FcacheControl : String;
+    FcomponentCount : integer;
+    FcontentDisposition : String;
+    FcontentEncoding : String;
+    FcontentLanguage : String;
+    FcontentType : String;
+    Fcrc32c : String;
+    Fetag : String;
+    Fgeneration : String;
+    Fid : String;
+    Fkind : String;
+    Fmd5Hash : String;
+    FmediaLink : String;
+    Fmetadata : TObjectTypemetadata;
+    Fmetageneration : String;
+    Fname : String;
+    Fowner : TObjectTypeowner;
+    FselfLink : String;
+    Fsize : String;
+    FstorageClass : String;
+    FtimeDeleted : TDatetime;
+    Fupdated : TDatetime;
+  Protected
+    //Property setters
+    Procedure Setacl(AIndex : Integer; AValue : TObjectTypeaclArray); virtual;
+    Procedure Setbucket(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcacheControl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcomponentCount(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcontentDisposition(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontentEncoding(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontentLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontentType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcrc32c(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setgeneration(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmd5Hash(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmediaLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmetadata(AIndex : Integer; AValue : TObjectTypemetadata); virtual;
+    Procedure Setmetageneration(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setowner(AIndex : Integer; AValue : TObjectTypeowner); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsize(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstorageClass(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimeDeleted(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+  Public
+  Published
+    Property acl : TObjectTypeaclArray Index 0 Read Facl Write Setacl;
+    Property bucket : String Index 8 Read Fbucket Write Setbucket;
+    Property cacheControl : String Index 16 Read FcacheControl Write SetcacheControl;
+    Property componentCount : integer Index 24 Read FcomponentCount Write SetcomponentCount;
+    Property contentDisposition : String Index 32 Read FcontentDisposition Write SetcontentDisposition;
+    Property contentEncoding : String Index 40 Read FcontentEncoding Write SetcontentEncoding;
+    Property contentLanguage : String Index 48 Read FcontentLanguage Write SetcontentLanguage;
+    Property contentType : String Index 56 Read FcontentType Write SetcontentType;
+    Property crc32c : String Index 64 Read Fcrc32c Write Setcrc32c;
+    Property etag : String Index 72 Read Fetag Write Setetag;
+    Property generation : String Index 80 Read Fgeneration Write Setgeneration;
+    Property id : String Index 88 Read Fid Write Setid;
+    Property kind : String Index 96 Read Fkind Write Setkind;
+    Property md5Hash : String Index 104 Read Fmd5Hash Write Setmd5Hash;
+    Property mediaLink : String Index 112 Read FmediaLink Write SetmediaLink;
+    Property metadata : TObjectTypemetadata Index 120 Read Fmetadata Write Setmetadata;
+    Property metageneration : String Index 128 Read Fmetageneration Write Setmetageneration;
+    Property name : String Index 136 Read Fname Write Setname;
+    Property owner : TObjectTypeowner Index 144 Read Fowner Write Setowner;
+    Property selfLink : String Index 152 Read FselfLink Write SetselfLink;
+    Property size : String Index 160 Read Fsize Write Setsize;
+    Property storageClass : String Index 168 Read FstorageClass Write SetstorageClass;
+    Property timeDeleted : TDatetime Index 176 Read FtimeDeleted Write SettimeDeleted;
+    Property updated : TDatetime Index 184 Read Fupdated Write Setupdated;
+  end;
+  TObjectClass = Class of TObject;
+  
+  { --------------------------------------------------------------------
+    TObjectAccessControlTypeprojectTeam
+    --------------------------------------------------------------------}
+  
+  TObjectAccessControlTypeprojectTeam = Class(TGoogleBaseObject)
+  Private
+    FprojectNumber : String;
+    Fteam : String;
+  Protected
+    //Property setters
+    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure Setteam(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property projectNumber : String Index 0 Read FprojectNumber Write SetprojectNumber;
+    Property team : String Index 8 Read Fteam Write Setteam;
+  end;
+  TObjectAccessControlTypeprojectTeamClass = Class of TObjectAccessControlTypeprojectTeam;
   
   { --------------------------------------------------------------------
     TObjectAccessControl
@@ -806,71 +682,52 @@ type
   
   TObjectAccessControl = Class(TGoogleBaseObject)
   Private
-    Fbucket : string;
-    Fdomain : string;
-    Femail : string;
-    Fentity : string;
-    FentityId : string;
-    Fetag : string;
-    Fgeneration : string;
-    Fid : string;
-    Fkind : string;
-    F_object : string;
-    FprojectTeam : TObjectAccessControlprojectTeam;
-    Frole : string;
-    FselfLink : string;
+    Fbucket : String;
+    Fdomain : String;
+    Femail : String;
+    Fentity : String;
+    FentityId : String;
+    Fetag : String;
+    Fgeneration : String;
+    Fid : String;
+    Fkind : String;
+    F_object : String;
+    FprojectTeam : TObjectAccessControlTypeprojectTeam;
+    Frole : String;
+    FselfLink : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setbucket(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdomain(AIndex : Integer; AValue : string); virtual;
-    Procedure Setemail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setentity(AIndex : Integer; AValue : string); virtual;
-    Procedure SetentityId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setgeneration(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_object(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectTeam(AIndex : Integer; AValue : TObjectAccessControlprojectTeam); virtual;
-    Procedure Setrole(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setbucket(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdomain(AIndex : Integer; AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setentity(AIndex : Integer; AValue : String); virtual;
+    Procedure SetentityId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setgeneration(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_object(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectTeam(AIndex : Integer; AValue : TObjectAccessControlTypeprojectTeam); virtual;
+    Procedure Setrole(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property bucket : string Index 0 Read Fbucket Write Setbucket;
-    Property domain : string Index 8 Read Fdomain Write Setdomain;
-    Property email : string Index 16 Read Femail Write Setemail;
-    Property entity : string Index 24 Read Fentity Write Setentity;
-    Property entityId : string Index 32 Read FentityId Write SetentityId;
-    Property etag : string Index 40 Read Fetag Write Setetag;
-    Property generation : string Index 48 Read Fgeneration Write Setgeneration;
-    Property id : string Index 56 Read Fid Write Setid;
-    Property kind : string Index 64 Read Fkind Write Setkind;
-    Property _object : string Index 72 Read F_object Write Set_object;
-    Property projectTeam : TObjectAccessControlprojectTeam Index 80 Read FprojectTeam Write SetprojectTeam;
-    Property role : string Index 88 Read Frole Write Setrole;
-    Property selfLink : string Index 96 Read FselfLink Write SetselfLink;
+    Property bucket : String Index 0 Read Fbucket Write Setbucket;
+    Property domain : String Index 8 Read Fdomain Write Setdomain;
+    Property email : String Index 16 Read Femail Write Setemail;
+    Property entity : String Index 24 Read Fentity Write Setentity;
+    Property entityId : String Index 32 Read FentityId Write SetentityId;
+    Property etag : String Index 40 Read Fetag Write Setetag;
+    Property generation : String Index 48 Read Fgeneration Write Setgeneration;
+    Property id : String Index 56 Read Fid Write Setid;
+    Property kind : String Index 64 Read Fkind Write Setkind;
+    Property _object : String Index 72 Read F_object Write Set_object;
+    Property projectTeam : TObjectAccessControlTypeprojectTeam Index 80 Read FprojectTeam Write SetprojectTeam;
+    Property role : String Index 88 Read Frole Write Setrole;
+    Property selfLink : String Index 96 Read FselfLink Write SetselfLink;
   end;
   TObjectAccessControlClass = Class of TObjectAccessControl;
-  
-  { --------------------------------------------------------------------
-    TObjectAccessControlprojectTeam
-    --------------------------------------------------------------------}
-  
-  TObjectAccessControlprojectTeam = Class(TGoogleBaseObject)
-  Private
-    FprojectNumber : string;
-    Fteam : string;
-  Protected
-    //Property setters
-    Procedure SetprojectNumber(AIndex : Integer; AValue : string); virtual;
-    Procedure Setteam(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property projectNumber : string Index 0 Read FprojectNumber Write SetprojectNumber;
-    Property team : string Index 8 Read Fteam Write Setteam;
-  end;
-  TObjectAccessControlprojectTeamClass = Class of TObjectAccessControlprojectTeam;
   
   { --------------------------------------------------------------------
     TObjectAccessControls
@@ -878,31 +735,18 @@ type
   
   TObjectAccessControls = Class(TGoogleBaseObject)
   Private
-    Fitems : TObjectAccessControlsitems;
-    Fkind : string;
+    Fitems : TTJSONSchemaArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TObjectAccessControlsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TObjectAccessControlsitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TTJSONSchemaArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TObjectAccessControlsClass = Class of TObjectAccessControls;
-  
-  { --------------------------------------------------------------------
-    TObjectAccessControlsitems
-    --------------------------------------------------------------------}
-  
-  TObjectAccessControlsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TObjectAccessControlsitemsClass = Class of TObjectAccessControlsitems;
   
   { --------------------------------------------------------------------
     TObjects
@@ -910,50 +754,24 @@ type
   
   TObjects = Class(TGoogleBaseObject)
   Private
-    Fitems : TObjectsitems;
-    Fkind : string;
-    FnextPageToken : string;
-    Fprefixes : TObjectsprefixes;
+    Fitems : TObjectsTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    Fprefixes : TStringArray;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TObjectsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setprefixes(AIndex : Integer; AValue : TObjectsprefixes); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TObjectsTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setprefixes(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property items : TObjectsitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
-    Property prefixes : TObjectsprefixes Index 24 Read Fprefixes Write Setprefixes;
+    Property items : TObjectsTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property prefixes : TStringArray Index 24 Read Fprefixes Write Setprefixes;
   end;
   TObjectsClass = Class of TObjects;
-  
-  { --------------------------------------------------------------------
-    TObjectsitems
-    --------------------------------------------------------------------}
-  
-  TObjectsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TObjectsitemsClass = Class of TObjectsitems;
-  
-  { --------------------------------------------------------------------
-    TObjectsprefixes
-    --------------------------------------------------------------------}
-  
-  TObjectsprefixes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TObjectsprefixesClass = Class of TObjectsprefixes;
   
   { --------------------------------------------------------------------
     TRewriteResponse
@@ -962,27 +780,27 @@ type
   TRewriteResponse = Class(TGoogleBaseObject)
   Private
     Fdone : boolean;
-    Fkind : string;
-    FobjectSize : string;
+    Fkind : String;
+    FobjectSize : String;
     Fresource : TObject;
-    FrewriteToken : string;
-    FtotalBytesRewritten : string;
+    FrewriteToken : String;
+    FtotalBytesRewritten : String;
   Protected
     //Property setters
     Procedure Setdone(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetobjectSize(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetobjectSize(AIndex : Integer; AValue : String); virtual;
     Procedure Setresource(AIndex : Integer; AValue : TObject); virtual;
-    Procedure SetrewriteToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalBytesRewritten(AIndex : Integer; AValue : string); virtual;
+    Procedure SetrewriteToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SettotalBytesRewritten(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property done : boolean Index 0 Read Fdone Write Setdone;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property objectSize : string Index 16 Read FobjectSize Write SetobjectSize;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property objectSize : String Index 16 Read FobjectSize Write SetobjectSize;
     Property resource : TObject Index 24 Read Fresource Write Setresource;
-    Property rewriteToken : string Index 32 Read FrewriteToken Write SetrewriteToken;
-    Property totalBytesRewritten : string Index 40 Read FtotalBytesRewritten Write SettotalBytesRewritten;
+    Property rewriteToken : String Index 32 Read FrewriteToken Write SetrewriteToken;
+    Property totalBytesRewritten : String Index 40 Read FtotalBytesRewritten Write SettotalBytesRewritten;
   end;
   TRewriteResponseClass = Class of TRewriteResponse;
   
@@ -1021,17 +839,17 @@ type
   TBucketsGetOptions = Record
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
-    projection : string;
+    projection : String;
   end;
   
   
   //Optional query Options for TBucketsResource, method Insert
   
   TBucketsInsertOptions = Record
-    predefinedAcl : string;
-    predefinedDefaultObjectAcl : string;
-    project : string;
-    projection : string;
+    predefinedAcl : String;
+    predefinedDefaultObjectAcl : String;
+    project : String;
+    projection : String;
   end;
   
   
@@ -1039,10 +857,10 @@ type
   
   TBucketsListOptions = Record
     maxResults : integer;
-    pageToken : string;
-    prefix : string;
-    project : string;
-    projection : string;
+    pageToken : String;
+    prefix : String;
+    project : String;
+    projection : String;
   end;
   
   
@@ -1051,9 +869,9 @@ type
   TBucketsPatchOptions = Record
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
-    predefinedAcl : string;
-    predefinedDefaultObjectAcl : string;
-    projection : string;
+    predefinedAcl : String;
+    predefinedDefaultObjectAcl : String;
+    projection : String;
   end;
   
   
@@ -1062,9 +880,9 @@ type
   TBucketsUpdateOptions = Record
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
-    predefinedAcl : string;
-    predefinedDefaultObjectAcl : string;
-    projection : string;
+    predefinedAcl : String;
+    predefinedDefaultObjectAcl : String;
+    projection : String;
   end;
   
   TBucketsResource = Class(TGoogleResource)
@@ -1197,7 +1015,7 @@ type
   //Optional query Options for TObjectsResource, method Compose
   
   TObjectsComposeOptions = Record
-    destinationPredefinedAcl : string;
+    destinationPredefinedAcl : String;
     ifGenerationMatch : int64;
     ifMetagenerationMatch : int64;
   end;
@@ -1206,7 +1024,7 @@ type
   //Optional query Options for TObjectsResource, method Copy
   
   TObjectsCopyOptions = Record
-    destinationPredefinedAcl : string;
+    destinationPredefinedAcl : String;
     ifGenerationMatch : int64;
     ifGenerationNotMatch : int64;
     ifMetagenerationMatch : int64;
@@ -1215,7 +1033,7 @@ type
     ifSourceGenerationNotMatch : int64;
     ifSourceMetagenerationMatch : int64;
     ifSourceMetagenerationNotMatch : int64;
-    projection : string;
+    projection : String;
     sourceGeneration : int64;
   end;
   
@@ -1239,32 +1057,32 @@ type
     ifGenerationNotMatch : int64;
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
-    projection : string;
+    projection : String;
   end;
   
   
   //Optional query Options for TObjectsResource, method Insert
   
   TObjectsInsertOptions = Record
-    contentEncoding : string;
+    contentEncoding : String;
     ifGenerationMatch : int64;
     ifGenerationNotMatch : int64;
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
-    _name : string;
-    predefinedAcl : string;
-    projection : string;
+    _name : String;
+    predefinedAcl : String;
+    projection : String;
   end;
   
   
   //Optional query Options for TObjectsResource, method List
   
   TObjectsListOptions = Record
-    delimiter : string;
+    delimiter : String;
     maxResults : integer;
-    pageToken : string;
-    prefix : string;
-    projection : string;
+    pageToken : String;
+    prefix : String;
+    projection : String;
     versions : boolean;
   end;
   
@@ -1277,15 +1095,15 @@ type
     ifGenerationNotMatch : int64;
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
-    predefinedAcl : string;
-    projection : string;
+    predefinedAcl : String;
+    projection : String;
   end;
   
   
   //Optional query Options for TObjectsResource, method Rewrite
   
   TObjectsRewriteOptions = Record
-    destinationPredefinedAcl : string;
+    destinationPredefinedAcl : String;
     ifGenerationMatch : int64;
     ifGenerationNotMatch : int64;
     ifMetagenerationMatch : int64;
@@ -1295,8 +1113,8 @@ type
     ifSourceMetagenerationMatch : int64;
     ifSourceMetagenerationNotMatch : int64;
     maxBytesRewrittenPerCall : int64;
-    projection : string;
-    rewriteToken : string;
+    projection : String;
+    rewriteToken : String;
     sourceGeneration : int64;
   end;
   
@@ -1309,19 +1127,19 @@ type
     ifGenerationNotMatch : int64;
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
-    predefinedAcl : string;
-    projection : string;
+    predefinedAcl : String;
+    projection : String;
   end;
   
   
   //Optional query Options for TObjectsResource, method WatchAll
   
   TObjectsWatchAllOptions = Record
-    delimiter : string;
+    delimiter : String;
     maxResults : integer;
-    pageToken : string;
-    prefix : string;
-    projection : string;
+    pageToken : String;
+    prefix : String;
+    projection : String;
     versions : boolean;
   end;
   
@@ -1418,11 +1236,275 @@ implementation
 
 
 { --------------------------------------------------------------------
+  TBucketTypecorsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TBucketTypecorsItem.SetmaxAgeSeconds(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FmaxAgeSeconds=AValue) then exit;
+  FmaxAgeSeconds:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketTypecorsItem.Setmethod(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (Fmethod=AValue) then exit;
+  Fmethod:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketTypecorsItem.Setorigin(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (Forigin=AValue) then exit;
+  Forigin:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketTypecorsItem.SetresponseHeader(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (FresponseHeader=AValue) then exit;
+  FresponseHeader:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBucketTypelifecycleTyperuleItemTypeaction
+  --------------------------------------------------------------------}
+
+
+Procedure TBucketTypelifecycleTyperuleItemTypeaction.Set_type(AIndex : Integer; AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TBucketTypelifecycleTyperuleItemTypeaction.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TBucketTypelifecycleTyperuleItemTypecondition
+  --------------------------------------------------------------------}
+
+
+Procedure TBucketTypelifecycleTyperuleItemTypecondition.Setage(AIndex : Integer; AValue : integer); 
+
+begin
+  If (Fage=AValue) then exit;
+  Fage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetcreatedBefore(AIndex : Integer; AValue : TDate); 
+
+begin
+  If (FcreatedBefore=AValue) then exit;
+  FcreatedBefore:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetisLive(AIndex : Integer; AValue : boolean); 
+
+begin
+  If (FisLive=AValue) then exit;
+  FisLive:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetnumNewerVersions(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FnumNewerVersions=AValue) then exit;
+  FnumNewerVersions:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBucketTypelifecycleTyperuleItem
+  --------------------------------------------------------------------}
+
+
+Procedure TBucketTypelifecycleTyperuleItem.Setaction(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleItemTypeaction); 
+
+begin
+  If (Faction=AValue) then exit;
+  Faction:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketTypelifecycleTyperuleItem.Setcondition(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleItemTypecondition); 
+
+begin
+  If (Fcondition=AValue) then exit;
+  Fcondition:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBucketTypelifecycle
+  --------------------------------------------------------------------}
+
+
+Procedure TBucketTypelifecycle.Setrule(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleArray); 
+
+begin
+  If (Frule=AValue) then exit;
+  Frule:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBucketTypelogging
+  --------------------------------------------------------------------}
+
+
+Procedure TBucketTypelogging.SetlogBucket(AIndex : Integer; AValue : String); 
+
+begin
+  If (FlogBucket=AValue) then exit;
+  FlogBucket:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketTypelogging.SetlogObjectPrefix(AIndex : Integer; AValue : String); 
+
+begin
+  If (FlogObjectPrefix=AValue) then exit;
+  FlogObjectPrefix:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBucketTypeowner
+  --------------------------------------------------------------------}
+
+
+Procedure TBucketTypeowner.Setentity(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fentity=AValue) then exit;
+  Fentity:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketTypeowner.SetentityId(AIndex : Integer; AValue : String); 
+
+begin
+  If (FentityId=AValue) then exit;
+  FentityId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBucketTypeversioning
+  --------------------------------------------------------------------}
+
+
+Procedure TBucketTypeversioning.Setenabled(AIndex : Integer; AValue : boolean); 
+
+begin
+  If (Fenabled=AValue) then exit;
+  Fenabled:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBucketTypewebsite
+  --------------------------------------------------------------------}
+
+
+Procedure TBucketTypewebsite.SetmainPageSuffix(AIndex : Integer; AValue : String); 
+
+begin
+  If (FmainPageSuffix=AValue) then exit;
+  FmainPageSuffix:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketTypewebsite.SetnotFoundPage(AIndex : Integer; AValue : String); 
+
+begin
+  If (FnotFoundPage=AValue) then exit;
+  FnotFoundPage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TBucket
   --------------------------------------------------------------------}
 
 
-Procedure TBucket.Setacl(AIndex : Integer; AValue : TBucketacl); 
+Procedure TBucket.Setacl(AIndex : Integer; AValue : TBucketTypeaclArray); 
 
 begin
   If (Facl=AValue) then exit;
@@ -1432,7 +1514,7 @@ end;
 
 
 
-Procedure TBucket.Setcors(AIndex : Integer; AValue : TBucketcors); 
+Procedure TBucket.Setcors(AIndex : Integer; AValue : TBucketTypecorsArray); 
 
 begin
   If (Fcors=AValue) then exit;
@@ -1442,7 +1524,7 @@ end;
 
 
 
-Procedure TBucket.SetdefaultObjectAcl(AIndex : Integer; AValue : TBucketdefaultObjectAcl); 
+Procedure TBucket.SetdefaultObjectAcl(AIndex : Integer; AValue : TBucketTypedefaultObjectAclArray); 
 
 begin
   If (FdefaultObjectAcl=AValue) then exit;
@@ -1452,7 +1534,7 @@ end;
 
 
 
-Procedure TBucket.Setetag(AIndex : Integer; AValue : string); 
+Procedure TBucket.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1462,7 +1544,7 @@ end;
 
 
 
-Procedure TBucket.Setid(AIndex : Integer; AValue : string); 
+Procedure TBucket.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1472,7 +1554,7 @@ end;
 
 
 
-Procedure TBucket.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBucket.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1482,7 +1564,7 @@ end;
 
 
 
-Procedure TBucket.Setlifecycle(AIndex : Integer; AValue : TBucketlifecycle); 
+Procedure TBucket.Setlifecycle(AIndex : Integer; AValue : TBucketTypelifecycle); 
 
 begin
   If (Flifecycle=AValue) then exit;
@@ -1492,7 +1574,7 @@ end;
 
 
 
-Procedure TBucket.Setlocation(AIndex : Integer; AValue : string); 
+Procedure TBucket.Setlocation(AIndex : Integer; AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -1502,7 +1584,7 @@ end;
 
 
 
-Procedure TBucket.Setlogging(AIndex : Integer; AValue : TBucketlogging); 
+Procedure TBucket.Setlogging(AIndex : Integer; AValue : TBucketTypelogging); 
 
 begin
   If (Flogging=AValue) then exit;
@@ -1512,7 +1594,7 @@ end;
 
 
 
-Procedure TBucket.Setmetageneration(AIndex : Integer; AValue : string); 
+Procedure TBucket.Setmetageneration(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmetageneration=AValue) then exit;
@@ -1522,7 +1604,7 @@ end;
 
 
 
-Procedure TBucket.Setname(AIndex : Integer; AValue : string); 
+Procedure TBucket.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1532,7 +1614,7 @@ end;
 
 
 
-Procedure TBucket.Setowner(AIndex : Integer; AValue : TBucketowner); 
+Procedure TBucket.Setowner(AIndex : Integer; AValue : TBucketTypeowner); 
 
 begin
   If (Fowner=AValue) then exit;
@@ -1542,7 +1624,7 @@ end;
 
 
 
-Procedure TBucket.SetprojectNumber(AIndex : Integer; AValue : string); 
+Procedure TBucket.SetprojectNumber(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -1552,7 +1634,7 @@ end;
 
 
 
-Procedure TBucket.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TBucket.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1562,7 +1644,7 @@ end;
 
 
 
-Procedure TBucket.SetstorageClass(AIndex : Integer; AValue : string); 
+Procedure TBucket.SetstorageClass(AIndex : Integer; AValue : String); 
 
 begin
   If (FstorageClass=AValue) then exit;
@@ -1582,7 +1664,7 @@ end;
 
 
 
-Procedure TBucket.Setversioning(AIndex : Integer; AValue : TBucketversioning); 
+Procedure TBucket.Setversioning(AIndex : Integer; AValue : TBucketTypeversioning); 
 
 begin
   If (Fversioning=AValue) then exit;
@@ -1592,7 +1674,7 @@ end;
 
 
 
-Procedure TBucket.Setwebsite(AIndex : Integer; AValue : TBucketwebsite); 
+Procedure TBucket.Setwebsite(AIndex : Integer; AValue : TBucketTypewebsite); 
 
 begin
   If (Fwebsite=AValue) then exit;
@@ -1605,427 +1687,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TBucketacl
+  TBucketAccessControlTypeprojectTeam
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TBucketcors
-  --------------------------------------------------------------------}
-
-
-Procedure TBucketcors.SetmaxAgeSeconds(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FmaxAgeSeconds=AValue) then exit;
-  FmaxAgeSeconds:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketcors.Setmethod(AIndex : Integer; AValue : TBucketcorsmethod); 
-
-begin
-  If (Fmethod=AValue) then exit;
-  Fmethod:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketcors.Setorigin(AIndex : Integer; AValue : TBucketcorsorigin); 
-
-begin
-  If (Forigin=AValue) then exit;
-  Forigin:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketcors.SetresponseHeader(AIndex : Integer; AValue : TBucketcorsresponseHeader); 
-
-begin
-  If (FresponseHeader=AValue) then exit;
-  FresponseHeader:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketcorsmethod
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketcorsorigin
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketcorsresponseHeader
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketdefaultObjectAcl
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketlifecycle
-  --------------------------------------------------------------------}
-
-
-Procedure TBucketlifecycle.Setrule(AIndex : Integer; AValue : TBucketlifecyclerule); 
-
-begin
-  If (Frule=AValue) then exit;
-  Frule:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketlifecyclerule
-  --------------------------------------------------------------------}
-
-
-Procedure TBucketlifecyclerule.Setaction(AIndex : Integer; AValue : TBucketlifecycleruleaction); 
-
-begin
-  If (Faction=AValue) then exit;
-  Faction:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketlifecyclerule.Setcondition(AIndex : Integer; AValue : TBucketlifecyclerulecondition); 
-
-begin
-  If (Fcondition=AValue) then exit;
-  Fcondition:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketlifecycleruleaction
-  --------------------------------------------------------------------}
-
-
-Procedure TBucketlifecycleruleaction.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TBucketlifecycleruleaction.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketlifecyclerulecondition
-  --------------------------------------------------------------------}
-
-
-Procedure TBucketlifecyclerulecondition.Setage(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fage=AValue) then exit;
-  Fage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketlifecyclerulecondition.SetcreatedBefore(AIndex : Integer; AValue : TDate); 
-
-begin
-  If (FcreatedBefore=AValue) then exit;
-  FcreatedBefore:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketlifecyclerulecondition.SetisLive(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FisLive=AValue) then exit;
-  FisLive:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketlifecyclerulecondition.SetnumNewerVersions(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FnumNewerVersions=AValue) then exit;
-  FnumNewerVersions:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketlogging
-  --------------------------------------------------------------------}
-
-
-Procedure TBucketlogging.SetlogBucket(AIndex : Integer; AValue : string); 
-
-begin
-  If (FlogBucket=AValue) then exit;
-  FlogBucket:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketlogging.SetlogObjectPrefix(AIndex : Integer; AValue : string); 
-
-begin
-  If (FlogObjectPrefix=AValue) then exit;
-  FlogObjectPrefix:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketowner
-  --------------------------------------------------------------------}
-
-
-Procedure TBucketowner.Setentity(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fentity=AValue) then exit;
-  Fentity:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketowner.SetentityId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FentityId=AValue) then exit;
-  FentityId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketversioning
-  --------------------------------------------------------------------}
-
-
-Procedure TBucketversioning.Setenabled(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (Fenabled=AValue) then exit;
-  Fenabled:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketwebsite
-  --------------------------------------------------------------------}
-
-
-Procedure TBucketwebsite.SetmainPageSuffix(AIndex : Integer; AValue : string); 
-
-begin
-  If (FmainPageSuffix=AValue) then exit;
-  FmainPageSuffix:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketwebsite.SetnotFoundPage(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnotFoundPage=AValue) then exit;
-  FnotFoundPage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketAccessControl
-  --------------------------------------------------------------------}
-
-
-Procedure TBucketAccessControl.Setbucket(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fbucket=AValue) then exit;
-  Fbucket:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketAccessControl.Setdomain(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdomain=AValue) then exit;
-  Fdomain:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketAccessControl.Setemail(AIndex : Integer; AValue : string); 
-
-begin
-  If (Femail=AValue) then exit;
-  Femail:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketAccessControl.Setentity(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fentity=AValue) then exit;
-  Fentity:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketAccessControl.SetentityId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FentityId=AValue) then exit;
-  FentityId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketAccessControl.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketAccessControl.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketAccessControl.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketAccessControl.SetprojectTeam(AIndex : Integer; AValue : TBucketAccessControlprojectTeam); 
-
-begin
-  If (FprojectTeam=AValue) then exit;
-  FprojectTeam:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketAccessControl.Setrole(AIndex : Integer; AValue : string); 
-
-begin
-  If (Frole=AValue) then exit;
-  Frole:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBucketAccessControl.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBucketAccessControlprojectTeam
-  --------------------------------------------------------------------}
-
-
-Procedure TBucketAccessControlprojectTeam.SetprojectNumber(AIndex : Integer; AValue : string); 
+Procedure TBucketAccessControlTypeprojectTeam.SetprojectNumber(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -2035,7 +1701,7 @@ end;
 
 
 
-Procedure TBucketAccessControlprojectTeam.Setteam(AIndex : Integer; AValue : string); 
+Procedure TBucketAccessControlTypeprojectTeam.Setteam(AIndex : Integer; AValue : String); 
 
 begin
   If (Fteam=AValue) then exit;
@@ -2048,21 +1714,81 @@ end;
 
 
 { --------------------------------------------------------------------
-  TBucketAccessControls
+  TBucketAccessControl
   --------------------------------------------------------------------}
 
 
-Procedure TBucketAccessControls.Setitems(AIndex : Integer; AValue : TBucketAccessControlsitems); 
+Procedure TBucketAccessControl.Setbucket(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
+  If (Fbucket=AValue) then exit;
+  Fbucket:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TBucketAccessControls.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBucketAccessControl.Setdomain(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fdomain=AValue) then exit;
+  Fdomain:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketAccessControl.Setemail(AIndex : Integer; AValue : String); 
+
+begin
+  If (Femail=AValue) then exit;
+  Femail:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketAccessControl.Setentity(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fentity=AValue) then exit;
+  Fentity:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketAccessControl.SetentityId(AIndex : Integer; AValue : String); 
+
+begin
+  If (FentityId=AValue) then exit;
+  FentityId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketAccessControl.Setetag(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fetag=AValue) then exit;
+  Fetag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketAccessControl.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketAccessControl.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2072,11 +1798,61 @@ end;
 
 
 
+Procedure TBucketAccessControl.SetprojectTeam(AIndex : Integer; AValue : TBucketAccessControlTypeprojectTeam); 
+
+begin
+  If (FprojectTeam=AValue) then exit;
+  FprojectTeam:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketAccessControl.Setrole(AIndex : Integer; AValue : String); 
+
+begin
+  If (Frole=AValue) then exit;
+  Frole:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketAccessControl.SetselfLink(AIndex : Integer; AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 
 
 { --------------------------------------------------------------------
-  TBucketAccessControlsitems
+  TBucketAccessControls
   --------------------------------------------------------------------}
+
+
+Procedure TBucketAccessControls.Setitems(AIndex : Integer; AValue : TBucketAccessControlsTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketAccessControls.Setkind(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -2086,7 +1862,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBuckets.Setitems(AIndex : Integer; AValue : TBucketsitems); 
+Procedure TBuckets.Setitems(AIndex : Integer; AValue : TBucketsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2096,7 +1872,7 @@ end;
 
 
 
-Procedure TBuckets.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBuckets.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2106,7 +1882,7 @@ end;
 
 
 
-Procedure TBuckets.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TBuckets.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2119,9 +1895,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TBucketsitems
+  TChannelTypeparams
   --------------------------------------------------------------------}
 
+
+Class Function TChannelTypeparams.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -2130,7 +1912,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannel.Setaddress(AIndex : Integer; AValue : string); 
+Procedure TChannel.Setaddress(AIndex : Integer; AValue : String); 
 
 begin
   If (Faddress=AValue) then exit;
@@ -2140,7 +1922,7 @@ end;
 
 
 
-Procedure TChannel.Setexpiration(AIndex : Integer; AValue : string); 
+Procedure TChannel.Setexpiration(AIndex : Integer; AValue : String); 
 
 begin
   If (Fexpiration=AValue) then exit;
@@ -2150,7 +1932,7 @@ end;
 
 
 
-Procedure TChannel.Setid(AIndex : Integer; AValue : string); 
+Procedure TChannel.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2160,7 +1942,7 @@ end;
 
 
 
-Procedure TChannel.Setkind(AIndex : Integer; AValue : string); 
+Procedure TChannel.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2170,7 +1952,7 @@ end;
 
 
 
-Procedure TChannel.Setparams(AIndex : Integer; AValue : TChannelparams); 
+Procedure TChannel.Setparams(AIndex : Integer; AValue : TChannelTypeparams); 
 
 begin
   If (Fparams=AValue) then exit;
@@ -2190,7 +1972,7 @@ end;
 
 
 
-Procedure TChannel.SetresourceId(AIndex : Integer; AValue : string); 
+Procedure TChannel.SetresourceId(AIndex : Integer; AValue : String); 
 
 begin
   If (FresourceId=AValue) then exit;
@@ -2200,7 +1982,7 @@ end;
 
 
 
-Procedure TChannel.SetresourceUri(AIndex : Integer; AValue : string); 
+Procedure TChannel.SetresourceUri(AIndex : Integer; AValue : String); 
 
 begin
   If (FresourceUri=AValue) then exit;
@@ -2210,7 +1992,7 @@ end;
 
 
 
-Procedure TChannel.Settoken(AIndex : Integer; AValue : string); 
+Procedure TChannel.Settoken(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftoken=AValue) then exit;
@@ -2220,7 +2002,7 @@ end;
 
 
 
-Procedure TChannel.Set_type(AIndex : Integer; AValue : string); 
+Procedure TChannel.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2244,15 +2026,56 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChannelparams
+  TComposeRequestTypesourceObjectsItemTypeobjectPreconditions
   --------------------------------------------------------------------}
 
 
-Class Function TChannelparams.AllowAdditionalProperties : Boolean;
+Procedure TComposeRequestTypesourceObjectsItemTypeobjectPreconditions.SetifGenerationMatch(AIndex : Integer; AValue : String); 
 
 begin
-  Result:=True;
+  If (FifGenerationMatch=AValue) then exit;
+  FifGenerationMatch:=AValue;
+  MarkPropertyChanged(AIndex);
 end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TComposeRequestTypesourceObjectsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TComposeRequestTypesourceObjectsItem.Setgeneration(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fgeneration=AValue) then exit;
+  Fgeneration:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TComposeRequestTypesourceObjectsItem.Setname(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TComposeRequestTypesourceObjectsItem.SetobjectPreconditions(AIndex : Integer; AValue : TComposeRequestTypesourceObjectsItemTypeobjectPreconditions); 
+
+begin
+  If (FobjectPreconditions=AValue) then exit;
+  FobjectPreconditions:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
 
 
 
@@ -2271,7 +2094,7 @@ end;
 
 
 
-Procedure TComposeRequest.Setkind(AIndex : Integer; AValue : string); 
+Procedure TComposeRequest.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2281,7 +2104,7 @@ end;
 
 
 
-Procedure TComposeRequest.SetsourceObjects(AIndex : Integer; AValue : TComposeRequestsourceObjects); 
+Procedure TComposeRequest.SetsourceObjects(AIndex : Integer; AValue : TComposeRequestTypesourceObjectsArray); 
 
 begin
   If (FsourceObjects=AValue) then exit;
@@ -2294,52 +2117,38 @@ end;
 
 
 { --------------------------------------------------------------------
-  TComposeRequestsourceObjects
+  TObjectTypemetadata
   --------------------------------------------------------------------}
 
 
-Procedure TComposeRequestsourceObjects.Setgeneration(AIndex : Integer; AValue : string); 
+Class Function TObjectTypemetadata.AllowAdditionalProperties : Boolean;
 
 begin
-  If (Fgeneration=AValue) then exit;
-  Fgeneration:=AValue;
-  MarkPropertyChanged(AIndex);
+  Result:=True;
 end;
-
-
-
-Procedure TComposeRequestsourceObjects.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TComposeRequestsourceObjects.SetobjectPreconditions(AIndex : Integer; AValue : TComposeRequestsourceObjectsobjectPreconditions); 
-
-begin
-  If (FobjectPreconditions=AValue) then exit;
-  FobjectPreconditions:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
 
 
 
 { --------------------------------------------------------------------
-  TComposeRequestsourceObjectsobjectPreconditions
+  TObjectTypeowner
   --------------------------------------------------------------------}
 
 
-Procedure TComposeRequestsourceObjectsobjectPreconditions.SetifGenerationMatch(AIndex : Integer; AValue : string); 
+Procedure TObjectTypeowner.Setentity(AIndex : Integer; AValue : String); 
 
 begin
-  If (FifGenerationMatch=AValue) then exit;
-  FifGenerationMatch:=AValue;
+  If (Fentity=AValue) then exit;
+  Fentity:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TObjectTypeowner.SetentityId(AIndex : Integer; AValue : String); 
+
+begin
+  If (FentityId=AValue) then exit;
+  FentityId:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -2352,7 +2161,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObject.Setacl(AIndex : Integer; AValue : TObjectacl); 
+Procedure TObject.Setacl(AIndex : Integer; AValue : TObjectTypeaclArray); 
 
 begin
   If (Facl=AValue) then exit;
@@ -2362,7 +2171,7 @@ end;
 
 
 
-Procedure TObject.Setbucket(AIndex : Integer; AValue : string); 
+Procedure TObject.Setbucket(AIndex : Integer; AValue : String); 
 
 begin
   If (Fbucket=AValue) then exit;
@@ -2372,7 +2181,7 @@ end;
 
 
 
-Procedure TObject.SetcacheControl(AIndex : Integer; AValue : string); 
+Procedure TObject.SetcacheControl(AIndex : Integer; AValue : String); 
 
 begin
   If (FcacheControl=AValue) then exit;
@@ -2392,7 +2201,7 @@ end;
 
 
 
-Procedure TObject.SetcontentDisposition(AIndex : Integer; AValue : string); 
+Procedure TObject.SetcontentDisposition(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontentDisposition=AValue) then exit;
@@ -2402,7 +2211,7 @@ end;
 
 
 
-Procedure TObject.SetcontentEncoding(AIndex : Integer; AValue : string); 
+Procedure TObject.SetcontentEncoding(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontentEncoding=AValue) then exit;
@@ -2412,7 +2221,7 @@ end;
 
 
 
-Procedure TObject.SetcontentLanguage(AIndex : Integer; AValue : string); 
+Procedure TObject.SetcontentLanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontentLanguage=AValue) then exit;
@@ -2422,7 +2231,7 @@ end;
 
 
 
-Procedure TObject.SetcontentType(AIndex : Integer; AValue : string); 
+Procedure TObject.SetcontentType(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontentType=AValue) then exit;
@@ -2432,7 +2241,7 @@ end;
 
 
 
-Procedure TObject.Setcrc32c(AIndex : Integer; AValue : string); 
+Procedure TObject.Setcrc32c(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcrc32c=AValue) then exit;
@@ -2442,7 +2251,7 @@ end;
 
 
 
-Procedure TObject.Setetag(AIndex : Integer; AValue : string); 
+Procedure TObject.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2452,7 +2261,7 @@ end;
 
 
 
-Procedure TObject.Setgeneration(AIndex : Integer; AValue : string); 
+Procedure TObject.Setgeneration(AIndex : Integer; AValue : String); 
 
 begin
   If (Fgeneration=AValue) then exit;
@@ -2462,7 +2271,7 @@ end;
 
 
 
-Procedure TObject.Setid(AIndex : Integer; AValue : string); 
+Procedure TObject.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2472,7 +2281,7 @@ end;
 
 
 
-Procedure TObject.Setkind(AIndex : Integer; AValue : string); 
+Procedure TObject.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2482,7 +2291,7 @@ end;
 
 
 
-Procedure TObject.Setmd5Hash(AIndex : Integer; AValue : string); 
+Procedure TObject.Setmd5Hash(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmd5Hash=AValue) then exit;
@@ -2492,7 +2301,7 @@ end;
 
 
 
-Procedure TObject.SetmediaLink(AIndex : Integer; AValue : string); 
+Procedure TObject.SetmediaLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FmediaLink=AValue) then exit;
@@ -2502,7 +2311,7 @@ end;
 
 
 
-Procedure TObject.Setmetadata(AIndex : Integer; AValue : TObjectmetadata); 
+Procedure TObject.Setmetadata(AIndex : Integer; AValue : TObjectTypemetadata); 
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2512,7 +2321,7 @@ end;
 
 
 
-Procedure TObject.Setmetageneration(AIndex : Integer; AValue : string); 
+Procedure TObject.Setmetageneration(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmetageneration=AValue) then exit;
@@ -2522,7 +2331,7 @@ end;
 
 
 
-Procedure TObject.Setname(AIndex : Integer; AValue : string); 
+Procedure TObject.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2532,7 +2341,7 @@ end;
 
 
 
-Procedure TObject.Setowner(AIndex : Integer; AValue : TObjectowner); 
+Procedure TObject.Setowner(AIndex : Integer; AValue : TObjectTypeowner); 
 
 begin
   If (Fowner=AValue) then exit;
@@ -2542,7 +2351,7 @@ end;
 
 
 
-Procedure TObject.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TObject.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2552,7 +2361,7 @@ end;
 
 
 
-Procedure TObject.Setsize(AIndex : Integer; AValue : string); 
+Procedure TObject.Setsize(AIndex : Integer; AValue : String); 
 
 begin
   If (Fsize=AValue) then exit;
@@ -2562,7 +2371,7 @@ end;
 
 
 
-Procedure TObject.SetstorageClass(AIndex : Integer; AValue : string); 
+Procedure TObject.SetstorageClass(AIndex : Integer; AValue : String); 
 
 begin
   If (FstorageClass=AValue) then exit;
@@ -2595,45 +2404,25 @@ end;
 
 
 { --------------------------------------------------------------------
-  TObjectacl
+  TObjectAccessControlTypeprojectTeam
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TObjectmetadata
-  --------------------------------------------------------------------}
-
-
-Class Function TObjectmetadata.AllowAdditionalProperties : Boolean;
+Procedure TObjectAccessControlTypeprojectTeam.SetprojectNumber(AIndex : Integer; AValue : String); 
 
 begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TObjectowner
-  --------------------------------------------------------------------}
-
-
-Procedure TObjectowner.Setentity(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fentity=AValue) then exit;
-  Fentity:=AValue;
+  If (FprojectNumber=AValue) then exit;
+  FprojectNumber:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TObjectowner.SetentityId(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControlTypeprojectTeam.Setteam(AIndex : Integer; AValue : String); 
 
 begin
-  If (FentityId=AValue) then exit;
-  FentityId:=AValue;
+  If (Fteam=AValue) then exit;
+  Fteam:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -2646,7 +2435,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObjectAccessControl.Setbucket(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControl.Setbucket(AIndex : Integer; AValue : String); 
 
 begin
   If (Fbucket=AValue) then exit;
@@ -2656,7 +2445,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setdomain(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControl.Setdomain(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdomain=AValue) then exit;
@@ -2666,7 +2455,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setemail(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControl.Setemail(AIndex : Integer; AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -2676,7 +2465,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setentity(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControl.Setentity(AIndex : Integer; AValue : String); 
 
 begin
   If (Fentity=AValue) then exit;
@@ -2686,7 +2475,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.SetentityId(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControl.SetentityId(AIndex : Integer; AValue : String); 
 
 begin
   If (FentityId=AValue) then exit;
@@ -2696,7 +2485,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setetag(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControl.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2706,7 +2495,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setgeneration(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControl.Setgeneration(AIndex : Integer; AValue : String); 
 
 begin
   If (Fgeneration=AValue) then exit;
@@ -2716,7 +2505,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setid(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControl.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2726,7 +2515,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setkind(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControl.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2736,7 +2525,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Set_object(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControl.Set_object(AIndex : Integer; AValue : String); 
 
 begin
   If (F_object=AValue) then exit;
@@ -2746,7 +2535,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.SetprojectTeam(AIndex : Integer; AValue : TObjectAccessControlprojectTeam); 
+Procedure TObjectAccessControl.SetprojectTeam(AIndex : Integer; AValue : TObjectAccessControlTypeprojectTeam); 
 
 begin
   If (FprojectTeam=AValue) then exit;
@@ -2756,7 +2545,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setrole(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControl.Setrole(AIndex : Integer; AValue : String); 
 
 begin
   If (Frole=AValue) then exit;
@@ -2766,7 +2555,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControl.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2790,38 +2579,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TObjectAccessControlprojectTeam
-  --------------------------------------------------------------------}
-
-
-Procedure TObjectAccessControlprojectTeam.SetprojectNumber(AIndex : Integer; AValue : string); 
-
-begin
-  If (FprojectNumber=AValue) then exit;
-  FprojectNumber:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TObjectAccessControlprojectTeam.Setteam(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fteam=AValue) then exit;
-  Fteam:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TObjectAccessControls
   --------------------------------------------------------------------}
 
 
-Procedure TObjectAccessControls.Setitems(AIndex : Integer; AValue : TObjectAccessControlsitems); 
+Procedure TObjectAccessControls.Setitems(AIndex : Integer; AValue : TTJSONSchemaArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2831,7 +2593,7 @@ end;
 
 
 
-Procedure TObjectAccessControls.Setkind(AIndex : Integer; AValue : string); 
+Procedure TObjectAccessControls.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2839,13 +2601,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TObjectAccessControlsitems
-  --------------------------------------------------------------------}
 
 
 
@@ -2855,7 +2610,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObjects.Setitems(AIndex : Integer; AValue : TObjectsitems); 
+Procedure TObjects.Setitems(AIndex : Integer; AValue : TObjectsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2865,7 +2620,7 @@ end;
 
 
 
-Procedure TObjects.Setkind(AIndex : Integer; AValue : string); 
+Procedure TObjects.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2875,7 +2630,7 @@ end;
 
 
 
-Procedure TObjects.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TObjects.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2885,7 +2640,7 @@ end;
 
 
 
-Procedure TObjects.Setprefixes(AIndex : Integer; AValue : TObjectsprefixes); 
+Procedure TObjects.Setprefixes(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fprefixes=AValue) then exit;
@@ -2893,20 +2648,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TObjectsitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TObjectsprefixes
-  --------------------------------------------------------------------}
 
 
 
@@ -2926,7 +2667,7 @@ end;
 
 
 
-Procedure TRewriteResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TRewriteResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2936,7 +2677,7 @@ end;
 
 
 
-Procedure TRewriteResponse.SetobjectSize(AIndex : Integer; AValue : string); 
+Procedure TRewriteResponse.SetobjectSize(AIndex : Integer; AValue : String); 
 
 begin
   If (FobjectSize=AValue) then exit;
@@ -2956,7 +2697,7 @@ end;
 
 
 
-Procedure TRewriteResponse.SetrewriteToken(AIndex : Integer; AValue : string); 
+Procedure TRewriteResponse.SetrewriteToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FrewriteToken=AValue) then exit;
@@ -2966,7 +2707,7 @@ end;
 
 
 
-Procedure TRewriteResponse.SettotalBytesRewritten(AIndex : Integer; AValue : string); 
+Procedure TRewriteResponse.SettotalBytesRewritten(AIndex : Integer; AValue : String); 
 
 begin
   If (FtotalBytesRewritten=AValue) then exit;
@@ -3981,7 +3722,7 @@ end;
 Class Function TStorageAPI.APIRevision : String;
 
 begin
-  Result:='20150326';
+  Result:='20150305';
 end;
 
 Class Function TStorageAPI.APIID : String;
@@ -4092,43 +3833,32 @@ end;
 Class Procedure TStorageAPI.RegisterAPIResources;
 
 begin
+  TBucketTypecorsItem.RegisterObject;
+  TBucketTypelifecycleTyperuleItemTypeaction.RegisterObject;
+  TBucketTypelifecycleTyperuleItemTypecondition.RegisterObject;
+  TBucketTypelifecycleTyperuleItem.RegisterObject;
+  TBucketTypelifecycle.RegisterObject;
+  TBucketTypelogging.RegisterObject;
+  TBucketTypeowner.RegisterObject;
+  TBucketTypeversioning.RegisterObject;
+  TBucketTypewebsite.RegisterObject;
   TBucket.RegisterObject;
-  TBucketacl.RegisterObject;
-  TBucketcors.RegisterObject;
-  TBucketcorsmethod.RegisterObject;
-  TBucketcorsorigin.RegisterObject;
-  TBucketcorsresponseHeader.RegisterObject;
-  TBucketdefaultObjectAcl.RegisterObject;
-  TBucketlifecycle.RegisterObject;
-  TBucketlifecyclerule.RegisterObject;
-  TBucketlifecycleruleaction.RegisterObject;
-  TBucketlifecyclerulecondition.RegisterObject;
-  TBucketlogging.RegisterObject;
-  TBucketowner.RegisterObject;
-  TBucketversioning.RegisterObject;
-  TBucketwebsite.RegisterObject;
+  TBucketAccessControlTypeprojectTeam.RegisterObject;
   TBucketAccessControl.RegisterObject;
-  TBucketAccessControlprojectTeam.RegisterObject;
   TBucketAccessControls.RegisterObject;
-  TBucketAccessControlsitems.RegisterObject;
   TBuckets.RegisterObject;
-  TBucketsitems.RegisterObject;
+  TChannelTypeparams.RegisterObject;
   TChannel.RegisterObject;
-  TChannelparams.RegisterObject;
+  TComposeRequestTypesourceObjectsItemTypeobjectPreconditions.RegisterObject;
+  TComposeRequestTypesourceObjectsItem.RegisterObject;
   TComposeRequest.RegisterObject;
-  TComposeRequestsourceObjects.RegisterObject;
-  TComposeRequestsourceObjectsobjectPreconditions.RegisterObject;
+  TObjectTypemetadata.RegisterObject;
+  TObjectTypeowner.RegisterObject;
   TObject.RegisterObject;
-  TObjectacl.RegisterObject;
-  TObjectmetadata.RegisterObject;
-  TObjectowner.RegisterObject;
+  TObjectAccessControlTypeprojectTeam.RegisterObject;
   TObjectAccessControl.RegisterObject;
-  TObjectAccessControlprojectTeam.RegisterObject;
   TObjectAccessControls.RegisterObject;
-  TObjectAccessControlsitems.RegisterObject;
   TObjects.RegisterObject;
-  TObjectsitems.RegisterObject;
-  TObjectsprefixes.RegisterObject;
   TRewriteResponse.RegisterObject;
 end;
 

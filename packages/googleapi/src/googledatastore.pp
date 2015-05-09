@@ -1,31 +1,19 @@
 unit googledatastore;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:51
 {$MODE objfpc}
 {$H+}
 
@@ -34,123 +22,101 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAllocateIdsRequest = class;
-  TAllocateIdsRequestArray = Array of TAllocateIdsRequest;
-  TAllocateIdsRequestkeys = class;
-  TAllocateIdsRequestkeysArray = Array of TAllocateIdsRequestkeys;
   TAllocateIdsResponse = class;
-  TAllocateIdsResponseArray = Array of TAllocateIdsResponse;
-  TAllocateIdsResponsekeys = class;
-  TAllocateIdsResponsekeysArray = Array of TAllocateIdsResponsekeys;
   TBeginTransactionRequest = class;
-  TBeginTransactionRequestArray = Array of TBeginTransactionRequest;
   TBeginTransactionResponse = class;
-  TBeginTransactionResponseArray = Array of TBeginTransactionResponse;
   TCommitRequest = class;
-  TCommitRequestArray = Array of TCommitRequest;
   TCommitResponse = class;
-  TCommitResponseArray = Array of TCommitResponse;
   TCompositeFilter = class;
-  TCompositeFilterArray = Array of TCompositeFilter;
-  TCompositeFilterfilters = class;
-  TCompositeFilterfiltersArray = Array of TCompositeFilterfilters;
   TEntity = class;
-  TEntityArray = Array of TEntity;
-  TEntityproperties = class;
-  TEntitypropertiesArray = Array of TEntityproperties;
   TEntityResult = class;
-  TEntityResultArray = Array of TEntityResult;
   TFilter = class;
-  TFilterArray = Array of TFilter;
   TGqlQuery = class;
-  TGqlQueryArray = Array of TGqlQuery;
-  TGqlQuerynameArgs = class;
-  TGqlQuerynameArgsArray = Array of TGqlQuerynameArgs;
-  TGqlQuerynumberArgs = class;
-  TGqlQuerynumberArgsArray = Array of TGqlQuerynumberArgs;
   TGqlQueryArg = class;
-  TGqlQueryArgArray = Array of TGqlQueryArg;
   TKey = class;
-  TKeyArray = Array of TKey;
-  TKeypath = class;
-  TKeypathArray = Array of TKeypath;
   TKeyPathElement = class;
-  TKeyPathElementArray = Array of TKeyPathElement;
   TKindExpression = class;
-  TKindExpressionArray = Array of TKindExpression;
   TLookupRequest = class;
-  TLookupRequestArray = Array of TLookupRequest;
-  TLookupRequestkeys = class;
-  TLookupRequestkeysArray = Array of TLookupRequestkeys;
   TLookupResponse = class;
-  TLookupResponseArray = Array of TLookupResponse;
-  TLookupResponsedeferred = class;
-  TLookupResponsedeferredArray = Array of TLookupResponsedeferred;
-  TLookupResponsefound = class;
-  TLookupResponsefoundArray = Array of TLookupResponsefound;
-  TLookupResponsemissing = class;
-  TLookupResponsemissingArray = Array of TLookupResponsemissing;
   TMutation = class;
-  TMutationArray = Array of TMutation;
-  TMutationdelete = class;
-  TMutationdeleteArray = Array of TMutationdelete;
-  TMutationinsert = class;
-  TMutationinsertArray = Array of TMutationinsert;
-  TMutationinsertAutoId = class;
-  TMutationinsertAutoIdArray = Array of TMutationinsertAutoId;
-  TMutationupdate = class;
-  TMutationupdateArray = Array of TMutationupdate;
-  TMutationupsert = class;
-  TMutationupsertArray = Array of TMutationupsert;
   TMutationResult = class;
-  TMutationResultArray = Array of TMutationResult;
-  TMutationResultinsertAutoIdKeys = class;
-  TMutationResultinsertAutoIdKeysArray = Array of TMutationResultinsertAutoIdKeys;
   TPartitionId = class;
-  TPartitionIdArray = Array of TPartitionId;
   TProperty = class;
-  TPropertyArray = Array of TProperty;
-  TPropertylistValue = class;
-  TPropertylistValueArray = Array of TPropertylistValue;
   TPropertyExpression = class;
-  TPropertyExpressionArray = Array of TPropertyExpression;
   TPropertyFilter = class;
-  TPropertyFilterArray = Array of TPropertyFilter;
   TPropertyOrder = class;
-  TPropertyOrderArray = Array of TPropertyOrder;
   TPropertyReference = class;
-  TPropertyReferenceArray = Array of TPropertyReference;
   TQuery = class;
-  TQueryArray = Array of TQuery;
-  TQuerygroupBy = class;
-  TQuerygroupByArray = Array of TQuerygroupBy;
-  TQuerykinds = class;
-  TQuerykindsArray = Array of TQuerykinds;
-  TQueryorder = class;
-  TQueryorderArray = Array of TQueryorder;
-  TQueryprojection = class;
-  TQueryprojectionArray = Array of TQueryprojection;
   TQueryResultBatch = class;
-  TQueryResultBatchArray = Array of TQueryResultBatch;
-  TQueryResultBatchentityResults = class;
-  TQueryResultBatchentityResultsArray = Array of TQueryResultBatchentityResults;
   TReadOptions = class;
-  TReadOptionsArray = Array of TReadOptions;
   TResponseHeader = class;
-  TResponseHeaderArray = Array of TResponseHeader;
   TRollbackRequest = class;
-  TRollbackRequestArray = Array of TRollbackRequest;
   TRollbackResponse = class;
-  TRollbackResponseArray = Array of TRollbackResponse;
   TRunQueryRequest = class;
-  TRunQueryRequestArray = Array of TRunQueryRequest;
   TRunQueryResponse = class;
-  TRunQueryResponseArray = Array of TRunQueryResponse;
   TValue = class;
+  TAllocateIdsRequestArray = Array of TAllocateIdsRequest;
+  TAllocateIdsResponseArray = Array of TAllocateIdsResponse;
+  TBeginTransactionRequestArray = Array of TBeginTransactionRequest;
+  TBeginTransactionResponseArray = Array of TBeginTransactionResponse;
+  TCommitRequestArray = Array of TCommitRequest;
+  TCommitResponseArray = Array of TCommitResponse;
+  TCompositeFilterArray = Array of TCompositeFilter;
+  TEntityArray = Array of TEntity;
+  TEntityResultArray = Array of TEntityResult;
+  TFilterArray = Array of TFilter;
+  TGqlQueryArray = Array of TGqlQuery;
+  TGqlQueryArgArray = Array of TGqlQueryArg;
+  TKeyArray = Array of TKey;
+  TKeyPathElementArray = Array of TKeyPathElement;
+  TKindExpressionArray = Array of TKindExpression;
+  TLookupRequestArray = Array of TLookupRequest;
+  TLookupResponseArray = Array of TLookupResponse;
+  TMutationArray = Array of TMutation;
+  TMutationResultArray = Array of TMutationResult;
+  TPartitionIdArray = Array of TPartitionId;
+  TPropertyArray = Array of TProperty;
+  TPropertyExpressionArray = Array of TPropertyExpression;
+  TPropertyFilterArray = Array of TPropertyFilter;
+  TPropertyOrderArray = Array of TPropertyOrder;
+  TPropertyReferenceArray = Array of TPropertyReference;
+  TQueryArray = Array of TQuery;
+  TQueryResultBatchArray = Array of TQueryResultBatch;
+  TReadOptionsArray = Array of TReadOptions;
+  TResponseHeaderArray = Array of TResponseHeader;
+  TRollbackRequestArray = Array of TRollbackRequest;
+  TRollbackResponseArray = Array of TRollbackResponse;
+  TRunQueryRequestArray = Array of TRunQueryRequest;
+  TRunQueryResponseArray = Array of TRunQueryResponse;
   TValueArray = Array of TValue;
-  TValuelistValue = class;
-  TValuelistValueArray = Array of TValuelistValue;
+  //Anonymous types, using auto-generated names
+  TEntityTypeproperties = class;
+  TAllocateIdsRequestTypekeysArray = Array of TKey;
+  TAllocateIdsResponseTypekeysArray = Array of TKey;
+  TCompositeFilterTypefiltersArray = Array of TFilter;
+  TGqlQueryTypenameArgsArray = Array of TGqlQueryArg;
+  TGqlQueryTypenumberArgsArray = Array of TGqlQueryArg;
+  TKeyTypepathArray = Array of TKeyPathElement;
+  TLookupRequestTypekeysArray = Array of TKey;
+  TLookupResponseTypedeferredArray = Array of TKey;
+  TLookupResponseTypefoundArray = Array of TEntityResult;
+  TLookupResponseTypemissingArray = Array of TEntityResult;
+  TMutationTypedeleteArray = Array of TKey;
+  TMutationTypeinsertArray = Array of TEntity;
+  TMutationTypeinsertAutoIdArray = Array of TEntity;
+  TMutationTypeupdateArray = Array of TEntity;
+  TMutationTypeupsertArray = Array of TEntity;
+  TMutationResultTypeinsertAutoIdKeysArray = Array of TKey;
+  TPropertyTypelistValueArray = Array of TValue;
+  TQueryTypegroupByArray = Array of TPropertyReference;
+  TQueryTypekindsArray = Array of TKindExpression;
+  TQueryTypeorderArray = Array of TPropertyOrder;
+  TQueryTypeprojectionArray = Array of TPropertyExpression;
+  TQueryResultBatchTypeentityResultsArray = Array of TEntityResult;
+  TValueTypelistValueArray = Array of TValue;
   
   { --------------------------------------------------------------------
     TAllocateIdsRequest
@@ -158,28 +124,15 @@ type
   
   TAllocateIdsRequest = Class(TGoogleBaseObject)
   Private
-    Fkeys : TAllocateIdsRequestkeys;
+    Fkeys : TAllocateIdsRequestTypekeysArray;
   Protected
     //Property setters
-    Procedure Setkeys(AIndex : Integer; AValue : TAllocateIdsRequestkeys); virtual;
+    Procedure Setkeys(AIndex : Integer; AValue : TAllocateIdsRequestTypekeysArray); virtual;
   Public
   Published
-    Property keys : TAllocateIdsRequestkeys Index 0 Read Fkeys Write Setkeys;
+    Property keys : TAllocateIdsRequestTypekeysArray Index 0 Read Fkeys Write Setkeys;
   end;
   TAllocateIdsRequestClass = Class of TAllocateIdsRequest;
-  
-  { --------------------------------------------------------------------
-    TAllocateIdsRequestkeys
-    --------------------------------------------------------------------}
-  
-  TAllocateIdsRequestkeys = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAllocateIdsRequestkeysClass = Class of TAllocateIdsRequestkeys;
   
   { --------------------------------------------------------------------
     TAllocateIdsResponse
@@ -188,30 +141,17 @@ type
   TAllocateIdsResponse = Class(TGoogleBaseObject)
   Private
     Fheader : TResponseHeader;
-    Fkeys : TAllocateIdsResponsekeys;
+    Fkeys : TAllocateIdsResponseTypekeysArray;
   Protected
     //Property setters
     Procedure Setheader(AIndex : Integer; AValue : TResponseHeader); virtual;
-    Procedure Setkeys(AIndex : Integer; AValue : TAllocateIdsResponsekeys); virtual;
+    Procedure Setkeys(AIndex : Integer; AValue : TAllocateIdsResponseTypekeysArray); virtual;
   Public
   Published
     Property header : TResponseHeader Index 0 Read Fheader Write Setheader;
-    Property keys : TAllocateIdsResponsekeys Index 8 Read Fkeys Write Setkeys;
+    Property keys : TAllocateIdsResponseTypekeysArray Index 8 Read Fkeys Write Setkeys;
   end;
   TAllocateIdsResponseClass = Class of TAllocateIdsResponse;
-  
-  { --------------------------------------------------------------------
-    TAllocateIdsResponsekeys
-    --------------------------------------------------------------------}
-  
-  TAllocateIdsResponsekeys = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAllocateIdsResponsekeysClass = Class of TAllocateIdsResponsekeys;
   
   { --------------------------------------------------------------------
     TBeginTransactionRequest
@@ -219,13 +159,13 @@ type
   
   TBeginTransactionRequest = Class(TGoogleBaseObject)
   Private
-    FisolationLevel : string;
+    FisolationLevel : String;
   Protected
     //Property setters
-    Procedure SetisolationLevel(AIndex : Integer; AValue : string); virtual;
+    Procedure SetisolationLevel(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property isolationLevel : string Index 0 Read FisolationLevel Write SetisolationLevel;
+    Property isolationLevel : String Index 0 Read FisolationLevel Write SetisolationLevel;
   end;
   TBeginTransactionRequestClass = Class of TBeginTransactionRequest;
   
@@ -236,15 +176,15 @@ type
   TBeginTransactionResponse = Class(TGoogleBaseObject)
   Private
     Fheader : TResponseHeader;
-    Ftransaction : string;
+    Ftransaction : String;
   Protected
     //Property setters
     Procedure Setheader(AIndex : Integer; AValue : TResponseHeader); virtual;
-    Procedure Settransaction(AIndex : Integer; AValue : string); virtual;
+    Procedure Settransaction(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property header : TResponseHeader Index 0 Read Fheader Write Setheader;
-    Property transaction : string Index 8 Read Ftransaction Write Settransaction;
+    Property transaction : String Index 8 Read Ftransaction Write Settransaction;
   end;
   TBeginTransactionResponseClass = Class of TBeginTransactionResponse;
   
@@ -255,21 +195,21 @@ type
   TCommitRequest = Class(TGoogleBaseObject)
   Private
     FignoreReadOnly : boolean;
-    Fmode : string;
+    Fmode : String;
     Fmutation : TMutation;
-    Ftransaction : string;
+    Ftransaction : String;
   Protected
     //Property setters
     Procedure SetignoreReadOnly(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setmode(AIndex : Integer; AValue : string); virtual;
+    Procedure Setmode(AIndex : Integer; AValue : String); virtual;
     Procedure Setmutation(AIndex : Integer; AValue : TMutation); virtual;
-    Procedure Settransaction(AIndex : Integer; AValue : string); virtual;
+    Procedure Settransaction(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property ignoreReadOnly : boolean Index 0 Read FignoreReadOnly Write SetignoreReadOnly;
-    Property mode : string Index 8 Read Fmode Write Setmode;
+    Property mode : String Index 8 Read Fmode Write Setmode;
     Property mutation : TMutation Index 16 Read Fmutation Write Setmutation;
-    Property transaction : string Index 24 Read Ftransaction Write Settransaction;
+    Property transaction : String Index 24 Read Ftransaction Write Settransaction;
   end;
   TCommitRequestClass = Class of TCommitRequest;
   
@@ -298,32 +238,33 @@ type
   
   TCompositeFilter = Class(TGoogleBaseObject)
   Private
-    Ffilters : TCompositeFilterfilters;
-    F_operator : string;
+    Ffilters : TCompositeFilterTypefiltersArray;
+    F_operator : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setfilters(AIndex : Integer; AValue : TCompositeFilterfilters); virtual;
-    Procedure Set_operator(AIndex : Integer; AValue : string); virtual;
+    Procedure Setfilters(AIndex : Integer; AValue : TCompositeFilterTypefiltersArray); virtual;
+    Procedure Set_operator(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property filters : TCompositeFilterfilters Index 0 Read Ffilters Write Setfilters;
-    Property _operator : string Index 8 Read F_operator Write Set_operator;
+    Property filters : TCompositeFilterTypefiltersArray Index 0 Read Ffilters Write Setfilters;
+    Property _operator : String Index 8 Read F_operator Write Set_operator;
   end;
   TCompositeFilterClass = Class of TCompositeFilter;
   
   { --------------------------------------------------------------------
-    TCompositeFilterfilters
+    TEntityTypeproperties
     --------------------------------------------------------------------}
   
-  TCompositeFilterfilters = Class(TGoogleBaseObject)
+  TEntityTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TCompositeFilterfiltersClass = Class of TCompositeFilterfilters;
+  TEntityTypepropertiesClass = Class of TEntityTypeproperties;
   
   { --------------------------------------------------------------------
     TEntity
@@ -332,31 +273,17 @@ type
   TEntity = Class(TGoogleBaseObject)
   Private
     Fkey : TKey;
-    Fproperties : TEntityproperties;
+    Fproperties : TEntityTypeproperties;
   Protected
     //Property setters
     Procedure Setkey(AIndex : Integer; AValue : TKey); virtual;
-    Procedure Setproperties(AIndex : Integer; AValue : TEntityproperties); virtual;
+    Procedure Setproperties(AIndex : Integer; AValue : TEntityTypeproperties); virtual;
   Public
   Published
     Property key : TKey Index 0 Read Fkey Write Setkey;
-    Property properties : TEntityproperties Index 8 Read Fproperties Write Setproperties;
+    Property properties : TEntityTypeproperties Index 8 Read Fproperties Write Setproperties;
   end;
   TEntityClass = Class of TEntity;
-  
-  { --------------------------------------------------------------------
-    TEntityproperties
-    --------------------------------------------------------------------}
-  
-  TEntityproperties = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TEntitypropertiesClass = Class of TEntityproperties;
   
   { --------------------------------------------------------------------
     TEntityResult
@@ -400,49 +327,23 @@ type
   TGqlQuery = Class(TGoogleBaseObject)
   Private
     FallowLiteral : boolean;
-    FnameArgs : TGqlQuerynameArgs;
-    FnumberArgs : TGqlQuerynumberArgs;
-    FqueryString : string;
+    FnameArgs : TGqlQueryTypenameArgsArray;
+    FnumberArgs : TGqlQueryTypenumberArgsArray;
+    FqueryString : String;
   Protected
     //Property setters
     Procedure SetallowLiteral(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetnameArgs(AIndex : Integer; AValue : TGqlQuerynameArgs); virtual;
-    Procedure SetnumberArgs(AIndex : Integer; AValue : TGqlQuerynumberArgs); virtual;
-    Procedure SetqueryString(AIndex : Integer; AValue : string); virtual;
+    Procedure SetnameArgs(AIndex : Integer; AValue : TGqlQueryTypenameArgsArray); virtual;
+    Procedure SetnumberArgs(AIndex : Integer; AValue : TGqlQueryTypenumberArgsArray); virtual;
+    Procedure SetqueryString(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property allowLiteral : boolean Index 0 Read FallowLiteral Write SetallowLiteral;
-    Property nameArgs : TGqlQuerynameArgs Index 8 Read FnameArgs Write SetnameArgs;
-    Property numberArgs : TGqlQuerynumberArgs Index 16 Read FnumberArgs Write SetnumberArgs;
-    Property queryString : string Index 24 Read FqueryString Write SetqueryString;
+    Property nameArgs : TGqlQueryTypenameArgsArray Index 8 Read FnameArgs Write SetnameArgs;
+    Property numberArgs : TGqlQueryTypenumberArgsArray Index 16 Read FnumberArgs Write SetnumberArgs;
+    Property queryString : String Index 24 Read FqueryString Write SetqueryString;
   end;
   TGqlQueryClass = Class of TGqlQuery;
-  
-  { --------------------------------------------------------------------
-    TGqlQuerynameArgs
-    --------------------------------------------------------------------}
-  
-  TGqlQuerynameArgs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGqlQuerynameArgsClass = Class of TGqlQuerynameArgs;
-  
-  { --------------------------------------------------------------------
-    TGqlQuerynumberArgs
-    --------------------------------------------------------------------}
-  
-  TGqlQuerynumberArgs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGqlQuerynumberArgsClass = Class of TGqlQuerynumberArgs;
   
   { --------------------------------------------------------------------
     TGqlQueryArg
@@ -450,18 +351,18 @@ type
   
   TGqlQueryArg = Class(TGoogleBaseObject)
   Private
-    Fcursor : string;
-    Fname : string;
+    Fcursor : String;
+    Fname : String;
     Fvalue : TValue;
   Protected
     //Property setters
-    Procedure Setcursor(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcursor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : TValue); virtual;
   Public
   Published
-    Property cursor : string Index 0 Read Fcursor Write Setcursor;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property cursor : String Index 0 Read Fcursor Write Setcursor;
+    Property name : String Index 8 Read Fname Write Setname;
     Property value : TValue Index 16 Read Fvalue Write Setvalue;
   end;
   TGqlQueryArgClass = Class of TGqlQueryArg;
@@ -473,30 +374,17 @@ type
   TKey = Class(TGoogleBaseObject)
   Private
     FpartitionId : TPartitionId;
-    Fpath : TKeypath;
+    Fpath : TKeyTypepathArray;
   Protected
     //Property setters
     Procedure SetpartitionId(AIndex : Integer; AValue : TPartitionId); virtual;
-    Procedure Setpath(AIndex : Integer; AValue : TKeypath); virtual;
+    Procedure Setpath(AIndex : Integer; AValue : TKeyTypepathArray); virtual;
   Public
   Published
     Property partitionId : TPartitionId Index 0 Read FpartitionId Write SetpartitionId;
-    Property path : TKeypath Index 8 Read Fpath Write Setpath;
+    Property path : TKeyTypepathArray Index 8 Read Fpath Write Setpath;
   end;
   TKeyClass = Class of TKey;
-  
-  { --------------------------------------------------------------------
-    TKeypath
-    --------------------------------------------------------------------}
-  
-  TKeypath = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TKeypathClass = Class of TKeypath;
   
   { --------------------------------------------------------------------
     TKeyPathElement
@@ -504,19 +392,19 @@ type
   
   TKeyPathElement = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    Fname : string;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property name : string Index 16 Read Fname Write Setname;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : String Index 16 Read Fname Write Setname;
   end;
   TKeyPathElementClass = Class of TKeyPathElement;
   
@@ -526,13 +414,13 @@ type
   
   TKindExpression = Class(TGoogleBaseObject)
   Private
-    Fname : string;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
+    Property name : String Index 0 Read Fname Write Setname;
   end;
   TKindExpressionClass = Class of TKindExpression;
   
@@ -542,31 +430,18 @@ type
   
   TLookupRequest = Class(TGoogleBaseObject)
   Private
-    Fkeys : TLookupRequestkeys;
+    Fkeys : TLookupRequestTypekeysArray;
     FreadOptions : TReadOptions;
   Protected
     //Property setters
-    Procedure Setkeys(AIndex : Integer; AValue : TLookupRequestkeys); virtual;
+    Procedure Setkeys(AIndex : Integer; AValue : TLookupRequestTypekeysArray); virtual;
     Procedure SetreadOptions(AIndex : Integer; AValue : TReadOptions); virtual;
   Public
   Published
-    Property keys : TLookupRequestkeys Index 0 Read Fkeys Write Setkeys;
+    Property keys : TLookupRequestTypekeysArray Index 0 Read Fkeys Write Setkeys;
     Property readOptions : TReadOptions Index 8 Read FreadOptions Write SetreadOptions;
   end;
   TLookupRequestClass = Class of TLookupRequest;
-  
-  { --------------------------------------------------------------------
-    TLookupRequestkeys
-    --------------------------------------------------------------------}
-  
-  TLookupRequestkeys = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLookupRequestkeysClass = Class of TLookupRequestkeys;
   
   { --------------------------------------------------------------------
     TLookupResponse
@@ -574,63 +449,24 @@ type
   
   TLookupResponse = Class(TGoogleBaseObject)
   Private
-    Fdeferred : TLookupResponsedeferred;
-    Ffound : TLookupResponsefound;
+    Fdeferred : TLookupResponseTypedeferredArray;
+    Ffound : TLookupResponseTypefoundArray;
     Fheader : TResponseHeader;
-    Fmissing : TLookupResponsemissing;
+    Fmissing : TLookupResponseTypemissingArray;
   Protected
     //Property setters
-    Procedure Setdeferred(AIndex : Integer; AValue : TLookupResponsedeferred); virtual;
-    Procedure Setfound(AIndex : Integer; AValue : TLookupResponsefound); virtual;
+    Procedure Setdeferred(AIndex : Integer; AValue : TLookupResponseTypedeferredArray); virtual;
+    Procedure Setfound(AIndex : Integer; AValue : TLookupResponseTypefoundArray); virtual;
     Procedure Setheader(AIndex : Integer; AValue : TResponseHeader); virtual;
-    Procedure Setmissing(AIndex : Integer; AValue : TLookupResponsemissing); virtual;
+    Procedure Setmissing(AIndex : Integer; AValue : TLookupResponseTypemissingArray); virtual;
   Public
   Published
-    Property deferred : TLookupResponsedeferred Index 0 Read Fdeferred Write Setdeferred;
-    Property found : TLookupResponsefound Index 8 Read Ffound Write Setfound;
+    Property deferred : TLookupResponseTypedeferredArray Index 0 Read Fdeferred Write Setdeferred;
+    Property found : TLookupResponseTypefoundArray Index 8 Read Ffound Write Setfound;
     Property header : TResponseHeader Index 16 Read Fheader Write Setheader;
-    Property missing : TLookupResponsemissing Index 24 Read Fmissing Write Setmissing;
+    Property missing : TLookupResponseTypemissingArray Index 24 Read Fmissing Write Setmissing;
   end;
   TLookupResponseClass = Class of TLookupResponse;
-  
-  { --------------------------------------------------------------------
-    TLookupResponsedeferred
-    --------------------------------------------------------------------}
-  
-  TLookupResponsedeferred = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLookupResponsedeferredClass = Class of TLookupResponsedeferred;
-  
-  { --------------------------------------------------------------------
-    TLookupResponsefound
-    --------------------------------------------------------------------}
-  
-  TLookupResponsefound = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLookupResponsefoundClass = Class of TLookupResponsefound;
-  
-  { --------------------------------------------------------------------
-    TLookupResponsemissing
-    --------------------------------------------------------------------}
-  
-  TLookupResponsemissing = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLookupResponsemissingClass = Class of TLookupResponsemissing;
   
   { --------------------------------------------------------------------
     TMutation
@@ -638,95 +474,30 @@ type
   
   TMutation = Class(TGoogleBaseObject)
   Private
-    Fdelete : TMutationdelete;
+    Fdelete : TMutationTypedeleteArray;
     Fforce : boolean;
-    Finsert : TMutationinsert;
-    FinsertAutoId : TMutationinsertAutoId;
-    Fupdate : TMutationupdate;
-    Fupsert : TMutationupsert;
+    Finsert : TMutationTypeinsertArray;
+    FinsertAutoId : TMutationTypeinsertAutoIdArray;
+    Fupdate : TMutationTypeupdateArray;
+    Fupsert : TMutationTypeupsertArray;
   Protected
     //Property setters
-    Procedure Setdelete(AIndex : Integer; AValue : TMutationdelete); virtual;
+    Procedure Setdelete(AIndex : Integer; AValue : TMutationTypedeleteArray); virtual;
     Procedure Setforce(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setinsert(AIndex : Integer; AValue : TMutationinsert); virtual;
-    Procedure SetinsertAutoId(AIndex : Integer; AValue : TMutationinsertAutoId); virtual;
-    Procedure Setupdate(AIndex : Integer; AValue : TMutationupdate); virtual;
-    Procedure Setupsert(AIndex : Integer; AValue : TMutationupsert); virtual;
+    Procedure Setinsert(AIndex : Integer; AValue : TMutationTypeinsertArray); virtual;
+    Procedure SetinsertAutoId(AIndex : Integer; AValue : TMutationTypeinsertAutoIdArray); virtual;
+    Procedure Setupdate(AIndex : Integer; AValue : TMutationTypeupdateArray); virtual;
+    Procedure Setupsert(AIndex : Integer; AValue : TMutationTypeupsertArray); virtual;
   Public
   Published
-    Property delete : TMutationdelete Index 0 Read Fdelete Write Setdelete;
+    Property delete : TMutationTypedeleteArray Index 0 Read Fdelete Write Setdelete;
     Property force : boolean Index 8 Read Fforce Write Setforce;
-    Property insert : TMutationinsert Index 16 Read Finsert Write Setinsert;
-    Property insertAutoId : TMutationinsertAutoId Index 24 Read FinsertAutoId Write SetinsertAutoId;
-    Property update : TMutationupdate Index 32 Read Fupdate Write Setupdate;
-    Property upsert : TMutationupsert Index 40 Read Fupsert Write Setupsert;
+    Property insert : TMutationTypeinsertArray Index 16 Read Finsert Write Setinsert;
+    Property insertAutoId : TMutationTypeinsertAutoIdArray Index 24 Read FinsertAutoId Write SetinsertAutoId;
+    Property update : TMutationTypeupdateArray Index 32 Read Fupdate Write Setupdate;
+    Property upsert : TMutationTypeupsertArray Index 40 Read Fupsert Write Setupsert;
   end;
   TMutationClass = Class of TMutation;
-  
-  { --------------------------------------------------------------------
-    TMutationdelete
-    --------------------------------------------------------------------}
-  
-  TMutationdelete = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMutationdeleteClass = Class of TMutationdelete;
-  
-  { --------------------------------------------------------------------
-    TMutationinsert
-    --------------------------------------------------------------------}
-  
-  TMutationinsert = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMutationinsertClass = Class of TMutationinsert;
-  
-  { --------------------------------------------------------------------
-    TMutationinsertAutoId
-    --------------------------------------------------------------------}
-  
-  TMutationinsertAutoId = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMutationinsertAutoIdClass = Class of TMutationinsertAutoId;
-  
-  { --------------------------------------------------------------------
-    TMutationupdate
-    --------------------------------------------------------------------}
-  
-  TMutationupdate = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMutationupdateClass = Class of TMutationupdate;
-  
-  { --------------------------------------------------------------------
-    TMutationupsert
-    --------------------------------------------------------------------}
-  
-  TMutationupsert = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMutationupsertClass = Class of TMutationupsert;
   
   { --------------------------------------------------------------------
     TMutationResult
@@ -735,30 +506,17 @@ type
   TMutationResult = Class(TGoogleBaseObject)
   Private
     FindexUpdates : integer;
-    FinsertAutoIdKeys : TMutationResultinsertAutoIdKeys;
+    FinsertAutoIdKeys : TMutationResultTypeinsertAutoIdKeysArray;
   Protected
     //Property setters
     Procedure SetindexUpdates(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetinsertAutoIdKeys(AIndex : Integer; AValue : TMutationResultinsertAutoIdKeys); virtual;
+    Procedure SetinsertAutoIdKeys(AIndex : Integer; AValue : TMutationResultTypeinsertAutoIdKeysArray); virtual;
   Public
   Published
     Property indexUpdates : integer Index 0 Read FindexUpdates Write SetindexUpdates;
-    Property insertAutoIdKeys : TMutationResultinsertAutoIdKeys Index 8 Read FinsertAutoIdKeys Write SetinsertAutoIdKeys;
+    Property insertAutoIdKeys : TMutationResultTypeinsertAutoIdKeysArray Index 8 Read FinsertAutoIdKeys Write SetinsertAutoIdKeys;
   end;
   TMutationResultClass = Class of TMutationResult;
-  
-  { --------------------------------------------------------------------
-    TMutationResultinsertAutoIdKeys
-    --------------------------------------------------------------------}
-  
-  TMutationResultinsertAutoIdKeys = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMutationResultinsertAutoIdKeysClass = Class of TMutationResultinsertAutoIdKeys;
   
   { --------------------------------------------------------------------
     TPartitionId
@@ -766,16 +524,16 @@ type
   
   TPartitionId = Class(TGoogleBaseObject)
   Private
-    FdatasetId : string;
-    Fnamespace : string;
+    FdatasetId : String;
+    Fnamespace : String;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnamespace(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnamespace(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property datasetId : string Index 0 Read FdatasetId Write SetdatasetId;
-    Property namespace : string Index 8 Read Fnamespace Write Setnamespace;
+    Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
+    Property namespace : String Index 8 Read Fnamespace Write Setnamespace;
   end;
   TPartitionIdClass = Class of TPartitionId;
   
@@ -785,61 +543,48 @@ type
   
   TProperty = Class(TGoogleBaseObject)
   Private
-    FblobKeyValue : string;
-    FblobValue : string;
+    FblobKeyValue : String;
+    FblobValue : String;
     FbooleanValue : boolean;
     FdateTimeValue : TDatetime;
     FdoubleValue : double;
     FentityValue : TEntity;
     Findexed : boolean;
-    FintegerValue : string;
+    FintegerValue : String;
     FkeyValue : TKey;
-    FlistValue : TPropertylistValue;
+    FlistValue : TPropertyTypelistValueArray;
     Fmeaning : integer;
-    FstringValue : string;
+    FstringValue : String;
   Protected
     //Property setters
-    Procedure SetblobKeyValue(AIndex : Integer; AValue : string); virtual;
-    Procedure SetblobValue(AIndex : Integer; AValue : string); virtual;
+    Procedure SetblobKeyValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetblobValue(AIndex : Integer; AValue : String); virtual;
     Procedure SetbooleanValue(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetdateTimeValue(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetdoubleValue(AIndex : Integer; AValue : double); virtual;
     Procedure SetentityValue(AIndex : Integer; AValue : TEntity); virtual;
     Procedure Setindexed(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetintegerValue(AIndex : Integer; AValue : string); virtual;
+    Procedure SetintegerValue(AIndex : Integer; AValue : String); virtual;
     Procedure SetkeyValue(AIndex : Integer; AValue : TKey); virtual;
-    Procedure SetlistValue(AIndex : Integer; AValue : TPropertylistValue); virtual;
+    Procedure SetlistValue(AIndex : Integer; AValue : TPropertyTypelistValueArray); virtual;
     Procedure Setmeaning(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetstringValue(AIndex : Integer; AValue : string); virtual;
+    Procedure SetstringValue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property blobKeyValue : string Index 0 Read FblobKeyValue Write SetblobKeyValue;
-    Property blobValue : string Index 8 Read FblobValue Write SetblobValue;
+    Property blobKeyValue : String Index 0 Read FblobKeyValue Write SetblobKeyValue;
+    Property blobValue : String Index 8 Read FblobValue Write SetblobValue;
     Property booleanValue : boolean Index 16 Read FbooleanValue Write SetbooleanValue;
     Property dateTimeValue : TDatetime Index 24 Read FdateTimeValue Write SetdateTimeValue;
     Property doubleValue : double Index 32 Read FdoubleValue Write SetdoubleValue;
     Property entityValue : TEntity Index 40 Read FentityValue Write SetentityValue;
     Property indexed : boolean Index 48 Read Findexed Write Setindexed;
-    Property integerValue : string Index 56 Read FintegerValue Write SetintegerValue;
+    Property integerValue : String Index 56 Read FintegerValue Write SetintegerValue;
     Property keyValue : TKey Index 64 Read FkeyValue Write SetkeyValue;
-    Property listValue : TPropertylistValue Index 72 Read FlistValue Write SetlistValue;
+    Property listValue : TPropertyTypelistValueArray Index 72 Read FlistValue Write SetlistValue;
     Property meaning : integer Index 80 Read Fmeaning Write Setmeaning;
-    Property stringValue : string Index 88 Read FstringValue Write SetstringValue;
+    Property stringValue : String Index 88 Read FstringValue Write SetstringValue;
   end;
   TPropertyClass = Class of TProperty;
-  
-  { --------------------------------------------------------------------
-    TPropertylistValue
-    --------------------------------------------------------------------}
-  
-  TPropertylistValue = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPropertylistValueClass = Class of TPropertylistValue;
   
   { --------------------------------------------------------------------
     TPropertyExpression
@@ -847,16 +592,16 @@ type
   
   TPropertyExpression = Class(TGoogleBaseObject)
   Private
-    FaggregationFunction : string;
+    FaggregationFunction : String;
     F_property : TPropertyReference;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaggregationFunction(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaggregationFunction(AIndex : Integer; AValue : String); virtual;
     Procedure Set_property(AIndex : Integer; AValue : TPropertyReference); virtual;
   Public
   Published
-    Property aggregationFunction : string Index 0 Read FaggregationFunction Write SetaggregationFunction;
+    Property aggregationFunction : String Index 0 Read FaggregationFunction Write SetaggregationFunction;
     Property _property : TPropertyReference Index 8 Read F_property Write Set_property;
   end;
   TPropertyExpressionClass = Class of TPropertyExpression;
@@ -867,18 +612,18 @@ type
   
   TPropertyFilter = Class(TGoogleBaseObject)
   Private
-    F_operator : string;
+    F_operator : String;
     F_property : TPropertyReference;
     Fvalue : TValue;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_operator(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_operator(AIndex : Integer; AValue : String); virtual;
     Procedure Set_property(AIndex : Integer; AValue : TPropertyReference); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : TValue); virtual;
   Public
   Published
-    Property _operator : string Index 0 Read F_operator Write Set_operator;
+    Property _operator : String Index 0 Read F_operator Write Set_operator;
     Property _property : TPropertyReference Index 8 Read F_property Write Set_property;
     Property value : TValue Index 16 Read Fvalue Write Setvalue;
   end;
@@ -890,16 +635,16 @@ type
   
   TPropertyOrder = Class(TGoogleBaseObject)
   Private
-    Fdirection : string;
+    Fdirection : String;
     F_property : TPropertyReference;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdirection(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdirection(AIndex : Integer; AValue : String); virtual;
     Procedure Set_property(AIndex : Integer; AValue : TPropertyReference); virtual;
   Public
   Published
-    Property direction : string Index 0 Read Fdirection Write Setdirection;
+    Property direction : String Index 0 Read Fdirection Write Setdirection;
     Property _property : TPropertyReference Index 8 Read F_property Write Set_property;
   end;
   TPropertyOrderClass = Class of TPropertyOrder;
@@ -910,13 +655,13 @@ type
   
   TPropertyReference = Class(TGoogleBaseObject)
   Private
-    Fname : string;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
+    Property name : String Index 0 Read Fname Write Setname;
   end;
   TPropertyReferenceClass = Class of TPropertyReference;
   
@@ -926,91 +671,39 @@ type
   
   TQuery = Class(TGoogleBaseObject)
   Private
-    FendCursor : string;
+    FendCursor : String;
     Ffilter : TFilter;
-    FgroupBy : TQuerygroupBy;
-    Fkinds : TQuerykinds;
+    FgroupBy : TQueryTypegroupByArray;
+    Fkinds : TQueryTypekindsArray;
     Flimit : integer;
     Foffset : integer;
-    Forder : TQueryorder;
-    Fprojection : TQueryprojection;
-    FstartCursor : string;
+    Forder : TQueryTypeorderArray;
+    Fprojection : TQueryTypeprojectionArray;
+    FstartCursor : String;
   Protected
     //Property setters
-    Procedure SetendCursor(AIndex : Integer; AValue : string); virtual;
+    Procedure SetendCursor(AIndex : Integer; AValue : String); virtual;
     Procedure Setfilter(AIndex : Integer; AValue : TFilter); virtual;
-    Procedure SetgroupBy(AIndex : Integer; AValue : TQuerygroupBy); virtual;
-    Procedure Setkinds(AIndex : Integer; AValue : TQuerykinds); virtual;
+    Procedure SetgroupBy(AIndex : Integer; AValue : TQueryTypegroupByArray); virtual;
+    Procedure Setkinds(AIndex : Integer; AValue : TQueryTypekindsArray); virtual;
     Procedure Setlimit(AIndex : Integer; AValue : integer); virtual;
     Procedure Setoffset(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setorder(AIndex : Integer; AValue : TQueryorder); virtual;
-    Procedure Setprojection(AIndex : Integer; AValue : TQueryprojection); virtual;
-    Procedure SetstartCursor(AIndex : Integer; AValue : string); virtual;
+    Procedure Setorder(AIndex : Integer; AValue : TQueryTypeorderArray); virtual;
+    Procedure Setprojection(AIndex : Integer; AValue : TQueryTypeprojectionArray); virtual;
+    Procedure SetstartCursor(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property endCursor : string Index 0 Read FendCursor Write SetendCursor;
+    Property endCursor : String Index 0 Read FendCursor Write SetendCursor;
     Property filter : TFilter Index 8 Read Ffilter Write Setfilter;
-    Property groupBy : TQuerygroupBy Index 16 Read FgroupBy Write SetgroupBy;
-    Property kinds : TQuerykinds Index 24 Read Fkinds Write Setkinds;
+    Property groupBy : TQueryTypegroupByArray Index 16 Read FgroupBy Write SetgroupBy;
+    Property kinds : TQueryTypekindsArray Index 24 Read Fkinds Write Setkinds;
     Property limit : integer Index 32 Read Flimit Write Setlimit;
     Property offset : integer Index 40 Read Foffset Write Setoffset;
-    Property order : TQueryorder Index 48 Read Forder Write Setorder;
-    Property projection : TQueryprojection Index 56 Read Fprojection Write Setprojection;
-    Property startCursor : string Index 64 Read FstartCursor Write SetstartCursor;
+    Property order : TQueryTypeorderArray Index 48 Read Forder Write Setorder;
+    Property projection : TQueryTypeprojectionArray Index 56 Read Fprojection Write Setprojection;
+    Property startCursor : String Index 64 Read FstartCursor Write SetstartCursor;
   end;
   TQueryClass = Class of TQuery;
-  
-  { --------------------------------------------------------------------
-    TQuerygroupBy
-    --------------------------------------------------------------------}
-  
-  TQuerygroupBy = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TQuerygroupByClass = Class of TQuerygroupBy;
-  
-  { --------------------------------------------------------------------
-    TQuerykinds
-    --------------------------------------------------------------------}
-  
-  TQuerykinds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TQuerykindsClass = Class of TQuerykinds;
-  
-  { --------------------------------------------------------------------
-    TQueryorder
-    --------------------------------------------------------------------}
-  
-  TQueryorder = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TQueryorderClass = Class of TQueryorder;
-  
-  { --------------------------------------------------------------------
-    TQueryprojection
-    --------------------------------------------------------------------}
-  
-  TQueryprojection = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TQueryprojectionClass = Class of TQueryprojection;
   
   { --------------------------------------------------------------------
     TQueryResultBatch
@@ -1018,40 +711,27 @@ type
   
   TQueryResultBatch = Class(TGoogleBaseObject)
   Private
-    FendCursor : string;
-    FentityResultType : string;
-    FentityResults : TQueryResultBatchentityResults;
-    FmoreResults : string;
+    FendCursor : String;
+    FentityResultType : String;
+    FentityResults : TQueryResultBatchTypeentityResultsArray;
+    FmoreResults : String;
     FskippedResults : integer;
   Protected
     //Property setters
-    Procedure SetendCursor(AIndex : Integer; AValue : string); virtual;
-    Procedure SetentityResultType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetentityResults(AIndex : Integer; AValue : TQueryResultBatchentityResults); virtual;
-    Procedure SetmoreResults(AIndex : Integer; AValue : string); virtual;
+    Procedure SetendCursor(AIndex : Integer; AValue : String); virtual;
+    Procedure SetentityResultType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetentityResults(AIndex : Integer; AValue : TQueryResultBatchTypeentityResultsArray); virtual;
+    Procedure SetmoreResults(AIndex : Integer; AValue : String); virtual;
     Procedure SetskippedResults(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property endCursor : string Index 0 Read FendCursor Write SetendCursor;
-    Property entityResultType : string Index 8 Read FentityResultType Write SetentityResultType;
-    Property entityResults : TQueryResultBatchentityResults Index 16 Read FentityResults Write SetentityResults;
-    Property moreResults : string Index 24 Read FmoreResults Write SetmoreResults;
+    Property endCursor : String Index 0 Read FendCursor Write SetendCursor;
+    Property entityResultType : String Index 8 Read FentityResultType Write SetentityResultType;
+    Property entityResults : TQueryResultBatchTypeentityResultsArray Index 16 Read FentityResults Write SetentityResults;
+    Property moreResults : String Index 24 Read FmoreResults Write SetmoreResults;
     Property skippedResults : integer Index 32 Read FskippedResults Write SetskippedResults;
   end;
   TQueryResultBatchClass = Class of TQueryResultBatch;
-  
-  { --------------------------------------------------------------------
-    TQueryResultBatchentityResults
-    --------------------------------------------------------------------}
-  
-  TQueryResultBatchentityResults = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TQueryResultBatchentityResultsClass = Class of TQueryResultBatchentityResults;
   
   { --------------------------------------------------------------------
     TReadOptions
@@ -1059,16 +739,16 @@ type
   
   TReadOptions = Class(TGoogleBaseObject)
   Private
-    FreadConsistency : string;
-    Ftransaction : string;
+    FreadConsistency : String;
+    Ftransaction : String;
   Protected
     //Property setters
-    Procedure SetreadConsistency(AIndex : Integer; AValue : string); virtual;
-    Procedure Settransaction(AIndex : Integer; AValue : string); virtual;
+    Procedure SetreadConsistency(AIndex : Integer; AValue : String); virtual;
+    Procedure Settransaction(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property readConsistency : string Index 0 Read FreadConsistency Write SetreadConsistency;
-    Property transaction : string Index 8 Read Ftransaction Write Settransaction;
+    Property readConsistency : String Index 0 Read FreadConsistency Write SetreadConsistency;
+    Property transaction : String Index 8 Read Ftransaction Write Settransaction;
   end;
   TReadOptionsClass = Class of TReadOptions;
   
@@ -1078,13 +758,13 @@ type
   
   TResponseHeader = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
+    Property kind : String Index 0 Read Fkind Write Setkind;
   end;
   TResponseHeaderClass = Class of TResponseHeader;
   
@@ -1094,13 +774,13 @@ type
   
   TRollbackRequest = Class(TGoogleBaseObject)
   Private
-    Ftransaction : string;
+    Ftransaction : String;
   Protected
     //Property setters
-    Procedure Settransaction(AIndex : Integer; AValue : string); virtual;
+    Procedure Settransaction(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property transaction : string Index 0 Read Ftransaction Write Settransaction;
+    Property transaction : String Index 0 Read Ftransaction Write Settransaction;
   end;
   TRollbackRequestClass = Class of TRollbackRequest;
   
@@ -1170,61 +850,48 @@ type
   
   TValue = Class(TGoogleBaseObject)
   Private
-    FblobKeyValue : string;
-    FblobValue : string;
+    FblobKeyValue : String;
+    FblobValue : String;
     FbooleanValue : boolean;
     FdateTimeValue : TDatetime;
     FdoubleValue : double;
     FentityValue : TEntity;
     Findexed : boolean;
-    FintegerValue : string;
+    FintegerValue : String;
     FkeyValue : TKey;
-    FlistValue : TValuelistValue;
+    FlistValue : TValueTypelistValueArray;
     Fmeaning : integer;
-    FstringValue : string;
+    FstringValue : String;
   Protected
     //Property setters
-    Procedure SetblobKeyValue(AIndex : Integer; AValue : string); virtual;
-    Procedure SetblobValue(AIndex : Integer; AValue : string); virtual;
+    Procedure SetblobKeyValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetblobValue(AIndex : Integer; AValue : String); virtual;
     Procedure SetbooleanValue(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetdateTimeValue(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetdoubleValue(AIndex : Integer; AValue : double); virtual;
     Procedure SetentityValue(AIndex : Integer; AValue : TEntity); virtual;
     Procedure Setindexed(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetintegerValue(AIndex : Integer; AValue : string); virtual;
+    Procedure SetintegerValue(AIndex : Integer; AValue : String); virtual;
     Procedure SetkeyValue(AIndex : Integer; AValue : TKey); virtual;
-    Procedure SetlistValue(AIndex : Integer; AValue : TValuelistValue); virtual;
+    Procedure SetlistValue(AIndex : Integer; AValue : TValueTypelistValueArray); virtual;
     Procedure Setmeaning(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetstringValue(AIndex : Integer; AValue : string); virtual;
+    Procedure SetstringValue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property blobKeyValue : string Index 0 Read FblobKeyValue Write SetblobKeyValue;
-    Property blobValue : string Index 8 Read FblobValue Write SetblobValue;
+    Property blobKeyValue : String Index 0 Read FblobKeyValue Write SetblobKeyValue;
+    Property blobValue : String Index 8 Read FblobValue Write SetblobValue;
     Property booleanValue : boolean Index 16 Read FbooleanValue Write SetbooleanValue;
     Property dateTimeValue : TDatetime Index 24 Read FdateTimeValue Write SetdateTimeValue;
     Property doubleValue : double Index 32 Read FdoubleValue Write SetdoubleValue;
     Property entityValue : TEntity Index 40 Read FentityValue Write SetentityValue;
     Property indexed : boolean Index 48 Read Findexed Write Setindexed;
-    Property integerValue : string Index 56 Read FintegerValue Write SetintegerValue;
+    Property integerValue : String Index 56 Read FintegerValue Write SetintegerValue;
     Property keyValue : TKey Index 64 Read FkeyValue Write SetkeyValue;
-    Property listValue : TValuelistValue Index 72 Read FlistValue Write SetlistValue;
+    Property listValue : TValueTypelistValueArray Index 72 Read FlistValue Write SetlistValue;
     Property meaning : integer Index 80 Read Fmeaning Write Setmeaning;
-    Property stringValue : string Index 88 Read FstringValue Write SetstringValue;
+    Property stringValue : String Index 88 Read FstringValue Write SetstringValue;
   end;
   TValueClass = Class of TValue;
-  
-  { --------------------------------------------------------------------
-    TValuelistValue
-    --------------------------------------------------------------------}
-  
-  TValuelistValue = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TValuelistValueClass = Class of TValuelistValue;
   
   { --------------------------------------------------------------------
     TDatasetsResource
@@ -1288,7 +955,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAllocateIdsRequest.Setkeys(AIndex : Integer; AValue : TAllocateIdsRequestkeys); 
+Procedure TAllocateIdsRequest.Setkeys(AIndex : Integer; AValue : TAllocateIdsRequestTypekeysArray); 
 
 begin
   If (Fkeys=AValue) then exit;
@@ -1296,13 +963,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAllocateIdsRequestkeys
-  --------------------------------------------------------------------}
 
 
 
@@ -1322,7 +982,7 @@ end;
 
 
 
-Procedure TAllocateIdsResponse.Setkeys(AIndex : Integer; AValue : TAllocateIdsResponsekeys); 
+Procedure TAllocateIdsResponse.Setkeys(AIndex : Integer; AValue : TAllocateIdsResponseTypekeysArray); 
 
 begin
   If (Fkeys=AValue) then exit;
@@ -1335,18 +995,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAllocateIdsResponsekeys
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TBeginTransactionRequest
   --------------------------------------------------------------------}
 
 
-Procedure TBeginTransactionRequest.SetisolationLevel(AIndex : Integer; AValue : string); 
+Procedure TBeginTransactionRequest.SetisolationLevel(AIndex : Integer; AValue : String); 
 
 begin
   If (FisolationLevel=AValue) then exit;
@@ -1373,7 +1026,7 @@ end;
 
 
 
-Procedure TBeginTransactionResponse.Settransaction(AIndex : Integer; AValue : string); 
+Procedure TBeginTransactionResponse.Settransaction(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftransaction=AValue) then exit;
@@ -1400,7 +1053,7 @@ end;
 
 
 
-Procedure TCommitRequest.Setmode(AIndex : Integer; AValue : string); 
+Procedure TCommitRequest.Setmode(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmode=AValue) then exit;
@@ -1420,7 +1073,7 @@ end;
 
 
 
-Procedure TCommitRequest.Settransaction(AIndex : Integer; AValue : string); 
+Procedure TCommitRequest.Settransaction(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftransaction=AValue) then exit;
@@ -1464,7 +1117,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCompositeFilter.Setfilters(AIndex : Integer; AValue : TCompositeFilterfilters); 
+Procedure TCompositeFilter.Setfilters(AIndex : Integer; AValue : TCompositeFilterTypefiltersArray); 
 
 begin
   If (Ffilters=AValue) then exit;
@@ -1474,7 +1127,7 @@ end;
 
 
 
-Procedure TCompositeFilter.Set_operator(AIndex : Integer; AValue : string); 
+Procedure TCompositeFilter.Set_operator(AIndex : Integer; AValue : String); 
 
 begin
   If (F_operator=AValue) then exit;
@@ -1498,9 +1151,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCompositeFilterfilters
+  TEntityTypeproperties
   --------------------------------------------------------------------}
 
+
+Class Function TEntityTypeproperties.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -1519,7 +1178,7 @@ end;
 
 
 
-Procedure TEntity.Setproperties(AIndex : Integer; AValue : TEntityproperties); 
+Procedure TEntity.Setproperties(AIndex : Integer; AValue : TEntityTypeproperties); 
 
 begin
   If (Fproperties=AValue) then exit;
@@ -1528,19 +1187,6 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TEntityproperties
-  --------------------------------------------------------------------}
-
-
-Class Function TEntityproperties.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
 
 
 
@@ -1603,7 +1249,7 @@ end;
 
 
 
-Procedure TGqlQuery.SetnameArgs(AIndex : Integer; AValue : TGqlQuerynameArgs); 
+Procedure TGqlQuery.SetnameArgs(AIndex : Integer; AValue : TGqlQueryTypenameArgsArray); 
 
 begin
   If (FnameArgs=AValue) then exit;
@@ -1613,7 +1259,7 @@ end;
 
 
 
-Procedure TGqlQuery.SetnumberArgs(AIndex : Integer; AValue : TGqlQuerynumberArgs); 
+Procedure TGqlQuery.SetnumberArgs(AIndex : Integer; AValue : TGqlQueryTypenumberArgsArray); 
 
 begin
   If (FnumberArgs=AValue) then exit;
@@ -1623,7 +1269,7 @@ end;
 
 
 
-Procedure TGqlQuery.SetqueryString(AIndex : Integer; AValue : string); 
+Procedure TGqlQuery.SetqueryString(AIndex : Integer; AValue : String); 
 
 begin
   If (FqueryString=AValue) then exit;
@@ -1636,25 +1282,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TGqlQuerynameArgs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TGqlQuerynumberArgs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TGqlQueryArg
   --------------------------------------------------------------------}
 
 
-Procedure TGqlQueryArg.Setcursor(AIndex : Integer; AValue : string); 
+Procedure TGqlQueryArg.Setcursor(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcursor=AValue) then exit;
@@ -1664,7 +1296,7 @@ end;
 
 
 
-Procedure TGqlQueryArg.Setname(AIndex : Integer; AValue : string); 
+Procedure TGqlQueryArg.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1701,7 +1333,7 @@ end;
 
 
 
-Procedure TKey.Setpath(AIndex : Integer; AValue : TKeypath); 
+Procedure TKey.Setpath(AIndex : Integer; AValue : TKeyTypepathArray); 
 
 begin
   If (Fpath=AValue) then exit;
@@ -1714,18 +1346,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TKeypath
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TKeyPathElement
   --------------------------------------------------------------------}
 
 
-Procedure TKeyPathElement.Setid(AIndex : Integer; AValue : string); 
+Procedure TKeyPathElement.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1735,7 +1360,7 @@ end;
 
 
 
-Procedure TKeyPathElement.Setkind(AIndex : Integer; AValue : string); 
+Procedure TKeyPathElement.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1745,7 +1370,7 @@ end;
 
 
 
-Procedure TKeyPathElement.Setname(AIndex : Integer; AValue : string); 
+Procedure TKeyPathElement.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1762,7 +1387,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TKindExpression.Setname(AIndex : Integer; AValue : string); 
+Procedure TKindExpression.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1779,7 +1404,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLookupRequest.Setkeys(AIndex : Integer; AValue : TLookupRequestkeys); 
+Procedure TLookupRequest.Setkeys(AIndex : Integer; AValue : TLookupRequestTypekeysArray); 
 
 begin
   If (Fkeys=AValue) then exit;
@@ -1802,18 +1427,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLookupRequestkeys
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLookupResponse
   --------------------------------------------------------------------}
 
 
-Procedure TLookupResponse.Setdeferred(AIndex : Integer; AValue : TLookupResponsedeferred); 
+Procedure TLookupResponse.Setdeferred(AIndex : Integer; AValue : TLookupResponseTypedeferredArray); 
 
 begin
   If (Fdeferred=AValue) then exit;
@@ -1823,7 +1441,7 @@ end;
 
 
 
-Procedure TLookupResponse.Setfound(AIndex : Integer; AValue : TLookupResponsefound); 
+Procedure TLookupResponse.Setfound(AIndex : Integer; AValue : TLookupResponseTypefoundArray); 
 
 begin
   If (Ffound=AValue) then exit;
@@ -1843,7 +1461,7 @@ end;
 
 
 
-Procedure TLookupResponse.Setmissing(AIndex : Integer; AValue : TLookupResponsemissing); 
+Procedure TLookupResponse.Setmissing(AIndex : Integer; AValue : TLookupResponseTypemissingArray); 
 
 begin
   If (Fmissing=AValue) then exit;
@@ -1856,32 +1474,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLookupResponsedeferred
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TLookupResponsefound
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TLookupResponsemissing
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMutation
   --------------------------------------------------------------------}
 
 
-Procedure TMutation.Setdelete(AIndex : Integer; AValue : TMutationdelete); 
+Procedure TMutation.Setdelete(AIndex : Integer; AValue : TMutationTypedeleteArray); 
 
 begin
   If (Fdelete=AValue) then exit;
@@ -1901,7 +1498,7 @@ end;
 
 
 
-Procedure TMutation.Setinsert(AIndex : Integer; AValue : TMutationinsert); 
+Procedure TMutation.Setinsert(AIndex : Integer; AValue : TMutationTypeinsertArray); 
 
 begin
   If (Finsert=AValue) then exit;
@@ -1911,7 +1508,7 @@ end;
 
 
 
-Procedure TMutation.SetinsertAutoId(AIndex : Integer; AValue : TMutationinsertAutoId); 
+Procedure TMutation.SetinsertAutoId(AIndex : Integer; AValue : TMutationTypeinsertAutoIdArray); 
 
 begin
   If (FinsertAutoId=AValue) then exit;
@@ -1921,7 +1518,7 @@ end;
 
 
 
-Procedure TMutation.Setupdate(AIndex : Integer; AValue : TMutationupdate); 
+Procedure TMutation.Setupdate(AIndex : Integer; AValue : TMutationTypeupdateArray); 
 
 begin
   If (Fupdate=AValue) then exit;
@@ -1931,7 +1528,7 @@ end;
 
 
 
-Procedure TMutation.Setupsert(AIndex : Integer; AValue : TMutationupsert); 
+Procedure TMutation.Setupsert(AIndex : Integer; AValue : TMutationTypeupsertArray); 
 
 begin
   If (Fupsert=AValue) then exit;
@@ -1939,41 +1536,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TMutationdelete
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TMutationinsert
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TMutationinsertAutoId
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TMutationupdate
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TMutationupsert
-  --------------------------------------------------------------------}
 
 
 
@@ -1993,7 +1555,7 @@ end;
 
 
 
-Procedure TMutationResult.SetinsertAutoIdKeys(AIndex : Integer; AValue : TMutationResultinsertAutoIdKeys); 
+Procedure TMutationResult.SetinsertAutoIdKeys(AIndex : Integer; AValue : TMutationResultTypeinsertAutoIdKeysArray); 
 
 begin
   If (FinsertAutoIdKeys=AValue) then exit;
@@ -2006,18 +1568,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMutationResultinsertAutoIdKeys
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TPartitionId
   --------------------------------------------------------------------}
 
 
-Procedure TPartitionId.SetdatasetId(AIndex : Integer; AValue : string); 
+Procedure TPartitionId.SetdatasetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -2027,7 +1582,7 @@ end;
 
 
 
-Procedure TPartitionId.Setnamespace(AIndex : Integer; AValue : string); 
+Procedure TPartitionId.Setnamespace(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnamespace=AValue) then exit;
@@ -2044,7 +1599,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProperty.SetblobKeyValue(AIndex : Integer; AValue : string); 
+Procedure TProperty.SetblobKeyValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FblobKeyValue=AValue) then exit;
@@ -2054,7 +1609,7 @@ end;
 
 
 
-Procedure TProperty.SetblobValue(AIndex : Integer; AValue : string); 
+Procedure TProperty.SetblobValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FblobValue=AValue) then exit;
@@ -2114,7 +1669,7 @@ end;
 
 
 
-Procedure TProperty.SetintegerValue(AIndex : Integer; AValue : string); 
+Procedure TProperty.SetintegerValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FintegerValue=AValue) then exit;
@@ -2134,7 +1689,7 @@ end;
 
 
 
-Procedure TProperty.SetlistValue(AIndex : Integer; AValue : TPropertylistValue); 
+Procedure TProperty.SetlistValue(AIndex : Integer; AValue : TPropertyTypelistValueArray); 
 
 begin
   If (FlistValue=AValue) then exit;
@@ -2154,7 +1709,7 @@ end;
 
 
 
-Procedure TProperty.SetstringValue(AIndex : Integer; AValue : string); 
+Procedure TProperty.SetstringValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FstringValue=AValue) then exit;
@@ -2167,18 +1722,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPropertylistValue
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TPropertyExpression
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyExpression.SetaggregationFunction(AIndex : Integer; AValue : string); 
+Procedure TPropertyExpression.SetaggregationFunction(AIndex : Integer; AValue : String); 
 
 begin
   If (FaggregationFunction=AValue) then exit;
@@ -2216,7 +1764,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyFilter.Set_operator(AIndex : Integer; AValue : string); 
+Procedure TPropertyFilter.Set_operator(AIndex : Integer; AValue : String); 
 
 begin
   If (F_operator=AValue) then exit;
@@ -2265,7 +1813,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyOrder.Setdirection(AIndex : Integer; AValue : string); 
+Procedure TPropertyOrder.Setdirection(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdirection=AValue) then exit;
@@ -2303,7 +1851,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyReference.Setname(AIndex : Integer; AValue : string); 
+Procedure TPropertyReference.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2320,7 +1868,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuery.SetendCursor(AIndex : Integer; AValue : string); 
+Procedure TQuery.SetendCursor(AIndex : Integer; AValue : String); 
 
 begin
   If (FendCursor=AValue) then exit;
@@ -2340,7 +1888,7 @@ end;
 
 
 
-Procedure TQuery.SetgroupBy(AIndex : Integer; AValue : TQuerygroupBy); 
+Procedure TQuery.SetgroupBy(AIndex : Integer; AValue : TQueryTypegroupByArray); 
 
 begin
   If (FgroupBy=AValue) then exit;
@@ -2350,7 +1898,7 @@ end;
 
 
 
-Procedure TQuery.Setkinds(AIndex : Integer; AValue : TQuerykinds); 
+Procedure TQuery.Setkinds(AIndex : Integer; AValue : TQueryTypekindsArray); 
 
 begin
   If (Fkinds=AValue) then exit;
@@ -2380,7 +1928,7 @@ end;
 
 
 
-Procedure TQuery.Setorder(AIndex : Integer; AValue : TQueryorder); 
+Procedure TQuery.Setorder(AIndex : Integer; AValue : TQueryTypeorderArray); 
 
 begin
   If (Forder=AValue) then exit;
@@ -2390,7 +1938,7 @@ end;
 
 
 
-Procedure TQuery.Setprojection(AIndex : Integer; AValue : TQueryprojection); 
+Procedure TQuery.Setprojection(AIndex : Integer; AValue : TQueryTypeprojectionArray); 
 
 begin
   If (Fprojection=AValue) then exit;
@@ -2400,7 +1948,7 @@ end;
 
 
 
-Procedure TQuery.SetstartCursor(AIndex : Integer; AValue : string); 
+Procedure TQuery.SetstartCursor(AIndex : Integer; AValue : String); 
 
 begin
   If (FstartCursor=AValue) then exit;
@@ -2413,39 +1961,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TQuerygroupBy
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TQuerykinds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TQueryorder
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TQueryprojection
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TQueryResultBatch
   --------------------------------------------------------------------}
 
 
-Procedure TQueryResultBatch.SetendCursor(AIndex : Integer; AValue : string); 
+Procedure TQueryResultBatch.SetendCursor(AIndex : Integer; AValue : String); 
 
 begin
   If (FendCursor=AValue) then exit;
@@ -2455,7 +1975,7 @@ end;
 
 
 
-Procedure TQueryResultBatch.SetentityResultType(AIndex : Integer; AValue : string); 
+Procedure TQueryResultBatch.SetentityResultType(AIndex : Integer; AValue : String); 
 
 begin
   If (FentityResultType=AValue) then exit;
@@ -2465,7 +1985,7 @@ end;
 
 
 
-Procedure TQueryResultBatch.SetentityResults(AIndex : Integer; AValue : TQueryResultBatchentityResults); 
+Procedure TQueryResultBatch.SetentityResults(AIndex : Integer; AValue : TQueryResultBatchTypeentityResultsArray); 
 
 begin
   If (FentityResults=AValue) then exit;
@@ -2475,7 +1995,7 @@ end;
 
 
 
-Procedure TQueryResultBatch.SetmoreResults(AIndex : Integer; AValue : string); 
+Procedure TQueryResultBatch.SetmoreResults(AIndex : Integer; AValue : String); 
 
 begin
   If (FmoreResults=AValue) then exit;
@@ -2498,18 +2018,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TQueryResultBatchentityResults
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TReadOptions
   --------------------------------------------------------------------}
 
 
-Procedure TReadOptions.SetreadConsistency(AIndex : Integer; AValue : string); 
+Procedure TReadOptions.SetreadConsistency(AIndex : Integer; AValue : String); 
 
 begin
   If (FreadConsistency=AValue) then exit;
@@ -2519,7 +2032,7 @@ end;
 
 
 
-Procedure TReadOptions.Settransaction(AIndex : Integer; AValue : string); 
+Procedure TReadOptions.Settransaction(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftransaction=AValue) then exit;
@@ -2536,7 +2049,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResponseHeader.Setkind(AIndex : Integer; AValue : string); 
+Procedure TResponseHeader.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2553,7 +2066,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRollbackRequest.Settransaction(AIndex : Integer; AValue : string); 
+Procedure TRollbackRequest.Settransaction(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftransaction=AValue) then exit;
@@ -2661,7 +2174,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TValue.SetblobKeyValue(AIndex : Integer; AValue : string); 
+Procedure TValue.SetblobKeyValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FblobKeyValue=AValue) then exit;
@@ -2671,7 +2184,7 @@ end;
 
 
 
-Procedure TValue.SetblobValue(AIndex : Integer; AValue : string); 
+Procedure TValue.SetblobValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FblobValue=AValue) then exit;
@@ -2731,7 +2244,7 @@ end;
 
 
 
-Procedure TValue.SetintegerValue(AIndex : Integer; AValue : string); 
+Procedure TValue.SetintegerValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FintegerValue=AValue) then exit;
@@ -2751,7 +2264,7 @@ end;
 
 
 
-Procedure TValue.SetlistValue(AIndex : Integer; AValue : TValuelistValue); 
+Procedure TValue.SetlistValue(AIndex : Integer; AValue : TValueTypelistValueArray); 
 
 begin
   If (FlistValue=AValue) then exit;
@@ -2771,7 +2284,7 @@ end;
 
 
 
-Procedure TValue.SetstringValue(AIndex : Integer; AValue : string); 
+Procedure TValue.SetstringValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FstringValue=AValue) then exit;
@@ -2779,13 +2292,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TValuelistValue
-  --------------------------------------------------------------------}
 
 
 
@@ -3028,55 +2534,33 @@ Class Procedure TDatastoreAPI.RegisterAPIResources;
 
 begin
   TAllocateIdsRequest.RegisterObject;
-  TAllocateIdsRequestkeys.RegisterObject;
   TAllocateIdsResponse.RegisterObject;
-  TAllocateIdsResponsekeys.RegisterObject;
   TBeginTransactionRequest.RegisterObject;
   TBeginTransactionResponse.RegisterObject;
   TCommitRequest.RegisterObject;
   TCommitResponse.RegisterObject;
   TCompositeFilter.RegisterObject;
-  TCompositeFilterfilters.RegisterObject;
+  TEntityTypeproperties.RegisterObject;
   TEntity.RegisterObject;
-  TEntityproperties.RegisterObject;
   TEntityResult.RegisterObject;
   TFilter.RegisterObject;
   TGqlQuery.RegisterObject;
-  TGqlQuerynameArgs.RegisterObject;
-  TGqlQuerynumberArgs.RegisterObject;
   TGqlQueryArg.RegisterObject;
   TKey.RegisterObject;
-  TKeypath.RegisterObject;
   TKeyPathElement.RegisterObject;
   TKindExpression.RegisterObject;
   TLookupRequest.RegisterObject;
-  TLookupRequestkeys.RegisterObject;
   TLookupResponse.RegisterObject;
-  TLookupResponsedeferred.RegisterObject;
-  TLookupResponsefound.RegisterObject;
-  TLookupResponsemissing.RegisterObject;
   TMutation.RegisterObject;
-  TMutationdelete.RegisterObject;
-  TMutationinsert.RegisterObject;
-  TMutationinsertAutoId.RegisterObject;
-  TMutationupdate.RegisterObject;
-  TMutationupsert.RegisterObject;
   TMutationResult.RegisterObject;
-  TMutationResultinsertAutoIdKeys.RegisterObject;
   TPartitionId.RegisterObject;
   TProperty.RegisterObject;
-  TPropertylistValue.RegisterObject;
   TPropertyExpression.RegisterObject;
   TPropertyFilter.RegisterObject;
   TPropertyOrder.RegisterObject;
   TPropertyReference.RegisterObject;
   TQuery.RegisterObject;
-  TQuerygroupBy.RegisterObject;
-  TQuerykinds.RegisterObject;
-  TQueryorder.RegisterObject;
-  TQueryprojection.RegisterObject;
   TQueryResultBatch.RegisterObject;
-  TQueryResultBatchentityResults.RegisterObject;
   TReadOptions.RegisterObject;
   TResponseHeader.RegisterObject;
   TRollbackRequest.RegisterObject;
@@ -3084,7 +2568,6 @@ begin
   TRunQueryRequest.RegisterObject;
   TRunQueryResponse.RegisterObject;
   TValue.RegisterObject;
-  TValuelistValue.RegisterObject;
 end;
 
 

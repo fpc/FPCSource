@@ -1,31 +1,19 @@
 unit googlegmail;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:55
 {$MODE objfpc}
 {$H+}
 
@@ -34,87 +22,62 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TDraft = class;
-  TDraftArray = Array of TDraft;
   THistory = class;
-  THistoryArray = Array of THistory;
-  THistorylabelsAdded = class;
-  THistorylabelsAddedArray = Array of THistorylabelsAdded;
-  THistorylabelsRemoved = class;
-  THistorylabelsRemovedArray = Array of THistorylabelsRemoved;
-  THistorymessages = class;
-  THistorymessagesArray = Array of THistorymessages;
-  THistorymessagesAdded = class;
-  THistorymessagesAddedArray = Array of THistorymessagesAdded;
-  THistorymessagesDeleted = class;
-  THistorymessagesDeletedArray = Array of THistorymessagesDeleted;
   THistoryLabelAdded = class;
-  THistoryLabelAddedArray = Array of THistoryLabelAdded;
-  THistoryLabelAddedlabelIds = class;
-  THistoryLabelAddedlabelIdsArray = Array of THistoryLabelAddedlabelIds;
   THistoryLabelRemoved = class;
-  THistoryLabelRemovedArray = Array of THistoryLabelRemoved;
-  THistoryLabelRemovedlabelIds = class;
-  THistoryLabelRemovedlabelIdsArray = Array of THistoryLabelRemovedlabelIds;
   THistoryMessageAdded = class;
-  THistoryMessageAddedArray = Array of THistoryMessageAdded;
   THistoryMessageDeleted = class;
-  THistoryMessageDeletedArray = Array of THistoryMessageDeleted;
   TLabel = class;
-  TLabelArray = Array of TLabel;
   TListDraftsResponse = class;
-  TListDraftsResponseArray = Array of TListDraftsResponse;
-  TListDraftsResponsedrafts = class;
-  TListDraftsResponsedraftsArray = Array of TListDraftsResponsedrafts;
   TListHistoryResponse = class;
-  TListHistoryResponseArray = Array of TListHistoryResponse;
-  TListHistoryResponsehistory = class;
-  TListHistoryResponsehistoryArray = Array of TListHistoryResponsehistory;
   TListLabelsResponse = class;
-  TListLabelsResponseArray = Array of TListLabelsResponse;
-  TListLabelsResponselabels = class;
-  TListLabelsResponselabelsArray = Array of TListLabelsResponselabels;
   TListMessagesResponse = class;
-  TListMessagesResponseArray = Array of TListMessagesResponse;
-  TListMessagesResponsemessages = class;
-  TListMessagesResponsemessagesArray = Array of TListMessagesResponsemessages;
   TListThreadsResponse = class;
-  TListThreadsResponseArray = Array of TListThreadsResponse;
-  TListThreadsResponsethreads = class;
-  TListThreadsResponsethreadsArray = Array of TListThreadsResponsethreads;
   TMessage = class;
-  TMessageArray = Array of TMessage;
-  TMessagelabelIds = class;
-  TMessagelabelIdsArray = Array of TMessagelabelIds;
   TMessagePart = class;
-  TMessagePartArray = Array of TMessagePart;
-  TMessagePartheaders = class;
-  TMessagePartheadersArray = Array of TMessagePartheaders;
-  TMessagePartparts = class;
-  TMessagePartpartsArray = Array of TMessagePartparts;
   TMessagePartBody = class;
-  TMessagePartBodyArray = Array of TMessagePartBody;
   TMessagePartHeader = class;
-  TMessagePartHeaderArray = Array of TMessagePartHeader;
   TModifyMessageRequest = class;
-  TModifyMessageRequestArray = Array of TModifyMessageRequest;
-  TModifyMessageRequestaddLabelIds = class;
-  TModifyMessageRequestaddLabelIdsArray = Array of TModifyMessageRequestaddLabelIds;
-  TModifyMessageRequestremoveLabelIds = class;
-  TModifyMessageRequestremoveLabelIdsArray = Array of TModifyMessageRequestremoveLabelIds;
   TModifyThreadRequest = class;
-  TModifyThreadRequestArray = Array of TModifyThreadRequest;
-  TModifyThreadRequestaddLabelIds = class;
-  TModifyThreadRequestaddLabelIdsArray = Array of TModifyThreadRequestaddLabelIds;
-  TModifyThreadRequestremoveLabelIds = class;
-  TModifyThreadRequestremoveLabelIdsArray = Array of TModifyThreadRequestremoveLabelIds;
   TProfile = class;
-  TProfileArray = Array of TProfile;
   TThread = class;
+  TDraftArray = Array of TDraft;
+  THistoryArray = Array of THistory;
+  THistoryLabelAddedArray = Array of THistoryLabelAdded;
+  THistoryLabelRemovedArray = Array of THistoryLabelRemoved;
+  THistoryMessageAddedArray = Array of THistoryMessageAdded;
+  THistoryMessageDeletedArray = Array of THistoryMessageDeleted;
+  TLabelArray = Array of TLabel;
+  TListDraftsResponseArray = Array of TListDraftsResponse;
+  TListHistoryResponseArray = Array of TListHistoryResponse;
+  TListLabelsResponseArray = Array of TListLabelsResponse;
+  TListMessagesResponseArray = Array of TListMessagesResponse;
+  TListThreadsResponseArray = Array of TListThreadsResponse;
+  TMessageArray = Array of TMessage;
+  TMessagePartArray = Array of TMessagePart;
+  TMessagePartBodyArray = Array of TMessagePartBody;
+  TMessagePartHeaderArray = Array of TMessagePartHeader;
+  TModifyMessageRequestArray = Array of TModifyMessageRequest;
+  TModifyThreadRequestArray = Array of TModifyThreadRequest;
+  TProfileArray = Array of TProfile;
   TThreadArray = Array of TThread;
-  TThreadmessages = class;
-  TThreadmessagesArray = Array of TThreadmessages;
+  //Anonymous types, using auto-generated names
+  THistoryTypelabelsAddedArray = Array of THistoryLabelAdded;
+  THistoryTypelabelsRemovedArray = Array of THistoryLabelRemoved;
+  THistoryTypemessagesArray = Array of TMessage;
+  THistoryTypemessagesAddedArray = Array of THistoryMessageAdded;
+  THistoryTypemessagesDeletedArray = Array of THistoryMessageDeleted;
+  TListDraftsResponseTypedraftsArray = Array of TDraft;
+  TListHistoryResponseTypehistoryArray = Array of THistory;
+  TListLabelsResponseTypelabelsArray = Array of TLabel;
+  TListMessagesResponseTypemessagesArray = Array of TMessage;
+  TListThreadsResponseTypethreadsArray = Array of TThread;
+  TMessagePartTypeheadersArray = Array of TMessagePartHeader;
+  TMessagePartTypepartsArray = Array of TMessagePart;
+  TThreadTypemessagesArray = Array of TMessage;
   
   { --------------------------------------------------------------------
     TDraft
@@ -122,15 +85,15 @@ type
   
   TDraft = Class(TGoogleBaseObject)
   Private
-    Fid : string;
+    Fid : String;
     Fmessage : TMessage;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : TMessage); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
+    Property id : String Index 0 Read Fid Write Setid;
     Property message : TMessage Index 8 Read Fmessage Write Setmessage;
   end;
   TDraftClass = Class of TDraft;
@@ -141,95 +104,30 @@ type
   
   THistory = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    FlabelsAdded : THistorylabelsAdded;
-    FlabelsRemoved : THistorylabelsRemoved;
-    Fmessages : THistorymessages;
-    FmessagesAdded : THistorymessagesAdded;
-    FmessagesDeleted : THistorymessagesDeleted;
+    Fid : String;
+    FlabelsAdded : THistoryTypelabelsAddedArray;
+    FlabelsRemoved : THistoryTypelabelsRemovedArray;
+    Fmessages : THistoryTypemessagesArray;
+    FmessagesAdded : THistoryTypemessagesAddedArray;
+    FmessagesDeleted : THistoryTypemessagesDeletedArray;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlabelsAdded(AIndex : Integer; AValue : THistorylabelsAdded); virtual;
-    Procedure SetlabelsRemoved(AIndex : Integer; AValue : THistorylabelsRemoved); virtual;
-    Procedure Setmessages(AIndex : Integer; AValue : THistorymessages); virtual;
-    Procedure SetmessagesAdded(AIndex : Integer; AValue : THistorymessagesAdded); virtual;
-    Procedure SetmessagesDeleted(AIndex : Integer; AValue : THistorymessagesDeleted); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlabelsAdded(AIndex : Integer; AValue : THistoryTypelabelsAddedArray); virtual;
+    Procedure SetlabelsRemoved(AIndex : Integer; AValue : THistoryTypelabelsRemovedArray); virtual;
+    Procedure Setmessages(AIndex : Integer; AValue : THistoryTypemessagesArray); virtual;
+    Procedure SetmessagesAdded(AIndex : Integer; AValue : THistoryTypemessagesAddedArray); virtual;
+    Procedure SetmessagesDeleted(AIndex : Integer; AValue : THistoryTypemessagesDeletedArray); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property labelsAdded : THistorylabelsAdded Index 8 Read FlabelsAdded Write SetlabelsAdded;
-    Property labelsRemoved : THistorylabelsRemoved Index 16 Read FlabelsRemoved Write SetlabelsRemoved;
-    Property messages : THistorymessages Index 24 Read Fmessages Write Setmessages;
-    Property messagesAdded : THistorymessagesAdded Index 32 Read FmessagesAdded Write SetmessagesAdded;
-    Property messagesDeleted : THistorymessagesDeleted Index 40 Read FmessagesDeleted Write SetmessagesDeleted;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property labelsAdded : THistoryTypelabelsAddedArray Index 8 Read FlabelsAdded Write SetlabelsAdded;
+    Property labelsRemoved : THistoryTypelabelsRemovedArray Index 16 Read FlabelsRemoved Write SetlabelsRemoved;
+    Property messages : THistoryTypemessagesArray Index 24 Read Fmessages Write Setmessages;
+    Property messagesAdded : THistoryTypemessagesAddedArray Index 32 Read FmessagesAdded Write SetmessagesAdded;
+    Property messagesDeleted : THistoryTypemessagesDeletedArray Index 40 Read FmessagesDeleted Write SetmessagesDeleted;
   end;
   THistoryClass = Class of THistory;
-  
-  { --------------------------------------------------------------------
-    THistorylabelsAdded
-    --------------------------------------------------------------------}
-  
-  THistorylabelsAdded = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  THistorylabelsAddedClass = Class of THistorylabelsAdded;
-  
-  { --------------------------------------------------------------------
-    THistorylabelsRemoved
-    --------------------------------------------------------------------}
-  
-  THistorylabelsRemoved = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  THistorylabelsRemovedClass = Class of THistorylabelsRemoved;
-  
-  { --------------------------------------------------------------------
-    THistorymessages
-    --------------------------------------------------------------------}
-  
-  THistorymessages = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  THistorymessagesClass = Class of THistorymessages;
-  
-  { --------------------------------------------------------------------
-    THistorymessagesAdded
-    --------------------------------------------------------------------}
-  
-  THistorymessagesAdded = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  THistorymessagesAddedClass = Class of THistorymessagesAdded;
-  
-  { --------------------------------------------------------------------
-    THistorymessagesDeleted
-    --------------------------------------------------------------------}
-  
-  THistorymessagesDeleted = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  THistorymessagesDeletedClass = Class of THistorymessagesDeleted;
   
   { --------------------------------------------------------------------
     THistoryLabelAdded
@@ -237,31 +135,18 @@ type
   
   THistoryLabelAdded = Class(TGoogleBaseObject)
   Private
-    FlabelIds : THistoryLabelAddedlabelIds;
+    FlabelIds : TStringArray;
     Fmessage : TMessage;
   Protected
     //Property setters
-    Procedure SetlabelIds(AIndex : Integer; AValue : THistoryLabelAddedlabelIds); virtual;
+    Procedure SetlabelIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : TMessage); virtual;
   Public
   Published
-    Property labelIds : THistoryLabelAddedlabelIds Index 0 Read FlabelIds Write SetlabelIds;
+    Property labelIds : TStringArray Index 0 Read FlabelIds Write SetlabelIds;
     Property message : TMessage Index 8 Read Fmessage Write Setmessage;
   end;
   THistoryLabelAddedClass = Class of THistoryLabelAdded;
-  
-  { --------------------------------------------------------------------
-    THistoryLabelAddedlabelIds
-    --------------------------------------------------------------------}
-  
-  THistoryLabelAddedlabelIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  THistoryLabelAddedlabelIdsClass = Class of THistoryLabelAddedlabelIds;
   
   { --------------------------------------------------------------------
     THistoryLabelRemoved
@@ -269,31 +154,18 @@ type
   
   THistoryLabelRemoved = Class(TGoogleBaseObject)
   Private
-    FlabelIds : THistoryLabelRemovedlabelIds;
+    FlabelIds : TStringArray;
     Fmessage : TMessage;
   Protected
     //Property setters
-    Procedure SetlabelIds(AIndex : Integer; AValue : THistoryLabelRemovedlabelIds); virtual;
+    Procedure SetlabelIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : TMessage); virtual;
   Public
   Published
-    Property labelIds : THistoryLabelRemovedlabelIds Index 0 Read FlabelIds Write SetlabelIds;
+    Property labelIds : TStringArray Index 0 Read FlabelIds Write SetlabelIds;
     Property message : TMessage Index 8 Read Fmessage Write Setmessage;
   end;
   THistoryLabelRemovedClass = Class of THistoryLabelRemoved;
-  
-  { --------------------------------------------------------------------
-    THistoryLabelRemovedlabelIds
-    --------------------------------------------------------------------}
-  
-  THistoryLabelRemovedlabelIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  THistoryLabelRemovedlabelIdsClass = Class of THistoryLabelRemovedlabelIds;
   
   { --------------------------------------------------------------------
     THistoryMessageAdded
@@ -333,38 +205,38 @@ type
   
   TLabel = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    FlabelListVisibility : string;
-    FmessageListVisibility : string;
+    Fid : String;
+    FlabelListVisibility : String;
+    FmessageListVisibility : String;
     FmessagesTotal : integer;
     FmessagesUnread : integer;
-    Fname : string;
+    Fname : String;
     FthreadsTotal : integer;
     FthreadsUnread : integer;
-    F_type : string;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlabelListVisibility(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmessageListVisibility(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlabelListVisibility(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmessageListVisibility(AIndex : Integer; AValue : String); virtual;
     Procedure SetmessagesTotal(AIndex : Integer; AValue : integer); virtual;
     Procedure SetmessagesUnread(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetthreadsTotal(AIndex : Integer; AValue : integer); virtual;
     Procedure SetthreadsUnread(AIndex : Integer; AValue : integer); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property labelListVisibility : string Index 8 Read FlabelListVisibility Write SetlabelListVisibility;
-    Property messageListVisibility : string Index 16 Read FmessageListVisibility Write SetmessageListVisibility;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property labelListVisibility : String Index 8 Read FlabelListVisibility Write SetlabelListVisibility;
+    Property messageListVisibility : String Index 16 Read FmessageListVisibility Write SetmessageListVisibility;
     Property messagesTotal : integer Index 24 Read FmessagesTotal Write SetmessagesTotal;
     Property messagesUnread : integer Index 32 Read FmessagesUnread Write SetmessagesUnread;
-    Property name : string Index 40 Read Fname Write Setname;
+    Property name : String Index 40 Read Fname Write Setname;
     Property threadsTotal : integer Index 48 Read FthreadsTotal Write SetthreadsTotal;
     Property threadsUnread : integer Index 56 Read FthreadsUnread Write SetthreadsUnread;
-    Property _type : string Index 64 Read F_type Write Set_type;
+    Property _type : String Index 64 Read F_type Write Set_type;
   end;
   TLabelClass = Class of TLabel;
   
@@ -374,34 +246,21 @@ type
   
   TListDraftsResponse = Class(TGoogleBaseObject)
   Private
-    Fdrafts : TListDraftsResponsedrafts;
-    FnextPageToken : string;
+    Fdrafts : TListDraftsResponseTypedraftsArray;
+    FnextPageToken : String;
     FresultSizeEstimate : integer;
   Protected
     //Property setters
-    Procedure Setdrafts(AIndex : Integer; AValue : TListDraftsResponsedrafts); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdrafts(AIndex : Integer; AValue : TListDraftsResponseTypedraftsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetresultSizeEstimate(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property drafts : TListDraftsResponsedrafts Index 0 Read Fdrafts Write Setdrafts;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property drafts : TListDraftsResponseTypedraftsArray Index 0 Read Fdrafts Write Setdrafts;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
     Property resultSizeEstimate : integer Index 16 Read FresultSizeEstimate Write SetresultSizeEstimate;
   end;
   TListDraftsResponseClass = Class of TListDraftsResponse;
-  
-  { --------------------------------------------------------------------
-    TListDraftsResponsedrafts
-    --------------------------------------------------------------------}
-  
-  TListDraftsResponsedrafts = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListDraftsResponsedraftsClass = Class of TListDraftsResponsedrafts;
   
   { --------------------------------------------------------------------
     TListHistoryResponse
@@ -409,34 +268,21 @@ type
   
   TListHistoryResponse = Class(TGoogleBaseObject)
   Private
-    Fhistory : TListHistoryResponsehistory;
-    FhistoryId : string;
-    FnextPageToken : string;
+    Fhistory : TListHistoryResponseTypehistoryArray;
+    FhistoryId : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Sethistory(AIndex : Integer; AValue : TListHistoryResponsehistory); virtual;
-    Procedure SethistoryId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Sethistory(AIndex : Integer; AValue : TListHistoryResponseTypehistoryArray); virtual;
+    Procedure SethistoryId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property history : TListHistoryResponsehistory Index 0 Read Fhistory Write Sethistory;
-    Property historyId : string Index 8 Read FhistoryId Write SethistoryId;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property history : TListHistoryResponseTypehistoryArray Index 0 Read Fhistory Write Sethistory;
+    Property historyId : String Index 8 Read FhistoryId Write SethistoryId;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TListHistoryResponseClass = Class of TListHistoryResponse;
-  
-  { --------------------------------------------------------------------
-    TListHistoryResponsehistory
-    --------------------------------------------------------------------}
-  
-  TListHistoryResponsehistory = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListHistoryResponsehistoryClass = Class of TListHistoryResponsehistory;
   
   { --------------------------------------------------------------------
     TListLabelsResponse
@@ -444,28 +290,15 @@ type
   
   TListLabelsResponse = Class(TGoogleBaseObject)
   Private
-    Flabels : TListLabelsResponselabels;
+    Flabels : TListLabelsResponseTypelabelsArray;
   Protected
     //Property setters
-    Procedure Setlabels(AIndex : Integer; AValue : TListLabelsResponselabels); virtual;
+    Procedure Setlabels(AIndex : Integer; AValue : TListLabelsResponseTypelabelsArray); virtual;
   Public
   Published
-    Property labels : TListLabelsResponselabels Index 0 Read Flabels Write Setlabels;
+    Property labels : TListLabelsResponseTypelabelsArray Index 0 Read Flabels Write Setlabels;
   end;
   TListLabelsResponseClass = Class of TListLabelsResponse;
-  
-  { --------------------------------------------------------------------
-    TListLabelsResponselabels
-    --------------------------------------------------------------------}
-  
-  TListLabelsResponselabels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListLabelsResponselabelsClass = Class of TListLabelsResponselabels;
   
   { --------------------------------------------------------------------
     TListMessagesResponse
@@ -473,34 +306,21 @@ type
   
   TListMessagesResponse = Class(TGoogleBaseObject)
   Private
-    Fmessages : TListMessagesResponsemessages;
-    FnextPageToken : string;
+    Fmessages : TListMessagesResponseTypemessagesArray;
+    FnextPageToken : String;
     FresultSizeEstimate : integer;
   Protected
     //Property setters
-    Procedure Setmessages(AIndex : Integer; AValue : TListMessagesResponsemessages); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setmessages(AIndex : Integer; AValue : TListMessagesResponseTypemessagesArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetresultSizeEstimate(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property messages : TListMessagesResponsemessages Index 0 Read Fmessages Write Setmessages;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property messages : TListMessagesResponseTypemessagesArray Index 0 Read Fmessages Write Setmessages;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
     Property resultSizeEstimate : integer Index 16 Read FresultSizeEstimate Write SetresultSizeEstimate;
   end;
   TListMessagesResponseClass = Class of TListMessagesResponse;
-  
-  { --------------------------------------------------------------------
-    TListMessagesResponsemessages
-    --------------------------------------------------------------------}
-  
-  TListMessagesResponsemessages = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListMessagesResponsemessagesClass = Class of TListMessagesResponsemessages;
   
   { --------------------------------------------------------------------
     TListThreadsResponse
@@ -508,34 +328,21 @@ type
   
   TListThreadsResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
+    FnextPageToken : String;
     FresultSizeEstimate : integer;
-    Fthreads : TListThreadsResponsethreads;
+    Fthreads : TListThreadsResponseTypethreadsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetresultSizeEstimate(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setthreads(AIndex : Integer; AValue : TListThreadsResponsethreads); virtual;
+    Procedure Setthreads(AIndex : Integer; AValue : TListThreadsResponseTypethreadsArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
     Property resultSizeEstimate : integer Index 8 Read FresultSizeEstimate Write SetresultSizeEstimate;
-    Property threads : TListThreadsResponsethreads Index 16 Read Fthreads Write Setthreads;
+    Property threads : TListThreadsResponseTypethreadsArray Index 16 Read Fthreads Write Setthreads;
   end;
   TListThreadsResponseClass = Class of TListThreadsResponse;
-  
-  { --------------------------------------------------------------------
-    TListThreadsResponsethreads
-    --------------------------------------------------------------------}
-  
-  TListThreadsResponsethreads = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListThreadsResponsethreadsClass = Class of TListThreadsResponsethreads;
   
   { --------------------------------------------------------------------
     TMessage
@@ -543,49 +350,36 @@ type
   
   TMessage = Class(TGoogleBaseObject)
   Private
-    FhistoryId : string;
-    Fid : string;
-    FlabelIds : TMessagelabelIds;
+    FhistoryId : String;
+    Fid : String;
+    FlabelIds : TStringArray;
     Fpayload : TMessagePart;
-    Fraw : string;
+    Fraw : String;
     FsizeEstimate : integer;
-    Fsnippet : string;
-    FthreadId : string;
+    Fsnippet : String;
+    FthreadId : String;
   Protected
     //Property setters
-    Procedure SethistoryId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlabelIds(AIndex : Integer; AValue : TMessagelabelIds); virtual;
+    Procedure SethistoryId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlabelIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setpayload(AIndex : Integer; AValue : TMessagePart); virtual;
-    Procedure Setraw(AIndex : Integer; AValue : string); virtual;
+    Procedure Setraw(AIndex : Integer; AValue : String); virtual;
     Procedure SetsizeEstimate(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setsnippet(AIndex : Integer; AValue : string); virtual;
-    Procedure SetthreadId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setsnippet(AIndex : Integer; AValue : String); virtual;
+    Procedure SetthreadId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property historyId : string Index 0 Read FhistoryId Write SethistoryId;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property labelIds : TMessagelabelIds Index 16 Read FlabelIds Write SetlabelIds;
+    Property historyId : String Index 0 Read FhistoryId Write SethistoryId;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property labelIds : TStringArray Index 16 Read FlabelIds Write SetlabelIds;
     Property payload : TMessagePart Index 24 Read Fpayload Write Setpayload;
-    Property raw : string Index 32 Read Fraw Write Setraw;
+    Property raw : String Index 32 Read Fraw Write Setraw;
     Property sizeEstimate : integer Index 40 Read FsizeEstimate Write SetsizeEstimate;
-    Property snippet : string Index 48 Read Fsnippet Write Setsnippet;
-    Property threadId : string Index 56 Read FthreadId Write SetthreadId;
+    Property snippet : String Index 48 Read Fsnippet Write Setsnippet;
+    Property threadId : String Index 56 Read FthreadId Write SetthreadId;
   end;
   TMessageClass = Class of TMessage;
-  
-  { --------------------------------------------------------------------
-    TMessagelabelIds
-    --------------------------------------------------------------------}
-  
-  TMessagelabelIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMessagelabelIdsClass = Class of TMessagelabelIds;
   
   { --------------------------------------------------------------------
     TMessagePart
@@ -594,55 +388,29 @@ type
   TMessagePart = Class(TGoogleBaseObject)
   Private
     Fbody : TMessagePartBody;
-    Ffilename : string;
-    Fheaders : TMessagePartheaders;
-    FmimeType : string;
-    FpartId : string;
-    Fparts : TMessagePartparts;
+    Ffilename : String;
+    Fheaders : TMessagePartTypeheadersArray;
+    FmimeType : String;
+    FpartId : String;
+    Fparts : TMessagePartTypepartsArray;
   Protected
     //Property setters
     Procedure Setbody(AIndex : Integer; AValue : TMessagePartBody); virtual;
-    Procedure Setfilename(AIndex : Integer; AValue : string); virtual;
-    Procedure Setheaders(AIndex : Integer; AValue : TMessagePartheaders); virtual;
-    Procedure SetmimeType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpartId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setparts(AIndex : Integer; AValue : TMessagePartparts); virtual;
+    Procedure Setfilename(AIndex : Integer; AValue : String); virtual;
+    Procedure Setheaders(AIndex : Integer; AValue : TMessagePartTypeheadersArray); virtual;
+    Procedure SetmimeType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpartId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setparts(AIndex : Integer; AValue : TMessagePartTypepartsArray); virtual;
   Public
   Published
     Property body : TMessagePartBody Index 0 Read Fbody Write Setbody;
-    Property filename : string Index 8 Read Ffilename Write Setfilename;
-    Property headers : TMessagePartheaders Index 16 Read Fheaders Write Setheaders;
-    Property mimeType : string Index 24 Read FmimeType Write SetmimeType;
-    Property partId : string Index 32 Read FpartId Write SetpartId;
-    Property parts : TMessagePartparts Index 40 Read Fparts Write Setparts;
+    Property filename : String Index 8 Read Ffilename Write Setfilename;
+    Property headers : TMessagePartTypeheadersArray Index 16 Read Fheaders Write Setheaders;
+    Property mimeType : String Index 24 Read FmimeType Write SetmimeType;
+    Property partId : String Index 32 Read FpartId Write SetpartId;
+    Property parts : TMessagePartTypepartsArray Index 40 Read Fparts Write Setparts;
   end;
   TMessagePartClass = Class of TMessagePart;
-  
-  { --------------------------------------------------------------------
-    TMessagePartheaders
-    --------------------------------------------------------------------}
-  
-  TMessagePartheaders = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMessagePartheadersClass = Class of TMessagePartheaders;
-  
-  { --------------------------------------------------------------------
-    TMessagePartparts
-    --------------------------------------------------------------------}
-  
-  TMessagePartparts = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMessagePartpartsClass = Class of TMessagePartparts;
   
   { --------------------------------------------------------------------
     TMessagePartBody
@@ -650,18 +418,18 @@ type
   
   TMessagePartBody = Class(TGoogleBaseObject)
   Private
-    FattachmentId : string;
-    Fdata : string;
+    FattachmentId : String;
+    Fdata : String;
     Fsize : integer;
   Protected
     //Property setters
-    Procedure SetattachmentId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : string); virtual;
+    Procedure SetattachmentId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; AValue : String); virtual;
     Procedure Setsize(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property attachmentId : string Index 0 Read FattachmentId Write SetattachmentId;
-    Property data : string Index 8 Read Fdata Write Setdata;
+    Property attachmentId : String Index 0 Read FattachmentId Write SetattachmentId;
+    Property data : String Index 8 Read Fdata Write Setdata;
     Property size : integer Index 16 Read Fsize Write Setsize;
   end;
   TMessagePartBodyClass = Class of TMessagePartBody;
@@ -672,16 +440,16 @@ type
   
   TMessagePartHeader = Class(TGoogleBaseObject)
   Private
-    Fname : string;
-    Fvalue : string;
+    Fname : String;
+    Fvalue : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property name : String Index 0 Read Fname Write Setname;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TMessagePartHeaderClass = Class of TMessagePartHeader;
   
@@ -691,44 +459,18 @@ type
   
   TModifyMessageRequest = Class(TGoogleBaseObject)
   Private
-    FaddLabelIds : TModifyMessageRequestaddLabelIds;
-    FremoveLabelIds : TModifyMessageRequestremoveLabelIds;
+    FaddLabelIds : TStringArray;
+    FremoveLabelIds : TStringArray;
   Protected
     //Property setters
-    Procedure SetaddLabelIds(AIndex : Integer; AValue : TModifyMessageRequestaddLabelIds); virtual;
-    Procedure SetremoveLabelIds(AIndex : Integer; AValue : TModifyMessageRequestremoveLabelIds); virtual;
+    Procedure SetaddLabelIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetremoveLabelIds(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property addLabelIds : TModifyMessageRequestaddLabelIds Index 0 Read FaddLabelIds Write SetaddLabelIds;
-    Property removeLabelIds : TModifyMessageRequestremoveLabelIds Index 8 Read FremoveLabelIds Write SetremoveLabelIds;
+    Property addLabelIds : TStringArray Index 0 Read FaddLabelIds Write SetaddLabelIds;
+    Property removeLabelIds : TStringArray Index 8 Read FremoveLabelIds Write SetremoveLabelIds;
   end;
   TModifyMessageRequestClass = Class of TModifyMessageRequest;
-  
-  { --------------------------------------------------------------------
-    TModifyMessageRequestaddLabelIds
-    --------------------------------------------------------------------}
-  
-  TModifyMessageRequestaddLabelIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TModifyMessageRequestaddLabelIdsClass = Class of TModifyMessageRequestaddLabelIds;
-  
-  { --------------------------------------------------------------------
-    TModifyMessageRequestremoveLabelIds
-    --------------------------------------------------------------------}
-  
-  TModifyMessageRequestremoveLabelIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TModifyMessageRequestremoveLabelIdsClass = Class of TModifyMessageRequestremoveLabelIds;
   
   { --------------------------------------------------------------------
     TModifyThreadRequest
@@ -736,44 +478,18 @@ type
   
   TModifyThreadRequest = Class(TGoogleBaseObject)
   Private
-    FaddLabelIds : TModifyThreadRequestaddLabelIds;
-    FremoveLabelIds : TModifyThreadRequestremoveLabelIds;
+    FaddLabelIds : TStringArray;
+    FremoveLabelIds : TStringArray;
   Protected
     //Property setters
-    Procedure SetaddLabelIds(AIndex : Integer; AValue : TModifyThreadRequestaddLabelIds); virtual;
-    Procedure SetremoveLabelIds(AIndex : Integer; AValue : TModifyThreadRequestremoveLabelIds); virtual;
+    Procedure SetaddLabelIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetremoveLabelIds(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property addLabelIds : TModifyThreadRequestaddLabelIds Index 0 Read FaddLabelIds Write SetaddLabelIds;
-    Property removeLabelIds : TModifyThreadRequestremoveLabelIds Index 8 Read FremoveLabelIds Write SetremoveLabelIds;
+    Property addLabelIds : TStringArray Index 0 Read FaddLabelIds Write SetaddLabelIds;
+    Property removeLabelIds : TStringArray Index 8 Read FremoveLabelIds Write SetremoveLabelIds;
   end;
   TModifyThreadRequestClass = Class of TModifyThreadRequest;
-  
-  { --------------------------------------------------------------------
-    TModifyThreadRequestaddLabelIds
-    --------------------------------------------------------------------}
-  
-  TModifyThreadRequestaddLabelIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TModifyThreadRequestaddLabelIdsClass = Class of TModifyThreadRequestaddLabelIds;
-  
-  { --------------------------------------------------------------------
-    TModifyThreadRequestremoveLabelIds
-    --------------------------------------------------------------------}
-  
-  TModifyThreadRequestremoveLabelIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TModifyThreadRequestremoveLabelIdsClass = Class of TModifyThreadRequestremoveLabelIds;
   
   { --------------------------------------------------------------------
     TProfile
@@ -781,20 +497,20 @@ type
   
   TProfile = Class(TGoogleBaseObject)
   Private
-    FemailAddress : string;
-    FhistoryId : string;
+    FemailAddress : String;
+    FhistoryId : String;
     FmessagesTotal : integer;
     FthreadsTotal : integer;
   Protected
     //Property setters
-    Procedure SetemailAddress(AIndex : Integer; AValue : string); virtual;
-    Procedure SethistoryId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetemailAddress(AIndex : Integer; AValue : String); virtual;
+    Procedure SethistoryId(AIndex : Integer; AValue : String); virtual;
     Procedure SetmessagesTotal(AIndex : Integer; AValue : integer); virtual;
     Procedure SetthreadsTotal(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property emailAddress : string Index 0 Read FemailAddress Write SetemailAddress;
-    Property historyId : string Index 8 Read FhistoryId Write SethistoryId;
+    Property emailAddress : String Index 0 Read FemailAddress Write SetemailAddress;
+    Property historyId : String Index 8 Read FhistoryId Write SethistoryId;
     Property messagesTotal : integer Index 16 Read FmessagesTotal Write SetmessagesTotal;
     Property threadsTotal : integer Index 24 Read FthreadsTotal Write SetthreadsTotal;
   end;
@@ -806,37 +522,24 @@ type
   
   TThread = Class(TGoogleBaseObject)
   Private
-    FhistoryId : string;
-    Fid : string;
-    Fmessages : TThreadmessages;
-    Fsnippet : string;
+    FhistoryId : String;
+    Fid : String;
+    Fmessages : TThreadTypemessagesArray;
+    Fsnippet : String;
   Protected
     //Property setters
-    Procedure SethistoryId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmessages(AIndex : Integer; AValue : TThreadmessages); virtual;
-    Procedure Setsnippet(AIndex : Integer; AValue : string); virtual;
+    Procedure SethistoryId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessages(AIndex : Integer; AValue : TThreadTypemessagesArray); virtual;
+    Procedure Setsnippet(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property historyId : string Index 0 Read FhistoryId Write SethistoryId;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property messages : TThreadmessages Index 16 Read Fmessages Write Setmessages;
-    Property snippet : string Index 24 Read Fsnippet Write Setsnippet;
+    Property historyId : String Index 0 Read FhistoryId Write SethistoryId;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property messages : TThreadTypemessagesArray Index 16 Read Fmessages Write Setmessages;
+    Property snippet : String Index 24 Read Fsnippet Write Setsnippet;
   end;
   TThreadClass = Class of TThread;
-  
-  { --------------------------------------------------------------------
-    TThreadmessages
-    --------------------------------------------------------------------}
-  
-  TThreadmessages = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TThreadmessagesClass = Class of TThreadmessages;
   
   { --------------------------------------------------------------------
     TUsersResource
@@ -895,7 +598,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TDraft.Setid(AIndex : Integer; AValue : string); 
+Procedure TDraft.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -922,7 +625,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THistory.Setid(AIndex : Integer; AValue : string); 
+Procedure THistory.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -932,7 +635,7 @@ end;
 
 
 
-Procedure THistory.SetlabelsAdded(AIndex : Integer; AValue : THistorylabelsAdded); 
+Procedure THistory.SetlabelsAdded(AIndex : Integer; AValue : THistoryTypelabelsAddedArray); 
 
 begin
   If (FlabelsAdded=AValue) then exit;
@@ -942,7 +645,7 @@ end;
 
 
 
-Procedure THistory.SetlabelsRemoved(AIndex : Integer; AValue : THistorylabelsRemoved); 
+Procedure THistory.SetlabelsRemoved(AIndex : Integer; AValue : THistoryTypelabelsRemovedArray); 
 
 begin
   If (FlabelsRemoved=AValue) then exit;
@@ -952,7 +655,7 @@ end;
 
 
 
-Procedure THistory.Setmessages(AIndex : Integer; AValue : THistorymessages); 
+Procedure THistory.Setmessages(AIndex : Integer; AValue : THistoryTypemessagesArray); 
 
 begin
   If (Fmessages=AValue) then exit;
@@ -962,7 +665,7 @@ end;
 
 
 
-Procedure THistory.SetmessagesAdded(AIndex : Integer; AValue : THistorymessagesAdded); 
+Procedure THistory.SetmessagesAdded(AIndex : Integer; AValue : THistoryTypemessagesAddedArray); 
 
 begin
   If (FmessagesAdded=AValue) then exit;
@@ -972,7 +675,7 @@ end;
 
 
 
-Procedure THistory.SetmessagesDeleted(AIndex : Integer; AValue : THistorymessagesDeleted); 
+Procedure THistory.SetmessagesDeleted(AIndex : Integer; AValue : THistoryTypemessagesDeletedArray); 
 
 begin
   If (FmessagesDeleted=AValue) then exit;
@@ -985,46 +688,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  THistorylabelsAdded
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  THistorylabelsRemoved
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  THistorymessages
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  THistorymessagesAdded
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  THistorymessagesDeleted
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   THistoryLabelAdded
   --------------------------------------------------------------------}
 
 
-Procedure THistoryLabelAdded.SetlabelIds(AIndex : Integer; AValue : THistoryLabelAddedlabelIds); 
+Procedure THistoryLabelAdded.SetlabelIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FlabelIds=AValue) then exit;
@@ -1047,18 +715,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  THistoryLabelAddedlabelIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   THistoryLabelRemoved
   --------------------------------------------------------------------}
 
 
-Procedure THistoryLabelRemoved.SetlabelIds(AIndex : Integer; AValue : THistoryLabelRemovedlabelIds); 
+Procedure THistoryLabelRemoved.SetlabelIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FlabelIds=AValue) then exit;
@@ -1076,13 +737,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  THistoryLabelRemovedlabelIds
-  --------------------------------------------------------------------}
 
 
 
@@ -1126,7 +780,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLabel.Setid(AIndex : Integer; AValue : string); 
+Procedure TLabel.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1136,7 +790,7 @@ end;
 
 
 
-Procedure TLabel.SetlabelListVisibility(AIndex : Integer; AValue : string); 
+Procedure TLabel.SetlabelListVisibility(AIndex : Integer; AValue : String); 
 
 begin
   If (FlabelListVisibility=AValue) then exit;
@@ -1146,7 +800,7 @@ end;
 
 
 
-Procedure TLabel.SetmessageListVisibility(AIndex : Integer; AValue : string); 
+Procedure TLabel.SetmessageListVisibility(AIndex : Integer; AValue : String); 
 
 begin
   If (FmessageListVisibility=AValue) then exit;
@@ -1176,7 +830,7 @@ end;
 
 
 
-Procedure TLabel.Setname(AIndex : Integer; AValue : string); 
+Procedure TLabel.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1206,7 +860,7 @@ end;
 
 
 
-Procedure TLabel.Set_type(AIndex : Integer; AValue : string); 
+Procedure TLabel.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1234,7 +888,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListDraftsResponse.Setdrafts(AIndex : Integer; AValue : TListDraftsResponsedrafts); 
+Procedure TListDraftsResponse.Setdrafts(AIndex : Integer; AValue : TListDraftsResponseTypedraftsArray); 
 
 begin
   If (Fdrafts=AValue) then exit;
@@ -1244,7 +898,7 @@ end;
 
 
 
-Procedure TListDraftsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListDraftsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1267,18 +921,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListDraftsResponsedrafts
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListHistoryResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListHistoryResponse.Sethistory(AIndex : Integer; AValue : TListHistoryResponsehistory); 
+Procedure TListHistoryResponse.Sethistory(AIndex : Integer; AValue : TListHistoryResponseTypehistoryArray); 
 
 begin
   If (Fhistory=AValue) then exit;
@@ -1288,7 +935,7 @@ end;
 
 
 
-Procedure TListHistoryResponse.SethistoryId(AIndex : Integer; AValue : string); 
+Procedure TListHistoryResponse.SethistoryId(AIndex : Integer; AValue : String); 
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1298,7 +945,7 @@ end;
 
 
 
-Procedure TListHistoryResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListHistoryResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1311,18 +958,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListHistoryResponsehistory
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListLabelsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListLabelsResponse.Setlabels(AIndex : Integer; AValue : TListLabelsResponselabels); 
+Procedure TListLabelsResponse.Setlabels(AIndex : Integer; AValue : TListLabelsResponseTypelabelsArray); 
 
 begin
   If (Flabels=AValue) then exit;
@@ -1335,18 +975,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListLabelsResponselabels
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListMessagesResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListMessagesResponse.Setmessages(AIndex : Integer; AValue : TListMessagesResponsemessages); 
+Procedure TListMessagesResponse.Setmessages(AIndex : Integer; AValue : TListMessagesResponseTypemessagesArray); 
 
 begin
   If (Fmessages=AValue) then exit;
@@ -1356,7 +989,7 @@ end;
 
 
 
-Procedure TListMessagesResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListMessagesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1379,18 +1012,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListMessagesResponsemessages
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListThreadsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListThreadsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListThreadsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1410,7 +1036,7 @@ end;
 
 
 
-Procedure TListThreadsResponse.Setthreads(AIndex : Integer; AValue : TListThreadsResponsethreads); 
+Procedure TListThreadsResponse.Setthreads(AIndex : Integer; AValue : TListThreadsResponseTypethreadsArray); 
 
 begin
   If (Fthreads=AValue) then exit;
@@ -1423,18 +1049,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListThreadsResponsethreads
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMessage
   --------------------------------------------------------------------}
 
 
-Procedure TMessage.SethistoryId(AIndex : Integer; AValue : string); 
+Procedure TMessage.SethistoryId(AIndex : Integer; AValue : String); 
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1444,7 +1063,7 @@ end;
 
 
 
-Procedure TMessage.Setid(AIndex : Integer; AValue : string); 
+Procedure TMessage.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1454,7 +1073,7 @@ end;
 
 
 
-Procedure TMessage.SetlabelIds(AIndex : Integer; AValue : TMessagelabelIds); 
+Procedure TMessage.SetlabelIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FlabelIds=AValue) then exit;
@@ -1474,7 +1093,7 @@ end;
 
 
 
-Procedure TMessage.Setraw(AIndex : Integer; AValue : string); 
+Procedure TMessage.Setraw(AIndex : Integer; AValue : String); 
 
 begin
   If (Fraw=AValue) then exit;
@@ -1494,7 +1113,7 @@ end;
 
 
 
-Procedure TMessage.Setsnippet(AIndex : Integer; AValue : string); 
+Procedure TMessage.Setsnippet(AIndex : Integer; AValue : String); 
 
 begin
   If (Fsnippet=AValue) then exit;
@@ -1504,7 +1123,7 @@ end;
 
 
 
-Procedure TMessage.SetthreadId(AIndex : Integer; AValue : string); 
+Procedure TMessage.SetthreadId(AIndex : Integer; AValue : String); 
 
 begin
   If (FthreadId=AValue) then exit;
@@ -1512,13 +1131,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TMessagelabelIds
-  --------------------------------------------------------------------}
 
 
 
@@ -1538,7 +1150,7 @@ end;
 
 
 
-Procedure TMessagePart.Setfilename(AIndex : Integer; AValue : string); 
+Procedure TMessagePart.Setfilename(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffilename=AValue) then exit;
@@ -1548,7 +1160,7 @@ end;
 
 
 
-Procedure TMessagePart.Setheaders(AIndex : Integer; AValue : TMessagePartheaders); 
+Procedure TMessagePart.Setheaders(AIndex : Integer; AValue : TMessagePartTypeheadersArray); 
 
 begin
   If (Fheaders=AValue) then exit;
@@ -1558,7 +1170,7 @@ end;
 
 
 
-Procedure TMessagePart.SetmimeType(AIndex : Integer; AValue : string); 
+Procedure TMessagePart.SetmimeType(AIndex : Integer; AValue : String); 
 
 begin
   If (FmimeType=AValue) then exit;
@@ -1568,7 +1180,7 @@ end;
 
 
 
-Procedure TMessagePart.SetpartId(AIndex : Integer; AValue : string); 
+Procedure TMessagePart.SetpartId(AIndex : Integer; AValue : String); 
 
 begin
   If (FpartId=AValue) then exit;
@@ -1578,7 +1190,7 @@ end;
 
 
 
-Procedure TMessagePart.Setparts(AIndex : Integer; AValue : TMessagePartparts); 
+Procedure TMessagePart.Setparts(AIndex : Integer; AValue : TMessagePartTypepartsArray); 
 
 begin
   If (Fparts=AValue) then exit;
@@ -1591,25 +1203,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMessagePartheaders
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TMessagePartparts
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMessagePartBody
   --------------------------------------------------------------------}
 
 
-Procedure TMessagePartBody.SetattachmentId(AIndex : Integer; AValue : string); 
+Procedure TMessagePartBody.SetattachmentId(AIndex : Integer; AValue : String); 
 
 begin
   If (FattachmentId=AValue) then exit;
@@ -1619,7 +1217,7 @@ end;
 
 
 
-Procedure TMessagePartBody.Setdata(AIndex : Integer; AValue : string); 
+Procedure TMessagePartBody.Setdata(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -1646,7 +1244,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMessagePartHeader.Setname(AIndex : Integer; AValue : string); 
+Procedure TMessagePartHeader.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1656,7 +1254,7 @@ end;
 
 
 
-Procedure TMessagePartHeader.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TMessagePartHeader.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1673,7 +1271,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TModifyMessageRequest.SetaddLabelIds(AIndex : Integer; AValue : TModifyMessageRequestaddLabelIds); 
+Procedure TModifyMessageRequest.SetaddLabelIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FaddLabelIds=AValue) then exit;
@@ -1683,7 +1281,7 @@ end;
 
 
 
-Procedure TModifyMessageRequest.SetremoveLabelIds(AIndex : Integer; AValue : TModifyMessageRequestremoveLabelIds); 
+Procedure TModifyMessageRequest.SetremoveLabelIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FremoveLabelIds=AValue) then exit;
@@ -1691,20 +1289,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TModifyMessageRequestaddLabelIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TModifyMessageRequestremoveLabelIds
-  --------------------------------------------------------------------}
 
 
 
@@ -1714,7 +1298,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TModifyThreadRequest.SetaddLabelIds(AIndex : Integer; AValue : TModifyThreadRequestaddLabelIds); 
+Procedure TModifyThreadRequest.SetaddLabelIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FaddLabelIds=AValue) then exit;
@@ -1724,7 +1308,7 @@ end;
 
 
 
-Procedure TModifyThreadRequest.SetremoveLabelIds(AIndex : Integer; AValue : TModifyThreadRequestremoveLabelIds); 
+Procedure TModifyThreadRequest.SetremoveLabelIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FremoveLabelIds=AValue) then exit;
@@ -1737,25 +1321,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TModifyThreadRequestaddLabelIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TModifyThreadRequestremoveLabelIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TProfile
   --------------------------------------------------------------------}
 
 
-Procedure TProfile.SetemailAddress(AIndex : Integer; AValue : string); 
+Procedure TProfile.SetemailAddress(AIndex : Integer; AValue : String); 
 
 begin
   If (FemailAddress=AValue) then exit;
@@ -1765,7 +1335,7 @@ end;
 
 
 
-Procedure TProfile.SethistoryId(AIndex : Integer; AValue : string); 
+Procedure TProfile.SethistoryId(AIndex : Integer; AValue : String); 
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1802,7 +1372,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TThread.SethistoryId(AIndex : Integer; AValue : string); 
+Procedure TThread.SethistoryId(AIndex : Integer; AValue : String); 
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1812,7 +1382,7 @@ end;
 
 
 
-Procedure TThread.Setid(AIndex : Integer; AValue : string); 
+Procedure TThread.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1822,7 +1392,7 @@ end;
 
 
 
-Procedure TThread.Setmessages(AIndex : Integer; AValue : TThreadmessages); 
+Procedure TThread.Setmessages(AIndex : Integer; AValue : TThreadTypemessagesArray); 
 
 begin
   If (Fmessages=AValue) then exit;
@@ -1832,7 +1402,7 @@ end;
 
 
 
-Procedure TThread.Setsnippet(AIndex : Integer; AValue : string); 
+Procedure TThread.Setsnippet(AIndex : Integer; AValue : String); 
 
 begin
   If (Fsnippet=AValue) then exit;
@@ -1840,13 +1410,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TThreadmessages
-  --------------------------------------------------------------------}
 
 
 
@@ -1904,7 +1467,7 @@ end;
 Class Function TGmailAPI.APIRevision : String;
 
 begin
-  Result:='20150303';
+  Result:='20150326';
 end;
 
 Class Function TGmailAPI.APIID : String;
@@ -2021,44 +1584,24 @@ Class Procedure TGmailAPI.RegisterAPIResources;
 begin
   TDraft.RegisterObject;
   THistory.RegisterObject;
-  THistorylabelsAdded.RegisterObject;
-  THistorylabelsRemoved.RegisterObject;
-  THistorymessages.RegisterObject;
-  THistorymessagesAdded.RegisterObject;
-  THistorymessagesDeleted.RegisterObject;
   THistoryLabelAdded.RegisterObject;
-  THistoryLabelAddedlabelIds.RegisterObject;
   THistoryLabelRemoved.RegisterObject;
-  THistoryLabelRemovedlabelIds.RegisterObject;
   THistoryMessageAdded.RegisterObject;
   THistoryMessageDeleted.RegisterObject;
   TLabel.RegisterObject;
   TListDraftsResponse.RegisterObject;
-  TListDraftsResponsedrafts.RegisterObject;
   TListHistoryResponse.RegisterObject;
-  TListHistoryResponsehistory.RegisterObject;
   TListLabelsResponse.RegisterObject;
-  TListLabelsResponselabels.RegisterObject;
   TListMessagesResponse.RegisterObject;
-  TListMessagesResponsemessages.RegisterObject;
   TListThreadsResponse.RegisterObject;
-  TListThreadsResponsethreads.RegisterObject;
   TMessage.RegisterObject;
-  TMessagelabelIds.RegisterObject;
   TMessagePart.RegisterObject;
-  TMessagePartheaders.RegisterObject;
-  TMessagePartparts.RegisterObject;
   TMessagePartBody.RegisterObject;
   TMessagePartHeader.RegisterObject;
   TModifyMessageRequest.RegisterObject;
-  TModifyMessageRequestaddLabelIds.RegisterObject;
-  TModifyMessageRequestremoveLabelIds.RegisterObject;
   TModifyThreadRequest.RegisterObject;
-  TModifyThreadRequestaddLabelIds.RegisterObject;
-  TModifyThreadRequestremoveLabelIds.RegisterObject;
   TProfile.RegisterObject;
   TThread.RegisterObject;
-  TThreadmessages.RegisterObject;
 end;
 
 

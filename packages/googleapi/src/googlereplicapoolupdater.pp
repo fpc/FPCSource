@@ -1,31 +1,19 @@
 unit googlereplicapoolupdater;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:57
 {$MODE objfpc}
 {$H+}
 
@@ -34,39 +22,73 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TInstanceUpdate = class;
-  TInstanceUpdateArray = Array of TInstanceUpdate;
-  TInstanceUpdateerror = class;
-  TInstanceUpdateerrorArray = Array of TInstanceUpdateerror;
-  TInstanceUpdateerrorerrors = class;
-  TInstanceUpdateerrorerrorsArray = Array of TInstanceUpdateerrorerrors;
   TInstanceUpdateList = class;
-  TInstanceUpdateListArray = Array of TInstanceUpdateList;
-  TInstanceUpdateListitems = class;
-  TInstanceUpdateListitemsArray = Array of TInstanceUpdateListitems;
   TOperation = class;
-  TOperationArray = Array of TOperation;
-  TOperationerror = class;
-  TOperationerrorArray = Array of TOperationerror;
-  TOperationerrorerrors = class;
-  TOperationerrorerrorsArray = Array of TOperationerrorerrors;
-  TOperationwarnings = class;
-  TOperationwarningsArray = Array of TOperationwarnings;
-  TOperationwarningsdata = class;
-  TOperationwarningsdataArray = Array of TOperationwarningsdata;
   TRollingUpdate = class;
-  TRollingUpdateArray = Array of TRollingUpdate;
-  TRollingUpdateerror = class;
-  TRollingUpdateerrorArray = Array of TRollingUpdateerror;
-  TRollingUpdateerrorerrors = class;
-  TRollingUpdateerrorerrorsArray = Array of TRollingUpdateerrorerrors;
-  TRollingUpdatepolicy = class;
-  TRollingUpdatepolicyArray = Array of TRollingUpdatepolicy;
   TRollingUpdateList = class;
+  TInstanceUpdateArray = Array of TInstanceUpdate;
+  TInstanceUpdateListArray = Array of TInstanceUpdateList;
+  TOperationArray = Array of TOperation;
+  TRollingUpdateArray = Array of TRollingUpdate;
   TRollingUpdateListArray = Array of TRollingUpdateList;
-  TRollingUpdateListitems = class;
-  TRollingUpdateListitemsArray = Array of TRollingUpdateListitems;
+  //Anonymous types, using auto-generated names
+  TInstanceUpdateTypeerrorTypeerrorsItem = class;
+  TInstanceUpdateTypeerror = class;
+  TOperationTypeerrorTypeerrorsItem = class;
+  TOperationTypeerror = class;
+  TOperationTypewarningsItemTypedataItem = class;
+  TOperationTypewarningsItem = class;
+  TRollingUpdateTypeerrorTypeerrorsItem = class;
+  TRollingUpdateTypeerror = class;
+  TRollingUpdateTypepolicy = class;
+  TInstanceUpdateTypeerrorTypeerrorsArray = Array of TInstanceUpdateTypeerrorTypeerrorsItem;
+  TInstanceUpdateListTypeitemsArray = Array of TInstanceUpdate;
+  TOperationTypeerrorTypeerrorsArray = Array of TOperationTypeerrorTypeerrorsItem;
+  TOperationTypewarningsItemTypedataArray = Array of TOperationTypewarningsItemTypedataItem;
+  TOperationTypewarningsArray = Array of TOperationTypewarningsItem;
+  TRollingUpdateTypeerrorTypeerrorsArray = Array of TRollingUpdateTypeerrorTypeerrorsItem;
+  TRollingUpdateListTypeitemsArray = Array of TRollingUpdate;
+  
+  { --------------------------------------------------------------------
+    TInstanceUpdateTypeerrorTypeerrorsItem
+    --------------------------------------------------------------------}
+  
+  TInstanceUpdateTypeerrorTypeerrorsItem = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Flocation : String;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property location : String Index 8 Read Flocation Write Setlocation;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TInstanceUpdateTypeerrorTypeerrorsItemClass = Class of TInstanceUpdateTypeerrorTypeerrorsItem;
+  
+  { --------------------------------------------------------------------
+    TInstanceUpdateTypeerror
+    --------------------------------------------------------------------}
+  
+  TInstanceUpdateTypeerror = Class(TGoogleBaseObject)
+  Private
+    Ferrors : TInstanceUpdateTypeerrorTypeerrorsArray;
+  Protected
+    //Property setters
+    Procedure Seterrors(AIndex : Integer; AValue : TInstanceUpdateTypeerrorTypeerrorsArray); virtual;
+  Public
+  Published
+    Property errors : TInstanceUpdateTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
+  end;
+  TInstanceUpdateTypeerrorClass = Class of TInstanceUpdateTypeerror;
   
   { --------------------------------------------------------------------
     TInstanceUpdate
@@ -74,59 +96,21 @@ type
   
   TInstanceUpdate = Class(TGoogleBaseObject)
   Private
-    Ferror : TInstanceUpdateerror;
-    Finstance : string;
-    Fstatus : string;
+    Ferror : TInstanceUpdateTypeerror;
+    Finstance : String;
+    Fstatus : String;
   Protected
     //Property setters
-    Procedure Seterror(AIndex : Integer; AValue : TInstanceUpdateerror); virtual;
-    Procedure Setinstance(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
+    Procedure Seterror(AIndex : Integer; AValue : TInstanceUpdateTypeerror); virtual;
+    Procedure Setinstance(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property error : TInstanceUpdateerror Index 0 Read Ferror Write Seterror;
-    Property instance : string Index 8 Read Finstance Write Setinstance;
-    Property status : string Index 16 Read Fstatus Write Setstatus;
+    Property error : TInstanceUpdateTypeerror Index 0 Read Ferror Write Seterror;
+    Property instance : String Index 8 Read Finstance Write Setinstance;
+    Property status : String Index 16 Read Fstatus Write Setstatus;
   end;
   TInstanceUpdateClass = Class of TInstanceUpdate;
-  
-  { --------------------------------------------------------------------
-    TInstanceUpdateerror
-    --------------------------------------------------------------------}
-  
-  TInstanceUpdateerror = Class(TGoogleBaseObject)
-  Private
-    Ferrors : TInstanceUpdateerrorerrors;
-  Protected
-    //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TInstanceUpdateerrorerrors); virtual;
-  Public
-  Published
-    Property errors : TInstanceUpdateerrorerrors Index 0 Read Ferrors Write Seterrors;
-  end;
-  TInstanceUpdateerrorClass = Class of TInstanceUpdateerror;
-  
-  { --------------------------------------------------------------------
-    TInstanceUpdateerrorerrors
-    --------------------------------------------------------------------}
-  
-  TInstanceUpdateerrorerrors = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Flocation : string;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property location : string Index 8 Read Flocation Write Setlocation;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TInstanceUpdateerrorerrorsClass = Class of TInstanceUpdateerrorerrors;
   
   { --------------------------------------------------------------------
     TInstanceUpdateList
@@ -134,37 +118,103 @@ type
   
   TInstanceUpdateList = Class(TGoogleBaseObject)
   Private
-    Fitems : TInstanceUpdateListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fitems : TInstanceUpdateListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TInstanceUpdateListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TInstanceUpdateListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TInstanceUpdateListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
+    Property items : TInstanceUpdateListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 24 Read FselfLink Write SetselfLink;
   end;
   TInstanceUpdateListClass = Class of TInstanceUpdateList;
   
   { --------------------------------------------------------------------
-    TInstanceUpdateListitems
+    TOperationTypeerrorTypeerrorsItem
     --------------------------------------------------------------------}
   
-  TInstanceUpdateListitems = Class(TGoogleBaseObject)
+  TOperationTypeerrorTypeerrorsItem = Class(TGoogleBaseObject)
   Private
+    Fcode : String;
+    Flocation : String;
+    Fmessage : String;
   Protected
     //Property setters
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property location : String Index 8 Read Flocation Write Setlocation;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
-  TInstanceUpdateListitemsClass = Class of TInstanceUpdateListitems;
+  TOperationTypeerrorTypeerrorsItemClass = Class of TOperationTypeerrorTypeerrorsItem;
+  
+  { --------------------------------------------------------------------
+    TOperationTypeerror
+    --------------------------------------------------------------------}
+  
+  TOperationTypeerror = Class(TGoogleBaseObject)
+  Private
+    Ferrors : TOperationTypeerrorTypeerrorsArray;
+  Protected
+    //Property setters
+    Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+  Public
+  Published
+    Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
+  end;
+  TOperationTypeerrorClass = Class of TOperationTypeerror;
+  
+  { --------------------------------------------------------------------
+    TOperationTypewarningsItemTypedataItem
+    --------------------------------------------------------------------}
+  
+  TOperationTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TOperationTypewarningsItemTypedataItemClass = Class of TOperationTypewarningsItemTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TOperationTypewarningsItem
+    --------------------------------------------------------------------}
+  
+  TOperationTypewarningsItem = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TOperationTypewarningsItemTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TOperationTypewarningsItemTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TOperationTypewarningsItemClass = Class of TOperationTypewarningsItem;
   
   { --------------------------------------------------------------------
     TOperation
@@ -172,259 +222,122 @@ type
   
   TOperation = Class(TGoogleBaseObject)
   Private
-    FclientOperationId : string;
-    FcreationTimestamp : string;
-    FendTime : string;
-    Ferror : TOperationerror;
-    FhttpErrorMessage : string;
+    FclientOperationId : String;
+    FcreationTimestamp : String;
+    FendTime : String;
+    Ferror : TOperationTypeerror;
+    FhttpErrorMessage : String;
     FhttpErrorStatusCode : integer;
-    Fid : string;
-    FinsertTime : string;
-    Fkind : string;
-    Fname : string;
-    FoperationType : string;
+    Fid : String;
+    FinsertTime : String;
+    Fkind : String;
+    Fname : String;
+    FoperationType : String;
     Fprogress : integer;
-    Fregion : string;
-    FselfLink : string;
-    FstartTime : string;
-    Fstatus : string;
-    FstatusMessage : string;
-    FtargetId : string;
-    FtargetLink : string;
-    Fuser : string;
-    Fwarnings : TOperationwarnings;
-    Fzone : string;
+    Fregion : String;
+    FselfLink : String;
+    FstartTime : String;
+    Fstatus : String;
+    FstatusMessage : String;
+    FtargetId : String;
+    FtargetLink : String;
+    Fuser : String;
+    Fwarnings : TOperationTypewarningsArray;
+    Fzone : String;
   Protected
     //Property setters
-    Procedure SetclientOperationId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure SetendTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Seterror(AIndex : Integer; AValue : TOperationerror); virtual;
-    Procedure SethttpErrorMessage(AIndex : Integer; AValue : string); virtual;
+    Procedure SetclientOperationId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Seterror(AIndex : Integer; AValue : TOperationTypeerror); virtual;
+    Procedure SethttpErrorMessage(AIndex : Integer; AValue : String); virtual;
     Procedure SethttpErrorStatusCode(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinsertTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoperationType(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinsertTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoperationType(AIndex : Integer; AValue : String); virtual;
     Procedure Setprogress(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstatusMessage(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TOperationwarnings); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
+    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstatusMessage(AIndex : Integer; AValue : String); virtual;
+    Procedure SettargetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SettargetLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setuser(AIndex : Integer; AValue : String); virtual;
+    Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
+    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property clientOperationId : string Index 0 Read FclientOperationId Write SetclientOperationId;
-    Property creationTimestamp : string Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property endTime : string Index 16 Read FendTime Write SetendTime;
-    Property error : TOperationerror Index 24 Read Ferror Write Seterror;
-    Property httpErrorMessage : string Index 32 Read FhttpErrorMessage Write SethttpErrorMessage;
+    Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property endTime : String Index 16 Read FendTime Write SetendTime;
+    Property error : TOperationTypeerror Index 24 Read Ferror Write Seterror;
+    Property httpErrorMessage : String Index 32 Read FhttpErrorMessage Write SethttpErrorMessage;
     Property httpErrorStatusCode : integer Index 40 Read FhttpErrorStatusCode Write SethttpErrorStatusCode;
-    Property id : string Index 48 Read Fid Write Setid;
-    Property insertTime : string Index 56 Read FinsertTime Write SetinsertTime;
-    Property kind : string Index 64 Read Fkind Write Setkind;
-    Property name : string Index 72 Read Fname Write Setname;
-    Property operationType : string Index 80 Read FoperationType Write SetoperationType;
+    Property id : String Index 48 Read Fid Write Setid;
+    Property insertTime : String Index 56 Read FinsertTime Write SetinsertTime;
+    Property kind : String Index 64 Read Fkind Write Setkind;
+    Property name : String Index 72 Read Fname Write Setname;
+    Property operationType : String Index 80 Read FoperationType Write SetoperationType;
     Property progress : integer Index 88 Read Fprogress Write Setprogress;
-    Property region : string Index 96 Read Fregion Write Setregion;
-    Property selfLink : string Index 104 Read FselfLink Write SetselfLink;
-    Property startTime : string Index 112 Read FstartTime Write SetstartTime;
-    Property status : string Index 120 Read Fstatus Write Setstatus;
-    Property statusMessage : string Index 128 Read FstatusMessage Write SetstatusMessage;
-    Property targetId : string Index 136 Read FtargetId Write SettargetId;
-    Property targetLink : string Index 144 Read FtargetLink Write SettargetLink;
-    Property user : string Index 152 Read Fuser Write Setuser;
-    Property warnings : TOperationwarnings Index 160 Read Fwarnings Write Setwarnings;
-    Property zone : string Index 168 Read Fzone Write Setzone;
+    Property region : String Index 96 Read Fregion Write Setregion;
+    Property selfLink : String Index 104 Read FselfLink Write SetselfLink;
+    Property startTime : String Index 112 Read FstartTime Write SetstartTime;
+    Property status : String Index 120 Read Fstatus Write Setstatus;
+    Property statusMessage : String Index 128 Read FstatusMessage Write SetstatusMessage;
+    Property targetId : String Index 136 Read FtargetId Write SettargetId;
+    Property targetLink : String Index 144 Read FtargetLink Write SettargetLink;
+    Property user : String Index 152 Read Fuser Write Setuser;
+    Property warnings : TOperationTypewarningsArray Index 160 Read Fwarnings Write Setwarnings;
+    Property zone : String Index 168 Read Fzone Write Setzone;
   end;
   TOperationClass = Class of TOperation;
   
   { --------------------------------------------------------------------
-    TOperationerror
+    TRollingUpdateTypeerrorTypeerrorsItem
     --------------------------------------------------------------------}
   
-  TOperationerror = Class(TGoogleBaseObject)
+  TRollingUpdateTypeerrorTypeerrorsItem = Class(TGoogleBaseObject)
   Private
-    Ferrors : TOperationerrorerrors;
+    Fcode : String;
+    Flocation : String;
+    Fmessage : String;
   Protected
     //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TOperationerrorerrors); virtual;
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property errors : TOperationerrorerrors Index 0 Read Ferrors Write Seterrors;
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property location : String Index 8 Read Flocation Write Setlocation;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
-  TOperationerrorClass = Class of TOperationerror;
+  TRollingUpdateTypeerrorTypeerrorsItemClass = Class of TRollingUpdateTypeerrorTypeerrorsItem;
   
   { --------------------------------------------------------------------
-    TOperationerrorerrors
+    TRollingUpdateTypeerror
     --------------------------------------------------------------------}
   
-  TOperationerrorerrors = Class(TGoogleBaseObject)
+  TRollingUpdateTypeerror = Class(TGoogleBaseObject)
   Private
-    Fcode : string;
-    Flocation : string;
-    Fmessage : string;
+    Ferrors : TRollingUpdateTypeerrorTypeerrorsArray;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TRollingUpdateTypeerrorTypeerrorsArray); virtual;
   Public
   Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property location : string Index 8 Read Flocation Write Setlocation;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
+    Property errors : TRollingUpdateTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
   end;
-  TOperationerrorerrorsClass = Class of TOperationerrorerrors;
+  TRollingUpdateTypeerrorClass = Class of TRollingUpdateTypeerror;
   
   { --------------------------------------------------------------------
-    TOperationwarnings
+    TRollingUpdateTypepolicy
     --------------------------------------------------------------------}
   
-  TOperationwarnings = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TOperationwarningsdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TOperationwarningsdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TOperationwarningsdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TOperationwarningsClass = Class of TOperationwarnings;
-  
-  { --------------------------------------------------------------------
-    TOperationwarningsdata
-    --------------------------------------------------------------------}
-  
-  TOperationwarningsdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TOperationwarningsdataClass = Class of TOperationwarningsdata;
-  
-  { --------------------------------------------------------------------
-    TRollingUpdate
-    --------------------------------------------------------------------}
-  
-  TRollingUpdate = Class(TGoogleBaseObject)
-  Private
-    FactionType : string;
-    FcreationTimestamp : string;
-    Fdescription : string;
-    Ferror : TRollingUpdateerror;
-    Fid : string;
-    FinstanceGroup : string;
-    FinstanceGroupManager : string;
-    FinstanceTemplate : string;
-    Fkind : string;
-    Fpolicy : TRollingUpdatepolicy;
-    Fprogress : integer;
-    FselfLink : string;
-    Fstatus : string;
-    FstatusMessage : string;
-    Fuser : string;
-  Protected
-    //Property setters
-    Procedure SetactionType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Seterror(AIndex : Integer; AValue : TRollingUpdateerror); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinstanceGroup(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinstanceGroupManager(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinstanceTemplate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpolicy(AIndex : Integer; AValue : TRollingUpdatepolicy); virtual;
-    Procedure Setprogress(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstatusMessage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property actionType : string Index 0 Read FactionType Write SetactionType;
-    Property creationTimestamp : string Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property error : TRollingUpdateerror Index 24 Read Ferror Write Seterror;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property instanceGroup : string Index 40 Read FinstanceGroup Write SetinstanceGroup;
-    Property instanceGroupManager : string Index 48 Read FinstanceGroupManager Write SetinstanceGroupManager;
-    Property instanceTemplate : string Index 56 Read FinstanceTemplate Write SetinstanceTemplate;
-    Property kind : string Index 64 Read Fkind Write Setkind;
-    Property policy : TRollingUpdatepolicy Index 72 Read Fpolicy Write Setpolicy;
-    Property progress : integer Index 80 Read Fprogress Write Setprogress;
-    Property selfLink : string Index 88 Read FselfLink Write SetselfLink;
-    Property status : string Index 96 Read Fstatus Write Setstatus;
-    Property statusMessage : string Index 104 Read FstatusMessage Write SetstatusMessage;
-    Property user : string Index 112 Read Fuser Write Setuser;
-  end;
-  TRollingUpdateClass = Class of TRollingUpdate;
-  
-  { --------------------------------------------------------------------
-    TRollingUpdateerror
-    --------------------------------------------------------------------}
-  
-  TRollingUpdateerror = Class(TGoogleBaseObject)
-  Private
-    Ferrors : TRollingUpdateerrorerrors;
-  Protected
-    //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TRollingUpdateerrorerrors); virtual;
-  Public
-  Published
-    Property errors : TRollingUpdateerrorerrors Index 0 Read Ferrors Write Seterrors;
-  end;
-  TRollingUpdateerrorClass = Class of TRollingUpdateerror;
-  
-  { --------------------------------------------------------------------
-    TRollingUpdateerrorerrors
-    --------------------------------------------------------------------}
-  
-  TRollingUpdateerrorerrors = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Flocation : string;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property location : string Index 8 Read Flocation Write Setlocation;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TRollingUpdateerrorerrorsClass = Class of TRollingUpdateerrorerrors;
-  
-  { --------------------------------------------------------------------
-    TRollingUpdatepolicy
-    --------------------------------------------------------------------}
-  
-  TRollingUpdatepolicy = Class(TGoogleBaseObject)
+  TRollingUpdateTypepolicy = Class(TGoogleBaseObject)
   Private
     FautoPauseAfterInstances : integer;
     FinstanceStartupTimeoutSec : integer;
@@ -446,7 +359,65 @@ type
     Property maxNumFailedInstances : integer Index 24 Read FmaxNumFailedInstances Write SetmaxNumFailedInstances;
     Property minInstanceUpdateTimeSec : integer Index 32 Read FminInstanceUpdateTimeSec Write SetminInstanceUpdateTimeSec;
   end;
-  TRollingUpdatepolicyClass = Class of TRollingUpdatepolicy;
+  TRollingUpdateTypepolicyClass = Class of TRollingUpdateTypepolicy;
+  
+  { --------------------------------------------------------------------
+    TRollingUpdate
+    --------------------------------------------------------------------}
+  
+  TRollingUpdate = Class(TGoogleBaseObject)
+  Private
+    FactionType : String;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Ferror : TRollingUpdateTypeerror;
+    Fid : String;
+    FinstanceGroup : String;
+    FinstanceGroupManager : String;
+    FinstanceTemplate : String;
+    Fkind : String;
+    Fpolicy : TRollingUpdateTypepolicy;
+    Fprogress : integer;
+    FselfLink : String;
+    Fstatus : String;
+    FstatusMessage : String;
+    Fuser : String;
+  Protected
+    //Property setters
+    Procedure SetactionType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Seterror(AIndex : Integer; AValue : TRollingUpdateTypeerror); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinstanceGroup(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinstanceGroupManager(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinstanceTemplate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpolicy(AIndex : Integer; AValue : TRollingUpdateTypepolicy); virtual;
+    Procedure Setprogress(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstatusMessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setuser(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property actionType : String Index 0 Read FactionType Write SetactionType;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property error : TRollingUpdateTypeerror Index 24 Read Ferror Write Seterror;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property instanceGroup : String Index 40 Read FinstanceGroup Write SetinstanceGroup;
+    Property instanceGroupManager : String Index 48 Read FinstanceGroupManager Write SetinstanceGroupManager;
+    Property instanceTemplate : String Index 56 Read FinstanceTemplate Write SetinstanceTemplate;
+    Property kind : String Index 64 Read Fkind Write Setkind;
+    Property policy : TRollingUpdateTypepolicy Index 72 Read Fpolicy Write Setpolicy;
+    Property progress : integer Index 80 Read Fprogress Write Setprogress;
+    Property selfLink : String Index 88 Read FselfLink Write SetselfLink;
+    Property status : String Index 96 Read Fstatus Write Setstatus;
+    Property statusMessage : String Index 104 Read FstatusMessage Write SetstatusMessage;
+    Property user : String Index 112 Read Fuser Write Setuser;
+  end;
+  TRollingUpdateClass = Class of TRollingUpdate;
   
   { --------------------------------------------------------------------
     TRollingUpdateList
@@ -454,37 +425,24 @@ type
   
   TRollingUpdateList = Class(TGoogleBaseObject)
   Private
-    Fitems : TRollingUpdateListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fitems : TRollingUpdateListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TRollingUpdateListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TRollingUpdateListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TRollingUpdateListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
+    Property items : TRollingUpdateListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 24 Read FselfLink Write SetselfLink;
   end;
   TRollingUpdateListClass = Class of TRollingUpdateList;
-  
-  { --------------------------------------------------------------------
-    TRollingUpdateListitems
-    --------------------------------------------------------------------}
-  
-  TRollingUpdateListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRollingUpdateListitemsClass = Class of TRollingUpdateListitems;
   
   { --------------------------------------------------------------------
     TRollingUpdatesResource
@@ -494,19 +452,19 @@ type
   //Optional query Options for TRollingUpdatesResource, method List
   
   TRollingUpdatesListOptions = Record
-    filter : string;
-    instanceGroupManager : string;
+    filter : String;
+    instanceGroupManager : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TRollingUpdatesResource, method ListInstanceUpdates
   
   TRollingUpdatesListInstanceUpdatesOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TRollingUpdatesResource = Class(TGoogleResource)
@@ -584,65 +542,11 @@ implementation
 
 
 { --------------------------------------------------------------------
-  TInstanceUpdate
+  TInstanceUpdateTypeerrorTypeerrorsItem
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceUpdate.Seterror(AIndex : Integer; AValue : TInstanceUpdateerror); 
-
-begin
-  If (Ferror=AValue) then exit;
-  Ferror:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInstanceUpdate.Setinstance(AIndex : Integer; AValue : string); 
-
-begin
-  If (Finstance=AValue) then exit;
-  Finstance:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInstanceUpdate.Setstatus(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fstatus=AValue) then exit;
-  Fstatus:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TInstanceUpdateerror
-  --------------------------------------------------------------------}
-
-
-Procedure TInstanceUpdateerror.Seterrors(AIndex : Integer; AValue : TInstanceUpdateerrorerrors); 
-
-begin
-  If (Ferrors=AValue) then exit;
-  Ferrors:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TInstanceUpdateerrorerrors
-  --------------------------------------------------------------------}
-
-
-Procedure TInstanceUpdateerrorerrors.Setcode(AIndex : Integer; AValue : string); 
+Procedure TInstanceUpdateTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -652,7 +556,7 @@ end;
 
 
 
-Procedure TInstanceUpdateerrorerrors.Setlocation(AIndex : Integer; AValue : string); 
+Procedure TInstanceUpdateTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -662,7 +566,7 @@ end;
 
 
 
-Procedure TInstanceUpdateerrorerrors.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TInstanceUpdateTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -675,11 +579,65 @@ end;
 
 
 { --------------------------------------------------------------------
+  TInstanceUpdateTypeerror
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceUpdateTypeerror.Seterrors(AIndex : Integer; AValue : TInstanceUpdateTypeerrorTypeerrorsArray); 
+
+begin
+  If (Ferrors=AValue) then exit;
+  Ferrors:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceUpdate
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceUpdate.Seterror(AIndex : Integer; AValue : TInstanceUpdateTypeerror); 
+
+begin
+  If (Ferror=AValue) then exit;
+  Ferror:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceUpdate.Setinstance(AIndex : Integer; AValue : String); 
+
+begin
+  If (Finstance=AValue) then exit;
+  Finstance:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceUpdate.Setstatus(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fstatus=AValue) then exit;
+  Fstatus:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TInstanceUpdateList
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceUpdateList.Setitems(AIndex : Integer; AValue : TInstanceUpdateListitems); 
+Procedure TInstanceUpdateList.Setitems(AIndex : Integer; AValue : TInstanceUpdateListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -689,7 +647,7 @@ end;
 
 
 
-Procedure TInstanceUpdateList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TInstanceUpdateList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -699,7 +657,7 @@ end;
 
 
 
-Procedure TInstanceUpdateList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TInstanceUpdateList.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -709,7 +667,7 @@ end;
 
 
 
-Procedure TInstanceUpdateList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TInstanceUpdateList.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -722,8 +680,119 @@ end;
 
 
 { --------------------------------------------------------------------
-  TInstanceUpdateListitems
+  TOperationTypeerrorTypeerrorsItem
   --------------------------------------------------------------------}
+
+
+Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; AValue : String); 
+
+begin
+  If (Flocation=AValue) then exit;
+  Flocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TOperationTypeerror
+  --------------------------------------------------------------------}
+
+
+Procedure TOperationTypeerror.Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); 
+
+begin
+  If (Ferrors=AValue) then exit;
+  Ferrors:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TOperationTypewarningsItemTypedataItem
+  --------------------------------------------------------------------}
+
+
+Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TOperationTypewarningsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -733,7 +802,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.SetclientOperationId(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetclientOperationId(AIndex : Integer; AValue : String); 
 
 begin
   If (FclientOperationId=AValue) then exit;
@@ -743,7 +812,7 @@ end;
 
 
 
-Procedure TOperation.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetcreationTimestamp(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -753,7 +822,7 @@ end;
 
 
 
-Procedure TOperation.SetendTime(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetendTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -763,7 +832,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationerror); 
+Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationTypeerror); 
 
 begin
   If (Ferror=AValue) then exit;
@@ -773,7 +842,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorMessage(AIndex : Integer; AValue : string); 
+Procedure TOperation.SethttpErrorMessage(AIndex : Integer; AValue : String); 
 
 begin
   If (FhttpErrorMessage=AValue) then exit;
@@ -793,7 +862,7 @@ end;
 
 
 
-Procedure TOperation.Setid(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -803,7 +872,7 @@ end;
 
 
 
-Procedure TOperation.SetinsertTime(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetinsertTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -813,7 +882,7 @@ end;
 
 
 
-Procedure TOperation.Setkind(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -823,7 +892,7 @@ end;
 
 
 
-Procedure TOperation.Setname(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -833,7 +902,7 @@ end;
 
 
 
-Procedure TOperation.SetoperationType(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetoperationType(AIndex : Integer; AValue : String); 
 
 begin
   If (FoperationType=AValue) then exit;
@@ -853,7 +922,7 @@ end;
 
 
 
-Procedure TOperation.Setregion(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setregion(AIndex : Integer; AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -863,7 +932,7 @@ end;
 
 
 
-Procedure TOperation.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -873,7 +942,7 @@ end;
 
 
 
-Procedure TOperation.SetstartTime(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetstartTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -883,7 +952,7 @@ end;
 
 
 
-Procedure TOperation.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -893,7 +962,7 @@ end;
 
 
 
-Procedure TOperation.SetstatusMessage(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetstatusMessage(AIndex : Integer; AValue : String); 
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -903,7 +972,7 @@ end;
 
 
 
-Procedure TOperation.SettargetId(AIndex : Integer; AValue : string); 
+Procedure TOperation.SettargetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FtargetId=AValue) then exit;
@@ -913,7 +982,7 @@ end;
 
 
 
-Procedure TOperation.SettargetLink(AIndex : Integer; AValue : string); 
+Procedure TOperation.SettargetLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FtargetLink=AValue) then exit;
@@ -923,7 +992,7 @@ end;
 
 
 
-Procedure TOperation.Setuser(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setuser(AIndex : Integer; AValue : String); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -933,7 +1002,7 @@ end;
 
 
 
-Procedure TOperation.Setwarnings(AIndex : Integer; AValue : TOperationwarnings); 
+Procedure TOperation.Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -943,7 +1012,7 @@ end;
 
 
 
-Procedure TOperation.Setzone(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setzone(AIndex : Integer; AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -956,11 +1025,48 @@ end;
 
 
 { --------------------------------------------------------------------
-  TOperationerror
+  TRollingUpdateTypeerrorTypeerrorsItem
   --------------------------------------------------------------------}
 
 
-Procedure TOperationerror.Seterrors(AIndex : Integer; AValue : TOperationerrorerrors); 
+Procedure TRollingUpdateTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRollingUpdateTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; AValue : String); 
+
+begin
+  If (Flocation=AValue) then exit;
+  Flocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRollingUpdateTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TRollingUpdateTypeerror
+  --------------------------------------------------------------------}
+
+
+Procedure TRollingUpdateTypeerror.Seterrors(AIndex : Integer; AValue : TRollingUpdateTypeerrorTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -973,99 +1079,55 @@ end;
 
 
 { --------------------------------------------------------------------
-  TOperationerrorerrors
+  TRollingUpdateTypepolicy
   --------------------------------------------------------------------}
 
 
-Procedure TOperationerrorerrors.Setcode(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdateTypepolicy.SetautoPauseAfterInstances(AIndex : Integer; AValue : integer); 
 
 begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
+  If (FautoPauseAfterInstances=AValue) then exit;
+  FautoPauseAfterInstances:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TOperationerrorerrors.Setlocation(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdateTypepolicy.SetinstanceStartupTimeoutSec(AIndex : Integer; AValue : integer); 
 
 begin
-  If (Flocation=AValue) then exit;
-  Flocation:=AValue;
+  If (FinstanceStartupTimeoutSec=AValue) then exit;
+  FinstanceStartupTimeoutSec:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TOperationerrorerrors.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdateTypepolicy.SetmaxNumConcurrentInstances(AIndex : Integer; AValue : integer); 
 
 begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
+  If (FmaxNumConcurrentInstances=AValue) then exit;
+  FmaxNumConcurrentInstances:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-
-
-{ --------------------------------------------------------------------
-  TOperationwarnings
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationwarnings.Setcode(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdateTypepolicy.SetmaxNumFailedInstances(AIndex : Integer; AValue : integer); 
 
 begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
+  If (FmaxNumFailedInstances=AValue) then exit;
+  FmaxNumFailedInstances:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TOperationwarnings.Setdata(AIndex : Integer; AValue : TOperationwarningsdata); 
+Procedure TRollingUpdateTypepolicy.SetminInstanceUpdateTimeSec(AIndex : Integer; AValue : integer); 
 
 begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationwarnings.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperationwarningsdata
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationwarningsdata.Setkey(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkey=AValue) then exit;
-  Fkey:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationwarningsdata.Setvalue(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fvalue=AValue) then exit;
-  Fvalue:=AValue;
+  If (FminInstanceUpdateTimeSec=AValue) then exit;
+  FminInstanceUpdateTimeSec:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1078,7 +1140,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRollingUpdate.SetactionType(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdate.SetactionType(AIndex : Integer; AValue : String); 
 
 begin
   If (FactionType=AValue) then exit;
@@ -1088,7 +1150,7 @@ end;
 
 
 
-Procedure TRollingUpdate.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdate.SetcreationTimestamp(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -1098,7 +1160,7 @@ end;
 
 
 
-Procedure TRollingUpdate.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdate.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1108,7 +1170,7 @@ end;
 
 
 
-Procedure TRollingUpdate.Seterror(AIndex : Integer; AValue : TRollingUpdateerror); 
+Procedure TRollingUpdate.Seterror(AIndex : Integer; AValue : TRollingUpdateTypeerror); 
 
 begin
   If (Ferror=AValue) then exit;
@@ -1118,7 +1180,7 @@ end;
 
 
 
-Procedure TRollingUpdate.Setid(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdate.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1128,7 +1190,7 @@ end;
 
 
 
-Procedure TRollingUpdate.SetinstanceGroup(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdate.SetinstanceGroup(AIndex : Integer; AValue : String); 
 
 begin
   If (FinstanceGroup=AValue) then exit;
@@ -1138,7 +1200,7 @@ end;
 
 
 
-Procedure TRollingUpdate.SetinstanceGroupManager(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdate.SetinstanceGroupManager(AIndex : Integer; AValue : String); 
 
 begin
   If (FinstanceGroupManager=AValue) then exit;
@@ -1148,7 +1210,7 @@ end;
 
 
 
-Procedure TRollingUpdate.SetinstanceTemplate(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdate.SetinstanceTemplate(AIndex : Integer; AValue : String); 
 
 begin
   If (FinstanceTemplate=AValue) then exit;
@@ -1158,7 +1220,7 @@ end;
 
 
 
-Procedure TRollingUpdate.Setkind(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdate.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1168,7 +1230,7 @@ end;
 
 
 
-Procedure TRollingUpdate.Setpolicy(AIndex : Integer; AValue : TRollingUpdatepolicy); 
+Procedure TRollingUpdate.Setpolicy(AIndex : Integer; AValue : TRollingUpdateTypepolicy); 
 
 begin
   If (Fpolicy=AValue) then exit;
@@ -1188,7 +1250,7 @@ end;
 
 
 
-Procedure TRollingUpdate.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdate.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1198,7 +1260,7 @@ end;
 
 
 
-Procedure TRollingUpdate.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdate.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1208,7 +1270,7 @@ end;
 
 
 
-Procedure TRollingUpdate.SetstatusMessage(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdate.SetstatusMessage(AIndex : Integer; AValue : String); 
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -1218,7 +1280,7 @@ end;
 
 
 
-Procedure TRollingUpdate.Setuser(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdate.Setuser(AIndex : Integer; AValue : String); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -1231,122 +1293,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TRollingUpdateerror
-  --------------------------------------------------------------------}
-
-
-Procedure TRollingUpdateerror.Seterrors(AIndex : Integer; AValue : TRollingUpdateerrorerrors); 
-
-begin
-  If (Ferrors=AValue) then exit;
-  Ferrors:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TRollingUpdateerrorerrors
-  --------------------------------------------------------------------}
-
-
-Procedure TRollingUpdateerrorerrors.Setcode(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRollingUpdateerrorerrors.Setlocation(AIndex : Integer; AValue : string); 
-
-begin
-  If (Flocation=AValue) then exit;
-  Flocation:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRollingUpdateerrorerrors.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TRollingUpdatepolicy
-  --------------------------------------------------------------------}
-
-
-Procedure TRollingUpdatepolicy.SetautoPauseAfterInstances(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FautoPauseAfterInstances=AValue) then exit;
-  FautoPauseAfterInstances:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRollingUpdatepolicy.SetinstanceStartupTimeoutSec(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FinstanceStartupTimeoutSec=AValue) then exit;
-  FinstanceStartupTimeoutSec:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRollingUpdatepolicy.SetmaxNumConcurrentInstances(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FmaxNumConcurrentInstances=AValue) then exit;
-  FmaxNumConcurrentInstances:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRollingUpdatepolicy.SetmaxNumFailedInstances(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FmaxNumFailedInstances=AValue) then exit;
-  FmaxNumFailedInstances:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRollingUpdatepolicy.SetminInstanceUpdateTimeSec(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FminInstanceUpdateTimeSec=AValue) then exit;
-  FminInstanceUpdateTimeSec:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TRollingUpdateList
   --------------------------------------------------------------------}
 
 
-Procedure TRollingUpdateList.Setitems(AIndex : Integer; AValue : TRollingUpdateListitems); 
+Procedure TRollingUpdateList.Setitems(AIndex : Integer; AValue : TRollingUpdateListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1356,7 +1307,7 @@ end;
 
 
 
-Procedure TRollingUpdateList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdateList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1366,7 +1317,7 @@ end;
 
 
 
-Procedure TRollingUpdateList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdateList.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1376,7 +1327,7 @@ end;
 
 
 
-Procedure TRollingUpdateList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TRollingUpdateList.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1384,13 +1335,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TRollingUpdateListitems
-  --------------------------------------------------------------------}
 
 
 
@@ -1725,22 +1669,20 @@ end;
 Class Procedure TReplicapoolupdaterAPI.RegisterAPIResources;
 
 begin
+  TInstanceUpdateTypeerrorTypeerrorsItem.RegisterObject;
+  TInstanceUpdateTypeerror.RegisterObject;
   TInstanceUpdate.RegisterObject;
-  TInstanceUpdateerror.RegisterObject;
-  TInstanceUpdateerrorerrors.RegisterObject;
   TInstanceUpdateList.RegisterObject;
-  TInstanceUpdateListitems.RegisterObject;
+  TOperationTypeerrorTypeerrorsItem.RegisterObject;
+  TOperationTypeerror.RegisterObject;
+  TOperationTypewarningsItemTypedataItem.RegisterObject;
+  TOperationTypewarningsItem.RegisterObject;
   TOperation.RegisterObject;
-  TOperationerror.RegisterObject;
-  TOperationerrorerrors.RegisterObject;
-  TOperationwarnings.RegisterObject;
-  TOperationwarningsdata.RegisterObject;
+  TRollingUpdateTypeerrorTypeerrorsItem.RegisterObject;
+  TRollingUpdateTypeerror.RegisterObject;
+  TRollingUpdateTypepolicy.RegisterObject;
   TRollingUpdate.RegisterObject;
-  TRollingUpdateerror.RegisterObject;
-  TRollingUpdateerrorerrors.RegisterObject;
-  TRollingUpdatepolicy.RegisterObject;
   TRollingUpdateList.RegisterObject;
-  TRollingUpdateListitems.RegisterObject;
 end;
 
 

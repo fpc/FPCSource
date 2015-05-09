@@ -1,31 +1,19 @@
 unit googlemanager;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:55
 {$MODE objfpc}
 {$H+}
 
@@ -34,125 +22,93 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAccessConfig = class;
-  TAccessConfigArray = Array of TAccessConfig;
   TAction = class;
-  TActionArray = Array of TAction;
-  TActioncommands = class;
-  TActioncommandsArray = Array of TActioncommands;
   TAllowedRule = class;
-  TAllowedRuleArray = Array of TAllowedRule;
-  TAllowedRuleports = class;
-  TAllowedRuleportsArray = Array of TAllowedRuleports;
   TAutoscalingModule = class;
-  TAutoscalingModuleArray = Array of TAutoscalingModule;
   TAutoscalingModuleStatus = class;
-  TAutoscalingModuleStatusArray = Array of TAutoscalingModuleStatus;
   TDeployState = class;
-  TDeployStateArray = Array of TDeployState;
   TDeployment = class;
-  TDeploymentArray = Array of TDeployment;
-  TDeploymentmodules = class;
-  TDeploymentmodulesArray = Array of TDeploymentmodules;
-  TDeploymentoverrides = class;
-  TDeploymentoverridesArray = Array of TDeploymentoverrides;
   TDeploymentsListResponse = class;
-  TDeploymentsListResponseArray = Array of TDeploymentsListResponse;
-  TDeploymentsListResponseresources = class;
-  TDeploymentsListResponseresourcesArray = Array of TDeploymentsListResponseresources;
   TDiskAttachment = class;
-  TDiskAttachmentArray = Array of TDiskAttachment;
   TEnvVariable = class;
-  TEnvVariableArray = Array of TEnvVariable;
   TExistingDisk = class;
-  TExistingDiskArray = Array of TExistingDisk;
   TFirewallModule = class;
-  TFirewallModuleArray = Array of TFirewallModule;
-  TFirewallModuleallowed = class;
-  TFirewallModuleallowedArray = Array of TFirewallModuleallowed;
-  TFirewallModulesourceRanges = class;
-  TFirewallModulesourceRangesArray = Array of TFirewallModulesourceRanges;
-  TFirewallModulesourceTags = class;
-  TFirewallModulesourceTagsArray = Array of TFirewallModulesourceTags;
-  TFirewallModuletargetTags = class;
-  TFirewallModuletargetTagsArray = Array of TFirewallModuletargetTags;
   TFirewallModuleStatus = class;
-  TFirewallModuleStatusArray = Array of TFirewallModuleStatus;
   THealthCheckModule = class;
-  THealthCheckModuleArray = Array of THealthCheckModule;
   THealthCheckModuleStatus = class;
-  THealthCheckModuleStatusArray = Array of THealthCheckModuleStatus;
   TLbModule = class;
-  TLbModuleArray = Array of TLbModule;
-  TLbModulehealthChecks = class;
-  TLbModulehealthChecksArray = Array of TLbModulehealthChecks;
-  TLbModuletargetModules = class;
-  TLbModuletargetModulesArray = Array of TLbModuletargetModules;
   TLbModuleStatus = class;
-  TLbModuleStatusArray = Array of TLbModuleStatus;
   TMetadata = class;
-  TMetadataArray = Array of TMetadata;
-  TMetadataitems = class;
-  TMetadataitemsArray = Array of TMetadataitems;
   TMetadataItem = class;
-  TMetadataItemArray = Array of TMetadataItem;
   TModule = class;
-  TModuleArray = Array of TModule;
   TModuleStatus = class;
-  TModuleStatusArray = Array of TModuleStatus;
   TNetworkInterface = class;
-  TNetworkInterfaceArray = Array of TNetworkInterface;
-  TNetworkInterfaceaccessConfigs = class;
-  TNetworkInterfaceaccessConfigsArray = Array of TNetworkInterfaceaccessConfigs;
   TNetworkModule = class;
-  TNetworkModuleArray = Array of TNetworkModule;
   TNetworkModuleStatus = class;
-  TNetworkModuleStatusArray = Array of TNetworkModuleStatus;
   TNewDisk = class;
-  TNewDiskArray = Array of TNewDisk;
   TNewDiskInitializeParams = class;
-  TNewDiskInitializeParamsArray = Array of TNewDiskInitializeParams;
   TParamOverride = class;
-  TParamOverrideArray = Array of TParamOverride;
   TReplicaPoolModule = class;
-  TReplicaPoolModuleArray = Array of TReplicaPoolModule;
-  TReplicaPoolModuleenvVariables = class;
-  TReplicaPoolModuleenvVariablesArray = Array of TReplicaPoolModuleenvVariables;
-  TReplicaPoolModulehealthChecks = class;
-  TReplicaPoolModulehealthChecksArray = Array of TReplicaPoolModulehealthChecks;
   TReplicaPoolModuleStatus = class;
-  TReplicaPoolModuleStatusArray = Array of TReplicaPoolModuleStatus;
   TReplicaPoolParams = class;
-  TReplicaPoolParamsArray = Array of TReplicaPoolParams;
   TReplicaPoolParamsV1Beta1 = class;
-  TReplicaPoolParamsV1Beta1Array = Array of TReplicaPoolParamsV1Beta1;
-  TReplicaPoolParamsV1Beta1disksToAttach = class;
-  TReplicaPoolParamsV1Beta1disksToAttachArray = Array of TReplicaPoolParamsV1Beta1disksToAttach;
-  TReplicaPoolParamsV1Beta1disksToCreate = class;
-  TReplicaPoolParamsV1Beta1disksToCreateArray = Array of TReplicaPoolParamsV1Beta1disksToCreate;
-  TReplicaPoolParamsV1Beta1networkInterfaces = class;
-  TReplicaPoolParamsV1Beta1networkInterfacesArray = Array of TReplicaPoolParamsV1Beta1networkInterfaces;
-  TReplicaPoolParamsV1Beta1serviceAccounts = class;
-  TReplicaPoolParamsV1Beta1serviceAccountsArray = Array of TReplicaPoolParamsV1Beta1serviceAccounts;
   TServiceAccount = class;
-  TServiceAccountArray = Array of TServiceAccount;
-  TServiceAccountscopes = class;
-  TServiceAccountscopesArray = Array of TServiceAccountscopes;
   TTag = class;
-  TTagArray = Array of TTag;
-  TTagitems = class;
-  TTagitemsArray = Array of TTagitems;
   TTemplate = class;
-  TTemplateArray = Array of TTemplate;
-  TTemplateactions = class;
-  TTemplateactionsArray = Array of TTemplateactions;
-  TTemplatemodules = class;
-  TTemplatemodulesArray = Array of TTemplatemodules;
   TTemplatesListResponse = class;
+  TAccessConfigArray = Array of TAccessConfig;
+  TActionArray = Array of TAction;
+  TAllowedRuleArray = Array of TAllowedRule;
+  TAutoscalingModuleArray = Array of TAutoscalingModule;
+  TAutoscalingModuleStatusArray = Array of TAutoscalingModuleStatus;
+  TDeployStateArray = Array of TDeployState;
+  TDeploymentArray = Array of TDeployment;
+  TDeploymentsListResponseArray = Array of TDeploymentsListResponse;
+  TDiskAttachmentArray = Array of TDiskAttachment;
+  TEnvVariableArray = Array of TEnvVariable;
+  TExistingDiskArray = Array of TExistingDisk;
+  TFirewallModuleArray = Array of TFirewallModule;
+  TFirewallModuleStatusArray = Array of TFirewallModuleStatus;
+  THealthCheckModuleArray = Array of THealthCheckModule;
+  THealthCheckModuleStatusArray = Array of THealthCheckModuleStatus;
+  TLbModuleArray = Array of TLbModule;
+  TLbModuleStatusArray = Array of TLbModuleStatus;
+  TMetadataArray = Array of TMetadata;
+  TMetadataItemArray = Array of TMetadataItem;
+  TModuleArray = Array of TModule;
+  TModuleStatusArray = Array of TModuleStatus;
+  TNetworkInterfaceArray = Array of TNetworkInterface;
+  TNetworkModuleArray = Array of TNetworkModule;
+  TNetworkModuleStatusArray = Array of TNetworkModuleStatus;
+  TNewDiskArray = Array of TNewDisk;
+  TNewDiskInitializeParamsArray = Array of TNewDiskInitializeParams;
+  TParamOverrideArray = Array of TParamOverride;
+  TReplicaPoolModuleArray = Array of TReplicaPoolModule;
+  TReplicaPoolModuleStatusArray = Array of TReplicaPoolModuleStatus;
+  TReplicaPoolParamsArray = Array of TReplicaPoolParams;
+  TReplicaPoolParamsV1Beta1Array = Array of TReplicaPoolParamsV1Beta1;
+  TServiceAccountArray = Array of TServiceAccount;
+  TTagArray = Array of TTag;
+  TTemplateArray = Array of TTemplate;
   TTemplatesListResponseArray = Array of TTemplatesListResponse;
-  TTemplatesListResponseresources = class;
-  TTemplatesListResponseresourcesArray = Array of TTemplatesListResponseresources;
+  //Anonymous types, using auto-generated names
+  TDeploymentTypemodules = class;
+  TReplicaPoolModuleTypeenvVariables = class;
+  TTemplateTypeactions = class;
+  TTemplateTypemodules = class;
+  TDeploymentTypeoverridesArray = Array of TParamOverride;
+  TDeploymentsListResponseTyperesourcesArray = Array of TDeployment;
+  TFirewallModuleTypeallowedArray = Array of TAllowedRule;
+  TMetadataTypeitemsArray = Array of TMetadataItem;
+  TNetworkInterfaceTypeaccessConfigsArray = Array of TAccessConfig;
+  TReplicaPoolParamsV1Beta1TypedisksToAttachArray = Array of TExistingDisk;
+  TReplicaPoolParamsV1Beta1TypedisksToCreateArray = Array of TNewDisk;
+  TReplicaPoolParamsV1Beta1TypenetworkInterfacesArray = Array of TNetworkInterface;
+  TReplicaPoolParamsV1Beta1TypeserviceAccountsArray = Array of TServiceAccount;
+  TTemplatesListResponseTyperesourcesArray = Array of TTemplate;
   
   { --------------------------------------------------------------------
     TAccessConfig
@@ -160,20 +116,20 @@ type
   
   TAccessConfig = Class(TGoogleBaseObject)
   Private
-    Fname : string;
-    FnatIp : string;
-    F_type : string;
+    Fname : String;
+    FnatIp : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnatIp(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnatIp(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
-    Property natIp : string Index 8 Read FnatIp Write SetnatIp;
-    Property _type : string Index 16 Read F_type Write Set_type;
+    Property name : String Index 0 Read Fname Write Setname;
+    Property natIp : String Index 8 Read FnatIp Write SetnatIp;
+    Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TAccessConfigClass = Class of TAccessConfig;
   
@@ -183,31 +139,18 @@ type
   
   TAction = Class(TGoogleBaseObject)
   Private
-    Fcommands : TActioncommands;
+    Fcommands : TStringArray;
     FtimeoutMs : integer;
   Protected
     //Property setters
-    Procedure Setcommands(AIndex : Integer; AValue : TActioncommands); virtual;
+    Procedure Setcommands(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SettimeoutMs(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property commands : TActioncommands Index 0 Read Fcommands Write Setcommands;
+    Property commands : TStringArray Index 0 Read Fcommands Write Setcommands;
     Property timeoutMs : integer Index 8 Read FtimeoutMs Write SettimeoutMs;
   end;
   TActionClass = Class of TAction;
-  
-  { --------------------------------------------------------------------
-    TActioncommands
-    --------------------------------------------------------------------}
-  
-  TActioncommands = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TActioncommandsClass = Class of TActioncommands;
   
   { --------------------------------------------------------------------
     TAllowedRule
@@ -215,31 +158,18 @@ type
   
   TAllowedRule = Class(TGoogleBaseObject)
   Private
-    FIPProtocol : string;
-    Fports : TAllowedRuleports;
+    FIPProtocol : String;
+    Fports : TStringArray;
   Protected
     //Property setters
-    Procedure SetIPProtocol(AIndex : Integer; AValue : string); virtual;
-    Procedure Setports(AIndex : Integer; AValue : TAllowedRuleports); virtual;
+    Procedure SetIPProtocol(AIndex : Integer; AValue : String); virtual;
+    Procedure Setports(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property IPProtocol : string Index 0 Read FIPProtocol Write SetIPProtocol;
-    Property ports : TAllowedRuleports Index 8 Read Fports Write Setports;
+    Property IPProtocol : String Index 0 Read FIPProtocol Write SetIPProtocol;
+    Property ports : TStringArray Index 8 Read Fports Write Setports;
   end;
   TAllowedRuleClass = Class of TAllowedRule;
-  
-  { --------------------------------------------------------------------
-    TAllowedRuleports
-    --------------------------------------------------------------------}
-  
-  TAllowedRuleports = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAllowedRuleportsClass = Class of TAllowedRuleports;
   
   { --------------------------------------------------------------------
     TAutoscalingModule
@@ -248,29 +178,29 @@ type
   TAutoscalingModule = Class(TGoogleBaseObject)
   Private
     FcoolDownPeriodSec : integer;
-    Fdescription : string;
+    Fdescription : String;
     FmaxNumReplicas : integer;
     FminNumReplicas : integer;
-    FsignalType : string;
-    FtargetModule : string;
+    FsignalType : String;
+    FtargetModule : String;
     FtargetUtilization : double;
   Protected
     //Property setters
     Procedure SetcoolDownPeriodSec(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure SetmaxNumReplicas(AIndex : Integer; AValue : integer); virtual;
     Procedure SetminNumReplicas(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetsignalType(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetModule(AIndex : Integer; AValue : string); virtual;
+    Procedure SetsignalType(AIndex : Integer; AValue : String); virtual;
+    Procedure SettargetModule(AIndex : Integer; AValue : String); virtual;
     Procedure SettargetUtilization(AIndex : Integer; AValue : double); virtual;
   Public
   Published
     Property coolDownPeriodSec : integer Index 0 Read FcoolDownPeriodSec Write SetcoolDownPeriodSec;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
     Property maxNumReplicas : integer Index 16 Read FmaxNumReplicas Write SetmaxNumReplicas;
     Property minNumReplicas : integer Index 24 Read FminNumReplicas Write SetminNumReplicas;
-    Property signalType : string Index 32 Read FsignalType Write SetsignalType;
-    Property targetModule : string Index 40 Read FtargetModule Write SettargetModule;
+    Property signalType : String Index 32 Read FsignalType Write SetsignalType;
+    Property targetModule : String Index 40 Read FtargetModule Write SettargetModule;
     Property targetUtilization : double Index 48 Read FtargetUtilization Write SettargetUtilization;
   end;
   TAutoscalingModuleClass = Class of TAutoscalingModule;
@@ -281,13 +211,13 @@ type
   
   TAutoscalingModuleStatus = Class(TGoogleBaseObject)
   Private
-    FautoscalingConfigUrl : string;
+    FautoscalingConfigUrl : String;
   Protected
     //Property setters
-    Procedure SetautoscalingConfigUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetautoscalingConfigUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property autoscalingConfigUrl : string Index 0 Read FautoscalingConfigUrl Write SetautoscalingConfigUrl;
+    Property autoscalingConfigUrl : String Index 0 Read FautoscalingConfigUrl Write SetautoscalingConfigUrl;
   end;
   TAutoscalingModuleStatusClass = Class of TAutoscalingModuleStatus;
   
@@ -297,58 +227,24 @@ type
   
   TDeployState = Class(TGoogleBaseObject)
   Private
-    Fdetails : string;
-    Fstatus : string;
+    Fdetails : String;
+    Fstatus : String;
   Protected
     //Property setters
-    Procedure Setdetails(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdetails(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property details : string Index 0 Read Fdetails Write Setdetails;
-    Property status : string Index 8 Read Fstatus Write Setstatus;
+    Property details : String Index 0 Read Fdetails Write Setdetails;
+    Property status : String Index 8 Read Fstatus Write Setstatus;
   end;
   TDeployStateClass = Class of TDeployState;
   
   { --------------------------------------------------------------------
-    TDeployment
+    TDeploymentTypemodules
     --------------------------------------------------------------------}
   
-  TDeployment = Class(TGoogleBaseObject)
-  Private
-    FcreationDate : string;
-    Fdescription : string;
-    Fmodules : TDeploymentmodules;
-    Fname : string;
-    Foverrides : TDeploymentoverrides;
-    Fstate : TDeployState;
-    FtemplateName : string;
-  Protected
-    //Property setters
-    Procedure SetcreationDate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmodules(AIndex : Integer; AValue : TDeploymentmodules); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setoverrides(AIndex : Integer; AValue : TDeploymentoverrides); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : TDeployState); virtual;
-    Procedure SettemplateName(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property creationDate : string Index 0 Read FcreationDate Write SetcreationDate;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property modules : TDeploymentmodules Index 16 Read Fmodules Write Setmodules;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property overrides : TDeploymentoverrides Index 32 Read Foverrides Write Setoverrides;
-    Property state : TDeployState Index 40 Read Fstate Write Setstate;
-    Property templateName : string Index 48 Read FtemplateName Write SettemplateName;
-  end;
-  TDeploymentClass = Class of TDeployment;
-  
-  { --------------------------------------------------------------------
-    TDeploymentmodules
-    --------------------------------------------------------------------}
-  
-  TDeploymentmodules = Class(TGoogleBaseObject)
+  TDeploymentTypemodules = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -356,20 +252,41 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TDeploymentmodulesClass = Class of TDeploymentmodules;
+  TDeploymentTypemodulesClass = Class of TDeploymentTypemodules;
   
   { --------------------------------------------------------------------
-    TDeploymentoverrides
+    TDeployment
     --------------------------------------------------------------------}
   
-  TDeploymentoverrides = Class(TGoogleBaseObject)
+  TDeployment = Class(TGoogleBaseObject)
   Private
+    FcreationDate : String;
+    Fdescription : String;
+    Fmodules : TDeploymentTypemodules;
+    Fname : String;
+    Foverrides : TDeploymentTypeoverridesArray;
+    Fstate : TDeployState;
+    FtemplateName : String;
   Protected
     //Property setters
+    Procedure SetcreationDate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmodules(AIndex : Integer; AValue : TDeploymentTypemodules); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setoverrides(AIndex : Integer; AValue : TDeploymentTypeoverridesArray); virtual;
+    Procedure Setstate(AIndex : Integer; AValue : TDeployState); virtual;
+    Procedure SettemplateName(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property creationDate : String Index 0 Read FcreationDate Write SetcreationDate;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property modules : TDeploymentTypemodules Index 16 Read Fmodules Write Setmodules;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property overrides : TDeploymentTypeoverridesArray Index 32 Read Foverrides Write Setoverrides;
+    Property state : TDeployState Index 40 Read Fstate Write Setstate;
+    Property templateName : String Index 48 Read FtemplateName Write SettemplateName;
   end;
-  TDeploymentoverridesClass = Class of TDeploymentoverrides;
+  TDeploymentClass = Class of TDeployment;
   
   { --------------------------------------------------------------------
     TDeploymentsListResponse
@@ -377,31 +294,18 @@ type
   
   TDeploymentsListResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Fresources : TDeploymentsListResponseresources;
+    FnextPageToken : String;
+    Fresources : TDeploymentsListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TDeploymentsListResponseresources); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresources(AIndex : Integer; AValue : TDeploymentsListResponseTyperesourcesArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property resources : TDeploymentsListResponseresources Index 8 Read Fresources Write Setresources;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property resources : TDeploymentsListResponseTyperesourcesArray Index 8 Read Fresources Write Setresources;
   end;
   TDeploymentsListResponseClass = Class of TDeploymentsListResponse;
-  
-  { --------------------------------------------------------------------
-    TDeploymentsListResponseresources
-    --------------------------------------------------------------------}
-  
-  TDeploymentsListResponseresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDeploymentsListResponseresourcesClass = Class of TDeploymentsListResponseresources;
   
   { --------------------------------------------------------------------
     TDiskAttachment
@@ -409,15 +313,15 @@ type
   
   TDiskAttachment = Class(TGoogleBaseObject)
   Private
-    FdeviceName : string;
+    FdeviceName : String;
     Findex : integer;
   Protected
     //Property setters
-    Procedure SetdeviceName(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdeviceName(AIndex : Integer; AValue : String); virtual;
     Procedure Setindex(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property deviceName : string Index 0 Read FdeviceName Write SetdeviceName;
+    Property deviceName : String Index 0 Read FdeviceName Write SetdeviceName;
     Property index : integer Index 8 Read Findex Write Setindex;
   end;
   TDiskAttachmentClass = Class of TDiskAttachment;
@@ -429,15 +333,15 @@ type
   TEnvVariable = Class(TGoogleBaseObject)
   Private
     Fhidden : boolean;
-    Fvalue : string;
+    Fvalue : String;
   Protected
     //Property setters
     Procedure Sethidden(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property hidden : boolean Index 0 Read Fhidden Write Sethidden;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TEnvVariableClass = Class of TEnvVariable;
   
@@ -448,15 +352,15 @@ type
   TExistingDisk = Class(TGoogleBaseObject)
   Private
     Fattachment : TDiskAttachment;
-    Fsource : string;
+    Fsource : String;
   Protected
     //Property setters
     Procedure Setattachment(AIndex : Integer; AValue : TDiskAttachment); virtual;
-    Procedure Setsource(AIndex : Integer; AValue : string); virtual;
+    Procedure Setsource(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property attachment : TDiskAttachment Index 0 Read Fattachment Write Setattachment;
-    Property source : string Index 8 Read Fsource Write Setsource;
+    Property source : String Index 8 Read Fsource Write Setsource;
   end;
   TExistingDiskClass = Class of TExistingDisk;
   
@@ -466,82 +370,30 @@ type
   
   TFirewallModule = Class(TGoogleBaseObject)
   Private
-    Fallowed : TFirewallModuleallowed;
-    Fdescription : string;
-    Fnetwork : string;
-    FsourceRanges : TFirewallModulesourceRanges;
-    FsourceTags : TFirewallModulesourceTags;
-    FtargetTags : TFirewallModuletargetTags;
+    Fallowed : TFirewallModuleTypeallowedArray;
+    Fdescription : String;
+    Fnetwork : String;
+    FsourceRanges : TStringArray;
+    FsourceTags : TStringArray;
+    FtargetTags : TStringArray;
   Protected
     //Property setters
-    Procedure Setallowed(AIndex : Integer; AValue : TFirewallModuleallowed); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceRanges(AIndex : Integer; AValue : TFirewallModulesourceRanges); virtual;
-    Procedure SetsourceTags(AIndex : Integer; AValue : TFirewallModulesourceTags); virtual;
-    Procedure SettargetTags(AIndex : Integer; AValue : TFirewallModuletargetTags); virtual;
+    Procedure Setallowed(AIndex : Integer; AValue : TFirewallModuleTypeallowedArray); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceRanges(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetsourceTags(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SettargetTags(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property allowed : TFirewallModuleallowed Index 0 Read Fallowed Write Setallowed;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property network : string Index 16 Read Fnetwork Write Setnetwork;
-    Property sourceRanges : TFirewallModulesourceRanges Index 24 Read FsourceRanges Write SetsourceRanges;
-    Property sourceTags : TFirewallModulesourceTags Index 32 Read FsourceTags Write SetsourceTags;
-    Property targetTags : TFirewallModuletargetTags Index 40 Read FtargetTags Write SettargetTags;
+    Property allowed : TFirewallModuleTypeallowedArray Index 0 Read Fallowed Write Setallowed;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property network : String Index 16 Read Fnetwork Write Setnetwork;
+    Property sourceRanges : TStringArray Index 24 Read FsourceRanges Write SetsourceRanges;
+    Property sourceTags : TStringArray Index 32 Read FsourceTags Write SetsourceTags;
+    Property targetTags : TStringArray Index 40 Read FtargetTags Write SettargetTags;
   end;
   TFirewallModuleClass = Class of TFirewallModule;
-  
-  { --------------------------------------------------------------------
-    TFirewallModuleallowed
-    --------------------------------------------------------------------}
-  
-  TFirewallModuleallowed = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFirewallModuleallowedClass = Class of TFirewallModuleallowed;
-  
-  { --------------------------------------------------------------------
-    TFirewallModulesourceRanges
-    --------------------------------------------------------------------}
-  
-  TFirewallModulesourceRanges = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFirewallModulesourceRangesClass = Class of TFirewallModulesourceRanges;
-  
-  { --------------------------------------------------------------------
-    TFirewallModulesourceTags
-    --------------------------------------------------------------------}
-  
-  TFirewallModulesourceTags = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFirewallModulesourceTagsClass = Class of TFirewallModulesourceTags;
-  
-  { --------------------------------------------------------------------
-    TFirewallModuletargetTags
-    --------------------------------------------------------------------}
-  
-  TFirewallModuletargetTags = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFirewallModuletargetTagsClass = Class of TFirewallModuletargetTags;
   
   { --------------------------------------------------------------------
     TFirewallModuleStatus
@@ -549,13 +401,13 @@ type
   
   TFirewallModuleStatus = Class(TGoogleBaseObject)
   Private
-    FfirewallUrl : string;
+    FfirewallUrl : String;
   Protected
     //Property setters
-    Procedure SetfirewallUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetfirewallUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property firewallUrl : string Index 0 Read FfirewallUrl Write SetfirewallUrl;
+    Property firewallUrl : String Index 0 Read FfirewallUrl Write SetfirewallUrl;
   end;
   TFirewallModuleStatusClass = Class of TFirewallModuleStatus;
   
@@ -566,30 +418,30 @@ type
   THealthCheckModule = Class(TGoogleBaseObject)
   Private
     FcheckIntervalSec : integer;
-    Fdescription : string;
+    Fdescription : String;
     FhealthyThreshold : integer;
-    Fhost : string;
-    Fpath : string;
+    Fhost : String;
+    Fpath : String;
     Fport : integer;
     FtimeoutSec : integer;
     FunhealthyThreshold : integer;
   Protected
     //Property setters
     Procedure SetcheckIntervalSec(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure SethealthyThreshold(AIndex : Integer; AValue : integer); virtual;
-    Procedure Sethost(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpath(AIndex : Integer; AValue : string); virtual;
+    Procedure Sethost(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpath(AIndex : Integer; AValue : String); virtual;
     Procedure Setport(AIndex : Integer; AValue : integer); virtual;
     Procedure SettimeoutSec(AIndex : Integer; AValue : integer); virtual;
     Procedure SetunhealthyThreshold(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
     Property checkIntervalSec : integer Index 0 Read FcheckIntervalSec Write SetcheckIntervalSec;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
     Property healthyThreshold : integer Index 16 Read FhealthyThreshold Write SethealthyThreshold;
-    Property host : string Index 24 Read Fhost Write Sethost;
-    Property path : string Index 32 Read Fpath Write Setpath;
+    Property host : String Index 24 Read Fhost Write Sethost;
+    Property path : String Index 32 Read Fpath Write Setpath;
     Property port : integer Index 40 Read Fport Write Setport;
     Property timeoutSec : integer Index 48 Read FtimeoutSec Write SettimeoutSec;
     Property unhealthyThreshold : integer Index 56 Read FunhealthyThreshold Write SetunhealthyThreshold;
@@ -602,13 +454,13 @@ type
   
   THealthCheckModuleStatus = Class(TGoogleBaseObject)
   Private
-    FhealthCheckUrl : string;
+    FhealthCheckUrl : String;
   Protected
     //Property setters
-    Procedure SethealthCheckUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SethealthCheckUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property healthCheckUrl : string Index 0 Read FhealthCheckUrl Write SethealthCheckUrl;
+    Property healthCheckUrl : String Index 0 Read FhealthCheckUrl Write SethealthCheckUrl;
   end;
   THealthCheckModuleStatusClass = Class of THealthCheckModuleStatus;
   
@@ -618,59 +470,33 @@ type
   
   TLbModule = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    FhealthChecks : TLbModulehealthChecks;
-    FipAddress : string;
-    FipProtocol : string;
-    FportRange : string;
-    FsessionAffinity : string;
-    FtargetModules : TLbModuletargetModules;
+    Fdescription : String;
+    FhealthChecks : TStringArray;
+    FipAddress : String;
+    FipProtocol : String;
+    FportRange : String;
+    FsessionAffinity : String;
+    FtargetModules : TStringArray;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SethealthChecks(AIndex : Integer; AValue : TLbModulehealthChecks); virtual;
-    Procedure SetipAddress(AIndex : Integer; AValue : string); virtual;
-    Procedure SetipProtocol(AIndex : Integer; AValue : string); virtual;
-    Procedure SetportRange(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsessionAffinity(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetModules(AIndex : Integer; AValue : TLbModuletargetModules); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SethealthChecks(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetipAddress(AIndex : Integer; AValue : String); virtual;
+    Procedure SetipProtocol(AIndex : Integer; AValue : String); virtual;
+    Procedure SetportRange(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsessionAffinity(AIndex : Integer; AValue : String); virtual;
+    Procedure SettargetModules(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property healthChecks : TLbModulehealthChecks Index 8 Read FhealthChecks Write SethealthChecks;
-    Property ipAddress : string Index 16 Read FipAddress Write SetipAddress;
-    Property ipProtocol : string Index 24 Read FipProtocol Write SetipProtocol;
-    Property portRange : string Index 32 Read FportRange Write SetportRange;
-    Property sessionAffinity : string Index 40 Read FsessionAffinity Write SetsessionAffinity;
-    Property targetModules : TLbModuletargetModules Index 48 Read FtargetModules Write SettargetModules;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property healthChecks : TStringArray Index 8 Read FhealthChecks Write SethealthChecks;
+    Property ipAddress : String Index 16 Read FipAddress Write SetipAddress;
+    Property ipProtocol : String Index 24 Read FipProtocol Write SetipProtocol;
+    Property portRange : String Index 32 Read FportRange Write SetportRange;
+    Property sessionAffinity : String Index 40 Read FsessionAffinity Write SetsessionAffinity;
+    Property targetModules : TStringArray Index 48 Read FtargetModules Write SettargetModules;
   end;
   TLbModuleClass = Class of TLbModule;
-  
-  { --------------------------------------------------------------------
-    TLbModulehealthChecks
-    --------------------------------------------------------------------}
-  
-  TLbModulehealthChecks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLbModulehealthChecksClass = Class of TLbModulehealthChecks;
-  
-  { --------------------------------------------------------------------
-    TLbModuletargetModules
-    --------------------------------------------------------------------}
-  
-  TLbModuletargetModules = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLbModuletargetModulesClass = Class of TLbModuletargetModules;
   
   { --------------------------------------------------------------------
     TLbModuleStatus
@@ -678,16 +504,16 @@ type
   
   TLbModuleStatus = Class(TGoogleBaseObject)
   Private
-    FforwardingRuleUrl : string;
-    FtargetPoolUrl : string;
+    FforwardingRuleUrl : String;
+    FtargetPoolUrl : String;
   Protected
     //Property setters
-    Procedure SetforwardingRuleUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetPoolUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetforwardingRuleUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SettargetPoolUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property forwardingRuleUrl : string Index 0 Read FforwardingRuleUrl Write SetforwardingRuleUrl;
-    Property targetPoolUrl : string Index 8 Read FtargetPoolUrl Write SettargetPoolUrl;
+    Property forwardingRuleUrl : String Index 0 Read FforwardingRuleUrl Write SetforwardingRuleUrl;
+    Property targetPoolUrl : String Index 8 Read FtargetPoolUrl Write SettargetPoolUrl;
   end;
   TLbModuleStatusClass = Class of TLbModuleStatus;
   
@@ -697,31 +523,18 @@ type
   
   TMetadata = Class(TGoogleBaseObject)
   Private
-    FfingerPrint : string;
-    Fitems : TMetadataitems;
+    FfingerPrint : String;
+    Fitems : TMetadataTypeitemsArray;
   Protected
     //Property setters
-    Procedure SetfingerPrint(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TMetadataitems); virtual;
+    Procedure SetfingerPrint(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); virtual;
   Public
   Published
-    Property fingerPrint : string Index 0 Read FfingerPrint Write SetfingerPrint;
-    Property items : TMetadataitems Index 8 Read Fitems Write Setitems;
+    Property fingerPrint : String Index 0 Read FfingerPrint Write SetfingerPrint;
+    Property items : TMetadataTypeitemsArray Index 8 Read Fitems Write Setitems;
   end;
   TMetadataClass = Class of TMetadata;
-  
-  { --------------------------------------------------------------------
-    TMetadataitems
-    --------------------------------------------------------------------}
-  
-  TMetadataitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMetadataitemsClass = Class of TMetadataitems;
   
   { --------------------------------------------------------------------
     TMetadataItem
@@ -729,16 +542,16 @@ type
   
   TMetadataItem = Class(TGoogleBaseObject)
   Private
-    Fkey : string;
-    Fvalue : string;
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TMetadataItemClass = Class of TMetadataItem;
   
@@ -754,7 +567,7 @@ type
     FlbModule : TLbModule;
     FnetworkModule : TNetworkModule;
     FreplicaPoolModule : TReplicaPoolModule;
-    F_type : string;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
@@ -764,7 +577,7 @@ type
     Procedure SetlbModule(AIndex : Integer; AValue : TLbModule); virtual;
     Procedure SetnetworkModule(AIndex : Integer; AValue : TNetworkModule); virtual;
     Procedure SetreplicaPoolModule(AIndex : Integer; AValue : TReplicaPoolModule); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property autoscalingModule : TAutoscalingModule Index 0 Read FautoscalingModule Write SetautoscalingModule;
@@ -773,7 +586,7 @@ type
     Property lbModule : TLbModule Index 24 Read FlbModule Write SetlbModule;
     Property networkModule : TNetworkModule Index 32 Read FnetworkModule Write SetnetworkModule;
     Property replicaPoolModule : TReplicaPoolModule Index 40 Read FreplicaPoolModule Write SetreplicaPoolModule;
-    Property _type : string Index 48 Read F_type Write Set_type;
+    Property _type : String Index 48 Read F_type Write Set_type;
   end;
   TModuleClass = Class of TModule;
   
@@ -790,7 +603,7 @@ type
     FnetworkModuleStatus : TNetworkModuleStatus;
     FreplicaPoolModuleStatus : TReplicaPoolModuleStatus;
     Fstate : TDeployState;
-    F_type : string;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
@@ -801,7 +614,7 @@ type
     Procedure SetnetworkModuleStatus(AIndex : Integer; AValue : TNetworkModuleStatus); virtual;
     Procedure SetreplicaPoolModuleStatus(AIndex : Integer; AValue : TReplicaPoolModuleStatus); virtual;
     Procedure Setstate(AIndex : Integer; AValue : TDeployState); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property autoscalingModuleStatus : TAutoscalingModuleStatus Index 0 Read FautoscalingModuleStatus Write SetautoscalingModuleStatus;
@@ -811,7 +624,7 @@ type
     Property networkModuleStatus : TNetworkModuleStatus Index 32 Read FnetworkModuleStatus Write SetnetworkModuleStatus;
     Property replicaPoolModuleStatus : TReplicaPoolModuleStatus Index 40 Read FreplicaPoolModuleStatus Write SetreplicaPoolModuleStatus;
     Property state : TDeployState Index 48 Read Fstate Write Setstate;
-    Property _type : string Index 56 Read F_type Write Set_type;
+    Property _type : String Index 56 Read F_type Write Set_type;
   end;
   TModuleStatusClass = Class of TModuleStatus;
   
@@ -821,37 +634,24 @@ type
   
   TNetworkInterface = Class(TGoogleBaseObject)
   Private
-    FaccessConfigs : TNetworkInterfaceaccessConfigs;
-    Fname : string;
-    Fnetwork : string;
-    FnetworkIp : string;
+    FaccessConfigs : TNetworkInterfaceTypeaccessConfigsArray;
+    Fname : String;
+    Fnetwork : String;
+    FnetworkIp : String;
   Protected
     //Property setters
-    Procedure SetaccessConfigs(AIndex : Integer; AValue : TNetworkInterfaceaccessConfigs); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnetworkIp(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccessConfigs(AIndex : Integer; AValue : TNetworkInterfaceTypeaccessConfigsArray); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnetworkIp(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accessConfigs : TNetworkInterfaceaccessConfigs Index 0 Read FaccessConfigs Write SetaccessConfigs;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property network : string Index 16 Read Fnetwork Write Setnetwork;
-    Property networkIp : string Index 24 Read FnetworkIp Write SetnetworkIp;
+    Property accessConfigs : TNetworkInterfaceTypeaccessConfigsArray Index 0 Read FaccessConfigs Write SetaccessConfigs;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property network : String Index 16 Read Fnetwork Write Setnetwork;
+    Property networkIp : String Index 24 Read FnetworkIp Write SetnetworkIp;
   end;
   TNetworkInterfaceClass = Class of TNetworkInterface;
-  
-  { --------------------------------------------------------------------
-    TNetworkInterfaceaccessConfigs
-    --------------------------------------------------------------------}
-  
-  TNetworkInterfaceaccessConfigs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TNetworkInterfaceaccessConfigsClass = Class of TNetworkInterfaceaccessConfigs;
   
   { --------------------------------------------------------------------
     TNetworkModule
@@ -859,19 +659,19 @@ type
   
   TNetworkModule = Class(TGoogleBaseObject)
   Private
-    FIPv4Range : string;
-    Fdescription : string;
-    FgatewayIPv4 : string;
+    FIPv4Range : String;
+    Fdescription : String;
+    FgatewayIPv4 : String;
   Protected
     //Property setters
-    Procedure SetIPv4Range(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgatewayIPv4(AIndex : Integer; AValue : string); virtual;
+    Procedure SetIPv4Range(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgatewayIPv4(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property IPv4Range : string Index 0 Read FIPv4Range Write SetIPv4Range;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property gatewayIPv4 : string Index 16 Read FgatewayIPv4 Write SetgatewayIPv4;
+    Property IPv4Range : String Index 0 Read FIPv4Range Write SetIPv4Range;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property gatewayIPv4 : String Index 16 Read FgatewayIPv4 Write SetgatewayIPv4;
   end;
   TNetworkModuleClass = Class of TNetworkModule;
   
@@ -881,13 +681,13 @@ type
   
   TNetworkModuleStatus = Class(TGoogleBaseObject)
   Private
-    FnetworkUrl : string;
+    FnetworkUrl : String;
   Protected
     //Property setters
-    Procedure SetnetworkUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetnetworkUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property networkUrl : string Index 0 Read FnetworkUrl Write SetnetworkUrl;
+    Property networkUrl : String Index 0 Read FnetworkUrl Write SetnetworkUrl;
   end;
   TNetworkModuleStatusClass = Class of TNetworkModuleStatus;
   
@@ -922,19 +722,19 @@ type
   
   TNewDiskInitializeParams = Class(TGoogleBaseObject)
   Private
-    FdiskSizeGb : string;
-    FdiskType : string;
-    FsourceImage : string;
+    FdiskSizeGb : String;
+    FdiskType : String;
+    FsourceImage : String;
   Protected
     //Property setters
-    Procedure SetdiskSizeGb(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdiskType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceImage(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdiskSizeGb(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdiskType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceImage(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property diskSizeGb : string Index 0 Read FdiskSizeGb Write SetdiskSizeGb;
-    Property diskType : string Index 8 Read FdiskType Write SetdiskType;
-    Property sourceImage : string Index 16 Read FsourceImage Write SetsourceImage;
+    Property diskSizeGb : String Index 0 Read FdiskSizeGb Write SetdiskSizeGb;
+    Property diskType : String Index 8 Read FdiskType Write SetdiskType;
+    Property sourceImage : String Index 16 Read FsourceImage Write SetsourceImage;
   end;
   TNewDiskInitializeParamsClass = Class of TNewDiskInitializeParams;
   
@@ -944,52 +744,24 @@ type
   
   TParamOverride = Class(TGoogleBaseObject)
   Private
-    Fpath : string;
-    Fvalue : string;
+    Fpath : String;
+    Fvalue : String;
   Protected
     //Property setters
-    Procedure Setpath(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setpath(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property path : string Index 0 Read Fpath Write Setpath;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property path : String Index 0 Read Fpath Write Setpath;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TParamOverrideClass = Class of TParamOverride;
   
   { --------------------------------------------------------------------
-    TReplicaPoolModule
+    TReplicaPoolModuleTypeenvVariables
     --------------------------------------------------------------------}
   
-  TReplicaPoolModule = Class(TGoogleBaseObject)
-  Private
-    FenvVariables : TReplicaPoolModuleenvVariables;
-    FhealthChecks : TReplicaPoolModulehealthChecks;
-    FnumReplicas : integer;
-    FreplicaPoolParams : TReplicaPoolParams;
-    FresourceView : string;
-  Protected
-    //Property setters
-    Procedure SetenvVariables(AIndex : Integer; AValue : TReplicaPoolModuleenvVariables); virtual;
-    Procedure SethealthChecks(AIndex : Integer; AValue : TReplicaPoolModulehealthChecks); virtual;
-    Procedure SetnumReplicas(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetreplicaPoolParams(AIndex : Integer; AValue : TReplicaPoolParams); virtual;
-    Procedure SetresourceView(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property envVariables : TReplicaPoolModuleenvVariables Index 0 Read FenvVariables Write SetenvVariables;
-    Property healthChecks : TReplicaPoolModulehealthChecks Index 8 Read FhealthChecks Write SethealthChecks;
-    Property numReplicas : integer Index 16 Read FnumReplicas Write SetnumReplicas;
-    Property replicaPoolParams : TReplicaPoolParams Index 24 Read FreplicaPoolParams Write SetreplicaPoolParams;
-    Property resourceView : string Index 32 Read FresourceView Write SetresourceView;
-  end;
-  TReplicaPoolModuleClass = Class of TReplicaPoolModule;
-  
-  { --------------------------------------------------------------------
-    TReplicaPoolModuleenvVariables
-    --------------------------------------------------------------------}
-  
-  TReplicaPoolModuleenvVariables = Class(TGoogleBaseObject)
+  TReplicaPoolModuleTypeenvVariables = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -997,20 +769,35 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TReplicaPoolModuleenvVariablesClass = Class of TReplicaPoolModuleenvVariables;
+  TReplicaPoolModuleTypeenvVariablesClass = Class of TReplicaPoolModuleTypeenvVariables;
   
   { --------------------------------------------------------------------
-    TReplicaPoolModulehealthChecks
+    TReplicaPoolModule
     --------------------------------------------------------------------}
   
-  TReplicaPoolModulehealthChecks = Class(TGoogleBaseObject)
+  TReplicaPoolModule = Class(TGoogleBaseObject)
   Private
+    FenvVariables : TReplicaPoolModuleTypeenvVariables;
+    FhealthChecks : TStringArray;
+    FnumReplicas : integer;
+    FreplicaPoolParams : TReplicaPoolParams;
+    FresourceView : String;
   Protected
     //Property setters
+    Procedure SetenvVariables(AIndex : Integer; AValue : TReplicaPoolModuleTypeenvVariables); virtual;
+    Procedure SethealthChecks(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetnumReplicas(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetreplicaPoolParams(AIndex : Integer; AValue : TReplicaPoolParams); virtual;
+    Procedure SetresourceView(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property envVariables : TReplicaPoolModuleTypeenvVariables Index 0 Read FenvVariables Write SetenvVariables;
+    Property healthChecks : TStringArray Index 8 Read FhealthChecks Write SethealthChecks;
+    Property numReplicas : integer Index 16 Read FnumReplicas Write SetnumReplicas;
+    Property replicaPoolParams : TReplicaPoolParams Index 24 Read FreplicaPoolParams Write SetreplicaPoolParams;
+    Property resourceView : String Index 32 Read FresourceView Write SetresourceView;
   end;
-  TReplicaPoolModulehealthChecksClass = Class of TReplicaPoolModulehealthChecks;
+  TReplicaPoolModuleClass = Class of TReplicaPoolModule;
   
   { --------------------------------------------------------------------
     TReplicaPoolModuleStatus
@@ -1018,16 +805,16 @@ type
   
   TReplicaPoolModuleStatus = Class(TGoogleBaseObject)
   Private
-    FreplicaPoolUrl : string;
-    FresourceViewUrl : string;
+    FreplicaPoolUrl : String;
+    FresourceViewUrl : String;
   Protected
     //Property setters
-    Procedure SetreplicaPoolUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetresourceViewUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetreplicaPoolUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetresourceViewUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property replicaPoolUrl : string Index 0 Read FreplicaPoolUrl Write SetreplicaPoolUrl;
-    Property resourceViewUrl : string Index 8 Read FresourceViewUrl Write SetresourceViewUrl;
+    Property replicaPoolUrl : String Index 0 Read FreplicaPoolUrl Write SetreplicaPoolUrl;
+    Property resourceViewUrl : String Index 8 Read FresourceViewUrl Write SetresourceViewUrl;
   end;
   TReplicaPoolModuleStatusClass = Class of TReplicaPoolModuleStatus;
   
@@ -1054,105 +841,53 @@ type
   TReplicaPoolParamsV1Beta1 = Class(TGoogleBaseObject)
   Private
     FautoRestart : boolean;
-    FbaseInstanceName : string;
+    FbaseInstanceName : String;
     FcanIpForward : boolean;
-    Fdescription : string;
-    FdisksToAttach : TReplicaPoolParamsV1Beta1disksToAttach;
-    FdisksToCreate : TReplicaPoolParamsV1Beta1disksToCreate;
-    FinitAction : string;
-    FmachineType : string;
+    Fdescription : String;
+    FdisksToAttach : TReplicaPoolParamsV1Beta1TypedisksToAttachArray;
+    FdisksToCreate : TReplicaPoolParamsV1Beta1TypedisksToCreateArray;
+    FinitAction : String;
+    FmachineType : String;
     Fmetadata : TMetadata;
-    FnetworkInterfaces : TReplicaPoolParamsV1Beta1networkInterfaces;
-    FonHostMaintenance : string;
-    FserviceAccounts : TReplicaPoolParamsV1Beta1serviceAccounts;
+    FnetworkInterfaces : TReplicaPoolParamsV1Beta1TypenetworkInterfacesArray;
+    FonHostMaintenance : String;
+    FserviceAccounts : TReplicaPoolParamsV1Beta1TypeserviceAccountsArray;
     Ftags : TTag;
-    Fzone : string;
+    Fzone : String;
   Protected
     //Property setters
     Procedure SetautoRestart(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetbaseInstanceName(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbaseInstanceName(AIndex : Integer; AValue : String); virtual;
     Procedure SetcanIpForward(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdisksToAttach(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1disksToAttach); virtual;
-    Procedure SetdisksToCreate(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1disksToCreate); virtual;
-    Procedure SetinitAction(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmachineType(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisksToAttach(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypedisksToAttachArray); virtual;
+    Procedure SetdisksToCreate(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypedisksToCreateArray); virtual;
+    Procedure SetinitAction(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmachineType(AIndex : Integer; AValue : String); virtual;
     Procedure Setmetadata(AIndex : Integer; AValue : TMetadata); virtual;
-    Procedure SetnetworkInterfaces(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1networkInterfaces); virtual;
-    Procedure SetonHostMaintenance(AIndex : Integer; AValue : string); virtual;
-    Procedure SetserviceAccounts(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1serviceAccounts); virtual;
+    Procedure SetnetworkInterfaces(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypenetworkInterfacesArray); virtual;
+    Procedure SetonHostMaintenance(AIndex : Integer; AValue : String); virtual;
+    Procedure SetserviceAccounts(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypeserviceAccountsArray); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTag); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
+    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property autoRestart : boolean Index 0 Read FautoRestart Write SetautoRestart;
-    Property baseInstanceName : string Index 8 Read FbaseInstanceName Write SetbaseInstanceName;
+    Property baseInstanceName : String Index 8 Read FbaseInstanceName Write SetbaseInstanceName;
     Property canIpForward : boolean Index 16 Read FcanIpForward Write SetcanIpForward;
-    Property description : string Index 24 Read Fdescription Write Setdescription;
-    Property disksToAttach : TReplicaPoolParamsV1Beta1disksToAttach Index 32 Read FdisksToAttach Write SetdisksToAttach;
-    Property disksToCreate : TReplicaPoolParamsV1Beta1disksToCreate Index 40 Read FdisksToCreate Write SetdisksToCreate;
-    Property initAction : string Index 48 Read FinitAction Write SetinitAction;
-    Property machineType : string Index 56 Read FmachineType Write SetmachineType;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
+    Property disksToAttach : TReplicaPoolParamsV1Beta1TypedisksToAttachArray Index 32 Read FdisksToAttach Write SetdisksToAttach;
+    Property disksToCreate : TReplicaPoolParamsV1Beta1TypedisksToCreateArray Index 40 Read FdisksToCreate Write SetdisksToCreate;
+    Property initAction : String Index 48 Read FinitAction Write SetinitAction;
+    Property machineType : String Index 56 Read FmachineType Write SetmachineType;
     Property metadata : TMetadata Index 64 Read Fmetadata Write Setmetadata;
-    Property networkInterfaces : TReplicaPoolParamsV1Beta1networkInterfaces Index 72 Read FnetworkInterfaces Write SetnetworkInterfaces;
-    Property onHostMaintenance : string Index 80 Read FonHostMaintenance Write SetonHostMaintenance;
-    Property serviceAccounts : TReplicaPoolParamsV1Beta1serviceAccounts Index 88 Read FserviceAccounts Write SetserviceAccounts;
+    Property networkInterfaces : TReplicaPoolParamsV1Beta1TypenetworkInterfacesArray Index 72 Read FnetworkInterfaces Write SetnetworkInterfaces;
+    Property onHostMaintenance : String Index 80 Read FonHostMaintenance Write SetonHostMaintenance;
+    Property serviceAccounts : TReplicaPoolParamsV1Beta1TypeserviceAccountsArray Index 88 Read FserviceAccounts Write SetserviceAccounts;
     Property tags : TTag Index 96 Read Ftags Write Settags;
-    Property zone : string Index 104 Read Fzone Write Setzone;
+    Property zone : String Index 104 Read Fzone Write Setzone;
   end;
   TReplicaPoolParamsV1Beta1Class = Class of TReplicaPoolParamsV1Beta1;
-  
-  { --------------------------------------------------------------------
-    TReplicaPoolParamsV1Beta1disksToAttach
-    --------------------------------------------------------------------}
-  
-  TReplicaPoolParamsV1Beta1disksToAttach = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReplicaPoolParamsV1Beta1disksToAttachClass = Class of TReplicaPoolParamsV1Beta1disksToAttach;
-  
-  { --------------------------------------------------------------------
-    TReplicaPoolParamsV1Beta1disksToCreate
-    --------------------------------------------------------------------}
-  
-  TReplicaPoolParamsV1Beta1disksToCreate = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReplicaPoolParamsV1Beta1disksToCreateClass = Class of TReplicaPoolParamsV1Beta1disksToCreate;
-  
-  { --------------------------------------------------------------------
-    TReplicaPoolParamsV1Beta1networkInterfaces
-    --------------------------------------------------------------------}
-  
-  TReplicaPoolParamsV1Beta1networkInterfaces = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReplicaPoolParamsV1Beta1networkInterfacesClass = Class of TReplicaPoolParamsV1Beta1networkInterfaces;
-  
-  { --------------------------------------------------------------------
-    TReplicaPoolParamsV1Beta1serviceAccounts
-    --------------------------------------------------------------------}
-  
-  TReplicaPoolParamsV1Beta1serviceAccounts = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReplicaPoolParamsV1Beta1serviceAccountsClass = Class of TReplicaPoolParamsV1Beta1serviceAccounts;
   
   { --------------------------------------------------------------------
     TServiceAccount
@@ -1160,31 +895,18 @@ type
   
   TServiceAccount = Class(TGoogleBaseObject)
   Private
-    Femail : string;
-    Fscopes : TServiceAccountscopes;
+    Femail : String;
+    Fscopes : TStringArray;
   Protected
     //Property setters
-    Procedure Setemail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setscopes(AIndex : Integer; AValue : TServiceAccountscopes); virtual;
+    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setscopes(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property email : string Index 0 Read Femail Write Setemail;
-    Property scopes : TServiceAccountscopes Index 8 Read Fscopes Write Setscopes;
+    Property email : String Index 0 Read Femail Write Setemail;
+    Property scopes : TStringArray Index 8 Read Fscopes Write Setscopes;
   end;
   TServiceAccountClass = Class of TServiceAccount;
-  
-  { --------------------------------------------------------------------
-    TServiceAccountscopes
-    --------------------------------------------------------------------}
-  
-  TServiceAccountscopes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TServiceAccountscopesClass = Class of TServiceAccountscopes;
   
   { --------------------------------------------------------------------
     TTag
@@ -1192,31 +914,46 @@ type
   
   TTag = Class(TGoogleBaseObject)
   Private
-    FfingerPrint : string;
-    Fitems : TTagitems;
+    FfingerPrint : String;
+    Fitems : TStringArray;
   Protected
     //Property setters
-    Procedure SetfingerPrint(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTagitems); virtual;
+    Procedure SetfingerPrint(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property fingerPrint : string Index 0 Read FfingerPrint Write SetfingerPrint;
-    Property items : TTagitems Index 8 Read Fitems Write Setitems;
+    Property fingerPrint : String Index 0 Read FfingerPrint Write SetfingerPrint;
+    Property items : TStringArray Index 8 Read Fitems Write Setitems;
   end;
   TTagClass = Class of TTag;
   
   { --------------------------------------------------------------------
-    TTagitems
+    TTemplateTypeactions
     --------------------------------------------------------------------}
   
-  TTagitems = Class(TGoogleBaseObject)
+  TTemplateTypeactions = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TTagitemsClass = Class of TTagitems;
+  TTemplateTypeactionsClass = Class of TTemplateTypeactions;
+  
+  { --------------------------------------------------------------------
+    TTemplateTypemodules
+    --------------------------------------------------------------------}
+  
+  TTemplateTypemodules = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TTemplateTypemodulesClass = Class of TTemplateTypemodules;
   
   { --------------------------------------------------------------------
     TTemplate
@@ -1224,52 +961,24 @@ type
   
   TTemplate = Class(TGoogleBaseObject)
   Private
-    Factions : TTemplateactions;
-    Fdescription : string;
-    Fmodules : TTemplatemodules;
-    Fname : string;
+    Factions : TTemplateTypeactions;
+    Fdescription : String;
+    Fmodules : TTemplateTypemodules;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setactions(AIndex : Integer; AValue : TTemplateactions); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmodules(AIndex : Integer; AValue : TTemplatemodules); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setactions(AIndex : Integer; AValue : TTemplateTypeactions); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmodules(AIndex : Integer; AValue : TTemplateTypemodules); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property actions : TTemplateactions Index 0 Read Factions Write Setactions;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property modules : TTemplatemodules Index 16 Read Fmodules Write Setmodules;
-    Property name : string Index 24 Read Fname Write Setname;
+    Property actions : TTemplateTypeactions Index 0 Read Factions Write Setactions;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property modules : TTemplateTypemodules Index 16 Read Fmodules Write Setmodules;
+    Property name : String Index 24 Read Fname Write Setname;
   end;
   TTemplateClass = Class of TTemplate;
-  
-  { --------------------------------------------------------------------
-    TTemplateactions
-    --------------------------------------------------------------------}
-  
-  TTemplateactions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TTemplateactionsClass = Class of TTemplateactions;
-  
-  { --------------------------------------------------------------------
-    TTemplatemodules
-    --------------------------------------------------------------------}
-  
-  TTemplatemodules = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TTemplatemodulesClass = Class of TTemplatemodules;
   
   { --------------------------------------------------------------------
     TTemplatesListResponse
@@ -1277,31 +986,18 @@ type
   
   TTemplatesListResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Fresources : TTemplatesListResponseresources;
+    FnextPageToken : String;
+    Fresources : TTemplatesListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TTemplatesListResponseresources); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresources(AIndex : Integer; AValue : TTemplatesListResponseTyperesourcesArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property resources : TTemplatesListResponseresources Index 8 Read Fresources Write Setresources;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property resources : TTemplatesListResponseTyperesourcesArray Index 8 Read Fresources Write Setresources;
   end;
   TTemplatesListResponseClass = Class of TTemplatesListResponse;
-  
-  { --------------------------------------------------------------------
-    TTemplatesListResponseresources
-    --------------------------------------------------------------------}
-  
-  TTemplatesListResponseresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTemplatesListResponseresourcesClass = Class of TTemplatesListResponseresources;
   
   { --------------------------------------------------------------------
     TDeploymentsResource
@@ -1312,7 +1008,7 @@ type
   
   TDeploymentsListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TDeploymentsResource = Class(TGoogleResource)
@@ -1336,7 +1032,7 @@ type
   
   TTemplatesListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TTemplatesResource = Class(TGoogleResource)
@@ -1401,7 +1097,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccessConfig.Setname(AIndex : Integer; AValue : string); 
+Procedure TAccessConfig.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1411,7 +1107,7 @@ end;
 
 
 
-Procedure TAccessConfig.SetnatIp(AIndex : Integer; AValue : string); 
+Procedure TAccessConfig.SetnatIp(AIndex : Integer; AValue : String); 
 
 begin
   If (FnatIp=AValue) then exit;
@@ -1421,7 +1117,7 @@ end;
 
 
 
-Procedure TAccessConfig.Set_type(AIndex : Integer; AValue : string); 
+Procedure TAccessConfig.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1449,7 +1145,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAction.Setcommands(AIndex : Integer; AValue : TActioncommands); 
+Procedure TAction.Setcommands(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fcommands=AValue) then exit;
@@ -1472,18 +1168,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TActioncommands
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAllowedRule
   --------------------------------------------------------------------}
 
 
-Procedure TAllowedRule.SetIPProtocol(AIndex : Integer; AValue : string); 
+Procedure TAllowedRule.SetIPProtocol(AIndex : Integer; AValue : String); 
 
 begin
   If (FIPProtocol=AValue) then exit;
@@ -1493,7 +1182,7 @@ end;
 
 
 
-Procedure TAllowedRule.Setports(AIndex : Integer; AValue : TAllowedRuleports); 
+Procedure TAllowedRule.Setports(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fports=AValue) then exit;
@@ -1501,13 +1190,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAllowedRuleports
-  --------------------------------------------------------------------}
 
 
 
@@ -1527,7 +1209,7 @@ end;
 
 
 
-Procedure TAutoscalingModule.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TAutoscalingModule.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1557,7 +1239,7 @@ end;
 
 
 
-Procedure TAutoscalingModule.SetsignalType(AIndex : Integer; AValue : string); 
+Procedure TAutoscalingModule.SetsignalType(AIndex : Integer; AValue : String); 
 
 begin
   If (FsignalType=AValue) then exit;
@@ -1567,7 +1249,7 @@ end;
 
 
 
-Procedure TAutoscalingModule.SettargetModule(AIndex : Integer; AValue : string); 
+Procedure TAutoscalingModule.SettargetModule(AIndex : Integer; AValue : String); 
 
 begin
   If (FtargetModule=AValue) then exit;
@@ -1594,7 +1276,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalingModuleStatus.SetautoscalingConfigUrl(AIndex : Integer; AValue : string); 
+Procedure TAutoscalingModuleStatus.SetautoscalingConfigUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FautoscalingConfigUrl=AValue) then exit;
@@ -1611,7 +1293,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeployState.Setdetails(AIndex : Integer; AValue : string); 
+Procedure TDeployState.Setdetails(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdetails=AValue) then exit;
@@ -1621,7 +1303,7 @@ end;
 
 
 
-Procedure TDeployState.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TDeployState.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1634,11 +1316,24 @@ end;
 
 
 { --------------------------------------------------------------------
+  TDeploymentTypemodules
+  --------------------------------------------------------------------}
+
+
+Class Function TDeploymentTypemodules.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TDeployment
   --------------------------------------------------------------------}
 
 
-Procedure TDeployment.SetcreationDate(AIndex : Integer; AValue : string); 
+Procedure TDeployment.SetcreationDate(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreationDate=AValue) then exit;
@@ -1648,7 +1343,7 @@ end;
 
 
 
-Procedure TDeployment.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TDeployment.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1658,7 +1353,7 @@ end;
 
 
 
-Procedure TDeployment.Setmodules(AIndex : Integer; AValue : TDeploymentmodules); 
+Procedure TDeployment.Setmodules(AIndex : Integer; AValue : TDeploymentTypemodules); 
 
 begin
   If (Fmodules=AValue) then exit;
@@ -1668,7 +1363,7 @@ end;
 
 
 
-Procedure TDeployment.Setname(AIndex : Integer; AValue : string); 
+Procedure TDeployment.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1678,7 +1373,7 @@ end;
 
 
 
-Procedure TDeployment.Setoverrides(AIndex : Integer; AValue : TDeploymentoverrides); 
+Procedure TDeployment.Setoverrides(AIndex : Integer; AValue : TDeploymentTypeoverridesArray); 
 
 begin
   If (Foverrides=AValue) then exit;
@@ -1698,7 +1393,7 @@ end;
 
 
 
-Procedure TDeployment.SettemplateName(AIndex : Integer; AValue : string); 
+Procedure TDeployment.SettemplateName(AIndex : Integer; AValue : String); 
 
 begin
   If (FtemplateName=AValue) then exit;
@@ -1711,31 +1406,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDeploymentmodules
-  --------------------------------------------------------------------}
-
-
-Class Function TDeploymentmodules.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TDeploymentoverrides
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TDeploymentsListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TDeploymentsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TDeploymentsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1745,7 +1420,7 @@ end;
 
 
 
-Procedure TDeploymentsListResponse.Setresources(AIndex : Integer; AValue : TDeploymentsListResponseresources); 
+Procedure TDeploymentsListResponse.Setresources(AIndex : Integer; AValue : TDeploymentsListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -1758,18 +1433,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDeploymentsListResponseresources
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TDiskAttachment
   --------------------------------------------------------------------}
 
 
-Procedure TDiskAttachment.SetdeviceName(AIndex : Integer; AValue : string); 
+Procedure TDiskAttachment.SetdeviceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FdeviceName=AValue) then exit;
@@ -1806,7 +1474,7 @@ end;
 
 
 
-Procedure TEnvVariable.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TEnvVariable.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1833,7 +1501,7 @@ end;
 
 
 
-Procedure TExistingDisk.Setsource(AIndex : Integer; AValue : string); 
+Procedure TExistingDisk.Setsource(AIndex : Integer; AValue : String); 
 
 begin
   If (Fsource=AValue) then exit;
@@ -1850,7 +1518,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFirewallModule.Setallowed(AIndex : Integer; AValue : TFirewallModuleallowed); 
+Procedure TFirewallModule.Setallowed(AIndex : Integer; AValue : TFirewallModuleTypeallowedArray); 
 
 begin
   If (Fallowed=AValue) then exit;
@@ -1860,7 +1528,7 @@ end;
 
 
 
-Procedure TFirewallModule.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TFirewallModule.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1870,7 +1538,7 @@ end;
 
 
 
-Procedure TFirewallModule.Setnetwork(AIndex : Integer; AValue : string); 
+Procedure TFirewallModule.Setnetwork(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -1880,7 +1548,7 @@ end;
 
 
 
-Procedure TFirewallModule.SetsourceRanges(AIndex : Integer; AValue : TFirewallModulesourceRanges); 
+Procedure TFirewallModule.SetsourceRanges(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsourceRanges=AValue) then exit;
@@ -1890,7 +1558,7 @@ end;
 
 
 
-Procedure TFirewallModule.SetsourceTags(AIndex : Integer; AValue : TFirewallModulesourceTags); 
+Procedure TFirewallModule.SetsourceTags(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsourceTags=AValue) then exit;
@@ -1900,7 +1568,7 @@ end;
 
 
 
-Procedure TFirewallModule.SettargetTags(AIndex : Integer; AValue : TFirewallModuletargetTags); 
+Procedure TFirewallModule.SettargetTags(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FtargetTags=AValue) then exit;
@@ -1913,39 +1581,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TFirewallModuleallowed
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFirewallModulesourceRanges
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFirewallModulesourceTags
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFirewallModuletargetTags
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TFirewallModuleStatus
   --------------------------------------------------------------------}
 
 
-Procedure TFirewallModuleStatus.SetfirewallUrl(AIndex : Integer; AValue : string); 
+Procedure TFirewallModuleStatus.SetfirewallUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FfirewallUrl=AValue) then exit;
@@ -1972,7 +1612,7 @@ end;
 
 
 
-Procedure THealthCheckModule.Setdescription(AIndex : Integer; AValue : string); 
+Procedure THealthCheckModule.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1992,7 +1632,7 @@ end;
 
 
 
-Procedure THealthCheckModule.Sethost(AIndex : Integer; AValue : string); 
+Procedure THealthCheckModule.Sethost(AIndex : Integer; AValue : String); 
 
 begin
   If (Fhost=AValue) then exit;
@@ -2002,7 +1642,7 @@ end;
 
 
 
-Procedure THealthCheckModule.Setpath(AIndex : Integer; AValue : string); 
+Procedure THealthCheckModule.Setpath(AIndex : Integer; AValue : String); 
 
 begin
   If (Fpath=AValue) then exit;
@@ -2049,7 +1689,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THealthCheckModuleStatus.SethealthCheckUrl(AIndex : Integer; AValue : string); 
+Procedure THealthCheckModuleStatus.SethealthCheckUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FhealthCheckUrl=AValue) then exit;
@@ -2066,7 +1706,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLbModule.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TLbModule.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2076,7 +1716,7 @@ end;
 
 
 
-Procedure TLbModule.SethealthChecks(AIndex : Integer; AValue : TLbModulehealthChecks); 
+Procedure TLbModule.SethealthChecks(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FhealthChecks=AValue) then exit;
@@ -2086,7 +1726,7 @@ end;
 
 
 
-Procedure TLbModule.SetipAddress(AIndex : Integer; AValue : string); 
+Procedure TLbModule.SetipAddress(AIndex : Integer; AValue : String); 
 
 begin
   If (FipAddress=AValue) then exit;
@@ -2096,7 +1736,7 @@ end;
 
 
 
-Procedure TLbModule.SetipProtocol(AIndex : Integer; AValue : string); 
+Procedure TLbModule.SetipProtocol(AIndex : Integer; AValue : String); 
 
 begin
   If (FipProtocol=AValue) then exit;
@@ -2106,7 +1746,7 @@ end;
 
 
 
-Procedure TLbModule.SetportRange(AIndex : Integer; AValue : string); 
+Procedure TLbModule.SetportRange(AIndex : Integer; AValue : String); 
 
 begin
   If (FportRange=AValue) then exit;
@@ -2116,7 +1756,7 @@ end;
 
 
 
-Procedure TLbModule.SetsessionAffinity(AIndex : Integer; AValue : string); 
+Procedure TLbModule.SetsessionAffinity(AIndex : Integer; AValue : String); 
 
 begin
   If (FsessionAffinity=AValue) then exit;
@@ -2126,7 +1766,7 @@ end;
 
 
 
-Procedure TLbModule.SettargetModules(AIndex : Integer; AValue : TLbModuletargetModules); 
+Procedure TLbModule.SettargetModules(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FtargetModules=AValue) then exit;
@@ -2139,25 +1779,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLbModulehealthChecks
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TLbModuletargetModules
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLbModuleStatus
   --------------------------------------------------------------------}
 
 
-Procedure TLbModuleStatus.SetforwardingRuleUrl(AIndex : Integer; AValue : string); 
+Procedure TLbModuleStatus.SetforwardingRuleUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FforwardingRuleUrl=AValue) then exit;
@@ -2167,7 +1793,7 @@ end;
 
 
 
-Procedure TLbModuleStatus.SettargetPoolUrl(AIndex : Integer; AValue : string); 
+Procedure TLbModuleStatus.SettargetPoolUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FtargetPoolUrl=AValue) then exit;
@@ -2184,7 +1810,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetadata.SetfingerPrint(AIndex : Integer; AValue : string); 
+Procedure TMetadata.SetfingerPrint(AIndex : Integer; AValue : String); 
 
 begin
   If (FfingerPrint=AValue) then exit;
@@ -2194,7 +1820,7 @@ end;
 
 
 
-Procedure TMetadata.Setitems(AIndex : Integer; AValue : TMetadataitems); 
+Procedure TMetadata.Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2207,18 +1833,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMetadataitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMetadataItem
   --------------------------------------------------------------------}
 
 
-Procedure TMetadataItem.Setkey(AIndex : Integer; AValue : string); 
+Procedure TMetadataItem.Setkey(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -2228,7 +1847,7 @@ end;
 
 
 
-Procedure TMetadataItem.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TMetadataItem.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2305,7 +1924,7 @@ end;
 
 
 
-Procedure TModule.Set_type(AIndex : Integer; AValue : string); 
+Procedure TModule.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2403,7 +2022,7 @@ end;
 
 
 
-Procedure TModuleStatus.Set_type(AIndex : Integer; AValue : string); 
+Procedure TModuleStatus.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2431,7 +2050,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNetworkInterface.SetaccessConfigs(AIndex : Integer; AValue : TNetworkInterfaceaccessConfigs); 
+Procedure TNetworkInterface.SetaccessConfigs(AIndex : Integer; AValue : TNetworkInterfaceTypeaccessConfigsArray); 
 
 begin
   If (FaccessConfigs=AValue) then exit;
@@ -2441,7 +2060,7 @@ end;
 
 
 
-Procedure TNetworkInterface.Setname(AIndex : Integer; AValue : string); 
+Procedure TNetworkInterface.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2451,7 +2070,7 @@ end;
 
 
 
-Procedure TNetworkInterface.Setnetwork(AIndex : Integer; AValue : string); 
+Procedure TNetworkInterface.Setnetwork(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -2461,7 +2080,7 @@ end;
 
 
 
-Procedure TNetworkInterface.SetnetworkIp(AIndex : Integer; AValue : string); 
+Procedure TNetworkInterface.SetnetworkIp(AIndex : Integer; AValue : String); 
 
 begin
   If (FnetworkIp=AValue) then exit;
@@ -2474,18 +2093,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TNetworkInterfaceaccessConfigs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TNetworkModule
   --------------------------------------------------------------------}
 
 
-Procedure TNetworkModule.SetIPv4Range(AIndex : Integer; AValue : string); 
+Procedure TNetworkModule.SetIPv4Range(AIndex : Integer; AValue : String); 
 
 begin
   If (FIPv4Range=AValue) then exit;
@@ -2495,7 +2107,7 @@ end;
 
 
 
-Procedure TNetworkModule.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TNetworkModule.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2505,7 +2117,7 @@ end;
 
 
 
-Procedure TNetworkModule.SetgatewayIPv4(AIndex : Integer; AValue : string); 
+Procedure TNetworkModule.SetgatewayIPv4(AIndex : Integer; AValue : String); 
 
 begin
   If (FgatewayIPv4=AValue) then exit;
@@ -2522,7 +2134,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNetworkModuleStatus.SetnetworkUrl(AIndex : Integer; AValue : string); 
+Procedure TNetworkModuleStatus.SetnetworkUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FnetworkUrl=AValue) then exit;
@@ -2586,7 +2198,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNewDiskInitializeParams.SetdiskSizeGb(AIndex : Integer; AValue : string); 
+Procedure TNewDiskInitializeParams.SetdiskSizeGb(AIndex : Integer; AValue : String); 
 
 begin
   If (FdiskSizeGb=AValue) then exit;
@@ -2596,7 +2208,7 @@ end;
 
 
 
-Procedure TNewDiskInitializeParams.SetdiskType(AIndex : Integer; AValue : string); 
+Procedure TNewDiskInitializeParams.SetdiskType(AIndex : Integer; AValue : String); 
 
 begin
   If (FdiskType=AValue) then exit;
@@ -2606,7 +2218,7 @@ end;
 
 
 
-Procedure TNewDiskInitializeParams.SetsourceImage(AIndex : Integer; AValue : string); 
+Procedure TNewDiskInitializeParams.SetsourceImage(AIndex : Integer; AValue : String); 
 
 begin
   If (FsourceImage=AValue) then exit;
@@ -2623,7 +2235,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TParamOverride.Setpath(AIndex : Integer; AValue : string); 
+Procedure TParamOverride.Setpath(AIndex : Integer; AValue : String); 
 
 begin
   If (Fpath=AValue) then exit;
@@ -2633,7 +2245,7 @@ end;
 
 
 
-Procedure TParamOverride.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TParamOverride.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2646,11 +2258,24 @@ end;
 
 
 { --------------------------------------------------------------------
+  TReplicaPoolModuleTypeenvVariables
+  --------------------------------------------------------------------}
+
+
+Class Function TReplicaPoolModuleTypeenvVariables.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TReplicaPoolModule
   --------------------------------------------------------------------}
 
 
-Procedure TReplicaPoolModule.SetenvVariables(AIndex : Integer; AValue : TReplicaPoolModuleenvVariables); 
+Procedure TReplicaPoolModule.SetenvVariables(AIndex : Integer; AValue : TReplicaPoolModuleTypeenvVariables); 
 
 begin
   If (FenvVariables=AValue) then exit;
@@ -2660,7 +2285,7 @@ end;
 
 
 
-Procedure TReplicaPoolModule.SethealthChecks(AIndex : Integer; AValue : TReplicaPoolModulehealthChecks); 
+Procedure TReplicaPoolModule.SethealthChecks(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FhealthChecks=AValue) then exit;
@@ -2690,7 +2315,7 @@ end;
 
 
 
-Procedure TReplicaPoolModule.SetresourceView(AIndex : Integer; AValue : string); 
+Procedure TReplicaPoolModule.SetresourceView(AIndex : Integer; AValue : String); 
 
 begin
   If (FresourceView=AValue) then exit;
@@ -2703,31 +2328,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TReplicaPoolModuleenvVariables
-  --------------------------------------------------------------------}
-
-
-Class Function TReplicaPoolModuleenvVariables.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TReplicaPoolModulehealthChecks
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TReplicaPoolModuleStatus
   --------------------------------------------------------------------}
 
 
-Procedure TReplicaPoolModuleStatus.SetreplicaPoolUrl(AIndex : Integer; AValue : string); 
+Procedure TReplicaPoolModuleStatus.SetreplicaPoolUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FreplicaPoolUrl=AValue) then exit;
@@ -2737,7 +2342,7 @@ end;
 
 
 
-Procedure TReplicaPoolModuleStatus.SetresourceViewUrl(AIndex : Integer; AValue : string); 
+Procedure TReplicaPoolModuleStatus.SetresourceViewUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FresourceViewUrl=AValue) then exit;
@@ -2781,7 +2386,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.SetbaseInstanceName(AIndex : Integer; AValue : string); 
+Procedure TReplicaPoolParamsV1Beta1.SetbaseInstanceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FbaseInstanceName=AValue) then exit;
@@ -2801,7 +2406,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TReplicaPoolParamsV1Beta1.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2811,7 +2416,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.SetdisksToAttach(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1disksToAttach); 
+Procedure TReplicaPoolParamsV1Beta1.SetdisksToAttach(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypedisksToAttachArray); 
 
 begin
   If (FdisksToAttach=AValue) then exit;
@@ -2821,7 +2426,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.SetdisksToCreate(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1disksToCreate); 
+Procedure TReplicaPoolParamsV1Beta1.SetdisksToCreate(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypedisksToCreateArray); 
 
 begin
   If (FdisksToCreate=AValue) then exit;
@@ -2831,7 +2436,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.SetinitAction(AIndex : Integer; AValue : string); 
+Procedure TReplicaPoolParamsV1Beta1.SetinitAction(AIndex : Integer; AValue : String); 
 
 begin
   If (FinitAction=AValue) then exit;
@@ -2841,7 +2446,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.SetmachineType(AIndex : Integer; AValue : string); 
+Procedure TReplicaPoolParamsV1Beta1.SetmachineType(AIndex : Integer; AValue : String); 
 
 begin
   If (FmachineType=AValue) then exit;
@@ -2861,7 +2466,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.SetnetworkInterfaces(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1networkInterfaces); 
+Procedure TReplicaPoolParamsV1Beta1.SetnetworkInterfaces(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypenetworkInterfacesArray); 
 
 begin
   If (FnetworkInterfaces=AValue) then exit;
@@ -2871,7 +2476,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.SetonHostMaintenance(AIndex : Integer; AValue : string); 
+Procedure TReplicaPoolParamsV1Beta1.SetonHostMaintenance(AIndex : Integer; AValue : String); 
 
 begin
   If (FonHostMaintenance=AValue) then exit;
@@ -2881,7 +2486,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.SetserviceAccounts(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1serviceAccounts); 
+Procedure TReplicaPoolParamsV1Beta1.SetserviceAccounts(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypeserviceAccountsArray); 
 
 begin
   If (FserviceAccounts=AValue) then exit;
@@ -2901,7 +2506,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.Setzone(AIndex : Integer; AValue : string); 
+Procedure TReplicaPoolParamsV1Beta1.Setzone(AIndex : Integer; AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -2914,39 +2519,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TReplicaPoolParamsV1Beta1disksToAttach
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TReplicaPoolParamsV1Beta1disksToCreate
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TReplicaPoolParamsV1Beta1networkInterfaces
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TReplicaPoolParamsV1Beta1serviceAccounts
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TServiceAccount
   --------------------------------------------------------------------}
 
 
-Procedure TServiceAccount.Setemail(AIndex : Integer; AValue : string); 
+Procedure TServiceAccount.Setemail(AIndex : Integer; AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -2956,7 +2533,7 @@ end;
 
 
 
-Procedure TServiceAccount.Setscopes(AIndex : Integer; AValue : TServiceAccountscopes); 
+Procedure TServiceAccount.Setscopes(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fscopes=AValue) then exit;
@@ -2969,18 +2546,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TServiceAccountscopes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TTag
   --------------------------------------------------------------------}
 
 
-Procedure TTag.SetfingerPrint(AIndex : Integer; AValue : string); 
+Procedure TTag.SetfingerPrint(AIndex : Integer; AValue : String); 
 
 begin
   If (FfingerPrint=AValue) then exit;
@@ -2990,7 +2560,7 @@ end;
 
 
 
-Procedure TTag.Setitems(AIndex : Integer; AValue : TTagitems); 
+Procedure TTag.Setitems(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -3003,9 +2573,28 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTagitems
+  TTemplateTypeactions
   --------------------------------------------------------------------}
 
+
+Class Function TTemplateTypeactions.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TTemplateTypemodules
+  --------------------------------------------------------------------}
+
+
+Class Function TTemplateTypemodules.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -3014,7 +2603,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTemplate.Setactions(AIndex : Integer; AValue : TTemplateactions); 
+Procedure TTemplate.Setactions(AIndex : Integer; AValue : TTemplateTypeactions); 
 
 begin
   If (Factions=AValue) then exit;
@@ -3024,7 +2613,7 @@ end;
 
 
 
-Procedure TTemplate.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TTemplate.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -3034,7 +2623,7 @@ end;
 
 
 
-Procedure TTemplate.Setmodules(AIndex : Integer; AValue : TTemplatemodules); 
+Procedure TTemplate.Setmodules(AIndex : Integer; AValue : TTemplateTypemodules); 
 
 begin
   If (Fmodules=AValue) then exit;
@@ -3044,7 +2633,7 @@ end;
 
 
 
-Procedure TTemplate.Setname(AIndex : Integer; AValue : string); 
+Procedure TTemplate.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3057,37 +2646,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTemplateactions
-  --------------------------------------------------------------------}
-
-
-Class Function TTemplateactions.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TTemplatemodules
-  --------------------------------------------------------------------}
-
-
-Class Function TTemplatemodules.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TTemplatesListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TTemplatesListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TTemplatesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3097,7 +2660,7 @@ end;
 
 
 
-Procedure TTemplatesListResponse.Setresources(AIndex : Integer; AValue : TTemplatesListResponseresources); 
+Procedure TTemplatesListResponse.Setresources(AIndex : Integer; AValue : TTemplatesListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -3105,13 +2668,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TTemplatesListResponseresources
-  --------------------------------------------------------------------}
 
 
 
@@ -3436,63 +2992,43 @@ Class Procedure TManagerAPI.RegisterAPIResources;
 begin
   TAccessConfig.RegisterObject;
   TAction.RegisterObject;
-  TActioncommands.RegisterObject;
   TAllowedRule.RegisterObject;
-  TAllowedRuleports.RegisterObject;
   TAutoscalingModule.RegisterObject;
   TAutoscalingModuleStatus.RegisterObject;
   TDeployState.RegisterObject;
+  TDeploymentTypemodules.RegisterObject;
   TDeployment.RegisterObject;
-  TDeploymentmodules.RegisterObject;
-  TDeploymentoverrides.RegisterObject;
   TDeploymentsListResponse.RegisterObject;
-  TDeploymentsListResponseresources.RegisterObject;
   TDiskAttachment.RegisterObject;
   TEnvVariable.RegisterObject;
   TExistingDisk.RegisterObject;
   TFirewallModule.RegisterObject;
-  TFirewallModuleallowed.RegisterObject;
-  TFirewallModulesourceRanges.RegisterObject;
-  TFirewallModulesourceTags.RegisterObject;
-  TFirewallModuletargetTags.RegisterObject;
   TFirewallModuleStatus.RegisterObject;
   THealthCheckModule.RegisterObject;
   THealthCheckModuleStatus.RegisterObject;
   TLbModule.RegisterObject;
-  TLbModulehealthChecks.RegisterObject;
-  TLbModuletargetModules.RegisterObject;
   TLbModuleStatus.RegisterObject;
   TMetadata.RegisterObject;
-  TMetadataitems.RegisterObject;
   TMetadataItem.RegisterObject;
   TModule.RegisterObject;
   TModuleStatus.RegisterObject;
   TNetworkInterface.RegisterObject;
-  TNetworkInterfaceaccessConfigs.RegisterObject;
   TNetworkModule.RegisterObject;
   TNetworkModuleStatus.RegisterObject;
   TNewDisk.RegisterObject;
   TNewDiskInitializeParams.RegisterObject;
   TParamOverride.RegisterObject;
+  TReplicaPoolModuleTypeenvVariables.RegisterObject;
   TReplicaPoolModule.RegisterObject;
-  TReplicaPoolModuleenvVariables.RegisterObject;
-  TReplicaPoolModulehealthChecks.RegisterObject;
   TReplicaPoolModuleStatus.RegisterObject;
   TReplicaPoolParams.RegisterObject;
   TReplicaPoolParamsV1Beta1.RegisterObject;
-  TReplicaPoolParamsV1Beta1disksToAttach.RegisterObject;
-  TReplicaPoolParamsV1Beta1disksToCreate.RegisterObject;
-  TReplicaPoolParamsV1Beta1networkInterfaces.RegisterObject;
-  TReplicaPoolParamsV1Beta1serviceAccounts.RegisterObject;
   TServiceAccount.RegisterObject;
-  TServiceAccountscopes.RegisterObject;
   TTag.RegisterObject;
-  TTagitems.RegisterObject;
+  TTemplateTypeactions.RegisterObject;
+  TTemplateTypemodules.RegisterObject;
   TTemplate.RegisterObject;
-  TTemplateactions.RegisterObject;
-  TTemplatemodules.RegisterObject;
   TTemplatesListResponse.RegisterObject;
-  TTemplatesListResponseresources.RegisterObject;
 end;
 
 

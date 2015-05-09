@@ -1,31 +1,19 @@
 unit googlewebmasters;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:59
 {$MODE objfpc}
 {$H+}
 
@@ -34,45 +22,37 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TSitemapsListResponse = class;
-  TSitemapsListResponseArray = Array of TSitemapsListResponse;
-  TSitemapsListResponsesitemap = class;
-  TSitemapsListResponsesitemapArray = Array of TSitemapsListResponsesitemap;
   TSitesListResponse = class;
-  TSitesListResponseArray = Array of TSitesListResponse;
-  TSitesListResponsesiteEntry = class;
-  TSitesListResponsesiteEntryArray = Array of TSitesListResponsesiteEntry;
   TUrlCrawlErrorCount = class;
-  TUrlCrawlErrorCountArray = Array of TUrlCrawlErrorCount;
   TUrlCrawlErrorCountsPerType = class;
-  TUrlCrawlErrorCountsPerTypeArray = Array of TUrlCrawlErrorCountsPerType;
-  TUrlCrawlErrorCountsPerTypeentries = class;
-  TUrlCrawlErrorCountsPerTypeentriesArray = Array of TUrlCrawlErrorCountsPerTypeentries;
   TUrlCrawlErrorsCountsQueryResponse = class;
-  TUrlCrawlErrorsCountsQueryResponseArray = Array of TUrlCrawlErrorsCountsQueryResponse;
-  TUrlCrawlErrorsCountsQueryResponsecountPerTypes = class;
-  TUrlCrawlErrorsCountsQueryResponsecountPerTypesArray = Array of TUrlCrawlErrorsCountsQueryResponsecountPerTypes;
   TUrlCrawlErrorsSample = class;
-  TUrlCrawlErrorsSampleArray = Array of TUrlCrawlErrorsSample;
   TUrlCrawlErrorsSamplesListResponse = class;
-  TUrlCrawlErrorsSamplesListResponseArray = Array of TUrlCrawlErrorsSamplesListResponse;
-  TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSample = class;
-  TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSampleArray = Array of TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSample;
   TUrlSampleDetails = class;
-  TUrlSampleDetailsArray = Array of TUrlSampleDetails;
-  TUrlSampleDetailscontainingSitemaps = class;
-  TUrlSampleDetailscontainingSitemapsArray = Array of TUrlSampleDetailscontainingSitemaps;
-  TUrlSampleDetailslinkedFromUrls = class;
-  TUrlSampleDetailslinkedFromUrlsArray = Array of TUrlSampleDetailslinkedFromUrls;
   TWmxSite = class;
-  TWmxSiteArray = Array of TWmxSite;
   TWmxSitemap = class;
-  TWmxSitemapArray = Array of TWmxSitemap;
-  TWmxSitemapcontents = class;
-  TWmxSitemapcontentsArray = Array of TWmxSitemapcontents;
   TWmxSitemapContent = class;
+  TSitemapsListResponseArray = Array of TSitemapsListResponse;
+  TSitesListResponseArray = Array of TSitesListResponse;
+  TUrlCrawlErrorCountArray = Array of TUrlCrawlErrorCount;
+  TUrlCrawlErrorCountsPerTypeArray = Array of TUrlCrawlErrorCountsPerType;
+  TUrlCrawlErrorsCountsQueryResponseArray = Array of TUrlCrawlErrorsCountsQueryResponse;
+  TUrlCrawlErrorsSampleArray = Array of TUrlCrawlErrorsSample;
+  TUrlCrawlErrorsSamplesListResponseArray = Array of TUrlCrawlErrorsSamplesListResponse;
+  TUrlSampleDetailsArray = Array of TUrlSampleDetails;
+  TWmxSiteArray = Array of TWmxSite;
+  TWmxSitemapArray = Array of TWmxSitemap;
   TWmxSitemapContentArray = Array of TWmxSitemapContent;
+  //Anonymous types, using auto-generated names
+  TSitemapsListResponseTypesitemapArray = Array of TWmxSitemap;
+  TSitesListResponseTypesiteEntryArray = Array of TWmxSite;
+  TUrlCrawlErrorCountsPerTypeTypeentriesArray = Array of TUrlCrawlErrorCount;
+  TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray = Array of TUrlCrawlErrorCountsPerType;
+  TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray = Array of TUrlCrawlErrorsSample;
+  TWmxSitemapTypecontentsArray = Array of TWmxSitemapContent;
   
   { --------------------------------------------------------------------
     TSitemapsListResponse
@@ -80,28 +60,15 @@ type
   
   TSitemapsListResponse = Class(TGoogleBaseObject)
   Private
-    Fsitemap : TSitemapsListResponsesitemap;
+    Fsitemap : TSitemapsListResponseTypesitemapArray;
   Protected
     //Property setters
-    Procedure Setsitemap(AIndex : Integer; AValue : TSitemapsListResponsesitemap); virtual;
+    Procedure Setsitemap(AIndex : Integer; AValue : TSitemapsListResponseTypesitemapArray); virtual;
   Public
   Published
-    Property sitemap : TSitemapsListResponsesitemap Index 0 Read Fsitemap Write Setsitemap;
+    Property sitemap : TSitemapsListResponseTypesitemapArray Index 0 Read Fsitemap Write Setsitemap;
   end;
   TSitemapsListResponseClass = Class of TSitemapsListResponse;
-  
-  { --------------------------------------------------------------------
-    TSitemapsListResponsesitemap
-    --------------------------------------------------------------------}
-  
-  TSitemapsListResponsesitemap = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSitemapsListResponsesitemapClass = Class of TSitemapsListResponsesitemap;
   
   { --------------------------------------------------------------------
     TSitesListResponse
@@ -109,28 +76,15 @@ type
   
   TSitesListResponse = Class(TGoogleBaseObject)
   Private
-    FsiteEntry : TSitesListResponsesiteEntry;
+    FsiteEntry : TSitesListResponseTypesiteEntryArray;
   Protected
     //Property setters
-    Procedure SetsiteEntry(AIndex : Integer; AValue : TSitesListResponsesiteEntry); virtual;
+    Procedure SetsiteEntry(AIndex : Integer; AValue : TSitesListResponseTypesiteEntryArray); virtual;
   Public
   Published
-    Property siteEntry : TSitesListResponsesiteEntry Index 0 Read FsiteEntry Write SetsiteEntry;
+    Property siteEntry : TSitesListResponseTypesiteEntryArray Index 0 Read FsiteEntry Write SetsiteEntry;
   end;
   TSitesListResponseClass = Class of TSitesListResponse;
-  
-  { --------------------------------------------------------------------
-    TSitesListResponsesiteEntry
-    --------------------------------------------------------------------}
-  
-  TSitesListResponsesiteEntry = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSitesListResponsesiteEntryClass = Class of TSitesListResponsesiteEntry;
   
   { --------------------------------------------------------------------
     TUrlCrawlErrorCount
@@ -138,15 +92,15 @@ type
   
   TUrlCrawlErrorCount = Class(TGoogleBaseObject)
   Private
-    Fcount : string;
+    Fcount : String;
     Ftimestamp : TDatetime;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
     Procedure Settimestamp(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
-    Property count : string Index 0 Read Fcount Write Setcount;
+    Property count : String Index 0 Read Fcount Write Setcount;
     Property timestamp : TDatetime Index 8 Read Ftimestamp Write Settimestamp;
   end;
   TUrlCrawlErrorCountClass = Class of TUrlCrawlErrorCount;
@@ -157,34 +111,21 @@ type
   
   TUrlCrawlErrorCountsPerType = Class(TGoogleBaseObject)
   Private
-    Fcategory : string;
-    Fentries : TUrlCrawlErrorCountsPerTypeentries;
-    Fplatform : string;
+    Fcategory : String;
+    Fentries : TUrlCrawlErrorCountsPerTypeTypeentriesArray;
+    Fplatform : String;
   Protected
     //Property setters
-    Procedure Setcategory(AIndex : Integer; AValue : string); virtual;
-    Procedure Setentries(AIndex : Integer; AValue : TUrlCrawlErrorCountsPerTypeentries); virtual;
-    Procedure Setplatform(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcategory(AIndex : Integer; AValue : String); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TUrlCrawlErrorCountsPerTypeTypeentriesArray); virtual;
+    Procedure Setplatform(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property category : string Index 0 Read Fcategory Write Setcategory;
-    Property entries : TUrlCrawlErrorCountsPerTypeentries Index 8 Read Fentries Write Setentries;
-    Property platform : string Index 16 Read Fplatform Write Setplatform;
+    Property category : String Index 0 Read Fcategory Write Setcategory;
+    Property entries : TUrlCrawlErrorCountsPerTypeTypeentriesArray Index 8 Read Fentries Write Setentries;
+    Property platform : String Index 16 Read Fplatform Write Setplatform;
   end;
   TUrlCrawlErrorCountsPerTypeClass = Class of TUrlCrawlErrorCountsPerType;
-  
-  { --------------------------------------------------------------------
-    TUrlCrawlErrorCountsPerTypeentries
-    --------------------------------------------------------------------}
-  
-  TUrlCrawlErrorCountsPerTypeentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlCrawlErrorCountsPerTypeentriesClass = Class of TUrlCrawlErrorCountsPerTypeentries;
   
   { --------------------------------------------------------------------
     TUrlCrawlErrorsCountsQueryResponse
@@ -192,28 +133,15 @@ type
   
   TUrlCrawlErrorsCountsQueryResponse = Class(TGoogleBaseObject)
   Private
-    FcountPerTypes : TUrlCrawlErrorsCountsQueryResponsecountPerTypes;
+    FcountPerTypes : TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray;
   Protected
     //Property setters
-    Procedure SetcountPerTypes(AIndex : Integer; AValue : TUrlCrawlErrorsCountsQueryResponsecountPerTypes); virtual;
+    Procedure SetcountPerTypes(AIndex : Integer; AValue : TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray); virtual;
   Public
   Published
-    Property countPerTypes : TUrlCrawlErrorsCountsQueryResponsecountPerTypes Index 0 Read FcountPerTypes Write SetcountPerTypes;
+    Property countPerTypes : TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray Index 0 Read FcountPerTypes Write SetcountPerTypes;
   end;
   TUrlCrawlErrorsCountsQueryResponseClass = Class of TUrlCrawlErrorsCountsQueryResponse;
-  
-  { --------------------------------------------------------------------
-    TUrlCrawlErrorsCountsQueryResponsecountPerTypes
-    --------------------------------------------------------------------}
-  
-  TUrlCrawlErrorsCountsQueryResponsecountPerTypes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlCrawlErrorsCountsQueryResponsecountPerTypesClass = Class of TUrlCrawlErrorsCountsQueryResponsecountPerTypes;
   
   { --------------------------------------------------------------------
     TUrlCrawlErrorsSample
@@ -223,21 +151,21 @@ type
   Private
     Ffirst_detected : TDatetime;
     Flast_crawled : TDatetime;
-    FpageUrl : string;
+    FpageUrl : String;
     FresponseCode : integer;
     FurlDetails : TUrlSampleDetails;
   Protected
     //Property setters
     Procedure Setfirst_detected(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setlast_crawled(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetpageUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetpageUrl(AIndex : Integer; AValue : String); virtual;
     Procedure SetresponseCode(AIndex : Integer; AValue : integer); virtual;
     Procedure SeturlDetails(AIndex : Integer; AValue : TUrlSampleDetails); virtual;
   Public
   Published
     Property first_detected : TDatetime Index 0 Read Ffirst_detected Write Setfirst_detected;
     Property last_crawled : TDatetime Index 8 Read Flast_crawled Write Setlast_crawled;
-    Property pageUrl : string Index 16 Read FpageUrl Write SetpageUrl;
+    Property pageUrl : String Index 16 Read FpageUrl Write SetpageUrl;
     Property responseCode : integer Index 24 Read FresponseCode Write SetresponseCode;
     Property urlDetails : TUrlSampleDetails Index 32 Read FurlDetails Write SeturlDetails;
   end;
@@ -249,28 +177,15 @@ type
   
   TUrlCrawlErrorsSamplesListResponse = Class(TGoogleBaseObject)
   Private
-    FurlCrawlErrorSample : TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSample;
+    FurlCrawlErrorSample : TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray;
   Protected
     //Property setters
-    Procedure SeturlCrawlErrorSample(AIndex : Integer; AValue : TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSample); virtual;
+    Procedure SeturlCrawlErrorSample(AIndex : Integer; AValue : TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray); virtual;
   Public
   Published
-    Property urlCrawlErrorSample : TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSample Index 0 Read FurlCrawlErrorSample Write SeturlCrawlErrorSample;
+    Property urlCrawlErrorSample : TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray Index 0 Read FurlCrawlErrorSample Write SeturlCrawlErrorSample;
   end;
   TUrlCrawlErrorsSamplesListResponseClass = Class of TUrlCrawlErrorsSamplesListResponse;
-  
-  { --------------------------------------------------------------------
-    TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSample
-    --------------------------------------------------------------------}
-  
-  TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSample = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSampleClass = Class of TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSample;
   
   { --------------------------------------------------------------------
     TUrlSampleDetails
@@ -278,44 +193,18 @@ type
   
   TUrlSampleDetails = Class(TGoogleBaseObject)
   Private
-    FcontainingSitemaps : TUrlSampleDetailscontainingSitemaps;
-    FlinkedFromUrls : TUrlSampleDetailslinkedFromUrls;
+    FcontainingSitemaps : TStringArray;
+    FlinkedFromUrls : TStringArray;
   Protected
     //Property setters
-    Procedure SetcontainingSitemaps(AIndex : Integer; AValue : TUrlSampleDetailscontainingSitemaps); virtual;
-    Procedure SetlinkedFromUrls(AIndex : Integer; AValue : TUrlSampleDetailslinkedFromUrls); virtual;
+    Procedure SetcontainingSitemaps(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetlinkedFromUrls(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property containingSitemaps : TUrlSampleDetailscontainingSitemaps Index 0 Read FcontainingSitemaps Write SetcontainingSitemaps;
-    Property linkedFromUrls : TUrlSampleDetailslinkedFromUrls Index 8 Read FlinkedFromUrls Write SetlinkedFromUrls;
+    Property containingSitemaps : TStringArray Index 0 Read FcontainingSitemaps Write SetcontainingSitemaps;
+    Property linkedFromUrls : TStringArray Index 8 Read FlinkedFromUrls Write SetlinkedFromUrls;
   end;
   TUrlSampleDetailsClass = Class of TUrlSampleDetails;
-  
-  { --------------------------------------------------------------------
-    TUrlSampleDetailscontainingSitemaps
-    --------------------------------------------------------------------}
-  
-  TUrlSampleDetailscontainingSitemaps = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlSampleDetailscontainingSitemapsClass = Class of TUrlSampleDetailscontainingSitemaps;
-  
-  { --------------------------------------------------------------------
-    TUrlSampleDetailslinkedFromUrls
-    --------------------------------------------------------------------}
-  
-  TUrlSampleDetailslinkedFromUrls = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlSampleDetailslinkedFromUrlsClass = Class of TUrlSampleDetailslinkedFromUrls;
   
   { --------------------------------------------------------------------
     TWmxSite
@@ -323,16 +212,16 @@ type
   
   TWmxSite = Class(TGoogleBaseObject)
   Private
-    FpermissionLevel : string;
-    FsiteUrl : string;
+    FpermissionLevel : String;
+    FsiteUrl : String;
   Protected
     //Property setters
-    Procedure SetpermissionLevel(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsiteUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetpermissionLevel(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsiteUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property permissionLevel : string Index 0 Read FpermissionLevel Write SetpermissionLevel;
-    Property siteUrl : string Index 8 Read FsiteUrl Write SetsiteUrl;
+    Property permissionLevel : String Index 0 Read FpermissionLevel Write SetpermissionLevel;
+    Property siteUrl : String Index 8 Read FsiteUrl Write SetsiteUrl;
   end;
   TWmxSiteClass = Class of TWmxSite;
   
@@ -342,53 +231,40 @@ type
   
   TWmxSitemap = Class(TGoogleBaseObject)
   Private
-    Fcontents : TWmxSitemapcontents;
-    Ferrors : string;
+    Fcontents : TWmxSitemapTypecontentsArray;
+    Ferrors : String;
     FisPending : boolean;
     FisSitemapsIndex : boolean;
     FlastDownloaded : TDatetime;
     FlastSubmitted : TDatetime;
-    Fpath : string;
-    F_type : string;
-    Fwarnings : string;
+    Fpath : String;
+    F_type : String;
+    Fwarnings : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcontents(AIndex : Integer; AValue : TWmxSitemapcontents); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcontents(AIndex : Integer; AValue : TWmxSitemapTypecontentsArray); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : String); virtual;
     Procedure SetisPending(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetisSitemapsIndex(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetlastDownloaded(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetlastSubmitted(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setpath(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : string); virtual;
+    Procedure Setpath(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setwarnings(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property contents : TWmxSitemapcontents Index 0 Read Fcontents Write Setcontents;
-    Property errors : string Index 8 Read Ferrors Write Seterrors;
+    Property contents : TWmxSitemapTypecontentsArray Index 0 Read Fcontents Write Setcontents;
+    Property errors : String Index 8 Read Ferrors Write Seterrors;
     Property isPending : boolean Index 16 Read FisPending Write SetisPending;
     Property isSitemapsIndex : boolean Index 24 Read FisSitemapsIndex Write SetisSitemapsIndex;
     Property lastDownloaded : TDatetime Index 32 Read FlastDownloaded Write SetlastDownloaded;
     Property lastSubmitted : TDatetime Index 40 Read FlastSubmitted Write SetlastSubmitted;
-    Property path : string Index 48 Read Fpath Write Setpath;
-    Property _type : string Index 56 Read F_type Write Set_type;
-    Property warnings : string Index 64 Read Fwarnings Write Setwarnings;
+    Property path : String Index 48 Read Fpath Write Setpath;
+    Property _type : String Index 56 Read F_type Write Set_type;
+    Property warnings : String Index 64 Read Fwarnings Write Setwarnings;
   end;
   TWmxSitemapClass = Class of TWmxSitemap;
-  
-  { --------------------------------------------------------------------
-    TWmxSitemapcontents
-    --------------------------------------------------------------------}
-  
-  TWmxSitemapcontents = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TWmxSitemapcontentsClass = Class of TWmxSitemapcontents;
   
   { --------------------------------------------------------------------
     TWmxSitemapContent
@@ -396,20 +272,20 @@ type
   
   TWmxSitemapContent = Class(TGoogleBaseObject)
   Private
-    Findexed : string;
-    Fsubmitted : string;
-    F_type : string;
+    Findexed : String;
+    Fsubmitted : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setindexed(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsubmitted(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setindexed(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsubmitted(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property indexed : string Index 0 Read Findexed Write Setindexed;
-    Property submitted : string Index 8 Read Fsubmitted Write Setsubmitted;
-    Property _type : string Index 16 Read F_type Write Set_type;
+    Property indexed : String Index 0 Read Findexed Write Setindexed;
+    Property submitted : String Index 8 Read Fsubmitted Write Setsubmitted;
+    Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TWmxSitemapContentClass = Class of TWmxSitemapContent;
   
@@ -421,7 +297,7 @@ type
   //Optional query Options for TSitemapsResource, method List
   
   TSitemapsListOptions = Record
-    sitemapIndex : string;
+    sitemapIndex : String;
   end;
   
   TSitemapsResource = Class(TGoogleResource)
@@ -459,9 +335,9 @@ type
   //Optional query Options for TUrlcrawlerrorscountsResource, method Query
   
   TUrlcrawlerrorscountsQueryOptions = Record
-    category : string;
+    category : String;
     latestCountsOnly : boolean;
-    platform : string;
+    platform : String;
   end;
   
   TUrlcrawlerrorscountsResource = Class(TGoogleResource)
@@ -481,24 +357,24 @@ type
   //Optional query Options for TUrlcrawlerrorssamplesResource, method Get
   
   TUrlcrawlerrorssamplesGetOptions = Record
-    category : string;
-    platform : string;
+    category : String;
+    platform : String;
   end;
   
   
   //Optional query Options for TUrlcrawlerrorssamplesResource, method List
   
   TUrlcrawlerrorssamplesListOptions = Record
-    category : string;
-    platform : string;
+    category : String;
+    platform : String;
   end;
   
   
   //Optional query Options for TUrlcrawlerrorssamplesResource, method MarkAsFixed
   
   TUrlcrawlerrorssamplesMarkAsFixedOptions = Record
-    category : string;
-    platform : string;
+    category : String;
+    platform : String;
   end;
   
   TUrlcrawlerrorssamplesResource = Class(TGoogleResource)
@@ -574,7 +450,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TSitemapsListResponse.Setsitemap(AIndex : Integer; AValue : TSitemapsListResponsesitemap); 
+Procedure TSitemapsListResponse.Setsitemap(AIndex : Integer; AValue : TSitemapsListResponseTypesitemapArray); 
 
 begin
   If (Fsitemap=AValue) then exit;
@@ -587,18 +463,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSitemapsListResponsesitemap
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSitesListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSitesListResponse.SetsiteEntry(AIndex : Integer; AValue : TSitesListResponsesiteEntry); 
+Procedure TSitesListResponse.SetsiteEntry(AIndex : Integer; AValue : TSitesListResponseTypesiteEntryArray); 
 
 begin
   If (FsiteEntry=AValue) then exit;
@@ -611,18 +480,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSitesListResponsesiteEntry
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TUrlCrawlErrorCount
   --------------------------------------------------------------------}
 
 
-Procedure TUrlCrawlErrorCount.Setcount(AIndex : Integer; AValue : string); 
+Procedure TUrlCrawlErrorCount.Setcount(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -649,7 +511,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlCrawlErrorCountsPerType.Setcategory(AIndex : Integer; AValue : string); 
+Procedure TUrlCrawlErrorCountsPerType.Setcategory(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcategory=AValue) then exit;
@@ -659,7 +521,7 @@ end;
 
 
 
-Procedure TUrlCrawlErrorCountsPerType.Setentries(AIndex : Integer; AValue : TUrlCrawlErrorCountsPerTypeentries); 
+Procedure TUrlCrawlErrorCountsPerType.Setentries(AIndex : Integer; AValue : TUrlCrawlErrorCountsPerTypeTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -669,7 +531,7 @@ end;
 
 
 
-Procedure TUrlCrawlErrorCountsPerType.Setplatform(AIndex : Integer; AValue : string); 
+Procedure TUrlCrawlErrorCountsPerType.Setplatform(AIndex : Integer; AValue : String); 
 
 begin
   If (Fplatform=AValue) then exit;
@@ -682,18 +544,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TUrlCrawlErrorCountsPerTypeentries
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TUrlCrawlErrorsCountsQueryResponse
   --------------------------------------------------------------------}
 
 
-Procedure TUrlCrawlErrorsCountsQueryResponse.SetcountPerTypes(AIndex : Integer; AValue : TUrlCrawlErrorsCountsQueryResponsecountPerTypes); 
+Procedure TUrlCrawlErrorsCountsQueryResponse.SetcountPerTypes(AIndex : Integer; AValue : TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray); 
 
 begin
   If (FcountPerTypes=AValue) then exit;
@@ -701,13 +556,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TUrlCrawlErrorsCountsQueryResponsecountPerTypes
-  --------------------------------------------------------------------}
 
 
 
@@ -737,7 +585,7 @@ end;
 
 
 
-Procedure TUrlCrawlErrorsSample.SetpageUrl(AIndex : Integer; AValue : string); 
+Procedure TUrlCrawlErrorsSample.SetpageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageUrl=AValue) then exit;
@@ -774,7 +622,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlCrawlErrorsSamplesListResponse.SeturlCrawlErrorSample(AIndex : Integer; AValue : TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSample); 
+Procedure TUrlCrawlErrorsSamplesListResponse.SeturlCrawlErrorSample(AIndex : Integer; AValue : TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray); 
 
 begin
   If (FurlCrawlErrorSample=AValue) then exit;
@@ -787,18 +635,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSample
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TUrlSampleDetails
   --------------------------------------------------------------------}
 
 
-Procedure TUrlSampleDetails.SetcontainingSitemaps(AIndex : Integer; AValue : TUrlSampleDetailscontainingSitemaps); 
+Procedure TUrlSampleDetails.SetcontainingSitemaps(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FcontainingSitemaps=AValue) then exit;
@@ -808,7 +649,7 @@ end;
 
 
 
-Procedure TUrlSampleDetails.SetlinkedFromUrls(AIndex : Integer; AValue : TUrlSampleDetailslinkedFromUrls); 
+Procedure TUrlSampleDetails.SetlinkedFromUrls(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FlinkedFromUrls=AValue) then exit;
@@ -821,25 +662,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TUrlSampleDetailscontainingSitemaps
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TUrlSampleDetailslinkedFromUrls
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TWmxSite
   --------------------------------------------------------------------}
 
 
-Procedure TWmxSite.SetpermissionLevel(AIndex : Integer; AValue : string); 
+Procedure TWmxSite.SetpermissionLevel(AIndex : Integer; AValue : String); 
 
 begin
   If (FpermissionLevel=AValue) then exit;
@@ -849,7 +676,7 @@ end;
 
 
 
-Procedure TWmxSite.SetsiteUrl(AIndex : Integer; AValue : string); 
+Procedure TWmxSite.SetsiteUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FsiteUrl=AValue) then exit;
@@ -866,7 +693,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWmxSitemap.Setcontents(AIndex : Integer; AValue : TWmxSitemapcontents); 
+Procedure TWmxSitemap.Setcontents(AIndex : Integer; AValue : TWmxSitemapTypecontentsArray); 
 
 begin
   If (Fcontents=AValue) then exit;
@@ -876,7 +703,7 @@ end;
 
 
 
-Procedure TWmxSitemap.Seterrors(AIndex : Integer; AValue : string); 
+Procedure TWmxSitemap.Seterrors(AIndex : Integer; AValue : String); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -926,7 +753,7 @@ end;
 
 
 
-Procedure TWmxSitemap.Setpath(AIndex : Integer; AValue : string); 
+Procedure TWmxSitemap.Setpath(AIndex : Integer; AValue : String); 
 
 begin
   If (Fpath=AValue) then exit;
@@ -936,7 +763,7 @@ end;
 
 
 
-Procedure TWmxSitemap.Set_type(AIndex : Integer; AValue : string); 
+Procedure TWmxSitemap.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -946,7 +773,7 @@ end;
 
 
 
-Procedure TWmxSitemap.Setwarnings(AIndex : Integer; AValue : string); 
+Procedure TWmxSitemap.Setwarnings(AIndex : Integer; AValue : String); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -970,18 +797,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TWmxSitemapcontents
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TWmxSitemapContent
   --------------------------------------------------------------------}
 
 
-Procedure TWmxSitemapContent.Setindexed(AIndex : Integer; AValue : string); 
+Procedure TWmxSitemapContent.Setindexed(AIndex : Integer; AValue : String); 
 
 begin
   If (Findexed=AValue) then exit;
@@ -991,7 +811,7 @@ end;
 
 
 
-Procedure TWmxSitemapContent.Setsubmitted(AIndex : Integer; AValue : string); 
+Procedure TWmxSitemapContent.Setsubmitted(AIndex : Integer; AValue : String); 
 
 begin
   If (Fsubmitted=AValue) then exit;
@@ -1001,7 +821,7 @@ end;
 
 
 
-Procedure TWmxSitemapContent.Set_type(AIndex : Integer; AValue : string); 
+Procedure TWmxSitemapContent.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1468,23 +1288,15 @@ Class Procedure TWebmastersAPI.RegisterAPIResources;
 
 begin
   TSitemapsListResponse.RegisterObject;
-  TSitemapsListResponsesitemap.RegisterObject;
   TSitesListResponse.RegisterObject;
-  TSitesListResponsesiteEntry.RegisterObject;
   TUrlCrawlErrorCount.RegisterObject;
   TUrlCrawlErrorCountsPerType.RegisterObject;
-  TUrlCrawlErrorCountsPerTypeentries.RegisterObject;
   TUrlCrawlErrorsCountsQueryResponse.RegisterObject;
-  TUrlCrawlErrorsCountsQueryResponsecountPerTypes.RegisterObject;
   TUrlCrawlErrorsSample.RegisterObject;
   TUrlCrawlErrorsSamplesListResponse.RegisterObject;
-  TUrlCrawlErrorsSamplesListResponseurlCrawlErrorSample.RegisterObject;
   TUrlSampleDetails.RegisterObject;
-  TUrlSampleDetailscontainingSitemaps.RegisterObject;
-  TUrlSampleDetailslinkedFromUrls.RegisterObject;
   TWmxSite.RegisterObject;
   TWmxSitemap.RegisterObject;
-  TWmxSitemapcontents.RegisterObject;
   TWmxSitemapContent.RegisterObject;
 end;
 

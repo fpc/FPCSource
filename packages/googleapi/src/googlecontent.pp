@@ -1,31 +1,19 @@
 unit googlecontent;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:51
 {$MODE objfpc}
 {$H+}
 
@@ -34,313 +22,248 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAccount = class;
-  TAccountArray = Array of TAccount;
-  TAccountadwordsLinks = class;
-  TAccountadwordsLinksArray = Array of TAccountadwordsLinks;
-  TAccountusers = class;
-  TAccountusersArray = Array of TAccountusers;
   TAccountAdwordsLink = class;
-  TAccountAdwordsLinkArray = Array of TAccountAdwordsLink;
   TAccountIdentifier = class;
-  TAccountIdentifierArray = Array of TAccountIdentifier;
   TAccountShipping = class;
-  TAccountShippingArray = Array of TAccountShipping;
-  TAccountShippingcarrierRates = class;
-  TAccountShippingcarrierRatesArray = Array of TAccountShippingcarrierRates;
-  TAccountShippinglocationGroups = class;
-  TAccountShippinglocationGroupsArray = Array of TAccountShippinglocationGroups;
-  TAccountShippingrateTables = class;
-  TAccountShippingrateTablesArray = Array of TAccountShippingrateTables;
-  TAccountShippingservices = class;
-  TAccountShippingservicesArray = Array of TAccountShippingservices;
   TAccountShippingCarrierRate = class;
-  TAccountShippingCarrierRateArray = Array of TAccountShippingCarrierRate;
   TAccountShippingCondition = class;
-  TAccountShippingConditionArray = Array of TAccountShippingCondition;
   TAccountShippingLocationGroup = class;
-  TAccountShippingLocationGroupArray = Array of TAccountShippingLocationGroup;
-  TAccountShippingLocationGrouplocationIds = class;
-  TAccountShippingLocationGrouplocationIdsArray = Array of TAccountShippingLocationGrouplocationIds;
-  TAccountShippingLocationGrouppostalCodeRanges = class;
-  TAccountShippingLocationGrouppostalCodeRangesArray = Array of TAccountShippingLocationGrouppostalCodeRanges;
-  TAccountShippingLocationGrouppostalCodes = class;
-  TAccountShippingLocationGrouppostalCodesArray = Array of TAccountShippingLocationGrouppostalCodes;
   TAccountShippingPostalCodeRange = class;
-  TAccountShippingPostalCodeRangeArray = Array of TAccountShippingPostalCodeRange;
   TAccountShippingRateTable = class;
-  TAccountShippingRateTableArray = Array of TAccountShippingRateTable;
-  TAccountShippingRateTablecontent = class;
-  TAccountShippingRateTablecontentArray = Array of TAccountShippingRateTablecontent;
   TAccountShippingRateTableCell = class;
-  TAccountShippingRateTableCellArray = Array of TAccountShippingRateTableCell;
   TAccountShippingShippingService = class;
-  TAccountShippingShippingServiceArray = Array of TAccountShippingShippingService;
   TAccountShippingShippingServiceCalculationMethod = class;
-  TAccountShippingShippingServiceCalculationMethodArray = Array of TAccountShippingShippingServiceCalculationMethod;
   TAccountShippingShippingServiceCostRule = class;
-  TAccountShippingShippingServiceCostRuleArray = Array of TAccountShippingShippingServiceCostRule;
-  TAccountShippingShippingServiceCostRulechildren = class;
-  TAccountShippingShippingServiceCostRulechildrenArray = Array of TAccountShippingShippingServiceCostRulechildren;
   TAccountStatus = class;
-  TAccountStatusArray = Array of TAccountStatus;
-  TAccountStatusdataQualityIssues = class;
-  TAccountStatusdataQualityIssuesArray = Array of TAccountStatusdataQualityIssues;
   TAccountStatusDataQualityIssue = class;
-  TAccountStatusDataQualityIssueArray = Array of TAccountStatusDataQualityIssue;
-  TAccountStatusDataQualityIssueexampleItems = class;
-  TAccountStatusDataQualityIssueexampleItemsArray = Array of TAccountStatusDataQualityIssueexampleItems;
   TAccountStatusExampleItem = class;
-  TAccountStatusExampleItemArray = Array of TAccountStatusExampleItem;
   TAccountTax = class;
-  TAccountTaxArray = Array of TAccountTax;
-  TAccountTaxrules = class;
-  TAccountTaxrulesArray = Array of TAccountTaxrules;
   TAccountTaxTaxRule = class;
-  TAccountTaxTaxRuleArray = Array of TAccountTaxTaxRule;
   TAccountUser = class;
-  TAccountUserArray = Array of TAccountUser;
   TAccountsAuthInfoResponse = class;
-  TAccountsAuthInfoResponseArray = Array of TAccountsAuthInfoResponse;
-  TAccountsAuthInfoResponseaccountIdentifiers = class;
-  TAccountsAuthInfoResponseaccountIdentifiersArray = Array of TAccountsAuthInfoResponseaccountIdentifiers;
   TAccountsCustomBatchRequest = class;
-  TAccountsCustomBatchRequestArray = Array of TAccountsCustomBatchRequest;
-  TAccountsCustomBatchRequestentries = class;
-  TAccountsCustomBatchRequestentriesArray = Array of TAccountsCustomBatchRequestentries;
   TAccountsCustomBatchRequestEntry = class;
-  TAccountsCustomBatchRequestEntryArray = Array of TAccountsCustomBatchRequestEntry;
   TAccountsCustomBatchResponse = class;
-  TAccountsCustomBatchResponseArray = Array of TAccountsCustomBatchResponse;
-  TAccountsCustomBatchResponseentries = class;
-  TAccountsCustomBatchResponseentriesArray = Array of TAccountsCustomBatchResponseentries;
   TAccountsCustomBatchResponseEntry = class;
-  TAccountsCustomBatchResponseEntryArray = Array of TAccountsCustomBatchResponseEntry;
   TAccountsListResponse = class;
-  TAccountsListResponseArray = Array of TAccountsListResponse;
-  TAccountsListResponseresources = class;
-  TAccountsListResponseresourcesArray = Array of TAccountsListResponseresources;
   TAccountshippingCustomBatchRequest = class;
-  TAccountshippingCustomBatchRequestArray = Array of TAccountshippingCustomBatchRequest;
-  TAccountshippingCustomBatchRequestentries = class;
-  TAccountshippingCustomBatchRequestentriesArray = Array of TAccountshippingCustomBatchRequestentries;
   TAccountshippingCustomBatchRequestEntry = class;
-  TAccountshippingCustomBatchRequestEntryArray = Array of TAccountshippingCustomBatchRequestEntry;
   TAccountshippingCustomBatchResponse = class;
-  TAccountshippingCustomBatchResponseArray = Array of TAccountshippingCustomBatchResponse;
-  TAccountshippingCustomBatchResponseentries = class;
-  TAccountshippingCustomBatchResponseentriesArray = Array of TAccountshippingCustomBatchResponseentries;
   TAccountshippingCustomBatchResponseEntry = class;
-  TAccountshippingCustomBatchResponseEntryArray = Array of TAccountshippingCustomBatchResponseEntry;
   TAccountshippingListResponse = class;
-  TAccountshippingListResponseArray = Array of TAccountshippingListResponse;
-  TAccountshippingListResponseresources = class;
-  TAccountshippingListResponseresourcesArray = Array of TAccountshippingListResponseresources;
   TAccountstatusesCustomBatchRequest = class;
-  TAccountstatusesCustomBatchRequestArray = Array of TAccountstatusesCustomBatchRequest;
-  TAccountstatusesCustomBatchRequestentries = class;
-  TAccountstatusesCustomBatchRequestentriesArray = Array of TAccountstatusesCustomBatchRequestentries;
   TAccountstatusesCustomBatchRequestEntry = class;
-  TAccountstatusesCustomBatchRequestEntryArray = Array of TAccountstatusesCustomBatchRequestEntry;
   TAccountstatusesCustomBatchResponse = class;
-  TAccountstatusesCustomBatchResponseArray = Array of TAccountstatusesCustomBatchResponse;
-  TAccountstatusesCustomBatchResponseentries = class;
-  TAccountstatusesCustomBatchResponseentriesArray = Array of TAccountstatusesCustomBatchResponseentries;
   TAccountstatusesCustomBatchResponseEntry = class;
-  TAccountstatusesCustomBatchResponseEntryArray = Array of TAccountstatusesCustomBatchResponseEntry;
   TAccountstatusesListResponse = class;
-  TAccountstatusesListResponseArray = Array of TAccountstatusesListResponse;
-  TAccountstatusesListResponseresources = class;
-  TAccountstatusesListResponseresourcesArray = Array of TAccountstatusesListResponseresources;
   TAccounttaxCustomBatchRequest = class;
-  TAccounttaxCustomBatchRequestArray = Array of TAccounttaxCustomBatchRequest;
-  TAccounttaxCustomBatchRequestentries = class;
-  TAccounttaxCustomBatchRequestentriesArray = Array of TAccounttaxCustomBatchRequestentries;
   TAccounttaxCustomBatchRequestEntry = class;
-  TAccounttaxCustomBatchRequestEntryArray = Array of TAccounttaxCustomBatchRequestEntry;
   TAccounttaxCustomBatchResponse = class;
-  TAccounttaxCustomBatchResponseArray = Array of TAccounttaxCustomBatchResponse;
-  TAccounttaxCustomBatchResponseentries = class;
-  TAccounttaxCustomBatchResponseentriesArray = Array of TAccounttaxCustomBatchResponseentries;
   TAccounttaxCustomBatchResponseEntry = class;
-  TAccounttaxCustomBatchResponseEntryArray = Array of TAccounttaxCustomBatchResponseEntry;
   TAccounttaxListResponse = class;
-  TAccounttaxListResponseArray = Array of TAccounttaxListResponse;
-  TAccounttaxListResponseresources = class;
-  TAccounttaxListResponseresourcesArray = Array of TAccounttaxListResponseresources;
   TDatafeed = class;
-  TDatafeedArray = Array of TDatafeed;
-  TDatafeedintendedDestinations = class;
-  TDatafeedintendedDestinationsArray = Array of TDatafeedintendedDestinations;
   TDatafeedFetchSchedule = class;
-  TDatafeedFetchScheduleArray = Array of TDatafeedFetchSchedule;
   TDatafeedFormat = class;
-  TDatafeedFormatArray = Array of TDatafeedFormat;
   TDatafeedStatus = class;
-  TDatafeedStatusArray = Array of TDatafeedStatus;
-  TDatafeedStatuserrors = class;
-  TDatafeedStatuserrorsArray = Array of TDatafeedStatuserrors;
-  TDatafeedStatuswarnings = class;
-  TDatafeedStatuswarningsArray = Array of TDatafeedStatuswarnings;
   TDatafeedStatusError = class;
-  TDatafeedStatusErrorArray = Array of TDatafeedStatusError;
-  TDatafeedStatusErrorexamples = class;
-  TDatafeedStatusErrorexamplesArray = Array of TDatafeedStatusErrorexamples;
   TDatafeedStatusExample = class;
-  TDatafeedStatusExampleArray = Array of TDatafeedStatusExample;
   TDatafeedsCustomBatchRequest = class;
-  TDatafeedsCustomBatchRequestArray = Array of TDatafeedsCustomBatchRequest;
-  TDatafeedsCustomBatchRequestentries = class;
-  TDatafeedsCustomBatchRequestentriesArray = Array of TDatafeedsCustomBatchRequestentries;
   TDatafeedsCustomBatchRequestEntry = class;
-  TDatafeedsCustomBatchRequestEntryArray = Array of TDatafeedsCustomBatchRequestEntry;
   TDatafeedsCustomBatchResponse = class;
-  TDatafeedsCustomBatchResponseArray = Array of TDatafeedsCustomBatchResponse;
-  TDatafeedsCustomBatchResponseentries = class;
-  TDatafeedsCustomBatchResponseentriesArray = Array of TDatafeedsCustomBatchResponseentries;
   TDatafeedsCustomBatchResponseEntry = class;
-  TDatafeedsCustomBatchResponseEntryArray = Array of TDatafeedsCustomBatchResponseEntry;
   TDatafeedsListResponse = class;
-  TDatafeedsListResponseArray = Array of TDatafeedsListResponse;
-  TDatafeedsListResponseresources = class;
-  TDatafeedsListResponseresourcesArray = Array of TDatafeedsListResponseresources;
   TDatafeedstatusesCustomBatchRequest = class;
-  TDatafeedstatusesCustomBatchRequestArray = Array of TDatafeedstatusesCustomBatchRequest;
-  TDatafeedstatusesCustomBatchRequestentries = class;
-  TDatafeedstatusesCustomBatchRequestentriesArray = Array of TDatafeedstatusesCustomBatchRequestentries;
   TDatafeedstatusesCustomBatchRequestEntry = class;
-  TDatafeedstatusesCustomBatchRequestEntryArray = Array of TDatafeedstatusesCustomBatchRequestEntry;
   TDatafeedstatusesCustomBatchResponse = class;
-  TDatafeedstatusesCustomBatchResponseArray = Array of TDatafeedstatusesCustomBatchResponse;
-  TDatafeedstatusesCustomBatchResponseentries = class;
-  TDatafeedstatusesCustomBatchResponseentriesArray = Array of TDatafeedstatusesCustomBatchResponseentries;
   TDatafeedstatusesCustomBatchResponseEntry = class;
-  TDatafeedstatusesCustomBatchResponseEntryArray = Array of TDatafeedstatusesCustomBatchResponseEntry;
   TDatafeedstatusesListResponse = class;
-  TDatafeedstatusesListResponseArray = Array of TDatafeedstatusesListResponse;
-  TDatafeedstatusesListResponseresources = class;
-  TDatafeedstatusesListResponseresourcesArray = Array of TDatafeedstatusesListResponseresources;
   TError = class;
-  TErrorArray = Array of TError;
   TErrors = class;
-  TErrorsArray = Array of TErrors;
-  TErrorserrors = class;
-  TErrorserrorsArray = Array of TErrorserrors;
   TInventory = class;
-  TInventoryArray = Array of TInventory;
   TInventoryCustomBatchRequest = class;
-  TInventoryCustomBatchRequestArray = Array of TInventoryCustomBatchRequest;
-  TInventoryCustomBatchRequestentries = class;
-  TInventoryCustomBatchRequestentriesArray = Array of TInventoryCustomBatchRequestentries;
   TInventoryCustomBatchRequestEntry = class;
-  TInventoryCustomBatchRequestEntryArray = Array of TInventoryCustomBatchRequestEntry;
   TInventoryCustomBatchResponse = class;
-  TInventoryCustomBatchResponseArray = Array of TInventoryCustomBatchResponse;
-  TInventoryCustomBatchResponseentries = class;
-  TInventoryCustomBatchResponseentriesArray = Array of TInventoryCustomBatchResponseentries;
   TInventoryCustomBatchResponseEntry = class;
-  TInventoryCustomBatchResponseEntryArray = Array of TInventoryCustomBatchResponseEntry;
   TInventorySetRequest = class;
-  TInventorySetRequestArray = Array of TInventorySetRequest;
   TInventorySetResponse = class;
-  TInventorySetResponseArray = Array of TInventorySetResponse;
   TLoyaltyPoints = class;
-  TLoyaltyPointsArray = Array of TLoyaltyPoints;
   TPrice = class;
-  TPriceArray = Array of TPrice;
   TProduct = class;
-  TProductArray = Array of TProduct;
-  TProductadditionalImageLinks = class;
-  TProductadditionalImageLinksArray = Array of TProductadditionalImageLinks;
-  TProductadwordsLabels = class;
-  TProductadwordsLabelsArray = Array of TProductadwordsLabels;
-  TProductaspects = class;
-  TProductaspectsArray = Array of TProductaspects;
-  TProductcustomAttributes = class;
-  TProductcustomAttributesArray = Array of TProductcustomAttributes;
-  TProductcustomGroups = class;
-  TProductcustomGroupsArray = Array of TProductcustomGroups;
-  TProductdestinations = class;
-  TProductdestinationsArray = Array of TProductdestinations;
-  TProductdisplayAdsSimilarIds = class;
-  TProductdisplayAdsSimilarIdsArray = Array of TProductdisplayAdsSimilarIds;
-  TProductshipping = class;
-  TProductshippingArray = Array of TProductshipping;
-  TProductsizes = class;
-  TProductsizesArray = Array of TProductsizes;
-  TProducttaxes = class;
-  TProducttaxesArray = Array of TProducttaxes;
-  TProductvalidatedDestinations = class;
-  TProductvalidatedDestinationsArray = Array of TProductvalidatedDestinations;
-  TProductwarnings = class;
-  TProductwarningsArray = Array of TProductwarnings;
   TProductAspect = class;
-  TProductAspectArray = Array of TProductAspect;
   TProductCustomAttribute = class;
-  TProductCustomAttributeArray = Array of TProductCustomAttribute;
   TProductCustomGroup = class;
-  TProductCustomGroupArray = Array of TProductCustomGroup;
-  TProductCustomGroupattributes = class;
-  TProductCustomGroupattributesArray = Array of TProductCustomGroupattributes;
   TProductDestination = class;
-  TProductDestinationArray = Array of TProductDestination;
   TProductInstallment = class;
-  TProductInstallmentArray = Array of TProductInstallment;
+  TProductShipping = class;
   TProductShippingDimension = class;
-  TProductShippingDimensionArray = Array of TProductShippingDimension;
   TProductShippingWeight = class;
-  TProductShippingWeightArray = Array of TProductShippingWeight;
   TProductStatus = class;
-  TProductStatusArray = Array of TProductStatus;
-  TProductStatusdataQualityIssues = class;
-  TProductStatusdataQualityIssuesArray = Array of TProductStatusdataQualityIssues;
-  TProductStatusdestinationStatuses = class;
-  TProductStatusdestinationStatusesArray = Array of TProductStatusdestinationStatuses;
   TProductStatusDataQualityIssue = class;
-  TProductStatusDataQualityIssueArray = Array of TProductStatusDataQualityIssue;
   TProductStatusDestinationStatus = class;
-  TProductStatusDestinationStatusArray = Array of TProductStatusDestinationStatus;
   TProductTax = class;
-  TProductTaxArray = Array of TProductTax;
   TProductUnitPricingBaseMeasure = class;
-  TProductUnitPricingBaseMeasureArray = Array of TProductUnitPricingBaseMeasure;
   TProductUnitPricingMeasure = class;
-  TProductUnitPricingMeasureArray = Array of TProductUnitPricingMeasure;
   TProductsCustomBatchRequest = class;
-  TProductsCustomBatchRequestArray = Array of TProductsCustomBatchRequest;
-  TProductsCustomBatchRequestentries = class;
-  TProductsCustomBatchRequestentriesArray = Array of TProductsCustomBatchRequestentries;
   TProductsCustomBatchRequestEntry = class;
-  TProductsCustomBatchRequestEntryArray = Array of TProductsCustomBatchRequestEntry;
   TProductsCustomBatchResponse = class;
-  TProductsCustomBatchResponseArray = Array of TProductsCustomBatchResponse;
-  TProductsCustomBatchResponseentries = class;
-  TProductsCustomBatchResponseentriesArray = Array of TProductsCustomBatchResponseentries;
   TProductsCustomBatchResponseEntry = class;
-  TProductsCustomBatchResponseEntryArray = Array of TProductsCustomBatchResponseEntry;
   TProductsListResponse = class;
-  TProductsListResponseArray = Array of TProductsListResponse;
-  TProductsListResponseresources = class;
-  TProductsListResponseresourcesArray = Array of TProductsListResponseresources;
   TProductstatusesCustomBatchRequest = class;
-  TProductstatusesCustomBatchRequestArray = Array of TProductstatusesCustomBatchRequest;
-  TProductstatusesCustomBatchRequestentries = class;
-  TProductstatusesCustomBatchRequestentriesArray = Array of TProductstatusesCustomBatchRequestentries;
   TProductstatusesCustomBatchRequestEntry = class;
-  TProductstatusesCustomBatchRequestEntryArray = Array of TProductstatusesCustomBatchRequestEntry;
   TProductstatusesCustomBatchResponse = class;
-  TProductstatusesCustomBatchResponseArray = Array of TProductstatusesCustomBatchResponse;
-  TProductstatusesCustomBatchResponseentries = class;
-  TProductstatusesCustomBatchResponseentriesArray = Array of TProductstatusesCustomBatchResponseentries;
   TProductstatusesCustomBatchResponseEntry = class;
-  TProductstatusesCustomBatchResponseEntryArray = Array of TProductstatusesCustomBatchResponseEntry;
   TProductstatusesListResponse = class;
-  TProductstatusesListResponseArray = Array of TProductstatusesListResponse;
-  TProductstatusesListResponseresources = class;
-  TProductstatusesListResponseresourcesArray = Array of TProductstatusesListResponseresources;
   TWeight = class;
+  TAccountArray = Array of TAccount;
+  TAccountAdwordsLinkArray = Array of TAccountAdwordsLink;
+  TAccountIdentifierArray = Array of TAccountIdentifier;
+  TAccountShippingArray = Array of TAccountShipping;
+  TAccountShippingCarrierRateArray = Array of TAccountShippingCarrierRate;
+  TAccountShippingConditionArray = Array of TAccountShippingCondition;
+  TAccountShippingLocationGroupArray = Array of TAccountShippingLocationGroup;
+  TAccountShippingPostalCodeRangeArray = Array of TAccountShippingPostalCodeRange;
+  TAccountShippingRateTableArray = Array of TAccountShippingRateTable;
+  TAccountShippingRateTableCellArray = Array of TAccountShippingRateTableCell;
+  TAccountShippingShippingServiceArray = Array of TAccountShippingShippingService;
+  TAccountShippingShippingServiceCalculationMethodArray = Array of TAccountShippingShippingServiceCalculationMethod;
+  TAccountShippingShippingServiceCostRuleArray = Array of TAccountShippingShippingServiceCostRule;
+  TAccountStatusArray = Array of TAccountStatus;
+  TAccountStatusDataQualityIssueArray = Array of TAccountStatusDataQualityIssue;
+  TAccountStatusExampleItemArray = Array of TAccountStatusExampleItem;
+  TAccountTaxArray = Array of TAccountTax;
+  TAccountTaxTaxRuleArray = Array of TAccountTaxTaxRule;
+  TAccountUserArray = Array of TAccountUser;
+  TAccountsAuthInfoResponseArray = Array of TAccountsAuthInfoResponse;
+  TAccountsCustomBatchRequestArray = Array of TAccountsCustomBatchRequest;
+  TAccountsCustomBatchRequestEntryArray = Array of TAccountsCustomBatchRequestEntry;
+  TAccountsCustomBatchResponseArray = Array of TAccountsCustomBatchResponse;
+  TAccountsCustomBatchResponseEntryArray = Array of TAccountsCustomBatchResponseEntry;
+  TAccountsListResponseArray = Array of TAccountsListResponse;
+  TAccountshippingCustomBatchRequestArray = Array of TAccountshippingCustomBatchRequest;
+  TAccountshippingCustomBatchRequestEntryArray = Array of TAccountshippingCustomBatchRequestEntry;
+  TAccountshippingCustomBatchResponseArray = Array of TAccountshippingCustomBatchResponse;
+  TAccountshippingCustomBatchResponseEntryArray = Array of TAccountshippingCustomBatchResponseEntry;
+  TAccountshippingListResponseArray = Array of TAccountshippingListResponse;
+  TAccountstatusesCustomBatchRequestArray = Array of TAccountstatusesCustomBatchRequest;
+  TAccountstatusesCustomBatchRequestEntryArray = Array of TAccountstatusesCustomBatchRequestEntry;
+  TAccountstatusesCustomBatchResponseArray = Array of TAccountstatusesCustomBatchResponse;
+  TAccountstatusesCustomBatchResponseEntryArray = Array of TAccountstatusesCustomBatchResponseEntry;
+  TAccountstatusesListResponseArray = Array of TAccountstatusesListResponse;
+  TAccounttaxCustomBatchRequestArray = Array of TAccounttaxCustomBatchRequest;
+  TAccounttaxCustomBatchRequestEntryArray = Array of TAccounttaxCustomBatchRequestEntry;
+  TAccounttaxCustomBatchResponseArray = Array of TAccounttaxCustomBatchResponse;
+  TAccounttaxCustomBatchResponseEntryArray = Array of TAccounttaxCustomBatchResponseEntry;
+  TAccounttaxListResponseArray = Array of TAccounttaxListResponse;
+  TDatafeedArray = Array of TDatafeed;
+  TDatafeedFetchScheduleArray = Array of TDatafeedFetchSchedule;
+  TDatafeedFormatArray = Array of TDatafeedFormat;
+  TDatafeedStatusArray = Array of TDatafeedStatus;
+  TDatafeedStatusErrorArray = Array of TDatafeedStatusError;
+  TDatafeedStatusExampleArray = Array of TDatafeedStatusExample;
+  TDatafeedsCustomBatchRequestArray = Array of TDatafeedsCustomBatchRequest;
+  TDatafeedsCustomBatchRequestEntryArray = Array of TDatafeedsCustomBatchRequestEntry;
+  TDatafeedsCustomBatchResponseArray = Array of TDatafeedsCustomBatchResponse;
+  TDatafeedsCustomBatchResponseEntryArray = Array of TDatafeedsCustomBatchResponseEntry;
+  TDatafeedsListResponseArray = Array of TDatafeedsListResponse;
+  TDatafeedstatusesCustomBatchRequestArray = Array of TDatafeedstatusesCustomBatchRequest;
+  TDatafeedstatusesCustomBatchRequestEntryArray = Array of TDatafeedstatusesCustomBatchRequestEntry;
+  TDatafeedstatusesCustomBatchResponseArray = Array of TDatafeedstatusesCustomBatchResponse;
+  TDatafeedstatusesCustomBatchResponseEntryArray = Array of TDatafeedstatusesCustomBatchResponseEntry;
+  TDatafeedstatusesListResponseArray = Array of TDatafeedstatusesListResponse;
+  TErrorArray = Array of TError;
+  TErrorsArray = Array of TErrors;
+  TInventoryArray = Array of TInventory;
+  TInventoryCustomBatchRequestArray = Array of TInventoryCustomBatchRequest;
+  TInventoryCustomBatchRequestEntryArray = Array of TInventoryCustomBatchRequestEntry;
+  TInventoryCustomBatchResponseArray = Array of TInventoryCustomBatchResponse;
+  TInventoryCustomBatchResponseEntryArray = Array of TInventoryCustomBatchResponseEntry;
+  TInventorySetRequestArray = Array of TInventorySetRequest;
+  TInventorySetResponseArray = Array of TInventorySetResponse;
+  TLoyaltyPointsArray = Array of TLoyaltyPoints;
+  TPriceArray = Array of TPrice;
+  TProductArray = Array of TProduct;
+  TProductAspectArray = Array of TProductAspect;
+  TProductCustomAttributeArray = Array of TProductCustomAttribute;
+  TProductCustomGroupArray = Array of TProductCustomGroup;
+  TProductDestinationArray = Array of TProductDestination;
+  TProductInstallmentArray = Array of TProductInstallment;
+  TProductShippingArray = Array of TProductShipping;
+  TProductShippingDimensionArray = Array of TProductShippingDimension;
+  TProductShippingWeightArray = Array of TProductShippingWeight;
+  TProductStatusArray = Array of TProductStatus;
+  TProductStatusDataQualityIssueArray = Array of TProductStatusDataQualityIssue;
+  TProductStatusDestinationStatusArray = Array of TProductStatusDestinationStatus;
+  TProductTaxArray = Array of TProductTax;
+  TProductUnitPricingBaseMeasureArray = Array of TProductUnitPricingBaseMeasure;
+  TProductUnitPricingMeasureArray = Array of TProductUnitPricingMeasure;
+  TProductsCustomBatchRequestArray = Array of TProductsCustomBatchRequest;
+  TProductsCustomBatchRequestEntryArray = Array of TProductsCustomBatchRequestEntry;
+  TProductsCustomBatchResponseArray = Array of TProductsCustomBatchResponse;
+  TProductsCustomBatchResponseEntryArray = Array of TProductsCustomBatchResponseEntry;
+  TProductsListResponseArray = Array of TProductsListResponse;
+  TProductstatusesCustomBatchRequestArray = Array of TProductstatusesCustomBatchRequest;
+  TProductstatusesCustomBatchRequestEntryArray = Array of TProductstatusesCustomBatchRequestEntry;
+  TProductstatusesCustomBatchResponseArray = Array of TProductstatusesCustomBatchResponse;
+  TProductstatusesCustomBatchResponseEntryArray = Array of TProductstatusesCustomBatchResponseEntry;
+  TProductstatusesListResponseArray = Array of TProductstatusesListResponse;
   TWeightArray = Array of TWeight;
+  //Anonymous types, using auto-generated names
+  TAccountTypeadwordsLinksArray = Array of TAccountAdwordsLink;
+  TAccountTypeusersArray = Array of TAccountUser;
+  TAccountShippingTypecarrierRatesArray = Array of TAccountShippingCarrierRate;
+  TAccountShippingTypelocationGroupsArray = Array of TAccountShippingLocationGroup;
+  TAccountShippingTyperateTablesArray = Array of TAccountShippingRateTable;
+  TAccountShippingTypeservicesArray = Array of TAccountShippingShippingService;
+  TAccountShippingLocationGroupTypepostalCodeRangesArray = Array of TAccountShippingPostalCodeRange;
+  TAccountShippingRateTableTypecontentArray = Array of TAccountShippingRateTableCell;
+  TAccountShippingShippingServiceCostRuleTypechildrenArray = Array of TAccountShippingShippingServiceCostRule;
+  TAccountStatusTypedataQualityIssuesArray = Array of TAccountStatusDataQualityIssue;
+  TAccountStatusDataQualityIssueTypeexampleItemsArray = Array of TAccountStatusExampleItem;
+  TAccountTaxTyperulesArray = Array of TAccountTaxTaxRule;
+  TAccountsAuthInfoResponseTypeaccountIdentifiersArray = Array of TAccountIdentifier;
+  TAccountsCustomBatchRequestTypeentriesArray = Array of TAccountsCustomBatchRequestEntry;
+  TAccountsCustomBatchResponseTypeentriesArray = Array of TAccountsCustomBatchResponseEntry;
+  TAccountsListResponseTyperesourcesArray = Array of TAccount;
+  TAccountshippingCustomBatchRequestTypeentriesArray = Array of TAccountshippingCustomBatchRequestEntry;
+  TAccountshippingCustomBatchResponseTypeentriesArray = Array of TAccountshippingCustomBatchResponseEntry;
+  TAccountshippingListResponseTyperesourcesArray = Array of TAccountShipping;
+  TAccountstatusesCustomBatchRequestTypeentriesArray = Array of TAccountstatusesCustomBatchRequestEntry;
+  TAccountstatusesCustomBatchResponseTypeentriesArray = Array of TAccountstatusesCustomBatchResponseEntry;
+  TAccountstatusesListResponseTyperesourcesArray = Array of TAccountStatus;
+  TAccounttaxCustomBatchRequestTypeentriesArray = Array of TAccounttaxCustomBatchRequestEntry;
+  TAccounttaxCustomBatchResponseTypeentriesArray = Array of TAccounttaxCustomBatchResponseEntry;
+  TAccounttaxListResponseTyperesourcesArray = Array of TAccountTax;
+  TDatafeedStatusTypeerrorsArray = Array of TDatafeedStatusError;
+  TDatafeedStatusTypewarningsArray = Array of TDatafeedStatusError;
+  TDatafeedStatusErrorTypeexamplesArray = Array of TDatafeedStatusExample;
+  TDatafeedsCustomBatchRequestTypeentriesArray = Array of TDatafeedsCustomBatchRequestEntry;
+  TDatafeedsCustomBatchResponseTypeentriesArray = Array of TDatafeedsCustomBatchResponseEntry;
+  TDatafeedsListResponseTyperesourcesArray = Array of TDatafeed;
+  TDatafeedstatusesCustomBatchRequestTypeentriesArray = Array of TDatafeedstatusesCustomBatchRequestEntry;
+  TDatafeedstatusesCustomBatchResponseTypeentriesArray = Array of TDatafeedstatusesCustomBatchResponseEntry;
+  TDatafeedstatusesListResponseTyperesourcesArray = Array of TDatafeedStatus;
+  TErrorsTypeerrorsArray = Array of TError;
+  TInventoryCustomBatchRequestTypeentriesArray = Array of TInventoryCustomBatchRequestEntry;
+  TInventoryCustomBatchResponseTypeentriesArray = Array of TInventoryCustomBatchResponseEntry;
+  TProductTypeaspectsArray = Array of TProductAspect;
+  TProductTypecustomAttributesArray = Array of TProductCustomAttribute;
+  TProductTypecustomGroupsArray = Array of TProductCustomGroup;
+  TProductTypedestinationsArray = Array of TProductDestination;
+  TProductTypeshippingArray = Array of TProductShipping;
+  TProductTypetaxesArray = Array of TProductTax;
+  TProductTypewarningsArray = Array of TError;
+  TProductCustomGroupTypeattributesArray = Array of TProductCustomAttribute;
+  TProductStatusTypedataQualityIssuesArray = Array of TProductStatusDataQualityIssue;
+  TProductStatusTypedestinationStatusesArray = Array of TProductStatusDestinationStatus;
+  TProductsCustomBatchRequestTypeentriesArray = Array of TProductsCustomBatchRequestEntry;
+  TProductsCustomBatchResponseTypeentriesArray = Array of TProductsCustomBatchResponseEntry;
+  TProductsListResponseTyperesourcesArray = Array of TProduct;
+  TProductstatusesCustomBatchRequestTypeentriesArray = Array of TProductstatusesCustomBatchRequestEntry;
+  TProductstatusesCustomBatchResponseTypeentriesArray = Array of TProductstatusesCustomBatchResponseEntry;
+  TProductstatusesListResponseTyperesourcesArray = Array of TProductStatus;
   
   { --------------------------------------------------------------------
     TAccount
@@ -349,64 +272,38 @@ type
   TAccount = Class(TGoogleBaseObject)
   Private
     FadultContent : boolean;
-    FadwordsLinks : TAccountadwordsLinks;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    FreviewsUrl : string;
-    FsellerId : string;
-    Fusers : TAccountusers;
-    FwebsiteUrl : string;
+    FadwordsLinks : TAccountTypeadwordsLinksArray;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FreviewsUrl : String;
+    FsellerId : String;
+    Fusers : TAccountTypeusersArray;
+    FwebsiteUrl : String;
   Protected
     //Property setters
     Procedure SetadultContent(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetadwordsLinks(AIndex : Integer; AValue : TAccountadwordsLinks); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreviewsUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsellerId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setusers(AIndex : Integer; AValue : TAccountusers); virtual;
-    Procedure SetwebsiteUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetadwordsLinks(AIndex : Integer; AValue : TAccountTypeadwordsLinksArray); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreviewsUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsellerId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusers(AIndex : Integer; AValue : TAccountTypeusersArray); virtual;
+    Procedure SetwebsiteUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property adultContent : boolean Index 0 Read FadultContent Write SetadultContent;
-    Property adwordsLinks : TAccountadwordsLinks Index 8 Read FadwordsLinks Write SetadwordsLinks;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property name : string Index 32 Read Fname Write Setname;
-    Property reviewsUrl : string Index 40 Read FreviewsUrl Write SetreviewsUrl;
-    Property sellerId : string Index 48 Read FsellerId Write SetsellerId;
-    Property users : TAccountusers Index 56 Read Fusers Write Setusers;
-    Property websiteUrl : string Index 64 Read FwebsiteUrl Write SetwebsiteUrl;
+    Property adwordsLinks : TAccountTypeadwordsLinksArray Index 8 Read FadwordsLinks Write SetadwordsLinks;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property name : String Index 32 Read Fname Write Setname;
+    Property reviewsUrl : String Index 40 Read FreviewsUrl Write SetreviewsUrl;
+    Property sellerId : String Index 48 Read FsellerId Write SetsellerId;
+    Property users : TAccountTypeusersArray Index 56 Read Fusers Write Setusers;
+    Property websiteUrl : String Index 64 Read FwebsiteUrl Write SetwebsiteUrl;
   end;
   TAccountClass = Class of TAccount;
-  
-  { --------------------------------------------------------------------
-    TAccountadwordsLinks
-    --------------------------------------------------------------------}
-  
-  TAccountadwordsLinks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountadwordsLinksClass = Class of TAccountadwordsLinks;
-  
-  { --------------------------------------------------------------------
-    TAccountusers
-    --------------------------------------------------------------------}
-  
-  TAccountusers = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountusersClass = Class of TAccountusers;
   
   { --------------------------------------------------------------------
     TAccountAdwordsLink
@@ -414,16 +311,16 @@ type
   
   TAccountAdwordsLink = Class(TGoogleBaseObject)
   Private
-    FadwordsId : string;
-    Fstatus : string;
+    FadwordsId : String;
+    Fstatus : String;
   Protected
     //Property setters
-    Procedure SetadwordsId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetadwordsId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property adwordsId : string Index 0 Read FadwordsId Write SetadwordsId;
-    Property status : string Index 8 Read Fstatus Write Setstatus;
+    Property adwordsId : String Index 0 Read FadwordsId Write SetadwordsId;
+    Property status : String Index 8 Read Fstatus Write Setstatus;
   end;
   TAccountAdwordsLinkClass = Class of TAccountAdwordsLink;
   
@@ -433,16 +330,16 @@ type
   
   TAccountIdentifier = Class(TGoogleBaseObject)
   Private
-    FaggregatorId : string;
-    FmerchantId : string;
+    FaggregatorId : String;
+    FmerchantId : String;
   Protected
     //Property setters
-    Procedure SetaggregatorId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaggregatorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property aggregatorId : string Index 0 Read FaggregatorId Write SetaggregatorId;
-    Property merchantId : string Index 8 Read FmerchantId Write SetmerchantId;
+    Property aggregatorId : String Index 0 Read FaggregatorId Write SetaggregatorId;
+    Property merchantId : String Index 8 Read FmerchantId Write SetmerchantId;
   end;
   TAccountIdentifierClass = Class of TAccountIdentifier;
   
@@ -452,82 +349,30 @@ type
   
   TAccountShipping = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
-    FcarrierRates : TAccountShippingcarrierRates;
-    Fkind : string;
-    FlocationGroups : TAccountShippinglocationGroups;
-    FrateTables : TAccountShippingrateTables;
-    Fservices : TAccountShippingservices;
+    FaccountId : String;
+    FcarrierRates : TAccountShippingTypecarrierRatesArray;
+    Fkind : String;
+    FlocationGroups : TAccountShippingTypelocationGroupsArray;
+    FrateTables : TAccountShippingTyperateTablesArray;
+    Fservices : TAccountShippingTypeservicesArray;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcarrierRates(AIndex : Integer; AValue : TAccountShippingcarrierRates); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlocationGroups(AIndex : Integer; AValue : TAccountShippinglocationGroups); virtual;
-    Procedure SetrateTables(AIndex : Integer; AValue : TAccountShippingrateTables); virtual;
-    Procedure Setservices(AIndex : Integer; AValue : TAccountShippingservices); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcarrierRates(AIndex : Integer; AValue : TAccountShippingTypecarrierRatesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlocationGroups(AIndex : Integer; AValue : TAccountShippingTypelocationGroupsArray); virtual;
+    Procedure SetrateTables(AIndex : Integer; AValue : TAccountShippingTyperateTablesArray); virtual;
+    Procedure Setservices(AIndex : Integer; AValue : TAccountShippingTypeservicesArray); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
-    Property carrierRates : TAccountShippingcarrierRates Index 8 Read FcarrierRates Write SetcarrierRates;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property locationGroups : TAccountShippinglocationGroups Index 24 Read FlocationGroups Write SetlocationGroups;
-    Property rateTables : TAccountShippingrateTables Index 32 Read FrateTables Write SetrateTables;
-    Property services : TAccountShippingservices Index 40 Read Fservices Write Setservices;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property carrierRates : TAccountShippingTypecarrierRatesArray Index 8 Read FcarrierRates Write SetcarrierRates;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property locationGroups : TAccountShippingTypelocationGroupsArray Index 24 Read FlocationGroups Write SetlocationGroups;
+    Property rateTables : TAccountShippingTyperateTablesArray Index 32 Read FrateTables Write SetrateTables;
+    Property services : TAccountShippingTypeservicesArray Index 40 Read Fservices Write Setservices;
   end;
   TAccountShippingClass = Class of TAccountShipping;
-  
-  { --------------------------------------------------------------------
-    TAccountShippingcarrierRates
-    --------------------------------------------------------------------}
-  
-  TAccountShippingcarrierRates = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountShippingcarrierRatesClass = Class of TAccountShippingcarrierRates;
-  
-  { --------------------------------------------------------------------
-    TAccountShippinglocationGroups
-    --------------------------------------------------------------------}
-  
-  TAccountShippinglocationGroups = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountShippinglocationGroupsClass = Class of TAccountShippinglocationGroups;
-  
-  { --------------------------------------------------------------------
-    TAccountShippingrateTables
-    --------------------------------------------------------------------}
-  
-  TAccountShippingrateTables = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountShippingrateTablesClass = Class of TAccountShippingrateTables;
-  
-  { --------------------------------------------------------------------
-    TAccountShippingservices
-    --------------------------------------------------------------------}
-  
-  TAccountShippingservices = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountShippingservicesClass = Class of TAccountShippingservices;
   
   { --------------------------------------------------------------------
     TAccountShippingCarrierRate
@@ -535,31 +380,31 @@ type
   
   TAccountShippingCarrierRate = Class(TGoogleBaseObject)
   Private
-    Fcarrier : string;
-    FcarrierService : string;
+    Fcarrier : String;
+    FcarrierService : String;
     FmodifierFlatRate : TPrice;
-    FmodifierPercent : string;
-    Fname : string;
-    FsaleCountry : string;
-    FshippingOrigin : string;
+    FmodifierPercent : String;
+    Fname : String;
+    FsaleCountry : String;
+    FshippingOrigin : String;
   Protected
     //Property setters
-    Procedure Setcarrier(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcarrierService(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcarrier(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcarrierService(AIndex : Integer; AValue : String); virtual;
     Procedure SetmodifierFlatRate(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetmodifierPercent(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsaleCountry(AIndex : Integer; AValue : string); virtual;
-    Procedure SetshippingOrigin(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmodifierPercent(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsaleCountry(AIndex : Integer; AValue : String); virtual;
+    Procedure SetshippingOrigin(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property carrier : string Index 0 Read Fcarrier Write Setcarrier;
-    Property carrierService : string Index 8 Read FcarrierService Write SetcarrierService;
+    Property carrier : String Index 0 Read Fcarrier Write Setcarrier;
+    Property carrierService : String Index 8 Read FcarrierService Write SetcarrierService;
     Property modifierFlatRate : TPrice Index 16 Read FmodifierFlatRate Write SetmodifierFlatRate;
-    Property modifierPercent : string Index 24 Read FmodifierPercent Write SetmodifierPercent;
-    Property name : string Index 32 Read Fname Write Setname;
-    Property saleCountry : string Index 40 Read FsaleCountry Write SetsaleCountry;
-    Property shippingOrigin : string Index 48 Read FshippingOrigin Write SetshippingOrigin;
+    Property modifierPercent : String Index 24 Read FmodifierPercent Write SetmodifierPercent;
+    Property name : String Index 32 Read Fname Write Setname;
+    Property saleCountry : String Index 40 Read FsaleCountry Write SetsaleCountry;
+    Property shippingOrigin : String Index 48 Read FshippingOrigin Write SetshippingOrigin;
   end;
   TAccountShippingCarrierRateClass = Class of TAccountShippingCarrierRate;
   
@@ -569,30 +414,30 @@ type
   
   TAccountShippingCondition = Class(TGoogleBaseObject)
   Private
-    FdeliveryLocationGroup : string;
-    FdeliveryLocationId : string;
-    FdeliveryPostalCode : string;
+    FdeliveryLocationGroup : String;
+    FdeliveryLocationId : String;
+    FdeliveryPostalCode : String;
     FdeliveryPostalCodeRange : TAccountShippingPostalCodeRange;
     FpriceMax : TPrice;
-    FshippingLabel : string;
+    FshippingLabel : String;
     FweightMax : TWeight;
   Protected
     //Property setters
-    Procedure SetdeliveryLocationGroup(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdeliveryLocationId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdeliveryPostalCode(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdeliveryLocationGroup(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdeliveryLocationId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdeliveryPostalCode(AIndex : Integer; AValue : String); virtual;
     Procedure SetdeliveryPostalCodeRange(AIndex : Integer; AValue : TAccountShippingPostalCodeRange); virtual;
     Procedure SetpriceMax(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetshippingLabel(AIndex : Integer; AValue : string); virtual;
+    Procedure SetshippingLabel(AIndex : Integer; AValue : String); virtual;
     Procedure SetweightMax(AIndex : Integer; AValue : TWeight); virtual;
   Public
   Published
-    Property deliveryLocationGroup : string Index 0 Read FdeliveryLocationGroup Write SetdeliveryLocationGroup;
-    Property deliveryLocationId : string Index 8 Read FdeliveryLocationId Write SetdeliveryLocationId;
-    Property deliveryPostalCode : string Index 16 Read FdeliveryPostalCode Write SetdeliveryPostalCode;
+    Property deliveryLocationGroup : String Index 0 Read FdeliveryLocationGroup Write SetdeliveryLocationGroup;
+    Property deliveryLocationId : String Index 8 Read FdeliveryLocationId Write SetdeliveryLocationId;
+    Property deliveryPostalCode : String Index 16 Read FdeliveryPostalCode Write SetdeliveryPostalCode;
     Property deliveryPostalCodeRange : TAccountShippingPostalCodeRange Index 24 Read FdeliveryPostalCodeRange Write SetdeliveryPostalCodeRange;
     Property priceMax : TPrice Index 32 Read FpriceMax Write SetpriceMax;
-    Property shippingLabel : string Index 40 Read FshippingLabel Write SetshippingLabel;
+    Property shippingLabel : String Index 40 Read FshippingLabel Write SetshippingLabel;
     Property weightMax : TWeight Index 48 Read FweightMax Write SetweightMax;
   end;
   TAccountShippingConditionClass = Class of TAccountShippingCondition;
@@ -603,66 +448,27 @@ type
   
   TAccountShippingLocationGroup = Class(TGoogleBaseObject)
   Private
-    Fcountry : string;
-    FlocationIds : TAccountShippingLocationGrouplocationIds;
-    Fname : string;
-    FpostalCodeRanges : TAccountShippingLocationGrouppostalCodeRanges;
-    FpostalCodes : TAccountShippingLocationGrouppostalCodes;
+    Fcountry : String;
+    FlocationIds : TStringArray;
+    Fname : String;
+    FpostalCodeRanges : TAccountShippingLocationGroupTypepostalCodeRangesArray;
+    FpostalCodes : TStringArray;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlocationIds(AIndex : Integer; AValue : TAccountShippingLocationGrouplocationIds); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpostalCodeRanges(AIndex : Integer; AValue : TAccountShippingLocationGrouppostalCodeRanges); virtual;
-    Procedure SetpostalCodes(AIndex : Integer; AValue : TAccountShippingLocationGrouppostalCodes); virtual;
+    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlocationIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpostalCodeRanges(AIndex : Integer; AValue : TAccountShippingLocationGroupTypepostalCodeRangesArray); virtual;
+    Procedure SetpostalCodes(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property country : string Index 0 Read Fcountry Write Setcountry;
-    Property locationIds : TAccountShippingLocationGrouplocationIds Index 8 Read FlocationIds Write SetlocationIds;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property postalCodeRanges : TAccountShippingLocationGrouppostalCodeRanges Index 24 Read FpostalCodeRanges Write SetpostalCodeRanges;
-    Property postalCodes : TAccountShippingLocationGrouppostalCodes Index 32 Read FpostalCodes Write SetpostalCodes;
+    Property country : String Index 0 Read Fcountry Write Setcountry;
+    Property locationIds : TStringArray Index 8 Read FlocationIds Write SetlocationIds;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property postalCodeRanges : TAccountShippingLocationGroupTypepostalCodeRangesArray Index 24 Read FpostalCodeRanges Write SetpostalCodeRanges;
+    Property postalCodes : TStringArray Index 32 Read FpostalCodes Write SetpostalCodes;
   end;
   TAccountShippingLocationGroupClass = Class of TAccountShippingLocationGroup;
-  
-  { --------------------------------------------------------------------
-    TAccountShippingLocationGrouplocationIds
-    --------------------------------------------------------------------}
-  
-  TAccountShippingLocationGrouplocationIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountShippingLocationGrouplocationIdsClass = Class of TAccountShippingLocationGrouplocationIds;
-  
-  { --------------------------------------------------------------------
-    TAccountShippingLocationGrouppostalCodeRanges
-    --------------------------------------------------------------------}
-  
-  TAccountShippingLocationGrouppostalCodeRanges = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountShippingLocationGrouppostalCodeRangesClass = Class of TAccountShippingLocationGrouppostalCodeRanges;
-  
-  { --------------------------------------------------------------------
-    TAccountShippingLocationGrouppostalCodes
-    --------------------------------------------------------------------}
-  
-  TAccountShippingLocationGrouppostalCodes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountShippingLocationGrouppostalCodesClass = Class of TAccountShippingLocationGrouppostalCodes;
   
   { --------------------------------------------------------------------
     TAccountShippingPostalCodeRange
@@ -670,17 +476,17 @@ type
   
   TAccountShippingPostalCodeRange = Class(TGoogleBaseObject)
   Private
-    F_end : string;
-    Fstart : string;
+    F_end : String;
+    Fstart : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _end : string Index 0 Read F_end Write Set_end;
-    Property start : string Index 8 Read Fstart Write Setstart;
+    Property _end : String Index 0 Read F_end Write Set_end;
+    Property start : String Index 8 Read Fstart Write Setstart;
   end;
   TAccountShippingPostalCodeRangeClass = Class of TAccountShippingPostalCodeRange;
   
@@ -690,34 +496,21 @@ type
   
   TAccountShippingRateTable = Class(TGoogleBaseObject)
   Private
-    Fcontent : TAccountShippingRateTablecontent;
-    Fname : string;
-    FsaleCountry : string;
+    Fcontent : TAccountShippingRateTableTypecontentArray;
+    Fname : String;
+    FsaleCountry : String;
   Protected
     //Property setters
-    Procedure Setcontent(AIndex : Integer; AValue : TAccountShippingRateTablecontent); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsaleCountry(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcontent(AIndex : Integer; AValue : TAccountShippingRateTableTypecontentArray); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsaleCountry(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property content : TAccountShippingRateTablecontent Index 0 Read Fcontent Write Setcontent;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property saleCountry : string Index 16 Read FsaleCountry Write SetsaleCountry;
+    Property content : TAccountShippingRateTableTypecontentArray Index 0 Read Fcontent Write Setcontent;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property saleCountry : String Index 16 Read FsaleCountry Write SetsaleCountry;
   end;
   TAccountShippingRateTableClass = Class of TAccountShippingRateTable;
-  
-  { --------------------------------------------------------------------
-    TAccountShippingRateTablecontent
-    --------------------------------------------------------------------}
-  
-  TAccountShippingRateTablecontent = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountShippingRateTablecontentClass = Class of TAccountShippingRateTablecontent;
   
   { --------------------------------------------------------------------
     TAccountShippingRateTableCell
@@ -747,22 +540,22 @@ type
     Factive : boolean;
     FcalculationMethod : TAccountShippingShippingServiceCalculationMethod;
     FcostRuleTree : TAccountShippingShippingServiceCostRule;
-    Fname : string;
-    FsaleCountry : string;
+    Fname : String;
+    FsaleCountry : String;
   Protected
     //Property setters
     Procedure Setactive(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetcalculationMethod(AIndex : Integer; AValue : TAccountShippingShippingServiceCalculationMethod); virtual;
     Procedure SetcostRuleTree(AIndex : Integer; AValue : TAccountShippingShippingServiceCostRule); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsaleCountry(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsaleCountry(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property active : boolean Index 0 Read Factive Write Setactive;
     Property calculationMethod : TAccountShippingShippingServiceCalculationMethod Index 8 Read FcalculationMethod Write SetcalculationMethod;
     Property costRuleTree : TAccountShippingShippingServiceCostRule Index 16 Read FcostRuleTree Write SetcostRuleTree;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property saleCountry : string Index 32 Read FsaleCountry Write SetsaleCountry;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property saleCountry : String Index 32 Read FsaleCountry Write SetsaleCountry;
   end;
   TAccountShippingShippingServiceClass = Class of TAccountShippingShippingService;
   
@@ -772,25 +565,25 @@ type
   
   TAccountShippingShippingServiceCalculationMethod = Class(TGoogleBaseObject)
   Private
-    FcarrierRate : string;
+    FcarrierRate : String;
     Fexcluded : boolean;
     FflatRate : TPrice;
-    FpercentageRate : string;
-    FrateTable : string;
+    FpercentageRate : String;
+    FrateTable : String;
   Protected
     //Property setters
-    Procedure SetcarrierRate(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcarrierRate(AIndex : Integer; AValue : String); virtual;
     Procedure Setexcluded(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetflatRate(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetpercentageRate(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrateTable(AIndex : Integer; AValue : string); virtual;
+    Procedure SetpercentageRate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrateTable(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property carrierRate : string Index 0 Read FcarrierRate Write SetcarrierRate;
+    Property carrierRate : String Index 0 Read FcarrierRate Write SetcarrierRate;
     Property excluded : boolean Index 8 Read Fexcluded Write Setexcluded;
     Property flatRate : TPrice Index 16 Read FflatRate Write SetflatRate;
-    Property percentageRate : string Index 24 Read FpercentageRate Write SetpercentageRate;
-    Property rateTable : string Index 32 Read FrateTable Write SetrateTable;
+    Property percentageRate : String Index 24 Read FpercentageRate Write SetpercentageRate;
+    Property rateTable : String Index 32 Read FrateTable Write SetrateTable;
   end;
   TAccountShippingShippingServiceCalculationMethodClass = Class of TAccountShippingShippingServiceCalculationMethod;
   
@@ -801,33 +594,20 @@ type
   TAccountShippingShippingServiceCostRule = Class(TGoogleBaseObject)
   Private
     FcalculationMethod : TAccountShippingShippingServiceCalculationMethod;
-    Fchildren : TAccountShippingShippingServiceCostRulechildren;
+    Fchildren : TAccountShippingShippingServiceCostRuleTypechildrenArray;
     Fcondition : TAccountShippingCondition;
   Protected
     //Property setters
     Procedure SetcalculationMethod(AIndex : Integer; AValue : TAccountShippingShippingServiceCalculationMethod); virtual;
-    Procedure Setchildren(AIndex : Integer; AValue : TAccountShippingShippingServiceCostRulechildren); virtual;
+    Procedure Setchildren(AIndex : Integer; AValue : TAccountShippingShippingServiceCostRuleTypechildrenArray); virtual;
     Procedure Setcondition(AIndex : Integer; AValue : TAccountShippingCondition); virtual;
   Public
   Published
     Property calculationMethod : TAccountShippingShippingServiceCalculationMethod Index 0 Read FcalculationMethod Write SetcalculationMethod;
-    Property children : TAccountShippingShippingServiceCostRulechildren Index 8 Read Fchildren Write Setchildren;
+    Property children : TAccountShippingShippingServiceCostRuleTypechildrenArray Index 8 Read Fchildren Write Setchildren;
     Property condition : TAccountShippingCondition Index 16 Read Fcondition Write Setcondition;
   end;
   TAccountShippingShippingServiceCostRuleClass = Class of TAccountShippingShippingServiceCostRule;
-  
-  { --------------------------------------------------------------------
-    TAccountShippingShippingServiceCostRulechildren
-    --------------------------------------------------------------------}
-  
-  TAccountShippingShippingServiceCostRulechildren = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountShippingShippingServiceCostRulechildrenClass = Class of TAccountShippingShippingServiceCostRulechildren;
   
   { --------------------------------------------------------------------
     TAccountStatus
@@ -835,34 +615,21 @@ type
   
   TAccountStatus = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
-    FdataQualityIssues : TAccountStatusdataQualityIssues;
-    Fkind : string;
+    FaccountId : String;
+    FdataQualityIssues : TAccountStatusTypedataQualityIssuesArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdataQualityIssues(AIndex : Integer; AValue : TAccountStatusdataQualityIssues); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdataQualityIssues(AIndex : Integer; AValue : TAccountStatusTypedataQualityIssuesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
-    Property dataQualityIssues : TAccountStatusdataQualityIssues Index 8 Read FdataQualityIssues Write SetdataQualityIssues;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property dataQualityIssues : TAccountStatusTypedataQualityIssuesArray Index 8 Read FdataQualityIssues Write SetdataQualityIssues;
+    Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TAccountStatusClass = Class of TAccountStatus;
-  
-  { --------------------------------------------------------------------
-    TAccountStatusdataQualityIssues
-    --------------------------------------------------------------------}
-  
-  TAccountStatusdataQualityIssues = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountStatusdataQualityIssuesClass = Class of TAccountStatusdataQualityIssues;
   
   { --------------------------------------------------------------------
     TAccountStatusDataQualityIssue
@@ -870,49 +637,36 @@ type
   
   TAccountStatusDataQualityIssue = Class(TGoogleBaseObject)
   Private
-    Fcountry : string;
-    FdisplayedValue : string;
-    FexampleItems : TAccountStatusDataQualityIssueexampleItems;
-    Fid : string;
-    FlastChecked : string;
+    Fcountry : String;
+    FdisplayedValue : String;
+    FexampleItems : TAccountStatusDataQualityIssueTypeexampleItemsArray;
+    Fid : String;
+    FlastChecked : String;
     FnumItems : integer;
-    Fseverity : string;
-    FsubmittedValue : string;
+    Fseverity : String;
+    FsubmittedValue : String;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdisplayedValue(AIndex : Integer; AValue : string); virtual;
-    Procedure SetexampleItems(AIndex : Integer; AValue : TAccountStatusDataQualityIssueexampleItems); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlastChecked(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayedValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexampleItems(AIndex : Integer; AValue : TAccountStatusDataQualityIssueTypeexampleItemsArray); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastChecked(AIndex : Integer; AValue : String); virtual;
     Procedure SetnumItems(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setseverity(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsubmittedValue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setseverity(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsubmittedValue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property country : string Index 0 Read Fcountry Write Setcountry;
-    Property displayedValue : string Index 8 Read FdisplayedValue Write SetdisplayedValue;
-    Property exampleItems : TAccountStatusDataQualityIssueexampleItems Index 16 Read FexampleItems Write SetexampleItems;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property lastChecked : string Index 32 Read FlastChecked Write SetlastChecked;
+    Property country : String Index 0 Read Fcountry Write Setcountry;
+    Property displayedValue : String Index 8 Read FdisplayedValue Write SetdisplayedValue;
+    Property exampleItems : TAccountStatusDataQualityIssueTypeexampleItemsArray Index 16 Read FexampleItems Write SetexampleItems;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property lastChecked : String Index 32 Read FlastChecked Write SetlastChecked;
     Property numItems : integer Index 40 Read FnumItems Write SetnumItems;
-    Property severity : string Index 48 Read Fseverity Write Setseverity;
-    Property submittedValue : string Index 56 Read FsubmittedValue Write SetsubmittedValue;
+    Property severity : String Index 48 Read Fseverity Write Setseverity;
+    Property submittedValue : String Index 56 Read FsubmittedValue Write SetsubmittedValue;
   end;
   TAccountStatusDataQualityIssueClass = Class of TAccountStatusDataQualityIssue;
-  
-  { --------------------------------------------------------------------
-    TAccountStatusDataQualityIssueexampleItems
-    --------------------------------------------------------------------}
-  
-  TAccountStatusDataQualityIssueexampleItems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountStatusDataQualityIssueexampleItemsClass = Class of TAccountStatusDataQualityIssueexampleItems;
   
   { --------------------------------------------------------------------
     TAccountStatusExampleItem
@@ -920,25 +674,25 @@ type
   
   TAccountStatusExampleItem = Class(TGoogleBaseObject)
   Private
-    FitemId : string;
-    Flink : string;
-    FsubmittedValue : string;
-    Ftitle : string;
-    FvalueOnLandingPage : string;
+    FitemId : String;
+    Flink : String;
+    FsubmittedValue : String;
+    Ftitle : String;
+    FvalueOnLandingPage : String;
   Protected
     //Property setters
-    Procedure SetitemId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsubmittedValue(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvalueOnLandingPage(AIndex : Integer; AValue : string); virtual;
+    Procedure SetitemId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsubmittedValue(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvalueOnLandingPage(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property itemId : string Index 0 Read FitemId Write SetitemId;
-    Property link : string Index 8 Read Flink Write Setlink;
-    Property submittedValue : string Index 16 Read FsubmittedValue Write SetsubmittedValue;
-    Property title : string Index 24 Read Ftitle Write Settitle;
-    Property valueOnLandingPage : string Index 32 Read FvalueOnLandingPage Write SetvalueOnLandingPage;
+    Property itemId : String Index 0 Read FitemId Write SetitemId;
+    Property link : String Index 8 Read Flink Write Setlink;
+    Property submittedValue : String Index 16 Read FsubmittedValue Write SetsubmittedValue;
+    Property title : String Index 24 Read Ftitle Write Settitle;
+    Property valueOnLandingPage : String Index 32 Read FvalueOnLandingPage Write SetvalueOnLandingPage;
   end;
   TAccountStatusExampleItemClass = Class of TAccountStatusExampleItem;
   
@@ -948,34 +702,21 @@ type
   
   TAccountTax = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
-    Fkind : string;
-    Frules : TAccountTaxrules;
+    FaccountId : String;
+    Fkind : String;
+    Frules : TAccountTaxTyperulesArray;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrules(AIndex : Integer; AValue : TAccountTaxrules); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrules(AIndex : Integer; AValue : TAccountTaxTyperulesArray); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property rules : TAccountTaxrules Index 16 Read Frules Write Setrules;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property rules : TAccountTaxTyperulesArray Index 16 Read Frules Write Setrules;
   end;
   TAccountTaxClass = Class of TAccountTax;
-  
-  { --------------------------------------------------------------------
-    TAccountTaxrules
-    --------------------------------------------------------------------}
-  
-  TAccountTaxrules = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountTaxrulesClass = Class of TAccountTaxrules;
   
   { --------------------------------------------------------------------
     TAccountTaxTaxRule
@@ -983,23 +724,23 @@ type
   
   TAccountTaxTaxRule = Class(TGoogleBaseObject)
   Private
-    Fcountry : string;
-    FlocationId : string;
-    FratePercent : string;
+    Fcountry : String;
+    FlocationId : String;
+    FratePercent : String;
     FshippingTaxed : boolean;
     FuseGlobalRate : boolean;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlocationId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetratePercent(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlocationId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetratePercent(AIndex : Integer; AValue : String); virtual;
     Procedure SetshippingTaxed(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetuseGlobalRate(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property country : string Index 0 Read Fcountry Write Setcountry;
-    Property locationId : string Index 8 Read FlocationId Write SetlocationId;
-    Property ratePercent : string Index 16 Read FratePercent Write SetratePercent;
+    Property country : String Index 0 Read Fcountry Write Setcountry;
+    Property locationId : String Index 8 Read FlocationId Write SetlocationId;
+    Property ratePercent : String Index 16 Read FratePercent Write SetratePercent;
     Property shippingTaxed : boolean Index 24 Read FshippingTaxed Write SetshippingTaxed;
     Property useGlobalRate : boolean Index 32 Read FuseGlobalRate Write SetuseGlobalRate;
   end;
@@ -1012,15 +753,15 @@ type
   TAccountUser = Class(TGoogleBaseObject)
   Private
     Fadmin : boolean;
-    FemailAddress : string;
+    FemailAddress : String;
   Protected
     //Property setters
     Procedure Setadmin(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetemailAddress(AIndex : Integer; AValue : string); virtual;
+    Procedure SetemailAddress(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property admin : boolean Index 0 Read Fadmin Write Setadmin;
-    Property emailAddress : string Index 8 Read FemailAddress Write SetemailAddress;
+    Property emailAddress : String Index 8 Read FemailAddress Write SetemailAddress;
   end;
   TAccountUserClass = Class of TAccountUser;
   
@@ -1030,31 +771,18 @@ type
   
   TAccountsAuthInfoResponse = Class(TGoogleBaseObject)
   Private
-    FaccountIdentifiers : TAccountsAuthInfoResponseaccountIdentifiers;
-    Fkind : string;
+    FaccountIdentifiers : TAccountsAuthInfoResponseTypeaccountIdentifiersArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetaccountIdentifiers(AIndex : Integer; AValue : TAccountsAuthInfoResponseaccountIdentifiers); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountIdentifiers(AIndex : Integer; AValue : TAccountsAuthInfoResponseTypeaccountIdentifiersArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountIdentifiers : TAccountsAuthInfoResponseaccountIdentifiers Index 0 Read FaccountIdentifiers Write SetaccountIdentifiers;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property accountIdentifiers : TAccountsAuthInfoResponseTypeaccountIdentifiersArray Index 0 Read FaccountIdentifiers Write SetaccountIdentifiers;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAccountsAuthInfoResponseClass = Class of TAccountsAuthInfoResponse;
-  
-  { --------------------------------------------------------------------
-    TAccountsAuthInfoResponseaccountIdentifiers
-    --------------------------------------------------------------------}
-  
-  TAccountsAuthInfoResponseaccountIdentifiers = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountsAuthInfoResponseaccountIdentifiersClass = Class of TAccountsAuthInfoResponseaccountIdentifiers;
   
   { --------------------------------------------------------------------
     TAccountsCustomBatchRequest
@@ -1062,28 +790,15 @@ type
   
   TAccountsCustomBatchRequest = Class(TGoogleBaseObject)
   Private
-    Fentries : TAccountsCustomBatchRequestentries;
+    Fentries : TAccountsCustomBatchRequestTypeentriesArray;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TAccountsCustomBatchRequestentries); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TAccountsCustomBatchRequestTypeentriesArray); virtual;
   Public
   Published
-    Property entries : TAccountsCustomBatchRequestentries Index 0 Read Fentries Write Setentries;
+    Property entries : TAccountsCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
   end;
   TAccountsCustomBatchRequestClass = Class of TAccountsCustomBatchRequest;
-  
-  { --------------------------------------------------------------------
-    TAccountsCustomBatchRequestentries
-    --------------------------------------------------------------------}
-  
-  TAccountsCustomBatchRequestentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountsCustomBatchRequestentriesClass = Class of TAccountsCustomBatchRequestentries;
   
   { --------------------------------------------------------------------
     TAccountsCustomBatchRequestEntry
@@ -1092,24 +807,24 @@ type
   TAccountsCustomBatchRequestEntry = Class(TGoogleBaseObject)
   Private
     Faccount : TAccount;
-    FaccountId : string;
+    FaccountId : String;
     FbatchId : integer;
-    FmerchantId : string;
-    Fmethod : string;
+    FmerchantId : String;
+    Fmethod : String;
   Protected
     //Property setters
     Procedure Setaccount(AIndex : Integer; AValue : TAccount); virtual;
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property account : TAccount Index 0 Read Faccount Write Setaccount;
-    Property accountId : string Index 8 Read FaccountId Write SetaccountId;
+    Property accountId : String Index 8 Read FaccountId Write SetaccountId;
     Property batchId : integer Index 16 Read FbatchId Write SetbatchId;
-    Property merchantId : string Index 24 Read FmerchantId Write SetmerchantId;
-    Property method : string Index 32 Read Fmethod Write Setmethod;
+    Property merchantId : String Index 24 Read FmerchantId Write SetmerchantId;
+    Property method : String Index 32 Read Fmethod Write Setmethod;
   end;
   TAccountsCustomBatchRequestEntryClass = Class of TAccountsCustomBatchRequestEntry;
   
@@ -1119,31 +834,18 @@ type
   
   TAccountsCustomBatchResponse = Class(TGoogleBaseObject)
   Private
-    Fentries : TAccountsCustomBatchResponseentries;
-    Fkind : string;
+    Fentries : TAccountsCustomBatchResponseTypeentriesArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TAccountsCustomBatchResponseentries); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TAccountsCustomBatchResponseTypeentriesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property entries : TAccountsCustomBatchResponseentries Index 0 Read Fentries Write Setentries;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property entries : TAccountsCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAccountsCustomBatchResponseClass = Class of TAccountsCustomBatchResponse;
-  
-  { --------------------------------------------------------------------
-    TAccountsCustomBatchResponseentries
-    --------------------------------------------------------------------}
-  
-  TAccountsCustomBatchResponseentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountsCustomBatchResponseentriesClass = Class of TAccountsCustomBatchResponseentries;
   
   { --------------------------------------------------------------------
     TAccountsCustomBatchResponseEntry
@@ -1153,20 +855,20 @@ type
   Private
     Faccount : TAccount;
     FbatchId : integer;
-    Ferrors : TDatafeedStatuserrors;
-    Fkind : string;
+    Ferrors : TErrors;
+    Fkind : String;
   Protected
     //Property setters
     Procedure Setaccount(AIndex : Integer; AValue : TAccount); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property account : TAccount Index 0 Read Faccount Write Setaccount;
     Property batchId : integer Index 8 Read FbatchId Write SetbatchId;
-    Property errors : TDatafeedStatuserrors Index 16 Read Ferrors Write Seterrors;
-    Property kind : string Index 24 Read Fkind Write Setkind;
+    Property errors : TErrors Index 16 Read Ferrors Write Seterrors;
+    Property kind : String Index 24 Read Fkind Write Setkind;
   end;
   TAccountsCustomBatchResponseEntryClass = Class of TAccountsCustomBatchResponseEntry;
   
@@ -1176,34 +878,21 @@ type
   
   TAccountsListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
-    Fresources : TAccountsListResponseresources;
+    Fkind : String;
+    FnextPageToken : String;
+    Fresources : TAccountsListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TAccountsListResponseresources); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresources(AIndex : Integer; AValue : TAccountsListResponseTyperesourcesArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
-    Property resources : TAccountsListResponseresources Index 16 Read Fresources Write Setresources;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property resources : TAccountsListResponseTyperesourcesArray Index 16 Read Fresources Write Setresources;
   end;
   TAccountsListResponseClass = Class of TAccountsListResponse;
-  
-  { --------------------------------------------------------------------
-    TAccountsListResponseresources
-    --------------------------------------------------------------------}
-  
-  TAccountsListResponseresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountsListResponseresourcesClass = Class of TAccountsListResponseresources;
   
   { --------------------------------------------------------------------
     TAccountshippingCustomBatchRequest
@@ -1211,28 +900,15 @@ type
   
   TAccountshippingCustomBatchRequest = Class(TGoogleBaseObject)
   Private
-    Fentries : TAccountshippingCustomBatchRequestentries;
+    Fentries : TAccountshippingCustomBatchRequestTypeentriesArray;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TAccountshippingCustomBatchRequestentries); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TAccountshippingCustomBatchRequestTypeentriesArray); virtual;
   Public
   Published
-    Property entries : TAccountshippingCustomBatchRequestentries Index 0 Read Fentries Write Setentries;
+    Property entries : TAccountshippingCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
   end;
   TAccountshippingCustomBatchRequestClass = Class of TAccountshippingCustomBatchRequest;
-  
-  { --------------------------------------------------------------------
-    TAccountshippingCustomBatchRequestentries
-    --------------------------------------------------------------------}
-  
-  TAccountshippingCustomBatchRequestentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountshippingCustomBatchRequestentriesClass = Class of TAccountshippingCustomBatchRequestentries;
   
   { --------------------------------------------------------------------
     TAccountshippingCustomBatchRequestEntry
@@ -1240,25 +916,25 @@ type
   
   TAccountshippingCustomBatchRequestEntry = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
+    FaccountId : String;
     FaccountShipping : TAccountShipping;
     FbatchId : integer;
-    FmerchantId : string;
-    Fmethod : string;
+    FmerchantId : String;
+    Fmethod : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
     Procedure SetaccountShipping(AIndex : Integer; AValue : TAccountShipping); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
     Property accountShipping : TAccountShipping Index 8 Read FaccountShipping Write SetaccountShipping;
     Property batchId : integer Index 16 Read FbatchId Write SetbatchId;
-    Property merchantId : string Index 24 Read FmerchantId Write SetmerchantId;
-    Property method : string Index 32 Read Fmethod Write Setmethod;
+    Property merchantId : String Index 24 Read FmerchantId Write SetmerchantId;
+    Property method : String Index 32 Read Fmethod Write Setmethod;
   end;
   TAccountshippingCustomBatchRequestEntryClass = Class of TAccountshippingCustomBatchRequestEntry;
   
@@ -1268,31 +944,18 @@ type
   
   TAccountshippingCustomBatchResponse = Class(TGoogleBaseObject)
   Private
-    Fentries : TAccountshippingCustomBatchResponseentries;
-    Fkind : string;
+    Fentries : TAccountshippingCustomBatchResponseTypeentriesArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TAccountshippingCustomBatchResponseentries); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TAccountshippingCustomBatchResponseTypeentriesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property entries : TAccountshippingCustomBatchResponseentries Index 0 Read Fentries Write Setentries;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property entries : TAccountshippingCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAccountshippingCustomBatchResponseClass = Class of TAccountshippingCustomBatchResponse;
-  
-  { --------------------------------------------------------------------
-    TAccountshippingCustomBatchResponseentries
-    --------------------------------------------------------------------}
-  
-  TAccountshippingCustomBatchResponseentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountshippingCustomBatchResponseentriesClass = Class of TAccountshippingCustomBatchResponseentries;
   
   { --------------------------------------------------------------------
     TAccountshippingCustomBatchResponseEntry
@@ -1302,20 +965,20 @@ type
   Private
     FaccountShipping : TAccountShipping;
     FbatchId : integer;
-    Ferrors : TDatafeedStatuserrors;
-    Fkind : string;
+    Ferrors : TErrors;
+    Fkind : String;
   Protected
     //Property setters
     Procedure SetaccountShipping(AIndex : Integer; AValue : TAccountShipping); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property accountShipping : TAccountShipping Index 0 Read FaccountShipping Write SetaccountShipping;
     Property batchId : integer Index 8 Read FbatchId Write SetbatchId;
-    Property errors : TDatafeedStatuserrors Index 16 Read Ferrors Write Seterrors;
-    Property kind : string Index 24 Read Fkind Write Setkind;
+    Property errors : TErrors Index 16 Read Ferrors Write Seterrors;
+    Property kind : String Index 24 Read Fkind Write Setkind;
   end;
   TAccountshippingCustomBatchResponseEntryClass = Class of TAccountshippingCustomBatchResponseEntry;
   
@@ -1325,34 +988,21 @@ type
   
   TAccountshippingListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
-    Fresources : TAccountshippingListResponseresources;
+    Fkind : String;
+    FnextPageToken : String;
+    Fresources : TAccountshippingListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TAccountshippingListResponseresources); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresources(AIndex : Integer; AValue : TAccountshippingListResponseTyperesourcesArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
-    Property resources : TAccountshippingListResponseresources Index 16 Read Fresources Write Setresources;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property resources : TAccountshippingListResponseTyperesourcesArray Index 16 Read Fresources Write Setresources;
   end;
   TAccountshippingListResponseClass = Class of TAccountshippingListResponse;
-  
-  { --------------------------------------------------------------------
-    TAccountshippingListResponseresources
-    --------------------------------------------------------------------}
-  
-  TAccountshippingListResponseresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountshippingListResponseresourcesClass = Class of TAccountshippingListResponseresources;
   
   { --------------------------------------------------------------------
     TAccountstatusesCustomBatchRequest
@@ -1360,28 +1010,15 @@ type
   
   TAccountstatusesCustomBatchRequest = Class(TGoogleBaseObject)
   Private
-    Fentries : TAccountstatusesCustomBatchRequestentries;
+    Fentries : TAccountstatusesCustomBatchRequestTypeentriesArray;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TAccountstatusesCustomBatchRequestentries); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TAccountstatusesCustomBatchRequestTypeentriesArray); virtual;
   Public
   Published
-    Property entries : TAccountstatusesCustomBatchRequestentries Index 0 Read Fentries Write Setentries;
+    Property entries : TAccountstatusesCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
   end;
   TAccountstatusesCustomBatchRequestClass = Class of TAccountstatusesCustomBatchRequest;
-  
-  { --------------------------------------------------------------------
-    TAccountstatusesCustomBatchRequestentries
-    --------------------------------------------------------------------}
-  
-  TAccountstatusesCustomBatchRequestentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountstatusesCustomBatchRequestentriesClass = Class of TAccountstatusesCustomBatchRequestentries;
   
   { --------------------------------------------------------------------
     TAccountstatusesCustomBatchRequestEntry
@@ -1389,22 +1026,22 @@ type
   
   TAccountstatusesCustomBatchRequestEntry = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
+    FaccountId : String;
     FbatchId : integer;
-    FmerchantId : string;
-    Fmethod : string;
+    FmerchantId : String;
+    Fmethod : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
     Property batchId : integer Index 8 Read FbatchId Write SetbatchId;
-    Property merchantId : string Index 16 Read FmerchantId Write SetmerchantId;
-    Property method : string Index 24 Read Fmethod Write Setmethod;
+    Property merchantId : String Index 16 Read FmerchantId Write SetmerchantId;
+    Property method : String Index 24 Read Fmethod Write Setmethod;
   end;
   TAccountstatusesCustomBatchRequestEntryClass = Class of TAccountstatusesCustomBatchRequestEntry;
   
@@ -1414,31 +1051,18 @@ type
   
   TAccountstatusesCustomBatchResponse = Class(TGoogleBaseObject)
   Private
-    Fentries : TAccountstatusesCustomBatchResponseentries;
-    Fkind : string;
+    Fentries : TAccountstatusesCustomBatchResponseTypeentriesArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TAccountstatusesCustomBatchResponseentries); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TAccountstatusesCustomBatchResponseTypeentriesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property entries : TAccountstatusesCustomBatchResponseentries Index 0 Read Fentries Write Setentries;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property entries : TAccountstatusesCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAccountstatusesCustomBatchResponseClass = Class of TAccountstatusesCustomBatchResponse;
-  
-  { --------------------------------------------------------------------
-    TAccountstatusesCustomBatchResponseentries
-    --------------------------------------------------------------------}
-  
-  TAccountstatusesCustomBatchResponseentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountstatusesCustomBatchResponseentriesClass = Class of TAccountstatusesCustomBatchResponseentries;
   
   { --------------------------------------------------------------------
     TAccountstatusesCustomBatchResponseEntry
@@ -1448,17 +1072,17 @@ type
   Private
     FaccountStatus : TAccountStatus;
     FbatchId : integer;
-    Ferrors : TDatafeedStatuserrors;
+    Ferrors : TErrors;
   Protected
     //Property setters
     Procedure SetaccountStatus(AIndex : Integer; AValue : TAccountStatus); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
   Public
   Published
     Property accountStatus : TAccountStatus Index 0 Read FaccountStatus Write SetaccountStatus;
     Property batchId : integer Index 8 Read FbatchId Write SetbatchId;
-    Property errors : TDatafeedStatuserrors Index 16 Read Ferrors Write Seterrors;
+    Property errors : TErrors Index 16 Read Ferrors Write Seterrors;
   end;
   TAccountstatusesCustomBatchResponseEntryClass = Class of TAccountstatusesCustomBatchResponseEntry;
   
@@ -1468,34 +1092,21 @@ type
   
   TAccountstatusesListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
-    Fresources : TAccountstatusesListResponseresources;
+    Fkind : String;
+    FnextPageToken : String;
+    Fresources : TAccountstatusesListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TAccountstatusesListResponseresources); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresources(AIndex : Integer; AValue : TAccountstatusesListResponseTyperesourcesArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
-    Property resources : TAccountstatusesListResponseresources Index 16 Read Fresources Write Setresources;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property resources : TAccountstatusesListResponseTyperesourcesArray Index 16 Read Fresources Write Setresources;
   end;
   TAccountstatusesListResponseClass = Class of TAccountstatusesListResponse;
-  
-  { --------------------------------------------------------------------
-    TAccountstatusesListResponseresources
-    --------------------------------------------------------------------}
-  
-  TAccountstatusesListResponseresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountstatusesListResponseresourcesClass = Class of TAccountstatusesListResponseresources;
   
   { --------------------------------------------------------------------
     TAccounttaxCustomBatchRequest
@@ -1503,28 +1114,15 @@ type
   
   TAccounttaxCustomBatchRequest = Class(TGoogleBaseObject)
   Private
-    Fentries : TAccounttaxCustomBatchRequestentries;
+    Fentries : TAccounttaxCustomBatchRequestTypeentriesArray;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TAccounttaxCustomBatchRequestentries); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TAccounttaxCustomBatchRequestTypeentriesArray); virtual;
   Public
   Published
-    Property entries : TAccounttaxCustomBatchRequestentries Index 0 Read Fentries Write Setentries;
+    Property entries : TAccounttaxCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
   end;
   TAccounttaxCustomBatchRequestClass = Class of TAccounttaxCustomBatchRequest;
-  
-  { --------------------------------------------------------------------
-    TAccounttaxCustomBatchRequestentries
-    --------------------------------------------------------------------}
-  
-  TAccounttaxCustomBatchRequestentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccounttaxCustomBatchRequestentriesClass = Class of TAccounttaxCustomBatchRequestentries;
   
   { --------------------------------------------------------------------
     TAccounttaxCustomBatchRequestEntry
@@ -1532,25 +1130,25 @@ type
   
   TAccounttaxCustomBatchRequestEntry = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
+    FaccountId : String;
     FaccountTax : TAccountTax;
     FbatchId : integer;
-    FmerchantId : string;
-    Fmethod : string;
+    FmerchantId : String;
+    Fmethod : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
     Procedure SetaccountTax(AIndex : Integer; AValue : TAccountTax); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
     Property accountTax : TAccountTax Index 8 Read FaccountTax Write SetaccountTax;
     Property batchId : integer Index 16 Read FbatchId Write SetbatchId;
-    Property merchantId : string Index 24 Read FmerchantId Write SetmerchantId;
-    Property method : string Index 32 Read Fmethod Write Setmethod;
+    Property merchantId : String Index 24 Read FmerchantId Write SetmerchantId;
+    Property method : String Index 32 Read Fmethod Write Setmethod;
   end;
   TAccounttaxCustomBatchRequestEntryClass = Class of TAccounttaxCustomBatchRequestEntry;
   
@@ -1560,31 +1158,18 @@ type
   
   TAccounttaxCustomBatchResponse = Class(TGoogleBaseObject)
   Private
-    Fentries : TAccounttaxCustomBatchResponseentries;
-    Fkind : string;
+    Fentries : TAccounttaxCustomBatchResponseTypeentriesArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TAccounttaxCustomBatchResponseentries); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TAccounttaxCustomBatchResponseTypeentriesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property entries : TAccounttaxCustomBatchResponseentries Index 0 Read Fentries Write Setentries;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property entries : TAccounttaxCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAccounttaxCustomBatchResponseClass = Class of TAccounttaxCustomBatchResponse;
-  
-  { --------------------------------------------------------------------
-    TAccounttaxCustomBatchResponseentries
-    --------------------------------------------------------------------}
-  
-  TAccounttaxCustomBatchResponseentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccounttaxCustomBatchResponseentriesClass = Class of TAccounttaxCustomBatchResponseentries;
   
   { --------------------------------------------------------------------
     TAccounttaxCustomBatchResponseEntry
@@ -1594,20 +1179,20 @@ type
   Private
     FaccountTax : TAccountTax;
     FbatchId : integer;
-    Ferrors : TDatafeedStatuserrors;
-    Fkind : string;
+    Ferrors : TErrors;
+    Fkind : String;
   Protected
     //Property setters
     Procedure SetaccountTax(AIndex : Integer; AValue : TAccountTax); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property accountTax : TAccountTax Index 0 Read FaccountTax Write SetaccountTax;
     Property batchId : integer Index 8 Read FbatchId Write SetbatchId;
-    Property errors : TDatafeedStatuserrors Index 16 Read Ferrors Write Seterrors;
-    Property kind : string Index 24 Read Fkind Write Setkind;
+    Property errors : TErrors Index 16 Read Ferrors Write Seterrors;
+    Property kind : String Index 24 Read Fkind Write Setkind;
   end;
   TAccounttaxCustomBatchResponseEntryClass = Class of TAccounttaxCustomBatchResponseEntry;
   
@@ -1617,34 +1202,21 @@ type
   
   TAccounttaxListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
-    Fresources : TAccounttaxListResponseresources;
+    Fkind : String;
+    FnextPageToken : String;
+    Fresources : TAccounttaxListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TAccounttaxListResponseresources); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresources(AIndex : Integer; AValue : TAccounttaxListResponseTyperesourcesArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
-    Property resources : TAccounttaxListResponseresources Index 16 Read Fresources Write Setresources;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property resources : TAccounttaxListResponseTyperesourcesArray Index 16 Read Fresources Write Setresources;
   end;
   TAccounttaxListResponseClass = Class of TAccounttaxListResponse;
-  
-  { --------------------------------------------------------------------
-    TAccounttaxListResponseresources
-    --------------------------------------------------------------------}
-  
-  TAccounttaxListResponseresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccounttaxListResponseresourcesClass = Class of TAccounttaxListResponseresources;
   
   { --------------------------------------------------------------------
     TDatafeed
@@ -1652,58 +1224,45 @@ type
   
   TDatafeed = Class(TGoogleBaseObject)
   Private
-    FattributeLanguage : string;
-    FcontentLanguage : string;
-    FcontentType : string;
+    FattributeLanguage : String;
+    FcontentLanguage : String;
+    FcontentType : String;
     FfetchSchedule : TDatafeedFetchSchedule;
-    FfileName : string;
+    FfileName : String;
     Fformat : TDatafeedFormat;
-    Fid : string;
-    FintendedDestinations : TDatafeedintendedDestinations;
-    Fkind : string;
-    Fname : string;
-    FtargetCountry : string;
+    Fid : String;
+    FintendedDestinations : TStringArray;
+    Fkind : String;
+    Fname : String;
+    FtargetCountry : String;
   Protected
     //Property setters
-    Procedure SetattributeLanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontentLanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontentType(AIndex : Integer; AValue : string); virtual;
+    Procedure SetattributeLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontentLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontentType(AIndex : Integer; AValue : String); virtual;
     Procedure SetfetchSchedule(AIndex : Integer; AValue : TDatafeedFetchSchedule); virtual;
-    Procedure SetfileName(AIndex : Integer; AValue : string); virtual;
+    Procedure SetfileName(AIndex : Integer; AValue : String); virtual;
     Procedure Setformat(AIndex : Integer; AValue : TDatafeedFormat); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetintendedDestinations(AIndex : Integer; AValue : TDatafeedintendedDestinations); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetCountry(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetintendedDestinations(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SettargetCountry(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property attributeLanguage : string Index 0 Read FattributeLanguage Write SetattributeLanguage;
-    Property contentLanguage : string Index 8 Read FcontentLanguage Write SetcontentLanguage;
-    Property contentType : string Index 16 Read FcontentType Write SetcontentType;
+    Property attributeLanguage : String Index 0 Read FattributeLanguage Write SetattributeLanguage;
+    Property contentLanguage : String Index 8 Read FcontentLanguage Write SetcontentLanguage;
+    Property contentType : String Index 16 Read FcontentType Write SetcontentType;
     Property fetchSchedule : TDatafeedFetchSchedule Index 24 Read FfetchSchedule Write SetfetchSchedule;
-    Property fileName : string Index 32 Read FfileName Write SetfileName;
+    Property fileName : String Index 32 Read FfileName Write SetfileName;
     Property format : TDatafeedFormat Index 40 Read Fformat Write Setformat;
-    Property id : string Index 48 Read Fid Write Setid;
-    Property intendedDestinations : TDatafeedintendedDestinations Index 56 Read FintendedDestinations Write SetintendedDestinations;
-    Property kind : string Index 64 Read Fkind Write Setkind;
-    Property name : string Index 72 Read Fname Write Setname;
-    Property targetCountry : string Index 80 Read FtargetCountry Write SettargetCountry;
+    Property id : String Index 48 Read Fid Write Setid;
+    Property intendedDestinations : TStringArray Index 56 Read FintendedDestinations Write SetintendedDestinations;
+    Property kind : String Index 64 Read Fkind Write Setkind;
+    Property name : String Index 72 Read Fname Write Setname;
+    Property targetCountry : String Index 80 Read FtargetCountry Write SettargetCountry;
   end;
   TDatafeedClass = Class of TDatafeed;
-  
-  { --------------------------------------------------------------------
-    TDatafeedintendedDestinations
-    --------------------------------------------------------------------}
-  
-  TDatafeedintendedDestinations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatafeedintendedDestinationsClass = Class of TDatafeedintendedDestinations;
   
   { --------------------------------------------------------------------
     TDatafeedFetchSchedule
@@ -1712,30 +1271,30 @@ type
   TDatafeedFetchSchedule = Class(TGoogleBaseObject)
   Private
     FdayOfMonth : integer;
-    FfetchUrl : string;
+    FfetchUrl : String;
     Fhour : integer;
-    Fpassword : string;
-    FtimeZone : string;
-    Fusername : string;
-    Fweekday : string;
+    Fpassword : String;
+    FtimeZone : String;
+    Fusername : String;
+    Fweekday : String;
   Protected
     //Property setters
     Procedure SetdayOfMonth(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetfetchUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetfetchUrl(AIndex : Integer; AValue : String); virtual;
     Procedure Sethour(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setpassword(AIndex : Integer; AValue : string); virtual;
-    Procedure SettimeZone(AIndex : Integer; AValue : string); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : string); virtual;
-    Procedure Setweekday(AIndex : Integer; AValue : string); virtual;
+    Procedure Setpassword(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimeZone(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setweekday(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property dayOfMonth : integer Index 0 Read FdayOfMonth Write SetdayOfMonth;
-    Property fetchUrl : string Index 8 Read FfetchUrl Write SetfetchUrl;
+    Property fetchUrl : String Index 8 Read FfetchUrl Write SetfetchUrl;
     Property hour : integer Index 16 Read Fhour Write Sethour;
-    Property password : string Index 24 Read Fpassword Write Setpassword;
-    Property timeZone : string Index 32 Read FtimeZone Write SettimeZone;
-    Property username : string Index 40 Read Fusername Write Setusername;
-    Property weekday : string Index 48 Read Fweekday Write Setweekday;
+    Property password : String Index 24 Read Fpassword Write Setpassword;
+    Property timeZone : String Index 32 Read FtimeZone Write SettimeZone;
+    Property username : String Index 40 Read Fusername Write Setusername;
+    Property weekday : String Index 48 Read Fweekday Write Setweekday;
   end;
   TDatafeedFetchScheduleClass = Class of TDatafeedFetchSchedule;
   
@@ -1745,19 +1304,19 @@ type
   
   TDatafeedFormat = Class(TGoogleBaseObject)
   Private
-    FcolumnDelimiter : string;
-    FfileEncoding : string;
-    FquotingMode : string;
+    FcolumnDelimiter : String;
+    FfileEncoding : String;
+    FquotingMode : String;
   Protected
     //Property setters
-    Procedure SetcolumnDelimiter(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfileEncoding(AIndex : Integer; AValue : string); virtual;
-    Procedure SetquotingMode(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcolumnDelimiter(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfileEncoding(AIndex : Integer; AValue : String); virtual;
+    Procedure SetquotingMode(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property columnDelimiter : string Index 0 Read FcolumnDelimiter Write SetcolumnDelimiter;
-    Property fileEncoding : string Index 8 Read FfileEncoding Write SetfileEncoding;
-    Property quotingMode : string Index 16 Read FquotingMode Write SetquotingMode;
+    Property columnDelimiter : String Index 0 Read FcolumnDelimiter Write SetcolumnDelimiter;
+    Property fileEncoding : String Index 8 Read FfileEncoding Write SetfileEncoding;
+    Property quotingMode : String Index 16 Read FquotingMode Write SetquotingMode;
   end;
   TDatafeedFormatClass = Class of TDatafeedFormat;
   
@@ -1767,62 +1326,36 @@ type
   
   TDatafeedStatus = Class(TGoogleBaseObject)
   Private
-    FdatafeedId : string;
-    Ferrors : TDatafeedStatuserrors;
-    FitemsTotal : string;
-    FitemsValid : string;
-    Fkind : string;
-    FlastUploadDate : string;
-    FprocessingStatus : string;
-    Fwarnings : TDatafeedStatuswarnings;
+    FdatafeedId : String;
+    Ferrors : TDatafeedStatusTypeerrorsArray;
+    FitemsTotal : String;
+    FitemsValid : String;
+    Fkind : String;
+    FlastUploadDate : String;
+    FprocessingStatus : String;
+    Fwarnings : TDatafeedStatusTypewarningsArray;
   Protected
     //Property setters
-    Procedure SetdatafeedId(AIndex : Integer; AValue : string); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); virtual;
-    Procedure SetitemsTotal(AIndex : Integer; AValue : string); virtual;
-    Procedure SetitemsValid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlastUploadDate(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TDatafeedStatuswarnings); virtual;
+    Procedure SetdatafeedId(AIndex : Integer; AValue : String); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TDatafeedStatusTypeerrorsArray); virtual;
+    Procedure SetitemsTotal(AIndex : Integer; AValue : String); virtual;
+    Procedure SetitemsValid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastUploadDate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setwarnings(AIndex : Integer; AValue : TDatafeedStatusTypewarningsArray); virtual;
   Public
   Published
-    Property datafeedId : string Index 0 Read FdatafeedId Write SetdatafeedId;
-    Property errors : TDatafeedStatuserrors Index 8 Read Ferrors Write Seterrors;
-    Property itemsTotal : string Index 16 Read FitemsTotal Write SetitemsTotal;
-    Property itemsValid : string Index 24 Read FitemsValid Write SetitemsValid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property lastUploadDate : string Index 40 Read FlastUploadDate Write SetlastUploadDate;
-    Property processingStatus : string Index 48 Read FprocessingStatus Write SetprocessingStatus;
-    Property warnings : TDatafeedStatuswarnings Index 56 Read Fwarnings Write Setwarnings;
+    Property datafeedId : String Index 0 Read FdatafeedId Write SetdatafeedId;
+    Property errors : TDatafeedStatusTypeerrorsArray Index 8 Read Ferrors Write Seterrors;
+    Property itemsTotal : String Index 16 Read FitemsTotal Write SetitemsTotal;
+    Property itemsValid : String Index 24 Read FitemsValid Write SetitemsValid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property lastUploadDate : String Index 40 Read FlastUploadDate Write SetlastUploadDate;
+    Property processingStatus : String Index 48 Read FprocessingStatus Write SetprocessingStatus;
+    Property warnings : TDatafeedStatusTypewarningsArray Index 56 Read Fwarnings Write Setwarnings;
   end;
   TDatafeedStatusClass = Class of TDatafeedStatus;
-  
-  { --------------------------------------------------------------------
-    TDatafeedStatuserrors
-    --------------------------------------------------------------------}
-  
-  TDatafeedStatuserrors = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatafeedStatuserrorsClass = Class of TDatafeedStatuserrors;
-  
-  { --------------------------------------------------------------------
-    TDatafeedStatuswarnings
-    --------------------------------------------------------------------}
-  
-  TDatafeedStatuswarnings = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatafeedStatuswarningsClass = Class of TDatafeedStatuswarnings;
   
   { --------------------------------------------------------------------
     TDatafeedStatusError
@@ -1830,37 +1363,24 @@ type
   
   TDatafeedStatusError = Class(TGoogleBaseObject)
   Private
-    Fcode : string;
-    Fcount : string;
-    Fexamples : TDatafeedStatusErrorexamples;
-    Fmessage : string;
+    Fcode : String;
+    Fcount : String;
+    Fexamples : TDatafeedStatusErrorTypeexamplesArray;
+    Fmessage : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
-    Procedure Setexamples(AIndex : Integer; AValue : TDatafeedStatusErrorexamples); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setexamples(AIndex : Integer; AValue : TDatafeedStatusErrorTypeexamplesArray); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property count : string Index 8 Read Fcount Write Setcount;
-    Property examples : TDatafeedStatusErrorexamples Index 16 Read Fexamples Write Setexamples;
-    Property message : string Index 24 Read Fmessage Write Setmessage;
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property count : String Index 8 Read Fcount Write Setcount;
+    Property examples : TDatafeedStatusErrorTypeexamplesArray Index 16 Read Fexamples Write Setexamples;
+    Property message : String Index 24 Read Fmessage Write Setmessage;
   end;
   TDatafeedStatusErrorClass = Class of TDatafeedStatusError;
-  
-  { --------------------------------------------------------------------
-    TDatafeedStatusErrorexamples
-    --------------------------------------------------------------------}
-  
-  TDatafeedStatusErrorexamples = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatafeedStatusErrorexamplesClass = Class of TDatafeedStatusErrorexamples;
   
   { --------------------------------------------------------------------
     TDatafeedStatusExample
@@ -1868,19 +1388,19 @@ type
   
   TDatafeedStatusExample = Class(TGoogleBaseObject)
   Private
-    FitemId : string;
-    FlineNumber : string;
-    Fvalue : string;
+    FitemId : String;
+    FlineNumber : String;
+    Fvalue : String;
   Protected
     //Property setters
-    Procedure SetitemId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlineNumber(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure SetitemId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlineNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property itemId : string Index 0 Read FitemId Write SetitemId;
-    Property lineNumber : string Index 8 Read FlineNumber Write SetlineNumber;
-    Property value : string Index 16 Read Fvalue Write Setvalue;
+    Property itemId : String Index 0 Read FitemId Write SetitemId;
+    Property lineNumber : String Index 8 Read FlineNumber Write SetlineNumber;
+    Property value : String Index 16 Read Fvalue Write Setvalue;
   end;
   TDatafeedStatusExampleClass = Class of TDatafeedStatusExample;
   
@@ -1890,28 +1410,15 @@ type
   
   TDatafeedsCustomBatchRequest = Class(TGoogleBaseObject)
   Private
-    Fentries : TDatafeedsCustomBatchRequestentries;
+    Fentries : TDatafeedsCustomBatchRequestTypeentriesArray;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TDatafeedsCustomBatchRequestentries); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TDatafeedsCustomBatchRequestTypeentriesArray); virtual;
   Public
   Published
-    Property entries : TDatafeedsCustomBatchRequestentries Index 0 Read Fentries Write Setentries;
+    Property entries : TDatafeedsCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
   end;
   TDatafeedsCustomBatchRequestClass = Class of TDatafeedsCustomBatchRequest;
-  
-  { --------------------------------------------------------------------
-    TDatafeedsCustomBatchRequestentries
-    --------------------------------------------------------------------}
-  
-  TDatafeedsCustomBatchRequestentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatafeedsCustomBatchRequestentriesClass = Class of TDatafeedsCustomBatchRequestentries;
   
   { --------------------------------------------------------------------
     TDatafeedsCustomBatchRequestEntry
@@ -1921,23 +1428,23 @@ type
   Private
     FbatchId : integer;
     Fdatafeed : TDatafeed;
-    FdatafeedId : string;
-    FmerchantId : string;
-    Fmethod : string;
+    FdatafeedId : String;
+    FmerchantId : String;
+    Fmethod : String;
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure Setdatafeed(AIndex : Integer; AValue : TDatafeed); virtual;
-    Procedure SetdatafeedId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdatafeedId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
     Property datafeed : TDatafeed Index 8 Read Fdatafeed Write Setdatafeed;
-    Property datafeedId : string Index 16 Read FdatafeedId Write SetdatafeedId;
-    Property merchantId : string Index 24 Read FmerchantId Write SetmerchantId;
-    Property method : string Index 32 Read Fmethod Write Setmethod;
+    Property datafeedId : String Index 16 Read FdatafeedId Write SetdatafeedId;
+    Property merchantId : String Index 24 Read FmerchantId Write SetmerchantId;
+    Property method : String Index 32 Read Fmethod Write Setmethod;
   end;
   TDatafeedsCustomBatchRequestEntryClass = Class of TDatafeedsCustomBatchRequestEntry;
   
@@ -1947,31 +1454,18 @@ type
   
   TDatafeedsCustomBatchResponse = Class(TGoogleBaseObject)
   Private
-    Fentries : TDatafeedsCustomBatchResponseentries;
-    Fkind : string;
+    Fentries : TDatafeedsCustomBatchResponseTypeentriesArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TDatafeedsCustomBatchResponseentries); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TDatafeedsCustomBatchResponseTypeentriesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property entries : TDatafeedsCustomBatchResponseentries Index 0 Read Fentries Write Setentries;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property entries : TDatafeedsCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TDatafeedsCustomBatchResponseClass = Class of TDatafeedsCustomBatchResponse;
-  
-  { --------------------------------------------------------------------
-    TDatafeedsCustomBatchResponseentries
-    --------------------------------------------------------------------}
-  
-  TDatafeedsCustomBatchResponseentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatafeedsCustomBatchResponseentriesClass = Class of TDatafeedsCustomBatchResponseentries;
   
   { --------------------------------------------------------------------
     TDatafeedsCustomBatchResponseEntry
@@ -1981,17 +1475,17 @@ type
   Private
     FbatchId : integer;
     Fdatafeed : TDatafeed;
-    Ferrors : TDatafeedStatuserrors;
+    Ferrors : TErrors;
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure Setdatafeed(AIndex : Integer; AValue : TDatafeed); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
     Property datafeed : TDatafeed Index 8 Read Fdatafeed Write Setdatafeed;
-    Property errors : TDatafeedStatuserrors Index 16 Read Ferrors Write Seterrors;
+    Property errors : TErrors Index 16 Read Ferrors Write Seterrors;
   end;
   TDatafeedsCustomBatchResponseEntryClass = Class of TDatafeedsCustomBatchResponseEntry;
   
@@ -2001,34 +1495,21 @@ type
   
   TDatafeedsListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
-    Fresources : TDatafeedsListResponseresources;
+    Fkind : String;
+    FnextPageToken : String;
+    Fresources : TDatafeedsListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TDatafeedsListResponseresources); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresources(AIndex : Integer; AValue : TDatafeedsListResponseTyperesourcesArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
-    Property resources : TDatafeedsListResponseresources Index 16 Read Fresources Write Setresources;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property resources : TDatafeedsListResponseTyperesourcesArray Index 16 Read Fresources Write Setresources;
   end;
   TDatafeedsListResponseClass = Class of TDatafeedsListResponse;
-  
-  { --------------------------------------------------------------------
-    TDatafeedsListResponseresources
-    --------------------------------------------------------------------}
-  
-  TDatafeedsListResponseresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatafeedsListResponseresourcesClass = Class of TDatafeedsListResponseresources;
   
   { --------------------------------------------------------------------
     TDatafeedstatusesCustomBatchRequest
@@ -2036,28 +1517,15 @@ type
   
   TDatafeedstatusesCustomBatchRequest = Class(TGoogleBaseObject)
   Private
-    Fentries : TDatafeedstatusesCustomBatchRequestentries;
+    Fentries : TDatafeedstatusesCustomBatchRequestTypeentriesArray;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TDatafeedstatusesCustomBatchRequestentries); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TDatafeedstatusesCustomBatchRequestTypeentriesArray); virtual;
   Public
   Published
-    Property entries : TDatafeedstatusesCustomBatchRequestentries Index 0 Read Fentries Write Setentries;
+    Property entries : TDatafeedstatusesCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
   end;
   TDatafeedstatusesCustomBatchRequestClass = Class of TDatafeedstatusesCustomBatchRequest;
-  
-  { --------------------------------------------------------------------
-    TDatafeedstatusesCustomBatchRequestentries
-    --------------------------------------------------------------------}
-  
-  TDatafeedstatusesCustomBatchRequestentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatafeedstatusesCustomBatchRequestentriesClass = Class of TDatafeedstatusesCustomBatchRequestentries;
   
   { --------------------------------------------------------------------
     TDatafeedstatusesCustomBatchRequestEntry
@@ -2066,21 +1534,21 @@ type
   TDatafeedstatusesCustomBatchRequestEntry = Class(TGoogleBaseObject)
   Private
     FbatchId : integer;
-    FdatafeedId : string;
-    FmerchantId : string;
-    Fmethod : string;
+    FdatafeedId : String;
+    FmerchantId : String;
+    Fmethod : String;
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetdatafeedId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdatafeedId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
-    Property datafeedId : string Index 8 Read FdatafeedId Write SetdatafeedId;
-    Property merchantId : string Index 16 Read FmerchantId Write SetmerchantId;
-    Property method : string Index 24 Read Fmethod Write Setmethod;
+    Property datafeedId : String Index 8 Read FdatafeedId Write SetdatafeedId;
+    Property merchantId : String Index 16 Read FmerchantId Write SetmerchantId;
+    Property method : String Index 24 Read Fmethod Write Setmethod;
   end;
   TDatafeedstatusesCustomBatchRequestEntryClass = Class of TDatafeedstatusesCustomBatchRequestEntry;
   
@@ -2090,31 +1558,18 @@ type
   
   TDatafeedstatusesCustomBatchResponse = Class(TGoogleBaseObject)
   Private
-    Fentries : TDatafeedstatusesCustomBatchResponseentries;
-    Fkind : string;
+    Fentries : TDatafeedstatusesCustomBatchResponseTypeentriesArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TDatafeedstatusesCustomBatchResponseentries); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TDatafeedstatusesCustomBatchResponseTypeentriesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property entries : TDatafeedstatusesCustomBatchResponseentries Index 0 Read Fentries Write Setentries;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property entries : TDatafeedstatusesCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TDatafeedstatusesCustomBatchResponseClass = Class of TDatafeedstatusesCustomBatchResponse;
-  
-  { --------------------------------------------------------------------
-    TDatafeedstatusesCustomBatchResponseentries
-    --------------------------------------------------------------------}
-  
-  TDatafeedstatusesCustomBatchResponseentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatafeedstatusesCustomBatchResponseentriesClass = Class of TDatafeedstatusesCustomBatchResponseentries;
   
   { --------------------------------------------------------------------
     TDatafeedstatusesCustomBatchResponseEntry
@@ -2124,17 +1579,17 @@ type
   Private
     FbatchId : integer;
     FdatafeedStatus : TDatafeedStatus;
-    Ferrors : TDatafeedStatuserrors;
+    Ferrors : TErrors;
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure SetdatafeedStatus(AIndex : Integer; AValue : TDatafeedStatus); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
     Property datafeedStatus : TDatafeedStatus Index 8 Read FdatafeedStatus Write SetdatafeedStatus;
-    Property errors : TDatafeedStatuserrors Index 16 Read Ferrors Write Seterrors;
+    Property errors : TErrors Index 16 Read Ferrors Write Seterrors;
   end;
   TDatafeedstatusesCustomBatchResponseEntryClass = Class of TDatafeedstatusesCustomBatchResponseEntry;
   
@@ -2144,34 +1599,21 @@ type
   
   TDatafeedstatusesListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
-    Fresources : TDatafeedstatusesListResponseresources;
+    Fkind : String;
+    FnextPageToken : String;
+    Fresources : TDatafeedstatusesListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TDatafeedstatusesListResponseresources); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresources(AIndex : Integer; AValue : TDatafeedstatusesListResponseTyperesourcesArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
-    Property resources : TDatafeedstatusesListResponseresources Index 16 Read Fresources Write Setresources;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property resources : TDatafeedstatusesListResponseTyperesourcesArray Index 16 Read Fresources Write Setresources;
   end;
   TDatafeedstatusesListResponseClass = Class of TDatafeedstatusesListResponse;
-  
-  { --------------------------------------------------------------------
-    TDatafeedstatusesListResponseresources
-    --------------------------------------------------------------------}
-  
-  TDatafeedstatusesListResponseresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatafeedstatusesListResponseresourcesClass = Class of TDatafeedstatusesListResponseresources;
   
   { --------------------------------------------------------------------
     TError
@@ -2179,19 +1621,19 @@ type
   
   TError = Class(TGoogleBaseObject)
   Private
-    Fdomain : string;
-    Fmessage : string;
-    Freason : string;
+    Fdomain : String;
+    Fmessage : String;
+    Freason : String;
   Protected
     //Property setters
-    Procedure Setdomain(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setreason(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdomain(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property domain : string Index 0 Read Fdomain Write Setdomain;
-    Property message : string Index 8 Read Fmessage Write Setmessage;
-    Property reason : string Index 16 Read Freason Write Setreason;
+    Property domain : String Index 0 Read Fdomain Write Setdomain;
+    Property message : String Index 8 Read Fmessage Write Setmessage;
+    Property reason : String Index 16 Read Freason Write Setreason;
   end;
   TErrorClass = Class of TError;
   
@@ -2202,33 +1644,20 @@ type
   TErrors = Class(TGoogleBaseObject)
   Private
     Fcode : integer;
-    Ferrors : TErrorserrors;
-    Fmessage : string;
+    Ferrors : TErrorsTypeerrorsArray;
+    Fmessage : String;
   Protected
     //Property setters
     Procedure Setcode(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TErrorserrors); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TErrorsTypeerrorsArray); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property code : integer Index 0 Read Fcode Write Setcode;
-    Property errors : TErrorserrors Index 8 Read Ferrors Write Seterrors;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
+    Property errors : TErrorsTypeerrorsArray Index 8 Read Ferrors Write Seterrors;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TErrorsClass = Class of TErrors;
-  
-  { --------------------------------------------------------------------
-    TErrorserrors
-    --------------------------------------------------------------------}
-  
-  TErrorserrors = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TErrorserrorsClass = Class of TErrorserrors;
   
   { --------------------------------------------------------------------
     TInventory
@@ -2236,28 +1665,28 @@ type
   
   TInventory = Class(TGoogleBaseObject)
   Private
-    Favailability : string;
-    Fkind : string;
+    Favailability : String;
+    Fkind : String;
     Fprice : TPrice;
     Fquantity : integer;
     FsalePrice : TPrice;
-    FsalePriceEffectiveDate : string;
+    FsalePriceEffectiveDate : String;
   Protected
     //Property setters
-    Procedure Setavailability(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setavailability(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setprice(AIndex : Integer; AValue : TPrice); virtual;
     Procedure Setquantity(AIndex : Integer; AValue : integer); virtual;
     Procedure SetsalePrice(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetsalePriceEffectiveDate(AIndex : Integer; AValue : string); virtual;
+    Procedure SetsalePriceEffectiveDate(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property availability : string Index 0 Read Favailability Write Setavailability;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property availability : String Index 0 Read Favailability Write Setavailability;
+    Property kind : String Index 8 Read Fkind Write Setkind;
     Property price : TPrice Index 16 Read Fprice Write Setprice;
     Property quantity : integer Index 24 Read Fquantity Write Setquantity;
     Property salePrice : TPrice Index 32 Read FsalePrice Write SetsalePrice;
-    Property salePriceEffectiveDate : string Index 40 Read FsalePriceEffectiveDate Write SetsalePriceEffectiveDate;
+    Property salePriceEffectiveDate : String Index 40 Read FsalePriceEffectiveDate Write SetsalePriceEffectiveDate;
   end;
   TInventoryClass = Class of TInventory;
   
@@ -2267,28 +1696,15 @@ type
   
   TInventoryCustomBatchRequest = Class(TGoogleBaseObject)
   Private
-    Fentries : TInventoryCustomBatchRequestentries;
+    Fentries : TInventoryCustomBatchRequestTypeentriesArray;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TInventoryCustomBatchRequestentries); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TInventoryCustomBatchRequestTypeentriesArray); virtual;
   Public
   Published
-    Property entries : TInventoryCustomBatchRequestentries Index 0 Read Fentries Write Setentries;
+    Property entries : TInventoryCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
   end;
   TInventoryCustomBatchRequestClass = Class of TInventoryCustomBatchRequest;
-  
-  { --------------------------------------------------------------------
-    TInventoryCustomBatchRequestentries
-    --------------------------------------------------------------------}
-  
-  TInventoryCustomBatchRequestentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInventoryCustomBatchRequestentriesClass = Class of TInventoryCustomBatchRequestentries;
   
   { --------------------------------------------------------------------
     TInventoryCustomBatchRequestEntry
@@ -2298,23 +1714,23 @@ type
   Private
     FbatchId : integer;
     Finventory : TInventory;
-    FmerchantId : string;
-    FproductId : string;
-    FstoreCode : string;
+    FmerchantId : String;
+    FproductId : String;
+    FstoreCode : String;
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure Setinventory(AIndex : Integer; AValue : TInventory); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstoreCode(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstoreCode(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
     Property inventory : TInventory Index 8 Read Finventory Write Setinventory;
-    Property merchantId : string Index 16 Read FmerchantId Write SetmerchantId;
-    Property productId : string Index 24 Read FproductId Write SetproductId;
-    Property storeCode : string Index 32 Read FstoreCode Write SetstoreCode;
+    Property merchantId : String Index 16 Read FmerchantId Write SetmerchantId;
+    Property productId : String Index 24 Read FproductId Write SetproductId;
+    Property storeCode : String Index 32 Read FstoreCode Write SetstoreCode;
   end;
   TInventoryCustomBatchRequestEntryClass = Class of TInventoryCustomBatchRequestEntry;
   
@@ -2324,31 +1740,18 @@ type
   
   TInventoryCustomBatchResponse = Class(TGoogleBaseObject)
   Private
-    Fentries : TInventoryCustomBatchResponseentries;
-    Fkind : string;
+    Fentries : TInventoryCustomBatchResponseTypeentriesArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TInventoryCustomBatchResponseentries); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TInventoryCustomBatchResponseTypeentriesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property entries : TInventoryCustomBatchResponseentries Index 0 Read Fentries Write Setentries;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property entries : TInventoryCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TInventoryCustomBatchResponseClass = Class of TInventoryCustomBatchResponse;
-  
-  { --------------------------------------------------------------------
-    TInventoryCustomBatchResponseentries
-    --------------------------------------------------------------------}
-  
-  TInventoryCustomBatchResponseentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInventoryCustomBatchResponseentriesClass = Class of TInventoryCustomBatchResponseentries;
   
   { --------------------------------------------------------------------
     TInventoryCustomBatchResponseEntry
@@ -2357,18 +1760,18 @@ type
   TInventoryCustomBatchResponseEntry = Class(TGoogleBaseObject)
   Private
     FbatchId : integer;
-    Ferrors : TDatafeedStatuserrors;
-    Fkind : string;
+    Ferrors : TErrors;
+    Fkind : String;
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
-    Property errors : TDatafeedStatuserrors Index 8 Read Ferrors Write Seterrors;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property errors : TErrors Index 8 Read Ferrors Write Seterrors;
+    Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TInventoryCustomBatchResponseEntryClass = Class of TInventoryCustomBatchResponseEntry;
   
@@ -2378,25 +1781,25 @@ type
   
   TInventorySetRequest = Class(TGoogleBaseObject)
   Private
-    Favailability : string;
+    Favailability : String;
     Fprice : TPrice;
     Fquantity : integer;
     FsalePrice : TPrice;
-    FsalePriceEffectiveDate : string;
+    FsalePriceEffectiveDate : String;
   Protected
     //Property setters
-    Procedure Setavailability(AIndex : Integer; AValue : string); virtual;
+    Procedure Setavailability(AIndex : Integer; AValue : String); virtual;
     Procedure Setprice(AIndex : Integer; AValue : TPrice); virtual;
     Procedure Setquantity(AIndex : Integer; AValue : integer); virtual;
     Procedure SetsalePrice(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetsalePriceEffectiveDate(AIndex : Integer; AValue : string); virtual;
+    Procedure SetsalePriceEffectiveDate(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property availability : string Index 0 Read Favailability Write Setavailability;
+    Property availability : String Index 0 Read Favailability Write Setavailability;
     Property price : TPrice Index 8 Read Fprice Write Setprice;
     Property quantity : integer Index 16 Read Fquantity Write Setquantity;
     Property salePrice : TPrice Index 24 Read FsalePrice Write SetsalePrice;
-    Property salePriceEffectiveDate : string Index 32 Read FsalePriceEffectiveDate Write SetsalePriceEffectiveDate;
+    Property salePriceEffectiveDate : String Index 32 Read FsalePriceEffectiveDate Write SetsalePriceEffectiveDate;
   end;
   TInventorySetRequestClass = Class of TInventorySetRequest;
   
@@ -2406,13 +1809,13 @@ type
   
   TInventorySetResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
+    Property kind : String Index 0 Read Fkind Write Setkind;
   end;
   TInventorySetResponseClass = Class of TInventorySetResponse;
   
@@ -2422,18 +1825,18 @@ type
   
   TLoyaltyPoints = Class(TGoogleBaseObject)
   Private
-    Fname : string;
-    FpointsValue : string;
+    Fname : String;
+    FpointsValue : String;
     Fratio : double;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpointsValue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpointsValue(AIndex : Integer; AValue : String); virtual;
     Procedure Setratio(AIndex : Integer; AValue : double); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
-    Property pointsValue : string Index 8 Read FpointsValue Write SetpointsValue;
+    Property name : String Index 0 Read Fname Write Setname;
+    Property pointsValue : String Index 8 Read FpointsValue Write SetpointsValue;
     Property ratio : double Index 16 Read Fratio Write Setratio;
   end;
   TLoyaltyPointsClass = Class of TLoyaltyPoints;
@@ -2444,16 +1847,16 @@ type
   
   TPrice = Class(TGoogleBaseObject)
   Private
-    Fcurrency : string;
-    Fvalue : string;
+    Fcurrency : String;
+    Fvalue : String;
   Protected
     //Property setters
-    Procedure Setcurrency(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcurrency(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property currency : string Index 0 Read Fcurrency Write Setcurrency;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property currency : String Index 0 Read Fcurrency Write Setcurrency;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TPriceClass = Class of TPrice;
   
@@ -2463,375 +1866,219 @@ type
   
   TProduct = Class(TGoogleBaseObject)
   Private
-    FadditionalImageLinks : TProductadditionalImageLinks;
+    FadditionalImageLinks : TStringArray;
     Fadult : boolean;
-    FadwordsGrouping : string;
-    FadwordsLabels : TProductadwordsLabels;
-    FadwordsRedirect : string;
-    FageGroup : string;
-    Faspects : TProductaspects;
-    Favailability : string;
-    FavailabilityDate : string;
-    Fbrand : string;
-    Fchannel : string;
-    Fcolor : string;
-    Fcondition : string;
-    FcontentLanguage : string;
-    FcustomAttributes : TProductcustomAttributes;
-    FcustomGroups : TProductcustomGroups;
-    FcustomLabel0 : string;
-    FcustomLabel1 : string;
-    FcustomLabel2 : string;
-    FcustomLabel3 : string;
-    FcustomLabel4 : string;
-    Fdescription : string;
-    Fdestinations : TProductdestinations;
-    FdisplayAdsId : string;
-    FdisplayAdsLink : string;
-    FdisplayAdsSimilarIds : TProductdisplayAdsSimilarIds;
-    FdisplayAdsTitle : string;
+    FadwordsGrouping : String;
+    FadwordsLabels : TStringArray;
+    FadwordsRedirect : String;
+    FageGroup : String;
+    Faspects : TProductTypeaspectsArray;
+    Favailability : String;
+    FavailabilityDate : String;
+    Fbrand : String;
+    Fchannel : String;
+    Fcolor : String;
+    Fcondition : String;
+    FcontentLanguage : String;
+    FcustomAttributes : TProductTypecustomAttributesArray;
+    FcustomGroups : TProductTypecustomGroupsArray;
+    FcustomLabel0 : String;
+    FcustomLabel1 : String;
+    FcustomLabel2 : String;
+    FcustomLabel3 : String;
+    FcustomLabel4 : String;
+    Fdescription : String;
+    Fdestinations : TProductTypedestinationsArray;
+    FdisplayAdsId : String;
+    FdisplayAdsLink : String;
+    FdisplayAdsSimilarIds : TStringArray;
+    FdisplayAdsTitle : String;
     FdisplayAdsValue : double;
-    FenergyEfficiencyClass : string;
-    FexpirationDate : string;
-    Fgender : string;
-    FgoogleProductCategory : string;
-    Fgtin : string;
-    Fid : string;
+    FenergyEfficiencyClass : String;
+    FexpirationDate : String;
+    Fgender : String;
+    FgoogleProductCategory : String;
+    Fgtin : String;
+    Fid : String;
     FidentifierExists : boolean;
-    FimageLink : string;
+    FimageLink : String;
     Finstallment : TProductInstallment;
     FisBundle : boolean;
-    FitemGroupId : string;
-    Fkind : string;
-    Flink : string;
+    FitemGroupId : String;
+    Fkind : String;
+    Flink : String;
     FloyaltyPoints : TLoyaltyPoints;
-    Fmaterial : string;
-    FmobileLink : string;
-    Fmpn : string;
-    Fmultipack : string;
-    FofferId : string;
+    Fmaterial : String;
+    FmobileLink : String;
+    Fmpn : String;
+    Fmultipack : String;
+    FofferId : String;
     FonlineOnly : boolean;
-    Fpattern : string;
+    Fpattern : String;
     Fprice : TPrice;
-    FproductType : string;
+    FproductType : String;
     FsalePrice : TPrice;
-    FsalePriceEffectiveDate : string;
-    Fshipping : TProductshipping;
+    FsalePriceEffectiveDate : String;
+    Fshipping : TProductTypeshippingArray;
     FshippingHeight : TProductShippingDimension;
-    FshippingLabel : string;
+    FshippingLabel : String;
     FshippingLength : TProductShippingDimension;
     FshippingWeight : TProductShippingWeight;
     FshippingWidth : TProductShippingDimension;
-    FsizeSystem : string;
-    FsizeType : string;
-    Fsizes : TProductsizes;
-    FtargetCountry : string;
-    Ftaxes : TProducttaxes;
-    Ftitle : string;
+    FsizeSystem : String;
+    FsizeType : String;
+    Fsizes : TStringArray;
+    FtargetCountry : String;
+    Ftaxes : TProductTypetaxesArray;
+    Ftitle : String;
     FunitPricingBaseMeasure : TProductUnitPricingBaseMeasure;
     FunitPricingMeasure : TProductUnitPricingMeasure;
-    FvalidatedDestinations : TProductvalidatedDestinations;
-    Fwarnings : TProductwarnings;
+    FvalidatedDestinations : TStringArray;
+    Fwarnings : TProductTypewarningsArray;
   Protected
     //Property setters
-    Procedure SetadditionalImageLinks(AIndex : Integer; AValue : TProductadditionalImageLinks); virtual;
+    Procedure SetadditionalImageLinks(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setadult(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetadwordsGrouping(AIndex : Integer; AValue : string); virtual;
-    Procedure SetadwordsLabels(AIndex : Integer; AValue : TProductadwordsLabels); virtual;
-    Procedure SetadwordsRedirect(AIndex : Integer; AValue : string); virtual;
-    Procedure SetageGroup(AIndex : Integer; AValue : string); virtual;
-    Procedure Setaspects(AIndex : Integer; AValue : TProductaspects); virtual;
-    Procedure Setavailability(AIndex : Integer; AValue : string); virtual;
-    Procedure SetavailabilityDate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setbrand(AIndex : Integer; AValue : string); virtual;
-    Procedure Setchannel(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcolor(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcondition(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontentLanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomAttributes(AIndex : Integer; AValue : TProductcustomAttributes); virtual;
-    Procedure SetcustomGroups(AIndex : Integer; AValue : TProductcustomGroups); virtual;
-    Procedure SetcustomLabel0(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomLabel1(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomLabel2(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomLabel3(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomLabel4(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdestinations(AIndex : Integer; AValue : TProductdestinations); virtual;
-    Procedure SetdisplayAdsId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdisplayAdsLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdisplayAdsSimilarIds(AIndex : Integer; AValue : TProductdisplayAdsSimilarIds); virtual;
-    Procedure SetdisplayAdsTitle(AIndex : Integer; AValue : string); virtual;
+    Procedure SetadwordsGrouping(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadwordsLabels(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetadwordsRedirect(AIndex : Integer; AValue : String); virtual;
+    Procedure SetageGroup(AIndex : Integer; AValue : String); virtual;
+    Procedure Setaspects(AIndex : Integer; AValue : TProductTypeaspectsArray); virtual;
+    Procedure Setavailability(AIndex : Integer; AValue : String); virtual;
+    Procedure SetavailabilityDate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setbrand(AIndex : Integer; AValue : String); virtual;
+    Procedure Setchannel(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcondition(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontentLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomAttributes(AIndex : Integer; AValue : TProductTypecustomAttributesArray); virtual;
+    Procedure SetcustomGroups(AIndex : Integer; AValue : TProductTypecustomGroupsArray); virtual;
+    Procedure SetcustomLabel0(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomLabel1(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomLabel2(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomLabel3(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomLabel4(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdestinations(AIndex : Integer; AValue : TProductTypedestinationsArray); virtual;
+    Procedure SetdisplayAdsId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayAdsLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayAdsSimilarIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetdisplayAdsTitle(AIndex : Integer; AValue : String); virtual;
     Procedure SetdisplayAdsValue(AIndex : Integer; AValue : double); virtual;
-    Procedure SetenergyEfficiencyClass(AIndex : Integer; AValue : string); virtual;
-    Procedure SetexpirationDate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setgender(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgoogleProductCategory(AIndex : Integer; AValue : string); virtual;
-    Procedure Setgtin(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure SetenergyEfficiencyClass(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexpirationDate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setgender(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgoogleProductCategory(AIndex : Integer; AValue : String); virtual;
+    Procedure Setgtin(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure SetidentifierExists(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetimageLink(AIndex : Integer; AValue : string); virtual;
+    Procedure SetimageLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setinstallment(AIndex : Integer; AValue : TProductInstallment); virtual;
     Procedure SetisBundle(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetitemGroupId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlink(AIndex : Integer; AValue : string); virtual;
+    Procedure SetitemGroupId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlink(AIndex : Integer; AValue : String); virtual;
     Procedure SetloyaltyPoints(AIndex : Integer; AValue : TLoyaltyPoints); virtual;
-    Procedure Setmaterial(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmobileLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmpn(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmultipack(AIndex : Integer; AValue : string); virtual;
-    Procedure SetofferId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setmaterial(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmobileLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmpn(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmultipack(AIndex : Integer; AValue : String); virtual;
+    Procedure SetofferId(AIndex : Integer; AValue : String); virtual;
     Procedure SetonlineOnly(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setpattern(AIndex : Integer; AValue : string); virtual;
+    Procedure Setpattern(AIndex : Integer; AValue : String); virtual;
     Procedure Setprice(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetproductType(AIndex : Integer; AValue : string); virtual;
+    Procedure SetproductType(AIndex : Integer; AValue : String); virtual;
     Procedure SetsalePrice(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetsalePriceEffectiveDate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setshipping(AIndex : Integer; AValue : TProductshipping); virtual;
+    Procedure SetsalePriceEffectiveDate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setshipping(AIndex : Integer; AValue : TProductTypeshippingArray); virtual;
     Procedure SetshippingHeight(AIndex : Integer; AValue : TProductShippingDimension); virtual;
-    Procedure SetshippingLabel(AIndex : Integer; AValue : string); virtual;
+    Procedure SetshippingLabel(AIndex : Integer; AValue : String); virtual;
     Procedure SetshippingLength(AIndex : Integer; AValue : TProductShippingDimension); virtual;
     Procedure SetshippingWeight(AIndex : Integer; AValue : TProductShippingWeight); virtual;
     Procedure SetshippingWidth(AIndex : Integer; AValue : TProductShippingDimension); virtual;
-    Procedure SetsizeSystem(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsizeType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsizes(AIndex : Integer; AValue : TProductsizes); virtual;
-    Procedure SettargetCountry(AIndex : Integer; AValue : string); virtual;
-    Procedure Settaxes(AIndex : Integer; AValue : TProducttaxes); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure SetsizeSystem(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsizeType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsizes(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SettargetCountry(AIndex : Integer; AValue : String); virtual;
+    Procedure Settaxes(AIndex : Integer; AValue : TProductTypetaxesArray); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure SetunitPricingBaseMeasure(AIndex : Integer; AValue : TProductUnitPricingBaseMeasure); virtual;
     Procedure SetunitPricingMeasure(AIndex : Integer; AValue : TProductUnitPricingMeasure); virtual;
-    Procedure SetvalidatedDestinations(AIndex : Integer; AValue : TProductvalidatedDestinations); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TProductwarnings); virtual;
+    Procedure SetvalidatedDestinations(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setwarnings(AIndex : Integer; AValue : TProductTypewarningsArray); virtual;
   Public
   Published
-    Property additionalImageLinks : TProductadditionalImageLinks Index 0 Read FadditionalImageLinks Write SetadditionalImageLinks;
+    Property additionalImageLinks : TStringArray Index 0 Read FadditionalImageLinks Write SetadditionalImageLinks;
     Property adult : boolean Index 8 Read Fadult Write Setadult;
-    Property adwordsGrouping : string Index 16 Read FadwordsGrouping Write SetadwordsGrouping;
-    Property adwordsLabels : TProductadwordsLabels Index 24 Read FadwordsLabels Write SetadwordsLabels;
-    Property adwordsRedirect : string Index 32 Read FadwordsRedirect Write SetadwordsRedirect;
-    Property ageGroup : string Index 40 Read FageGroup Write SetageGroup;
-    Property aspects : TProductaspects Index 48 Read Faspects Write Setaspects;
-    Property availability : string Index 56 Read Favailability Write Setavailability;
-    Property availabilityDate : string Index 64 Read FavailabilityDate Write SetavailabilityDate;
-    Property brand : string Index 72 Read Fbrand Write Setbrand;
-    Property channel : string Index 80 Read Fchannel Write Setchannel;
-    Property color : string Index 88 Read Fcolor Write Setcolor;
-    Property condition : string Index 96 Read Fcondition Write Setcondition;
-    Property contentLanguage : string Index 104 Read FcontentLanguage Write SetcontentLanguage;
-    Property customAttributes : TProductcustomAttributes Index 112 Read FcustomAttributes Write SetcustomAttributes;
-    Property customGroups : TProductcustomGroups Index 120 Read FcustomGroups Write SetcustomGroups;
-    Property customLabel0 : string Index 128 Read FcustomLabel0 Write SetcustomLabel0;
-    Property customLabel1 : string Index 136 Read FcustomLabel1 Write SetcustomLabel1;
-    Property customLabel2 : string Index 144 Read FcustomLabel2 Write SetcustomLabel2;
-    Property customLabel3 : string Index 152 Read FcustomLabel3 Write SetcustomLabel3;
-    Property customLabel4 : string Index 160 Read FcustomLabel4 Write SetcustomLabel4;
-    Property description : string Index 168 Read Fdescription Write Setdescription;
-    Property destinations : TProductdestinations Index 176 Read Fdestinations Write Setdestinations;
-    Property displayAdsId : string Index 184 Read FdisplayAdsId Write SetdisplayAdsId;
-    Property displayAdsLink : string Index 192 Read FdisplayAdsLink Write SetdisplayAdsLink;
-    Property displayAdsSimilarIds : TProductdisplayAdsSimilarIds Index 200 Read FdisplayAdsSimilarIds Write SetdisplayAdsSimilarIds;
-    Property displayAdsTitle : string Index 208 Read FdisplayAdsTitle Write SetdisplayAdsTitle;
+    Property adwordsGrouping : String Index 16 Read FadwordsGrouping Write SetadwordsGrouping;
+    Property adwordsLabels : TStringArray Index 24 Read FadwordsLabels Write SetadwordsLabels;
+    Property adwordsRedirect : String Index 32 Read FadwordsRedirect Write SetadwordsRedirect;
+    Property ageGroup : String Index 40 Read FageGroup Write SetageGroup;
+    Property aspects : TProductTypeaspectsArray Index 48 Read Faspects Write Setaspects;
+    Property availability : String Index 56 Read Favailability Write Setavailability;
+    Property availabilityDate : String Index 64 Read FavailabilityDate Write SetavailabilityDate;
+    Property brand : String Index 72 Read Fbrand Write Setbrand;
+    Property channel : String Index 80 Read Fchannel Write Setchannel;
+    Property color : String Index 88 Read Fcolor Write Setcolor;
+    Property condition : String Index 96 Read Fcondition Write Setcondition;
+    Property contentLanguage : String Index 104 Read FcontentLanguage Write SetcontentLanguage;
+    Property customAttributes : TProductTypecustomAttributesArray Index 112 Read FcustomAttributes Write SetcustomAttributes;
+    Property customGroups : TProductTypecustomGroupsArray Index 120 Read FcustomGroups Write SetcustomGroups;
+    Property customLabel0 : String Index 128 Read FcustomLabel0 Write SetcustomLabel0;
+    Property customLabel1 : String Index 136 Read FcustomLabel1 Write SetcustomLabel1;
+    Property customLabel2 : String Index 144 Read FcustomLabel2 Write SetcustomLabel2;
+    Property customLabel3 : String Index 152 Read FcustomLabel3 Write SetcustomLabel3;
+    Property customLabel4 : String Index 160 Read FcustomLabel4 Write SetcustomLabel4;
+    Property description : String Index 168 Read Fdescription Write Setdescription;
+    Property destinations : TProductTypedestinationsArray Index 176 Read Fdestinations Write Setdestinations;
+    Property displayAdsId : String Index 184 Read FdisplayAdsId Write SetdisplayAdsId;
+    Property displayAdsLink : String Index 192 Read FdisplayAdsLink Write SetdisplayAdsLink;
+    Property displayAdsSimilarIds : TStringArray Index 200 Read FdisplayAdsSimilarIds Write SetdisplayAdsSimilarIds;
+    Property displayAdsTitle : String Index 208 Read FdisplayAdsTitle Write SetdisplayAdsTitle;
     Property displayAdsValue : double Index 216 Read FdisplayAdsValue Write SetdisplayAdsValue;
-    Property energyEfficiencyClass : string Index 224 Read FenergyEfficiencyClass Write SetenergyEfficiencyClass;
-    Property expirationDate : string Index 232 Read FexpirationDate Write SetexpirationDate;
-    Property gender : string Index 240 Read Fgender Write Setgender;
-    Property googleProductCategory : string Index 248 Read FgoogleProductCategory Write SetgoogleProductCategory;
-    Property gtin : string Index 256 Read Fgtin Write Setgtin;
-    Property id : string Index 264 Read Fid Write Setid;
+    Property energyEfficiencyClass : String Index 224 Read FenergyEfficiencyClass Write SetenergyEfficiencyClass;
+    Property expirationDate : String Index 232 Read FexpirationDate Write SetexpirationDate;
+    Property gender : String Index 240 Read Fgender Write Setgender;
+    Property googleProductCategory : String Index 248 Read FgoogleProductCategory Write SetgoogleProductCategory;
+    Property gtin : String Index 256 Read Fgtin Write Setgtin;
+    Property id : String Index 264 Read Fid Write Setid;
     Property identifierExists : boolean Index 272 Read FidentifierExists Write SetidentifierExists;
-    Property imageLink : string Index 280 Read FimageLink Write SetimageLink;
+    Property imageLink : String Index 280 Read FimageLink Write SetimageLink;
     Property installment : TProductInstallment Index 288 Read Finstallment Write Setinstallment;
     Property isBundle : boolean Index 296 Read FisBundle Write SetisBundle;
-    Property itemGroupId : string Index 304 Read FitemGroupId Write SetitemGroupId;
-    Property kind : string Index 312 Read Fkind Write Setkind;
-    Property link : string Index 320 Read Flink Write Setlink;
+    Property itemGroupId : String Index 304 Read FitemGroupId Write SetitemGroupId;
+    Property kind : String Index 312 Read Fkind Write Setkind;
+    Property link : String Index 320 Read Flink Write Setlink;
     Property loyaltyPoints : TLoyaltyPoints Index 328 Read FloyaltyPoints Write SetloyaltyPoints;
-    Property material : string Index 336 Read Fmaterial Write Setmaterial;
-    Property mobileLink : string Index 344 Read FmobileLink Write SetmobileLink;
-    Property mpn : string Index 352 Read Fmpn Write Setmpn;
-    Property multipack : string Index 360 Read Fmultipack Write Setmultipack;
-    Property offerId : string Index 368 Read FofferId Write SetofferId;
+    Property material : String Index 336 Read Fmaterial Write Setmaterial;
+    Property mobileLink : String Index 344 Read FmobileLink Write SetmobileLink;
+    Property mpn : String Index 352 Read Fmpn Write Setmpn;
+    Property multipack : String Index 360 Read Fmultipack Write Setmultipack;
+    Property offerId : String Index 368 Read FofferId Write SetofferId;
     Property onlineOnly : boolean Index 376 Read FonlineOnly Write SetonlineOnly;
-    Property pattern : string Index 384 Read Fpattern Write Setpattern;
+    Property pattern : String Index 384 Read Fpattern Write Setpattern;
     Property price : TPrice Index 392 Read Fprice Write Setprice;
-    Property productType : string Index 400 Read FproductType Write SetproductType;
+    Property productType : String Index 400 Read FproductType Write SetproductType;
     Property salePrice : TPrice Index 408 Read FsalePrice Write SetsalePrice;
-    Property salePriceEffectiveDate : string Index 416 Read FsalePriceEffectiveDate Write SetsalePriceEffectiveDate;
-    Property shipping : TProductshipping Index 424 Read Fshipping Write Setshipping;
+    Property salePriceEffectiveDate : String Index 416 Read FsalePriceEffectiveDate Write SetsalePriceEffectiveDate;
+    Property shipping : TProductTypeshippingArray Index 424 Read Fshipping Write Setshipping;
     Property shippingHeight : TProductShippingDimension Index 432 Read FshippingHeight Write SetshippingHeight;
-    Property shippingLabel : string Index 440 Read FshippingLabel Write SetshippingLabel;
+    Property shippingLabel : String Index 440 Read FshippingLabel Write SetshippingLabel;
     Property shippingLength : TProductShippingDimension Index 448 Read FshippingLength Write SetshippingLength;
     Property shippingWeight : TProductShippingWeight Index 456 Read FshippingWeight Write SetshippingWeight;
     Property shippingWidth : TProductShippingDimension Index 464 Read FshippingWidth Write SetshippingWidth;
-    Property sizeSystem : string Index 472 Read FsizeSystem Write SetsizeSystem;
-    Property sizeType : string Index 480 Read FsizeType Write SetsizeType;
-    Property sizes : TProductsizes Index 488 Read Fsizes Write Setsizes;
-    Property targetCountry : string Index 496 Read FtargetCountry Write SettargetCountry;
-    Property taxes : TProducttaxes Index 504 Read Ftaxes Write Settaxes;
-    Property title : string Index 512 Read Ftitle Write Settitle;
+    Property sizeSystem : String Index 472 Read FsizeSystem Write SetsizeSystem;
+    Property sizeType : String Index 480 Read FsizeType Write SetsizeType;
+    Property sizes : TStringArray Index 488 Read Fsizes Write Setsizes;
+    Property targetCountry : String Index 496 Read FtargetCountry Write SettargetCountry;
+    Property taxes : TProductTypetaxesArray Index 504 Read Ftaxes Write Settaxes;
+    Property title : String Index 512 Read Ftitle Write Settitle;
     Property unitPricingBaseMeasure : TProductUnitPricingBaseMeasure Index 520 Read FunitPricingBaseMeasure Write SetunitPricingBaseMeasure;
     Property unitPricingMeasure : TProductUnitPricingMeasure Index 528 Read FunitPricingMeasure Write SetunitPricingMeasure;
-    Property validatedDestinations : TProductvalidatedDestinations Index 536 Read FvalidatedDestinations Write SetvalidatedDestinations;
-    Property warnings : TProductwarnings Index 544 Read Fwarnings Write Setwarnings;
+    Property validatedDestinations : TStringArray Index 536 Read FvalidatedDestinations Write SetvalidatedDestinations;
+    Property warnings : TProductTypewarningsArray Index 544 Read Fwarnings Write Setwarnings;
   end;
   TProductClass = Class of TProduct;
-  
-  { --------------------------------------------------------------------
-    TProductadditionalImageLinks
-    --------------------------------------------------------------------}
-  
-  TProductadditionalImageLinks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductadditionalImageLinksClass = Class of TProductadditionalImageLinks;
-  
-  { --------------------------------------------------------------------
-    TProductadwordsLabels
-    --------------------------------------------------------------------}
-  
-  TProductadwordsLabels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductadwordsLabelsClass = Class of TProductadwordsLabels;
-  
-  { --------------------------------------------------------------------
-    TProductaspects
-    --------------------------------------------------------------------}
-  
-  TProductaspects = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductaspectsClass = Class of TProductaspects;
-  
-  { --------------------------------------------------------------------
-    TProductcustomAttributes
-    --------------------------------------------------------------------}
-  
-  TProductcustomAttributes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductcustomAttributesClass = Class of TProductcustomAttributes;
-  
-  { --------------------------------------------------------------------
-    TProductcustomGroups
-    --------------------------------------------------------------------}
-  
-  TProductcustomGroups = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductcustomGroupsClass = Class of TProductcustomGroups;
-  
-  { --------------------------------------------------------------------
-    TProductdestinations
-    --------------------------------------------------------------------}
-  
-  TProductdestinations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductdestinationsClass = Class of TProductdestinations;
-  
-  { --------------------------------------------------------------------
-    TProductdisplayAdsSimilarIds
-    --------------------------------------------------------------------}
-  
-  TProductdisplayAdsSimilarIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductdisplayAdsSimilarIdsClass = Class of TProductdisplayAdsSimilarIds;
-  
-  { --------------------------------------------------------------------
-    TProductshipping
-    --------------------------------------------------------------------}
-  
-  TProductshipping = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductshippingClass = Class of TProductshipping;
-  
-  { --------------------------------------------------------------------
-    TProductsizes
-    --------------------------------------------------------------------}
-  
-  TProductsizes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductsizesClass = Class of TProductsizes;
-  
-  { --------------------------------------------------------------------
-    TProducttaxes
-    --------------------------------------------------------------------}
-  
-  TProducttaxes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProducttaxesClass = Class of TProducttaxes;
-  
-  { --------------------------------------------------------------------
-    TProductvalidatedDestinations
-    --------------------------------------------------------------------}
-  
-  TProductvalidatedDestinations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductvalidatedDestinationsClass = Class of TProductvalidatedDestinations;
-  
-  { --------------------------------------------------------------------
-    TProductwarnings
-    --------------------------------------------------------------------}
-  
-  TProductwarnings = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductwarningsClass = Class of TProductwarnings;
   
   { --------------------------------------------------------------------
     TProductAspect
@@ -2839,19 +2086,19 @@ type
   
   TProductAspect = Class(TGoogleBaseObject)
   Private
-    FaspectName : string;
-    FdestinationName : string;
-    Fintention : string;
+    FaspectName : String;
+    FdestinationName : String;
+    Fintention : String;
   Protected
     //Property setters
-    Procedure SetaspectName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdestinationName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setintention(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaspectName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdestinationName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setintention(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property aspectName : string Index 0 Read FaspectName Write SetaspectName;
-    Property destinationName : string Index 8 Read FdestinationName Write SetdestinationName;
-    Property intention : string Index 16 Read Fintention Write Setintention;
+    Property aspectName : String Index 0 Read FaspectName Write SetaspectName;
+    Property destinationName : String Index 8 Read FdestinationName Write SetdestinationName;
+    Property intention : String Index 16 Read Fintention Write Setintention;
   end;
   TProductAspectClass = Class of TProductAspect;
   
@@ -2861,23 +2108,23 @@ type
   
   TProductCustomAttribute = Class(TGoogleBaseObject)
   Private
-    Fname : string;
-    F_type : string;
-    F_unit : string;
-    Fvalue : string;
+    Fname : String;
+    F_type : String;
+    F_unit : String;
+    Fvalue : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_unit(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
-    Property _type : string Index 8 Read F_type Write Set_type;
-    Property _unit : string Index 16 Read F_unit Write Set_unit;
-    Property value : string Index 24 Read Fvalue Write Setvalue;
+    Property name : String Index 0 Read Fname Write Setname;
+    Property _type : String Index 8 Read F_type Write Set_type;
+    Property _unit : String Index 16 Read F_unit Write Set_unit;
+    Property value : String Index 24 Read Fvalue Write Setvalue;
   end;
   TProductCustomAttributeClass = Class of TProductCustomAttribute;
   
@@ -2887,31 +2134,18 @@ type
   
   TProductCustomGroup = Class(TGoogleBaseObject)
   Private
-    Fattributes : TProductCustomGroupattributes;
-    Fname : string;
+    Fattributes : TProductCustomGroupTypeattributesArray;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setattributes(AIndex : Integer; AValue : TProductCustomGroupattributes); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setattributes(AIndex : Integer; AValue : TProductCustomGroupTypeattributesArray); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property attributes : TProductCustomGroupattributes Index 0 Read Fattributes Write Setattributes;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property attributes : TProductCustomGroupTypeattributesArray Index 0 Read Fattributes Write Setattributes;
+    Property name : String Index 8 Read Fname Write Setname;
   end;
   TProductCustomGroupClass = Class of TProductCustomGroup;
-  
-  { --------------------------------------------------------------------
-    TProductCustomGroupattributes
-    --------------------------------------------------------------------}
-  
-  TProductCustomGroupattributes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductCustomGroupattributesClass = Class of TProductCustomGroupattributes;
   
   { --------------------------------------------------------------------
     TProductDestination
@@ -2919,16 +2153,16 @@ type
   
   TProductDestination = Class(TGoogleBaseObject)
   Private
-    FdestinationName : string;
-    Fintention : string;
+    FdestinationName : String;
+    Fintention : String;
   Protected
     //Property setters
-    Procedure SetdestinationName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setintention(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdestinationName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setintention(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property destinationName : string Index 0 Read FdestinationName Write SetdestinationName;
-    Property intention : string Index 8 Read Fintention Write Setintention;
+    Property destinationName : String Index 0 Read FdestinationName Write SetdestinationName;
+    Property intention : String Index 8 Read Fintention Write Setintention;
   end;
   TProductDestinationClass = Class of TProductDestination;
   
@@ -2939,17 +2173,51 @@ type
   TProductInstallment = Class(TGoogleBaseObject)
   Private
     Famount : TPrice;
-    Fmonths : string;
+    Fmonths : String;
   Protected
     //Property setters
     Procedure Setamount(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure Setmonths(AIndex : Integer; AValue : string); virtual;
+    Procedure Setmonths(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property amount : TPrice Index 0 Read Famount Write Setamount;
-    Property months : string Index 8 Read Fmonths Write Setmonths;
+    Property months : String Index 8 Read Fmonths Write Setmonths;
   end;
   TProductInstallmentClass = Class of TProductInstallment;
+  
+  { --------------------------------------------------------------------
+    TProductShipping
+    --------------------------------------------------------------------}
+  
+  TProductShipping = Class(TGoogleBaseObject)
+  Private
+    Fcountry : String;
+    FlocationGroupName : String;
+    FlocationId : String;
+    FpostalCode : String;
+    Fprice : TPrice;
+    Fregion : String;
+    Fservice : String;
+  Protected
+    //Property setters
+    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlocationGroupName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlocationId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpostalCode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setprice(AIndex : Integer; AValue : TPrice); virtual;
+    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
+    Procedure Setservice(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property country : String Index 0 Read Fcountry Write Setcountry;
+    Property locationGroupName : String Index 8 Read FlocationGroupName Write SetlocationGroupName;
+    Property locationId : String Index 16 Read FlocationId Write SetlocationId;
+    Property postalCode : String Index 24 Read FpostalCode Write SetpostalCode;
+    Property price : TPrice Index 32 Read Fprice Write Setprice;
+    Property region : String Index 40 Read Fregion Write Setregion;
+    Property service : String Index 48 Read Fservice Write Setservice;
+  end;
+  TProductShippingClass = Class of TProductShipping;
   
   { --------------------------------------------------------------------
     TProductShippingDimension
@@ -2957,16 +2225,16 @@ type
   
   TProductShippingDimension = Class(TGoogleBaseObject)
   Private
-    F_unit : string;
+    F_unit : String;
     Fvalue : double;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_unit(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : double); virtual;
   Public
   Published
-    Property _unit : string Index 0 Read F_unit Write Set_unit;
+    Property _unit : String Index 0 Read F_unit Write Set_unit;
     Property value : double Index 8 Read Fvalue Write Setvalue;
   end;
   TProductShippingDimensionClass = Class of TProductShippingDimension;
@@ -2977,16 +2245,16 @@ type
   
   TProductShippingWeight = Class(TGoogleBaseObject)
   Private
-    F_unit : string;
+    F_unit : String;
     Fvalue : double;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_unit(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : double); virtual;
   Public
   Published
-    Property _unit : string Index 0 Read F_unit Write Set_unit;
+    Property _unit : String Index 0 Read F_unit Write Set_unit;
     Property value : double Index 8 Read Fvalue Write Setvalue;
   end;
   TProductShippingWeightClass = Class of TProductShippingWeight;
@@ -2997,65 +2265,39 @@ type
   
   TProductStatus = Class(TGoogleBaseObject)
   Private
-    FcreationDate : string;
-    FdataQualityIssues : TProductStatusdataQualityIssues;
-    FdestinationStatuses : TProductStatusdestinationStatuses;
-    FgoogleExpirationDate : string;
-    Fkind : string;
-    FlastUpdateDate : string;
-    Flink : string;
-    FproductId : string;
-    Ftitle : string;
+    FcreationDate : String;
+    FdataQualityIssues : TProductStatusTypedataQualityIssuesArray;
+    FdestinationStatuses : TProductStatusTypedestinationStatusesArray;
+    FgoogleExpirationDate : String;
+    Fkind : String;
+    FlastUpdateDate : String;
+    Flink : String;
+    FproductId : String;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure SetcreationDate(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdataQualityIssues(AIndex : Integer; AValue : TProductStatusdataQualityIssues); virtual;
-    Procedure SetdestinationStatuses(AIndex : Integer; AValue : TProductStatusdestinationStatuses); virtual;
-    Procedure SetgoogleExpirationDate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlastUpdateDate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationDate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdataQualityIssues(AIndex : Integer; AValue : TProductStatusTypedataQualityIssuesArray); virtual;
+    Procedure SetdestinationStatuses(AIndex : Integer; AValue : TProductStatusTypedestinationStatusesArray); virtual;
+    Procedure SetgoogleExpirationDate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastUpdateDate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property creationDate : string Index 0 Read FcreationDate Write SetcreationDate;
-    Property dataQualityIssues : TProductStatusdataQualityIssues Index 8 Read FdataQualityIssues Write SetdataQualityIssues;
-    Property destinationStatuses : TProductStatusdestinationStatuses Index 16 Read FdestinationStatuses Write SetdestinationStatuses;
-    Property googleExpirationDate : string Index 24 Read FgoogleExpirationDate Write SetgoogleExpirationDate;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property lastUpdateDate : string Index 40 Read FlastUpdateDate Write SetlastUpdateDate;
-    Property link : string Index 48 Read Flink Write Setlink;
-    Property productId : string Index 56 Read FproductId Write SetproductId;
-    Property title : string Index 64 Read Ftitle Write Settitle;
+    Property creationDate : String Index 0 Read FcreationDate Write SetcreationDate;
+    Property dataQualityIssues : TProductStatusTypedataQualityIssuesArray Index 8 Read FdataQualityIssues Write SetdataQualityIssues;
+    Property destinationStatuses : TProductStatusTypedestinationStatusesArray Index 16 Read FdestinationStatuses Write SetdestinationStatuses;
+    Property googleExpirationDate : String Index 24 Read FgoogleExpirationDate Write SetgoogleExpirationDate;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property lastUpdateDate : String Index 40 Read FlastUpdateDate Write SetlastUpdateDate;
+    Property link : String Index 48 Read Flink Write Setlink;
+    Property productId : String Index 56 Read FproductId Write SetproductId;
+    Property title : String Index 64 Read Ftitle Write Settitle;
   end;
   TProductStatusClass = Class of TProductStatus;
-  
-  { --------------------------------------------------------------------
-    TProductStatusdataQualityIssues
-    --------------------------------------------------------------------}
-  
-  TProductStatusdataQualityIssues = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductStatusdataQualityIssuesClass = Class of TProductStatusdataQualityIssues;
-  
-  { --------------------------------------------------------------------
-    TProductStatusdestinationStatuses
-    --------------------------------------------------------------------}
-  
-  TProductStatusdestinationStatuses = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductStatusdestinationStatusesClass = Class of TProductStatusdestinationStatuses;
   
   { --------------------------------------------------------------------
     TProductStatusDataQualityIssue
@@ -3063,34 +2305,34 @@ type
   
   TProductStatusDataQualityIssue = Class(TGoogleBaseObject)
   Private
-    Fdetail : string;
-    FfetchStatus : string;
-    Fid : string;
-    Flocation : string;
-    Fseverity : string;
-    Ftimestamp : string;
-    FvalueOnLandingPage : string;
-    FvalueProvided : string;
+    Fdetail : String;
+    FfetchStatus : String;
+    Fid : String;
+    Flocation : String;
+    Fseverity : String;
+    Ftimestamp : String;
+    FvalueOnLandingPage : String;
+    FvalueProvided : String;
   Protected
     //Property setters
-    Procedure Setdetail(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfetchStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setseverity(AIndex : Integer; AValue : string); virtual;
-    Procedure Settimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvalueOnLandingPage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvalueProvided(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdetail(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfetchStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setseverity(AIndex : Integer; AValue : String); virtual;
+    Procedure Settimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvalueOnLandingPage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvalueProvided(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property detail : string Index 0 Read Fdetail Write Setdetail;
-    Property fetchStatus : string Index 8 Read FfetchStatus Write SetfetchStatus;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property location : string Index 24 Read Flocation Write Setlocation;
-    Property severity : string Index 32 Read Fseverity Write Setseverity;
-    Property timestamp : string Index 40 Read Ftimestamp Write Settimestamp;
-    Property valueOnLandingPage : string Index 48 Read FvalueOnLandingPage Write SetvalueOnLandingPage;
-    Property valueProvided : string Index 56 Read FvalueProvided Write SetvalueProvided;
+    Property detail : String Index 0 Read Fdetail Write Setdetail;
+    Property fetchStatus : String Index 8 Read FfetchStatus Write SetfetchStatus;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property location : String Index 24 Read Flocation Write Setlocation;
+    Property severity : String Index 32 Read Fseverity Write Setseverity;
+    Property timestamp : String Index 40 Read Ftimestamp Write Settimestamp;
+    Property valueOnLandingPage : String Index 48 Read FvalueOnLandingPage Write SetvalueOnLandingPage;
+    Property valueProvided : String Index 56 Read FvalueProvided Write SetvalueProvided;
   end;
   TProductStatusDataQualityIssueClass = Class of TProductStatusDataQualityIssue;
   
@@ -3100,19 +2342,19 @@ type
   
   TProductStatusDestinationStatus = Class(TGoogleBaseObject)
   Private
-    FapprovalStatus : string;
-    Fdestination : string;
-    Fintention : string;
+    FapprovalStatus : String;
+    Fdestination : String;
+    Fintention : String;
   Protected
     //Property setters
-    Procedure SetapprovalStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdestination(AIndex : Integer; AValue : string); virtual;
-    Procedure Setintention(AIndex : Integer; AValue : string); virtual;
+    Procedure SetapprovalStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdestination(AIndex : Integer; AValue : String); virtual;
+    Procedure Setintention(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property approvalStatus : string Index 0 Read FapprovalStatus Write SetapprovalStatus;
-    Property destination : string Index 8 Read Fdestination Write Setdestination;
-    Property intention : string Index 16 Read Fintention Write Setintention;
+    Property approvalStatus : String Index 0 Read FapprovalStatus Write SetapprovalStatus;
+    Property destination : String Index 8 Read Fdestination Write Setdestination;
+    Property intention : String Index 16 Read Fintention Write Setintention;
   end;
   TProductStatusDestinationStatusClass = Class of TProductStatusDestinationStatus;
   
@@ -3122,27 +2364,27 @@ type
   
   TProductTax = Class(TGoogleBaseObject)
   Private
-    Fcountry : string;
-    FlocationId : string;
-    FpostalCode : string;
+    Fcountry : String;
+    FlocationId : String;
+    FpostalCode : String;
     Frate : double;
-    Fregion : string;
+    Fregion : String;
     FtaxShip : boolean;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlocationId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpostalCode(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlocationId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpostalCode(AIndex : Integer; AValue : String); virtual;
     Procedure Setrate(AIndex : Integer; AValue : double); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
+    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
     Procedure SettaxShip(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property country : string Index 0 Read Fcountry Write Setcountry;
-    Property locationId : string Index 8 Read FlocationId Write SetlocationId;
-    Property postalCode : string Index 16 Read FpostalCode Write SetpostalCode;
+    Property country : String Index 0 Read Fcountry Write Setcountry;
+    Property locationId : String Index 8 Read FlocationId Write SetlocationId;
+    Property postalCode : String Index 16 Read FpostalCode Write SetpostalCode;
     Property rate : double Index 24 Read Frate Write Setrate;
-    Property region : string Index 32 Read Fregion Write Setregion;
+    Property region : String Index 32 Read Fregion Write Setregion;
     Property taxShip : boolean Index 40 Read FtaxShip Write SettaxShip;
   end;
   TProductTaxClass = Class of TProductTax;
@@ -3153,17 +2395,17 @@ type
   
   TProductUnitPricingBaseMeasure = Class(TGoogleBaseObject)
   Private
-    F_unit : string;
-    Fvalue : string;
+    F_unit : String;
+    Fvalue : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_unit(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _unit : string Index 0 Read F_unit Write Set_unit;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property _unit : String Index 0 Read F_unit Write Set_unit;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TProductUnitPricingBaseMeasureClass = Class of TProductUnitPricingBaseMeasure;
   
@@ -3173,16 +2415,16 @@ type
   
   TProductUnitPricingMeasure = Class(TGoogleBaseObject)
   Private
-    F_unit : string;
+    F_unit : String;
     Fvalue : double;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_unit(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : double); virtual;
   Public
   Published
-    Property _unit : string Index 0 Read F_unit Write Set_unit;
+    Property _unit : String Index 0 Read F_unit Write Set_unit;
     Property value : double Index 8 Read Fvalue Write Setvalue;
   end;
   TProductUnitPricingMeasureClass = Class of TProductUnitPricingMeasure;
@@ -3193,28 +2435,15 @@ type
   
   TProductsCustomBatchRequest = Class(TGoogleBaseObject)
   Private
-    Fentries : TProductsCustomBatchRequestentries;
+    Fentries : TProductsCustomBatchRequestTypeentriesArray;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TProductsCustomBatchRequestentries); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TProductsCustomBatchRequestTypeentriesArray); virtual;
   Public
   Published
-    Property entries : TProductsCustomBatchRequestentries Index 0 Read Fentries Write Setentries;
+    Property entries : TProductsCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
   end;
   TProductsCustomBatchRequestClass = Class of TProductsCustomBatchRequest;
-  
-  { --------------------------------------------------------------------
-    TProductsCustomBatchRequestentries
-    --------------------------------------------------------------------}
-  
-  TProductsCustomBatchRequestentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductsCustomBatchRequestentriesClass = Class of TProductsCustomBatchRequestentries;
   
   { --------------------------------------------------------------------
     TProductsCustomBatchRequestEntry
@@ -3223,24 +2452,24 @@ type
   TProductsCustomBatchRequestEntry = Class(TGoogleBaseObject)
   Private
     FbatchId : integer;
-    FmerchantId : string;
-    Fmethod : string;
+    FmerchantId : String;
+    Fmethod : String;
     Fproduct : TProduct;
-    FproductId : string;
+    FproductId : String;
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
     Procedure Setproduct(AIndex : Integer; AValue : TProduct); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
-    Property merchantId : string Index 8 Read FmerchantId Write SetmerchantId;
-    Property method : string Index 16 Read Fmethod Write Setmethod;
+    Property merchantId : String Index 8 Read FmerchantId Write SetmerchantId;
+    Property method : String Index 16 Read Fmethod Write Setmethod;
     Property product : TProduct Index 24 Read Fproduct Write Setproduct;
-    Property productId : string Index 32 Read FproductId Write SetproductId;
+    Property productId : String Index 32 Read FproductId Write SetproductId;
   end;
   TProductsCustomBatchRequestEntryClass = Class of TProductsCustomBatchRequestEntry;
   
@@ -3250,31 +2479,18 @@ type
   
   TProductsCustomBatchResponse = Class(TGoogleBaseObject)
   Private
-    Fentries : TProductsCustomBatchResponseentries;
-    Fkind : string;
+    Fentries : TProductsCustomBatchResponseTypeentriesArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TProductsCustomBatchResponseentries); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TProductsCustomBatchResponseTypeentriesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property entries : TProductsCustomBatchResponseentries Index 0 Read Fentries Write Setentries;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property entries : TProductsCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TProductsCustomBatchResponseClass = Class of TProductsCustomBatchResponse;
-  
-  { --------------------------------------------------------------------
-    TProductsCustomBatchResponseentries
-    --------------------------------------------------------------------}
-  
-  TProductsCustomBatchResponseentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductsCustomBatchResponseentriesClass = Class of TProductsCustomBatchResponseentries;
   
   { --------------------------------------------------------------------
     TProductsCustomBatchResponseEntry
@@ -3283,20 +2499,20 @@ type
   TProductsCustomBatchResponseEntry = Class(TGoogleBaseObject)
   Private
     FbatchId : integer;
-    Ferrors : TDatafeedStatuserrors;
-    Fkind : string;
+    Ferrors : TErrors;
+    Fkind : String;
     Fproduct : TProduct;
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setproduct(AIndex : Integer; AValue : TProduct); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
-    Property errors : TDatafeedStatuserrors Index 8 Read Ferrors Write Seterrors;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property errors : TErrors Index 8 Read Ferrors Write Seterrors;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property product : TProduct Index 24 Read Fproduct Write Setproduct;
   end;
   TProductsCustomBatchResponseEntryClass = Class of TProductsCustomBatchResponseEntry;
@@ -3307,34 +2523,21 @@ type
   
   TProductsListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
-    Fresources : TProductsListResponseresources;
+    Fkind : String;
+    FnextPageToken : String;
+    Fresources : TProductsListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TProductsListResponseresources); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresources(AIndex : Integer; AValue : TProductsListResponseTyperesourcesArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
-    Property resources : TProductsListResponseresources Index 16 Read Fresources Write Setresources;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property resources : TProductsListResponseTyperesourcesArray Index 16 Read Fresources Write Setresources;
   end;
   TProductsListResponseClass = Class of TProductsListResponse;
-  
-  { --------------------------------------------------------------------
-    TProductsListResponseresources
-    --------------------------------------------------------------------}
-  
-  TProductsListResponseresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductsListResponseresourcesClass = Class of TProductsListResponseresources;
   
   { --------------------------------------------------------------------
     TProductstatusesCustomBatchRequest
@@ -3342,28 +2545,15 @@ type
   
   TProductstatusesCustomBatchRequest = Class(TGoogleBaseObject)
   Private
-    Fentries : TProductstatusesCustomBatchRequestentries;
+    Fentries : TProductstatusesCustomBatchRequestTypeentriesArray;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TProductstatusesCustomBatchRequestentries); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TProductstatusesCustomBatchRequestTypeentriesArray); virtual;
   Public
   Published
-    Property entries : TProductstatusesCustomBatchRequestentries Index 0 Read Fentries Write Setentries;
+    Property entries : TProductstatusesCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
   end;
   TProductstatusesCustomBatchRequestClass = Class of TProductstatusesCustomBatchRequest;
-  
-  { --------------------------------------------------------------------
-    TProductstatusesCustomBatchRequestentries
-    --------------------------------------------------------------------}
-  
-  TProductstatusesCustomBatchRequestentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductstatusesCustomBatchRequestentriesClass = Class of TProductstatusesCustomBatchRequestentries;
   
   { --------------------------------------------------------------------
     TProductstatusesCustomBatchRequestEntry
@@ -3372,21 +2562,21 @@ type
   TProductstatusesCustomBatchRequestEntry = Class(TGoogleBaseObject)
   Private
     FbatchId : integer;
-    FmerchantId : string;
-    Fmethod : string;
-    FproductId : string;
+    FmerchantId : String;
+    Fmethod : String;
+    FproductId : String;
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : string); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
-    Property merchantId : string Index 8 Read FmerchantId Write SetmerchantId;
-    Property method : string Index 16 Read Fmethod Write Setmethod;
-    Property productId : string Index 24 Read FproductId Write SetproductId;
+    Property merchantId : String Index 8 Read FmerchantId Write SetmerchantId;
+    Property method : String Index 16 Read Fmethod Write Setmethod;
+    Property productId : String Index 24 Read FproductId Write SetproductId;
   end;
   TProductstatusesCustomBatchRequestEntryClass = Class of TProductstatusesCustomBatchRequestEntry;
   
@@ -3396,31 +2586,18 @@ type
   
   TProductstatusesCustomBatchResponse = Class(TGoogleBaseObject)
   Private
-    Fentries : TProductstatusesCustomBatchResponseentries;
-    Fkind : string;
+    Fentries : TProductstatusesCustomBatchResponseTypeentriesArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TProductstatusesCustomBatchResponseentries); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TProductstatusesCustomBatchResponseTypeentriesArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property entries : TProductstatusesCustomBatchResponseentries Index 0 Read Fentries Write Setentries;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property entries : TProductstatusesCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TProductstatusesCustomBatchResponseClass = Class of TProductstatusesCustomBatchResponse;
-  
-  { --------------------------------------------------------------------
-    TProductstatusesCustomBatchResponseentries
-    --------------------------------------------------------------------}
-  
-  TProductstatusesCustomBatchResponseentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductstatusesCustomBatchResponseentriesClass = Class of TProductstatusesCustomBatchResponseentries;
   
   { --------------------------------------------------------------------
     TProductstatusesCustomBatchResponseEntry
@@ -3429,20 +2606,20 @@ type
   TProductstatusesCustomBatchResponseEntry = Class(TGoogleBaseObject)
   Private
     FbatchId : integer;
-    Ferrors : TDatafeedStatuserrors;
-    Fkind : string;
+    Ferrors : TErrors;
+    Fkind : String;
     FproductStatus : TProductStatus;
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetproductStatus(AIndex : Integer; AValue : TProductStatus); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
-    Property errors : TDatafeedStatuserrors Index 8 Read Ferrors Write Seterrors;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property errors : TErrors Index 8 Read Ferrors Write Seterrors;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property productStatus : TProductStatus Index 24 Read FproductStatus Write SetproductStatus;
   end;
   TProductstatusesCustomBatchResponseEntryClass = Class of TProductstatusesCustomBatchResponseEntry;
@@ -3453,34 +2630,21 @@ type
   
   TProductstatusesListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
-    Fresources : TProductstatusesListResponseresources;
+    Fkind : String;
+    FnextPageToken : String;
+    Fresources : TProductstatusesListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TProductstatusesListResponseresources); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresources(AIndex : Integer; AValue : TProductstatusesListResponseTyperesourcesArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
-    Property resources : TProductstatusesListResponseresources Index 16 Read Fresources Write Setresources;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property resources : TProductstatusesListResponseTyperesourcesArray Index 16 Read Fresources Write Setresources;
   end;
   TProductstatusesListResponseClass = Class of TProductstatusesListResponse;
-  
-  { --------------------------------------------------------------------
-    TProductstatusesListResponseresources
-    --------------------------------------------------------------------}
-  
-  TProductstatusesListResponseresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductstatusesListResponseresourcesClass = Class of TProductstatusesListResponseresources;
   
   { --------------------------------------------------------------------
     TWeight
@@ -3488,17 +2652,17 @@ type
   
   TWeight = Class(TGoogleBaseObject)
   Private
-    F_unit : string;
-    Fvalue : string;
+    F_unit : String;
+    Fvalue : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_unit(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _unit : string Index 0 Read F_unit Write Set_unit;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property _unit : String Index 0 Read F_unit Write Set_unit;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TWeightClass = Class of TWeight;
   
@@ -3511,7 +2675,7 @@ type
   
   TAccountsListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TAccountsResource = Class(TGoogleResource)
@@ -3546,7 +2710,7 @@ type
   
   TAccountshippingListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
@@ -3588,7 +2752,7 @@ type
   
   TAccountstatusesListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TAccountstatusesResource = Class(TGoogleResource)
@@ -3618,7 +2782,7 @@ type
   
   TAccounttaxListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
@@ -3660,7 +2824,7 @@ type
   
   TDatafeedsListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TDatafeedsResource = Class(TGoogleResource)
@@ -3687,7 +2851,7 @@ type
   
   TDatafeedstatusesListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TDatafeedstatusesResource = Class(TGoogleResource)
@@ -3744,7 +2908,7 @@ type
   
   TProductsListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TProductsResource = Class(TGoogleResource)
@@ -3772,7 +2936,7 @@ type
   
   TProductstatusesListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TProductstatusesResource = Class(TGoogleResource)
@@ -3881,7 +3045,7 @@ end;
 
 
 
-Procedure TAccount.SetadwordsLinks(AIndex : Integer; AValue : TAccountadwordsLinks); 
+Procedure TAccount.SetadwordsLinks(AIndex : Integer; AValue : TAccountTypeadwordsLinksArray); 
 
 begin
   If (FadwordsLinks=AValue) then exit;
@@ -3891,7 +3055,7 @@ end;
 
 
 
-Procedure TAccount.Setid(AIndex : Integer; AValue : string); 
+Procedure TAccount.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3901,7 +3065,7 @@ end;
 
 
 
-Procedure TAccount.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccount.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3911,7 +3075,7 @@ end;
 
 
 
-Procedure TAccount.Setname(AIndex : Integer; AValue : string); 
+Procedure TAccount.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3921,7 +3085,7 @@ end;
 
 
 
-Procedure TAccount.SetreviewsUrl(AIndex : Integer; AValue : string); 
+Procedure TAccount.SetreviewsUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FreviewsUrl=AValue) then exit;
@@ -3931,7 +3095,7 @@ end;
 
 
 
-Procedure TAccount.SetsellerId(AIndex : Integer; AValue : string); 
+Procedure TAccount.SetsellerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FsellerId=AValue) then exit;
@@ -3941,7 +3105,7 @@ end;
 
 
 
-Procedure TAccount.Setusers(AIndex : Integer; AValue : TAccountusers); 
+Procedure TAccount.Setusers(AIndex : Integer; AValue : TAccountTypeusersArray); 
 
 begin
   If (Fusers=AValue) then exit;
@@ -3951,7 +3115,7 @@ end;
 
 
 
-Procedure TAccount.SetwebsiteUrl(AIndex : Integer; AValue : string); 
+Procedure TAccount.SetwebsiteUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FwebsiteUrl=AValue) then exit;
@@ -3964,25 +3128,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountadwordsLinks
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountusers
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccountAdwordsLink
   --------------------------------------------------------------------}
 
 
-Procedure TAccountAdwordsLink.SetadwordsId(AIndex : Integer; AValue : string); 
+Procedure TAccountAdwordsLink.SetadwordsId(AIndex : Integer; AValue : String); 
 
 begin
   If (FadwordsId=AValue) then exit;
@@ -3992,7 +3142,7 @@ end;
 
 
 
-Procedure TAccountAdwordsLink.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TAccountAdwordsLink.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -4009,7 +3159,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountIdentifier.SetaggregatorId(AIndex : Integer; AValue : string); 
+Procedure TAccountIdentifier.SetaggregatorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaggregatorId=AValue) then exit;
@@ -4019,7 +3169,7 @@ end;
 
 
 
-Procedure TAccountIdentifier.SetmerchantId(AIndex : Integer; AValue : string); 
+Procedure TAccountIdentifier.SetmerchantId(AIndex : Integer; AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -4036,7 +3186,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShipping.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TAccountShipping.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -4046,7 +3196,7 @@ end;
 
 
 
-Procedure TAccountShipping.SetcarrierRates(AIndex : Integer; AValue : TAccountShippingcarrierRates); 
+Procedure TAccountShipping.SetcarrierRates(AIndex : Integer; AValue : TAccountShippingTypecarrierRatesArray); 
 
 begin
   If (FcarrierRates=AValue) then exit;
@@ -4056,7 +3206,7 @@ end;
 
 
 
-Procedure TAccountShipping.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountShipping.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4066,7 +3216,7 @@ end;
 
 
 
-Procedure TAccountShipping.SetlocationGroups(AIndex : Integer; AValue : TAccountShippinglocationGroups); 
+Procedure TAccountShipping.SetlocationGroups(AIndex : Integer; AValue : TAccountShippingTypelocationGroupsArray); 
 
 begin
   If (FlocationGroups=AValue) then exit;
@@ -4076,7 +3226,7 @@ end;
 
 
 
-Procedure TAccountShipping.SetrateTables(AIndex : Integer; AValue : TAccountShippingrateTables); 
+Procedure TAccountShipping.SetrateTables(AIndex : Integer; AValue : TAccountShippingTyperateTablesArray); 
 
 begin
   If (FrateTables=AValue) then exit;
@@ -4086,7 +3236,7 @@ end;
 
 
 
-Procedure TAccountShipping.Setservices(AIndex : Integer; AValue : TAccountShippingservices); 
+Procedure TAccountShipping.Setservices(AIndex : Integer; AValue : TAccountShippingTypeservicesArray); 
 
 begin
   If (Fservices=AValue) then exit;
@@ -4099,39 +3249,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountShippingcarrierRates
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountShippinglocationGroups
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountShippingrateTables
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountShippingservices
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccountShippingCarrierRate
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShippingCarrierRate.Setcarrier(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingCarrierRate.Setcarrier(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcarrier=AValue) then exit;
@@ -4141,7 +3263,7 @@ end;
 
 
 
-Procedure TAccountShippingCarrierRate.SetcarrierService(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingCarrierRate.SetcarrierService(AIndex : Integer; AValue : String); 
 
 begin
   If (FcarrierService=AValue) then exit;
@@ -4161,7 +3283,7 @@ end;
 
 
 
-Procedure TAccountShippingCarrierRate.SetmodifierPercent(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingCarrierRate.SetmodifierPercent(AIndex : Integer; AValue : String); 
 
 begin
   If (FmodifierPercent=AValue) then exit;
@@ -4171,7 +3293,7 @@ end;
 
 
 
-Procedure TAccountShippingCarrierRate.Setname(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingCarrierRate.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4181,7 +3303,7 @@ end;
 
 
 
-Procedure TAccountShippingCarrierRate.SetsaleCountry(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingCarrierRate.SetsaleCountry(AIndex : Integer; AValue : String); 
 
 begin
   If (FsaleCountry=AValue) then exit;
@@ -4191,7 +3313,7 @@ end;
 
 
 
-Procedure TAccountShippingCarrierRate.SetshippingOrigin(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingCarrierRate.SetshippingOrigin(AIndex : Integer; AValue : String); 
 
 begin
   If (FshippingOrigin=AValue) then exit;
@@ -4208,7 +3330,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShippingCondition.SetdeliveryLocationGroup(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingCondition.SetdeliveryLocationGroup(AIndex : Integer; AValue : String); 
 
 begin
   If (FdeliveryLocationGroup=AValue) then exit;
@@ -4218,7 +3340,7 @@ end;
 
 
 
-Procedure TAccountShippingCondition.SetdeliveryLocationId(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingCondition.SetdeliveryLocationId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdeliveryLocationId=AValue) then exit;
@@ -4228,7 +3350,7 @@ end;
 
 
 
-Procedure TAccountShippingCondition.SetdeliveryPostalCode(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingCondition.SetdeliveryPostalCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FdeliveryPostalCode=AValue) then exit;
@@ -4258,7 +3380,7 @@ end;
 
 
 
-Procedure TAccountShippingCondition.SetshippingLabel(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingCondition.SetshippingLabel(AIndex : Integer; AValue : String); 
 
 begin
   If (FshippingLabel=AValue) then exit;
@@ -4285,7 +3407,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShippingLocationGroup.Setcountry(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingLocationGroup.Setcountry(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -4295,7 +3417,7 @@ end;
 
 
 
-Procedure TAccountShippingLocationGroup.SetlocationIds(AIndex : Integer; AValue : TAccountShippingLocationGrouplocationIds); 
+Procedure TAccountShippingLocationGroup.SetlocationIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FlocationIds=AValue) then exit;
@@ -4305,7 +3427,7 @@ end;
 
 
 
-Procedure TAccountShippingLocationGroup.Setname(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingLocationGroup.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4315,7 +3437,7 @@ end;
 
 
 
-Procedure TAccountShippingLocationGroup.SetpostalCodeRanges(AIndex : Integer; AValue : TAccountShippingLocationGrouppostalCodeRanges); 
+Procedure TAccountShippingLocationGroup.SetpostalCodeRanges(AIndex : Integer; AValue : TAccountShippingLocationGroupTypepostalCodeRangesArray); 
 
 begin
   If (FpostalCodeRanges=AValue) then exit;
@@ -4325,7 +3447,7 @@ end;
 
 
 
-Procedure TAccountShippingLocationGroup.SetpostalCodes(AIndex : Integer; AValue : TAccountShippingLocationGrouppostalCodes); 
+Procedure TAccountShippingLocationGroup.SetpostalCodes(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FpostalCodes=AValue) then exit;
@@ -4338,32 +3460,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountShippingLocationGrouplocationIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountShippingLocationGrouppostalCodeRanges
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountShippingLocationGrouppostalCodes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccountShippingPostalCodeRange
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShippingPostalCodeRange.Set_end(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingPostalCodeRange.Set_end(AIndex : Integer; AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -4373,7 +3474,7 @@ end;
 
 
 
-Procedure TAccountShippingPostalCodeRange.Setstart(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingPostalCodeRange.Setstart(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -4401,7 +3502,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShippingRateTable.Setcontent(AIndex : Integer; AValue : TAccountShippingRateTablecontent); 
+Procedure TAccountShippingRateTable.Setcontent(AIndex : Integer; AValue : TAccountShippingRateTableTypecontentArray); 
 
 begin
   If (Fcontent=AValue) then exit;
@@ -4411,7 +3512,7 @@ end;
 
 
 
-Procedure TAccountShippingRateTable.Setname(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingRateTable.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4421,7 +3522,7 @@ end;
 
 
 
-Procedure TAccountShippingRateTable.SetsaleCountry(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingRateTable.SetsaleCountry(AIndex : Integer; AValue : String); 
 
 begin
   If (FsaleCountry=AValue) then exit;
@@ -4429,13 +3530,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountShippingRateTablecontent
-  --------------------------------------------------------------------}
 
 
 
@@ -4502,7 +3596,7 @@ end;
 
 
 
-Procedure TAccountShippingShippingService.Setname(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingShippingService.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4512,7 +3606,7 @@ end;
 
 
 
-Procedure TAccountShippingShippingService.SetsaleCountry(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingShippingService.SetsaleCountry(AIndex : Integer; AValue : String); 
 
 begin
   If (FsaleCountry=AValue) then exit;
@@ -4529,7 +3623,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShippingShippingServiceCalculationMethod.SetcarrierRate(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingShippingServiceCalculationMethod.SetcarrierRate(AIndex : Integer; AValue : String); 
 
 begin
   If (FcarrierRate=AValue) then exit;
@@ -4559,7 +3653,7 @@ end;
 
 
 
-Procedure TAccountShippingShippingServiceCalculationMethod.SetpercentageRate(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingShippingServiceCalculationMethod.SetpercentageRate(AIndex : Integer; AValue : String); 
 
 begin
   If (FpercentageRate=AValue) then exit;
@@ -4569,7 +3663,7 @@ end;
 
 
 
-Procedure TAccountShippingShippingServiceCalculationMethod.SetrateTable(AIndex : Integer; AValue : string); 
+Procedure TAccountShippingShippingServiceCalculationMethod.SetrateTable(AIndex : Integer; AValue : String); 
 
 begin
   If (FrateTable=AValue) then exit;
@@ -4596,7 +3690,7 @@ end;
 
 
 
-Procedure TAccountShippingShippingServiceCostRule.Setchildren(AIndex : Integer; AValue : TAccountShippingShippingServiceCostRulechildren); 
+Procedure TAccountShippingShippingServiceCostRule.Setchildren(AIndex : Integer; AValue : TAccountShippingShippingServiceCostRuleTypechildrenArray); 
 
 begin
   If (Fchildren=AValue) then exit;
@@ -4619,18 +3713,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountShippingShippingServiceCostRulechildren
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccountStatus
   --------------------------------------------------------------------}
 
 
-Procedure TAccountStatus.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TAccountStatus.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -4640,7 +3727,7 @@ end;
 
 
 
-Procedure TAccountStatus.SetdataQualityIssues(AIndex : Integer; AValue : TAccountStatusdataQualityIssues); 
+Procedure TAccountStatus.SetdataQualityIssues(AIndex : Integer; AValue : TAccountStatusTypedataQualityIssuesArray); 
 
 begin
   If (FdataQualityIssues=AValue) then exit;
@@ -4650,7 +3737,7 @@ end;
 
 
 
-Procedure TAccountStatus.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountStatus.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4663,18 +3750,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountStatusdataQualityIssues
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccountStatusDataQualityIssue
   --------------------------------------------------------------------}
 
 
-Procedure TAccountStatusDataQualityIssue.Setcountry(AIndex : Integer; AValue : string); 
+Procedure TAccountStatusDataQualityIssue.Setcountry(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -4684,7 +3764,7 @@ end;
 
 
 
-Procedure TAccountStatusDataQualityIssue.SetdisplayedValue(AIndex : Integer; AValue : string); 
+Procedure TAccountStatusDataQualityIssue.SetdisplayedValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FdisplayedValue=AValue) then exit;
@@ -4694,7 +3774,7 @@ end;
 
 
 
-Procedure TAccountStatusDataQualityIssue.SetexampleItems(AIndex : Integer; AValue : TAccountStatusDataQualityIssueexampleItems); 
+Procedure TAccountStatusDataQualityIssue.SetexampleItems(AIndex : Integer; AValue : TAccountStatusDataQualityIssueTypeexampleItemsArray); 
 
 begin
   If (FexampleItems=AValue) then exit;
@@ -4704,7 +3784,7 @@ end;
 
 
 
-Procedure TAccountStatusDataQualityIssue.Setid(AIndex : Integer; AValue : string); 
+Procedure TAccountStatusDataQualityIssue.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4714,7 +3794,7 @@ end;
 
 
 
-Procedure TAccountStatusDataQualityIssue.SetlastChecked(AIndex : Integer; AValue : string); 
+Procedure TAccountStatusDataQualityIssue.SetlastChecked(AIndex : Integer; AValue : String); 
 
 begin
   If (FlastChecked=AValue) then exit;
@@ -4734,7 +3814,7 @@ end;
 
 
 
-Procedure TAccountStatusDataQualityIssue.Setseverity(AIndex : Integer; AValue : string); 
+Procedure TAccountStatusDataQualityIssue.Setseverity(AIndex : Integer; AValue : String); 
 
 begin
   If (Fseverity=AValue) then exit;
@@ -4744,7 +3824,7 @@ end;
 
 
 
-Procedure TAccountStatusDataQualityIssue.SetsubmittedValue(AIndex : Integer; AValue : string); 
+Procedure TAccountStatusDataQualityIssue.SetsubmittedValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FsubmittedValue=AValue) then exit;
@@ -4752,13 +3832,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountStatusDataQualityIssueexampleItems
-  --------------------------------------------------------------------}
 
 
 
@@ -4768,7 +3841,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountStatusExampleItem.SetitemId(AIndex : Integer; AValue : string); 
+Procedure TAccountStatusExampleItem.SetitemId(AIndex : Integer; AValue : String); 
 
 begin
   If (FitemId=AValue) then exit;
@@ -4778,7 +3851,7 @@ end;
 
 
 
-Procedure TAccountStatusExampleItem.Setlink(AIndex : Integer; AValue : string); 
+Procedure TAccountStatusExampleItem.Setlink(AIndex : Integer; AValue : String); 
 
 begin
   If (Flink=AValue) then exit;
@@ -4788,7 +3861,7 @@ end;
 
 
 
-Procedure TAccountStatusExampleItem.SetsubmittedValue(AIndex : Integer; AValue : string); 
+Procedure TAccountStatusExampleItem.SetsubmittedValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FsubmittedValue=AValue) then exit;
@@ -4798,7 +3871,7 @@ end;
 
 
 
-Procedure TAccountStatusExampleItem.Settitle(AIndex : Integer; AValue : string); 
+Procedure TAccountStatusExampleItem.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -4808,7 +3881,7 @@ end;
 
 
 
-Procedure TAccountStatusExampleItem.SetvalueOnLandingPage(AIndex : Integer; AValue : string); 
+Procedure TAccountStatusExampleItem.SetvalueOnLandingPage(AIndex : Integer; AValue : String); 
 
 begin
   If (FvalueOnLandingPage=AValue) then exit;
@@ -4825,7 +3898,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountTax.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TAccountTax.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -4835,7 +3908,7 @@ end;
 
 
 
-Procedure TAccountTax.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountTax.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4845,7 +3918,7 @@ end;
 
 
 
-Procedure TAccountTax.Setrules(AIndex : Integer; AValue : TAccountTaxrules); 
+Procedure TAccountTax.Setrules(AIndex : Integer; AValue : TAccountTaxTyperulesArray); 
 
 begin
   If (Frules=AValue) then exit;
@@ -4858,18 +3931,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountTaxrules
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccountTaxTaxRule
   --------------------------------------------------------------------}
 
 
-Procedure TAccountTaxTaxRule.Setcountry(AIndex : Integer; AValue : string); 
+Procedure TAccountTaxTaxRule.Setcountry(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -4879,7 +3945,7 @@ end;
 
 
 
-Procedure TAccountTaxTaxRule.SetlocationId(AIndex : Integer; AValue : string); 
+Procedure TAccountTaxTaxRule.SetlocationId(AIndex : Integer; AValue : String); 
 
 begin
   If (FlocationId=AValue) then exit;
@@ -4889,7 +3955,7 @@ end;
 
 
 
-Procedure TAccountTaxTaxRule.SetratePercent(AIndex : Integer; AValue : string); 
+Procedure TAccountTaxTaxRule.SetratePercent(AIndex : Integer; AValue : String); 
 
 begin
   If (FratePercent=AValue) then exit;
@@ -4936,7 +4002,7 @@ end;
 
 
 
-Procedure TAccountUser.SetemailAddress(AIndex : Integer; AValue : string); 
+Procedure TAccountUser.SetemailAddress(AIndex : Integer; AValue : String); 
 
 begin
   If (FemailAddress=AValue) then exit;
@@ -4953,7 +4019,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountsAuthInfoResponse.SetaccountIdentifiers(AIndex : Integer; AValue : TAccountsAuthInfoResponseaccountIdentifiers); 
+Procedure TAccountsAuthInfoResponse.SetaccountIdentifiers(AIndex : Integer; AValue : TAccountsAuthInfoResponseTypeaccountIdentifiersArray); 
 
 begin
   If (FaccountIdentifiers=AValue) then exit;
@@ -4963,7 +4029,7 @@ end;
 
 
 
-Procedure TAccountsAuthInfoResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountsAuthInfoResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4976,18 +4042,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountsAuthInfoResponseaccountIdentifiers
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccountsCustomBatchRequest
   --------------------------------------------------------------------}
 
 
-Procedure TAccountsCustomBatchRequest.Setentries(AIndex : Integer; AValue : TAccountsCustomBatchRequestentries); 
+Procedure TAccountsCustomBatchRequest.Setentries(AIndex : Integer; AValue : TAccountsCustomBatchRequestTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -4995,13 +4054,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountsCustomBatchRequestentries
-  --------------------------------------------------------------------}
 
 
 
@@ -5021,7 +4073,7 @@ end;
 
 
 
-Procedure TAccountsCustomBatchRequestEntry.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TAccountsCustomBatchRequestEntry.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -5041,7 +4093,7 @@ end;
 
 
 
-Procedure TAccountsCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : string); 
+Procedure TAccountsCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -5051,7 +4103,7 @@ end;
 
 
 
-Procedure TAccountsCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : string); 
+Procedure TAccountsCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -5068,7 +4120,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountsCustomBatchResponse.Setentries(AIndex : Integer; AValue : TAccountsCustomBatchResponseentries); 
+Procedure TAccountsCustomBatchResponse.Setentries(AIndex : Integer; AValue : TAccountsCustomBatchResponseTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -5078,7 +4130,7 @@ end;
 
 
 
-Procedure TAccountsCustomBatchResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountsCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5086,13 +4138,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountsCustomBatchResponseentries
-  --------------------------------------------------------------------}
 
 
 
@@ -5122,7 +4167,7 @@ end;
 
 
 
-Procedure TAccountsCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); 
+Procedure TAccountsCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TErrors); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -5132,7 +4177,7 @@ end;
 
 
 
-Procedure TAccountsCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountsCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5149,7 +4194,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountsListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountsListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5159,7 +4204,7 @@ end;
 
 
 
-Procedure TAccountsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TAccountsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5169,7 +4214,7 @@ end;
 
 
 
-Procedure TAccountsListResponse.Setresources(AIndex : Integer; AValue : TAccountsListResponseresources); 
+Procedure TAccountsListResponse.Setresources(AIndex : Integer; AValue : TAccountsListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -5182,18 +4227,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountsListResponseresources
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccountshippingCustomBatchRequest
   --------------------------------------------------------------------}
 
 
-Procedure TAccountshippingCustomBatchRequest.Setentries(AIndex : Integer; AValue : TAccountshippingCustomBatchRequestentries); 
+Procedure TAccountshippingCustomBatchRequest.Setentries(AIndex : Integer; AValue : TAccountshippingCustomBatchRequestTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -5206,18 +4244,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountshippingCustomBatchRequestentries
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccountshippingCustomBatchRequestEntry
   --------------------------------------------------------------------}
 
 
-Procedure TAccountshippingCustomBatchRequestEntry.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TAccountshippingCustomBatchRequestEntry.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -5247,7 +4278,7 @@ end;
 
 
 
-Procedure TAccountshippingCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : string); 
+Procedure TAccountshippingCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -5257,7 +4288,7 @@ end;
 
 
 
-Procedure TAccountshippingCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : string); 
+Procedure TAccountshippingCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -5274,7 +4305,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountshippingCustomBatchResponse.Setentries(AIndex : Integer; AValue : TAccountshippingCustomBatchResponseentries); 
+Procedure TAccountshippingCustomBatchResponse.Setentries(AIndex : Integer; AValue : TAccountshippingCustomBatchResponseTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -5284,7 +4315,7 @@ end;
 
 
 
-Procedure TAccountshippingCustomBatchResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountshippingCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5292,13 +4323,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountshippingCustomBatchResponseentries
-  --------------------------------------------------------------------}
 
 
 
@@ -5328,7 +4352,7 @@ end;
 
 
 
-Procedure TAccountshippingCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); 
+Procedure TAccountshippingCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TErrors); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -5338,7 +4362,7 @@ end;
 
 
 
-Procedure TAccountshippingCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountshippingCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5355,7 +4379,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountshippingListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountshippingListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5365,7 +4389,7 @@ end;
 
 
 
-Procedure TAccountshippingListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TAccountshippingListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5375,7 +4399,7 @@ end;
 
 
 
-Procedure TAccountshippingListResponse.Setresources(AIndex : Integer; AValue : TAccountshippingListResponseresources); 
+Procedure TAccountshippingListResponse.Setresources(AIndex : Integer; AValue : TAccountshippingListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -5388,18 +4412,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountshippingListResponseresources
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccountstatusesCustomBatchRequest
   --------------------------------------------------------------------}
 
 
-Procedure TAccountstatusesCustomBatchRequest.Setentries(AIndex : Integer; AValue : TAccountstatusesCustomBatchRequestentries); 
+Procedure TAccountstatusesCustomBatchRequest.Setentries(AIndex : Integer; AValue : TAccountstatusesCustomBatchRequestTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -5412,18 +4429,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountstatusesCustomBatchRequestentries
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccountstatusesCustomBatchRequestEntry
   --------------------------------------------------------------------}
 
 
-Procedure TAccountstatusesCustomBatchRequestEntry.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TAccountstatusesCustomBatchRequestEntry.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -5443,7 +4453,7 @@ end;
 
 
 
-Procedure TAccountstatusesCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : string); 
+Procedure TAccountstatusesCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -5453,7 +4463,7 @@ end;
 
 
 
-Procedure TAccountstatusesCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : string); 
+Procedure TAccountstatusesCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -5470,7 +4480,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountstatusesCustomBatchResponse.Setentries(AIndex : Integer; AValue : TAccountstatusesCustomBatchResponseentries); 
+Procedure TAccountstatusesCustomBatchResponse.Setentries(AIndex : Integer; AValue : TAccountstatusesCustomBatchResponseTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -5480,7 +4490,7 @@ end;
 
 
 
-Procedure TAccountstatusesCustomBatchResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountstatusesCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5488,13 +4498,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountstatusesCustomBatchResponseentries
-  --------------------------------------------------------------------}
 
 
 
@@ -5524,7 +4527,7 @@ end;
 
 
 
-Procedure TAccountstatusesCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); 
+Procedure TAccountstatusesCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TErrors); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -5541,7 +4544,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountstatusesListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountstatusesListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5551,7 +4554,7 @@ end;
 
 
 
-Procedure TAccountstatusesListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TAccountstatusesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5561,7 +4564,7 @@ end;
 
 
 
-Procedure TAccountstatusesListResponse.Setresources(AIndex : Integer; AValue : TAccountstatusesListResponseresources); 
+Procedure TAccountstatusesListResponse.Setresources(AIndex : Integer; AValue : TAccountstatusesListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -5574,18 +4577,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountstatusesListResponseresources
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccounttaxCustomBatchRequest
   --------------------------------------------------------------------}
 
 
-Procedure TAccounttaxCustomBatchRequest.Setentries(AIndex : Integer; AValue : TAccounttaxCustomBatchRequestentries); 
+Procedure TAccounttaxCustomBatchRequest.Setentries(AIndex : Integer; AValue : TAccounttaxCustomBatchRequestTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -5598,18 +4594,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccounttaxCustomBatchRequestentries
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccounttaxCustomBatchRequestEntry
   --------------------------------------------------------------------}
 
 
-Procedure TAccounttaxCustomBatchRequestEntry.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TAccounttaxCustomBatchRequestEntry.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -5639,7 +4628,7 @@ end;
 
 
 
-Procedure TAccounttaxCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : string); 
+Procedure TAccounttaxCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -5649,7 +4638,7 @@ end;
 
 
 
-Procedure TAccounttaxCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : string); 
+Procedure TAccounttaxCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -5666,7 +4655,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccounttaxCustomBatchResponse.Setentries(AIndex : Integer; AValue : TAccounttaxCustomBatchResponseentries); 
+Procedure TAccounttaxCustomBatchResponse.Setentries(AIndex : Integer; AValue : TAccounttaxCustomBatchResponseTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -5676,7 +4665,7 @@ end;
 
 
 
-Procedure TAccounttaxCustomBatchResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccounttaxCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5684,13 +4673,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccounttaxCustomBatchResponseentries
-  --------------------------------------------------------------------}
 
 
 
@@ -5720,7 +4702,7 @@ end;
 
 
 
-Procedure TAccounttaxCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); 
+Procedure TAccounttaxCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TErrors); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -5730,7 +4712,7 @@ end;
 
 
 
-Procedure TAccounttaxCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccounttaxCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5747,7 +4729,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccounttaxListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccounttaxListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5757,7 +4739,7 @@ end;
 
 
 
-Procedure TAccounttaxListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TAccounttaxListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5767,7 +4749,7 @@ end;
 
 
 
-Procedure TAccounttaxListResponse.Setresources(AIndex : Integer; AValue : TAccounttaxListResponseresources); 
+Procedure TAccounttaxListResponse.Setresources(AIndex : Integer; AValue : TAccounttaxListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -5780,18 +4762,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccounttaxListResponseresources
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TDatafeed
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeed.SetattributeLanguage(AIndex : Integer; AValue : string); 
+Procedure TDatafeed.SetattributeLanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (FattributeLanguage=AValue) then exit;
@@ -5801,7 +4776,7 @@ end;
 
 
 
-Procedure TDatafeed.SetcontentLanguage(AIndex : Integer; AValue : string); 
+Procedure TDatafeed.SetcontentLanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontentLanguage=AValue) then exit;
@@ -5811,7 +4786,7 @@ end;
 
 
 
-Procedure TDatafeed.SetcontentType(AIndex : Integer; AValue : string); 
+Procedure TDatafeed.SetcontentType(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontentType=AValue) then exit;
@@ -5831,7 +4806,7 @@ end;
 
 
 
-Procedure TDatafeed.SetfileName(AIndex : Integer; AValue : string); 
+Procedure TDatafeed.SetfileName(AIndex : Integer; AValue : String); 
 
 begin
   If (FfileName=AValue) then exit;
@@ -5851,7 +4826,7 @@ end;
 
 
 
-Procedure TDatafeed.Setid(AIndex : Integer; AValue : string); 
+Procedure TDatafeed.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5861,7 +4836,7 @@ end;
 
 
 
-Procedure TDatafeed.SetintendedDestinations(AIndex : Integer; AValue : TDatafeedintendedDestinations); 
+Procedure TDatafeed.SetintendedDestinations(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FintendedDestinations=AValue) then exit;
@@ -5871,7 +4846,7 @@ end;
 
 
 
-Procedure TDatafeed.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDatafeed.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5881,7 +4856,7 @@ end;
 
 
 
-Procedure TDatafeed.Setname(AIndex : Integer; AValue : string); 
+Procedure TDatafeed.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5891,7 +4866,7 @@ end;
 
 
 
-Procedure TDatafeed.SettargetCountry(AIndex : Integer; AValue : string); 
+Procedure TDatafeed.SettargetCountry(AIndex : Integer; AValue : String); 
 
 begin
   If (FtargetCountry=AValue) then exit;
@@ -5899,13 +4874,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TDatafeedintendedDestinations
-  --------------------------------------------------------------------}
 
 
 
@@ -5925,7 +4893,7 @@ end;
 
 
 
-Procedure TDatafeedFetchSchedule.SetfetchUrl(AIndex : Integer; AValue : string); 
+Procedure TDatafeedFetchSchedule.SetfetchUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FfetchUrl=AValue) then exit;
@@ -5945,7 +4913,7 @@ end;
 
 
 
-Procedure TDatafeedFetchSchedule.Setpassword(AIndex : Integer; AValue : string); 
+Procedure TDatafeedFetchSchedule.Setpassword(AIndex : Integer; AValue : String); 
 
 begin
   If (Fpassword=AValue) then exit;
@@ -5955,7 +4923,7 @@ end;
 
 
 
-Procedure TDatafeedFetchSchedule.SettimeZone(AIndex : Integer; AValue : string); 
+Procedure TDatafeedFetchSchedule.SettimeZone(AIndex : Integer; AValue : String); 
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -5965,7 +4933,7 @@ end;
 
 
 
-Procedure TDatafeedFetchSchedule.Setusername(AIndex : Integer; AValue : string); 
+Procedure TDatafeedFetchSchedule.Setusername(AIndex : Integer; AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -5975,7 +4943,7 @@ end;
 
 
 
-Procedure TDatafeedFetchSchedule.Setweekday(AIndex : Integer; AValue : string); 
+Procedure TDatafeedFetchSchedule.Setweekday(AIndex : Integer; AValue : String); 
 
 begin
   If (Fweekday=AValue) then exit;
@@ -5992,7 +4960,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedFormat.SetcolumnDelimiter(AIndex : Integer; AValue : string); 
+Procedure TDatafeedFormat.SetcolumnDelimiter(AIndex : Integer; AValue : String); 
 
 begin
   If (FcolumnDelimiter=AValue) then exit;
@@ -6002,7 +4970,7 @@ end;
 
 
 
-Procedure TDatafeedFormat.SetfileEncoding(AIndex : Integer; AValue : string); 
+Procedure TDatafeedFormat.SetfileEncoding(AIndex : Integer; AValue : String); 
 
 begin
   If (FfileEncoding=AValue) then exit;
@@ -6012,7 +4980,7 @@ end;
 
 
 
-Procedure TDatafeedFormat.SetquotingMode(AIndex : Integer; AValue : string); 
+Procedure TDatafeedFormat.SetquotingMode(AIndex : Integer; AValue : String); 
 
 begin
   If (FquotingMode=AValue) then exit;
@@ -6029,7 +4997,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedStatus.SetdatafeedId(AIndex : Integer; AValue : string); 
+Procedure TDatafeedStatus.SetdatafeedId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatafeedId=AValue) then exit;
@@ -6039,7 +5007,7 @@ end;
 
 
 
-Procedure TDatafeedStatus.Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); 
+Procedure TDatafeedStatus.Seterrors(AIndex : Integer; AValue : TDatafeedStatusTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -6049,7 +5017,7 @@ end;
 
 
 
-Procedure TDatafeedStatus.SetitemsTotal(AIndex : Integer; AValue : string); 
+Procedure TDatafeedStatus.SetitemsTotal(AIndex : Integer; AValue : String); 
 
 begin
   If (FitemsTotal=AValue) then exit;
@@ -6059,7 +5027,7 @@ end;
 
 
 
-Procedure TDatafeedStatus.SetitemsValid(AIndex : Integer; AValue : string); 
+Procedure TDatafeedStatus.SetitemsValid(AIndex : Integer; AValue : String); 
 
 begin
   If (FitemsValid=AValue) then exit;
@@ -6069,7 +5037,7 @@ end;
 
 
 
-Procedure TDatafeedStatus.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDatafeedStatus.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6079,7 +5047,7 @@ end;
 
 
 
-Procedure TDatafeedStatus.SetlastUploadDate(AIndex : Integer; AValue : string); 
+Procedure TDatafeedStatus.SetlastUploadDate(AIndex : Integer; AValue : String); 
 
 begin
   If (FlastUploadDate=AValue) then exit;
@@ -6089,7 +5057,7 @@ end;
 
 
 
-Procedure TDatafeedStatus.SetprocessingStatus(AIndex : Integer; AValue : string); 
+Procedure TDatafeedStatus.SetprocessingStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -6099,7 +5067,7 @@ end;
 
 
 
-Procedure TDatafeedStatus.Setwarnings(AIndex : Integer; AValue : TDatafeedStatuswarnings); 
+Procedure TDatafeedStatus.Setwarnings(AIndex : Integer; AValue : TDatafeedStatusTypewarningsArray); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -6112,25 +5080,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDatafeedStatuserrors
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TDatafeedStatuswarnings
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TDatafeedStatusError
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedStatusError.Setcode(AIndex : Integer; AValue : string); 
+Procedure TDatafeedStatusError.Setcode(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -6140,7 +5094,7 @@ end;
 
 
 
-Procedure TDatafeedStatusError.Setcount(AIndex : Integer; AValue : string); 
+Procedure TDatafeedStatusError.Setcount(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -6150,7 +5104,7 @@ end;
 
 
 
-Procedure TDatafeedStatusError.Setexamples(AIndex : Integer; AValue : TDatafeedStatusErrorexamples); 
+Procedure TDatafeedStatusError.Setexamples(AIndex : Integer; AValue : TDatafeedStatusErrorTypeexamplesArray); 
 
 begin
   If (Fexamples=AValue) then exit;
@@ -6160,7 +5114,7 @@ end;
 
 
 
-Procedure TDatafeedStatusError.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TDatafeedStatusError.Setmessage(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -6173,18 +5127,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDatafeedStatusErrorexamples
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TDatafeedStatusExample
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedStatusExample.SetitemId(AIndex : Integer; AValue : string); 
+Procedure TDatafeedStatusExample.SetitemId(AIndex : Integer; AValue : String); 
 
 begin
   If (FitemId=AValue) then exit;
@@ -6194,7 +5141,7 @@ end;
 
 
 
-Procedure TDatafeedStatusExample.SetlineNumber(AIndex : Integer; AValue : string); 
+Procedure TDatafeedStatusExample.SetlineNumber(AIndex : Integer; AValue : String); 
 
 begin
   If (FlineNumber=AValue) then exit;
@@ -6204,7 +5151,7 @@ end;
 
 
 
-Procedure TDatafeedStatusExample.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TDatafeedStatusExample.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -6221,7 +5168,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedsCustomBatchRequest.Setentries(AIndex : Integer; AValue : TDatafeedsCustomBatchRequestentries); 
+Procedure TDatafeedsCustomBatchRequest.Setentries(AIndex : Integer; AValue : TDatafeedsCustomBatchRequestTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -6229,13 +5176,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TDatafeedsCustomBatchRequestentries
-  --------------------------------------------------------------------}
 
 
 
@@ -6265,7 +5205,7 @@ end;
 
 
 
-Procedure TDatafeedsCustomBatchRequestEntry.SetdatafeedId(AIndex : Integer; AValue : string); 
+Procedure TDatafeedsCustomBatchRequestEntry.SetdatafeedId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatafeedId=AValue) then exit;
@@ -6275,7 +5215,7 @@ end;
 
 
 
-Procedure TDatafeedsCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : string); 
+Procedure TDatafeedsCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -6285,7 +5225,7 @@ end;
 
 
 
-Procedure TDatafeedsCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : string); 
+Procedure TDatafeedsCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -6302,7 +5242,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedsCustomBatchResponse.Setentries(AIndex : Integer; AValue : TDatafeedsCustomBatchResponseentries); 
+Procedure TDatafeedsCustomBatchResponse.Setentries(AIndex : Integer; AValue : TDatafeedsCustomBatchResponseTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -6312,7 +5252,7 @@ end;
 
 
 
-Procedure TDatafeedsCustomBatchResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDatafeedsCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6320,13 +5260,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TDatafeedsCustomBatchResponseentries
-  --------------------------------------------------------------------}
 
 
 
@@ -6356,7 +5289,7 @@ end;
 
 
 
-Procedure TDatafeedsCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); 
+Procedure TDatafeedsCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TErrors); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -6373,7 +5306,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedsListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDatafeedsListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6383,7 +5316,7 @@ end;
 
 
 
-Procedure TDatafeedsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TDatafeedsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6393,7 +5326,7 @@ end;
 
 
 
-Procedure TDatafeedsListResponse.Setresources(AIndex : Integer; AValue : TDatafeedsListResponseresources); 
+Procedure TDatafeedsListResponse.Setresources(AIndex : Integer; AValue : TDatafeedsListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -6406,18 +5339,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDatafeedsListResponseresources
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TDatafeedstatusesCustomBatchRequest
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedstatusesCustomBatchRequest.Setentries(AIndex : Integer; AValue : TDatafeedstatusesCustomBatchRequestentries); 
+Procedure TDatafeedstatusesCustomBatchRequest.Setentries(AIndex : Integer; AValue : TDatafeedstatusesCustomBatchRequestTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -6425,13 +5351,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TDatafeedstatusesCustomBatchRequestentries
-  --------------------------------------------------------------------}
 
 
 
@@ -6451,7 +5370,7 @@ end;
 
 
 
-Procedure TDatafeedstatusesCustomBatchRequestEntry.SetdatafeedId(AIndex : Integer; AValue : string); 
+Procedure TDatafeedstatusesCustomBatchRequestEntry.SetdatafeedId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatafeedId=AValue) then exit;
@@ -6461,7 +5380,7 @@ end;
 
 
 
-Procedure TDatafeedstatusesCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : string); 
+Procedure TDatafeedstatusesCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -6471,7 +5390,7 @@ end;
 
 
 
-Procedure TDatafeedstatusesCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : string); 
+Procedure TDatafeedstatusesCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -6488,7 +5407,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedstatusesCustomBatchResponse.Setentries(AIndex : Integer; AValue : TDatafeedstatusesCustomBatchResponseentries); 
+Procedure TDatafeedstatusesCustomBatchResponse.Setentries(AIndex : Integer; AValue : TDatafeedstatusesCustomBatchResponseTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -6498,7 +5417,7 @@ end;
 
 
 
-Procedure TDatafeedstatusesCustomBatchResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDatafeedstatusesCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6506,13 +5425,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TDatafeedstatusesCustomBatchResponseentries
-  --------------------------------------------------------------------}
 
 
 
@@ -6542,7 +5454,7 @@ end;
 
 
 
-Procedure TDatafeedstatusesCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); 
+Procedure TDatafeedstatusesCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TErrors); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -6559,7 +5471,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedstatusesListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDatafeedstatusesListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6569,7 +5481,7 @@ end;
 
 
 
-Procedure TDatafeedstatusesListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TDatafeedstatusesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6579,7 +5491,7 @@ end;
 
 
 
-Procedure TDatafeedstatusesListResponse.Setresources(AIndex : Integer; AValue : TDatafeedstatusesListResponseresources); 
+Procedure TDatafeedstatusesListResponse.Setresources(AIndex : Integer; AValue : TDatafeedstatusesListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -6592,18 +5504,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDatafeedstatusesListResponseresources
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TError
   --------------------------------------------------------------------}
 
 
-Procedure TError.Setdomain(AIndex : Integer; AValue : string); 
+Procedure TError.Setdomain(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdomain=AValue) then exit;
@@ -6613,7 +5518,7 @@ end;
 
 
 
-Procedure TError.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TError.Setmessage(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -6623,7 +5528,7 @@ end;
 
 
 
-Procedure TError.Setreason(AIndex : Integer; AValue : string); 
+Procedure TError.Setreason(AIndex : Integer; AValue : String); 
 
 begin
   If (Freason=AValue) then exit;
@@ -6650,7 +5555,7 @@ end;
 
 
 
-Procedure TErrors.Seterrors(AIndex : Integer; AValue : TErrorserrors); 
+Procedure TErrors.Seterrors(AIndex : Integer; AValue : TErrorsTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -6660,7 +5565,7 @@ end;
 
 
 
-Procedure TErrors.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TErrors.Setmessage(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -6673,18 +5578,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TErrorserrors
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TInventory
   --------------------------------------------------------------------}
 
 
-Procedure TInventory.Setavailability(AIndex : Integer; AValue : string); 
+Procedure TInventory.Setavailability(AIndex : Integer; AValue : String); 
 
 begin
   If (Favailability=AValue) then exit;
@@ -6694,7 +5592,7 @@ end;
 
 
 
-Procedure TInventory.Setkind(AIndex : Integer; AValue : string); 
+Procedure TInventory.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6734,7 +5632,7 @@ end;
 
 
 
-Procedure TInventory.SetsalePriceEffectiveDate(AIndex : Integer; AValue : string); 
+Procedure TInventory.SetsalePriceEffectiveDate(AIndex : Integer; AValue : String); 
 
 begin
   If (FsalePriceEffectiveDate=AValue) then exit;
@@ -6751,7 +5649,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInventoryCustomBatchRequest.Setentries(AIndex : Integer; AValue : TInventoryCustomBatchRequestentries); 
+Procedure TInventoryCustomBatchRequest.Setentries(AIndex : Integer; AValue : TInventoryCustomBatchRequestTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -6759,13 +5657,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TInventoryCustomBatchRequestentries
-  --------------------------------------------------------------------}
 
 
 
@@ -6795,7 +5686,7 @@ end;
 
 
 
-Procedure TInventoryCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : string); 
+Procedure TInventoryCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -6805,7 +5696,7 @@ end;
 
 
 
-Procedure TInventoryCustomBatchRequestEntry.SetproductId(AIndex : Integer; AValue : string); 
+Procedure TInventoryCustomBatchRequestEntry.SetproductId(AIndex : Integer; AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -6815,7 +5706,7 @@ end;
 
 
 
-Procedure TInventoryCustomBatchRequestEntry.SetstoreCode(AIndex : Integer; AValue : string); 
+Procedure TInventoryCustomBatchRequestEntry.SetstoreCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FstoreCode=AValue) then exit;
@@ -6832,7 +5723,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInventoryCustomBatchResponse.Setentries(AIndex : Integer; AValue : TInventoryCustomBatchResponseentries); 
+Procedure TInventoryCustomBatchResponse.Setentries(AIndex : Integer; AValue : TInventoryCustomBatchResponseTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -6842,7 +5733,7 @@ end;
 
 
 
-Procedure TInventoryCustomBatchResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TInventoryCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6850,13 +5741,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TInventoryCustomBatchResponseentries
-  --------------------------------------------------------------------}
 
 
 
@@ -6876,7 +5760,7 @@ end;
 
 
 
-Procedure TInventoryCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); 
+Procedure TInventoryCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TErrors); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -6886,7 +5770,7 @@ end;
 
 
 
-Procedure TInventoryCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : string); 
+Procedure TInventoryCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6903,7 +5787,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInventorySetRequest.Setavailability(AIndex : Integer; AValue : string); 
+Procedure TInventorySetRequest.Setavailability(AIndex : Integer; AValue : String); 
 
 begin
   If (Favailability=AValue) then exit;
@@ -6943,7 +5827,7 @@ end;
 
 
 
-Procedure TInventorySetRequest.SetsalePriceEffectiveDate(AIndex : Integer; AValue : string); 
+Procedure TInventorySetRequest.SetsalePriceEffectiveDate(AIndex : Integer; AValue : String); 
 
 begin
   If (FsalePriceEffectiveDate=AValue) then exit;
@@ -6960,7 +5844,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInventorySetResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TInventorySetResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6977,7 +5861,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLoyaltyPoints.Setname(AIndex : Integer; AValue : string); 
+Procedure TLoyaltyPoints.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6987,7 +5871,7 @@ end;
 
 
 
-Procedure TLoyaltyPoints.SetpointsValue(AIndex : Integer; AValue : string); 
+Procedure TLoyaltyPoints.SetpointsValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FpointsValue=AValue) then exit;
@@ -7014,7 +5898,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPrice.Setcurrency(AIndex : Integer; AValue : string); 
+Procedure TPrice.Setcurrency(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcurrency=AValue) then exit;
@@ -7024,7 +5908,7 @@ end;
 
 
 
-Procedure TPrice.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TPrice.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -7041,7 +5925,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProduct.SetadditionalImageLinks(AIndex : Integer; AValue : TProductadditionalImageLinks); 
+Procedure TProduct.SetadditionalImageLinks(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FadditionalImageLinks=AValue) then exit;
@@ -7061,7 +5945,7 @@ end;
 
 
 
-Procedure TProduct.SetadwordsGrouping(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetadwordsGrouping(AIndex : Integer; AValue : String); 
 
 begin
   If (FadwordsGrouping=AValue) then exit;
@@ -7071,7 +5955,7 @@ end;
 
 
 
-Procedure TProduct.SetadwordsLabels(AIndex : Integer; AValue : TProductadwordsLabels); 
+Procedure TProduct.SetadwordsLabels(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FadwordsLabels=AValue) then exit;
@@ -7081,7 +5965,7 @@ end;
 
 
 
-Procedure TProduct.SetadwordsRedirect(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetadwordsRedirect(AIndex : Integer; AValue : String); 
 
 begin
   If (FadwordsRedirect=AValue) then exit;
@@ -7091,7 +5975,7 @@ end;
 
 
 
-Procedure TProduct.SetageGroup(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetageGroup(AIndex : Integer; AValue : String); 
 
 begin
   If (FageGroup=AValue) then exit;
@@ -7101,7 +5985,7 @@ end;
 
 
 
-Procedure TProduct.Setaspects(AIndex : Integer; AValue : TProductaspects); 
+Procedure TProduct.Setaspects(AIndex : Integer; AValue : TProductTypeaspectsArray); 
 
 begin
   If (Faspects=AValue) then exit;
@@ -7111,7 +5995,7 @@ end;
 
 
 
-Procedure TProduct.Setavailability(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setavailability(AIndex : Integer; AValue : String); 
 
 begin
   If (Favailability=AValue) then exit;
@@ -7121,7 +6005,7 @@ end;
 
 
 
-Procedure TProduct.SetavailabilityDate(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetavailabilityDate(AIndex : Integer; AValue : String); 
 
 begin
   If (FavailabilityDate=AValue) then exit;
@@ -7131,7 +6015,7 @@ end;
 
 
 
-Procedure TProduct.Setbrand(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setbrand(AIndex : Integer; AValue : String); 
 
 begin
   If (Fbrand=AValue) then exit;
@@ -7141,7 +6025,7 @@ end;
 
 
 
-Procedure TProduct.Setchannel(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setchannel(AIndex : Integer; AValue : String); 
 
 begin
   If (Fchannel=AValue) then exit;
@@ -7151,7 +6035,7 @@ end;
 
 
 
-Procedure TProduct.Setcolor(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setcolor(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcolor=AValue) then exit;
@@ -7161,7 +6045,7 @@ end;
 
 
 
-Procedure TProduct.Setcondition(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setcondition(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcondition=AValue) then exit;
@@ -7171,7 +6055,7 @@ end;
 
 
 
-Procedure TProduct.SetcontentLanguage(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetcontentLanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontentLanguage=AValue) then exit;
@@ -7181,7 +6065,7 @@ end;
 
 
 
-Procedure TProduct.SetcustomAttributes(AIndex : Integer; AValue : TProductcustomAttributes); 
+Procedure TProduct.SetcustomAttributes(AIndex : Integer; AValue : TProductTypecustomAttributesArray); 
 
 begin
   If (FcustomAttributes=AValue) then exit;
@@ -7191,7 +6075,7 @@ end;
 
 
 
-Procedure TProduct.SetcustomGroups(AIndex : Integer; AValue : TProductcustomGroups); 
+Procedure TProduct.SetcustomGroups(AIndex : Integer; AValue : TProductTypecustomGroupsArray); 
 
 begin
   If (FcustomGroups=AValue) then exit;
@@ -7201,7 +6085,7 @@ end;
 
 
 
-Procedure TProduct.SetcustomLabel0(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetcustomLabel0(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomLabel0=AValue) then exit;
@@ -7211,7 +6095,7 @@ end;
 
 
 
-Procedure TProduct.SetcustomLabel1(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetcustomLabel1(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomLabel1=AValue) then exit;
@@ -7221,7 +6105,7 @@ end;
 
 
 
-Procedure TProduct.SetcustomLabel2(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetcustomLabel2(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomLabel2=AValue) then exit;
@@ -7231,7 +6115,7 @@ end;
 
 
 
-Procedure TProduct.SetcustomLabel3(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetcustomLabel3(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomLabel3=AValue) then exit;
@@ -7241,7 +6125,7 @@ end;
 
 
 
-Procedure TProduct.SetcustomLabel4(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetcustomLabel4(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomLabel4=AValue) then exit;
@@ -7251,7 +6135,7 @@ end;
 
 
 
-Procedure TProduct.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -7261,7 +6145,7 @@ end;
 
 
 
-Procedure TProduct.Setdestinations(AIndex : Integer; AValue : TProductdestinations); 
+Procedure TProduct.Setdestinations(AIndex : Integer; AValue : TProductTypedestinationsArray); 
 
 begin
   If (Fdestinations=AValue) then exit;
@@ -7271,7 +6155,7 @@ end;
 
 
 
-Procedure TProduct.SetdisplayAdsId(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetdisplayAdsId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdisplayAdsId=AValue) then exit;
@@ -7281,7 +6165,7 @@ end;
 
 
 
-Procedure TProduct.SetdisplayAdsLink(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetdisplayAdsLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FdisplayAdsLink=AValue) then exit;
@@ -7291,7 +6175,7 @@ end;
 
 
 
-Procedure TProduct.SetdisplayAdsSimilarIds(AIndex : Integer; AValue : TProductdisplayAdsSimilarIds); 
+Procedure TProduct.SetdisplayAdsSimilarIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FdisplayAdsSimilarIds=AValue) then exit;
@@ -7301,7 +6185,7 @@ end;
 
 
 
-Procedure TProduct.SetdisplayAdsTitle(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetdisplayAdsTitle(AIndex : Integer; AValue : String); 
 
 begin
   If (FdisplayAdsTitle=AValue) then exit;
@@ -7321,7 +6205,7 @@ end;
 
 
 
-Procedure TProduct.SetenergyEfficiencyClass(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetenergyEfficiencyClass(AIndex : Integer; AValue : String); 
 
 begin
   If (FenergyEfficiencyClass=AValue) then exit;
@@ -7331,7 +6215,7 @@ end;
 
 
 
-Procedure TProduct.SetexpirationDate(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetexpirationDate(AIndex : Integer; AValue : String); 
 
 begin
   If (FexpirationDate=AValue) then exit;
@@ -7341,7 +6225,7 @@ end;
 
 
 
-Procedure TProduct.Setgender(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setgender(AIndex : Integer; AValue : String); 
 
 begin
   If (Fgender=AValue) then exit;
@@ -7351,7 +6235,7 @@ end;
 
 
 
-Procedure TProduct.SetgoogleProductCategory(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetgoogleProductCategory(AIndex : Integer; AValue : String); 
 
 begin
   If (FgoogleProductCategory=AValue) then exit;
@@ -7361,7 +6245,7 @@ end;
 
 
 
-Procedure TProduct.Setgtin(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setgtin(AIndex : Integer; AValue : String); 
 
 begin
   If (Fgtin=AValue) then exit;
@@ -7371,7 +6255,7 @@ end;
 
 
 
-Procedure TProduct.Setid(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7391,7 +6275,7 @@ end;
 
 
 
-Procedure TProduct.SetimageLink(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetimageLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FimageLink=AValue) then exit;
@@ -7421,7 +6305,7 @@ end;
 
 
 
-Procedure TProduct.SetitemGroupId(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetitemGroupId(AIndex : Integer; AValue : String); 
 
 begin
   If (FitemGroupId=AValue) then exit;
@@ -7431,7 +6315,7 @@ end;
 
 
 
-Procedure TProduct.Setkind(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7441,7 +6325,7 @@ end;
 
 
 
-Procedure TProduct.Setlink(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setlink(AIndex : Integer; AValue : String); 
 
 begin
   If (Flink=AValue) then exit;
@@ -7461,7 +6345,7 @@ end;
 
 
 
-Procedure TProduct.Setmaterial(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setmaterial(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmaterial=AValue) then exit;
@@ -7471,7 +6355,7 @@ end;
 
 
 
-Procedure TProduct.SetmobileLink(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetmobileLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FmobileLink=AValue) then exit;
@@ -7481,7 +6365,7 @@ end;
 
 
 
-Procedure TProduct.Setmpn(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setmpn(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmpn=AValue) then exit;
@@ -7491,7 +6375,7 @@ end;
 
 
 
-Procedure TProduct.Setmultipack(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setmultipack(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmultipack=AValue) then exit;
@@ -7501,7 +6385,7 @@ end;
 
 
 
-Procedure TProduct.SetofferId(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetofferId(AIndex : Integer; AValue : String); 
 
 begin
   If (FofferId=AValue) then exit;
@@ -7521,7 +6405,7 @@ end;
 
 
 
-Procedure TProduct.Setpattern(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setpattern(AIndex : Integer; AValue : String); 
 
 begin
   If (Fpattern=AValue) then exit;
@@ -7541,7 +6425,7 @@ end;
 
 
 
-Procedure TProduct.SetproductType(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetproductType(AIndex : Integer; AValue : String); 
 
 begin
   If (FproductType=AValue) then exit;
@@ -7561,7 +6445,7 @@ end;
 
 
 
-Procedure TProduct.SetsalePriceEffectiveDate(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetsalePriceEffectiveDate(AIndex : Integer; AValue : String); 
 
 begin
   If (FsalePriceEffectiveDate=AValue) then exit;
@@ -7571,7 +6455,7 @@ end;
 
 
 
-Procedure TProduct.Setshipping(AIndex : Integer; AValue : TProductshipping); 
+Procedure TProduct.Setshipping(AIndex : Integer; AValue : TProductTypeshippingArray); 
 
 begin
   If (Fshipping=AValue) then exit;
@@ -7591,7 +6475,7 @@ end;
 
 
 
-Procedure TProduct.SetshippingLabel(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetshippingLabel(AIndex : Integer; AValue : String); 
 
 begin
   If (FshippingLabel=AValue) then exit;
@@ -7631,7 +6515,7 @@ end;
 
 
 
-Procedure TProduct.SetsizeSystem(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetsizeSystem(AIndex : Integer; AValue : String); 
 
 begin
   If (FsizeSystem=AValue) then exit;
@@ -7641,7 +6525,7 @@ end;
 
 
 
-Procedure TProduct.SetsizeType(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetsizeType(AIndex : Integer; AValue : String); 
 
 begin
   If (FsizeType=AValue) then exit;
@@ -7651,7 +6535,7 @@ end;
 
 
 
-Procedure TProduct.Setsizes(AIndex : Integer; AValue : TProductsizes); 
+Procedure TProduct.Setsizes(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fsizes=AValue) then exit;
@@ -7661,7 +6545,7 @@ end;
 
 
 
-Procedure TProduct.SettargetCountry(AIndex : Integer; AValue : string); 
+Procedure TProduct.SettargetCountry(AIndex : Integer; AValue : String); 
 
 begin
   If (FtargetCountry=AValue) then exit;
@@ -7671,7 +6555,7 @@ end;
 
 
 
-Procedure TProduct.Settaxes(AIndex : Integer; AValue : TProducttaxes); 
+Procedure TProduct.Settaxes(AIndex : Integer; AValue : TProductTypetaxesArray); 
 
 begin
   If (Ftaxes=AValue) then exit;
@@ -7681,7 +6565,7 @@ end;
 
 
 
-Procedure TProduct.Settitle(AIndex : Integer; AValue : string); 
+Procedure TProduct.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -7711,7 +6595,7 @@ end;
 
 
 
-Procedure TProduct.SetvalidatedDestinations(AIndex : Integer; AValue : TProductvalidatedDestinations); 
+Procedure TProduct.SetvalidatedDestinations(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FvalidatedDestinations=AValue) then exit;
@@ -7721,7 +6605,7 @@ end;
 
 
 
-Procedure TProduct.Setwarnings(AIndex : Integer; AValue : TProductwarnings); 
+Procedure TProduct.Setwarnings(AIndex : Integer; AValue : TProductTypewarningsArray); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -7734,95 +6618,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TProductadditionalImageLinks
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductadwordsLabels
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductaspects
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductcustomAttributes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductcustomGroups
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductdestinations
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductdisplayAdsSimilarIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductshipping
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductsizes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProducttaxes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductvalidatedDestinations
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductwarnings
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TProductAspect
   --------------------------------------------------------------------}
 
 
-Procedure TProductAspect.SetaspectName(AIndex : Integer; AValue : string); 
+Procedure TProductAspect.SetaspectName(AIndex : Integer; AValue : String); 
 
 begin
   If (FaspectName=AValue) then exit;
@@ -7832,7 +6632,7 @@ end;
 
 
 
-Procedure TProductAspect.SetdestinationName(AIndex : Integer; AValue : string); 
+Procedure TProductAspect.SetdestinationName(AIndex : Integer; AValue : String); 
 
 begin
   If (FdestinationName=AValue) then exit;
@@ -7842,7 +6642,7 @@ end;
 
 
 
-Procedure TProductAspect.Setintention(AIndex : Integer; AValue : string); 
+Procedure TProductAspect.Setintention(AIndex : Integer; AValue : String); 
 
 begin
   If (Fintention=AValue) then exit;
@@ -7859,7 +6659,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductCustomAttribute.Setname(AIndex : Integer; AValue : string); 
+Procedure TProductCustomAttribute.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -7869,7 +6669,7 @@ end;
 
 
 
-Procedure TProductCustomAttribute.Set_type(AIndex : Integer; AValue : string); 
+Procedure TProductCustomAttribute.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7879,7 +6679,7 @@ end;
 
 
 
-Procedure TProductCustomAttribute.Set_unit(AIndex : Integer; AValue : string); 
+Procedure TProductCustomAttribute.Set_unit(AIndex : Integer; AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -7889,7 +6689,7 @@ end;
 
 
 
-Procedure TProductCustomAttribute.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TProductCustomAttribute.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -7918,7 +6718,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductCustomGroup.Setattributes(AIndex : Integer; AValue : TProductCustomGroupattributes); 
+Procedure TProductCustomGroup.Setattributes(AIndex : Integer; AValue : TProductCustomGroupTypeattributesArray); 
 
 begin
   If (Fattributes=AValue) then exit;
@@ -7928,7 +6728,7 @@ end;
 
 
 
-Procedure TProductCustomGroup.Setname(AIndex : Integer; AValue : string); 
+Procedure TProductCustomGroup.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -7941,18 +6741,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TProductCustomGroupattributes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TProductDestination
   --------------------------------------------------------------------}
 
 
-Procedure TProductDestination.SetdestinationName(AIndex : Integer; AValue : string); 
+Procedure TProductDestination.SetdestinationName(AIndex : Integer; AValue : String); 
 
 begin
   If (FdestinationName=AValue) then exit;
@@ -7962,7 +6755,7 @@ end;
 
 
 
-Procedure TProductDestination.Setintention(AIndex : Integer; AValue : string); 
+Procedure TProductDestination.Setintention(AIndex : Integer; AValue : String); 
 
 begin
   If (Fintention=AValue) then exit;
@@ -7989,7 +6782,7 @@ end;
 
 
 
-Procedure TProductInstallment.Setmonths(AIndex : Integer; AValue : string); 
+Procedure TProductInstallment.Setmonths(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmonths=AValue) then exit;
@@ -8002,11 +6795,88 @@ end;
 
 
 { --------------------------------------------------------------------
+  TProductShipping
+  --------------------------------------------------------------------}
+
+
+Procedure TProductShipping.Setcountry(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcountry=AValue) then exit;
+  Fcountry:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProductShipping.SetlocationGroupName(AIndex : Integer; AValue : String); 
+
+begin
+  If (FlocationGroupName=AValue) then exit;
+  FlocationGroupName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProductShipping.SetlocationId(AIndex : Integer; AValue : String); 
+
+begin
+  If (FlocationId=AValue) then exit;
+  FlocationId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProductShipping.SetpostalCode(AIndex : Integer; AValue : String); 
+
+begin
+  If (FpostalCode=AValue) then exit;
+  FpostalCode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProductShipping.Setprice(AIndex : Integer; AValue : TPrice); 
+
+begin
+  If (Fprice=AValue) then exit;
+  Fprice:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProductShipping.Setregion(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fregion=AValue) then exit;
+  Fregion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProductShipping.Setservice(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fservice=AValue) then exit;
+  Fservice:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TProductShippingDimension
   --------------------------------------------------------------------}
 
 
-Procedure TProductShippingDimension.Set_unit(AIndex : Integer; AValue : string); 
+Procedure TProductShippingDimension.Set_unit(AIndex : Integer; AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -8044,7 +6914,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductShippingWeight.Set_unit(AIndex : Integer; AValue : string); 
+Procedure TProductShippingWeight.Set_unit(AIndex : Integer; AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -8082,7 +6952,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductStatus.SetcreationDate(AIndex : Integer; AValue : string); 
+Procedure TProductStatus.SetcreationDate(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreationDate=AValue) then exit;
@@ -8092,7 +6962,7 @@ end;
 
 
 
-Procedure TProductStatus.SetdataQualityIssues(AIndex : Integer; AValue : TProductStatusdataQualityIssues); 
+Procedure TProductStatus.SetdataQualityIssues(AIndex : Integer; AValue : TProductStatusTypedataQualityIssuesArray); 
 
 begin
   If (FdataQualityIssues=AValue) then exit;
@@ -8102,7 +6972,7 @@ end;
 
 
 
-Procedure TProductStatus.SetdestinationStatuses(AIndex : Integer; AValue : TProductStatusdestinationStatuses); 
+Procedure TProductStatus.SetdestinationStatuses(AIndex : Integer; AValue : TProductStatusTypedestinationStatusesArray); 
 
 begin
   If (FdestinationStatuses=AValue) then exit;
@@ -8112,7 +6982,7 @@ end;
 
 
 
-Procedure TProductStatus.SetgoogleExpirationDate(AIndex : Integer; AValue : string); 
+Procedure TProductStatus.SetgoogleExpirationDate(AIndex : Integer; AValue : String); 
 
 begin
   If (FgoogleExpirationDate=AValue) then exit;
@@ -8122,7 +6992,7 @@ end;
 
 
 
-Procedure TProductStatus.Setkind(AIndex : Integer; AValue : string); 
+Procedure TProductStatus.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8132,7 +7002,7 @@ end;
 
 
 
-Procedure TProductStatus.SetlastUpdateDate(AIndex : Integer; AValue : string); 
+Procedure TProductStatus.SetlastUpdateDate(AIndex : Integer; AValue : String); 
 
 begin
   If (FlastUpdateDate=AValue) then exit;
@@ -8142,7 +7012,7 @@ end;
 
 
 
-Procedure TProductStatus.Setlink(AIndex : Integer; AValue : string); 
+Procedure TProductStatus.Setlink(AIndex : Integer; AValue : String); 
 
 begin
   If (Flink=AValue) then exit;
@@ -8152,7 +7022,7 @@ end;
 
 
 
-Procedure TProductStatus.SetproductId(AIndex : Integer; AValue : string); 
+Procedure TProductStatus.SetproductId(AIndex : Integer; AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -8162,7 +7032,7 @@ end;
 
 
 
-Procedure TProductStatus.Settitle(AIndex : Integer; AValue : string); 
+Procedure TProductStatus.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -8175,25 +7045,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TProductStatusdataQualityIssues
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductStatusdestinationStatuses
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TProductStatusDataQualityIssue
   --------------------------------------------------------------------}
 
 
-Procedure TProductStatusDataQualityIssue.Setdetail(AIndex : Integer; AValue : string); 
+Procedure TProductStatusDataQualityIssue.Setdetail(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdetail=AValue) then exit;
@@ -8203,7 +7059,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.SetfetchStatus(AIndex : Integer; AValue : string); 
+Procedure TProductStatusDataQualityIssue.SetfetchStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FfetchStatus=AValue) then exit;
@@ -8213,7 +7069,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.Setid(AIndex : Integer; AValue : string); 
+Procedure TProductStatusDataQualityIssue.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8223,7 +7079,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.Setlocation(AIndex : Integer; AValue : string); 
+Procedure TProductStatusDataQualityIssue.Setlocation(AIndex : Integer; AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -8233,7 +7089,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.Setseverity(AIndex : Integer; AValue : string); 
+Procedure TProductStatusDataQualityIssue.Setseverity(AIndex : Integer; AValue : String); 
 
 begin
   If (Fseverity=AValue) then exit;
@@ -8243,7 +7099,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.Settimestamp(AIndex : Integer; AValue : string); 
+Procedure TProductStatusDataQualityIssue.Settimestamp(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -8253,7 +7109,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.SetvalueOnLandingPage(AIndex : Integer; AValue : string); 
+Procedure TProductStatusDataQualityIssue.SetvalueOnLandingPage(AIndex : Integer; AValue : String); 
 
 begin
   If (FvalueOnLandingPage=AValue) then exit;
@@ -8263,7 +7119,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.SetvalueProvided(AIndex : Integer; AValue : string); 
+Procedure TProductStatusDataQualityIssue.SetvalueProvided(AIndex : Integer; AValue : String); 
 
 begin
   If (FvalueProvided=AValue) then exit;
@@ -8280,7 +7136,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductStatusDestinationStatus.SetapprovalStatus(AIndex : Integer; AValue : string); 
+Procedure TProductStatusDestinationStatus.SetapprovalStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FapprovalStatus=AValue) then exit;
@@ -8290,7 +7146,7 @@ end;
 
 
 
-Procedure TProductStatusDestinationStatus.Setdestination(AIndex : Integer; AValue : string); 
+Procedure TProductStatusDestinationStatus.Setdestination(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdestination=AValue) then exit;
@@ -8300,7 +7156,7 @@ end;
 
 
 
-Procedure TProductStatusDestinationStatus.Setintention(AIndex : Integer; AValue : string); 
+Procedure TProductStatusDestinationStatus.Setintention(AIndex : Integer; AValue : String); 
 
 begin
   If (Fintention=AValue) then exit;
@@ -8317,7 +7173,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductTax.Setcountry(AIndex : Integer; AValue : string); 
+Procedure TProductTax.Setcountry(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -8327,7 +7183,7 @@ end;
 
 
 
-Procedure TProductTax.SetlocationId(AIndex : Integer; AValue : string); 
+Procedure TProductTax.SetlocationId(AIndex : Integer; AValue : String); 
 
 begin
   If (FlocationId=AValue) then exit;
@@ -8337,7 +7193,7 @@ end;
 
 
 
-Procedure TProductTax.SetpostalCode(AIndex : Integer; AValue : string); 
+Procedure TProductTax.SetpostalCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FpostalCode=AValue) then exit;
@@ -8357,7 +7213,7 @@ end;
 
 
 
-Procedure TProductTax.Setregion(AIndex : Integer; AValue : string); 
+Procedure TProductTax.Setregion(AIndex : Integer; AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -8384,7 +7240,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductUnitPricingBaseMeasure.Set_unit(AIndex : Integer; AValue : string); 
+Procedure TProductUnitPricingBaseMeasure.Set_unit(AIndex : Integer; AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -8394,7 +7250,7 @@ end;
 
 
 
-Procedure TProductUnitPricingBaseMeasure.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TProductUnitPricingBaseMeasure.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -8422,7 +7278,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductUnitPricingMeasure.Set_unit(AIndex : Integer; AValue : string); 
+Procedure TProductUnitPricingMeasure.Set_unit(AIndex : Integer; AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -8460,7 +7316,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductsCustomBatchRequest.Setentries(AIndex : Integer; AValue : TProductsCustomBatchRequestentries); 
+Procedure TProductsCustomBatchRequest.Setentries(AIndex : Integer; AValue : TProductsCustomBatchRequestTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -8468,13 +7324,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductsCustomBatchRequestentries
-  --------------------------------------------------------------------}
 
 
 
@@ -8494,7 +7343,7 @@ end;
 
 
 
-Procedure TProductsCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : string); 
+Procedure TProductsCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -8504,7 +7353,7 @@ end;
 
 
 
-Procedure TProductsCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : string); 
+Procedure TProductsCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -8524,7 +7373,7 @@ end;
 
 
 
-Procedure TProductsCustomBatchRequestEntry.SetproductId(AIndex : Integer; AValue : string); 
+Procedure TProductsCustomBatchRequestEntry.SetproductId(AIndex : Integer; AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -8541,7 +7390,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductsCustomBatchResponse.Setentries(AIndex : Integer; AValue : TProductsCustomBatchResponseentries); 
+Procedure TProductsCustomBatchResponse.Setentries(AIndex : Integer; AValue : TProductsCustomBatchResponseTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -8551,7 +7400,7 @@ end;
 
 
 
-Procedure TProductsCustomBatchResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TProductsCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8559,13 +7408,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductsCustomBatchResponseentries
-  --------------------------------------------------------------------}
 
 
 
@@ -8585,7 +7427,7 @@ end;
 
 
 
-Procedure TProductsCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); 
+Procedure TProductsCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TErrors); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -8595,7 +7437,7 @@ end;
 
 
 
-Procedure TProductsCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : string); 
+Procedure TProductsCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8622,7 +7464,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductsListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TProductsListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8632,7 +7474,7 @@ end;
 
 
 
-Procedure TProductsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TProductsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8642,7 +7484,7 @@ end;
 
 
 
-Procedure TProductsListResponse.Setresources(AIndex : Integer; AValue : TProductsListResponseresources); 
+Procedure TProductsListResponse.Setresources(AIndex : Integer; AValue : TProductsListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -8655,18 +7497,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TProductsListResponseresources
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TProductstatusesCustomBatchRequest
   --------------------------------------------------------------------}
 
 
-Procedure TProductstatusesCustomBatchRequest.Setentries(AIndex : Integer; AValue : TProductstatusesCustomBatchRequestentries); 
+Procedure TProductstatusesCustomBatchRequest.Setentries(AIndex : Integer; AValue : TProductstatusesCustomBatchRequestTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -8674,13 +7509,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductstatusesCustomBatchRequestentries
-  --------------------------------------------------------------------}
 
 
 
@@ -8700,7 +7528,7 @@ end;
 
 
 
-Procedure TProductstatusesCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : string); 
+Procedure TProductstatusesCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -8710,7 +7538,7 @@ end;
 
 
 
-Procedure TProductstatusesCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : string); 
+Procedure TProductstatusesCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -8720,7 +7548,7 @@ end;
 
 
 
-Procedure TProductstatusesCustomBatchRequestEntry.SetproductId(AIndex : Integer; AValue : string); 
+Procedure TProductstatusesCustomBatchRequestEntry.SetproductId(AIndex : Integer; AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -8737,7 +7565,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductstatusesCustomBatchResponse.Setentries(AIndex : Integer; AValue : TProductstatusesCustomBatchResponseentries); 
+Procedure TProductstatusesCustomBatchResponse.Setentries(AIndex : Integer; AValue : TProductstatusesCustomBatchResponseTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -8747,7 +7575,7 @@ end;
 
 
 
-Procedure TProductstatusesCustomBatchResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TProductstatusesCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8755,13 +7583,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TProductstatusesCustomBatchResponseentries
-  --------------------------------------------------------------------}
 
 
 
@@ -8781,7 +7602,7 @@ end;
 
 
 
-Procedure TProductstatusesCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TDatafeedStatuserrors); 
+Procedure TProductstatusesCustomBatchResponseEntry.Seterrors(AIndex : Integer; AValue : TErrors); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -8791,7 +7612,7 @@ end;
 
 
 
-Procedure TProductstatusesCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : string); 
+Procedure TProductstatusesCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8818,7 +7639,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductstatusesListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TProductstatusesListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8828,7 +7649,7 @@ end;
 
 
 
-Procedure TProductstatusesListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TProductstatusesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8838,7 +7659,7 @@ end;
 
 
 
-Procedure TProductstatusesListResponse.Setresources(AIndex : Integer; AValue : TProductstatusesListResponseresources); 
+Procedure TProductstatusesListResponse.Setresources(AIndex : Integer; AValue : TProductstatusesListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -8851,18 +7672,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TProductstatusesListResponseresources
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TWeight
   --------------------------------------------------------------------}
 
 
-Procedure TWeight.Set_unit(AIndex : Integer; AValue : string); 
+Procedure TWeight.Set_unit(AIndex : Integer; AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -8872,7 +7686,7 @@ end;
 
 
 
-Procedure TWeight.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TWeight.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -9978,157 +8792,97 @@ Class Procedure TContentAPI.RegisterAPIResources;
 
 begin
   TAccount.RegisterObject;
-  TAccountadwordsLinks.RegisterObject;
-  TAccountusers.RegisterObject;
   TAccountAdwordsLink.RegisterObject;
   TAccountIdentifier.RegisterObject;
   TAccountShipping.RegisterObject;
-  TAccountShippingcarrierRates.RegisterObject;
-  TAccountShippinglocationGroups.RegisterObject;
-  TAccountShippingrateTables.RegisterObject;
-  TAccountShippingservices.RegisterObject;
   TAccountShippingCarrierRate.RegisterObject;
   TAccountShippingCondition.RegisterObject;
   TAccountShippingLocationGroup.RegisterObject;
-  TAccountShippingLocationGrouplocationIds.RegisterObject;
-  TAccountShippingLocationGrouppostalCodeRanges.RegisterObject;
-  TAccountShippingLocationGrouppostalCodes.RegisterObject;
   TAccountShippingPostalCodeRange.RegisterObject;
   TAccountShippingRateTable.RegisterObject;
-  TAccountShippingRateTablecontent.RegisterObject;
   TAccountShippingRateTableCell.RegisterObject;
   TAccountShippingShippingService.RegisterObject;
   TAccountShippingShippingServiceCalculationMethod.RegisterObject;
   TAccountShippingShippingServiceCostRule.RegisterObject;
-  TAccountShippingShippingServiceCostRulechildren.RegisterObject;
   TAccountStatus.RegisterObject;
-  TAccountStatusdataQualityIssues.RegisterObject;
   TAccountStatusDataQualityIssue.RegisterObject;
-  TAccountStatusDataQualityIssueexampleItems.RegisterObject;
   TAccountStatusExampleItem.RegisterObject;
   TAccountTax.RegisterObject;
-  TAccountTaxrules.RegisterObject;
   TAccountTaxTaxRule.RegisterObject;
   TAccountUser.RegisterObject;
   TAccountsAuthInfoResponse.RegisterObject;
-  TAccountsAuthInfoResponseaccountIdentifiers.RegisterObject;
   TAccountsCustomBatchRequest.RegisterObject;
-  TAccountsCustomBatchRequestentries.RegisterObject;
   TAccountsCustomBatchRequestEntry.RegisterObject;
   TAccountsCustomBatchResponse.RegisterObject;
-  TAccountsCustomBatchResponseentries.RegisterObject;
   TAccountsCustomBatchResponseEntry.RegisterObject;
   TAccountsListResponse.RegisterObject;
-  TAccountsListResponseresources.RegisterObject;
   TAccountshippingCustomBatchRequest.RegisterObject;
-  TAccountshippingCustomBatchRequestentries.RegisterObject;
   TAccountshippingCustomBatchRequestEntry.RegisterObject;
   TAccountshippingCustomBatchResponse.RegisterObject;
-  TAccountshippingCustomBatchResponseentries.RegisterObject;
   TAccountshippingCustomBatchResponseEntry.RegisterObject;
   TAccountshippingListResponse.RegisterObject;
-  TAccountshippingListResponseresources.RegisterObject;
   TAccountstatusesCustomBatchRequest.RegisterObject;
-  TAccountstatusesCustomBatchRequestentries.RegisterObject;
   TAccountstatusesCustomBatchRequestEntry.RegisterObject;
   TAccountstatusesCustomBatchResponse.RegisterObject;
-  TAccountstatusesCustomBatchResponseentries.RegisterObject;
   TAccountstatusesCustomBatchResponseEntry.RegisterObject;
   TAccountstatusesListResponse.RegisterObject;
-  TAccountstatusesListResponseresources.RegisterObject;
   TAccounttaxCustomBatchRequest.RegisterObject;
-  TAccounttaxCustomBatchRequestentries.RegisterObject;
   TAccounttaxCustomBatchRequestEntry.RegisterObject;
   TAccounttaxCustomBatchResponse.RegisterObject;
-  TAccounttaxCustomBatchResponseentries.RegisterObject;
   TAccounttaxCustomBatchResponseEntry.RegisterObject;
   TAccounttaxListResponse.RegisterObject;
-  TAccounttaxListResponseresources.RegisterObject;
   TDatafeed.RegisterObject;
-  TDatafeedintendedDestinations.RegisterObject;
   TDatafeedFetchSchedule.RegisterObject;
   TDatafeedFormat.RegisterObject;
   TDatafeedStatus.RegisterObject;
-  TDatafeedStatuserrors.RegisterObject;
-  TDatafeedStatuswarnings.RegisterObject;
   TDatafeedStatusError.RegisterObject;
-  TDatafeedStatusErrorexamples.RegisterObject;
   TDatafeedStatusExample.RegisterObject;
   TDatafeedsCustomBatchRequest.RegisterObject;
-  TDatafeedsCustomBatchRequestentries.RegisterObject;
   TDatafeedsCustomBatchRequestEntry.RegisterObject;
   TDatafeedsCustomBatchResponse.RegisterObject;
-  TDatafeedsCustomBatchResponseentries.RegisterObject;
   TDatafeedsCustomBatchResponseEntry.RegisterObject;
   TDatafeedsListResponse.RegisterObject;
-  TDatafeedsListResponseresources.RegisterObject;
   TDatafeedstatusesCustomBatchRequest.RegisterObject;
-  TDatafeedstatusesCustomBatchRequestentries.RegisterObject;
   TDatafeedstatusesCustomBatchRequestEntry.RegisterObject;
   TDatafeedstatusesCustomBatchResponse.RegisterObject;
-  TDatafeedstatusesCustomBatchResponseentries.RegisterObject;
   TDatafeedstatusesCustomBatchResponseEntry.RegisterObject;
   TDatafeedstatusesListResponse.RegisterObject;
-  TDatafeedstatusesListResponseresources.RegisterObject;
   TError.RegisterObject;
   TErrors.RegisterObject;
-  TErrorserrors.RegisterObject;
   TInventory.RegisterObject;
   TInventoryCustomBatchRequest.RegisterObject;
-  TInventoryCustomBatchRequestentries.RegisterObject;
   TInventoryCustomBatchRequestEntry.RegisterObject;
   TInventoryCustomBatchResponse.RegisterObject;
-  TInventoryCustomBatchResponseentries.RegisterObject;
   TInventoryCustomBatchResponseEntry.RegisterObject;
   TInventorySetRequest.RegisterObject;
   TInventorySetResponse.RegisterObject;
   TLoyaltyPoints.RegisterObject;
   TPrice.RegisterObject;
   TProduct.RegisterObject;
-  TProductadditionalImageLinks.RegisterObject;
-  TProductadwordsLabels.RegisterObject;
-  TProductaspects.RegisterObject;
-  TProductcustomAttributes.RegisterObject;
-  TProductcustomGroups.RegisterObject;
-  TProductdestinations.RegisterObject;
-  TProductdisplayAdsSimilarIds.RegisterObject;
-  TProductshipping.RegisterObject;
-  TProductsizes.RegisterObject;
-  TProducttaxes.RegisterObject;
-  TProductvalidatedDestinations.RegisterObject;
-  TProductwarnings.RegisterObject;
   TProductAspect.RegisterObject;
   TProductCustomAttribute.RegisterObject;
   TProductCustomGroup.RegisterObject;
-  TProductCustomGroupattributes.RegisterObject;
   TProductDestination.RegisterObject;
   TProductInstallment.RegisterObject;
+  TProductShipping.RegisterObject;
   TProductShippingDimension.RegisterObject;
   TProductShippingWeight.RegisterObject;
   TProductStatus.RegisterObject;
-  TProductStatusdataQualityIssues.RegisterObject;
-  TProductStatusdestinationStatuses.RegisterObject;
   TProductStatusDataQualityIssue.RegisterObject;
   TProductStatusDestinationStatus.RegisterObject;
   TProductTax.RegisterObject;
   TProductUnitPricingBaseMeasure.RegisterObject;
   TProductUnitPricingMeasure.RegisterObject;
   TProductsCustomBatchRequest.RegisterObject;
-  TProductsCustomBatchRequestentries.RegisterObject;
   TProductsCustomBatchRequestEntry.RegisterObject;
   TProductsCustomBatchResponse.RegisterObject;
-  TProductsCustomBatchResponseentries.RegisterObject;
   TProductsCustomBatchResponseEntry.RegisterObject;
   TProductsListResponse.RegisterObject;
-  TProductsListResponseresources.RegisterObject;
   TProductstatusesCustomBatchRequest.RegisterObject;
-  TProductstatusesCustomBatchRequestentries.RegisterObject;
   TProductstatusesCustomBatchRequestEntry.RegisterObject;
   TProductstatusesCustomBatchResponse.RegisterObject;
-  TProductstatusesCustomBatchResponseentries.RegisterObject;
   TProductstatusesCustomBatchResponseEntry.RegisterObject;
   TProductstatusesListResponse.RegisterObject;
-  TProductstatusesListResponseresources.RegisterObject;
   TWeight.RegisterObject;
 end;
 

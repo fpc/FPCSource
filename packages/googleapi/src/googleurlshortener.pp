@@ -1,31 +1,19 @@
 unit googleurlshortener;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:59
 {$MODE objfpc}
 {$H+}
 
@@ -34,27 +22,24 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAnalyticsSnapshot = class;
-  TAnalyticsSnapshotArray = Array of TAnalyticsSnapshot;
-  TAnalyticsSnapshotbrowsers = class;
-  TAnalyticsSnapshotbrowsersArray = Array of TAnalyticsSnapshotbrowsers;
-  TAnalyticsSnapshotcountries = class;
-  TAnalyticsSnapshotcountriesArray = Array of TAnalyticsSnapshotcountries;
-  TAnalyticsSnapshotplatforms = class;
-  TAnalyticsSnapshotplatformsArray = Array of TAnalyticsSnapshotplatforms;
-  TAnalyticsSnapshotreferrers = class;
-  TAnalyticsSnapshotreferrersArray = Array of TAnalyticsSnapshotreferrers;
   TAnalyticsSummary = class;
-  TAnalyticsSummaryArray = Array of TAnalyticsSummary;
   TStringCount = class;
-  TStringCountArray = Array of TStringCount;
   TUrl = class;
-  TUrlArray = Array of TUrl;
   TUrlHistory = class;
+  TAnalyticsSnapshotArray = Array of TAnalyticsSnapshot;
+  TAnalyticsSummaryArray = Array of TAnalyticsSummary;
+  TStringCountArray = Array of TStringCount;
+  TUrlArray = Array of TUrl;
   TUrlHistoryArray = Array of TUrlHistory;
-  TUrlHistoryitems = class;
-  TUrlHistoryitemsArray = Array of TUrlHistoryitems;
+  //Anonymous types, using auto-generated names
+  TAnalyticsSnapshotTypebrowsersArray = Array of TStringCount;
+  TAnalyticsSnapshotTypecountriesArray = Array of TStringCount;
+  TAnalyticsSnapshotTypeplatformsArray = Array of TStringCount;
+  TAnalyticsSnapshotTypereferrersArray = Array of TStringCount;
+  TUrlHistoryTypeitemsArray = Array of TUrl;
   
   { --------------------------------------------------------------------
     TAnalyticsSnapshot
@@ -62,82 +47,30 @@ type
   
   TAnalyticsSnapshot = Class(TGoogleBaseObject)
   Private
-    Fbrowsers : TAnalyticsSnapshotbrowsers;
-    Fcountries : TAnalyticsSnapshotcountries;
-    FlongUrlClicks : string;
-    Fplatforms : TAnalyticsSnapshotplatforms;
-    Freferrers : TAnalyticsSnapshotreferrers;
-    FshortUrlClicks : string;
+    Fbrowsers : TAnalyticsSnapshotTypebrowsersArray;
+    Fcountries : TAnalyticsSnapshotTypecountriesArray;
+    FlongUrlClicks : String;
+    Fplatforms : TAnalyticsSnapshotTypeplatformsArray;
+    Freferrers : TAnalyticsSnapshotTypereferrersArray;
+    FshortUrlClicks : String;
   Protected
     //Property setters
-    Procedure Setbrowsers(AIndex : Integer; AValue : TAnalyticsSnapshotbrowsers); virtual;
-    Procedure Setcountries(AIndex : Integer; AValue : TAnalyticsSnapshotcountries); virtual;
-    Procedure SetlongUrlClicks(AIndex : Integer; AValue : string); virtual;
-    Procedure Setplatforms(AIndex : Integer; AValue : TAnalyticsSnapshotplatforms); virtual;
-    Procedure Setreferrers(AIndex : Integer; AValue : TAnalyticsSnapshotreferrers); virtual;
-    Procedure SetshortUrlClicks(AIndex : Integer; AValue : string); virtual;
+    Procedure Setbrowsers(AIndex : Integer; AValue : TAnalyticsSnapshotTypebrowsersArray); virtual;
+    Procedure Setcountries(AIndex : Integer; AValue : TAnalyticsSnapshotTypecountriesArray); virtual;
+    Procedure SetlongUrlClicks(AIndex : Integer; AValue : String); virtual;
+    Procedure Setplatforms(AIndex : Integer; AValue : TAnalyticsSnapshotTypeplatformsArray); virtual;
+    Procedure Setreferrers(AIndex : Integer; AValue : TAnalyticsSnapshotTypereferrersArray); virtual;
+    Procedure SetshortUrlClicks(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property browsers : TAnalyticsSnapshotbrowsers Index 0 Read Fbrowsers Write Setbrowsers;
-    Property countries : TAnalyticsSnapshotcountries Index 8 Read Fcountries Write Setcountries;
-    Property longUrlClicks : string Index 16 Read FlongUrlClicks Write SetlongUrlClicks;
-    Property platforms : TAnalyticsSnapshotplatforms Index 24 Read Fplatforms Write Setplatforms;
-    Property referrers : TAnalyticsSnapshotreferrers Index 32 Read Freferrers Write Setreferrers;
-    Property shortUrlClicks : string Index 40 Read FshortUrlClicks Write SetshortUrlClicks;
+    Property browsers : TAnalyticsSnapshotTypebrowsersArray Index 0 Read Fbrowsers Write Setbrowsers;
+    Property countries : TAnalyticsSnapshotTypecountriesArray Index 8 Read Fcountries Write Setcountries;
+    Property longUrlClicks : String Index 16 Read FlongUrlClicks Write SetlongUrlClicks;
+    Property platforms : TAnalyticsSnapshotTypeplatformsArray Index 24 Read Fplatforms Write Setplatforms;
+    Property referrers : TAnalyticsSnapshotTypereferrersArray Index 32 Read Freferrers Write Setreferrers;
+    Property shortUrlClicks : String Index 40 Read FshortUrlClicks Write SetshortUrlClicks;
   end;
   TAnalyticsSnapshotClass = Class of TAnalyticsSnapshot;
-  
-  { --------------------------------------------------------------------
-    TAnalyticsSnapshotbrowsers
-    --------------------------------------------------------------------}
-  
-  TAnalyticsSnapshotbrowsers = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAnalyticsSnapshotbrowsersClass = Class of TAnalyticsSnapshotbrowsers;
-  
-  { --------------------------------------------------------------------
-    TAnalyticsSnapshotcountries
-    --------------------------------------------------------------------}
-  
-  TAnalyticsSnapshotcountries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAnalyticsSnapshotcountriesClass = Class of TAnalyticsSnapshotcountries;
-  
-  { --------------------------------------------------------------------
-    TAnalyticsSnapshotplatforms
-    --------------------------------------------------------------------}
-  
-  TAnalyticsSnapshotplatforms = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAnalyticsSnapshotplatformsClass = Class of TAnalyticsSnapshotplatforms;
-  
-  { --------------------------------------------------------------------
-    TAnalyticsSnapshotreferrers
-    --------------------------------------------------------------------}
-  
-  TAnalyticsSnapshotreferrers = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAnalyticsSnapshotreferrersClass = Class of TAnalyticsSnapshotreferrers;
   
   { --------------------------------------------------------------------
     TAnalyticsSummary
@@ -173,16 +106,16 @@ type
   
   TStringCount = Class(TGoogleBaseObject)
   Private
-    Fcount : string;
-    Fid : string;
+    Fcount : String;
+    Fid : String;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property count : string Index 0 Read Fcount Write Setcount;
-    Property id : string Index 8 Read Fid Write Setid;
+    Property count : String Index 0 Read Fcount Write Setcount;
+    Property id : String Index 8 Read Fid Write Setid;
   end;
   TStringCountClass = Class of TStringCount;
   
@@ -193,27 +126,27 @@ type
   TUrl = Class(TGoogleBaseObject)
   Private
     Fanalytics : TAnalyticsSummary;
-    Fcreated : string;
-    Fid : string;
-    Fkind : string;
-    FlongUrl : string;
-    Fstatus : string;
+    Fcreated : String;
+    Fid : String;
+    Fkind : String;
+    FlongUrl : String;
+    Fstatus : String;
   Protected
     //Property setters
     Procedure Setanalytics(AIndex : Integer; AValue : TAnalyticsSummary); virtual;
-    Procedure Setcreated(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlongUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcreated(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlongUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property analytics : TAnalyticsSummary Index 0 Read Fanalytics Write Setanalytics;
-    Property created : string Index 8 Read Fcreated Write Setcreated;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property longUrl : string Index 32 Read FlongUrl Write SetlongUrl;
-    Property status : string Index 40 Read Fstatus Write Setstatus;
+    Property created : String Index 8 Read Fcreated Write Setcreated;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property longUrl : String Index 32 Read FlongUrl Write SetlongUrl;
+    Property status : String Index 40 Read Fstatus Write Setstatus;
   end;
   TUrlClass = Class of TUrl;
   
@@ -223,40 +156,27 @@ type
   
   TUrlHistory = Class(TGoogleBaseObject)
   Private
-    Fitems : TUrlHistoryitems;
+    Fitems : TUrlHistoryTypeitemsArray;
     FitemsPerPage : integer;
-    Fkind : string;
-    FnextPageToken : string;
+    Fkind : String;
+    FnextPageToken : String;
     FtotalItems : integer;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TUrlHistoryitems); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TUrlHistoryTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property items : TUrlHistoryitems Index 0 Read Fitems Write Setitems;
+    Property items : TUrlHistoryTypeitemsArray Index 0 Read Fitems Write Setitems;
     Property itemsPerPage : integer Index 8 Read FitemsPerPage Write SetitemsPerPage;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
     Property totalItems : integer Index 32 Read FtotalItems Write SettotalItems;
   end;
   TUrlHistoryClass = Class of TUrlHistory;
-  
-  { --------------------------------------------------------------------
-    TUrlHistoryitems
-    --------------------------------------------------------------------}
-  
-  TUrlHistoryitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlHistoryitemsClass = Class of TUrlHistoryitems;
   
   { --------------------------------------------------------------------
     TUrlResource
@@ -266,16 +186,16 @@ type
   //Optional query Options for TUrlResource, method Get
   
   TUrlGetOptions = Record
-    projection : string;
-    shortUrl : string;
+    projection : String;
+    shortUrl : String;
   end;
   
   
   //Optional query Options for TUrlResource, method List
   
   TUrlListOptions = Record
-    projection : string;
-    starttoken : string;
+    projection : String;
+    starttoken : String;
   end;
   
   TUrlResource = Class(TGoogleResource)
@@ -335,7 +255,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyticsSnapshot.Setbrowsers(AIndex : Integer; AValue : TAnalyticsSnapshotbrowsers); 
+Procedure TAnalyticsSnapshot.Setbrowsers(AIndex : Integer; AValue : TAnalyticsSnapshotTypebrowsersArray); 
 
 begin
   If (Fbrowsers=AValue) then exit;
@@ -345,7 +265,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.Setcountries(AIndex : Integer; AValue : TAnalyticsSnapshotcountries); 
+Procedure TAnalyticsSnapshot.Setcountries(AIndex : Integer; AValue : TAnalyticsSnapshotTypecountriesArray); 
 
 begin
   If (Fcountries=AValue) then exit;
@@ -355,7 +275,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.SetlongUrlClicks(AIndex : Integer; AValue : string); 
+Procedure TAnalyticsSnapshot.SetlongUrlClicks(AIndex : Integer; AValue : String); 
 
 begin
   If (FlongUrlClicks=AValue) then exit;
@@ -365,7 +285,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.Setplatforms(AIndex : Integer; AValue : TAnalyticsSnapshotplatforms); 
+Procedure TAnalyticsSnapshot.Setplatforms(AIndex : Integer; AValue : TAnalyticsSnapshotTypeplatformsArray); 
 
 begin
   If (Fplatforms=AValue) then exit;
@@ -375,7 +295,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.Setreferrers(AIndex : Integer; AValue : TAnalyticsSnapshotreferrers); 
+Procedure TAnalyticsSnapshot.Setreferrers(AIndex : Integer; AValue : TAnalyticsSnapshotTypereferrersArray); 
 
 begin
   If (Freferrers=AValue) then exit;
@@ -385,7 +305,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.SetshortUrlClicks(AIndex : Integer; AValue : string); 
+Procedure TAnalyticsSnapshot.SetshortUrlClicks(AIndex : Integer; AValue : String); 
 
 begin
   If (FshortUrlClicks=AValue) then exit;
@@ -393,34 +313,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAnalyticsSnapshotbrowsers
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAnalyticsSnapshotcountries
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAnalyticsSnapshotplatforms
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAnalyticsSnapshotreferrers
-  --------------------------------------------------------------------}
 
 
 
@@ -487,7 +379,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStringCount.Setcount(AIndex : Integer; AValue : string); 
+Procedure TStringCount.Setcount(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -497,7 +389,7 @@ end;
 
 
 
-Procedure TStringCount.Setid(AIndex : Integer; AValue : string); 
+Procedure TStringCount.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -524,7 +416,7 @@ end;
 
 
 
-Procedure TUrl.Setcreated(AIndex : Integer; AValue : string); 
+Procedure TUrl.Setcreated(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcreated=AValue) then exit;
@@ -534,7 +426,7 @@ end;
 
 
 
-Procedure TUrl.Setid(AIndex : Integer; AValue : string); 
+Procedure TUrl.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -544,7 +436,7 @@ end;
 
 
 
-Procedure TUrl.Setkind(AIndex : Integer; AValue : string); 
+Procedure TUrl.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -554,7 +446,7 @@ end;
 
 
 
-Procedure TUrl.SetlongUrl(AIndex : Integer; AValue : string); 
+Procedure TUrl.SetlongUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FlongUrl=AValue) then exit;
@@ -564,7 +456,7 @@ end;
 
 
 
-Procedure TUrl.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TUrl.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -581,7 +473,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlHistory.Setitems(AIndex : Integer; AValue : TUrlHistoryitems); 
+Procedure TUrlHistory.Setitems(AIndex : Integer; AValue : TUrlHistoryTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -601,7 +493,7 @@ end;
 
 
 
-Procedure TUrlHistory.Setkind(AIndex : Integer; AValue : string); 
+Procedure TUrlHistory.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -611,7 +503,7 @@ end;
 
 
 
-Procedure TUrlHistory.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TUrlHistory.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -629,13 +521,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TUrlHistoryitems
-  --------------------------------------------------------------------}
 
 
 
@@ -843,15 +728,10 @@ Class Procedure TUrlshortenerAPI.RegisterAPIResources;
 
 begin
   TAnalyticsSnapshot.RegisterObject;
-  TAnalyticsSnapshotbrowsers.RegisterObject;
-  TAnalyticsSnapshotcountries.RegisterObject;
-  TAnalyticsSnapshotplatforms.RegisterObject;
-  TAnalyticsSnapshotreferrers.RegisterObject;
   TAnalyticsSummary.RegisterObject;
   TStringCount.RegisterObject;
   TUrl.RegisterObject;
   TUrlHistory.RegisterObject;
-  TUrlHistoryitems.RegisterObject;
 end;
 
 

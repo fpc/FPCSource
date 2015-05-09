@@ -1,31 +1,19 @@
 unit googlecontainer;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:51
 {$MODE objfpc}
 {$H+}
 
@@ -34,41 +22,36 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TCluster = class;
-  TClusterArray = Array of TCluster;
   TCreateClusterRequest = class;
-  TCreateClusterRequestArray = Array of TCreateClusterRequest;
   TListAggregatedClustersResponse = class;
-  TListAggregatedClustersResponseArray = Array of TListAggregatedClustersResponse;
-  TListAggregatedClustersResponseclusters = class;
-  TListAggregatedClustersResponseclustersArray = Array of TListAggregatedClustersResponseclusters;
   TListAggregatedOperationsResponse = class;
-  TListAggregatedOperationsResponseArray = Array of TListAggregatedOperationsResponse;
-  TListAggregatedOperationsResponseoperations = class;
-  TListAggregatedOperationsResponseoperationsArray = Array of TListAggregatedOperationsResponseoperations;
   TListClustersResponse = class;
-  TListClustersResponseArray = Array of TListClustersResponse;
-  TListClustersResponseclusters = class;
-  TListClustersResponseclustersArray = Array of TListClustersResponseclusters;
   TListOperationsResponse = class;
-  TListOperationsResponseArray = Array of TListOperationsResponse;
-  TListOperationsResponseoperations = class;
-  TListOperationsResponseoperationsArray = Array of TListOperationsResponseoperations;
   TMasterAuth = class;
-  TMasterAuthArray = Array of TMasterAuth;
   TNodeConfig = class;
-  TNodeConfigArray = Array of TNodeConfig;
-  TNodeConfigserviceAccounts = class;
-  TNodeConfigserviceAccountsArray = Array of TNodeConfigserviceAccounts;
   TOperation = class;
-  TOperationArray = Array of TOperation;
   TServiceAccount = class;
-  TServiceAccountArray = Array of TServiceAccount;
-  TServiceAccountscopes = class;
-  TServiceAccountscopesArray = Array of TServiceAccountscopes;
   TToken = class;
+  TClusterArray = Array of TCluster;
+  TCreateClusterRequestArray = Array of TCreateClusterRequest;
+  TListAggregatedClustersResponseArray = Array of TListAggregatedClustersResponse;
+  TListAggregatedOperationsResponseArray = Array of TListAggregatedOperationsResponse;
+  TListClustersResponseArray = Array of TListClustersResponse;
+  TListOperationsResponseArray = Array of TListOperationsResponse;
+  TMasterAuthArray = Array of TMasterAuth;
+  TNodeConfigArray = Array of TNodeConfig;
+  TOperationArray = Array of TOperation;
+  TServiceAccountArray = Array of TServiceAccount;
   TTokenArray = Array of TToken;
+  //Anonymous types, using auto-generated names
+  TListAggregatedClustersResponseTypeclustersArray = Array of TCluster;
+  TListAggregatedOperationsResponseTypeoperationsArray = Array of TOperation;
+  TListClustersResponseTypeclustersArray = Array of TCluster;
+  TListOperationsResponseTypeoperationsArray = Array of TOperation;
+  TNodeConfigTypeserviceAccountsArray = Array of TServiceAccount;
   
   { --------------------------------------------------------------------
     TCluster
@@ -76,61 +59,61 @@ type
   
   TCluster = Class(TGoogleBaseObject)
   Private
-    FclusterApiVersion : string;
-    FcontainerIpv4Cidr : string;
-    FcreationTimestamp : string;
-    Fdescription : string;
+    FclusterApiVersion : String;
+    FcontainerIpv4Cidr : String;
+    FcreationTimestamp : String;
+    Fdescription : String;
     FenableCloudLogging : boolean;
-    Fendpoint : string;
+    Fendpoint : String;
     FmasterAuth : TMasterAuth;
-    Fname : string;
-    Fnetwork : string;
+    Fname : String;
+    Fnetwork : String;
     FnodeConfig : TNodeConfig;
     FnodeRoutingPrefixSize : integer;
     FnumNodes : integer;
-    FselfLink : string;
-    FservicesIpv4Cidr : string;
-    Fstatus : string;
-    FstatusMessage : string;
-    Fzone : string;
+    FselfLink : String;
+    FservicesIpv4Cidr : String;
+    Fstatus : String;
+    FstatusMessage : String;
+    Fzone : String;
   Protected
     //Property setters
-    Procedure SetclusterApiVersion(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontainerIpv4Cidr(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
+    Procedure SetclusterApiVersion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerIpv4Cidr(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure SetenableCloudLogging(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setendpoint(AIndex : Integer; AValue : string); virtual;
+    Procedure Setendpoint(AIndex : Integer; AValue : String); virtual;
     Procedure SetmasterAuth(AIndex : Integer; AValue : TMasterAuth); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; AValue : String); virtual;
     Procedure SetnodeConfig(AIndex : Integer; AValue : TNodeConfig); virtual;
     Procedure SetnodeRoutingPrefixSize(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumNodes(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetservicesIpv4Cidr(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstatusMessage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetservicesIpv4Cidr(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstatusMessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property clusterApiVersion : string Index 0 Read FclusterApiVersion Write SetclusterApiVersion;
-    Property containerIpv4Cidr : string Index 8 Read FcontainerIpv4Cidr Write SetcontainerIpv4Cidr;
-    Property creationTimestamp : string Index 16 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 24 Read Fdescription Write Setdescription;
+    Property clusterApiVersion : String Index 0 Read FclusterApiVersion Write SetclusterApiVersion;
+    Property containerIpv4Cidr : String Index 8 Read FcontainerIpv4Cidr Write SetcontainerIpv4Cidr;
+    Property creationTimestamp : String Index 16 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
     Property enableCloudLogging : boolean Index 32 Read FenableCloudLogging Write SetenableCloudLogging;
-    Property endpoint : string Index 40 Read Fendpoint Write Setendpoint;
+    Property endpoint : String Index 40 Read Fendpoint Write Setendpoint;
     Property masterAuth : TMasterAuth Index 48 Read FmasterAuth Write SetmasterAuth;
-    Property name : string Index 56 Read Fname Write Setname;
-    Property network : string Index 64 Read Fnetwork Write Setnetwork;
+    Property name : String Index 56 Read Fname Write Setname;
+    Property network : String Index 64 Read Fnetwork Write Setnetwork;
     Property nodeConfig : TNodeConfig Index 72 Read FnodeConfig Write SetnodeConfig;
     Property nodeRoutingPrefixSize : integer Index 80 Read FnodeRoutingPrefixSize Write SetnodeRoutingPrefixSize;
     Property numNodes : integer Index 88 Read FnumNodes Write SetnumNodes;
-    Property selfLink : string Index 96 Read FselfLink Write SetselfLink;
-    Property servicesIpv4Cidr : string Index 104 Read FservicesIpv4Cidr Write SetservicesIpv4Cidr;
-    Property status : string Index 112 Read Fstatus Write Setstatus;
-    Property statusMessage : string Index 120 Read FstatusMessage Write SetstatusMessage;
-    Property zone : string Index 128 Read Fzone Write Setzone;
+    Property selfLink : String Index 96 Read FselfLink Write SetselfLink;
+    Property servicesIpv4Cidr : String Index 104 Read FservicesIpv4Cidr Write SetservicesIpv4Cidr;
+    Property status : String Index 112 Read Fstatus Write Setstatus;
+    Property statusMessage : String Index 120 Read FstatusMessage Write SetstatusMessage;
+    Property zone : String Index 128 Read Fzone Write Setzone;
   end;
   TClusterClass = Class of TCluster;
   
@@ -156,28 +139,15 @@ type
   
   TListAggregatedClustersResponse = Class(TGoogleBaseObject)
   Private
-    Fclusters : TListAggregatedClustersResponseclusters;
+    Fclusters : TListAggregatedClustersResponseTypeclustersArray;
   Protected
     //Property setters
-    Procedure Setclusters(AIndex : Integer; AValue : TListAggregatedClustersResponseclusters); virtual;
+    Procedure Setclusters(AIndex : Integer; AValue : TListAggregatedClustersResponseTypeclustersArray); virtual;
   Public
   Published
-    Property clusters : TListAggregatedClustersResponseclusters Index 0 Read Fclusters Write Setclusters;
+    Property clusters : TListAggregatedClustersResponseTypeclustersArray Index 0 Read Fclusters Write Setclusters;
   end;
   TListAggregatedClustersResponseClass = Class of TListAggregatedClustersResponse;
-  
-  { --------------------------------------------------------------------
-    TListAggregatedClustersResponseclusters
-    --------------------------------------------------------------------}
-  
-  TListAggregatedClustersResponseclusters = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListAggregatedClustersResponseclustersClass = Class of TListAggregatedClustersResponseclusters;
   
   { --------------------------------------------------------------------
     TListAggregatedOperationsResponse
@@ -185,28 +155,15 @@ type
   
   TListAggregatedOperationsResponse = Class(TGoogleBaseObject)
   Private
-    Foperations : TListAggregatedOperationsResponseoperations;
+    Foperations : TListAggregatedOperationsResponseTypeoperationsArray;
   Protected
     //Property setters
-    Procedure Setoperations(AIndex : Integer; AValue : TListAggregatedOperationsResponseoperations); virtual;
+    Procedure Setoperations(AIndex : Integer; AValue : TListAggregatedOperationsResponseTypeoperationsArray); virtual;
   Public
   Published
-    Property operations : TListAggregatedOperationsResponseoperations Index 0 Read Foperations Write Setoperations;
+    Property operations : TListAggregatedOperationsResponseTypeoperationsArray Index 0 Read Foperations Write Setoperations;
   end;
   TListAggregatedOperationsResponseClass = Class of TListAggregatedOperationsResponse;
-  
-  { --------------------------------------------------------------------
-    TListAggregatedOperationsResponseoperations
-    --------------------------------------------------------------------}
-  
-  TListAggregatedOperationsResponseoperations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListAggregatedOperationsResponseoperationsClass = Class of TListAggregatedOperationsResponseoperations;
   
   { --------------------------------------------------------------------
     TListClustersResponse
@@ -214,28 +171,15 @@ type
   
   TListClustersResponse = Class(TGoogleBaseObject)
   Private
-    Fclusters : TListClustersResponseclusters;
+    Fclusters : TListClustersResponseTypeclustersArray;
   Protected
     //Property setters
-    Procedure Setclusters(AIndex : Integer; AValue : TListClustersResponseclusters); virtual;
+    Procedure Setclusters(AIndex : Integer; AValue : TListClustersResponseTypeclustersArray); virtual;
   Public
   Published
-    Property clusters : TListClustersResponseclusters Index 0 Read Fclusters Write Setclusters;
+    Property clusters : TListClustersResponseTypeclustersArray Index 0 Read Fclusters Write Setclusters;
   end;
   TListClustersResponseClass = Class of TListClustersResponse;
-  
-  { --------------------------------------------------------------------
-    TListClustersResponseclusters
-    --------------------------------------------------------------------}
-  
-  TListClustersResponseclusters = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListClustersResponseclustersClass = Class of TListClustersResponseclusters;
   
   { --------------------------------------------------------------------
     TListOperationsResponse
@@ -243,28 +187,15 @@ type
   
   TListOperationsResponse = Class(TGoogleBaseObject)
   Private
-    Foperations : TListOperationsResponseoperations;
+    Foperations : TListOperationsResponseTypeoperationsArray;
   Protected
     //Property setters
-    Procedure Setoperations(AIndex : Integer; AValue : TListOperationsResponseoperations); virtual;
+    Procedure Setoperations(AIndex : Integer; AValue : TListOperationsResponseTypeoperationsArray); virtual;
   Public
   Published
-    Property operations : TListOperationsResponseoperations Index 0 Read Foperations Write Setoperations;
+    Property operations : TListOperationsResponseTypeoperationsArray Index 0 Read Foperations Write Setoperations;
   end;
   TListOperationsResponseClass = Class of TListOperationsResponse;
-  
-  { --------------------------------------------------------------------
-    TListOperationsResponseoperations
-    --------------------------------------------------------------------}
-  
-  TListOperationsResponseoperations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListOperationsResponseoperationsClass = Class of TListOperationsResponseoperations;
   
   { --------------------------------------------------------------------
     TMasterAuth
@@ -272,19 +203,19 @@ type
   
   TMasterAuth = Class(TGoogleBaseObject)
   Private
-    FbearerToken : string;
-    Fpassword : string;
-    Fuser : string;
+    FbearerToken : String;
+    Fpassword : String;
+    Fuser : String;
   Protected
     //Property setters
-    Procedure SetbearerToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpassword(AIndex : Integer; AValue : string); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbearerToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpassword(AIndex : Integer; AValue : String); virtual;
+    Procedure Setuser(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property bearerToken : string Index 0 Read FbearerToken Write SetbearerToken;
-    Property password : string Index 8 Read Fpassword Write Setpassword;
-    Property user : string Index 16 Read Fuser Write Setuser;
+    Property bearerToken : String Index 0 Read FbearerToken Write SetbearerToken;
+    Property password : String Index 8 Read Fpassword Write Setpassword;
+    Property user : String Index 16 Read Fuser Write Setuser;
   end;
   TMasterAuthClass = Class of TMasterAuth;
   
@@ -294,34 +225,21 @@ type
   
   TNodeConfig = Class(TGoogleBaseObject)
   Private
-    FmachineType : string;
-    FserviceAccounts : TNodeConfigserviceAccounts;
-    FsourceImage : string;
+    FmachineType : String;
+    FserviceAccounts : TNodeConfigTypeserviceAccountsArray;
+    FsourceImage : String;
   Protected
     //Property setters
-    Procedure SetmachineType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetserviceAccounts(AIndex : Integer; AValue : TNodeConfigserviceAccounts); virtual;
-    Procedure SetsourceImage(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmachineType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetserviceAccounts(AIndex : Integer; AValue : TNodeConfigTypeserviceAccountsArray); virtual;
+    Procedure SetsourceImage(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property machineType : string Index 0 Read FmachineType Write SetmachineType;
-    Property serviceAccounts : TNodeConfigserviceAccounts Index 8 Read FserviceAccounts Write SetserviceAccounts;
-    Property sourceImage : string Index 16 Read FsourceImage Write SetsourceImage;
+    Property machineType : String Index 0 Read FmachineType Write SetmachineType;
+    Property serviceAccounts : TNodeConfigTypeserviceAccountsArray Index 8 Read FserviceAccounts Write SetserviceAccounts;
+    Property sourceImage : String Index 16 Read FsourceImage Write SetsourceImage;
   end;
   TNodeConfigClass = Class of TNodeConfig;
-  
-  { --------------------------------------------------------------------
-    TNodeConfigserviceAccounts
-    --------------------------------------------------------------------}
-  
-  TNodeConfigserviceAccounts = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TNodeConfigserviceAccountsClass = Class of TNodeConfigserviceAccounts;
   
   { --------------------------------------------------------------------
     TOperation
@@ -329,34 +247,34 @@ type
   
   TOperation = Class(TGoogleBaseObject)
   Private
-    FerrorMessage : string;
-    Fname : string;
-    FoperationType : string;
-    FselfLink : string;
-    Fstatus : string;
-    Ftarget : string;
-    FtargetLink : string;
-    Fzone : string;
+    FerrorMessage : String;
+    Fname : String;
+    FoperationType : String;
+    FselfLink : String;
+    Fstatus : String;
+    Ftarget : String;
+    FtargetLink : String;
+    Fzone : String;
   Protected
     //Property setters
-    Procedure SeterrorMessage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoperationType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Settarget(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
+    Procedure SeterrorMessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoperationType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Settarget(AIndex : Integer; AValue : String); virtual;
+    Procedure SettargetLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property errorMessage : string Index 0 Read FerrorMessage Write SeterrorMessage;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property operationType : string Index 16 Read FoperationType Write SetoperationType;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
-    Property status : string Index 32 Read Fstatus Write Setstatus;
-    Property target : string Index 40 Read Ftarget Write Settarget;
-    Property targetLink : string Index 48 Read FtargetLink Write SettargetLink;
-    Property zone : string Index 56 Read Fzone Write Setzone;
+    Property errorMessage : String Index 0 Read FerrorMessage Write SeterrorMessage;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property operationType : String Index 16 Read FoperationType Write SetoperationType;
+    Property selfLink : String Index 24 Read FselfLink Write SetselfLink;
+    Property status : String Index 32 Read Fstatus Write Setstatus;
+    Property target : String Index 40 Read Ftarget Write Settarget;
+    Property targetLink : String Index 48 Read FtargetLink Write SettargetLink;
+    Property zone : String Index 56 Read Fzone Write Setzone;
   end;
   TOperationClass = Class of TOperation;
   
@@ -366,31 +284,18 @@ type
   
   TServiceAccount = Class(TGoogleBaseObject)
   Private
-    Femail : string;
-    Fscopes : TServiceAccountscopes;
+    Femail : String;
+    Fscopes : TStringArray;
   Protected
     //Property setters
-    Procedure Setemail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setscopes(AIndex : Integer; AValue : TServiceAccountscopes); virtual;
+    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setscopes(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property email : string Index 0 Read Femail Write Setemail;
-    Property scopes : TServiceAccountscopes Index 8 Read Fscopes Write Setscopes;
+    Property email : String Index 0 Read Femail Write Setemail;
+    Property scopes : TStringArray Index 8 Read Fscopes Write Setscopes;
   end;
   TServiceAccountClass = Class of TServiceAccount;
-  
-  { --------------------------------------------------------------------
-    TServiceAccountscopes
-    --------------------------------------------------------------------}
-  
-  TServiceAccountscopes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TServiceAccountscopesClass = Class of TServiceAccountscopes;
   
   { --------------------------------------------------------------------
     TToken
@@ -398,16 +303,16 @@ type
   
   TToken = Class(TGoogleBaseObject)
   Private
-    FaccessToken : string;
-    FexpiryTimeSeconds : string;
+    FaccessToken : String;
+    FexpiryTimeSeconds : String;
   Protected
     //Property setters
-    Procedure SetaccessToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetexpiryTimeSeconds(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccessToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexpiryTimeSeconds(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accessToken : string Index 0 Read FaccessToken Write SetaccessToken;
-    Property expiryTimeSeconds : string Index 8 Read FexpiryTimeSeconds Write SetexpiryTimeSeconds;
+    Property accessToken : String Index 0 Read FaccessToken Write SetaccessToken;
+    Property expiryTimeSeconds : String Index 8 Read FexpiryTimeSeconds Write SetexpiryTimeSeconds;
   end;
   TTokenClass = Class of TToken;
   
@@ -467,7 +372,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TCluster.SetclusterApiVersion(AIndex : Integer; AValue : string); 
+Procedure TCluster.SetclusterApiVersion(AIndex : Integer; AValue : String); 
 
 begin
   If (FclusterApiVersion=AValue) then exit;
@@ -477,7 +382,7 @@ end;
 
 
 
-Procedure TCluster.SetcontainerIpv4Cidr(AIndex : Integer; AValue : string); 
+Procedure TCluster.SetcontainerIpv4Cidr(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontainerIpv4Cidr=AValue) then exit;
@@ -487,7 +392,7 @@ end;
 
 
 
-Procedure TCluster.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TCluster.SetcreationTimestamp(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -497,7 +402,7 @@ end;
 
 
 
-Procedure TCluster.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TCluster.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -517,7 +422,7 @@ end;
 
 
 
-Procedure TCluster.Setendpoint(AIndex : Integer; AValue : string); 
+Procedure TCluster.Setendpoint(AIndex : Integer; AValue : String); 
 
 begin
   If (Fendpoint=AValue) then exit;
@@ -537,7 +442,7 @@ end;
 
 
 
-Procedure TCluster.Setname(AIndex : Integer; AValue : string); 
+Procedure TCluster.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -547,7 +452,7 @@ end;
 
 
 
-Procedure TCluster.Setnetwork(AIndex : Integer; AValue : string); 
+Procedure TCluster.Setnetwork(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -587,7 +492,7 @@ end;
 
 
 
-Procedure TCluster.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TCluster.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -597,7 +502,7 @@ end;
 
 
 
-Procedure TCluster.SetservicesIpv4Cidr(AIndex : Integer; AValue : string); 
+Procedure TCluster.SetservicesIpv4Cidr(AIndex : Integer; AValue : String); 
 
 begin
   If (FservicesIpv4Cidr=AValue) then exit;
@@ -607,7 +512,7 @@ end;
 
 
 
-Procedure TCluster.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TCluster.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -617,7 +522,7 @@ end;
 
 
 
-Procedure TCluster.SetstatusMessage(AIndex : Integer; AValue : string); 
+Procedure TCluster.SetstatusMessage(AIndex : Integer; AValue : String); 
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -627,7 +532,7 @@ end;
 
 
 
-Procedure TCluster.Setzone(AIndex : Integer; AValue : string); 
+Procedure TCluster.Setzone(AIndex : Integer; AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -661,7 +566,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListAggregatedClustersResponse.Setclusters(AIndex : Integer; AValue : TListAggregatedClustersResponseclusters); 
+Procedure TListAggregatedClustersResponse.Setclusters(AIndex : Integer; AValue : TListAggregatedClustersResponseTypeclustersArray); 
 
 begin
   If (Fclusters=AValue) then exit;
@@ -669,13 +574,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TListAggregatedClustersResponseclusters
-  --------------------------------------------------------------------}
 
 
 
@@ -685,7 +583,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListAggregatedOperationsResponse.Setoperations(AIndex : Integer; AValue : TListAggregatedOperationsResponseoperations); 
+Procedure TListAggregatedOperationsResponse.Setoperations(AIndex : Integer; AValue : TListAggregatedOperationsResponseTypeoperationsArray); 
 
 begin
   If (Foperations=AValue) then exit;
@@ -698,18 +596,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListAggregatedOperationsResponseoperations
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListClustersResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListClustersResponse.Setclusters(AIndex : Integer; AValue : TListClustersResponseclusters); 
+Procedure TListClustersResponse.Setclusters(AIndex : Integer; AValue : TListClustersResponseTypeclustersArray); 
 
 begin
   If (Fclusters=AValue) then exit;
@@ -722,18 +613,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListClustersResponseclusters
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListOperationsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListOperationsResponse.Setoperations(AIndex : Integer; AValue : TListOperationsResponseoperations); 
+Procedure TListOperationsResponse.Setoperations(AIndex : Integer; AValue : TListOperationsResponseTypeoperationsArray); 
 
 begin
   If (Foperations=AValue) then exit;
@@ -746,18 +630,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListOperationsResponseoperations
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMasterAuth
   --------------------------------------------------------------------}
 
 
-Procedure TMasterAuth.SetbearerToken(AIndex : Integer; AValue : string); 
+Procedure TMasterAuth.SetbearerToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FbearerToken=AValue) then exit;
@@ -767,7 +644,7 @@ end;
 
 
 
-Procedure TMasterAuth.Setpassword(AIndex : Integer; AValue : string); 
+Procedure TMasterAuth.Setpassword(AIndex : Integer; AValue : String); 
 
 begin
   If (Fpassword=AValue) then exit;
@@ -777,7 +654,7 @@ end;
 
 
 
-Procedure TMasterAuth.Setuser(AIndex : Integer; AValue : string); 
+Procedure TMasterAuth.Setuser(AIndex : Integer; AValue : String); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -794,7 +671,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNodeConfig.SetmachineType(AIndex : Integer; AValue : string); 
+Procedure TNodeConfig.SetmachineType(AIndex : Integer; AValue : String); 
 
 begin
   If (FmachineType=AValue) then exit;
@@ -804,7 +681,7 @@ end;
 
 
 
-Procedure TNodeConfig.SetserviceAccounts(AIndex : Integer; AValue : TNodeConfigserviceAccounts); 
+Procedure TNodeConfig.SetserviceAccounts(AIndex : Integer; AValue : TNodeConfigTypeserviceAccountsArray); 
 
 begin
   If (FserviceAccounts=AValue) then exit;
@@ -814,7 +691,7 @@ end;
 
 
 
-Procedure TNodeConfig.SetsourceImage(AIndex : Integer; AValue : string); 
+Procedure TNodeConfig.SetsourceImage(AIndex : Integer; AValue : String); 
 
 begin
   If (FsourceImage=AValue) then exit;
@@ -827,18 +704,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TNodeConfigserviceAccounts
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TOperation
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.SeterrorMessage(AIndex : Integer; AValue : string); 
+Procedure TOperation.SeterrorMessage(AIndex : Integer; AValue : String); 
 
 begin
   If (FerrorMessage=AValue) then exit;
@@ -848,7 +718,7 @@ end;
 
 
 
-Procedure TOperation.Setname(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -858,7 +728,7 @@ end;
 
 
 
-Procedure TOperation.SetoperationType(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetoperationType(AIndex : Integer; AValue : String); 
 
 begin
   If (FoperationType=AValue) then exit;
@@ -868,7 +738,7 @@ end;
 
 
 
-Procedure TOperation.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -878,7 +748,7 @@ end;
 
 
 
-Procedure TOperation.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -888,7 +758,7 @@ end;
 
 
 
-Procedure TOperation.Settarget(AIndex : Integer; AValue : string); 
+Procedure TOperation.Settarget(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftarget=AValue) then exit;
@@ -898,7 +768,7 @@ end;
 
 
 
-Procedure TOperation.SettargetLink(AIndex : Integer; AValue : string); 
+Procedure TOperation.SettargetLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FtargetLink=AValue) then exit;
@@ -908,7 +778,7 @@ end;
 
 
 
-Procedure TOperation.Setzone(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setzone(AIndex : Integer; AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -925,7 +795,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TServiceAccount.Setemail(AIndex : Integer; AValue : string); 
+Procedure TServiceAccount.Setemail(AIndex : Integer; AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -935,7 +805,7 @@ end;
 
 
 
-Procedure TServiceAccount.Setscopes(AIndex : Integer; AValue : TServiceAccountscopes); 
+Procedure TServiceAccount.Setscopes(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fscopes=AValue) then exit;
@@ -948,18 +818,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TServiceAccountscopes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TToken
   --------------------------------------------------------------------}
 
 
-Procedure TToken.SetaccessToken(AIndex : Integer; AValue : string); 
+Procedure TToken.SetaccessToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccessToken=AValue) then exit;
@@ -969,7 +832,7 @@ end;
 
 
 
-Procedure TToken.SetexpiryTimeSeconds(AIndex : Integer; AValue : string); 
+Procedure TToken.SetexpiryTimeSeconds(AIndex : Integer; AValue : String); 
 
 begin
   If (FexpiryTimeSeconds=AValue) then exit;
@@ -1127,19 +990,13 @@ begin
   TCluster.RegisterObject;
   TCreateClusterRequest.RegisterObject;
   TListAggregatedClustersResponse.RegisterObject;
-  TListAggregatedClustersResponseclusters.RegisterObject;
   TListAggregatedOperationsResponse.RegisterObject;
-  TListAggregatedOperationsResponseoperations.RegisterObject;
   TListClustersResponse.RegisterObject;
-  TListClustersResponseclusters.RegisterObject;
   TListOperationsResponse.RegisterObject;
-  TListOperationsResponseoperations.RegisterObject;
   TMasterAuth.RegisterObject;
   TNodeConfig.RegisterObject;
-  TNodeConfigserviceAccounts.RegisterObject;
   TOperation.RegisterObject;
   TServiceAccount.RegisterObject;
-  TServiceAccountscopes.RegisterObject;
   TToken.RegisterObject;
 end;
 

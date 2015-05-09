@@ -1,31 +1,19 @@
 unit googleyoutube;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:23:00
 {$MODE objfpc}
 {$H+}
 
@@ -34,411 +22,332 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAccessPolicy = class;
-  TAccessPolicyArray = Array of TAccessPolicy;
-  TAccessPolicyexception = class;
-  TAccessPolicyexceptionArray = Array of TAccessPolicyexception;
   TActivity = class;
-  TActivityArray = Array of TActivity;
   TActivityContentDetails = class;
-  TActivityContentDetailsArray = Array of TActivityContentDetails;
   TActivityContentDetailsBulletin = class;
-  TActivityContentDetailsBulletinArray = Array of TActivityContentDetailsBulletin;
   TActivityContentDetailsChannelItem = class;
-  TActivityContentDetailsChannelItemArray = Array of TActivityContentDetailsChannelItem;
   TActivityContentDetailsComment = class;
-  TActivityContentDetailsCommentArray = Array of TActivityContentDetailsComment;
   TActivityContentDetailsFavorite = class;
-  TActivityContentDetailsFavoriteArray = Array of TActivityContentDetailsFavorite;
   TActivityContentDetailsLike = class;
-  TActivityContentDetailsLikeArray = Array of TActivityContentDetailsLike;
   TActivityContentDetailsPlaylistItem = class;
-  TActivityContentDetailsPlaylistItemArray = Array of TActivityContentDetailsPlaylistItem;
   TActivityContentDetailsPromotedItem = class;
-  TActivityContentDetailsPromotedItemArray = Array of TActivityContentDetailsPromotedItem;
-  TActivityContentDetailsPromotedItemforecastingUrl = class;
-  TActivityContentDetailsPromotedItemforecastingUrlArray = Array of TActivityContentDetailsPromotedItemforecastingUrl;
-  TActivityContentDetailsPromotedItemimpressionUrl = class;
-  TActivityContentDetailsPromotedItemimpressionUrlArray = Array of TActivityContentDetailsPromotedItemimpressionUrl;
   TActivityContentDetailsRecommendation = class;
-  TActivityContentDetailsRecommendationArray = Array of TActivityContentDetailsRecommendation;
   TActivityContentDetailsSocial = class;
-  TActivityContentDetailsSocialArray = Array of TActivityContentDetailsSocial;
   TActivityContentDetailsSubscription = class;
-  TActivityContentDetailsSubscriptionArray = Array of TActivityContentDetailsSubscription;
   TActivityContentDetailsUpload = class;
-  TActivityContentDetailsUploadArray = Array of TActivityContentDetailsUpload;
   TActivityListResponse = class;
-  TActivityListResponseArray = Array of TActivityListResponse;
-  TActivityListResponseitems = class;
-  TActivityListResponseitemsArray = Array of TActivityListResponseitems;
   TActivitySnippet = class;
-  TActivitySnippetArray = Array of TActivitySnippet;
   TCaption = class;
-  TCaptionArray = Array of TCaption;
   TCaptionListResponse = class;
-  TCaptionListResponseArray = Array of TCaptionListResponse;
-  TCaptionListResponseitems = class;
-  TCaptionListResponseitemsArray = Array of TCaptionListResponseitems;
   TCaptionSnippet = class;
-  TCaptionSnippetArray = Array of TCaptionSnippet;
   TCdnSettings = class;
-  TCdnSettingsArray = Array of TCdnSettings;
   TChannel = class;
-  TChannelArray = Array of TChannel;
-  TChannellocalizations = class;
-  TChannellocalizationsArray = Array of TChannellocalizations;
   TChannelAuditDetails = class;
-  TChannelAuditDetailsArray = Array of TChannelAuditDetails;
   TChannelBannerResource = class;
-  TChannelBannerResourceArray = Array of TChannelBannerResource;
   TChannelBrandingSettings = class;
-  TChannelBrandingSettingsArray = Array of TChannelBrandingSettings;
-  TChannelBrandingSettingshints = class;
-  TChannelBrandingSettingshintsArray = Array of TChannelBrandingSettingshints;
   TChannelContentDetails = class;
-  TChannelContentDetailsArray = Array of TChannelContentDetails;
-  TChannelContentDetailsrelatedPlaylists = class;
-  TChannelContentDetailsrelatedPlaylistsArray = Array of TChannelContentDetailsrelatedPlaylists;
   TChannelContentOwnerDetails = class;
-  TChannelContentOwnerDetailsArray = Array of TChannelContentOwnerDetails;
   TChannelConversionPing = class;
-  TChannelConversionPingArray = Array of TChannelConversionPing;
   TChannelConversionPings = class;
-  TChannelConversionPingsArray = Array of TChannelConversionPings;
-  TChannelConversionPingspings = class;
-  TChannelConversionPingspingsArray = Array of TChannelConversionPingspings;
   TChannelId = class;
-  TChannelIdArray = Array of TChannelId;
   TChannelListResponse = class;
-  TChannelListResponseArray = Array of TChannelListResponse;
-  TChannelListResponseitems = class;
-  TChannelListResponseitemsArray = Array of TChannelListResponseitems;
   TChannelLocalization = class;
-  TChannelLocalizationArray = Array of TChannelLocalization;
   TChannelSection = class;
-  TChannelSectionArray = Array of TChannelSection;
-  TChannelSectionlocalizations = class;
-  TChannelSectionlocalizationsArray = Array of TChannelSectionlocalizations;
   TChannelSectionContentDetails = class;
-  TChannelSectionContentDetailsArray = Array of TChannelSectionContentDetails;
-  TChannelSectionContentDetailschannels = class;
-  TChannelSectionContentDetailschannelsArray = Array of TChannelSectionContentDetailschannels;
-  TChannelSectionContentDetailsplaylists = class;
-  TChannelSectionContentDetailsplaylistsArray = Array of TChannelSectionContentDetailsplaylists;
   TChannelSectionListResponse = class;
-  TChannelSectionListResponseArray = Array of TChannelSectionListResponse;
-  TChannelSectionListResponseitems = class;
-  TChannelSectionListResponseitemsArray = Array of TChannelSectionListResponseitems;
   TChannelSectionLocalization = class;
-  TChannelSectionLocalizationArray = Array of TChannelSectionLocalization;
   TChannelSectionSnippet = class;
-  TChannelSectionSnippetArray = Array of TChannelSectionSnippet;
   TChannelSectionTargeting = class;
-  TChannelSectionTargetingArray = Array of TChannelSectionTargeting;
-  TChannelSectionTargetingcountries = class;
-  TChannelSectionTargetingcountriesArray = Array of TChannelSectionTargetingcountries;
-  TChannelSectionTargetinglanguages = class;
-  TChannelSectionTargetinglanguagesArray = Array of TChannelSectionTargetinglanguages;
-  TChannelSectionTargetingregions = class;
-  TChannelSectionTargetingregionsArray = Array of TChannelSectionTargetingregions;
   TChannelSettings = class;
-  TChannelSettingsArray = Array of TChannelSettings;
-  TChannelSettingsfeaturedChannelsUrls = class;
-  TChannelSettingsfeaturedChannelsUrlsArray = Array of TChannelSettingsfeaturedChannelsUrls;
   TChannelSnippet = class;
-  TChannelSnippetArray = Array of TChannelSnippet;
   TChannelStatistics = class;
-  TChannelStatisticsArray = Array of TChannelStatistics;
   TChannelStatus = class;
-  TChannelStatusArray = Array of TChannelStatus;
   TChannelTopicDetails = class;
-  TChannelTopicDetailsArray = Array of TChannelTopicDetails;
-  TChannelTopicDetailstopicIds = class;
-  TChannelTopicDetailstopicIdsArray = Array of TChannelTopicDetailstopicIds;
   TComment = class;
-  TCommentArray = Array of TComment;
   TCommentListResponse = class;
-  TCommentListResponseArray = Array of TCommentListResponse;
-  TCommentListResponseitems = class;
-  TCommentListResponseitemsArray = Array of TCommentListResponseitems;
   TCommentSnippet = class;
-  TCommentSnippetArray = Array of TCommentSnippet;
   TCommentThread = class;
-  TCommentThreadArray = Array of TCommentThread;
   TCommentThreadListResponse = class;
-  TCommentThreadListResponseArray = Array of TCommentThreadListResponse;
-  TCommentThreadListResponseitems = class;
-  TCommentThreadListResponseitemsArray = Array of TCommentThreadListResponseitems;
   TCommentThreadReplies = class;
-  TCommentThreadRepliesArray = Array of TCommentThreadReplies;
-  TCommentThreadRepliescomments = class;
-  TCommentThreadRepliescommentsArray = Array of TCommentThreadRepliescomments;
   TCommentThreadSnippet = class;
-  TCommentThreadSnippetArray = Array of TCommentThreadSnippet;
   TContentRating = class;
-  TContentRatingArray = Array of TContentRating;
-  TContentRatingdjctqRatingReasons = class;
-  TContentRatingdjctqRatingReasonsArray = Array of TContentRatingdjctqRatingReasons;
   TGeoPoint = class;
-  TGeoPointArray = Array of TGeoPoint;
   TGuideCategory = class;
-  TGuideCategoryArray = Array of TGuideCategory;
   TGuideCategoryListResponse = class;
-  TGuideCategoryListResponseArray = Array of TGuideCategoryListResponse;
-  TGuideCategoryListResponseitems = class;
-  TGuideCategoryListResponseitemsArray = Array of TGuideCategoryListResponseitems;
   TGuideCategorySnippet = class;
-  TGuideCategorySnippetArray = Array of TGuideCategorySnippet;
   TI18nLanguage = class;
-  TI18nLanguageArray = Array of TI18nLanguage;
   TI18nLanguageListResponse = class;
-  TI18nLanguageListResponseArray = Array of TI18nLanguageListResponse;
-  TI18nLanguageListResponseitems = class;
-  TI18nLanguageListResponseitemsArray = Array of TI18nLanguageListResponseitems;
   TI18nLanguageSnippet = class;
-  TI18nLanguageSnippetArray = Array of TI18nLanguageSnippet;
   TI18nRegion = class;
-  TI18nRegionArray = Array of TI18nRegion;
   TI18nRegionListResponse = class;
-  TI18nRegionListResponseArray = Array of TI18nRegionListResponse;
-  TI18nRegionListResponseitems = class;
-  TI18nRegionListResponseitemsArray = Array of TI18nRegionListResponseitems;
   TI18nRegionSnippet = class;
-  TI18nRegionSnippetArray = Array of TI18nRegionSnippet;
   TImageSettings = class;
-  TImageSettingsArray = Array of TImageSettings;
   TIngestionInfo = class;
-  TIngestionInfoArray = Array of TIngestionInfo;
   TInvideoBranding = class;
-  TInvideoBrandingArray = Array of TInvideoBranding;
   TInvideoPosition = class;
-  TInvideoPositionArray = Array of TInvideoPosition;
   TInvideoPromotion = class;
-  TInvideoPromotionArray = Array of TInvideoPromotion;
-  TInvideoPromotionitems = class;
-  TInvideoPromotionitemsArray = Array of TInvideoPromotionitems;
   TInvideoTiming = class;
-  TInvideoTimingArray = Array of TInvideoTiming;
   TLanguageTag = class;
-  TLanguageTagArray = Array of TLanguageTag;
   TLiveBroadcast = class;
-  TLiveBroadcastArray = Array of TLiveBroadcast;
   TLiveBroadcastContentDetails = class;
-  TLiveBroadcastContentDetailsArray = Array of TLiveBroadcastContentDetails;
   TLiveBroadcastListResponse = class;
-  TLiveBroadcastListResponseArray = Array of TLiveBroadcastListResponse;
-  TLiveBroadcastListResponseitems = class;
-  TLiveBroadcastListResponseitemsArray = Array of TLiveBroadcastListResponseitems;
   TLiveBroadcastSnippet = class;
-  TLiveBroadcastSnippetArray = Array of TLiveBroadcastSnippet;
   TLiveBroadcastStatus = class;
-  TLiveBroadcastStatusArray = Array of TLiveBroadcastStatus;
   TLiveStream = class;
-  TLiveStreamArray = Array of TLiveStream;
   TLiveStreamContentDetails = class;
-  TLiveStreamContentDetailsArray = Array of TLiveStreamContentDetails;
   TLiveStreamListResponse = class;
-  TLiveStreamListResponseArray = Array of TLiveStreamListResponse;
-  TLiveStreamListResponseitems = class;
-  TLiveStreamListResponseitemsArray = Array of TLiveStreamListResponseitems;
   TLiveStreamSnippet = class;
-  TLiveStreamSnippetArray = Array of TLiveStreamSnippet;
   TLiveStreamStatus = class;
-  TLiveStreamStatusArray = Array of TLiveStreamStatus;
   TLocalizedProperty = class;
-  TLocalizedPropertyArray = Array of TLocalizedProperty;
-  TLocalizedPropertylocalized = class;
-  TLocalizedPropertylocalizedArray = Array of TLocalizedPropertylocalized;
   TLocalizedString = class;
-  TLocalizedStringArray = Array of TLocalizedString;
   TMonitorStreamInfo = class;
-  TMonitorStreamInfoArray = Array of TMonitorStreamInfo;
   TPageInfo = class;
-  TPageInfoArray = Array of TPageInfo;
   TPlaylist = class;
-  TPlaylistArray = Array of TPlaylist;
-  TPlaylistlocalizations = class;
-  TPlaylistlocalizationsArray = Array of TPlaylistlocalizations;
   TPlaylistContentDetails = class;
-  TPlaylistContentDetailsArray = Array of TPlaylistContentDetails;
   TPlaylistItem = class;
-  TPlaylistItemArray = Array of TPlaylistItem;
   TPlaylistItemContentDetails = class;
-  TPlaylistItemContentDetailsArray = Array of TPlaylistItemContentDetails;
   TPlaylistItemListResponse = class;
-  TPlaylistItemListResponseArray = Array of TPlaylistItemListResponse;
-  TPlaylistItemListResponseitems = class;
-  TPlaylistItemListResponseitemsArray = Array of TPlaylistItemListResponseitems;
   TPlaylistItemSnippet = class;
-  TPlaylistItemSnippetArray = Array of TPlaylistItemSnippet;
   TPlaylistItemStatus = class;
-  TPlaylistItemStatusArray = Array of TPlaylistItemStatus;
   TPlaylistListResponse = class;
-  TPlaylistListResponseArray = Array of TPlaylistListResponse;
-  TPlaylistListResponseitems = class;
-  TPlaylistListResponseitemsArray = Array of TPlaylistListResponseitems;
   TPlaylistLocalization = class;
-  TPlaylistLocalizationArray = Array of TPlaylistLocalization;
   TPlaylistPlayer = class;
-  TPlaylistPlayerArray = Array of TPlaylistPlayer;
   TPlaylistSnippet = class;
-  TPlaylistSnippetArray = Array of TPlaylistSnippet;
-  TPlaylistSnippettags = class;
-  TPlaylistSnippettagsArray = Array of TPlaylistSnippettags;
   TPlaylistStatus = class;
-  TPlaylistStatusArray = Array of TPlaylistStatus;
   TPromotedItem = class;
-  TPromotedItemArray = Array of TPromotedItem;
   TPromotedItemId = class;
-  TPromotedItemIdArray = Array of TPromotedItemId;
   TPropertyValue = class;
-  TPropertyValueArray = Array of TPropertyValue;
   TResourceId = class;
-  TResourceIdArray = Array of TResourceId;
   TSearchListResponse = class;
-  TSearchListResponseArray = Array of TSearchListResponse;
-  TSearchListResponseitems = class;
-  TSearchListResponseitemsArray = Array of TSearchListResponseitems;
   TSearchResult = class;
-  TSearchResultArray = Array of TSearchResult;
   TSearchResultSnippet = class;
-  TSearchResultSnippetArray = Array of TSearchResultSnippet;
   TSubscription = class;
-  TSubscriptionArray = Array of TSubscription;
   TSubscriptionContentDetails = class;
-  TSubscriptionContentDetailsArray = Array of TSubscriptionContentDetails;
   TSubscriptionListResponse = class;
-  TSubscriptionListResponseArray = Array of TSubscriptionListResponse;
-  TSubscriptionListResponseitems = class;
-  TSubscriptionListResponseitemsArray = Array of TSubscriptionListResponseitems;
   TSubscriptionSnippet = class;
-  TSubscriptionSnippetArray = Array of TSubscriptionSnippet;
   TSubscriptionSubscriberSnippet = class;
-  TSubscriptionSubscriberSnippetArray = Array of TSubscriptionSubscriberSnippet;
   TThumbnail = class;
-  TThumbnailArray = Array of TThumbnail;
   TThumbnailDetails = class;
-  TThumbnailDetailsArray = Array of TThumbnailDetails;
   TThumbnailSetResponse = class;
-  TThumbnailSetResponseArray = Array of TThumbnailSetResponse;
-  TThumbnailSetResponseitems = class;
-  TThumbnailSetResponseitemsArray = Array of TThumbnailSetResponseitems;
   TTokenPagination = class;
-  TTokenPaginationArray = Array of TTokenPagination;
   TVideo = class;
-  TVideoArray = Array of TVideo;
-  TVideolocalizations = class;
-  TVideolocalizationsArray = Array of TVideolocalizations;
   TVideoAbuseReport = class;
-  TVideoAbuseReportArray = Array of TVideoAbuseReport;
   TVideoAbuseReportReason = class;
-  TVideoAbuseReportReasonArray = Array of TVideoAbuseReportReason;
   TVideoAbuseReportReasonListResponse = class;
-  TVideoAbuseReportReasonListResponseArray = Array of TVideoAbuseReportReasonListResponse;
-  TVideoAbuseReportReasonListResponseitems = class;
-  TVideoAbuseReportReasonListResponseitemsArray = Array of TVideoAbuseReportReasonListResponseitems;
   TVideoAbuseReportReasonSnippet = class;
-  TVideoAbuseReportReasonSnippetArray = Array of TVideoAbuseReportReasonSnippet;
-  TVideoAbuseReportReasonSnippetsecondaryReasons = class;
-  TVideoAbuseReportReasonSnippetsecondaryReasonsArray = Array of TVideoAbuseReportReasonSnippetsecondaryReasons;
   TVideoAbuseReportSecondaryReason = class;
-  TVideoAbuseReportSecondaryReasonArray = Array of TVideoAbuseReportSecondaryReason;
   TVideoAgeGating = class;
-  TVideoAgeGatingArray = Array of TVideoAgeGating;
   TVideoCategory = class;
-  TVideoCategoryArray = Array of TVideoCategory;
   TVideoCategoryListResponse = class;
-  TVideoCategoryListResponseArray = Array of TVideoCategoryListResponse;
-  TVideoCategoryListResponseitems = class;
-  TVideoCategoryListResponseitemsArray = Array of TVideoCategoryListResponseitems;
   TVideoCategorySnippet = class;
-  TVideoCategorySnippetArray = Array of TVideoCategorySnippet;
   TVideoContentDetails = class;
-  TVideoContentDetailsArray = Array of TVideoContentDetails;
   TVideoContentDetailsRegionRestriction = class;
-  TVideoContentDetailsRegionRestrictionArray = Array of TVideoContentDetailsRegionRestriction;
-  TVideoContentDetailsRegionRestrictionallowed = class;
-  TVideoContentDetailsRegionRestrictionallowedArray = Array of TVideoContentDetailsRegionRestrictionallowed;
-  TVideoContentDetailsRegionRestrictionblocked = class;
-  TVideoContentDetailsRegionRestrictionblockedArray = Array of TVideoContentDetailsRegionRestrictionblocked;
   TVideoConversionPing = class;
-  TVideoConversionPingArray = Array of TVideoConversionPing;
   TVideoConversionPings = class;
-  TVideoConversionPingsArray = Array of TVideoConversionPings;
-  TVideoConversionPingspings = class;
-  TVideoConversionPingspingsArray = Array of TVideoConversionPingspings;
   TVideoFileDetails = class;
-  TVideoFileDetailsArray = Array of TVideoFileDetails;
-  TVideoFileDetailsaudioStreams = class;
-  TVideoFileDetailsaudioStreamsArray = Array of TVideoFileDetailsaudioStreams;
-  TVideoFileDetailsvideoStreams = class;
-  TVideoFileDetailsvideoStreamsArray = Array of TVideoFileDetailsvideoStreams;
   TVideoFileDetailsAudioStream = class;
-  TVideoFileDetailsAudioStreamArray = Array of TVideoFileDetailsAudioStream;
   TVideoFileDetailsVideoStream = class;
-  TVideoFileDetailsVideoStreamArray = Array of TVideoFileDetailsVideoStream;
   TVideoGetRatingResponse = class;
-  TVideoGetRatingResponseArray = Array of TVideoGetRatingResponse;
-  TVideoGetRatingResponseitems = class;
-  TVideoGetRatingResponseitemsArray = Array of TVideoGetRatingResponseitems;
   TVideoListResponse = class;
-  TVideoListResponseArray = Array of TVideoListResponse;
-  TVideoListResponseitems = class;
-  TVideoListResponseitemsArray = Array of TVideoListResponseitems;
   TVideoLiveStreamingDetails = class;
-  TVideoLiveStreamingDetailsArray = Array of TVideoLiveStreamingDetails;
   TVideoLocalization = class;
-  TVideoLocalizationArray = Array of TVideoLocalization;
   TVideoMonetizationDetails = class;
-  TVideoMonetizationDetailsArray = Array of TVideoMonetizationDetails;
   TVideoPlayer = class;
-  TVideoPlayerArray = Array of TVideoPlayer;
   TVideoProcessingDetails = class;
-  TVideoProcessingDetailsArray = Array of TVideoProcessingDetails;
   TVideoProcessingDetailsProcessingProgress = class;
-  TVideoProcessingDetailsProcessingProgressArray = Array of TVideoProcessingDetailsProcessingProgress;
   TVideoProjectDetails = class;
-  TVideoProjectDetailsArray = Array of TVideoProjectDetails;
-  TVideoProjectDetailstags = class;
-  TVideoProjectDetailstagsArray = Array of TVideoProjectDetailstags;
   TVideoRating = class;
-  TVideoRatingArray = Array of TVideoRating;
   TVideoRecordingDetails = class;
-  TVideoRecordingDetailsArray = Array of TVideoRecordingDetails;
   TVideoSnippet = class;
-  TVideoSnippetArray = Array of TVideoSnippet;
-  TVideoSnippettags = class;
-  TVideoSnippettagsArray = Array of TVideoSnippettags;
   TVideoStatistics = class;
-  TVideoStatisticsArray = Array of TVideoStatistics;
   TVideoStatus = class;
-  TVideoStatusArray = Array of TVideoStatus;
   TVideoSuggestions = class;
-  TVideoSuggestionsArray = Array of TVideoSuggestions;
-  TVideoSuggestionseditorSuggestions = class;
-  TVideoSuggestionseditorSuggestionsArray = Array of TVideoSuggestionseditorSuggestions;
-  TVideoSuggestionsprocessingErrors = class;
-  TVideoSuggestionsprocessingErrorsArray = Array of TVideoSuggestionsprocessingErrors;
-  TVideoSuggestionsprocessingHints = class;
-  TVideoSuggestionsprocessingHintsArray = Array of TVideoSuggestionsprocessingHints;
-  TVideoSuggestionsprocessingWarnings = class;
-  TVideoSuggestionsprocessingWarningsArray = Array of TVideoSuggestionsprocessingWarnings;
-  TVideoSuggestionstagSuggestions = class;
-  TVideoSuggestionstagSuggestionsArray = Array of TVideoSuggestionstagSuggestions;
   TVideoSuggestionsTagSuggestion = class;
-  TVideoSuggestionsTagSuggestionArray = Array of TVideoSuggestionsTagSuggestion;
-  TVideoSuggestionsTagSuggestioncategoryRestricts = class;
-  TVideoSuggestionsTagSuggestioncategoryRestrictsArray = Array of TVideoSuggestionsTagSuggestioncategoryRestricts;
   TVideoTopicDetails = class;
-  TVideoTopicDetailsArray = Array of TVideoTopicDetails;
-  TVideoTopicDetailsrelevantTopicIds = class;
-  TVideoTopicDetailsrelevantTopicIdsArray = Array of TVideoTopicDetailsrelevantTopicIds;
-  TVideoTopicDetailstopicIds = class;
-  TVideoTopicDetailstopicIdsArray = Array of TVideoTopicDetailstopicIds;
   TWatchSettings = class;
+  TAccessPolicyArray = Array of TAccessPolicy;
+  TActivityArray = Array of TActivity;
+  TActivityContentDetailsArray = Array of TActivityContentDetails;
+  TActivityContentDetailsBulletinArray = Array of TActivityContentDetailsBulletin;
+  TActivityContentDetailsChannelItemArray = Array of TActivityContentDetailsChannelItem;
+  TActivityContentDetailsCommentArray = Array of TActivityContentDetailsComment;
+  TActivityContentDetailsFavoriteArray = Array of TActivityContentDetailsFavorite;
+  TActivityContentDetailsLikeArray = Array of TActivityContentDetailsLike;
+  TActivityContentDetailsPlaylistItemArray = Array of TActivityContentDetailsPlaylistItem;
+  TActivityContentDetailsPromotedItemArray = Array of TActivityContentDetailsPromotedItem;
+  TActivityContentDetailsRecommendationArray = Array of TActivityContentDetailsRecommendation;
+  TActivityContentDetailsSocialArray = Array of TActivityContentDetailsSocial;
+  TActivityContentDetailsSubscriptionArray = Array of TActivityContentDetailsSubscription;
+  TActivityContentDetailsUploadArray = Array of TActivityContentDetailsUpload;
+  TActivityListResponseArray = Array of TActivityListResponse;
+  TActivitySnippetArray = Array of TActivitySnippet;
+  TCaptionArray = Array of TCaption;
+  TCaptionListResponseArray = Array of TCaptionListResponse;
+  TCaptionSnippetArray = Array of TCaptionSnippet;
+  TCdnSettingsArray = Array of TCdnSettings;
+  TChannelArray = Array of TChannel;
+  TChannelAuditDetailsArray = Array of TChannelAuditDetails;
+  TChannelBannerResourceArray = Array of TChannelBannerResource;
+  TChannelBrandingSettingsArray = Array of TChannelBrandingSettings;
+  TChannelContentDetailsArray = Array of TChannelContentDetails;
+  TChannelContentOwnerDetailsArray = Array of TChannelContentOwnerDetails;
+  TChannelConversionPingArray = Array of TChannelConversionPing;
+  TChannelConversionPingsArray = Array of TChannelConversionPings;
+  TChannelIdArray = Array of TChannelId;
+  TChannelListResponseArray = Array of TChannelListResponse;
+  TChannelLocalizationArray = Array of TChannelLocalization;
+  TChannelSectionArray = Array of TChannelSection;
+  TChannelSectionContentDetailsArray = Array of TChannelSectionContentDetails;
+  TChannelSectionListResponseArray = Array of TChannelSectionListResponse;
+  TChannelSectionLocalizationArray = Array of TChannelSectionLocalization;
+  TChannelSectionSnippetArray = Array of TChannelSectionSnippet;
+  TChannelSectionTargetingArray = Array of TChannelSectionTargeting;
+  TChannelSettingsArray = Array of TChannelSettings;
+  TChannelSnippetArray = Array of TChannelSnippet;
+  TChannelStatisticsArray = Array of TChannelStatistics;
+  TChannelStatusArray = Array of TChannelStatus;
+  TChannelTopicDetailsArray = Array of TChannelTopicDetails;
+  TCommentArray = Array of TComment;
+  TCommentListResponseArray = Array of TCommentListResponse;
+  TCommentSnippetArray = Array of TCommentSnippet;
+  TCommentThreadArray = Array of TCommentThread;
+  TCommentThreadListResponseArray = Array of TCommentThreadListResponse;
+  TCommentThreadRepliesArray = Array of TCommentThreadReplies;
+  TCommentThreadSnippetArray = Array of TCommentThreadSnippet;
+  TContentRatingArray = Array of TContentRating;
+  TGeoPointArray = Array of TGeoPoint;
+  TGuideCategoryArray = Array of TGuideCategory;
+  TGuideCategoryListResponseArray = Array of TGuideCategoryListResponse;
+  TGuideCategorySnippetArray = Array of TGuideCategorySnippet;
+  TI18nLanguageArray = Array of TI18nLanguage;
+  TI18nLanguageListResponseArray = Array of TI18nLanguageListResponse;
+  TI18nLanguageSnippetArray = Array of TI18nLanguageSnippet;
+  TI18nRegionArray = Array of TI18nRegion;
+  TI18nRegionListResponseArray = Array of TI18nRegionListResponse;
+  TI18nRegionSnippetArray = Array of TI18nRegionSnippet;
+  TImageSettingsArray = Array of TImageSettings;
+  TIngestionInfoArray = Array of TIngestionInfo;
+  TInvideoBrandingArray = Array of TInvideoBranding;
+  TInvideoPositionArray = Array of TInvideoPosition;
+  TInvideoPromotionArray = Array of TInvideoPromotion;
+  TInvideoTimingArray = Array of TInvideoTiming;
+  TLanguageTagArray = Array of TLanguageTag;
+  TLiveBroadcastArray = Array of TLiveBroadcast;
+  TLiveBroadcastContentDetailsArray = Array of TLiveBroadcastContentDetails;
+  TLiveBroadcastListResponseArray = Array of TLiveBroadcastListResponse;
+  TLiveBroadcastSnippetArray = Array of TLiveBroadcastSnippet;
+  TLiveBroadcastStatusArray = Array of TLiveBroadcastStatus;
+  TLiveStreamArray = Array of TLiveStream;
+  TLiveStreamContentDetailsArray = Array of TLiveStreamContentDetails;
+  TLiveStreamListResponseArray = Array of TLiveStreamListResponse;
+  TLiveStreamSnippetArray = Array of TLiveStreamSnippet;
+  TLiveStreamStatusArray = Array of TLiveStreamStatus;
+  TLocalizedPropertyArray = Array of TLocalizedProperty;
+  TLocalizedStringArray = Array of TLocalizedString;
+  TMonitorStreamInfoArray = Array of TMonitorStreamInfo;
+  TPageInfoArray = Array of TPageInfo;
+  TPlaylistArray = Array of TPlaylist;
+  TPlaylistContentDetailsArray = Array of TPlaylistContentDetails;
+  TPlaylistItemArray = Array of TPlaylistItem;
+  TPlaylistItemContentDetailsArray = Array of TPlaylistItemContentDetails;
+  TPlaylistItemListResponseArray = Array of TPlaylistItemListResponse;
+  TPlaylistItemSnippetArray = Array of TPlaylistItemSnippet;
+  TPlaylistItemStatusArray = Array of TPlaylistItemStatus;
+  TPlaylistListResponseArray = Array of TPlaylistListResponse;
+  TPlaylistLocalizationArray = Array of TPlaylistLocalization;
+  TPlaylistPlayerArray = Array of TPlaylistPlayer;
+  TPlaylistSnippetArray = Array of TPlaylistSnippet;
+  TPlaylistStatusArray = Array of TPlaylistStatus;
+  TPromotedItemArray = Array of TPromotedItem;
+  TPromotedItemIdArray = Array of TPromotedItemId;
+  TPropertyValueArray = Array of TPropertyValue;
+  TResourceIdArray = Array of TResourceId;
+  TSearchListResponseArray = Array of TSearchListResponse;
+  TSearchResultArray = Array of TSearchResult;
+  TSearchResultSnippetArray = Array of TSearchResultSnippet;
+  TSubscriptionArray = Array of TSubscription;
+  TSubscriptionContentDetailsArray = Array of TSubscriptionContentDetails;
+  TSubscriptionListResponseArray = Array of TSubscriptionListResponse;
+  TSubscriptionSnippetArray = Array of TSubscriptionSnippet;
+  TSubscriptionSubscriberSnippetArray = Array of TSubscriptionSubscriberSnippet;
+  TThumbnailArray = Array of TThumbnail;
+  TThumbnailDetailsArray = Array of TThumbnailDetails;
+  TThumbnailSetResponseArray = Array of TThumbnailSetResponse;
+  TTokenPaginationArray = Array of TTokenPagination;
+  TVideoArray = Array of TVideo;
+  TVideoAbuseReportArray = Array of TVideoAbuseReport;
+  TVideoAbuseReportReasonArray = Array of TVideoAbuseReportReason;
+  TVideoAbuseReportReasonListResponseArray = Array of TVideoAbuseReportReasonListResponse;
+  TVideoAbuseReportReasonSnippetArray = Array of TVideoAbuseReportReasonSnippet;
+  TVideoAbuseReportSecondaryReasonArray = Array of TVideoAbuseReportSecondaryReason;
+  TVideoAgeGatingArray = Array of TVideoAgeGating;
+  TVideoCategoryArray = Array of TVideoCategory;
+  TVideoCategoryListResponseArray = Array of TVideoCategoryListResponse;
+  TVideoCategorySnippetArray = Array of TVideoCategorySnippet;
+  TVideoContentDetailsArray = Array of TVideoContentDetails;
+  TVideoContentDetailsRegionRestrictionArray = Array of TVideoContentDetailsRegionRestriction;
+  TVideoConversionPingArray = Array of TVideoConversionPing;
+  TVideoConversionPingsArray = Array of TVideoConversionPings;
+  TVideoFileDetailsArray = Array of TVideoFileDetails;
+  TVideoFileDetailsAudioStreamArray = Array of TVideoFileDetailsAudioStream;
+  TVideoFileDetailsVideoStreamArray = Array of TVideoFileDetailsVideoStream;
+  TVideoGetRatingResponseArray = Array of TVideoGetRatingResponse;
+  TVideoListResponseArray = Array of TVideoListResponse;
+  TVideoLiveStreamingDetailsArray = Array of TVideoLiveStreamingDetails;
+  TVideoLocalizationArray = Array of TVideoLocalization;
+  TVideoMonetizationDetailsArray = Array of TVideoMonetizationDetails;
+  TVideoPlayerArray = Array of TVideoPlayer;
+  TVideoProcessingDetailsArray = Array of TVideoProcessingDetails;
+  TVideoProcessingDetailsProcessingProgressArray = Array of TVideoProcessingDetailsProcessingProgress;
+  TVideoProjectDetailsArray = Array of TVideoProjectDetails;
+  TVideoRatingArray = Array of TVideoRating;
+  TVideoRecordingDetailsArray = Array of TVideoRecordingDetails;
+  TVideoSnippetArray = Array of TVideoSnippet;
+  TVideoStatisticsArray = Array of TVideoStatistics;
+  TVideoStatusArray = Array of TVideoStatus;
+  TVideoSuggestionsArray = Array of TVideoSuggestions;
+  TVideoSuggestionsTagSuggestionArray = Array of TVideoSuggestionsTagSuggestion;
+  TVideoTopicDetailsArray = Array of TVideoTopicDetails;
   TWatchSettingsArray = Array of TWatchSettings;
+  //Anonymous types, using auto-generated names
+  TChannelTypelocalizations = class;
+  TChannelContentDetailsTyperelatedPlaylists = class;
+  TChannelSectionTypelocalizations = class;
+  TPlaylistTypelocalizations = class;
+  TVideoTypelocalizations = class;
+  TActivityListResponseTypeitemsArray = Array of TActivity;
+  TCaptionListResponseTypeitemsArray = Array of TCaption;
+  TChannelBrandingSettingsTypehintsArray = Array of TPropertyValue;
+  TChannelConversionPingsTypepingsArray = Array of TChannelConversionPing;
+  TChannelListResponseTypeitemsArray = Array of TChannel;
+  TChannelSectionListResponseTypeitemsArray = Array of TChannelSection;
+  TCommentListResponseTypeitemsArray = Array of TComment;
+  TCommentThreadListResponseTypeitemsArray = Array of TCommentThread;
+  TCommentThreadRepliesTypecommentsArray = Array of TComment;
+  TGuideCategoryListResponseTypeitemsArray = Array of TGuideCategory;
+  TI18nLanguageListResponseTypeitemsArray = Array of TI18nLanguage;
+  TI18nRegionListResponseTypeitemsArray = Array of TI18nRegion;
+  TInvideoPromotionTypeitemsArray = Array of TPromotedItem;
+  TLiveBroadcastListResponseTypeitemsArray = Array of TLiveBroadcast;
+  TLiveStreamListResponseTypeitemsArray = Array of TLiveStream;
+  TLocalizedPropertyTypelocalizedArray = Array of TLocalizedString;
+  TPlaylistItemListResponseTypeitemsArray = Array of TPlaylistItem;
+  TPlaylistListResponseTypeitemsArray = Array of TPlaylist;
+  TSearchListResponseTypeitemsArray = Array of TSearchResult;
+  TSubscriptionListResponseTypeitemsArray = Array of TSubscription;
+  TThumbnailSetResponseTypeitemsArray = Array of TThumbnailDetails;
+  TVideoAbuseReportReasonListResponseTypeitemsArray = Array of TVideoAbuseReportReason;
+  TVideoAbuseReportReasonSnippetTypesecondaryReasonsArray = Array of TVideoAbuseReportSecondaryReason;
+  TVideoCategoryListResponseTypeitemsArray = Array of TVideoCategory;
+  TVideoConversionPingsTypepingsArray = Array of TVideoConversionPing;
+  TVideoFileDetailsTypeaudioStreamsArray = Array of TVideoFileDetailsAudioStream;
+  TVideoFileDetailsTypevideoStreamsArray = Array of TVideoFileDetailsVideoStream;
+  TVideoGetRatingResponseTypeitemsArray = Array of TVideoRating;
+  TVideoListResponseTypeitemsArray = Array of TVideo;
+  TVideoSuggestionsTypetagSuggestionsArray = Array of TVideoSuggestionsTagSuggestion;
   
   { --------------------------------------------------------------------
     TAccessPolicy
@@ -447,30 +356,17 @@ type
   TAccessPolicy = Class(TGoogleBaseObject)
   Private
     Fallowed : boolean;
-    Fexception : TAccessPolicyexception;
+    Fexception : TStringArray;
   Protected
     //Property setters
     Procedure Setallowed(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setexception(AIndex : Integer; AValue : TAccessPolicyexception); virtual;
+    Procedure Setexception(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
     Property allowed : boolean Index 0 Read Fallowed Write Setallowed;
-    Property exception : TAccessPolicyexception Index 8 Read Fexception Write Setexception;
+    Property exception : TStringArray Index 8 Read Fexception Write Setexception;
   end;
   TAccessPolicyClass = Class of TAccessPolicy;
-  
-  { --------------------------------------------------------------------
-    TAccessPolicyexception
-    --------------------------------------------------------------------}
-  
-  TAccessPolicyexception = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccessPolicyexceptionClass = Class of TAccessPolicyexception;
   
   { --------------------------------------------------------------------
     TActivity
@@ -479,23 +375,23 @@ type
   TActivity = Class(TGoogleBaseObject)
   Private
     FcontentDetails : TActivityContentDetails;
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Fsnippet : TActivitySnippet;
   Protected
     //Property setters
     Procedure SetcontentDetails(AIndex : Integer; AValue : TActivityContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TActivitySnippet); virtual;
   Public
   Published
     Property contentDetails : TActivityContentDetails Index 0 Read FcontentDetails Write SetcontentDetails;
-    Property etag : string Index 8 Read Fetag Write Setetag;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
+    Property etag : String Index 8 Read Fetag Write Setetag;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
     Property snippet : TActivitySnippet Index 32 Read Fsnippet Write Setsnippet;
   end;
   TActivityClass = Class of TActivity;
@@ -632,18 +528,18 @@ type
   
   TActivityContentDetailsPlaylistItem = Class(TGoogleBaseObject)
   Private
-    FplaylistId : string;
-    FplaylistItemId : string;
+    FplaylistId : String;
+    FplaylistItemId : String;
     FresourceId : TResourceId;
   Protected
     //Property setters
-    Procedure SetplaylistId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetplaylistItemId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetplaylistId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetplaylistItemId(AIndex : Integer; AValue : String); virtual;
     Procedure SetresourceId(AIndex : Integer; AValue : TResourceId); virtual;
   Public
   Published
-    Property playlistId : string Index 0 Read FplaylistId Write SetplaylistId;
-    Property playlistItemId : string Index 8 Read FplaylistItemId Write SetplaylistItemId;
+    Property playlistId : String Index 0 Read FplaylistId Write SetplaylistId;
+    Property playlistItemId : String Index 8 Read FplaylistItemId Write SetplaylistItemId;
     Property resourceId : TResourceId Index 16 Read FresourceId Write SetresourceId;
   end;
   TActivityContentDetailsPlaylistItemClass = Class of TActivityContentDetailsPlaylistItem;
@@ -654,68 +550,42 @@ type
   
   TActivityContentDetailsPromotedItem = Class(TGoogleBaseObject)
   Private
-    FadTag : string;
-    FclickTrackingUrl : string;
-    FcreativeViewUrl : string;
-    FctaType : string;
-    FcustomCtaButtonText : string;
-    FdescriptionText : string;
-    FdestinationUrl : string;
-    FforecastingUrl : TActivityContentDetailsPromotedItemforecastingUrl;
-    FimpressionUrl : TActivityContentDetailsPromotedItemimpressionUrl;
-    FvideoId : string;
+    FadTag : String;
+    FclickTrackingUrl : String;
+    FcreativeViewUrl : String;
+    FctaType : String;
+    FcustomCtaButtonText : String;
+    FdescriptionText : String;
+    FdestinationUrl : String;
+    FforecastingUrl : TStringArray;
+    FimpressionUrl : TStringArray;
+    FvideoId : String;
   Protected
     //Property setters
-    Procedure SetadTag(AIndex : Integer; AValue : string); virtual;
-    Procedure SetclickTrackingUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreativeViewUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetctaType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomCtaButtonText(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdescriptionText(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdestinationUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetforecastingUrl(AIndex : Integer; AValue : TActivityContentDetailsPromotedItemforecastingUrl); virtual;
-    Procedure SetimpressionUrl(AIndex : Integer; AValue : TActivityContentDetailsPromotedItemimpressionUrl); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetadTag(AIndex : Integer; AValue : String); virtual;
+    Procedure SetclickTrackingUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreativeViewUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetctaType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomCtaButtonText(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdescriptionText(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdestinationUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetforecastingUrl(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetimpressionUrl(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property adTag : string Index 0 Read FadTag Write SetadTag;
-    Property clickTrackingUrl : string Index 8 Read FclickTrackingUrl Write SetclickTrackingUrl;
-    Property creativeViewUrl : string Index 16 Read FcreativeViewUrl Write SetcreativeViewUrl;
-    Property ctaType : string Index 24 Read FctaType Write SetctaType;
-    Property customCtaButtonText : string Index 32 Read FcustomCtaButtonText Write SetcustomCtaButtonText;
-    Property descriptionText : string Index 40 Read FdescriptionText Write SetdescriptionText;
-    Property destinationUrl : string Index 48 Read FdestinationUrl Write SetdestinationUrl;
-    Property forecastingUrl : TActivityContentDetailsPromotedItemforecastingUrl Index 56 Read FforecastingUrl Write SetforecastingUrl;
-    Property impressionUrl : TActivityContentDetailsPromotedItemimpressionUrl Index 64 Read FimpressionUrl Write SetimpressionUrl;
-    Property videoId : string Index 72 Read FvideoId Write SetvideoId;
+    Property adTag : String Index 0 Read FadTag Write SetadTag;
+    Property clickTrackingUrl : String Index 8 Read FclickTrackingUrl Write SetclickTrackingUrl;
+    Property creativeViewUrl : String Index 16 Read FcreativeViewUrl Write SetcreativeViewUrl;
+    Property ctaType : String Index 24 Read FctaType Write SetctaType;
+    Property customCtaButtonText : String Index 32 Read FcustomCtaButtonText Write SetcustomCtaButtonText;
+    Property descriptionText : String Index 40 Read FdescriptionText Write SetdescriptionText;
+    Property destinationUrl : String Index 48 Read FdestinationUrl Write SetdestinationUrl;
+    Property forecastingUrl : TStringArray Index 56 Read FforecastingUrl Write SetforecastingUrl;
+    Property impressionUrl : TStringArray Index 64 Read FimpressionUrl Write SetimpressionUrl;
+    Property videoId : String Index 72 Read FvideoId Write SetvideoId;
   end;
   TActivityContentDetailsPromotedItemClass = Class of TActivityContentDetailsPromotedItem;
-  
-  { --------------------------------------------------------------------
-    TActivityContentDetailsPromotedItemforecastingUrl
-    --------------------------------------------------------------------}
-  
-  TActivityContentDetailsPromotedItemforecastingUrl = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TActivityContentDetailsPromotedItemforecastingUrlClass = Class of TActivityContentDetailsPromotedItemforecastingUrl;
-  
-  { --------------------------------------------------------------------
-    TActivityContentDetailsPromotedItemimpressionUrl
-    --------------------------------------------------------------------}
-  
-  TActivityContentDetailsPromotedItemimpressionUrl = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TActivityContentDetailsPromotedItemimpressionUrlClass = Class of TActivityContentDetailsPromotedItemimpressionUrl;
   
   { --------------------------------------------------------------------
     TActivityContentDetailsRecommendation
@@ -723,17 +593,17 @@ type
   
   TActivityContentDetailsRecommendation = Class(TGoogleBaseObject)
   Private
-    Freason : string;
+    Freason : String;
     FresourceId : TResourceId;
     FseedResourceId : TResourceId;
   Protected
     //Property setters
-    Procedure Setreason(AIndex : Integer; AValue : string); virtual;
+    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
     Procedure SetresourceId(AIndex : Integer; AValue : TResourceId); virtual;
     Procedure SetseedResourceId(AIndex : Integer; AValue : TResourceId); virtual;
   Public
   Published
-    Property reason : string Index 0 Read Freason Write Setreason;
+    Property reason : String Index 0 Read Freason Write Setreason;
     Property resourceId : TResourceId Index 8 Read FresourceId Write SetresourceId;
     Property seedResourceId : TResourceId Index 16 Read FseedResourceId Write SetseedResourceId;
   end;
@@ -745,26 +615,26 @@ type
   
   TActivityContentDetailsSocial = Class(TGoogleBaseObject)
   Private
-    Fauthor : string;
-    FimageUrl : string;
-    FreferenceUrl : string;
+    Fauthor : String;
+    FimageUrl : String;
+    FreferenceUrl : String;
     FresourceId : TResourceId;
-    F_type : string;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setauthor(AIndex : Integer; AValue : string); virtual;
-    Procedure SetimageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure Setauthor(AIndex : Integer; AValue : String); virtual;
+    Procedure SetimageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceUrl(AIndex : Integer; AValue : String); virtual;
     Procedure SetresourceId(AIndex : Integer; AValue : TResourceId); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property author : string Index 0 Read Fauthor Write Setauthor;
-    Property imageUrl : string Index 8 Read FimageUrl Write SetimageUrl;
-    Property referenceUrl : string Index 16 Read FreferenceUrl Write SetreferenceUrl;
+    Property author : String Index 0 Read Fauthor Write Setauthor;
+    Property imageUrl : String Index 8 Read FimageUrl Write SetimageUrl;
+    Property referenceUrl : String Index 16 Read FreferenceUrl Write SetreferenceUrl;
     Property resourceId : TResourceId Index 24 Read FresourceId Write SetresourceId;
-    Property _type : string Index 32 Read F_type Write Set_type;
+    Property _type : String Index 32 Read F_type Write Set_type;
   end;
   TActivityContentDetailsSocialClass = Class of TActivityContentDetailsSocial;
   
@@ -790,13 +660,13 @@ type
   
   TActivityContentDetailsUpload = Class(TGoogleBaseObject)
   Private
-    FvideoId : string;
+    FvideoId : String;
   Protected
     //Property setters
-    Procedure SetvideoId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property videoId : string Index 0 Read FvideoId Write SetvideoId;
+    Property videoId : String Index 0 Read FvideoId Write SetvideoId;
   end;
   TActivityContentDetailsUploadClass = Class of TActivityContentDetailsUpload;
   
@@ -806,52 +676,39 @@ type
   
   TActivityListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TActivityListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TActivityListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
-    FprevPageToken : string;
+    FprevPageToken : String;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TActivityListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TActivityListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TActivityListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TActivityListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
-    Property prevPageToken : string Index 48 Read FprevPageToken Write SetprevPageToken;
+    Property prevPageToken : String Index 48 Read FprevPageToken Write SetprevPageToken;
     Property tokenPagination : TTokenPagination Index 56 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 64 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 64 Read FvisitorId Write SetvisitorId;
   end;
   TActivityListResponseClass = Class of TActivityListResponse;
-  
-  { --------------------------------------------------------------------
-    TActivityListResponseitems
-    --------------------------------------------------------------------}
-  
-  TActivityListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TActivityListResponseitemsClass = Class of TActivityListResponseitems;
   
   { --------------------------------------------------------------------
     TActivitySnippet
@@ -859,35 +716,35 @@ type
   
   TActivitySnippet = Class(TGoogleBaseObject)
   Private
-    FchannelId : string;
-    FchannelTitle : string;
-    Fdescription : string;
-    FgroupId : string;
+    FchannelId : String;
+    FchannelTitle : String;
+    Fdescription : String;
+    FgroupId : String;
     FpublishedAt : TDatetime;
     Fthumbnails : TThumbnailDetails;
-    Ftitle : string;
-    F_type : string;
+    Ftitle : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetchannelTitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgroupId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelTitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgroupId(AIndex : Integer; AValue : String); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property channelId : string Index 0 Read FchannelId Write SetchannelId;
-    Property channelTitle : string Index 8 Read FchannelTitle Write SetchannelTitle;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property groupId : string Index 24 Read FgroupId Write SetgroupId;
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
+    Property channelTitle : String Index 8 Read FchannelTitle Write SetchannelTitle;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property groupId : String Index 24 Read FgroupId Write SetgroupId;
     Property publishedAt : TDatetime Index 32 Read FpublishedAt Write SetpublishedAt;
     Property thumbnails : TThumbnailDetails Index 40 Read Fthumbnails Write Setthumbnails;
-    Property title : string Index 48 Read Ftitle Write Settitle;
-    Property _type : string Index 56 Read F_type Write Set_type;
+    Property title : String Index 48 Read Ftitle Write Settitle;
+    Property _type : String Index 56 Read F_type Write Set_type;
   end;
   TActivitySnippetClass = Class of TActivitySnippet;
   
@@ -897,21 +754,21 @@ type
   
   TCaption = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Fsnippet : TCaptionSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TCaptionSnippet); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property snippet : TCaptionSnippet Index 24 Read Fsnippet Write Setsnippet;
   end;
   TCaptionClass = Class of TCaption;
@@ -922,40 +779,27 @@ type
   
   TCaptionListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TCaptionListResponseitems;
-    Fkind : string;
-    FvisitorId : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TCaptionListResponseTypeitemsArray;
+    Fkind : String;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TCaptionListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TCaptionListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TCaptionListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property visitorId : string Index 32 Read FvisitorId Write SetvisitorId;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TCaptionListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property visitorId : String Index 32 Read FvisitorId Write SetvisitorId;
   end;
   TCaptionListResponseClass = Class of TCaptionListResponse;
-  
-  { --------------------------------------------------------------------
-    TCaptionListResponseitems
-    --------------------------------------------------------------------}
-  
-  TCaptionListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCaptionListResponseitemsClass = Class of TCaptionListResponseitems;
   
   { --------------------------------------------------------------------
     TCaptionSnippet
@@ -963,49 +807,49 @@ type
   
   TCaptionSnippet = Class(TGoogleBaseObject)
   Private
-    FaudioTrackType : string;
-    FfailureReason : string;
+    FaudioTrackType : String;
+    FfailureReason : String;
     FisAutoSynced : boolean;
     FisCC : boolean;
     FisDraft : boolean;
     FisEasyReader : boolean;
     FisLarge : boolean;
-    Flanguage : string;
+    Flanguage : String;
     FlastUpdated : TDatetime;
-    Fname : string;
-    Fstatus : string;
-    FtrackKind : string;
-    FvideoId : string;
+    Fname : String;
+    Fstatus : String;
+    FtrackKind : String;
+    FvideoId : String;
   Protected
     //Property setters
-    Procedure SetaudioTrackType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfailureReason(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaudioTrackType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfailureReason(AIndex : Integer; AValue : String); virtual;
     Procedure SetisAutoSynced(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetisCC(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetisDraft(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetisEasyReader(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetisLarge(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : string); virtual;
+    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
     Procedure SetlastUpdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SettrackKind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SettrackKind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property audioTrackType : string Index 0 Read FaudioTrackType Write SetaudioTrackType;
-    Property failureReason : string Index 8 Read FfailureReason Write SetfailureReason;
+    Property audioTrackType : String Index 0 Read FaudioTrackType Write SetaudioTrackType;
+    Property failureReason : String Index 8 Read FfailureReason Write SetfailureReason;
     Property isAutoSynced : boolean Index 16 Read FisAutoSynced Write SetisAutoSynced;
     Property isCC : boolean Index 24 Read FisCC Write SetisCC;
     Property isDraft : boolean Index 32 Read FisDraft Write SetisDraft;
     Property isEasyReader : boolean Index 40 Read FisEasyReader Write SetisEasyReader;
     Property isLarge : boolean Index 48 Read FisLarge Write SetisLarge;
-    Property language : string Index 56 Read Flanguage Write Setlanguage;
+    Property language : String Index 56 Read Flanguage Write Setlanguage;
     Property lastUpdated : TDatetime Index 64 Read FlastUpdated Write SetlastUpdated;
-    Property name : string Index 72 Read Fname Write Setname;
-    Property status : string Index 80 Read Fstatus Write Setstatus;
-    Property trackKind : string Index 88 Read FtrackKind Write SettrackKind;
-    Property videoId : string Index 96 Read FvideoId Write SetvideoId;
+    Property name : String Index 72 Read Fname Write Setname;
+    Property status : String Index 80 Read Fstatus Write Setstatus;
+    Property trackKind : String Index 88 Read FtrackKind Write SettrackKind;
+    Property videoId : String Index 96 Read FvideoId Write SetvideoId;
   end;
   TCaptionSnippetClass = Class of TCaptionSnippet;
   
@@ -1015,21 +859,35 @@ type
   
   TCdnSettings = Class(TGoogleBaseObject)
   Private
-    Fformat : string;
+    Fformat : String;
     FingestionInfo : TIngestionInfo;
-    FingestionType : string;
+    FingestionType : String;
   Protected
     //Property setters
-    Procedure Setformat(AIndex : Integer; AValue : string); virtual;
+    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
     Procedure SetingestionInfo(AIndex : Integer; AValue : TIngestionInfo); virtual;
-    Procedure SetingestionType(AIndex : Integer; AValue : string); virtual;
+    Procedure SetingestionType(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property format : string Index 0 Read Fformat Write Setformat;
+    Property format : String Index 0 Read Fformat Write Setformat;
     Property ingestionInfo : TIngestionInfo Index 8 Read FingestionInfo Write SetingestionInfo;
-    Property ingestionType : string Index 16 Read FingestionType Write SetingestionType;
+    Property ingestionType : String Index 16 Read FingestionType Write SetingestionType;
   end;
   TCdnSettingsClass = Class of TCdnSettings;
+  
+  { --------------------------------------------------------------------
+    TChannelTypelocalizations
+    --------------------------------------------------------------------}
+  
+  TChannelTypelocalizations = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TChannelTypelocalizationsClass = Class of TChannelTypelocalizations;
   
   { --------------------------------------------------------------------
     TChannel
@@ -1042,11 +900,11 @@ type
     FcontentDetails : TChannelContentDetails;
     FcontentOwnerDetails : TChannelContentOwnerDetails;
     FconversionPings : TChannelConversionPings;
-    Fetag : string;
-    Fid : string;
+    Fetag : String;
+    Fid : String;
     FinvideoPromotion : TInvideoPromotion;
-    Fkind : string;
-    Flocalizations : TChannellocalizations;
+    Fkind : String;
+    Flocalizations : TChannelTypelocalizations;
     Fsnippet : TChannelSnippet;
     Fstatistics : TChannelStatistics;
     Fstatus : TChannelStatus;
@@ -1058,11 +916,11 @@ type
     Procedure SetcontentDetails(AIndex : Integer; AValue : TChannelContentDetails); virtual;
     Procedure SetcontentOwnerDetails(AIndex : Integer; AValue : TChannelContentOwnerDetails); virtual;
     Procedure SetconversionPings(AIndex : Integer; AValue : TChannelConversionPings); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure SetinvideoPromotion(AIndex : Integer; AValue : TInvideoPromotion); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocalizations(AIndex : Integer; AValue : TChannellocalizations); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocalizations(AIndex : Integer; AValue : TChannelTypelocalizations); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TChannelSnippet); virtual;
     Procedure Setstatistics(AIndex : Integer; AValue : TChannelStatistics); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TChannelStatus); virtual;
@@ -1074,31 +932,17 @@ type
     Property contentDetails : TChannelContentDetails Index 16 Read FcontentDetails Write SetcontentDetails;
     Property contentOwnerDetails : TChannelContentOwnerDetails Index 24 Read FcontentOwnerDetails Write SetcontentOwnerDetails;
     Property conversionPings : TChannelConversionPings Index 32 Read FconversionPings Write SetconversionPings;
-    Property etag : string Index 40 Read Fetag Write Setetag;
-    Property id : string Index 48 Read Fid Write Setid;
+    Property etag : String Index 40 Read Fetag Write Setetag;
+    Property id : String Index 48 Read Fid Write Setid;
     Property invideoPromotion : TInvideoPromotion Index 56 Read FinvideoPromotion Write SetinvideoPromotion;
-    Property kind : string Index 64 Read Fkind Write Setkind;
-    Property localizations : TChannellocalizations Index 72 Read Flocalizations Write Setlocalizations;
+    Property kind : String Index 64 Read Fkind Write Setkind;
+    Property localizations : TChannelTypelocalizations Index 72 Read Flocalizations Write Setlocalizations;
     Property snippet : TChannelSnippet Index 80 Read Fsnippet Write Setsnippet;
     Property statistics : TChannelStatistics Index 88 Read Fstatistics Write Setstatistics;
     Property status : TChannelStatus Index 96 Read Fstatus Write Setstatus;
     Property topicDetails : TChannelTopicDetails Index 104 Read FtopicDetails Write SettopicDetails;
   end;
   TChannelClass = Class of TChannel;
-  
-  { --------------------------------------------------------------------
-    TChannellocalizations
-    --------------------------------------------------------------------}
-  
-  TChannellocalizations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TChannellocalizationsClass = Class of TChannellocalizations;
   
   { --------------------------------------------------------------------
     TChannelAuditDetails
@@ -1131,19 +975,19 @@ type
   
   TChannelBannerResource = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fkind : string;
-    Furl : string;
+    Fetag : String;
+    Fkind : String;
+    Furl : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property url : string Index 16 Read Furl Write Seturl;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property url : String Index 16 Read Furl Write Seturl;
   end;
   TChannelBannerResourceClass = Class of TChannelBannerResource;
   
@@ -1154,36 +998,51 @@ type
   TChannelBrandingSettings = Class(TGoogleBaseObject)
   Private
     Fchannel : TChannelSettings;
-    Fhints : TChannelBrandingSettingshints;
+    Fhints : TChannelBrandingSettingsTypehintsArray;
     Fimage : TImageSettings;
     Fwatch : TWatchSettings;
   Protected
     //Property setters
     Procedure Setchannel(AIndex : Integer; AValue : TChannelSettings); virtual;
-    Procedure Sethints(AIndex : Integer; AValue : TChannelBrandingSettingshints); virtual;
+    Procedure Sethints(AIndex : Integer; AValue : TChannelBrandingSettingsTypehintsArray); virtual;
     Procedure Setimage(AIndex : Integer; AValue : TImageSettings); virtual;
     Procedure Setwatch(AIndex : Integer; AValue : TWatchSettings); virtual;
   Public
   Published
     Property channel : TChannelSettings Index 0 Read Fchannel Write Setchannel;
-    Property hints : TChannelBrandingSettingshints Index 8 Read Fhints Write Sethints;
+    Property hints : TChannelBrandingSettingsTypehintsArray Index 8 Read Fhints Write Sethints;
     Property image : TImageSettings Index 16 Read Fimage Write Setimage;
     Property watch : TWatchSettings Index 24 Read Fwatch Write Setwatch;
   end;
   TChannelBrandingSettingsClass = Class of TChannelBrandingSettings;
   
   { --------------------------------------------------------------------
-    TChannelBrandingSettingshints
+    TChannelContentDetailsTyperelatedPlaylists
     --------------------------------------------------------------------}
   
-  TChannelBrandingSettingshints = Class(TGoogleBaseObject)
+  TChannelContentDetailsTyperelatedPlaylists = Class(TGoogleBaseObject)
   Private
+    Ffavorites : String;
+    Flikes : String;
+    Fuploads : String;
+    FwatchHistory : String;
+    FwatchLater : String;
   Protected
     //Property setters
+    Procedure Setfavorites(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlikes(AIndex : Integer; AValue : String); virtual;
+    Procedure Setuploads(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwatchHistory(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwatchLater(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property favorites : String Index 0 Read Ffavorites Write Setfavorites;
+    Property likes : String Index 8 Read Flikes Write Setlikes;
+    Property uploads : String Index 16 Read Fuploads Write Setuploads;
+    Property watchHistory : String Index 24 Read FwatchHistory Write SetwatchHistory;
+    Property watchLater : String Index 32 Read FwatchLater Write SetwatchLater;
   end;
-  TChannelBrandingSettingshintsClass = Class of TChannelBrandingSettingshints;
+  TChannelContentDetailsTyperelatedPlaylistsClass = Class of TChannelContentDetailsTyperelatedPlaylists;
   
   { --------------------------------------------------------------------
     TChannelContentDetails
@@ -1191,46 +1050,18 @@ type
   
   TChannelContentDetails = Class(TGoogleBaseObject)
   Private
-    FgooglePlusUserId : string;
-    FrelatedPlaylists : TChannelContentDetailsrelatedPlaylists;
+    FgooglePlusUserId : String;
+    FrelatedPlaylists : TChannelContentDetailsTyperelatedPlaylists;
   Protected
     //Property setters
-    Procedure SetgooglePlusUserId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrelatedPlaylists(AIndex : Integer; AValue : TChannelContentDetailsrelatedPlaylists); virtual;
+    Procedure SetgooglePlusUserId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrelatedPlaylists(AIndex : Integer; AValue : TChannelContentDetailsTyperelatedPlaylists); virtual;
   Public
   Published
-    Property googlePlusUserId : string Index 0 Read FgooglePlusUserId Write SetgooglePlusUserId;
-    Property relatedPlaylists : TChannelContentDetailsrelatedPlaylists Index 8 Read FrelatedPlaylists Write SetrelatedPlaylists;
+    Property googlePlusUserId : String Index 0 Read FgooglePlusUserId Write SetgooglePlusUserId;
+    Property relatedPlaylists : TChannelContentDetailsTyperelatedPlaylists Index 8 Read FrelatedPlaylists Write SetrelatedPlaylists;
   end;
   TChannelContentDetailsClass = Class of TChannelContentDetails;
-  
-  { --------------------------------------------------------------------
-    TChannelContentDetailsrelatedPlaylists
-    --------------------------------------------------------------------}
-  
-  TChannelContentDetailsrelatedPlaylists = Class(TGoogleBaseObject)
-  Private
-    Ffavorites : string;
-    Flikes : string;
-    Fuploads : string;
-    FwatchHistory : string;
-    FwatchLater : string;
-  Protected
-    //Property setters
-    Procedure Setfavorites(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlikes(AIndex : Integer; AValue : string); virtual;
-    Procedure Setuploads(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwatchHistory(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwatchLater(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property favorites : string Index 0 Read Ffavorites Write Setfavorites;
-    Property likes : string Index 8 Read Flikes Write Setlikes;
-    Property uploads : string Index 16 Read Fuploads Write Setuploads;
-    Property watchHistory : string Index 24 Read FwatchHistory Write SetwatchHistory;
-    Property watchLater : string Index 32 Read FwatchLater Write SetwatchLater;
-  end;
-  TChannelContentDetailsrelatedPlaylistsClass = Class of TChannelContentDetailsrelatedPlaylists;
   
   { --------------------------------------------------------------------
     TChannelContentOwnerDetails
@@ -1238,15 +1069,15 @@ type
   
   TChannelContentOwnerDetails = Class(TGoogleBaseObject)
   Private
-    FcontentOwner : string;
+    FcontentOwner : String;
     FtimeLinked : TDatetime;
   Protected
     //Property setters
-    Procedure SetcontentOwner(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcontentOwner(AIndex : Integer; AValue : String); virtual;
     Procedure SettimeLinked(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
-    Property contentOwner : string Index 0 Read FcontentOwner Write SetcontentOwner;
+    Property contentOwner : String Index 0 Read FcontentOwner Write SetcontentOwner;
     Property timeLinked : TDatetime Index 8 Read FtimeLinked Write SettimeLinked;
   end;
   TChannelContentOwnerDetailsClass = Class of TChannelContentOwnerDetails;
@@ -1257,16 +1088,16 @@ type
   
   TChannelConversionPing = Class(TGoogleBaseObject)
   Private
-    Fcontext : string;
-    FconversionUrl : string;
+    Fcontext : String;
+    FconversionUrl : String;
   Protected
     //Property setters
-    Procedure Setcontext(AIndex : Integer; AValue : string); virtual;
-    Procedure SetconversionUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcontext(AIndex : Integer; AValue : String); virtual;
+    Procedure SetconversionUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property context : string Index 0 Read Fcontext Write Setcontext;
-    Property conversionUrl : string Index 8 Read FconversionUrl Write SetconversionUrl;
+    Property context : String Index 0 Read Fcontext Write Setcontext;
+    Property conversionUrl : String Index 8 Read FconversionUrl Write SetconversionUrl;
   end;
   TChannelConversionPingClass = Class of TChannelConversionPing;
   
@@ -1276,28 +1107,15 @@ type
   
   TChannelConversionPings = Class(TGoogleBaseObject)
   Private
-    Fpings : TChannelConversionPingspings;
+    Fpings : TChannelConversionPingsTypepingsArray;
   Protected
     //Property setters
-    Procedure Setpings(AIndex : Integer; AValue : TChannelConversionPingspings); virtual;
+    Procedure Setpings(AIndex : Integer; AValue : TChannelConversionPingsTypepingsArray); virtual;
   Public
   Published
-    Property pings : TChannelConversionPingspings Index 0 Read Fpings Write Setpings;
+    Property pings : TChannelConversionPingsTypepingsArray Index 0 Read Fpings Write Setpings;
   end;
   TChannelConversionPingsClass = Class of TChannelConversionPings;
-  
-  { --------------------------------------------------------------------
-    TChannelConversionPingspings
-    --------------------------------------------------------------------}
-  
-  TChannelConversionPingspings = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChannelConversionPingspingsClass = Class of TChannelConversionPingspings;
   
   { --------------------------------------------------------------------
     TChannelId
@@ -1305,13 +1123,13 @@ type
   
   TChannelId = Class(TGoogleBaseObject)
   Private
-    Fvalue : string;
+    Fvalue : String;
   Protected
     //Property setters
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property value : string Index 0 Read Fvalue Write Setvalue;
+    Property value : String Index 0 Read Fvalue Write Setvalue;
   end;
   TChannelIdClass = Class of TChannelId;
   
@@ -1321,52 +1139,39 @@ type
   
   TChannelListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TChannelListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TChannelListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
-    FprevPageToken : string;
+    FprevPageToken : String;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TChannelListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TChannelListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TChannelListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TChannelListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
-    Property prevPageToken : string Index 48 Read FprevPageToken Write SetprevPageToken;
+    Property prevPageToken : String Index 48 Read FprevPageToken Write SetprevPageToken;
     Property tokenPagination : TTokenPagination Index 56 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 64 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 64 Read FvisitorId Write SetvisitorId;
   end;
   TChannelListResponseClass = Class of TChannelListResponse;
-  
-  { --------------------------------------------------------------------
-    TChannelListResponseitems
-    --------------------------------------------------------------------}
-  
-  TChannelListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChannelListResponseitemsClass = Class of TChannelListResponseitems;
   
   { --------------------------------------------------------------------
     TChannelLocalization
@@ -1374,18 +1179,32 @@ type
   
   TChannelLocalization = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Ftitle : string;
+    Fdescription : String;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property title : string Index 8 Read Ftitle Write Settitle;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property title : String Index 8 Read Ftitle Write Settitle;
   end;
   TChannelLocalizationClass = Class of TChannelLocalization;
+  
+  { --------------------------------------------------------------------
+    TChannelSectionTypelocalizations
+    --------------------------------------------------------------------}
+  
+  TChannelSectionTypelocalizations = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TChannelSectionTypelocalizationsClass = Class of TChannelSectionTypelocalizations;
   
   { --------------------------------------------------------------------
     TChannelSection
@@ -1394,46 +1213,32 @@ type
   TChannelSection = Class(TGoogleBaseObject)
   Private
     FcontentDetails : TChannelSectionContentDetails;
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
-    Flocalizations : TChannelSectionlocalizations;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
+    Flocalizations : TChannelSectionTypelocalizations;
     Fsnippet : TChannelSectionSnippet;
     Ftargeting : TChannelSectionTargeting;
   Protected
     //Property setters
     Procedure SetcontentDetails(AIndex : Integer; AValue : TChannelSectionContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocalizations(AIndex : Integer; AValue : TChannelSectionlocalizations); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocalizations(AIndex : Integer; AValue : TChannelSectionTypelocalizations); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TChannelSectionSnippet); virtual;
     Procedure Settargeting(AIndex : Integer; AValue : TChannelSectionTargeting); virtual;
   Public
   Published
     Property contentDetails : TChannelSectionContentDetails Index 0 Read FcontentDetails Write SetcontentDetails;
-    Property etag : string Index 8 Read Fetag Write Setetag;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property localizations : TChannelSectionlocalizations Index 32 Read Flocalizations Write Setlocalizations;
+    Property etag : String Index 8 Read Fetag Write Setetag;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property localizations : TChannelSectionTypelocalizations Index 32 Read Flocalizations Write Setlocalizations;
     Property snippet : TChannelSectionSnippet Index 40 Read Fsnippet Write Setsnippet;
     Property targeting : TChannelSectionTargeting Index 48 Read Ftargeting Write Settargeting;
   end;
   TChannelSectionClass = Class of TChannelSection;
-  
-  { --------------------------------------------------------------------
-    TChannelSectionlocalizations
-    --------------------------------------------------------------------}
-  
-  TChannelSectionlocalizations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TChannelSectionlocalizationsClass = Class of TChannelSectionlocalizations;
   
   { --------------------------------------------------------------------
     TChannelSectionContentDetails
@@ -1441,44 +1246,18 @@ type
   
   TChannelSectionContentDetails = Class(TGoogleBaseObject)
   Private
-    Fchannels : TChannelSectionContentDetailschannels;
-    Fplaylists : TChannelSectionContentDetailsplaylists;
+    Fchannels : TStringArray;
+    Fplaylists : TStringArray;
   Protected
     //Property setters
-    Procedure Setchannels(AIndex : Integer; AValue : TChannelSectionContentDetailschannels); virtual;
-    Procedure Setplaylists(AIndex : Integer; AValue : TChannelSectionContentDetailsplaylists); virtual;
+    Procedure Setchannels(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setplaylists(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property channels : TChannelSectionContentDetailschannels Index 0 Read Fchannels Write Setchannels;
-    Property playlists : TChannelSectionContentDetailsplaylists Index 8 Read Fplaylists Write Setplaylists;
+    Property channels : TStringArray Index 0 Read Fchannels Write Setchannels;
+    Property playlists : TStringArray Index 8 Read Fplaylists Write Setplaylists;
   end;
   TChannelSectionContentDetailsClass = Class of TChannelSectionContentDetails;
-  
-  { --------------------------------------------------------------------
-    TChannelSectionContentDetailschannels
-    --------------------------------------------------------------------}
-  
-  TChannelSectionContentDetailschannels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChannelSectionContentDetailschannelsClass = Class of TChannelSectionContentDetailschannels;
-  
-  { --------------------------------------------------------------------
-    TChannelSectionContentDetailsplaylists
-    --------------------------------------------------------------------}
-  
-  TChannelSectionContentDetailsplaylists = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChannelSectionContentDetailsplaylistsClass = Class of TChannelSectionContentDetailsplaylists;
   
   { --------------------------------------------------------------------
     TChannelSectionListResponse
@@ -1486,40 +1265,27 @@ type
   
   TChannelSectionListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TChannelSectionListResponseitems;
-    Fkind : string;
-    FvisitorId : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TChannelSectionListResponseTypeitemsArray;
+    Fkind : String;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TChannelSectionListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TChannelSectionListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TChannelSectionListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property visitorId : string Index 32 Read FvisitorId Write SetvisitorId;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TChannelSectionListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property visitorId : String Index 32 Read FvisitorId Write SetvisitorId;
   end;
   TChannelSectionListResponseClass = Class of TChannelSectionListResponse;
-  
-  { --------------------------------------------------------------------
-    TChannelSectionListResponseitems
-    --------------------------------------------------------------------}
-  
-  TChannelSectionListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChannelSectionListResponseitemsClass = Class of TChannelSectionListResponseitems;
   
   { --------------------------------------------------------------------
     TChannelSectionLocalization
@@ -1527,13 +1293,13 @@ type
   
   TChannelSectionLocalization = Class(TGoogleBaseObject)
   Private
-    Ftitle : string;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property title : string Index 0 Read Ftitle Write Settitle;
+    Property title : String Index 0 Read Ftitle Write Settitle;
   end;
   TChannelSectionLocalizationClass = Class of TChannelSectionLocalization;
   
@@ -1543,32 +1309,32 @@ type
   
   TChannelSectionSnippet = Class(TGoogleBaseObject)
   Private
-    FchannelId : string;
-    FdefaultLanguage : string;
+    FchannelId : String;
+    FdefaultLanguage : String;
     Flocalized : TChannelSectionLocalization;
     Fposition : integer;
-    Fstyle : string;
-    Ftitle : string;
-    F_type : string;
+    Fstyle : String;
+    Ftitle : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdefaultLanguage(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdefaultLanguage(AIndex : Integer; AValue : String); virtual;
     Procedure Setlocalized(AIndex : Integer; AValue : TChannelSectionLocalization); virtual;
     Procedure Setposition(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setstyle(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setstyle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property channelId : string Index 0 Read FchannelId Write SetchannelId;
-    Property defaultLanguage : string Index 8 Read FdefaultLanguage Write SetdefaultLanguage;
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
+    Property defaultLanguage : String Index 8 Read FdefaultLanguage Write SetdefaultLanguage;
     Property localized : TChannelSectionLocalization Index 16 Read Flocalized Write Setlocalized;
     Property position : integer Index 24 Read Fposition Write Setposition;
-    Property style : string Index 32 Read Fstyle Write Setstyle;
-    Property title : string Index 40 Read Ftitle Write Settitle;
-    Property _type : string Index 48 Read F_type Write Set_type;
+    Property style : String Index 32 Read Fstyle Write Setstyle;
+    Property title : String Index 40 Read Ftitle Write Settitle;
+    Property _type : String Index 48 Read F_type Write Set_type;
   end;
   TChannelSectionSnippetClass = Class of TChannelSectionSnippet;
   
@@ -1578,60 +1344,21 @@ type
   
   TChannelSectionTargeting = Class(TGoogleBaseObject)
   Private
-    Fcountries : TChannelSectionTargetingcountries;
-    Flanguages : TChannelSectionTargetinglanguages;
-    Fregions : TChannelSectionTargetingregions;
+    Fcountries : TStringArray;
+    Flanguages : TStringArray;
+    Fregions : TStringArray;
   Protected
     //Property setters
-    Procedure Setcountries(AIndex : Integer; AValue : TChannelSectionTargetingcountries); virtual;
-    Procedure Setlanguages(AIndex : Integer; AValue : TChannelSectionTargetinglanguages); virtual;
-    Procedure Setregions(AIndex : Integer; AValue : TChannelSectionTargetingregions); virtual;
+    Procedure Setcountries(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setlanguages(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setregions(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property countries : TChannelSectionTargetingcountries Index 0 Read Fcountries Write Setcountries;
-    Property languages : TChannelSectionTargetinglanguages Index 8 Read Flanguages Write Setlanguages;
-    Property regions : TChannelSectionTargetingregions Index 16 Read Fregions Write Setregions;
+    Property countries : TStringArray Index 0 Read Fcountries Write Setcountries;
+    Property languages : TStringArray Index 8 Read Flanguages Write Setlanguages;
+    Property regions : TStringArray Index 16 Read Fregions Write Setregions;
   end;
   TChannelSectionTargetingClass = Class of TChannelSectionTargeting;
-  
-  { --------------------------------------------------------------------
-    TChannelSectionTargetingcountries
-    --------------------------------------------------------------------}
-  
-  TChannelSectionTargetingcountries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChannelSectionTargetingcountriesClass = Class of TChannelSectionTargetingcountries;
-  
-  { --------------------------------------------------------------------
-    TChannelSectionTargetinglanguages
-    --------------------------------------------------------------------}
-  
-  TChannelSectionTargetinglanguages = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChannelSectionTargetinglanguagesClass = Class of TChannelSectionTargetinglanguages;
-  
-  { --------------------------------------------------------------------
-    TChannelSectionTargetingregions
-    --------------------------------------------------------------------}
-  
-  TChannelSectionTargetingregions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChannelSectionTargetingregionsClass = Class of TChannelSectionTargetingregions;
   
   { --------------------------------------------------------------------
     TChannelSettings
@@ -1639,67 +1366,54 @@ type
   
   TChannelSettings = Class(TGoogleBaseObject)
   Private
-    Fcountry : string;
-    FdefaultLanguage : string;
-    FdefaultTab : string;
-    Fdescription : string;
-    FfeaturedChannelsTitle : string;
-    FfeaturedChannelsUrls : TChannelSettingsfeaturedChannelsUrls;
-    Fkeywords : string;
+    Fcountry : String;
+    FdefaultLanguage : String;
+    FdefaultTab : String;
+    Fdescription : String;
+    FfeaturedChannelsTitle : String;
+    FfeaturedChannelsUrls : TStringArray;
+    Fkeywords : String;
     FmoderateComments : boolean;
-    FprofileColor : string;
+    FprofileColor : String;
     FshowBrowseView : boolean;
     FshowRelatedChannels : boolean;
-    Ftitle : string;
-    FtrackingAnalyticsAccountId : string;
-    FunsubscribedTrailer : string;
+    Ftitle : String;
+    FtrackingAnalyticsAccountId : String;
+    FunsubscribedTrailer : String;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdefaultLanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdefaultTab(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfeaturedChannelsTitle(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfeaturedChannelsUrls(AIndex : Integer; AValue : TChannelSettingsfeaturedChannelsUrls); virtual;
-    Procedure Setkeywords(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdefaultLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdefaultTab(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfeaturedChannelsTitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfeaturedChannelsUrls(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setkeywords(AIndex : Integer; AValue : String); virtual;
     Procedure SetmoderateComments(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetprofileColor(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprofileColor(AIndex : Integer; AValue : String); virtual;
     Procedure SetshowBrowseView(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetshowRelatedChannels(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure SettrackingAnalyticsAccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetunsubscribedTrailer(AIndex : Integer; AValue : string); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SettrackingAnalyticsAccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetunsubscribedTrailer(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property country : string Index 0 Read Fcountry Write Setcountry;
-    Property defaultLanguage : string Index 8 Read FdefaultLanguage Write SetdefaultLanguage;
-    Property defaultTab : string Index 16 Read FdefaultTab Write SetdefaultTab;
-    Property description : string Index 24 Read Fdescription Write Setdescription;
-    Property featuredChannelsTitle : string Index 32 Read FfeaturedChannelsTitle Write SetfeaturedChannelsTitle;
-    Property featuredChannelsUrls : TChannelSettingsfeaturedChannelsUrls Index 40 Read FfeaturedChannelsUrls Write SetfeaturedChannelsUrls;
-    Property keywords : string Index 48 Read Fkeywords Write Setkeywords;
+    Property country : String Index 0 Read Fcountry Write Setcountry;
+    Property defaultLanguage : String Index 8 Read FdefaultLanguage Write SetdefaultLanguage;
+    Property defaultTab : String Index 16 Read FdefaultTab Write SetdefaultTab;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
+    Property featuredChannelsTitle : String Index 32 Read FfeaturedChannelsTitle Write SetfeaturedChannelsTitle;
+    Property featuredChannelsUrls : TStringArray Index 40 Read FfeaturedChannelsUrls Write SetfeaturedChannelsUrls;
+    Property keywords : String Index 48 Read Fkeywords Write Setkeywords;
     Property moderateComments : boolean Index 56 Read FmoderateComments Write SetmoderateComments;
-    Property profileColor : string Index 64 Read FprofileColor Write SetprofileColor;
+    Property profileColor : String Index 64 Read FprofileColor Write SetprofileColor;
     Property showBrowseView : boolean Index 72 Read FshowBrowseView Write SetshowBrowseView;
     Property showRelatedChannels : boolean Index 80 Read FshowRelatedChannels Write SetshowRelatedChannels;
-    Property title : string Index 88 Read Ftitle Write Settitle;
-    Property trackingAnalyticsAccountId : string Index 96 Read FtrackingAnalyticsAccountId Write SettrackingAnalyticsAccountId;
-    Property unsubscribedTrailer : string Index 104 Read FunsubscribedTrailer Write SetunsubscribedTrailer;
+    Property title : String Index 88 Read Ftitle Write Settitle;
+    Property trackingAnalyticsAccountId : String Index 96 Read FtrackingAnalyticsAccountId Write SettrackingAnalyticsAccountId;
+    Property unsubscribedTrailer : String Index 104 Read FunsubscribedTrailer Write SetunsubscribedTrailer;
   end;
   TChannelSettingsClass = Class of TChannelSettings;
-  
-  { --------------------------------------------------------------------
-    TChannelSettingsfeaturedChannelsUrls
-    --------------------------------------------------------------------}
-  
-  TChannelSettingsfeaturedChannelsUrls = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChannelSettingsfeaturedChannelsUrlsClass = Class of TChannelSettingsfeaturedChannelsUrls;
   
   { --------------------------------------------------------------------
     TChannelSnippet
@@ -1707,31 +1421,31 @@ type
   
   TChannelSnippet = Class(TGoogleBaseObject)
   Private
-    Fcountry : string;
-    FdefaultLanguage : string;
-    Fdescription : string;
+    Fcountry : String;
+    FdefaultLanguage : String;
+    Fdescription : String;
     Flocalized : TChannelLocalization;
     FpublishedAt : TDatetime;
     Fthumbnails : TThumbnailDetails;
-    Ftitle : string;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdefaultLanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdefaultLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure Setlocalized(AIndex : Integer; AValue : TChannelLocalization); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property country : string Index 0 Read Fcountry Write Setcountry;
-    Property defaultLanguage : string Index 8 Read FdefaultLanguage Write SetdefaultLanguage;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
+    Property country : String Index 0 Read Fcountry Write Setcountry;
+    Property defaultLanguage : String Index 8 Read FdefaultLanguage Write SetdefaultLanguage;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
     Property localized : TChannelLocalization Index 24 Read Flocalized Write Setlocalized;
     Property publishedAt : TDatetime Index 32 Read FpublishedAt Write SetpublishedAt;
     Property thumbnails : TThumbnailDetails Index 40 Read Fthumbnails Write Setthumbnails;
-    Property title : string Index 48 Read Ftitle Write Settitle;
+    Property title : String Index 48 Read Ftitle Write Settitle;
   end;
   TChannelSnippetClass = Class of TChannelSnippet;
   
@@ -1741,25 +1455,25 @@ type
   
   TChannelStatistics = Class(TGoogleBaseObject)
   Private
-    FcommentCount : string;
+    FcommentCount : String;
     FhiddenSubscriberCount : boolean;
-    FsubscriberCount : string;
-    FvideoCount : string;
-    FviewCount : string;
+    FsubscriberCount : String;
+    FvideoCount : String;
+    FviewCount : String;
   Protected
     //Property setters
-    Procedure SetcommentCount(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcommentCount(AIndex : Integer; AValue : String); virtual;
     Procedure SethiddenSubscriberCount(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsubscriberCount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvideoCount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetviewCount(AIndex : Integer; AValue : string); virtual;
+    Procedure SetsubscriberCount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvideoCount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetviewCount(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property commentCount : string Index 0 Read FcommentCount Write SetcommentCount;
+    Property commentCount : String Index 0 Read FcommentCount Write SetcommentCount;
     Property hiddenSubscriberCount : boolean Index 8 Read FhiddenSubscriberCount Write SethiddenSubscriberCount;
-    Property subscriberCount : string Index 16 Read FsubscriberCount Write SetsubscriberCount;
-    Property videoCount : string Index 24 Read FvideoCount Write SetvideoCount;
-    Property viewCount : string Index 32 Read FviewCount Write SetviewCount;
+    Property subscriberCount : String Index 16 Read FsubscriberCount Write SetsubscriberCount;
+    Property videoCount : String Index 24 Read FvideoCount Write SetvideoCount;
+    Property viewCount : String Index 32 Read FviewCount Write SetviewCount;
   end;
   TChannelStatisticsClass = Class of TChannelStatistics;
   
@@ -1770,18 +1484,18 @@ type
   TChannelStatus = Class(TGoogleBaseObject)
   Private
     FisLinked : boolean;
-    FlongUploadsStatus : string;
-    FprivacyStatus : string;
+    FlongUploadsStatus : String;
+    FprivacyStatus : String;
   Protected
     //Property setters
     Procedure SetisLinked(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetlongUploadsStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprivacyStatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetlongUploadsStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprivacyStatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property isLinked : boolean Index 0 Read FisLinked Write SetisLinked;
-    Property longUploadsStatus : string Index 8 Read FlongUploadsStatus Write SetlongUploadsStatus;
-    Property privacyStatus : string Index 16 Read FprivacyStatus Write SetprivacyStatus;
+    Property longUploadsStatus : String Index 8 Read FlongUploadsStatus Write SetlongUploadsStatus;
+    Property privacyStatus : String Index 16 Read FprivacyStatus Write SetprivacyStatus;
   end;
   TChannelStatusClass = Class of TChannelStatus;
   
@@ -1791,28 +1505,15 @@ type
   
   TChannelTopicDetails = Class(TGoogleBaseObject)
   Private
-    FtopicIds : TChannelTopicDetailstopicIds;
+    FtopicIds : TStringArray;
   Protected
     //Property setters
-    Procedure SettopicIds(AIndex : Integer; AValue : TChannelTopicDetailstopicIds); virtual;
+    Procedure SettopicIds(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property topicIds : TChannelTopicDetailstopicIds Index 0 Read FtopicIds Write SettopicIds;
+    Property topicIds : TStringArray Index 0 Read FtopicIds Write SettopicIds;
   end;
   TChannelTopicDetailsClass = Class of TChannelTopicDetails;
-  
-  { --------------------------------------------------------------------
-    TChannelTopicDetailstopicIds
-    --------------------------------------------------------------------}
-  
-  TChannelTopicDetailstopicIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChannelTopicDetailstopicIdsClass = Class of TChannelTopicDetailstopicIds;
   
   { --------------------------------------------------------------------
     TComment
@@ -1820,21 +1521,21 @@ type
   
   TComment = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Fsnippet : TCommentSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TCommentSnippet); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property snippet : TCommentSnippet Index 24 Read Fsnippet Write Setsnippet;
   end;
   TCommentClass = Class of TComment;
@@ -1845,49 +1546,36 @@ type
   
   TCommentListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TCommentListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TCommentListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TCommentListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TCommentListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TCommentListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TCommentListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
     Property tokenPagination : TTokenPagination Index 48 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 56 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 56 Read FvisitorId Write SetvisitorId;
   end;
   TCommentListResponseClass = Class of TCommentListResponse;
-  
-  { --------------------------------------------------------------------
-    TCommentListResponseitems
-    --------------------------------------------------------------------}
-  
-  TCommentListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCommentListResponseitemsClass = Class of TCommentListResponseitems;
   
   { --------------------------------------------------------------------
     TCommentSnippet
@@ -1896,57 +1584,57 @@ type
   TCommentSnippet = Class(TGoogleBaseObject)
   Private
     FauthorChannelId : TChannelId;
-    FauthorChannelUrl : string;
-    FauthorDisplayName : string;
-    FauthorGoogleplusProfileUrl : string;
-    FauthorProfileImageUrl : string;
+    FauthorChannelUrl : String;
+    FauthorDisplayName : String;
+    FauthorGoogleplusProfileUrl : String;
+    FauthorProfileImageUrl : String;
     FcanRate : boolean;
-    FchannelId : string;
+    FchannelId : String;
     FlikeCount : integer;
-    FmoderationStatus : string;
-    FparentId : string;
+    FmoderationStatus : String;
+    FparentId : String;
     FpublishedAt : TDatetime;
-    FtextDisplay : string;
-    FtextOriginal : string;
+    FtextDisplay : String;
+    FtextOriginal : String;
     FupdatedAt : TDatetime;
-    FvideoId : string;
-    FviewerRating : string;
+    FvideoId : String;
+    FviewerRating : String;
   Protected
     //Property setters
     Procedure SetauthorChannelId(AIndex : Integer; AValue : TChannelId); virtual;
-    Procedure SetauthorChannelUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetauthorDisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetauthorGoogleplusProfileUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetauthorProfileImageUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetauthorChannelUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetauthorDisplayName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetauthorGoogleplusProfileUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetauthorProfileImageUrl(AIndex : Integer; AValue : String); virtual;
     Procedure SetcanRate(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
     Procedure SetlikeCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmoderationStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetparentId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmoderationStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetparentId(AIndex : Integer; AValue : String); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SettextDisplay(AIndex : Integer; AValue : string); virtual;
-    Procedure SettextOriginal(AIndex : Integer; AValue : string); virtual;
+    Procedure SettextDisplay(AIndex : Integer; AValue : String); virtual;
+    Procedure SettextOriginal(AIndex : Integer; AValue : String); virtual;
     Procedure SetupdatedAt(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetviewerRating(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetviewerRating(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property authorChannelId : TChannelId Index 0 Read FauthorChannelId Write SetauthorChannelId;
-    Property authorChannelUrl : string Index 8 Read FauthorChannelUrl Write SetauthorChannelUrl;
-    Property authorDisplayName : string Index 16 Read FauthorDisplayName Write SetauthorDisplayName;
-    Property authorGoogleplusProfileUrl : string Index 24 Read FauthorGoogleplusProfileUrl Write SetauthorGoogleplusProfileUrl;
-    Property authorProfileImageUrl : string Index 32 Read FauthorProfileImageUrl Write SetauthorProfileImageUrl;
+    Property authorChannelUrl : String Index 8 Read FauthorChannelUrl Write SetauthorChannelUrl;
+    Property authorDisplayName : String Index 16 Read FauthorDisplayName Write SetauthorDisplayName;
+    Property authorGoogleplusProfileUrl : String Index 24 Read FauthorGoogleplusProfileUrl Write SetauthorGoogleplusProfileUrl;
+    Property authorProfileImageUrl : String Index 32 Read FauthorProfileImageUrl Write SetauthorProfileImageUrl;
     Property canRate : boolean Index 40 Read FcanRate Write SetcanRate;
-    Property channelId : string Index 48 Read FchannelId Write SetchannelId;
+    Property channelId : String Index 48 Read FchannelId Write SetchannelId;
     Property likeCount : integer Index 56 Read FlikeCount Write SetlikeCount;
-    Property moderationStatus : string Index 64 Read FmoderationStatus Write SetmoderationStatus;
-    Property parentId : string Index 72 Read FparentId Write SetparentId;
+    Property moderationStatus : String Index 64 Read FmoderationStatus Write SetmoderationStatus;
+    Property parentId : String Index 72 Read FparentId Write SetparentId;
     Property publishedAt : TDatetime Index 80 Read FpublishedAt Write SetpublishedAt;
-    Property textDisplay : string Index 88 Read FtextDisplay Write SettextDisplay;
-    Property textOriginal : string Index 96 Read FtextOriginal Write SettextOriginal;
+    Property textDisplay : String Index 88 Read FtextDisplay Write SettextDisplay;
+    Property textOriginal : String Index 96 Read FtextOriginal Write SettextOriginal;
     Property updatedAt : TDatetime Index 104 Read FupdatedAt Write SetupdatedAt;
-    Property videoId : string Index 112 Read FvideoId Write SetvideoId;
-    Property viewerRating : string Index 120 Read FviewerRating Write SetviewerRating;
+    Property videoId : String Index 112 Read FvideoId Write SetvideoId;
+    Property viewerRating : String Index 120 Read FviewerRating Write SetviewerRating;
   end;
   TCommentSnippetClass = Class of TCommentSnippet;
   
@@ -1956,23 +1644,23 @@ type
   
   TCommentThread = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Freplies : TCommentThreadReplies;
     Fsnippet : TCommentThreadSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setreplies(AIndex : Integer; AValue : TCommentThreadReplies); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TCommentThreadSnippet); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property replies : TCommentThreadReplies Index 24 Read Freplies Write Setreplies;
     Property snippet : TCommentThreadSnippet Index 32 Read Fsnippet Write Setsnippet;
   end;
@@ -1984,49 +1672,36 @@ type
   
   TCommentThreadListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TCommentThreadListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TCommentThreadListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TCommentThreadListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TCommentThreadListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TCommentThreadListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TCommentThreadListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
     Property tokenPagination : TTokenPagination Index 48 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 56 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 56 Read FvisitorId Write SetvisitorId;
   end;
   TCommentThreadListResponseClass = Class of TCommentThreadListResponse;
-  
-  { --------------------------------------------------------------------
-    TCommentThreadListResponseitems
-    --------------------------------------------------------------------}
-  
-  TCommentThreadListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCommentThreadListResponseitemsClass = Class of TCommentThreadListResponseitems;
   
   { --------------------------------------------------------------------
     TCommentThreadReplies
@@ -2034,28 +1709,15 @@ type
   
   TCommentThreadReplies = Class(TGoogleBaseObject)
   Private
-    Fcomments : TCommentThreadRepliescomments;
+    Fcomments : TCommentThreadRepliesTypecommentsArray;
   Protected
     //Property setters
-    Procedure Setcomments(AIndex : Integer; AValue : TCommentThreadRepliescomments); virtual;
+    Procedure Setcomments(AIndex : Integer; AValue : TCommentThreadRepliesTypecommentsArray); virtual;
   Public
   Published
-    Property comments : TCommentThreadRepliescomments Index 0 Read Fcomments Write Setcomments;
+    Property comments : TCommentThreadRepliesTypecommentsArray Index 0 Read Fcomments Write Setcomments;
   end;
   TCommentThreadRepliesClass = Class of TCommentThreadReplies;
-  
-  { --------------------------------------------------------------------
-    TCommentThreadRepliescomments
-    --------------------------------------------------------------------}
-  
-  TCommentThreadRepliescomments = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCommentThreadRepliescommentsClass = Class of TCommentThreadRepliescomments;
   
   { --------------------------------------------------------------------
     TCommentThreadSnippet
@@ -2064,27 +1726,27 @@ type
   TCommentThreadSnippet = Class(TGoogleBaseObject)
   Private
     FcanReply : boolean;
-    FchannelId : string;
+    FchannelId : String;
     FisPublic : boolean;
     FtopLevelComment : TComment;
     FtotalReplyCount : integer;
-    FvideoId : string;
+    FvideoId : String;
   Protected
     //Property setters
     Procedure SetcanReply(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
     Procedure SetisPublic(AIndex : Integer; AValue : boolean); virtual;
     Procedure SettopLevelComment(AIndex : Integer; AValue : TComment); virtual;
     Procedure SettotalReplyCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property canReply : boolean Index 0 Read FcanReply Write SetcanReply;
-    Property channelId : string Index 8 Read FchannelId Write SetchannelId;
+    Property channelId : String Index 8 Read FchannelId Write SetchannelId;
     Property isPublic : boolean Index 16 Read FisPublic Write SetisPublic;
     Property topLevelComment : TComment Index 24 Read FtopLevelComment Write SettopLevelComment;
     Property totalReplyCount : integer Index 32 Read FtotalReplyCount Write SettotalReplyCount;
-    Property videoId : string Index 40 Read FvideoId Write SetvideoId;
+    Property videoId : String Index 40 Read FvideoId Write SetvideoId;
   end;
   TCommentThreadSnippetClass = Class of TCommentThreadSnippet;
   
@@ -2094,218 +1756,205 @@ type
   
   TContentRating = Class(TGoogleBaseObject)
   Private
-    FacbRating : string;
-    FagcomRating : string;
-    FanatelRating : string;
-    FbbfcRating : string;
-    FbfvcRating : string;
-    FbmukkRating : string;
-    FcatvRating : string;
-    FcatvfrRating : string;
-    FcbfcRating : string;
-    FcccRating : string;
-    FcceRating : string;
-    FchfilmRating : string;
-    FchvrsRating : string;
-    FcicfRating : string;
-    FcnaRating : string;
-    FcsaRating : string;
-    FcscfRating : string;
-    FczfilmRating : string;
-    FdjctqRating : string;
-    FdjctqRatingReasons : TContentRatingdjctqRatingReasons;
-    FeefilmRating : string;
-    FegfilmRating : string;
-    FeirinRating : string;
-    FfcbmRating : string;
-    FfcoRating : string;
-    FfmocRating : string;
-    FfpbRating : string;
-    FfskRating : string;
-    FgrfilmRating : string;
-    FicaaRating : string;
-    FifcoRating : string;
-    FilfilmRating : string;
-    FincaaRating : string;
-    FkfcbRating : string;
-    FkijkwijzerRating : string;
-    FkmrbRating : string;
-    FlsfRating : string;
-    FmccaaRating : string;
-    FmccypRating : string;
-    FmdaRating : string;
-    FmedietilsynetRating : string;
-    FmekuRating : string;
-    FmibacRating : string;
-    F_mocRating : string;
-    FmoctwRating : string;
-    FmpaaRating : string;
-    FmtrcbRating : string;
-    FnbcRating : string;
-    FnbcplRating : string;
-    FnfrcRating : string;
-    FnfvcbRating : string;
-    FnkclvRating : string;
-    FoflcRating : string;
-    FpefilmRating : string;
-    FrcnofRating : string;
-    FresorteviolenciaRating : string;
-    FrtcRating : string;
-    FrteRating : string;
-    FrussiaRating : string;
-    FskfilmRating : string;
-    FsmaisRating : string;
-    FsmsaRating : string;
-    FtvpgRating : string;
-    FytRating : string;
+    FacbRating : String;
+    FagcomRating : String;
+    FanatelRating : String;
+    FbbfcRating : String;
+    FbfvcRating : String;
+    FbmukkRating : String;
+    FcatvRating : String;
+    FcatvfrRating : String;
+    FcbfcRating : String;
+    FcccRating : String;
+    FcceRating : String;
+    FchfilmRating : String;
+    FchvrsRating : String;
+    FcicfRating : String;
+    FcnaRating : String;
+    FcsaRating : String;
+    FcscfRating : String;
+    FczfilmRating : String;
+    FdjctqRating : String;
+    FdjctqRatingReasons : TStringArray;
+    FeefilmRating : String;
+    FegfilmRating : String;
+    FeirinRating : String;
+    FfcbmRating : String;
+    FfcoRating : String;
+    FfmocRating : String;
+    FfpbRating : String;
+    FfskRating : String;
+    FgrfilmRating : String;
+    FicaaRating : String;
+    FifcoRating : String;
+    FilfilmRating : String;
+    FincaaRating : String;
+    FkfcbRating : String;
+    FkijkwijzerRating : String;
+    FkmrbRating : String;
+    FlsfRating : String;
+    FmccaaRating : String;
+    FmccypRating : String;
+    FmdaRating : String;
+    FmedietilsynetRating : String;
+    FmekuRating : String;
+    FmibacRating : String;
+    F_mocRating : String;
+    FmoctwRating : String;
+    FmpaaRating : String;
+    FmtrcbRating : String;
+    FnbcRating : String;
+    FnbcplRating : String;
+    FnfrcRating : String;
+    FnfvcbRating : String;
+    FnkclvRating : String;
+    FoflcRating : String;
+    FpefilmRating : String;
+    FrcnofRating : String;
+    FresorteviolenciaRating : String;
+    FrtcRating : String;
+    FrteRating : String;
+    FrussiaRating : String;
+    FskfilmRating : String;
+    FsmaisRating : String;
+    FsmsaRating : String;
+    FtvpgRating : String;
+    FytRating : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetacbRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetagcomRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetanatelRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbbfcRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbfvcRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbmukkRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcatvRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcatvfrRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcbfcRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcccRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcceRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetchfilmRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetchvrsRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcicfRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcnaRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcsaRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcscfRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetczfilmRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdjctqRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdjctqRatingReasons(AIndex : Integer; AValue : TContentRatingdjctqRatingReasons); virtual;
-    Procedure SeteefilmRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetegfilmRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteirinRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfcbmRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfcoRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfmocRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfpbRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfskRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgrfilmRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SeticaaRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetifcoRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetilfilmRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetincaaRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetkfcbRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetkijkwijzerRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetkmrbRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlsfRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmccaaRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmccypRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmdaRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmedietilsynetRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmekuRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmibacRating(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_mocRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmoctwRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmpaaRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmtrcbRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnbcRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnbcplRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnfrcRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnfvcbRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnkclvRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoflcRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpefilmRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrcnofRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetresorteviolenciaRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrtcRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrteRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrussiaRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetskfilmRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsmaisRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsmsaRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SettvpgRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetytRating(AIndex : Integer; AValue : string); virtual;
+    Procedure SetacbRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetagcomRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetanatelRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbbfcRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbfvcRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbmukkRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcatvRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcatvfrRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcbfcRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcccRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcceRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchfilmRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchvrsRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcicfRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcnaRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcsaRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcscfRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetczfilmRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdjctqRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdjctqRatingReasons(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SeteefilmRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetegfilmRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteirinRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfcbmRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfcoRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfmocRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfpbRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfskRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgrfilmRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SeticaaRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetifcoRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetilfilmRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetincaaRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetkfcbRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetkijkwijzerRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetkmrbRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlsfRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmccaaRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmccypRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmdaRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmedietilsynetRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmekuRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmibacRating(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_mocRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmoctwRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmpaaRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmtrcbRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnbcRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnbcplRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnfrcRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnfvcbRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnkclvRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoflcRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpefilmRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrcnofRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetresorteviolenciaRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrtcRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrteRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrussiaRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetskfilmRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsmaisRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsmsaRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SettvpgRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetytRating(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property acbRating : string Index 0 Read FacbRating Write SetacbRating;
-    Property agcomRating : string Index 8 Read FagcomRating Write SetagcomRating;
-    Property anatelRating : string Index 16 Read FanatelRating Write SetanatelRating;
-    Property bbfcRating : string Index 24 Read FbbfcRating Write SetbbfcRating;
-    Property bfvcRating : string Index 32 Read FbfvcRating Write SetbfvcRating;
-    Property bmukkRating : string Index 40 Read FbmukkRating Write SetbmukkRating;
-    Property catvRating : string Index 48 Read FcatvRating Write SetcatvRating;
-    Property catvfrRating : string Index 56 Read FcatvfrRating Write SetcatvfrRating;
-    Property cbfcRating : string Index 64 Read FcbfcRating Write SetcbfcRating;
-    Property cccRating : string Index 72 Read FcccRating Write SetcccRating;
-    Property cceRating : string Index 80 Read FcceRating Write SetcceRating;
-    Property chfilmRating : string Index 88 Read FchfilmRating Write SetchfilmRating;
-    Property chvrsRating : string Index 96 Read FchvrsRating Write SetchvrsRating;
-    Property cicfRating : string Index 104 Read FcicfRating Write SetcicfRating;
-    Property cnaRating : string Index 112 Read FcnaRating Write SetcnaRating;
-    Property csaRating : string Index 120 Read FcsaRating Write SetcsaRating;
-    Property cscfRating : string Index 128 Read FcscfRating Write SetcscfRating;
-    Property czfilmRating : string Index 136 Read FczfilmRating Write SetczfilmRating;
-    Property djctqRating : string Index 144 Read FdjctqRating Write SetdjctqRating;
-    Property djctqRatingReasons : TContentRatingdjctqRatingReasons Index 152 Read FdjctqRatingReasons Write SetdjctqRatingReasons;
-    Property eefilmRating : string Index 160 Read FeefilmRating Write SeteefilmRating;
-    Property egfilmRating : string Index 168 Read FegfilmRating Write SetegfilmRating;
-    Property eirinRating : string Index 176 Read FeirinRating Write SeteirinRating;
-    Property fcbmRating : string Index 184 Read FfcbmRating Write SetfcbmRating;
-    Property fcoRating : string Index 192 Read FfcoRating Write SetfcoRating;
-    Property fmocRating : string Index 200 Read FfmocRating Write SetfmocRating;
-    Property fpbRating : string Index 208 Read FfpbRating Write SetfpbRating;
-    Property fskRating : string Index 216 Read FfskRating Write SetfskRating;
-    Property grfilmRating : string Index 224 Read FgrfilmRating Write SetgrfilmRating;
-    Property icaaRating : string Index 232 Read FicaaRating Write SeticaaRating;
-    Property ifcoRating : string Index 240 Read FifcoRating Write SetifcoRating;
-    Property ilfilmRating : string Index 248 Read FilfilmRating Write SetilfilmRating;
-    Property incaaRating : string Index 256 Read FincaaRating Write SetincaaRating;
-    Property kfcbRating : string Index 264 Read FkfcbRating Write SetkfcbRating;
-    Property kijkwijzerRating : string Index 272 Read FkijkwijzerRating Write SetkijkwijzerRating;
-    Property kmrbRating : string Index 280 Read FkmrbRating Write SetkmrbRating;
-    Property lsfRating : string Index 288 Read FlsfRating Write SetlsfRating;
-    Property mccaaRating : string Index 296 Read FmccaaRating Write SetmccaaRating;
-    Property mccypRating : string Index 304 Read FmccypRating Write SetmccypRating;
-    Property mdaRating : string Index 312 Read FmdaRating Write SetmdaRating;
-    Property medietilsynetRating : string Index 320 Read FmedietilsynetRating Write SetmedietilsynetRating;
-    Property mekuRating : string Index 328 Read FmekuRating Write SetmekuRating;
-    Property mibacRating : string Index 336 Read FmibacRating Write SetmibacRating;
-    Property _mocRating : string Index 344 Read F_mocRating Write Set_mocRating;
-    Property moctwRating : string Index 352 Read FmoctwRating Write SetmoctwRating;
-    Property mpaaRating : string Index 360 Read FmpaaRating Write SetmpaaRating;
-    Property mtrcbRating : string Index 368 Read FmtrcbRating Write SetmtrcbRating;
-    Property nbcRating : string Index 376 Read FnbcRating Write SetnbcRating;
-    Property nbcplRating : string Index 384 Read FnbcplRating Write SetnbcplRating;
-    Property nfrcRating : string Index 392 Read FnfrcRating Write SetnfrcRating;
-    Property nfvcbRating : string Index 400 Read FnfvcbRating Write SetnfvcbRating;
-    Property nkclvRating : string Index 408 Read FnkclvRating Write SetnkclvRating;
-    Property oflcRating : string Index 416 Read FoflcRating Write SetoflcRating;
-    Property pefilmRating : string Index 424 Read FpefilmRating Write SetpefilmRating;
-    Property rcnofRating : string Index 432 Read FrcnofRating Write SetrcnofRating;
-    Property resorteviolenciaRating : string Index 440 Read FresorteviolenciaRating Write SetresorteviolenciaRating;
-    Property rtcRating : string Index 448 Read FrtcRating Write SetrtcRating;
-    Property rteRating : string Index 456 Read FrteRating Write SetrteRating;
-    Property russiaRating : string Index 464 Read FrussiaRating Write SetrussiaRating;
-    Property skfilmRating : string Index 472 Read FskfilmRating Write SetskfilmRating;
-    Property smaisRating : string Index 480 Read FsmaisRating Write SetsmaisRating;
-    Property smsaRating : string Index 488 Read FsmsaRating Write SetsmsaRating;
-    Property tvpgRating : string Index 496 Read FtvpgRating Write SettvpgRating;
-    Property ytRating : string Index 504 Read FytRating Write SetytRating;
+    Property acbRating : String Index 0 Read FacbRating Write SetacbRating;
+    Property agcomRating : String Index 8 Read FagcomRating Write SetagcomRating;
+    Property anatelRating : String Index 16 Read FanatelRating Write SetanatelRating;
+    Property bbfcRating : String Index 24 Read FbbfcRating Write SetbbfcRating;
+    Property bfvcRating : String Index 32 Read FbfvcRating Write SetbfvcRating;
+    Property bmukkRating : String Index 40 Read FbmukkRating Write SetbmukkRating;
+    Property catvRating : String Index 48 Read FcatvRating Write SetcatvRating;
+    Property catvfrRating : String Index 56 Read FcatvfrRating Write SetcatvfrRating;
+    Property cbfcRating : String Index 64 Read FcbfcRating Write SetcbfcRating;
+    Property cccRating : String Index 72 Read FcccRating Write SetcccRating;
+    Property cceRating : String Index 80 Read FcceRating Write SetcceRating;
+    Property chfilmRating : String Index 88 Read FchfilmRating Write SetchfilmRating;
+    Property chvrsRating : String Index 96 Read FchvrsRating Write SetchvrsRating;
+    Property cicfRating : String Index 104 Read FcicfRating Write SetcicfRating;
+    Property cnaRating : String Index 112 Read FcnaRating Write SetcnaRating;
+    Property csaRating : String Index 120 Read FcsaRating Write SetcsaRating;
+    Property cscfRating : String Index 128 Read FcscfRating Write SetcscfRating;
+    Property czfilmRating : String Index 136 Read FczfilmRating Write SetczfilmRating;
+    Property djctqRating : String Index 144 Read FdjctqRating Write SetdjctqRating;
+    Property djctqRatingReasons : TStringArray Index 152 Read FdjctqRatingReasons Write SetdjctqRatingReasons;
+    Property eefilmRating : String Index 160 Read FeefilmRating Write SeteefilmRating;
+    Property egfilmRating : String Index 168 Read FegfilmRating Write SetegfilmRating;
+    Property eirinRating : String Index 176 Read FeirinRating Write SeteirinRating;
+    Property fcbmRating : String Index 184 Read FfcbmRating Write SetfcbmRating;
+    Property fcoRating : String Index 192 Read FfcoRating Write SetfcoRating;
+    Property fmocRating : String Index 200 Read FfmocRating Write SetfmocRating;
+    Property fpbRating : String Index 208 Read FfpbRating Write SetfpbRating;
+    Property fskRating : String Index 216 Read FfskRating Write SetfskRating;
+    Property grfilmRating : String Index 224 Read FgrfilmRating Write SetgrfilmRating;
+    Property icaaRating : String Index 232 Read FicaaRating Write SeticaaRating;
+    Property ifcoRating : String Index 240 Read FifcoRating Write SetifcoRating;
+    Property ilfilmRating : String Index 248 Read FilfilmRating Write SetilfilmRating;
+    Property incaaRating : String Index 256 Read FincaaRating Write SetincaaRating;
+    Property kfcbRating : String Index 264 Read FkfcbRating Write SetkfcbRating;
+    Property kijkwijzerRating : String Index 272 Read FkijkwijzerRating Write SetkijkwijzerRating;
+    Property kmrbRating : String Index 280 Read FkmrbRating Write SetkmrbRating;
+    Property lsfRating : String Index 288 Read FlsfRating Write SetlsfRating;
+    Property mccaaRating : String Index 296 Read FmccaaRating Write SetmccaaRating;
+    Property mccypRating : String Index 304 Read FmccypRating Write SetmccypRating;
+    Property mdaRating : String Index 312 Read FmdaRating Write SetmdaRating;
+    Property medietilsynetRating : String Index 320 Read FmedietilsynetRating Write SetmedietilsynetRating;
+    Property mekuRating : String Index 328 Read FmekuRating Write SetmekuRating;
+    Property mibacRating : String Index 336 Read FmibacRating Write SetmibacRating;
+    Property _mocRating : String Index 344 Read F_mocRating Write Set_mocRating;
+    Property moctwRating : String Index 352 Read FmoctwRating Write SetmoctwRating;
+    Property mpaaRating : String Index 360 Read FmpaaRating Write SetmpaaRating;
+    Property mtrcbRating : String Index 368 Read FmtrcbRating Write SetmtrcbRating;
+    Property nbcRating : String Index 376 Read FnbcRating Write SetnbcRating;
+    Property nbcplRating : String Index 384 Read FnbcplRating Write SetnbcplRating;
+    Property nfrcRating : String Index 392 Read FnfrcRating Write SetnfrcRating;
+    Property nfvcbRating : String Index 400 Read FnfvcbRating Write SetnfvcbRating;
+    Property nkclvRating : String Index 408 Read FnkclvRating Write SetnkclvRating;
+    Property oflcRating : String Index 416 Read FoflcRating Write SetoflcRating;
+    Property pefilmRating : String Index 424 Read FpefilmRating Write SetpefilmRating;
+    Property rcnofRating : String Index 432 Read FrcnofRating Write SetrcnofRating;
+    Property resorteviolenciaRating : String Index 440 Read FresorteviolenciaRating Write SetresorteviolenciaRating;
+    Property rtcRating : String Index 448 Read FrtcRating Write SetrtcRating;
+    Property rteRating : String Index 456 Read FrteRating Write SetrteRating;
+    Property russiaRating : String Index 464 Read FrussiaRating Write SetrussiaRating;
+    Property skfilmRating : String Index 472 Read FskfilmRating Write SetskfilmRating;
+    Property smaisRating : String Index 480 Read FsmaisRating Write SetsmaisRating;
+    Property smsaRating : String Index 488 Read FsmsaRating Write SetsmsaRating;
+    Property tvpgRating : String Index 496 Read FtvpgRating Write SettvpgRating;
+    Property ytRating : String Index 504 Read FytRating Write SetytRating;
   end;
   TContentRatingClass = Class of TContentRating;
-  
-  { --------------------------------------------------------------------
-    TContentRatingdjctqRatingReasons
-    --------------------------------------------------------------------}
-  
-  TContentRatingdjctqRatingReasons = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContentRatingdjctqRatingReasonsClass = Class of TContentRatingdjctqRatingReasons;
   
   { --------------------------------------------------------------------
     TGeoPoint
@@ -2335,21 +1984,21 @@ type
   
   TGuideCategory = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Fsnippet : TGuideCategorySnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TGuideCategorySnippet); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property snippet : TGuideCategorySnippet Index 24 Read Fsnippet Write Setsnippet;
   end;
   TGuideCategoryClass = Class of TGuideCategory;
@@ -2360,52 +2009,39 @@ type
   
   TGuideCategoryListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TGuideCategoryListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TGuideCategoryListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
-    FprevPageToken : string;
+    FprevPageToken : String;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TGuideCategoryListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TGuideCategoryListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TGuideCategoryListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TGuideCategoryListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
-    Property prevPageToken : string Index 48 Read FprevPageToken Write SetprevPageToken;
+    Property prevPageToken : String Index 48 Read FprevPageToken Write SetprevPageToken;
     Property tokenPagination : TTokenPagination Index 56 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 64 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 64 Read FvisitorId Write SetvisitorId;
   end;
   TGuideCategoryListResponseClass = Class of TGuideCategoryListResponse;
-  
-  { --------------------------------------------------------------------
-    TGuideCategoryListResponseitems
-    --------------------------------------------------------------------}
-  
-  TGuideCategoryListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGuideCategoryListResponseitemsClass = Class of TGuideCategoryListResponseitems;
   
   { --------------------------------------------------------------------
     TGuideCategorySnippet
@@ -2413,16 +2049,16 @@ type
   
   TGuideCategorySnippet = Class(TGoogleBaseObject)
   Private
-    FchannelId : string;
-    Ftitle : string;
+    FchannelId : String;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property channelId : string Index 0 Read FchannelId Write SetchannelId;
-    Property title : string Index 8 Read Ftitle Write Settitle;
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
+    Property title : String Index 8 Read Ftitle Write Settitle;
   end;
   TGuideCategorySnippetClass = Class of TGuideCategorySnippet;
   
@@ -2432,21 +2068,21 @@ type
   
   TI18nLanguage = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Fsnippet : TI18nLanguageSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TI18nLanguageSnippet); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property snippet : TI18nLanguageSnippet Index 24 Read Fsnippet Write Setsnippet;
   end;
   TI18nLanguageClass = Class of TI18nLanguage;
@@ -2457,40 +2093,27 @@ type
   
   TI18nLanguageListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TI18nLanguageListResponseitems;
-    Fkind : string;
-    FvisitorId : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TI18nLanguageListResponseTypeitemsArray;
+    Fkind : String;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TI18nLanguageListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TI18nLanguageListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TI18nLanguageListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property visitorId : string Index 32 Read FvisitorId Write SetvisitorId;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TI18nLanguageListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property visitorId : String Index 32 Read FvisitorId Write SetvisitorId;
   end;
   TI18nLanguageListResponseClass = Class of TI18nLanguageListResponse;
-  
-  { --------------------------------------------------------------------
-    TI18nLanguageListResponseitems
-    --------------------------------------------------------------------}
-  
-  TI18nLanguageListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TI18nLanguageListResponseitemsClass = Class of TI18nLanguageListResponseitems;
   
   { --------------------------------------------------------------------
     TI18nLanguageSnippet
@@ -2498,16 +2121,16 @@ type
   
   TI18nLanguageSnippet = Class(TGoogleBaseObject)
   Private
-    Fhl : string;
-    Fname : string;
+    Fhl : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Sethl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Sethl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property hl : string Index 0 Read Fhl Write Sethl;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property hl : String Index 0 Read Fhl Write Sethl;
+    Property name : String Index 8 Read Fname Write Setname;
   end;
   TI18nLanguageSnippetClass = Class of TI18nLanguageSnippet;
   
@@ -2517,21 +2140,21 @@ type
   
   TI18nRegion = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Fsnippet : TI18nRegionSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TI18nRegionSnippet); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property snippet : TI18nRegionSnippet Index 24 Read Fsnippet Write Setsnippet;
   end;
   TI18nRegionClass = Class of TI18nRegion;
@@ -2542,40 +2165,27 @@ type
   
   TI18nRegionListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TI18nRegionListResponseitems;
-    Fkind : string;
-    FvisitorId : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TI18nRegionListResponseTypeitemsArray;
+    Fkind : String;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TI18nRegionListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TI18nRegionListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TI18nRegionListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property visitorId : string Index 32 Read FvisitorId Write SetvisitorId;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TI18nRegionListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property visitorId : String Index 32 Read FvisitorId Write SetvisitorId;
   end;
   TI18nRegionListResponseClass = Class of TI18nRegionListResponse;
-  
-  { --------------------------------------------------------------------
-    TI18nRegionListResponseitems
-    --------------------------------------------------------------------}
-  
-  TI18nRegionListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TI18nRegionListResponseitemsClass = Class of TI18nRegionListResponseitems;
   
   { --------------------------------------------------------------------
     TI18nRegionSnippet
@@ -2583,16 +2193,16 @@ type
   
   TI18nRegionSnippet = Class(TGoogleBaseObject)
   Private
-    Fgl : string;
-    Fname : string;
+    Fgl : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setgl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setgl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property gl : string Index 0 Read Fgl Write Setgl;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property gl : String Index 0 Read Fgl Write Setgl;
+    Property name : String Index 8 Read Fname Write Setname;
   end;
   TI18nRegionSnippetClass = Class of TI18nRegionSnippet;
   
@@ -2603,75 +2213,75 @@ type
   TImageSettings = Class(TGoogleBaseObject)
   Private
     FbackgroundImageUrl : TLocalizedProperty;
-    FbannerExternalUrl : string;
-    FbannerImageUrl : string;
-    FbannerMobileExtraHdImageUrl : string;
-    FbannerMobileHdImageUrl : string;
-    FbannerMobileImageUrl : string;
-    FbannerMobileLowImageUrl : string;
-    FbannerMobileMediumHdImageUrl : string;
-    FbannerTabletExtraHdImageUrl : string;
-    FbannerTabletHdImageUrl : string;
-    FbannerTabletImageUrl : string;
-    FbannerTabletLowImageUrl : string;
-    FbannerTvHighImageUrl : string;
-    FbannerTvImageUrl : string;
-    FbannerTvLowImageUrl : string;
-    FbannerTvMediumImageUrl : string;
+    FbannerExternalUrl : String;
+    FbannerImageUrl : String;
+    FbannerMobileExtraHdImageUrl : String;
+    FbannerMobileHdImageUrl : String;
+    FbannerMobileImageUrl : String;
+    FbannerMobileLowImageUrl : String;
+    FbannerMobileMediumHdImageUrl : String;
+    FbannerTabletExtraHdImageUrl : String;
+    FbannerTabletHdImageUrl : String;
+    FbannerTabletImageUrl : String;
+    FbannerTabletLowImageUrl : String;
+    FbannerTvHighImageUrl : String;
+    FbannerTvImageUrl : String;
+    FbannerTvLowImageUrl : String;
+    FbannerTvMediumImageUrl : String;
     FlargeBrandedBannerImageImapScript : TLocalizedProperty;
     FlargeBrandedBannerImageUrl : TLocalizedProperty;
     FsmallBrandedBannerImageImapScript : TLocalizedProperty;
     FsmallBrandedBannerImageUrl : TLocalizedProperty;
-    FtrackingImageUrl : string;
-    FwatchIconImageUrl : string;
+    FtrackingImageUrl : String;
+    FwatchIconImageUrl : String;
   Protected
     //Property setters
     Procedure SetbackgroundImageUrl(AIndex : Integer; AValue : TLocalizedProperty); virtual;
-    Procedure SetbannerExternalUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerMobileExtraHdImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerMobileHdImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerMobileImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerMobileLowImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerMobileMediumHdImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerTabletExtraHdImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerTabletHdImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerTabletImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerTabletLowImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerTvHighImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerTvImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerTvLowImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbannerTvMediumImageUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbannerExternalUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerMobileExtraHdImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerMobileHdImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerMobileImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerMobileLowImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerMobileMediumHdImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerTabletExtraHdImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerTabletHdImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerTabletImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerTabletLowImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerTvHighImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerTvImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerTvLowImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerTvMediumImageUrl(AIndex : Integer; AValue : String); virtual;
     Procedure SetlargeBrandedBannerImageImapScript(AIndex : Integer; AValue : TLocalizedProperty); virtual;
     Procedure SetlargeBrandedBannerImageUrl(AIndex : Integer; AValue : TLocalizedProperty); virtual;
     Procedure SetsmallBrandedBannerImageImapScript(AIndex : Integer; AValue : TLocalizedProperty); virtual;
     Procedure SetsmallBrandedBannerImageUrl(AIndex : Integer; AValue : TLocalizedProperty); virtual;
-    Procedure SettrackingImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwatchIconImageUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SettrackingImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwatchIconImageUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property backgroundImageUrl : TLocalizedProperty Index 0 Read FbackgroundImageUrl Write SetbackgroundImageUrl;
-    Property bannerExternalUrl : string Index 8 Read FbannerExternalUrl Write SetbannerExternalUrl;
-    Property bannerImageUrl : string Index 16 Read FbannerImageUrl Write SetbannerImageUrl;
-    Property bannerMobileExtraHdImageUrl : string Index 24 Read FbannerMobileExtraHdImageUrl Write SetbannerMobileExtraHdImageUrl;
-    Property bannerMobileHdImageUrl : string Index 32 Read FbannerMobileHdImageUrl Write SetbannerMobileHdImageUrl;
-    Property bannerMobileImageUrl : string Index 40 Read FbannerMobileImageUrl Write SetbannerMobileImageUrl;
-    Property bannerMobileLowImageUrl : string Index 48 Read FbannerMobileLowImageUrl Write SetbannerMobileLowImageUrl;
-    Property bannerMobileMediumHdImageUrl : string Index 56 Read FbannerMobileMediumHdImageUrl Write SetbannerMobileMediumHdImageUrl;
-    Property bannerTabletExtraHdImageUrl : string Index 64 Read FbannerTabletExtraHdImageUrl Write SetbannerTabletExtraHdImageUrl;
-    Property bannerTabletHdImageUrl : string Index 72 Read FbannerTabletHdImageUrl Write SetbannerTabletHdImageUrl;
-    Property bannerTabletImageUrl : string Index 80 Read FbannerTabletImageUrl Write SetbannerTabletImageUrl;
-    Property bannerTabletLowImageUrl : string Index 88 Read FbannerTabletLowImageUrl Write SetbannerTabletLowImageUrl;
-    Property bannerTvHighImageUrl : string Index 96 Read FbannerTvHighImageUrl Write SetbannerTvHighImageUrl;
-    Property bannerTvImageUrl : string Index 104 Read FbannerTvImageUrl Write SetbannerTvImageUrl;
-    Property bannerTvLowImageUrl : string Index 112 Read FbannerTvLowImageUrl Write SetbannerTvLowImageUrl;
-    Property bannerTvMediumImageUrl : string Index 120 Read FbannerTvMediumImageUrl Write SetbannerTvMediumImageUrl;
+    Property bannerExternalUrl : String Index 8 Read FbannerExternalUrl Write SetbannerExternalUrl;
+    Property bannerImageUrl : String Index 16 Read FbannerImageUrl Write SetbannerImageUrl;
+    Property bannerMobileExtraHdImageUrl : String Index 24 Read FbannerMobileExtraHdImageUrl Write SetbannerMobileExtraHdImageUrl;
+    Property bannerMobileHdImageUrl : String Index 32 Read FbannerMobileHdImageUrl Write SetbannerMobileHdImageUrl;
+    Property bannerMobileImageUrl : String Index 40 Read FbannerMobileImageUrl Write SetbannerMobileImageUrl;
+    Property bannerMobileLowImageUrl : String Index 48 Read FbannerMobileLowImageUrl Write SetbannerMobileLowImageUrl;
+    Property bannerMobileMediumHdImageUrl : String Index 56 Read FbannerMobileMediumHdImageUrl Write SetbannerMobileMediumHdImageUrl;
+    Property bannerTabletExtraHdImageUrl : String Index 64 Read FbannerTabletExtraHdImageUrl Write SetbannerTabletExtraHdImageUrl;
+    Property bannerTabletHdImageUrl : String Index 72 Read FbannerTabletHdImageUrl Write SetbannerTabletHdImageUrl;
+    Property bannerTabletImageUrl : String Index 80 Read FbannerTabletImageUrl Write SetbannerTabletImageUrl;
+    Property bannerTabletLowImageUrl : String Index 88 Read FbannerTabletLowImageUrl Write SetbannerTabletLowImageUrl;
+    Property bannerTvHighImageUrl : String Index 96 Read FbannerTvHighImageUrl Write SetbannerTvHighImageUrl;
+    Property bannerTvImageUrl : String Index 104 Read FbannerTvImageUrl Write SetbannerTvImageUrl;
+    Property bannerTvLowImageUrl : String Index 112 Read FbannerTvLowImageUrl Write SetbannerTvLowImageUrl;
+    Property bannerTvMediumImageUrl : String Index 120 Read FbannerTvMediumImageUrl Write SetbannerTvMediumImageUrl;
     Property largeBrandedBannerImageImapScript : TLocalizedProperty Index 128 Read FlargeBrandedBannerImageImapScript Write SetlargeBrandedBannerImageImapScript;
     Property largeBrandedBannerImageUrl : TLocalizedProperty Index 136 Read FlargeBrandedBannerImageUrl Write SetlargeBrandedBannerImageUrl;
     Property smallBrandedBannerImageImapScript : TLocalizedProperty Index 144 Read FsmallBrandedBannerImageImapScript Write SetsmallBrandedBannerImageImapScript;
     Property smallBrandedBannerImageUrl : TLocalizedProperty Index 152 Read FsmallBrandedBannerImageUrl Write SetsmallBrandedBannerImageUrl;
-    Property trackingImageUrl : string Index 160 Read FtrackingImageUrl Write SettrackingImageUrl;
-    Property watchIconImageUrl : string Index 168 Read FwatchIconImageUrl Write SetwatchIconImageUrl;
+    Property trackingImageUrl : String Index 160 Read FtrackingImageUrl Write SettrackingImageUrl;
+    Property watchIconImageUrl : String Index 168 Read FwatchIconImageUrl Write SetwatchIconImageUrl;
   end;
   TImageSettingsClass = Class of TImageSettings;
   
@@ -2681,19 +2291,19 @@ type
   
   TIngestionInfo = Class(TGoogleBaseObject)
   Private
-    FbackupIngestionAddress : string;
-    FingestionAddress : string;
-    FstreamName : string;
+    FbackupIngestionAddress : String;
+    FingestionAddress : String;
+    FstreamName : String;
   Protected
     //Property setters
-    Procedure SetbackupIngestionAddress(AIndex : Integer; AValue : string); virtual;
-    Procedure SetingestionAddress(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstreamName(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbackupIngestionAddress(AIndex : Integer; AValue : String); virtual;
+    Procedure SetingestionAddress(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstreamName(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property backupIngestionAddress : string Index 0 Read FbackupIngestionAddress Write SetbackupIngestionAddress;
-    Property ingestionAddress : string Index 8 Read FingestionAddress Write SetingestionAddress;
-    Property streamName : string Index 16 Read FstreamName Write SetstreamName;
+    Property backupIngestionAddress : String Index 0 Read FbackupIngestionAddress Write SetbackupIngestionAddress;
+    Property ingestionAddress : String Index 8 Read FingestionAddress Write SetingestionAddress;
+    Property streamName : String Index 16 Read FstreamName Write SetstreamName;
   end;
   TIngestionInfoClass = Class of TIngestionInfo;
   
@@ -2703,24 +2313,24 @@ type
   
   TInvideoBranding = Class(TGoogleBaseObject)
   Private
-    FimageBytes : string;
-    FimageUrl : string;
+    FimageBytes : String;
+    FimageUrl : String;
     Fposition : TInvideoPosition;
-    FtargetChannelId : string;
+    FtargetChannelId : String;
     Ftiming : TInvideoTiming;
   Protected
     //Property setters
-    Procedure SetimageBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetimageUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetimageBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetimageUrl(AIndex : Integer; AValue : String); virtual;
     Procedure Setposition(AIndex : Integer; AValue : TInvideoPosition); virtual;
-    Procedure SettargetChannelId(AIndex : Integer; AValue : string); virtual;
+    Procedure SettargetChannelId(AIndex : Integer; AValue : String); virtual;
     Procedure Settiming(AIndex : Integer; AValue : TInvideoTiming); virtual;
   Public
   Published
-    Property imageBytes : string Index 0 Read FimageBytes Write SetimageBytes;
-    Property imageUrl : string Index 8 Read FimageUrl Write SetimageUrl;
+    Property imageBytes : String Index 0 Read FimageBytes Write SetimageBytes;
+    Property imageUrl : String Index 8 Read FimageUrl Write SetimageUrl;
     Property position : TInvideoPosition Index 16 Read Fposition Write Setposition;
-    Property targetChannelId : string Index 24 Read FtargetChannelId Write SettargetChannelId;
+    Property targetChannelId : String Index 24 Read FtargetChannelId Write SettargetChannelId;
     Property timing : TInvideoTiming Index 32 Read Ftiming Write Settiming;
   end;
   TInvideoBrandingClass = Class of TInvideoBranding;
@@ -2731,17 +2341,17 @@ type
   
   TInvideoPosition = Class(TGoogleBaseObject)
   Private
-    FcornerPosition : string;
-    F_type : string;
+    FcornerPosition : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetcornerPosition(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcornerPosition(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property cornerPosition : string Index 0 Read FcornerPosition Write SetcornerPosition;
-    Property _type : string Index 8 Read F_type Write Set_type;
+    Property cornerPosition : String Index 0 Read FcornerPosition Write SetcornerPosition;
+    Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TInvideoPositionClass = Class of TInvideoPosition;
   
@@ -2752,36 +2362,23 @@ type
   TInvideoPromotion = Class(TGoogleBaseObject)
   Private
     FdefaultTiming : TInvideoTiming;
-    Fitems : TInvideoPromotionitems;
+    Fitems : TInvideoPromotionTypeitemsArray;
     Fposition : TInvideoPosition;
     FuseSmartTiming : boolean;
   Protected
     //Property setters
     Procedure SetdefaultTiming(AIndex : Integer; AValue : TInvideoTiming); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TInvideoPromotionitems); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TInvideoPromotionTypeitemsArray); virtual;
     Procedure Setposition(AIndex : Integer; AValue : TInvideoPosition); virtual;
     Procedure SetuseSmartTiming(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
     Property defaultTiming : TInvideoTiming Index 0 Read FdefaultTiming Write SetdefaultTiming;
-    Property items : TInvideoPromotionitems Index 8 Read Fitems Write Setitems;
+    Property items : TInvideoPromotionTypeitemsArray Index 8 Read Fitems Write Setitems;
     Property position : TInvideoPosition Index 16 Read Fposition Write Setposition;
     Property useSmartTiming : boolean Index 24 Read FuseSmartTiming Write SetuseSmartTiming;
   end;
   TInvideoPromotionClass = Class of TInvideoPromotion;
-  
-  { --------------------------------------------------------------------
-    TInvideoPromotionitems
-    --------------------------------------------------------------------}
-  
-  TInvideoPromotionitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInvideoPromotionitemsClass = Class of TInvideoPromotionitems;
   
   { --------------------------------------------------------------------
     TInvideoTiming
@@ -2789,20 +2386,20 @@ type
   
   TInvideoTiming = Class(TGoogleBaseObject)
   Private
-    FdurationMs : string;
-    FoffsetMs : string;
-    F_type : string;
+    FdurationMs : String;
+    FoffsetMs : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdurationMs(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoffsetMs(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdurationMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoffsetMs(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property durationMs : string Index 0 Read FdurationMs Write SetdurationMs;
-    Property offsetMs : string Index 8 Read FoffsetMs Write SetoffsetMs;
-    Property _type : string Index 16 Read F_type Write Set_type;
+    Property durationMs : String Index 0 Read FdurationMs Write SetdurationMs;
+    Property offsetMs : String Index 8 Read FoffsetMs Write SetoffsetMs;
+    Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TInvideoTimingClass = Class of TInvideoTiming;
   
@@ -2812,13 +2409,13 @@ type
   
   TLanguageTag = Class(TGoogleBaseObject)
   Private
-    Fvalue : string;
+    Fvalue : String;
   Protected
     //Property setters
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property value : string Index 0 Read Fvalue Write Setvalue;
+    Property value : String Index 0 Read Fvalue Write Setvalue;
   end;
   TLanguageTagClass = Class of TLanguageTag;
   
@@ -2829,25 +2426,25 @@ type
   TLiveBroadcast = Class(TGoogleBaseObject)
   Private
     FcontentDetails : TLiveBroadcastContentDetails;
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Fsnippet : TLiveBroadcastSnippet;
     Fstatus : TLiveBroadcastStatus;
   Protected
     //Property setters
     Procedure SetcontentDetails(AIndex : Integer; AValue : TLiveBroadcastContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TLiveBroadcastSnippet); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TLiveBroadcastStatus); virtual;
   Public
   Published
     Property contentDetails : TLiveBroadcastContentDetails Index 0 Read FcontentDetails Write SetcontentDetails;
-    Property etag : string Index 8 Read Fetag Write Setetag;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
+    Property etag : String Index 8 Read Fetag Write Setetag;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
     Property snippet : TLiveBroadcastSnippet Index 32 Read Fsnippet Write Setsnippet;
     Property status : TLiveBroadcastStatus Index 40 Read Fstatus Write Setstatus;
   end;
@@ -2859,7 +2456,7 @@ type
   
   TLiveBroadcastContentDetails = Class(TGoogleBaseObject)
   Private
-    FboundStreamId : string;
+    FboundStreamId : String;
     FenableClosedCaptions : boolean;
     FenableContentEncryption : boolean;
     FenableDvr : boolean;
@@ -2869,7 +2466,7 @@ type
     FstartWithSlate : boolean;
   Protected
     //Property setters
-    Procedure SetboundStreamId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetboundStreamId(AIndex : Integer; AValue : String); virtual;
     Procedure SetenableClosedCaptions(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetenableContentEncryption(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetenableDvr(AIndex : Integer; AValue : boolean); virtual;
@@ -2879,7 +2476,7 @@ type
     Procedure SetstartWithSlate(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property boundStreamId : string Index 0 Read FboundStreamId Write SetboundStreamId;
+    Property boundStreamId : String Index 0 Read FboundStreamId Write SetboundStreamId;
     Property enableClosedCaptions : boolean Index 8 Read FenableClosedCaptions Write SetenableClosedCaptions;
     Property enableContentEncryption : boolean Index 16 Read FenableContentEncryption Write SetenableContentEncryption;
     Property enableDvr : boolean Index 24 Read FenableDvr Write SetenableDvr;
@@ -2896,52 +2493,39 @@ type
   
   TLiveBroadcastListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TLiveBroadcastListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TLiveBroadcastListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
-    FprevPageToken : string;
+    FprevPageToken : String;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TLiveBroadcastListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TLiveBroadcastListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TLiveBroadcastListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TLiveBroadcastListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
-    Property prevPageToken : string Index 48 Read FprevPageToken Write SetprevPageToken;
+    Property prevPageToken : String Index 48 Read FprevPageToken Write SetprevPageToken;
     Property tokenPagination : TTokenPagination Index 56 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 64 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 64 Read FvisitorId Write SetvisitorId;
   end;
   TLiveBroadcastListResponseClass = Class of TLiveBroadcastListResponse;
-  
-  { --------------------------------------------------------------------
-    TLiveBroadcastListResponseitems
-    --------------------------------------------------------------------}
-  
-  TLiveBroadcastListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLiveBroadcastListResponseitemsClass = Class of TLiveBroadcastListResponseitems;
   
   { --------------------------------------------------------------------
     TLiveBroadcastSnippet
@@ -2951,35 +2535,35 @@ type
   Private
     FactualEndTime : TDatetime;
     FactualStartTime : TDatetime;
-    FchannelId : string;
-    Fdescription : string;
+    FchannelId : String;
+    Fdescription : String;
     FpublishedAt : TDatetime;
     FscheduledEndTime : TDatetime;
     FscheduledStartTime : TDatetime;
     Fthumbnails : TThumbnailDetails;
-    Ftitle : string;
+    Ftitle : String;
   Protected
     //Property setters
     Procedure SetactualEndTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetactualStartTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetscheduledEndTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetscheduledStartTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property actualEndTime : TDatetime Index 0 Read FactualEndTime Write SetactualEndTime;
     Property actualStartTime : TDatetime Index 8 Read FactualStartTime Write SetactualStartTime;
-    Property channelId : string Index 16 Read FchannelId Write SetchannelId;
-    Property description : string Index 24 Read Fdescription Write Setdescription;
+    Property channelId : String Index 16 Read FchannelId Write SetchannelId;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
     Property publishedAt : TDatetime Index 32 Read FpublishedAt Write SetpublishedAt;
     Property scheduledEndTime : TDatetime Index 40 Read FscheduledEndTime Write SetscheduledEndTime;
     Property scheduledStartTime : TDatetime Index 48 Read FscheduledStartTime Write SetscheduledStartTime;
     Property thumbnails : TThumbnailDetails Index 56 Read Fthumbnails Write Setthumbnails;
-    Property title : string Index 64 Read Ftitle Write Settitle;
+    Property title : String Index 64 Read Ftitle Write Settitle;
   end;
   TLiveBroadcastSnippetClass = Class of TLiveBroadcastSnippet;
   
@@ -2990,24 +2574,24 @@ type
   TLiveBroadcastStatus = Class(TGoogleBaseObject)
   Private
     FisDefaultBroadcast : boolean;
-    FlifeCycleStatus : string;
-    FliveBroadcastPriority : string;
-    FprivacyStatus : string;
-    FrecordingStatus : string;
+    FlifeCycleStatus : String;
+    FliveBroadcastPriority : String;
+    FprivacyStatus : String;
+    FrecordingStatus : String;
   Protected
     //Property setters
     Procedure SetisDefaultBroadcast(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetlifeCycleStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetliveBroadcastPriority(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprivacyStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrecordingStatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetlifeCycleStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetliveBroadcastPriority(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprivacyStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrecordingStatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property isDefaultBroadcast : boolean Index 0 Read FisDefaultBroadcast Write SetisDefaultBroadcast;
-    Property lifeCycleStatus : string Index 8 Read FlifeCycleStatus Write SetlifeCycleStatus;
-    Property liveBroadcastPriority : string Index 16 Read FliveBroadcastPriority Write SetliveBroadcastPriority;
-    Property privacyStatus : string Index 24 Read FprivacyStatus Write SetprivacyStatus;
-    Property recordingStatus : string Index 32 Read FrecordingStatus Write SetrecordingStatus;
+    Property lifeCycleStatus : String Index 8 Read FlifeCycleStatus Write SetlifeCycleStatus;
+    Property liveBroadcastPriority : String Index 16 Read FliveBroadcastPriority Write SetliveBroadcastPriority;
+    Property privacyStatus : String Index 24 Read FprivacyStatus Write SetprivacyStatus;
+    Property recordingStatus : String Index 32 Read FrecordingStatus Write SetrecordingStatus;
   end;
   TLiveBroadcastStatusClass = Class of TLiveBroadcastStatus;
   
@@ -3019,27 +2603,27 @@ type
   Private
     Fcdn : TCdnSettings;
     FcontentDetails : TLiveStreamContentDetails;
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Fsnippet : TLiveStreamSnippet;
     Fstatus : TLiveStreamStatus;
   Protected
     //Property setters
     Procedure Setcdn(AIndex : Integer; AValue : TCdnSettings); virtual;
     Procedure SetcontentDetails(AIndex : Integer; AValue : TLiveStreamContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TLiveStreamSnippet); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TLiveStreamStatus); virtual;
   Public
   Published
     Property cdn : TCdnSettings Index 0 Read Fcdn Write Setcdn;
     Property contentDetails : TLiveStreamContentDetails Index 8 Read FcontentDetails Write SetcontentDetails;
-    Property etag : string Index 16 Read Fetag Write Setetag;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
+    Property etag : String Index 16 Read Fetag Write Setetag;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
     Property snippet : TLiveStreamSnippet Index 40 Read Fsnippet Write Setsnippet;
     Property status : TLiveStreamStatus Index 48 Read Fstatus Write Setstatus;
   end;
@@ -3051,15 +2635,15 @@ type
   
   TLiveStreamContentDetails = Class(TGoogleBaseObject)
   Private
-    FclosedCaptionsIngestionUrl : string;
+    FclosedCaptionsIngestionUrl : String;
     FisReusable : boolean;
   Protected
     //Property setters
-    Procedure SetclosedCaptionsIngestionUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetclosedCaptionsIngestionUrl(AIndex : Integer; AValue : String); virtual;
     Procedure SetisReusable(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property closedCaptionsIngestionUrl : string Index 0 Read FclosedCaptionsIngestionUrl Write SetclosedCaptionsIngestionUrl;
+    Property closedCaptionsIngestionUrl : String Index 0 Read FclosedCaptionsIngestionUrl Write SetclosedCaptionsIngestionUrl;
     Property isReusable : boolean Index 8 Read FisReusable Write SetisReusable;
   end;
   TLiveStreamContentDetailsClass = Class of TLiveStreamContentDetails;
@@ -3070,52 +2654,39 @@ type
   
   TLiveStreamListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TLiveStreamListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TLiveStreamListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
-    FprevPageToken : string;
+    FprevPageToken : String;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TLiveStreamListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TLiveStreamListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TLiveStreamListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TLiveStreamListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
-    Property prevPageToken : string Index 48 Read FprevPageToken Write SetprevPageToken;
+    Property prevPageToken : String Index 48 Read FprevPageToken Write SetprevPageToken;
     Property tokenPagination : TTokenPagination Index 56 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 64 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 64 Read FvisitorId Write SetvisitorId;
   end;
   TLiveStreamListResponseClass = Class of TLiveStreamListResponse;
-  
-  { --------------------------------------------------------------------
-    TLiveStreamListResponseitems
-    --------------------------------------------------------------------}
-  
-  TLiveStreamListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLiveStreamListResponseitemsClass = Class of TLiveStreamListResponseitems;
   
   { --------------------------------------------------------------------
     TLiveStreamSnippet
@@ -3123,22 +2694,22 @@ type
   
   TLiveStreamSnippet = Class(TGoogleBaseObject)
   Private
-    FchannelId : string;
-    Fdescription : string;
+    FchannelId : String;
+    Fdescription : String;
     FpublishedAt : TDatetime;
-    Ftitle : string;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property channelId : string Index 0 Read FchannelId Write SetchannelId;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
     Property publishedAt : TDatetime Index 16 Read FpublishedAt Write SetpublishedAt;
-    Property title : string Index 24 Read Ftitle Write Settitle;
+    Property title : String Index 24 Read Ftitle Write Settitle;
   end;
   TLiveStreamSnippetClass = Class of TLiveStreamSnippet;
   
@@ -3149,15 +2720,15 @@ type
   TLiveStreamStatus = Class(TGoogleBaseObject)
   Private
     FisDefaultStream : boolean;
-    FstreamStatus : string;
+    FstreamStatus : String;
   Protected
     //Property setters
     Procedure SetisDefaultStream(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetstreamStatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetstreamStatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property isDefaultStream : boolean Index 0 Read FisDefaultStream Write SetisDefaultStream;
-    Property streamStatus : string Index 8 Read FstreamStatus Write SetstreamStatus;
+    Property streamStatus : String Index 8 Read FstreamStatus Write SetstreamStatus;
   end;
   TLiveStreamStatusClass = Class of TLiveStreamStatus;
   
@@ -3167,34 +2738,21 @@ type
   
   TLocalizedProperty = Class(TGoogleBaseObject)
   Private
-    Fdefault : string;
+    Fdefault : String;
     FdefaultLanguage : TLanguageTag;
-    Flocalized : TLocalizedPropertylocalized;
+    Flocalized : TLocalizedPropertyTypelocalizedArray;
   Protected
     //Property setters
-    Procedure Setdefault(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdefault(AIndex : Integer; AValue : String); virtual;
     Procedure SetdefaultLanguage(AIndex : Integer; AValue : TLanguageTag); virtual;
-    Procedure Setlocalized(AIndex : Integer; AValue : TLocalizedPropertylocalized); virtual;
+    Procedure Setlocalized(AIndex : Integer; AValue : TLocalizedPropertyTypelocalizedArray); virtual;
   Public
   Published
-    Property default : string Index 0 Read Fdefault Write Setdefault;
+    Property default : String Index 0 Read Fdefault Write Setdefault;
     Property defaultLanguage : TLanguageTag Index 8 Read FdefaultLanguage Write SetdefaultLanguage;
-    Property localized : TLocalizedPropertylocalized Index 16 Read Flocalized Write Setlocalized;
+    Property localized : TLocalizedPropertyTypelocalizedArray Index 16 Read Flocalized Write Setlocalized;
   end;
   TLocalizedPropertyClass = Class of TLocalizedProperty;
-  
-  { --------------------------------------------------------------------
-    TLocalizedPropertylocalized
-    --------------------------------------------------------------------}
-  
-  TLocalizedPropertylocalized = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLocalizedPropertylocalizedClass = Class of TLocalizedPropertylocalized;
   
   { --------------------------------------------------------------------
     TLocalizedString
@@ -3202,16 +2760,16 @@ type
   
   TLocalizedString = Class(TGoogleBaseObject)
   Private
-    Flanguage : string;
-    Fvalue : string;
+    Flanguage : String;
+    Fvalue : String;
   Protected
     //Property setters
-    Procedure Setlanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property language : string Index 0 Read Flanguage Write Setlanguage;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property language : String Index 0 Read Flanguage Write Setlanguage;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TLocalizedStringClass = Class of TLocalizedString;
   
@@ -3222,17 +2780,17 @@ type
   TMonitorStreamInfo = Class(TGoogleBaseObject)
   Private
     FbroadcastStreamDelayMs : integer;
-    FembedHtml : string;
+    FembedHtml : String;
     FenableMonitorStream : boolean;
   Protected
     //Property setters
     Procedure SetbroadcastStreamDelayMs(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetembedHtml(AIndex : Integer; AValue : string); virtual;
+    Procedure SetembedHtml(AIndex : Integer; AValue : String); virtual;
     Procedure SetenableMonitorStream(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
     Property broadcastStreamDelayMs : integer Index 0 Read FbroadcastStreamDelayMs Write SetbroadcastStreamDelayMs;
-    Property embedHtml : string Index 8 Read FembedHtml Write SetembedHtml;
+    Property embedHtml : String Index 8 Read FembedHtml Write SetembedHtml;
     Property enableMonitorStream : boolean Index 16 Read FenableMonitorStream Write SetenableMonitorStream;
   end;
   TMonitorStreamInfoClass = Class of TMonitorStreamInfo;
@@ -3257,47 +2815,10 @@ type
   TPageInfoClass = Class of TPageInfo;
   
   { --------------------------------------------------------------------
-    TPlaylist
+    TPlaylistTypelocalizations
     --------------------------------------------------------------------}
   
-  TPlaylist = Class(TGoogleBaseObject)
-  Private
-    FcontentDetails : TPlaylistContentDetails;
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
-    Flocalizations : TPlaylistlocalizations;
-    Fplayer : TPlaylistPlayer;
-    Fsnippet : TPlaylistSnippet;
-    Fstatus : TPlaylistStatus;
-  Protected
-    //Property setters
-    Procedure SetcontentDetails(AIndex : Integer; AValue : TPlaylistContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocalizations(AIndex : Integer; AValue : TPlaylistlocalizations); virtual;
-    Procedure Setplayer(AIndex : Integer; AValue : TPlaylistPlayer); virtual;
-    Procedure Setsnippet(AIndex : Integer; AValue : TPlaylistSnippet); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : TPlaylistStatus); virtual;
-  Public
-  Published
-    Property contentDetails : TPlaylistContentDetails Index 0 Read FcontentDetails Write SetcontentDetails;
-    Property etag : string Index 8 Read Fetag Write Setetag;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property localizations : TPlaylistlocalizations Index 32 Read Flocalizations Write Setlocalizations;
-    Property player : TPlaylistPlayer Index 40 Read Fplayer Write Setplayer;
-    Property snippet : TPlaylistSnippet Index 48 Read Fsnippet Write Setsnippet;
-    Property status : TPlaylistStatus Index 56 Read Fstatus Write Setstatus;
-  end;
-  TPlaylistClass = Class of TPlaylist;
-  
-  { --------------------------------------------------------------------
-    TPlaylistlocalizations
-    --------------------------------------------------------------------}
-  
-  TPlaylistlocalizations = Class(TGoogleBaseObject)
+  TPlaylistTypelocalizations = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -3305,7 +2826,44 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TPlaylistlocalizationsClass = Class of TPlaylistlocalizations;
+  TPlaylistTypelocalizationsClass = Class of TPlaylistTypelocalizations;
+  
+  { --------------------------------------------------------------------
+    TPlaylist
+    --------------------------------------------------------------------}
+  
+  TPlaylist = Class(TGoogleBaseObject)
+  Private
+    FcontentDetails : TPlaylistContentDetails;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
+    Flocalizations : TPlaylistTypelocalizations;
+    Fplayer : TPlaylistPlayer;
+    Fsnippet : TPlaylistSnippet;
+    Fstatus : TPlaylistStatus;
+  Protected
+    //Property setters
+    Procedure SetcontentDetails(AIndex : Integer; AValue : TPlaylistContentDetails); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocalizations(AIndex : Integer; AValue : TPlaylistTypelocalizations); virtual;
+    Procedure Setplayer(AIndex : Integer; AValue : TPlaylistPlayer); virtual;
+    Procedure Setsnippet(AIndex : Integer; AValue : TPlaylistSnippet); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : TPlaylistStatus); virtual;
+  Public
+  Published
+    Property contentDetails : TPlaylistContentDetails Index 0 Read FcontentDetails Write SetcontentDetails;
+    Property etag : String Index 8 Read Fetag Write Setetag;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property localizations : TPlaylistTypelocalizations Index 32 Read Flocalizations Write Setlocalizations;
+    Property player : TPlaylistPlayer Index 40 Read Fplayer Write Setplayer;
+    Property snippet : TPlaylistSnippet Index 48 Read Fsnippet Write Setsnippet;
+    Property status : TPlaylistStatus Index 56 Read Fstatus Write Setstatus;
+  end;
+  TPlaylistClass = Class of TPlaylist;
   
   { --------------------------------------------------------------------
     TPlaylistContentDetails
@@ -3330,25 +2888,25 @@ type
   TPlaylistItem = Class(TGoogleBaseObject)
   Private
     FcontentDetails : TPlaylistItemContentDetails;
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Fsnippet : TPlaylistItemSnippet;
     Fstatus : TPlaylistItemStatus;
   Protected
     //Property setters
     Procedure SetcontentDetails(AIndex : Integer; AValue : TPlaylistItemContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TPlaylistItemSnippet); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TPlaylistItemStatus); virtual;
   Public
   Published
     Property contentDetails : TPlaylistItemContentDetails Index 0 Read FcontentDetails Write SetcontentDetails;
-    Property etag : string Index 8 Read Fetag Write Setetag;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
+    Property etag : String Index 8 Read Fetag Write Setetag;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
     Property snippet : TPlaylistItemSnippet Index 32 Read Fsnippet Write Setsnippet;
     Property status : TPlaylistItemStatus Index 40 Read Fstatus Write Setstatus;
   end;
@@ -3360,22 +2918,22 @@ type
   
   TPlaylistItemContentDetails = Class(TGoogleBaseObject)
   Private
-    FendAt : string;
-    Fnote : string;
-    FstartAt : string;
-    FvideoId : string;
+    FendAt : String;
+    Fnote : String;
+    FstartAt : String;
+    FvideoId : String;
   Protected
     //Property setters
-    Procedure SetendAt(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnote(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstartAt(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetendAt(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnote(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstartAt(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property endAt : string Index 0 Read FendAt Write SetendAt;
-    Property note : string Index 8 Read Fnote Write Setnote;
-    Property startAt : string Index 16 Read FstartAt Write SetstartAt;
-    Property videoId : string Index 24 Read FvideoId Write SetvideoId;
+    Property endAt : String Index 0 Read FendAt Write SetendAt;
+    Property note : String Index 8 Read Fnote Write Setnote;
+    Property startAt : String Index 16 Read FstartAt Write SetstartAt;
+    Property videoId : String Index 24 Read FvideoId Write SetvideoId;
   end;
   TPlaylistItemContentDetailsClass = Class of TPlaylistItemContentDetails;
   
@@ -3385,52 +2943,39 @@ type
   
   TPlaylistItemListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TPlaylistItemListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TPlaylistItemListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
-    FprevPageToken : string;
+    FprevPageToken : String;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TPlaylistItemListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TPlaylistItemListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TPlaylistItemListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TPlaylistItemListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
-    Property prevPageToken : string Index 48 Read FprevPageToken Write SetprevPageToken;
+    Property prevPageToken : String Index 48 Read FprevPageToken Write SetprevPageToken;
     Property tokenPagination : TTokenPagination Index 56 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 64 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 64 Read FvisitorId Write SetvisitorId;
   end;
   TPlaylistItemListResponseClass = Class of TPlaylistItemListResponse;
-  
-  { --------------------------------------------------------------------
-    TPlaylistItemListResponseitems
-    --------------------------------------------------------------------}
-  
-  TPlaylistItemListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPlaylistItemListResponseitemsClass = Class of TPlaylistItemListResponseitems;
   
   { --------------------------------------------------------------------
     TPlaylistItemSnippet
@@ -3438,37 +2983,37 @@ type
   
   TPlaylistItemSnippet = Class(TGoogleBaseObject)
   Private
-    FchannelId : string;
-    FchannelTitle : string;
-    Fdescription : string;
-    FplaylistId : string;
+    FchannelId : String;
+    FchannelTitle : String;
+    Fdescription : String;
+    FplaylistId : String;
     Fposition : integer;
     FpublishedAt : TDatetime;
     FresourceId : TResourceId;
     Fthumbnails : TThumbnailDetails;
-    Ftitle : string;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetchannelTitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetplaylistId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelTitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetplaylistId(AIndex : Integer; AValue : String); virtual;
     Procedure Setposition(AIndex : Integer; AValue : integer); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetresourceId(AIndex : Integer; AValue : TResourceId); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property channelId : string Index 0 Read FchannelId Write SetchannelId;
-    Property channelTitle : string Index 8 Read FchannelTitle Write SetchannelTitle;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property playlistId : string Index 24 Read FplaylistId Write SetplaylistId;
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
+    Property channelTitle : String Index 8 Read FchannelTitle Write SetchannelTitle;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property playlistId : String Index 24 Read FplaylistId Write SetplaylistId;
     Property position : integer Index 32 Read Fposition Write Setposition;
     Property publishedAt : TDatetime Index 40 Read FpublishedAt Write SetpublishedAt;
     Property resourceId : TResourceId Index 48 Read FresourceId Write SetresourceId;
     Property thumbnails : TThumbnailDetails Index 56 Read Fthumbnails Write Setthumbnails;
-    Property title : string Index 64 Read Ftitle Write Settitle;
+    Property title : String Index 64 Read Ftitle Write Settitle;
   end;
   TPlaylistItemSnippetClass = Class of TPlaylistItemSnippet;
   
@@ -3478,13 +3023,13 @@ type
   
   TPlaylistItemStatus = Class(TGoogleBaseObject)
   Private
-    FprivacyStatus : string;
+    FprivacyStatus : String;
   Protected
     //Property setters
-    Procedure SetprivacyStatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprivacyStatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property privacyStatus : string Index 0 Read FprivacyStatus Write SetprivacyStatus;
+    Property privacyStatus : String Index 0 Read FprivacyStatus Write SetprivacyStatus;
   end;
   TPlaylistItemStatusClass = Class of TPlaylistItemStatus;
   
@@ -3494,52 +3039,39 @@ type
   
   TPlaylistListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TPlaylistListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TPlaylistListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
-    FprevPageToken : string;
+    FprevPageToken : String;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TPlaylistListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TPlaylistListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TPlaylistListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TPlaylistListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
-    Property prevPageToken : string Index 48 Read FprevPageToken Write SetprevPageToken;
+    Property prevPageToken : String Index 48 Read FprevPageToken Write SetprevPageToken;
     Property tokenPagination : TTokenPagination Index 56 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 64 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 64 Read FvisitorId Write SetvisitorId;
   end;
   TPlaylistListResponseClass = Class of TPlaylistListResponse;
-  
-  { --------------------------------------------------------------------
-    TPlaylistListResponseitems
-    --------------------------------------------------------------------}
-  
-  TPlaylistListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPlaylistListResponseitemsClass = Class of TPlaylistListResponseitems;
   
   { --------------------------------------------------------------------
     TPlaylistLocalization
@@ -3547,16 +3079,16 @@ type
   
   TPlaylistLocalization = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Ftitle : string;
+    Fdescription : String;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property title : string Index 8 Read Ftitle Write Settitle;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property title : String Index 8 Read Ftitle Write Settitle;
   end;
   TPlaylistLocalizationClass = Class of TPlaylistLocalization;
   
@@ -3566,13 +3098,13 @@ type
   
   TPlaylistPlayer = Class(TGoogleBaseObject)
   Private
-    FembedHtml : string;
+    FembedHtml : String;
   Protected
     //Property setters
-    Procedure SetembedHtml(AIndex : Integer; AValue : string); virtual;
+    Procedure SetembedHtml(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property embedHtml : string Index 0 Read FembedHtml Write SetembedHtml;
+    Property embedHtml : String Index 0 Read FembedHtml Write SetembedHtml;
   end;
   TPlaylistPlayerClass = Class of TPlaylistPlayer;
   
@@ -3582,52 +3114,39 @@ type
   
   TPlaylistSnippet = Class(TGoogleBaseObject)
   Private
-    FchannelId : string;
-    FchannelTitle : string;
-    FdefaultLanguage : string;
-    Fdescription : string;
+    FchannelId : String;
+    FchannelTitle : String;
+    FdefaultLanguage : String;
+    Fdescription : String;
     Flocalized : TPlaylistLocalization;
     FpublishedAt : TDatetime;
-    Ftags : TPlaylistSnippettags;
+    Ftags : TStringArray;
     Fthumbnails : TThumbnailDetails;
-    Ftitle : string;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetchannelTitle(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdefaultLanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelTitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdefaultLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure Setlocalized(AIndex : Integer; AValue : TPlaylistLocalization); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Settags(AIndex : Integer; AValue : TPlaylistSnippettags); virtual;
+    Procedure Settags(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property channelId : string Index 0 Read FchannelId Write SetchannelId;
-    Property channelTitle : string Index 8 Read FchannelTitle Write SetchannelTitle;
-    Property defaultLanguage : string Index 16 Read FdefaultLanguage Write SetdefaultLanguage;
-    Property description : string Index 24 Read Fdescription Write Setdescription;
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
+    Property channelTitle : String Index 8 Read FchannelTitle Write SetchannelTitle;
+    Property defaultLanguage : String Index 16 Read FdefaultLanguage Write SetdefaultLanguage;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
     Property localized : TPlaylistLocalization Index 32 Read Flocalized Write Setlocalized;
     Property publishedAt : TDatetime Index 40 Read FpublishedAt Write SetpublishedAt;
-    Property tags : TPlaylistSnippettags Index 48 Read Ftags Write Settags;
+    Property tags : TStringArray Index 48 Read Ftags Write Settags;
     Property thumbnails : TThumbnailDetails Index 56 Read Fthumbnails Write Setthumbnails;
-    Property title : string Index 64 Read Ftitle Write Settitle;
+    Property title : String Index 64 Read Ftitle Write Settitle;
   end;
   TPlaylistSnippetClass = Class of TPlaylistSnippet;
-  
-  { --------------------------------------------------------------------
-    TPlaylistSnippettags
-    --------------------------------------------------------------------}
-  
-  TPlaylistSnippettags = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPlaylistSnippettagsClass = Class of TPlaylistSnippettags;
   
   { --------------------------------------------------------------------
     TPlaylistStatus
@@ -3635,13 +3154,13 @@ type
   
   TPlaylistStatus = Class(TGoogleBaseObject)
   Private
-    FprivacyStatus : string;
+    FprivacyStatus : String;
   Protected
     //Property setters
-    Procedure SetprivacyStatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprivacyStatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property privacyStatus : string Index 0 Read FprivacyStatus Write SetprivacyStatus;
+    Property privacyStatus : String Index 0 Read FprivacyStatus Write SetprivacyStatus;
   end;
   TPlaylistStatusClass = Class of TPlaylistStatus;
   
@@ -3651,19 +3170,19 @@ type
   
   TPromotedItem = Class(TGoogleBaseObject)
   Private
-    FcustomMessage : string;
+    FcustomMessage : String;
     Fid : TPromotedItemId;
     FpromotedByContentOwner : boolean;
     Ftiming : TInvideoTiming;
   Protected
     //Property setters
-    Procedure SetcustomMessage(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcustomMessage(AIndex : Integer; AValue : String); virtual;
     Procedure Setid(AIndex : Integer; AValue : TPromotedItemId); virtual;
     Procedure SetpromotedByContentOwner(AIndex : Integer; AValue : boolean); virtual;
     Procedure Settiming(AIndex : Integer; AValue : TInvideoTiming); virtual;
   Public
   Published
-    Property customMessage : string Index 0 Read FcustomMessage Write SetcustomMessage;
+    Property customMessage : String Index 0 Read FcustomMessage Write SetcustomMessage;
     Property id : TPromotedItemId Index 8 Read Fid Write Setid;
     Property promotedByContentOwner : boolean Index 16 Read FpromotedByContentOwner Write SetpromotedByContentOwner;
     Property timing : TInvideoTiming Index 24 Read Ftiming Write Settiming;
@@ -3676,23 +3195,23 @@ type
   
   TPromotedItemId = Class(TGoogleBaseObject)
   Private
-    FrecentlyUploadedBy : string;
-    F_type : string;
-    FvideoId : string;
-    FwebsiteUrl : string;
+    FrecentlyUploadedBy : String;
+    F_type : String;
+    FvideoId : String;
+    FwebsiteUrl : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetrecentlyUploadedBy(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwebsiteUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetrecentlyUploadedBy(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwebsiteUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property recentlyUploadedBy : string Index 0 Read FrecentlyUploadedBy Write SetrecentlyUploadedBy;
-    Property _type : string Index 8 Read F_type Write Set_type;
-    Property videoId : string Index 16 Read FvideoId Write SetvideoId;
-    Property websiteUrl : string Index 24 Read FwebsiteUrl Write SetwebsiteUrl;
+    Property recentlyUploadedBy : String Index 0 Read FrecentlyUploadedBy Write SetrecentlyUploadedBy;
+    Property _type : String Index 8 Read F_type Write Set_type;
+    Property videoId : String Index 16 Read FvideoId Write SetvideoId;
+    Property websiteUrl : String Index 24 Read FwebsiteUrl Write SetwebsiteUrl;
   end;
   TPromotedItemIdClass = Class of TPromotedItemId;
   
@@ -3702,17 +3221,17 @@ type
   
   TPropertyValue = Class(TGoogleBaseObject)
   Private
-    F_property : string;
-    Fvalue : string;
+    F_property : String;
+    Fvalue : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_property(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_property(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _property : string Index 0 Read F_property Write Set_property;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property _property : String Index 0 Read F_property Write Set_property;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TPropertyValueClass = Class of TPropertyValue;
   
@@ -3722,22 +3241,22 @@ type
   
   TResourceId = Class(TGoogleBaseObject)
   Private
-    FchannelId : string;
-    Fkind : string;
-    FplaylistId : string;
-    FvideoId : string;
+    FchannelId : String;
+    Fkind : String;
+    FplaylistId : String;
+    FvideoId : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetplaylistId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetplaylistId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property channelId : string Index 0 Read FchannelId Write SetchannelId;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property playlistId : string Index 16 Read FplaylistId Write SetplaylistId;
-    Property videoId : string Index 24 Read FvideoId Write SetvideoId;
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property playlistId : String Index 16 Read FplaylistId Write SetplaylistId;
+    Property videoId : String Index 24 Read FvideoId Write SetvideoId;
   end;
   TResourceIdClass = Class of TResourceId;
   
@@ -3747,52 +3266,39 @@ type
   
   TSearchListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TSearchListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TSearchListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
-    FprevPageToken : string;
+    FprevPageToken : String;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TSearchListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TSearchListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TSearchListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TSearchListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
-    Property prevPageToken : string Index 48 Read FprevPageToken Write SetprevPageToken;
+    Property prevPageToken : String Index 48 Read FprevPageToken Write SetprevPageToken;
     Property tokenPagination : TTokenPagination Index 56 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 64 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 64 Read FvisitorId Write SetvisitorId;
   end;
   TSearchListResponseClass = Class of TSearchListResponse;
-  
-  { --------------------------------------------------------------------
-    TSearchListResponseitems
-    --------------------------------------------------------------------}
-  
-  TSearchListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchListResponseitemsClass = Class of TSearchListResponseitems;
   
   { --------------------------------------------------------------------
     TSearchResult
@@ -3800,21 +3306,21 @@ type
   
   TSearchResult = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
+    Fetag : String;
     Fid : TResourceId;
-    Fkind : string;
+    Fkind : String;
     Fsnippet : TSearchResultSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
     Procedure Setid(AIndex : Integer; AValue : TResourceId); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TSearchResultSnippet); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
+    Property etag : String Index 0 Read Fetag Write Setetag;
     Property id : TResourceId Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property snippet : TSearchResultSnippet Index 24 Read Fsnippet Write Setsnippet;
   end;
   TSearchResultClass = Class of TSearchResult;
@@ -3825,31 +3331,31 @@ type
   
   TSearchResultSnippet = Class(TGoogleBaseObject)
   Private
-    FchannelId : string;
-    FchannelTitle : string;
-    Fdescription : string;
-    FliveBroadcastContent : string;
+    FchannelId : String;
+    FchannelTitle : String;
+    Fdescription : String;
+    FliveBroadcastContent : String;
     FpublishedAt : TDatetime;
     Fthumbnails : TThumbnailDetails;
-    Ftitle : string;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetchannelTitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetliveBroadcastContent(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelTitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetliveBroadcastContent(AIndex : Integer; AValue : String); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property channelId : string Index 0 Read FchannelId Write SetchannelId;
-    Property channelTitle : string Index 8 Read FchannelTitle Write SetchannelTitle;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property liveBroadcastContent : string Index 24 Read FliveBroadcastContent Write SetliveBroadcastContent;
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
+    Property channelTitle : String Index 8 Read FchannelTitle Write SetchannelTitle;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property liveBroadcastContent : String Index 24 Read FliveBroadcastContent Write SetliveBroadcastContent;
     Property publishedAt : TDatetime Index 32 Read FpublishedAt Write SetpublishedAt;
     Property thumbnails : TThumbnailDetails Index 40 Read Fthumbnails Write Setthumbnails;
-    Property title : string Index 48 Read Ftitle Write Settitle;
+    Property title : String Index 48 Read Ftitle Write Settitle;
   end;
   TSearchResultSnippetClass = Class of TSearchResultSnippet;
   
@@ -3860,25 +3366,25 @@ type
   TSubscription = Class(TGoogleBaseObject)
   Private
     FcontentDetails : TSubscriptionContentDetails;
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Fsnippet : TSubscriptionSnippet;
     FsubscriberSnippet : TSubscriptionSubscriberSnippet;
   Protected
     //Property setters
     Procedure SetcontentDetails(AIndex : Integer; AValue : TSubscriptionContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TSubscriptionSnippet); virtual;
     Procedure SetsubscriberSnippet(AIndex : Integer; AValue : TSubscriptionSubscriberSnippet); virtual;
   Public
   Published
     Property contentDetails : TSubscriptionContentDetails Index 0 Read FcontentDetails Write SetcontentDetails;
-    Property etag : string Index 8 Read Fetag Write Setetag;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
+    Property etag : String Index 8 Read Fetag Write Setetag;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
     Property snippet : TSubscriptionSnippet Index 32 Read Fsnippet Write Setsnippet;
     Property subscriberSnippet : TSubscriptionSubscriberSnippet Index 40 Read FsubscriberSnippet Write SetsubscriberSnippet;
   end;
@@ -3890,17 +3396,17 @@ type
   
   TSubscriptionContentDetails = Class(TGoogleBaseObject)
   Private
-    FactivityType : string;
+    FactivityType : String;
     FnewItemCount : integer;
     FtotalItemCount : integer;
   Protected
     //Property setters
-    Procedure SetactivityType(AIndex : Integer; AValue : string); virtual;
+    Procedure SetactivityType(AIndex : Integer; AValue : String); virtual;
     Procedure SetnewItemCount(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalItemCount(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property activityType : string Index 0 Read FactivityType Write SetactivityType;
+    Property activityType : String Index 0 Read FactivityType Write SetactivityType;
     Property newItemCount : integer Index 8 Read FnewItemCount Write SetnewItemCount;
     Property totalItemCount : integer Index 16 Read FtotalItemCount Write SettotalItemCount;
   end;
@@ -3912,52 +3418,39 @@ type
   
   TSubscriptionListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TSubscriptionListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TSubscriptionListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
-    FprevPageToken : string;
+    FprevPageToken : String;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TSubscriptionListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TSubscriptionListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TSubscriptionListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TSubscriptionListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
-    Property prevPageToken : string Index 48 Read FprevPageToken Write SetprevPageToken;
+    Property prevPageToken : String Index 48 Read FprevPageToken Write SetprevPageToken;
     Property tokenPagination : TTokenPagination Index 56 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 64 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 64 Read FvisitorId Write SetvisitorId;
   end;
   TSubscriptionListResponseClass = Class of TSubscriptionListResponse;
-  
-  { --------------------------------------------------------------------
-    TSubscriptionListResponseitems
-    --------------------------------------------------------------------}
-  
-  TSubscriptionListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSubscriptionListResponseitemsClass = Class of TSubscriptionListResponseitems;
   
   { --------------------------------------------------------------------
     TSubscriptionSnippet
@@ -3965,31 +3458,31 @@ type
   
   TSubscriptionSnippet = Class(TGoogleBaseObject)
   Private
-    FchannelId : string;
-    FchannelTitle : string;
-    Fdescription : string;
+    FchannelId : String;
+    FchannelTitle : String;
+    Fdescription : String;
     FpublishedAt : TDatetime;
     FresourceId : TResourceId;
     Fthumbnails : TThumbnailDetails;
-    Ftitle : string;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetchannelTitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelTitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetresourceId(AIndex : Integer; AValue : TResourceId); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property channelId : string Index 0 Read FchannelId Write SetchannelId;
-    Property channelTitle : string Index 8 Read FchannelTitle Write SetchannelTitle;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
+    Property channelTitle : String Index 8 Read FchannelTitle Write SetchannelTitle;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
     Property publishedAt : TDatetime Index 24 Read FpublishedAt Write SetpublishedAt;
     Property resourceId : TResourceId Index 32 Read FresourceId Write SetresourceId;
     Property thumbnails : TThumbnailDetails Index 40 Read Fthumbnails Write Setthumbnails;
-    Property title : string Index 48 Read Ftitle Write Settitle;
+    Property title : String Index 48 Read Ftitle Write Settitle;
   end;
   TSubscriptionSnippetClass = Class of TSubscriptionSnippet;
   
@@ -3999,22 +3492,22 @@ type
   
   TSubscriptionSubscriberSnippet = Class(TGoogleBaseObject)
   Private
-    FchannelId : string;
-    Fdescription : string;
+    FchannelId : String;
+    Fdescription : String;
     Fthumbnails : TThumbnailDetails;
-    Ftitle : string;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property channelId : string Index 0 Read FchannelId Write SetchannelId;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
     Property thumbnails : TThumbnailDetails Index 16 Read Fthumbnails Write Setthumbnails;
-    Property title : string Index 24 Read Ftitle Write Settitle;
+    Property title : String Index 24 Read Ftitle Write Settitle;
   end;
   TSubscriptionSubscriberSnippetClass = Class of TSubscriptionSubscriberSnippet;
   
@@ -4025,17 +3518,17 @@ type
   TThumbnail = Class(TGoogleBaseObject)
   Private
     Fheight : integer;
-    Furl : string;
+    Furl : String;
     Fwidth : integer;
   Protected
     //Property setters
     Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
     Property height : integer Index 0 Read Fheight Write Setheight;
-    Property url : string Index 8 Read Furl Write Seturl;
+    Property url : String Index 8 Read Furl Write Seturl;
     Property width : integer Index 16 Read Fwidth Write Setwidth;
   end;
   TThumbnailClass = Class of TThumbnail;
@@ -4074,40 +3567,27 @@ type
   
   TThumbnailSetResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TThumbnailSetResponseitems;
-    Fkind : string;
-    FvisitorId : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TThumbnailSetResponseTypeitemsArray;
+    Fkind : String;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TThumbnailSetResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TThumbnailSetResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TThumbnailSetResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property visitorId : string Index 32 Read FvisitorId Write SetvisitorId;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TThumbnailSetResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property visitorId : String Index 32 Read FvisitorId Write SetvisitorId;
   end;
   TThumbnailSetResponseClass = Class of TThumbnailSetResponse;
-  
-  { --------------------------------------------------------------------
-    TThumbnailSetResponseitems
-    --------------------------------------------------------------------}
-  
-  TThumbnailSetResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TThumbnailSetResponseitemsClass = Class of TThumbnailSetResponseitems;
   
   { --------------------------------------------------------------------
     TTokenPagination
@@ -4123,6 +3603,20 @@ type
   TTokenPaginationClass = Class of TTokenPagination;
   
   { --------------------------------------------------------------------
+    TVideoTypelocalizations
+    --------------------------------------------------------------------}
+  
+  TVideoTypelocalizations = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TVideoTypelocalizationsClass = Class of TVideoTypelocalizations;
+  
+  { --------------------------------------------------------------------
     TVideo
     --------------------------------------------------------------------}
   
@@ -4131,12 +3625,12 @@ type
     FageGating : TVideoAgeGating;
     FcontentDetails : TVideoContentDetails;
     FconversionPings : TVideoConversionPings;
-    Fetag : string;
+    Fetag : String;
     FfileDetails : TVideoFileDetails;
-    Fid : string;
-    Fkind : string;
+    Fid : String;
+    Fkind : String;
     FliveStreamingDetails : TVideoLiveStreamingDetails;
-    Flocalizations : TVideolocalizations;
+    Flocalizations : TVideoTypelocalizations;
     FmonetizationDetails : TVideoMonetizationDetails;
     Fplayer : TVideoPlayer;
     FprocessingDetails : TVideoProcessingDetails;
@@ -4152,12 +3646,12 @@ type
     Procedure SetageGating(AIndex : Integer; AValue : TVideoAgeGating); virtual;
     Procedure SetcontentDetails(AIndex : Integer; AValue : TVideoContentDetails); virtual;
     Procedure SetconversionPings(AIndex : Integer; AValue : TVideoConversionPings); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
     Procedure SetfileDetails(AIndex : Integer; AValue : TVideoFileDetails); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetliveStreamingDetails(AIndex : Integer; AValue : TVideoLiveStreamingDetails); virtual;
-    Procedure Setlocalizations(AIndex : Integer; AValue : TVideolocalizations); virtual;
+    Procedure Setlocalizations(AIndex : Integer; AValue : TVideoTypelocalizations); virtual;
     Procedure SetmonetizationDetails(AIndex : Integer; AValue : TVideoMonetizationDetails); virtual;
     Procedure Setplayer(AIndex : Integer; AValue : TVideoPlayer); virtual;
     Procedure SetprocessingDetails(AIndex : Integer; AValue : TVideoProcessingDetails); virtual;
@@ -4173,12 +3667,12 @@ type
     Property ageGating : TVideoAgeGating Index 0 Read FageGating Write SetageGating;
     Property contentDetails : TVideoContentDetails Index 8 Read FcontentDetails Write SetcontentDetails;
     Property conversionPings : TVideoConversionPings Index 16 Read FconversionPings Write SetconversionPings;
-    Property etag : string Index 24 Read Fetag Write Setetag;
+    Property etag : String Index 24 Read Fetag Write Setetag;
     Property fileDetails : TVideoFileDetails Index 32 Read FfileDetails Write SetfileDetails;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property kind : string Index 48 Read Fkind Write Setkind;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property kind : String Index 48 Read Fkind Write Setkind;
     Property liveStreamingDetails : TVideoLiveStreamingDetails Index 56 Read FliveStreamingDetails Write SetliveStreamingDetails;
-    Property localizations : TVideolocalizations Index 64 Read Flocalizations Write Setlocalizations;
+    Property localizations : TVideoTypelocalizations Index 64 Read Flocalizations Write Setlocalizations;
     Property monetizationDetails : TVideoMonetizationDetails Index 72 Read FmonetizationDetails Write SetmonetizationDetails;
     Property player : TVideoPlayer Index 80 Read Fplayer Write Setplayer;
     Property processingDetails : TVideoProcessingDetails Index 88 Read FprocessingDetails Write SetprocessingDetails;
@@ -4193,44 +3687,30 @@ type
   TVideoClass = Class of TVideo;
   
   { --------------------------------------------------------------------
-    TVideolocalizations
-    --------------------------------------------------------------------}
-  
-  TVideolocalizations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TVideolocalizationsClass = Class of TVideolocalizations;
-  
-  { --------------------------------------------------------------------
     TVideoAbuseReport
     --------------------------------------------------------------------}
   
   TVideoAbuseReport = Class(TGoogleBaseObject)
   Private
-    Fcomments : string;
-    Flanguage : string;
-    FreasonId : string;
-    FsecondaryReasonId : string;
-    FvideoId : string;
+    Fcomments : String;
+    Flanguage : String;
+    FreasonId : String;
+    FsecondaryReasonId : String;
+    FvideoId : String;
   Protected
     //Property setters
-    Procedure Setcomments(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreasonId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsecondaryReasonId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcomments(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreasonId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsecondaryReasonId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property comments : string Index 0 Read Fcomments Write Setcomments;
-    Property language : string Index 8 Read Flanguage Write Setlanguage;
-    Property reasonId : string Index 16 Read FreasonId Write SetreasonId;
-    Property secondaryReasonId : string Index 24 Read FsecondaryReasonId Write SetsecondaryReasonId;
-    Property videoId : string Index 32 Read FvideoId Write SetvideoId;
+    Property comments : String Index 0 Read Fcomments Write Setcomments;
+    Property language : String Index 8 Read Flanguage Write Setlanguage;
+    Property reasonId : String Index 16 Read FreasonId Write SetreasonId;
+    Property secondaryReasonId : String Index 24 Read FsecondaryReasonId Write SetsecondaryReasonId;
+    Property videoId : String Index 32 Read FvideoId Write SetvideoId;
   end;
   TVideoAbuseReportClass = Class of TVideoAbuseReport;
   
@@ -4240,21 +3720,21 @@ type
   
   TVideoAbuseReportReason = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Fsnippet : TVideoAbuseReportReasonSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TVideoAbuseReportReasonSnippet); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property snippet : TVideoAbuseReportReasonSnippet Index 24 Read Fsnippet Write Setsnippet;
   end;
   TVideoAbuseReportReasonClass = Class of TVideoAbuseReportReason;
@@ -4265,40 +3745,27 @@ type
   
   TVideoAbuseReportReasonListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TVideoAbuseReportReasonListResponseitems;
-    Fkind : string;
-    FvisitorId : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TVideoAbuseReportReasonListResponseTypeitemsArray;
+    Fkind : String;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TVideoAbuseReportReasonListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TVideoAbuseReportReasonListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TVideoAbuseReportReasonListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property visitorId : string Index 32 Read FvisitorId Write SetvisitorId;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TVideoAbuseReportReasonListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property visitorId : String Index 32 Read FvisitorId Write SetvisitorId;
   end;
   TVideoAbuseReportReasonListResponseClass = Class of TVideoAbuseReportReasonListResponse;
-  
-  { --------------------------------------------------------------------
-    TVideoAbuseReportReasonListResponseitems
-    --------------------------------------------------------------------}
-  
-  TVideoAbuseReportReasonListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoAbuseReportReasonListResponseitemsClass = Class of TVideoAbuseReportReasonListResponseitems;
   
   { --------------------------------------------------------------------
     TVideoAbuseReportReasonSnippet
@@ -4306,32 +3773,19 @@ type
   
   TVideoAbuseReportReasonSnippet = Class(TGoogleBaseObject)
   Private
-    F_label : string;
-    FsecondaryReasons : TVideoAbuseReportReasonSnippetsecondaryReasons;
+    F_label : String;
+    FsecondaryReasons : TVideoAbuseReportReasonSnippetTypesecondaryReasonsArray;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_label(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsecondaryReasons(AIndex : Integer; AValue : TVideoAbuseReportReasonSnippetsecondaryReasons); virtual;
+    Procedure Set_label(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsecondaryReasons(AIndex : Integer; AValue : TVideoAbuseReportReasonSnippetTypesecondaryReasonsArray); virtual;
   Public
   Published
-    Property _label : string Index 0 Read F_label Write Set_label;
-    Property secondaryReasons : TVideoAbuseReportReasonSnippetsecondaryReasons Index 8 Read FsecondaryReasons Write SetsecondaryReasons;
+    Property _label : String Index 0 Read F_label Write Set_label;
+    Property secondaryReasons : TVideoAbuseReportReasonSnippetTypesecondaryReasonsArray Index 8 Read FsecondaryReasons Write SetsecondaryReasons;
   end;
   TVideoAbuseReportReasonSnippetClass = Class of TVideoAbuseReportReasonSnippet;
-  
-  { --------------------------------------------------------------------
-    TVideoAbuseReportReasonSnippetsecondaryReasons
-    --------------------------------------------------------------------}
-  
-  TVideoAbuseReportReasonSnippetsecondaryReasons = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoAbuseReportReasonSnippetsecondaryReasonsClass = Class of TVideoAbuseReportReasonSnippetsecondaryReasons;
   
   { --------------------------------------------------------------------
     TVideoAbuseReportSecondaryReason
@@ -4339,17 +3793,17 @@ type
   
   TVideoAbuseReportSecondaryReason = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    F_label : string;
+    Fid : String;
+    F_label : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_label(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_label(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property _label : string Index 8 Read F_label Write Set_label;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property _label : String Index 8 Read F_label Write Set_label;
   end;
   TVideoAbuseReportSecondaryReasonClass = Class of TVideoAbuseReportSecondaryReason;
   
@@ -4361,17 +3815,17 @@ type
   Private
     FalcoholContent : boolean;
     Frestricted : boolean;
-    FvideoGameRating : string;
+    FvideoGameRating : String;
   Protected
     //Property setters
     Procedure SetalcoholContent(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setrestricted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetvideoGameRating(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvideoGameRating(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property alcoholContent : boolean Index 0 Read FalcoholContent Write SetalcoholContent;
     Property restricted : boolean Index 8 Read Frestricted Write Setrestricted;
-    Property videoGameRating : string Index 16 Read FvideoGameRating Write SetvideoGameRating;
+    Property videoGameRating : String Index 16 Read FvideoGameRating Write SetvideoGameRating;
   end;
   TVideoAgeGatingClass = Class of TVideoAgeGating;
   
@@ -4381,21 +3835,21 @@ type
   
   TVideoCategory = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
     Fsnippet : TVideoCategorySnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TVideoCategorySnippet); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property snippet : TVideoCategorySnippet Index 24 Read Fsnippet Write Setsnippet;
   end;
   TVideoCategoryClass = Class of TVideoCategory;
@@ -4406,52 +3860,39 @@ type
   
   TVideoCategoryListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TVideoCategoryListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TVideoCategoryListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
-    FprevPageToken : string;
+    FprevPageToken : String;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TVideoCategoryListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TVideoCategoryListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TVideoCategoryListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TVideoCategoryListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
-    Property prevPageToken : string Index 48 Read FprevPageToken Write SetprevPageToken;
+    Property prevPageToken : String Index 48 Read FprevPageToken Write SetprevPageToken;
     Property tokenPagination : TTokenPagination Index 56 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 64 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 64 Read FvisitorId Write SetvisitorId;
   end;
   TVideoCategoryListResponseClass = Class of TVideoCategoryListResponse;
-  
-  { --------------------------------------------------------------------
-    TVideoCategoryListResponseitems
-    --------------------------------------------------------------------}
-  
-  TVideoCategoryListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoCategoryListResponseitemsClass = Class of TVideoCategoryListResponseitems;
   
   { --------------------------------------------------------------------
     TVideoCategorySnippet
@@ -4460,18 +3901,18 @@ type
   TVideoCategorySnippet = Class(TGoogleBaseObject)
   Private
     Fassignable : boolean;
-    FchannelId : string;
-    Ftitle : string;
+    FchannelId : String;
+    Ftitle : String;
   Protected
     //Property setters
     Procedure Setassignable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property assignable : boolean Index 0 Read Fassignable Write Setassignable;
-    Property channelId : string Index 8 Read FchannelId Write SetchannelId;
-    Property title : string Index 16 Read Ftitle Write Settitle;
+    Property channelId : String Index 8 Read FchannelId Write SetchannelId;
+    Property title : String Index 16 Read Ftitle Write Settitle;
   end;
   TVideoCategorySnippetClass = Class of TVideoCategorySnippet;
   
@@ -4481,32 +3922,32 @@ type
   
   TVideoContentDetails = Class(TGoogleBaseObject)
   Private
-    Fcaption : string;
+    Fcaption : String;
     FcontentRating : TContentRating;
     FcountryRestriction : TAccessPolicy;
-    Fdefinition : string;
-    Fdimension : string;
-    Fduration : string;
+    Fdefinition : String;
+    Fdimension : String;
+    Fduration : String;
     FlicensedContent : boolean;
     FregionRestriction : TVideoContentDetailsRegionRestriction;
   Protected
     //Property setters
-    Procedure Setcaption(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcaption(AIndex : Integer; AValue : String); virtual;
     Procedure SetcontentRating(AIndex : Integer; AValue : TContentRating); virtual;
     Procedure SetcountryRestriction(AIndex : Integer; AValue : TAccessPolicy); virtual;
-    Procedure Setdefinition(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdimension(AIndex : Integer; AValue : string); virtual;
-    Procedure Setduration(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdefinition(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdimension(AIndex : Integer; AValue : String); virtual;
+    Procedure Setduration(AIndex : Integer; AValue : String); virtual;
     Procedure SetlicensedContent(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetregionRestriction(AIndex : Integer; AValue : TVideoContentDetailsRegionRestriction); virtual;
   Public
   Published
-    Property caption : string Index 0 Read Fcaption Write Setcaption;
+    Property caption : String Index 0 Read Fcaption Write Setcaption;
     Property contentRating : TContentRating Index 8 Read FcontentRating Write SetcontentRating;
     Property countryRestriction : TAccessPolicy Index 16 Read FcountryRestriction Write SetcountryRestriction;
-    Property definition : string Index 24 Read Fdefinition Write Setdefinition;
-    Property dimension : string Index 32 Read Fdimension Write Setdimension;
-    Property duration : string Index 40 Read Fduration Write Setduration;
+    Property definition : String Index 24 Read Fdefinition Write Setdefinition;
+    Property dimension : String Index 32 Read Fdimension Write Setdimension;
+    Property duration : String Index 40 Read Fduration Write Setduration;
     Property licensedContent : boolean Index 48 Read FlicensedContent Write SetlicensedContent;
     Property regionRestriction : TVideoContentDetailsRegionRestriction Index 56 Read FregionRestriction Write SetregionRestriction;
   end;
@@ -4518,44 +3959,18 @@ type
   
   TVideoContentDetailsRegionRestriction = Class(TGoogleBaseObject)
   Private
-    Fallowed : TVideoContentDetailsRegionRestrictionallowed;
-    Fblocked : TVideoContentDetailsRegionRestrictionblocked;
+    Fallowed : TStringArray;
+    Fblocked : TStringArray;
   Protected
     //Property setters
-    Procedure Setallowed(AIndex : Integer; AValue : TVideoContentDetailsRegionRestrictionallowed); virtual;
-    Procedure Setblocked(AIndex : Integer; AValue : TVideoContentDetailsRegionRestrictionblocked); virtual;
+    Procedure Setallowed(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setblocked(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property allowed : TVideoContentDetailsRegionRestrictionallowed Index 0 Read Fallowed Write Setallowed;
-    Property blocked : TVideoContentDetailsRegionRestrictionblocked Index 8 Read Fblocked Write Setblocked;
+    Property allowed : TStringArray Index 0 Read Fallowed Write Setallowed;
+    Property blocked : TStringArray Index 8 Read Fblocked Write Setblocked;
   end;
   TVideoContentDetailsRegionRestrictionClass = Class of TVideoContentDetailsRegionRestriction;
-  
-  { --------------------------------------------------------------------
-    TVideoContentDetailsRegionRestrictionallowed
-    --------------------------------------------------------------------}
-  
-  TVideoContentDetailsRegionRestrictionallowed = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoContentDetailsRegionRestrictionallowedClass = Class of TVideoContentDetailsRegionRestrictionallowed;
-  
-  { --------------------------------------------------------------------
-    TVideoContentDetailsRegionRestrictionblocked
-    --------------------------------------------------------------------}
-  
-  TVideoContentDetailsRegionRestrictionblocked = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoContentDetailsRegionRestrictionblockedClass = Class of TVideoContentDetailsRegionRestrictionblocked;
   
   { --------------------------------------------------------------------
     TVideoConversionPing
@@ -4563,16 +3978,16 @@ type
   
   TVideoConversionPing = Class(TGoogleBaseObject)
   Private
-    Fcontext : string;
-    FconversionUrl : string;
+    Fcontext : String;
+    FconversionUrl : String;
   Protected
     //Property setters
-    Procedure Setcontext(AIndex : Integer; AValue : string); virtual;
-    Procedure SetconversionUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcontext(AIndex : Integer; AValue : String); virtual;
+    Procedure SetconversionUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property context : string Index 0 Read Fcontext Write Setcontext;
-    Property conversionUrl : string Index 8 Read FconversionUrl Write SetconversionUrl;
+    Property context : String Index 0 Read Fcontext Write Setcontext;
+    Property conversionUrl : String Index 8 Read FconversionUrl Write SetconversionUrl;
   end;
   TVideoConversionPingClass = Class of TVideoConversionPing;
   
@@ -4582,28 +3997,15 @@ type
   
   TVideoConversionPings = Class(TGoogleBaseObject)
   Private
-    Fpings : TVideoConversionPingspings;
+    Fpings : TVideoConversionPingsTypepingsArray;
   Protected
     //Property setters
-    Procedure Setpings(AIndex : Integer; AValue : TVideoConversionPingspings); virtual;
+    Procedure Setpings(AIndex : Integer; AValue : TVideoConversionPingsTypepingsArray); virtual;
   Public
   Published
-    Property pings : TVideoConversionPingspings Index 0 Read Fpings Write Setpings;
+    Property pings : TVideoConversionPingsTypepingsArray Index 0 Read Fpings Write Setpings;
   end;
   TVideoConversionPingsClass = Class of TVideoConversionPings;
-  
-  { --------------------------------------------------------------------
-    TVideoConversionPingspings
-    --------------------------------------------------------------------}
-  
-  TVideoConversionPingspings = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoConversionPingspingsClass = Class of TVideoConversionPingspings;
   
   { --------------------------------------------------------------------
     TVideoFileDetails
@@ -4611,68 +4013,42 @@ type
   
   TVideoFileDetails = Class(TGoogleBaseObject)
   Private
-    FaudioStreams : TVideoFileDetailsaudioStreams;
-    FbitrateBps : string;
-    Fcontainer : string;
-    FcreationTime : string;
-    FdurationMs : string;
-    FfileName : string;
-    FfileSize : string;
-    FfileType : string;
+    FaudioStreams : TVideoFileDetailsTypeaudioStreamsArray;
+    FbitrateBps : String;
+    Fcontainer : String;
+    FcreationTime : String;
+    FdurationMs : String;
+    FfileName : String;
+    FfileSize : String;
+    FfileType : String;
     FrecordingLocation : TGeoPoint;
-    FvideoStreams : TVideoFileDetailsvideoStreams;
+    FvideoStreams : TVideoFileDetailsTypevideoStreamsArray;
   Protected
     //Property setters
-    Procedure SetaudioStreams(AIndex : Integer; AValue : TVideoFileDetailsaudioStreams); virtual;
-    Procedure SetbitrateBps(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcontainer(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdurationMs(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfileName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfileSize(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfileType(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaudioStreams(AIndex : Integer; AValue : TVideoFileDetailsTypeaudioStreamsArray); virtual;
+    Procedure SetbitrateBps(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcontainer(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdurationMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfileName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfileSize(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfileType(AIndex : Integer; AValue : String); virtual;
     Procedure SetrecordingLocation(AIndex : Integer; AValue : TGeoPoint); virtual;
-    Procedure SetvideoStreams(AIndex : Integer; AValue : TVideoFileDetailsvideoStreams); virtual;
+    Procedure SetvideoStreams(AIndex : Integer; AValue : TVideoFileDetailsTypevideoStreamsArray); virtual;
   Public
   Published
-    Property audioStreams : TVideoFileDetailsaudioStreams Index 0 Read FaudioStreams Write SetaudioStreams;
-    Property bitrateBps : string Index 8 Read FbitrateBps Write SetbitrateBps;
-    Property container : string Index 16 Read Fcontainer Write Setcontainer;
-    Property creationTime : string Index 24 Read FcreationTime Write SetcreationTime;
-    Property durationMs : string Index 32 Read FdurationMs Write SetdurationMs;
-    Property fileName : string Index 40 Read FfileName Write SetfileName;
-    Property fileSize : string Index 48 Read FfileSize Write SetfileSize;
-    Property fileType : string Index 56 Read FfileType Write SetfileType;
+    Property audioStreams : TVideoFileDetailsTypeaudioStreamsArray Index 0 Read FaudioStreams Write SetaudioStreams;
+    Property bitrateBps : String Index 8 Read FbitrateBps Write SetbitrateBps;
+    Property container : String Index 16 Read Fcontainer Write Setcontainer;
+    Property creationTime : String Index 24 Read FcreationTime Write SetcreationTime;
+    Property durationMs : String Index 32 Read FdurationMs Write SetdurationMs;
+    Property fileName : String Index 40 Read FfileName Write SetfileName;
+    Property fileSize : String Index 48 Read FfileSize Write SetfileSize;
+    Property fileType : String Index 56 Read FfileType Write SetfileType;
     Property recordingLocation : TGeoPoint Index 64 Read FrecordingLocation Write SetrecordingLocation;
-    Property videoStreams : TVideoFileDetailsvideoStreams Index 72 Read FvideoStreams Write SetvideoStreams;
+    Property videoStreams : TVideoFileDetailsTypevideoStreamsArray Index 72 Read FvideoStreams Write SetvideoStreams;
   end;
   TVideoFileDetailsClass = Class of TVideoFileDetails;
-  
-  { --------------------------------------------------------------------
-    TVideoFileDetailsaudioStreams
-    --------------------------------------------------------------------}
-  
-  TVideoFileDetailsaudioStreams = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoFileDetailsaudioStreamsClass = Class of TVideoFileDetailsaudioStreams;
-  
-  { --------------------------------------------------------------------
-    TVideoFileDetailsvideoStreams
-    --------------------------------------------------------------------}
-  
-  TVideoFileDetailsvideoStreams = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoFileDetailsvideoStreamsClass = Class of TVideoFileDetailsvideoStreams;
   
   { --------------------------------------------------------------------
     TVideoFileDetailsAudioStream
@@ -4680,22 +4056,22 @@ type
   
   TVideoFileDetailsAudioStream = Class(TGoogleBaseObject)
   Private
-    FbitrateBps : string;
+    FbitrateBps : String;
     FchannelCount : integer;
-    Fcodec : string;
-    Fvendor : string;
+    Fcodec : String;
+    Fvendor : String;
   Protected
     //Property setters
-    Procedure SetbitrateBps(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbitrateBps(AIndex : Integer; AValue : String); virtual;
     Procedure SetchannelCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setcodec(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvendor(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcodec(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvendor(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property bitrateBps : string Index 0 Read FbitrateBps Write SetbitrateBps;
+    Property bitrateBps : String Index 0 Read FbitrateBps Write SetbitrateBps;
     Property channelCount : integer Index 8 Read FchannelCount Write SetchannelCount;
-    Property codec : string Index 16 Read Fcodec Write Setcodec;
-    Property vendor : string Index 24 Read Fvendor Write Setvendor;
+    Property codec : String Index 16 Read Fcodec Write Setcodec;
+    Property vendor : String Index 24 Read Fvendor Write Setvendor;
   end;
   TVideoFileDetailsAudioStreamClass = Class of TVideoFileDetailsAudioStream;
   
@@ -4706,32 +4082,32 @@ type
   TVideoFileDetailsVideoStream = Class(TGoogleBaseObject)
   Private
     FaspectRatio : double;
-    FbitrateBps : string;
-    Fcodec : string;
+    FbitrateBps : String;
+    Fcodec : String;
     FframeRateFps : double;
     FheightPixels : integer;
-    Frotation : string;
-    Fvendor : string;
+    Frotation : String;
+    Fvendor : String;
     FwidthPixels : integer;
   Protected
     //Property setters
     Procedure SetaspectRatio(AIndex : Integer; AValue : double); virtual;
-    Procedure SetbitrateBps(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcodec(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbitrateBps(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcodec(AIndex : Integer; AValue : String); virtual;
     Procedure SetframeRateFps(AIndex : Integer; AValue : double); virtual;
     Procedure SetheightPixels(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setrotation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvendor(AIndex : Integer; AValue : string); virtual;
+    Procedure Setrotation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvendor(AIndex : Integer; AValue : String); virtual;
     Procedure SetwidthPixels(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
     Property aspectRatio : double Index 0 Read FaspectRatio Write SetaspectRatio;
-    Property bitrateBps : string Index 8 Read FbitrateBps Write SetbitrateBps;
-    Property codec : string Index 16 Read Fcodec Write Setcodec;
+    Property bitrateBps : String Index 8 Read FbitrateBps Write SetbitrateBps;
+    Property codec : String Index 16 Read Fcodec Write Setcodec;
     Property frameRateFps : double Index 24 Read FframeRateFps Write SetframeRateFps;
     Property heightPixels : integer Index 32 Read FheightPixels Write SetheightPixels;
-    Property rotation : string Index 40 Read Frotation Write Setrotation;
-    Property vendor : string Index 48 Read Fvendor Write Setvendor;
+    Property rotation : String Index 40 Read Frotation Write Setrotation;
+    Property vendor : String Index 48 Read Fvendor Write Setvendor;
     Property widthPixels : integer Index 56 Read FwidthPixels Write SetwidthPixels;
   end;
   TVideoFileDetailsVideoStreamClass = Class of TVideoFileDetailsVideoStream;
@@ -4742,40 +4118,27 @@ type
   
   TVideoGetRatingResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TVideoGetRatingResponseitems;
-    Fkind : string;
-    FvisitorId : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TVideoGetRatingResponseTypeitemsArray;
+    Fkind : String;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TVideoGetRatingResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TVideoGetRatingResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TVideoGetRatingResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property visitorId : string Index 32 Read FvisitorId Write SetvisitorId;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TVideoGetRatingResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property visitorId : String Index 32 Read FvisitorId Write SetvisitorId;
   end;
   TVideoGetRatingResponseClass = Class of TVideoGetRatingResponse;
-  
-  { --------------------------------------------------------------------
-    TVideoGetRatingResponseitems
-    --------------------------------------------------------------------}
-  
-  TVideoGetRatingResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoGetRatingResponseitemsClass = Class of TVideoGetRatingResponseitems;
   
   { --------------------------------------------------------------------
     TVideoListResponse
@@ -4783,52 +4146,39 @@ type
   
   TVideoListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FeventId : string;
-    Fitems : TVideoListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    FeventId : String;
+    Fitems : TVideoListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FpageInfo : TPageInfo;
-    FprevPageToken : string;
+    FprevPageToken : String;
     FtokenPagination : TTokenPagination;
-    FvisitorId : string;
+    FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TVideoListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TVideoListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property eventId : string Index 8 Read FeventId Write SeteventId;
-    Property items : TVideoListResponseitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property eventId : String Index 8 Read FeventId Write SeteventId;
+    Property items : TVideoListResponseTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 32 Read FnextPageToken Write SetnextPageToken;
     Property pageInfo : TPageInfo Index 40 Read FpageInfo Write SetpageInfo;
-    Property prevPageToken : string Index 48 Read FprevPageToken Write SetprevPageToken;
+    Property prevPageToken : String Index 48 Read FprevPageToken Write SetprevPageToken;
     Property tokenPagination : TTokenPagination Index 56 Read FtokenPagination Write SettokenPagination;
-    Property visitorId : string Index 64 Read FvisitorId Write SetvisitorId;
+    Property visitorId : String Index 64 Read FvisitorId Write SetvisitorId;
   end;
   TVideoListResponseClass = Class of TVideoListResponse;
-  
-  { --------------------------------------------------------------------
-    TVideoListResponseitems
-    --------------------------------------------------------------------}
-  
-  TVideoListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoListResponseitemsClass = Class of TVideoListResponseitems;
   
   { --------------------------------------------------------------------
     TVideoLiveStreamingDetails
@@ -4838,21 +4188,21 @@ type
   Private
     FactualEndTime : TDatetime;
     FactualStartTime : TDatetime;
-    FconcurrentViewers : string;
+    FconcurrentViewers : String;
     FscheduledEndTime : TDatetime;
     FscheduledStartTime : TDatetime;
   Protected
     //Property setters
     Procedure SetactualEndTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetactualStartTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetconcurrentViewers(AIndex : Integer; AValue : string); virtual;
+    Procedure SetconcurrentViewers(AIndex : Integer; AValue : String); virtual;
     Procedure SetscheduledEndTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetscheduledStartTime(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
     Property actualEndTime : TDatetime Index 0 Read FactualEndTime Write SetactualEndTime;
     Property actualStartTime : TDatetime Index 8 Read FactualStartTime Write SetactualStartTime;
-    Property concurrentViewers : string Index 16 Read FconcurrentViewers Write SetconcurrentViewers;
+    Property concurrentViewers : String Index 16 Read FconcurrentViewers Write SetconcurrentViewers;
     Property scheduledEndTime : TDatetime Index 24 Read FscheduledEndTime Write SetscheduledEndTime;
     Property scheduledStartTime : TDatetime Index 32 Read FscheduledStartTime Write SetscheduledStartTime;
   end;
@@ -4864,16 +4214,16 @@ type
   
   TVideoLocalization = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Ftitle : string;
+    Fdescription : String;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property title : string Index 8 Read Ftitle Write Settitle;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property title : String Index 8 Read Ftitle Write Settitle;
   end;
   TVideoLocalizationClass = Class of TVideoLocalization;
   
@@ -4899,13 +4249,13 @@ type
   
   TVideoPlayer = Class(TGoogleBaseObject)
   Private
-    FembedHtml : string;
+    FembedHtml : String;
   Protected
     //Property setters
-    Procedure SetembedHtml(AIndex : Integer; AValue : string); virtual;
+    Procedure SetembedHtml(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property embedHtml : string Index 0 Read FembedHtml Write SetembedHtml;
+    Property embedHtml : String Index 0 Read FembedHtml Write SetembedHtml;
   end;
   TVideoPlayerClass = Class of TVideoPlayer;
   
@@ -4915,34 +4265,34 @@ type
   
   TVideoProcessingDetails = Class(TGoogleBaseObject)
   Private
-    FeditorSuggestionsAvailability : string;
-    FfileDetailsAvailability : string;
-    FprocessingFailureReason : string;
-    FprocessingIssuesAvailability : string;
+    FeditorSuggestionsAvailability : String;
+    FfileDetailsAvailability : String;
+    FprocessingFailureReason : String;
+    FprocessingIssuesAvailability : String;
     FprocessingProgress : TVideoProcessingDetailsProcessingProgress;
-    FprocessingStatus : string;
-    FtagSuggestionsAvailability : string;
-    FthumbnailsAvailability : string;
+    FprocessingStatus : String;
+    FtagSuggestionsAvailability : String;
+    FthumbnailsAvailability : String;
   Protected
     //Property setters
-    Procedure SeteditorSuggestionsAvailability(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfileDetailsAvailability(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprocessingFailureReason(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprocessingIssuesAvailability(AIndex : Integer; AValue : string); virtual;
+    Procedure SeteditorSuggestionsAvailability(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfileDetailsAvailability(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprocessingFailureReason(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprocessingIssuesAvailability(AIndex : Integer; AValue : String); virtual;
     Procedure SetprocessingProgress(AIndex : Integer; AValue : TVideoProcessingDetailsProcessingProgress); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SettagSuggestionsAvailability(AIndex : Integer; AValue : string); virtual;
-    Procedure SetthumbnailsAvailability(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SettagSuggestionsAvailability(AIndex : Integer; AValue : String); virtual;
+    Procedure SetthumbnailsAvailability(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property editorSuggestionsAvailability : string Index 0 Read FeditorSuggestionsAvailability Write SeteditorSuggestionsAvailability;
-    Property fileDetailsAvailability : string Index 8 Read FfileDetailsAvailability Write SetfileDetailsAvailability;
-    Property processingFailureReason : string Index 16 Read FprocessingFailureReason Write SetprocessingFailureReason;
-    Property processingIssuesAvailability : string Index 24 Read FprocessingIssuesAvailability Write SetprocessingIssuesAvailability;
+    Property editorSuggestionsAvailability : String Index 0 Read FeditorSuggestionsAvailability Write SeteditorSuggestionsAvailability;
+    Property fileDetailsAvailability : String Index 8 Read FfileDetailsAvailability Write SetfileDetailsAvailability;
+    Property processingFailureReason : String Index 16 Read FprocessingFailureReason Write SetprocessingFailureReason;
+    Property processingIssuesAvailability : String Index 24 Read FprocessingIssuesAvailability Write SetprocessingIssuesAvailability;
     Property processingProgress : TVideoProcessingDetailsProcessingProgress Index 32 Read FprocessingProgress Write SetprocessingProgress;
-    Property processingStatus : string Index 40 Read FprocessingStatus Write SetprocessingStatus;
-    Property tagSuggestionsAvailability : string Index 48 Read FtagSuggestionsAvailability Write SettagSuggestionsAvailability;
-    Property thumbnailsAvailability : string Index 56 Read FthumbnailsAvailability Write SetthumbnailsAvailability;
+    Property processingStatus : String Index 40 Read FprocessingStatus Write SetprocessingStatus;
+    Property tagSuggestionsAvailability : String Index 48 Read FtagSuggestionsAvailability Write SettagSuggestionsAvailability;
+    Property thumbnailsAvailability : String Index 56 Read FthumbnailsAvailability Write SetthumbnailsAvailability;
   end;
   TVideoProcessingDetailsClass = Class of TVideoProcessingDetails;
   
@@ -4952,19 +4302,19 @@ type
   
   TVideoProcessingDetailsProcessingProgress = Class(TGoogleBaseObject)
   Private
-    FpartsProcessed : string;
-    FpartsTotal : string;
-    FtimeLeftMs : string;
+    FpartsProcessed : String;
+    FpartsTotal : String;
+    FtimeLeftMs : String;
   Protected
     //Property setters
-    Procedure SetpartsProcessed(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpartsTotal(AIndex : Integer; AValue : string); virtual;
-    Procedure SettimeLeftMs(AIndex : Integer; AValue : string); virtual;
+    Procedure SetpartsProcessed(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpartsTotal(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimeLeftMs(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property partsProcessed : string Index 0 Read FpartsProcessed Write SetpartsProcessed;
-    Property partsTotal : string Index 8 Read FpartsTotal Write SetpartsTotal;
-    Property timeLeftMs : string Index 16 Read FtimeLeftMs Write SettimeLeftMs;
+    Property partsProcessed : String Index 0 Read FpartsProcessed Write SetpartsProcessed;
+    Property partsTotal : String Index 8 Read FpartsTotal Write SetpartsTotal;
+    Property timeLeftMs : String Index 16 Read FtimeLeftMs Write SettimeLeftMs;
   end;
   TVideoProcessingDetailsProcessingProgressClass = Class of TVideoProcessingDetailsProcessingProgress;
   
@@ -4974,28 +4324,15 @@ type
   
   TVideoProjectDetails = Class(TGoogleBaseObject)
   Private
-    Ftags : TVideoProjectDetailstags;
+    Ftags : TStringArray;
   Protected
     //Property setters
-    Procedure Settags(AIndex : Integer; AValue : TVideoProjectDetailstags); virtual;
+    Procedure Settags(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property tags : TVideoProjectDetailstags Index 0 Read Ftags Write Settags;
+    Property tags : TStringArray Index 0 Read Ftags Write Settags;
   end;
   TVideoProjectDetailsClass = Class of TVideoProjectDetails;
-  
-  { --------------------------------------------------------------------
-    TVideoProjectDetailstags
-    --------------------------------------------------------------------}
-  
-  TVideoProjectDetailstags = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoProjectDetailstagsClass = Class of TVideoProjectDetailstags;
   
   { --------------------------------------------------------------------
     TVideoRating
@@ -5003,16 +4340,16 @@ type
   
   TVideoRating = Class(TGoogleBaseObject)
   Private
-    Frating : string;
-    FvideoId : string;
+    Frating : String;
+    FvideoId : String;
   Protected
     //Property setters
-    Procedure Setrating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setrating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property rating : string Index 0 Read Frating Write Setrating;
-    Property videoId : string Index 8 Read FvideoId Write SetvideoId;
+    Property rating : String Index 0 Read Frating Write Setrating;
+    Property videoId : String Index 8 Read FvideoId Write SetvideoId;
   end;
   TVideoRatingClass = Class of TVideoRating;
   
@@ -5023,17 +4360,17 @@ type
   TVideoRecordingDetails = Class(TGoogleBaseObject)
   Private
     Flocation : TGeoPoint;
-    FlocationDescription : string;
+    FlocationDescription : String;
     FrecordingDate : TDatetime;
   Protected
     //Property setters
     Procedure Setlocation(AIndex : Integer; AValue : TGeoPoint); virtual;
-    Procedure SetlocationDescription(AIndex : Integer; AValue : string); virtual;
+    Procedure SetlocationDescription(AIndex : Integer; AValue : String); virtual;
     Procedure SetrecordingDate(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
     Property location : TGeoPoint Index 0 Read Flocation Write Setlocation;
-    Property locationDescription : string Index 8 Read FlocationDescription Write SetlocationDescription;
+    Property locationDescription : String Index 8 Read FlocationDescription Write SetlocationDescription;
     Property recordingDate : TDatetime Index 16 Read FrecordingDate Write SetrecordingDate;
   end;
   TVideoRecordingDetailsClass = Class of TVideoRecordingDetails;
@@ -5044,58 +4381,45 @@ type
   
   TVideoSnippet = Class(TGoogleBaseObject)
   Private
-    FcategoryId : string;
-    FchannelId : string;
-    FchannelTitle : string;
-    FdefaultLanguage : string;
-    Fdescription : string;
-    FliveBroadcastContent : string;
+    FcategoryId : String;
+    FchannelId : String;
+    FchannelTitle : String;
+    FdefaultLanguage : String;
+    Fdescription : String;
+    FliveBroadcastContent : String;
     Flocalized : TVideoLocalization;
     FpublishedAt : TDatetime;
-    Ftags : TVideoSnippettags;
+    Ftags : TStringArray;
     Fthumbnails : TThumbnailDetails;
-    Ftitle : string;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure SetcategoryId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetchannelId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetchannelTitle(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdefaultLanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetliveBroadcastContent(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcategoryId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelTitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdefaultLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetliveBroadcastContent(AIndex : Integer; AValue : String); virtual;
     Procedure Setlocalized(AIndex : Integer; AValue : TVideoLocalization); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Settags(AIndex : Integer; AValue : TVideoSnippettags); virtual;
+    Procedure Settags(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property categoryId : string Index 0 Read FcategoryId Write SetcategoryId;
-    Property channelId : string Index 8 Read FchannelId Write SetchannelId;
-    Property channelTitle : string Index 16 Read FchannelTitle Write SetchannelTitle;
-    Property defaultLanguage : string Index 24 Read FdefaultLanguage Write SetdefaultLanguage;
-    Property description : string Index 32 Read Fdescription Write Setdescription;
-    Property liveBroadcastContent : string Index 40 Read FliveBroadcastContent Write SetliveBroadcastContent;
+    Property categoryId : String Index 0 Read FcategoryId Write SetcategoryId;
+    Property channelId : String Index 8 Read FchannelId Write SetchannelId;
+    Property channelTitle : String Index 16 Read FchannelTitle Write SetchannelTitle;
+    Property defaultLanguage : String Index 24 Read FdefaultLanguage Write SetdefaultLanguage;
+    Property description : String Index 32 Read Fdescription Write Setdescription;
+    Property liveBroadcastContent : String Index 40 Read FliveBroadcastContent Write SetliveBroadcastContent;
     Property localized : TVideoLocalization Index 48 Read Flocalized Write Setlocalized;
     Property publishedAt : TDatetime Index 56 Read FpublishedAt Write SetpublishedAt;
-    Property tags : TVideoSnippettags Index 64 Read Ftags Write Settags;
+    Property tags : TStringArray Index 64 Read Ftags Write Settags;
     Property thumbnails : TThumbnailDetails Index 72 Read Fthumbnails Write Setthumbnails;
-    Property title : string Index 80 Read Ftitle Write Settitle;
+    Property title : String Index 80 Read Ftitle Write Settitle;
   end;
   TVideoSnippetClass = Class of TVideoSnippet;
-  
-  { --------------------------------------------------------------------
-    TVideoSnippettags
-    --------------------------------------------------------------------}
-  
-  TVideoSnippettags = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoSnippettagsClass = Class of TVideoSnippettags;
   
   { --------------------------------------------------------------------
     TVideoStatistics
@@ -5103,25 +4427,25 @@ type
   
   TVideoStatistics = Class(TGoogleBaseObject)
   Private
-    FcommentCount : string;
-    FdislikeCount : string;
-    FfavoriteCount : string;
-    FlikeCount : string;
-    FviewCount : string;
+    FcommentCount : String;
+    FdislikeCount : String;
+    FfavoriteCount : String;
+    FlikeCount : String;
+    FviewCount : String;
   Protected
     //Property setters
-    Procedure SetcommentCount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdislikeCount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfavoriteCount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlikeCount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetviewCount(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcommentCount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdislikeCount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfavoriteCount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlikeCount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetviewCount(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property commentCount : string Index 0 Read FcommentCount Write SetcommentCount;
-    Property dislikeCount : string Index 8 Read FdislikeCount Write SetdislikeCount;
-    Property favoriteCount : string Index 16 Read FfavoriteCount Write SetfavoriteCount;
-    Property likeCount : string Index 24 Read FlikeCount Write SetlikeCount;
-    Property viewCount : string Index 32 Read FviewCount Write SetviewCount;
+    Property commentCount : String Index 0 Read FcommentCount Write SetcommentCount;
+    Property dislikeCount : String Index 8 Read FdislikeCount Write SetdislikeCount;
+    Property favoriteCount : String Index 16 Read FfavoriteCount Write SetfavoriteCount;
+    Property likeCount : String Index 24 Read FlikeCount Write SetlikeCount;
+    Property viewCount : String Index 32 Read FviewCount Write SetviewCount;
   end;
   TVideoStatisticsClass = Class of TVideoStatistics;
   
@@ -5132,33 +4456,33 @@ type
   TVideoStatus = Class(TGoogleBaseObject)
   Private
     Fembeddable : boolean;
-    FfailureReason : string;
-    Flicense : string;
-    FprivacyStatus : string;
+    FfailureReason : String;
+    Flicense : String;
+    FprivacyStatus : String;
     FpublicStatsViewable : boolean;
     FpublishAt : TDatetime;
-    FrejectionReason : string;
-    FuploadStatus : string;
+    FrejectionReason : String;
+    FuploadStatus : String;
   Protected
     //Property setters
     Procedure Setembeddable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetfailureReason(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlicense(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprivacyStatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetfailureReason(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlicense(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprivacyStatus(AIndex : Integer; AValue : String); virtual;
     Procedure SetpublicStatsViewable(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetpublishAt(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetrejectionReason(AIndex : Integer; AValue : string); virtual;
-    Procedure SetuploadStatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetrejectionReason(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuploadStatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property embeddable : boolean Index 0 Read Fembeddable Write Setembeddable;
-    Property failureReason : string Index 8 Read FfailureReason Write SetfailureReason;
-    Property license : string Index 16 Read Flicense Write Setlicense;
-    Property privacyStatus : string Index 24 Read FprivacyStatus Write SetprivacyStatus;
+    Property failureReason : String Index 8 Read FfailureReason Write SetfailureReason;
+    Property license : String Index 16 Read Flicense Write Setlicense;
+    Property privacyStatus : String Index 24 Read FprivacyStatus Write SetprivacyStatus;
     Property publicStatsViewable : boolean Index 32 Read FpublicStatsViewable Write SetpublicStatsViewable;
     Property publishAt : TDatetime Index 40 Read FpublishAt Write SetpublishAt;
-    Property rejectionReason : string Index 48 Read FrejectionReason Write SetrejectionReason;
-    Property uploadStatus : string Index 56 Read FuploadStatus Write SetuploadStatus;
+    Property rejectionReason : String Index 48 Read FrejectionReason Write SetrejectionReason;
+    Property uploadStatus : String Index 56 Read FuploadStatus Write SetuploadStatus;
   end;
   TVideoStatusClass = Class of TVideoStatus;
   
@@ -5168,92 +4492,27 @@ type
   
   TVideoSuggestions = Class(TGoogleBaseObject)
   Private
-    FeditorSuggestions : TVideoSuggestionseditorSuggestions;
-    FprocessingErrors : TVideoSuggestionsprocessingErrors;
-    FprocessingHints : TVideoSuggestionsprocessingHints;
-    FprocessingWarnings : TVideoSuggestionsprocessingWarnings;
-    FtagSuggestions : TVideoSuggestionstagSuggestions;
+    FeditorSuggestions : TStringArray;
+    FprocessingErrors : TStringArray;
+    FprocessingHints : TStringArray;
+    FprocessingWarnings : TStringArray;
+    FtagSuggestions : TVideoSuggestionsTypetagSuggestionsArray;
   Protected
     //Property setters
-    Procedure SeteditorSuggestions(AIndex : Integer; AValue : TVideoSuggestionseditorSuggestions); virtual;
-    Procedure SetprocessingErrors(AIndex : Integer; AValue : TVideoSuggestionsprocessingErrors); virtual;
-    Procedure SetprocessingHints(AIndex : Integer; AValue : TVideoSuggestionsprocessingHints); virtual;
-    Procedure SetprocessingWarnings(AIndex : Integer; AValue : TVideoSuggestionsprocessingWarnings); virtual;
-    Procedure SettagSuggestions(AIndex : Integer; AValue : TVideoSuggestionstagSuggestions); virtual;
+    Procedure SeteditorSuggestions(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetprocessingErrors(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetprocessingHints(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetprocessingWarnings(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SettagSuggestions(AIndex : Integer; AValue : TVideoSuggestionsTypetagSuggestionsArray); virtual;
   Public
   Published
-    Property editorSuggestions : TVideoSuggestionseditorSuggestions Index 0 Read FeditorSuggestions Write SeteditorSuggestions;
-    Property processingErrors : TVideoSuggestionsprocessingErrors Index 8 Read FprocessingErrors Write SetprocessingErrors;
-    Property processingHints : TVideoSuggestionsprocessingHints Index 16 Read FprocessingHints Write SetprocessingHints;
-    Property processingWarnings : TVideoSuggestionsprocessingWarnings Index 24 Read FprocessingWarnings Write SetprocessingWarnings;
-    Property tagSuggestions : TVideoSuggestionstagSuggestions Index 32 Read FtagSuggestions Write SettagSuggestions;
+    Property editorSuggestions : TStringArray Index 0 Read FeditorSuggestions Write SeteditorSuggestions;
+    Property processingErrors : TStringArray Index 8 Read FprocessingErrors Write SetprocessingErrors;
+    Property processingHints : TStringArray Index 16 Read FprocessingHints Write SetprocessingHints;
+    Property processingWarnings : TStringArray Index 24 Read FprocessingWarnings Write SetprocessingWarnings;
+    Property tagSuggestions : TVideoSuggestionsTypetagSuggestionsArray Index 32 Read FtagSuggestions Write SettagSuggestions;
   end;
   TVideoSuggestionsClass = Class of TVideoSuggestions;
-  
-  { --------------------------------------------------------------------
-    TVideoSuggestionseditorSuggestions
-    --------------------------------------------------------------------}
-  
-  TVideoSuggestionseditorSuggestions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoSuggestionseditorSuggestionsClass = Class of TVideoSuggestionseditorSuggestions;
-  
-  { --------------------------------------------------------------------
-    TVideoSuggestionsprocessingErrors
-    --------------------------------------------------------------------}
-  
-  TVideoSuggestionsprocessingErrors = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoSuggestionsprocessingErrorsClass = Class of TVideoSuggestionsprocessingErrors;
-  
-  { --------------------------------------------------------------------
-    TVideoSuggestionsprocessingHints
-    --------------------------------------------------------------------}
-  
-  TVideoSuggestionsprocessingHints = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoSuggestionsprocessingHintsClass = Class of TVideoSuggestionsprocessingHints;
-  
-  { --------------------------------------------------------------------
-    TVideoSuggestionsprocessingWarnings
-    --------------------------------------------------------------------}
-  
-  TVideoSuggestionsprocessingWarnings = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoSuggestionsprocessingWarningsClass = Class of TVideoSuggestionsprocessingWarnings;
-  
-  { --------------------------------------------------------------------
-    TVideoSuggestionstagSuggestions
-    --------------------------------------------------------------------}
-  
-  TVideoSuggestionstagSuggestions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoSuggestionstagSuggestionsClass = Class of TVideoSuggestionstagSuggestions;
   
   { --------------------------------------------------------------------
     TVideoSuggestionsTagSuggestion
@@ -5261,31 +4520,18 @@ type
   
   TVideoSuggestionsTagSuggestion = Class(TGoogleBaseObject)
   Private
-    FcategoryRestricts : TVideoSuggestionsTagSuggestioncategoryRestricts;
-    Ftag : string;
+    FcategoryRestricts : TStringArray;
+    Ftag : String;
   Protected
     //Property setters
-    Procedure SetcategoryRestricts(AIndex : Integer; AValue : TVideoSuggestionsTagSuggestioncategoryRestricts); virtual;
-    Procedure Settag(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcategoryRestricts(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Settag(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property categoryRestricts : TVideoSuggestionsTagSuggestioncategoryRestricts Index 0 Read FcategoryRestricts Write SetcategoryRestricts;
-    Property tag : string Index 8 Read Ftag Write Settag;
+    Property categoryRestricts : TStringArray Index 0 Read FcategoryRestricts Write SetcategoryRestricts;
+    Property tag : String Index 8 Read Ftag Write Settag;
   end;
   TVideoSuggestionsTagSuggestionClass = Class of TVideoSuggestionsTagSuggestion;
-  
-  { --------------------------------------------------------------------
-    TVideoSuggestionsTagSuggestioncategoryRestricts
-    --------------------------------------------------------------------}
-  
-  TVideoSuggestionsTagSuggestioncategoryRestricts = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoSuggestionsTagSuggestioncategoryRestrictsClass = Class of TVideoSuggestionsTagSuggestioncategoryRestricts;
   
   { --------------------------------------------------------------------
     TVideoTopicDetails
@@ -5293,44 +4539,18 @@ type
   
   TVideoTopicDetails = Class(TGoogleBaseObject)
   Private
-    FrelevantTopicIds : TVideoTopicDetailsrelevantTopicIds;
-    FtopicIds : TVideoTopicDetailstopicIds;
+    FrelevantTopicIds : TStringArray;
+    FtopicIds : TStringArray;
   Protected
     //Property setters
-    Procedure SetrelevantTopicIds(AIndex : Integer; AValue : TVideoTopicDetailsrelevantTopicIds); virtual;
-    Procedure SettopicIds(AIndex : Integer; AValue : TVideoTopicDetailstopicIds); virtual;
+    Procedure SetrelevantTopicIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SettopicIds(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property relevantTopicIds : TVideoTopicDetailsrelevantTopicIds Index 0 Read FrelevantTopicIds Write SetrelevantTopicIds;
-    Property topicIds : TVideoTopicDetailstopicIds Index 8 Read FtopicIds Write SettopicIds;
+    Property relevantTopicIds : TStringArray Index 0 Read FrelevantTopicIds Write SetrelevantTopicIds;
+    Property topicIds : TStringArray Index 8 Read FtopicIds Write SettopicIds;
   end;
   TVideoTopicDetailsClass = Class of TVideoTopicDetails;
-  
-  { --------------------------------------------------------------------
-    TVideoTopicDetailsrelevantTopicIds
-    --------------------------------------------------------------------}
-  
-  TVideoTopicDetailsrelevantTopicIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoTopicDetailsrelevantTopicIdsClass = Class of TVideoTopicDetailsrelevantTopicIds;
-  
-  { --------------------------------------------------------------------
-    TVideoTopicDetailstopicIds
-    --------------------------------------------------------------------}
-  
-  TVideoTopicDetailstopicIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVideoTopicDetailstopicIdsClass = Class of TVideoTopicDetailstopicIds;
   
   { --------------------------------------------------------------------
     TWatchSettings
@@ -5338,19 +4558,19 @@ type
   
   TWatchSettings = Class(TGoogleBaseObject)
   Private
-    FbackgroundColor : string;
-    FfeaturedPlaylistId : string;
-    FtextColor : string;
+    FbackgroundColor : String;
+    FfeaturedPlaylistId : String;
+    FtextColor : String;
   Protected
     //Property setters
-    Procedure SetbackgroundColor(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfeaturedPlaylistId(AIndex : Integer; AValue : string); virtual;
-    Procedure SettextColor(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbackgroundColor(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfeaturedPlaylistId(AIndex : Integer; AValue : String); virtual;
+    Procedure SettextColor(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property backgroundColor : string Index 0 Read FbackgroundColor Write SetbackgroundColor;
-    Property featuredPlaylistId : string Index 8 Read FfeaturedPlaylistId Write SetfeaturedPlaylistId;
-    Property textColor : string Index 16 Read FtextColor Write SettextColor;
+    Property backgroundColor : String Index 0 Read FbackgroundColor Write SetbackgroundColor;
+    Property featuredPlaylistId : String Index 8 Read FfeaturedPlaylistId Write SetfeaturedPlaylistId;
+    Property textColor : String Index 16 Read FtextColor Write SettextColor;
   end;
   TWatchSettingsClass = Class of TWatchSettings;
   
@@ -5362,22 +4582,22 @@ type
   //Optional query Options for TActivitiesResource, method Insert
   
   TActivitiesInsertOptions = Record
-    part : string;
+    part : String;
   end;
   
   
   //Optional query Options for TActivitiesResource, method List
   
   TActivitiesListOptions = Record
-    channelId : string;
+    channelId : String;
     home : boolean;
     maxResults : integer;
     mine : boolean;
-    pageToken : string;
-    part : string;
+    pageToken : String;
+    part : String;
     publishedAfter : TDatetime;
     publishedBefore : TDatetime;
-    regionCode : string;
+    regionCode : String;
   end;
   
   TActivitiesResource = Class(TGoogleResource)
@@ -5400,8 +4620,8 @@ type
   
   TCaptionsDeleteOptions = Record
     debugProjectIdOverride : int64;
-    id : string;
-    onBehalfOf : string;
+    id : String;
+    onBehalfOf : String;
   end;
   
   
@@ -5409,9 +4629,9 @@ type
   
   TCaptionsDownloadOptions = Record
     debugProjectIdOverride : int64;
-    onBehalfOf : string;
-    tfmt : string;
-    tlang : string;
+    onBehalfOf : String;
+    tfmt : String;
+    tlang : String;
   end;
   
   
@@ -5419,8 +4639,8 @@ type
   
   TCaptionsInsertOptions = Record
     debugProjectIdOverride : int64;
-    onBehalfOf : string;
-    part : string;
+    onBehalfOf : String;
+    part : String;
     sync : boolean;
   end;
   
@@ -5429,10 +4649,10 @@ type
   
   TCaptionsListOptions = Record
     debugProjectIdOverride : int64;
-    id : string;
-    onBehalfOf : string;
-    part : string;
-    videoId : string;
+    id : String;
+    onBehalfOf : String;
+    part : String;
+    videoId : String;
   end;
   
   
@@ -5440,8 +4660,8 @@ type
   
   TCaptionsUpdateOptions = Record
     debugProjectIdOverride : int64;
-    onBehalfOf : string;
-    part : string;
+    onBehalfOf : String;
+    part : String;
     sync : boolean;
   end;
   
@@ -5470,7 +4690,7 @@ type
   //Optional query Options for TChannelBannersResource, method Insert
   
   TChannelBannersInsertOptions = Record
-    onBehalfOfContentOwner : string;
+    onBehalfOfContentOwner : String;
   end;
   
   TChannelBannersResource = Class(TGoogleResource)
@@ -5490,37 +4710,37 @@ type
   //Optional query Options for TChannelSectionsResource, method Delete
   
   TChannelSectionsDeleteOptions = Record
-    id : string;
-    onBehalfOfContentOwner : string;
+    id : String;
+    onBehalfOfContentOwner : String;
   end;
   
   
   //Optional query Options for TChannelSectionsResource, method Insert
   
   TChannelSectionsInsertOptions = Record
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    part : String;
   end;
   
   
   //Optional query Options for TChannelSectionsResource, method List
   
   TChannelSectionsListOptions = Record
-    channelId : string;
-    hl : string;
-    id : string;
+    channelId : String;
+    hl : String;
+    id : String;
     mine : boolean;
-    onBehalfOfContentOwner : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    part : String;
   end;
   
   
   //Optional query Options for TChannelSectionsResource, method Update
   
   TChannelSectionsUpdateOptions = Record
-    onBehalfOfContentOwner : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    part : String;
   end;
   
   TChannelSectionsResource = Class(TGoogleResource)
@@ -5546,25 +4766,25 @@ type
   //Optional query Options for TChannelsResource, method List
   
   TChannelsListOptions = Record
-    categoryId : string;
-    forUsername : string;
-    hl : string;
-    id : string;
+    categoryId : String;
+    forUsername : String;
+    hl : String;
+    id : String;
     managedByMe : boolean;
     maxResults : integer;
     mine : boolean;
     mySubscribers : boolean;
-    onBehalfOfContentOwner : string;
-    pageToken : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    pageToken : String;
+    part : String;
   end;
   
   
   //Optional query Options for TChannelsResource, method Update
   
   TChannelsUpdateOptions = Record
-    onBehalfOfContentOwner : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    part : String;
   end;
   
   TChannelsResource = Class(TGoogleResource)
@@ -5586,7 +4806,7 @@ type
   //Optional query Options for TCommentThreadsResource, method Insert
   
   TCommentThreadsInsertOptions = Record
-    part : string;
+    part : String;
     shareOnGooglePlus : boolean;
   end;
   
@@ -5594,23 +4814,23 @@ type
   //Optional query Options for TCommentThreadsResource, method List
   
   TCommentThreadsListOptions = Record
-    allThreadsRelatedToChannelId : string;
-    channelId : string;
-    id : string;
+    allThreadsRelatedToChannelId : String;
+    channelId : String;
+    id : String;
     maxResults : integer;
-    moderationStatus : string;
-    pageToken : string;
-    part : string;
-    searchTerms : string;
-    textFormat : string;
-    videoId : string;
+    moderationStatus : String;
+    pageToken : String;
+    part : String;
+    searchTerms : String;
+    textFormat : String;
+    videoId : String;
   end;
   
   
   //Optional query Options for TCommentThreadsResource, method Update
   
   TCommentThreadsUpdateOptions = Record
-    part : string;
+    part : String;
   end;
   
   TCommentThreadsResource = Class(TGoogleResource)
@@ -5634,33 +4854,33 @@ type
   //Optional query Options for TCommentsResource, method Delete
   
   TCommentsDeleteOptions = Record
-    id : string;
+    id : String;
   end;
   
   
   //Optional query Options for TCommentsResource, method Insert
   
   TCommentsInsertOptions = Record
-    part : string;
+    part : String;
   end;
   
   
   //Optional query Options for TCommentsResource, method List
   
   TCommentsListOptions = Record
-    id : string;
+    id : String;
     maxResults : integer;
-    pageToken : string;
-    parentId : string;
-    part : string;
-    textFormat : string;
+    pageToken : String;
+    parentId : String;
+    part : String;
+    textFormat : String;
   end;
   
   
   //Optional query Options for TCommentsResource, method MarkAsSpam
   
   TCommentsMarkAsSpamOptions = Record
-    id : string;
+    id : String;
   end;
   
   
@@ -5668,15 +4888,15 @@ type
   
   TCommentsSetModerationStatusOptions = Record
     banAuthor : boolean;
-    id : string;
-    moderationStatus : string;
+    id : String;
+    moderationStatus : String;
   end;
   
   
   //Optional query Options for TCommentsResource, method Update
   
   TCommentsUpdateOptions = Record
-    part : string;
+    part : String;
   end;
   
   TCommentsResource = Class(TGoogleResource)
@@ -5706,10 +4926,10 @@ type
   //Optional query Options for TGuideCategoriesResource, method List
   
   TGuideCategoriesListOptions = Record
-    hl : string;
-    id : string;
-    part : string;
-    regionCode : string;
+    hl : String;
+    id : String;
+    part : String;
+    regionCode : String;
   end;
   
   TGuideCategoriesResource = Class(TGoogleResource)
@@ -5729,8 +4949,8 @@ type
   //Optional query Options for TI18nLanguagesResource, method List
   
   TI18nLanguagesListOptions = Record
-    hl : string;
-    part : string;
+    hl : String;
+    part : String;
   end;
   
   TI18nLanguagesResource = Class(TGoogleResource)
@@ -5750,8 +4970,8 @@ type
   //Optional query Options for TI18nRegionsResource, method List
   
   TI18nRegionsListOptions = Record
-    hl : string;
-    part : string;
+    hl : String;
+    part : String;
   end;
   
   TI18nRegionsResource = Class(TGoogleResource)
@@ -5771,11 +4991,11 @@ type
   //Optional query Options for TLiveBroadcastsResource, method Bind
   
   TLiveBroadcastsBindOptions = Record
-    id : string;
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    part : string;
-    streamId : string;
+    id : String;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    part : String;
+    streamId : String;
   end;
   
   
@@ -5783,11 +5003,11 @@ type
   
   TLiveBroadcastsControlOptions = Record
     displaySlate : boolean;
-    id : string;
-    offsetTimeMs : string;
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    part : string;
+    id : String;
+    offsetTimeMs : String;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    part : String;
     walltime : TDatetime;
   end;
   
@@ -5795,52 +5015,52 @@ type
   //Optional query Options for TLiveBroadcastsResource, method Delete
   
   TLiveBroadcastsDeleteOptions = Record
-    id : string;
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
+    id : String;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
   end;
   
   
   //Optional query Options for TLiveBroadcastsResource, method Insert
   
   TLiveBroadcastsInsertOptions = Record
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    part : String;
   end;
   
   
   //Optional query Options for TLiveBroadcastsResource, method List
   
   TLiveBroadcastsListOptions = Record
-    broadcastStatus : string;
-    id : string;
+    broadcastStatus : String;
+    id : String;
     maxResults : integer;
     mine : boolean;
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    pageToken : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    pageToken : String;
+    part : String;
   end;
   
   
   //Optional query Options for TLiveBroadcastsResource, method Transition
   
   TLiveBroadcastsTransitionOptions = Record
-    broadcastStatus : string;
-    id : string;
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    part : string;
+    broadcastStatus : String;
+    id : String;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    part : String;
   end;
   
   
   //Optional query Options for TLiveBroadcastsResource, method Update
   
   TLiveBroadcastsUpdateOptions = Record
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    part : String;
   end;
   
   TLiveBroadcastsResource = Class(TGoogleResource)
@@ -5872,40 +5092,40 @@ type
   //Optional query Options for TLiveStreamsResource, method Delete
   
   TLiveStreamsDeleteOptions = Record
-    id : string;
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
+    id : String;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
   end;
   
   
   //Optional query Options for TLiveStreamsResource, method Insert
   
   TLiveStreamsInsertOptions = Record
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    part : String;
   end;
   
   
   //Optional query Options for TLiveStreamsResource, method List
   
   TLiveStreamsListOptions = Record
-    id : string;
+    id : String;
     maxResults : integer;
     mine : boolean;
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    pageToken : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    pageToken : String;
+    part : String;
   end;
   
   
   //Optional query Options for TLiveStreamsResource, method Update
   
   TLiveStreamsUpdateOptions = Record
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    part : String;
   end;
   
   TLiveStreamsResource = Class(TGoogleResource)
@@ -5931,35 +5151,35 @@ type
   //Optional query Options for TPlaylistItemsResource, method Delete
   
   TPlaylistItemsDeleteOptions = Record
-    id : string;
+    id : String;
   end;
   
   
   //Optional query Options for TPlaylistItemsResource, method Insert
   
   TPlaylistItemsInsertOptions = Record
-    onBehalfOfContentOwner : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    part : String;
   end;
   
   
   //Optional query Options for TPlaylistItemsResource, method List
   
   TPlaylistItemsListOptions = Record
-    id : string;
+    id : String;
     maxResults : integer;
-    onBehalfOfContentOwner : string;
-    pageToken : string;
-    part : string;
-    playlistId : string;
-    videoId : string;
+    onBehalfOfContentOwner : String;
+    pageToken : String;
+    part : String;
+    playlistId : String;
+    videoId : String;
   end;
   
   
   //Optional query Options for TPlaylistItemsResource, method Update
   
   TPlaylistItemsUpdateOptions = Record
-    part : string;
+    part : String;
   end;
   
   TPlaylistItemsResource = Class(TGoogleResource)
@@ -5985,40 +5205,40 @@ type
   //Optional query Options for TPlaylistsResource, method Delete
   
   TPlaylistsDeleteOptions = Record
-    id : string;
-    onBehalfOfContentOwner : string;
+    id : String;
+    onBehalfOfContentOwner : String;
   end;
   
   
   //Optional query Options for TPlaylistsResource, method Insert
   
   TPlaylistsInsertOptions = Record
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    part : String;
   end;
   
   
   //Optional query Options for TPlaylistsResource, method List
   
   TPlaylistsListOptions = Record
-    channelId : string;
-    hl : string;
-    id : string;
+    channelId : String;
+    hl : String;
+    id : String;
     maxResults : integer;
     mine : boolean;
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    pageToken : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    pageToken : String;
+    part : String;
   end;
   
   
   //Optional query Options for TPlaylistsResource, method Update
   
   TPlaylistsUpdateOptions = Record
-    onBehalfOfContentOwner : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    part : String;
   end;
   
   TPlaylistsResource = Class(TGoogleResource)
@@ -6044,37 +5264,37 @@ type
   //Optional query Options for TSearchResource, method List
   
   TSearchListOptions = Record
-    channelId : string;
-    channelType : string;
-    eventType : string;
+    channelId : String;
+    channelType : String;
+    eventType : String;
     forContentOwner : boolean;
     forDeveloper : boolean;
     forMine : boolean;
-    location : string;
-    locationRadius : string;
+    location : String;
+    locationRadius : String;
     maxResults : integer;
-    onBehalfOfContentOwner : string;
-    order : string;
-    pageToken : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    order : String;
+    pageToken : String;
+    part : String;
     publishedAfter : TDatetime;
     publishedBefore : TDatetime;
-    q : string;
-    regionCode : string;
-    relatedToVideoId : string;
-    relevanceLanguage : string;
-    safeSearch : string;
-    topicId : string;
-    _type : string;
-    videoCaption : string;
-    videoCategoryId : string;
-    videoDefinition : string;
-    videoDimension : string;
-    videoDuration : string;
-    videoEmbeddable : string;
-    videoLicense : string;
-    videoSyndicated : string;
-    videoType : string;
+    q : String;
+    regionCode : String;
+    relatedToVideoId : String;
+    relevanceLanguage : String;
+    safeSearch : String;
+    topicId : String;
+    _type : String;
+    videoCaption : String;
+    videoCategoryId : String;
+    videoDefinition : String;
+    videoDimension : String;
+    videoDuration : String;
+    videoEmbeddable : String;
+    videoLicense : String;
+    videoSyndicated : String;
+    videoType : String;
   end;
   
   TSearchResource = Class(TGoogleResource)
@@ -6094,31 +5314,31 @@ type
   //Optional query Options for TSubscriptionsResource, method Delete
   
   TSubscriptionsDeleteOptions = Record
-    id : string;
+    id : String;
   end;
   
   
   //Optional query Options for TSubscriptionsResource, method Insert
   
   TSubscriptionsInsertOptions = Record
-    part : string;
+    part : String;
   end;
   
   
   //Optional query Options for TSubscriptionsResource, method List
   
   TSubscriptionsListOptions = Record
-    channelId : string;
-    forChannelId : string;
-    id : string;
+    channelId : String;
+    forChannelId : String;
+    id : String;
     maxResults : integer;
     mine : boolean;
     mySubscribers : boolean;
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    order : string;
-    pageToken : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    order : String;
+    pageToken : String;
+    part : String;
   end;
   
   TSubscriptionsResource = Class(TGoogleResource)
@@ -6142,8 +5362,8 @@ type
   //Optional query Options for TThumbnailsResource, method Set
   
   TThumbnailsSetOptions = Record
-    onBehalfOfContentOwner : string;
-    videoId : string;
+    onBehalfOfContentOwner : String;
+    videoId : String;
   end;
   
   TThumbnailsResource = Class(TGoogleResource)
@@ -6163,8 +5383,8 @@ type
   //Optional query Options for TVideoAbuseReportReasonsResource, method List
   
   TVideoAbuseReportReasonsListOptions = Record
-    hl : string;
-    part : string;
+    hl : String;
+    part : String;
   end;
   
   TVideoAbuseReportReasonsResource = Class(TGoogleResource)
@@ -6184,10 +5404,10 @@ type
   //Optional query Options for TVideoCategoriesResource, method List
   
   TVideoCategoriesListOptions = Record
-    hl : string;
-    id : string;
-    part : string;
-    regionCode : string;
+    hl : String;
+    id : String;
+    part : String;
+    regionCode : String;
   end;
   
   TVideoCategoriesResource = Class(TGoogleResource)
@@ -6207,16 +5427,16 @@ type
   //Optional query Options for TVideosResource, method Delete
   
   TVideosDeleteOptions = Record
-    id : string;
-    onBehalfOfContentOwner : string;
+    id : String;
+    onBehalfOfContentOwner : String;
   end;
   
   
   //Optional query Options for TVideosResource, method GetRating
   
   TVideosGetRatingOptions = Record
-    id : string;
-    onBehalfOfContentOwner : string;
+    id : String;
+    onBehalfOfContentOwner : String;
   end;
   
   
@@ -6225,9 +5445,9 @@ type
   TVideosInsertOptions = Record
     autoLevels : boolean;
     notifySubscribers : boolean;
-    onBehalfOfContentOwner : string;
-    onBehalfOfContentOwnerChannel : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    onBehalfOfContentOwnerChannel : String;
+    part : String;
     stabilize : boolean;
   end;
   
@@ -6235,41 +5455,41 @@ type
   //Optional query Options for TVideosResource, method List
   
   TVideosListOptions = Record
-    chart : string;
-    hl : string;
-    id : string;
-    locale : string;
+    chart : String;
+    hl : String;
+    id : String;
+    locale : String;
     maxResults : integer;
-    myRating : string;
-    onBehalfOfContentOwner : string;
-    pageToken : string;
-    part : string;
-    regionCode : string;
-    videoCategoryId : string;
+    myRating : String;
+    onBehalfOfContentOwner : String;
+    pageToken : String;
+    part : String;
+    regionCode : String;
+    videoCategoryId : String;
   end;
   
   
   //Optional query Options for TVideosResource, method Rate
   
   TVideosRateOptions = Record
-    id : string;
-    onBehalfOfContentOwner : string;
-    rating : string;
+    id : String;
+    onBehalfOfContentOwner : String;
+    rating : String;
   end;
   
   
   //Optional query Options for TVideosResource, method ReportAbuse
   
   TVideosReportAbuseOptions = Record
-    onBehalfOfContentOwner : string;
+    onBehalfOfContentOwner : String;
   end;
   
   
   //Optional query Options for TVideosResource, method Update
   
   TVideosUpdateOptions = Record
-    onBehalfOfContentOwner : string;
-    part : string;
+    onBehalfOfContentOwner : String;
+    part : String;
   end;
   
   TVideosResource = Class(TGoogleResource)
@@ -6301,16 +5521,16 @@ type
   //Optional query Options for TWatermarksResource, method Set
   
   TWatermarksSetOptions = Record
-    channelId : string;
-    onBehalfOfContentOwner : string;
+    channelId : String;
+    onBehalfOfContentOwner : String;
   end;
   
   
   //Optional query Options for TWatermarksResource, method Unset
   
   TWatermarksUnsetOptions = Record
-    channelId : string;
-    onBehalfOfContentOwner : string;
+    channelId : String;
+    onBehalfOfContentOwner : String;
   end;
   
   TWatermarksResource = Class(TGoogleResource)
@@ -6479,7 +5699,7 @@ end;
 
 
 
-Procedure TAccessPolicy.Setexception(AIndex : Integer; AValue : TAccessPolicyexception); 
+Procedure TAccessPolicy.Setexception(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fexception=AValue) then exit;
@@ -6487,13 +5707,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccessPolicyexception
-  --------------------------------------------------------------------}
 
 
 
@@ -6513,7 +5726,7 @@ end;
 
 
 
-Procedure TActivity.Setetag(AIndex : Integer; AValue : string); 
+Procedure TActivity.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -6523,7 +5736,7 @@ end;
 
 
 
-Procedure TActivity.Setid(AIndex : Integer; AValue : string); 
+Procedure TActivity.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6533,7 +5746,7 @@ end;
 
 
 
-Procedure TActivity.Setkind(AIndex : Integer; AValue : string); 
+Procedure TActivity.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6762,7 +5975,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityContentDetailsPlaylistItem.SetplaylistId(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsPlaylistItem.SetplaylistId(AIndex : Integer; AValue : String); 
 
 begin
   If (FplaylistId=AValue) then exit;
@@ -6772,7 +5985,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPlaylistItem.SetplaylistItemId(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsPlaylistItem.SetplaylistItemId(AIndex : Integer; AValue : String); 
 
 begin
   If (FplaylistItemId=AValue) then exit;
@@ -6799,7 +6012,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityContentDetailsPromotedItem.SetadTag(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsPromotedItem.SetadTag(AIndex : Integer; AValue : String); 
 
 begin
   If (FadTag=AValue) then exit;
@@ -6809,7 +6022,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetclickTrackingUrl(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsPromotedItem.SetclickTrackingUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FclickTrackingUrl=AValue) then exit;
@@ -6819,7 +6032,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetcreativeViewUrl(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsPromotedItem.SetcreativeViewUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreativeViewUrl=AValue) then exit;
@@ -6829,7 +6042,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetctaType(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsPromotedItem.SetctaType(AIndex : Integer; AValue : String); 
 
 begin
   If (FctaType=AValue) then exit;
@@ -6839,7 +6052,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetcustomCtaButtonText(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsPromotedItem.SetcustomCtaButtonText(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomCtaButtonText=AValue) then exit;
@@ -6849,7 +6062,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetdescriptionText(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsPromotedItem.SetdescriptionText(AIndex : Integer; AValue : String); 
 
 begin
   If (FdescriptionText=AValue) then exit;
@@ -6859,7 +6072,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetdestinationUrl(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsPromotedItem.SetdestinationUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FdestinationUrl=AValue) then exit;
@@ -6869,7 +6082,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetforecastingUrl(AIndex : Integer; AValue : TActivityContentDetailsPromotedItemforecastingUrl); 
+Procedure TActivityContentDetailsPromotedItem.SetforecastingUrl(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FforecastingUrl=AValue) then exit;
@@ -6879,7 +6092,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetimpressionUrl(AIndex : Integer; AValue : TActivityContentDetailsPromotedItemimpressionUrl); 
+Procedure TActivityContentDetailsPromotedItem.SetimpressionUrl(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FimpressionUrl=AValue) then exit;
@@ -6889,7 +6102,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetvideoId(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsPromotedItem.SetvideoId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -6902,25 +6115,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TActivityContentDetailsPromotedItemforecastingUrl
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityContentDetailsPromotedItemimpressionUrl
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TActivityContentDetailsRecommendation
   --------------------------------------------------------------------}
 
 
-Procedure TActivityContentDetailsRecommendation.Setreason(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsRecommendation.Setreason(AIndex : Integer; AValue : String); 
 
 begin
   If (Freason=AValue) then exit;
@@ -6957,7 +6156,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityContentDetailsSocial.Setauthor(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsSocial.Setauthor(AIndex : Integer; AValue : String); 
 
 begin
   If (Fauthor=AValue) then exit;
@@ -6967,7 +6166,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsSocial.SetimageUrl(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsSocial.SetimageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FimageUrl=AValue) then exit;
@@ -6977,7 +6176,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsSocial.SetreferenceUrl(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsSocial.SetreferenceUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceUrl=AValue) then exit;
@@ -6997,7 +6196,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsSocial.Set_type(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsSocial.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7042,7 +6241,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityContentDetailsUpload.SetvideoId(AIndex : Integer; AValue : string); 
+Procedure TActivityContentDetailsUpload.SetvideoId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -7059,7 +6258,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TActivityListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -7069,7 +6268,7 @@ end;
 
 
 
-Procedure TActivityListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TActivityListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -7079,7 +6278,7 @@ end;
 
 
 
-Procedure TActivityListResponse.Setitems(AIndex : Integer; AValue : TActivityListResponseitems); 
+Procedure TActivityListResponse.Setitems(AIndex : Integer; AValue : TActivityListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -7089,7 +6288,7 @@ end;
 
 
 
-Procedure TActivityListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TActivityListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7099,7 +6298,7 @@ end;
 
 
 
-Procedure TActivityListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TActivityListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7119,7 +6318,7 @@ end;
 
 
 
-Procedure TActivityListResponse.SetprevPageToken(AIndex : Integer; AValue : string); 
+Procedure TActivityListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -7139,7 +6338,7 @@ end;
 
 
 
-Procedure TActivityListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TActivityListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -7152,18 +6351,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TActivityListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TActivitySnippet
   --------------------------------------------------------------------}
 
 
-Procedure TActivitySnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TActivitySnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -7173,7 +6365,7 @@ end;
 
 
 
-Procedure TActivitySnippet.SetchannelTitle(AIndex : Integer; AValue : string); 
+Procedure TActivitySnippet.SetchannelTitle(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelTitle=AValue) then exit;
@@ -7183,7 +6375,7 @@ end;
 
 
 
-Procedure TActivitySnippet.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TActivitySnippet.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -7193,7 +6385,7 @@ end;
 
 
 
-Procedure TActivitySnippet.SetgroupId(AIndex : Integer; AValue : string); 
+Procedure TActivitySnippet.SetgroupId(AIndex : Integer; AValue : String); 
 
 begin
   If (FgroupId=AValue) then exit;
@@ -7223,7 +6415,7 @@ end;
 
 
 
-Procedure TActivitySnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TActivitySnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -7233,7 +6425,7 @@ end;
 
 
 
-Procedure TActivitySnippet.Set_type(AIndex : Integer; AValue : string); 
+Procedure TActivitySnippet.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7261,7 +6453,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCaption.Setetag(AIndex : Integer; AValue : string); 
+Procedure TCaption.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -7271,7 +6463,7 @@ end;
 
 
 
-Procedure TCaption.Setid(AIndex : Integer; AValue : string); 
+Procedure TCaption.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7281,7 +6473,7 @@ end;
 
 
 
-Procedure TCaption.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCaption.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7308,7 +6500,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCaptionListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TCaptionListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -7318,7 +6510,7 @@ end;
 
 
 
-Procedure TCaptionListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TCaptionListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -7328,7 +6520,7 @@ end;
 
 
 
-Procedure TCaptionListResponse.Setitems(AIndex : Integer; AValue : TCaptionListResponseitems); 
+Procedure TCaptionListResponse.Setitems(AIndex : Integer; AValue : TCaptionListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -7338,7 +6530,7 @@ end;
 
 
 
-Procedure TCaptionListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCaptionListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7348,7 +6540,7 @@ end;
 
 
 
-Procedure TCaptionListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TCaptionListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -7361,18 +6553,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCaptionListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TCaptionSnippet
   --------------------------------------------------------------------}
 
 
-Procedure TCaptionSnippet.SetaudioTrackType(AIndex : Integer; AValue : string); 
+Procedure TCaptionSnippet.SetaudioTrackType(AIndex : Integer; AValue : String); 
 
 begin
   If (FaudioTrackType=AValue) then exit;
@@ -7382,7 +6567,7 @@ end;
 
 
 
-Procedure TCaptionSnippet.SetfailureReason(AIndex : Integer; AValue : string); 
+Procedure TCaptionSnippet.SetfailureReason(AIndex : Integer; AValue : String); 
 
 begin
   If (FfailureReason=AValue) then exit;
@@ -7442,7 +6627,7 @@ end;
 
 
 
-Procedure TCaptionSnippet.Setlanguage(AIndex : Integer; AValue : string); 
+Procedure TCaptionSnippet.Setlanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -7462,7 +6647,7 @@ end;
 
 
 
-Procedure TCaptionSnippet.Setname(AIndex : Integer; AValue : string); 
+Procedure TCaptionSnippet.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -7472,7 +6657,7 @@ end;
 
 
 
-Procedure TCaptionSnippet.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TCaptionSnippet.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -7482,7 +6667,7 @@ end;
 
 
 
-Procedure TCaptionSnippet.SettrackKind(AIndex : Integer; AValue : string); 
+Procedure TCaptionSnippet.SettrackKind(AIndex : Integer; AValue : String); 
 
 begin
   If (FtrackKind=AValue) then exit;
@@ -7492,7 +6677,7 @@ end;
 
 
 
-Procedure TCaptionSnippet.SetvideoId(AIndex : Integer; AValue : string); 
+Procedure TCaptionSnippet.SetvideoId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -7509,7 +6694,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCdnSettings.Setformat(AIndex : Integer; AValue : string); 
+Procedure TCdnSettings.Setformat(AIndex : Integer; AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -7529,7 +6714,7 @@ end;
 
 
 
-Procedure TCdnSettings.SetingestionType(AIndex : Integer; AValue : string); 
+Procedure TCdnSettings.SetingestionType(AIndex : Integer; AValue : String); 
 
 begin
   If (FingestionType=AValue) then exit;
@@ -7538,6 +6723,19 @@ begin
 end;
 
 
+
+
+
+{ --------------------------------------------------------------------
+  TChannelTypelocalizations
+  --------------------------------------------------------------------}
+
+
+Class Function TChannelTypelocalizations.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -7596,7 +6794,7 @@ end;
 
 
 
-Procedure TChannel.Setetag(AIndex : Integer; AValue : string); 
+Procedure TChannel.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -7606,7 +6804,7 @@ end;
 
 
 
-Procedure TChannel.Setid(AIndex : Integer; AValue : string); 
+Procedure TChannel.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7626,7 +6824,7 @@ end;
 
 
 
-Procedure TChannel.Setkind(AIndex : Integer; AValue : string); 
+Procedure TChannel.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7636,7 +6834,7 @@ end;
 
 
 
-Procedure TChannel.Setlocalizations(AIndex : Integer; AValue : TChannellocalizations); 
+Procedure TChannel.Setlocalizations(AIndex : Integer; AValue : TChannelTypelocalizations); 
 
 begin
   If (Flocalizations=AValue) then exit;
@@ -7685,19 +6883,6 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TChannellocalizations
-  --------------------------------------------------------------------}
-
-
-Class Function TChannellocalizations.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
 
 
 
@@ -7753,7 +6938,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelBannerResource.Setetag(AIndex : Integer; AValue : string); 
+Procedure TChannelBannerResource.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -7763,7 +6948,7 @@ end;
 
 
 
-Procedure TChannelBannerResource.Setkind(AIndex : Integer; AValue : string); 
+Procedure TChannelBannerResource.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7773,7 +6958,7 @@ end;
 
 
 
-Procedure TChannelBannerResource.Seturl(AIndex : Integer; AValue : string); 
+Procedure TChannelBannerResource.Seturl(AIndex : Integer; AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -7800,7 +6985,7 @@ end;
 
 
 
-Procedure TChannelBrandingSettings.Sethints(AIndex : Integer; AValue : TChannelBrandingSettingshints); 
+Procedure TChannelBrandingSettings.Sethints(AIndex : Integer; AValue : TChannelBrandingSettingsTypehintsArray); 
 
 begin
   If (Fhints=AValue) then exit;
@@ -7833,45 +7018,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChannelBrandingSettingshints
+  TChannelContentDetailsTyperelatedPlaylists
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TChannelContentDetails
-  --------------------------------------------------------------------}
-
-
-Procedure TChannelContentDetails.SetgooglePlusUserId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FgooglePlusUserId=AValue) then exit;
-  FgooglePlusUserId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TChannelContentDetails.SetrelatedPlaylists(AIndex : Integer; AValue : TChannelContentDetailsrelatedPlaylists); 
-
-begin
-  If (FrelatedPlaylists=AValue) then exit;
-  FrelatedPlaylists:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TChannelContentDetailsrelatedPlaylists
-  --------------------------------------------------------------------}
-
-
-Procedure TChannelContentDetailsrelatedPlaylists.Setfavorites(AIndex : Integer; AValue : string); 
+Procedure TChannelContentDetailsTyperelatedPlaylists.Setfavorites(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffavorites=AValue) then exit;
@@ -7881,7 +7032,7 @@ end;
 
 
 
-Procedure TChannelContentDetailsrelatedPlaylists.Setlikes(AIndex : Integer; AValue : string); 
+Procedure TChannelContentDetailsTyperelatedPlaylists.Setlikes(AIndex : Integer; AValue : String); 
 
 begin
   If (Flikes=AValue) then exit;
@@ -7891,7 +7042,7 @@ end;
 
 
 
-Procedure TChannelContentDetailsrelatedPlaylists.Setuploads(AIndex : Integer; AValue : string); 
+Procedure TChannelContentDetailsTyperelatedPlaylists.Setuploads(AIndex : Integer; AValue : String); 
 
 begin
   If (Fuploads=AValue) then exit;
@@ -7901,7 +7052,7 @@ end;
 
 
 
-Procedure TChannelContentDetailsrelatedPlaylists.SetwatchHistory(AIndex : Integer; AValue : string); 
+Procedure TChannelContentDetailsTyperelatedPlaylists.SetwatchHistory(AIndex : Integer; AValue : String); 
 
 begin
   If (FwatchHistory=AValue) then exit;
@@ -7911,7 +7062,7 @@ end;
 
 
 
-Procedure TChannelContentDetailsrelatedPlaylists.SetwatchLater(AIndex : Integer; AValue : string); 
+Procedure TChannelContentDetailsTyperelatedPlaylists.SetwatchLater(AIndex : Integer; AValue : String); 
 
 begin
   If (FwatchLater=AValue) then exit;
@@ -7924,11 +7075,38 @@ end;
 
 
 { --------------------------------------------------------------------
+  TChannelContentDetails
+  --------------------------------------------------------------------}
+
+
+Procedure TChannelContentDetails.SetgooglePlusUserId(AIndex : Integer; AValue : String); 
+
+begin
+  If (FgooglePlusUserId=AValue) then exit;
+  FgooglePlusUserId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TChannelContentDetails.SetrelatedPlaylists(AIndex : Integer; AValue : TChannelContentDetailsTyperelatedPlaylists); 
+
+begin
+  If (FrelatedPlaylists=AValue) then exit;
+  FrelatedPlaylists:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TChannelContentOwnerDetails
   --------------------------------------------------------------------}
 
 
-Procedure TChannelContentOwnerDetails.SetcontentOwner(AIndex : Integer; AValue : string); 
+Procedure TChannelContentOwnerDetails.SetcontentOwner(AIndex : Integer; AValue : String); 
 
 begin
   If (FcontentOwner=AValue) then exit;
@@ -7955,7 +7133,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelConversionPing.Setcontext(AIndex : Integer; AValue : string); 
+Procedure TChannelConversionPing.Setcontext(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcontext=AValue) then exit;
@@ -7965,7 +7143,7 @@ end;
 
 
 
-Procedure TChannelConversionPing.SetconversionUrl(AIndex : Integer; AValue : string); 
+Procedure TChannelConversionPing.SetconversionUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FconversionUrl=AValue) then exit;
@@ -7982,7 +7160,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelConversionPings.Setpings(AIndex : Integer; AValue : TChannelConversionPingspings); 
+Procedure TChannelConversionPings.Setpings(AIndex : Integer; AValue : TChannelConversionPingsTypepingsArray); 
 
 begin
   If (Fpings=AValue) then exit;
@@ -7995,18 +7173,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChannelConversionPingspings
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TChannelId
   --------------------------------------------------------------------}
 
 
-Procedure TChannelId.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TChannelId.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -8023,7 +7194,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TChannelListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -8033,7 +7204,7 @@ end;
 
 
 
-Procedure TChannelListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TChannelListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -8043,7 +7214,7 @@ end;
 
 
 
-Procedure TChannelListResponse.Setitems(AIndex : Integer; AValue : TChannelListResponseitems); 
+Procedure TChannelListResponse.Setitems(AIndex : Integer; AValue : TChannelListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -8053,7 +7224,7 @@ end;
 
 
 
-Procedure TChannelListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TChannelListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8063,7 +7234,7 @@ end;
 
 
 
-Procedure TChannelListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TChannelListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8083,7 +7254,7 @@ end;
 
 
 
-Procedure TChannelListResponse.SetprevPageToken(AIndex : Integer; AValue : string); 
+Procedure TChannelListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -8103,7 +7274,7 @@ end;
 
 
 
-Procedure TChannelListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TChannelListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -8116,18 +7287,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChannelListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TChannelLocalization
   --------------------------------------------------------------------}
 
 
-Procedure TChannelLocalization.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TChannelLocalization.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -8137,7 +7301,7 @@ end;
 
 
 
-Procedure TChannelLocalization.Settitle(AIndex : Integer; AValue : string); 
+Procedure TChannelLocalization.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -8146,6 +7310,19 @@ begin
 end;
 
 
+
+
+
+{ --------------------------------------------------------------------
+  TChannelSectionTypelocalizations
+  --------------------------------------------------------------------}
+
+
+Class Function TChannelSectionTypelocalizations.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -8164,7 +7341,7 @@ end;
 
 
 
-Procedure TChannelSection.Setetag(AIndex : Integer; AValue : string); 
+Procedure TChannelSection.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -8174,7 +7351,7 @@ end;
 
 
 
-Procedure TChannelSection.Setid(AIndex : Integer; AValue : string); 
+Procedure TChannelSection.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8184,7 +7361,7 @@ end;
 
 
 
-Procedure TChannelSection.Setkind(AIndex : Integer; AValue : string); 
+Procedure TChannelSection.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8194,7 +7371,7 @@ end;
 
 
 
-Procedure TChannelSection.Setlocalizations(AIndex : Integer; AValue : TChannelSectionlocalizations); 
+Procedure TChannelSection.Setlocalizations(AIndex : Integer; AValue : TChannelSectionTypelocalizations); 
 
 begin
   If (Flocalizations=AValue) then exit;
@@ -8227,24 +7404,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChannelSectionlocalizations
-  --------------------------------------------------------------------}
-
-
-Class Function TChannelSectionlocalizations.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TChannelSectionContentDetails
   --------------------------------------------------------------------}
 
 
-Procedure TChannelSectionContentDetails.Setchannels(AIndex : Integer; AValue : TChannelSectionContentDetailschannels); 
+Procedure TChannelSectionContentDetails.Setchannels(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fchannels=AValue) then exit;
@@ -8254,7 +7418,7 @@ end;
 
 
 
-Procedure TChannelSectionContentDetails.Setplaylists(AIndex : Integer; AValue : TChannelSectionContentDetailsplaylists); 
+Procedure TChannelSectionContentDetails.Setplaylists(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fplaylists=AValue) then exit;
@@ -8267,25 +7431,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChannelSectionContentDetailschannels
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TChannelSectionContentDetailsplaylists
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TChannelSectionListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TChannelSectionListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TChannelSectionListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -8295,7 +7445,7 @@ end;
 
 
 
-Procedure TChannelSectionListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TChannelSectionListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -8305,7 +7455,7 @@ end;
 
 
 
-Procedure TChannelSectionListResponse.Setitems(AIndex : Integer; AValue : TChannelSectionListResponseitems); 
+Procedure TChannelSectionListResponse.Setitems(AIndex : Integer; AValue : TChannelSectionListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -8315,7 +7465,7 @@ end;
 
 
 
-Procedure TChannelSectionListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TChannelSectionListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8325,7 +7475,7 @@ end;
 
 
 
-Procedure TChannelSectionListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TChannelSectionListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -8338,18 +7488,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChannelSectionListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TChannelSectionLocalization
   --------------------------------------------------------------------}
 
 
-Procedure TChannelSectionLocalization.Settitle(AIndex : Integer; AValue : string); 
+Procedure TChannelSectionLocalization.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -8366,7 +7509,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelSectionSnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TChannelSectionSnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -8376,7 +7519,7 @@ end;
 
 
 
-Procedure TChannelSectionSnippet.SetdefaultLanguage(AIndex : Integer; AValue : string); 
+Procedure TChannelSectionSnippet.SetdefaultLanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (FdefaultLanguage=AValue) then exit;
@@ -8406,7 +7549,7 @@ end;
 
 
 
-Procedure TChannelSectionSnippet.Setstyle(AIndex : Integer; AValue : string); 
+Procedure TChannelSectionSnippet.Setstyle(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstyle=AValue) then exit;
@@ -8416,7 +7559,7 @@ end;
 
 
 
-Procedure TChannelSectionSnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TChannelSectionSnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -8426,7 +7569,7 @@ end;
 
 
 
-Procedure TChannelSectionSnippet.Set_type(AIndex : Integer; AValue : string); 
+Procedure TChannelSectionSnippet.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -8454,7 +7597,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelSectionTargeting.Setcountries(AIndex : Integer; AValue : TChannelSectionTargetingcountries); 
+Procedure TChannelSectionTargeting.Setcountries(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fcountries=AValue) then exit;
@@ -8464,7 +7607,7 @@ end;
 
 
 
-Procedure TChannelSectionTargeting.Setlanguages(AIndex : Integer; AValue : TChannelSectionTargetinglanguages); 
+Procedure TChannelSectionTargeting.Setlanguages(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Flanguages=AValue) then exit;
@@ -8474,7 +7617,7 @@ end;
 
 
 
-Procedure TChannelSectionTargeting.Setregions(AIndex : Integer; AValue : TChannelSectionTargetingregions); 
+Procedure TChannelSectionTargeting.Setregions(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fregions=AValue) then exit;
@@ -8487,32 +7630,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChannelSectionTargetingcountries
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TChannelSectionTargetinglanguages
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TChannelSectionTargetingregions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TChannelSettings
   --------------------------------------------------------------------}
 
 
-Procedure TChannelSettings.Setcountry(AIndex : Integer; AValue : string); 
+Procedure TChannelSettings.Setcountry(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -8522,7 +7644,7 @@ end;
 
 
 
-Procedure TChannelSettings.SetdefaultLanguage(AIndex : Integer; AValue : string); 
+Procedure TChannelSettings.SetdefaultLanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (FdefaultLanguage=AValue) then exit;
@@ -8532,7 +7654,7 @@ end;
 
 
 
-Procedure TChannelSettings.SetdefaultTab(AIndex : Integer; AValue : string); 
+Procedure TChannelSettings.SetdefaultTab(AIndex : Integer; AValue : String); 
 
 begin
   If (FdefaultTab=AValue) then exit;
@@ -8542,7 +7664,7 @@ end;
 
 
 
-Procedure TChannelSettings.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TChannelSettings.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -8552,7 +7674,7 @@ end;
 
 
 
-Procedure TChannelSettings.SetfeaturedChannelsTitle(AIndex : Integer; AValue : string); 
+Procedure TChannelSettings.SetfeaturedChannelsTitle(AIndex : Integer; AValue : String); 
 
 begin
   If (FfeaturedChannelsTitle=AValue) then exit;
@@ -8562,7 +7684,7 @@ end;
 
 
 
-Procedure TChannelSettings.SetfeaturedChannelsUrls(AIndex : Integer; AValue : TChannelSettingsfeaturedChannelsUrls); 
+Procedure TChannelSettings.SetfeaturedChannelsUrls(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FfeaturedChannelsUrls=AValue) then exit;
@@ -8572,7 +7694,7 @@ end;
 
 
 
-Procedure TChannelSettings.Setkeywords(AIndex : Integer; AValue : string); 
+Procedure TChannelSettings.Setkeywords(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkeywords=AValue) then exit;
@@ -8592,7 +7714,7 @@ end;
 
 
 
-Procedure TChannelSettings.SetprofileColor(AIndex : Integer; AValue : string); 
+Procedure TChannelSettings.SetprofileColor(AIndex : Integer; AValue : String); 
 
 begin
   If (FprofileColor=AValue) then exit;
@@ -8622,7 +7744,7 @@ end;
 
 
 
-Procedure TChannelSettings.Settitle(AIndex : Integer; AValue : string); 
+Procedure TChannelSettings.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -8632,7 +7754,7 @@ end;
 
 
 
-Procedure TChannelSettings.SettrackingAnalyticsAccountId(AIndex : Integer; AValue : string); 
+Procedure TChannelSettings.SettrackingAnalyticsAccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FtrackingAnalyticsAccountId=AValue) then exit;
@@ -8642,7 +7764,7 @@ end;
 
 
 
-Procedure TChannelSettings.SetunsubscribedTrailer(AIndex : Integer; AValue : string); 
+Procedure TChannelSettings.SetunsubscribedTrailer(AIndex : Integer; AValue : String); 
 
 begin
   If (FunsubscribedTrailer=AValue) then exit;
@@ -8655,18 +7777,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChannelSettingsfeaturedChannelsUrls
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TChannelSnippet
   --------------------------------------------------------------------}
 
 
-Procedure TChannelSnippet.Setcountry(AIndex : Integer; AValue : string); 
+Procedure TChannelSnippet.Setcountry(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -8676,7 +7791,7 @@ end;
 
 
 
-Procedure TChannelSnippet.SetdefaultLanguage(AIndex : Integer; AValue : string); 
+Procedure TChannelSnippet.SetdefaultLanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (FdefaultLanguage=AValue) then exit;
@@ -8686,7 +7801,7 @@ end;
 
 
 
-Procedure TChannelSnippet.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TChannelSnippet.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -8726,7 +7841,7 @@ end;
 
 
 
-Procedure TChannelSnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TChannelSnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -8743,7 +7858,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelStatistics.SetcommentCount(AIndex : Integer; AValue : string); 
+Procedure TChannelStatistics.SetcommentCount(AIndex : Integer; AValue : String); 
 
 begin
   If (FcommentCount=AValue) then exit;
@@ -8763,7 +7878,7 @@ end;
 
 
 
-Procedure TChannelStatistics.SetsubscriberCount(AIndex : Integer; AValue : string); 
+Procedure TChannelStatistics.SetsubscriberCount(AIndex : Integer; AValue : String); 
 
 begin
   If (FsubscriberCount=AValue) then exit;
@@ -8773,7 +7888,7 @@ end;
 
 
 
-Procedure TChannelStatistics.SetvideoCount(AIndex : Integer; AValue : string); 
+Procedure TChannelStatistics.SetvideoCount(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoCount=AValue) then exit;
@@ -8783,7 +7898,7 @@ end;
 
 
 
-Procedure TChannelStatistics.SetviewCount(AIndex : Integer; AValue : string); 
+Procedure TChannelStatistics.SetviewCount(AIndex : Integer; AValue : String); 
 
 begin
   If (FviewCount=AValue) then exit;
@@ -8810,7 +7925,7 @@ end;
 
 
 
-Procedure TChannelStatus.SetlongUploadsStatus(AIndex : Integer; AValue : string); 
+Procedure TChannelStatus.SetlongUploadsStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FlongUploadsStatus=AValue) then exit;
@@ -8820,7 +7935,7 @@ end;
 
 
 
-Procedure TChannelStatus.SetprivacyStatus(AIndex : Integer; AValue : string); 
+Procedure TChannelStatus.SetprivacyStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FprivacyStatus=AValue) then exit;
@@ -8837,7 +7952,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelTopicDetails.SettopicIds(AIndex : Integer; AValue : TChannelTopicDetailstopicIds); 
+Procedure TChannelTopicDetails.SettopicIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FtopicIds=AValue) then exit;
@@ -8850,18 +7965,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChannelTopicDetailstopicIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TComment
   --------------------------------------------------------------------}
 
 
-Procedure TComment.Setetag(AIndex : Integer; AValue : string); 
+Procedure TComment.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -8871,7 +7979,7 @@ end;
 
 
 
-Procedure TComment.Setid(AIndex : Integer; AValue : string); 
+Procedure TComment.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8881,7 +7989,7 @@ end;
 
 
 
-Procedure TComment.Setkind(AIndex : Integer; AValue : string); 
+Procedure TComment.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8908,7 +8016,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TCommentListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -8918,7 +8026,7 @@ end;
 
 
 
-Procedure TCommentListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TCommentListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -8928,7 +8036,7 @@ end;
 
 
 
-Procedure TCommentListResponse.Setitems(AIndex : Integer; AValue : TCommentListResponseitems); 
+Procedure TCommentListResponse.Setitems(AIndex : Integer; AValue : TCommentListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -8938,7 +8046,7 @@ end;
 
 
 
-Procedure TCommentListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCommentListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8948,7 +8056,7 @@ end;
 
 
 
-Procedure TCommentListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TCommentListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8978,7 +8086,7 @@ end;
 
 
 
-Procedure TCommentListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TCommentListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -8986,13 +8094,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentListResponseitems
-  --------------------------------------------------------------------}
 
 
 
@@ -9012,7 +8113,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetauthorChannelUrl(AIndex : Integer; AValue : string); 
+Procedure TCommentSnippet.SetauthorChannelUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FauthorChannelUrl=AValue) then exit;
@@ -9022,7 +8123,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetauthorDisplayName(AIndex : Integer; AValue : string); 
+Procedure TCommentSnippet.SetauthorDisplayName(AIndex : Integer; AValue : String); 
 
 begin
   If (FauthorDisplayName=AValue) then exit;
@@ -9032,7 +8133,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetauthorGoogleplusProfileUrl(AIndex : Integer; AValue : string); 
+Procedure TCommentSnippet.SetauthorGoogleplusProfileUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FauthorGoogleplusProfileUrl=AValue) then exit;
@@ -9042,7 +8143,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetauthorProfileImageUrl(AIndex : Integer; AValue : string); 
+Procedure TCommentSnippet.SetauthorProfileImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FauthorProfileImageUrl=AValue) then exit;
@@ -9062,7 +8163,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TCommentSnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -9082,7 +8183,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetmoderationStatus(AIndex : Integer; AValue : string); 
+Procedure TCommentSnippet.SetmoderationStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FmoderationStatus=AValue) then exit;
@@ -9092,7 +8193,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetparentId(AIndex : Integer; AValue : string); 
+Procedure TCommentSnippet.SetparentId(AIndex : Integer; AValue : String); 
 
 begin
   If (FparentId=AValue) then exit;
@@ -9112,7 +8213,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SettextDisplay(AIndex : Integer; AValue : string); 
+Procedure TCommentSnippet.SettextDisplay(AIndex : Integer; AValue : String); 
 
 begin
   If (FtextDisplay=AValue) then exit;
@@ -9122,7 +8223,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SettextOriginal(AIndex : Integer; AValue : string); 
+Procedure TCommentSnippet.SettextOriginal(AIndex : Integer; AValue : String); 
 
 begin
   If (FtextOriginal=AValue) then exit;
@@ -9142,7 +8243,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetvideoId(AIndex : Integer; AValue : string); 
+Procedure TCommentSnippet.SetvideoId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -9152,7 +8253,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetviewerRating(AIndex : Integer; AValue : string); 
+Procedure TCommentSnippet.SetviewerRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FviewerRating=AValue) then exit;
@@ -9169,7 +8270,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentThread.Setetag(AIndex : Integer; AValue : string); 
+Procedure TCommentThread.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -9179,7 +8280,7 @@ end;
 
 
 
-Procedure TCommentThread.Setid(AIndex : Integer; AValue : string); 
+Procedure TCommentThread.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9189,7 +8290,7 @@ end;
 
 
 
-Procedure TCommentThread.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCommentThread.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9226,7 +8327,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentThreadListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TCommentThreadListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -9236,7 +8337,7 @@ end;
 
 
 
-Procedure TCommentThreadListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TCommentThreadListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -9246,7 +8347,7 @@ end;
 
 
 
-Procedure TCommentThreadListResponse.Setitems(AIndex : Integer; AValue : TCommentThreadListResponseitems); 
+Procedure TCommentThreadListResponse.Setitems(AIndex : Integer; AValue : TCommentThreadListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -9256,7 +8357,7 @@ end;
 
 
 
-Procedure TCommentThreadListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCommentThreadListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9266,7 +8367,7 @@ end;
 
 
 
-Procedure TCommentThreadListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TCommentThreadListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -9296,7 +8397,7 @@ end;
 
 
 
-Procedure TCommentThreadListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TCommentThreadListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -9309,18 +8410,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCommentThreadListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TCommentThreadReplies
   --------------------------------------------------------------------}
 
 
-Procedure TCommentThreadReplies.Setcomments(AIndex : Integer; AValue : TCommentThreadRepliescomments); 
+Procedure TCommentThreadReplies.Setcomments(AIndex : Integer; AValue : TCommentThreadRepliesTypecommentsArray); 
 
 begin
   If (Fcomments=AValue) then exit;
@@ -9328,13 +8422,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentThreadRepliescomments
-  --------------------------------------------------------------------}
 
 
 
@@ -9354,7 +8441,7 @@ end;
 
 
 
-Procedure TCommentThreadSnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TCommentThreadSnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -9394,7 +8481,7 @@ end;
 
 
 
-Procedure TCommentThreadSnippet.SetvideoId(AIndex : Integer; AValue : string); 
+Procedure TCommentThreadSnippet.SetvideoId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -9411,7 +8498,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContentRating.SetacbRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetacbRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FacbRating=AValue) then exit;
@@ -9421,7 +8508,7 @@ end;
 
 
 
-Procedure TContentRating.SetagcomRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetagcomRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FagcomRating=AValue) then exit;
@@ -9431,7 +8518,7 @@ end;
 
 
 
-Procedure TContentRating.SetanatelRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetanatelRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FanatelRating=AValue) then exit;
@@ -9441,7 +8528,7 @@ end;
 
 
 
-Procedure TContentRating.SetbbfcRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetbbfcRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FbbfcRating=AValue) then exit;
@@ -9451,7 +8538,7 @@ end;
 
 
 
-Procedure TContentRating.SetbfvcRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetbfvcRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FbfvcRating=AValue) then exit;
@@ -9461,7 +8548,7 @@ end;
 
 
 
-Procedure TContentRating.SetbmukkRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetbmukkRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FbmukkRating=AValue) then exit;
@@ -9471,7 +8558,7 @@ end;
 
 
 
-Procedure TContentRating.SetcatvRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetcatvRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FcatvRating=AValue) then exit;
@@ -9481,7 +8568,7 @@ end;
 
 
 
-Procedure TContentRating.SetcatvfrRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetcatvfrRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FcatvfrRating=AValue) then exit;
@@ -9491,7 +8578,7 @@ end;
 
 
 
-Procedure TContentRating.SetcbfcRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetcbfcRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FcbfcRating=AValue) then exit;
@@ -9501,7 +8588,7 @@ end;
 
 
 
-Procedure TContentRating.SetcccRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetcccRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FcccRating=AValue) then exit;
@@ -9511,7 +8598,7 @@ end;
 
 
 
-Procedure TContentRating.SetcceRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetcceRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FcceRating=AValue) then exit;
@@ -9521,7 +8608,7 @@ end;
 
 
 
-Procedure TContentRating.SetchfilmRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetchfilmRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FchfilmRating=AValue) then exit;
@@ -9531,7 +8618,7 @@ end;
 
 
 
-Procedure TContentRating.SetchvrsRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetchvrsRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FchvrsRating=AValue) then exit;
@@ -9541,7 +8628,7 @@ end;
 
 
 
-Procedure TContentRating.SetcicfRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetcicfRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FcicfRating=AValue) then exit;
@@ -9551,7 +8638,7 @@ end;
 
 
 
-Procedure TContentRating.SetcnaRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetcnaRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FcnaRating=AValue) then exit;
@@ -9561,7 +8648,7 @@ end;
 
 
 
-Procedure TContentRating.SetcsaRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetcsaRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FcsaRating=AValue) then exit;
@@ -9571,7 +8658,7 @@ end;
 
 
 
-Procedure TContentRating.SetcscfRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetcscfRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FcscfRating=AValue) then exit;
@@ -9581,7 +8668,7 @@ end;
 
 
 
-Procedure TContentRating.SetczfilmRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetczfilmRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FczfilmRating=AValue) then exit;
@@ -9591,7 +8678,7 @@ end;
 
 
 
-Procedure TContentRating.SetdjctqRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetdjctqRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FdjctqRating=AValue) then exit;
@@ -9601,7 +8688,7 @@ end;
 
 
 
-Procedure TContentRating.SetdjctqRatingReasons(AIndex : Integer; AValue : TContentRatingdjctqRatingReasons); 
+Procedure TContentRating.SetdjctqRatingReasons(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FdjctqRatingReasons=AValue) then exit;
@@ -9611,7 +8698,7 @@ end;
 
 
 
-Procedure TContentRating.SeteefilmRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SeteefilmRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FeefilmRating=AValue) then exit;
@@ -9621,7 +8708,7 @@ end;
 
 
 
-Procedure TContentRating.SetegfilmRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetegfilmRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FegfilmRating=AValue) then exit;
@@ -9631,7 +8718,7 @@ end;
 
 
 
-Procedure TContentRating.SeteirinRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SeteirinRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FeirinRating=AValue) then exit;
@@ -9641,7 +8728,7 @@ end;
 
 
 
-Procedure TContentRating.SetfcbmRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetfcbmRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FfcbmRating=AValue) then exit;
@@ -9651,7 +8738,7 @@ end;
 
 
 
-Procedure TContentRating.SetfcoRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetfcoRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FfcoRating=AValue) then exit;
@@ -9661,7 +8748,7 @@ end;
 
 
 
-Procedure TContentRating.SetfmocRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetfmocRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FfmocRating=AValue) then exit;
@@ -9671,7 +8758,7 @@ end;
 
 
 
-Procedure TContentRating.SetfpbRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetfpbRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FfpbRating=AValue) then exit;
@@ -9681,7 +8768,7 @@ end;
 
 
 
-Procedure TContentRating.SetfskRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetfskRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FfskRating=AValue) then exit;
@@ -9691,7 +8778,7 @@ end;
 
 
 
-Procedure TContentRating.SetgrfilmRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetgrfilmRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FgrfilmRating=AValue) then exit;
@@ -9701,7 +8788,7 @@ end;
 
 
 
-Procedure TContentRating.SeticaaRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SeticaaRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FicaaRating=AValue) then exit;
@@ -9711,7 +8798,7 @@ end;
 
 
 
-Procedure TContentRating.SetifcoRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetifcoRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FifcoRating=AValue) then exit;
@@ -9721,7 +8808,7 @@ end;
 
 
 
-Procedure TContentRating.SetilfilmRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetilfilmRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FilfilmRating=AValue) then exit;
@@ -9731,7 +8818,7 @@ end;
 
 
 
-Procedure TContentRating.SetincaaRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetincaaRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FincaaRating=AValue) then exit;
@@ -9741,7 +8828,7 @@ end;
 
 
 
-Procedure TContentRating.SetkfcbRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetkfcbRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FkfcbRating=AValue) then exit;
@@ -9751,7 +8838,7 @@ end;
 
 
 
-Procedure TContentRating.SetkijkwijzerRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetkijkwijzerRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FkijkwijzerRating=AValue) then exit;
@@ -9761,7 +8848,7 @@ end;
 
 
 
-Procedure TContentRating.SetkmrbRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetkmrbRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FkmrbRating=AValue) then exit;
@@ -9771,7 +8858,7 @@ end;
 
 
 
-Procedure TContentRating.SetlsfRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetlsfRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FlsfRating=AValue) then exit;
@@ -9781,7 +8868,7 @@ end;
 
 
 
-Procedure TContentRating.SetmccaaRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetmccaaRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FmccaaRating=AValue) then exit;
@@ -9791,7 +8878,7 @@ end;
 
 
 
-Procedure TContentRating.SetmccypRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetmccypRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FmccypRating=AValue) then exit;
@@ -9801,7 +8888,7 @@ end;
 
 
 
-Procedure TContentRating.SetmdaRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetmdaRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FmdaRating=AValue) then exit;
@@ -9811,7 +8898,7 @@ end;
 
 
 
-Procedure TContentRating.SetmedietilsynetRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetmedietilsynetRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FmedietilsynetRating=AValue) then exit;
@@ -9821,7 +8908,7 @@ end;
 
 
 
-Procedure TContentRating.SetmekuRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetmekuRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FmekuRating=AValue) then exit;
@@ -9831,7 +8918,7 @@ end;
 
 
 
-Procedure TContentRating.SetmibacRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetmibacRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FmibacRating=AValue) then exit;
@@ -9841,7 +8928,7 @@ end;
 
 
 
-Procedure TContentRating.Set_mocRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.Set_mocRating(AIndex : Integer; AValue : String); 
 
 begin
   If (F_mocRating=AValue) then exit;
@@ -9851,7 +8938,7 @@ end;
 
 
 
-Procedure TContentRating.SetmoctwRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetmoctwRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FmoctwRating=AValue) then exit;
@@ -9861,7 +8948,7 @@ end;
 
 
 
-Procedure TContentRating.SetmpaaRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetmpaaRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FmpaaRating=AValue) then exit;
@@ -9871,7 +8958,7 @@ end;
 
 
 
-Procedure TContentRating.SetmtrcbRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetmtrcbRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FmtrcbRating=AValue) then exit;
@@ -9881,7 +8968,7 @@ end;
 
 
 
-Procedure TContentRating.SetnbcRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetnbcRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FnbcRating=AValue) then exit;
@@ -9891,7 +8978,7 @@ end;
 
 
 
-Procedure TContentRating.SetnbcplRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetnbcplRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FnbcplRating=AValue) then exit;
@@ -9901,7 +8988,7 @@ end;
 
 
 
-Procedure TContentRating.SetnfrcRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetnfrcRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FnfrcRating=AValue) then exit;
@@ -9911,7 +8998,7 @@ end;
 
 
 
-Procedure TContentRating.SetnfvcbRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetnfvcbRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FnfvcbRating=AValue) then exit;
@@ -9921,7 +9008,7 @@ end;
 
 
 
-Procedure TContentRating.SetnkclvRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetnkclvRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FnkclvRating=AValue) then exit;
@@ -9931,7 +9018,7 @@ end;
 
 
 
-Procedure TContentRating.SetoflcRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetoflcRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FoflcRating=AValue) then exit;
@@ -9941,7 +9028,7 @@ end;
 
 
 
-Procedure TContentRating.SetpefilmRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetpefilmRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FpefilmRating=AValue) then exit;
@@ -9951,7 +9038,7 @@ end;
 
 
 
-Procedure TContentRating.SetrcnofRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetrcnofRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FrcnofRating=AValue) then exit;
@@ -9961,7 +9048,7 @@ end;
 
 
 
-Procedure TContentRating.SetresorteviolenciaRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetresorteviolenciaRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FresorteviolenciaRating=AValue) then exit;
@@ -9971,7 +9058,7 @@ end;
 
 
 
-Procedure TContentRating.SetrtcRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetrtcRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FrtcRating=AValue) then exit;
@@ -9981,7 +9068,7 @@ end;
 
 
 
-Procedure TContentRating.SetrteRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetrteRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FrteRating=AValue) then exit;
@@ -9991,7 +9078,7 @@ end;
 
 
 
-Procedure TContentRating.SetrussiaRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetrussiaRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FrussiaRating=AValue) then exit;
@@ -10001,7 +9088,7 @@ end;
 
 
 
-Procedure TContentRating.SetskfilmRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetskfilmRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FskfilmRating=AValue) then exit;
@@ -10011,7 +9098,7 @@ end;
 
 
 
-Procedure TContentRating.SetsmaisRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetsmaisRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FsmaisRating=AValue) then exit;
@@ -10021,7 +9108,7 @@ end;
 
 
 
-Procedure TContentRating.SetsmsaRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetsmsaRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FsmsaRating=AValue) then exit;
@@ -10031,7 +9118,7 @@ end;
 
 
 
-Procedure TContentRating.SettvpgRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SettvpgRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FtvpgRating=AValue) then exit;
@@ -10041,7 +9128,7 @@ end;
 
 
 
-Procedure TContentRating.SetytRating(AIndex : Integer; AValue : string); 
+Procedure TContentRating.SetytRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FytRating=AValue) then exit;
@@ -10060,13 +9147,6 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TContentRatingdjctqRatingReasons
-  --------------------------------------------------------------------}
 
 
 
@@ -10113,7 +9193,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGuideCategory.Setetag(AIndex : Integer; AValue : string); 
+Procedure TGuideCategory.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -10123,7 +9203,7 @@ end;
 
 
 
-Procedure TGuideCategory.Setid(AIndex : Integer; AValue : string); 
+Procedure TGuideCategory.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10133,7 +9213,7 @@ end;
 
 
 
-Procedure TGuideCategory.Setkind(AIndex : Integer; AValue : string); 
+Procedure TGuideCategory.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10160,7 +9240,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGuideCategoryListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TGuideCategoryListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -10170,7 +9250,7 @@ end;
 
 
 
-Procedure TGuideCategoryListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TGuideCategoryListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -10180,7 +9260,7 @@ end;
 
 
 
-Procedure TGuideCategoryListResponse.Setitems(AIndex : Integer; AValue : TGuideCategoryListResponseitems); 
+Procedure TGuideCategoryListResponse.Setitems(AIndex : Integer; AValue : TGuideCategoryListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -10190,7 +9270,7 @@ end;
 
 
 
-Procedure TGuideCategoryListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TGuideCategoryListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10200,7 +9280,7 @@ end;
 
 
 
-Procedure TGuideCategoryListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TGuideCategoryListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -10220,7 +9300,7 @@ end;
 
 
 
-Procedure TGuideCategoryListResponse.SetprevPageToken(AIndex : Integer; AValue : string); 
+Procedure TGuideCategoryListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -10240,7 +9320,7 @@ end;
 
 
 
-Procedure TGuideCategoryListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TGuideCategoryListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -10253,18 +9333,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TGuideCategoryListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TGuideCategorySnippet
   --------------------------------------------------------------------}
 
 
-Procedure TGuideCategorySnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TGuideCategorySnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -10274,7 +9347,7 @@ end;
 
 
 
-Procedure TGuideCategorySnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TGuideCategorySnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -10291,7 +9364,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TI18nLanguage.Setetag(AIndex : Integer; AValue : string); 
+Procedure TI18nLanguage.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -10301,7 +9374,7 @@ end;
 
 
 
-Procedure TI18nLanguage.Setid(AIndex : Integer; AValue : string); 
+Procedure TI18nLanguage.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10311,7 +9384,7 @@ end;
 
 
 
-Procedure TI18nLanguage.Setkind(AIndex : Integer; AValue : string); 
+Procedure TI18nLanguage.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10338,7 +9411,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TI18nLanguageListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TI18nLanguageListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -10348,7 +9421,7 @@ end;
 
 
 
-Procedure TI18nLanguageListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TI18nLanguageListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -10358,7 +9431,7 @@ end;
 
 
 
-Procedure TI18nLanguageListResponse.Setitems(AIndex : Integer; AValue : TI18nLanguageListResponseitems); 
+Procedure TI18nLanguageListResponse.Setitems(AIndex : Integer; AValue : TI18nLanguageListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -10368,7 +9441,7 @@ end;
 
 
 
-Procedure TI18nLanguageListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TI18nLanguageListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10378,7 +9451,7 @@ end;
 
 
 
-Procedure TI18nLanguageListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TI18nLanguageListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -10391,18 +9464,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TI18nLanguageListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TI18nLanguageSnippet
   --------------------------------------------------------------------}
 
 
-Procedure TI18nLanguageSnippet.Sethl(AIndex : Integer; AValue : string); 
+Procedure TI18nLanguageSnippet.Sethl(AIndex : Integer; AValue : String); 
 
 begin
   If (Fhl=AValue) then exit;
@@ -10412,7 +9478,7 @@ end;
 
 
 
-Procedure TI18nLanguageSnippet.Setname(AIndex : Integer; AValue : string); 
+Procedure TI18nLanguageSnippet.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -10429,7 +9495,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TI18nRegion.Setetag(AIndex : Integer; AValue : string); 
+Procedure TI18nRegion.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -10439,7 +9505,7 @@ end;
 
 
 
-Procedure TI18nRegion.Setid(AIndex : Integer; AValue : string); 
+Procedure TI18nRegion.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10449,7 +9515,7 @@ end;
 
 
 
-Procedure TI18nRegion.Setkind(AIndex : Integer; AValue : string); 
+Procedure TI18nRegion.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10476,7 +9542,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TI18nRegionListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TI18nRegionListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -10486,7 +9552,7 @@ end;
 
 
 
-Procedure TI18nRegionListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TI18nRegionListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -10496,7 +9562,7 @@ end;
 
 
 
-Procedure TI18nRegionListResponse.Setitems(AIndex : Integer; AValue : TI18nRegionListResponseitems); 
+Procedure TI18nRegionListResponse.Setitems(AIndex : Integer; AValue : TI18nRegionListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -10506,7 +9572,7 @@ end;
 
 
 
-Procedure TI18nRegionListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TI18nRegionListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10516,7 +9582,7 @@ end;
 
 
 
-Procedure TI18nRegionListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TI18nRegionListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -10529,18 +9595,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TI18nRegionListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TI18nRegionSnippet
   --------------------------------------------------------------------}
 
 
-Procedure TI18nRegionSnippet.Setgl(AIndex : Integer; AValue : string); 
+Procedure TI18nRegionSnippet.Setgl(AIndex : Integer; AValue : String); 
 
 begin
   If (Fgl=AValue) then exit;
@@ -10550,7 +9609,7 @@ end;
 
 
 
-Procedure TI18nRegionSnippet.Setname(AIndex : Integer; AValue : string); 
+Procedure TI18nRegionSnippet.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -10577,7 +9636,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerExternalUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerExternalUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerExternalUrl=AValue) then exit;
@@ -10587,7 +9646,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerImageUrl=AValue) then exit;
@@ -10597,7 +9656,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerMobileExtraHdImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerMobileExtraHdImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerMobileExtraHdImageUrl=AValue) then exit;
@@ -10607,7 +9666,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerMobileHdImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerMobileHdImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerMobileHdImageUrl=AValue) then exit;
@@ -10617,7 +9676,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerMobileImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerMobileImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerMobileImageUrl=AValue) then exit;
@@ -10627,7 +9686,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerMobileLowImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerMobileLowImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerMobileLowImageUrl=AValue) then exit;
@@ -10637,7 +9696,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerMobileMediumHdImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerMobileMediumHdImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerMobileMediumHdImageUrl=AValue) then exit;
@@ -10647,7 +9706,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTabletExtraHdImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerTabletExtraHdImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerTabletExtraHdImageUrl=AValue) then exit;
@@ -10657,7 +9716,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTabletHdImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerTabletHdImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerTabletHdImageUrl=AValue) then exit;
@@ -10667,7 +9726,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTabletImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerTabletImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerTabletImageUrl=AValue) then exit;
@@ -10677,7 +9736,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTabletLowImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerTabletLowImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerTabletLowImageUrl=AValue) then exit;
@@ -10687,7 +9746,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTvHighImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerTvHighImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerTvHighImageUrl=AValue) then exit;
@@ -10697,7 +9756,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTvImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerTvImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerTvImageUrl=AValue) then exit;
@@ -10707,7 +9766,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTvLowImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerTvLowImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerTvLowImageUrl=AValue) then exit;
@@ -10717,7 +9776,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTvMediumImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetbannerTvMediumImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbannerTvMediumImageUrl=AValue) then exit;
@@ -10767,7 +9826,7 @@ end;
 
 
 
-Procedure TImageSettings.SettrackingImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SettrackingImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FtrackingImageUrl=AValue) then exit;
@@ -10777,7 +9836,7 @@ end;
 
 
 
-Procedure TImageSettings.SetwatchIconImageUrl(AIndex : Integer; AValue : string); 
+Procedure TImageSettings.SetwatchIconImageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FwatchIconImageUrl=AValue) then exit;
@@ -10794,7 +9853,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIngestionInfo.SetbackupIngestionAddress(AIndex : Integer; AValue : string); 
+Procedure TIngestionInfo.SetbackupIngestionAddress(AIndex : Integer; AValue : String); 
 
 begin
   If (FbackupIngestionAddress=AValue) then exit;
@@ -10804,7 +9863,7 @@ end;
 
 
 
-Procedure TIngestionInfo.SetingestionAddress(AIndex : Integer; AValue : string); 
+Procedure TIngestionInfo.SetingestionAddress(AIndex : Integer; AValue : String); 
 
 begin
   If (FingestionAddress=AValue) then exit;
@@ -10814,7 +9873,7 @@ end;
 
 
 
-Procedure TIngestionInfo.SetstreamName(AIndex : Integer; AValue : string); 
+Procedure TIngestionInfo.SetstreamName(AIndex : Integer; AValue : String); 
 
 begin
   If (FstreamName=AValue) then exit;
@@ -10831,7 +9890,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInvideoBranding.SetimageBytes(AIndex : Integer; AValue : string); 
+Procedure TInvideoBranding.SetimageBytes(AIndex : Integer; AValue : String); 
 
 begin
   If (FimageBytes=AValue) then exit;
@@ -10841,7 +9900,7 @@ end;
 
 
 
-Procedure TInvideoBranding.SetimageUrl(AIndex : Integer; AValue : string); 
+Procedure TInvideoBranding.SetimageUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FimageUrl=AValue) then exit;
@@ -10861,7 +9920,7 @@ end;
 
 
 
-Procedure TInvideoBranding.SettargetChannelId(AIndex : Integer; AValue : string); 
+Procedure TInvideoBranding.SettargetChannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FtargetChannelId=AValue) then exit;
@@ -10888,7 +9947,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInvideoPosition.SetcornerPosition(AIndex : Integer; AValue : string); 
+Procedure TInvideoPosition.SetcornerPosition(AIndex : Integer; AValue : String); 
 
 begin
   If (FcornerPosition=AValue) then exit;
@@ -10898,7 +9957,7 @@ end;
 
 
 
-Procedure TInvideoPosition.Set_type(AIndex : Integer; AValue : string); 
+Procedure TInvideoPosition.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -10936,7 +9995,7 @@ end;
 
 
 
-Procedure TInvideoPromotion.Setitems(AIndex : Integer; AValue : TInvideoPromotionitems); 
+Procedure TInvideoPromotion.Setitems(AIndex : Integer; AValue : TInvideoPromotionTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -10969,18 +10028,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TInvideoPromotionitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TInvideoTiming
   --------------------------------------------------------------------}
 
 
-Procedure TInvideoTiming.SetdurationMs(AIndex : Integer; AValue : string); 
+Procedure TInvideoTiming.SetdurationMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FdurationMs=AValue) then exit;
@@ -10990,7 +10042,7 @@ end;
 
 
 
-Procedure TInvideoTiming.SetoffsetMs(AIndex : Integer; AValue : string); 
+Procedure TInvideoTiming.SetoffsetMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FoffsetMs=AValue) then exit;
@@ -11000,7 +10052,7 @@ end;
 
 
 
-Procedure TInvideoTiming.Set_type(AIndex : Integer; AValue : string); 
+Procedure TInvideoTiming.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -11028,7 +10080,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLanguageTag.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TLanguageTag.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -11055,7 +10107,7 @@ end;
 
 
 
-Procedure TLiveBroadcast.Setetag(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcast.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -11065,7 +10117,7 @@ end;
 
 
 
-Procedure TLiveBroadcast.Setid(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcast.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11075,7 +10127,7 @@ end;
 
 
 
-Procedure TLiveBroadcast.Setkind(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcast.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11112,7 +10164,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLiveBroadcastContentDetails.SetboundStreamId(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastContentDetails.SetboundStreamId(AIndex : Integer; AValue : String); 
 
 begin
   If (FboundStreamId=AValue) then exit;
@@ -11199,7 +10251,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLiveBroadcastListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -11209,7 +10261,7 @@ end;
 
 
 
-Procedure TLiveBroadcastListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -11219,7 +10271,7 @@ end;
 
 
 
-Procedure TLiveBroadcastListResponse.Setitems(AIndex : Integer; AValue : TLiveBroadcastListResponseitems); 
+Procedure TLiveBroadcastListResponse.Setitems(AIndex : Integer; AValue : TLiveBroadcastListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -11229,7 +10281,7 @@ end;
 
 
 
-Procedure TLiveBroadcastListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11239,7 +10291,7 @@ end;
 
 
 
-Procedure TLiveBroadcastListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -11259,7 +10311,7 @@ end;
 
 
 
-Procedure TLiveBroadcastListResponse.SetprevPageToken(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -11279,7 +10331,7 @@ end;
 
 
 
-Procedure TLiveBroadcastListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -11287,13 +10339,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TLiveBroadcastListResponseitems
-  --------------------------------------------------------------------}
 
 
 
@@ -11323,7 +10368,7 @@ end;
 
 
 
-Procedure TLiveBroadcastSnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastSnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -11333,7 +10378,7 @@ end;
 
 
 
-Procedure TLiveBroadcastSnippet.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastSnippet.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -11383,7 +10428,7 @@ end;
 
 
 
-Procedure TLiveBroadcastSnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastSnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -11410,7 +10455,7 @@ end;
 
 
 
-Procedure TLiveBroadcastStatus.SetlifeCycleStatus(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastStatus.SetlifeCycleStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FlifeCycleStatus=AValue) then exit;
@@ -11420,7 +10465,7 @@ end;
 
 
 
-Procedure TLiveBroadcastStatus.SetliveBroadcastPriority(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastStatus.SetliveBroadcastPriority(AIndex : Integer; AValue : String); 
 
 begin
   If (FliveBroadcastPriority=AValue) then exit;
@@ -11430,7 +10475,7 @@ end;
 
 
 
-Procedure TLiveBroadcastStatus.SetprivacyStatus(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastStatus.SetprivacyStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FprivacyStatus=AValue) then exit;
@@ -11440,7 +10485,7 @@ end;
 
 
 
-Procedure TLiveBroadcastStatus.SetrecordingStatus(AIndex : Integer; AValue : string); 
+Procedure TLiveBroadcastStatus.SetrecordingStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FrecordingStatus=AValue) then exit;
@@ -11477,7 +10522,7 @@ end;
 
 
 
-Procedure TLiveStream.Setetag(AIndex : Integer; AValue : string); 
+Procedure TLiveStream.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -11487,7 +10532,7 @@ end;
 
 
 
-Procedure TLiveStream.Setid(AIndex : Integer; AValue : string); 
+Procedure TLiveStream.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11497,7 +10542,7 @@ end;
 
 
 
-Procedure TLiveStream.Setkind(AIndex : Integer; AValue : string); 
+Procedure TLiveStream.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11534,7 +10579,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLiveStreamContentDetails.SetclosedCaptionsIngestionUrl(AIndex : Integer; AValue : string); 
+Procedure TLiveStreamContentDetails.SetclosedCaptionsIngestionUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FclosedCaptionsIngestionUrl=AValue) then exit;
@@ -11561,7 +10606,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLiveStreamListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TLiveStreamListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -11571,7 +10616,7 @@ end;
 
 
 
-Procedure TLiveStreamListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TLiveStreamListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -11581,7 +10626,7 @@ end;
 
 
 
-Procedure TLiveStreamListResponse.Setitems(AIndex : Integer; AValue : TLiveStreamListResponseitems); 
+Procedure TLiveStreamListResponse.Setitems(AIndex : Integer; AValue : TLiveStreamListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -11591,7 +10636,7 @@ end;
 
 
 
-Procedure TLiveStreamListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TLiveStreamListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11601,7 +10646,7 @@ end;
 
 
 
-Procedure TLiveStreamListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TLiveStreamListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -11621,7 +10666,7 @@ end;
 
 
 
-Procedure TLiveStreamListResponse.SetprevPageToken(AIndex : Integer; AValue : string); 
+Procedure TLiveStreamListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -11641,7 +10686,7 @@ end;
 
 
 
-Procedure TLiveStreamListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TLiveStreamListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -11654,18 +10699,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLiveStreamListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLiveStreamSnippet
   --------------------------------------------------------------------}
 
 
-Procedure TLiveStreamSnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TLiveStreamSnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -11675,7 +10713,7 @@ end;
 
 
 
-Procedure TLiveStreamSnippet.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TLiveStreamSnippet.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -11695,7 +10733,7 @@ end;
 
 
 
-Procedure TLiveStreamSnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TLiveStreamSnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -11722,7 +10760,7 @@ end;
 
 
 
-Procedure TLiveStreamStatus.SetstreamStatus(AIndex : Integer; AValue : string); 
+Procedure TLiveStreamStatus.SetstreamStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FstreamStatus=AValue) then exit;
@@ -11739,7 +10777,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocalizedProperty.Setdefault(AIndex : Integer; AValue : string); 
+Procedure TLocalizedProperty.Setdefault(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdefault=AValue) then exit;
@@ -11759,7 +10797,7 @@ end;
 
 
 
-Procedure TLocalizedProperty.Setlocalized(AIndex : Integer; AValue : TLocalizedPropertylocalized); 
+Procedure TLocalizedProperty.Setlocalized(AIndex : Integer; AValue : TLocalizedPropertyTypelocalizedArray); 
 
 begin
   If (Flocalized=AValue) then exit;
@@ -11772,18 +10810,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLocalizedPropertylocalized
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLocalizedString
   --------------------------------------------------------------------}
 
 
-Procedure TLocalizedString.Setlanguage(AIndex : Integer; AValue : string); 
+Procedure TLocalizedString.Setlanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -11793,7 +10824,7 @@ end;
 
 
 
-Procedure TLocalizedString.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TLocalizedString.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -11820,7 +10851,7 @@ end;
 
 
 
-Procedure TMonitorStreamInfo.SetembedHtml(AIndex : Integer; AValue : string); 
+Procedure TMonitorStreamInfo.SetembedHtml(AIndex : Integer; AValue : String); 
 
 begin
   If (FembedHtml=AValue) then exit;
@@ -11870,6 +10901,19 @@ end;
 
 
 { --------------------------------------------------------------------
+  TPlaylistTypelocalizations
+  --------------------------------------------------------------------}
+
+
+Class Function TPlaylistTypelocalizations.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TPlaylist
   --------------------------------------------------------------------}
 
@@ -11884,7 +10928,7 @@ end;
 
 
 
-Procedure TPlaylist.Setetag(AIndex : Integer; AValue : string); 
+Procedure TPlaylist.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -11894,7 +10938,7 @@ end;
 
 
 
-Procedure TPlaylist.Setid(AIndex : Integer; AValue : string); 
+Procedure TPlaylist.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11904,7 +10948,7 @@ end;
 
 
 
-Procedure TPlaylist.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPlaylist.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11914,7 +10958,7 @@ end;
 
 
 
-Procedure TPlaylist.Setlocalizations(AIndex : Integer; AValue : TPlaylistlocalizations); 
+Procedure TPlaylist.Setlocalizations(AIndex : Integer; AValue : TPlaylistTypelocalizations); 
 
 begin
   If (Flocalizations=AValue) then exit;
@@ -11957,19 +11001,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPlaylistlocalizations
-  --------------------------------------------------------------------}
-
-
-Class Function TPlaylistlocalizations.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TPlaylistContentDetails
   --------------------------------------------------------------------}
 
@@ -12001,7 +11032,7 @@ end;
 
 
 
-Procedure TPlaylistItem.Setetag(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItem.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -12011,7 +11042,7 @@ end;
 
 
 
-Procedure TPlaylistItem.Setid(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItem.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -12021,7 +11052,7 @@ end;
 
 
 
-Procedure TPlaylistItem.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItem.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12058,7 +11089,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistItemContentDetails.SetendAt(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemContentDetails.SetendAt(AIndex : Integer; AValue : String); 
 
 begin
   If (FendAt=AValue) then exit;
@@ -12068,7 +11099,7 @@ end;
 
 
 
-Procedure TPlaylistItemContentDetails.Setnote(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemContentDetails.Setnote(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnote=AValue) then exit;
@@ -12078,7 +11109,7 @@ end;
 
 
 
-Procedure TPlaylistItemContentDetails.SetstartAt(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemContentDetails.SetstartAt(AIndex : Integer; AValue : String); 
 
 begin
   If (FstartAt=AValue) then exit;
@@ -12088,7 +11119,7 @@ end;
 
 
 
-Procedure TPlaylistItemContentDetails.SetvideoId(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemContentDetails.SetvideoId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -12105,7 +11136,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistItemListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -12115,7 +11146,7 @@ end;
 
 
 
-Procedure TPlaylistItemListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -12125,7 +11156,7 @@ end;
 
 
 
-Procedure TPlaylistItemListResponse.Setitems(AIndex : Integer; AValue : TPlaylistItemListResponseitems); 
+Procedure TPlaylistItemListResponse.Setitems(AIndex : Integer; AValue : TPlaylistItemListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -12135,7 +11166,7 @@ end;
 
 
 
-Procedure TPlaylistItemListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12145,7 +11176,7 @@ end;
 
 
 
-Procedure TPlaylistItemListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -12165,7 +11196,7 @@ end;
 
 
 
-Procedure TPlaylistItemListResponse.SetprevPageToken(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -12185,7 +11216,7 @@ end;
 
 
 
-Procedure TPlaylistItemListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -12198,18 +11229,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPlaylistItemListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TPlaylistItemSnippet
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistItemSnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemSnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -12219,7 +11243,7 @@ end;
 
 
 
-Procedure TPlaylistItemSnippet.SetchannelTitle(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemSnippet.SetchannelTitle(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelTitle=AValue) then exit;
@@ -12229,7 +11253,7 @@ end;
 
 
 
-Procedure TPlaylistItemSnippet.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemSnippet.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -12239,7 +11263,7 @@ end;
 
 
 
-Procedure TPlaylistItemSnippet.SetplaylistId(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemSnippet.SetplaylistId(AIndex : Integer; AValue : String); 
 
 begin
   If (FplaylistId=AValue) then exit;
@@ -12289,7 +11313,7 @@ end;
 
 
 
-Procedure TPlaylistItemSnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemSnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -12306,7 +11330,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistItemStatus.SetprivacyStatus(AIndex : Integer; AValue : string); 
+Procedure TPlaylistItemStatus.SetprivacyStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FprivacyStatus=AValue) then exit;
@@ -12323,7 +11347,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TPlaylistListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -12333,7 +11357,7 @@ end;
 
 
 
-Procedure TPlaylistListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TPlaylistListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -12343,7 +11367,7 @@ end;
 
 
 
-Procedure TPlaylistListResponse.Setitems(AIndex : Integer; AValue : TPlaylistListResponseitems); 
+Procedure TPlaylistListResponse.Setitems(AIndex : Integer; AValue : TPlaylistListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -12353,7 +11377,7 @@ end;
 
 
 
-Procedure TPlaylistListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPlaylistListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12363,7 +11387,7 @@ end;
 
 
 
-Procedure TPlaylistListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TPlaylistListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -12383,7 +11407,7 @@ end;
 
 
 
-Procedure TPlaylistListResponse.SetprevPageToken(AIndex : Integer; AValue : string); 
+Procedure TPlaylistListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -12403,7 +11427,7 @@ end;
 
 
 
-Procedure TPlaylistListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TPlaylistListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -12416,18 +11440,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPlaylistListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TPlaylistLocalization
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistLocalization.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TPlaylistLocalization.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -12437,7 +11454,7 @@ end;
 
 
 
-Procedure TPlaylistLocalization.Settitle(AIndex : Integer; AValue : string); 
+Procedure TPlaylistLocalization.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -12454,7 +11471,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistPlayer.SetembedHtml(AIndex : Integer; AValue : string); 
+Procedure TPlaylistPlayer.SetembedHtml(AIndex : Integer; AValue : String); 
 
 begin
   If (FembedHtml=AValue) then exit;
@@ -12471,7 +11488,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistSnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TPlaylistSnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -12481,7 +11498,7 @@ end;
 
 
 
-Procedure TPlaylistSnippet.SetchannelTitle(AIndex : Integer; AValue : string); 
+Procedure TPlaylistSnippet.SetchannelTitle(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelTitle=AValue) then exit;
@@ -12491,7 +11508,7 @@ end;
 
 
 
-Procedure TPlaylistSnippet.SetdefaultLanguage(AIndex : Integer; AValue : string); 
+Procedure TPlaylistSnippet.SetdefaultLanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (FdefaultLanguage=AValue) then exit;
@@ -12501,7 +11518,7 @@ end;
 
 
 
-Procedure TPlaylistSnippet.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TPlaylistSnippet.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -12531,7 +11548,7 @@ end;
 
 
 
-Procedure TPlaylistSnippet.Settags(AIndex : Integer; AValue : TPlaylistSnippettags); 
+Procedure TPlaylistSnippet.Settags(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -12551,7 +11568,7 @@ end;
 
 
 
-Procedure TPlaylistSnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TPlaylistSnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -12564,18 +11581,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPlaylistSnippettags
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TPlaylistStatus
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistStatus.SetprivacyStatus(AIndex : Integer; AValue : string); 
+Procedure TPlaylistStatus.SetprivacyStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FprivacyStatus=AValue) then exit;
@@ -12592,7 +11602,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPromotedItem.SetcustomMessage(AIndex : Integer; AValue : string); 
+Procedure TPromotedItem.SetcustomMessage(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomMessage=AValue) then exit;
@@ -12639,7 +11649,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPromotedItemId.SetrecentlyUploadedBy(AIndex : Integer; AValue : string); 
+Procedure TPromotedItemId.SetrecentlyUploadedBy(AIndex : Integer; AValue : String); 
 
 begin
   If (FrecentlyUploadedBy=AValue) then exit;
@@ -12649,7 +11659,7 @@ end;
 
 
 
-Procedure TPromotedItemId.Set_type(AIndex : Integer; AValue : string); 
+Procedure TPromotedItemId.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -12659,7 +11669,7 @@ end;
 
 
 
-Procedure TPromotedItemId.SetvideoId(AIndex : Integer; AValue : string); 
+Procedure TPromotedItemId.SetvideoId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -12669,7 +11679,7 @@ end;
 
 
 
-Procedure TPromotedItemId.SetwebsiteUrl(AIndex : Integer; AValue : string); 
+Procedure TPromotedItemId.SetwebsiteUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FwebsiteUrl=AValue) then exit;
@@ -12697,7 +11707,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyValue.Set_property(AIndex : Integer; AValue : string); 
+Procedure TPropertyValue.Set_property(AIndex : Integer; AValue : String); 
 
 begin
   If (F_property=AValue) then exit;
@@ -12707,7 +11717,7 @@ end;
 
 
 
-Procedure TPropertyValue.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TPropertyValue.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -12735,7 +11745,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceId.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TResourceId.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -12745,7 +11755,7 @@ end;
 
 
 
-Procedure TResourceId.Setkind(AIndex : Integer; AValue : string); 
+Procedure TResourceId.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12755,7 +11765,7 @@ end;
 
 
 
-Procedure TResourceId.SetplaylistId(AIndex : Integer; AValue : string); 
+Procedure TResourceId.SetplaylistId(AIndex : Integer; AValue : String); 
 
 begin
   If (FplaylistId=AValue) then exit;
@@ -12765,7 +11775,7 @@ end;
 
 
 
-Procedure TResourceId.SetvideoId(AIndex : Integer; AValue : string); 
+Procedure TResourceId.SetvideoId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -12782,7 +11792,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TSearchListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -12792,7 +11802,7 @@ end;
 
 
 
-Procedure TSearchListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TSearchListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -12802,7 +11812,7 @@ end;
 
 
 
-Procedure TSearchListResponse.Setitems(AIndex : Integer; AValue : TSearchListResponseitems); 
+Procedure TSearchListResponse.Setitems(AIndex : Integer; AValue : TSearchListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -12812,7 +11822,7 @@ end;
 
 
 
-Procedure TSearchListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSearchListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12822,7 +11832,7 @@ end;
 
 
 
-Procedure TSearchListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -12842,7 +11852,7 @@ end;
 
 
 
-Procedure TSearchListResponse.SetprevPageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -12862,7 +11872,7 @@ end;
 
 
 
-Procedure TSearchListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TSearchListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -12875,18 +11885,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchResult
   --------------------------------------------------------------------}
 
 
-Procedure TSearchResult.Setetag(AIndex : Integer; AValue : string); 
+Procedure TSearchResult.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -12906,7 +11909,7 @@ end;
 
 
 
-Procedure TSearchResult.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSearchResult.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12933,7 +11936,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchResultSnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TSearchResultSnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -12943,7 +11946,7 @@ end;
 
 
 
-Procedure TSearchResultSnippet.SetchannelTitle(AIndex : Integer; AValue : string); 
+Procedure TSearchResultSnippet.SetchannelTitle(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelTitle=AValue) then exit;
@@ -12953,7 +11956,7 @@ end;
 
 
 
-Procedure TSearchResultSnippet.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TSearchResultSnippet.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -12963,7 +11966,7 @@ end;
 
 
 
-Procedure TSearchResultSnippet.SetliveBroadcastContent(AIndex : Integer; AValue : string); 
+Procedure TSearchResultSnippet.SetliveBroadcastContent(AIndex : Integer; AValue : String); 
 
 begin
   If (FliveBroadcastContent=AValue) then exit;
@@ -12993,7 +11996,7 @@ end;
 
 
 
-Procedure TSearchResultSnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TSearchResultSnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -13020,7 +12023,7 @@ end;
 
 
 
-Procedure TSubscription.Setetag(AIndex : Integer; AValue : string); 
+Procedure TSubscription.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -13030,7 +12033,7 @@ end;
 
 
 
-Procedure TSubscription.Setid(AIndex : Integer; AValue : string); 
+Procedure TSubscription.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13040,7 +12043,7 @@ end;
 
 
 
-Procedure TSubscription.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSubscription.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13077,7 +12080,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionContentDetails.SetactivityType(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionContentDetails.SetactivityType(AIndex : Integer; AValue : String); 
 
 begin
   If (FactivityType=AValue) then exit;
@@ -13114,7 +12117,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -13124,7 +12127,7 @@ end;
 
 
 
-Procedure TSubscriptionListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -13134,7 +12137,7 @@ end;
 
 
 
-Procedure TSubscriptionListResponse.Setitems(AIndex : Integer; AValue : TSubscriptionListResponseitems); 
+Procedure TSubscriptionListResponse.Setitems(AIndex : Integer; AValue : TSubscriptionListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -13144,7 +12147,7 @@ end;
 
 
 
-Procedure TSubscriptionListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13154,7 +12157,7 @@ end;
 
 
 
-Procedure TSubscriptionListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -13174,7 +12177,7 @@ end;
 
 
 
-Procedure TSubscriptionListResponse.SetprevPageToken(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -13194,7 +12197,7 @@ end;
 
 
 
-Procedure TSubscriptionListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -13207,18 +12210,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSubscriptionListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSubscriptionSnippet
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionSnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionSnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -13228,7 +12224,7 @@ end;
 
 
 
-Procedure TSubscriptionSnippet.SetchannelTitle(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionSnippet.SetchannelTitle(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelTitle=AValue) then exit;
@@ -13238,7 +12234,7 @@ end;
 
 
 
-Procedure TSubscriptionSnippet.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionSnippet.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -13278,7 +12274,7 @@ end;
 
 
 
-Procedure TSubscriptionSnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionSnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -13295,7 +12291,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionSubscriberSnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionSubscriberSnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -13305,7 +12301,7 @@ end;
 
 
 
-Procedure TSubscriptionSubscriberSnippet.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionSubscriberSnippet.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -13325,7 +12321,7 @@ end;
 
 
 
-Procedure TSubscriptionSubscriberSnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TSubscriptionSubscriberSnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -13352,7 +12348,7 @@ end;
 
 
 
-Procedure TThumbnail.Seturl(AIndex : Integer; AValue : string); 
+Procedure TThumbnail.Seturl(AIndex : Integer; AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -13436,7 +12432,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TThumbnailSetResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TThumbnailSetResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -13446,7 +12442,7 @@ end;
 
 
 
-Procedure TThumbnailSetResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TThumbnailSetResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -13456,7 +12452,7 @@ end;
 
 
 
-Procedure TThumbnailSetResponse.Setitems(AIndex : Integer; AValue : TThumbnailSetResponseitems); 
+Procedure TThumbnailSetResponse.Setitems(AIndex : Integer; AValue : TThumbnailSetResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -13466,7 +12462,7 @@ end;
 
 
 
-Procedure TThumbnailSetResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TThumbnailSetResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13476,7 +12472,7 @@ end;
 
 
 
-Procedure TThumbnailSetResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TThumbnailSetResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -13489,16 +12485,22 @@ end;
 
 
 { --------------------------------------------------------------------
-  TThumbnailSetResponseitems
+  TTokenPagination
   --------------------------------------------------------------------}
 
 
 
 
 { --------------------------------------------------------------------
-  TTokenPagination
+  TVideoTypelocalizations
   --------------------------------------------------------------------}
 
+
+Class Function TVideoTypelocalizations.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -13537,7 +12539,7 @@ end;
 
 
 
-Procedure TVideo.Setetag(AIndex : Integer; AValue : string); 
+Procedure TVideo.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -13557,7 +12559,7 @@ end;
 
 
 
-Procedure TVideo.Setid(AIndex : Integer; AValue : string); 
+Procedure TVideo.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13567,7 +12569,7 @@ end;
 
 
 
-Procedure TVideo.Setkind(AIndex : Integer; AValue : string); 
+Procedure TVideo.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13587,7 +12589,7 @@ end;
 
 
 
-Procedure TVideo.Setlocalizations(AIndex : Integer; AValue : TVideolocalizations); 
+Procedure TVideo.Setlocalizations(AIndex : Integer; AValue : TVideoTypelocalizations); 
 
 begin
   If (Flocalizations=AValue) then exit;
@@ -13700,24 +12702,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVideolocalizations
-  --------------------------------------------------------------------}
-
-
-Class Function TVideolocalizations.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TVideoAbuseReport
   --------------------------------------------------------------------}
 
 
-Procedure TVideoAbuseReport.Setcomments(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReport.Setcomments(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcomments=AValue) then exit;
@@ -13727,7 +12716,7 @@ end;
 
 
 
-Procedure TVideoAbuseReport.Setlanguage(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReport.Setlanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -13737,7 +12726,7 @@ end;
 
 
 
-Procedure TVideoAbuseReport.SetreasonId(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReport.SetreasonId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreasonId=AValue) then exit;
@@ -13747,7 +12736,7 @@ end;
 
 
 
-Procedure TVideoAbuseReport.SetsecondaryReasonId(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReport.SetsecondaryReasonId(AIndex : Integer; AValue : String); 
 
 begin
   If (FsecondaryReasonId=AValue) then exit;
@@ -13757,7 +12746,7 @@ end;
 
 
 
-Procedure TVideoAbuseReport.SetvideoId(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReport.SetvideoId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -13774,7 +12763,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoAbuseReportReason.Setetag(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReportReason.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -13784,7 +12773,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportReason.Setid(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReportReason.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13794,7 +12783,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportReason.Setkind(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReportReason.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13821,7 +12810,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoAbuseReportReasonListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReportReasonListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -13831,7 +12820,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportReasonListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReportReasonListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -13841,7 +12830,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportReasonListResponse.Setitems(AIndex : Integer; AValue : TVideoAbuseReportReasonListResponseitems); 
+Procedure TVideoAbuseReportReasonListResponse.Setitems(AIndex : Integer; AValue : TVideoAbuseReportReasonListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -13851,7 +12840,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportReasonListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReportReasonListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13861,7 +12850,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportReasonListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReportReasonListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -13874,18 +12863,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVideoAbuseReportReasonListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVideoAbuseReportReasonSnippet
   --------------------------------------------------------------------}
 
 
-Procedure TVideoAbuseReportReasonSnippet.Set_label(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReportReasonSnippet.Set_label(AIndex : Integer; AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -13895,7 +12877,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportReasonSnippet.SetsecondaryReasons(AIndex : Integer; AValue : TVideoAbuseReportReasonSnippetsecondaryReasons); 
+Procedure TVideoAbuseReportReasonSnippet.SetsecondaryReasons(AIndex : Integer; AValue : TVideoAbuseReportReasonSnippetTypesecondaryReasonsArray); 
 
 begin
   If (FsecondaryReasons=AValue) then exit;
@@ -13919,18 +12901,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVideoAbuseReportReasonSnippetsecondaryReasons
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVideoAbuseReportSecondaryReason
   --------------------------------------------------------------------}
 
 
-Procedure TVideoAbuseReportSecondaryReason.Setid(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReportSecondaryReason.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13940,7 +12915,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportSecondaryReason.Set_label(AIndex : Integer; AValue : string); 
+Procedure TVideoAbuseReportSecondaryReason.Set_label(AIndex : Integer; AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -13988,7 +12963,7 @@ end;
 
 
 
-Procedure TVideoAgeGating.SetvideoGameRating(AIndex : Integer; AValue : string); 
+Procedure TVideoAgeGating.SetvideoGameRating(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoGameRating=AValue) then exit;
@@ -14005,7 +12980,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoCategory.Setetag(AIndex : Integer; AValue : string); 
+Procedure TVideoCategory.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -14015,7 +12990,7 @@ end;
 
 
 
-Procedure TVideoCategory.Setid(AIndex : Integer; AValue : string); 
+Procedure TVideoCategory.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -14025,7 +13000,7 @@ end;
 
 
 
-Procedure TVideoCategory.Setkind(AIndex : Integer; AValue : string); 
+Procedure TVideoCategory.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -14052,7 +13027,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoCategoryListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TVideoCategoryListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -14062,7 +13037,7 @@ end;
 
 
 
-Procedure TVideoCategoryListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TVideoCategoryListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -14072,7 +13047,7 @@ end;
 
 
 
-Procedure TVideoCategoryListResponse.Setitems(AIndex : Integer; AValue : TVideoCategoryListResponseitems); 
+Procedure TVideoCategoryListResponse.Setitems(AIndex : Integer; AValue : TVideoCategoryListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -14082,7 +13057,7 @@ end;
 
 
 
-Procedure TVideoCategoryListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TVideoCategoryListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -14092,7 +13067,7 @@ end;
 
 
 
-Procedure TVideoCategoryListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TVideoCategoryListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -14112,7 +13087,7 @@ end;
 
 
 
-Procedure TVideoCategoryListResponse.SetprevPageToken(AIndex : Integer; AValue : string); 
+Procedure TVideoCategoryListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -14132,7 +13107,7 @@ end;
 
 
 
-Procedure TVideoCategoryListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TVideoCategoryListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -14140,13 +13115,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TVideoCategoryListResponseitems
-  --------------------------------------------------------------------}
 
 
 
@@ -14166,7 +13134,7 @@ end;
 
 
 
-Procedure TVideoCategorySnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TVideoCategorySnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -14176,7 +13144,7 @@ end;
 
 
 
-Procedure TVideoCategorySnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TVideoCategorySnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -14193,7 +13161,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoContentDetails.Setcaption(AIndex : Integer; AValue : string); 
+Procedure TVideoContentDetails.Setcaption(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcaption=AValue) then exit;
@@ -14223,7 +13191,7 @@ end;
 
 
 
-Procedure TVideoContentDetails.Setdefinition(AIndex : Integer; AValue : string); 
+Procedure TVideoContentDetails.Setdefinition(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdefinition=AValue) then exit;
@@ -14233,7 +13201,7 @@ end;
 
 
 
-Procedure TVideoContentDetails.Setdimension(AIndex : Integer; AValue : string); 
+Procedure TVideoContentDetails.Setdimension(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdimension=AValue) then exit;
@@ -14243,7 +13211,7 @@ end;
 
 
 
-Procedure TVideoContentDetails.Setduration(AIndex : Integer; AValue : string); 
+Procedure TVideoContentDetails.Setduration(AIndex : Integer; AValue : String); 
 
 begin
   If (Fduration=AValue) then exit;
@@ -14280,7 +13248,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoContentDetailsRegionRestriction.Setallowed(AIndex : Integer; AValue : TVideoContentDetailsRegionRestrictionallowed); 
+Procedure TVideoContentDetailsRegionRestriction.Setallowed(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fallowed=AValue) then exit;
@@ -14290,7 +13258,7 @@ end;
 
 
 
-Procedure TVideoContentDetailsRegionRestriction.Setblocked(AIndex : Integer; AValue : TVideoContentDetailsRegionRestrictionblocked); 
+Procedure TVideoContentDetailsRegionRestriction.Setblocked(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fblocked=AValue) then exit;
@@ -14303,25 +13271,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVideoContentDetailsRegionRestrictionallowed
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVideoContentDetailsRegionRestrictionblocked
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVideoConversionPing
   --------------------------------------------------------------------}
 
 
-Procedure TVideoConversionPing.Setcontext(AIndex : Integer; AValue : string); 
+Procedure TVideoConversionPing.Setcontext(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcontext=AValue) then exit;
@@ -14331,7 +13285,7 @@ end;
 
 
 
-Procedure TVideoConversionPing.SetconversionUrl(AIndex : Integer; AValue : string); 
+Procedure TVideoConversionPing.SetconversionUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FconversionUrl=AValue) then exit;
@@ -14348,7 +13302,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoConversionPings.Setpings(AIndex : Integer; AValue : TVideoConversionPingspings); 
+Procedure TVideoConversionPings.Setpings(AIndex : Integer; AValue : TVideoConversionPingsTypepingsArray); 
 
 begin
   If (Fpings=AValue) then exit;
@@ -14361,18 +13315,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVideoConversionPingspings
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVideoFileDetails
   --------------------------------------------------------------------}
 
 
-Procedure TVideoFileDetails.SetaudioStreams(AIndex : Integer; AValue : TVideoFileDetailsaudioStreams); 
+Procedure TVideoFileDetails.SetaudioStreams(AIndex : Integer; AValue : TVideoFileDetailsTypeaudioStreamsArray); 
 
 begin
   If (FaudioStreams=AValue) then exit;
@@ -14382,7 +13329,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetbitrateBps(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetails.SetbitrateBps(AIndex : Integer; AValue : String); 
 
 begin
   If (FbitrateBps=AValue) then exit;
@@ -14392,7 +13339,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.Setcontainer(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetails.Setcontainer(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcontainer=AValue) then exit;
@@ -14402,7 +13349,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetcreationTime(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetails.SetcreationTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -14412,7 +13359,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetdurationMs(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetails.SetdurationMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FdurationMs=AValue) then exit;
@@ -14422,7 +13369,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetfileName(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetails.SetfileName(AIndex : Integer; AValue : String); 
 
 begin
   If (FfileName=AValue) then exit;
@@ -14432,7 +13379,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetfileSize(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetails.SetfileSize(AIndex : Integer; AValue : String); 
 
 begin
   If (FfileSize=AValue) then exit;
@@ -14442,7 +13389,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetfileType(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetails.SetfileType(AIndex : Integer; AValue : String); 
 
 begin
   If (FfileType=AValue) then exit;
@@ -14462,7 +13409,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetvideoStreams(AIndex : Integer; AValue : TVideoFileDetailsvideoStreams); 
+Procedure TVideoFileDetails.SetvideoStreams(AIndex : Integer; AValue : TVideoFileDetailsTypevideoStreamsArray); 
 
 begin
   If (FvideoStreams=AValue) then exit;
@@ -14475,25 +13422,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVideoFileDetailsaudioStreams
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVideoFileDetailsvideoStreams
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVideoFileDetailsAudioStream
   --------------------------------------------------------------------}
 
 
-Procedure TVideoFileDetailsAudioStream.SetbitrateBps(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetailsAudioStream.SetbitrateBps(AIndex : Integer; AValue : String); 
 
 begin
   If (FbitrateBps=AValue) then exit;
@@ -14513,7 +13446,7 @@ end;
 
 
 
-Procedure TVideoFileDetailsAudioStream.Setcodec(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetailsAudioStream.Setcodec(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcodec=AValue) then exit;
@@ -14523,7 +13456,7 @@ end;
 
 
 
-Procedure TVideoFileDetailsAudioStream.Setvendor(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetailsAudioStream.Setvendor(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvendor=AValue) then exit;
@@ -14550,7 +13483,7 @@ end;
 
 
 
-Procedure TVideoFileDetailsVideoStream.SetbitrateBps(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetailsVideoStream.SetbitrateBps(AIndex : Integer; AValue : String); 
 
 begin
   If (FbitrateBps=AValue) then exit;
@@ -14560,7 +13493,7 @@ end;
 
 
 
-Procedure TVideoFileDetailsVideoStream.Setcodec(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetailsVideoStream.Setcodec(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcodec=AValue) then exit;
@@ -14590,7 +13523,7 @@ end;
 
 
 
-Procedure TVideoFileDetailsVideoStream.Setrotation(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetailsVideoStream.Setrotation(AIndex : Integer; AValue : String); 
 
 begin
   If (Frotation=AValue) then exit;
@@ -14600,7 +13533,7 @@ end;
 
 
 
-Procedure TVideoFileDetailsVideoStream.Setvendor(AIndex : Integer; AValue : string); 
+Procedure TVideoFileDetailsVideoStream.Setvendor(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvendor=AValue) then exit;
@@ -14627,7 +13560,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoGetRatingResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TVideoGetRatingResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -14637,7 +13570,7 @@ end;
 
 
 
-Procedure TVideoGetRatingResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TVideoGetRatingResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -14647,7 +13580,7 @@ end;
 
 
 
-Procedure TVideoGetRatingResponse.Setitems(AIndex : Integer; AValue : TVideoGetRatingResponseitems); 
+Procedure TVideoGetRatingResponse.Setitems(AIndex : Integer; AValue : TVideoGetRatingResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -14657,7 +13590,7 @@ end;
 
 
 
-Procedure TVideoGetRatingResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TVideoGetRatingResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -14667,7 +13600,7 @@ end;
 
 
 
-Procedure TVideoGetRatingResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TVideoGetRatingResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -14680,18 +13613,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVideoGetRatingResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVideoListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TVideoListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TVideoListResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -14701,7 +13627,7 @@ end;
 
 
 
-Procedure TVideoListResponse.SeteventId(AIndex : Integer; AValue : string); 
+Procedure TVideoListResponse.SeteventId(AIndex : Integer; AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -14711,7 +13637,7 @@ end;
 
 
 
-Procedure TVideoListResponse.Setitems(AIndex : Integer; AValue : TVideoListResponseitems); 
+Procedure TVideoListResponse.Setitems(AIndex : Integer; AValue : TVideoListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -14721,7 +13647,7 @@ end;
 
 
 
-Procedure TVideoListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TVideoListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -14731,7 +13657,7 @@ end;
 
 
 
-Procedure TVideoListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TVideoListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -14751,7 +13677,7 @@ end;
 
 
 
-Procedure TVideoListResponse.SetprevPageToken(AIndex : Integer; AValue : string); 
+Procedure TVideoListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -14771,7 +13697,7 @@ end;
 
 
 
-Procedure TVideoListResponse.SetvisitorId(AIndex : Integer; AValue : string); 
+Procedure TVideoListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -14779,13 +13705,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TVideoListResponseitems
-  --------------------------------------------------------------------}
 
 
 
@@ -14815,7 +13734,7 @@ end;
 
 
 
-Procedure TVideoLiveStreamingDetails.SetconcurrentViewers(AIndex : Integer; AValue : string); 
+Procedure TVideoLiveStreamingDetails.SetconcurrentViewers(AIndex : Integer; AValue : String); 
 
 begin
   If (FconcurrentViewers=AValue) then exit;
@@ -14852,7 +13771,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoLocalization.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TVideoLocalization.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -14862,7 +13781,7 @@ end;
 
 
 
-Procedure TVideoLocalization.Settitle(AIndex : Integer; AValue : string); 
+Procedure TVideoLocalization.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -14896,7 +13815,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoPlayer.SetembedHtml(AIndex : Integer; AValue : string); 
+Procedure TVideoPlayer.SetembedHtml(AIndex : Integer; AValue : String); 
 
 begin
   If (FembedHtml=AValue) then exit;
@@ -14913,7 +13832,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoProcessingDetails.SeteditorSuggestionsAvailability(AIndex : Integer; AValue : string); 
+Procedure TVideoProcessingDetails.SeteditorSuggestionsAvailability(AIndex : Integer; AValue : String); 
 
 begin
   If (FeditorSuggestionsAvailability=AValue) then exit;
@@ -14923,7 +13842,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetails.SetfileDetailsAvailability(AIndex : Integer; AValue : string); 
+Procedure TVideoProcessingDetails.SetfileDetailsAvailability(AIndex : Integer; AValue : String); 
 
 begin
   If (FfileDetailsAvailability=AValue) then exit;
@@ -14933,7 +13852,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetails.SetprocessingFailureReason(AIndex : Integer; AValue : string); 
+Procedure TVideoProcessingDetails.SetprocessingFailureReason(AIndex : Integer; AValue : String); 
 
 begin
   If (FprocessingFailureReason=AValue) then exit;
@@ -14943,7 +13862,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetails.SetprocessingIssuesAvailability(AIndex : Integer; AValue : string); 
+Procedure TVideoProcessingDetails.SetprocessingIssuesAvailability(AIndex : Integer; AValue : String); 
 
 begin
   If (FprocessingIssuesAvailability=AValue) then exit;
@@ -14963,7 +13882,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetails.SetprocessingStatus(AIndex : Integer; AValue : string); 
+Procedure TVideoProcessingDetails.SetprocessingStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -14973,7 +13892,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetails.SettagSuggestionsAvailability(AIndex : Integer; AValue : string); 
+Procedure TVideoProcessingDetails.SettagSuggestionsAvailability(AIndex : Integer; AValue : String); 
 
 begin
   If (FtagSuggestionsAvailability=AValue) then exit;
@@ -14983,7 +13902,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetails.SetthumbnailsAvailability(AIndex : Integer; AValue : string); 
+Procedure TVideoProcessingDetails.SetthumbnailsAvailability(AIndex : Integer; AValue : String); 
 
 begin
   If (FthumbnailsAvailability=AValue) then exit;
@@ -15000,7 +13919,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoProcessingDetailsProcessingProgress.SetpartsProcessed(AIndex : Integer; AValue : string); 
+Procedure TVideoProcessingDetailsProcessingProgress.SetpartsProcessed(AIndex : Integer; AValue : String); 
 
 begin
   If (FpartsProcessed=AValue) then exit;
@@ -15010,7 +13929,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetailsProcessingProgress.SetpartsTotal(AIndex : Integer; AValue : string); 
+Procedure TVideoProcessingDetailsProcessingProgress.SetpartsTotal(AIndex : Integer; AValue : String); 
 
 begin
   If (FpartsTotal=AValue) then exit;
@@ -15020,7 +13939,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetailsProcessingProgress.SettimeLeftMs(AIndex : Integer; AValue : string); 
+Procedure TVideoProcessingDetailsProcessingProgress.SettimeLeftMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FtimeLeftMs=AValue) then exit;
@@ -15037,7 +13956,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoProjectDetails.Settags(AIndex : Integer; AValue : TVideoProjectDetailstags); 
+Procedure TVideoProjectDetails.Settags(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -15050,18 +13969,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVideoProjectDetailstags
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVideoRating
   --------------------------------------------------------------------}
 
 
-Procedure TVideoRating.Setrating(AIndex : Integer; AValue : string); 
+Procedure TVideoRating.Setrating(AIndex : Integer; AValue : String); 
 
 begin
   If (Frating=AValue) then exit;
@@ -15071,7 +13983,7 @@ end;
 
 
 
-Procedure TVideoRating.SetvideoId(AIndex : Integer; AValue : string); 
+Procedure TVideoRating.SetvideoId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -15098,7 +14010,7 @@ end;
 
 
 
-Procedure TVideoRecordingDetails.SetlocationDescription(AIndex : Integer; AValue : string); 
+Procedure TVideoRecordingDetails.SetlocationDescription(AIndex : Integer; AValue : String); 
 
 begin
   If (FlocationDescription=AValue) then exit;
@@ -15125,7 +14037,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoSnippet.SetcategoryId(AIndex : Integer; AValue : string); 
+Procedure TVideoSnippet.SetcategoryId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcategoryId=AValue) then exit;
@@ -15135,7 +14047,7 @@ end;
 
 
 
-Procedure TVideoSnippet.SetchannelId(AIndex : Integer; AValue : string); 
+Procedure TVideoSnippet.SetchannelId(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -15145,7 +14057,7 @@ end;
 
 
 
-Procedure TVideoSnippet.SetchannelTitle(AIndex : Integer; AValue : string); 
+Procedure TVideoSnippet.SetchannelTitle(AIndex : Integer; AValue : String); 
 
 begin
   If (FchannelTitle=AValue) then exit;
@@ -15155,7 +14067,7 @@ end;
 
 
 
-Procedure TVideoSnippet.SetdefaultLanguage(AIndex : Integer; AValue : string); 
+Procedure TVideoSnippet.SetdefaultLanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (FdefaultLanguage=AValue) then exit;
@@ -15165,7 +14077,7 @@ end;
 
 
 
-Procedure TVideoSnippet.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TVideoSnippet.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -15175,7 +14087,7 @@ end;
 
 
 
-Procedure TVideoSnippet.SetliveBroadcastContent(AIndex : Integer; AValue : string); 
+Procedure TVideoSnippet.SetliveBroadcastContent(AIndex : Integer; AValue : String); 
 
 begin
   If (FliveBroadcastContent=AValue) then exit;
@@ -15205,7 +14117,7 @@ end;
 
 
 
-Procedure TVideoSnippet.Settags(AIndex : Integer; AValue : TVideoSnippettags); 
+Procedure TVideoSnippet.Settags(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -15225,7 +14137,7 @@ end;
 
 
 
-Procedure TVideoSnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TVideoSnippet.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -15238,18 +14150,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVideoSnippettags
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVideoStatistics
   --------------------------------------------------------------------}
 
 
-Procedure TVideoStatistics.SetcommentCount(AIndex : Integer; AValue : string); 
+Procedure TVideoStatistics.SetcommentCount(AIndex : Integer; AValue : String); 
 
 begin
   If (FcommentCount=AValue) then exit;
@@ -15259,7 +14164,7 @@ end;
 
 
 
-Procedure TVideoStatistics.SetdislikeCount(AIndex : Integer; AValue : string); 
+Procedure TVideoStatistics.SetdislikeCount(AIndex : Integer; AValue : String); 
 
 begin
   If (FdislikeCount=AValue) then exit;
@@ -15269,7 +14174,7 @@ end;
 
 
 
-Procedure TVideoStatistics.SetfavoriteCount(AIndex : Integer; AValue : string); 
+Procedure TVideoStatistics.SetfavoriteCount(AIndex : Integer; AValue : String); 
 
 begin
   If (FfavoriteCount=AValue) then exit;
@@ -15279,7 +14184,7 @@ end;
 
 
 
-Procedure TVideoStatistics.SetlikeCount(AIndex : Integer; AValue : string); 
+Procedure TVideoStatistics.SetlikeCount(AIndex : Integer; AValue : String); 
 
 begin
   If (FlikeCount=AValue) then exit;
@@ -15289,7 +14194,7 @@ end;
 
 
 
-Procedure TVideoStatistics.SetviewCount(AIndex : Integer; AValue : string); 
+Procedure TVideoStatistics.SetviewCount(AIndex : Integer; AValue : String); 
 
 begin
   If (FviewCount=AValue) then exit;
@@ -15316,7 +14221,7 @@ end;
 
 
 
-Procedure TVideoStatus.SetfailureReason(AIndex : Integer; AValue : string); 
+Procedure TVideoStatus.SetfailureReason(AIndex : Integer; AValue : String); 
 
 begin
   If (FfailureReason=AValue) then exit;
@@ -15326,7 +14231,7 @@ end;
 
 
 
-Procedure TVideoStatus.Setlicense(AIndex : Integer; AValue : string); 
+Procedure TVideoStatus.Setlicense(AIndex : Integer; AValue : String); 
 
 begin
   If (Flicense=AValue) then exit;
@@ -15336,7 +14241,7 @@ end;
 
 
 
-Procedure TVideoStatus.SetprivacyStatus(AIndex : Integer; AValue : string); 
+Procedure TVideoStatus.SetprivacyStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FprivacyStatus=AValue) then exit;
@@ -15366,7 +14271,7 @@ end;
 
 
 
-Procedure TVideoStatus.SetrejectionReason(AIndex : Integer; AValue : string); 
+Procedure TVideoStatus.SetrejectionReason(AIndex : Integer; AValue : String); 
 
 begin
   If (FrejectionReason=AValue) then exit;
@@ -15376,7 +14281,7 @@ end;
 
 
 
-Procedure TVideoStatus.SetuploadStatus(AIndex : Integer; AValue : string); 
+Procedure TVideoStatus.SetuploadStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FuploadStatus=AValue) then exit;
@@ -15393,7 +14298,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoSuggestions.SeteditorSuggestions(AIndex : Integer; AValue : TVideoSuggestionseditorSuggestions); 
+Procedure TVideoSuggestions.SeteditorSuggestions(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FeditorSuggestions=AValue) then exit;
@@ -15403,7 +14308,7 @@ end;
 
 
 
-Procedure TVideoSuggestions.SetprocessingErrors(AIndex : Integer; AValue : TVideoSuggestionsprocessingErrors); 
+Procedure TVideoSuggestions.SetprocessingErrors(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FprocessingErrors=AValue) then exit;
@@ -15413,7 +14318,7 @@ end;
 
 
 
-Procedure TVideoSuggestions.SetprocessingHints(AIndex : Integer; AValue : TVideoSuggestionsprocessingHints); 
+Procedure TVideoSuggestions.SetprocessingHints(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FprocessingHints=AValue) then exit;
@@ -15423,7 +14328,7 @@ end;
 
 
 
-Procedure TVideoSuggestions.SetprocessingWarnings(AIndex : Integer; AValue : TVideoSuggestionsprocessingWarnings); 
+Procedure TVideoSuggestions.SetprocessingWarnings(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FprocessingWarnings=AValue) then exit;
@@ -15433,7 +14338,7 @@ end;
 
 
 
-Procedure TVideoSuggestions.SettagSuggestions(AIndex : Integer; AValue : TVideoSuggestionstagSuggestions); 
+Procedure TVideoSuggestions.SettagSuggestions(AIndex : Integer; AValue : TVideoSuggestionsTypetagSuggestionsArray); 
 
 begin
   If (FtagSuggestions=AValue) then exit;
@@ -15446,46 +14351,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVideoSuggestionseditorSuggestions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVideoSuggestionsprocessingErrors
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVideoSuggestionsprocessingHints
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVideoSuggestionsprocessingWarnings
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVideoSuggestionstagSuggestions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVideoSuggestionsTagSuggestion
   --------------------------------------------------------------------}
 
 
-Procedure TVideoSuggestionsTagSuggestion.SetcategoryRestricts(AIndex : Integer; AValue : TVideoSuggestionsTagSuggestioncategoryRestricts); 
+Procedure TVideoSuggestionsTagSuggestion.SetcategoryRestricts(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FcategoryRestricts=AValue) then exit;
@@ -15495,7 +14365,7 @@ end;
 
 
 
-Procedure TVideoSuggestionsTagSuggestion.Settag(AIndex : Integer; AValue : string); 
+Procedure TVideoSuggestionsTagSuggestion.Settag(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -15508,18 +14378,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVideoSuggestionsTagSuggestioncategoryRestricts
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVideoTopicDetails
   --------------------------------------------------------------------}
 
 
-Procedure TVideoTopicDetails.SetrelevantTopicIds(AIndex : Integer; AValue : TVideoTopicDetailsrelevantTopicIds); 
+Procedure TVideoTopicDetails.SetrelevantTopicIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FrelevantTopicIds=AValue) then exit;
@@ -15529,7 +14392,7 @@ end;
 
 
 
-Procedure TVideoTopicDetails.SettopicIds(AIndex : Integer; AValue : TVideoTopicDetailstopicIds); 
+Procedure TVideoTopicDetails.SettopicIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FtopicIds=AValue) then exit;
@@ -15542,25 +14405,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVideoTopicDetailsrelevantTopicIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVideoTopicDetailstopicIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TWatchSettings
   --------------------------------------------------------------------}
 
 
-Procedure TWatchSettings.SetbackgroundColor(AIndex : Integer; AValue : string); 
+Procedure TWatchSettings.SetbackgroundColor(AIndex : Integer; AValue : String); 
 
 begin
   If (FbackgroundColor=AValue) then exit;
@@ -15570,7 +14419,7 @@ end;
 
 
 
-Procedure TWatchSettings.SetfeaturedPlaylistId(AIndex : Integer; AValue : string); 
+Procedure TWatchSettings.SetfeaturedPlaylistId(AIndex : Integer; AValue : String); 
 
 begin
   If (FfeaturedPlaylistId=AValue) then exit;
@@ -15580,7 +14429,7 @@ end;
 
 
 
-Procedure TWatchSettings.SettextColor(AIndex : Integer; AValue : string); 
+Procedure TWatchSettings.SettextColor(AIndex : Integer; AValue : String); 
 
 begin
   If (FtextColor=AValue) then exit;
@@ -17723,7 +16572,6 @@ Class Procedure TYoutubeAPI.RegisterAPIResources;
 
 begin
   TAccessPolicy.RegisterObject;
-  TAccessPolicyexception.RegisterObject;
   TActivity.RegisterObject;
   TActivityContentDetails.RegisterObject;
   TActivityContentDetailsBulletin.RegisterObject;
@@ -17733,171 +16581,129 @@ begin
   TActivityContentDetailsLike.RegisterObject;
   TActivityContentDetailsPlaylistItem.RegisterObject;
   TActivityContentDetailsPromotedItem.RegisterObject;
-  TActivityContentDetailsPromotedItemforecastingUrl.RegisterObject;
-  TActivityContentDetailsPromotedItemimpressionUrl.RegisterObject;
   TActivityContentDetailsRecommendation.RegisterObject;
   TActivityContentDetailsSocial.RegisterObject;
   TActivityContentDetailsSubscription.RegisterObject;
   TActivityContentDetailsUpload.RegisterObject;
   TActivityListResponse.RegisterObject;
-  TActivityListResponseitems.RegisterObject;
   TActivitySnippet.RegisterObject;
   TCaption.RegisterObject;
   TCaptionListResponse.RegisterObject;
-  TCaptionListResponseitems.RegisterObject;
   TCaptionSnippet.RegisterObject;
   TCdnSettings.RegisterObject;
+  TChannelTypelocalizations.RegisterObject;
   TChannel.RegisterObject;
-  TChannellocalizations.RegisterObject;
   TChannelAuditDetails.RegisterObject;
   TChannelBannerResource.RegisterObject;
   TChannelBrandingSettings.RegisterObject;
-  TChannelBrandingSettingshints.RegisterObject;
+  TChannelContentDetailsTyperelatedPlaylists.RegisterObject;
   TChannelContentDetails.RegisterObject;
-  TChannelContentDetailsrelatedPlaylists.RegisterObject;
   TChannelContentOwnerDetails.RegisterObject;
   TChannelConversionPing.RegisterObject;
   TChannelConversionPings.RegisterObject;
-  TChannelConversionPingspings.RegisterObject;
   TChannelId.RegisterObject;
   TChannelListResponse.RegisterObject;
-  TChannelListResponseitems.RegisterObject;
   TChannelLocalization.RegisterObject;
+  TChannelSectionTypelocalizations.RegisterObject;
   TChannelSection.RegisterObject;
-  TChannelSectionlocalizations.RegisterObject;
   TChannelSectionContentDetails.RegisterObject;
-  TChannelSectionContentDetailschannels.RegisterObject;
-  TChannelSectionContentDetailsplaylists.RegisterObject;
   TChannelSectionListResponse.RegisterObject;
-  TChannelSectionListResponseitems.RegisterObject;
   TChannelSectionLocalization.RegisterObject;
   TChannelSectionSnippet.RegisterObject;
   TChannelSectionTargeting.RegisterObject;
-  TChannelSectionTargetingcountries.RegisterObject;
-  TChannelSectionTargetinglanguages.RegisterObject;
-  TChannelSectionTargetingregions.RegisterObject;
   TChannelSettings.RegisterObject;
-  TChannelSettingsfeaturedChannelsUrls.RegisterObject;
   TChannelSnippet.RegisterObject;
   TChannelStatistics.RegisterObject;
   TChannelStatus.RegisterObject;
   TChannelTopicDetails.RegisterObject;
-  TChannelTopicDetailstopicIds.RegisterObject;
   TComment.RegisterObject;
   TCommentListResponse.RegisterObject;
-  TCommentListResponseitems.RegisterObject;
   TCommentSnippet.RegisterObject;
   TCommentThread.RegisterObject;
   TCommentThreadListResponse.RegisterObject;
-  TCommentThreadListResponseitems.RegisterObject;
   TCommentThreadReplies.RegisterObject;
-  TCommentThreadRepliescomments.RegisterObject;
   TCommentThreadSnippet.RegisterObject;
   TContentRating.RegisterObject;
-  TContentRatingdjctqRatingReasons.RegisterObject;
   TGeoPoint.RegisterObject;
   TGuideCategory.RegisterObject;
   TGuideCategoryListResponse.RegisterObject;
-  TGuideCategoryListResponseitems.RegisterObject;
   TGuideCategorySnippet.RegisterObject;
   TI18nLanguage.RegisterObject;
   TI18nLanguageListResponse.RegisterObject;
-  TI18nLanguageListResponseitems.RegisterObject;
   TI18nLanguageSnippet.RegisterObject;
   TI18nRegion.RegisterObject;
   TI18nRegionListResponse.RegisterObject;
-  TI18nRegionListResponseitems.RegisterObject;
   TI18nRegionSnippet.RegisterObject;
   TImageSettings.RegisterObject;
   TIngestionInfo.RegisterObject;
   TInvideoBranding.RegisterObject;
   TInvideoPosition.RegisterObject;
   TInvideoPromotion.RegisterObject;
-  TInvideoPromotionitems.RegisterObject;
   TInvideoTiming.RegisterObject;
   TLanguageTag.RegisterObject;
   TLiveBroadcast.RegisterObject;
   TLiveBroadcastContentDetails.RegisterObject;
   TLiveBroadcastListResponse.RegisterObject;
-  TLiveBroadcastListResponseitems.RegisterObject;
   TLiveBroadcastSnippet.RegisterObject;
   TLiveBroadcastStatus.RegisterObject;
   TLiveStream.RegisterObject;
   TLiveStreamContentDetails.RegisterObject;
   TLiveStreamListResponse.RegisterObject;
-  TLiveStreamListResponseitems.RegisterObject;
   TLiveStreamSnippet.RegisterObject;
   TLiveStreamStatus.RegisterObject;
   TLocalizedProperty.RegisterObject;
-  TLocalizedPropertylocalized.RegisterObject;
   TLocalizedString.RegisterObject;
   TMonitorStreamInfo.RegisterObject;
   TPageInfo.RegisterObject;
+  TPlaylistTypelocalizations.RegisterObject;
   TPlaylist.RegisterObject;
-  TPlaylistlocalizations.RegisterObject;
   TPlaylistContentDetails.RegisterObject;
   TPlaylistItem.RegisterObject;
   TPlaylistItemContentDetails.RegisterObject;
   TPlaylistItemListResponse.RegisterObject;
-  TPlaylistItemListResponseitems.RegisterObject;
   TPlaylistItemSnippet.RegisterObject;
   TPlaylistItemStatus.RegisterObject;
   TPlaylistListResponse.RegisterObject;
-  TPlaylistListResponseitems.RegisterObject;
   TPlaylistLocalization.RegisterObject;
   TPlaylistPlayer.RegisterObject;
   TPlaylistSnippet.RegisterObject;
-  TPlaylistSnippettags.RegisterObject;
   TPlaylistStatus.RegisterObject;
   TPromotedItem.RegisterObject;
   TPromotedItemId.RegisterObject;
   TPropertyValue.RegisterObject;
   TResourceId.RegisterObject;
   TSearchListResponse.RegisterObject;
-  TSearchListResponseitems.RegisterObject;
   TSearchResult.RegisterObject;
   TSearchResultSnippet.RegisterObject;
   TSubscription.RegisterObject;
   TSubscriptionContentDetails.RegisterObject;
   TSubscriptionListResponse.RegisterObject;
-  TSubscriptionListResponseitems.RegisterObject;
   TSubscriptionSnippet.RegisterObject;
   TSubscriptionSubscriberSnippet.RegisterObject;
   TThumbnail.RegisterObject;
   TThumbnailDetails.RegisterObject;
   TThumbnailSetResponse.RegisterObject;
-  TThumbnailSetResponseitems.RegisterObject;
   TTokenPagination.RegisterObject;
+  TVideoTypelocalizations.RegisterObject;
   TVideo.RegisterObject;
-  TVideolocalizations.RegisterObject;
   TVideoAbuseReport.RegisterObject;
   TVideoAbuseReportReason.RegisterObject;
   TVideoAbuseReportReasonListResponse.RegisterObject;
-  TVideoAbuseReportReasonListResponseitems.RegisterObject;
   TVideoAbuseReportReasonSnippet.RegisterObject;
-  TVideoAbuseReportReasonSnippetsecondaryReasons.RegisterObject;
   TVideoAbuseReportSecondaryReason.RegisterObject;
   TVideoAgeGating.RegisterObject;
   TVideoCategory.RegisterObject;
   TVideoCategoryListResponse.RegisterObject;
-  TVideoCategoryListResponseitems.RegisterObject;
   TVideoCategorySnippet.RegisterObject;
   TVideoContentDetails.RegisterObject;
   TVideoContentDetailsRegionRestriction.RegisterObject;
-  TVideoContentDetailsRegionRestrictionallowed.RegisterObject;
-  TVideoContentDetailsRegionRestrictionblocked.RegisterObject;
   TVideoConversionPing.RegisterObject;
   TVideoConversionPings.RegisterObject;
-  TVideoConversionPingspings.RegisterObject;
   TVideoFileDetails.RegisterObject;
-  TVideoFileDetailsaudioStreams.RegisterObject;
-  TVideoFileDetailsvideoStreams.RegisterObject;
   TVideoFileDetailsAudioStream.RegisterObject;
   TVideoFileDetailsVideoStream.RegisterObject;
   TVideoGetRatingResponse.RegisterObject;
-  TVideoGetRatingResponseitems.RegisterObject;
   TVideoListResponse.RegisterObject;
-  TVideoListResponseitems.RegisterObject;
   TVideoLiveStreamingDetails.RegisterObject;
   TVideoLocalization.RegisterObject;
   TVideoMonetizationDetails.RegisterObject;
@@ -17905,24 +16711,14 @@ begin
   TVideoProcessingDetails.RegisterObject;
   TVideoProcessingDetailsProcessingProgress.RegisterObject;
   TVideoProjectDetails.RegisterObject;
-  TVideoProjectDetailstags.RegisterObject;
   TVideoRating.RegisterObject;
   TVideoRecordingDetails.RegisterObject;
   TVideoSnippet.RegisterObject;
-  TVideoSnippettags.RegisterObject;
   TVideoStatistics.RegisterObject;
   TVideoStatus.RegisterObject;
   TVideoSuggestions.RegisterObject;
-  TVideoSuggestionseditorSuggestions.RegisterObject;
-  TVideoSuggestionsprocessingErrors.RegisterObject;
-  TVideoSuggestionsprocessingHints.RegisterObject;
-  TVideoSuggestionsprocessingWarnings.RegisterObject;
-  TVideoSuggestionstagSuggestions.RegisterObject;
   TVideoSuggestionsTagSuggestion.RegisterObject;
-  TVideoSuggestionsTagSuggestioncategoryRestricts.RegisterObject;
   TVideoTopicDetails.RegisterObject;
-  TVideoTopicDetailsrelevantTopicIds.RegisterObject;
-  TVideoTopicDetailstopicIds.RegisterObject;
   TWatchSettings.RegisterObject;
 end;
 

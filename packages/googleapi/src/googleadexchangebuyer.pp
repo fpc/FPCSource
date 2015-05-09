@@ -1,31 +1,19 @@
 unit googleadexchangebuyer;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:47
 {$MODE objfpc}
 {$H+}
 
@@ -34,119 +22,78 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAccount = class;
-  TAccountArray = Array of TAccount;
-  TAccountbidderLocation = class;
-  TAccountbidderLocationArray = Array of TAccountbidderLocation;
   TAccountsList = class;
-  TAccountsListArray = Array of TAccountsList;
-  TAccountsListitems = class;
-  TAccountsListitemsArray = Array of TAccountsListitems;
   TBillingInfo = class;
-  TBillingInfoArray = Array of TBillingInfo;
-  TBillingInfobillingId = class;
-  TBillingInfobillingIdArray = Array of TBillingInfobillingId;
   TBillingInfoList = class;
-  TBillingInfoListArray = Array of TBillingInfoList;
-  TBillingInfoListitems = class;
-  TBillingInfoListitemsArray = Array of TBillingInfoListitems;
   TBudget = class;
-  TBudgetArray = Array of TBudget;
   TCreative = class;
-  TCreativeArray = Array of TCreative;
-  TCreativeadvertiserId = class;
-  TCreativeadvertiserIdArray = Array of TCreativeadvertiserId;
-  TCreativeattribute = class;
-  TCreativeattributeArray = Array of TCreativeattribute;
-  TCreativeclickThroughUrl = class;
-  TCreativeclickThroughUrlArray = Array of TCreativeclickThroughUrl;
-  TCreativecorrections = class;
-  TCreativecorrectionsArray = Array of TCreativecorrections;
-  TCreativecorrectionsdetails = class;
-  TCreativecorrectionsdetailsArray = Array of TCreativecorrectionsdetails;
-  TCreativedisapprovalReasons = class;
-  TCreativedisapprovalReasonsArray = Array of TCreativedisapprovalReasons;
-  TCreativedisapprovalReasonsdetails = class;
-  TCreativedisapprovalReasonsdetailsArray = Array of TCreativedisapprovalReasonsdetails;
-  TCreativefilteringReasons = class;
-  TCreativefilteringReasonsArray = Array of TCreativefilteringReasons;
-  TCreativefilteringReasonsreasons = class;
-  TCreativefilteringReasonsreasonsArray = Array of TCreativefilteringReasonsreasons;
-  TCreativeproductCategories = class;
-  TCreativeproductCategoriesArray = Array of TCreativeproductCategories;
-  TCreativerestrictedCategories = class;
-  TCreativerestrictedCategoriesArray = Array of TCreativerestrictedCategories;
-  TCreativesensitiveCategories = class;
-  TCreativesensitiveCategoriesArray = Array of TCreativesensitiveCategories;
-  TCreativevendorType = class;
-  TCreativevendorTypeArray = Array of TCreativevendorType;
   TCreativesList = class;
-  TCreativesListArray = Array of TCreativesList;
-  TCreativesListitems = class;
-  TCreativesListitemsArray = Array of TCreativesListitems;
   TDirectDeal = class;
-  TDirectDealArray = Array of TDirectDeal;
   TDirectDealsList = class;
-  TDirectDealsListArray = Array of TDirectDealsList;
-  TDirectDealsListdirectDeals = class;
-  TDirectDealsListdirectDealsArray = Array of TDirectDealsListdirectDeals;
   TPerformanceReport = class;
-  TPerformanceReportArray = Array of TPerformanceReport;
-  TPerformanceReportcalloutStatusRate = class;
-  TPerformanceReportcalloutStatusRateArray = Array of TPerformanceReportcalloutStatusRate;
-  TPerformanceReportcookieMatcherStatusRate = class;
-  TPerformanceReportcookieMatcherStatusRateArray = Array of TPerformanceReportcookieMatcherStatusRate;
-  TPerformanceReportcreativeStatusRate = class;
-  TPerformanceReportcreativeStatusRateArray = Array of TPerformanceReportcreativeStatusRate;
-  TPerformanceReporthostedMatchStatusRate = class;
-  TPerformanceReporthostedMatchStatusRateArray = Array of TPerformanceReporthostedMatchStatusRate;
   TPerformanceReportList = class;
-  TPerformanceReportListArray = Array of TPerformanceReportList;
-  TPerformanceReportListperformanceReport = class;
-  TPerformanceReportListperformanceReportArray = Array of TPerformanceReportListperformanceReport;
   TPretargetingConfig = class;
-  TPretargetingConfigArray = Array of TPretargetingConfig;
-  TPretargetingConfigcreativeType = class;
-  TPretargetingConfigcreativeTypeArray = Array of TPretargetingConfigcreativeType;
-  TPretargetingConfigdimensions = class;
-  TPretargetingConfigdimensionsArray = Array of TPretargetingConfigdimensions;
-  TPretargetingConfigexcludedContentLabels = class;
-  TPretargetingConfigexcludedContentLabelsArray = Array of TPretargetingConfigexcludedContentLabels;
-  TPretargetingConfigexcludedGeoCriteriaIds = class;
-  TPretargetingConfigexcludedGeoCriteriaIdsArray = Array of TPretargetingConfigexcludedGeoCriteriaIds;
-  TPretargetingConfigexcludedPlacements = class;
-  TPretargetingConfigexcludedPlacementsArray = Array of TPretargetingConfigexcludedPlacements;
-  TPretargetingConfigexcludedUserLists = class;
-  TPretargetingConfigexcludedUserListsArray = Array of TPretargetingConfigexcludedUserLists;
-  TPretargetingConfigexcludedVerticals = class;
-  TPretargetingConfigexcludedVerticalsArray = Array of TPretargetingConfigexcludedVerticals;
-  TPretargetingConfiggeoCriteriaIds = class;
-  TPretargetingConfiggeoCriteriaIdsArray = Array of TPretargetingConfiggeoCriteriaIds;
-  TPretargetingConfiglanguages = class;
-  TPretargetingConfiglanguagesArray = Array of TPretargetingConfiglanguages;
-  TPretargetingConfigmobileCarriers = class;
-  TPretargetingConfigmobileCarriersArray = Array of TPretargetingConfigmobileCarriers;
-  TPretargetingConfigmobileDevices = class;
-  TPretargetingConfigmobileDevicesArray = Array of TPretargetingConfigmobileDevices;
-  TPretargetingConfigmobileOperatingSystemVersions = class;
-  TPretargetingConfigmobileOperatingSystemVersionsArray = Array of TPretargetingConfigmobileOperatingSystemVersions;
-  TPretargetingConfigplacements = class;
-  TPretargetingConfigplacementsArray = Array of TPretargetingConfigplacements;
-  TPretargetingConfigplatforms = class;
-  TPretargetingConfigplatformsArray = Array of TPretargetingConfigplatforms;
-  TPretargetingConfigsupportedCreativeAttributes = class;
-  TPretargetingConfigsupportedCreativeAttributesArray = Array of TPretargetingConfigsupportedCreativeAttributes;
-  TPretargetingConfiguserLists = class;
-  TPretargetingConfiguserListsArray = Array of TPretargetingConfiguserLists;
-  TPretargetingConfigvendorTypes = class;
-  TPretargetingConfigvendorTypesArray = Array of TPretargetingConfigvendorTypes;
-  TPretargetingConfigverticals = class;
-  TPretargetingConfigverticalsArray = Array of TPretargetingConfigverticals;
   TPretargetingConfigList = class;
+  TAccountArray = Array of TAccount;
+  TAccountsListArray = Array of TAccountsList;
+  TBillingInfoArray = Array of TBillingInfo;
+  TBillingInfoListArray = Array of TBillingInfoList;
+  TBudgetArray = Array of TBudget;
+  TCreativeArray = Array of TCreative;
+  TCreativesListArray = Array of TCreativesList;
+  TDirectDealArray = Array of TDirectDeal;
+  TDirectDealsListArray = Array of TDirectDealsList;
+  TPerformanceReportArray = Array of TPerformanceReport;
+  TPerformanceReportListArray = Array of TPerformanceReportList;
+  TPretargetingConfigArray = Array of TPretargetingConfig;
   TPretargetingConfigListArray = Array of TPretargetingConfigList;
-  TPretargetingConfigListitems = class;
-  TPretargetingConfigListitemsArray = Array of TPretargetingConfigListitems;
+  //Anonymous types, using auto-generated names
+  TAccountTypebidderLocationItem = class;
+  TCreativeTypecorrectionsItem = class;
+  TCreativeTypedisapprovalReasonsItem = class;
+  TCreativeTypefilteringReasonsTypereasonsItem = class;
+  TCreativeTypefilteringReasons = class;
+  TPretargetingConfigTypedimensionsItem = class;
+  TPretargetingConfigTypeexcludedPlacementsItem = class;
+  TPretargetingConfigTypeplacementsItem = class;
+  TAccountTypebidderLocationArray = Array of TAccountTypebidderLocationItem;
+  TAccountsListTypeitemsArray = Array of TAccount;
+  TBillingInfoListTypeitemsArray = Array of TBillingInfo;
+  TCreativeTypecorrectionsArray = Array of TCreativeTypecorrectionsItem;
+  TCreativeTypedisapprovalReasonsArray = Array of TCreativeTypedisapprovalReasonsItem;
+  TCreativeTypefilteringReasonsTypereasonsArray = Array of TCreativeTypefilteringReasonsTypereasonsItem;
+  TCreativesListTypeitemsArray = Array of TCreative;
+  TDirectDealsListTypedirectDealsArray = Array of TDirectDeal;
+  TPerformanceReportListTypeperformanceReportArray = Array of TPerformanceReport;
+  TPretargetingConfigTypedimensionsArray = Array of TPretargetingConfigTypedimensionsItem;
+  TPretargetingConfigTypeexcludedPlacementsArray = Array of TPretargetingConfigTypeexcludedPlacementsItem;
+  TPretargetingConfigTypeplacementsArray = Array of TPretargetingConfigTypeplacementsItem;
+  TPretargetingConfigListTypeitemsArray = Array of TPretargetingConfig;
+  
+  { --------------------------------------------------------------------
+    TAccountTypebidderLocationItem
+    --------------------------------------------------------------------}
+  
+  TAccountTypebidderLocationItem = Class(TGoogleBaseObject)
+  Private
+    FmaximumQps : integer;
+    Fregion : String;
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure SetmaximumQps(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property maximumQps : integer Index 0 Read FmaximumQps Write SetmaximumQps;
+    Property region : String Index 8 Read Fregion Write Setregion;
+    Property url : String Index 16 Read Furl Write Seturl;
+  end;
+  TAccountTypebidderLocationItemClass = Class of TAccountTypebidderLocationItem;
   
   { --------------------------------------------------------------------
     TAccount
@@ -154,31 +101,31 @@ type
   
   TAccount = Class(TGoogleBaseObject)
   Private
-    FbidderLocation : TAccountbidderLocation;
-    FcookieMatchingNid : string;
-    FcookieMatchingUrl : string;
+    FbidderLocation : TAccountTypebidderLocationArray;
+    FcookieMatchingNid : String;
+    FcookieMatchingUrl : String;
     Fid : integer;
-    Fkind : string;
+    Fkind : String;
     FmaximumActiveCreatives : integer;
     FmaximumTotalQps : integer;
     FnumberActiveCreatives : integer;
   Protected
     //Property setters
-    Procedure SetbidderLocation(AIndex : Integer; AValue : TAccountbidderLocation); virtual;
-    Procedure SetcookieMatchingNid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcookieMatchingUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbidderLocation(AIndex : Integer; AValue : TAccountTypebidderLocationArray); virtual;
+    Procedure SetcookieMatchingNid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcookieMatchingUrl(AIndex : Integer; AValue : String); virtual;
     Procedure Setid(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetmaximumActiveCreatives(AIndex : Integer; AValue : integer); virtual;
     Procedure SetmaximumTotalQps(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumberActiveCreatives(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property bidderLocation : TAccountbidderLocation Index 0 Read FbidderLocation Write SetbidderLocation;
-    Property cookieMatchingNid : string Index 8 Read FcookieMatchingNid Write SetcookieMatchingNid;
-    Property cookieMatchingUrl : string Index 16 Read FcookieMatchingUrl Write SetcookieMatchingUrl;
+    Property bidderLocation : TAccountTypebidderLocationArray Index 0 Read FbidderLocation Write SetbidderLocation;
+    Property cookieMatchingNid : String Index 8 Read FcookieMatchingNid Write SetcookieMatchingNid;
+    Property cookieMatchingUrl : String Index 16 Read FcookieMatchingUrl Write SetcookieMatchingUrl;
     Property id : integer Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
+    Property kind : String Index 32 Read Fkind Write Setkind;
     Property maximumActiveCreatives : integer Index 40 Read FmaximumActiveCreatives Write SetmaximumActiveCreatives;
     Property maximumTotalQps : integer Index 48 Read FmaximumTotalQps Write SetmaximumTotalQps;
     Property numberActiveCreatives : integer Index 56 Read FnumberActiveCreatives Write SetnumberActiveCreatives;
@@ -186,58 +133,23 @@ type
   TAccountClass = Class of TAccount;
   
   { --------------------------------------------------------------------
-    TAccountbidderLocation
-    --------------------------------------------------------------------}
-  
-  TAccountbidderLocation = Class(TGoogleBaseObject)
-  Private
-    FmaximumQps : integer;
-    Fregion : string;
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure SetmaximumQps(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property maximumQps : integer Index 0 Read FmaximumQps Write SetmaximumQps;
-    Property region : string Index 8 Read Fregion Write Setregion;
-    Property url : string Index 16 Read Furl Write Seturl;
-  end;
-  TAccountbidderLocationClass = Class of TAccountbidderLocation;
-  
-  { --------------------------------------------------------------------
     TAccountsList
     --------------------------------------------------------------------}
   
   TAccountsList = Class(TGoogleBaseObject)
   Private
-    Fitems : TAccountsListitems;
-    Fkind : string;
+    Fitems : TAccountsListTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TAccountsListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TAccountsListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TAccountsListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TAccountsListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAccountsListClass = Class of TAccountsList;
-  
-  { --------------------------------------------------------------------
-    TAccountsListitems
-    --------------------------------------------------------------------}
-  
-  TAccountsListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountsListitemsClass = Class of TAccountsListitems;
   
   { --------------------------------------------------------------------
     TBillingInfo
@@ -246,36 +158,23 @@ type
   TBillingInfo = Class(TGoogleBaseObject)
   Private
     FaccountId : integer;
-    FaccountName : string;
-    FbillingId : TBillingInfobillingId;
-    Fkind : string;
+    FaccountName : String;
+    FbillingId : TStringArray;
+    Fkind : String;
   Protected
     //Property setters
     Procedure SetaccountId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetaccountName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbillingId(AIndex : Integer; AValue : TBillingInfobillingId); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbillingId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property accountId : integer Index 0 Read FaccountId Write SetaccountId;
-    Property accountName : string Index 8 Read FaccountName Write SetaccountName;
-    Property billingId : TBillingInfobillingId Index 16 Read FbillingId Write SetbillingId;
-    Property kind : string Index 24 Read Fkind Write Setkind;
+    Property accountName : String Index 8 Read FaccountName Write SetaccountName;
+    Property billingId : TStringArray Index 16 Read FbillingId Write SetbillingId;
+    Property kind : String Index 24 Read Fkind Write Setkind;
   end;
   TBillingInfoClass = Class of TBillingInfo;
-  
-  { --------------------------------------------------------------------
-    TBillingInfobillingId
-    --------------------------------------------------------------------}
-  
-  TBillingInfobillingId = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBillingInfobillingIdClass = Class of TBillingInfobillingId;
   
   { --------------------------------------------------------------------
     TBillingInfoList
@@ -283,31 +182,18 @@ type
   
   TBillingInfoList = Class(TGoogleBaseObject)
   Private
-    Fitems : TBillingInfoListitems;
-    Fkind : string;
+    Fitems : TBillingInfoListTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TBillingInfoListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TBillingInfoListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TBillingInfoListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TBillingInfoListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TBillingInfoListClass = Class of TBillingInfoList;
-  
-  { --------------------------------------------------------------------
-    TBillingInfoListitems
-    --------------------------------------------------------------------}
-  
-  TBillingInfoListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBillingInfoListitemsClass = Class of TBillingInfoListitems;
   
   { --------------------------------------------------------------------
     TBudget
@@ -315,30 +201,106 @@ type
   
   TBudget = Class(TGoogleBaseObject)
   Private
-    FaccountId : string;
-    FbillingId : string;
-    FbudgetAmount : string;
-    FcurrencyCode : string;
-    Fid : string;
-    Fkind : string;
+    FaccountId : String;
+    FbillingId : String;
+    FbudgetAmount : String;
+    FcurrencyCode : String;
+    Fid : String;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbillingId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbudgetAmount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcurrencyCode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbillingId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbudgetAmount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrencyCode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountId : string Index 0 Read FaccountId Write SetaccountId;
-    Property billingId : string Index 8 Read FbillingId Write SetbillingId;
-    Property budgetAmount : string Index 16 Read FbudgetAmount Write SetbudgetAmount;
-    Property currencyCode : string Index 24 Read FcurrencyCode Write SetcurrencyCode;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property kind : string Index 40 Read Fkind Write Setkind;
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property billingId : String Index 8 Read FbillingId Write SetbillingId;
+    Property budgetAmount : String Index 16 Read FbudgetAmount Write SetbudgetAmount;
+    Property currencyCode : String Index 24 Read FcurrencyCode Write SetcurrencyCode;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property kind : String Index 40 Read Fkind Write Setkind;
   end;
   TBudgetClass = Class of TBudget;
+  
+  { --------------------------------------------------------------------
+    TCreativeTypecorrectionsItem
+    --------------------------------------------------------------------}
+  
+  TCreativeTypecorrectionsItem = Class(TGoogleBaseObject)
+  Private
+    Fdetails : TStringArray;
+    Freason : String;
+  Protected
+    //Property setters
+    Procedure Setdetails(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property details : TStringArray Index 0 Read Fdetails Write Setdetails;
+    Property reason : String Index 8 Read Freason Write Setreason;
+  end;
+  TCreativeTypecorrectionsItemClass = Class of TCreativeTypecorrectionsItem;
+  
+  { --------------------------------------------------------------------
+    TCreativeTypedisapprovalReasonsItem
+    --------------------------------------------------------------------}
+  
+  TCreativeTypedisapprovalReasonsItem = Class(TGoogleBaseObject)
+  Private
+    Fdetails : TStringArray;
+    Freason : String;
+  Protected
+    //Property setters
+    Procedure Setdetails(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property details : TStringArray Index 0 Read Fdetails Write Setdetails;
+    Property reason : String Index 8 Read Freason Write Setreason;
+  end;
+  TCreativeTypedisapprovalReasonsItemClass = Class of TCreativeTypedisapprovalReasonsItem;
+  
+  { --------------------------------------------------------------------
+    TCreativeTypefilteringReasonsTypereasonsItem
+    --------------------------------------------------------------------}
+  
+  TCreativeTypefilteringReasonsTypereasonsItem = Class(TGoogleBaseObject)
+  Private
+    FfilteringCount : String;
+    FfilteringStatus : integer;
+  Protected
+    //Property setters
+    Procedure SetfilteringCount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfilteringStatus(AIndex : Integer; AValue : integer); virtual;
+  Public
+  Published
+    Property filteringCount : String Index 0 Read FfilteringCount Write SetfilteringCount;
+    Property filteringStatus : integer Index 8 Read FfilteringStatus Write SetfilteringStatus;
+  end;
+  TCreativeTypefilteringReasonsTypereasonsItemClass = Class of TCreativeTypefilteringReasonsTypereasonsItem;
+  
+  { --------------------------------------------------------------------
+    TCreativeTypefilteringReasons
+    --------------------------------------------------------------------}
+  
+  TCreativeTypefilteringReasons = Class(TGoogleBaseObject)
+  Private
+    Fdate : String;
+    Freasons : TCreativeTypefilteringReasonsTypereasonsArray;
+  Protected
+    //Property setters
+    Procedure Setdate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setreasons(AIndex : Integer; AValue : TCreativeTypefilteringReasonsTypereasonsArray); virtual;
+  Public
+  Published
+    Property date : String Index 0 Read Fdate Write Setdate;
+    Property reasons : TCreativeTypefilteringReasonsTypereasonsArray Index 8 Read Freasons Write Setreasons;
+  end;
+  TCreativeTypefilteringReasonsClass = Class of TCreativeTypefilteringReasons;
   
   { --------------------------------------------------------------------
     TCreative
@@ -346,265 +308,72 @@ type
   
   TCreative = Class(TGoogleBaseObject)
   Private
-    FHTMLSnippet : string;
+    FHTMLSnippet : String;
     FaccountId : integer;
-    FadvertiserId : TCreativeadvertiserId;
-    FadvertiserName : string;
-    FagencyId : string;
-    Fattribute : TCreativeattribute;
-    FbuyerCreativeId : string;
-    FclickThroughUrl : TCreativeclickThroughUrl;
-    Fcorrections : TCreativecorrections;
-    FdisapprovalReasons : TCreativedisapprovalReasons;
-    FfilteringReasons : TCreativefilteringReasons;
+    FadvertiserId : TStringArray;
+    FadvertiserName : String;
+    FagencyId : String;
+    Fattribute : TintegerArray;
+    FbuyerCreativeId : String;
+    FclickThroughUrl : TStringArray;
+    Fcorrections : TCreativeTypecorrectionsArray;
+    FdisapprovalReasons : TCreativeTypedisapprovalReasonsArray;
+    FfilteringReasons : TCreativeTypefilteringReasons;
     Fheight : integer;
-    Fkind : string;
-    FproductCategories : TCreativeproductCategories;
-    FrestrictedCategories : TCreativerestrictedCategories;
-    FsensitiveCategories : TCreativesensitiveCategories;
-    Fstatus : string;
-    FvendorType : TCreativevendorType;
-    FvideoURL : string;
+    Fkind : String;
+    FproductCategories : TintegerArray;
+    FrestrictedCategories : TintegerArray;
+    FsensitiveCategories : TintegerArray;
+    Fstatus : String;
+    FvendorType : TintegerArray;
+    FvideoURL : String;
     Fwidth : integer;
   Protected
     //Property setters
-    Procedure SetHTMLSnippet(AIndex : Integer; AValue : string); virtual;
+    Procedure SetHTMLSnippet(AIndex : Integer; AValue : String); virtual;
     Procedure SetaccountId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetadvertiserId(AIndex : Integer; AValue : TCreativeadvertiserId); virtual;
-    Procedure SetadvertiserName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetagencyId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setattribute(AIndex : Integer; AValue : TCreativeattribute); virtual;
-    Procedure SetbuyerCreativeId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetclickThroughUrl(AIndex : Integer; AValue : TCreativeclickThroughUrl); virtual;
-    Procedure Setcorrections(AIndex : Integer; AValue : TCreativecorrections); virtual;
-    Procedure SetdisapprovalReasons(AIndex : Integer; AValue : TCreativedisapprovalReasons); virtual;
-    Procedure SetfilteringReasons(AIndex : Integer; AValue : TCreativefilteringReasons); virtual;
+    Procedure SetadvertiserId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetadvertiserName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetagencyId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setattribute(AIndex : Integer; AValue : TintegerArray); virtual;
+    Procedure SetbuyerCreativeId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetclickThroughUrl(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setcorrections(AIndex : Integer; AValue : TCreativeTypecorrectionsArray); virtual;
+    Procedure SetdisapprovalReasons(AIndex : Integer; AValue : TCreativeTypedisapprovalReasonsArray); virtual;
+    Procedure SetfilteringReasons(AIndex : Integer; AValue : TCreativeTypefilteringReasons); virtual;
     Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetproductCategories(AIndex : Integer; AValue : TCreativeproductCategories); virtual;
-    Procedure SetrestrictedCategories(AIndex : Integer; AValue : TCreativerestrictedCategories); virtual;
-    Procedure SetsensitiveCategories(AIndex : Integer; AValue : TCreativesensitiveCategories); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvendorType(AIndex : Integer; AValue : TCreativevendorType); virtual;
-    Procedure SetvideoURL(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductCategories(AIndex : Integer; AValue : TintegerArray); virtual;
+    Procedure SetrestrictedCategories(AIndex : Integer; AValue : TintegerArray); virtual;
+    Procedure SetsensitiveCategories(AIndex : Integer; AValue : TintegerArray); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvendorType(AIndex : Integer; AValue : TintegerArray); virtual;
+    Procedure SetvideoURL(AIndex : Integer; AValue : String); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property HTMLSnippet : string Index 0 Read FHTMLSnippet Write SetHTMLSnippet;
+    Property HTMLSnippet : String Index 0 Read FHTMLSnippet Write SetHTMLSnippet;
     Property accountId : integer Index 8 Read FaccountId Write SetaccountId;
-    Property advertiserId : TCreativeadvertiserId Index 16 Read FadvertiserId Write SetadvertiserId;
-    Property advertiserName : string Index 24 Read FadvertiserName Write SetadvertiserName;
-    Property agencyId : string Index 32 Read FagencyId Write SetagencyId;
-    Property attribute : TCreativeattribute Index 40 Read Fattribute Write Setattribute;
-    Property buyerCreativeId : string Index 48 Read FbuyerCreativeId Write SetbuyerCreativeId;
-    Property clickThroughUrl : TCreativeclickThroughUrl Index 56 Read FclickThroughUrl Write SetclickThroughUrl;
-    Property corrections : TCreativecorrections Index 64 Read Fcorrections Write Setcorrections;
-    Property disapprovalReasons : TCreativedisapprovalReasons Index 72 Read FdisapprovalReasons Write SetdisapprovalReasons;
-    Property filteringReasons : TCreativefilteringReasons Index 80 Read FfilteringReasons Write SetfilteringReasons;
+    Property advertiserId : TStringArray Index 16 Read FadvertiserId Write SetadvertiserId;
+    Property advertiserName : String Index 24 Read FadvertiserName Write SetadvertiserName;
+    Property agencyId : String Index 32 Read FagencyId Write SetagencyId;
+    Property attribute : TintegerArray Index 40 Read Fattribute Write Setattribute;
+    Property buyerCreativeId : String Index 48 Read FbuyerCreativeId Write SetbuyerCreativeId;
+    Property clickThroughUrl : TStringArray Index 56 Read FclickThroughUrl Write SetclickThroughUrl;
+    Property corrections : TCreativeTypecorrectionsArray Index 64 Read Fcorrections Write Setcorrections;
+    Property disapprovalReasons : TCreativeTypedisapprovalReasonsArray Index 72 Read FdisapprovalReasons Write SetdisapprovalReasons;
+    Property filteringReasons : TCreativeTypefilteringReasons Index 80 Read FfilteringReasons Write SetfilteringReasons;
     Property height : integer Index 88 Read Fheight Write Setheight;
-    Property kind : string Index 96 Read Fkind Write Setkind;
-    Property productCategories : TCreativeproductCategories Index 104 Read FproductCategories Write SetproductCategories;
-    Property restrictedCategories : TCreativerestrictedCategories Index 112 Read FrestrictedCategories Write SetrestrictedCategories;
-    Property sensitiveCategories : TCreativesensitiveCategories Index 120 Read FsensitiveCategories Write SetsensitiveCategories;
-    Property status : string Index 128 Read Fstatus Write Setstatus;
-    Property vendorType : TCreativevendorType Index 136 Read FvendorType Write SetvendorType;
-    Property videoURL : string Index 144 Read FvideoURL Write SetvideoURL;
+    Property kind : String Index 96 Read Fkind Write Setkind;
+    Property productCategories : TintegerArray Index 104 Read FproductCategories Write SetproductCategories;
+    Property restrictedCategories : TintegerArray Index 112 Read FrestrictedCategories Write SetrestrictedCategories;
+    Property sensitiveCategories : TintegerArray Index 120 Read FsensitiveCategories Write SetsensitiveCategories;
+    Property status : String Index 128 Read Fstatus Write Setstatus;
+    Property vendorType : TintegerArray Index 136 Read FvendorType Write SetvendorType;
+    Property videoURL : String Index 144 Read FvideoURL Write SetvideoURL;
     Property width : integer Index 152 Read Fwidth Write Setwidth;
   end;
   TCreativeClass = Class of TCreative;
-  
-  { --------------------------------------------------------------------
-    TCreativeadvertiserId
-    --------------------------------------------------------------------}
-  
-  TCreativeadvertiserId = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCreativeadvertiserIdClass = Class of TCreativeadvertiserId;
-  
-  { --------------------------------------------------------------------
-    TCreativeattribute
-    --------------------------------------------------------------------}
-  
-  TCreativeattribute = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCreativeattributeClass = Class of TCreativeattribute;
-  
-  { --------------------------------------------------------------------
-    TCreativeclickThroughUrl
-    --------------------------------------------------------------------}
-  
-  TCreativeclickThroughUrl = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCreativeclickThroughUrlClass = Class of TCreativeclickThroughUrl;
-  
-  { --------------------------------------------------------------------
-    TCreativecorrections
-    --------------------------------------------------------------------}
-  
-  TCreativecorrections = Class(TGoogleBaseObject)
-  Private
-    Fdetails : TCreativecorrectionsdetails;
-    Freason : string;
-  Protected
-    //Property setters
-    Procedure Setdetails(AIndex : Integer; AValue : TCreativecorrectionsdetails); virtual;
-    Procedure Setreason(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property details : TCreativecorrectionsdetails Index 0 Read Fdetails Write Setdetails;
-    Property reason : string Index 8 Read Freason Write Setreason;
-  end;
-  TCreativecorrectionsClass = Class of TCreativecorrections;
-  
-  { --------------------------------------------------------------------
-    TCreativecorrectionsdetails
-    --------------------------------------------------------------------}
-  
-  TCreativecorrectionsdetails = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCreativecorrectionsdetailsClass = Class of TCreativecorrectionsdetails;
-  
-  { --------------------------------------------------------------------
-    TCreativedisapprovalReasons
-    --------------------------------------------------------------------}
-  
-  TCreativedisapprovalReasons = Class(TGoogleBaseObject)
-  Private
-    Fdetails : TCreativedisapprovalReasonsdetails;
-    Freason : string;
-  Protected
-    //Property setters
-    Procedure Setdetails(AIndex : Integer; AValue : TCreativedisapprovalReasonsdetails); virtual;
-    Procedure Setreason(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property details : TCreativedisapprovalReasonsdetails Index 0 Read Fdetails Write Setdetails;
-    Property reason : string Index 8 Read Freason Write Setreason;
-  end;
-  TCreativedisapprovalReasonsClass = Class of TCreativedisapprovalReasons;
-  
-  { --------------------------------------------------------------------
-    TCreativedisapprovalReasonsdetails
-    --------------------------------------------------------------------}
-  
-  TCreativedisapprovalReasonsdetails = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCreativedisapprovalReasonsdetailsClass = Class of TCreativedisapprovalReasonsdetails;
-  
-  { --------------------------------------------------------------------
-    TCreativefilteringReasons
-    --------------------------------------------------------------------}
-  
-  TCreativefilteringReasons = Class(TGoogleBaseObject)
-  Private
-    Fdate : string;
-    Freasons : TCreativefilteringReasonsreasons;
-  Protected
-    //Property setters
-    Procedure Setdate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setreasons(AIndex : Integer; AValue : TCreativefilteringReasonsreasons); virtual;
-  Public
-  Published
-    Property date : string Index 0 Read Fdate Write Setdate;
-    Property reasons : TCreativefilteringReasonsreasons Index 8 Read Freasons Write Setreasons;
-  end;
-  TCreativefilteringReasonsClass = Class of TCreativefilteringReasons;
-  
-  { --------------------------------------------------------------------
-    TCreativefilteringReasonsreasons
-    --------------------------------------------------------------------}
-  
-  TCreativefilteringReasonsreasons = Class(TGoogleBaseObject)
-  Private
-    FfilteringCount : string;
-    FfilteringStatus : integer;
-  Protected
-    //Property setters
-    Procedure SetfilteringCount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfilteringStatus(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property filteringCount : string Index 0 Read FfilteringCount Write SetfilteringCount;
-    Property filteringStatus : integer Index 8 Read FfilteringStatus Write SetfilteringStatus;
-  end;
-  TCreativefilteringReasonsreasonsClass = Class of TCreativefilteringReasonsreasons;
-  
-  { --------------------------------------------------------------------
-    TCreativeproductCategories
-    --------------------------------------------------------------------}
-  
-  TCreativeproductCategories = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCreativeproductCategoriesClass = Class of TCreativeproductCategories;
-  
-  { --------------------------------------------------------------------
-    TCreativerestrictedCategories
-    --------------------------------------------------------------------}
-  
-  TCreativerestrictedCategories = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCreativerestrictedCategoriesClass = Class of TCreativerestrictedCategories;
-  
-  { --------------------------------------------------------------------
-    TCreativesensitiveCategories
-    --------------------------------------------------------------------}
-  
-  TCreativesensitiveCategories = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCreativesensitiveCategoriesClass = Class of TCreativesensitiveCategories;
-  
-  { --------------------------------------------------------------------
-    TCreativevendorType
-    --------------------------------------------------------------------}
-  
-  TCreativevendorType = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCreativevendorTypeClass = Class of TCreativevendorType;
   
   { --------------------------------------------------------------------
     TCreativesList
@@ -612,34 +381,21 @@ type
   
   TCreativesList = Class(TGoogleBaseObject)
   Private
-    Fitems : TCreativesListitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fitems : TCreativesListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TCreativesListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TCreativesListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TCreativesListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property items : TCreativesListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TCreativesListClass = Class of TCreativesList;
-  
-  { --------------------------------------------------------------------
-    TCreativesListitems
-    --------------------------------------------------------------------}
-  
-  TCreativesListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCreativesListitemsClass = Class of TCreativesListitems;
   
   { --------------------------------------------------------------------
     TDirectDeal
@@ -648,45 +404,45 @@ type
   TDirectDeal = Class(TGoogleBaseObject)
   Private
     FaccountId : integer;
-    Fadvertiser : string;
-    FcurrencyCode : string;
-    FendTime : string;
-    FfixedCpm : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    FprivateExchangeMinCpm : string;
+    Fadvertiser : String;
+    FcurrencyCode : String;
+    FendTime : String;
+    FfixedCpm : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FprivateExchangeMinCpm : String;
     FpublisherBlocksOverriden : boolean;
-    FsellerNetwork : string;
-    FstartTime : string;
+    FsellerNetwork : String;
+    FstartTime : String;
   Protected
     //Property setters
     Procedure SetaccountId(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setadvertiser(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcurrencyCode(AIndex : Integer; AValue : string); virtual;
-    Procedure SetendTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfixedCpm(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprivateExchangeMinCpm(AIndex : Integer; AValue : string); virtual;
+    Procedure Setadvertiser(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrencyCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfixedCpm(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprivateExchangeMinCpm(AIndex : Integer; AValue : String); virtual;
     Procedure SetpublisherBlocksOverriden(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsellerNetwork(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : string); virtual;
+    Procedure SetsellerNetwork(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property accountId : integer Index 0 Read FaccountId Write SetaccountId;
-    Property advertiser : string Index 8 Read Fadvertiser Write Setadvertiser;
-    Property currencyCode : string Index 16 Read FcurrencyCode Write SetcurrencyCode;
-    Property endTime : string Index 24 Read FendTime Write SetendTime;
-    Property fixedCpm : string Index 32 Read FfixedCpm Write SetfixedCpm;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property kind : string Index 48 Read Fkind Write Setkind;
-    Property name : string Index 56 Read Fname Write Setname;
-    Property privateExchangeMinCpm : string Index 64 Read FprivateExchangeMinCpm Write SetprivateExchangeMinCpm;
+    Property advertiser : String Index 8 Read Fadvertiser Write Setadvertiser;
+    Property currencyCode : String Index 16 Read FcurrencyCode Write SetcurrencyCode;
+    Property endTime : String Index 24 Read FendTime Write SetendTime;
+    Property fixedCpm : String Index 32 Read FfixedCpm Write SetfixedCpm;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property kind : String Index 48 Read Fkind Write Setkind;
+    Property name : String Index 56 Read Fname Write Setname;
+    Property privateExchangeMinCpm : String Index 64 Read FprivateExchangeMinCpm Write SetprivateExchangeMinCpm;
     Property publisherBlocksOverriden : boolean Index 72 Read FpublisherBlocksOverriden Write SetpublisherBlocksOverriden;
-    Property sellerNetwork : string Index 80 Read FsellerNetwork Write SetsellerNetwork;
-    Property startTime : string Index 88 Read FstartTime Write SetstartTime;
+    Property sellerNetwork : String Index 80 Read FsellerNetwork Write SetsellerNetwork;
+    Property startTime : String Index 88 Read FstartTime Write SetstartTime;
   end;
   TDirectDealClass = Class of TDirectDeal;
   
@@ -696,31 +452,18 @@ type
   
   TDirectDealsList = Class(TGoogleBaseObject)
   Private
-    FdirectDeals : TDirectDealsListdirectDeals;
-    Fkind : string;
+    FdirectDeals : TDirectDealsListTypedirectDealsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetdirectDeals(AIndex : Integer; AValue : TDirectDealsListdirectDeals); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdirectDeals(AIndex : Integer; AValue : TDirectDealsListTypedirectDealsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property directDeals : TDirectDealsListdirectDeals Index 0 Read FdirectDeals Write SetdirectDeals;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property directDeals : TDirectDealsListTypedirectDealsArray Index 0 Read FdirectDeals Write SetdirectDeals;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TDirectDealsListClass = Class of TDirectDealsList;
-  
-  { --------------------------------------------------------------------
-    TDirectDealsListdirectDeals
-    --------------------------------------------------------------------}
-  
-  TDirectDealsListdirectDeals = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDirectDealsListdirectDealsClass = Class of TDirectDealsListdirectDeals;
   
   { --------------------------------------------------------------------
     TPerformanceReport
@@ -728,11 +471,11 @@ type
   
   TPerformanceReport = Class(TGoogleBaseObject)
   Private
-    FcalloutStatusRate : TPerformanceReportcalloutStatusRate;
-    FcookieMatcherStatusRate : TPerformanceReportcookieMatcherStatusRate;
-    FcreativeStatusRate : TPerformanceReportcreativeStatusRate;
-    FhostedMatchStatusRate : TPerformanceReporthostedMatchStatusRate;
-    Fkind : string;
+    FcalloutStatusRate : TTJSONSchemaArray;
+    FcookieMatcherStatusRate : TTJSONSchemaArray;
+    FcreativeStatusRate : TTJSONSchemaArray;
+    FhostedMatchStatusRate : TTJSONSchemaArray;
+    Fkind : String;
     Flatency50thPercentile : double;
     Flatency85thPercentile : double;
     Flatency95thPercentile : double;
@@ -742,15 +485,15 @@ type
     FpixelMatchResponses : double;
     FquotaConfiguredLimit : double;
     FquotaThrottledLimit : double;
-    Fregion : string;
-    Ftimestamp : string;
+    Fregion : String;
+    Ftimestamp : String;
   Protected
     //Property setters
-    Procedure SetcalloutStatusRate(AIndex : Integer; AValue : TPerformanceReportcalloutStatusRate); virtual;
-    Procedure SetcookieMatcherStatusRate(AIndex : Integer; AValue : TPerformanceReportcookieMatcherStatusRate); virtual;
-    Procedure SetcreativeStatusRate(AIndex : Integer; AValue : TPerformanceReportcreativeStatusRate); virtual;
-    Procedure SethostedMatchStatusRate(AIndex : Integer; AValue : TPerformanceReporthostedMatchStatusRate); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcalloutStatusRate(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    Procedure SetcookieMatcherStatusRate(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    Procedure SetcreativeStatusRate(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    Procedure SethostedMatchStatusRate(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setlatency50thPercentile(AIndex : Integer; AValue : double); virtual;
     Procedure Setlatency85thPercentile(AIndex : Integer; AValue : double); virtual;
     Procedure Setlatency95thPercentile(AIndex : Integer; AValue : double); virtual;
@@ -760,15 +503,15 @@ type
     Procedure SetpixelMatchResponses(AIndex : Integer; AValue : double); virtual;
     Procedure SetquotaConfiguredLimit(AIndex : Integer; AValue : double); virtual;
     Procedure SetquotaThrottledLimit(AIndex : Integer; AValue : double); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
-    Procedure Settimestamp(AIndex : Integer; AValue : string); virtual;
+    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
+    Procedure Settimestamp(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property calloutStatusRate : TPerformanceReportcalloutStatusRate Index 0 Read FcalloutStatusRate Write SetcalloutStatusRate;
-    Property cookieMatcherStatusRate : TPerformanceReportcookieMatcherStatusRate Index 8 Read FcookieMatcherStatusRate Write SetcookieMatcherStatusRate;
-    Property creativeStatusRate : TPerformanceReportcreativeStatusRate Index 16 Read FcreativeStatusRate Write SetcreativeStatusRate;
-    Property hostedMatchStatusRate : TPerformanceReporthostedMatchStatusRate Index 24 Read FhostedMatchStatusRate Write SethostedMatchStatusRate;
-    Property kind : string Index 32 Read Fkind Write Setkind;
+    Property calloutStatusRate : TTJSONSchemaArray Index 0 Read FcalloutStatusRate Write SetcalloutStatusRate;
+    Property cookieMatcherStatusRate : TTJSONSchemaArray Index 8 Read FcookieMatcherStatusRate Write SetcookieMatcherStatusRate;
+    Property creativeStatusRate : TTJSONSchemaArray Index 16 Read FcreativeStatusRate Write SetcreativeStatusRate;
+    Property hostedMatchStatusRate : TTJSONSchemaArray Index 24 Read FhostedMatchStatusRate Write SethostedMatchStatusRate;
+    Property kind : String Index 32 Read Fkind Write Setkind;
     Property latency50thPercentile : double Index 40 Read Flatency50thPercentile Write Setlatency50thPercentile;
     Property latency85thPercentile : double Index 48 Read Flatency85thPercentile Write Setlatency85thPercentile;
     Property latency95thPercentile : double Index 56 Read Flatency95thPercentile Write Setlatency95thPercentile;
@@ -778,62 +521,10 @@ type
     Property pixelMatchResponses : double Index 88 Read FpixelMatchResponses Write SetpixelMatchResponses;
     Property quotaConfiguredLimit : double Index 96 Read FquotaConfiguredLimit Write SetquotaConfiguredLimit;
     Property quotaThrottledLimit : double Index 104 Read FquotaThrottledLimit Write SetquotaThrottledLimit;
-    Property region : string Index 112 Read Fregion Write Setregion;
-    Property timestamp : string Index 120 Read Ftimestamp Write Settimestamp;
+    Property region : String Index 112 Read Fregion Write Setregion;
+    Property timestamp : String Index 120 Read Ftimestamp Write Settimestamp;
   end;
   TPerformanceReportClass = Class of TPerformanceReport;
-  
-  { --------------------------------------------------------------------
-    TPerformanceReportcalloutStatusRate
-    --------------------------------------------------------------------}
-  
-  TPerformanceReportcalloutStatusRate = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPerformanceReportcalloutStatusRateClass = Class of TPerformanceReportcalloutStatusRate;
-  
-  { --------------------------------------------------------------------
-    TPerformanceReportcookieMatcherStatusRate
-    --------------------------------------------------------------------}
-  
-  TPerformanceReportcookieMatcherStatusRate = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPerformanceReportcookieMatcherStatusRateClass = Class of TPerformanceReportcookieMatcherStatusRate;
-  
-  { --------------------------------------------------------------------
-    TPerformanceReportcreativeStatusRate
-    --------------------------------------------------------------------}
-  
-  TPerformanceReportcreativeStatusRate = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPerformanceReportcreativeStatusRateClass = Class of TPerformanceReportcreativeStatusRate;
-  
-  { --------------------------------------------------------------------
-    TPerformanceReporthostedMatchStatusRate
-    --------------------------------------------------------------------}
-  
-  TPerformanceReporthostedMatchStatusRate = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPerformanceReporthostedMatchStatusRateClass = Class of TPerformanceReporthostedMatchStatusRate;
   
   { --------------------------------------------------------------------
     TPerformanceReportList
@@ -841,31 +532,77 @@ type
   
   TPerformanceReportList = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FperformanceReport : TPerformanceReportListperformanceReport;
+    Fkind : String;
+    FperformanceReport : TPerformanceReportListTypeperformanceReportArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetperformanceReport(AIndex : Integer; AValue : TPerformanceReportListperformanceReport); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetperformanceReport(AIndex : Integer; AValue : TPerformanceReportListTypeperformanceReportArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property performanceReport : TPerformanceReportListperformanceReport Index 8 Read FperformanceReport Write SetperformanceReport;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property performanceReport : TPerformanceReportListTypeperformanceReportArray Index 8 Read FperformanceReport Write SetperformanceReport;
   end;
   TPerformanceReportListClass = Class of TPerformanceReportList;
   
   { --------------------------------------------------------------------
-    TPerformanceReportListperformanceReport
+    TPretargetingConfigTypedimensionsItem
     --------------------------------------------------------------------}
   
-  TPerformanceReportListperformanceReport = Class(TGoogleBaseObject)
+  TPretargetingConfigTypedimensionsItem = Class(TGoogleBaseObject)
   Private
+    Fheight : String;
+    Fwidth : String;
   Protected
     //Property setters
+    Procedure Setheight(AIndex : Integer; AValue : String); virtual;
+    Procedure Setwidth(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property height : String Index 0 Read Fheight Write Setheight;
+    Property width : String Index 8 Read Fwidth Write Setwidth;
   end;
-  TPerformanceReportListperformanceReportClass = Class of TPerformanceReportListperformanceReport;
+  TPretargetingConfigTypedimensionsItemClass = Class of TPretargetingConfigTypedimensionsItem;
+  
+  { --------------------------------------------------------------------
+    TPretargetingConfigTypeexcludedPlacementsItem
+    --------------------------------------------------------------------}
+  
+  TPretargetingConfigTypeexcludedPlacementsItem = Class(TGoogleBaseObject)
+  Private
+    Ftoken : String;
+    F_type : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Settoken(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property token : String Index 0 Read Ftoken Write Settoken;
+    Property _type : String Index 8 Read F_type Write Set_type;
+  end;
+  TPretargetingConfigTypeexcludedPlacementsItemClass = Class of TPretargetingConfigTypeexcludedPlacementsItem;
+  
+  { --------------------------------------------------------------------
+    TPretargetingConfigTypeplacementsItem
+    --------------------------------------------------------------------}
+  
+  TPretargetingConfigTypeplacementsItem = Class(TGoogleBaseObject)
+  Private
+    Ftoken : String;
+    F_type : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Settoken(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property token : String Index 0 Read Ftoken Write Settoken;
+    Property _type : String Index 8 Read F_type Write Set_type;
+  end;
+  TPretargetingConfigTypeplacementsItemClass = Class of TPretargetingConfigTypeplacementsItem;
   
   { --------------------------------------------------------------------
     TPretargetingConfig
@@ -873,335 +610,81 @@ type
   
   TPretargetingConfig = Class(TGoogleBaseObject)
   Private
-    FbillingId : string;
-    FconfigId : string;
-    FconfigName : string;
-    FcreativeType : TPretargetingConfigcreativeType;
-    Fdimensions : TPretargetingConfigdimensions;
-    FexcludedContentLabels : TPretargetingConfigexcludedContentLabels;
-    FexcludedGeoCriteriaIds : TPretargetingConfigexcludedGeoCriteriaIds;
-    FexcludedPlacements : TPretargetingConfigexcludedPlacements;
-    FexcludedUserLists : TPretargetingConfigexcludedUserLists;
-    FexcludedVerticals : TPretargetingConfigexcludedVerticals;
-    FgeoCriteriaIds : TPretargetingConfiggeoCriteriaIds;
+    FbillingId : String;
+    FconfigId : String;
+    FconfigName : String;
+    FcreativeType : TStringArray;
+    Fdimensions : TPretargetingConfigTypedimensionsArray;
+    FexcludedContentLabels : TStringArray;
+    FexcludedGeoCriteriaIds : TStringArray;
+    FexcludedPlacements : TPretargetingConfigTypeexcludedPlacementsArray;
+    FexcludedUserLists : TStringArray;
+    FexcludedVerticals : TStringArray;
+    FgeoCriteriaIds : TStringArray;
     FisActive : boolean;
-    Fkind : string;
-    Flanguages : TPretargetingConfiglanguages;
-    FmobileCarriers : TPretargetingConfigmobileCarriers;
-    FmobileDevices : TPretargetingConfigmobileDevices;
-    FmobileOperatingSystemVersions : TPretargetingConfigmobileOperatingSystemVersions;
-    Fplacements : TPretargetingConfigplacements;
-    Fplatforms : TPretargetingConfigplatforms;
-    FsupportedCreativeAttributes : TPretargetingConfigsupportedCreativeAttributes;
-    FuserLists : TPretargetingConfiguserLists;
-    FvendorTypes : TPretargetingConfigvendorTypes;
-    Fverticals : TPretargetingConfigverticals;
+    Fkind : String;
+    Flanguages : TStringArray;
+    FmobileCarriers : TStringArray;
+    FmobileDevices : TStringArray;
+    FmobileOperatingSystemVersions : TStringArray;
+    Fplacements : TPretargetingConfigTypeplacementsArray;
+    Fplatforms : TStringArray;
+    FsupportedCreativeAttributes : TStringArray;
+    FuserLists : TStringArray;
+    FvendorTypes : TStringArray;
+    Fverticals : TStringArray;
   Protected
     //Property setters
-    Procedure SetbillingId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetconfigId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetconfigName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreativeType(AIndex : Integer; AValue : TPretargetingConfigcreativeType); virtual;
-    Procedure Setdimensions(AIndex : Integer; AValue : TPretargetingConfigdimensions); virtual;
-    Procedure SetexcludedContentLabels(AIndex : Integer; AValue : TPretargetingConfigexcludedContentLabels); virtual;
-    Procedure SetexcludedGeoCriteriaIds(AIndex : Integer; AValue : TPretargetingConfigexcludedGeoCriteriaIds); virtual;
-    Procedure SetexcludedPlacements(AIndex : Integer; AValue : TPretargetingConfigexcludedPlacements); virtual;
-    Procedure SetexcludedUserLists(AIndex : Integer; AValue : TPretargetingConfigexcludedUserLists); virtual;
-    Procedure SetexcludedVerticals(AIndex : Integer; AValue : TPretargetingConfigexcludedVerticals); virtual;
-    Procedure SetgeoCriteriaIds(AIndex : Integer; AValue : TPretargetingConfiggeoCriteriaIds); virtual;
+    Procedure SetbillingId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetconfigId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetconfigName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreativeType(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setdimensions(AIndex : Integer; AValue : TPretargetingConfigTypedimensionsArray); virtual;
+    Procedure SetexcludedContentLabels(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetexcludedGeoCriteriaIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetexcludedPlacements(AIndex : Integer; AValue : TPretargetingConfigTypeexcludedPlacementsArray); virtual;
+    Procedure SetexcludedUserLists(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetexcludedVerticals(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetgeoCriteriaIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetisActive(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlanguages(AIndex : Integer; AValue : TPretargetingConfiglanguages); virtual;
-    Procedure SetmobileCarriers(AIndex : Integer; AValue : TPretargetingConfigmobileCarriers); virtual;
-    Procedure SetmobileDevices(AIndex : Integer; AValue : TPretargetingConfigmobileDevices); virtual;
-    Procedure SetmobileOperatingSystemVersions(AIndex : Integer; AValue : TPretargetingConfigmobileOperatingSystemVersions); virtual;
-    Procedure Setplacements(AIndex : Integer; AValue : TPretargetingConfigplacements); virtual;
-    Procedure Setplatforms(AIndex : Integer; AValue : TPretargetingConfigplatforms); virtual;
-    Procedure SetsupportedCreativeAttributes(AIndex : Integer; AValue : TPretargetingConfigsupportedCreativeAttributes); virtual;
-    Procedure SetuserLists(AIndex : Integer; AValue : TPretargetingConfiguserLists); virtual;
-    Procedure SetvendorTypes(AIndex : Integer; AValue : TPretargetingConfigvendorTypes); virtual;
-    Procedure Setverticals(AIndex : Integer; AValue : TPretargetingConfigverticals); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlanguages(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetmobileCarriers(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetmobileDevices(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetmobileOperatingSystemVersions(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setplacements(AIndex : Integer; AValue : TPretargetingConfigTypeplacementsArray); virtual;
+    Procedure Setplatforms(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetsupportedCreativeAttributes(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetuserLists(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetvendorTypes(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setverticals(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property billingId : string Index 0 Read FbillingId Write SetbillingId;
-    Property configId : string Index 8 Read FconfigId Write SetconfigId;
-    Property configName : string Index 16 Read FconfigName Write SetconfigName;
-    Property creativeType : TPretargetingConfigcreativeType Index 24 Read FcreativeType Write SetcreativeType;
-    Property dimensions : TPretargetingConfigdimensions Index 32 Read Fdimensions Write Setdimensions;
-    Property excludedContentLabels : TPretargetingConfigexcludedContentLabels Index 40 Read FexcludedContentLabels Write SetexcludedContentLabels;
-    Property excludedGeoCriteriaIds : TPretargetingConfigexcludedGeoCriteriaIds Index 48 Read FexcludedGeoCriteriaIds Write SetexcludedGeoCriteriaIds;
-    Property excludedPlacements : TPretargetingConfigexcludedPlacements Index 56 Read FexcludedPlacements Write SetexcludedPlacements;
-    Property excludedUserLists : TPretargetingConfigexcludedUserLists Index 64 Read FexcludedUserLists Write SetexcludedUserLists;
-    Property excludedVerticals : TPretargetingConfigexcludedVerticals Index 72 Read FexcludedVerticals Write SetexcludedVerticals;
-    Property geoCriteriaIds : TPretargetingConfiggeoCriteriaIds Index 80 Read FgeoCriteriaIds Write SetgeoCriteriaIds;
+    Property billingId : String Index 0 Read FbillingId Write SetbillingId;
+    Property configId : String Index 8 Read FconfigId Write SetconfigId;
+    Property configName : String Index 16 Read FconfigName Write SetconfigName;
+    Property creativeType : TStringArray Index 24 Read FcreativeType Write SetcreativeType;
+    Property dimensions : TPretargetingConfigTypedimensionsArray Index 32 Read Fdimensions Write Setdimensions;
+    Property excludedContentLabels : TStringArray Index 40 Read FexcludedContentLabels Write SetexcludedContentLabels;
+    Property excludedGeoCriteriaIds : TStringArray Index 48 Read FexcludedGeoCriteriaIds Write SetexcludedGeoCriteriaIds;
+    Property excludedPlacements : TPretargetingConfigTypeexcludedPlacementsArray Index 56 Read FexcludedPlacements Write SetexcludedPlacements;
+    Property excludedUserLists : TStringArray Index 64 Read FexcludedUserLists Write SetexcludedUserLists;
+    Property excludedVerticals : TStringArray Index 72 Read FexcludedVerticals Write SetexcludedVerticals;
+    Property geoCriteriaIds : TStringArray Index 80 Read FgeoCriteriaIds Write SetgeoCriteriaIds;
     Property isActive : boolean Index 88 Read FisActive Write SetisActive;
-    Property kind : string Index 96 Read Fkind Write Setkind;
-    Property languages : TPretargetingConfiglanguages Index 104 Read Flanguages Write Setlanguages;
-    Property mobileCarriers : TPretargetingConfigmobileCarriers Index 112 Read FmobileCarriers Write SetmobileCarriers;
-    Property mobileDevices : TPretargetingConfigmobileDevices Index 120 Read FmobileDevices Write SetmobileDevices;
-    Property mobileOperatingSystemVersions : TPretargetingConfigmobileOperatingSystemVersions Index 128 Read FmobileOperatingSystemVersions Write SetmobileOperatingSystemVersions;
-    Property placements : TPretargetingConfigplacements Index 136 Read Fplacements Write Setplacements;
-    Property platforms : TPretargetingConfigplatforms Index 144 Read Fplatforms Write Setplatforms;
-    Property supportedCreativeAttributes : TPretargetingConfigsupportedCreativeAttributes Index 152 Read FsupportedCreativeAttributes Write SetsupportedCreativeAttributes;
-    Property userLists : TPretargetingConfiguserLists Index 160 Read FuserLists Write SetuserLists;
-    Property vendorTypes : TPretargetingConfigvendorTypes Index 168 Read FvendorTypes Write SetvendorTypes;
-    Property verticals : TPretargetingConfigverticals Index 176 Read Fverticals Write Setverticals;
+    Property kind : String Index 96 Read Fkind Write Setkind;
+    Property languages : TStringArray Index 104 Read Flanguages Write Setlanguages;
+    Property mobileCarriers : TStringArray Index 112 Read FmobileCarriers Write SetmobileCarriers;
+    Property mobileDevices : TStringArray Index 120 Read FmobileDevices Write SetmobileDevices;
+    Property mobileOperatingSystemVersions : TStringArray Index 128 Read FmobileOperatingSystemVersions Write SetmobileOperatingSystemVersions;
+    Property placements : TPretargetingConfigTypeplacementsArray Index 136 Read Fplacements Write Setplacements;
+    Property platforms : TStringArray Index 144 Read Fplatforms Write Setplatforms;
+    Property supportedCreativeAttributes : TStringArray Index 152 Read FsupportedCreativeAttributes Write SetsupportedCreativeAttributes;
+    Property userLists : TStringArray Index 160 Read FuserLists Write SetuserLists;
+    Property vendorTypes : TStringArray Index 168 Read FvendorTypes Write SetvendorTypes;
+    Property verticals : TStringArray Index 176 Read Fverticals Write Setverticals;
   end;
   TPretargetingConfigClass = Class of TPretargetingConfig;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigcreativeType
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigcreativeType = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigcreativeTypeClass = Class of TPretargetingConfigcreativeType;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigdimensions
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigdimensions = Class(TGoogleBaseObject)
-  Private
-    Fheight : string;
-    Fwidth : string;
-  Protected
-    //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property height : string Index 0 Read Fheight Write Setheight;
-    Property width : string Index 8 Read Fwidth Write Setwidth;
-  end;
-  TPretargetingConfigdimensionsClass = Class of TPretargetingConfigdimensions;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigexcludedContentLabels
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigexcludedContentLabels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigexcludedContentLabelsClass = Class of TPretargetingConfigexcludedContentLabels;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigexcludedGeoCriteriaIds
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigexcludedGeoCriteriaIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigexcludedGeoCriteriaIdsClass = Class of TPretargetingConfigexcludedGeoCriteriaIds;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigexcludedPlacements
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigexcludedPlacements = Class(TGoogleBaseObject)
-  Private
-    Ftoken : string;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Settoken(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property token : string Index 0 Read Ftoken Write Settoken;
-    Property _type : string Index 8 Read F_type Write Set_type;
-  end;
-  TPretargetingConfigexcludedPlacementsClass = Class of TPretargetingConfigexcludedPlacements;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigexcludedUserLists
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigexcludedUserLists = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigexcludedUserListsClass = Class of TPretargetingConfigexcludedUserLists;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigexcludedVerticals
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigexcludedVerticals = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigexcludedVerticalsClass = Class of TPretargetingConfigexcludedVerticals;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfiggeoCriteriaIds
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfiggeoCriteriaIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfiggeoCriteriaIdsClass = Class of TPretargetingConfiggeoCriteriaIds;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfiglanguages
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfiglanguages = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfiglanguagesClass = Class of TPretargetingConfiglanguages;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigmobileCarriers
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigmobileCarriers = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigmobileCarriersClass = Class of TPretargetingConfigmobileCarriers;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigmobileDevices
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigmobileDevices = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigmobileDevicesClass = Class of TPretargetingConfigmobileDevices;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigmobileOperatingSystemVersions
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigmobileOperatingSystemVersions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigmobileOperatingSystemVersionsClass = Class of TPretargetingConfigmobileOperatingSystemVersions;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigplacements
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigplacements = Class(TGoogleBaseObject)
-  Private
-    Ftoken : string;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Settoken(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property token : string Index 0 Read Ftoken Write Settoken;
-    Property _type : string Index 8 Read F_type Write Set_type;
-  end;
-  TPretargetingConfigplacementsClass = Class of TPretargetingConfigplacements;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigplatforms
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigplatforms = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigplatformsClass = Class of TPretargetingConfigplatforms;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigsupportedCreativeAttributes
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigsupportedCreativeAttributes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigsupportedCreativeAttributesClass = Class of TPretargetingConfigsupportedCreativeAttributes;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfiguserLists
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfiguserLists = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfiguserListsClass = Class of TPretargetingConfiguserLists;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigvendorTypes
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigvendorTypes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigvendorTypesClass = Class of TPretargetingConfigvendorTypes;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigverticals
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigverticals = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigverticalsClass = Class of TPretargetingConfigverticals;
   
   { --------------------------------------------------------------------
     TPretargetingConfigList
@@ -1209,31 +692,18 @@ type
   
   TPretargetingConfigList = Class(TGoogleBaseObject)
   Private
-    Fitems : TPretargetingConfigListitems;
-    Fkind : string;
+    Fitems : TPretargetingConfigListTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TPretargetingConfigListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TPretargetingConfigListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TPretargetingConfigListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TPretargetingConfigListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TPretargetingConfigListClass = Class of TPretargetingConfigList;
-  
-  { --------------------------------------------------------------------
-    TPretargetingConfigListitems
-    --------------------------------------------------------------------}
-  
-  TPretargetingConfigListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPretargetingConfigListitemsClass = Class of TPretargetingConfigListitems;
   
   { --------------------------------------------------------------------
     TAccountsResource
@@ -1286,10 +756,10 @@ type
   
   TCreativesListOptions = Record
     accountId : integer;
-    buyerCreativeId : string;
+    buyerCreativeId : String;
     maxResults : integer;
-    pageToken : string;
-    statusFilter : string;
+    pageToken : String;
+    statusFilter : String;
   end;
   
   TCreativesResource = Class(TGoogleResource)
@@ -1325,10 +795,10 @@ type
   
   TPerformanceReportListOptions = Record
     accountId : int64;
-    endDateTime : string;
+    endDateTime : String;
     maxResults : integer;
-    pageToken : string;
-    startDateTime : string;
+    pageToken : String;
+    startDateTime : String;
   end;
   
   TPerformanceReportResource = Class(TGoogleResource)
@@ -1428,11 +898,48 @@ implementation
 
 
 { --------------------------------------------------------------------
+  TAccountTypebidderLocationItem
+  --------------------------------------------------------------------}
+
+
+Procedure TAccountTypebidderLocationItem.SetmaximumQps(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FmaximumQps=AValue) then exit;
+  FmaximumQps:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAccountTypebidderLocationItem.Setregion(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fregion=AValue) then exit;
+  Fregion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAccountTypebidderLocationItem.Seturl(AIndex : Integer; AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TAccount
   --------------------------------------------------------------------}
 
 
-Procedure TAccount.SetbidderLocation(AIndex : Integer; AValue : TAccountbidderLocation); 
+Procedure TAccount.SetbidderLocation(AIndex : Integer; AValue : TAccountTypebidderLocationArray); 
 
 begin
   If (FbidderLocation=AValue) then exit;
@@ -1442,7 +949,7 @@ end;
 
 
 
-Procedure TAccount.SetcookieMatchingNid(AIndex : Integer; AValue : string); 
+Procedure TAccount.SetcookieMatchingNid(AIndex : Integer; AValue : String); 
 
 begin
   If (FcookieMatchingNid=AValue) then exit;
@@ -1452,7 +959,7 @@ end;
 
 
 
-Procedure TAccount.SetcookieMatchingUrl(AIndex : Integer; AValue : string); 
+Procedure TAccount.SetcookieMatchingUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FcookieMatchingUrl=AValue) then exit;
@@ -1472,7 +979,7 @@ end;
 
 
 
-Procedure TAccount.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccount.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1515,48 +1022,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountbidderLocation
-  --------------------------------------------------------------------}
-
-
-Procedure TAccountbidderLocation.SetmaximumQps(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FmaximumQps=AValue) then exit;
-  FmaximumQps:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAccountbidderLocation.Setregion(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fregion=AValue) then exit;
-  Fregion:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAccountbidderLocation.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TAccountsList
   --------------------------------------------------------------------}
 
 
-Procedure TAccountsList.Setitems(AIndex : Integer; AValue : TAccountsListitems); 
+Procedure TAccountsList.Setitems(AIndex : Integer; AValue : TAccountsListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1566,7 +1036,7 @@ end;
 
 
 
-Procedure TAccountsList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccountsList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1574,13 +1044,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountsListitems
-  --------------------------------------------------------------------}
 
 
 
@@ -1600,7 +1063,7 @@ end;
 
 
 
-Procedure TBillingInfo.SetaccountName(AIndex : Integer; AValue : string); 
+Procedure TBillingInfo.SetaccountName(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountName=AValue) then exit;
@@ -1610,7 +1073,7 @@ end;
 
 
 
-Procedure TBillingInfo.SetbillingId(AIndex : Integer; AValue : TBillingInfobillingId); 
+Procedure TBillingInfo.SetbillingId(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FbillingId=AValue) then exit;
@@ -1620,7 +1083,7 @@ end;
 
 
 
-Procedure TBillingInfo.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBillingInfo.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1628,13 +1091,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TBillingInfobillingId
-  --------------------------------------------------------------------}
 
 
 
@@ -1644,7 +1100,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBillingInfoList.Setitems(AIndex : Integer; AValue : TBillingInfoListitems); 
+Procedure TBillingInfoList.Setitems(AIndex : Integer; AValue : TBillingInfoListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1654,7 +1110,7 @@ end;
 
 
 
-Procedure TBillingInfoList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBillingInfoList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1662,13 +1118,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TBillingInfoListitems
-  --------------------------------------------------------------------}
 
 
 
@@ -1678,7 +1127,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBudget.SetaccountId(AIndex : Integer; AValue : string); 
+Procedure TBudget.SetaccountId(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1688,7 +1137,7 @@ end;
 
 
 
-Procedure TBudget.SetbillingId(AIndex : Integer; AValue : string); 
+Procedure TBudget.SetbillingId(AIndex : Integer; AValue : String); 
 
 begin
   If (FbillingId=AValue) then exit;
@@ -1698,7 +1147,7 @@ end;
 
 
 
-Procedure TBudget.SetbudgetAmount(AIndex : Integer; AValue : string); 
+Procedure TBudget.SetbudgetAmount(AIndex : Integer; AValue : String); 
 
 begin
   If (FbudgetAmount=AValue) then exit;
@@ -1708,7 +1157,7 @@ end;
 
 
 
-Procedure TBudget.SetcurrencyCode(AIndex : Integer; AValue : string); 
+Procedure TBudget.SetcurrencyCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -1718,7 +1167,7 @@ end;
 
 
 
-Procedure TBudget.Setid(AIndex : Integer; AValue : string); 
+Procedure TBudget.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1728,11 +1177,119 @@ end;
 
 
 
-Procedure TBudget.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBudget.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
   Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCreativeTypecorrectionsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TCreativeTypecorrectionsItem.Setdetails(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (Fdetails=AValue) then exit;
+  Fdetails:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCreativeTypecorrectionsItem.Setreason(AIndex : Integer; AValue : String); 
+
+begin
+  If (Freason=AValue) then exit;
+  Freason:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCreativeTypedisapprovalReasonsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TCreativeTypedisapprovalReasonsItem.Setdetails(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (Fdetails=AValue) then exit;
+  Fdetails:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCreativeTypedisapprovalReasonsItem.Setreason(AIndex : Integer; AValue : String); 
+
+begin
+  If (Freason=AValue) then exit;
+  Freason:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCreativeTypefilteringReasonsTypereasonsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TCreativeTypefilteringReasonsTypereasonsItem.SetfilteringCount(AIndex : Integer; AValue : String); 
+
+begin
+  If (FfilteringCount=AValue) then exit;
+  FfilteringCount:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCreativeTypefilteringReasonsTypereasonsItem.SetfilteringStatus(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FfilteringStatus=AValue) then exit;
+  FfilteringStatus:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCreativeTypefilteringReasons
+  --------------------------------------------------------------------}
+
+
+Procedure TCreativeTypefilteringReasons.Setdate(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fdate=AValue) then exit;
+  Fdate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCreativeTypefilteringReasons.Setreasons(AIndex : Integer; AValue : TCreativeTypefilteringReasonsTypereasonsArray); 
+
+begin
+  If (Freasons=AValue) then exit;
+  Freasons:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1745,7 +1302,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreative.SetHTMLSnippet(AIndex : Integer; AValue : string); 
+Procedure TCreative.SetHTMLSnippet(AIndex : Integer; AValue : String); 
 
 begin
   If (FHTMLSnippet=AValue) then exit;
@@ -1765,7 +1322,7 @@ end;
 
 
 
-Procedure TCreative.SetadvertiserId(AIndex : Integer; AValue : TCreativeadvertiserId); 
+Procedure TCreative.SetadvertiserId(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FadvertiserId=AValue) then exit;
@@ -1775,7 +1332,7 @@ end;
 
 
 
-Procedure TCreative.SetadvertiserName(AIndex : Integer; AValue : string); 
+Procedure TCreative.SetadvertiserName(AIndex : Integer; AValue : String); 
 
 begin
   If (FadvertiserName=AValue) then exit;
@@ -1785,7 +1342,7 @@ end;
 
 
 
-Procedure TCreative.SetagencyId(AIndex : Integer; AValue : string); 
+Procedure TCreative.SetagencyId(AIndex : Integer; AValue : String); 
 
 begin
   If (FagencyId=AValue) then exit;
@@ -1795,7 +1352,7 @@ end;
 
 
 
-Procedure TCreative.Setattribute(AIndex : Integer; AValue : TCreativeattribute); 
+Procedure TCreative.Setattribute(AIndex : Integer; AValue : TintegerArray); 
 
 begin
   If (Fattribute=AValue) then exit;
@@ -1805,7 +1362,7 @@ end;
 
 
 
-Procedure TCreative.SetbuyerCreativeId(AIndex : Integer; AValue : string); 
+Procedure TCreative.SetbuyerCreativeId(AIndex : Integer; AValue : String); 
 
 begin
   If (FbuyerCreativeId=AValue) then exit;
@@ -1815,7 +1372,7 @@ end;
 
 
 
-Procedure TCreative.SetclickThroughUrl(AIndex : Integer; AValue : TCreativeclickThroughUrl); 
+Procedure TCreative.SetclickThroughUrl(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FclickThroughUrl=AValue) then exit;
@@ -1825,7 +1382,7 @@ end;
 
 
 
-Procedure TCreative.Setcorrections(AIndex : Integer; AValue : TCreativecorrections); 
+Procedure TCreative.Setcorrections(AIndex : Integer; AValue : TCreativeTypecorrectionsArray); 
 
 begin
   If (Fcorrections=AValue) then exit;
@@ -1835,7 +1392,7 @@ end;
 
 
 
-Procedure TCreative.SetdisapprovalReasons(AIndex : Integer; AValue : TCreativedisapprovalReasons); 
+Procedure TCreative.SetdisapprovalReasons(AIndex : Integer; AValue : TCreativeTypedisapprovalReasonsArray); 
 
 begin
   If (FdisapprovalReasons=AValue) then exit;
@@ -1845,7 +1402,7 @@ end;
 
 
 
-Procedure TCreative.SetfilteringReasons(AIndex : Integer; AValue : TCreativefilteringReasons); 
+Procedure TCreative.SetfilteringReasons(AIndex : Integer; AValue : TCreativeTypefilteringReasons); 
 
 begin
   If (FfilteringReasons=AValue) then exit;
@@ -1865,7 +1422,7 @@ end;
 
 
 
-Procedure TCreative.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCreative.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1875,7 +1432,7 @@ end;
 
 
 
-Procedure TCreative.SetproductCategories(AIndex : Integer; AValue : TCreativeproductCategories); 
+Procedure TCreative.SetproductCategories(AIndex : Integer; AValue : TintegerArray); 
 
 begin
   If (FproductCategories=AValue) then exit;
@@ -1885,7 +1442,7 @@ end;
 
 
 
-Procedure TCreative.SetrestrictedCategories(AIndex : Integer; AValue : TCreativerestrictedCategories); 
+Procedure TCreative.SetrestrictedCategories(AIndex : Integer; AValue : TintegerArray); 
 
 begin
   If (FrestrictedCategories=AValue) then exit;
@@ -1895,7 +1452,7 @@ end;
 
 
 
-Procedure TCreative.SetsensitiveCategories(AIndex : Integer; AValue : TCreativesensitiveCategories); 
+Procedure TCreative.SetsensitiveCategories(AIndex : Integer; AValue : TintegerArray); 
 
 begin
   If (FsensitiveCategories=AValue) then exit;
@@ -1905,7 +1462,7 @@ end;
 
 
 
-Procedure TCreative.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TCreative.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1915,7 +1472,7 @@ end;
 
 
 
-Procedure TCreative.SetvendorType(AIndex : Integer; AValue : TCreativevendorType); 
+Procedure TCreative.SetvendorType(AIndex : Integer; AValue : TintegerArray); 
 
 begin
   If (FvendorType=AValue) then exit;
@@ -1925,7 +1482,7 @@ end;
 
 
 
-Procedure TCreative.SetvideoURL(AIndex : Integer; AValue : string); 
+Procedure TCreative.SetvideoURL(AIndex : Integer; AValue : String); 
 
 begin
   If (FvideoURL=AValue) then exit;
@@ -1948,182 +1505,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCreativeadvertiserId
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativeattribute
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativeclickThroughUrl
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativecorrections
-  --------------------------------------------------------------------}
-
-
-Procedure TCreativecorrections.Setdetails(AIndex : Integer; AValue : TCreativecorrectionsdetails); 
-
-begin
-  If (Fdetails=AValue) then exit;
-  Fdetails:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCreativecorrections.Setreason(AIndex : Integer; AValue : string); 
-
-begin
-  If (Freason=AValue) then exit;
-  Freason:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativecorrectionsdetails
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativedisapprovalReasons
-  --------------------------------------------------------------------}
-
-
-Procedure TCreativedisapprovalReasons.Setdetails(AIndex : Integer; AValue : TCreativedisapprovalReasonsdetails); 
-
-begin
-  If (Fdetails=AValue) then exit;
-  Fdetails:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCreativedisapprovalReasons.Setreason(AIndex : Integer; AValue : string); 
-
-begin
-  If (Freason=AValue) then exit;
-  Freason:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativedisapprovalReasonsdetails
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativefilteringReasons
-  --------------------------------------------------------------------}
-
-
-Procedure TCreativefilteringReasons.Setdate(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdate=AValue) then exit;
-  Fdate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCreativefilteringReasons.Setreasons(AIndex : Integer; AValue : TCreativefilteringReasonsreasons); 
-
-begin
-  If (Freasons=AValue) then exit;
-  Freasons:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativefilteringReasonsreasons
-  --------------------------------------------------------------------}
-
-
-Procedure TCreativefilteringReasonsreasons.SetfilteringCount(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfilteringCount=AValue) then exit;
-  FfilteringCount:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCreativefilteringReasonsreasons.SetfilteringStatus(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FfilteringStatus=AValue) then exit;
-  FfilteringStatus:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativeproductCategories
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativerestrictedCategories
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativesensitiveCategories
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativevendorType
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TCreativesList
   --------------------------------------------------------------------}
 
 
-Procedure TCreativesList.Setitems(AIndex : Integer; AValue : TCreativesListitems); 
+Procedure TCreativesList.Setitems(AIndex : Integer; AValue : TCreativesListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2133,7 +1519,7 @@ end;
 
 
 
-Procedure TCreativesList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCreativesList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2143,7 +1529,7 @@ end;
 
 
 
-Procedure TCreativesList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TCreativesList.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2151,13 +1537,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TCreativesListitems
-  --------------------------------------------------------------------}
 
 
 
@@ -2177,7 +1556,7 @@ end;
 
 
 
-Procedure TDirectDeal.Setadvertiser(AIndex : Integer; AValue : string); 
+Procedure TDirectDeal.Setadvertiser(AIndex : Integer; AValue : String); 
 
 begin
   If (Fadvertiser=AValue) then exit;
@@ -2187,7 +1566,7 @@ end;
 
 
 
-Procedure TDirectDeal.SetcurrencyCode(AIndex : Integer; AValue : string); 
+Procedure TDirectDeal.SetcurrencyCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -2197,7 +1576,7 @@ end;
 
 
 
-Procedure TDirectDeal.SetendTime(AIndex : Integer; AValue : string); 
+Procedure TDirectDeal.SetendTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -2207,7 +1586,7 @@ end;
 
 
 
-Procedure TDirectDeal.SetfixedCpm(AIndex : Integer; AValue : string); 
+Procedure TDirectDeal.SetfixedCpm(AIndex : Integer; AValue : String); 
 
 begin
   If (FfixedCpm=AValue) then exit;
@@ -2217,7 +1596,7 @@ end;
 
 
 
-Procedure TDirectDeal.Setid(AIndex : Integer; AValue : string); 
+Procedure TDirectDeal.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2227,7 +1606,7 @@ end;
 
 
 
-Procedure TDirectDeal.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDirectDeal.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2237,7 +1616,7 @@ end;
 
 
 
-Procedure TDirectDeal.Setname(AIndex : Integer; AValue : string); 
+Procedure TDirectDeal.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2247,7 +1626,7 @@ end;
 
 
 
-Procedure TDirectDeal.SetprivateExchangeMinCpm(AIndex : Integer; AValue : string); 
+Procedure TDirectDeal.SetprivateExchangeMinCpm(AIndex : Integer; AValue : String); 
 
 begin
   If (FprivateExchangeMinCpm=AValue) then exit;
@@ -2267,7 +1646,7 @@ end;
 
 
 
-Procedure TDirectDeal.SetsellerNetwork(AIndex : Integer; AValue : string); 
+Procedure TDirectDeal.SetsellerNetwork(AIndex : Integer; AValue : String); 
 
 begin
   If (FsellerNetwork=AValue) then exit;
@@ -2277,7 +1656,7 @@ end;
 
 
 
-Procedure TDirectDeal.SetstartTime(AIndex : Integer; AValue : string); 
+Procedure TDirectDeal.SetstartTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -2294,7 +1673,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDirectDealsList.SetdirectDeals(AIndex : Integer; AValue : TDirectDealsListdirectDeals); 
+Procedure TDirectDealsList.SetdirectDeals(AIndex : Integer; AValue : TDirectDealsListTypedirectDealsArray); 
 
 begin
   If (FdirectDeals=AValue) then exit;
@@ -2304,7 +1683,7 @@ end;
 
 
 
-Procedure TDirectDealsList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDirectDealsList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2317,18 +1696,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDirectDealsListdirectDeals
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TPerformanceReport
   --------------------------------------------------------------------}
 
 
-Procedure TPerformanceReport.SetcalloutStatusRate(AIndex : Integer; AValue : TPerformanceReportcalloutStatusRate); 
+Procedure TPerformanceReport.SetcalloutStatusRate(AIndex : Integer; AValue : TTJSONSchemaArray); 
 
 begin
   If (FcalloutStatusRate=AValue) then exit;
@@ -2338,7 +1710,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetcookieMatcherStatusRate(AIndex : Integer; AValue : TPerformanceReportcookieMatcherStatusRate); 
+Procedure TPerformanceReport.SetcookieMatcherStatusRate(AIndex : Integer; AValue : TTJSONSchemaArray); 
 
 begin
   If (FcookieMatcherStatusRate=AValue) then exit;
@@ -2348,7 +1720,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetcreativeStatusRate(AIndex : Integer; AValue : TPerformanceReportcreativeStatusRate); 
+Procedure TPerformanceReport.SetcreativeStatusRate(AIndex : Integer; AValue : TTJSONSchemaArray); 
 
 begin
   If (FcreativeStatusRate=AValue) then exit;
@@ -2358,7 +1730,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SethostedMatchStatusRate(AIndex : Integer; AValue : TPerformanceReporthostedMatchStatusRate); 
+Procedure TPerformanceReport.SethostedMatchStatusRate(AIndex : Integer; AValue : TTJSONSchemaArray); 
 
 begin
   If (FhostedMatchStatusRate=AValue) then exit;
@@ -2368,7 +1740,7 @@ end;
 
 
 
-Procedure TPerformanceReport.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPerformanceReport.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2468,7 +1840,7 @@ end;
 
 
 
-Procedure TPerformanceReport.Setregion(AIndex : Integer; AValue : string); 
+Procedure TPerformanceReport.Setregion(AIndex : Integer; AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -2478,7 +1850,7 @@ end;
 
 
 
-Procedure TPerformanceReport.Settimestamp(AIndex : Integer; AValue : string); 
+Procedure TPerformanceReport.Settimestamp(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -2491,39 +1863,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPerformanceReportcalloutStatusRate
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPerformanceReportcookieMatcherStatusRate
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPerformanceReportcreativeStatusRate
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPerformanceReporthostedMatchStatusRate
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TPerformanceReportList
   --------------------------------------------------------------------}
 
 
-Procedure TPerformanceReportList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPerformanceReportList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2533,7 +1877,7 @@ end;
 
 
 
-Procedure TPerformanceReportList.SetperformanceReport(AIndex : Integer; AValue : TPerformanceReportListperformanceReport); 
+Procedure TPerformanceReportList.SetperformanceReport(AIndex : Integer; AValue : TPerformanceReportListTypeperformanceReportArray); 
 
 begin
   If (FperformanceReport=AValue) then exit;
@@ -2546,8 +1890,104 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPerformanceReportListperformanceReport
+  TPretargetingConfigTypedimensionsItem
   --------------------------------------------------------------------}
+
+
+Procedure TPretargetingConfigTypedimensionsItem.Setheight(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fheight=AValue) then exit;
+  Fheight:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPretargetingConfigTypedimensionsItem.Setwidth(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fwidth=AValue) then exit;
+  Fwidth:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPretargetingConfigTypeexcludedPlacementsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TPretargetingConfigTypeexcludedPlacementsItem.Settoken(AIndex : Integer; AValue : String); 
+
+begin
+  If (Ftoken=AValue) then exit;
+  Ftoken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPretargetingConfigTypeexcludedPlacementsItem.Set_type(AIndex : Integer; AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TPretargetingConfigTypeexcludedPlacementsItem.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TPretargetingConfigTypeplacementsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TPretargetingConfigTypeplacementsItem.Settoken(AIndex : Integer; AValue : String); 
+
+begin
+  If (Ftoken=AValue) then exit;
+  Ftoken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPretargetingConfigTypeplacementsItem.Set_type(AIndex : Integer; AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TPretargetingConfigTypeplacementsItem.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
 
 
 
@@ -2557,7 +1997,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPretargetingConfig.SetbillingId(AIndex : Integer; AValue : string); 
+Procedure TPretargetingConfig.SetbillingId(AIndex : Integer; AValue : String); 
 
 begin
   If (FbillingId=AValue) then exit;
@@ -2567,7 +2007,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetconfigId(AIndex : Integer; AValue : string); 
+Procedure TPretargetingConfig.SetconfigId(AIndex : Integer; AValue : String); 
 
 begin
   If (FconfigId=AValue) then exit;
@@ -2577,7 +2017,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetconfigName(AIndex : Integer; AValue : string); 
+Procedure TPretargetingConfig.SetconfigName(AIndex : Integer; AValue : String); 
 
 begin
   If (FconfigName=AValue) then exit;
@@ -2587,7 +2027,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetcreativeType(AIndex : Integer; AValue : TPretargetingConfigcreativeType); 
+Procedure TPretargetingConfig.SetcreativeType(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FcreativeType=AValue) then exit;
@@ -2597,7 +2037,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.Setdimensions(AIndex : Integer; AValue : TPretargetingConfigdimensions); 
+Procedure TPretargetingConfig.Setdimensions(AIndex : Integer; AValue : TPretargetingConfigTypedimensionsArray); 
 
 begin
   If (Fdimensions=AValue) then exit;
@@ -2607,7 +2047,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetexcludedContentLabels(AIndex : Integer; AValue : TPretargetingConfigexcludedContentLabels); 
+Procedure TPretargetingConfig.SetexcludedContentLabels(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FexcludedContentLabels=AValue) then exit;
@@ -2617,7 +2057,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetexcludedGeoCriteriaIds(AIndex : Integer; AValue : TPretargetingConfigexcludedGeoCriteriaIds); 
+Procedure TPretargetingConfig.SetexcludedGeoCriteriaIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FexcludedGeoCriteriaIds=AValue) then exit;
@@ -2627,7 +2067,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetexcludedPlacements(AIndex : Integer; AValue : TPretargetingConfigexcludedPlacements); 
+Procedure TPretargetingConfig.SetexcludedPlacements(AIndex : Integer; AValue : TPretargetingConfigTypeexcludedPlacementsArray); 
 
 begin
   If (FexcludedPlacements=AValue) then exit;
@@ -2637,7 +2077,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetexcludedUserLists(AIndex : Integer; AValue : TPretargetingConfigexcludedUserLists); 
+Procedure TPretargetingConfig.SetexcludedUserLists(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FexcludedUserLists=AValue) then exit;
@@ -2647,7 +2087,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetexcludedVerticals(AIndex : Integer; AValue : TPretargetingConfigexcludedVerticals); 
+Procedure TPretargetingConfig.SetexcludedVerticals(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FexcludedVerticals=AValue) then exit;
@@ -2657,7 +2097,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetgeoCriteriaIds(AIndex : Integer; AValue : TPretargetingConfiggeoCriteriaIds); 
+Procedure TPretargetingConfig.SetgeoCriteriaIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FgeoCriteriaIds=AValue) then exit;
@@ -2677,7 +2117,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPretargetingConfig.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2687,7 +2127,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.Setlanguages(AIndex : Integer; AValue : TPretargetingConfiglanguages); 
+Procedure TPretargetingConfig.Setlanguages(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Flanguages=AValue) then exit;
@@ -2697,7 +2137,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetmobileCarriers(AIndex : Integer; AValue : TPretargetingConfigmobileCarriers); 
+Procedure TPretargetingConfig.SetmobileCarriers(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FmobileCarriers=AValue) then exit;
@@ -2707,7 +2147,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetmobileDevices(AIndex : Integer; AValue : TPretargetingConfigmobileDevices); 
+Procedure TPretargetingConfig.SetmobileDevices(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FmobileDevices=AValue) then exit;
@@ -2717,7 +2157,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetmobileOperatingSystemVersions(AIndex : Integer; AValue : TPretargetingConfigmobileOperatingSystemVersions); 
+Procedure TPretargetingConfig.SetmobileOperatingSystemVersions(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FmobileOperatingSystemVersions=AValue) then exit;
@@ -2727,7 +2167,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.Setplacements(AIndex : Integer; AValue : TPretargetingConfigplacements); 
+Procedure TPretargetingConfig.Setplacements(AIndex : Integer; AValue : TPretargetingConfigTypeplacementsArray); 
 
 begin
   If (Fplacements=AValue) then exit;
@@ -2737,7 +2177,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.Setplatforms(AIndex : Integer; AValue : TPretargetingConfigplatforms); 
+Procedure TPretargetingConfig.Setplatforms(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fplatforms=AValue) then exit;
@@ -2747,7 +2187,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetsupportedCreativeAttributes(AIndex : Integer; AValue : TPretargetingConfigsupportedCreativeAttributes); 
+Procedure TPretargetingConfig.SetsupportedCreativeAttributes(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsupportedCreativeAttributes=AValue) then exit;
@@ -2757,7 +2197,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetuserLists(AIndex : Integer; AValue : TPretargetingConfiguserLists); 
+Procedure TPretargetingConfig.SetuserLists(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FuserLists=AValue) then exit;
@@ -2767,7 +2207,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetvendorTypes(AIndex : Integer; AValue : TPretargetingConfigvendorTypes); 
+Procedure TPretargetingConfig.SetvendorTypes(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FvendorTypes=AValue) then exit;
@@ -2777,7 +2217,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.Setverticals(AIndex : Integer; AValue : TPretargetingConfigverticals); 
+Procedure TPretargetingConfig.Setverticals(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fverticals=AValue) then exit;
@@ -2790,219 +2230,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPretargetingConfigcreativeType
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigdimensions
-  --------------------------------------------------------------------}
-
-
-Procedure TPretargetingConfigdimensions.Setheight(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fheight=AValue) then exit;
-  Fheight:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPretargetingConfigdimensions.Setwidth(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fwidth=AValue) then exit;
-  Fwidth:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigexcludedContentLabels
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigexcludedGeoCriteriaIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigexcludedPlacements
-  --------------------------------------------------------------------}
-
-
-Procedure TPretargetingConfigexcludedPlacements.Settoken(AIndex : Integer; AValue : string); 
-
-begin
-  If (Ftoken=AValue) then exit;
-  Ftoken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPretargetingConfigexcludedPlacements.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TPretargetingConfigexcludedPlacements.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigexcludedUserLists
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigexcludedVerticals
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfiggeoCriteriaIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfiglanguages
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigmobileCarriers
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigmobileDevices
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigmobileOperatingSystemVersions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigplacements
-  --------------------------------------------------------------------}
-
-
-Procedure TPretargetingConfigplacements.Settoken(AIndex : Integer; AValue : string); 
-
-begin
-  If (Ftoken=AValue) then exit;
-  Ftoken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPretargetingConfigplacements.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TPretargetingConfigplacements.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigplatforms
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigsupportedCreativeAttributes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfiguserLists
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigvendorTypes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigverticals
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TPretargetingConfigList
   --------------------------------------------------------------------}
 
 
-Procedure TPretargetingConfigList.Setitems(AIndex : Integer; AValue : TPretargetingConfigListitems); 
+Procedure TPretargetingConfigList.Setitems(AIndex : Integer; AValue : TPretargetingConfigListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -3012,7 +2244,7 @@ end;
 
 
 
-Procedure TPretargetingConfigList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPretargetingConfigList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3020,13 +2252,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TPretargetingConfigListitems
-  --------------------------------------------------------------------}
 
 
 
@@ -3611,62 +2836,27 @@ end;
 Class Procedure TAdexchangebuyerAPI.RegisterAPIResources;
 
 begin
+  TAccountTypebidderLocationItem.RegisterObject;
   TAccount.RegisterObject;
-  TAccountbidderLocation.RegisterObject;
   TAccountsList.RegisterObject;
-  TAccountsListitems.RegisterObject;
   TBillingInfo.RegisterObject;
-  TBillingInfobillingId.RegisterObject;
   TBillingInfoList.RegisterObject;
-  TBillingInfoListitems.RegisterObject;
   TBudget.RegisterObject;
+  TCreativeTypecorrectionsItem.RegisterObject;
+  TCreativeTypedisapprovalReasonsItem.RegisterObject;
+  TCreativeTypefilteringReasonsTypereasonsItem.RegisterObject;
+  TCreativeTypefilteringReasons.RegisterObject;
   TCreative.RegisterObject;
-  TCreativeadvertiserId.RegisterObject;
-  TCreativeattribute.RegisterObject;
-  TCreativeclickThroughUrl.RegisterObject;
-  TCreativecorrections.RegisterObject;
-  TCreativecorrectionsdetails.RegisterObject;
-  TCreativedisapprovalReasons.RegisterObject;
-  TCreativedisapprovalReasonsdetails.RegisterObject;
-  TCreativefilteringReasons.RegisterObject;
-  TCreativefilteringReasonsreasons.RegisterObject;
-  TCreativeproductCategories.RegisterObject;
-  TCreativerestrictedCategories.RegisterObject;
-  TCreativesensitiveCategories.RegisterObject;
-  TCreativevendorType.RegisterObject;
   TCreativesList.RegisterObject;
-  TCreativesListitems.RegisterObject;
   TDirectDeal.RegisterObject;
   TDirectDealsList.RegisterObject;
-  TDirectDealsListdirectDeals.RegisterObject;
   TPerformanceReport.RegisterObject;
-  TPerformanceReportcalloutStatusRate.RegisterObject;
-  TPerformanceReportcookieMatcherStatusRate.RegisterObject;
-  TPerformanceReportcreativeStatusRate.RegisterObject;
-  TPerformanceReporthostedMatchStatusRate.RegisterObject;
   TPerformanceReportList.RegisterObject;
-  TPerformanceReportListperformanceReport.RegisterObject;
+  TPretargetingConfigTypedimensionsItem.RegisterObject;
+  TPretargetingConfigTypeexcludedPlacementsItem.RegisterObject;
+  TPretargetingConfigTypeplacementsItem.RegisterObject;
   TPretargetingConfig.RegisterObject;
-  TPretargetingConfigcreativeType.RegisterObject;
-  TPretargetingConfigdimensions.RegisterObject;
-  TPretargetingConfigexcludedContentLabels.RegisterObject;
-  TPretargetingConfigexcludedGeoCriteriaIds.RegisterObject;
-  TPretargetingConfigexcludedPlacements.RegisterObject;
-  TPretargetingConfigexcludedUserLists.RegisterObject;
-  TPretargetingConfigexcludedVerticals.RegisterObject;
-  TPretargetingConfiggeoCriteriaIds.RegisterObject;
-  TPretargetingConfiglanguages.RegisterObject;
-  TPretargetingConfigmobileCarriers.RegisterObject;
-  TPretargetingConfigmobileDevices.RegisterObject;
-  TPretargetingConfigmobileOperatingSystemVersions.RegisterObject;
-  TPretargetingConfigplacements.RegisterObject;
-  TPretargetingConfigplatforms.RegisterObject;
-  TPretargetingConfigsupportedCreativeAttributes.RegisterObject;
-  TPretargetingConfiguserLists.RegisterObject;
-  TPretargetingConfigvendorTypes.RegisterObject;
-  TPretargetingConfigverticals.RegisterObject;
   TPretargetingConfigList.RegisterObject;
-  TPretargetingConfigListitems.RegisterObject;
 end;
 
 

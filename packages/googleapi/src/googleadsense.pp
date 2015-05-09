@@ -1,31 +1,19 @@
 unit googleadsense;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:47
 {$MODE objfpc}
 {$H+}
 
@@ -34,109 +22,76 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAccount = class;
-  TAccountArray = Array of TAccount;
-  TAccountsubAccounts = class;
-  TAccountsubAccountsArray = Array of TAccountsubAccounts;
   TAccounts = class;
-  TAccountsArray = Array of TAccounts;
-  TAccountsitems = class;
-  TAccountsitemsArray = Array of TAccountsitems;
   TAdClient = class;
-  TAdClientArray = Array of TAdClient;
   TAdClients = class;
-  TAdClientsArray = Array of TAdClients;
-  TAdClientsitems = class;
-  TAdClientsitemsArray = Array of TAdClientsitems;
   TAdCode = class;
-  TAdCodeArray = Array of TAdCode;
   TAdStyle = class;
-  TAdStyleArray = Array of TAdStyle;
-  TAdStylecolors = class;
-  TAdStylecolorsArray = Array of TAdStylecolors;
-  TAdStylefont = class;
-  TAdStylefontArray = Array of TAdStylefont;
   TAdUnit = class;
-  TAdUnitArray = Array of TAdUnit;
-  TAdUnitcontentAdsSettings = class;
-  TAdUnitcontentAdsSettingsArray = Array of TAdUnitcontentAdsSettings;
-  TAdUnitcontentAdsSettingsbackupOption = class;
-  TAdUnitcontentAdsSettingsbackupOptionArray = Array of TAdUnitcontentAdsSettingsbackupOption;
-  TAdUnitfeedAdsSettings = class;
-  TAdUnitfeedAdsSettingsArray = Array of TAdUnitfeedAdsSettings;
-  TAdUnitmobileContentAdsSettings = class;
-  TAdUnitmobileContentAdsSettingsArray = Array of TAdUnitmobileContentAdsSettings;
   TAdUnits = class;
-  TAdUnitsArray = Array of TAdUnits;
-  TAdUnitsitems = class;
-  TAdUnitsitemsArray = Array of TAdUnitsitems;
   TAdsenseReportsGenerateResponse = class;
-  TAdsenseReportsGenerateResponseArray = Array of TAdsenseReportsGenerateResponse;
-  TAdsenseReportsGenerateResponseaverages = class;
-  TAdsenseReportsGenerateResponseaveragesArray = Array of TAdsenseReportsGenerateResponseaverages;
-  TAdsenseReportsGenerateResponseheaders = class;
-  TAdsenseReportsGenerateResponseheadersArray = Array of TAdsenseReportsGenerateResponseheaders;
-  TAdsenseReportsGenerateResponserows = class;
-  TAdsenseReportsGenerateResponserowsArray = Array of TAdsenseReportsGenerateResponserows;
-  TAdsenseReportsGenerateResponsetotals = class;
-  TAdsenseReportsGenerateResponsetotalsArray = Array of TAdsenseReportsGenerateResponsetotals;
-  TAdsenseReportsGenerateResponsewarnings = class;
-  TAdsenseReportsGenerateResponsewarningsArray = Array of TAdsenseReportsGenerateResponsewarnings;
   TAlert = class;
-  TAlertArray = Array of TAlert;
   TAlerts = class;
-  TAlertsArray = Array of TAlerts;
-  TAlertsitems = class;
-  TAlertsitemsArray = Array of TAlertsitems;
   TCustomChannel = class;
-  TCustomChannelArray = Array of TCustomChannel;
-  TCustomChanneltargetingInfo = class;
-  TCustomChanneltargetingInfoArray = Array of TCustomChanneltargetingInfo;
   TCustomChannels = class;
-  TCustomChannelsArray = Array of TCustomChannels;
-  TCustomChannelsitems = class;
-  TCustomChannelsitemsArray = Array of TCustomChannelsitems;
   TMetadata = class;
-  TMetadataArray = Array of TMetadata;
-  TMetadataitems = class;
-  TMetadataitemsArray = Array of TMetadataitems;
   TPayment = class;
-  TPaymentArray = Array of TPayment;
   TPayments = class;
-  TPaymentsArray = Array of TPayments;
-  TPaymentsitems = class;
-  TPaymentsitemsArray = Array of TPaymentsitems;
   TReportingMetadataEntry = class;
-  TReportingMetadataEntryArray = Array of TReportingMetadataEntry;
-  TReportingMetadataEntrycompatibleDimensions = class;
-  TReportingMetadataEntrycompatibleDimensionsArray = Array of TReportingMetadataEntrycompatibleDimensions;
-  TReportingMetadataEntrycompatibleMetrics = class;
-  TReportingMetadataEntrycompatibleMetricsArray = Array of TReportingMetadataEntrycompatibleMetrics;
-  TReportingMetadataEntryrequiredDimensions = class;
-  TReportingMetadataEntryrequiredDimensionsArray = Array of TReportingMetadataEntryrequiredDimensions;
-  TReportingMetadataEntryrequiredMetrics = class;
-  TReportingMetadataEntryrequiredMetricsArray = Array of TReportingMetadataEntryrequiredMetrics;
-  TReportingMetadataEntrysupportedProducts = class;
-  TReportingMetadataEntrysupportedProductsArray = Array of TReportingMetadataEntrysupportedProducts;
   TSavedAdStyle = class;
-  TSavedAdStyleArray = Array of TSavedAdStyle;
   TSavedAdStyles = class;
-  TSavedAdStylesArray = Array of TSavedAdStyles;
-  TSavedAdStylesitems = class;
-  TSavedAdStylesitemsArray = Array of TSavedAdStylesitems;
   TSavedReport = class;
-  TSavedReportArray = Array of TSavedReport;
   TSavedReports = class;
-  TSavedReportsArray = Array of TSavedReports;
-  TSavedReportsitems = class;
-  TSavedReportsitemsArray = Array of TSavedReportsitems;
   TUrlChannel = class;
-  TUrlChannelArray = Array of TUrlChannel;
   TUrlChannels = class;
+  TAccountArray = Array of TAccount;
+  TAccountsArray = Array of TAccounts;
+  TAdClientArray = Array of TAdClient;
+  TAdClientsArray = Array of TAdClients;
+  TAdCodeArray = Array of TAdCode;
+  TAdStyleArray = Array of TAdStyle;
+  TAdUnitArray = Array of TAdUnit;
+  TAdUnitsArray = Array of TAdUnits;
+  TAdsenseReportsGenerateResponseArray = Array of TAdsenseReportsGenerateResponse;
+  TAlertArray = Array of TAlert;
+  TAlertsArray = Array of TAlerts;
+  TCustomChannelArray = Array of TCustomChannel;
+  TCustomChannelsArray = Array of TCustomChannels;
+  TMetadataArray = Array of TMetadata;
+  TPaymentArray = Array of TPayment;
+  TPaymentsArray = Array of TPayments;
+  TReportingMetadataEntryArray = Array of TReportingMetadataEntry;
+  TSavedAdStyleArray = Array of TSavedAdStyle;
+  TSavedAdStylesArray = Array of TSavedAdStyles;
+  TSavedReportArray = Array of TSavedReport;
+  TSavedReportsArray = Array of TSavedReports;
+  TUrlChannelArray = Array of TUrlChannel;
   TUrlChannelsArray = Array of TUrlChannels;
-  TUrlChannelsitems = class;
-  TUrlChannelsitemsArray = Array of TUrlChannelsitems;
+  //Anonymous types, using auto-generated names
+  TAdStyleTypecolors = class;
+  TAdStyleTypefont = class;
+  TAdUnitTypecontentAdsSettingsTypebackupOption = class;
+  TAdUnitTypecontentAdsSettings = class;
+  TAdUnitTypefeedAdsSettings = class;
+  TAdUnitTypemobileContentAdsSettings = class;
+  TAdsenseReportsGenerateResponseTypeheadersItem = class;
+  TCustomChannelTypetargetingInfo = class;
+  TAccountTypesubAccountsArray = Array of TAccount;
+  TAccountsTypeitemsArray = Array of TAccount;
+  TAdClientsTypeitemsArray = Array of TAdClient;
+  TAdUnitsTypeitemsArray = Array of TAdUnit;
+  TAdsenseReportsGenerateResponseTypeheadersArray = Array of TAdsenseReportsGenerateResponseTypeheadersItem;
+  TAdsenseReportsGenerateResponseTyperowsArray = Array of TStringArray;
+  TAlertsTypeitemsArray = Array of TAlert;
+  TCustomChannelsTypeitemsArray = Array of TCustomChannel;
+  TMetadataTypeitemsArray = Array of TReportingMetadataEntry;
+  TPaymentsTypeitemsArray = Array of TPayment;
+  TSavedAdStylesTypeitemsArray = Array of TSavedAdStyle;
+  TSavedReportsTypeitemsArray = Array of TSavedReport;
+  TUrlChannelsTypeitemsArray = Array of TUrlChannel;
   
   { --------------------------------------------------------------------
     TAccount
@@ -144,43 +99,30 @@ type
   
   TAccount = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    Fname : string;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
     Fpremium : boolean;
-    FsubAccounts : TAccountsubAccounts;
-    Ftimezone : string;
+    FsubAccounts : TAccountTypesubAccountsArray;
+    Ftimezone : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setpremium(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsubAccounts(AIndex : Integer; AValue : TAccountsubAccounts); virtual;
-    Procedure Settimezone(AIndex : Integer; AValue : string); virtual;
+    Procedure SetsubAccounts(AIndex : Integer; AValue : TAccountTypesubAccountsArray); virtual;
+    Procedure Settimezone(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property name : string Index 16 Read Fname Write Setname;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : String Index 16 Read Fname Write Setname;
     Property premium : boolean Index 24 Read Fpremium Write Setpremium;
-    Property subAccounts : TAccountsubAccounts Index 32 Read FsubAccounts Write SetsubAccounts;
-    Property timezone : string Index 40 Read Ftimezone Write Settimezone;
+    Property subAccounts : TAccountTypesubAccountsArray Index 32 Read FsubAccounts Write SetsubAccounts;
+    Property timezone : String Index 40 Read Ftimezone Write Settimezone;
   end;
   TAccountClass = Class of TAccount;
-  
-  { --------------------------------------------------------------------
-    TAccountsubAccounts
-    --------------------------------------------------------------------}
-  
-  TAccountsubAccounts = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountsubAccountsClass = Class of TAccountsubAccounts;
   
   { --------------------------------------------------------------------
     TAccounts
@@ -188,37 +130,24 @@ type
   
   TAccounts = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TAccountsitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fitems : TAccountsTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TAccountsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TAccountsTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TAccountsitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TAccountsTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TAccountsClass = Class of TAccounts;
-  
-  { --------------------------------------------------------------------
-    TAccountsitems
-    --------------------------------------------------------------------}
-  
-  TAccountsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAccountsitemsClass = Class of TAccountsitems;
   
   { --------------------------------------------------------------------
     TAdClient
@@ -227,26 +156,26 @@ type
   TAdClient = Class(TGoogleBaseObject)
   Private
     FarcOptIn : boolean;
-    FarcReviewMode : string;
-    Fid : string;
-    Fkind : string;
-    FproductCode : string;
+    FarcReviewMode : String;
+    Fid : String;
+    Fkind : String;
+    FproductCode : String;
     FsupportsReporting : boolean;
   Protected
     //Property setters
     Procedure SetarcOptIn(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetarcReviewMode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetproductCode(AIndex : Integer; AValue : string); virtual;
+    Procedure SetarcReviewMode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductCode(AIndex : Integer; AValue : String); virtual;
     Procedure SetsupportsReporting(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
     Property arcOptIn : boolean Index 0 Read FarcOptIn Write SetarcOptIn;
-    Property arcReviewMode : string Index 8 Read FarcReviewMode Write SetarcReviewMode;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property productCode : string Index 32 Read FproductCode Write SetproductCode;
+    Property arcReviewMode : String Index 8 Read FarcReviewMode Write SetarcReviewMode;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property productCode : String Index 32 Read FproductCode Write SetproductCode;
     Property supportsReporting : boolean Index 40 Read FsupportsReporting Write SetsupportsReporting;
   end;
   TAdClientClass = Class of TAdClient;
@@ -257,37 +186,24 @@ type
   
   TAdClients = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TAdClientsitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fitems : TAdClientsTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TAdClientsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TAdClientsTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TAdClientsitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TAdClientsTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TAdClientsClass = Class of TAdClients;
-  
-  { --------------------------------------------------------------------
-    TAdClientsitems
-    --------------------------------------------------------------------}
-  
-  TAdClientsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAdClientsitemsClass = Class of TAdClientsitems;
   
   { --------------------------------------------------------------------
     TAdCode
@@ -295,18 +211,65 @@ type
   
   TAdCode = Class(TGoogleBaseObject)
   Private
-    FadCode : string;
-    Fkind : string;
+    FadCode : String;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetadCode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetadCode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property adCode : string Index 0 Read FadCode Write SetadCode;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property adCode : String Index 0 Read FadCode Write SetadCode;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAdCodeClass = Class of TAdCode;
+  
+  { --------------------------------------------------------------------
+    TAdStyleTypecolors
+    --------------------------------------------------------------------}
+  
+  TAdStyleTypecolors = Class(TGoogleBaseObject)
+  Private
+    Fbackground : String;
+    Fborder : String;
+    Ftext : String;
+    Ftitle : String;
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure Setbackground(AIndex : Integer; AValue : String); virtual;
+    Procedure Setborder(AIndex : Integer; AValue : String); virtual;
+    Procedure Settext(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property background : String Index 0 Read Fbackground Write Setbackground;
+    Property border : String Index 8 Read Fborder Write Setborder;
+    Property text : String Index 16 Read Ftext Write Settext;
+    Property title : String Index 24 Read Ftitle Write Settitle;
+    Property url : String Index 32 Read Furl Write Seturl;
+  end;
+  TAdStyleTypecolorsClass = Class of TAdStyleTypecolors;
+  
+  { --------------------------------------------------------------------
+    TAdStyleTypefont
+    --------------------------------------------------------------------}
+  
+  TAdStyleTypefont = Class(TGoogleBaseObject)
+  Private
+    Ffamily : String;
+    Fsize : String;
+  Protected
+    //Property setters
+    Procedure Setfamily(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsize(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property family : String Index 0 Read Ffamily Write Setfamily;
+    Property size : String Index 8 Read Fsize Write Setsize;
+  end;
+  TAdStyleTypefontClass = Class of TAdStyleTypefont;
   
   { --------------------------------------------------------------------
     TAdStyle
@@ -314,71 +277,122 @@ type
   
   TAdStyle = Class(TGoogleBaseObject)
   Private
-    Fcolors : TAdStylecolors;
-    Fcorners : string;
-    Ffont : TAdStylefont;
-    Fkind : string;
+    Fcolors : TAdStyleTypecolors;
+    Fcorners : String;
+    Ffont : TAdStyleTypefont;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setcolors(AIndex : Integer; AValue : TAdStylecolors); virtual;
-    Procedure Setcorners(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfont(AIndex : Integer; AValue : TAdStylefont); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcolors(AIndex : Integer; AValue : TAdStyleTypecolors); virtual;
+    Procedure Setcorners(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfont(AIndex : Integer; AValue : TAdStyleTypefont); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property colors : TAdStylecolors Index 0 Read Fcolors Write Setcolors;
-    Property corners : string Index 8 Read Fcorners Write Setcorners;
-    Property font : TAdStylefont Index 16 Read Ffont Write Setfont;
-    Property kind : string Index 24 Read Fkind Write Setkind;
+    Property colors : TAdStyleTypecolors Index 0 Read Fcolors Write Setcolors;
+    Property corners : String Index 8 Read Fcorners Write Setcorners;
+    Property font : TAdStyleTypefont Index 16 Read Ffont Write Setfont;
+    Property kind : String Index 24 Read Fkind Write Setkind;
   end;
   TAdStyleClass = Class of TAdStyle;
   
   { --------------------------------------------------------------------
-    TAdStylecolors
+    TAdUnitTypecontentAdsSettingsTypebackupOption
     --------------------------------------------------------------------}
   
-  TAdStylecolors = Class(TGoogleBaseObject)
+  TAdUnitTypecontentAdsSettingsTypebackupOption = Class(TGoogleBaseObject)
   Private
-    Fbackground : string;
-    Fborder : string;
-    Ftext : string;
-    Ftitle : string;
-    Furl : string;
+    Fcolor : String;
+    F_type : String;
+    Furl : String;
   Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setbackground(AIndex : Integer; AValue : string); virtual;
-    Procedure Setborder(AIndex : Integer; AValue : string); virtual;
-    Procedure Settext(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property background : string Index 0 Read Fbackground Write Setbackground;
-    Property border : string Index 8 Read Fborder Write Setborder;
-    Property text : string Index 16 Read Ftext Write Settext;
-    Property title : string Index 24 Read Ftitle Write Settitle;
-    Property url : string Index 32 Read Furl Write Seturl;
+    Property color : String Index 0 Read Fcolor Write Setcolor;
+    Property _type : String Index 8 Read F_type Write Set_type;
+    Property url : String Index 16 Read Furl Write Seturl;
   end;
-  TAdStylecolorsClass = Class of TAdStylecolors;
+  TAdUnitTypecontentAdsSettingsTypebackupOptionClass = Class of TAdUnitTypecontentAdsSettingsTypebackupOption;
   
   { --------------------------------------------------------------------
-    TAdStylefont
+    TAdUnitTypecontentAdsSettings
     --------------------------------------------------------------------}
   
-  TAdStylefont = Class(TGoogleBaseObject)
+  TAdUnitTypecontentAdsSettings = Class(TGoogleBaseObject)
   Private
-    Ffamily : string;
-    Fsize : string;
+    FbackupOption : TAdUnitTypecontentAdsSettingsTypebackupOption;
+    Fsize : String;
+    F_type : String;
   Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setfamily(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsize(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbackupOption(AIndex : Integer; AValue : TAdUnitTypecontentAdsSettingsTypebackupOption); virtual;
+    Procedure Setsize(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property family : string Index 0 Read Ffamily Write Setfamily;
-    Property size : string Index 8 Read Fsize Write Setsize;
+    Property backupOption : TAdUnitTypecontentAdsSettingsTypebackupOption Index 0 Read FbackupOption Write SetbackupOption;
+    Property size : String Index 8 Read Fsize Write Setsize;
+    Property _type : String Index 16 Read F_type Write Set_type;
   end;
-  TAdStylefontClass = Class of TAdStylefont;
+  TAdUnitTypecontentAdsSettingsClass = Class of TAdUnitTypecontentAdsSettings;
+  
+  { --------------------------------------------------------------------
+    TAdUnitTypefeedAdsSettings
+    --------------------------------------------------------------------}
+  
+  TAdUnitTypefeedAdsSettings = Class(TGoogleBaseObject)
+  Private
+    FadPosition : String;
+    Ffrequency : integer;
+    FminimumWordCount : integer;
+    F_type : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure SetadPosition(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfrequency(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetminimumWordCount(AIndex : Integer; AValue : integer); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property adPosition : String Index 0 Read FadPosition Write SetadPosition;
+    Property frequency : integer Index 8 Read Ffrequency Write Setfrequency;
+    Property minimumWordCount : integer Index 16 Read FminimumWordCount Write SetminimumWordCount;
+    Property _type : String Index 24 Read F_type Write Set_type;
+  end;
+  TAdUnitTypefeedAdsSettingsClass = Class of TAdUnitTypefeedAdsSettings;
+  
+  { --------------------------------------------------------------------
+    TAdUnitTypemobileContentAdsSettings
+    --------------------------------------------------------------------}
+  
+  TAdUnitTypemobileContentAdsSettings = Class(TGoogleBaseObject)
+  Private
+    FmarkupLanguage : String;
+    FscriptingLanguage : String;
+    Fsize : String;
+    F_type : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure SetmarkupLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetscriptingLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsize(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property markupLanguage : String Index 0 Read FmarkupLanguage Write SetmarkupLanguage;
+    Property scriptingLanguage : String Index 8 Read FscriptingLanguage Write SetscriptingLanguage;
+    Property size : String Index 16 Read Fsize Write Setsize;
+    Property _type : String Index 24 Read F_type Write Set_type;
+  end;
+  TAdUnitTypemobileContentAdsSettingsClass = Class of TAdUnitTypemobileContentAdsSettings;
   
   { --------------------------------------------------------------------
     TAdUnit
@@ -386,140 +400,42 @@ type
   
   TAdUnit = Class(TGoogleBaseObject)
   Private
-    Fcode : string;
-    FcontentAdsSettings : TAdUnitcontentAdsSettings;
+    Fcode : String;
+    FcontentAdsSettings : TAdUnitTypecontentAdsSettings;
     FcustomStyle : TAdStyle;
-    FfeedAdsSettings : TAdUnitfeedAdsSettings;
-    Fid : string;
-    Fkind : string;
-    FmobileContentAdsSettings : TAdUnitmobileContentAdsSettings;
-    Fname : string;
-    FsavedStyleId : string;
-    Fstatus : string;
+    FfeedAdsSettings : TAdUnitTypefeedAdsSettings;
+    Fid : String;
+    Fkind : String;
+    FmobileContentAdsSettings : TAdUnitTypemobileContentAdsSettings;
+    Fname : String;
+    FsavedStyleId : String;
+    Fstatus : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontentAdsSettings(AIndex : Integer; AValue : TAdUnitcontentAdsSettings); virtual;
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontentAdsSettings(AIndex : Integer; AValue : TAdUnitTypecontentAdsSettings); virtual;
     Procedure SetcustomStyle(AIndex : Integer; AValue : TAdStyle); virtual;
-    Procedure SetfeedAdsSettings(AIndex : Integer; AValue : TAdUnitfeedAdsSettings); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmobileContentAdsSettings(AIndex : Integer; AValue : TAdUnitmobileContentAdsSettings); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsavedStyleId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetfeedAdsSettings(AIndex : Integer; AValue : TAdUnitTypefeedAdsSettings); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmobileContentAdsSettings(AIndex : Integer; AValue : TAdUnitTypemobileContentAdsSettings); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsavedStyleId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property contentAdsSettings : TAdUnitcontentAdsSettings Index 8 Read FcontentAdsSettings Write SetcontentAdsSettings;
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property contentAdsSettings : TAdUnitTypecontentAdsSettings Index 8 Read FcontentAdsSettings Write SetcontentAdsSettings;
     Property customStyle : TAdStyle Index 16 Read FcustomStyle Write SetcustomStyle;
-    Property feedAdsSettings : TAdUnitfeedAdsSettings Index 24 Read FfeedAdsSettings Write SetfeedAdsSettings;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property kind : string Index 40 Read Fkind Write Setkind;
-    Property mobileContentAdsSettings : TAdUnitmobileContentAdsSettings Index 48 Read FmobileContentAdsSettings Write SetmobileContentAdsSettings;
-    Property name : string Index 56 Read Fname Write Setname;
-    Property savedStyleId : string Index 64 Read FsavedStyleId Write SetsavedStyleId;
-    Property status : string Index 72 Read Fstatus Write Setstatus;
+    Property feedAdsSettings : TAdUnitTypefeedAdsSettings Index 24 Read FfeedAdsSettings Write SetfeedAdsSettings;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property mobileContentAdsSettings : TAdUnitTypemobileContentAdsSettings Index 48 Read FmobileContentAdsSettings Write SetmobileContentAdsSettings;
+    Property name : String Index 56 Read Fname Write Setname;
+    Property savedStyleId : String Index 64 Read FsavedStyleId Write SetsavedStyleId;
+    Property status : String Index 72 Read Fstatus Write Setstatus;
   end;
   TAdUnitClass = Class of TAdUnit;
-  
-  { --------------------------------------------------------------------
-    TAdUnitcontentAdsSettings
-    --------------------------------------------------------------------}
-  
-  TAdUnitcontentAdsSettings = Class(TGoogleBaseObject)
-  Private
-    FbackupOption : TAdUnitcontentAdsSettingsbackupOption;
-    Fsize : string;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure SetbackupOption(AIndex : Integer; AValue : TAdUnitcontentAdsSettingsbackupOption); virtual;
-    Procedure Setsize(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property backupOption : TAdUnitcontentAdsSettingsbackupOption Index 0 Read FbackupOption Write SetbackupOption;
-    Property size : string Index 8 Read Fsize Write Setsize;
-    Property _type : string Index 16 Read F_type Write Set_type;
-  end;
-  TAdUnitcontentAdsSettingsClass = Class of TAdUnitcontentAdsSettings;
-  
-  { --------------------------------------------------------------------
-    TAdUnitcontentAdsSettingsbackupOption
-    --------------------------------------------------------------------}
-  
-  TAdUnitcontentAdsSettingsbackupOption = Class(TGoogleBaseObject)
-  Private
-    Fcolor : string;
-    F_type : string;
-    Furl : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setcolor(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property color : string Index 0 Read Fcolor Write Setcolor;
-    Property _type : string Index 8 Read F_type Write Set_type;
-    Property url : string Index 16 Read Furl Write Seturl;
-  end;
-  TAdUnitcontentAdsSettingsbackupOptionClass = Class of TAdUnitcontentAdsSettingsbackupOption;
-  
-  { --------------------------------------------------------------------
-    TAdUnitfeedAdsSettings
-    --------------------------------------------------------------------}
-  
-  TAdUnitfeedAdsSettings = Class(TGoogleBaseObject)
-  Private
-    FadPosition : string;
-    Ffrequency : integer;
-    FminimumWordCount : integer;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure SetadPosition(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfrequency(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetminimumWordCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property adPosition : string Index 0 Read FadPosition Write SetadPosition;
-    Property frequency : integer Index 8 Read Ffrequency Write Setfrequency;
-    Property minimumWordCount : integer Index 16 Read FminimumWordCount Write SetminimumWordCount;
-    Property _type : string Index 24 Read F_type Write Set_type;
-  end;
-  TAdUnitfeedAdsSettingsClass = Class of TAdUnitfeedAdsSettings;
-  
-  { --------------------------------------------------------------------
-    TAdUnitmobileContentAdsSettings
-    --------------------------------------------------------------------}
-  
-  TAdUnitmobileContentAdsSettings = Class(TGoogleBaseObject)
-  Private
-    FmarkupLanguage : string;
-    FscriptingLanguage : string;
-    Fsize : string;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure SetmarkupLanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetscriptingLanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsize(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property markupLanguage : string Index 0 Read FmarkupLanguage Write SetmarkupLanguage;
-    Property scriptingLanguage : string Index 8 Read FscriptingLanguage Write SetscriptingLanguage;
-    Property size : string Index 16 Read Fsize Write Setsize;
-    Property _type : string Index 24 Read F_type Write Set_type;
-  end;
-  TAdUnitmobileContentAdsSettingsClass = Class of TAdUnitmobileContentAdsSettings;
   
   { --------------------------------------------------------------------
     TAdUnits
@@ -527,37 +443,47 @@ type
   
   TAdUnits = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TAdUnitsitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fitems : TAdUnitsTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TAdUnitsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TAdUnitsTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TAdUnitsitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TAdUnitsTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TAdUnitsClass = Class of TAdUnits;
   
   { --------------------------------------------------------------------
-    TAdUnitsitems
+    TAdsenseReportsGenerateResponseTypeheadersItem
     --------------------------------------------------------------------}
   
-  TAdUnitsitems = Class(TGoogleBaseObject)
+  TAdsenseReportsGenerateResponseTypeheadersItem = Class(TGoogleBaseObject)
   Private
+    Fcurrency : String;
+    Fname : String;
+    F_type : String;
   Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
+    Procedure Setcurrency(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property currency : String Index 0 Read Fcurrency Write Setcurrency;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property _type : String Index 16 Read F_type Write Set_type;
   end;
-  TAdUnitsitemsClass = Class of TAdUnitsitems;
+  TAdsenseReportsGenerateResponseTypeheadersItemClass = Class of TAdsenseReportsGenerateResponseTypeheadersItem;
   
   { --------------------------------------------------------------------
     TAdsenseReportsGenerateResponse
@@ -565,114 +491,39 @@ type
   
   TAdsenseReportsGenerateResponse = Class(TGoogleBaseObject)
   Private
-    Faverages : TAdsenseReportsGenerateResponseaverages;
-    FendDate : string;
-    Fheaders : TAdsenseReportsGenerateResponseheaders;
-    Fkind : string;
-    Frows : TAdsenseReportsGenerateResponserows;
-    FstartDate : string;
-    FtotalMatchedRows : string;
-    Ftotals : TAdsenseReportsGenerateResponsetotals;
-    Fwarnings : TAdsenseReportsGenerateResponsewarnings;
+    Faverages : TStringArray;
+    FendDate : String;
+    Fheaders : TAdsenseReportsGenerateResponseTypeheadersArray;
+    Fkind : String;
+    Frows : TAdsenseReportsGenerateResponseTyperowsArray;
+    FstartDate : String;
+    FtotalMatchedRows : String;
+    Ftotals : TStringArray;
+    Fwarnings : TStringArray;
   Protected
     //Property setters
-    Procedure Setaverages(AIndex : Integer; AValue : TAdsenseReportsGenerateResponseaverages); virtual;
-    Procedure SetendDate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setheaders(AIndex : Integer; AValue : TAdsenseReportsGenerateResponseheaders); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrows(AIndex : Integer; AValue : TAdsenseReportsGenerateResponserows); virtual;
-    Procedure SetstartDate(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalMatchedRows(AIndex : Integer; AValue : string); virtual;
-    Procedure Settotals(AIndex : Integer; AValue : TAdsenseReportsGenerateResponsetotals); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TAdsenseReportsGenerateResponsewarnings); virtual;
+    Procedure Setaverages(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetendDate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setheaders(AIndex : Integer; AValue : TAdsenseReportsGenerateResponseTypeheadersArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrows(AIndex : Integer; AValue : TAdsenseReportsGenerateResponseTyperowsArray); virtual;
+    Procedure SetstartDate(AIndex : Integer; AValue : String); virtual;
+    Procedure SettotalMatchedRows(AIndex : Integer; AValue : String); virtual;
+    Procedure Settotals(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setwarnings(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property averages : TAdsenseReportsGenerateResponseaverages Index 0 Read Faverages Write Setaverages;
-    Property endDate : string Index 8 Read FendDate Write SetendDate;
-    Property headers : TAdsenseReportsGenerateResponseheaders Index 16 Read Fheaders Write Setheaders;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property rows : TAdsenseReportsGenerateResponserows Index 32 Read Frows Write Setrows;
-    Property startDate : string Index 40 Read FstartDate Write SetstartDate;
-    Property totalMatchedRows : string Index 48 Read FtotalMatchedRows Write SettotalMatchedRows;
-    Property totals : TAdsenseReportsGenerateResponsetotals Index 56 Read Ftotals Write Settotals;
-    Property warnings : TAdsenseReportsGenerateResponsewarnings Index 64 Read Fwarnings Write Setwarnings;
+    Property averages : TStringArray Index 0 Read Faverages Write Setaverages;
+    Property endDate : String Index 8 Read FendDate Write SetendDate;
+    Property headers : TAdsenseReportsGenerateResponseTypeheadersArray Index 16 Read Fheaders Write Setheaders;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property rows : TAdsenseReportsGenerateResponseTyperowsArray Index 32 Read Frows Write Setrows;
+    Property startDate : String Index 40 Read FstartDate Write SetstartDate;
+    Property totalMatchedRows : String Index 48 Read FtotalMatchedRows Write SettotalMatchedRows;
+    Property totals : TStringArray Index 56 Read Ftotals Write Settotals;
+    Property warnings : TStringArray Index 64 Read Fwarnings Write Setwarnings;
   end;
   TAdsenseReportsGenerateResponseClass = Class of TAdsenseReportsGenerateResponse;
-  
-  { --------------------------------------------------------------------
-    TAdsenseReportsGenerateResponseaverages
-    --------------------------------------------------------------------}
-  
-  TAdsenseReportsGenerateResponseaverages = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAdsenseReportsGenerateResponseaveragesClass = Class of TAdsenseReportsGenerateResponseaverages;
-  
-  { --------------------------------------------------------------------
-    TAdsenseReportsGenerateResponseheaders
-    --------------------------------------------------------------------}
-  
-  TAdsenseReportsGenerateResponseheaders = Class(TGoogleBaseObject)
-  Private
-    Fcurrency : string;
-    Fname : string;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setcurrency(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property currency : string Index 0 Read Fcurrency Write Setcurrency;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property _type : string Index 16 Read F_type Write Set_type;
-  end;
-  TAdsenseReportsGenerateResponseheadersClass = Class of TAdsenseReportsGenerateResponseheaders;
-  
-  { --------------------------------------------------------------------
-    TAdsenseReportsGenerateResponserows
-    --------------------------------------------------------------------}
-  
-  TAdsenseReportsGenerateResponserows = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAdsenseReportsGenerateResponserowsClass = Class of TAdsenseReportsGenerateResponserows;
-  
-  { --------------------------------------------------------------------
-    TAdsenseReportsGenerateResponsetotals
-    --------------------------------------------------------------------}
-  
-  TAdsenseReportsGenerateResponsetotals = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAdsenseReportsGenerateResponsetotalsClass = Class of TAdsenseReportsGenerateResponsetotals;
-  
-  { --------------------------------------------------------------------
-    TAdsenseReportsGenerateResponsewarnings
-    --------------------------------------------------------------------}
-  
-  TAdsenseReportsGenerateResponsewarnings = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAdsenseReportsGenerateResponsewarningsClass = Class of TAdsenseReportsGenerateResponsewarnings;
   
   { --------------------------------------------------------------------
     TAlert
@@ -680,29 +531,29 @@ type
   
   TAlert = Class(TGoogleBaseObject)
   Private
-    Fid : string;
+    Fid : String;
     FisDismissible : boolean;
-    Fkind : string;
-    Fmessage : string;
-    Fseverity : string;
-    F_type : string;
+    Fkind : String;
+    Fmessage : String;
+    Fseverity : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure SetisDismissible(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setseverity(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setseverity(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
+    Property id : String Index 0 Read Fid Write Setid;
     Property isDismissible : boolean Index 8 Read FisDismissible Write SetisDismissible;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property message : string Index 24 Read Fmessage Write Setmessage;
-    Property severity : string Index 32 Read Fseverity Write Setseverity;
-    Property _type : string Index 40 Read F_type Write Set_type;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property message : String Index 24 Read Fmessage Write Setmessage;
+    Property severity : String Index 32 Read Fseverity Write Setseverity;
+    Property _type : String Index 40 Read F_type Write Set_type;
   end;
   TAlertClass = Class of TAlert;
   
@@ -712,31 +563,43 @@ type
   
   TAlerts = Class(TGoogleBaseObject)
   Private
-    Fitems : TAlertsitems;
-    Fkind : string;
+    Fitems : TAlertsTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TAlertsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TAlertsTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TAlertsitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TAlertsTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAlertsClass = Class of TAlerts;
   
   { --------------------------------------------------------------------
-    TAlertsitems
+    TCustomChannelTypetargetingInfo
     --------------------------------------------------------------------}
   
-  TAlertsitems = Class(TGoogleBaseObject)
+  TCustomChannelTypetargetingInfo = Class(TGoogleBaseObject)
   Private
+    FadsAppearOn : String;
+    Fdescription : String;
+    Flocation : String;
+    FsiteLanguage : String;
   Protected
     //Property setters
+    Procedure SetadsAppearOn(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsiteLanguage(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property adsAppearOn : String Index 0 Read FadsAppearOn Write SetadsAppearOn;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property location : String Index 16 Read Flocation Write Setlocation;
+    Property siteLanguage : String Index 24 Read FsiteLanguage Write SetsiteLanguage;
   end;
-  TAlertsitemsClass = Class of TAlertsitems;
+  TCustomChannelTypetargetingInfoClass = Class of TCustomChannelTypetargetingInfo;
   
   { --------------------------------------------------------------------
     TCustomChannel
@@ -744,52 +607,27 @@ type
   
   TCustomChannel = Class(TGoogleBaseObject)
   Private
-    Fcode : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    FtargetingInfo : TCustomChanneltargetingInfo;
+    Fcode : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FtargetingInfo : TCustomChannelTypetargetingInfo;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetingInfo(AIndex : Integer; AValue : TCustomChanneltargetingInfo); virtual;
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SettargetingInfo(AIndex : Integer; AValue : TCustomChannelTypetargetingInfo); virtual;
   Public
   Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property targetingInfo : TCustomChanneltargetingInfo Index 32 Read FtargetingInfo Write SettargetingInfo;
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property targetingInfo : TCustomChannelTypetargetingInfo Index 32 Read FtargetingInfo Write SettargetingInfo;
   end;
   TCustomChannelClass = Class of TCustomChannel;
-  
-  { --------------------------------------------------------------------
-    TCustomChanneltargetingInfo
-    --------------------------------------------------------------------}
-  
-  TCustomChanneltargetingInfo = Class(TGoogleBaseObject)
-  Private
-    FadsAppearOn : string;
-    Fdescription : string;
-    Flocation : string;
-    FsiteLanguage : string;
-  Protected
-    //Property setters
-    Procedure SetadsAppearOn(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsiteLanguage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property adsAppearOn : string Index 0 Read FadsAppearOn Write SetadsAppearOn;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property location : string Index 16 Read Flocation Write Setlocation;
-    Property siteLanguage : string Index 24 Read FsiteLanguage Write SetsiteLanguage;
-  end;
-  TCustomChanneltargetingInfoClass = Class of TCustomChanneltargetingInfo;
   
   { --------------------------------------------------------------------
     TCustomChannels
@@ -797,37 +635,24 @@ type
   
   TCustomChannels = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TCustomChannelsitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fitems : TCustomChannelsTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TCustomChannelsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TCustomChannelsTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TCustomChannelsitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TCustomChannelsTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TCustomChannelsClass = Class of TCustomChannels;
-  
-  { --------------------------------------------------------------------
-    TCustomChannelsitems
-    --------------------------------------------------------------------}
-  
-  TCustomChannelsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCustomChannelsitemsClass = Class of TCustomChannelsitems;
   
   { --------------------------------------------------------------------
     TMetadata
@@ -835,31 +660,18 @@ type
   
   TMetadata = Class(TGoogleBaseObject)
   Private
-    Fitems : TMetadataitems;
-    Fkind : string;
+    Fitems : TMetadataTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TMetadataitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TMetadataitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TMetadataTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TMetadataClass = Class of TMetadata;
-  
-  { --------------------------------------------------------------------
-    TMetadataitems
-    --------------------------------------------------------------------}
-  
-  TMetadataitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMetadataitemsClass = Class of TMetadataitems;
   
   { --------------------------------------------------------------------
     TPayment
@@ -867,25 +679,25 @@ type
   
   TPayment = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    FpaymentAmount : string;
-    FpaymentAmountCurrencyCode : string;
-    FpaymentDate : string;
+    Fid : String;
+    Fkind : String;
+    FpaymentAmount : String;
+    FpaymentAmountCurrencyCode : String;
+    FpaymentDate : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpaymentAmount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpaymentAmountCurrencyCode(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpaymentDate(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpaymentAmount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpaymentAmountCurrencyCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpaymentDate(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property paymentAmount : string Index 16 Read FpaymentAmount Write SetpaymentAmount;
-    Property paymentAmountCurrencyCode : string Index 24 Read FpaymentAmountCurrencyCode Write SetpaymentAmountCurrencyCode;
-    Property paymentDate : string Index 32 Read FpaymentDate Write SetpaymentDate;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property paymentAmount : String Index 16 Read FpaymentAmount Write SetpaymentAmount;
+    Property paymentAmountCurrencyCode : String Index 24 Read FpaymentAmountCurrencyCode Write SetpaymentAmountCurrencyCode;
+    Property paymentDate : String Index 32 Read FpaymentDate Write SetpaymentDate;
   end;
   TPaymentClass = Class of TPayment;
   
@@ -895,31 +707,18 @@ type
   
   TPayments = Class(TGoogleBaseObject)
   Private
-    Fitems : TPaymentsitems;
-    Fkind : string;
+    Fitems : TPaymentsTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TPaymentsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TPaymentsTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TPaymentsitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TPaymentsTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TPaymentsClass = Class of TPayments;
-  
-  { --------------------------------------------------------------------
-    TPaymentsitems
-    --------------------------------------------------------------------}
-  
-  TPaymentsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPaymentsitemsClass = Class of TPaymentsitems;
   
   { --------------------------------------------------------------------
     TReportingMetadataEntry
@@ -927,98 +726,33 @@ type
   
   TReportingMetadataEntry = Class(TGoogleBaseObject)
   Private
-    FcompatibleDimensions : TReportingMetadataEntrycompatibleDimensions;
-    FcompatibleMetrics : TReportingMetadataEntrycompatibleMetrics;
-    Fid : string;
-    Fkind : string;
-    FrequiredDimensions : TReportingMetadataEntryrequiredDimensions;
-    FrequiredMetrics : TReportingMetadataEntryrequiredMetrics;
-    FsupportedProducts : TReportingMetadataEntrysupportedProducts;
+    FcompatibleDimensions : TStringArray;
+    FcompatibleMetrics : TStringArray;
+    Fid : String;
+    Fkind : String;
+    FrequiredDimensions : TStringArray;
+    FrequiredMetrics : TStringArray;
+    FsupportedProducts : TStringArray;
   Protected
     //Property setters
-    Procedure SetcompatibleDimensions(AIndex : Integer; AValue : TReportingMetadataEntrycompatibleDimensions); virtual;
-    Procedure SetcompatibleMetrics(AIndex : Integer; AValue : TReportingMetadataEntrycompatibleMetrics); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrequiredDimensions(AIndex : Integer; AValue : TReportingMetadataEntryrequiredDimensions); virtual;
-    Procedure SetrequiredMetrics(AIndex : Integer; AValue : TReportingMetadataEntryrequiredMetrics); virtual;
-    Procedure SetsupportedProducts(AIndex : Integer; AValue : TReportingMetadataEntrysupportedProducts); virtual;
+    Procedure SetcompatibleDimensions(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetcompatibleMetrics(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrequiredDimensions(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetrequiredMetrics(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetsupportedProducts(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property compatibleDimensions : TReportingMetadataEntrycompatibleDimensions Index 0 Read FcompatibleDimensions Write SetcompatibleDimensions;
-    Property compatibleMetrics : TReportingMetadataEntrycompatibleMetrics Index 8 Read FcompatibleMetrics Write SetcompatibleMetrics;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property requiredDimensions : TReportingMetadataEntryrequiredDimensions Index 32 Read FrequiredDimensions Write SetrequiredDimensions;
-    Property requiredMetrics : TReportingMetadataEntryrequiredMetrics Index 40 Read FrequiredMetrics Write SetrequiredMetrics;
-    Property supportedProducts : TReportingMetadataEntrysupportedProducts Index 48 Read FsupportedProducts Write SetsupportedProducts;
+    Property compatibleDimensions : TStringArray Index 0 Read FcompatibleDimensions Write SetcompatibleDimensions;
+    Property compatibleMetrics : TStringArray Index 8 Read FcompatibleMetrics Write SetcompatibleMetrics;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property requiredDimensions : TStringArray Index 32 Read FrequiredDimensions Write SetrequiredDimensions;
+    Property requiredMetrics : TStringArray Index 40 Read FrequiredMetrics Write SetrequiredMetrics;
+    Property supportedProducts : TStringArray Index 48 Read FsupportedProducts Write SetsupportedProducts;
   end;
   TReportingMetadataEntryClass = Class of TReportingMetadataEntry;
-  
-  { --------------------------------------------------------------------
-    TReportingMetadataEntrycompatibleDimensions
-    --------------------------------------------------------------------}
-  
-  TReportingMetadataEntrycompatibleDimensions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReportingMetadataEntrycompatibleDimensionsClass = Class of TReportingMetadataEntrycompatibleDimensions;
-  
-  { --------------------------------------------------------------------
-    TReportingMetadataEntrycompatibleMetrics
-    --------------------------------------------------------------------}
-  
-  TReportingMetadataEntrycompatibleMetrics = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReportingMetadataEntrycompatibleMetricsClass = Class of TReportingMetadataEntrycompatibleMetrics;
-  
-  { --------------------------------------------------------------------
-    TReportingMetadataEntryrequiredDimensions
-    --------------------------------------------------------------------}
-  
-  TReportingMetadataEntryrequiredDimensions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReportingMetadataEntryrequiredDimensionsClass = Class of TReportingMetadataEntryrequiredDimensions;
-  
-  { --------------------------------------------------------------------
-    TReportingMetadataEntryrequiredMetrics
-    --------------------------------------------------------------------}
-  
-  TReportingMetadataEntryrequiredMetrics = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReportingMetadataEntryrequiredMetricsClass = Class of TReportingMetadataEntryrequiredMetrics;
-  
-  { --------------------------------------------------------------------
-    TReportingMetadataEntrysupportedProducts
-    --------------------------------------------------------------------}
-  
-  TReportingMetadataEntrysupportedProducts = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReportingMetadataEntrysupportedProductsClass = Class of TReportingMetadataEntrysupportedProducts;
   
   { --------------------------------------------------------------------
     TSavedAdStyle
@@ -1027,21 +761,21 @@ type
   TSavedAdStyle = Class(TGoogleBaseObject)
   Private
     FadStyle : TAdStyle;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
   Protected
     //Property setters
     Procedure SetadStyle(AIndex : Integer; AValue : TAdStyle); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property adStyle : TAdStyle Index 0 Read FadStyle Write SetadStyle;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property name : string Index 24 Read Fname Write Setname;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property name : String Index 24 Read Fname Write Setname;
   end;
   TSavedAdStyleClass = Class of TSavedAdStyle;
   
@@ -1051,37 +785,24 @@ type
   
   TSavedAdStyles = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TSavedAdStylesitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fitems : TSavedAdStylesTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TSavedAdStylesitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TSavedAdStylesTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TSavedAdStylesitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TSavedAdStylesTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TSavedAdStylesClass = Class of TSavedAdStyles;
-  
-  { --------------------------------------------------------------------
-    TSavedAdStylesitems
-    --------------------------------------------------------------------}
-  
-  TSavedAdStylesitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSavedAdStylesitemsClass = Class of TSavedAdStylesitems;
   
   { --------------------------------------------------------------------
     TSavedReport
@@ -1089,19 +810,19 @@ type
   
   TSavedReport = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    Fname : string;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property name : string Index 16 Read Fname Write Setname;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : String Index 16 Read Fname Write Setname;
   end;
   TSavedReportClass = Class of TSavedReport;
   
@@ -1111,37 +832,24 @@ type
   
   TSavedReports = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TSavedReportsitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fitems : TSavedReportsTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TSavedReportsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TSavedReportsTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TSavedReportsitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TSavedReportsTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TSavedReportsClass = Class of TSavedReports;
-  
-  { --------------------------------------------------------------------
-    TSavedReportsitems
-    --------------------------------------------------------------------}
-  
-  TSavedReportsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSavedReportsitemsClass = Class of TSavedReportsitems;
   
   { --------------------------------------------------------------------
     TUrlChannel
@@ -1149,19 +857,19 @@ type
   
   TUrlChannel = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    FurlPattern : string;
+    Fid : String;
+    Fkind : String;
+    FurlPattern : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SeturlPattern(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SeturlPattern(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property urlPattern : string Index 16 Read FurlPattern Write SeturlPattern;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property urlPattern : String Index 16 Read FurlPattern Write SeturlPattern;
   end;
   TUrlChannelClass = Class of TUrlChannel;
   
@@ -1171,37 +879,24 @@ type
   
   TUrlChannels = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TUrlChannelsitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fitems : TUrlChannelsTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TUrlChannelsitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TUrlChannelsTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TUrlChannelsitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TUrlChannelsTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TUrlChannelsClass = Class of TUrlChannels;
-  
-  { --------------------------------------------------------------------
-    TUrlChannelsitems
-    --------------------------------------------------------------------}
-  
-  TUrlChannelsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlChannelsitemsClass = Class of TUrlChannelsitems;
   
   { --------------------------------------------------------------------
     TAccountsResource
@@ -1219,7 +914,7 @@ type
   
   TAccountsListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TAccountsResource = Class(TGoogleResource)
@@ -1242,7 +937,7 @@ type
   
   TAdclientsListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TAdclientsResource = Class(TGoogleResource)
@@ -1264,7 +959,7 @@ type
   TAdunitsListOptions = Record
     includeInactive : boolean;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TAdunitsResource = Class(TGoogleResource)
@@ -1286,7 +981,7 @@ type
   //Optional query Options for TAlertsResource, method List
   
   TAlertsListOptions = Record
-    locale : string;
+    locale : String;
   end;
   
   TAlertsResource = Class(TGoogleResource)
@@ -1308,7 +1003,7 @@ type
   
   TCustomchannelsListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TCustomchannelsResource = Class(TGoogleResource)
@@ -1352,16 +1047,16 @@ type
   //Optional query Options for TReportsResource, method Generate
   
   TReportsGenerateOptions = Record
-    accountId : string;
-    currency : string;
-    dimension : string;
-    endDate : string;
-    filter : string;
-    locale : string;
+    accountId : String;
+    currency : String;
+    dimension : String;
+    endDate : String;
+    filter : String;
+    locale : String;
     maxResults : integer;
-    metric : string;
-    sort : string;
-    startDate : string;
+    metric : String;
+    sort : String;
+    startDate : String;
     startIndex : integer;
     useTimezoneReporting : boolean;
   end;
@@ -1384,7 +1079,7 @@ type
   
   TSavedadstylesListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TSavedadstylesResource = Class(TGoogleResource)
@@ -1406,7 +1101,7 @@ type
   
   TUrlchannelsListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TUrlchannelsResource = Class(TGoogleResource)
@@ -1508,7 +1203,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccount.Setid(AIndex : Integer; AValue : string); 
+Procedure TAccount.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1518,7 +1213,7 @@ end;
 
 
 
-Procedure TAccount.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccount.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1528,7 +1223,7 @@ end;
 
 
 
-Procedure TAccount.Setname(AIndex : Integer; AValue : string); 
+Procedure TAccount.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1548,7 +1243,7 @@ end;
 
 
 
-Procedure TAccount.SetsubAccounts(AIndex : Integer; AValue : TAccountsubAccounts); 
+Procedure TAccount.SetsubAccounts(AIndex : Integer; AValue : TAccountTypesubAccountsArray); 
 
 begin
   If (FsubAccounts=AValue) then exit;
@@ -1558,7 +1253,7 @@ end;
 
 
 
-Procedure TAccount.Settimezone(AIndex : Integer; AValue : string); 
+Procedure TAccount.Settimezone(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftimezone=AValue) then exit;
@@ -1571,18 +1266,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountsubAccounts
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAccounts
   --------------------------------------------------------------------}
 
 
-Procedure TAccounts.Setetag(AIndex : Integer; AValue : string); 
+Procedure TAccounts.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1592,7 +1280,7 @@ end;
 
 
 
-Procedure TAccounts.Setitems(AIndex : Integer; AValue : TAccountsitems); 
+Procedure TAccounts.Setitems(AIndex : Integer; AValue : TAccountsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1602,7 +1290,7 @@ end;
 
 
 
-Procedure TAccounts.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccounts.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1612,7 +1300,7 @@ end;
 
 
 
-Procedure TAccounts.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TAccounts.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1620,13 +1308,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAccountsitems
-  --------------------------------------------------------------------}
 
 
 
@@ -1646,7 +1327,7 @@ end;
 
 
 
-Procedure TAdClient.SetarcReviewMode(AIndex : Integer; AValue : string); 
+Procedure TAdClient.SetarcReviewMode(AIndex : Integer; AValue : String); 
 
 begin
   If (FarcReviewMode=AValue) then exit;
@@ -1656,7 +1337,7 @@ end;
 
 
 
-Procedure TAdClient.Setid(AIndex : Integer; AValue : string); 
+Procedure TAdClient.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1666,7 +1347,7 @@ end;
 
 
 
-Procedure TAdClient.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAdClient.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1676,7 +1357,7 @@ end;
 
 
 
-Procedure TAdClient.SetproductCode(AIndex : Integer; AValue : string); 
+Procedure TAdClient.SetproductCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FproductCode=AValue) then exit;
@@ -1703,7 +1384,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdClients.Setetag(AIndex : Integer; AValue : string); 
+Procedure TAdClients.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1713,7 +1394,7 @@ end;
 
 
 
-Procedure TAdClients.Setitems(AIndex : Integer; AValue : TAdClientsitems); 
+Procedure TAdClients.Setitems(AIndex : Integer; AValue : TAdClientsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1723,7 +1404,7 @@ end;
 
 
 
-Procedure TAdClients.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAdClients.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1733,7 +1414,7 @@ end;
 
 
 
-Procedure TAdClients.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TAdClients.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1746,18 +1427,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAdClientsitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAdCode
   --------------------------------------------------------------------}
 
 
-Procedure TAdCode.SetadCode(AIndex : Integer; AValue : string); 
+Procedure TAdCode.SetadCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FadCode=AValue) then exit;
@@ -1767,7 +1441,7 @@ end;
 
 
 
-Procedure TAdCode.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAdCode.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1780,58 +1454,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAdStyle
+  TAdStyleTypecolors
   --------------------------------------------------------------------}
 
 
-Procedure TAdStyle.Setcolors(AIndex : Integer; AValue : TAdStylecolors); 
-
-begin
-  If (Fcolors=AValue) then exit;
-  Fcolors:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdStyle.Setcorners(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcorners=AValue) then exit;
-  Fcorners:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdStyle.Setfont(AIndex : Integer; AValue : TAdStylefont); 
-
-begin
-  If (Ffont=AValue) then exit;
-  Ffont:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdStyle.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAdStylecolors
-  --------------------------------------------------------------------}
-
-
-Procedure TAdStylecolors.Setbackground(AIndex : Integer; AValue : string); 
+Procedure TAdStyleTypecolors.Setbackground(AIndex : Integer; AValue : String); 
 
 begin
   If (Fbackground=AValue) then exit;
@@ -1841,7 +1468,7 @@ end;
 
 
 
-Procedure TAdStylecolors.Setborder(AIndex : Integer; AValue : string); 
+Procedure TAdStyleTypecolors.Setborder(AIndex : Integer; AValue : String); 
 
 begin
   If (Fborder=AValue) then exit;
@@ -1851,7 +1478,7 @@ end;
 
 
 
-Procedure TAdStylecolors.Settext(AIndex : Integer; AValue : string); 
+Procedure TAdStyleTypecolors.Settext(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftext=AValue) then exit;
@@ -1861,7 +1488,7 @@ end;
 
 
 
-Procedure TAdStylecolors.Settitle(AIndex : Integer; AValue : string); 
+Procedure TAdStyleTypecolors.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1871,7 +1498,7 @@ end;
 
 
 
-Procedure TAdStylecolors.Seturl(AIndex : Integer; AValue : string); 
+Procedure TAdStyleTypecolors.Seturl(AIndex : Integer; AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -1884,11 +1511,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAdStylefont
+  TAdStyleTypefont
   --------------------------------------------------------------------}
 
 
-Procedure TAdStylefont.Setfamily(AIndex : Integer; AValue : string); 
+Procedure TAdStyleTypefont.Setfamily(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffamily=AValue) then exit;
@@ -1898,7 +1525,7 @@ end;
 
 
 
-Procedure TAdStylefont.Setsize(AIndex : Integer; AValue : string); 
+Procedure TAdStyleTypefont.Setsize(AIndex : Integer; AValue : String); 
 
 begin
   If (Fsize=AValue) then exit;
@@ -1911,11 +1538,270 @@ end;
 
 
 { --------------------------------------------------------------------
+  TAdStyle
+  --------------------------------------------------------------------}
+
+
+Procedure TAdStyle.Setcolors(AIndex : Integer; AValue : TAdStyleTypecolors); 
+
+begin
+  If (Fcolors=AValue) then exit;
+  Fcolors:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdStyle.Setcorners(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcorners=AValue) then exit;
+  Fcorners:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdStyle.Setfont(AIndex : Integer; AValue : TAdStyleTypefont); 
+
+begin
+  If (Ffont=AValue) then exit;
+  Ffont:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdStyle.Setkind(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TAdUnitTypecontentAdsSettingsTypebackupOption
+  --------------------------------------------------------------------}
+
+
+Procedure TAdUnitTypecontentAdsSettingsTypebackupOption.Setcolor(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcolor=AValue) then exit;
+  Fcolor:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdUnitTypecontentAdsSettingsTypebackupOption.Set_type(AIndex : Integer; AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdUnitTypecontentAdsSettingsTypebackupOption.Seturl(AIndex : Integer; AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TAdUnitTypecontentAdsSettingsTypebackupOption.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TAdUnitTypecontentAdsSettings
+  --------------------------------------------------------------------}
+
+
+Procedure TAdUnitTypecontentAdsSettings.SetbackupOption(AIndex : Integer; AValue : TAdUnitTypecontentAdsSettingsTypebackupOption); 
+
+begin
+  If (FbackupOption=AValue) then exit;
+  FbackupOption:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdUnitTypecontentAdsSettings.Setsize(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fsize=AValue) then exit;
+  Fsize:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdUnitTypecontentAdsSettings.Set_type(AIndex : Integer; AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TAdUnitTypecontentAdsSettings.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TAdUnitTypefeedAdsSettings
+  --------------------------------------------------------------------}
+
+
+Procedure TAdUnitTypefeedAdsSettings.SetadPosition(AIndex : Integer; AValue : String); 
+
+begin
+  If (FadPosition=AValue) then exit;
+  FadPosition:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdUnitTypefeedAdsSettings.Setfrequency(AIndex : Integer; AValue : integer); 
+
+begin
+  If (Ffrequency=AValue) then exit;
+  Ffrequency:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdUnitTypefeedAdsSettings.SetminimumWordCount(AIndex : Integer; AValue : integer); 
+
+begin
+  If (FminimumWordCount=AValue) then exit;
+  FminimumWordCount:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdUnitTypefeedAdsSettings.Set_type(AIndex : Integer; AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TAdUnitTypefeedAdsSettings.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TAdUnitTypemobileContentAdsSettings
+  --------------------------------------------------------------------}
+
+
+Procedure TAdUnitTypemobileContentAdsSettings.SetmarkupLanguage(AIndex : Integer; AValue : String); 
+
+begin
+  If (FmarkupLanguage=AValue) then exit;
+  FmarkupLanguage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdUnitTypemobileContentAdsSettings.SetscriptingLanguage(AIndex : Integer; AValue : String); 
+
+begin
+  If (FscriptingLanguage=AValue) then exit;
+  FscriptingLanguage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdUnitTypemobileContentAdsSettings.Setsize(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fsize=AValue) then exit;
+  Fsize:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdUnitTypemobileContentAdsSettings.Set_type(AIndex : Integer; AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TAdUnitTypemobileContentAdsSettings.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
   TAdUnit
   --------------------------------------------------------------------}
 
 
-Procedure TAdUnit.Setcode(AIndex : Integer; AValue : string); 
+Procedure TAdUnit.Setcode(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -1925,7 +1811,7 @@ end;
 
 
 
-Procedure TAdUnit.SetcontentAdsSettings(AIndex : Integer; AValue : TAdUnitcontentAdsSettings); 
+Procedure TAdUnit.SetcontentAdsSettings(AIndex : Integer; AValue : TAdUnitTypecontentAdsSettings); 
 
 begin
   If (FcontentAdsSettings=AValue) then exit;
@@ -1945,7 +1831,7 @@ end;
 
 
 
-Procedure TAdUnit.SetfeedAdsSettings(AIndex : Integer; AValue : TAdUnitfeedAdsSettings); 
+Procedure TAdUnit.SetfeedAdsSettings(AIndex : Integer; AValue : TAdUnitTypefeedAdsSettings); 
 
 begin
   If (FfeedAdsSettings=AValue) then exit;
@@ -1955,7 +1841,7 @@ end;
 
 
 
-Procedure TAdUnit.Setid(AIndex : Integer; AValue : string); 
+Procedure TAdUnit.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1965,7 +1851,7 @@ end;
 
 
 
-Procedure TAdUnit.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAdUnit.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1975,7 +1861,7 @@ end;
 
 
 
-Procedure TAdUnit.SetmobileContentAdsSettings(AIndex : Integer; AValue : TAdUnitmobileContentAdsSettings); 
+Procedure TAdUnit.SetmobileContentAdsSettings(AIndex : Integer; AValue : TAdUnitTypemobileContentAdsSettings); 
 
 begin
   If (FmobileContentAdsSettings=AValue) then exit;
@@ -1985,7 +1871,7 @@ end;
 
 
 
-Procedure TAdUnit.Setname(AIndex : Integer; AValue : string); 
+Procedure TAdUnit.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1995,7 +1881,7 @@ end;
 
 
 
-Procedure TAdUnit.SetsavedStyleId(AIndex : Integer; AValue : string); 
+Procedure TAdUnit.SetsavedStyleId(AIndex : Integer; AValue : String); 
 
 begin
   If (FsavedStyleId=AValue) then exit;
@@ -2005,7 +1891,7 @@ end;
 
 
 
-Procedure TAdUnit.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TAdUnit.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2018,223 +1904,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAdUnitcontentAdsSettings
-  --------------------------------------------------------------------}
-
-
-Procedure TAdUnitcontentAdsSettings.SetbackupOption(AIndex : Integer; AValue : TAdUnitcontentAdsSettingsbackupOption); 
-
-begin
-  If (FbackupOption=AValue) then exit;
-  FbackupOption:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdUnitcontentAdsSettings.Setsize(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fsize=AValue) then exit;
-  Fsize:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdUnitcontentAdsSettings.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TAdUnitcontentAdsSettings.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TAdUnitcontentAdsSettingsbackupOption
-  --------------------------------------------------------------------}
-
-
-Procedure TAdUnitcontentAdsSettingsbackupOption.Setcolor(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcolor=AValue) then exit;
-  Fcolor:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdUnitcontentAdsSettingsbackupOption.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdUnitcontentAdsSettingsbackupOption.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TAdUnitcontentAdsSettingsbackupOption.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TAdUnitfeedAdsSettings
-  --------------------------------------------------------------------}
-
-
-Procedure TAdUnitfeedAdsSettings.SetadPosition(AIndex : Integer; AValue : string); 
-
-begin
-  If (FadPosition=AValue) then exit;
-  FadPosition:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdUnitfeedAdsSettings.Setfrequency(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Ffrequency=AValue) then exit;
-  Ffrequency:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdUnitfeedAdsSettings.SetminimumWordCount(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FminimumWordCount=AValue) then exit;
-  FminimumWordCount:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdUnitfeedAdsSettings.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TAdUnitfeedAdsSettings.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TAdUnitmobileContentAdsSettings
-  --------------------------------------------------------------------}
-
-
-Procedure TAdUnitmobileContentAdsSettings.SetmarkupLanguage(AIndex : Integer; AValue : string); 
-
-begin
-  If (FmarkupLanguage=AValue) then exit;
-  FmarkupLanguage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdUnitmobileContentAdsSettings.SetscriptingLanguage(AIndex : Integer; AValue : string); 
-
-begin
-  If (FscriptingLanguage=AValue) then exit;
-  FscriptingLanguage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdUnitmobileContentAdsSettings.Setsize(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fsize=AValue) then exit;
-  Fsize:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdUnitmobileContentAdsSettings.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TAdUnitmobileContentAdsSettings.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
   TAdUnits
   --------------------------------------------------------------------}
 
 
-Procedure TAdUnits.Setetag(AIndex : Integer; AValue : string); 
+Procedure TAdUnits.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2244,7 +1918,7 @@ end;
 
 
 
-Procedure TAdUnits.Setitems(AIndex : Integer; AValue : TAdUnitsitems); 
+Procedure TAdUnits.Setitems(AIndex : Integer; AValue : TAdUnitsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2254,7 +1928,7 @@ end;
 
 
 
-Procedure TAdUnits.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAdUnits.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2264,7 +1938,7 @@ end;
 
 
 
-Procedure TAdUnits.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TAdUnits.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2277,122 +1951,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAdUnitsitems
+  TAdsenseReportsGenerateResponseTypeheadersItem
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TAdsenseReportsGenerateResponse
-  --------------------------------------------------------------------}
-
-
-Procedure TAdsenseReportsGenerateResponse.Setaverages(AIndex : Integer; AValue : TAdsenseReportsGenerateResponseaverages); 
-
-begin
-  If (Faverages=AValue) then exit;
-  Faverages:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdsenseReportsGenerateResponse.SetendDate(AIndex : Integer; AValue : string); 
-
-begin
-  If (FendDate=AValue) then exit;
-  FendDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdsenseReportsGenerateResponse.Setheaders(AIndex : Integer; AValue : TAdsenseReportsGenerateResponseheaders); 
-
-begin
-  If (Fheaders=AValue) then exit;
-  Fheaders:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdsenseReportsGenerateResponse.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdsenseReportsGenerateResponse.Setrows(AIndex : Integer; AValue : TAdsenseReportsGenerateResponserows); 
-
-begin
-  If (Frows=AValue) then exit;
-  Frows:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdsenseReportsGenerateResponse.SetstartDate(AIndex : Integer; AValue : string); 
-
-begin
-  If (FstartDate=AValue) then exit;
-  FstartDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdsenseReportsGenerateResponse.SettotalMatchedRows(AIndex : Integer; AValue : string); 
-
-begin
-  If (FtotalMatchedRows=AValue) then exit;
-  FtotalMatchedRows:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdsenseReportsGenerateResponse.Settotals(AIndex : Integer; AValue : TAdsenseReportsGenerateResponsetotals); 
-
-begin
-  If (Ftotals=AValue) then exit;
-  Ftotals:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAdsenseReportsGenerateResponse.Setwarnings(AIndex : Integer; AValue : TAdsenseReportsGenerateResponsewarnings); 
-
-begin
-  If (Fwarnings=AValue) then exit;
-  Fwarnings:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAdsenseReportsGenerateResponseaverages
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAdsenseReportsGenerateResponseheaders
-  --------------------------------------------------------------------}
-
-
-Procedure TAdsenseReportsGenerateResponseheaders.Setcurrency(AIndex : Integer; AValue : string); 
+Procedure TAdsenseReportsGenerateResponseTypeheadersItem.Setcurrency(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcurrency=AValue) then exit;
@@ -2402,7 +1965,7 @@ end;
 
 
 
-Procedure TAdsenseReportsGenerateResponseheaders.Setname(AIndex : Integer; AValue : string); 
+Procedure TAdsenseReportsGenerateResponseTypeheadersItem.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2412,7 +1975,7 @@ end;
 
 
 
-Procedure TAdsenseReportsGenerateResponseheaders.Set_type(AIndex : Integer; AValue : string); 
+Procedure TAdsenseReportsGenerateResponseTypeheadersItem.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2422,7 +1985,7 @@ end;
 
 
 
-Class Function TAdsenseReportsGenerateResponseheaders.ExportPropertyName(Const AName : String) :String;
+Class Function TAdsenseReportsGenerateResponseTypeheadersItem.ExportPropertyName(Const AName : String) :String;
 
 begin
   Case AName of
@@ -2436,22 +1999,98 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAdsenseReportsGenerateResponserows
+  TAdsenseReportsGenerateResponse
   --------------------------------------------------------------------}
 
 
+Procedure TAdsenseReportsGenerateResponse.Setaverages(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (Faverages=AValue) then exit;
+  Faverages:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
 
 
-{ --------------------------------------------------------------------
-  TAdsenseReportsGenerateResponsetotals
-  --------------------------------------------------------------------}
+
+Procedure TAdsenseReportsGenerateResponse.SetendDate(AIndex : Integer; AValue : String); 
+
+begin
+  If (FendDate=AValue) then exit;
+  FendDate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
 
 
 
+Procedure TAdsenseReportsGenerateResponse.Setheaders(AIndex : Integer; AValue : TAdsenseReportsGenerateResponseTypeheadersArray); 
 
-{ --------------------------------------------------------------------
-  TAdsenseReportsGenerateResponsewarnings
-  --------------------------------------------------------------------}
+begin
+  If (Fheaders=AValue) then exit;
+  Fheaders:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdsenseReportsGenerateResponse.Setkind(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdsenseReportsGenerateResponse.Setrows(AIndex : Integer; AValue : TAdsenseReportsGenerateResponseTyperowsArray); 
+
+begin
+  If (Frows=AValue) then exit;
+  Frows:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdsenseReportsGenerateResponse.SetstartDate(AIndex : Integer; AValue : String); 
+
+begin
+  If (FstartDate=AValue) then exit;
+  FstartDate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdsenseReportsGenerateResponse.SettotalMatchedRows(AIndex : Integer; AValue : String); 
+
+begin
+  If (FtotalMatchedRows=AValue) then exit;
+  FtotalMatchedRows:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdsenseReportsGenerateResponse.Settotals(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (Ftotals=AValue) then exit;
+  Ftotals:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAdsenseReportsGenerateResponse.Setwarnings(AIndex : Integer; AValue : TStringArray); 
+
+begin
+  If (Fwarnings=AValue) then exit;
+  Fwarnings:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -2461,7 +2100,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAlert.Setid(AIndex : Integer; AValue : string); 
+Procedure TAlert.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2481,7 +2120,7 @@ end;
 
 
 
-Procedure TAlert.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAlert.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2491,7 +2130,7 @@ end;
 
 
 
-Procedure TAlert.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TAlert.Setmessage(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -2501,7 +2140,7 @@ end;
 
 
 
-Procedure TAlert.Setseverity(AIndex : Integer; AValue : string); 
+Procedure TAlert.Setseverity(AIndex : Integer; AValue : String); 
 
 begin
   If (Fseverity=AValue) then exit;
@@ -2511,7 +2150,7 @@ end;
 
 
 
-Procedure TAlert.Set_type(AIndex : Integer; AValue : string); 
+Procedure TAlert.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2539,7 +2178,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAlerts.Setitems(AIndex : Integer; AValue : TAlertsitems); 
+Procedure TAlerts.Setitems(AIndex : Integer; AValue : TAlertsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2549,7 +2188,7 @@ end;
 
 
 
-Procedure TAlerts.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAlerts.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2562,75 +2201,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAlertsitems
+  TCustomChannelTypetargetingInfo
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TCustomChannel
-  --------------------------------------------------------------------}
-
-
-Procedure TCustomChannel.Setcode(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCustomChannel.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCustomChannel.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCustomChannel.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCustomChannel.SettargetingInfo(AIndex : Integer; AValue : TCustomChanneltargetingInfo); 
-
-begin
-  If (FtargetingInfo=AValue) then exit;
-  FtargetingInfo:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCustomChanneltargetingInfo
-  --------------------------------------------------------------------}
-
-
-Procedure TCustomChanneltargetingInfo.SetadsAppearOn(AIndex : Integer; AValue : string); 
+Procedure TCustomChannelTypetargetingInfo.SetadsAppearOn(AIndex : Integer; AValue : String); 
 
 begin
   If (FadsAppearOn=AValue) then exit;
@@ -2640,7 +2215,7 @@ end;
 
 
 
-Procedure TCustomChanneltargetingInfo.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TCustomChannelTypetargetingInfo.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2650,7 +2225,7 @@ end;
 
 
 
-Procedure TCustomChanneltargetingInfo.Setlocation(AIndex : Integer; AValue : string); 
+Procedure TCustomChannelTypetargetingInfo.Setlocation(AIndex : Integer; AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -2660,7 +2235,7 @@ end;
 
 
 
-Procedure TCustomChanneltargetingInfo.SetsiteLanguage(AIndex : Integer; AValue : string); 
+Procedure TCustomChannelTypetargetingInfo.SetsiteLanguage(AIndex : Integer; AValue : String); 
 
 begin
   If (FsiteLanguage=AValue) then exit;
@@ -2673,31 +2248,31 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCustomChannels
+  TCustomChannel
   --------------------------------------------------------------------}
 
 
-Procedure TCustomChannels.Setetag(AIndex : Integer; AValue : string); 
+Procedure TCustomChannel.Setcode(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TCustomChannels.Setitems(AIndex : Integer; AValue : TCustomChannelsitems); 
+Procedure TCustomChannel.Setid(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TCustomChannels.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCustomChannel.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2707,7 +2282,64 @@ end;
 
 
 
-Procedure TCustomChannels.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TCustomChannel.Setname(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCustomChannel.SettargetingInfo(AIndex : Integer; AValue : TCustomChannelTypetargetingInfo); 
+
+begin
+  If (FtargetingInfo=AValue) then exit;
+  FtargetingInfo:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCustomChannels
+  --------------------------------------------------------------------}
+
+
+Procedure TCustomChannels.Setetag(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fetag=AValue) then exit;
+  Fetag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCustomChannels.Setitems(AIndex : Integer; AValue : TCustomChannelsTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCustomChannels.Setkind(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCustomChannels.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2720,18 +2352,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCustomChannelsitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMetadata
   --------------------------------------------------------------------}
 
 
-Procedure TMetadata.Setitems(AIndex : Integer; AValue : TMetadataitems); 
+Procedure TMetadata.Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2741,7 +2366,7 @@ end;
 
 
 
-Procedure TMetadata.Setkind(AIndex : Integer; AValue : string); 
+Procedure TMetadata.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2749,13 +2374,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TMetadataitems
-  --------------------------------------------------------------------}
 
 
 
@@ -2765,7 +2383,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPayment.Setid(AIndex : Integer; AValue : string); 
+Procedure TPayment.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2775,7 +2393,7 @@ end;
 
 
 
-Procedure TPayment.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPayment.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2785,7 +2403,7 @@ end;
 
 
 
-Procedure TPayment.SetpaymentAmount(AIndex : Integer; AValue : string); 
+Procedure TPayment.SetpaymentAmount(AIndex : Integer; AValue : String); 
 
 begin
   If (FpaymentAmount=AValue) then exit;
@@ -2795,7 +2413,7 @@ end;
 
 
 
-Procedure TPayment.SetpaymentAmountCurrencyCode(AIndex : Integer; AValue : string); 
+Procedure TPayment.SetpaymentAmountCurrencyCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FpaymentAmountCurrencyCode=AValue) then exit;
@@ -2805,7 +2423,7 @@ end;
 
 
 
-Procedure TPayment.SetpaymentDate(AIndex : Integer; AValue : string); 
+Procedure TPayment.SetpaymentDate(AIndex : Integer; AValue : String); 
 
 begin
   If (FpaymentDate=AValue) then exit;
@@ -2822,7 +2440,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPayments.Setitems(AIndex : Integer; AValue : TPaymentsitems); 
+Procedure TPayments.Setitems(AIndex : Integer; AValue : TPaymentsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2832,7 +2450,7 @@ end;
 
 
 
-Procedure TPayments.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPayments.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2840,13 +2458,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TPaymentsitems
-  --------------------------------------------------------------------}
 
 
 
@@ -2856,7 +2467,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportingMetadataEntry.SetcompatibleDimensions(AIndex : Integer; AValue : TReportingMetadataEntrycompatibleDimensions); 
+Procedure TReportingMetadataEntry.SetcompatibleDimensions(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FcompatibleDimensions=AValue) then exit;
@@ -2866,7 +2477,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.SetcompatibleMetrics(AIndex : Integer; AValue : TReportingMetadataEntrycompatibleMetrics); 
+Procedure TReportingMetadataEntry.SetcompatibleMetrics(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FcompatibleMetrics=AValue) then exit;
@@ -2876,7 +2487,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.Setid(AIndex : Integer; AValue : string); 
+Procedure TReportingMetadataEntry.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2886,7 +2497,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.Setkind(AIndex : Integer; AValue : string); 
+Procedure TReportingMetadataEntry.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2896,7 +2507,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.SetrequiredDimensions(AIndex : Integer; AValue : TReportingMetadataEntryrequiredDimensions); 
+Procedure TReportingMetadataEntry.SetrequiredDimensions(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FrequiredDimensions=AValue) then exit;
@@ -2906,7 +2517,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.SetrequiredMetrics(AIndex : Integer; AValue : TReportingMetadataEntryrequiredMetrics); 
+Procedure TReportingMetadataEntry.SetrequiredMetrics(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FrequiredMetrics=AValue) then exit;
@@ -2916,7 +2527,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.SetsupportedProducts(AIndex : Integer; AValue : TReportingMetadataEntrysupportedProducts); 
+Procedure TReportingMetadataEntry.SetsupportedProducts(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsupportedProducts=AValue) then exit;
@@ -2924,41 +2535,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TReportingMetadataEntrycompatibleDimensions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TReportingMetadataEntrycompatibleMetrics
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TReportingMetadataEntryrequiredDimensions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TReportingMetadataEntryrequiredMetrics
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TReportingMetadataEntrysupportedProducts
-  --------------------------------------------------------------------}
 
 
 
@@ -2978,7 +2554,7 @@ end;
 
 
 
-Procedure TSavedAdStyle.Setid(AIndex : Integer; AValue : string); 
+Procedure TSavedAdStyle.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2988,7 +2564,7 @@ end;
 
 
 
-Procedure TSavedAdStyle.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSavedAdStyle.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2998,7 +2574,7 @@ end;
 
 
 
-Procedure TSavedAdStyle.Setname(AIndex : Integer; AValue : string); 
+Procedure TSavedAdStyle.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3015,7 +2591,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSavedAdStyles.Setetag(AIndex : Integer; AValue : string); 
+Procedure TSavedAdStyles.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -3025,7 +2601,7 @@ end;
 
 
 
-Procedure TSavedAdStyles.Setitems(AIndex : Integer; AValue : TSavedAdStylesitems); 
+Procedure TSavedAdStyles.Setitems(AIndex : Integer; AValue : TSavedAdStylesTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -3035,7 +2611,7 @@ end;
 
 
 
-Procedure TSavedAdStyles.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSavedAdStyles.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3045,7 +2621,7 @@ end;
 
 
 
-Procedure TSavedAdStyles.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSavedAdStyles.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3058,18 +2634,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSavedAdStylesitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSavedReport
   --------------------------------------------------------------------}
 
 
-Procedure TSavedReport.Setid(AIndex : Integer; AValue : string); 
+Procedure TSavedReport.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3079,7 +2648,7 @@ end;
 
 
 
-Procedure TSavedReport.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSavedReport.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3089,7 +2658,7 @@ end;
 
 
 
-Procedure TSavedReport.Setname(AIndex : Integer; AValue : string); 
+Procedure TSavedReport.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3106,7 +2675,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSavedReports.Setetag(AIndex : Integer; AValue : string); 
+Procedure TSavedReports.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -3116,7 +2685,7 @@ end;
 
 
 
-Procedure TSavedReports.Setitems(AIndex : Integer; AValue : TSavedReportsitems); 
+Procedure TSavedReports.Setitems(AIndex : Integer; AValue : TSavedReportsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -3126,7 +2695,7 @@ end;
 
 
 
-Procedure TSavedReports.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSavedReports.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3136,7 +2705,7 @@ end;
 
 
 
-Procedure TSavedReports.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSavedReports.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3149,18 +2718,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSavedReportsitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TUrlChannel
   --------------------------------------------------------------------}
 
 
-Procedure TUrlChannel.Setid(AIndex : Integer; AValue : string); 
+Procedure TUrlChannel.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3170,7 +2732,7 @@ end;
 
 
 
-Procedure TUrlChannel.Setkind(AIndex : Integer; AValue : string); 
+Procedure TUrlChannel.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3180,7 +2742,7 @@ end;
 
 
 
-Procedure TUrlChannel.SeturlPattern(AIndex : Integer; AValue : string); 
+Procedure TUrlChannel.SeturlPattern(AIndex : Integer; AValue : String); 
 
 begin
   If (FurlPattern=AValue) then exit;
@@ -3197,7 +2759,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlChannels.Setetag(AIndex : Integer; AValue : string); 
+Procedure TUrlChannels.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -3207,7 +2769,7 @@ end;
 
 
 
-Procedure TUrlChannels.Setitems(AIndex : Integer; AValue : TUrlChannelsitems); 
+Procedure TUrlChannels.Setitems(AIndex : Integer; AValue : TUrlChannelsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -3217,7 +2779,7 @@ end;
 
 
 
-Procedure TUrlChannels.Setkind(AIndex : Integer; AValue : string); 
+Procedure TUrlChannels.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3227,7 +2789,7 @@ end;
 
 
 
-Procedure TUrlChannels.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TUrlChannels.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3235,13 +2797,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TUrlChannelsitems
-  --------------------------------------------------------------------}
 
 
 
@@ -3890,56 +3445,36 @@ Class Procedure TAdsenseAPI.RegisterAPIResources;
 
 begin
   TAccount.RegisterObject;
-  TAccountsubAccounts.RegisterObject;
   TAccounts.RegisterObject;
-  TAccountsitems.RegisterObject;
   TAdClient.RegisterObject;
   TAdClients.RegisterObject;
-  TAdClientsitems.RegisterObject;
   TAdCode.RegisterObject;
+  TAdStyleTypecolors.RegisterObject;
+  TAdStyleTypefont.RegisterObject;
   TAdStyle.RegisterObject;
-  TAdStylecolors.RegisterObject;
-  TAdStylefont.RegisterObject;
+  TAdUnitTypecontentAdsSettingsTypebackupOption.RegisterObject;
+  TAdUnitTypecontentAdsSettings.RegisterObject;
+  TAdUnitTypefeedAdsSettings.RegisterObject;
+  TAdUnitTypemobileContentAdsSettings.RegisterObject;
   TAdUnit.RegisterObject;
-  TAdUnitcontentAdsSettings.RegisterObject;
-  TAdUnitcontentAdsSettingsbackupOption.RegisterObject;
-  TAdUnitfeedAdsSettings.RegisterObject;
-  TAdUnitmobileContentAdsSettings.RegisterObject;
   TAdUnits.RegisterObject;
-  TAdUnitsitems.RegisterObject;
+  TAdsenseReportsGenerateResponseTypeheadersItem.RegisterObject;
   TAdsenseReportsGenerateResponse.RegisterObject;
-  TAdsenseReportsGenerateResponseaverages.RegisterObject;
-  TAdsenseReportsGenerateResponseheaders.RegisterObject;
-  TAdsenseReportsGenerateResponserows.RegisterObject;
-  TAdsenseReportsGenerateResponsetotals.RegisterObject;
-  TAdsenseReportsGenerateResponsewarnings.RegisterObject;
   TAlert.RegisterObject;
   TAlerts.RegisterObject;
-  TAlertsitems.RegisterObject;
+  TCustomChannelTypetargetingInfo.RegisterObject;
   TCustomChannel.RegisterObject;
-  TCustomChanneltargetingInfo.RegisterObject;
   TCustomChannels.RegisterObject;
-  TCustomChannelsitems.RegisterObject;
   TMetadata.RegisterObject;
-  TMetadataitems.RegisterObject;
   TPayment.RegisterObject;
   TPayments.RegisterObject;
-  TPaymentsitems.RegisterObject;
   TReportingMetadataEntry.RegisterObject;
-  TReportingMetadataEntrycompatibleDimensions.RegisterObject;
-  TReportingMetadataEntrycompatibleMetrics.RegisterObject;
-  TReportingMetadataEntryrequiredDimensions.RegisterObject;
-  TReportingMetadataEntryrequiredMetrics.RegisterObject;
-  TReportingMetadataEntrysupportedProducts.RegisterObject;
   TSavedAdStyle.RegisterObject;
   TSavedAdStyles.RegisterObject;
-  TSavedAdStylesitems.RegisterObject;
   TSavedReport.RegisterObject;
   TSavedReports.RegisterObject;
-  TSavedReportsitems.RegisterObject;
   TUrlChannel.RegisterObject;
   TUrlChannels.RegisterObject;
-  TUrlChannelsitems.RegisterObject;
 end;
 
 

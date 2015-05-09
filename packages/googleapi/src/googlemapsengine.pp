@@ -1,31 +1,19 @@
 unit googlemapsengine;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:56
 {$MODE objfpc}
 {$H+}
 
@@ -34,265 +22,198 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAcquisitionTime = class;
-  TAcquisitionTimeArray = Array of TAcquisitionTime;
   TAsset = class;
-  TAssetArray = Array of TAsset;
-  TAssetbbox = class;
-  TAssetbboxArray = Array of TAssetbbox;
-  TAssettags = class;
-  TAssettagsArray = Array of TAssettags;
   TAssetsListResponse = class;
-  TAssetsListResponseArray = Array of TAssetsListResponse;
-  TAssetsListResponseassets = class;
-  TAssetsListResponseassetsArray = Array of TAssetsListResponseassets;
   TBorder = class;
-  TBorderArray = Array of TBorder;
   TColor = class;
-  TColorArray = Array of TColor;
   TDatasource = class;
-  TDatasourceArray = Array of TDatasource;
-  TDatasources = class;
-  TDatasourcesArray = Array of TDatasources;
   TDisplayRule = class;
-  TDisplayRuleArray = Array of TDisplayRule;
-  TDisplayRulefilters = class;
-  TDisplayRulefiltersArray = Array of TDisplayRulefilters;
   TFeature = class;
-  TFeatureArray = Array of TFeature;
   TFeatureInfo = class;
-  TFeatureInfoArray = Array of TFeatureInfo;
   TFeaturesBatchDeleteRequest = class;
-  TFeaturesBatchDeleteRequestArray = Array of TFeaturesBatchDeleteRequest;
-  TFeaturesBatchDeleteRequestgx_ids = class;
-  TFeaturesBatchDeleteRequestgx_idsArray = Array of TFeaturesBatchDeleteRequestgx_ids;
-  TFeaturesBatchDeleteRequestprimaryKeys = class;
-  TFeaturesBatchDeleteRequestprimaryKeysArray = Array of TFeaturesBatchDeleteRequestprimaryKeys;
   TFeaturesBatchInsertRequest = class;
-  TFeaturesBatchInsertRequestArray = Array of TFeaturesBatchInsertRequest;
-  TFeaturesBatchInsertRequestfeatures = class;
-  TFeaturesBatchInsertRequestfeaturesArray = Array of TFeaturesBatchInsertRequestfeatures;
   TFeaturesBatchPatchRequest = class;
-  TFeaturesBatchPatchRequestArray = Array of TFeaturesBatchPatchRequest;
-  TFeaturesBatchPatchRequestfeatures = class;
-  TFeaturesBatchPatchRequestfeaturesArray = Array of TFeaturesBatchPatchRequestfeatures;
   TFeaturesListResponse = class;
-  TFeaturesListResponseArray = Array of TFeaturesListResponse;
-  TFeaturesListResponsefeatures = class;
-  TFeaturesListResponsefeaturesArray = Array of TFeaturesListResponsefeatures;
   TFile = class;
-  TFileArray = Array of TFile;
   TFilter = class;
-  TFilterArray = Array of TFilter;
   TGeoJsonGeometry = class;
-  TGeoJsonGeometryArray = Array of TGeoJsonGeometry;
   TGeoJsonGeometryCollection = class;
-  TGeoJsonGeometryCollectionArray = Array of TGeoJsonGeometryCollection;
-  TGeoJsonGeometryCollectiongeometries = class;
-  TGeoJsonGeometryCollectiongeometriesArray = Array of TGeoJsonGeometryCollectiongeometries;
   TGeoJsonLineString = class;
-  TGeoJsonLineStringArray = Array of TGeoJsonLineString;
-  TGeoJsonLineStringcoordinates = class;
-  TGeoJsonLineStringcoordinatesArray = Array of TGeoJsonLineStringcoordinates;
   TGeoJsonMultiLineString = class;
-  TGeoJsonMultiLineStringArray = Array of TGeoJsonMultiLineString;
-  TGeoJsonMultiLineStringcoordinates = class;
-  TGeoJsonMultiLineStringcoordinatesArray = Array of TGeoJsonMultiLineStringcoordinates;
   TGeoJsonMultiPoint = class;
-  TGeoJsonMultiPointArray = Array of TGeoJsonMultiPoint;
-  TGeoJsonMultiPointcoordinates = class;
-  TGeoJsonMultiPointcoordinatesArray = Array of TGeoJsonMultiPointcoordinates;
   TGeoJsonMultiPolygon = class;
-  TGeoJsonMultiPolygonArray = Array of TGeoJsonMultiPolygon;
-  TGeoJsonMultiPolygoncoordinates = class;
-  TGeoJsonMultiPolygoncoordinatesArray = Array of TGeoJsonMultiPolygoncoordinates;
   TGeoJsonPoint = class;
-  TGeoJsonPointArray = Array of TGeoJsonPoint;
   TGeoJsonPolygon = class;
-  TGeoJsonPolygonArray = Array of TGeoJsonPolygon;
-  TGeoJsonPolygoncoordinates = class;
-  TGeoJsonPolygoncoordinatesArray = Array of TGeoJsonPolygoncoordinates;
-  TGeoJsonPosition = class;
-  TGeoJsonPositionArray = Array of TGeoJsonPosition;
   TGeoJsonProperties = class;
-  TGeoJsonPropertiesArray = Array of TGeoJsonProperties;
   TIcon = class;
-  TIconArray = Array of TIcon;
   TIconStyle = class;
-  TIconStyleArray = Array of TIconStyle;
   TIconsListResponse = class;
-  TIconsListResponseArray = Array of TIconsListResponse;
-  TIconsListResponseicons = class;
-  TIconsListResponseiconsArray = Array of TIconsListResponseicons;
   TLabelStyle = class;
-  TLabelStyleArray = Array of TLabelStyle;
-  TLatLngBox = class;
-  TLatLngBoxArray = Array of TLatLngBox;
   TLayer = class;
-  TLayerArray = Array of TLayer;
-  TLayerbbox = class;
-  TLayerbboxArray = Array of TLayerbbox;
   TLayersListResponse = class;
-  TLayersListResponseArray = Array of TLayersListResponse;
-  TLayersListResponselayers = class;
-  TLayersListResponselayersArray = Array of TLayersListResponselayers;
   TLineStyle = class;
-  TLineStyleArray = Array of TLineStyle;
-  TLineStyledash = class;
-  TLineStyledashArray = Array of TLineStyledash;
-  TLineStylestroke = class;
-  TLineStylestrokeArray = Array of TLineStylestroke;
   TMap = class;
-  TMapArray = Array of TMap;
-  TMapbbox = class;
-  TMapbboxArray = Array of TMapbbox;
-  TMapversions = class;
-  TMapversionsArray = Array of TMapversions;
-  TMapContents = class;
-  TMapContentsArray = Array of TMapContents;
   TMapFolder = class;
-  TMapFolderArray = Array of TMapFolder;
-  TMapFoldercontents = class;
-  TMapFoldercontentsArray = Array of TMapFoldercontents;
-  TMapFolderdefaultViewport = class;
-  TMapFolderdefaultViewportArray = Array of TMapFolderdefaultViewport;
   TMapItem = class;
-  TMapItemArray = Array of TMapItem;
   TMapKmlLink = class;
-  TMapKmlLinkArray = Array of TMapKmlLink;
-  TMapKmlLinkdefaultViewport = class;
-  TMapKmlLinkdefaultViewportArray = Array of TMapKmlLinkdefaultViewport;
   TMapLayer = class;
-  TMapLayerArray = Array of TMapLayer;
-  TMapLayerdefaultViewport = class;
-  TMapLayerdefaultViewportArray = Array of TMapLayerdefaultViewport;
   TMapsListResponse = class;
-  TMapsListResponseArray = Array of TMapsListResponse;
-  TMapsListResponsemaps = class;
-  TMapsListResponsemapsArray = Array of TMapsListResponsemaps;
   TParent = class;
-  TParentArray = Array of TParent;
   TParentsListResponse = class;
-  TParentsListResponseArray = Array of TParentsListResponse;
-  TParentsListResponseparents = class;
-  TParentsListResponseparentsArray = Array of TParentsListResponseparents;
   TPermission = class;
-  TPermissionArray = Array of TPermission;
   TPermissionsBatchDeleteRequest = class;
-  TPermissionsBatchDeleteRequestArray = Array of TPermissionsBatchDeleteRequest;
-  TPermissionsBatchDeleteRequestids = class;
-  TPermissionsBatchDeleteRequestidsArray = Array of TPermissionsBatchDeleteRequestids;
   TPermissionsBatchDeleteResponse = class;
-  TPermissionsBatchDeleteResponseArray = Array of TPermissionsBatchDeleteResponse;
   TPermissionsBatchUpdateRequest = class;
-  TPermissionsBatchUpdateRequestArray = Array of TPermissionsBatchUpdateRequest;
-  TPermissionsBatchUpdateRequestpermissions = class;
-  TPermissionsBatchUpdateRequestpermissionsArray = Array of TPermissionsBatchUpdateRequestpermissions;
   TPermissionsBatchUpdateResponse = class;
-  TPermissionsBatchUpdateResponseArray = Array of TPermissionsBatchUpdateResponse;
   TPermissionsListResponse = class;
-  TPermissionsListResponseArray = Array of TPermissionsListResponse;
-  TPermissionsListResponsepermissions = class;
-  TPermissionsListResponsepermissionsArray = Array of TPermissionsListResponsepermissions;
   TPointStyle = class;
-  TPointStyleArray = Array of TPointStyle;
   TPolygonStyle = class;
-  TPolygonStyleArray = Array of TPolygonStyle;
   TProcessResponse = class;
-  TProcessResponseArray = Array of TProcessResponse;
   TProject = class;
-  TProjectArray = Array of TProject;
   TProjectsListResponse = class;
-  TProjectsListResponseArray = Array of TProjectsListResponse;
-  TProjectsListResponseprojects = class;
-  TProjectsListResponseprojectsArray = Array of TProjectsListResponseprojects;
   TPublishResponse = class;
-  TPublishResponseArray = Array of TPublishResponse;
   TPublishedLayer = class;
-  TPublishedLayerArray = Array of TPublishedLayer;
   TPublishedLayersListResponse = class;
-  TPublishedLayersListResponseArray = Array of TPublishedLayersListResponse;
-  TPublishedLayersListResponselayers = class;
-  TPublishedLayersListResponselayersArray = Array of TPublishedLayersListResponselayers;
   TPublishedMap = class;
-  TPublishedMapArray = Array of TPublishedMap;
   TPublishedMapsListResponse = class;
-  TPublishedMapsListResponseArray = Array of TPublishedMapsListResponse;
-  TPublishedMapsListResponsemaps = class;
-  TPublishedMapsListResponsemapsArray = Array of TPublishedMapsListResponsemaps;
   TRaster = class;
-  TRasterArray = Array of TRaster;
-  TRasterbbox = class;
-  TRasterbboxArray = Array of TRasterbbox;
-  TRasterfiles = class;
-  TRasterfilesArray = Array of TRasterfiles;
   TRasterCollection = class;
-  TRasterCollectionArray = Array of TRasterCollection;
-  TRasterCollectionbbox = class;
-  TRasterCollectionbboxArray = Array of TRasterCollectionbbox;
   TRasterCollectionsListResponse = class;
-  TRasterCollectionsListResponseArray = Array of TRasterCollectionsListResponse;
-  TRasterCollectionsListResponserasterCollections = class;
-  TRasterCollectionsListResponserasterCollectionsArray = Array of TRasterCollectionsListResponserasterCollections;
   TRasterCollectionsRaster = class;
-  TRasterCollectionsRasterArray = Array of TRasterCollectionsRaster;
-  TRasterCollectionsRasterbbox = class;
-  TRasterCollectionsRasterbboxArray = Array of TRasterCollectionsRasterbbox;
-  TRasterCollectionsRastertags = class;
-  TRasterCollectionsRastertagsArray = Array of TRasterCollectionsRastertags;
   TRasterCollectionsRasterBatchDeleteRequest = class;
-  TRasterCollectionsRasterBatchDeleteRequestArray = Array of TRasterCollectionsRasterBatchDeleteRequest;
-  TRasterCollectionsRasterBatchDeleteRequestids = class;
-  TRasterCollectionsRasterBatchDeleteRequestidsArray = Array of TRasterCollectionsRasterBatchDeleteRequestids;
   TRasterCollectionsRastersBatchDeleteResponse = class;
-  TRasterCollectionsRastersBatchDeleteResponseArray = Array of TRasterCollectionsRastersBatchDeleteResponse;
   TRasterCollectionsRastersBatchInsertRequest = class;
-  TRasterCollectionsRastersBatchInsertRequestArray = Array of TRasterCollectionsRastersBatchInsertRequest;
-  TRasterCollectionsRastersBatchInsertRequestids = class;
-  TRasterCollectionsRastersBatchInsertRequestidsArray = Array of TRasterCollectionsRastersBatchInsertRequestids;
   TRasterCollectionsRastersBatchInsertResponse = class;
-  TRasterCollectionsRastersBatchInsertResponseArray = Array of TRasterCollectionsRastersBatchInsertResponse;
   TRasterCollectionsRastersListResponse = class;
-  TRasterCollectionsRastersListResponseArray = Array of TRasterCollectionsRastersListResponse;
-  TRasterCollectionsRastersListResponserasters = class;
-  TRasterCollectionsRastersListResponserastersArray = Array of TRasterCollectionsRastersListResponserasters;
   TRastersListResponse = class;
-  TRastersListResponseArray = Array of TRastersListResponse;
-  TRastersListResponserasters = class;
-  TRastersListResponserastersArray = Array of TRastersListResponserasters;
   TScaledShape = class;
-  TScaledShapeArray = Array of TScaledShape;
   TScalingFunction = class;
-  TScalingFunctionArray = Array of TScalingFunction;
   TSchema = class;
-  TSchemaArray = Array of TSchema;
-  TSchemacolumns = class;
-  TSchemacolumnsArray = Array of TSchemacolumns;
   TSizeRange = class;
-  TSizeRangeArray = Array of TSizeRange;
   TTable = class;
-  TTableArray = Array of TTable;
-  TTablebbox = class;
-  TTablebboxArray = Array of TTablebbox;
-  TTablefiles = class;
-  TTablefilesArray = Array of TTablefiles;
   TTableColumn = class;
-  TTableColumnArray = Array of TTableColumn;
   TTablesListResponse = class;
-  TTablesListResponseArray = Array of TTablesListResponse;
-  TTablesListResponsetables = class;
-  TTablesListResponsetablesArray = Array of TTablesListResponsetables;
-  TTags = class;
-  TTagsArray = Array of TTags;
   TValueRange = class;
-  TValueRangeArray = Array of TValueRange;
   TVectorStyle = class;
-  TVectorStyleArray = Array of TVectorStyle;
-  TVectorStyledisplayRules = class;
-  TVectorStyledisplayRulesArray = Array of TVectorStyledisplayRules;
   TZoomLevels = class;
+  TAcquisitionTimeArray = Array of TAcquisitionTime;
+  TAssetArray = Array of TAsset;
+  TAssetsListResponseArray = Array of TAssetsListResponse;
+  TBorderArray = Array of TBorder;
+  TColorArray = Array of TColor;
+  TDatasourceArray = Array of TDatasource;
+  TDatasources = Array of TDatasource;
+  TDisplayRuleArray = Array of TDisplayRule;
+  TFeatureArray = Array of TFeature;
+  TFeatureInfoArray = Array of TFeatureInfo;
+  TFeaturesBatchDeleteRequestArray = Array of TFeaturesBatchDeleteRequest;
+  TFeaturesBatchInsertRequestArray = Array of TFeaturesBatchInsertRequest;
+  TFeaturesBatchPatchRequestArray = Array of TFeaturesBatchPatchRequest;
+  TFeaturesListResponseArray = Array of TFeaturesListResponse;
+  TFileArray = Array of TFile;
+  TFilterArray = Array of TFilter;
+  TGeoJsonGeometryArray = Array of TGeoJsonGeometry;
+  TGeoJsonGeometryCollectionArray = Array of TGeoJsonGeometryCollection;
+  TGeoJsonLineStringArray = Array of TGeoJsonLineString;
+  TGeoJsonMultiLineStringArray = Array of TGeoJsonMultiLineString;
+  TGeoJsonMultiPointArray = Array of TGeoJsonMultiPoint;
+  TGeoJsonMultiPolygonArray = Array of TGeoJsonMultiPolygon;
+  TGeoJsonPointArray = Array of TGeoJsonPoint;
+  TGeoJsonPolygonArray = Array of TGeoJsonPolygon;
+  TGeoJsonPosition = Array of double;
+  TGeoJsonPropertiesArray = Array of TGeoJsonProperties;
+  TIconArray = Array of TIcon;
+  TIconStyleArray = Array of TIconStyle;
+  TIconsListResponseArray = Array of TIconsListResponse;
+  TLabelStyleArray = Array of TLabelStyle;
+  TLatLngBox = Array of double;
+  TLayerArray = Array of TLayer;
+  TLayersListResponseArray = Array of TLayersListResponse;
+  TLineStyleArray = Array of TLineStyle;
+  TMapArray = Array of TMap;
+  TMapContents = Array of TMapItem;
+  TMapFolderArray = Array of TMapFolder;
+  TMapItemArray = Array of TMapItem;
+  TMapKmlLinkArray = Array of TMapKmlLink;
+  TMapLayerArray = Array of TMapLayer;
+  TMapsListResponseArray = Array of TMapsListResponse;
+  TParentArray = Array of TParent;
+  TParentsListResponseArray = Array of TParentsListResponse;
+  TPermissionArray = Array of TPermission;
+  TPermissionsBatchDeleteRequestArray = Array of TPermissionsBatchDeleteRequest;
+  TPermissionsBatchDeleteResponseArray = Array of TPermissionsBatchDeleteResponse;
+  TPermissionsBatchUpdateRequestArray = Array of TPermissionsBatchUpdateRequest;
+  TPermissionsBatchUpdateResponseArray = Array of TPermissionsBatchUpdateResponse;
+  TPermissionsListResponseArray = Array of TPermissionsListResponse;
+  TPointStyleArray = Array of TPointStyle;
+  TPolygonStyleArray = Array of TPolygonStyle;
+  TProcessResponseArray = Array of TProcessResponse;
+  TProjectArray = Array of TProject;
+  TProjectsListResponseArray = Array of TProjectsListResponse;
+  TPublishResponseArray = Array of TPublishResponse;
+  TPublishedLayerArray = Array of TPublishedLayer;
+  TPublishedLayersListResponseArray = Array of TPublishedLayersListResponse;
+  TPublishedMapArray = Array of TPublishedMap;
+  TPublishedMapsListResponseArray = Array of TPublishedMapsListResponse;
+  TRasterArray = Array of TRaster;
+  TRasterCollectionArray = Array of TRasterCollection;
+  TRasterCollectionsListResponseArray = Array of TRasterCollectionsListResponse;
+  TRasterCollectionsRasterArray = Array of TRasterCollectionsRaster;
+  TRasterCollectionsRasterBatchDeleteRequestArray = Array of TRasterCollectionsRasterBatchDeleteRequest;
+  TRasterCollectionsRastersBatchDeleteResponseArray = Array of TRasterCollectionsRastersBatchDeleteResponse;
+  TRasterCollectionsRastersBatchInsertRequestArray = Array of TRasterCollectionsRastersBatchInsertRequest;
+  TRasterCollectionsRastersBatchInsertResponseArray = Array of TRasterCollectionsRastersBatchInsertResponse;
+  TRasterCollectionsRastersListResponseArray = Array of TRasterCollectionsRastersListResponse;
+  TRastersListResponseArray = Array of TRastersListResponse;
+  TScaledShapeArray = Array of TScaledShape;
+  TScalingFunctionArray = Array of TScalingFunction;
+  TSchemaArray = Array of TSchema;
+  TSizeRangeArray = Array of TSizeRange;
+  TTableArray = Array of TTable;
+  TTableColumnArray = Array of TTableColumn;
+  TTablesListResponseArray = Array of TTablesListResponse;
+  TTags = Array of String;
+  TValueRangeArray = Array of TValueRange;
+  TVectorStyleArray = Array of TVectorStyle;
   TZoomLevelsArray = Array of TZoomLevels;
+  //Anonymous types, using auto-generated names
+  TLineStyleTypestroke = class;
+  TAssetsListResponseTypeassetsArray = Array of TAsset;
+  TDisplayRuleTypefiltersArray = Array of TFilter;
+  TFeaturesBatchInsertRequestTypefeaturesArray = Array of TFeature;
+  TFeaturesBatchPatchRequestTypefeaturesArray = Array of TFeature;
+  TFeaturesListResponseTypefeaturesArray = Array of TFeature;
+  TGeoJsonGeometryCollectionTypegeometriesArray = Array of TGeoJsonGeometry;
+  TGeoJsonLineStringTypecoordinatesArray = Array of TGeoJsonPosition;
+  TGeoJsonMultiLineStringTypecoordinatesItemArray = Array of TGeoJsonPosition;
+  TGeoJsonMultiLineStringTypecoordinatesArray = Array of TGeoJsonMultiLineStringTypecoordinatesItemArray;
+  TGeoJsonMultiPointTypecoordinatesArray = Array of TGeoJsonPosition;
+  TGeoJsonMultiPolygonTypecoordinatesItemItemArray = Array of TGeoJsonPosition;
+  TGeoJsonMultiPolygonTypecoordinatesItemArray = Array of TGeoJsonMultiPolygonTypecoordinatesItemItemArray;
+  TGeoJsonMultiPolygonTypecoordinatesArray = Array of TGeoJsonMultiPolygonTypecoordinatesItemArray;
+  TGeoJsonPolygonTypecoordinatesItemArray = Array of TGeoJsonPosition;
+  TGeoJsonPolygonTypecoordinatesArray = Array of TGeoJsonPolygonTypecoordinatesItemArray;
+  TIconsListResponseTypeiconsArray = Array of TIcon;
+  TLayersListResponseTypelayersArray = Array of TLayer;
+  TMapFolderTypecontentsArray = Array of TMapItem;
+  TMapsListResponseTypemapsArray = Array of TMap;
+  TParentsListResponseTypeparentsArray = Array of TParent;
+  TPermissionsBatchUpdateRequestTypepermissionsArray = Array of TPermission;
+  TPermissionsListResponseTypepermissionsArray = Array of TPermission;
+  TProjectsListResponseTypeprojectsArray = Array of TProject;
+  TPublishedLayersListResponseTypelayersArray = Array of TPublishedLayer;
+  TPublishedMapsListResponseTypemapsArray = Array of TPublishedMap;
+  TRasterTypefilesArray = Array of TFile;
+  TRasterCollectionsListResponseTyperasterCollectionsArray = Array of TRasterCollection;
+  TRasterCollectionsRastersListResponseTyperastersArray = Array of TRasterCollectionsRaster;
+  TRastersListResponseTyperastersArray = Array of TRaster;
+  TSchemaTypecolumnsArray = Array of TTableColumn;
+  TTableTypefilesArray = Array of TFile;
+  TTablesListResponseTypetablesArray = Array of TTable;
+  TVectorStyleTypedisplayRulesArray = Array of TDisplayRule;
   
   { --------------------------------------------------------------------
     TAcquisitionTime
@@ -301,18 +222,18 @@ type
   TAcquisitionTime = Class(TGoogleBaseObject)
   Private
     F_end : TDatetime;
-    Fprecision : string;
+    Fprecision : String;
     Fstart : TDatetime;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Set_end(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setprecision(AIndex : Integer; AValue : string); virtual;
+    Procedure Setprecision(AIndex : Integer; AValue : String); virtual;
     Procedure Setstart(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
     Property _end : TDatetime Index 0 Read F_end Write Set_end;
-    Property precision : string Index 8 Read Fprecision Write Setprecision;
+    Property precision : String Index 8 Read Fprecision Write Setprecision;
     Property start : TDatetime Index 16 Read Fstart Write Setstart;
   end;
   TAcquisitionTimeClass = Class of TAcquisitionTime;
@@ -323,81 +244,55 @@ type
   
   TAsset = Class(TGoogleBaseObject)
   Private
-    Fbbox : TAssetbbox;
+    Fbbox : TdoubleArray;
     FcreationTime : TDatetime;
-    FcreatorEmail : string;
-    Fdescription : string;
-    Fetag : string;
-    Fid : string;
+    FcreatorEmail : String;
+    Fdescription : String;
+    Fetag : String;
+    Fid : String;
     FlastModifiedTime : TDatetime;
-    FlastModifierEmail : string;
-    Fname : string;
-    FprojectId : string;
-    Fresource : string;
-    Ftags : TAssettags;
-    F_type : string;
+    FlastModifierEmail : String;
+    Fname : String;
+    FprojectId : String;
+    Fresource : String;
+    Ftags : TStringArray;
+    F_type : String;
     FwritersCanEditPermissions : boolean;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setbbox(AIndex : Integer; AValue : TAssetbbox); virtual;
+    Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetcreatorEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreatorEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastModifierEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresource(AIndex : Integer; AValue : string); virtual;
-    Procedure Settags(AIndex : Integer; AValue : TAssettags); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure SetlastModifierEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresource(AIndex : Integer; AValue : String); virtual;
+    Procedure Settags(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property bbox : TAssetbbox Index 0 Read Fbbox Write Setbbox;
+    Property bbox : TdoubleArray Index 0 Read Fbbox Write Setbbox;
     Property creationTime : TDatetime Index 8 Read FcreationTime Write SetcreationTime;
-    Property creatorEmail : string Index 16 Read FcreatorEmail Write SetcreatorEmail;
-    Property description : string Index 24 Read Fdescription Write Setdescription;
-    Property etag : string Index 32 Read Fetag Write Setetag;
-    Property id : string Index 40 Read Fid Write Setid;
+    Property creatorEmail : String Index 16 Read FcreatorEmail Write SetcreatorEmail;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
+    Property etag : String Index 32 Read Fetag Write Setetag;
+    Property id : String Index 40 Read Fid Write Setid;
     Property lastModifiedTime : TDatetime Index 48 Read FlastModifiedTime Write SetlastModifiedTime;
-    Property lastModifierEmail : string Index 56 Read FlastModifierEmail Write SetlastModifierEmail;
-    Property name : string Index 64 Read Fname Write Setname;
-    Property projectId : string Index 72 Read FprojectId Write SetprojectId;
-    Property resource : string Index 80 Read Fresource Write Setresource;
-    Property tags : TAssettags Index 88 Read Ftags Write Settags;
-    Property _type : string Index 96 Read F_type Write Set_type;
+    Property lastModifierEmail : String Index 56 Read FlastModifierEmail Write SetlastModifierEmail;
+    Property name : String Index 64 Read Fname Write Setname;
+    Property projectId : String Index 72 Read FprojectId Write SetprojectId;
+    Property resource : String Index 80 Read Fresource Write Setresource;
+    Property tags : TStringArray Index 88 Read Ftags Write Settags;
+    Property _type : String Index 96 Read F_type Write Set_type;
     Property writersCanEditPermissions : boolean Index 104 Read FwritersCanEditPermissions Write SetwritersCanEditPermissions;
   end;
   TAssetClass = Class of TAsset;
-  
-  { --------------------------------------------------------------------
-    TAssetbbox
-    --------------------------------------------------------------------}
-  
-  TAssetbbox = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAssetbboxClass = Class of TAssetbbox;
-  
-  { --------------------------------------------------------------------
-    TAssettags
-    --------------------------------------------------------------------}
-  
-  TAssettags = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAssettagsClass = Class of TAssettags;
   
   { --------------------------------------------------------------------
     TAssetsListResponse
@@ -405,31 +300,18 @@ type
   
   TAssetsListResponse = Class(TGoogleBaseObject)
   Private
-    Fassets : TAssetsListResponseassets;
-    FnextPageToken : string;
+    Fassets : TAssetsListResponseTypeassetsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setassets(AIndex : Integer; AValue : TAssetsListResponseassets); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setassets(AIndex : Integer; AValue : TAssetsListResponseTypeassetsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property assets : TAssetsListResponseassets Index 0 Read Fassets Write Setassets;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property assets : TAssetsListResponseTypeassetsArray Index 0 Read Fassets Write Setassets;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TAssetsListResponseClass = Class of TAssetsListResponse;
-  
-  { --------------------------------------------------------------------
-    TAssetsListResponseassets
-    --------------------------------------------------------------------}
-  
-  TAssetsListResponseassets = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAssetsListResponseassetsClass = Class of TAssetsListResponseassets;
   
   { --------------------------------------------------------------------
     TBorder
@@ -437,17 +319,17 @@ type
   
   TBorder = Class(TGoogleBaseObject)
   Private
-    Fcolor : string;
+    Fcolor : String;
     Fopacity : double;
     Fwidth : double;
   Protected
     //Property setters
-    Procedure Setcolor(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
     Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : double); virtual;
   Public
   Published
-    Property color : string Index 0 Read Fcolor Write Setcolor;
+    Property color : String Index 0 Read Fcolor Write Setcolor;
     Property opacity : double Index 8 Read Fopacity Write Setopacity;
     Property width : double Index 16 Read Fwidth Write Setwidth;
   end;
@@ -459,15 +341,15 @@ type
   
   TColor = Class(TGoogleBaseObject)
   Private
-    Fcolor : string;
+    Fcolor : String;
     Fopacity : double;
   Protected
     //Property setters
-    Procedure Setcolor(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
     Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
   Public
   Published
-    Property color : string Index 0 Read Fcolor Write Setcolor;
+    Property color : String Index 0 Read Fcolor Write Setcolor;
     Property opacity : double Index 8 Read Fopacity Write Setopacity;
   end;
   TColorClass = Class of TColor;
@@ -478,28 +360,15 @@ type
   
   TDatasource = Class(TGoogleBaseObject)
   Private
-    Fid : string;
+    Fid : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
+    Property id : String Index 0 Read Fid Write Setid;
   end;
   TDatasourceClass = Class of TDatasource;
-  
-  { --------------------------------------------------------------------
-    TDatasources
-    --------------------------------------------------------------------}
-  
-  TDatasources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatasourcesClass = Class of TDatasources;
   
   { --------------------------------------------------------------------
     TDisplayRule
@@ -507,43 +376,30 @@ type
   
   TDisplayRule = Class(TGoogleBaseObject)
   Private
-    Ffilters : TDisplayRulefilters;
+    Ffilters : TDisplayRuleTypefiltersArray;
     FlineOptions : TLineStyle;
-    Fname : string;
+    Fname : String;
     FpointOptions : TPointStyle;
     FpolygonOptions : TPolygonStyle;
     FzoomLevels : TZoomLevels;
   Protected
     //Property setters
-    Procedure Setfilters(AIndex : Integer; AValue : TDisplayRulefilters); virtual;
+    Procedure Setfilters(AIndex : Integer; AValue : TDisplayRuleTypefiltersArray); virtual;
     Procedure SetlineOptions(AIndex : Integer; AValue : TLineStyle); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetpointOptions(AIndex : Integer; AValue : TPointStyle); virtual;
     Procedure SetpolygonOptions(AIndex : Integer; AValue : TPolygonStyle); virtual;
     Procedure SetzoomLevels(AIndex : Integer; AValue : TZoomLevels); virtual;
   Public
   Published
-    Property filters : TDisplayRulefilters Index 0 Read Ffilters Write Setfilters;
+    Property filters : TDisplayRuleTypefiltersArray Index 0 Read Ffilters Write Setfilters;
     Property lineOptions : TLineStyle Index 8 Read FlineOptions Write SetlineOptions;
-    Property name : string Index 16 Read Fname Write Setname;
+    Property name : String Index 16 Read Fname Write Setname;
     Property pointOptions : TPointStyle Index 24 Read FpointOptions Write SetpointOptions;
     Property polygonOptions : TPolygonStyle Index 32 Read FpolygonOptions Write SetpolygonOptions;
     Property zoomLevels : TZoomLevels Index 40 Read FzoomLevels Write SetzoomLevels;
   end;
   TDisplayRuleClass = Class of TDisplayRule;
-  
-  { --------------------------------------------------------------------
-    TDisplayRulefilters
-    --------------------------------------------------------------------}
-  
-  TDisplayRulefilters = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDisplayRulefiltersClass = Class of TDisplayRulefilters;
   
   { --------------------------------------------------------------------
     TFeature
@@ -553,18 +409,18 @@ type
   Private
     Fgeometry : TGeoJsonGeometry;
     Fproperties : TGeoJsonProperties;
-    F_type : string;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setgeometry(AIndex : Integer; AValue : TGeoJsonGeometry); virtual;
     Procedure Setproperties(AIndex : Integer; AValue : TGeoJsonProperties); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property geometry : TGeoJsonGeometry Index 0 Read Fgeometry Write Setgeometry;
     Property properties : TGeoJsonProperties Index 8 Read Fproperties Write Setproperties;
-    Property _type : string Index 16 Read F_type Write Set_type;
+    Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TFeatureClass = Class of TFeature;
   
@@ -574,13 +430,13 @@ type
   
   TFeatureInfo = Class(TGoogleBaseObject)
   Private
-    Fcontent : string;
+    Fcontent : String;
   Protected
     //Property setters
-    Procedure Setcontent(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcontent(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property content : string Index 0 Read Fcontent Write Setcontent;
+    Property content : String Index 0 Read Fcontent Write Setcontent;
   end;
   TFeatureInfoClass = Class of TFeatureInfo;
   
@@ -590,44 +446,18 @@ type
   
   TFeaturesBatchDeleteRequest = Class(TGoogleBaseObject)
   Private
-    Fgx_ids : TFeaturesBatchDeleteRequestgx_ids;
-    FprimaryKeys : TFeaturesBatchDeleteRequestprimaryKeys;
+    Fgx_ids : TStringArray;
+    FprimaryKeys : TStringArray;
   Protected
     //Property setters
-    Procedure Setgx_ids(AIndex : Integer; AValue : TFeaturesBatchDeleteRequestgx_ids); virtual;
-    Procedure SetprimaryKeys(AIndex : Integer; AValue : TFeaturesBatchDeleteRequestprimaryKeys); virtual;
+    Procedure Setgx_ids(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetprimaryKeys(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property gx_ids : TFeaturesBatchDeleteRequestgx_ids Index 0 Read Fgx_ids Write Setgx_ids;
-    Property primaryKeys : TFeaturesBatchDeleteRequestprimaryKeys Index 8 Read FprimaryKeys Write SetprimaryKeys;
+    Property gx_ids : TStringArray Index 0 Read Fgx_ids Write Setgx_ids;
+    Property primaryKeys : TStringArray Index 8 Read FprimaryKeys Write SetprimaryKeys;
   end;
   TFeaturesBatchDeleteRequestClass = Class of TFeaturesBatchDeleteRequest;
-  
-  { --------------------------------------------------------------------
-    TFeaturesBatchDeleteRequestgx_ids
-    --------------------------------------------------------------------}
-  
-  TFeaturesBatchDeleteRequestgx_ids = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFeaturesBatchDeleteRequestgx_idsClass = Class of TFeaturesBatchDeleteRequestgx_ids;
-  
-  { --------------------------------------------------------------------
-    TFeaturesBatchDeleteRequestprimaryKeys
-    --------------------------------------------------------------------}
-  
-  TFeaturesBatchDeleteRequestprimaryKeys = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFeaturesBatchDeleteRequestprimaryKeysClass = Class of TFeaturesBatchDeleteRequestprimaryKeys;
   
   { --------------------------------------------------------------------
     TFeaturesBatchInsertRequest
@@ -635,31 +465,18 @@ type
   
   TFeaturesBatchInsertRequest = Class(TGoogleBaseObject)
   Private
-    Ffeatures : TFeaturesBatchInsertRequestfeatures;
+    Ffeatures : TFeaturesBatchInsertRequestTypefeaturesArray;
     FnormalizeGeometries : boolean;
   Protected
     //Property setters
-    Procedure Setfeatures(AIndex : Integer; AValue : TFeaturesBatchInsertRequestfeatures); virtual;
+    Procedure Setfeatures(AIndex : Integer; AValue : TFeaturesBatchInsertRequestTypefeaturesArray); virtual;
     Procedure SetnormalizeGeometries(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property features : TFeaturesBatchInsertRequestfeatures Index 0 Read Ffeatures Write Setfeatures;
+    Property features : TFeaturesBatchInsertRequestTypefeaturesArray Index 0 Read Ffeatures Write Setfeatures;
     Property normalizeGeometries : boolean Index 8 Read FnormalizeGeometries Write SetnormalizeGeometries;
   end;
   TFeaturesBatchInsertRequestClass = Class of TFeaturesBatchInsertRequest;
-  
-  { --------------------------------------------------------------------
-    TFeaturesBatchInsertRequestfeatures
-    --------------------------------------------------------------------}
-  
-  TFeaturesBatchInsertRequestfeatures = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFeaturesBatchInsertRequestfeaturesClass = Class of TFeaturesBatchInsertRequestfeatures;
   
   { --------------------------------------------------------------------
     TFeaturesBatchPatchRequest
@@ -667,31 +484,18 @@ type
   
   TFeaturesBatchPatchRequest = Class(TGoogleBaseObject)
   Private
-    Ffeatures : TFeaturesBatchPatchRequestfeatures;
+    Ffeatures : TFeaturesBatchPatchRequestTypefeaturesArray;
     FnormalizeGeometries : boolean;
   Protected
     //Property setters
-    Procedure Setfeatures(AIndex : Integer; AValue : TFeaturesBatchPatchRequestfeatures); virtual;
+    Procedure Setfeatures(AIndex : Integer; AValue : TFeaturesBatchPatchRequestTypefeaturesArray); virtual;
     Procedure SetnormalizeGeometries(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property features : TFeaturesBatchPatchRequestfeatures Index 0 Read Ffeatures Write Setfeatures;
+    Property features : TFeaturesBatchPatchRequestTypefeaturesArray Index 0 Read Ffeatures Write Setfeatures;
     Property normalizeGeometries : boolean Index 8 Read FnormalizeGeometries Write SetnormalizeGeometries;
   end;
   TFeaturesBatchPatchRequestClass = Class of TFeaturesBatchPatchRequest;
-  
-  { --------------------------------------------------------------------
-    TFeaturesBatchPatchRequestfeatures
-    --------------------------------------------------------------------}
-  
-  TFeaturesBatchPatchRequestfeatures = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFeaturesBatchPatchRequestfeaturesClass = Class of TFeaturesBatchPatchRequestfeatures;
   
   { --------------------------------------------------------------------
     TFeaturesListResponse
@@ -700,40 +504,27 @@ type
   TFeaturesListResponse = Class(TGoogleBaseObject)
   Private
     FallowedQueriesPerSecond : double;
-    Ffeatures : TFeaturesListResponsefeatures;
-    FnextPageToken : string;
+    Ffeatures : TFeaturesListResponseTypefeaturesArray;
+    FnextPageToken : String;
     Fschema : TSchema;
-    F_type : string;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure SetallowedQueriesPerSecond(AIndex : Integer; AValue : double); virtual;
-    Procedure Setfeatures(AIndex : Integer; AValue : TFeaturesListResponsefeatures); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setfeatures(AIndex : Integer; AValue : TFeaturesListResponseTypefeaturesArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setschema(AIndex : Integer; AValue : TSchema); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property allowedQueriesPerSecond : double Index 0 Read FallowedQueriesPerSecond Write SetallowedQueriesPerSecond;
-    Property features : TFeaturesListResponsefeatures Index 8 Read Ffeatures Write Setfeatures;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property features : TFeaturesListResponseTypefeaturesArray Index 8 Read Ffeatures Write Setfeatures;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
     Property schema : TSchema Index 24 Read Fschema Write Setschema;
-    Property _type : string Index 32 Read F_type Write Set_type;
+    Property _type : String Index 32 Read F_type Write Set_type;
   end;
   TFeaturesListResponseClass = Class of TFeaturesListResponse;
-  
-  { --------------------------------------------------------------------
-    TFeaturesListResponsefeatures
-    --------------------------------------------------------------------}
-  
-  TFeaturesListResponsefeatures = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFeaturesListResponsefeaturesClass = Class of TFeaturesListResponsefeatures;
   
   { --------------------------------------------------------------------
     TFile
@@ -741,19 +532,19 @@ type
   
   TFile = Class(TGoogleBaseObject)
   Private
-    Ffilename : string;
-    Fsize : string;
-    FuploadStatus : string;
+    Ffilename : String;
+    Fsize : String;
+    FuploadStatus : String;
   Protected
     //Property setters
-    Procedure Setfilename(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsize(AIndex : Integer; AValue : string); virtual;
-    Procedure SetuploadStatus(AIndex : Integer; AValue : string); virtual;
+    Procedure Setfilename(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsize(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuploadStatus(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property filename : string Index 0 Read Ffilename Write Setfilename;
-    Property size : string Index 8 Read Fsize Write Setsize;
-    Property uploadStatus : string Index 16 Read FuploadStatus Write SetuploadStatus;
+    Property filename : String Index 0 Read Ffilename Write Setfilename;
+    Property size : String Index 8 Read Fsize Write Setsize;
+    Property uploadStatus : String Index 16 Read FuploadStatus Write SetuploadStatus;
   end;
   TFileClass = Class of TFile;
   
@@ -763,19 +554,19 @@ type
   
   TFilter = Class(TGoogleBaseObject)
   Private
-    Fcolumn : string;
-    F_operator : string;
+    Fcolumn : String;
+    F_operator : String;
     Fvalue : TJSONSchema;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcolumn(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_operator(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcolumn(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_operator(AIndex : Integer; AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : TJSONSchema); virtual;
   Public
   Published
-    Property column : string Index 0 Read Fcolumn Write Setcolumn;
-    Property _operator : string Index 8 Read F_operator Write Set_operator;
+    Property column : String Index 0 Read Fcolumn Write Setcolumn;
+    Property _operator : String Index 8 Read F_operator Write Set_operator;
     Property value : TJSONSchema Index 16 Read Fvalue Write Setvalue;
   end;
   TFilterClass = Class of TFilter;
@@ -799,32 +590,19 @@ type
   
   TGeoJsonGeometryCollection = Class(TGoogleBaseObject)
   Private
-    Fgeometries : TGeoJsonGeometryCollectiongeometries;
-    F_type : string;
+    Fgeometries : TGeoJsonGeometryCollectionTypegeometriesArray;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setgeometries(AIndex : Integer; AValue : TGeoJsonGeometryCollectiongeometries); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setgeometries(AIndex : Integer; AValue : TGeoJsonGeometryCollectionTypegeometriesArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property geometries : TGeoJsonGeometryCollectiongeometries Index 0 Read Fgeometries Write Setgeometries;
-    Property _type : string Index 8 Read F_type Write Set_type;
+    Property geometries : TGeoJsonGeometryCollectionTypegeometriesArray Index 0 Read Fgeometries Write Setgeometries;
+    Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonGeometryCollectionClass = Class of TGeoJsonGeometryCollection;
-  
-  { --------------------------------------------------------------------
-    TGeoJsonGeometryCollectiongeometries
-    --------------------------------------------------------------------}
-  
-  TGeoJsonGeometryCollectiongeometries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGeoJsonGeometryCollectiongeometriesClass = Class of TGeoJsonGeometryCollectiongeometries;
   
   { --------------------------------------------------------------------
     TGeoJsonLineString
@@ -832,32 +610,19 @@ type
   
   TGeoJsonLineString = Class(TGoogleBaseObject)
   Private
-    Fcoordinates : TGeoJsonLineStringcoordinates;
-    F_type : string;
+    Fcoordinates : TGeoJsonLineStringTypecoordinatesArray;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonLineStringcoordinates); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonLineStringTypecoordinatesArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property coordinates : TGeoJsonLineStringcoordinates Index 0 Read Fcoordinates Write Setcoordinates;
-    Property _type : string Index 8 Read F_type Write Set_type;
+    Property coordinates : TGeoJsonLineStringTypecoordinatesArray Index 0 Read Fcoordinates Write Setcoordinates;
+    Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonLineStringClass = Class of TGeoJsonLineString;
-  
-  { --------------------------------------------------------------------
-    TGeoJsonLineStringcoordinates
-    --------------------------------------------------------------------}
-  
-  TGeoJsonLineStringcoordinates = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGeoJsonLineStringcoordinatesClass = Class of TGeoJsonLineStringcoordinates;
   
   { --------------------------------------------------------------------
     TGeoJsonMultiLineString
@@ -865,32 +630,19 @@ type
   
   TGeoJsonMultiLineString = Class(TGoogleBaseObject)
   Private
-    Fcoordinates : TGeoJsonMultiLineStringcoordinates;
-    F_type : string;
+    Fcoordinates : TGeoJsonMultiLineStringTypecoordinatesArray;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiLineStringcoordinates); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiLineStringTypecoordinatesArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property coordinates : TGeoJsonMultiLineStringcoordinates Index 0 Read Fcoordinates Write Setcoordinates;
-    Property _type : string Index 8 Read F_type Write Set_type;
+    Property coordinates : TGeoJsonMultiLineStringTypecoordinatesArray Index 0 Read Fcoordinates Write Setcoordinates;
+    Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonMultiLineStringClass = Class of TGeoJsonMultiLineString;
-  
-  { --------------------------------------------------------------------
-    TGeoJsonMultiLineStringcoordinates
-    --------------------------------------------------------------------}
-  
-  TGeoJsonMultiLineStringcoordinates = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGeoJsonMultiLineStringcoordinatesClass = Class of TGeoJsonMultiLineStringcoordinates;
   
   { --------------------------------------------------------------------
     TGeoJsonMultiPoint
@@ -898,32 +650,19 @@ type
   
   TGeoJsonMultiPoint = Class(TGoogleBaseObject)
   Private
-    Fcoordinates : TGeoJsonMultiPointcoordinates;
-    F_type : string;
+    Fcoordinates : TGeoJsonMultiPointTypecoordinatesArray;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPointcoordinates); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPointTypecoordinatesArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property coordinates : TGeoJsonMultiPointcoordinates Index 0 Read Fcoordinates Write Setcoordinates;
-    Property _type : string Index 8 Read F_type Write Set_type;
+    Property coordinates : TGeoJsonMultiPointTypecoordinatesArray Index 0 Read Fcoordinates Write Setcoordinates;
+    Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonMultiPointClass = Class of TGeoJsonMultiPoint;
-  
-  { --------------------------------------------------------------------
-    TGeoJsonMultiPointcoordinates
-    --------------------------------------------------------------------}
-  
-  TGeoJsonMultiPointcoordinates = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGeoJsonMultiPointcoordinatesClass = Class of TGeoJsonMultiPointcoordinates;
   
   { --------------------------------------------------------------------
     TGeoJsonMultiPolygon
@@ -931,32 +670,19 @@ type
   
   TGeoJsonMultiPolygon = Class(TGoogleBaseObject)
   Private
-    Fcoordinates : TGeoJsonMultiPolygoncoordinates;
-    F_type : string;
+    Fcoordinates : TGeoJsonMultiPolygonTypecoordinatesArray;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPolygoncoordinates); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPolygonTypecoordinatesArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property coordinates : TGeoJsonMultiPolygoncoordinates Index 0 Read Fcoordinates Write Setcoordinates;
-    Property _type : string Index 8 Read F_type Write Set_type;
+    Property coordinates : TGeoJsonMultiPolygonTypecoordinatesArray Index 0 Read Fcoordinates Write Setcoordinates;
+    Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonMultiPolygonClass = Class of TGeoJsonMultiPolygon;
-  
-  { --------------------------------------------------------------------
-    TGeoJsonMultiPolygoncoordinates
-    --------------------------------------------------------------------}
-  
-  TGeoJsonMultiPolygoncoordinates = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGeoJsonMultiPolygoncoordinatesClass = Class of TGeoJsonMultiPolygoncoordinates;
   
   { --------------------------------------------------------------------
     TGeoJsonPoint
@@ -965,16 +691,16 @@ type
   TGeoJsonPoint = Class(TGoogleBaseObject)
   Private
     Fcoordinates : TGeoJsonPosition;
-    F_type : string;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonPosition); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property coordinates : TGeoJsonPosition Index 0 Read Fcoordinates Write Setcoordinates;
-    Property _type : string Index 8 Read F_type Write Set_type;
+    Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonPointClass = Class of TGeoJsonPoint;
   
@@ -984,45 +710,19 @@ type
   
   TGeoJsonPolygon = Class(TGoogleBaseObject)
   Private
-    Fcoordinates : TGeoJsonPolygoncoordinates;
-    F_type : string;
+    Fcoordinates : TGeoJsonPolygonTypecoordinatesArray;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonPolygoncoordinates); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonPolygonTypecoordinatesArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property coordinates : TGeoJsonPolygoncoordinates Index 0 Read Fcoordinates Write Setcoordinates;
-    Property _type : string Index 8 Read F_type Write Set_type;
+    Property coordinates : TGeoJsonPolygonTypecoordinatesArray Index 0 Read Fcoordinates Write Setcoordinates;
+    Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonPolygonClass = Class of TGeoJsonPolygon;
-  
-  { --------------------------------------------------------------------
-    TGeoJsonPolygoncoordinates
-    --------------------------------------------------------------------}
-  
-  TGeoJsonPolygoncoordinates = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGeoJsonPolygoncoordinatesClass = Class of TGeoJsonPolygoncoordinates;
-  
-  { --------------------------------------------------------------------
-    TGeoJsonPosition
-    --------------------------------------------------------------------}
-  
-  TGeoJsonPosition = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGeoJsonPositionClass = Class of TGeoJsonPosition;
   
   { --------------------------------------------------------------------
     TGeoJsonProperties
@@ -1044,19 +744,19 @@ type
   
   TIcon = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Fid : string;
-    Fname : string;
+    Fdescription : String;
+    Fid : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property name : string Index 16 Read Fname Write Setname;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property name : String Index 16 Read Fname Write Setname;
   end;
   TIconClass = Class of TIcon;
   
@@ -1066,20 +766,20 @@ type
   
   TIconStyle = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fname : string;
+    Fid : String;
+    Fname : String;
     FscaledShape : TScaledShape;
     FscalingFunction : TScalingFunction;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetscaledShape(AIndex : Integer; AValue : TScaledShape); virtual;
     Procedure SetscalingFunction(AIndex : Integer; AValue : TScalingFunction); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property name : String Index 8 Read Fname Write Setname;
     Property scaledShape : TScaledShape Index 16 Read FscaledShape Write SetscaledShape;
     Property scalingFunction : TScalingFunction Index 24 Read FscalingFunction Write SetscalingFunction;
   end;
@@ -1091,31 +791,18 @@ type
   
   TIconsListResponse = Class(TGoogleBaseObject)
   Private
-    Ficons : TIconsListResponseicons;
-    FnextPageToken : string;
+    Ficons : TIconsListResponseTypeiconsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Seticons(AIndex : Integer; AValue : TIconsListResponseicons); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Seticons(AIndex : Integer; AValue : TIconsListResponseTypeiconsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property icons : TIconsListResponseicons Index 0 Read Ficons Write Seticons;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property icons : TIconsListResponseTypeiconsArray Index 0 Read Ficons Write Seticons;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TIconsListResponseClass = Class of TIconsListResponse;
-  
-  { --------------------------------------------------------------------
-    TIconsListResponseicons
-    --------------------------------------------------------------------}
-  
-  TIconsListResponseicons = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TIconsListResponseiconsClass = Class of TIconsListResponseicons;
   
   { --------------------------------------------------------------------
     TLabelStyle
@@ -1123,28 +810,28 @@ type
   
   TLabelStyle = Class(TGoogleBaseObject)
   Private
-    Fcolor : string;
-    Fcolumn : string;
-    FfontStyle : string;
-    FfontWeight : string;
+    Fcolor : String;
+    Fcolumn : String;
+    FfontStyle : String;
+    FfontWeight : String;
     Fopacity : double;
     Foutline : TColor;
     Fsize : double;
   Protected
     //Property setters
-    Procedure Setcolor(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcolumn(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfontStyle(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfontWeight(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcolumn(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfontStyle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfontWeight(AIndex : Integer; AValue : String); virtual;
     Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
     Procedure Setoutline(AIndex : Integer; AValue : TColor); virtual;
     Procedure Setsize(AIndex : Integer; AValue : double); virtual;
   Public
   Published
-    Property color : string Index 0 Read Fcolor Write Setcolor;
-    Property column : string Index 8 Read Fcolumn Write Setcolumn;
-    Property fontStyle : string Index 16 Read FfontStyle Write SetfontStyle;
-    Property fontWeight : string Index 24 Read FfontWeight Write SetfontWeight;
+    Property color : String Index 0 Read Fcolor Write Setcolor;
+    Property column : String Index 8 Read Fcolumn Write Setcolumn;
+    Property fontStyle : String Index 16 Read FfontStyle Write SetfontStyle;
+    Property fontWeight : String Index 24 Read FfontWeight Write SetfontWeight;
     Property opacity : double Index 32 Read Fopacity Write Setopacity;
     Property outline : TColor Index 40 Read Foutline Write Setoutline;
     Property size : double Index 48 Read Fsize Write Setsize;
@@ -1152,103 +839,77 @@ type
   TLabelStyleClass = Class of TLabelStyle;
   
   { --------------------------------------------------------------------
-    TLatLngBox
-    --------------------------------------------------------------------}
-  
-  TLatLngBox = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLatLngBoxClass = Class of TLatLngBox;
-  
-  { --------------------------------------------------------------------
     TLayer
     --------------------------------------------------------------------}
   
   TLayer = Class(TGoogleBaseObject)
   Private
-    Fbbox : TLayerbbox;
+    Fbbox : TdoubleArray;
     FcreationTime : TDatetime;
-    FcreatorEmail : string;
-    FdatasourceType : string;
+    FcreatorEmail : String;
+    FdatasourceType : String;
     Fdatasources : TDatasources;
-    Fdescription : string;
-    FdraftAccessList : string;
-    Fetag : string;
-    Fid : string;
+    Fdescription : String;
+    FdraftAccessList : String;
+    Fetag : String;
+    Fid : String;
     FlastModifiedTime : TDatetime;
-    FlastModifierEmail : string;
-    FlayerType : string;
-    Fname : string;
-    FprocessingStatus : string;
-    FprojectId : string;
-    FpublishedAccessList : string;
-    FpublishingStatus : string;
+    FlastModifierEmail : String;
+    FlayerType : String;
+    Fname : String;
+    FprocessingStatus : String;
+    FprojectId : String;
+    FpublishedAccessList : String;
+    FpublishingStatus : String;
     Fstyle : TVectorStyle;
-    Ftags : TAssettags;
+    Ftags : TTags;
     FwritersCanEditPermissions : boolean;
   Protected
     //Property setters
-    Procedure Setbbox(AIndex : Integer; AValue : TLayerbbox); virtual;
+    Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetcreatorEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdatasourceType(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreatorEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdatasourceType(AIndex : Integer; AValue : String); virtual;
     Procedure Setdatasources(AIndex : Integer; AValue : TDatasources); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdraftAccessList(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdraftAccessList(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastModifierEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlayerType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpublishedAccessList(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpublishingStatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetlastModifierEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlayerType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpublishedAccessList(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpublishingStatus(AIndex : Integer; AValue : String); virtual;
     Procedure Setstyle(AIndex : Integer; AValue : TVectorStyle); virtual;
-    Procedure Settags(AIndex : Integer; AValue : TAssettags); virtual;
+    Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property bbox : TLayerbbox Index 0 Read Fbbox Write Setbbox;
+    Property bbox : TdoubleArray Index 0 Read Fbbox Write Setbbox;
     Property creationTime : TDatetime Index 8 Read FcreationTime Write SetcreationTime;
-    Property creatorEmail : string Index 16 Read FcreatorEmail Write SetcreatorEmail;
-    Property datasourceType : string Index 24 Read FdatasourceType Write SetdatasourceType;
+    Property creatorEmail : String Index 16 Read FcreatorEmail Write SetcreatorEmail;
+    Property datasourceType : String Index 24 Read FdatasourceType Write SetdatasourceType;
     Property datasources : TDatasources Index 32 Read Fdatasources Write Setdatasources;
-    Property description : string Index 40 Read Fdescription Write Setdescription;
-    Property draftAccessList : string Index 48 Read FdraftAccessList Write SetdraftAccessList;
-    Property etag : string Index 56 Read Fetag Write Setetag;
-    Property id : string Index 64 Read Fid Write Setid;
+    Property description : String Index 40 Read Fdescription Write Setdescription;
+    Property draftAccessList : String Index 48 Read FdraftAccessList Write SetdraftAccessList;
+    Property etag : String Index 56 Read Fetag Write Setetag;
+    Property id : String Index 64 Read Fid Write Setid;
     Property lastModifiedTime : TDatetime Index 72 Read FlastModifiedTime Write SetlastModifiedTime;
-    Property lastModifierEmail : string Index 80 Read FlastModifierEmail Write SetlastModifierEmail;
-    Property layerType : string Index 88 Read FlayerType Write SetlayerType;
-    Property name : string Index 96 Read Fname Write Setname;
-    Property processingStatus : string Index 104 Read FprocessingStatus Write SetprocessingStatus;
-    Property projectId : string Index 112 Read FprojectId Write SetprojectId;
-    Property publishedAccessList : string Index 120 Read FpublishedAccessList Write SetpublishedAccessList;
-    Property publishingStatus : string Index 128 Read FpublishingStatus Write SetpublishingStatus;
+    Property lastModifierEmail : String Index 80 Read FlastModifierEmail Write SetlastModifierEmail;
+    Property layerType : String Index 88 Read FlayerType Write SetlayerType;
+    Property name : String Index 96 Read Fname Write Setname;
+    Property processingStatus : String Index 104 Read FprocessingStatus Write SetprocessingStatus;
+    Property projectId : String Index 112 Read FprojectId Write SetprojectId;
+    Property publishedAccessList : String Index 120 Read FpublishedAccessList Write SetpublishedAccessList;
+    Property publishingStatus : String Index 128 Read FpublishingStatus Write SetpublishingStatus;
     Property style : TVectorStyle Index 136 Read Fstyle Write Setstyle;
-    Property tags : TAssettags Index 144 Read Ftags Write Settags;
+    Property tags : TTags Index 144 Read Ftags Write Settags;
     Property writersCanEditPermissions : boolean Index 152 Read FwritersCanEditPermissions Write SetwritersCanEditPermissions;
   end;
   TLayerClass = Class of TLayer;
-  
-  { --------------------------------------------------------------------
-    TLayerbbox
-    --------------------------------------------------------------------}
-  
-  TLayerbbox = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLayerbboxClass = Class of TLayerbbox;
   
   { --------------------------------------------------------------------
     TLayersListResponse
@@ -1256,31 +917,40 @@ type
   
   TLayersListResponse = Class(TGoogleBaseObject)
   Private
-    Flayers : TLayersListResponselayers;
-    FnextPageToken : string;
+    Flayers : TLayersListResponseTypelayersArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setlayers(AIndex : Integer; AValue : TLayersListResponselayers); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setlayers(AIndex : Integer; AValue : TLayersListResponseTypelayersArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property layers : TLayersListResponselayers Index 0 Read Flayers Write Setlayers;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property layers : TLayersListResponseTypelayersArray Index 0 Read Flayers Write Setlayers;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TLayersListResponseClass = Class of TLayersListResponse;
   
   { --------------------------------------------------------------------
-    TLayersListResponselayers
+    TLineStyleTypestroke
     --------------------------------------------------------------------}
   
-  TLayersListResponselayers = Class(TGoogleBaseObject)
+  TLineStyleTypestroke = Class(TGoogleBaseObject)
   Private
+    Fcolor : String;
+    Fopacity : double;
+    Fwidth : double;
   Protected
     //Property setters
+    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
+    Procedure Setwidth(AIndex : Integer; AValue : double); virtual;
   Public
   Published
+    Property color : String Index 0 Read Fcolor Write Setcolor;
+    Property opacity : double Index 8 Read Fopacity Write Setopacity;
+    Property width : double Index 16 Read Fwidth Write Setwidth;
   end;
-  TLayersListResponselayersClass = Class of TLayersListResponselayers;
+  TLineStyleTypestrokeClass = Class of TLineStyleTypestroke;
   
   { --------------------------------------------------------------------
     TLineStyle
@@ -1289,59 +959,24 @@ type
   TLineStyle = Class(TGoogleBaseObject)
   Private
     Fborder : TBorder;
-    Fdash : TLineStyledash;
+    Fdash : TdoubleArray;
     F_label : TLabelStyle;
-    Fstroke : TLineStylestroke;
+    Fstroke : TLineStyleTypestroke;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setborder(AIndex : Integer; AValue : TBorder); virtual;
-    Procedure Setdash(AIndex : Integer; AValue : TLineStyledash); virtual;
+    Procedure Setdash(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure Set_label(AIndex : Integer; AValue : TLabelStyle); virtual;
-    Procedure Setstroke(AIndex : Integer; AValue : TLineStylestroke); virtual;
+    Procedure Setstroke(AIndex : Integer; AValue : TLineStyleTypestroke); virtual;
   Public
   Published
     Property border : TBorder Index 0 Read Fborder Write Setborder;
-    Property dash : TLineStyledash Index 8 Read Fdash Write Setdash;
+    Property dash : TdoubleArray Index 8 Read Fdash Write Setdash;
     Property _label : TLabelStyle Index 16 Read F_label Write Set_label;
-    Property stroke : TLineStylestroke Index 24 Read Fstroke Write Setstroke;
+    Property stroke : TLineStyleTypestroke Index 24 Read Fstroke Write Setstroke;
   end;
   TLineStyleClass = Class of TLineStyle;
-  
-  { --------------------------------------------------------------------
-    TLineStyledash
-    --------------------------------------------------------------------}
-  
-  TLineStyledash = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLineStyledashClass = Class of TLineStyledash;
-  
-  { --------------------------------------------------------------------
-    TLineStylestroke
-    --------------------------------------------------------------------}
-  
-  TLineStylestroke = Class(TGoogleBaseObject)
-  Private
-    Fcolor : string;
-    Fopacity : double;
-    Fwidth : double;
-  Protected
-    //Property setters
-    Procedure Setcolor(AIndex : Integer; AValue : string); virtual;
-    Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : double); virtual;
-  Public
-  Published
-    Property color : string Index 0 Read Fcolor Write Setcolor;
-    Property opacity : double Index 8 Read Fopacity Write Setopacity;
-    Property width : double Index 16 Read Fwidth Write Setwidth;
-  end;
-  TLineStylestrokeClass = Class of TLineStylestroke;
   
   { --------------------------------------------------------------------
     TMap
@@ -1349,108 +984,69 @@ type
   
   TMap = Class(TGoogleBaseObject)
   Private
-    Fbbox : TMapbbox;
+    Fbbox : TdoubleArray;
     Fcontents : TMapContents;
     FcreationTime : TDatetime;
-    FcreatorEmail : string;
+    FcreatorEmail : String;
     FdefaultViewport : TLatLngBox;
-    Fdescription : string;
-    FdraftAccessList : string;
-    Fetag : string;
-    Fid : string;
+    Fdescription : String;
+    FdraftAccessList : String;
+    Fetag : String;
+    Fid : String;
     FlastModifiedTime : TDatetime;
-    FlastModifierEmail : string;
-    Fname : string;
-    FprocessingStatus : string;
-    FprojectId : string;
-    FpublishedAccessList : string;
-    FpublishingStatus : string;
-    Ftags : TAssettags;
-    Fversions : TMapversions;
+    FlastModifierEmail : String;
+    Fname : String;
+    FprocessingStatus : String;
+    FprojectId : String;
+    FpublishedAccessList : String;
+    FpublishingStatus : String;
+    Ftags : TTags;
+    Fversions : TStringArray;
     FwritersCanEditPermissions : boolean;
   Protected
     //Property setters
-    Procedure Setbbox(AIndex : Integer; AValue : TMapbbox); virtual;
+    Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure Setcontents(AIndex : Integer; AValue : TMapContents); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetcreatorEmail(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreatorEmail(AIndex : Integer; AValue : String); virtual;
     Procedure SetdefaultViewport(AIndex : Integer; AValue : TLatLngBox); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdraftAccessList(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdraftAccessList(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastModifierEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpublishedAccessList(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpublishingStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Settags(AIndex : Integer; AValue : TAssettags); virtual;
-    Procedure Setversions(AIndex : Integer; AValue : TMapversions); virtual;
+    Procedure SetlastModifierEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpublishedAccessList(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpublishingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
+    Procedure Setversions(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property bbox : TMapbbox Index 0 Read Fbbox Write Setbbox;
+    Property bbox : TdoubleArray Index 0 Read Fbbox Write Setbbox;
     Property contents : TMapContents Index 8 Read Fcontents Write Setcontents;
     Property creationTime : TDatetime Index 16 Read FcreationTime Write SetcreationTime;
-    Property creatorEmail : string Index 24 Read FcreatorEmail Write SetcreatorEmail;
+    Property creatorEmail : String Index 24 Read FcreatorEmail Write SetcreatorEmail;
     Property defaultViewport : TLatLngBox Index 32 Read FdefaultViewport Write SetdefaultViewport;
-    Property description : string Index 40 Read Fdescription Write Setdescription;
-    Property draftAccessList : string Index 48 Read FdraftAccessList Write SetdraftAccessList;
-    Property etag : string Index 56 Read Fetag Write Setetag;
-    Property id : string Index 64 Read Fid Write Setid;
+    Property description : String Index 40 Read Fdescription Write Setdescription;
+    Property draftAccessList : String Index 48 Read FdraftAccessList Write SetdraftAccessList;
+    Property etag : String Index 56 Read Fetag Write Setetag;
+    Property id : String Index 64 Read Fid Write Setid;
     Property lastModifiedTime : TDatetime Index 72 Read FlastModifiedTime Write SetlastModifiedTime;
-    Property lastModifierEmail : string Index 80 Read FlastModifierEmail Write SetlastModifierEmail;
-    Property name : string Index 88 Read Fname Write Setname;
-    Property processingStatus : string Index 96 Read FprocessingStatus Write SetprocessingStatus;
-    Property projectId : string Index 104 Read FprojectId Write SetprojectId;
-    Property publishedAccessList : string Index 112 Read FpublishedAccessList Write SetpublishedAccessList;
-    Property publishingStatus : string Index 120 Read FpublishingStatus Write SetpublishingStatus;
-    Property tags : TAssettags Index 128 Read Ftags Write Settags;
-    Property versions : TMapversions Index 136 Read Fversions Write Setversions;
+    Property lastModifierEmail : String Index 80 Read FlastModifierEmail Write SetlastModifierEmail;
+    Property name : String Index 88 Read Fname Write Setname;
+    Property processingStatus : String Index 96 Read FprocessingStatus Write SetprocessingStatus;
+    Property projectId : String Index 104 Read FprojectId Write SetprojectId;
+    Property publishedAccessList : String Index 112 Read FpublishedAccessList Write SetpublishedAccessList;
+    Property publishingStatus : String Index 120 Read FpublishingStatus Write SetpublishingStatus;
+    Property tags : TTags Index 128 Read Ftags Write Settags;
+    Property versions : TStringArray Index 136 Read Fversions Write Setversions;
     Property writersCanEditPermissions : boolean Index 144 Read FwritersCanEditPermissions Write SetwritersCanEditPermissions;
   end;
   TMapClass = Class of TMap;
-  
-  { --------------------------------------------------------------------
-    TMapbbox
-    --------------------------------------------------------------------}
-  
-  TMapbbox = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMapbboxClass = Class of TMapbbox;
-  
-  { --------------------------------------------------------------------
-    TMapversions
-    --------------------------------------------------------------------}
-  
-  TMapversions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMapversionsClass = Class of TMapversions;
-  
-  { --------------------------------------------------------------------
-    TMapContents
-    --------------------------------------------------------------------}
-  
-  TMapContents = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMapContentsClass = Class of TMapContents;
   
   { --------------------------------------------------------------------
     TMapFolder
@@ -1458,60 +1054,34 @@ type
   
   TMapFolder = Class(TGoogleBaseObject)
   Private
-    Fcontents : TMapFoldercontents;
-    FdefaultViewport : TMapFolderdefaultViewport;
+    Fcontents : TMapFolderTypecontentsArray;
+    FdefaultViewport : TdoubleArray;
     Fexpandable : boolean;
-    Fkey : string;
-    Fname : string;
-    F_type : string;
-    Fvisibility : string;
+    Fkey : String;
+    Fname : String;
+    F_type : String;
+    Fvisibility : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcontents(AIndex : Integer; AValue : TMapFoldercontents); virtual;
-    Procedure SetdefaultViewport(AIndex : Integer; AValue : TMapFolderdefaultViewport); virtual;
+    Procedure Setcontents(AIndex : Integer; AValue : TMapFolderTypecontentsArray); virtual;
+    Procedure SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure Setexpandable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvisibility(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property contents : TMapFoldercontents Index 0 Read Fcontents Write Setcontents;
-    Property defaultViewport : TMapFolderdefaultViewport Index 8 Read FdefaultViewport Write SetdefaultViewport;
+    Property contents : TMapFolderTypecontentsArray Index 0 Read Fcontents Write Setcontents;
+    Property defaultViewport : TdoubleArray Index 8 Read FdefaultViewport Write SetdefaultViewport;
     Property expandable : boolean Index 16 Read Fexpandable Write Setexpandable;
-    Property key : string Index 24 Read Fkey Write Setkey;
-    Property name : string Index 32 Read Fname Write Setname;
-    Property _type : string Index 40 Read F_type Write Set_type;
-    Property visibility : string Index 48 Read Fvisibility Write Setvisibility;
+    Property key : String Index 24 Read Fkey Write Setkey;
+    Property name : String Index 32 Read Fname Write Setname;
+    Property _type : String Index 40 Read F_type Write Set_type;
+    Property visibility : String Index 48 Read Fvisibility Write Setvisibility;
   end;
   TMapFolderClass = Class of TMapFolder;
-  
-  { --------------------------------------------------------------------
-    TMapFoldercontents
-    --------------------------------------------------------------------}
-  
-  TMapFoldercontents = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMapFoldercontentsClass = Class of TMapFoldercontents;
-  
-  { --------------------------------------------------------------------
-    TMapFolderdefaultViewport
-    --------------------------------------------------------------------}
-  
-  TMapFolderdefaultViewport = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMapFolderdefaultViewportClass = Class of TMapFolderdefaultViewport;
   
   { --------------------------------------------------------------------
     TMapItem
@@ -1532,41 +1102,28 @@ type
   
   TMapKmlLink = Class(TGoogleBaseObject)
   Private
-    FdefaultViewport : TMapKmlLinkdefaultViewport;
-    FkmlUrl : string;
-    Fname : string;
-    F_type : string;
-    Fvisibility : string;
+    FdefaultViewport : TdoubleArray;
+    FkmlUrl : String;
+    Fname : String;
+    F_type : String;
+    Fvisibility : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdefaultViewport(AIndex : Integer; AValue : TMapKmlLinkdefaultViewport); virtual;
-    Procedure SetkmlUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvisibility(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray); virtual;
+    Procedure SetkmlUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property defaultViewport : TMapKmlLinkdefaultViewport Index 0 Read FdefaultViewport Write SetdefaultViewport;
-    Property kmlUrl : string Index 8 Read FkmlUrl Write SetkmlUrl;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property _type : string Index 24 Read F_type Write Set_type;
-    Property visibility : string Index 32 Read Fvisibility Write Setvisibility;
+    Property defaultViewport : TdoubleArray Index 0 Read FdefaultViewport Write SetdefaultViewport;
+    Property kmlUrl : String Index 8 Read FkmlUrl Write SetkmlUrl;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property _type : String Index 24 Read F_type Write Set_type;
+    Property visibility : String Index 32 Read Fvisibility Write Setvisibility;
   end;
   TMapKmlLinkClass = Class of TMapKmlLink;
-  
-  { --------------------------------------------------------------------
-    TMapKmlLinkdefaultViewport
-    --------------------------------------------------------------------}
-  
-  TMapKmlLinkdefaultViewport = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMapKmlLinkdefaultViewportClass = Class of TMapKmlLinkdefaultViewport;
   
   { --------------------------------------------------------------------
     TMapLayer
@@ -1574,44 +1131,31 @@ type
   
   TMapLayer = Class(TGoogleBaseObject)
   Private
-    FdefaultViewport : TMapLayerdefaultViewport;
-    Fid : string;
-    Fkey : string;
-    Fname : string;
-    F_type : string;
-    Fvisibility : string;
+    FdefaultViewport : TdoubleArray;
+    Fid : String;
+    Fkey : String;
+    Fname : String;
+    F_type : String;
+    Fvisibility : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdefaultViewport(AIndex : Integer; AValue : TMapLayerdefaultViewport); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvisibility(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property defaultViewport : TMapLayerdefaultViewport Index 0 Read FdefaultViewport Write SetdefaultViewport;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property key : string Index 16 Read Fkey Write Setkey;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property _type : string Index 32 Read F_type Write Set_type;
-    Property visibility : string Index 40 Read Fvisibility Write Setvisibility;
+    Property defaultViewport : TdoubleArray Index 0 Read FdefaultViewport Write SetdefaultViewport;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property key : String Index 16 Read Fkey Write Setkey;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property _type : String Index 32 Read F_type Write Set_type;
+    Property visibility : String Index 40 Read Fvisibility Write Setvisibility;
   end;
   TMapLayerClass = Class of TMapLayer;
-  
-  { --------------------------------------------------------------------
-    TMapLayerdefaultViewport
-    --------------------------------------------------------------------}
-  
-  TMapLayerdefaultViewport = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMapLayerdefaultViewportClass = Class of TMapLayerdefaultViewport;
   
   { --------------------------------------------------------------------
     TMapsListResponse
@@ -1619,31 +1163,18 @@ type
   
   TMapsListResponse = Class(TGoogleBaseObject)
   Private
-    Fmaps : TMapsListResponsemaps;
-    FnextPageToken : string;
+    Fmaps : TMapsListResponseTypemapsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setmaps(AIndex : Integer; AValue : TMapsListResponsemaps); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setmaps(AIndex : Integer; AValue : TMapsListResponseTypemapsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property maps : TMapsListResponsemaps Index 0 Read Fmaps Write Setmaps;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property maps : TMapsListResponseTypemapsArray Index 0 Read Fmaps Write Setmaps;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TMapsListResponseClass = Class of TMapsListResponse;
-  
-  { --------------------------------------------------------------------
-    TMapsListResponsemaps
-    --------------------------------------------------------------------}
-  
-  TMapsListResponsemaps = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMapsListResponsemapsClass = Class of TMapsListResponsemaps;
   
   { --------------------------------------------------------------------
     TParent
@@ -1651,13 +1182,13 @@ type
   
   TParent = Class(TGoogleBaseObject)
   Private
-    Fid : string;
+    Fid : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
+    Property id : String Index 0 Read Fid Write Setid;
   end;
   TParentClass = Class of TParent;
   
@@ -1667,31 +1198,18 @@ type
   
   TParentsListResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Fparents : TParentsListResponseparents;
+    FnextPageToken : String;
+    Fparents : TParentsListResponseTypeparentsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setparents(AIndex : Integer; AValue : TParentsListResponseparents); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setparents(AIndex : Integer; AValue : TParentsListResponseTypeparentsArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property parents : TParentsListResponseparents Index 8 Read Fparents Write Setparents;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property parents : TParentsListResponseTypeparentsArray Index 8 Read Fparents Write Setparents;
   end;
   TParentsListResponseClass = Class of TParentsListResponse;
-  
-  { --------------------------------------------------------------------
-    TParentsListResponseparents
-    --------------------------------------------------------------------}
-  
-  TParentsListResponseparents = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TParentsListResponseparentsClass = Class of TParentsListResponseparents;
   
   { --------------------------------------------------------------------
     TPermission
@@ -1700,22 +1218,22 @@ type
   TPermission = Class(TGoogleBaseObject)
   Private
     Fdiscoverable : boolean;
-    Fid : string;
-    Frole : string;
-    F_type : string;
+    Fid : String;
+    Frole : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setdiscoverable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrole(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrole(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property discoverable : boolean Index 0 Read Fdiscoverable Write Setdiscoverable;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property role : string Index 16 Read Frole Write Setrole;
-    Property _type : string Index 24 Read F_type Write Set_type;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property role : String Index 16 Read Frole Write Setrole;
+    Property _type : String Index 24 Read F_type Write Set_type;
   end;
   TPermissionClass = Class of TPermission;
   
@@ -1725,28 +1243,15 @@ type
   
   TPermissionsBatchDeleteRequest = Class(TGoogleBaseObject)
   Private
-    Fids : TPermissionsBatchDeleteRequestids;
+    Fids : TStringArray;
   Protected
     //Property setters
-    Procedure Setids(AIndex : Integer; AValue : TPermissionsBatchDeleteRequestids); virtual;
+    Procedure Setids(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property ids : TPermissionsBatchDeleteRequestids Index 0 Read Fids Write Setids;
+    Property ids : TStringArray Index 0 Read Fids Write Setids;
   end;
   TPermissionsBatchDeleteRequestClass = Class of TPermissionsBatchDeleteRequest;
-  
-  { --------------------------------------------------------------------
-    TPermissionsBatchDeleteRequestids
-    --------------------------------------------------------------------}
-  
-  TPermissionsBatchDeleteRequestids = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPermissionsBatchDeleteRequestidsClass = Class of TPermissionsBatchDeleteRequestids;
   
   { --------------------------------------------------------------------
     TPermissionsBatchDeleteResponse
@@ -1767,28 +1272,15 @@ type
   
   TPermissionsBatchUpdateRequest = Class(TGoogleBaseObject)
   Private
-    Fpermissions : TPermissionsBatchUpdateRequestpermissions;
+    Fpermissions : TPermissionsBatchUpdateRequestTypepermissionsArray;
   Protected
     //Property setters
-    Procedure Setpermissions(AIndex : Integer; AValue : TPermissionsBatchUpdateRequestpermissions); virtual;
+    Procedure Setpermissions(AIndex : Integer; AValue : TPermissionsBatchUpdateRequestTypepermissionsArray); virtual;
   Public
   Published
-    Property permissions : TPermissionsBatchUpdateRequestpermissions Index 0 Read Fpermissions Write Setpermissions;
+    Property permissions : TPermissionsBatchUpdateRequestTypepermissionsArray Index 0 Read Fpermissions Write Setpermissions;
   end;
   TPermissionsBatchUpdateRequestClass = Class of TPermissionsBatchUpdateRequest;
-  
-  { --------------------------------------------------------------------
-    TPermissionsBatchUpdateRequestpermissions
-    --------------------------------------------------------------------}
-  
-  TPermissionsBatchUpdateRequestpermissions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPermissionsBatchUpdateRequestpermissionsClass = Class of TPermissionsBatchUpdateRequestpermissions;
   
   { --------------------------------------------------------------------
     TPermissionsBatchUpdateResponse
@@ -1809,28 +1301,15 @@ type
   
   TPermissionsListResponse = Class(TGoogleBaseObject)
   Private
-    Fpermissions : TPermissionsListResponsepermissions;
+    Fpermissions : TPermissionsListResponseTypepermissionsArray;
   Protected
     //Property setters
-    Procedure Setpermissions(AIndex : Integer; AValue : TPermissionsListResponsepermissions); virtual;
+    Procedure Setpermissions(AIndex : Integer; AValue : TPermissionsListResponseTypepermissionsArray); virtual;
   Public
   Published
-    Property permissions : TPermissionsListResponsepermissions Index 0 Read Fpermissions Write Setpermissions;
+    Property permissions : TPermissionsListResponseTypepermissionsArray Index 0 Read Fpermissions Write Setpermissions;
   end;
   TPermissionsListResponseClass = Class of TPermissionsListResponse;
-  
-  { --------------------------------------------------------------------
-    TPermissionsListResponsepermissions
-    --------------------------------------------------------------------}
-  
-  TPermissionsListResponsepermissions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPermissionsListResponsepermissionsClass = Class of TPermissionsListResponsepermissions;
   
   { --------------------------------------------------------------------
     TPointStyle
@@ -1894,16 +1373,16 @@ type
   
   TProject = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fname : string;
+    Fid : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property name : String Index 8 Read Fname Write Setname;
   end;
   TProjectClass = Class of TProject;
   
@@ -1913,28 +1392,15 @@ type
   
   TProjectsListResponse = Class(TGoogleBaseObject)
   Private
-    Fprojects : TProjectsListResponseprojects;
+    Fprojects : TProjectsListResponseTypeprojectsArray;
   Protected
     //Property setters
-    Procedure Setprojects(AIndex : Integer; AValue : TProjectsListResponseprojects); virtual;
+    Procedure Setprojects(AIndex : Integer; AValue : TProjectsListResponseTypeprojectsArray); virtual;
   Public
   Published
-    Property projects : TProjectsListResponseprojects Index 0 Read Fprojects Write Setprojects;
+    Property projects : TProjectsListResponseTypeprojectsArray Index 0 Read Fprojects Write Setprojects;
   end;
   TProjectsListResponseClass = Class of TProjectsListResponse;
-  
-  { --------------------------------------------------------------------
-    TProjectsListResponseprojects
-    --------------------------------------------------------------------}
-  
-  TProjectsListResponseprojects = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProjectsListResponseprojectsClass = Class of TProjectsListResponseprojects;
   
   { --------------------------------------------------------------------
     TPublishResponse
@@ -1955,25 +1421,25 @@ type
   
   TPublishedLayer = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Fid : string;
-    FlayerType : string;
-    Fname : string;
-    FprojectId : string;
+    Fdescription : String;
+    Fid : String;
+    FlayerType : String;
+    Fname : String;
+    FprojectId : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlayerType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlayerType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property layerType : string Index 16 Read FlayerType Write SetlayerType;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property projectId : string Index 32 Read FprojectId Write SetprojectId;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property layerType : String Index 16 Read FlayerType Write SetlayerType;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property projectId : String Index 32 Read FprojectId Write SetprojectId;
   end;
   TPublishedLayerClass = Class of TPublishedLayer;
   
@@ -1983,31 +1449,18 @@ type
   
   TPublishedLayersListResponse = Class(TGoogleBaseObject)
   Private
-    Flayers : TPublishedLayersListResponselayers;
-    FnextPageToken : string;
+    Flayers : TPublishedLayersListResponseTypelayersArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setlayers(AIndex : Integer; AValue : TPublishedLayersListResponselayers); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setlayers(AIndex : Integer; AValue : TPublishedLayersListResponseTypelayersArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property layers : TPublishedLayersListResponselayers Index 0 Read Flayers Write Setlayers;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property layers : TPublishedLayersListResponseTypelayersArray Index 0 Read Flayers Write Setlayers;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TPublishedLayersListResponseClass = Class of TPublishedLayersListResponse;
-  
-  { --------------------------------------------------------------------
-    TPublishedLayersListResponselayers
-    --------------------------------------------------------------------}
-  
-  TPublishedLayersListResponselayers = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPublishedLayersListResponselayersClass = Class of TPublishedLayersListResponselayers;
   
   { --------------------------------------------------------------------
     TPublishedMap
@@ -2017,26 +1470,26 @@ type
   Private
     Fcontents : TMapContents;
     FdefaultViewport : TLatLngBox;
-    Fdescription : string;
-    Fid : string;
-    Fname : string;
-    FprojectId : string;
+    Fdescription : String;
+    Fid : String;
+    Fname : String;
+    FprojectId : String;
   Protected
     //Property setters
     Procedure Setcontents(AIndex : Integer; AValue : TMapContents); virtual;
     Procedure SetdefaultViewport(AIndex : Integer; AValue : TLatLngBox); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property contents : TMapContents Index 0 Read Fcontents Write Setcontents;
     Property defaultViewport : TLatLngBox Index 8 Read FdefaultViewport Write SetdefaultViewport;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property name : string Index 32 Read Fname Write Setname;
-    Property projectId : string Index 40 Read FprojectId Write SetprojectId;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property name : String Index 32 Read Fname Write Setname;
+    Property projectId : String Index 40 Read FprojectId Write SetprojectId;
   end;
   TPublishedMapClass = Class of TPublishedMap;
   
@@ -2046,31 +1499,18 @@ type
   
   TPublishedMapsListResponse = Class(TGoogleBaseObject)
   Private
-    Fmaps : TPublishedMapsListResponsemaps;
-    FnextPageToken : string;
+    Fmaps : TPublishedMapsListResponseTypemapsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setmaps(AIndex : Integer; AValue : TPublishedMapsListResponsemaps); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setmaps(AIndex : Integer; AValue : TPublishedMapsListResponseTypemapsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property maps : TPublishedMapsListResponsemaps Index 0 Read Fmaps Write Setmaps;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property maps : TPublishedMapsListResponseTypemapsArray Index 0 Read Fmaps Write Setmaps;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TPublishedMapsListResponseClass = Class of TPublishedMapsListResponse;
-  
-  { --------------------------------------------------------------------
-    TPublishedMapsListResponsemaps
-    --------------------------------------------------------------------}
-  
-  TPublishedMapsListResponsemaps = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPublishedMapsListResponsemapsClass = Class of TPublishedMapsListResponsemaps;
   
   { --------------------------------------------------------------------
     TRaster
@@ -2079,94 +1519,68 @@ type
   TRaster = Class(TGoogleBaseObject)
   Private
     FacquisitionTime : TAcquisitionTime;
-    Fattribution : string;
-    Fbbox : TRasterbbox;
+    Fattribution : String;
+    Fbbox : TdoubleArray;
     FcreationTime : TDatetime;
-    FcreatorEmail : string;
-    Fdescription : string;
-    FdraftAccessList : string;
-    Fetag : string;
-    Ffiles : TRasterfiles;
-    Fid : string;
+    FcreatorEmail : String;
+    Fdescription : String;
+    FdraftAccessList : String;
+    Fetag : String;
+    Ffiles : TRasterTypefilesArray;
+    Fid : String;
     FlastModifiedTime : TDatetime;
-    FlastModifierEmail : string;
-    FmaskType : string;
-    Fname : string;
-    FprocessingStatus : string;
-    FprojectId : string;
-    FrasterType : string;
-    Ftags : TAssettags;
+    FlastModifierEmail : String;
+    FmaskType : String;
+    Fname : String;
+    FprocessingStatus : String;
+    FprojectId : String;
+    FrasterType : String;
+    Ftags : TTags;
     FwritersCanEditPermissions : boolean;
   Protected
     //Property setters
     Procedure SetacquisitionTime(AIndex : Integer; AValue : TAcquisitionTime); virtual;
-    Procedure Setattribution(AIndex : Integer; AValue : string); virtual;
-    Procedure Setbbox(AIndex : Integer; AValue : TRasterbbox); virtual;
+    Procedure Setattribution(AIndex : Integer; AValue : String); virtual;
+    Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetcreatorEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdraftAccessList(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfiles(AIndex : Integer; AValue : TRasterfiles); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreatorEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdraftAccessList(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfiles(AIndex : Integer; AValue : TRasterTypefilesArray); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastModifierEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmaskType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrasterType(AIndex : Integer; AValue : string); virtual;
-    Procedure Settags(AIndex : Integer; AValue : TAssettags); virtual;
+    Procedure SetlastModifierEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmaskType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrasterType(AIndex : Integer; AValue : String); virtual;
+    Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
     Property acquisitionTime : TAcquisitionTime Index 0 Read FacquisitionTime Write SetacquisitionTime;
-    Property attribution : string Index 8 Read Fattribution Write Setattribution;
-    Property bbox : TRasterbbox Index 16 Read Fbbox Write Setbbox;
+    Property attribution : String Index 8 Read Fattribution Write Setattribution;
+    Property bbox : TdoubleArray Index 16 Read Fbbox Write Setbbox;
     Property creationTime : TDatetime Index 24 Read FcreationTime Write SetcreationTime;
-    Property creatorEmail : string Index 32 Read FcreatorEmail Write SetcreatorEmail;
-    Property description : string Index 40 Read Fdescription Write Setdescription;
-    Property draftAccessList : string Index 48 Read FdraftAccessList Write SetdraftAccessList;
-    Property etag : string Index 56 Read Fetag Write Setetag;
-    Property files : TRasterfiles Index 64 Read Ffiles Write Setfiles;
-    Property id : string Index 72 Read Fid Write Setid;
+    Property creatorEmail : String Index 32 Read FcreatorEmail Write SetcreatorEmail;
+    Property description : String Index 40 Read Fdescription Write Setdescription;
+    Property draftAccessList : String Index 48 Read FdraftAccessList Write SetdraftAccessList;
+    Property etag : String Index 56 Read Fetag Write Setetag;
+    Property files : TRasterTypefilesArray Index 64 Read Ffiles Write Setfiles;
+    Property id : String Index 72 Read Fid Write Setid;
     Property lastModifiedTime : TDatetime Index 80 Read FlastModifiedTime Write SetlastModifiedTime;
-    Property lastModifierEmail : string Index 88 Read FlastModifierEmail Write SetlastModifierEmail;
-    Property maskType : string Index 96 Read FmaskType Write SetmaskType;
-    Property name : string Index 104 Read Fname Write Setname;
-    Property processingStatus : string Index 112 Read FprocessingStatus Write SetprocessingStatus;
-    Property projectId : string Index 120 Read FprojectId Write SetprojectId;
-    Property rasterType : string Index 128 Read FrasterType Write SetrasterType;
-    Property tags : TAssettags Index 136 Read Ftags Write Settags;
+    Property lastModifierEmail : String Index 88 Read FlastModifierEmail Write SetlastModifierEmail;
+    Property maskType : String Index 96 Read FmaskType Write SetmaskType;
+    Property name : String Index 104 Read Fname Write Setname;
+    Property processingStatus : String Index 112 Read FprocessingStatus Write SetprocessingStatus;
+    Property projectId : String Index 120 Read FprojectId Write SetprojectId;
+    Property rasterType : String Index 128 Read FrasterType Write SetrasterType;
+    Property tags : TTags Index 136 Read Ftags Write Settags;
     Property writersCanEditPermissions : boolean Index 144 Read FwritersCanEditPermissions Write SetwritersCanEditPermissions;
   end;
   TRasterClass = Class of TRaster;
-  
-  { --------------------------------------------------------------------
-    TRasterbbox
-    --------------------------------------------------------------------}
-  
-  TRasterbbox = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRasterbboxClass = Class of TRasterbbox;
-  
-  { --------------------------------------------------------------------
-    TRasterfiles
-    --------------------------------------------------------------------}
-  
-  TRasterfiles = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRasterfilesClass = Class of TRasterfiles;
   
   { --------------------------------------------------------------------
     TRasterCollection
@@ -2174,76 +1588,63 @@ type
   
   TRasterCollection = Class(TGoogleBaseObject)
   Private
-    Fattribution : string;
-    Fbbox : TRasterCollectionbbox;
+    Fattribution : String;
+    Fbbox : TdoubleArray;
     FcreationTime : TDatetime;
-    FcreatorEmail : string;
-    Fdescription : string;
-    FdraftAccessList : string;
-    Fetag : string;
-    Fid : string;
+    FcreatorEmail : String;
+    Fdescription : String;
+    FdraftAccessList : String;
+    Fetag : String;
+    Fid : String;
     FlastModifiedTime : TDatetime;
-    FlastModifierEmail : string;
+    FlastModifierEmail : String;
     Fmosaic : boolean;
-    Fname : string;
-    FprocessingStatus : string;
-    FprojectId : string;
-    FrasterType : string;
-    Ftags : TAssettags;
+    Fname : String;
+    FprocessingStatus : String;
+    FprojectId : String;
+    FrasterType : String;
+    Ftags : TTags;
     FwritersCanEditPermissions : boolean;
   Protected
     //Property setters
-    Procedure Setattribution(AIndex : Integer; AValue : string); virtual;
-    Procedure Setbbox(AIndex : Integer; AValue : TRasterCollectionbbox); virtual;
+    Procedure Setattribution(AIndex : Integer; AValue : String); virtual;
+    Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetcreatorEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdraftAccessList(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreatorEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdraftAccessList(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastModifierEmail(AIndex : Integer; AValue : string); virtual;
+    Procedure SetlastModifierEmail(AIndex : Integer; AValue : String); virtual;
     Procedure Setmosaic(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrasterType(AIndex : Integer; AValue : string); virtual;
-    Procedure Settags(AIndex : Integer; AValue : TAssettags); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrasterType(AIndex : Integer; AValue : String); virtual;
+    Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property attribution : string Index 0 Read Fattribution Write Setattribution;
-    Property bbox : TRasterCollectionbbox Index 8 Read Fbbox Write Setbbox;
+    Property attribution : String Index 0 Read Fattribution Write Setattribution;
+    Property bbox : TdoubleArray Index 8 Read Fbbox Write Setbbox;
     Property creationTime : TDatetime Index 16 Read FcreationTime Write SetcreationTime;
-    Property creatorEmail : string Index 24 Read FcreatorEmail Write SetcreatorEmail;
-    Property description : string Index 32 Read Fdescription Write Setdescription;
-    Property draftAccessList : string Index 40 Read FdraftAccessList Write SetdraftAccessList;
-    Property etag : string Index 48 Read Fetag Write Setetag;
-    Property id : string Index 56 Read Fid Write Setid;
+    Property creatorEmail : String Index 24 Read FcreatorEmail Write SetcreatorEmail;
+    Property description : String Index 32 Read Fdescription Write Setdescription;
+    Property draftAccessList : String Index 40 Read FdraftAccessList Write SetdraftAccessList;
+    Property etag : String Index 48 Read Fetag Write Setetag;
+    Property id : String Index 56 Read Fid Write Setid;
     Property lastModifiedTime : TDatetime Index 64 Read FlastModifiedTime Write SetlastModifiedTime;
-    Property lastModifierEmail : string Index 72 Read FlastModifierEmail Write SetlastModifierEmail;
+    Property lastModifierEmail : String Index 72 Read FlastModifierEmail Write SetlastModifierEmail;
     Property mosaic : boolean Index 80 Read Fmosaic Write Setmosaic;
-    Property name : string Index 88 Read Fname Write Setname;
-    Property processingStatus : string Index 96 Read FprocessingStatus Write SetprocessingStatus;
-    Property projectId : string Index 104 Read FprojectId Write SetprojectId;
-    Property rasterType : string Index 112 Read FrasterType Write SetrasterType;
-    Property tags : TAssettags Index 120 Read Ftags Write Settags;
+    Property name : String Index 88 Read Fname Write Setname;
+    Property processingStatus : String Index 96 Read FprocessingStatus Write SetprocessingStatus;
+    Property projectId : String Index 104 Read FprojectId Write SetprojectId;
+    Property rasterType : String Index 112 Read FrasterType Write SetrasterType;
+    Property tags : TTags Index 120 Read Ftags Write Settags;
     Property writersCanEditPermissions : boolean Index 128 Read FwritersCanEditPermissions Write SetwritersCanEditPermissions;
   end;
   TRasterCollectionClass = Class of TRasterCollection;
-  
-  { --------------------------------------------------------------------
-    TRasterCollectionbbox
-    --------------------------------------------------------------------}
-  
-  TRasterCollectionbbox = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRasterCollectionbboxClass = Class of TRasterCollectionbbox;
   
   { --------------------------------------------------------------------
     TRasterCollectionsListResponse
@@ -2251,31 +1652,18 @@ type
   
   TRasterCollectionsListResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    FrasterCollections : TRasterCollectionsListResponserasterCollections;
+    FnextPageToken : String;
+    FrasterCollections : TRasterCollectionsListResponseTyperasterCollectionsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrasterCollections(AIndex : Integer; AValue : TRasterCollectionsListResponserasterCollections); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrasterCollections(AIndex : Integer; AValue : TRasterCollectionsListResponseTyperasterCollectionsArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property rasterCollections : TRasterCollectionsListResponserasterCollections Index 8 Read FrasterCollections Write SetrasterCollections;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property rasterCollections : TRasterCollectionsListResponseTyperasterCollectionsArray Index 8 Read FrasterCollections Write SetrasterCollections;
   end;
   TRasterCollectionsListResponseClass = Class of TRasterCollectionsListResponse;
-  
-  { --------------------------------------------------------------------
-    TRasterCollectionsListResponserasterCollections
-    --------------------------------------------------------------------}
-  
-  TRasterCollectionsListResponserasterCollections = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRasterCollectionsListResponserasterCollectionsClass = Class of TRasterCollectionsListResponserasterCollections;
   
   { --------------------------------------------------------------------
     TRasterCollectionsRaster
@@ -2283,65 +1671,39 @@ type
   
   TRasterCollectionsRaster = Class(TGoogleBaseObject)
   Private
-    Fbbox : TRasterCollectionsRasterbbox;
+    Fbbox : TdoubleArray;
     FcreationTime : TDatetime;
-    Fdescription : string;
-    Fid : string;
+    Fdescription : String;
+    Fid : String;
     FlastModifiedTime : TDatetime;
-    Fname : string;
-    FprojectId : string;
-    FrasterType : string;
-    Ftags : TRasterCollectionsRastertags;
+    Fname : String;
+    FprojectId : String;
+    FrasterType : String;
+    Ftags : TStringArray;
   Protected
     //Property setters
-    Procedure Setbbox(AIndex : Integer; AValue : TRasterCollectionsRasterbbox); virtual;
+    Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrasterType(AIndex : Integer; AValue : string); virtual;
-    Procedure Settags(AIndex : Integer; AValue : TRasterCollectionsRastertags); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrasterType(AIndex : Integer; AValue : String); virtual;
+    Procedure Settags(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property bbox : TRasterCollectionsRasterbbox Index 0 Read Fbbox Write Setbbox;
+    Property bbox : TdoubleArray Index 0 Read Fbbox Write Setbbox;
     Property creationTime : TDatetime Index 8 Read FcreationTime Write SetcreationTime;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property id : string Index 24 Read Fid Write Setid;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property id : String Index 24 Read Fid Write Setid;
     Property lastModifiedTime : TDatetime Index 32 Read FlastModifiedTime Write SetlastModifiedTime;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property projectId : string Index 48 Read FprojectId Write SetprojectId;
-    Property rasterType : string Index 56 Read FrasterType Write SetrasterType;
-    Property tags : TRasterCollectionsRastertags Index 64 Read Ftags Write Settags;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property projectId : String Index 48 Read FprojectId Write SetprojectId;
+    Property rasterType : String Index 56 Read FrasterType Write SetrasterType;
+    Property tags : TStringArray Index 64 Read Ftags Write Settags;
   end;
   TRasterCollectionsRasterClass = Class of TRasterCollectionsRaster;
-  
-  { --------------------------------------------------------------------
-    TRasterCollectionsRasterbbox
-    --------------------------------------------------------------------}
-  
-  TRasterCollectionsRasterbbox = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRasterCollectionsRasterbboxClass = Class of TRasterCollectionsRasterbbox;
-  
-  { --------------------------------------------------------------------
-    TRasterCollectionsRastertags
-    --------------------------------------------------------------------}
-  
-  TRasterCollectionsRastertags = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRasterCollectionsRastertagsClass = Class of TRasterCollectionsRastertags;
   
   { --------------------------------------------------------------------
     TRasterCollectionsRasterBatchDeleteRequest
@@ -2349,28 +1711,15 @@ type
   
   TRasterCollectionsRasterBatchDeleteRequest = Class(TGoogleBaseObject)
   Private
-    Fids : TRasterCollectionsRasterBatchDeleteRequestids;
+    Fids : TStringArray;
   Protected
     //Property setters
-    Procedure Setids(AIndex : Integer; AValue : TRasterCollectionsRasterBatchDeleteRequestids); virtual;
+    Procedure Setids(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property ids : TRasterCollectionsRasterBatchDeleteRequestids Index 0 Read Fids Write Setids;
+    Property ids : TStringArray Index 0 Read Fids Write Setids;
   end;
   TRasterCollectionsRasterBatchDeleteRequestClass = Class of TRasterCollectionsRasterBatchDeleteRequest;
-  
-  { --------------------------------------------------------------------
-    TRasterCollectionsRasterBatchDeleteRequestids
-    --------------------------------------------------------------------}
-  
-  TRasterCollectionsRasterBatchDeleteRequestids = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRasterCollectionsRasterBatchDeleteRequestidsClass = Class of TRasterCollectionsRasterBatchDeleteRequestids;
   
   { --------------------------------------------------------------------
     TRasterCollectionsRastersBatchDeleteResponse
@@ -2391,28 +1740,15 @@ type
   
   TRasterCollectionsRastersBatchInsertRequest = Class(TGoogleBaseObject)
   Private
-    Fids : TRasterCollectionsRastersBatchInsertRequestids;
+    Fids : TStringArray;
   Protected
     //Property setters
-    Procedure Setids(AIndex : Integer; AValue : TRasterCollectionsRastersBatchInsertRequestids); virtual;
+    Procedure Setids(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property ids : TRasterCollectionsRastersBatchInsertRequestids Index 0 Read Fids Write Setids;
+    Property ids : TStringArray Index 0 Read Fids Write Setids;
   end;
   TRasterCollectionsRastersBatchInsertRequestClass = Class of TRasterCollectionsRastersBatchInsertRequest;
-  
-  { --------------------------------------------------------------------
-    TRasterCollectionsRastersBatchInsertRequestids
-    --------------------------------------------------------------------}
-  
-  TRasterCollectionsRastersBatchInsertRequestids = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRasterCollectionsRastersBatchInsertRequestidsClass = Class of TRasterCollectionsRastersBatchInsertRequestids;
   
   { --------------------------------------------------------------------
     TRasterCollectionsRastersBatchInsertResponse
@@ -2433,31 +1769,18 @@ type
   
   TRasterCollectionsRastersListResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Frasters : TRasterCollectionsRastersListResponserasters;
+    FnextPageToken : String;
+    Frasters : TRasterCollectionsRastersListResponseTyperastersArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrasters(AIndex : Integer; AValue : TRasterCollectionsRastersListResponserasters); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrasters(AIndex : Integer; AValue : TRasterCollectionsRastersListResponseTyperastersArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property rasters : TRasterCollectionsRastersListResponserasters Index 8 Read Frasters Write Setrasters;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property rasters : TRasterCollectionsRastersListResponseTyperastersArray Index 8 Read Frasters Write Setrasters;
   end;
   TRasterCollectionsRastersListResponseClass = Class of TRasterCollectionsRastersListResponse;
-  
-  { --------------------------------------------------------------------
-    TRasterCollectionsRastersListResponserasters
-    --------------------------------------------------------------------}
-  
-  TRasterCollectionsRastersListResponserasters = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRasterCollectionsRastersListResponserastersClass = Class of TRasterCollectionsRastersListResponserasters;
   
   { --------------------------------------------------------------------
     TRastersListResponse
@@ -2465,31 +1788,18 @@ type
   
   TRastersListResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Frasters : TRastersListResponserasters;
+    FnextPageToken : String;
+    Frasters : TRastersListResponseTyperastersArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrasters(AIndex : Integer; AValue : TRastersListResponserasters); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrasters(AIndex : Integer; AValue : TRastersListResponseTyperastersArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property rasters : TRastersListResponserasters Index 8 Read Frasters Write Setrasters;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property rasters : TRastersListResponseTyperastersArray Index 8 Read Frasters Write Setrasters;
   end;
   TRastersListResponseClass = Class of TRastersListResponse;
-  
-  { --------------------------------------------------------------------
-    TRastersListResponserasters
-    --------------------------------------------------------------------}
-  
-  TRastersListResponserasters = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRastersListResponserastersClass = Class of TRastersListResponserasters;
   
   { --------------------------------------------------------------------
     TScaledShape
@@ -2499,17 +1809,17 @@ type
   Private
     Fborder : TBorder;
     Ffill : TColor;
-    Fshape : string;
+    Fshape : String;
   Protected
     //Property setters
     Procedure Setborder(AIndex : Integer; AValue : TBorder); virtual;
     Procedure Setfill(AIndex : Integer; AValue : TColor); virtual;
-    Procedure Setshape(AIndex : Integer; AValue : string); virtual;
+    Procedure Setshape(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property border : TBorder Index 0 Read Fborder Write Setborder;
     Property fill : TColor Index 8 Read Ffill Write Setfill;
-    Property shape : string Index 16 Read Fshape Write Setshape;
+    Property shape : String Index 16 Read Fshape Write Setshape;
   end;
   TScaledShapeClass = Class of TScaledShape;
   
@@ -2519,20 +1829,20 @@ type
   
   TScalingFunction = Class(TGoogleBaseObject)
   Private
-    Fcolumn : string;
-    FscalingType : string;
+    Fcolumn : String;
+    FscalingType : String;
     FsizeRange : TSizeRange;
     FvalueRange : TValueRange;
   Protected
     //Property setters
-    Procedure Setcolumn(AIndex : Integer; AValue : string); virtual;
-    Procedure SetscalingType(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcolumn(AIndex : Integer; AValue : String); virtual;
+    Procedure SetscalingType(AIndex : Integer; AValue : String); virtual;
     Procedure SetsizeRange(AIndex : Integer; AValue : TSizeRange); virtual;
     Procedure SetvalueRange(AIndex : Integer; AValue : TValueRange); virtual;
   Public
   Published
-    Property column : string Index 0 Read Fcolumn Write Setcolumn;
-    Property scalingType : string Index 8 Read FscalingType Write SetscalingType;
+    Property column : String Index 0 Read Fcolumn Write Setcolumn;
+    Property scalingType : String Index 8 Read FscalingType Write SetscalingType;
     Property sizeRange : TSizeRange Index 16 Read FsizeRange Write SetsizeRange;
     Property valueRange : TValueRange Index 24 Read FvalueRange Write SetvalueRange;
   end;
@@ -2544,34 +1854,21 @@ type
   
   TSchema = Class(TGoogleBaseObject)
   Private
-    Fcolumns : TSchemacolumns;
-    FprimaryGeometry : string;
-    FprimaryKey : string;
+    Fcolumns : TSchemaTypecolumnsArray;
+    FprimaryGeometry : String;
+    FprimaryKey : String;
   Protected
     //Property setters
-    Procedure Setcolumns(AIndex : Integer; AValue : TSchemacolumns); virtual;
-    Procedure SetprimaryGeometry(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprimaryKey(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcolumns(AIndex : Integer; AValue : TSchemaTypecolumnsArray); virtual;
+    Procedure SetprimaryGeometry(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprimaryKey(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property columns : TSchemacolumns Index 0 Read Fcolumns Write Setcolumns;
-    Property primaryGeometry : string Index 8 Read FprimaryGeometry Write SetprimaryGeometry;
-    Property primaryKey : string Index 16 Read FprimaryKey Write SetprimaryKey;
+    Property columns : TSchemaTypecolumnsArray Index 0 Read Fcolumns Write Setcolumns;
+    Property primaryGeometry : String Index 8 Read FprimaryGeometry Write SetprimaryGeometry;
+    Property primaryKey : String Index 16 Read FprimaryKey Write SetprimaryKey;
   end;
   TSchemaClass = Class of TSchema;
-  
-  { --------------------------------------------------------------------
-    TSchemacolumns
-    --------------------------------------------------------------------}
-  
-  TSchemacolumns = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSchemacolumnsClass = Class of TSchemacolumns;
   
   { --------------------------------------------------------------------
     TSizeRange
@@ -2598,92 +1895,66 @@ type
   
   TTable = Class(TGoogleBaseObject)
   Private
-    Fbbox : TTablebbox;
+    Fbbox : TdoubleArray;
     FcreationTime : TDatetime;
-    FcreatorEmail : string;
-    Fdescription : string;
-    FdraftAccessList : string;
-    Fetag : string;
-    Ffiles : TTablefiles;
-    Fid : string;
+    FcreatorEmail : String;
+    Fdescription : String;
+    FdraftAccessList : String;
+    Fetag : String;
+    Ffiles : TTableTypefilesArray;
+    Fid : String;
     FlastModifiedTime : TDatetime;
-    FlastModifierEmail : string;
-    Fname : string;
-    FprocessingStatus : string;
-    FprojectId : string;
-    FpublishedAccessList : string;
+    FlastModifierEmail : String;
+    Fname : String;
+    FprocessingStatus : String;
+    FprojectId : String;
+    FpublishedAccessList : String;
     Fschema : TSchema;
-    FsourceEncoding : string;
-    Ftags : TAssettags;
+    FsourceEncoding : String;
+    Ftags : TTags;
     FwritersCanEditPermissions : boolean;
   Protected
     //Property setters
-    Procedure Setbbox(AIndex : Integer; AValue : TTablebbox); virtual;
+    Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetcreatorEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdraftAccessList(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfiles(AIndex : Integer; AValue : TTablefiles); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreatorEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdraftAccessList(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfiles(AIndex : Integer; AValue : TTableTypefilesArray); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastModifierEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpublishedAccessList(AIndex : Integer; AValue : string); virtual;
+    Procedure SetlastModifierEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpublishedAccessList(AIndex : Integer; AValue : String); virtual;
     Procedure Setschema(AIndex : Integer; AValue : TSchema); virtual;
-    Procedure SetsourceEncoding(AIndex : Integer; AValue : string); virtual;
-    Procedure Settags(AIndex : Integer; AValue : TAssettags); virtual;
+    Procedure SetsourceEncoding(AIndex : Integer; AValue : String); virtual;
+    Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property bbox : TTablebbox Index 0 Read Fbbox Write Setbbox;
+    Property bbox : TdoubleArray Index 0 Read Fbbox Write Setbbox;
     Property creationTime : TDatetime Index 8 Read FcreationTime Write SetcreationTime;
-    Property creatorEmail : string Index 16 Read FcreatorEmail Write SetcreatorEmail;
-    Property description : string Index 24 Read Fdescription Write Setdescription;
-    Property draftAccessList : string Index 32 Read FdraftAccessList Write SetdraftAccessList;
-    Property etag : string Index 40 Read Fetag Write Setetag;
-    Property files : TTablefiles Index 48 Read Ffiles Write Setfiles;
-    Property id : string Index 56 Read Fid Write Setid;
+    Property creatorEmail : String Index 16 Read FcreatorEmail Write SetcreatorEmail;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
+    Property draftAccessList : String Index 32 Read FdraftAccessList Write SetdraftAccessList;
+    Property etag : String Index 40 Read Fetag Write Setetag;
+    Property files : TTableTypefilesArray Index 48 Read Ffiles Write Setfiles;
+    Property id : String Index 56 Read Fid Write Setid;
     Property lastModifiedTime : TDatetime Index 64 Read FlastModifiedTime Write SetlastModifiedTime;
-    Property lastModifierEmail : string Index 72 Read FlastModifierEmail Write SetlastModifierEmail;
-    Property name : string Index 80 Read Fname Write Setname;
-    Property processingStatus : string Index 88 Read FprocessingStatus Write SetprocessingStatus;
-    Property projectId : string Index 96 Read FprojectId Write SetprojectId;
-    Property publishedAccessList : string Index 104 Read FpublishedAccessList Write SetpublishedAccessList;
+    Property lastModifierEmail : String Index 72 Read FlastModifierEmail Write SetlastModifierEmail;
+    Property name : String Index 80 Read Fname Write Setname;
+    Property processingStatus : String Index 88 Read FprocessingStatus Write SetprocessingStatus;
+    Property projectId : String Index 96 Read FprojectId Write SetprojectId;
+    Property publishedAccessList : String Index 104 Read FpublishedAccessList Write SetpublishedAccessList;
     Property schema : TSchema Index 112 Read Fschema Write Setschema;
-    Property sourceEncoding : string Index 120 Read FsourceEncoding Write SetsourceEncoding;
-    Property tags : TAssettags Index 128 Read Ftags Write Settags;
+    Property sourceEncoding : String Index 120 Read FsourceEncoding Write SetsourceEncoding;
+    Property tags : TTags Index 128 Read Ftags Write Settags;
     Property writersCanEditPermissions : boolean Index 136 Read FwritersCanEditPermissions Write SetwritersCanEditPermissions;
   end;
   TTableClass = Class of TTable;
-  
-  { --------------------------------------------------------------------
-    TTablebbox
-    --------------------------------------------------------------------}
-  
-  TTablebbox = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTablebboxClass = Class of TTablebbox;
-  
-  { --------------------------------------------------------------------
-    TTablefiles
-    --------------------------------------------------------------------}
-  
-  TTablefiles = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTablefilesClass = Class of TTablefiles;
   
   { --------------------------------------------------------------------
     TTableColumn
@@ -2691,17 +1962,17 @@ type
   
   TTableColumn = Class(TGoogleBaseObject)
   Private
-    Fname : string;
-    F_type : string;
+    Fname : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
-    Property _type : string Index 8 Read F_type Write Set_type;
+    Property name : String Index 0 Read Fname Write Setname;
+    Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TTableColumnClass = Class of TTableColumn;
   
@@ -2711,44 +1982,18 @@ type
   
   TTablesListResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Ftables : TTablesListResponsetables;
+    FnextPageToken : String;
+    Ftables : TTablesListResponseTypetablesArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Settables(AIndex : Integer; AValue : TTablesListResponsetables); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Settables(AIndex : Integer; AValue : TTablesListResponseTypetablesArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property tables : TTablesListResponsetables Index 8 Read Ftables Write Settables;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property tables : TTablesListResponseTypetablesArray Index 8 Read Ftables Write Settables;
   end;
   TTablesListResponseClass = Class of TTablesListResponse;
-  
-  { --------------------------------------------------------------------
-    TTablesListResponsetables
-    --------------------------------------------------------------------}
-  
-  TTablesListResponsetables = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTablesListResponsetablesClass = Class of TTablesListResponsetables;
-  
-  { --------------------------------------------------------------------
-    TTags
-    --------------------------------------------------------------------}
-  
-  TTags = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTagsClass = Class of TTags;
   
   { --------------------------------------------------------------------
     TValueRange
@@ -2775,35 +2020,22 @@ type
   
   TVectorStyle = Class(TGoogleBaseObject)
   Private
-    FdisplayRules : TVectorStyledisplayRules;
+    FdisplayRules : TVectorStyleTypedisplayRulesArray;
     FfeatureInfo : TFeatureInfo;
-    F_type : string;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdisplayRules(AIndex : Integer; AValue : TVectorStyledisplayRules); virtual;
+    Procedure SetdisplayRules(AIndex : Integer; AValue : TVectorStyleTypedisplayRulesArray); virtual;
     Procedure SetfeatureInfo(AIndex : Integer; AValue : TFeatureInfo); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property displayRules : TVectorStyledisplayRules Index 0 Read FdisplayRules Write SetdisplayRules;
+    Property displayRules : TVectorStyleTypedisplayRulesArray Index 0 Read FdisplayRules Write SetdisplayRules;
     Property featureInfo : TFeatureInfo Index 8 Read FfeatureInfo Write SetfeatureInfo;
-    Property _type : string Index 16 Read F_type Write Set_type;
+    Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TVectorStyleClass = Class of TVectorStyle;
-  
-  { --------------------------------------------------------------------
-    TVectorStyledisplayRules
-    --------------------------------------------------------------------}
-  
-  TVectorStyledisplayRules = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVectorStyledisplayRulesClass = Class of TVectorStyledisplayRules;
   
   { --------------------------------------------------------------------
     TZoomLevels
@@ -2832,19 +2064,19 @@ type
   //Optional query Options for TAssetsResource, method List
   
   TAssetsListOptions = Record
-    bbox : string;
+    bbox : String;
     createdAfter : TDatetime;
     createdBefore : TDatetime;
-    creatorEmail : string;
+    creatorEmail : String;
     maxResults : integer;
     modifiedAfter : TDatetime;
     modifiedBefore : TDatetime;
-    pageToken : string;
-    projectId : string;
-    role : string;
-    search : string;
-    tags : string;
-    _type : string;
+    pageToken : String;
+    projectId : String;
+    role : String;
+    search : String;
+    tags : String;
+    _type : String;
   end;
   
   TAssetsResource = Class(TGoogleResource)
@@ -2872,26 +2104,26 @@ type
   //Optional query Options for TLayersResource, method Get
   
   TLayersGetOptions = Record
-    version : string;
+    version : String;
   end;
   
   
   //Optional query Options for TLayersResource, method List
   
   TLayersListOptions = Record
-    bbox : string;
+    bbox : String;
     createdAfter : TDatetime;
     createdBefore : TDatetime;
-    creatorEmail : string;
+    creatorEmail : String;
     maxResults : integer;
     modifiedAfter : TDatetime;
     modifiedBefore : TDatetime;
-    pageToken : string;
-    processingStatus : string;
-    projectId : string;
-    role : string;
-    search : string;
-    tags : string;
+    pageToken : String;
+    processingStatus : String;
+    projectId : String;
+    role : String;
+    search : String;
+    tags : String;
   end;
   
   
@@ -2899,8 +2131,8 @@ type
   
   TLayersListPublishedOptions = Record
     maxResults : integer;
-    pageToken : string;
-    projectId : string;
+    pageToken : String;
+    projectId : String;
   end;
   
   
@@ -2941,26 +2173,26 @@ type
   //Optional query Options for TMapsResource, method Get
   
   TMapsGetOptions = Record
-    version : string;
+    version : String;
   end;
   
   
   //Optional query Options for TMapsResource, method List
   
   TMapsListOptions = Record
-    bbox : string;
+    bbox : String;
     createdAfter : TDatetime;
     createdBefore : TDatetime;
-    creatorEmail : string;
+    creatorEmail : String;
     maxResults : integer;
     modifiedAfter : TDatetime;
     modifiedBefore : TDatetime;
-    pageToken : string;
-    processingStatus : string;
-    projectId : string;
-    role : string;
-    search : string;
-    tags : string;
+    pageToken : String;
+    processingStatus : String;
+    projectId : String;
+    role : String;
+    search : String;
+    tags : String;
   end;
   
   
@@ -2968,8 +2200,8 @@ type
   
   TMapsListPublishedOptions = Record
     maxResults : integer;
-    pageToken : string;
-    projectId : string;
+    pageToken : String;
+    projectId : String;
   end;
   
   
@@ -3019,19 +2251,19 @@ type
   //Optional query Options for TRasterCollectionsResource, method List
   
   TRasterCollectionsListOptions = Record
-    bbox : string;
+    bbox : String;
     createdAfter : TDatetime;
     createdBefore : TDatetime;
-    creatorEmail : string;
+    creatorEmail : String;
     maxResults : integer;
     modifiedAfter : TDatetime;
     modifiedBefore : TDatetime;
-    pageToken : string;
-    processingStatus : string;
-    projectId : string;
-    role : string;
-    search : string;
-    tags : string;
+    pageToken : String;
+    processingStatus : String;
+    projectId : String;
+    role : String;
+    search : String;
+    tags : String;
   end;
   
   TRasterCollectionsResource = Class(TGoogleResource)
@@ -3057,19 +2289,19 @@ type
   //Optional query Options for TRastersResource, method List
   
   TRastersListOptions = Record
-    bbox : string;
+    bbox : String;
     createdAfter : TDatetime;
     createdBefore : TDatetime;
-    creatorEmail : string;
+    creatorEmail : String;
     maxResults : integer;
     modifiedAfter : TDatetime;
     modifiedBefore : TDatetime;
-    pageToken : string;
-    processingStatus : string;
-    projectId : string;
-    role : string;
-    search : string;
-    tags : string;
+    pageToken : String;
+    processingStatus : String;
+    projectId : String;
+    role : String;
+    search : String;
+    tags : String;
   end;
   
   TRastersResource = Class(TGoogleResource)
@@ -3094,26 +2326,26 @@ type
   //Optional query Options for TTablesResource, method Get
   
   TTablesGetOptions = Record
-    version : string;
+    version : String;
   end;
   
   
   //Optional query Options for TTablesResource, method List
   
   TTablesListOptions = Record
-    bbox : string;
+    bbox : String;
     createdAfter : TDatetime;
     createdBefore : TDatetime;
-    creatorEmail : string;
+    creatorEmail : String;
     maxResults : integer;
     modifiedAfter : TDatetime;
     modifiedBefore : TDatetime;
-    pageToken : string;
-    processingStatus : string;
-    projectId : string;
-    role : string;
-    search : string;
-    tags : string;
+    pageToken : String;
+    processingStatus : String;
+    projectId : String;
+    role : String;
+    search : String;
+    tags : String;
   end;
   
   TTablesResource = Class(TGoogleResource)
@@ -3217,7 +2449,7 @@ end;
 
 
 
-Procedure TAcquisitionTime.Setprecision(AIndex : Integer; AValue : string); 
+Procedure TAcquisitionTime.Setprecision(AIndex : Integer; AValue : String); 
 
 begin
   If (Fprecision=AValue) then exit;
@@ -3255,7 +2487,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAsset.Setbbox(AIndex : Integer; AValue : TAssetbbox); 
+Procedure TAsset.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
 
 begin
   If (Fbbox=AValue) then exit;
@@ -3275,7 +2507,7 @@ end;
 
 
 
-Procedure TAsset.SetcreatorEmail(AIndex : Integer; AValue : string); 
+Procedure TAsset.SetcreatorEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -3285,7 +2517,7 @@ end;
 
 
 
-Procedure TAsset.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TAsset.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -3295,7 +2527,7 @@ end;
 
 
 
-Procedure TAsset.Setetag(AIndex : Integer; AValue : string); 
+Procedure TAsset.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -3305,7 +2537,7 @@ end;
 
 
 
-Procedure TAsset.Setid(AIndex : Integer; AValue : string); 
+Procedure TAsset.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3325,7 +2557,7 @@ end;
 
 
 
-Procedure TAsset.SetlastModifierEmail(AIndex : Integer; AValue : string); 
+Procedure TAsset.SetlastModifierEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -3335,7 +2567,7 @@ end;
 
 
 
-Procedure TAsset.Setname(AIndex : Integer; AValue : string); 
+Procedure TAsset.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3345,7 +2577,7 @@ end;
 
 
 
-Procedure TAsset.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TAsset.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -3355,7 +2587,7 @@ end;
 
 
 
-Procedure TAsset.Setresource(AIndex : Integer; AValue : string); 
+Procedure TAsset.Setresource(AIndex : Integer; AValue : String); 
 
 begin
   If (Fresource=AValue) then exit;
@@ -3365,7 +2597,7 @@ end;
 
 
 
-Procedure TAsset.Settags(AIndex : Integer; AValue : TAssettags); 
+Procedure TAsset.Settags(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -3375,7 +2607,7 @@ end;
 
 
 
-Procedure TAsset.Set_type(AIndex : Integer; AValue : string); 
+Procedure TAsset.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3409,25 +2641,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAssetbbox
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAssettags
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAssetsListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TAssetsListResponse.Setassets(AIndex : Integer; AValue : TAssetsListResponseassets); 
+Procedure TAssetsListResponse.Setassets(AIndex : Integer; AValue : TAssetsListResponseTypeassetsArray); 
 
 begin
   If (Fassets=AValue) then exit;
@@ -3437,7 +2655,7 @@ end;
 
 
 
-Procedure TAssetsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TAssetsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3450,18 +2668,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAssetsListResponseassets
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TBorder
   --------------------------------------------------------------------}
 
 
-Procedure TBorder.Setcolor(AIndex : Integer; AValue : string); 
+Procedure TBorder.Setcolor(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcolor=AValue) then exit;
@@ -3498,7 +2709,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColor.Setcolor(AIndex : Integer; AValue : string); 
+Procedure TColor.Setcolor(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcolor=AValue) then exit;
@@ -3525,7 +2736,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatasource.Setid(AIndex : Integer; AValue : string); 
+Procedure TDatasource.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3538,18 +2749,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDatasources
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TDisplayRule
   --------------------------------------------------------------------}
 
 
-Procedure TDisplayRule.Setfilters(AIndex : Integer; AValue : TDisplayRulefilters); 
+Procedure TDisplayRule.Setfilters(AIndex : Integer; AValue : TDisplayRuleTypefiltersArray); 
 
 begin
   If (Ffilters=AValue) then exit;
@@ -3569,7 +2773,7 @@ end;
 
 
 
-Procedure TDisplayRule.Setname(AIndex : Integer; AValue : string); 
+Procedure TDisplayRule.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3612,13 +2816,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDisplayRulefilters
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TFeature
   --------------------------------------------------------------------}
 
@@ -3643,7 +2840,7 @@ end;
 
 
 
-Procedure TFeature.Set_type(AIndex : Integer; AValue : string); 
+Procedure TFeature.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3671,7 +2868,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFeatureInfo.Setcontent(AIndex : Integer; AValue : string); 
+Procedure TFeatureInfo.Setcontent(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcontent=AValue) then exit;
@@ -3688,7 +2885,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFeaturesBatchDeleteRequest.Setgx_ids(AIndex : Integer; AValue : TFeaturesBatchDeleteRequestgx_ids); 
+Procedure TFeaturesBatchDeleteRequest.Setgx_ids(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fgx_ids=AValue) then exit;
@@ -3698,7 +2895,7 @@ end;
 
 
 
-Procedure TFeaturesBatchDeleteRequest.SetprimaryKeys(AIndex : Integer; AValue : TFeaturesBatchDeleteRequestprimaryKeys); 
+Procedure TFeaturesBatchDeleteRequest.SetprimaryKeys(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FprimaryKeys=AValue) then exit;
@@ -3711,25 +2908,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TFeaturesBatchDeleteRequestgx_ids
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFeaturesBatchDeleteRequestprimaryKeys
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TFeaturesBatchInsertRequest
   --------------------------------------------------------------------}
 
 
-Procedure TFeaturesBatchInsertRequest.Setfeatures(AIndex : Integer; AValue : TFeaturesBatchInsertRequestfeatures); 
+Procedure TFeaturesBatchInsertRequest.Setfeatures(AIndex : Integer; AValue : TFeaturesBatchInsertRequestTypefeaturesArray); 
 
 begin
   If (Ffeatures=AValue) then exit;
@@ -3752,18 +2935,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TFeaturesBatchInsertRequestfeatures
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TFeaturesBatchPatchRequest
   --------------------------------------------------------------------}
 
 
-Procedure TFeaturesBatchPatchRequest.Setfeatures(AIndex : Integer; AValue : TFeaturesBatchPatchRequestfeatures); 
+Procedure TFeaturesBatchPatchRequest.Setfeatures(AIndex : Integer; AValue : TFeaturesBatchPatchRequestTypefeaturesArray); 
 
 begin
   If (Ffeatures=AValue) then exit;
@@ -3786,13 +2962,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TFeaturesBatchPatchRequestfeatures
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TFeaturesListResponse
   --------------------------------------------------------------------}
 
@@ -3807,7 +2976,7 @@ end;
 
 
 
-Procedure TFeaturesListResponse.Setfeatures(AIndex : Integer; AValue : TFeaturesListResponsefeatures); 
+Procedure TFeaturesListResponse.Setfeatures(AIndex : Integer; AValue : TFeaturesListResponseTypefeaturesArray); 
 
 begin
   If (Ffeatures=AValue) then exit;
@@ -3817,7 +2986,7 @@ end;
 
 
 
-Procedure TFeaturesListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TFeaturesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3837,7 +3006,7 @@ end;
 
 
 
-Procedure TFeaturesListResponse.Set_type(AIndex : Integer; AValue : string); 
+Procedure TFeaturesListResponse.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3861,18 +3030,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TFeaturesListResponsefeatures
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TFile
   --------------------------------------------------------------------}
 
 
-Procedure TFile.Setfilename(AIndex : Integer; AValue : string); 
+Procedure TFile.Setfilename(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffilename=AValue) then exit;
@@ -3882,7 +3044,7 @@ end;
 
 
 
-Procedure TFile.Setsize(AIndex : Integer; AValue : string); 
+Procedure TFile.Setsize(AIndex : Integer; AValue : String); 
 
 begin
   If (Fsize=AValue) then exit;
@@ -3892,7 +3054,7 @@ end;
 
 
 
-Procedure TFile.SetuploadStatus(AIndex : Integer; AValue : string); 
+Procedure TFile.SetuploadStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FuploadStatus=AValue) then exit;
@@ -3909,7 +3071,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilter.Setcolumn(AIndex : Integer; AValue : string); 
+Procedure TFilter.Setcolumn(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcolumn=AValue) then exit;
@@ -3919,7 +3081,7 @@ end;
 
 
 
-Procedure TFilter.Set_operator(AIndex : Integer; AValue : string); 
+Procedure TFilter.Set_operator(AIndex : Integer; AValue : String); 
 
 begin
   If (F_operator=AValue) then exit;
@@ -3964,7 +3126,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonGeometryCollection.Setgeometries(AIndex : Integer; AValue : TGeoJsonGeometryCollectiongeometries); 
+Procedure TGeoJsonGeometryCollection.Setgeometries(AIndex : Integer; AValue : TGeoJsonGeometryCollectionTypegeometriesArray); 
 
 begin
   If (Fgeometries=AValue) then exit;
@@ -3974,7 +3136,7 @@ end;
 
 
 
-Procedure TGeoJsonGeometryCollection.Set_type(AIndex : Integer; AValue : string); 
+Procedure TGeoJsonGeometryCollection.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3998,18 +3160,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TGeoJsonGeometryCollectiongeometries
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TGeoJsonLineString
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonLineString.Setcoordinates(AIndex : Integer; AValue : TGeoJsonLineStringcoordinates); 
+Procedure TGeoJsonLineString.Setcoordinates(AIndex : Integer; AValue : TGeoJsonLineStringTypecoordinatesArray); 
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -4019,7 +3174,7 @@ end;
 
 
 
-Procedure TGeoJsonLineString.Set_type(AIndex : Integer; AValue : string); 
+Procedure TGeoJsonLineString.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4043,18 +3198,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TGeoJsonLineStringcoordinates
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TGeoJsonMultiLineString
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonMultiLineString.Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiLineStringcoordinates); 
+Procedure TGeoJsonMultiLineString.Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiLineStringTypecoordinatesArray); 
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -4064,7 +3212,7 @@ end;
 
 
 
-Procedure TGeoJsonMultiLineString.Set_type(AIndex : Integer; AValue : string); 
+Procedure TGeoJsonMultiLineString.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4088,18 +3236,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TGeoJsonMultiLineStringcoordinates
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TGeoJsonMultiPoint
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonMultiPoint.Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPointcoordinates); 
+Procedure TGeoJsonMultiPoint.Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPointTypecoordinatesArray); 
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -4109,7 +3250,7 @@ end;
 
 
 
-Procedure TGeoJsonMultiPoint.Set_type(AIndex : Integer; AValue : string); 
+Procedure TGeoJsonMultiPoint.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4133,18 +3274,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TGeoJsonMultiPointcoordinates
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TGeoJsonMultiPolygon
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonMultiPolygon.Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPolygoncoordinates); 
+Procedure TGeoJsonMultiPolygon.Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPolygonTypecoordinatesArray); 
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -4154,7 +3288,7 @@ end;
 
 
 
-Procedure TGeoJsonMultiPolygon.Set_type(AIndex : Integer; AValue : string); 
+Procedure TGeoJsonMultiPolygon.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4178,13 +3312,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TGeoJsonMultiPolygoncoordinates
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TGeoJsonPoint
   --------------------------------------------------------------------}
 
@@ -4199,7 +3326,7 @@ end;
 
 
 
-Procedure TGeoJsonPoint.Set_type(AIndex : Integer; AValue : string); 
+Procedure TGeoJsonPoint.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4227,7 +3354,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonPolygon.Setcoordinates(AIndex : Integer; AValue : TGeoJsonPolygoncoordinates); 
+Procedure TGeoJsonPolygon.Setcoordinates(AIndex : Integer; AValue : TGeoJsonPolygonTypecoordinatesArray); 
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -4237,7 +3364,7 @@ end;
 
 
 
-Procedure TGeoJsonPolygon.Set_type(AIndex : Integer; AValue : string); 
+Procedure TGeoJsonPolygon.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4261,20 +3388,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TGeoJsonPolygoncoordinates
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TGeoJsonPosition
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TGeoJsonProperties
   --------------------------------------------------------------------}
 
@@ -4292,7 +3405,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIcon.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TIcon.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4302,7 +3415,7 @@ end;
 
 
 
-Procedure TIcon.Setid(AIndex : Integer; AValue : string); 
+Procedure TIcon.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4312,7 +3425,7 @@ end;
 
 
 
-Procedure TIcon.Setname(AIndex : Integer; AValue : string); 
+Procedure TIcon.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4329,7 +3442,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIconStyle.Setid(AIndex : Integer; AValue : string); 
+Procedure TIconStyle.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4339,7 +3452,7 @@ end;
 
 
 
-Procedure TIconStyle.Setname(AIndex : Integer; AValue : string); 
+Procedure TIconStyle.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4376,7 +3489,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIconsListResponse.Seticons(AIndex : Integer; AValue : TIconsListResponseicons); 
+Procedure TIconsListResponse.Seticons(AIndex : Integer; AValue : TIconsListResponseTypeiconsArray); 
 
 begin
   If (Ficons=AValue) then exit;
@@ -4386,7 +3499,7 @@ end;
 
 
 
-Procedure TIconsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TIconsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4399,18 +3512,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TIconsListResponseicons
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLabelStyle
   --------------------------------------------------------------------}
 
 
-Procedure TLabelStyle.Setcolor(AIndex : Integer; AValue : string); 
+Procedure TLabelStyle.Setcolor(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcolor=AValue) then exit;
@@ -4420,7 +3526,7 @@ end;
 
 
 
-Procedure TLabelStyle.Setcolumn(AIndex : Integer; AValue : string); 
+Procedure TLabelStyle.Setcolumn(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcolumn=AValue) then exit;
@@ -4430,7 +3536,7 @@ end;
 
 
 
-Procedure TLabelStyle.SetfontStyle(AIndex : Integer; AValue : string); 
+Procedure TLabelStyle.SetfontStyle(AIndex : Integer; AValue : String); 
 
 begin
   If (FfontStyle=AValue) then exit;
@@ -4440,7 +3546,7 @@ end;
 
 
 
-Procedure TLabelStyle.SetfontWeight(AIndex : Integer; AValue : string); 
+Procedure TLabelStyle.SetfontWeight(AIndex : Integer; AValue : String); 
 
 begin
   If (FfontWeight=AValue) then exit;
@@ -4483,18 +3589,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLatLngBox
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLayer
   --------------------------------------------------------------------}
 
 
-Procedure TLayer.Setbbox(AIndex : Integer; AValue : TLayerbbox); 
+Procedure TLayer.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
 
 begin
   If (Fbbox=AValue) then exit;
@@ -4514,7 +3613,7 @@ end;
 
 
 
-Procedure TLayer.SetcreatorEmail(AIndex : Integer; AValue : string); 
+Procedure TLayer.SetcreatorEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -4524,7 +3623,7 @@ end;
 
 
 
-Procedure TLayer.SetdatasourceType(AIndex : Integer; AValue : string); 
+Procedure TLayer.SetdatasourceType(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatasourceType=AValue) then exit;
@@ -4544,7 +3643,7 @@ end;
 
 
 
-Procedure TLayer.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TLayer.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4554,7 +3653,7 @@ end;
 
 
 
-Procedure TLayer.SetdraftAccessList(AIndex : Integer; AValue : string); 
+Procedure TLayer.SetdraftAccessList(AIndex : Integer; AValue : String); 
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -4564,7 +3663,7 @@ end;
 
 
 
-Procedure TLayer.Setetag(AIndex : Integer; AValue : string); 
+Procedure TLayer.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -4574,7 +3673,7 @@ end;
 
 
 
-Procedure TLayer.Setid(AIndex : Integer; AValue : string); 
+Procedure TLayer.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4594,7 +3693,7 @@ end;
 
 
 
-Procedure TLayer.SetlastModifierEmail(AIndex : Integer; AValue : string); 
+Procedure TLayer.SetlastModifierEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -4604,7 +3703,7 @@ end;
 
 
 
-Procedure TLayer.SetlayerType(AIndex : Integer; AValue : string); 
+Procedure TLayer.SetlayerType(AIndex : Integer; AValue : String); 
 
 begin
   If (FlayerType=AValue) then exit;
@@ -4614,7 +3713,7 @@ end;
 
 
 
-Procedure TLayer.Setname(AIndex : Integer; AValue : string); 
+Procedure TLayer.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4624,7 +3723,7 @@ end;
 
 
 
-Procedure TLayer.SetprocessingStatus(AIndex : Integer; AValue : string); 
+Procedure TLayer.SetprocessingStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -4634,7 +3733,7 @@ end;
 
 
 
-Procedure TLayer.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TLayer.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -4644,7 +3743,7 @@ end;
 
 
 
-Procedure TLayer.SetpublishedAccessList(AIndex : Integer; AValue : string); 
+Procedure TLayer.SetpublishedAccessList(AIndex : Integer; AValue : String); 
 
 begin
   If (FpublishedAccessList=AValue) then exit;
@@ -4654,7 +3753,7 @@ end;
 
 
 
-Procedure TLayer.SetpublishingStatus(AIndex : Integer; AValue : string); 
+Procedure TLayer.SetpublishingStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FpublishingStatus=AValue) then exit;
@@ -4674,7 +3773,7 @@ end;
 
 
 
-Procedure TLayer.Settags(AIndex : Integer; AValue : TAssettags); 
+Procedure TLayer.Settags(AIndex : Integer; AValue : TTags); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -4697,18 +3796,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLayerbbox
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLayersListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TLayersListResponse.Setlayers(AIndex : Integer; AValue : TLayersListResponselayers); 
+Procedure TLayersListResponse.Setlayers(AIndex : Integer; AValue : TLayersListResponseTypelayersArray); 
 
 begin
   If (Flayers=AValue) then exit;
@@ -4718,7 +3810,7 @@ end;
 
 
 
-Procedure TLayersListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TLayersListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4731,8 +3823,38 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLayersListResponselayers
+  TLineStyleTypestroke
   --------------------------------------------------------------------}
+
+
+Procedure TLineStyleTypestroke.Setcolor(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fcolor=AValue) then exit;
+  Fcolor:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TLineStyleTypestroke.Setopacity(AIndex : Integer; AValue : double); 
+
+begin
+  If (Fopacity=AValue) then exit;
+  Fopacity:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TLineStyleTypestroke.Setwidth(AIndex : Integer; AValue : double); 
+
+begin
+  If (Fwidth=AValue) then exit;
+  Fwidth:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -4752,7 +3874,7 @@ end;
 
 
 
-Procedure TLineStyle.Setdash(AIndex : Integer; AValue : TLineStyledash); 
+Procedure TLineStyle.Setdash(AIndex : Integer; AValue : TdoubleArray); 
 
 begin
   If (Fdash=AValue) then exit;
@@ -4772,7 +3894,7 @@ end;
 
 
 
-Procedure TLineStyle.Setstroke(AIndex : Integer; AValue : TLineStylestroke); 
+Procedure TLineStyle.Setstroke(AIndex : Integer; AValue : TLineStyleTypestroke); 
 
 begin
   If (Fstroke=AValue) then exit;
@@ -4796,55 +3918,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLineStyledash
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TLineStylestroke
-  --------------------------------------------------------------------}
-
-
-Procedure TLineStylestroke.Setcolor(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcolor=AValue) then exit;
-  Fcolor:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TLineStylestroke.Setopacity(AIndex : Integer; AValue : double); 
-
-begin
-  If (Fopacity=AValue) then exit;
-  Fopacity:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TLineStylestroke.Setwidth(AIndex : Integer; AValue : double); 
-
-begin
-  If (Fwidth=AValue) then exit;
-  Fwidth:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TMap
   --------------------------------------------------------------------}
 
 
-Procedure TMap.Setbbox(AIndex : Integer; AValue : TMapbbox); 
+Procedure TMap.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
 
 begin
   If (Fbbox=AValue) then exit;
@@ -4874,7 +3952,7 @@ end;
 
 
 
-Procedure TMap.SetcreatorEmail(AIndex : Integer; AValue : string); 
+Procedure TMap.SetcreatorEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -4894,7 +3972,7 @@ end;
 
 
 
-Procedure TMap.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TMap.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4904,7 +3982,7 @@ end;
 
 
 
-Procedure TMap.SetdraftAccessList(AIndex : Integer; AValue : string); 
+Procedure TMap.SetdraftAccessList(AIndex : Integer; AValue : String); 
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -4914,7 +3992,7 @@ end;
 
 
 
-Procedure TMap.Setetag(AIndex : Integer; AValue : string); 
+Procedure TMap.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -4924,7 +4002,7 @@ end;
 
 
 
-Procedure TMap.Setid(AIndex : Integer; AValue : string); 
+Procedure TMap.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4944,7 +4022,7 @@ end;
 
 
 
-Procedure TMap.SetlastModifierEmail(AIndex : Integer; AValue : string); 
+Procedure TMap.SetlastModifierEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -4954,7 +4032,7 @@ end;
 
 
 
-Procedure TMap.Setname(AIndex : Integer; AValue : string); 
+Procedure TMap.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4964,7 +4042,7 @@ end;
 
 
 
-Procedure TMap.SetprocessingStatus(AIndex : Integer; AValue : string); 
+Procedure TMap.SetprocessingStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -4974,7 +4052,7 @@ end;
 
 
 
-Procedure TMap.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TMap.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -4984,7 +4062,7 @@ end;
 
 
 
-Procedure TMap.SetpublishedAccessList(AIndex : Integer; AValue : string); 
+Procedure TMap.SetpublishedAccessList(AIndex : Integer; AValue : String); 
 
 begin
   If (FpublishedAccessList=AValue) then exit;
@@ -4994,7 +4072,7 @@ end;
 
 
 
-Procedure TMap.SetpublishingStatus(AIndex : Integer; AValue : string); 
+Procedure TMap.SetpublishingStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FpublishingStatus=AValue) then exit;
@@ -5004,7 +4082,7 @@ end;
 
 
 
-Procedure TMap.Settags(AIndex : Integer; AValue : TAssettags); 
+Procedure TMap.Settags(AIndex : Integer; AValue : TTags); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -5014,7 +4092,7 @@ end;
 
 
 
-Procedure TMap.Setversions(AIndex : Integer; AValue : TMapversions); 
+Procedure TMap.Setversions(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fversions=AValue) then exit;
@@ -5037,32 +4115,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMapbbox
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TMapversions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TMapContents
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMapFolder
   --------------------------------------------------------------------}
 
 
-Procedure TMapFolder.Setcontents(AIndex : Integer; AValue : TMapFoldercontents); 
+Procedure TMapFolder.Setcontents(AIndex : Integer; AValue : TMapFolderTypecontentsArray); 
 
 begin
   If (Fcontents=AValue) then exit;
@@ -5072,7 +4129,7 @@ end;
 
 
 
-Procedure TMapFolder.SetdefaultViewport(AIndex : Integer; AValue : TMapFolderdefaultViewport); 
+Procedure TMapFolder.SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray); 
 
 begin
   If (FdefaultViewport=AValue) then exit;
@@ -5092,7 +4149,7 @@ end;
 
 
 
-Procedure TMapFolder.Setkey(AIndex : Integer; AValue : string); 
+Procedure TMapFolder.Setkey(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -5102,7 +4159,7 @@ end;
 
 
 
-Procedure TMapFolder.Setname(AIndex : Integer; AValue : string); 
+Procedure TMapFolder.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5112,7 +4169,7 @@ end;
 
 
 
-Procedure TMapFolder.Set_type(AIndex : Integer; AValue : string); 
+Procedure TMapFolder.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5122,7 +4179,7 @@ end;
 
 
 
-Procedure TMapFolder.Setvisibility(AIndex : Integer; AValue : string); 
+Procedure TMapFolder.Setvisibility(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -5146,20 +4203,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMapFoldercontents
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TMapFolderdefaultViewport
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMapItem
   --------------------------------------------------------------------}
 
@@ -5171,7 +4214,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMapKmlLink.SetdefaultViewport(AIndex : Integer; AValue : TMapKmlLinkdefaultViewport); 
+Procedure TMapKmlLink.SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray); 
 
 begin
   If (FdefaultViewport=AValue) then exit;
@@ -5181,7 +4224,7 @@ end;
 
 
 
-Procedure TMapKmlLink.SetkmlUrl(AIndex : Integer; AValue : string); 
+Procedure TMapKmlLink.SetkmlUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FkmlUrl=AValue) then exit;
@@ -5191,7 +4234,7 @@ end;
 
 
 
-Procedure TMapKmlLink.Setname(AIndex : Integer; AValue : string); 
+Procedure TMapKmlLink.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5201,7 +4244,7 @@ end;
 
 
 
-Procedure TMapKmlLink.Set_type(AIndex : Integer; AValue : string); 
+Procedure TMapKmlLink.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5211,7 +4254,7 @@ end;
 
 
 
-Procedure TMapKmlLink.Setvisibility(AIndex : Integer; AValue : string); 
+Procedure TMapKmlLink.Setvisibility(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -5235,18 +4278,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMapKmlLinkdefaultViewport
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMapLayer
   --------------------------------------------------------------------}
 
 
-Procedure TMapLayer.SetdefaultViewport(AIndex : Integer; AValue : TMapLayerdefaultViewport); 
+Procedure TMapLayer.SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray); 
 
 begin
   If (FdefaultViewport=AValue) then exit;
@@ -5256,7 +4292,7 @@ end;
 
 
 
-Procedure TMapLayer.Setid(AIndex : Integer; AValue : string); 
+Procedure TMapLayer.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5266,7 +4302,7 @@ end;
 
 
 
-Procedure TMapLayer.Setkey(AIndex : Integer; AValue : string); 
+Procedure TMapLayer.Setkey(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -5276,7 +4312,7 @@ end;
 
 
 
-Procedure TMapLayer.Setname(AIndex : Integer; AValue : string); 
+Procedure TMapLayer.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5286,7 +4322,7 @@ end;
 
 
 
-Procedure TMapLayer.Set_type(AIndex : Integer; AValue : string); 
+Procedure TMapLayer.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5296,7 +4332,7 @@ end;
 
 
 
-Procedure TMapLayer.Setvisibility(AIndex : Integer; AValue : string); 
+Procedure TMapLayer.Setvisibility(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -5320,18 +4356,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMapLayerdefaultViewport
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMapsListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TMapsListResponse.Setmaps(AIndex : Integer; AValue : TMapsListResponsemaps); 
+Procedure TMapsListResponse.Setmaps(AIndex : Integer; AValue : TMapsListResponseTypemapsArray); 
 
 begin
   If (Fmaps=AValue) then exit;
@@ -5341,7 +4370,7 @@ end;
 
 
 
-Procedure TMapsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TMapsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5354,18 +4383,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMapsListResponsemaps
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TParent
   --------------------------------------------------------------------}
 
 
-Procedure TParent.Setid(AIndex : Integer; AValue : string); 
+Procedure TParent.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5382,7 +4404,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TParentsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TParentsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5392,7 +4414,7 @@ end;
 
 
 
-Procedure TParentsListResponse.Setparents(AIndex : Integer; AValue : TParentsListResponseparents); 
+Procedure TParentsListResponse.Setparents(AIndex : Integer; AValue : TParentsListResponseTypeparentsArray); 
 
 begin
   If (Fparents=AValue) then exit;
@@ -5400,13 +4422,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TParentsListResponseparents
-  --------------------------------------------------------------------}
 
 
 
@@ -5426,7 +4441,7 @@ end;
 
 
 
-Procedure TPermission.Setid(AIndex : Integer; AValue : string); 
+Procedure TPermission.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5436,7 +4451,7 @@ end;
 
 
 
-Procedure TPermission.Setrole(AIndex : Integer; AValue : string); 
+Procedure TPermission.Setrole(AIndex : Integer; AValue : String); 
 
 begin
   If (Frole=AValue) then exit;
@@ -5446,7 +4461,7 @@ end;
 
 
 
-Procedure TPermission.Set_type(AIndex : Integer; AValue : string); 
+Procedure TPermission.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5474,7 +4489,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPermissionsBatchDeleteRequest.Setids(AIndex : Integer; AValue : TPermissionsBatchDeleteRequestids); 
+Procedure TPermissionsBatchDeleteRequest.Setids(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fids=AValue) then exit;
@@ -5482,13 +4497,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TPermissionsBatchDeleteRequestids
-  --------------------------------------------------------------------}
 
 
 
@@ -5505,7 +4513,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPermissionsBatchUpdateRequest.Setpermissions(AIndex : Integer; AValue : TPermissionsBatchUpdateRequestpermissions); 
+Procedure TPermissionsBatchUpdateRequest.Setpermissions(AIndex : Integer; AValue : TPermissionsBatchUpdateRequestTypepermissionsArray); 
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -5513,13 +4521,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TPermissionsBatchUpdateRequestpermissions
-  --------------------------------------------------------------------}
 
 
 
@@ -5536,7 +4537,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPermissionsListResponse.Setpermissions(AIndex : Integer; AValue : TPermissionsListResponsepermissions); 
+Procedure TPermissionsListResponse.Setpermissions(AIndex : Integer; AValue : TPermissionsListResponseTypepermissionsArray); 
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -5544,13 +4545,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TPermissionsListResponsepermissions
-  --------------------------------------------------------------------}
 
 
 
@@ -5653,7 +4647,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProject.Setid(AIndex : Integer; AValue : string); 
+Procedure TProject.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5663,7 +4657,7 @@ end;
 
 
 
-Procedure TProject.Setname(AIndex : Integer; AValue : string); 
+Procedure TProject.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5680,7 +4674,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProjectsListResponse.Setprojects(AIndex : Integer; AValue : TProjectsListResponseprojects); 
+Procedure TProjectsListResponse.Setprojects(AIndex : Integer; AValue : TProjectsListResponseTypeprojectsArray); 
 
 begin
   If (Fprojects=AValue) then exit;
@@ -5688,13 +4682,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TProjectsListResponseprojects
-  --------------------------------------------------------------------}
 
 
 
@@ -5711,7 +4698,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishedLayer.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TPublishedLayer.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5721,7 +4708,7 @@ end;
 
 
 
-Procedure TPublishedLayer.Setid(AIndex : Integer; AValue : string); 
+Procedure TPublishedLayer.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5731,7 +4718,7 @@ end;
 
 
 
-Procedure TPublishedLayer.SetlayerType(AIndex : Integer; AValue : string); 
+Procedure TPublishedLayer.SetlayerType(AIndex : Integer; AValue : String); 
 
 begin
   If (FlayerType=AValue) then exit;
@@ -5741,7 +4728,7 @@ end;
 
 
 
-Procedure TPublishedLayer.Setname(AIndex : Integer; AValue : string); 
+Procedure TPublishedLayer.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5751,7 +4738,7 @@ end;
 
 
 
-Procedure TPublishedLayer.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TPublishedLayer.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -5768,7 +4755,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishedLayersListResponse.Setlayers(AIndex : Integer; AValue : TPublishedLayersListResponselayers); 
+Procedure TPublishedLayersListResponse.Setlayers(AIndex : Integer; AValue : TPublishedLayersListResponseTypelayersArray); 
 
 begin
   If (Flayers=AValue) then exit;
@@ -5778,7 +4765,7 @@ end;
 
 
 
-Procedure TPublishedLayersListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TPublishedLayersListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5786,13 +4773,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TPublishedLayersListResponselayers
-  --------------------------------------------------------------------}
 
 
 
@@ -5822,7 +4802,7 @@ end;
 
 
 
-Procedure TPublishedMap.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TPublishedMap.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5832,7 +4812,7 @@ end;
 
 
 
-Procedure TPublishedMap.Setid(AIndex : Integer; AValue : string); 
+Procedure TPublishedMap.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5842,7 +4822,7 @@ end;
 
 
 
-Procedure TPublishedMap.Setname(AIndex : Integer; AValue : string); 
+Procedure TPublishedMap.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5852,7 +4832,7 @@ end;
 
 
 
-Procedure TPublishedMap.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TPublishedMap.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -5869,7 +4849,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishedMapsListResponse.Setmaps(AIndex : Integer; AValue : TPublishedMapsListResponsemaps); 
+Procedure TPublishedMapsListResponse.Setmaps(AIndex : Integer; AValue : TPublishedMapsListResponseTypemapsArray); 
 
 begin
   If (Fmaps=AValue) then exit;
@@ -5879,7 +4859,7 @@ end;
 
 
 
-Procedure TPublishedMapsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TPublishedMapsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5887,13 +4867,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TPublishedMapsListResponsemaps
-  --------------------------------------------------------------------}
 
 
 
@@ -5913,7 +4886,7 @@ end;
 
 
 
-Procedure TRaster.Setattribution(AIndex : Integer; AValue : string); 
+Procedure TRaster.Setattribution(AIndex : Integer; AValue : String); 
 
 begin
   If (Fattribution=AValue) then exit;
@@ -5923,7 +4896,7 @@ end;
 
 
 
-Procedure TRaster.Setbbox(AIndex : Integer; AValue : TRasterbbox); 
+Procedure TRaster.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
 
 begin
   If (Fbbox=AValue) then exit;
@@ -5943,7 +4916,7 @@ end;
 
 
 
-Procedure TRaster.SetcreatorEmail(AIndex : Integer; AValue : string); 
+Procedure TRaster.SetcreatorEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -5953,7 +4926,7 @@ end;
 
 
 
-Procedure TRaster.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TRaster.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5963,7 +4936,7 @@ end;
 
 
 
-Procedure TRaster.SetdraftAccessList(AIndex : Integer; AValue : string); 
+Procedure TRaster.SetdraftAccessList(AIndex : Integer; AValue : String); 
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -5973,7 +4946,7 @@ end;
 
 
 
-Procedure TRaster.Setetag(AIndex : Integer; AValue : string); 
+Procedure TRaster.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -5983,7 +4956,7 @@ end;
 
 
 
-Procedure TRaster.Setfiles(AIndex : Integer; AValue : TRasterfiles); 
+Procedure TRaster.Setfiles(AIndex : Integer; AValue : TRasterTypefilesArray); 
 
 begin
   If (Ffiles=AValue) then exit;
@@ -5993,7 +4966,7 @@ end;
 
 
 
-Procedure TRaster.Setid(AIndex : Integer; AValue : string); 
+Procedure TRaster.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6013,7 +4986,7 @@ end;
 
 
 
-Procedure TRaster.SetlastModifierEmail(AIndex : Integer; AValue : string); 
+Procedure TRaster.SetlastModifierEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -6023,7 +4996,7 @@ end;
 
 
 
-Procedure TRaster.SetmaskType(AIndex : Integer; AValue : string); 
+Procedure TRaster.SetmaskType(AIndex : Integer; AValue : String); 
 
 begin
   If (FmaskType=AValue) then exit;
@@ -6033,7 +5006,7 @@ end;
 
 
 
-Procedure TRaster.Setname(AIndex : Integer; AValue : string); 
+Procedure TRaster.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6043,7 +5016,7 @@ end;
 
 
 
-Procedure TRaster.SetprocessingStatus(AIndex : Integer; AValue : string); 
+Procedure TRaster.SetprocessingStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -6053,7 +5026,7 @@ end;
 
 
 
-Procedure TRaster.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TRaster.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6063,7 +5036,7 @@ end;
 
 
 
-Procedure TRaster.SetrasterType(AIndex : Integer; AValue : string); 
+Procedure TRaster.SetrasterType(AIndex : Integer; AValue : String); 
 
 begin
   If (FrasterType=AValue) then exit;
@@ -6073,7 +5046,7 @@ end;
 
 
 
-Procedure TRaster.Settags(AIndex : Integer; AValue : TAssettags); 
+Procedure TRaster.Settags(AIndex : Integer; AValue : TTags); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -6096,25 +5069,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TRasterbbox
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TRasterfiles
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TRasterCollection
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollection.Setattribution(AIndex : Integer; AValue : string); 
+Procedure TRasterCollection.Setattribution(AIndex : Integer; AValue : String); 
 
 begin
   If (Fattribution=AValue) then exit;
@@ -6124,7 +5083,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setbbox(AIndex : Integer; AValue : TRasterCollectionbbox); 
+Procedure TRasterCollection.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
 
 begin
   If (Fbbox=AValue) then exit;
@@ -6144,7 +5103,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetcreatorEmail(AIndex : Integer; AValue : string); 
+Procedure TRasterCollection.SetcreatorEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -6154,7 +5113,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TRasterCollection.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6164,7 +5123,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetdraftAccessList(AIndex : Integer; AValue : string); 
+Procedure TRasterCollection.SetdraftAccessList(AIndex : Integer; AValue : String); 
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -6174,7 +5133,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setetag(AIndex : Integer; AValue : string); 
+Procedure TRasterCollection.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -6184,7 +5143,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setid(AIndex : Integer; AValue : string); 
+Procedure TRasterCollection.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6204,7 +5163,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetlastModifierEmail(AIndex : Integer; AValue : string); 
+Procedure TRasterCollection.SetlastModifierEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -6224,7 +5183,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setname(AIndex : Integer; AValue : string); 
+Procedure TRasterCollection.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6234,7 +5193,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetprocessingStatus(AIndex : Integer; AValue : string); 
+Procedure TRasterCollection.SetprocessingStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -6244,7 +5203,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TRasterCollection.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6254,7 +5213,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetrasterType(AIndex : Integer; AValue : string); 
+Procedure TRasterCollection.SetrasterType(AIndex : Integer; AValue : String); 
 
 begin
   If (FrasterType=AValue) then exit;
@@ -6264,7 +5223,7 @@ end;
 
 
 
-Procedure TRasterCollection.Settags(AIndex : Integer; AValue : TAssettags); 
+Procedure TRasterCollection.Settags(AIndex : Integer; AValue : TTags); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -6287,18 +5246,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TRasterCollectionbbox
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TRasterCollectionsListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollectionsListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TRasterCollectionsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6308,7 +5260,7 @@ end;
 
 
 
-Procedure TRasterCollectionsListResponse.SetrasterCollections(AIndex : Integer; AValue : TRasterCollectionsListResponserasterCollections); 
+Procedure TRasterCollectionsListResponse.SetrasterCollections(AIndex : Integer; AValue : TRasterCollectionsListResponseTyperasterCollectionsArray); 
 
 begin
   If (FrasterCollections=AValue) then exit;
@@ -6321,18 +5273,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TRasterCollectionsListResponserasterCollections
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TRasterCollectionsRaster
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollectionsRaster.Setbbox(AIndex : Integer; AValue : TRasterCollectionsRasterbbox); 
+Procedure TRasterCollectionsRaster.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
 
 begin
   If (Fbbox=AValue) then exit;
@@ -6352,7 +5297,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TRasterCollectionsRaster.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6362,7 +5307,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.Setid(AIndex : Integer; AValue : string); 
+Procedure TRasterCollectionsRaster.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6382,7 +5327,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.Setname(AIndex : Integer; AValue : string); 
+Procedure TRasterCollectionsRaster.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6392,7 +5337,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TRasterCollectionsRaster.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6402,7 +5347,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.SetrasterType(AIndex : Integer; AValue : string); 
+Procedure TRasterCollectionsRaster.SetrasterType(AIndex : Integer; AValue : String); 
 
 begin
   If (FrasterType=AValue) then exit;
@@ -6412,7 +5357,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.Settags(AIndex : Integer; AValue : TRasterCollectionsRastertags); 
+Procedure TRasterCollectionsRaster.Settags(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -6425,25 +5370,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TRasterCollectionsRasterbbox
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TRasterCollectionsRastertags
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TRasterCollectionsRasterBatchDeleteRequest
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollectionsRasterBatchDeleteRequest.Setids(AIndex : Integer; AValue : TRasterCollectionsRasterBatchDeleteRequestids); 
+Procedure TRasterCollectionsRasterBatchDeleteRequest.Setids(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fids=AValue) then exit;
@@ -6451,13 +5382,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TRasterCollectionsRasterBatchDeleteRequestids
-  --------------------------------------------------------------------}
 
 
 
@@ -6474,7 +5398,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollectionsRastersBatchInsertRequest.Setids(AIndex : Integer; AValue : TRasterCollectionsRastersBatchInsertRequestids); 
+Procedure TRasterCollectionsRastersBatchInsertRequest.Setids(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fids=AValue) then exit;
@@ -6482,13 +5406,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TRasterCollectionsRastersBatchInsertRequestids
-  --------------------------------------------------------------------}
 
 
 
@@ -6505,7 +5422,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollectionsRastersListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TRasterCollectionsRastersListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6515,7 +5432,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRastersListResponse.Setrasters(AIndex : Integer; AValue : TRasterCollectionsRastersListResponserasters); 
+Procedure TRasterCollectionsRastersListResponse.Setrasters(AIndex : Integer; AValue : TRasterCollectionsRastersListResponseTyperastersArray); 
 
 begin
   If (Frasters=AValue) then exit;
@@ -6523,13 +5440,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TRasterCollectionsRastersListResponserasters
-  --------------------------------------------------------------------}
 
 
 
@@ -6539,7 +5449,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRastersListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TRastersListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6549,7 +5459,7 @@ end;
 
 
 
-Procedure TRastersListResponse.Setrasters(AIndex : Integer; AValue : TRastersListResponserasters); 
+Procedure TRastersListResponse.Setrasters(AIndex : Integer; AValue : TRastersListResponseTyperastersArray); 
 
 begin
   If (Frasters=AValue) then exit;
@@ -6557,13 +5467,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TRastersListResponserasters
-  --------------------------------------------------------------------}
 
 
 
@@ -6593,7 +5496,7 @@ end;
 
 
 
-Procedure TScaledShape.Setshape(AIndex : Integer; AValue : string); 
+Procedure TScaledShape.Setshape(AIndex : Integer; AValue : String); 
 
 begin
   If (Fshape=AValue) then exit;
@@ -6610,7 +5513,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TScalingFunction.Setcolumn(AIndex : Integer; AValue : string); 
+Procedure TScalingFunction.Setcolumn(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcolumn=AValue) then exit;
@@ -6620,7 +5523,7 @@ end;
 
 
 
-Procedure TScalingFunction.SetscalingType(AIndex : Integer; AValue : string); 
+Procedure TScalingFunction.SetscalingType(AIndex : Integer; AValue : String); 
 
 begin
   If (FscalingType=AValue) then exit;
@@ -6657,7 +5560,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSchema.Setcolumns(AIndex : Integer; AValue : TSchemacolumns); 
+Procedure TSchema.Setcolumns(AIndex : Integer; AValue : TSchemaTypecolumnsArray); 
 
 begin
   If (Fcolumns=AValue) then exit;
@@ -6667,7 +5570,7 @@ end;
 
 
 
-Procedure TSchema.SetprimaryGeometry(AIndex : Integer; AValue : string); 
+Procedure TSchema.SetprimaryGeometry(AIndex : Integer; AValue : String); 
 
 begin
   If (FprimaryGeometry=AValue) then exit;
@@ -6677,7 +5580,7 @@ end;
 
 
 
-Procedure TSchema.SetprimaryKey(AIndex : Integer; AValue : string); 
+Procedure TSchema.SetprimaryKey(AIndex : Integer; AValue : String); 
 
 begin
   If (FprimaryKey=AValue) then exit;
@@ -6685,13 +5588,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TSchemacolumns
-  --------------------------------------------------------------------}
 
 
 
@@ -6728,7 +5624,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTable.Setbbox(AIndex : Integer; AValue : TTablebbox); 
+Procedure TTable.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
 
 begin
   If (Fbbox=AValue) then exit;
@@ -6748,7 +5644,7 @@ end;
 
 
 
-Procedure TTable.SetcreatorEmail(AIndex : Integer; AValue : string); 
+Procedure TTable.SetcreatorEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -6758,7 +5654,7 @@ end;
 
 
 
-Procedure TTable.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TTable.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6768,7 +5664,7 @@ end;
 
 
 
-Procedure TTable.SetdraftAccessList(AIndex : Integer; AValue : string); 
+Procedure TTable.SetdraftAccessList(AIndex : Integer; AValue : String); 
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -6778,7 +5674,7 @@ end;
 
 
 
-Procedure TTable.Setetag(AIndex : Integer; AValue : string); 
+Procedure TTable.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -6788,7 +5684,7 @@ end;
 
 
 
-Procedure TTable.Setfiles(AIndex : Integer; AValue : TTablefiles); 
+Procedure TTable.Setfiles(AIndex : Integer; AValue : TTableTypefilesArray); 
 
 begin
   If (Ffiles=AValue) then exit;
@@ -6798,7 +5694,7 @@ end;
 
 
 
-Procedure TTable.Setid(AIndex : Integer; AValue : string); 
+Procedure TTable.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6818,7 +5714,7 @@ end;
 
 
 
-Procedure TTable.SetlastModifierEmail(AIndex : Integer; AValue : string); 
+Procedure TTable.SetlastModifierEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -6828,7 +5724,7 @@ end;
 
 
 
-Procedure TTable.Setname(AIndex : Integer; AValue : string); 
+Procedure TTable.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6838,7 +5734,7 @@ end;
 
 
 
-Procedure TTable.SetprocessingStatus(AIndex : Integer; AValue : string); 
+Procedure TTable.SetprocessingStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -6848,7 +5744,7 @@ end;
 
 
 
-Procedure TTable.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TTable.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6858,7 +5754,7 @@ end;
 
 
 
-Procedure TTable.SetpublishedAccessList(AIndex : Integer; AValue : string); 
+Procedure TTable.SetpublishedAccessList(AIndex : Integer; AValue : String); 
 
 begin
   If (FpublishedAccessList=AValue) then exit;
@@ -6878,7 +5774,7 @@ end;
 
 
 
-Procedure TTable.SetsourceEncoding(AIndex : Integer; AValue : string); 
+Procedure TTable.SetsourceEncoding(AIndex : Integer; AValue : String); 
 
 begin
   If (FsourceEncoding=AValue) then exit;
@@ -6888,7 +5784,7 @@ end;
 
 
 
-Procedure TTable.Settags(AIndex : Integer; AValue : TAssettags); 
+Procedure TTable.Settags(AIndex : Integer; AValue : TTags); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -6911,25 +5807,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTablebbox
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTablefiles
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TTableColumn
   --------------------------------------------------------------------}
 
 
-Procedure TTableColumn.Setname(AIndex : Integer; AValue : string); 
+Procedure TTableColumn.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6939,7 +5821,7 @@ end;
 
 
 
-Procedure TTableColumn.Set_type(AIndex : Integer; AValue : string); 
+Procedure TTableColumn.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -6967,7 +5849,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTablesListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TTablesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6977,7 +5859,7 @@ end;
 
 
 
-Procedure TTablesListResponse.Settables(AIndex : Integer; AValue : TTablesListResponsetables); 
+Procedure TTablesListResponse.Settables(AIndex : Integer; AValue : TTablesListResponseTypetablesArray); 
 
 begin
   If (Ftables=AValue) then exit;
@@ -6985,20 +5867,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TTablesListResponsetables
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTags
-  --------------------------------------------------------------------}
 
 
 
@@ -7035,7 +5903,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVectorStyle.SetdisplayRules(AIndex : Integer; AValue : TVectorStyledisplayRules); 
+Procedure TVectorStyle.SetdisplayRules(AIndex : Integer; AValue : TVectorStyleTypedisplayRulesArray); 
 
 begin
   If (FdisplayRules=AValue) then exit;
@@ -7055,7 +5923,7 @@ end;
 
 
 
-Procedure TVectorStyle.Set_type(AIndex : Integer; AValue : string); 
+Procedure TVectorStyle.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7074,13 +5942,6 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TVectorStyledisplayRules
-  --------------------------------------------------------------------}
 
 
 
@@ -8202,132 +7063,79 @@ Class Procedure TMapsengineAPI.RegisterAPIResources;
 begin
   TAcquisitionTime.RegisterObject;
   TAsset.RegisterObject;
-  TAssetbbox.RegisterObject;
-  TAssettags.RegisterObject;
   TAssetsListResponse.RegisterObject;
-  TAssetsListResponseassets.RegisterObject;
   TBorder.RegisterObject;
   TColor.RegisterObject;
   TDatasource.RegisterObject;
-  TDatasources.RegisterObject;
   TDisplayRule.RegisterObject;
-  TDisplayRulefilters.RegisterObject;
   TFeature.RegisterObject;
   TFeatureInfo.RegisterObject;
   TFeaturesBatchDeleteRequest.RegisterObject;
-  TFeaturesBatchDeleteRequestgx_ids.RegisterObject;
-  TFeaturesBatchDeleteRequestprimaryKeys.RegisterObject;
   TFeaturesBatchInsertRequest.RegisterObject;
-  TFeaturesBatchInsertRequestfeatures.RegisterObject;
   TFeaturesBatchPatchRequest.RegisterObject;
-  TFeaturesBatchPatchRequestfeatures.RegisterObject;
   TFeaturesListResponse.RegisterObject;
-  TFeaturesListResponsefeatures.RegisterObject;
   TFile.RegisterObject;
   TFilter.RegisterObject;
   TGeoJsonGeometry.RegisterObject;
   TGeoJsonGeometryCollection.RegisterObject;
-  TGeoJsonGeometryCollectiongeometries.RegisterObject;
   TGeoJsonLineString.RegisterObject;
-  TGeoJsonLineStringcoordinates.RegisterObject;
   TGeoJsonMultiLineString.RegisterObject;
-  TGeoJsonMultiLineStringcoordinates.RegisterObject;
   TGeoJsonMultiPoint.RegisterObject;
-  TGeoJsonMultiPointcoordinates.RegisterObject;
   TGeoJsonMultiPolygon.RegisterObject;
-  TGeoJsonMultiPolygoncoordinates.RegisterObject;
   TGeoJsonPoint.RegisterObject;
   TGeoJsonPolygon.RegisterObject;
-  TGeoJsonPolygoncoordinates.RegisterObject;
-  TGeoJsonPosition.RegisterObject;
   TGeoJsonProperties.RegisterObject;
   TIcon.RegisterObject;
   TIconStyle.RegisterObject;
   TIconsListResponse.RegisterObject;
-  TIconsListResponseicons.RegisterObject;
   TLabelStyle.RegisterObject;
-  TLatLngBox.RegisterObject;
   TLayer.RegisterObject;
-  TLayerbbox.RegisterObject;
   TLayersListResponse.RegisterObject;
-  TLayersListResponselayers.RegisterObject;
+  TLineStyleTypestroke.RegisterObject;
   TLineStyle.RegisterObject;
-  TLineStyledash.RegisterObject;
-  TLineStylestroke.RegisterObject;
   TMap.RegisterObject;
-  TMapbbox.RegisterObject;
-  TMapversions.RegisterObject;
-  TMapContents.RegisterObject;
   TMapFolder.RegisterObject;
-  TMapFoldercontents.RegisterObject;
-  TMapFolderdefaultViewport.RegisterObject;
   TMapItem.RegisterObject;
   TMapKmlLink.RegisterObject;
-  TMapKmlLinkdefaultViewport.RegisterObject;
   TMapLayer.RegisterObject;
-  TMapLayerdefaultViewport.RegisterObject;
   TMapsListResponse.RegisterObject;
-  TMapsListResponsemaps.RegisterObject;
   TParent.RegisterObject;
   TParentsListResponse.RegisterObject;
-  TParentsListResponseparents.RegisterObject;
   TPermission.RegisterObject;
   TPermissionsBatchDeleteRequest.RegisterObject;
-  TPermissionsBatchDeleteRequestids.RegisterObject;
   TPermissionsBatchDeleteResponse.RegisterObject;
   TPermissionsBatchUpdateRequest.RegisterObject;
-  TPermissionsBatchUpdateRequestpermissions.RegisterObject;
   TPermissionsBatchUpdateResponse.RegisterObject;
   TPermissionsListResponse.RegisterObject;
-  TPermissionsListResponsepermissions.RegisterObject;
   TPointStyle.RegisterObject;
   TPolygonStyle.RegisterObject;
   TProcessResponse.RegisterObject;
   TProject.RegisterObject;
   TProjectsListResponse.RegisterObject;
-  TProjectsListResponseprojects.RegisterObject;
   TPublishResponse.RegisterObject;
   TPublishedLayer.RegisterObject;
   TPublishedLayersListResponse.RegisterObject;
-  TPublishedLayersListResponselayers.RegisterObject;
   TPublishedMap.RegisterObject;
   TPublishedMapsListResponse.RegisterObject;
-  TPublishedMapsListResponsemaps.RegisterObject;
   TRaster.RegisterObject;
-  TRasterbbox.RegisterObject;
-  TRasterfiles.RegisterObject;
   TRasterCollection.RegisterObject;
-  TRasterCollectionbbox.RegisterObject;
   TRasterCollectionsListResponse.RegisterObject;
-  TRasterCollectionsListResponserasterCollections.RegisterObject;
   TRasterCollectionsRaster.RegisterObject;
-  TRasterCollectionsRasterbbox.RegisterObject;
-  TRasterCollectionsRastertags.RegisterObject;
   TRasterCollectionsRasterBatchDeleteRequest.RegisterObject;
-  TRasterCollectionsRasterBatchDeleteRequestids.RegisterObject;
   TRasterCollectionsRastersBatchDeleteResponse.RegisterObject;
   TRasterCollectionsRastersBatchInsertRequest.RegisterObject;
-  TRasterCollectionsRastersBatchInsertRequestids.RegisterObject;
   TRasterCollectionsRastersBatchInsertResponse.RegisterObject;
   TRasterCollectionsRastersListResponse.RegisterObject;
-  TRasterCollectionsRastersListResponserasters.RegisterObject;
   TRastersListResponse.RegisterObject;
-  TRastersListResponserasters.RegisterObject;
   TScaledShape.RegisterObject;
   TScalingFunction.RegisterObject;
   TSchema.RegisterObject;
-  TSchemacolumns.RegisterObject;
   TSizeRange.RegisterObject;
   TTable.RegisterObject;
-  TTablebbox.RegisterObject;
-  TTablefiles.RegisterObject;
   TTableColumn.RegisterObject;
   TTablesListResponse.RegisterObject;
-  TTablesListResponsetables.RegisterObject;
-  TTags.RegisterObject;
   TValueRange.RegisterObject;
   TVectorStyle.RegisterObject;
-  TVectorStyledisplayRules.RegisterObject;
   TZoomLevels.RegisterObject;
 end;
 

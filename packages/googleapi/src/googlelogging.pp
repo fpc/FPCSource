@@ -1,31 +1,19 @@
 unit googlelogging;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:55
 {$MODE objfpc}
 {$H+}
 
@@ -34,63 +22,51 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TListLogsResponse = class;
-  TListLogsResponseArray = Array of TListLogsResponse;
-  TListLogsResponselogs = class;
-  TListLogsResponselogsArray = Array of TListLogsResponselogs;
   TLog = class;
-  TLogArray = Array of TLog;
   TEmpty = class;
-  TEmptyArray = Array of TEmpty;
   TWriteLogEntriesRequest = class;
-  TWriteLogEntriesRequestArray = Array of TWriteLogEntriesRequest;
-  TWriteLogEntriesRequestcommonLabels = class;
-  TWriteLogEntriesRequestcommonLabelsArray = Array of TWriteLogEntriesRequestcommonLabels;
-  TWriteLogEntriesRequestentries = class;
-  TWriteLogEntriesRequestentriesArray = Array of TWriteLogEntriesRequestentries;
   TLogEntry = class;
-  TLogEntryArray = Array of TLogEntry;
-  TLogEntryprotoPayload = class;
-  TLogEntryprotoPayloadArray = Array of TLogEntryprotoPayload;
-  TLogEntrystructPayload = class;
-  TLogEntrystructPayloadArray = Array of TLogEntrystructPayload;
   TLogEntryMetadata = class;
-  TLogEntryMetadataArray = Array of TLogEntryMetadata;
-  TLogEntryMetadatalabels = class;
-  TLogEntryMetadatalabelsArray = Array of TLogEntryMetadatalabels;
   TWriteLogEntriesResponse = class;
-  TWriteLogEntriesResponseArray = Array of TWriteLogEntriesResponse;
   TListLogServicesResponse = class;
-  TListLogServicesResponseArray = Array of TListLogServicesResponse;
-  TListLogServicesResponselogServices = class;
-  TListLogServicesResponselogServicesArray = Array of TListLogServicesResponselogServices;
   TLogService = class;
-  TLogServiceArray = Array of TLogService;
-  TLogServiceindexKeys = class;
-  TLogServiceindexKeysArray = Array of TLogServiceindexKeys;
   TListLogServiceIndexesResponse = class;
-  TListLogServiceIndexesResponseArray = Array of TListLogServiceIndexesResponse;
-  TListLogServiceIndexesResponseserviceIndexPrefixes = class;
-  TListLogServiceIndexesResponseserviceIndexPrefixesArray = Array of TListLogServiceIndexesResponseserviceIndexPrefixes;
   TListLogSinksResponse = class;
-  TListLogSinksResponseArray = Array of TListLogSinksResponse;
-  TListLogSinksResponsesinks = class;
-  TListLogSinksResponsesinksArray = Array of TListLogSinksResponsesinks;
   TLogSink = class;
-  TLogSinkArray = Array of TLogSink;
-  TLogSinkerrors = class;
-  TLogSinkerrorsArray = Array of TLogSinkerrors;
   TLogError = class;
-  TLogErrorArray = Array of TLogError;
   TStatus = class;
-  TStatusArray = Array of TStatus;
-  TStatusdetails = class;
-  TStatusdetailsArray = Array of TStatusdetails;
   TListLogServiceSinksResponse = class;
+  TListLogsResponseArray = Array of TListLogsResponse;
+  TLogArray = Array of TLog;
+  TEmptyArray = Array of TEmpty;
+  TWriteLogEntriesRequestArray = Array of TWriteLogEntriesRequest;
+  TLogEntryArray = Array of TLogEntry;
+  TLogEntryMetadataArray = Array of TLogEntryMetadata;
+  TWriteLogEntriesResponseArray = Array of TWriteLogEntriesResponse;
+  TListLogServicesResponseArray = Array of TListLogServicesResponse;
+  TLogServiceArray = Array of TLogService;
+  TListLogServiceIndexesResponseArray = Array of TListLogServiceIndexesResponse;
+  TListLogSinksResponseArray = Array of TListLogSinksResponse;
+  TLogSinkArray = Array of TLogSink;
+  TLogErrorArray = Array of TLogError;
+  TStatusArray = Array of TStatus;
   TListLogServiceSinksResponseArray = Array of TListLogServiceSinksResponse;
-  TListLogServiceSinksResponsesinks = class;
-  TListLogServiceSinksResponsesinksArray = Array of TListLogServiceSinksResponsesinks;
+  //Anonymous types, using auto-generated names
+  TWriteLogEntriesRequestTypecommonLabels = class;
+  TLogEntryTypeprotoPayload = class;
+  TLogEntryTypestructPayload = class;
+  TLogEntryMetadataTypelabels = class;
+  TStatusTypedetailsItem = class;
+  TListLogsResponseTypelogsArray = Array of TLog;
+  TWriteLogEntriesRequestTypeentriesArray = Array of TLogEntry;
+  TListLogServicesResponseTypelogServicesArray = Array of TLogService;
+  TListLogSinksResponseTypesinksArray = Array of TLogSink;
+  TLogSinkTypeerrorsArray = Array of TLogError;
+  TStatusTypedetailsArray = Array of TStatusTypedetailsItem;
+  TListLogServiceSinksResponseTypesinksArray = Array of TLogSink;
   
   { --------------------------------------------------------------------
     TListLogsResponse
@@ -98,31 +74,18 @@ type
   
   TListLogsResponse = Class(TGoogleBaseObject)
   Private
-    Flogs : TListLogsResponselogs;
-    FnextPageToken : string;
+    Flogs : TListLogsResponseTypelogsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setlogs(AIndex : Integer; AValue : TListLogsResponselogs); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setlogs(AIndex : Integer; AValue : TListLogsResponseTypelogsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property logs : TListLogsResponselogs Index 0 Read Flogs Write Setlogs;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property logs : TListLogsResponseTypelogsArray Index 0 Read Flogs Write Setlogs;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListLogsResponseClass = Class of TListLogsResponse;
-  
-  { --------------------------------------------------------------------
-    TListLogsResponselogs
-    --------------------------------------------------------------------}
-  
-  TListLogsResponselogs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListLogsResponselogsClass = Class of TListLogsResponselogs;
   
   { --------------------------------------------------------------------
     TLog
@@ -130,19 +93,19 @@ type
   
   TLog = Class(TGoogleBaseObject)
   Private
-    Fname : string;
-    FdisplayName : string;
-    FpayloadType : string;
+    Fname : String;
+    FdisplayName : String;
+    FpayloadType : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpayloadType(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpayloadType(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
-    Property displayName : string Index 8 Read FdisplayName Write SetdisplayName;
-    Property payloadType : string Index 16 Read FpayloadType Write SetpayloadType;
+    Property name : String Index 0 Read Fname Write Setname;
+    Property displayName : String Index 8 Read FdisplayName Write SetdisplayName;
+    Property payloadType : String Index 16 Read FpayloadType Write SetpayloadType;
   end;
   TLogClass = Class of TLog;
   
@@ -160,29 +123,10 @@ type
   TEmptyClass = Class of TEmpty;
   
   { --------------------------------------------------------------------
-    TWriteLogEntriesRequest
+    TWriteLogEntriesRequestTypecommonLabels
     --------------------------------------------------------------------}
   
-  TWriteLogEntriesRequest = Class(TGoogleBaseObject)
-  Private
-    FcommonLabels : TWriteLogEntriesRequestcommonLabels;
-    Fentries : TWriteLogEntriesRequestentries;
-  Protected
-    //Property setters
-    Procedure SetcommonLabels(AIndex : Integer; AValue : TWriteLogEntriesRequestcommonLabels); virtual;
-    Procedure Setentries(AIndex : Integer; AValue : TWriteLogEntriesRequestentries); virtual;
-  Public
-  Published
-    Property commonLabels : TWriteLogEntriesRequestcommonLabels Index 0 Read FcommonLabels Write SetcommonLabels;
-    Property entries : TWriteLogEntriesRequestentries Index 8 Read Fentries Write Setentries;
-  end;
-  TWriteLogEntriesRequestClass = Class of TWriteLogEntriesRequest;
-  
-  { --------------------------------------------------------------------
-    TWriteLogEntriesRequestcommonLabels
-    --------------------------------------------------------------------}
-  
-  TWriteLogEntriesRequestcommonLabels = Class(TGoogleBaseObject)
+  TWriteLogEntriesRequestTypecommonLabels = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -190,20 +134,54 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TWriteLogEntriesRequestcommonLabelsClass = Class of TWriteLogEntriesRequestcommonLabels;
+  TWriteLogEntriesRequestTypecommonLabelsClass = Class of TWriteLogEntriesRequestTypecommonLabels;
   
   { --------------------------------------------------------------------
-    TWriteLogEntriesRequestentries
+    TWriteLogEntriesRequest
     --------------------------------------------------------------------}
   
-  TWriteLogEntriesRequestentries = Class(TGoogleBaseObject)
+  TWriteLogEntriesRequest = Class(TGoogleBaseObject)
+  Private
+    FcommonLabels : TWriteLogEntriesRequestTypecommonLabels;
+    Fentries : TWriteLogEntriesRequestTypeentriesArray;
+  Protected
+    //Property setters
+    Procedure SetcommonLabels(AIndex : Integer; AValue : TWriteLogEntriesRequestTypecommonLabels); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TWriteLogEntriesRequestTypeentriesArray); virtual;
+  Public
+  Published
+    Property commonLabels : TWriteLogEntriesRequestTypecommonLabels Index 0 Read FcommonLabels Write SetcommonLabels;
+    Property entries : TWriteLogEntriesRequestTypeentriesArray Index 8 Read Fentries Write Setentries;
+  end;
+  TWriteLogEntriesRequestClass = Class of TWriteLogEntriesRequest;
+  
+  { --------------------------------------------------------------------
+    TLogEntryTypeprotoPayload
+    --------------------------------------------------------------------}
+  
+  TLogEntryTypeprotoPayload = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TWriteLogEntriesRequestentriesClass = Class of TWriteLogEntriesRequestentries;
+  TLogEntryTypeprotoPayloadClass = Class of TLogEntryTypeprotoPayload;
+  
+  { --------------------------------------------------------------------
+    TLogEntryTypestructPayload
+    --------------------------------------------------------------------}
+  
+  TLogEntryTypestructPayload = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TLogEntryTypestructPayloadClass = Class of TLogEntryTypestructPayload;
   
   { --------------------------------------------------------------------
     TLogEntry
@@ -212,35 +190,35 @@ type
   TLogEntry = Class(TGoogleBaseObject)
   Private
     Fmetadata : TLogEntryMetadata;
-    FprotoPayload : TLogEntryprotoPayload;
-    FtextPayload : string;
-    FstructPayload : TLogEntrystructPayload;
-    FinsertId : string;
-    Flog : string;
+    FprotoPayload : TLogEntryTypeprotoPayload;
+    FtextPayload : String;
+    FstructPayload : TLogEntryTypestructPayload;
+    FinsertId : String;
+    Flog : String;
   Protected
     //Property setters
     Procedure Setmetadata(AIndex : Integer; AValue : TLogEntryMetadata); virtual;
-    Procedure SetprotoPayload(AIndex : Integer; AValue : TLogEntryprotoPayload); virtual;
-    Procedure SettextPayload(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstructPayload(AIndex : Integer; AValue : TLogEntrystructPayload); virtual;
-    Procedure SetinsertId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlog(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprotoPayload(AIndex : Integer; AValue : TLogEntryTypeprotoPayload); virtual;
+    Procedure SettextPayload(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstructPayload(AIndex : Integer; AValue : TLogEntryTypestructPayload); virtual;
+    Procedure SetinsertId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlog(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property metadata : TLogEntryMetadata Index 0 Read Fmetadata Write Setmetadata;
-    Property protoPayload : TLogEntryprotoPayload Index 8 Read FprotoPayload Write SetprotoPayload;
-    Property textPayload : string Index 16 Read FtextPayload Write SettextPayload;
-    Property structPayload : TLogEntrystructPayload Index 24 Read FstructPayload Write SetstructPayload;
-    Property insertId : string Index 32 Read FinsertId Write SetinsertId;
-    Property log : string Index 40 Read Flog Write Setlog;
+    Property protoPayload : TLogEntryTypeprotoPayload Index 8 Read FprotoPayload Write SetprotoPayload;
+    Property textPayload : String Index 16 Read FtextPayload Write SettextPayload;
+    Property structPayload : TLogEntryTypestructPayload Index 24 Read FstructPayload Write SetstructPayload;
+    Property insertId : String Index 32 Read FinsertId Write SetinsertId;
+    Property log : String Index 40 Read Flog Write Setlog;
   end;
   TLogEntryClass = Class of TLogEntry;
   
   { --------------------------------------------------------------------
-    TLogEntryprotoPayload
+    TLogEntryMetadataTypelabels
     --------------------------------------------------------------------}
   
-  TLogEntryprotoPayload = Class(TGoogleBaseObject)
+  TLogEntryMetadataTypelabels = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -248,21 +226,7 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TLogEntryprotoPayloadClass = Class of TLogEntryprotoPayload;
-  
-  { --------------------------------------------------------------------
-    TLogEntrystructPayload
-    --------------------------------------------------------------------}
-  
-  TLogEntrystructPayload = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TLogEntrystructPayloadClass = Class of TLogEntrystructPayload;
+  TLogEntryMetadataTypelabelsClass = Class of TLogEntryMetadataTypelabels;
   
   { --------------------------------------------------------------------
     TLogEntryMetadata
@@ -270,50 +234,36 @@ type
   
   TLogEntryMetadata = Class(TGoogleBaseObject)
   Private
-    Ftimestamp : string;
-    Fseverity : string;
-    FprojectId : string;
-    FserviceName : string;
-    Fregion : string;
-    Fzone : string;
-    FuserId : string;
-    Flabels : TLogEntryMetadatalabels;
+    Ftimestamp : String;
+    Fseverity : String;
+    FprojectId : String;
+    FserviceName : String;
+    Fregion : String;
+    Fzone : String;
+    FuserId : String;
+    Flabels : TLogEntryMetadataTypelabels;
   Protected
     //Property setters
-    Procedure Settimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setseverity(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetserviceName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
-    Procedure SetuserId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlabels(AIndex : Integer; AValue : TLogEntryMetadatalabels); virtual;
+    Procedure Settimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure Setseverity(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetserviceName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuserId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlabels(AIndex : Integer; AValue : TLogEntryMetadataTypelabels); virtual;
   Public
   Published
-    Property timestamp : string Index 0 Read Ftimestamp Write Settimestamp;
-    Property severity : string Index 8 Read Fseverity Write Setseverity;
-    Property projectId : string Index 16 Read FprojectId Write SetprojectId;
-    Property serviceName : string Index 24 Read FserviceName Write SetserviceName;
-    Property region : string Index 32 Read Fregion Write Setregion;
-    Property zone : string Index 40 Read Fzone Write Setzone;
-    Property userId : string Index 48 Read FuserId Write SetuserId;
-    Property labels : TLogEntryMetadatalabels Index 56 Read Flabels Write Setlabels;
+    Property timestamp : String Index 0 Read Ftimestamp Write Settimestamp;
+    Property severity : String Index 8 Read Fseverity Write Setseverity;
+    Property projectId : String Index 16 Read FprojectId Write SetprojectId;
+    Property serviceName : String Index 24 Read FserviceName Write SetserviceName;
+    Property region : String Index 32 Read Fregion Write Setregion;
+    Property zone : String Index 40 Read Fzone Write Setzone;
+    Property userId : String Index 48 Read FuserId Write SetuserId;
+    Property labels : TLogEntryMetadataTypelabels Index 56 Read Flabels Write Setlabels;
   end;
   TLogEntryMetadataClass = Class of TLogEntryMetadata;
-  
-  { --------------------------------------------------------------------
-    TLogEntryMetadatalabels
-    --------------------------------------------------------------------}
-  
-  TLogEntryMetadatalabels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TLogEntryMetadatalabelsClass = Class of TLogEntryMetadatalabels;
   
   { --------------------------------------------------------------------
     TWriteLogEntriesResponse
@@ -334,31 +284,18 @@ type
   
   TListLogServicesResponse = Class(TGoogleBaseObject)
   Private
-    FlogServices : TListLogServicesResponselogServices;
-    FnextPageToken : string;
+    FlogServices : TListLogServicesResponseTypelogServicesArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure SetlogServices(AIndex : Integer; AValue : TListLogServicesResponselogServices); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetlogServices(AIndex : Integer; AValue : TListLogServicesResponseTypelogServicesArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property logServices : TListLogServicesResponselogServices Index 0 Read FlogServices Write SetlogServices;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property logServices : TListLogServicesResponseTypelogServicesArray Index 0 Read FlogServices Write SetlogServices;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListLogServicesResponseClass = Class of TListLogServicesResponse;
-  
-  { --------------------------------------------------------------------
-    TListLogServicesResponselogServices
-    --------------------------------------------------------------------}
-  
-  TListLogServicesResponselogServices = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListLogServicesResponselogServicesClass = Class of TListLogServicesResponselogServices;
   
   { --------------------------------------------------------------------
     TLogService
@@ -366,31 +303,18 @@ type
   
   TLogService = Class(TGoogleBaseObject)
   Private
-    Fname : string;
-    FindexKeys : TLogServiceindexKeys;
+    Fname : String;
+    FindexKeys : TStringArray;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetindexKeys(AIndex : Integer; AValue : TLogServiceindexKeys); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetindexKeys(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
-    Property indexKeys : TLogServiceindexKeys Index 8 Read FindexKeys Write SetindexKeys;
+    Property name : String Index 0 Read Fname Write Setname;
+    Property indexKeys : TStringArray Index 8 Read FindexKeys Write SetindexKeys;
   end;
   TLogServiceClass = Class of TLogService;
-  
-  { --------------------------------------------------------------------
-    TLogServiceindexKeys
-    --------------------------------------------------------------------}
-  
-  TLogServiceindexKeys = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLogServiceindexKeysClass = Class of TLogServiceindexKeys;
   
   { --------------------------------------------------------------------
     TListLogServiceIndexesResponse
@@ -398,31 +322,18 @@ type
   
   TListLogServiceIndexesResponse = Class(TGoogleBaseObject)
   Private
-    FserviceIndexPrefixes : TListLogServiceIndexesResponseserviceIndexPrefixes;
-    FnextPageToken : string;
+    FserviceIndexPrefixes : TStringArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure SetserviceIndexPrefixes(AIndex : Integer; AValue : TListLogServiceIndexesResponseserviceIndexPrefixes); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetserviceIndexPrefixes(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property serviceIndexPrefixes : TListLogServiceIndexesResponseserviceIndexPrefixes Index 0 Read FserviceIndexPrefixes Write SetserviceIndexPrefixes;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property serviceIndexPrefixes : TStringArray Index 0 Read FserviceIndexPrefixes Write SetserviceIndexPrefixes;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListLogServiceIndexesResponseClass = Class of TListLogServiceIndexesResponse;
-  
-  { --------------------------------------------------------------------
-    TListLogServiceIndexesResponseserviceIndexPrefixes
-    --------------------------------------------------------------------}
-  
-  TListLogServiceIndexesResponseserviceIndexPrefixes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListLogServiceIndexesResponseserviceIndexPrefixesClass = Class of TListLogServiceIndexesResponseserviceIndexPrefixes;
   
   { --------------------------------------------------------------------
     TListLogSinksResponse
@@ -430,28 +341,15 @@ type
   
   TListLogSinksResponse = Class(TGoogleBaseObject)
   Private
-    Fsinks : TListLogSinksResponsesinks;
+    Fsinks : TListLogSinksResponseTypesinksArray;
   Protected
     //Property setters
-    Procedure Setsinks(AIndex : Integer; AValue : TListLogSinksResponsesinks); virtual;
+    Procedure Setsinks(AIndex : Integer; AValue : TListLogSinksResponseTypesinksArray); virtual;
   Public
   Published
-    Property sinks : TListLogSinksResponsesinks Index 0 Read Fsinks Write Setsinks;
+    Property sinks : TListLogSinksResponseTypesinksArray Index 0 Read Fsinks Write Setsinks;
   end;
   TListLogSinksResponseClass = Class of TListLogSinksResponse;
-  
-  { --------------------------------------------------------------------
-    TListLogSinksResponsesinks
-    --------------------------------------------------------------------}
-  
-  TListLogSinksResponsesinks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListLogSinksResponsesinksClass = Class of TListLogSinksResponsesinks;
   
   { --------------------------------------------------------------------
     TLogSink
@@ -459,34 +357,21 @@ type
   
   TLogSink = Class(TGoogleBaseObject)
   Private
-    Fname : string;
-    Fdestination : string;
-    Ferrors : TLogSinkerrors;
+    Fname : String;
+    Fdestination : String;
+    Ferrors : TLogSinkTypeerrorsArray;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdestination(AIndex : Integer; AValue : string); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TLogSinkerrors); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdestination(AIndex : Integer; AValue : String); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TLogSinkTypeerrorsArray); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
-    Property destination : string Index 8 Read Fdestination Write Setdestination;
-    Property errors : TLogSinkerrors Index 16 Read Ferrors Write Seterrors;
+    Property name : String Index 0 Read Fname Write Setname;
+    Property destination : String Index 8 Read Fdestination Write Setdestination;
+    Property errors : TLogSinkTypeerrorsArray Index 16 Read Ferrors Write Seterrors;
   end;
   TLogSinkClass = Class of TLogSink;
-  
-  { --------------------------------------------------------------------
-    TLogSinkerrors
-    --------------------------------------------------------------------}
-  
-  TLogSinkerrors = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLogSinkerrorsClass = Class of TLogSinkerrors;
   
   { --------------------------------------------------------------------
     TLogError
@@ -494,21 +379,35 @@ type
   
   TLogError = Class(TGoogleBaseObject)
   Private
-    Fresource : string;
+    Fresource : String;
     Fstatus : TStatus;
-    FtimeNanos : string;
+    FtimeNanos : String;
   Protected
     //Property setters
-    Procedure Setresource(AIndex : Integer; AValue : string); virtual;
+    Procedure Setresource(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TStatus); virtual;
-    Procedure SettimeNanos(AIndex : Integer; AValue : string); virtual;
+    Procedure SettimeNanos(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property resource : string Index 0 Read Fresource Write Setresource;
+    Property resource : String Index 0 Read Fresource Write Setresource;
     Property status : TStatus Index 8 Read Fstatus Write Setstatus;
-    Property timeNanos : string Index 16 Read FtimeNanos Write SettimeNanos;
+    Property timeNanos : String Index 16 Read FtimeNanos Write SettimeNanos;
   end;
   TLogErrorClass = Class of TLogError;
+  
+  { --------------------------------------------------------------------
+    TStatusTypedetailsItem
+    --------------------------------------------------------------------}
+  
+  TStatusTypedetailsItem = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TStatusTypedetailsItemClass = Class of TStatusTypedetailsItem;
   
   { --------------------------------------------------------------------
     TStatus
@@ -517,33 +416,20 @@ type
   TStatus = Class(TGoogleBaseObject)
   Private
     Fcode : integer;
-    Fmessage : string;
-    Fdetails : TStatusdetails;
+    Fmessage : String;
+    Fdetails : TStatusTypedetailsArray;
   Protected
     //Property setters
     Procedure Setcode(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdetails(AIndex : Integer; AValue : TStatusdetails); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdetails(AIndex : Integer; AValue : TStatusTypedetailsArray); virtual;
   Public
   Published
     Property code : integer Index 0 Read Fcode Write Setcode;
-    Property message : string Index 8 Read Fmessage Write Setmessage;
-    Property details : TStatusdetails Index 16 Read Fdetails Write Setdetails;
+    Property message : String Index 8 Read Fmessage Write Setmessage;
+    Property details : TStatusTypedetailsArray Index 16 Read Fdetails Write Setdetails;
   end;
   TStatusClass = Class of TStatus;
-  
-  { --------------------------------------------------------------------
-    TStatusdetails
-    --------------------------------------------------------------------}
-  
-  TStatusdetails = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TStatusdetailsClass = Class of TStatusdetails;
   
   { --------------------------------------------------------------------
     TListLogServiceSinksResponse
@@ -551,28 +437,15 @@ type
   
   TListLogServiceSinksResponse = Class(TGoogleBaseObject)
   Private
-    Fsinks : TListLogServiceSinksResponsesinks;
+    Fsinks : TListLogServiceSinksResponseTypesinksArray;
   Protected
     //Property setters
-    Procedure Setsinks(AIndex : Integer; AValue : TListLogServiceSinksResponsesinks); virtual;
+    Procedure Setsinks(AIndex : Integer; AValue : TListLogServiceSinksResponseTypesinksArray); virtual;
   Public
   Published
-    Property sinks : TListLogServiceSinksResponsesinks Index 0 Read Fsinks Write Setsinks;
+    Property sinks : TListLogServiceSinksResponseTypesinksArray Index 0 Read Fsinks Write Setsinks;
   end;
   TListLogServiceSinksResponseClass = Class of TListLogServiceSinksResponse;
-  
-  { --------------------------------------------------------------------
-    TListLogServiceSinksResponsesinks
-    --------------------------------------------------------------------}
-  
-  TListLogServiceSinksResponsesinks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListLogServiceSinksResponsesinksClass = Class of TListLogServiceSinksResponsesinks;
   
   { --------------------------------------------------------------------
     TProjectsResource
@@ -630,7 +503,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TListLogsResponse.Setlogs(AIndex : Integer; AValue : TListLogsResponselogs); 
+Procedure TListLogsResponse.Setlogs(AIndex : Integer; AValue : TListLogsResponseTypelogsArray); 
 
 begin
   If (Flogs=AValue) then exit;
@@ -640,7 +513,7 @@ end;
 
 
 
-Procedure TListLogsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListLogsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -653,18 +526,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListLogsResponselogs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLog
   --------------------------------------------------------------------}
 
 
-Procedure TLog.Setname(AIndex : Integer; AValue : string); 
+Procedure TLog.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -674,7 +540,7 @@ end;
 
 
 
-Procedure TLog.SetdisplayName(AIndex : Integer; AValue : string); 
+Procedure TLog.SetdisplayName(AIndex : Integer; AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -684,7 +550,7 @@ end;
 
 
 
-Procedure TLog.SetpayloadType(AIndex : Integer; AValue : string); 
+Procedure TLog.SetpayloadType(AIndex : Integer; AValue : String); 
 
 begin
   If (FpayloadType=AValue) then exit;
@@ -704,11 +570,24 @@ end;
 
 
 { --------------------------------------------------------------------
+  TWriteLogEntriesRequestTypecommonLabels
+  --------------------------------------------------------------------}
+
+
+Class Function TWriteLogEntriesRequestTypecommonLabels.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TWriteLogEntriesRequest
   --------------------------------------------------------------------}
 
 
-Procedure TWriteLogEntriesRequest.SetcommonLabels(AIndex : Integer; AValue : TWriteLogEntriesRequestcommonLabels); 
+Procedure TWriteLogEntriesRequest.SetcommonLabels(AIndex : Integer; AValue : TWriteLogEntriesRequestTypecommonLabels); 
 
 begin
   If (FcommonLabels=AValue) then exit;
@@ -718,7 +597,7 @@ end;
 
 
 
-Procedure TWriteLogEntriesRequest.Setentries(AIndex : Integer; AValue : TWriteLogEntriesRequestentries); 
+Procedure TWriteLogEntriesRequest.Setentries(AIndex : Integer; AValue : TWriteLogEntriesRequestTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -731,11 +610,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TWriteLogEntriesRequestcommonLabels
+  TLogEntryTypeprotoPayload
   --------------------------------------------------------------------}
 
 
-Class Function TWriteLogEntriesRequestcommonLabels.AllowAdditionalProperties : Boolean;
+Class Function TLogEntryTypeprotoPayload.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -744,9 +623,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TWriteLogEntriesRequestentries
+  TLogEntryTypestructPayload
   --------------------------------------------------------------------}
 
+
+Class Function TLogEntryTypestructPayload.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -765,7 +650,7 @@ end;
 
 
 
-Procedure TLogEntry.SetprotoPayload(AIndex : Integer; AValue : TLogEntryprotoPayload); 
+Procedure TLogEntry.SetprotoPayload(AIndex : Integer; AValue : TLogEntryTypeprotoPayload); 
 
 begin
   If (FprotoPayload=AValue) then exit;
@@ -775,7 +660,7 @@ end;
 
 
 
-Procedure TLogEntry.SettextPayload(AIndex : Integer; AValue : string); 
+Procedure TLogEntry.SettextPayload(AIndex : Integer; AValue : String); 
 
 begin
   If (FtextPayload=AValue) then exit;
@@ -785,7 +670,7 @@ end;
 
 
 
-Procedure TLogEntry.SetstructPayload(AIndex : Integer; AValue : TLogEntrystructPayload); 
+Procedure TLogEntry.SetstructPayload(AIndex : Integer; AValue : TLogEntryTypestructPayload); 
 
 begin
   If (FstructPayload=AValue) then exit;
@@ -795,7 +680,7 @@ end;
 
 
 
-Procedure TLogEntry.SetinsertId(AIndex : Integer; AValue : string); 
+Procedure TLogEntry.SetinsertId(AIndex : Integer; AValue : String); 
 
 begin
   If (FinsertId=AValue) then exit;
@@ -805,7 +690,7 @@ end;
 
 
 
-Procedure TLogEntry.Setlog(AIndex : Integer; AValue : string); 
+Procedure TLogEntry.Setlog(AIndex : Integer; AValue : String); 
 
 begin
   If (Flog=AValue) then exit;
@@ -818,24 +703,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLogEntryprotoPayload
+  TLogEntryMetadataTypelabels
   --------------------------------------------------------------------}
 
 
-Class Function TLogEntryprotoPayload.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TLogEntrystructPayload
-  --------------------------------------------------------------------}
-
-
-Class Function TLogEntrystructPayload.AllowAdditionalProperties : Boolean;
+Class Function TLogEntryMetadataTypelabels.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -848,7 +720,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogEntryMetadata.Settimestamp(AIndex : Integer; AValue : string); 
+Procedure TLogEntryMetadata.Settimestamp(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -858,7 +730,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.Setseverity(AIndex : Integer; AValue : string); 
+Procedure TLogEntryMetadata.Setseverity(AIndex : Integer; AValue : String); 
 
 begin
   If (Fseverity=AValue) then exit;
@@ -868,7 +740,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TLogEntryMetadata.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -878,7 +750,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.SetserviceName(AIndex : Integer; AValue : string); 
+Procedure TLogEntryMetadata.SetserviceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FserviceName=AValue) then exit;
@@ -888,7 +760,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.Setregion(AIndex : Integer; AValue : string); 
+Procedure TLogEntryMetadata.Setregion(AIndex : Integer; AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -898,7 +770,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.Setzone(AIndex : Integer; AValue : string); 
+Procedure TLogEntryMetadata.Setzone(AIndex : Integer; AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -908,7 +780,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.SetuserId(AIndex : Integer; AValue : string); 
+Procedure TLogEntryMetadata.SetuserId(AIndex : Integer; AValue : String); 
 
 begin
   If (FuserId=AValue) then exit;
@@ -918,7 +790,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.Setlabels(AIndex : Integer; AValue : TLogEntryMetadatalabels); 
+Procedure TLogEntryMetadata.Setlabels(AIndex : Integer; AValue : TLogEntryMetadataTypelabels); 
 
 begin
   If (Flabels=AValue) then exit;
@@ -927,19 +799,6 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TLogEntryMetadatalabels
-  --------------------------------------------------------------------}
-
-
-Class Function TLogEntryMetadatalabels.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
 
 
 
@@ -955,7 +814,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListLogServicesResponse.SetlogServices(AIndex : Integer; AValue : TListLogServicesResponselogServices); 
+Procedure TListLogServicesResponse.SetlogServices(AIndex : Integer; AValue : TListLogServicesResponseTypelogServicesArray); 
 
 begin
   If (FlogServices=AValue) then exit;
@@ -965,7 +824,7 @@ end;
 
 
 
-Procedure TListLogServicesResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListLogServicesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -978,18 +837,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListLogServicesResponselogServices
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLogService
   --------------------------------------------------------------------}
 
 
-Procedure TLogService.Setname(AIndex : Integer; AValue : string); 
+Procedure TLogService.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -999,7 +851,7 @@ end;
 
 
 
-Procedure TLogService.SetindexKeys(AIndex : Integer; AValue : TLogServiceindexKeys); 
+Procedure TLogService.SetindexKeys(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FindexKeys=AValue) then exit;
@@ -1012,18 +864,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLogServiceindexKeys
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListLogServiceIndexesResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListLogServiceIndexesResponse.SetserviceIndexPrefixes(AIndex : Integer; AValue : TListLogServiceIndexesResponseserviceIndexPrefixes); 
+Procedure TListLogServiceIndexesResponse.SetserviceIndexPrefixes(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FserviceIndexPrefixes=AValue) then exit;
@@ -1033,7 +878,7 @@ end;
 
 
 
-Procedure TListLogServiceIndexesResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListLogServiceIndexesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1046,18 +891,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListLogServiceIndexesResponseserviceIndexPrefixes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListLogSinksResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListLogSinksResponse.Setsinks(AIndex : Integer; AValue : TListLogSinksResponsesinks); 
+Procedure TListLogSinksResponse.Setsinks(AIndex : Integer; AValue : TListLogSinksResponseTypesinksArray); 
 
 begin
   If (Fsinks=AValue) then exit;
@@ -1070,18 +908,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListLogSinksResponsesinks
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLogSink
   --------------------------------------------------------------------}
 
 
-Procedure TLogSink.Setname(AIndex : Integer; AValue : string); 
+Procedure TLogSink.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1091,7 +922,7 @@ end;
 
 
 
-Procedure TLogSink.Setdestination(AIndex : Integer; AValue : string); 
+Procedure TLogSink.Setdestination(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdestination=AValue) then exit;
@@ -1101,7 +932,7 @@ end;
 
 
 
-Procedure TLogSink.Seterrors(AIndex : Integer; AValue : TLogSinkerrors); 
+Procedure TLogSink.Seterrors(AIndex : Integer; AValue : TLogSinkTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1114,18 +945,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLogSinkerrors
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLogError
   --------------------------------------------------------------------}
 
 
-Procedure TLogError.Setresource(AIndex : Integer; AValue : string); 
+Procedure TLogError.Setresource(AIndex : Integer; AValue : String); 
 
 begin
   If (Fresource=AValue) then exit;
@@ -1145,7 +969,7 @@ end;
 
 
 
-Procedure TLogError.SettimeNanos(AIndex : Integer; AValue : string); 
+Procedure TLogError.SettimeNanos(AIndex : Integer; AValue : String); 
 
 begin
   If (FtimeNanos=AValue) then exit;
@@ -1154,6 +978,19 @@ begin
 end;
 
 
+
+
+
+{ --------------------------------------------------------------------
+  TStatusTypedetailsItem
+  --------------------------------------------------------------------}
+
+
+Class Function TStatusTypedetailsItem.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -1172,7 +1009,7 @@ end;
 
 
 
-Procedure TStatus.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TStatus.Setmessage(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1182,7 +1019,7 @@ end;
 
 
 
-Procedure TStatus.Setdetails(AIndex : Integer; AValue : TStatusdetails); 
+Procedure TStatus.Setdetails(AIndex : Integer; AValue : TStatusTypedetailsArray); 
 
 begin
   If (Fdetails=AValue) then exit;
@@ -1195,18 +1032,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TStatusdetails
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListLogServiceSinksResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListLogServiceSinksResponse.Setsinks(AIndex : Integer; AValue : TListLogServiceSinksResponsesinks); 
+Procedure TListLogServiceSinksResponse.Setsinks(AIndex : Integer; AValue : TListLogServiceSinksResponseTypesinksArray); 
 
 begin
   If (Fsinks=AValue) then exit;
@@ -1214,13 +1044,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TListLogServiceSinksResponsesinks
-  --------------------------------------------------------------------}
 
 
 
@@ -1369,33 +1192,25 @@ Class Procedure TLoggingAPI.RegisterAPIResources;
 
 begin
   TListLogsResponse.RegisterObject;
-  TListLogsResponselogs.RegisterObject;
   TLog.RegisterObject;
   TEmpty.RegisterObject;
+  TWriteLogEntriesRequestTypecommonLabels.RegisterObject;
   TWriteLogEntriesRequest.RegisterObject;
-  TWriteLogEntriesRequestcommonLabels.RegisterObject;
-  TWriteLogEntriesRequestentries.RegisterObject;
+  TLogEntryTypeprotoPayload.RegisterObject;
+  TLogEntryTypestructPayload.RegisterObject;
   TLogEntry.RegisterObject;
-  TLogEntryprotoPayload.RegisterObject;
-  TLogEntrystructPayload.RegisterObject;
+  TLogEntryMetadataTypelabels.RegisterObject;
   TLogEntryMetadata.RegisterObject;
-  TLogEntryMetadatalabels.RegisterObject;
   TWriteLogEntriesResponse.RegisterObject;
   TListLogServicesResponse.RegisterObject;
-  TListLogServicesResponselogServices.RegisterObject;
   TLogService.RegisterObject;
-  TLogServiceindexKeys.RegisterObject;
   TListLogServiceIndexesResponse.RegisterObject;
-  TListLogServiceIndexesResponseserviceIndexPrefixes.RegisterObject;
   TListLogSinksResponse.RegisterObject;
-  TListLogSinksResponsesinks.RegisterObject;
   TLogSink.RegisterObject;
-  TLogSinkerrors.RegisterObject;
   TLogError.RegisterObject;
+  TStatusTypedetailsItem.RegisterObject;
   TStatus.RegisterObject;
-  TStatusdetails.RegisterObject;
   TListLogServiceSinksResponse.RegisterObject;
-  TListLogServiceSinksResponsesinks.RegisterObject;
 end;
 
 

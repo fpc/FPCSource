@@ -1,31 +1,19 @@
 unit googlecoordinate;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:51
 {$MODE objfpc}
 {$H+}
 
@@ -34,63 +22,53 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TCustomField = class;
-  TCustomFieldArray = Array of TCustomField;
   TCustomFieldDef = class;
-  TCustomFieldDefArray = Array of TCustomFieldDef;
-  TCustomFieldDefenumitems = class;
-  TCustomFieldDefenumitemsArray = Array of TCustomFieldDefenumitems;
   TCustomFieldDefListResponse = class;
-  TCustomFieldDefListResponseArray = Array of TCustomFieldDefListResponse;
-  TCustomFieldDefListResponseitems = class;
-  TCustomFieldDefListResponseitemsArray = Array of TCustomFieldDefListResponseitems;
   TCustomFields = class;
-  TCustomFieldsArray = Array of TCustomFields;
-  TCustomFieldscustomField = class;
-  TCustomFieldscustomFieldArray = Array of TCustomFieldscustomField;
   TEnumItemDef = class;
-  TEnumItemDefArray = Array of TEnumItemDef;
   TJob = class;
-  TJobArray = Array of TJob;
-  TJobjobChange = class;
-  TJobjobChangeArray = Array of TJobjobChange;
   TJobChange = class;
-  TJobChangeArray = Array of TJobChange;
   TJobListResponse = class;
-  TJobListResponseArray = Array of TJobListResponse;
-  TJobListResponseitems = class;
-  TJobListResponseitemsArray = Array of TJobListResponseitems;
   TJobState = class;
-  TJobStateArray = Array of TJobState;
-  TJobStatenote = class;
-  TJobStatenoteArray = Array of TJobStatenote;
   TLocation = class;
-  TLocationArray = Array of TLocation;
-  TLocationaddressLine = class;
-  TLocationaddressLineArray = Array of TLocationaddressLine;
   TLocationListResponse = class;
-  TLocationListResponseArray = Array of TLocationListResponse;
-  TLocationListResponseitems = class;
-  TLocationListResponseitemsArray = Array of TLocationListResponseitems;
   TLocationRecord = class;
-  TLocationRecordArray = Array of TLocationRecord;
   TSchedule = class;
-  TScheduleArray = Array of TSchedule;
   TTeam = class;
-  TTeamArray = Array of TTeam;
   TTeamListResponse = class;
-  TTeamListResponseArray = Array of TTeamListResponse;
-  TTeamListResponseitems = class;
-  TTeamListResponseitemsArray = Array of TTeamListResponseitems;
   TTokenPagination = class;
-  TTokenPaginationArray = Array of TTokenPagination;
   TWorker = class;
-  TWorkerArray = Array of TWorker;
   TWorkerListResponse = class;
+  TCustomFieldArray = Array of TCustomField;
+  TCustomFieldDefArray = Array of TCustomFieldDef;
+  TCustomFieldDefListResponseArray = Array of TCustomFieldDefListResponse;
+  TCustomFieldsArray = Array of TCustomFields;
+  TEnumItemDefArray = Array of TEnumItemDef;
+  TJobArray = Array of TJob;
+  TJobChangeArray = Array of TJobChange;
+  TJobListResponseArray = Array of TJobListResponse;
+  TJobStateArray = Array of TJobState;
+  TLocationArray = Array of TLocation;
+  TLocationListResponseArray = Array of TLocationListResponse;
+  TLocationRecordArray = Array of TLocationRecord;
+  TScheduleArray = Array of TSchedule;
+  TTeamArray = Array of TTeam;
+  TTeamListResponseArray = Array of TTeamListResponse;
+  TTokenPaginationArray = Array of TTokenPagination;
+  TWorkerArray = Array of TWorker;
   TWorkerListResponseArray = Array of TWorkerListResponse;
-  TWorkerListResponseitems = class;
-  TWorkerListResponseitemsArray = Array of TWorkerListResponseitems;
+  //Anonymous types, using auto-generated names
+  TCustomFieldDefTypeenumitemsArray = Array of TEnumItemDef;
+  TCustomFieldDefListResponseTypeitemsArray = Array of TCustomFieldDef;
+  TCustomFieldsTypecustomFieldArray = Array of TCustomField;
+  TJobTypejobChangeArray = Array of TJobChange;
+  TJobListResponseTypeitemsArray = Array of TJob;
+  TLocationListResponseTypeitemsArray = Array of TLocationRecord;
+  TTeamListResponseTypeitemsArray = Array of TTeam;
+  TWorkerListResponseTypeitemsArray = Array of TWorker;
   
   { --------------------------------------------------------------------
     TCustomField
@@ -98,19 +76,19 @@ type
   
   TCustomField = Class(TGoogleBaseObject)
   Private
-    FcustomFieldId : string;
-    Fkind : string;
-    Fvalue : string;
+    FcustomFieldId : String;
+    Fkind : String;
+    Fvalue : String;
   Protected
     //Property setters
-    Procedure SetcustomFieldId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcustomFieldId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property customFieldId : string Index 0 Read FcustomFieldId Write SetcustomFieldId;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property value : string Index 16 Read Fvalue Write Setvalue;
+    Property customFieldId : String Index 0 Read FcustomFieldId Write SetcustomFieldId;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property value : String Index 16 Read Fvalue Write Setvalue;
   end;
   TCustomFieldClass = Class of TCustomField;
   
@@ -121,46 +99,33 @@ type
   TCustomFieldDef = Class(TGoogleBaseObject)
   Private
     Fenabled : boolean;
-    Fenumitems : TCustomFieldDefenumitems;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
+    Fenumitems : TCustomFieldDefTypeenumitemsArray;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
     FrequiredForCheckout : boolean;
-    F_type : string;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setenabled(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setenumitems(AIndex : Integer; AValue : TCustomFieldDefenumitems); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setenumitems(AIndex : Integer; AValue : TCustomFieldDefTypeenumitemsArray); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetrequiredForCheckout(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property enabled : boolean Index 0 Read Fenabled Write Setenabled;
-    Property enumitems : TCustomFieldDefenumitems Index 8 Read Fenumitems Write Setenumitems;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property name : string Index 32 Read Fname Write Setname;
+    Property enumitems : TCustomFieldDefTypeenumitemsArray Index 8 Read Fenumitems Write Setenumitems;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property name : String Index 32 Read Fname Write Setname;
     Property requiredForCheckout : boolean Index 40 Read FrequiredForCheckout Write SetrequiredForCheckout;
-    Property _type : string Index 48 Read F_type Write Set_type;
+    Property _type : String Index 48 Read F_type Write Set_type;
   end;
   TCustomFieldDefClass = Class of TCustomFieldDef;
-  
-  { --------------------------------------------------------------------
-    TCustomFieldDefenumitems
-    --------------------------------------------------------------------}
-  
-  TCustomFieldDefenumitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCustomFieldDefenumitemsClass = Class of TCustomFieldDefenumitems;
   
   { --------------------------------------------------------------------
     TCustomFieldDefListResponse
@@ -168,31 +133,18 @@ type
   
   TCustomFieldDefListResponse = Class(TGoogleBaseObject)
   Private
-    Fitems : TCustomFieldDefListResponseitems;
-    Fkind : string;
+    Fitems : TCustomFieldDefListResponseTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TCustomFieldDefListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TCustomFieldDefListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TCustomFieldDefListResponseitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TCustomFieldDefListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TCustomFieldDefListResponseClass = Class of TCustomFieldDefListResponse;
-  
-  { --------------------------------------------------------------------
-    TCustomFieldDefListResponseitems
-    --------------------------------------------------------------------}
-  
-  TCustomFieldDefListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCustomFieldDefListResponseitemsClass = Class of TCustomFieldDefListResponseitems;
   
   { --------------------------------------------------------------------
     TCustomFields
@@ -200,31 +152,18 @@ type
   
   TCustomFields = Class(TGoogleBaseObject)
   Private
-    FcustomField : TCustomFieldscustomField;
-    Fkind : string;
+    FcustomField : TCustomFieldsTypecustomFieldArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetcustomField(AIndex : Integer; AValue : TCustomFieldscustomField); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcustomField(AIndex : Integer; AValue : TCustomFieldsTypecustomFieldArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property customField : TCustomFieldscustomField Index 0 Read FcustomField Write SetcustomField;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property customField : TCustomFieldsTypecustomFieldArray Index 0 Read FcustomField Write SetcustomField;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TCustomFieldsClass = Class of TCustomFields;
-  
-  { --------------------------------------------------------------------
-    TCustomFieldscustomField
-    --------------------------------------------------------------------}
-  
-  TCustomFieldscustomField = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCustomFieldscustomFieldClass = Class of TCustomFieldscustomField;
   
   { --------------------------------------------------------------------
     TEnumItemDef
@@ -233,18 +172,18 @@ type
   TEnumItemDef = Class(TGoogleBaseObject)
   Private
     Factive : boolean;
-    Fkind : string;
-    Fvalue : string;
+    Fkind : String;
+    Fvalue : String;
   Protected
     //Property setters
     Procedure Setactive(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property active : boolean Index 0 Read Factive Write Setactive;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property value : string Index 16 Read Fvalue Write Setvalue;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property value : String Index 16 Read Fvalue Write Setvalue;
   end;
   TEnumItemDefClass = Class of TEnumItemDef;
   
@@ -254,37 +193,24 @@ type
   
   TJob = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    FjobChange : TJobjobChange;
-    Fkind : string;
+    Fid : String;
+    FjobChange : TJobTypejobChangeArray;
+    Fkind : String;
     Fstate : TJobState;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetjobChange(AIndex : Integer; AValue : TJobjobChange); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetjobChange(AIndex : Integer; AValue : TJobTypejobChangeArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setstate(AIndex : Integer; AValue : TJobState); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property jobChange : TJobjobChange Index 8 Read FjobChange Write SetjobChange;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property jobChange : TJobTypejobChangeArray Index 8 Read FjobChange Write SetjobChange;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property state : TJobState Index 24 Read Fstate Write Setstate;
   end;
   TJobClass = Class of TJob;
-  
-  { --------------------------------------------------------------------
-    TJobjobChange
-    --------------------------------------------------------------------}
-  
-  TJobjobChange = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobjobChangeClass = Class of TJobjobChange;
   
   { --------------------------------------------------------------------
     TJobChange
@@ -292,19 +218,19 @@ type
   
   TJobChange = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
+    Fkind : String;
     Fstate : TJobState;
-    Ftimestamp : string;
+    Ftimestamp : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setstate(AIndex : Integer; AValue : TJobState); virtual;
-    Procedure Settimestamp(AIndex : Integer; AValue : string); virtual;
+    Procedure Settimestamp(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
+    Property kind : String Index 0 Read Fkind Write Setkind;
     Property state : TJobState Index 8 Read Fstate Write Setstate;
-    Property timestamp : string Index 16 Read Ftimestamp Write Settimestamp;
+    Property timestamp : String Index 16 Read Ftimestamp Write Settimestamp;
   end;
   TJobChangeClass = Class of TJobChange;
   
@@ -314,34 +240,21 @@ type
   
   TJobListResponse = Class(TGoogleBaseObject)
   Private
-    Fitems : TJobListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fitems : TJobListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TJobListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TJobListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TJobListResponseitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property items : TJobListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TJobListResponseClass = Class of TJobListResponse;
-  
-  { --------------------------------------------------------------------
-    TJobListResponseitems
-    --------------------------------------------------------------------}
-  
-  TJobListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobListResponseitemsClass = Class of TJobListResponseitems;
   
   { --------------------------------------------------------------------
     TJobState
@@ -349,52 +262,39 @@ type
   
   TJobState = Class(TGoogleBaseObject)
   Private
-    Fassignee : string;
+    Fassignee : String;
     FcustomFields : TCustomFields;
-    FcustomerName : string;
-    FcustomerPhoneNumber : string;
-    Fkind : string;
+    FcustomerName : String;
+    FcustomerPhoneNumber : String;
+    Fkind : String;
     Flocation : TLocation;
-    Fnote : TJobStatenote;
-    Fprogress : string;
-    Ftitle : string;
+    Fnote : TStringArray;
+    Fprogress : String;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure Setassignee(AIndex : Integer; AValue : string); virtual;
+    Procedure Setassignee(AIndex : Integer; AValue : String); virtual;
     Procedure SetcustomFields(AIndex : Integer; AValue : TCustomFields); virtual;
-    Procedure SetcustomerName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomerPhoneNumber(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcustomerName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomerPhoneNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setlocation(AIndex : Integer; AValue : TLocation); virtual;
-    Procedure Setnote(AIndex : Integer; AValue : TJobStatenote); virtual;
-    Procedure Setprogress(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Setnote(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setprogress(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property assignee : string Index 0 Read Fassignee Write Setassignee;
+    Property assignee : String Index 0 Read Fassignee Write Setassignee;
     Property customFields : TCustomFields Index 8 Read FcustomFields Write SetcustomFields;
-    Property customerName : string Index 16 Read FcustomerName Write SetcustomerName;
-    Property customerPhoneNumber : string Index 24 Read FcustomerPhoneNumber Write SetcustomerPhoneNumber;
-    Property kind : string Index 32 Read Fkind Write Setkind;
+    Property customerName : String Index 16 Read FcustomerName Write SetcustomerName;
+    Property customerPhoneNumber : String Index 24 Read FcustomerPhoneNumber Write SetcustomerPhoneNumber;
+    Property kind : String Index 32 Read Fkind Write Setkind;
     Property location : TLocation Index 40 Read Flocation Write Setlocation;
-    Property note : TJobStatenote Index 48 Read Fnote Write Setnote;
-    Property progress : string Index 56 Read Fprogress Write Setprogress;
-    Property title : string Index 64 Read Ftitle Write Settitle;
+    Property note : TStringArray Index 48 Read Fnote Write Setnote;
+    Property progress : String Index 56 Read Fprogress Write Setprogress;
+    Property title : String Index 64 Read Ftitle Write Settitle;
   end;
   TJobStateClass = Class of TJobState;
-  
-  { --------------------------------------------------------------------
-    TJobStatenote
-    --------------------------------------------------------------------}
-  
-  TJobStatenote = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobStatenoteClass = Class of TJobStatenote;
   
   { --------------------------------------------------------------------
     TLocation
@@ -402,37 +302,24 @@ type
   
   TLocation = Class(TGoogleBaseObject)
   Private
-    FaddressLine : TLocationaddressLine;
-    Fkind : string;
+    FaddressLine : TStringArray;
+    Fkind : String;
     Flat : double;
     Flng : double;
   Protected
     //Property setters
-    Procedure SetaddressLine(AIndex : Integer; AValue : TLocationaddressLine); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaddressLine(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setlat(AIndex : Integer; AValue : double); virtual;
     Procedure Setlng(AIndex : Integer; AValue : double); virtual;
   Public
   Published
-    Property addressLine : TLocationaddressLine Index 0 Read FaddressLine Write SetaddressLine;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property addressLine : TStringArray Index 0 Read FaddressLine Write SetaddressLine;
+    Property kind : String Index 8 Read Fkind Write Setkind;
     Property lat : double Index 16 Read Flat Write Setlat;
     Property lng : double Index 24 Read Flng Write Setlng;
   end;
   TLocationClass = Class of TLocation;
-  
-  { --------------------------------------------------------------------
-    TLocationaddressLine
-    --------------------------------------------------------------------}
-  
-  TLocationaddressLine = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLocationaddressLineClass = Class of TLocationaddressLine;
   
   { --------------------------------------------------------------------
     TLocationListResponse
@@ -440,37 +327,24 @@ type
   
   TLocationListResponse = Class(TGoogleBaseObject)
   Private
-    Fitems : TLocationListResponseitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fitems : TLocationListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FtokenPagination : TTokenPagination;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TLocationListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TLocationListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
   Public
   Published
-    Property items : TLocationListResponseitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property items : TLocationListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
     Property tokenPagination : TTokenPagination Index 24 Read FtokenPagination Write SettokenPagination;
   end;
   TLocationListResponseClass = Class of TLocationListResponse;
-  
-  { --------------------------------------------------------------------
-    TLocationListResponseitems
-    --------------------------------------------------------------------}
-  
-  TLocationListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLocationListResponseitemsClass = Class of TLocationListResponseitems;
   
   { --------------------------------------------------------------------
     TLocationRecord
@@ -478,23 +352,23 @@ type
   
   TLocationRecord = Class(TGoogleBaseObject)
   Private
-    FcollectionTime : string;
+    FcollectionTime : String;
     FconfidenceRadius : double;
-    Fkind : string;
+    Fkind : String;
     Flatitude : double;
     Flongitude : double;
   Protected
     //Property setters
-    Procedure SetcollectionTime(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcollectionTime(AIndex : Integer; AValue : String); virtual;
     Procedure SetconfidenceRadius(AIndex : Integer; AValue : double); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setlatitude(AIndex : Integer; AValue : double); virtual;
     Procedure Setlongitude(AIndex : Integer; AValue : double); virtual;
   Public
   Published
-    Property collectionTime : string Index 0 Read FcollectionTime Write SetcollectionTime;
+    Property collectionTime : String Index 0 Read FcollectionTime Write SetcollectionTime;
     Property confidenceRadius : double Index 8 Read FconfidenceRadius Write SetconfidenceRadius;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property latitude : double Index 24 Read Flatitude Write Setlatitude;
     Property longitude : double Index 32 Read Flongitude Write Setlongitude;
   end;
@@ -507,24 +381,24 @@ type
   TSchedule = Class(TGoogleBaseObject)
   Private
     FallDay : boolean;
-    Fduration : string;
-    FendTime : string;
-    Fkind : string;
-    FstartTime : string;
+    Fduration : String;
+    FendTime : String;
+    Fkind : String;
+    FstartTime : String;
   Protected
     //Property setters
     Procedure SetallDay(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setduration(AIndex : Integer; AValue : string); virtual;
-    Procedure SetendTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : string); virtual;
+    Procedure Setduration(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property allDay : boolean Index 0 Read FallDay Write SetallDay;
-    Property duration : string Index 8 Read Fduration Write Setduration;
-    Property endTime : string Index 16 Read FendTime Write SetendTime;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property startTime : string Index 32 Read FstartTime Write SetstartTime;
+    Property duration : String Index 8 Read Fduration Write Setduration;
+    Property endTime : String Index 16 Read FendTime Write SetendTime;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property startTime : String Index 32 Read FstartTime Write SetstartTime;
   end;
   TScheduleClass = Class of TSchedule;
   
@@ -534,19 +408,19 @@ type
   
   TTeam = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    Fname : string;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property name : string Index 16 Read Fname Write Setname;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : String Index 16 Read Fname Write Setname;
   end;
   TTeamClass = Class of TTeam;
   
@@ -556,31 +430,18 @@ type
   
   TTeamListResponse = Class(TGoogleBaseObject)
   Private
-    Fitems : TTeamListResponseitems;
-    Fkind : string;
+    Fitems : TTeamListResponseTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTeamListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TTeamListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TTeamListResponseitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TTeamListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TTeamListResponseClass = Class of TTeamListResponse;
-  
-  { --------------------------------------------------------------------
-    TTeamListResponseitems
-    --------------------------------------------------------------------}
-  
-  TTeamListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTeamListResponseitemsClass = Class of TTeamListResponseitems;
   
   { --------------------------------------------------------------------
     TTokenPagination
@@ -588,19 +449,19 @@ type
   
   TTokenPagination = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
-    FpreviousPageToken : string;
+    Fkind : String;
+    FnextPageToken : String;
+    FpreviousPageToken : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpreviousPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpreviousPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
-    Property previousPageToken : string Index 16 Read FpreviousPageToken Write SetpreviousPageToken;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property previousPageToken : String Index 16 Read FpreviousPageToken Write SetpreviousPageToken;
   end;
   TTokenPaginationClass = Class of TTokenPagination;
   
@@ -610,16 +471,16 @@ type
   
   TWorker = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
+    Fid : String;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TWorkerClass = Class of TWorker;
   
@@ -629,31 +490,18 @@ type
   
   TWorkerListResponse = Class(TGoogleBaseObject)
   Private
-    Fitems : TWorkerListResponseitems;
-    Fkind : string;
+    Fitems : TWorkerListResponseTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TWorkerListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TWorkerListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property items : TWorkerListResponseitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TWorkerListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TWorkerListResponseClass = Class of TWorkerListResponse;
-  
-  { --------------------------------------------------------------------
-    TWorkerListResponseitems
-    --------------------------------------------------------------------}
-  
-  TWorkerListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TWorkerListResponseitemsClass = Class of TWorkerListResponseitems;
   
   { --------------------------------------------------------------------
     TCustomFieldDefResource
@@ -675,15 +523,15 @@ type
   //Optional query Options for TJobsResource, method Insert
   
   TJobsInsertOptions = Record
-    address : string;
-    assignee : string;
-    customField : string;
-    customerName : string;
-    customerPhoneNumber : string;
+    address : String;
+    assignee : String;
+    customField : String;
+    customerName : String;
+    customerPhoneNumber : String;
     lat : double;
     lng : double;
-    note : string;
-    title : string;
+    note : String;
+    title : String;
   end;
   
   
@@ -691,40 +539,40 @@ type
   
   TJobsListOptions = Record
     maxResults : integer;
-    minModifiedTimestampMs : string;
-    pageToken : string;
+    minModifiedTimestampMs : String;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TJobsResource, method Patch
   
   TJobsPatchOptions = Record
-    address : string;
-    assignee : string;
-    customField : string;
-    customerName : string;
-    customerPhoneNumber : string;
+    address : String;
+    assignee : String;
+    customField : String;
+    customerName : String;
+    customerPhoneNumber : String;
     lat : double;
     lng : double;
-    note : string;
-    progress : string;
-    title : string;
+    note : String;
+    progress : String;
+    title : String;
   end;
   
   
   //Optional query Options for TJobsResource, method Update
   
   TJobsUpdateOptions = Record
-    address : string;
-    assignee : string;
-    customField : string;
-    customerName : string;
-    customerPhoneNumber : string;
+    address : String;
+    assignee : String;
+    customField : String;
+    customerName : String;
+    customerPhoneNumber : String;
     lat : double;
     lng : double;
-    note : string;
-    progress : string;
-    title : string;
+    note : String;
+    progress : String;
+    title : String;
   end;
   
   TJobsResource = Class(TGoogleResource)
@@ -752,8 +600,8 @@ type
   
   TLocationListOptions = Record
     maxResults : integer;
-    pageToken : string;
-    startTimestampMs : string;
+    pageToken : String;
+    startTimestampMs : String;
   end;
   
   TLocationResource = Class(TGoogleResource)
@@ -774,9 +622,9 @@ type
   
   TSchedulePatchOptions = Record
     allDay : boolean;
-    duration : string;
-    endTime : string;
-    startTime : string;
+    duration : String;
+    endTime : String;
+    startTime : String;
   end;
   
   
@@ -784,9 +632,9 @@ type
   
   TScheduleUpdateOptions = Record
     allDay : boolean;
-    duration : string;
-    endTime : string;
-    startTime : string;
+    duration : String;
+    endTime : String;
+    startTime : String;
   end;
   
   TScheduleResource = Class(TGoogleResource)
@@ -905,7 +753,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TCustomField.SetcustomFieldId(AIndex : Integer; AValue : string); 
+Procedure TCustomField.SetcustomFieldId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomFieldId=AValue) then exit;
@@ -915,7 +763,7 @@ end;
 
 
 
-Procedure TCustomField.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCustomField.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -925,7 +773,7 @@ end;
 
 
 
-Procedure TCustomField.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TCustomField.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -952,7 +800,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Setenumitems(AIndex : Integer; AValue : TCustomFieldDefenumitems); 
+Procedure TCustomFieldDef.Setenumitems(AIndex : Integer; AValue : TCustomFieldDefTypeenumitemsArray); 
 
 begin
   If (Fenumitems=AValue) then exit;
@@ -962,7 +810,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Setid(AIndex : Integer; AValue : string); 
+Procedure TCustomFieldDef.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -972,7 +820,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCustomFieldDef.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -982,7 +830,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Setname(AIndex : Integer; AValue : string); 
+Procedure TCustomFieldDef.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1002,7 +850,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Set_type(AIndex : Integer; AValue : string); 
+Procedure TCustomFieldDef.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1026,18 +874,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCustomFieldDefenumitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TCustomFieldDefListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TCustomFieldDefListResponse.Setitems(AIndex : Integer; AValue : TCustomFieldDefListResponseitems); 
+Procedure TCustomFieldDefListResponse.Setitems(AIndex : Integer; AValue : TCustomFieldDefListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1047,7 +888,7 @@ end;
 
 
 
-Procedure TCustomFieldDefListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCustomFieldDefListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1055,13 +896,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TCustomFieldDefListResponseitems
-  --------------------------------------------------------------------}
 
 
 
@@ -1071,7 +905,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomFields.SetcustomField(AIndex : Integer; AValue : TCustomFieldscustomField); 
+Procedure TCustomFields.SetcustomField(AIndex : Integer; AValue : TCustomFieldsTypecustomFieldArray); 
 
 begin
   If (FcustomField=AValue) then exit;
@@ -1081,7 +915,7 @@ end;
 
 
 
-Procedure TCustomFields.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCustomFields.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1089,13 +923,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TCustomFieldscustomField
-  --------------------------------------------------------------------}
 
 
 
@@ -1115,7 +942,7 @@ end;
 
 
 
-Procedure TEnumItemDef.Setkind(AIndex : Integer; AValue : string); 
+Procedure TEnumItemDef.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1125,7 +952,7 @@ end;
 
 
 
-Procedure TEnumItemDef.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TEnumItemDef.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1142,7 +969,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJob.Setid(AIndex : Integer; AValue : string); 
+Procedure TJob.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1152,7 +979,7 @@ end;
 
 
 
-Procedure TJob.SetjobChange(AIndex : Integer; AValue : TJobjobChange); 
+Procedure TJob.SetjobChange(AIndex : Integer; AValue : TJobTypejobChangeArray); 
 
 begin
   If (FjobChange=AValue) then exit;
@@ -1162,7 +989,7 @@ end;
 
 
 
-Procedure TJob.Setkind(AIndex : Integer; AValue : string); 
+Procedure TJob.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1185,18 +1012,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobjobChange
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TJobChange
   --------------------------------------------------------------------}
 
 
-Procedure TJobChange.Setkind(AIndex : Integer; AValue : string); 
+Procedure TJobChange.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1216,7 +1036,7 @@ end;
 
 
 
-Procedure TJobChange.Settimestamp(AIndex : Integer; AValue : string); 
+Procedure TJobChange.Settimestamp(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -1233,7 +1053,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobListResponse.Setitems(AIndex : Integer; AValue : TJobListResponseitems); 
+Procedure TJobListResponse.Setitems(AIndex : Integer; AValue : TJobListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1243,7 +1063,7 @@ end;
 
 
 
-Procedure TJobListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TJobListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1253,7 +1073,7 @@ end;
 
 
 
-Procedure TJobListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TJobListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1266,18 +1086,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TJobState
   --------------------------------------------------------------------}
 
 
-Procedure TJobState.Setassignee(AIndex : Integer; AValue : string); 
+Procedure TJobState.Setassignee(AIndex : Integer; AValue : String); 
 
 begin
   If (Fassignee=AValue) then exit;
@@ -1297,7 +1110,7 @@ end;
 
 
 
-Procedure TJobState.SetcustomerName(AIndex : Integer; AValue : string); 
+Procedure TJobState.SetcustomerName(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomerName=AValue) then exit;
@@ -1307,7 +1120,7 @@ end;
 
 
 
-Procedure TJobState.SetcustomerPhoneNumber(AIndex : Integer; AValue : string); 
+Procedure TJobState.SetcustomerPhoneNumber(AIndex : Integer; AValue : String); 
 
 begin
   If (FcustomerPhoneNumber=AValue) then exit;
@@ -1317,7 +1130,7 @@ end;
 
 
 
-Procedure TJobState.Setkind(AIndex : Integer; AValue : string); 
+Procedure TJobState.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1337,7 +1150,7 @@ end;
 
 
 
-Procedure TJobState.Setnote(AIndex : Integer; AValue : TJobStatenote); 
+Procedure TJobState.Setnote(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fnote=AValue) then exit;
@@ -1347,7 +1160,7 @@ end;
 
 
 
-Procedure TJobState.Setprogress(AIndex : Integer; AValue : string); 
+Procedure TJobState.Setprogress(AIndex : Integer; AValue : String); 
 
 begin
   If (Fprogress=AValue) then exit;
@@ -1357,7 +1170,7 @@ end;
 
 
 
-Procedure TJobState.Settitle(AIndex : Integer; AValue : string); 
+Procedure TJobState.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1370,18 +1183,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobStatenote
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLocation
   --------------------------------------------------------------------}
 
 
-Procedure TLocation.SetaddressLine(AIndex : Integer; AValue : TLocationaddressLine); 
+Procedure TLocation.SetaddressLine(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FaddressLine=AValue) then exit;
@@ -1391,7 +1197,7 @@ end;
 
 
 
-Procedure TLocation.Setkind(AIndex : Integer; AValue : string); 
+Procedure TLocation.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1424,18 +1230,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLocationaddressLine
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLocationListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TLocationListResponse.Setitems(AIndex : Integer; AValue : TLocationListResponseitems); 
+Procedure TLocationListResponse.Setitems(AIndex : Integer; AValue : TLocationListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1445,7 +1244,7 @@ end;
 
 
 
-Procedure TLocationListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TLocationListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1455,7 +1254,7 @@ end;
 
 
 
-Procedure TLocationListResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TLocationListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1478,18 +1277,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLocationListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLocationRecord
   --------------------------------------------------------------------}
 
 
-Procedure TLocationRecord.SetcollectionTime(AIndex : Integer; AValue : string); 
+Procedure TLocationRecord.SetcollectionTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FcollectionTime=AValue) then exit;
@@ -1509,7 +1301,7 @@ end;
 
 
 
-Procedure TLocationRecord.Setkind(AIndex : Integer; AValue : string); 
+Procedure TLocationRecord.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1556,7 +1348,7 @@ end;
 
 
 
-Procedure TSchedule.Setduration(AIndex : Integer; AValue : string); 
+Procedure TSchedule.Setduration(AIndex : Integer; AValue : String); 
 
 begin
   If (Fduration=AValue) then exit;
@@ -1566,7 +1358,7 @@ end;
 
 
 
-Procedure TSchedule.SetendTime(AIndex : Integer; AValue : string); 
+Procedure TSchedule.SetendTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -1576,7 +1368,7 @@ end;
 
 
 
-Procedure TSchedule.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSchedule.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1586,7 +1378,7 @@ end;
 
 
 
-Procedure TSchedule.SetstartTime(AIndex : Integer; AValue : string); 
+Procedure TSchedule.SetstartTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1603,7 +1395,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTeam.Setid(AIndex : Integer; AValue : string); 
+Procedure TTeam.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1613,7 +1405,7 @@ end;
 
 
 
-Procedure TTeam.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTeam.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1623,7 +1415,7 @@ end;
 
 
 
-Procedure TTeam.Setname(AIndex : Integer; AValue : string); 
+Procedure TTeam.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1640,7 +1432,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTeamListResponse.Setitems(AIndex : Integer; AValue : TTeamListResponseitems); 
+Procedure TTeamListResponse.Setitems(AIndex : Integer; AValue : TTeamListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1650,7 +1442,7 @@ end;
 
 
 
-Procedure TTeamListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTeamListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1658,13 +1450,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TTeamListResponseitems
-  --------------------------------------------------------------------}
 
 
 
@@ -1674,7 +1459,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTokenPagination.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTokenPagination.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1684,7 +1469,7 @@ end;
 
 
 
-Procedure TTokenPagination.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TTokenPagination.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1694,7 +1479,7 @@ end;
 
 
 
-Procedure TTokenPagination.SetpreviousPageToken(AIndex : Integer; AValue : string); 
+Procedure TTokenPagination.SetpreviousPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpreviousPageToken=AValue) then exit;
@@ -1711,7 +1496,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWorker.Setid(AIndex : Integer; AValue : string); 
+Procedure TWorker.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1721,7 +1506,7 @@ end;
 
 
 
-Procedure TWorker.Setkind(AIndex : Integer; AValue : string); 
+Procedure TWorker.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1738,7 +1523,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWorkerListResponse.Setitems(AIndex : Integer; AValue : TWorkerListResponseitems); 
+Procedure TWorkerListResponse.Setitems(AIndex : Integer; AValue : TWorkerListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1748,7 +1533,7 @@ end;
 
 
 
-Procedure TWorkerListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TWorkerListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1756,13 +1541,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TWorkerListResponseitems
-  --------------------------------------------------------------------}
 
 
 
@@ -2319,32 +2097,22 @@ Class Procedure TCoordinateAPI.RegisterAPIResources;
 begin
   TCustomField.RegisterObject;
   TCustomFieldDef.RegisterObject;
-  TCustomFieldDefenumitems.RegisterObject;
   TCustomFieldDefListResponse.RegisterObject;
-  TCustomFieldDefListResponseitems.RegisterObject;
   TCustomFields.RegisterObject;
-  TCustomFieldscustomField.RegisterObject;
   TEnumItemDef.RegisterObject;
   TJob.RegisterObject;
-  TJobjobChange.RegisterObject;
   TJobChange.RegisterObject;
   TJobListResponse.RegisterObject;
-  TJobListResponseitems.RegisterObject;
   TJobState.RegisterObject;
-  TJobStatenote.RegisterObject;
   TLocation.RegisterObject;
-  TLocationaddressLine.RegisterObject;
   TLocationListResponse.RegisterObject;
-  TLocationListResponseitems.RegisterObject;
   TLocationRecord.RegisterObject;
   TSchedule.RegisterObject;
   TTeam.RegisterObject;
   TTeamListResponse.RegisterObject;
-  TTeamListResponseitems.RegisterObject;
   TTokenPagination.RegisterObject;
   TWorker.RegisterObject;
   TWorkerListResponse.RegisterObject;
-  TWorkerListResponseitems.RegisterObject;
 end;
 
 

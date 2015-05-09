@@ -1,31 +1,19 @@
 unit googleqpxExpress;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:57
 {$MODE objfpc}
 {$H+}
 
@@ -34,93 +22,73 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAircraftData = class;
-  TAircraftDataArray = Array of TAircraftData;
   TAirportData = class;
-  TAirportDataArray = Array of TAirportData;
   TBagDescriptor = class;
-  TBagDescriptorArray = Array of TBagDescriptor;
-  TBagDescriptordescription = class;
-  TBagDescriptordescriptionArray = Array of TBagDescriptordescription;
   TCarrierData = class;
-  TCarrierDataArray = Array of TCarrierData;
   TCityData = class;
-  TCityDataArray = Array of TCityData;
   TData = class;
-  TDataArray = Array of TData;
-  TDataaircraft = class;
-  TDataaircraftArray = Array of TDataaircraft;
-  TDataairport = class;
-  TDataairportArray = Array of TDataairport;
-  TDatacarrier = class;
-  TDatacarrierArray = Array of TDatacarrier;
-  TDatacity = class;
-  TDatacityArray = Array of TDatacity;
-  TDatatax = class;
-  TDatataxArray = Array of TDatatax;
   TFareInfo = class;
-  TFareInfoArray = Array of TFareInfo;
   TFlightInfo = class;
-  TFlightInfoArray = Array of TFlightInfo;
   TFreeBaggageAllowance = class;
-  TFreeBaggageAllowanceArray = Array of TFreeBaggageAllowance;
-  TFreeBaggageAllowancebagDescriptor = class;
-  TFreeBaggageAllowancebagDescriptorArray = Array of TFreeBaggageAllowancebagDescriptor;
   TLegInfo = class;
-  TLegInfoArray = Array of TLegInfo;
   TPassengerCounts = class;
-  TPassengerCountsArray = Array of TPassengerCounts;
   TPricingInfo = class;
-  TPricingInfoArray = Array of TPricingInfo;
-  TPricingInfofare = class;
-  TPricingInfofareArray = Array of TPricingInfofare;
-  TPricingInfosegmentPricing = class;
-  TPricingInfosegmentPricingArray = Array of TPricingInfosegmentPricing;
-  TPricingInfotax = class;
-  TPricingInfotaxArray = Array of TPricingInfotax;
   TSegmentInfo = class;
-  TSegmentInfoArray = Array of TSegmentInfo;
-  TSegmentInfoleg = class;
-  TSegmentInfolegArray = Array of TSegmentInfoleg;
   TSegmentPricing = class;
-  TSegmentPricingArray = Array of TSegmentPricing;
-  TSegmentPricingfreeBaggageOption = class;
-  TSegmentPricingfreeBaggageOptionArray = Array of TSegmentPricingfreeBaggageOption;
   TSliceInfo = class;
-  TSliceInfoArray = Array of TSliceInfo;
-  TSliceInfosegment = class;
-  TSliceInfosegmentArray = Array of TSliceInfosegment;
   TSliceInput = class;
-  TSliceInputArray = Array of TSliceInput;
-  TSliceInputpermittedCarrier = class;
-  TSliceInputpermittedCarrierArray = Array of TSliceInputpermittedCarrier;
-  TSliceInputprohibitedCarrier = class;
-  TSliceInputprohibitedCarrierArray = Array of TSliceInputprohibitedCarrier;
   TTaxData = class;
-  TTaxDataArray = Array of TTaxData;
   TTaxInfo = class;
-  TTaxInfoArray = Array of TTaxInfo;
   TTimeOfDayRange = class;
-  TTimeOfDayRangeArray = Array of TTimeOfDayRange;
   TTripOption = class;
-  TTripOptionArray = Array of TTripOption;
-  TTripOptionpricing = class;
-  TTripOptionpricingArray = Array of TTripOptionpricing;
-  TTripOptionslice = class;
-  TTripOptionsliceArray = Array of TTripOptionslice;
   TTripOptionsRequest = class;
-  TTripOptionsRequestArray = Array of TTripOptionsRequest;
-  TTripOptionsRequestslice = class;
-  TTripOptionsRequestsliceArray = Array of TTripOptionsRequestslice;
   TTripOptionsResponse = class;
-  TTripOptionsResponseArray = Array of TTripOptionsResponse;
-  TTripOptionsResponsetripOption = class;
-  TTripOptionsResponsetripOptionArray = Array of TTripOptionsResponsetripOption;
   TTripsSearchRequest = class;
-  TTripsSearchRequestArray = Array of TTripsSearchRequest;
   TTripsSearchResponse = class;
+  TAircraftDataArray = Array of TAircraftData;
+  TAirportDataArray = Array of TAirportData;
+  TBagDescriptorArray = Array of TBagDescriptor;
+  TCarrierDataArray = Array of TCarrierData;
+  TCityDataArray = Array of TCityData;
+  TDataArray = Array of TData;
+  TFareInfoArray = Array of TFareInfo;
+  TFlightInfoArray = Array of TFlightInfo;
+  TFreeBaggageAllowanceArray = Array of TFreeBaggageAllowance;
+  TLegInfoArray = Array of TLegInfo;
+  TPassengerCountsArray = Array of TPassengerCounts;
+  TPricingInfoArray = Array of TPricingInfo;
+  TSegmentInfoArray = Array of TSegmentInfo;
+  TSegmentPricingArray = Array of TSegmentPricing;
+  TSliceInfoArray = Array of TSliceInfo;
+  TSliceInputArray = Array of TSliceInput;
+  TTaxDataArray = Array of TTaxData;
+  TTaxInfoArray = Array of TTaxInfo;
+  TTimeOfDayRangeArray = Array of TTimeOfDayRange;
+  TTripOptionArray = Array of TTripOption;
+  TTripOptionsRequestArray = Array of TTripOptionsRequest;
+  TTripOptionsResponseArray = Array of TTripOptionsResponse;
+  TTripsSearchRequestArray = Array of TTripsSearchRequest;
   TTripsSearchResponseArray = Array of TTripsSearchResponse;
+  //Anonymous types, using auto-generated names
+  TDataTypeaircraftArray = Array of TAircraftData;
+  TDataTypeairportArray = Array of TAirportData;
+  TDataTypecarrierArray = Array of TCarrierData;
+  TDataTypecityArray = Array of TCityData;
+  TDataTypetaxArray = Array of TTaxData;
+  TFreeBaggageAllowanceTypebagDescriptorArray = Array of TBagDescriptor;
+  TPricingInfoTypefareArray = Array of TFareInfo;
+  TPricingInfoTypesegmentPricingArray = Array of TSegmentPricing;
+  TPricingInfoTypetaxArray = Array of TTaxInfo;
+  TSegmentInfoTypelegArray = Array of TLegInfo;
+  TSegmentPricingTypefreeBaggageOptionArray = Array of TFreeBaggageAllowance;
+  TSliceInfoTypesegmentArray = Array of TSegmentInfo;
+  TTripOptionTypepricingArray = Array of TPricingInfo;
+  TTripOptionTypesliceArray = Array of TSliceInfo;
+  TTripOptionsRequestTypesliceArray = Array of TSliceInput;
+  TTripOptionsResponseTypetripOptionArray = Array of TTripOption;
   
   { --------------------------------------------------------------------
     TAircraftData
@@ -128,19 +96,19 @@ type
   
   TAircraftData = Class(TGoogleBaseObject)
   Private
-    Fcode : string;
-    Fkind : string;
-    Fname : string;
+    Fcode : String;
+    Fkind : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property name : string Index 16 Read Fname Write Setname;
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : String Index 16 Read Fname Write Setname;
   end;
   TAircraftDataClass = Class of TAircraftData;
   
@@ -150,22 +118,22 @@ type
   
   TAirportData = Class(TGoogleBaseObject)
   Private
-    Fcity : string;
-    Fcode : string;
-    Fkind : string;
-    Fname : string;
+    Fcity : String;
+    Fcode : String;
+    Fkind : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setcity(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcity(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property city : string Index 0 Read Fcity Write Setcity;
-    Property code : string Index 8 Read Fcode Write Setcode;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property name : string Index 24 Read Fname Write Setname;
+    Property city : String Index 0 Read Fcity Write Setcity;
+    Property code : String Index 8 Read Fcode Write Setcode;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property name : String Index 24 Read Fname Write Setname;
   end;
   TAirportDataClass = Class of TAirportData;
   
@@ -175,40 +143,27 @@ type
   
   TBagDescriptor = Class(TGoogleBaseObject)
   Private
-    FcommercialName : string;
+    FcommercialName : String;
     Fcount : integer;
-    Fdescription : TBagDescriptordescription;
-    Fkind : string;
-    Fsubcode : string;
+    Fdescription : TStringArray;
+    Fkind : String;
+    Fsubcode : String;
   Protected
     //Property setters
-    Procedure SetcommercialName(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcommercialName(AIndex : Integer; AValue : String); virtual;
     Procedure Setcount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : TBagDescriptordescription); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsubcode(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsubcode(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property commercialName : string Index 0 Read FcommercialName Write SetcommercialName;
+    Property commercialName : String Index 0 Read FcommercialName Write SetcommercialName;
     Property count : integer Index 8 Read Fcount Write Setcount;
-    Property description : TBagDescriptordescription Index 16 Read Fdescription Write Setdescription;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property subcode : string Index 32 Read Fsubcode Write Setsubcode;
+    Property description : TStringArray Index 16 Read Fdescription Write Setdescription;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property subcode : String Index 32 Read Fsubcode Write Setsubcode;
   end;
   TBagDescriptorClass = Class of TBagDescriptor;
-  
-  { --------------------------------------------------------------------
-    TBagDescriptordescription
-    --------------------------------------------------------------------}
-  
-  TBagDescriptordescription = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBagDescriptordescriptionClass = Class of TBagDescriptordescription;
   
   { --------------------------------------------------------------------
     TCarrierData
@@ -216,19 +171,19 @@ type
   
   TCarrierData = Class(TGoogleBaseObject)
   Private
-    Fcode : string;
-    Fkind : string;
-    Fname : string;
+    Fcode : String;
+    Fkind : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property name : string Index 16 Read Fname Write Setname;
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : String Index 16 Read Fname Write Setname;
   end;
   TCarrierDataClass = Class of TCarrierData;
   
@@ -238,22 +193,22 @@ type
   
   TCityData = Class(TGoogleBaseObject)
   Private
-    Fcode : string;
-    Fcountry : string;
-    Fkind : string;
-    Fname : string;
+    Fcode : String;
+    Fcountry : String;
+    Fkind : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcountry(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property country : string Index 8 Read Fcountry Write Setcountry;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property name : string Index 24 Read Fname Write Setname;
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property country : String Index 8 Read Fcountry Write Setcountry;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property name : String Index 24 Read Fname Write Setname;
   end;
   TCityDataClass = Class of TCityData;
   
@@ -263,95 +218,30 @@ type
   
   TData = Class(TGoogleBaseObject)
   Private
-    Faircraft : TDataaircraft;
-    Fairport : TDataairport;
-    Fcarrier : TDatacarrier;
-    Fcity : TDatacity;
-    Fkind : string;
-    Ftax : TDatatax;
+    Faircraft : TDataTypeaircraftArray;
+    Fairport : TDataTypeairportArray;
+    Fcarrier : TDataTypecarrierArray;
+    Fcity : TDataTypecityArray;
+    Fkind : String;
+    Ftax : TDataTypetaxArray;
   Protected
     //Property setters
-    Procedure Setaircraft(AIndex : Integer; AValue : TDataaircraft); virtual;
-    Procedure Setairport(AIndex : Integer; AValue : TDataairport); virtual;
-    Procedure Setcarrier(AIndex : Integer; AValue : TDatacarrier); virtual;
-    Procedure Setcity(AIndex : Integer; AValue : TDatacity); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Settax(AIndex : Integer; AValue : TDatatax); virtual;
+    Procedure Setaircraft(AIndex : Integer; AValue : TDataTypeaircraftArray); virtual;
+    Procedure Setairport(AIndex : Integer; AValue : TDataTypeairportArray); virtual;
+    Procedure Setcarrier(AIndex : Integer; AValue : TDataTypecarrierArray); virtual;
+    Procedure Setcity(AIndex : Integer; AValue : TDataTypecityArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Settax(AIndex : Integer; AValue : TDataTypetaxArray); virtual;
   Public
   Published
-    Property aircraft : TDataaircraft Index 0 Read Faircraft Write Setaircraft;
-    Property airport : TDataairport Index 8 Read Fairport Write Setairport;
-    Property carrier : TDatacarrier Index 16 Read Fcarrier Write Setcarrier;
-    Property city : TDatacity Index 24 Read Fcity Write Setcity;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property tax : TDatatax Index 40 Read Ftax Write Settax;
+    Property aircraft : TDataTypeaircraftArray Index 0 Read Faircraft Write Setaircraft;
+    Property airport : TDataTypeairportArray Index 8 Read Fairport Write Setairport;
+    Property carrier : TDataTypecarrierArray Index 16 Read Fcarrier Write Setcarrier;
+    Property city : TDataTypecityArray Index 24 Read Fcity Write Setcity;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property tax : TDataTypetaxArray Index 40 Read Ftax Write Settax;
   end;
   TDataClass = Class of TData;
-  
-  { --------------------------------------------------------------------
-    TDataaircraft
-    --------------------------------------------------------------------}
-  
-  TDataaircraft = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDataaircraftClass = Class of TDataaircraft;
-  
-  { --------------------------------------------------------------------
-    TDataairport
-    --------------------------------------------------------------------}
-  
-  TDataairport = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDataairportClass = Class of TDataairport;
-  
-  { --------------------------------------------------------------------
-    TDatacarrier
-    --------------------------------------------------------------------}
-  
-  TDatacarrier = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatacarrierClass = Class of TDatacarrier;
-  
-  { --------------------------------------------------------------------
-    TDatacity
-    --------------------------------------------------------------------}
-  
-  TDatacity = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatacityClass = Class of TDatacity;
-  
-  { --------------------------------------------------------------------
-    TDatatax
-    --------------------------------------------------------------------}
-  
-  TDatatax = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDatataxClass = Class of TDatatax;
   
   { --------------------------------------------------------------------
     TFareInfo
@@ -359,31 +249,31 @@ type
   
   TFareInfo = Class(TGoogleBaseObject)
   Private
-    FbasisCode : string;
-    Fcarrier : string;
-    Fdestination : string;
-    Fid : string;
-    Fkind : string;
-    Forigin : string;
+    FbasisCode : String;
+    Fcarrier : String;
+    Fdestination : String;
+    Fid : String;
+    Fkind : String;
+    Forigin : String;
     F_private : boolean;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetbasisCode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcarrier(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdestination(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setorigin(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbasisCode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcarrier(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdestination(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setorigin(AIndex : Integer; AValue : String); virtual;
     Procedure Set_private(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property basisCode : string Index 0 Read FbasisCode Write SetbasisCode;
-    Property carrier : string Index 8 Read Fcarrier Write Setcarrier;
-    Property destination : string Index 16 Read Fdestination Write Setdestination;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property origin : string Index 40 Read Forigin Write Setorigin;
+    Property basisCode : String Index 0 Read FbasisCode Write SetbasisCode;
+    Property carrier : String Index 8 Read Fcarrier Write Setcarrier;
+    Property destination : String Index 16 Read Fdestination Write Setdestination;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property origin : String Index 40 Read Forigin Write Setorigin;
     Property _private : boolean Index 48 Read F_private Write Set_private;
   end;
   TFareInfoClass = Class of TFareInfo;
@@ -394,16 +284,16 @@ type
   
   TFlightInfo = Class(TGoogleBaseObject)
   Private
-    Fcarrier : string;
-    Fnumber : string;
+    Fcarrier : String;
+    Fnumber : String;
   Protected
     //Property setters
-    Procedure Setcarrier(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnumber(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcarrier(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnumber(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property carrier : string Index 0 Read Fcarrier Write Setcarrier;
-    Property number : string Index 8 Read Fnumber Write Setnumber;
+    Property carrier : String Index 0 Read Fcarrier Write Setcarrier;
+    Property number : String Index 8 Read Fnumber Write Setnumber;
   end;
   TFlightInfoClass = Class of TFlightInfo;
   
@@ -413,43 +303,30 @@ type
   
   TFreeBaggageAllowance = Class(TGoogleBaseObject)
   Private
-    FbagDescriptor : TFreeBaggageAllowancebagDescriptor;
+    FbagDescriptor : TFreeBaggageAllowanceTypebagDescriptorArray;
     Fkilos : integer;
     FkilosPerPiece : integer;
-    Fkind : string;
+    Fkind : String;
     Fpieces : integer;
     Fpounds : integer;
   Protected
     //Property setters
-    Procedure SetbagDescriptor(AIndex : Integer; AValue : TFreeBaggageAllowancebagDescriptor); virtual;
+    Procedure SetbagDescriptor(AIndex : Integer; AValue : TFreeBaggageAllowanceTypebagDescriptorArray); virtual;
     Procedure Setkilos(AIndex : Integer; AValue : integer); virtual;
     Procedure SetkilosPerPiece(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setpieces(AIndex : Integer; AValue : integer); virtual;
     Procedure Setpounds(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property bagDescriptor : TFreeBaggageAllowancebagDescriptor Index 0 Read FbagDescriptor Write SetbagDescriptor;
+    Property bagDescriptor : TFreeBaggageAllowanceTypebagDescriptorArray Index 0 Read FbagDescriptor Write SetbagDescriptor;
     Property kilos : integer Index 8 Read Fkilos Write Setkilos;
     Property kilosPerPiece : integer Index 16 Read FkilosPerPiece Write SetkilosPerPiece;
-    Property kind : string Index 24 Read Fkind Write Setkind;
+    Property kind : String Index 24 Read Fkind Write Setkind;
     Property pieces : integer Index 32 Read Fpieces Write Setpieces;
     Property pounds : integer Index 40 Read Fpounds Write Setpounds;
   end;
   TFreeBaggageAllowanceClass = Class of TFreeBaggageAllowance;
-  
-  { --------------------------------------------------------------------
-    TFreeBaggageAllowancebagDescriptor
-    --------------------------------------------------------------------}
-  
-  TFreeBaggageAllowancebagDescriptor = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFreeBaggageAllowancebagDescriptorClass = Class of TFreeBaggageAllowancebagDescriptor;
   
   { --------------------------------------------------------------------
     TLegInfo
@@ -457,60 +334,60 @@ type
   
   TLegInfo = Class(TGoogleBaseObject)
   Private
-    Faircraft : string;
-    FarrivalTime : string;
+    Faircraft : String;
+    FarrivalTime : String;
     FchangePlane : boolean;
     FconnectionDuration : integer;
-    FdepartureTime : string;
-    Fdestination : string;
-    FdestinationTerminal : string;
+    FdepartureTime : String;
+    Fdestination : String;
+    FdestinationTerminal : String;
     Fduration : integer;
-    Fid : string;
-    Fkind : string;
-    Fmeal : string;
+    Fid : String;
+    Fkind : String;
+    Fmeal : String;
     Fmileage : integer;
     FonTimePerformance : integer;
-    FoperatingDisclosure : string;
-    Forigin : string;
-    ForiginTerminal : string;
+    FoperatingDisclosure : String;
+    Forigin : String;
+    ForiginTerminal : String;
     Fsecure : boolean;
   Protected
     //Property setters
-    Procedure Setaircraft(AIndex : Integer; AValue : string); virtual;
-    Procedure SetarrivalTime(AIndex : Integer; AValue : string); virtual;
+    Procedure Setaircraft(AIndex : Integer; AValue : String); virtual;
+    Procedure SetarrivalTime(AIndex : Integer; AValue : String); virtual;
     Procedure SetchangePlane(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetconnectionDuration(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetdepartureTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdestination(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdestinationTerminal(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdepartureTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdestination(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdestinationTerminal(AIndex : Integer; AValue : String); virtual;
     Procedure Setduration(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmeal(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmeal(AIndex : Integer; AValue : String); virtual;
     Procedure Setmileage(AIndex : Integer; AValue : integer); virtual;
     Procedure SetonTimePerformance(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetoperatingDisclosure(AIndex : Integer; AValue : string); virtual;
-    Procedure Setorigin(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoriginTerminal(AIndex : Integer; AValue : string); virtual;
+    Procedure SetoperatingDisclosure(AIndex : Integer; AValue : String); virtual;
+    Procedure Setorigin(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoriginTerminal(AIndex : Integer; AValue : String); virtual;
     Procedure Setsecure(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property aircraft : string Index 0 Read Faircraft Write Setaircraft;
-    Property arrivalTime : string Index 8 Read FarrivalTime Write SetarrivalTime;
+    Property aircraft : String Index 0 Read Faircraft Write Setaircraft;
+    Property arrivalTime : String Index 8 Read FarrivalTime Write SetarrivalTime;
     Property changePlane : boolean Index 16 Read FchangePlane Write SetchangePlane;
     Property connectionDuration : integer Index 24 Read FconnectionDuration Write SetconnectionDuration;
-    Property departureTime : string Index 32 Read FdepartureTime Write SetdepartureTime;
-    Property destination : string Index 40 Read Fdestination Write Setdestination;
-    Property destinationTerminal : string Index 48 Read FdestinationTerminal Write SetdestinationTerminal;
+    Property departureTime : String Index 32 Read FdepartureTime Write SetdepartureTime;
+    Property destination : String Index 40 Read Fdestination Write Setdestination;
+    Property destinationTerminal : String Index 48 Read FdestinationTerminal Write SetdestinationTerminal;
     Property duration : integer Index 56 Read Fduration Write Setduration;
-    Property id : string Index 64 Read Fid Write Setid;
-    Property kind : string Index 72 Read Fkind Write Setkind;
-    Property meal : string Index 80 Read Fmeal Write Setmeal;
+    Property id : String Index 64 Read Fid Write Setid;
+    Property kind : String Index 72 Read Fkind Write Setkind;
+    Property meal : String Index 80 Read Fmeal Write Setmeal;
     Property mileage : integer Index 88 Read Fmileage Write Setmileage;
     Property onTimePerformance : integer Index 96 Read FonTimePerformance Write SetonTimePerformance;
-    Property operatingDisclosure : string Index 104 Read FoperatingDisclosure Write SetoperatingDisclosure;
-    Property origin : string Index 112 Read Forigin Write Setorigin;
-    Property originTerminal : string Index 120 Read ForiginTerminal Write SetoriginTerminal;
+    Property operatingDisclosure : String Index 104 Read FoperatingDisclosure Write SetoperatingDisclosure;
+    Property origin : String Index 112 Read Forigin Write Setorigin;
+    Property originTerminal : String Index 120 Read ForiginTerminal Write SetoriginTerminal;
     Property secure : boolean Index 128 Read Fsecure Write Setsecure;
   end;
   TLegInfoClass = Class of TLegInfo;
@@ -525,7 +402,7 @@ type
     FchildCount : integer;
     FinfantInLapCount : integer;
     FinfantInSeatCount : integer;
-    Fkind : string;
+    Fkind : String;
     FseniorCount : integer;
   Protected
     //Property setters
@@ -533,7 +410,7 @@ type
     Procedure SetchildCount(AIndex : Integer; AValue : integer); virtual;
     Procedure SetinfantInLapCount(AIndex : Integer; AValue : integer); virtual;
     Procedure SetinfantInSeatCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetseniorCount(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -541,7 +418,7 @@ type
     Property childCount : integer Index 8 Read FchildCount Write SetchildCount;
     Property infantInLapCount : integer Index 16 Read FinfantInLapCount Write SetinfantInLapCount;
     Property infantInSeatCount : integer Index 24 Read FinfantInSeatCount Write SetinfantInSeatCount;
-    Property kind : string Index 32 Read Fkind Write Setkind;
+    Property kind : String Index 32 Read Fkind Write Setkind;
     Property seniorCount : integer Index 40 Read FseniorCount Write SetseniorCount;
   end;
   TPassengerCountsClass = Class of TPassengerCounts;
@@ -552,90 +429,51 @@ type
   
   TPricingInfo = Class(TGoogleBaseObject)
   Private
-    FbaseFareTotal : string;
-    Ffare : TPricingInfofare;
-    FfareCalculation : string;
-    Fkind : string;
-    FlatestTicketingTime : string;
+    FbaseFareTotal : String;
+    Ffare : TPricingInfoTypefareArray;
+    FfareCalculation : String;
+    Fkind : String;
+    FlatestTicketingTime : String;
     Fpassengers : TPassengerCounts;
-    Fptc : string;
+    Fptc : String;
     Frefundable : boolean;
-    FsaleFareTotal : string;
-    FsaleTaxTotal : string;
-    FsaleTotal : string;
-    FsegmentPricing : TPricingInfosegmentPricing;
-    Ftax : TPricingInfotax;
+    FsaleFareTotal : String;
+    FsaleTaxTotal : String;
+    FsaleTotal : String;
+    FsegmentPricing : TPricingInfoTypesegmentPricingArray;
+    Ftax : TPricingInfoTypetaxArray;
   Protected
     //Property setters
-    Procedure SetbaseFareTotal(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfare(AIndex : Integer; AValue : TPricingInfofare); virtual;
-    Procedure SetfareCalculation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlatestTicketingTime(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbaseFareTotal(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfare(AIndex : Integer; AValue : TPricingInfoTypefareArray); virtual;
+    Procedure SetfareCalculation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlatestTicketingTime(AIndex : Integer; AValue : String); virtual;
     Procedure Setpassengers(AIndex : Integer; AValue : TPassengerCounts); virtual;
-    Procedure Setptc(AIndex : Integer; AValue : string); virtual;
+    Procedure Setptc(AIndex : Integer; AValue : String); virtual;
     Procedure Setrefundable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsaleFareTotal(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsaleTaxTotal(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsaleTotal(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsegmentPricing(AIndex : Integer; AValue : TPricingInfosegmentPricing); virtual;
-    Procedure Settax(AIndex : Integer; AValue : TPricingInfotax); virtual;
+    Procedure SetsaleFareTotal(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsaleTaxTotal(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsaleTotal(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsegmentPricing(AIndex : Integer; AValue : TPricingInfoTypesegmentPricingArray); virtual;
+    Procedure Settax(AIndex : Integer; AValue : TPricingInfoTypetaxArray); virtual;
   Public
   Published
-    Property baseFareTotal : string Index 0 Read FbaseFareTotal Write SetbaseFareTotal;
-    Property fare : TPricingInfofare Index 8 Read Ffare Write Setfare;
-    Property fareCalculation : string Index 16 Read FfareCalculation Write SetfareCalculation;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property latestTicketingTime : string Index 32 Read FlatestTicketingTime Write SetlatestTicketingTime;
+    Property baseFareTotal : String Index 0 Read FbaseFareTotal Write SetbaseFareTotal;
+    Property fare : TPricingInfoTypefareArray Index 8 Read Ffare Write Setfare;
+    Property fareCalculation : String Index 16 Read FfareCalculation Write SetfareCalculation;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property latestTicketingTime : String Index 32 Read FlatestTicketingTime Write SetlatestTicketingTime;
     Property passengers : TPassengerCounts Index 40 Read Fpassengers Write Setpassengers;
-    Property ptc : string Index 48 Read Fptc Write Setptc;
+    Property ptc : String Index 48 Read Fptc Write Setptc;
     Property refundable : boolean Index 56 Read Frefundable Write Setrefundable;
-    Property saleFareTotal : string Index 64 Read FsaleFareTotal Write SetsaleFareTotal;
-    Property saleTaxTotal : string Index 72 Read FsaleTaxTotal Write SetsaleTaxTotal;
-    Property saleTotal : string Index 80 Read FsaleTotal Write SetsaleTotal;
-    Property segmentPricing : TPricingInfosegmentPricing Index 88 Read FsegmentPricing Write SetsegmentPricing;
-    Property tax : TPricingInfotax Index 96 Read Ftax Write Settax;
+    Property saleFareTotal : String Index 64 Read FsaleFareTotal Write SetsaleFareTotal;
+    Property saleTaxTotal : String Index 72 Read FsaleTaxTotal Write SetsaleTaxTotal;
+    Property saleTotal : String Index 80 Read FsaleTotal Write SetsaleTotal;
+    Property segmentPricing : TPricingInfoTypesegmentPricingArray Index 88 Read FsegmentPricing Write SetsegmentPricing;
+    Property tax : TPricingInfoTypetaxArray Index 96 Read Ftax Write Settax;
   end;
   TPricingInfoClass = Class of TPricingInfo;
-  
-  { --------------------------------------------------------------------
-    TPricingInfofare
-    --------------------------------------------------------------------}
-  
-  TPricingInfofare = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPricingInfofareClass = Class of TPricingInfofare;
-  
-  { --------------------------------------------------------------------
-    TPricingInfosegmentPricing
-    --------------------------------------------------------------------}
-  
-  TPricingInfosegmentPricing = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPricingInfosegmentPricingClass = Class of TPricingInfosegmentPricing;
-  
-  { --------------------------------------------------------------------
-    TPricingInfotax
-    --------------------------------------------------------------------}
-  
-  TPricingInfotax = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPricingInfotaxClass = Class of TPricingInfotax;
   
   { --------------------------------------------------------------------
     TSegmentInfo
@@ -643,58 +481,45 @@ type
   
   TSegmentInfo = Class(TGoogleBaseObject)
   Private
-    FbookingCode : string;
+    FbookingCode : String;
     FbookingCodeCount : integer;
-    Fcabin : string;
+    Fcabin : String;
     FconnectionDuration : integer;
     Fduration : integer;
     Fflight : TFlightInfo;
-    Fid : string;
-    Fkind : string;
-    Fleg : TSegmentInfoleg;
-    FmarriedSegmentGroup : string;
+    Fid : String;
+    Fkind : String;
+    Fleg : TSegmentInfoTypelegArray;
+    FmarriedSegmentGroup : String;
     FsubjectToGovernmentApproval : boolean;
   Protected
     //Property setters
-    Procedure SetbookingCode(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbookingCode(AIndex : Integer; AValue : String); virtual;
     Procedure SetbookingCodeCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setcabin(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcabin(AIndex : Integer; AValue : String); virtual;
     Procedure SetconnectionDuration(AIndex : Integer; AValue : integer); virtual;
     Procedure Setduration(AIndex : Integer; AValue : integer); virtual;
     Procedure Setflight(AIndex : Integer; AValue : TFlightInfo); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setleg(AIndex : Integer; AValue : TSegmentInfoleg); virtual;
-    Procedure SetmarriedSegmentGroup(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setleg(AIndex : Integer; AValue : TSegmentInfoTypelegArray); virtual;
+    Procedure SetmarriedSegmentGroup(AIndex : Integer; AValue : String); virtual;
     Procedure SetsubjectToGovernmentApproval(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property bookingCode : string Index 0 Read FbookingCode Write SetbookingCode;
+    Property bookingCode : String Index 0 Read FbookingCode Write SetbookingCode;
     Property bookingCodeCount : integer Index 8 Read FbookingCodeCount Write SetbookingCodeCount;
-    Property cabin : string Index 16 Read Fcabin Write Setcabin;
+    Property cabin : String Index 16 Read Fcabin Write Setcabin;
     Property connectionDuration : integer Index 24 Read FconnectionDuration Write SetconnectionDuration;
     Property duration : integer Index 32 Read Fduration Write Setduration;
     Property flight : TFlightInfo Index 40 Read Fflight Write Setflight;
-    Property id : string Index 48 Read Fid Write Setid;
-    Property kind : string Index 56 Read Fkind Write Setkind;
-    Property leg : TSegmentInfoleg Index 64 Read Fleg Write Setleg;
-    Property marriedSegmentGroup : string Index 72 Read FmarriedSegmentGroup Write SetmarriedSegmentGroup;
+    Property id : String Index 48 Read Fid Write Setid;
+    Property kind : String Index 56 Read Fkind Write Setkind;
+    Property leg : TSegmentInfoTypelegArray Index 64 Read Fleg Write Setleg;
+    Property marriedSegmentGroup : String Index 72 Read FmarriedSegmentGroup Write SetmarriedSegmentGroup;
     Property subjectToGovernmentApproval : boolean Index 80 Read FsubjectToGovernmentApproval Write SetsubjectToGovernmentApproval;
   end;
   TSegmentInfoClass = Class of TSegmentInfo;
-  
-  { --------------------------------------------------------------------
-    TSegmentInfoleg
-    --------------------------------------------------------------------}
-  
-  TSegmentInfoleg = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSegmentInfolegClass = Class of TSegmentInfoleg;
   
   { --------------------------------------------------------------------
     TSegmentPricing
@@ -702,37 +527,24 @@ type
   
   TSegmentPricing = Class(TGoogleBaseObject)
   Private
-    FfareId : string;
-    FfreeBaggageOption : TSegmentPricingfreeBaggageOption;
-    Fkind : string;
-    FsegmentId : string;
+    FfareId : String;
+    FfreeBaggageOption : TSegmentPricingTypefreeBaggageOptionArray;
+    Fkind : String;
+    FsegmentId : String;
   Protected
     //Property setters
-    Procedure SetfareId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfreeBaggageOption(AIndex : Integer; AValue : TSegmentPricingfreeBaggageOption); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsegmentId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetfareId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfreeBaggageOption(AIndex : Integer; AValue : TSegmentPricingTypefreeBaggageOptionArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsegmentId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property fareId : string Index 0 Read FfareId Write SetfareId;
-    Property freeBaggageOption : TSegmentPricingfreeBaggageOption Index 8 Read FfreeBaggageOption Write SetfreeBaggageOption;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property segmentId : string Index 24 Read FsegmentId Write SetsegmentId;
+    Property fareId : String Index 0 Read FfareId Write SetfareId;
+    Property freeBaggageOption : TSegmentPricingTypefreeBaggageOptionArray Index 8 Read FfreeBaggageOption Write SetfreeBaggageOption;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property segmentId : String Index 24 Read FsegmentId Write SetsegmentId;
   end;
   TSegmentPricingClass = Class of TSegmentPricing;
-  
-  { --------------------------------------------------------------------
-    TSegmentPricingfreeBaggageOption
-    --------------------------------------------------------------------}
-  
-  TSegmentPricingfreeBaggageOption = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSegmentPricingfreeBaggageOptionClass = Class of TSegmentPricingfreeBaggageOption;
   
   { --------------------------------------------------------------------
     TSliceInfo
@@ -741,33 +553,20 @@ type
   TSliceInfo = Class(TGoogleBaseObject)
   Private
     Fduration : integer;
-    Fkind : string;
-    Fsegment : TSliceInfosegment;
+    Fkind : String;
+    Fsegment : TSliceInfoTypesegmentArray;
   Protected
     //Property setters
     Procedure Setduration(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsegment(AIndex : Integer; AValue : TSliceInfosegment); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsegment(AIndex : Integer; AValue : TSliceInfoTypesegmentArray); virtual;
   Public
   Published
     Property duration : integer Index 0 Read Fduration Write Setduration;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property segment : TSliceInfosegment Index 16 Read Fsegment Write Setsegment;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property segment : TSliceInfoTypesegmentArray Index 16 Read Fsegment Write Setsegment;
   end;
   TSliceInfoClass = Class of TSliceInfo;
-  
-  { --------------------------------------------------------------------
-    TSliceInfosegment
-    --------------------------------------------------------------------}
-  
-  TSliceInfosegment = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSliceInfosegmentClass = Class of TSliceInfosegment;
   
   { --------------------------------------------------------------------
     TSliceInput
@@ -775,71 +574,45 @@ type
   
   TSliceInput = Class(TGoogleBaseObject)
   Private
-    Falliance : string;
-    Fdate : string;
-    Fdestination : string;
-    Fkind : string;
+    Falliance : String;
+    Fdate : String;
+    Fdestination : String;
+    Fkind : String;
     FmaxConnectionDuration : integer;
     FmaxStops : integer;
-    Forigin : string;
-    FpermittedCarrier : TSliceInputpermittedCarrier;
+    Forigin : String;
+    FpermittedCarrier : TStringArray;
     FpermittedDepartureTime : TTimeOfDayRange;
-    FpreferredCabin : string;
-    FprohibitedCarrier : TSliceInputprohibitedCarrier;
+    FpreferredCabin : String;
+    FprohibitedCarrier : TStringArray;
   Protected
     //Property setters
-    Procedure Setalliance(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdestination(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setalliance(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdestination(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetmaxConnectionDuration(AIndex : Integer; AValue : integer); virtual;
     Procedure SetmaxStops(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setorigin(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpermittedCarrier(AIndex : Integer; AValue : TSliceInputpermittedCarrier); virtual;
+    Procedure Setorigin(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpermittedCarrier(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpermittedDepartureTime(AIndex : Integer; AValue : TTimeOfDayRange); virtual;
-    Procedure SetpreferredCabin(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprohibitedCarrier(AIndex : Integer; AValue : TSliceInputprohibitedCarrier); virtual;
+    Procedure SetpreferredCabin(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprohibitedCarrier(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property alliance : string Index 0 Read Falliance Write Setalliance;
-    Property date : string Index 8 Read Fdate Write Setdate;
-    Property destination : string Index 16 Read Fdestination Write Setdestination;
-    Property kind : string Index 24 Read Fkind Write Setkind;
+    Property alliance : String Index 0 Read Falliance Write Setalliance;
+    Property date : String Index 8 Read Fdate Write Setdate;
+    Property destination : String Index 16 Read Fdestination Write Setdestination;
+    Property kind : String Index 24 Read Fkind Write Setkind;
     Property maxConnectionDuration : integer Index 32 Read FmaxConnectionDuration Write SetmaxConnectionDuration;
     Property maxStops : integer Index 40 Read FmaxStops Write SetmaxStops;
-    Property origin : string Index 48 Read Forigin Write Setorigin;
-    Property permittedCarrier : TSliceInputpermittedCarrier Index 56 Read FpermittedCarrier Write SetpermittedCarrier;
+    Property origin : String Index 48 Read Forigin Write Setorigin;
+    Property permittedCarrier : TStringArray Index 56 Read FpermittedCarrier Write SetpermittedCarrier;
     Property permittedDepartureTime : TTimeOfDayRange Index 64 Read FpermittedDepartureTime Write SetpermittedDepartureTime;
-    Property preferredCabin : string Index 72 Read FpreferredCabin Write SetpreferredCabin;
-    Property prohibitedCarrier : TSliceInputprohibitedCarrier Index 80 Read FprohibitedCarrier Write SetprohibitedCarrier;
+    Property preferredCabin : String Index 72 Read FpreferredCabin Write SetpreferredCabin;
+    Property prohibitedCarrier : TStringArray Index 80 Read FprohibitedCarrier Write SetprohibitedCarrier;
   end;
   TSliceInputClass = Class of TSliceInput;
-  
-  { --------------------------------------------------------------------
-    TSliceInputpermittedCarrier
-    --------------------------------------------------------------------}
-  
-  TSliceInputpermittedCarrier = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSliceInputpermittedCarrierClass = Class of TSliceInputpermittedCarrier;
-  
-  { --------------------------------------------------------------------
-    TSliceInputprohibitedCarrier
-    --------------------------------------------------------------------}
-  
-  TSliceInputprohibitedCarrier = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSliceInputprohibitedCarrierClass = Class of TSliceInputprohibitedCarrier;
   
   { --------------------------------------------------------------------
     TTaxData
@@ -847,19 +620,19 @@ type
   
   TTaxData = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    Fname : string;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property name : string Index 16 Read Fname Write Setname;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : String Index 16 Read Fname Write Setname;
   end;
   TTaxDataClass = Class of TTaxData;
   
@@ -869,28 +642,28 @@ type
   
   TTaxInfo = Class(TGoogleBaseObject)
   Private
-    FchargeType : string;
-    Fcode : string;
-    Fcountry : string;
-    Fid : string;
-    Fkind : string;
-    FsalePrice : string;
+    FchargeType : String;
+    Fcode : String;
+    Fcountry : String;
+    Fid : String;
+    Fkind : String;
+    FsalePrice : String;
   Protected
     //Property setters
-    Procedure SetchargeType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcountry(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsalePrice(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchargeType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsalePrice(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property chargeType : string Index 0 Read FchargeType Write SetchargeType;
-    Property code : string Index 8 Read Fcode Write Setcode;
-    Property country : string Index 16 Read Fcountry Write Setcountry;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property salePrice : string Index 40 Read FsalePrice Write SetsalePrice;
+    Property chargeType : String Index 0 Read FchargeType Write SetchargeType;
+    Property code : String Index 8 Read Fcode Write Setcode;
+    Property country : String Index 16 Read Fcountry Write Setcountry;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property salePrice : String Index 40 Read FsalePrice Write SetsalePrice;
   end;
   TTaxInfoClass = Class of TTaxInfo;
   
@@ -900,19 +673,19 @@ type
   
   TTimeOfDayRange = Class(TGoogleBaseObject)
   Private
-    FearliestTime : string;
-    Fkind : string;
-    FlatestTime : string;
+    FearliestTime : String;
+    Fkind : String;
+    FlatestTime : String;
   Protected
     //Property setters
-    Procedure SetearliestTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlatestTime(AIndex : Integer; AValue : string); virtual;
+    Procedure SetearliestTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlatestTime(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property earliestTime : string Index 0 Read FearliestTime Write SetearliestTime;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property latestTime : string Index 16 Read FlatestTime Write SetlatestTime;
+    Property earliestTime : String Index 0 Read FearliestTime Write SetearliestTime;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property latestTime : String Index 16 Read FlatestTime Write SetlatestTime;
   end;
   TTimeOfDayRangeClass = Class of TTimeOfDayRange;
   
@@ -922,53 +695,27 @@ type
   
   TTripOption = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    Fpricing : TTripOptionpricing;
-    FsaleTotal : string;
-    Fslice : TTripOptionslice;
+    Fid : String;
+    Fkind : String;
+    Fpricing : TTripOptionTypepricingArray;
+    FsaleTotal : String;
+    Fslice : TTripOptionTypesliceArray;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpricing(AIndex : Integer; AValue : TTripOptionpricing); virtual;
-    Procedure SetsaleTotal(AIndex : Integer; AValue : string); virtual;
-    Procedure Setslice(AIndex : Integer; AValue : TTripOptionslice); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpricing(AIndex : Integer; AValue : TTripOptionTypepricingArray); virtual;
+    Procedure SetsaleTotal(AIndex : Integer; AValue : String); virtual;
+    Procedure Setslice(AIndex : Integer; AValue : TTripOptionTypesliceArray); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property pricing : TTripOptionpricing Index 16 Read Fpricing Write Setpricing;
-    Property saleTotal : string Index 24 Read FsaleTotal Write SetsaleTotal;
-    Property slice : TTripOptionslice Index 32 Read Fslice Write Setslice;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property pricing : TTripOptionTypepricingArray Index 16 Read Fpricing Write Setpricing;
+    Property saleTotal : String Index 24 Read FsaleTotal Write SetsaleTotal;
+    Property slice : TTripOptionTypesliceArray Index 32 Read Fslice Write Setslice;
   end;
   TTripOptionClass = Class of TTripOption;
-  
-  { --------------------------------------------------------------------
-    TTripOptionpricing
-    --------------------------------------------------------------------}
-  
-  TTripOptionpricing = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTripOptionpricingClass = Class of TTripOptionpricing;
-  
-  { --------------------------------------------------------------------
-    TTripOptionslice
-    --------------------------------------------------------------------}
-  
-  TTripOptionslice = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTripOptionsliceClass = Class of TTripOptionslice;
   
   { --------------------------------------------------------------------
     TTripOptionsRequest
@@ -976,43 +723,30 @@ type
   
   TTripOptionsRequest = Class(TGoogleBaseObject)
   Private
-    FmaxPrice : string;
+    FmaxPrice : String;
     Fpassengers : TPassengerCounts;
     Frefundable : boolean;
-    FsaleCountry : string;
-    Fslice : TTripOptionsRequestslice;
+    FsaleCountry : String;
+    Fslice : TTripOptionsRequestTypesliceArray;
     Fsolutions : integer;
   Protected
     //Property setters
-    Procedure SetmaxPrice(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmaxPrice(AIndex : Integer; AValue : String); virtual;
     Procedure Setpassengers(AIndex : Integer; AValue : TPassengerCounts); virtual;
     Procedure Setrefundable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsaleCountry(AIndex : Integer; AValue : string); virtual;
-    Procedure Setslice(AIndex : Integer; AValue : TTripOptionsRequestslice); virtual;
+    Procedure SetsaleCountry(AIndex : Integer; AValue : String); virtual;
+    Procedure Setslice(AIndex : Integer; AValue : TTripOptionsRequestTypesliceArray); virtual;
     Procedure Setsolutions(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property maxPrice : string Index 0 Read FmaxPrice Write SetmaxPrice;
+    Property maxPrice : String Index 0 Read FmaxPrice Write SetmaxPrice;
     Property passengers : TPassengerCounts Index 8 Read Fpassengers Write Setpassengers;
     Property refundable : boolean Index 16 Read Frefundable Write Setrefundable;
-    Property saleCountry : string Index 24 Read FsaleCountry Write SetsaleCountry;
-    Property slice : TTripOptionsRequestslice Index 32 Read Fslice Write Setslice;
+    Property saleCountry : String Index 24 Read FsaleCountry Write SetsaleCountry;
+    Property slice : TTripOptionsRequestTypesliceArray Index 32 Read Fslice Write Setslice;
     Property solutions : integer Index 40 Read Fsolutions Write Setsolutions;
   end;
   TTripOptionsRequestClass = Class of TTripOptionsRequest;
-  
-  { --------------------------------------------------------------------
-    TTripOptionsRequestslice
-    --------------------------------------------------------------------}
-  
-  TTripOptionsRequestslice = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTripOptionsRequestsliceClass = Class of TTripOptionsRequestslice;
   
   { --------------------------------------------------------------------
     TTripOptionsResponse
@@ -1021,36 +755,23 @@ type
   TTripOptionsResponse = Class(TGoogleBaseObject)
   Private
     Fdata : TData;
-    Fkind : string;
-    FrequestId : string;
-    FtripOption : TTripOptionsResponsetripOption;
+    Fkind : String;
+    FrequestId : String;
+    FtripOption : TTripOptionsResponseTypetripOptionArray;
   Protected
     //Property setters
     Procedure Setdata(AIndex : Integer; AValue : TData); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrequestId(AIndex : Integer; AValue : string); virtual;
-    Procedure SettripOption(AIndex : Integer; AValue : TTripOptionsResponsetripOption); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrequestId(AIndex : Integer; AValue : String); virtual;
+    Procedure SettripOption(AIndex : Integer; AValue : TTripOptionsResponseTypetripOptionArray); virtual;
   Public
   Published
     Property data : TData Index 0 Read Fdata Write Setdata;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property requestId : string Index 16 Read FrequestId Write SetrequestId;
-    Property tripOption : TTripOptionsResponsetripOption Index 24 Read FtripOption Write SettripOption;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property requestId : String Index 16 Read FrequestId Write SetrequestId;
+    Property tripOption : TTripOptionsResponseTypetripOptionArray Index 24 Read FtripOption Write SettripOption;
   end;
   TTripOptionsResponseClass = Class of TTripOptionsResponse;
-  
-  { --------------------------------------------------------------------
-    TTripOptionsResponsetripOption
-    --------------------------------------------------------------------}
-  
-  TTripOptionsResponsetripOption = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTripOptionsResponsetripOptionClass = Class of TTripOptionsResponsetripOption;
   
   { --------------------------------------------------------------------
     TTripsSearchRequest
@@ -1074,15 +795,15 @@ type
   
   TTripsSearchResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
+    Fkind : String;
     Ftrips : TTripOptionsResponse;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Settrips(AIndex : Integer; AValue : TTripOptionsResponse); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
+    Property kind : String Index 0 Read Fkind Write Setkind;
     Property trips : TTripOptionsResponse Index 8 Read Ftrips Write Settrips;
   end;
   TTripsSearchResponseClass = Class of TTripsSearchResponse;
@@ -1144,7 +865,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAircraftData.Setcode(AIndex : Integer; AValue : string); 
+Procedure TAircraftData.Setcode(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -1154,7 +875,7 @@ end;
 
 
 
-Procedure TAircraftData.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAircraftData.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1164,7 +885,7 @@ end;
 
 
 
-Procedure TAircraftData.Setname(AIndex : Integer; AValue : string); 
+Procedure TAircraftData.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1181,7 +902,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAirportData.Setcity(AIndex : Integer; AValue : string); 
+Procedure TAirportData.Setcity(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcity=AValue) then exit;
@@ -1191,7 +912,7 @@ end;
 
 
 
-Procedure TAirportData.Setcode(AIndex : Integer; AValue : string); 
+Procedure TAirportData.Setcode(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -1201,7 +922,7 @@ end;
 
 
 
-Procedure TAirportData.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAirportData.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1211,7 +932,7 @@ end;
 
 
 
-Procedure TAirportData.Setname(AIndex : Integer; AValue : string); 
+Procedure TAirportData.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1228,7 +949,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBagDescriptor.SetcommercialName(AIndex : Integer; AValue : string); 
+Procedure TBagDescriptor.SetcommercialName(AIndex : Integer; AValue : String); 
 
 begin
   If (FcommercialName=AValue) then exit;
@@ -1248,7 +969,7 @@ end;
 
 
 
-Procedure TBagDescriptor.Setdescription(AIndex : Integer; AValue : TBagDescriptordescription); 
+Procedure TBagDescriptor.Setdescription(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1258,7 +979,7 @@ end;
 
 
 
-Procedure TBagDescriptor.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBagDescriptor.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1268,7 +989,7 @@ end;
 
 
 
-Procedure TBagDescriptor.Setsubcode(AIndex : Integer; AValue : string); 
+Procedure TBagDescriptor.Setsubcode(AIndex : Integer; AValue : String); 
 
 begin
   If (Fsubcode=AValue) then exit;
@@ -1281,18 +1002,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TBagDescriptordescription
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TCarrierData
   --------------------------------------------------------------------}
 
 
-Procedure TCarrierData.Setcode(AIndex : Integer; AValue : string); 
+Procedure TCarrierData.Setcode(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -1302,7 +1016,7 @@ end;
 
 
 
-Procedure TCarrierData.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCarrierData.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1312,7 +1026,7 @@ end;
 
 
 
-Procedure TCarrierData.Setname(AIndex : Integer; AValue : string); 
+Procedure TCarrierData.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1329,7 +1043,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCityData.Setcode(AIndex : Integer; AValue : string); 
+Procedure TCityData.Setcode(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -1339,7 +1053,7 @@ end;
 
 
 
-Procedure TCityData.Setcountry(AIndex : Integer; AValue : string); 
+Procedure TCityData.Setcountry(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -1349,7 +1063,7 @@ end;
 
 
 
-Procedure TCityData.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCityData.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1359,7 +1073,7 @@ end;
 
 
 
-Procedure TCityData.Setname(AIndex : Integer; AValue : string); 
+Procedure TCityData.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1376,7 +1090,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TData.Setaircraft(AIndex : Integer; AValue : TDataaircraft); 
+Procedure TData.Setaircraft(AIndex : Integer; AValue : TDataTypeaircraftArray); 
 
 begin
   If (Faircraft=AValue) then exit;
@@ -1386,7 +1100,7 @@ end;
 
 
 
-Procedure TData.Setairport(AIndex : Integer; AValue : TDataairport); 
+Procedure TData.Setairport(AIndex : Integer; AValue : TDataTypeairportArray); 
 
 begin
   If (Fairport=AValue) then exit;
@@ -1396,7 +1110,7 @@ end;
 
 
 
-Procedure TData.Setcarrier(AIndex : Integer; AValue : TDatacarrier); 
+Procedure TData.Setcarrier(AIndex : Integer; AValue : TDataTypecarrierArray); 
 
 begin
   If (Fcarrier=AValue) then exit;
@@ -1406,7 +1120,7 @@ end;
 
 
 
-Procedure TData.Setcity(AIndex : Integer; AValue : TDatacity); 
+Procedure TData.Setcity(AIndex : Integer; AValue : TDataTypecityArray); 
 
 begin
   If (Fcity=AValue) then exit;
@@ -1416,7 +1130,7 @@ end;
 
 
 
-Procedure TData.Setkind(AIndex : Integer; AValue : string); 
+Procedure TData.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1426,7 +1140,7 @@ end;
 
 
 
-Procedure TData.Settax(AIndex : Integer; AValue : TDatatax); 
+Procedure TData.Settax(AIndex : Integer; AValue : TDataTypetaxArray); 
 
 begin
   If (Ftax=AValue) then exit;
@@ -1439,46 +1153,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDataaircraft
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TDataairport
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TDatacarrier
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TDatacity
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TDatatax
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TFareInfo
   --------------------------------------------------------------------}
 
 
-Procedure TFareInfo.SetbasisCode(AIndex : Integer; AValue : string); 
+Procedure TFareInfo.SetbasisCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FbasisCode=AValue) then exit;
@@ -1488,7 +1167,7 @@ end;
 
 
 
-Procedure TFareInfo.Setcarrier(AIndex : Integer; AValue : string); 
+Procedure TFareInfo.Setcarrier(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcarrier=AValue) then exit;
@@ -1498,7 +1177,7 @@ end;
 
 
 
-Procedure TFareInfo.Setdestination(AIndex : Integer; AValue : string); 
+Procedure TFareInfo.Setdestination(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdestination=AValue) then exit;
@@ -1508,7 +1187,7 @@ end;
 
 
 
-Procedure TFareInfo.Setid(AIndex : Integer; AValue : string); 
+Procedure TFareInfo.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1518,7 +1197,7 @@ end;
 
 
 
-Procedure TFareInfo.Setkind(AIndex : Integer; AValue : string); 
+Procedure TFareInfo.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1528,7 +1207,7 @@ end;
 
 
 
-Procedure TFareInfo.Setorigin(AIndex : Integer; AValue : string); 
+Procedure TFareInfo.Setorigin(AIndex : Integer; AValue : String); 
 
 begin
   If (Forigin=AValue) then exit;
@@ -1566,7 +1245,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFlightInfo.Setcarrier(AIndex : Integer; AValue : string); 
+Procedure TFlightInfo.Setcarrier(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcarrier=AValue) then exit;
@@ -1576,7 +1255,7 @@ end;
 
 
 
-Procedure TFlightInfo.Setnumber(AIndex : Integer; AValue : string); 
+Procedure TFlightInfo.Setnumber(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnumber=AValue) then exit;
@@ -1593,7 +1272,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFreeBaggageAllowance.SetbagDescriptor(AIndex : Integer; AValue : TFreeBaggageAllowancebagDescriptor); 
+Procedure TFreeBaggageAllowance.SetbagDescriptor(AIndex : Integer; AValue : TFreeBaggageAllowanceTypebagDescriptorArray); 
 
 begin
   If (FbagDescriptor=AValue) then exit;
@@ -1623,7 +1302,7 @@ end;
 
 
 
-Procedure TFreeBaggageAllowance.Setkind(AIndex : Integer; AValue : string); 
+Procedure TFreeBaggageAllowance.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1656,18 +1335,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TFreeBaggageAllowancebagDescriptor
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLegInfo
   --------------------------------------------------------------------}
 
 
-Procedure TLegInfo.Setaircraft(AIndex : Integer; AValue : string); 
+Procedure TLegInfo.Setaircraft(AIndex : Integer; AValue : String); 
 
 begin
   If (Faircraft=AValue) then exit;
@@ -1677,7 +1349,7 @@ end;
 
 
 
-Procedure TLegInfo.SetarrivalTime(AIndex : Integer; AValue : string); 
+Procedure TLegInfo.SetarrivalTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FarrivalTime=AValue) then exit;
@@ -1707,7 +1379,7 @@ end;
 
 
 
-Procedure TLegInfo.SetdepartureTime(AIndex : Integer; AValue : string); 
+Procedure TLegInfo.SetdepartureTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FdepartureTime=AValue) then exit;
@@ -1717,7 +1389,7 @@ end;
 
 
 
-Procedure TLegInfo.Setdestination(AIndex : Integer; AValue : string); 
+Procedure TLegInfo.Setdestination(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdestination=AValue) then exit;
@@ -1727,7 +1399,7 @@ end;
 
 
 
-Procedure TLegInfo.SetdestinationTerminal(AIndex : Integer; AValue : string); 
+Procedure TLegInfo.SetdestinationTerminal(AIndex : Integer; AValue : String); 
 
 begin
   If (FdestinationTerminal=AValue) then exit;
@@ -1747,7 +1419,7 @@ end;
 
 
 
-Procedure TLegInfo.Setid(AIndex : Integer; AValue : string); 
+Procedure TLegInfo.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1757,7 +1429,7 @@ end;
 
 
 
-Procedure TLegInfo.Setkind(AIndex : Integer; AValue : string); 
+Procedure TLegInfo.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1767,7 +1439,7 @@ end;
 
 
 
-Procedure TLegInfo.Setmeal(AIndex : Integer; AValue : string); 
+Procedure TLegInfo.Setmeal(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmeal=AValue) then exit;
@@ -1797,7 +1469,7 @@ end;
 
 
 
-Procedure TLegInfo.SetoperatingDisclosure(AIndex : Integer; AValue : string); 
+Procedure TLegInfo.SetoperatingDisclosure(AIndex : Integer; AValue : String); 
 
 begin
   If (FoperatingDisclosure=AValue) then exit;
@@ -1807,7 +1479,7 @@ end;
 
 
 
-Procedure TLegInfo.Setorigin(AIndex : Integer; AValue : string); 
+Procedure TLegInfo.Setorigin(AIndex : Integer; AValue : String); 
 
 begin
   If (Forigin=AValue) then exit;
@@ -1817,7 +1489,7 @@ end;
 
 
 
-Procedure TLegInfo.SetoriginTerminal(AIndex : Integer; AValue : string); 
+Procedure TLegInfo.SetoriginTerminal(AIndex : Integer; AValue : String); 
 
 begin
   If (ForiginTerminal=AValue) then exit;
@@ -1884,7 +1556,7 @@ end;
 
 
 
-Procedure TPassengerCounts.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPassengerCounts.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1911,7 +1583,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPricingInfo.SetbaseFareTotal(AIndex : Integer; AValue : string); 
+Procedure TPricingInfo.SetbaseFareTotal(AIndex : Integer; AValue : String); 
 
 begin
   If (FbaseFareTotal=AValue) then exit;
@@ -1921,7 +1593,7 @@ end;
 
 
 
-Procedure TPricingInfo.Setfare(AIndex : Integer; AValue : TPricingInfofare); 
+Procedure TPricingInfo.Setfare(AIndex : Integer; AValue : TPricingInfoTypefareArray); 
 
 begin
   If (Ffare=AValue) then exit;
@@ -1931,7 +1603,7 @@ end;
 
 
 
-Procedure TPricingInfo.SetfareCalculation(AIndex : Integer; AValue : string); 
+Procedure TPricingInfo.SetfareCalculation(AIndex : Integer; AValue : String); 
 
 begin
   If (FfareCalculation=AValue) then exit;
@@ -1941,7 +1613,7 @@ end;
 
 
 
-Procedure TPricingInfo.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPricingInfo.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1951,7 +1623,7 @@ end;
 
 
 
-Procedure TPricingInfo.SetlatestTicketingTime(AIndex : Integer; AValue : string); 
+Procedure TPricingInfo.SetlatestTicketingTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FlatestTicketingTime=AValue) then exit;
@@ -1971,7 +1643,7 @@ end;
 
 
 
-Procedure TPricingInfo.Setptc(AIndex : Integer; AValue : string); 
+Procedure TPricingInfo.Setptc(AIndex : Integer; AValue : String); 
 
 begin
   If (Fptc=AValue) then exit;
@@ -1991,7 +1663,7 @@ end;
 
 
 
-Procedure TPricingInfo.SetsaleFareTotal(AIndex : Integer; AValue : string); 
+Procedure TPricingInfo.SetsaleFareTotal(AIndex : Integer; AValue : String); 
 
 begin
   If (FsaleFareTotal=AValue) then exit;
@@ -2001,7 +1673,7 @@ end;
 
 
 
-Procedure TPricingInfo.SetsaleTaxTotal(AIndex : Integer; AValue : string); 
+Procedure TPricingInfo.SetsaleTaxTotal(AIndex : Integer; AValue : String); 
 
 begin
   If (FsaleTaxTotal=AValue) then exit;
@@ -2011,7 +1683,7 @@ end;
 
 
 
-Procedure TPricingInfo.SetsaleTotal(AIndex : Integer; AValue : string); 
+Procedure TPricingInfo.SetsaleTotal(AIndex : Integer; AValue : String); 
 
 begin
   If (FsaleTotal=AValue) then exit;
@@ -2021,7 +1693,7 @@ end;
 
 
 
-Procedure TPricingInfo.SetsegmentPricing(AIndex : Integer; AValue : TPricingInfosegmentPricing); 
+Procedure TPricingInfo.SetsegmentPricing(AIndex : Integer; AValue : TPricingInfoTypesegmentPricingArray); 
 
 begin
   If (FsegmentPricing=AValue) then exit;
@@ -2031,7 +1703,7 @@ end;
 
 
 
-Procedure TPricingInfo.Settax(AIndex : Integer; AValue : TPricingInfotax); 
+Procedure TPricingInfo.Settax(AIndex : Integer; AValue : TPricingInfoTypetaxArray); 
 
 begin
   If (Ftax=AValue) then exit;
@@ -2044,32 +1716,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPricingInfofare
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPricingInfosegmentPricing
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPricingInfotax
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSegmentInfo
   --------------------------------------------------------------------}
 
 
-Procedure TSegmentInfo.SetbookingCode(AIndex : Integer; AValue : string); 
+Procedure TSegmentInfo.SetbookingCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FbookingCode=AValue) then exit;
@@ -2089,7 +1740,7 @@ end;
 
 
 
-Procedure TSegmentInfo.Setcabin(AIndex : Integer; AValue : string); 
+Procedure TSegmentInfo.Setcabin(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcabin=AValue) then exit;
@@ -2129,7 +1780,7 @@ end;
 
 
 
-Procedure TSegmentInfo.Setid(AIndex : Integer; AValue : string); 
+Procedure TSegmentInfo.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2139,7 +1790,7 @@ end;
 
 
 
-Procedure TSegmentInfo.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSegmentInfo.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2149,7 +1800,7 @@ end;
 
 
 
-Procedure TSegmentInfo.Setleg(AIndex : Integer; AValue : TSegmentInfoleg); 
+Procedure TSegmentInfo.Setleg(AIndex : Integer; AValue : TSegmentInfoTypelegArray); 
 
 begin
   If (Fleg=AValue) then exit;
@@ -2159,7 +1810,7 @@ end;
 
 
 
-Procedure TSegmentInfo.SetmarriedSegmentGroup(AIndex : Integer; AValue : string); 
+Procedure TSegmentInfo.SetmarriedSegmentGroup(AIndex : Integer; AValue : String); 
 
 begin
   If (FmarriedSegmentGroup=AValue) then exit;
@@ -2182,18 +1833,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSegmentInfoleg
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSegmentPricing
   --------------------------------------------------------------------}
 
 
-Procedure TSegmentPricing.SetfareId(AIndex : Integer; AValue : string); 
+Procedure TSegmentPricing.SetfareId(AIndex : Integer; AValue : String); 
 
 begin
   If (FfareId=AValue) then exit;
@@ -2203,7 +1847,7 @@ end;
 
 
 
-Procedure TSegmentPricing.SetfreeBaggageOption(AIndex : Integer; AValue : TSegmentPricingfreeBaggageOption); 
+Procedure TSegmentPricing.SetfreeBaggageOption(AIndex : Integer; AValue : TSegmentPricingTypefreeBaggageOptionArray); 
 
 begin
   If (FfreeBaggageOption=AValue) then exit;
@@ -2213,7 +1857,7 @@ end;
 
 
 
-Procedure TSegmentPricing.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSegmentPricing.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2223,7 +1867,7 @@ end;
 
 
 
-Procedure TSegmentPricing.SetsegmentId(AIndex : Integer; AValue : string); 
+Procedure TSegmentPricing.SetsegmentId(AIndex : Integer; AValue : String); 
 
 begin
   If (FsegmentId=AValue) then exit;
@@ -2231,13 +1875,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TSegmentPricingfreeBaggageOption
-  --------------------------------------------------------------------}
 
 
 
@@ -2257,7 +1894,7 @@ end;
 
 
 
-Procedure TSliceInfo.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSliceInfo.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2267,7 +1904,7 @@ end;
 
 
 
-Procedure TSliceInfo.Setsegment(AIndex : Integer; AValue : TSliceInfosegment); 
+Procedure TSliceInfo.Setsegment(AIndex : Integer; AValue : TSliceInfoTypesegmentArray); 
 
 begin
   If (Fsegment=AValue) then exit;
@@ -2280,18 +1917,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSliceInfosegment
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSliceInput
   --------------------------------------------------------------------}
 
 
-Procedure TSliceInput.Setalliance(AIndex : Integer; AValue : string); 
+Procedure TSliceInput.Setalliance(AIndex : Integer; AValue : String); 
 
 begin
   If (Falliance=AValue) then exit;
@@ -2301,7 +1931,7 @@ end;
 
 
 
-Procedure TSliceInput.Setdate(AIndex : Integer; AValue : string); 
+Procedure TSliceInput.Setdate(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdate=AValue) then exit;
@@ -2311,7 +1941,7 @@ end;
 
 
 
-Procedure TSliceInput.Setdestination(AIndex : Integer; AValue : string); 
+Procedure TSliceInput.Setdestination(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdestination=AValue) then exit;
@@ -2321,7 +1951,7 @@ end;
 
 
 
-Procedure TSliceInput.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSliceInput.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2351,7 +1981,7 @@ end;
 
 
 
-Procedure TSliceInput.Setorigin(AIndex : Integer; AValue : string); 
+Procedure TSliceInput.Setorigin(AIndex : Integer; AValue : String); 
 
 begin
   If (Forigin=AValue) then exit;
@@ -2361,7 +1991,7 @@ end;
 
 
 
-Procedure TSliceInput.SetpermittedCarrier(AIndex : Integer; AValue : TSliceInputpermittedCarrier); 
+Procedure TSliceInput.SetpermittedCarrier(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FpermittedCarrier=AValue) then exit;
@@ -2381,7 +2011,7 @@ end;
 
 
 
-Procedure TSliceInput.SetpreferredCabin(AIndex : Integer; AValue : string); 
+Procedure TSliceInput.SetpreferredCabin(AIndex : Integer; AValue : String); 
 
 begin
   If (FpreferredCabin=AValue) then exit;
@@ -2391,7 +2021,7 @@ end;
 
 
 
-Procedure TSliceInput.SetprohibitedCarrier(AIndex : Integer; AValue : TSliceInputprohibitedCarrier); 
+Procedure TSliceInput.SetprohibitedCarrier(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FprohibitedCarrier=AValue) then exit;
@@ -2404,25 +2034,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSliceInputpermittedCarrier
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TSliceInputprohibitedCarrier
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TTaxData
   --------------------------------------------------------------------}
 
 
-Procedure TTaxData.Setid(AIndex : Integer; AValue : string); 
+Procedure TTaxData.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2432,7 +2048,7 @@ end;
 
 
 
-Procedure TTaxData.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTaxData.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2442,7 +2058,7 @@ end;
 
 
 
-Procedure TTaxData.Setname(AIndex : Integer; AValue : string); 
+Procedure TTaxData.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2459,7 +2075,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaxInfo.SetchargeType(AIndex : Integer; AValue : string); 
+Procedure TTaxInfo.SetchargeType(AIndex : Integer; AValue : String); 
 
 begin
   If (FchargeType=AValue) then exit;
@@ -2469,7 +2085,7 @@ end;
 
 
 
-Procedure TTaxInfo.Setcode(AIndex : Integer; AValue : string); 
+Procedure TTaxInfo.Setcode(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -2479,7 +2095,7 @@ end;
 
 
 
-Procedure TTaxInfo.Setcountry(AIndex : Integer; AValue : string); 
+Procedure TTaxInfo.Setcountry(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -2489,7 +2105,7 @@ end;
 
 
 
-Procedure TTaxInfo.Setid(AIndex : Integer; AValue : string); 
+Procedure TTaxInfo.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2499,7 +2115,7 @@ end;
 
 
 
-Procedure TTaxInfo.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTaxInfo.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2509,7 +2125,7 @@ end;
 
 
 
-Procedure TTaxInfo.SetsalePrice(AIndex : Integer; AValue : string); 
+Procedure TTaxInfo.SetsalePrice(AIndex : Integer; AValue : String); 
 
 begin
   If (FsalePrice=AValue) then exit;
@@ -2526,7 +2142,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimeOfDayRange.SetearliestTime(AIndex : Integer; AValue : string); 
+Procedure TTimeOfDayRange.SetearliestTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FearliestTime=AValue) then exit;
@@ -2536,7 +2152,7 @@ end;
 
 
 
-Procedure TTimeOfDayRange.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTimeOfDayRange.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2546,7 +2162,7 @@ end;
 
 
 
-Procedure TTimeOfDayRange.SetlatestTime(AIndex : Integer; AValue : string); 
+Procedure TTimeOfDayRange.SetlatestTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FlatestTime=AValue) then exit;
@@ -2563,7 +2179,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTripOption.Setid(AIndex : Integer; AValue : string); 
+Procedure TTripOption.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2573,7 +2189,7 @@ end;
 
 
 
-Procedure TTripOption.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTripOption.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2583,7 +2199,7 @@ end;
 
 
 
-Procedure TTripOption.Setpricing(AIndex : Integer; AValue : TTripOptionpricing); 
+Procedure TTripOption.Setpricing(AIndex : Integer; AValue : TTripOptionTypepricingArray); 
 
 begin
   If (Fpricing=AValue) then exit;
@@ -2593,7 +2209,7 @@ end;
 
 
 
-Procedure TTripOption.SetsaleTotal(AIndex : Integer; AValue : string); 
+Procedure TTripOption.SetsaleTotal(AIndex : Integer; AValue : String); 
 
 begin
   If (FsaleTotal=AValue) then exit;
@@ -2603,7 +2219,7 @@ end;
 
 
 
-Procedure TTripOption.Setslice(AIndex : Integer; AValue : TTripOptionslice); 
+Procedure TTripOption.Setslice(AIndex : Integer; AValue : TTripOptionTypesliceArray); 
 
 begin
   If (Fslice=AValue) then exit;
@@ -2616,25 +2232,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTripOptionpricing
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTripOptionslice
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TTripOptionsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TTripOptionsRequest.SetmaxPrice(AIndex : Integer; AValue : string); 
+Procedure TTripOptionsRequest.SetmaxPrice(AIndex : Integer; AValue : String); 
 
 begin
   If (FmaxPrice=AValue) then exit;
@@ -2664,7 +2266,7 @@ end;
 
 
 
-Procedure TTripOptionsRequest.SetsaleCountry(AIndex : Integer; AValue : string); 
+Procedure TTripOptionsRequest.SetsaleCountry(AIndex : Integer; AValue : String); 
 
 begin
   If (FsaleCountry=AValue) then exit;
@@ -2674,7 +2276,7 @@ end;
 
 
 
-Procedure TTripOptionsRequest.Setslice(AIndex : Integer; AValue : TTripOptionsRequestslice); 
+Procedure TTripOptionsRequest.Setslice(AIndex : Integer; AValue : TTripOptionsRequestTypesliceArray); 
 
 begin
   If (Fslice=AValue) then exit;
@@ -2697,13 +2299,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTripOptionsRequestslice
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TTripOptionsResponse
   --------------------------------------------------------------------}
 
@@ -2718,7 +2313,7 @@ end;
 
 
 
-Procedure TTripOptionsResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTripOptionsResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2728,7 +2323,7 @@ end;
 
 
 
-Procedure TTripOptionsResponse.SetrequestId(AIndex : Integer; AValue : string); 
+Procedure TTripOptionsResponse.SetrequestId(AIndex : Integer; AValue : String); 
 
 begin
   If (FrequestId=AValue) then exit;
@@ -2738,7 +2333,7 @@ end;
 
 
 
-Procedure TTripOptionsResponse.SettripOption(AIndex : Integer; AValue : TTripOptionsResponsetripOption); 
+Procedure TTripOptionsResponse.SettripOption(AIndex : Integer; AValue : TTripOptionsResponseTypetripOptionArray); 
 
 begin
   If (FtripOption=AValue) then exit;
@@ -2746,13 +2341,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TTripOptionsResponsetripOption
-  --------------------------------------------------------------------}
 
 
 
@@ -2779,7 +2367,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTripsSearchResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTripsSearchResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2956,44 +2544,25 @@ begin
   TAircraftData.RegisterObject;
   TAirportData.RegisterObject;
   TBagDescriptor.RegisterObject;
-  TBagDescriptordescription.RegisterObject;
   TCarrierData.RegisterObject;
   TCityData.RegisterObject;
   TData.RegisterObject;
-  TDataaircraft.RegisterObject;
-  TDataairport.RegisterObject;
-  TDatacarrier.RegisterObject;
-  TDatacity.RegisterObject;
-  TDatatax.RegisterObject;
   TFareInfo.RegisterObject;
   TFlightInfo.RegisterObject;
   TFreeBaggageAllowance.RegisterObject;
-  TFreeBaggageAllowancebagDescriptor.RegisterObject;
   TLegInfo.RegisterObject;
   TPassengerCounts.RegisterObject;
   TPricingInfo.RegisterObject;
-  TPricingInfofare.RegisterObject;
-  TPricingInfosegmentPricing.RegisterObject;
-  TPricingInfotax.RegisterObject;
   TSegmentInfo.RegisterObject;
-  TSegmentInfoleg.RegisterObject;
   TSegmentPricing.RegisterObject;
-  TSegmentPricingfreeBaggageOption.RegisterObject;
   TSliceInfo.RegisterObject;
-  TSliceInfosegment.RegisterObject;
   TSliceInput.RegisterObject;
-  TSliceInputpermittedCarrier.RegisterObject;
-  TSliceInputprohibitedCarrier.RegisterObject;
   TTaxData.RegisterObject;
   TTaxInfo.RegisterObject;
   TTimeOfDayRange.RegisterObject;
   TTripOption.RegisterObject;
-  TTripOptionpricing.RegisterObject;
-  TTripOptionslice.RegisterObject;
   TTripOptionsRequest.RegisterObject;
-  TTripOptionsRequestslice.RegisterObject;
   TTripOptionsResponse.RegisterObject;
-  TTripOptionsResponsetripOption.RegisterObject;
   TTripsSearchRequest.RegisterObject;
   TTripsSearchResponse.RegisterObject;
 end;

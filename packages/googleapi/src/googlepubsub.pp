@@ -1,31 +1,19 @@
 unit googlepubsub;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:57
 {$MODE objfpc}
 {$H+}
 
@@ -34,57 +22,47 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAcknowledgeRequest = class;
-  TAcknowledgeRequestArray = Array of TAcknowledgeRequest;
-  TAcknowledgeRequestackIds = class;
-  TAcknowledgeRequestackIdsArray = Array of TAcknowledgeRequestackIds;
   TEmpty = class;
-  TEmptyArray = Array of TEmpty;
   TListSubscriptionsResponse = class;
-  TListSubscriptionsResponseArray = Array of TListSubscriptionsResponse;
-  TListSubscriptionsResponsesubscriptions = class;
-  TListSubscriptionsResponsesubscriptionsArray = Array of TListSubscriptionsResponsesubscriptions;
   TListTopicSubscriptionsResponse = class;
-  TListTopicSubscriptionsResponseArray = Array of TListTopicSubscriptionsResponse;
-  TListTopicSubscriptionsResponsesubscriptions = class;
-  TListTopicSubscriptionsResponsesubscriptionsArray = Array of TListTopicSubscriptionsResponsesubscriptions;
   TListTopicsResponse = class;
-  TListTopicsResponseArray = Array of TListTopicsResponse;
-  TListTopicsResponsetopics = class;
-  TListTopicsResponsetopicsArray = Array of TListTopicsResponsetopics;
   TModifyAckDeadlineRequest = class;
-  TModifyAckDeadlineRequestArray = Array of TModifyAckDeadlineRequest;
   TModifyPushConfigRequest = class;
-  TModifyPushConfigRequestArray = Array of TModifyPushConfigRequest;
   TPublishRequest = class;
-  TPublishRequestArray = Array of TPublishRequest;
-  TPublishRequestmessages = class;
-  TPublishRequestmessagesArray = Array of TPublishRequestmessages;
   TPublishResponse = class;
-  TPublishResponseArray = Array of TPublishResponse;
-  TPublishResponsemessageIds = class;
-  TPublishResponsemessageIdsArray = Array of TPublishResponsemessageIds;
   TPubsubMessage = class;
-  TPubsubMessageArray = Array of TPubsubMessage;
-  TPubsubMessageattributes = class;
-  TPubsubMessageattributesArray = Array of TPubsubMessageattributes;
   TPullRequest = class;
-  TPullRequestArray = Array of TPullRequest;
   TPullResponse = class;
-  TPullResponseArray = Array of TPullResponse;
-  TPullResponsereceivedMessages = class;
-  TPullResponsereceivedMessagesArray = Array of TPullResponsereceivedMessages;
   TPushConfig = class;
-  TPushConfigArray = Array of TPushConfig;
-  TPushConfigattributes = class;
-  TPushConfigattributesArray = Array of TPushConfigattributes;
   TReceivedMessage = class;
-  TReceivedMessageArray = Array of TReceivedMessage;
   TSubscription = class;
-  TSubscriptionArray = Array of TSubscription;
   TTopic = class;
+  TAcknowledgeRequestArray = Array of TAcknowledgeRequest;
+  TEmptyArray = Array of TEmpty;
+  TListSubscriptionsResponseArray = Array of TListSubscriptionsResponse;
+  TListTopicSubscriptionsResponseArray = Array of TListTopicSubscriptionsResponse;
+  TListTopicsResponseArray = Array of TListTopicsResponse;
+  TModifyAckDeadlineRequestArray = Array of TModifyAckDeadlineRequest;
+  TModifyPushConfigRequestArray = Array of TModifyPushConfigRequest;
+  TPublishRequestArray = Array of TPublishRequest;
+  TPublishResponseArray = Array of TPublishResponse;
+  TPubsubMessageArray = Array of TPubsubMessage;
+  TPullRequestArray = Array of TPullRequest;
+  TPullResponseArray = Array of TPullResponse;
+  TPushConfigArray = Array of TPushConfig;
+  TReceivedMessageArray = Array of TReceivedMessage;
+  TSubscriptionArray = Array of TSubscription;
   TTopicArray = Array of TTopic;
+  //Anonymous types, using auto-generated names
+  TPubsubMessageTypeattributes = class;
+  TPushConfigTypeattributes = class;
+  TListSubscriptionsResponseTypesubscriptionsArray = Array of TSubscription;
+  TListTopicsResponseTypetopicsArray = Array of TTopic;
+  TPublishRequestTypemessagesArray = Array of TPubsubMessage;
+  TPullResponseTypereceivedMessagesArray = Array of TReceivedMessage;
   
   { --------------------------------------------------------------------
     TAcknowledgeRequest
@@ -92,28 +70,15 @@ type
   
   TAcknowledgeRequest = Class(TGoogleBaseObject)
   Private
-    FackIds : TAcknowledgeRequestackIds;
+    FackIds : TStringArray;
   Protected
     //Property setters
-    Procedure SetackIds(AIndex : Integer; AValue : TAcknowledgeRequestackIds); virtual;
+    Procedure SetackIds(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property ackIds : TAcknowledgeRequestackIds Index 0 Read FackIds Write SetackIds;
+    Property ackIds : TStringArray Index 0 Read FackIds Write SetackIds;
   end;
   TAcknowledgeRequestClass = Class of TAcknowledgeRequest;
-  
-  { --------------------------------------------------------------------
-    TAcknowledgeRequestackIds
-    --------------------------------------------------------------------}
-  
-  TAcknowledgeRequestackIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAcknowledgeRequestackIdsClass = Class of TAcknowledgeRequestackIds;
   
   { --------------------------------------------------------------------
     TEmpty
@@ -134,31 +99,18 @@ type
   
   TListSubscriptionsResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Fsubscriptions : TListSubscriptionsResponsesubscriptions;
+    FnextPageToken : String;
+    Fsubscriptions : TListSubscriptionsResponseTypesubscriptionsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsubscriptions(AIndex : Integer; AValue : TListSubscriptionsResponsesubscriptions); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsubscriptions(AIndex : Integer; AValue : TListSubscriptionsResponseTypesubscriptionsArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property subscriptions : TListSubscriptionsResponsesubscriptions Index 8 Read Fsubscriptions Write Setsubscriptions;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property subscriptions : TListSubscriptionsResponseTypesubscriptionsArray Index 8 Read Fsubscriptions Write Setsubscriptions;
   end;
   TListSubscriptionsResponseClass = Class of TListSubscriptionsResponse;
-  
-  { --------------------------------------------------------------------
-    TListSubscriptionsResponsesubscriptions
-    --------------------------------------------------------------------}
-  
-  TListSubscriptionsResponsesubscriptions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListSubscriptionsResponsesubscriptionsClass = Class of TListSubscriptionsResponsesubscriptions;
   
   { --------------------------------------------------------------------
     TListTopicSubscriptionsResponse
@@ -166,31 +118,18 @@ type
   
   TListTopicSubscriptionsResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Fsubscriptions : TListTopicSubscriptionsResponsesubscriptions;
+    FnextPageToken : String;
+    Fsubscriptions : TStringArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsubscriptions(AIndex : Integer; AValue : TListTopicSubscriptionsResponsesubscriptions); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsubscriptions(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property subscriptions : TListTopicSubscriptionsResponsesubscriptions Index 8 Read Fsubscriptions Write Setsubscriptions;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property subscriptions : TStringArray Index 8 Read Fsubscriptions Write Setsubscriptions;
   end;
   TListTopicSubscriptionsResponseClass = Class of TListTopicSubscriptionsResponse;
-  
-  { --------------------------------------------------------------------
-    TListTopicSubscriptionsResponsesubscriptions
-    --------------------------------------------------------------------}
-  
-  TListTopicSubscriptionsResponsesubscriptions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListTopicSubscriptionsResponsesubscriptionsClass = Class of TListTopicSubscriptionsResponsesubscriptions;
   
   { --------------------------------------------------------------------
     TListTopicsResponse
@@ -198,31 +137,18 @@ type
   
   TListTopicsResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Ftopics : TListTopicsResponsetopics;
+    FnextPageToken : String;
+    Ftopics : TListTopicsResponseTypetopicsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Settopics(AIndex : Integer; AValue : TListTopicsResponsetopics); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Settopics(AIndex : Integer; AValue : TListTopicsResponseTypetopicsArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property topics : TListTopicsResponsetopics Index 8 Read Ftopics Write Settopics;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property topics : TListTopicsResponseTypetopicsArray Index 8 Read Ftopics Write Settopics;
   end;
   TListTopicsResponseClass = Class of TListTopicsResponse;
-  
-  { --------------------------------------------------------------------
-    TListTopicsResponsetopics
-    --------------------------------------------------------------------}
-  
-  TListTopicsResponsetopics = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListTopicsResponsetopicsClass = Class of TListTopicsResponsetopics;
   
   { --------------------------------------------------------------------
     TModifyAckDeadlineRequest
@@ -231,15 +157,15 @@ type
   TModifyAckDeadlineRequest = Class(TGoogleBaseObject)
   Private
     FackDeadlineSeconds : integer;
-    FackId : string;
+    FackId : String;
   Protected
     //Property setters
     Procedure SetackDeadlineSeconds(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetackId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetackId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property ackDeadlineSeconds : integer Index 0 Read FackDeadlineSeconds Write SetackDeadlineSeconds;
-    Property ackId : string Index 8 Read FackId Write SetackId;
+    Property ackId : String Index 8 Read FackId Write SetackId;
   end;
   TModifyAckDeadlineRequestClass = Class of TModifyAckDeadlineRequest;
   
@@ -265,28 +191,15 @@ type
   
   TPublishRequest = Class(TGoogleBaseObject)
   Private
-    Fmessages : TPublishRequestmessages;
+    Fmessages : TPublishRequestTypemessagesArray;
   Protected
     //Property setters
-    Procedure Setmessages(AIndex : Integer; AValue : TPublishRequestmessages); virtual;
+    Procedure Setmessages(AIndex : Integer; AValue : TPublishRequestTypemessagesArray); virtual;
   Public
   Published
-    Property messages : TPublishRequestmessages Index 0 Read Fmessages Write Setmessages;
+    Property messages : TPublishRequestTypemessagesArray Index 0 Read Fmessages Write Setmessages;
   end;
   TPublishRequestClass = Class of TPublishRequest;
-  
-  { --------------------------------------------------------------------
-    TPublishRequestmessages
-    --------------------------------------------------------------------}
-  
-  TPublishRequestmessages = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPublishRequestmessagesClass = Class of TPublishRequestmessages;
   
   { --------------------------------------------------------------------
     TPublishResponse
@@ -294,56 +207,21 @@ type
   
   TPublishResponse = Class(TGoogleBaseObject)
   Private
-    FmessageIds : TPublishResponsemessageIds;
+    FmessageIds : TStringArray;
   Protected
     //Property setters
-    Procedure SetmessageIds(AIndex : Integer; AValue : TPublishResponsemessageIds); virtual;
+    Procedure SetmessageIds(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property messageIds : TPublishResponsemessageIds Index 0 Read FmessageIds Write SetmessageIds;
+    Property messageIds : TStringArray Index 0 Read FmessageIds Write SetmessageIds;
   end;
   TPublishResponseClass = Class of TPublishResponse;
   
   { --------------------------------------------------------------------
-    TPublishResponsemessageIds
+    TPubsubMessageTypeattributes
     --------------------------------------------------------------------}
   
-  TPublishResponsemessageIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPublishResponsemessageIdsClass = Class of TPublishResponsemessageIds;
-  
-  { --------------------------------------------------------------------
-    TPubsubMessage
-    --------------------------------------------------------------------}
-  
-  TPubsubMessage = Class(TGoogleBaseObject)
-  Private
-    Fattributes : TPubsubMessageattributes;
-    Fdata : string;
-    FmessageId : string;
-  Protected
-    //Property setters
-    Procedure Setattributes(AIndex : Integer; AValue : TPubsubMessageattributes); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmessageId(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property attributes : TPubsubMessageattributes Index 0 Read Fattributes Write Setattributes;
-    Property data : string Index 8 Read Fdata Write Setdata;
-    Property messageId : string Index 16 Read FmessageId Write SetmessageId;
-  end;
-  TPubsubMessageClass = Class of TPubsubMessage;
-  
-  { --------------------------------------------------------------------
-    TPubsubMessageattributes
-    --------------------------------------------------------------------}
-  
-  TPubsubMessageattributes = Class(TGoogleBaseObject)
+  TPubsubMessageTypeattributes = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -351,7 +229,29 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TPubsubMessageattributesClass = Class of TPubsubMessageattributes;
+  TPubsubMessageTypeattributesClass = Class of TPubsubMessageTypeattributes;
+  
+  { --------------------------------------------------------------------
+    TPubsubMessage
+    --------------------------------------------------------------------}
+  
+  TPubsubMessage = Class(TGoogleBaseObject)
+  Private
+    Fattributes : TPubsubMessageTypeattributes;
+    Fdata : String;
+    FmessageId : String;
+  Protected
+    //Property setters
+    Procedure Setattributes(AIndex : Integer; AValue : TPubsubMessageTypeattributes); virtual;
+    Procedure Setdata(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmessageId(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property attributes : TPubsubMessageTypeattributes Index 0 Read Fattributes Write Setattributes;
+    Property data : String Index 8 Read Fdata Write Setdata;
+    Property messageId : String Index 16 Read FmessageId Write SetmessageId;
+  end;
+  TPubsubMessageClass = Class of TPubsubMessage;
   
   { --------------------------------------------------------------------
     TPullRequest
@@ -378,53 +278,21 @@ type
   
   TPullResponse = Class(TGoogleBaseObject)
   Private
-    FreceivedMessages : TPullResponsereceivedMessages;
+    FreceivedMessages : TPullResponseTypereceivedMessagesArray;
   Protected
     //Property setters
-    Procedure SetreceivedMessages(AIndex : Integer; AValue : TPullResponsereceivedMessages); virtual;
+    Procedure SetreceivedMessages(AIndex : Integer; AValue : TPullResponseTypereceivedMessagesArray); virtual;
   Public
   Published
-    Property receivedMessages : TPullResponsereceivedMessages Index 0 Read FreceivedMessages Write SetreceivedMessages;
+    Property receivedMessages : TPullResponseTypereceivedMessagesArray Index 0 Read FreceivedMessages Write SetreceivedMessages;
   end;
   TPullResponseClass = Class of TPullResponse;
   
   { --------------------------------------------------------------------
-    TPullResponsereceivedMessages
+    TPushConfigTypeattributes
     --------------------------------------------------------------------}
   
-  TPullResponsereceivedMessages = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPullResponsereceivedMessagesClass = Class of TPullResponsereceivedMessages;
-  
-  { --------------------------------------------------------------------
-    TPushConfig
-    --------------------------------------------------------------------}
-  
-  TPushConfig = Class(TGoogleBaseObject)
-  Private
-    Fattributes : TPushConfigattributes;
-    FpushEndpoint : string;
-  Protected
-    //Property setters
-    Procedure Setattributes(AIndex : Integer; AValue : TPushConfigattributes); virtual;
-    Procedure SetpushEndpoint(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property attributes : TPushConfigattributes Index 0 Read Fattributes Write Setattributes;
-    Property pushEndpoint : string Index 8 Read FpushEndpoint Write SetpushEndpoint;
-  end;
-  TPushConfigClass = Class of TPushConfig;
-  
-  { --------------------------------------------------------------------
-    TPushConfigattributes
-    --------------------------------------------------------------------}
-  
-  TPushConfigattributes = Class(TGoogleBaseObject)
+  TPushConfigTypeattributes = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -432,7 +300,26 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TPushConfigattributesClass = Class of TPushConfigattributes;
+  TPushConfigTypeattributesClass = Class of TPushConfigTypeattributes;
+  
+  { --------------------------------------------------------------------
+    TPushConfig
+    --------------------------------------------------------------------}
+  
+  TPushConfig = Class(TGoogleBaseObject)
+  Private
+    Fattributes : TPushConfigTypeattributes;
+    FpushEndpoint : String;
+  Protected
+    //Property setters
+    Procedure Setattributes(AIndex : Integer; AValue : TPushConfigTypeattributes); virtual;
+    Procedure SetpushEndpoint(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property attributes : TPushConfigTypeattributes Index 0 Read Fattributes Write Setattributes;
+    Property pushEndpoint : String Index 8 Read FpushEndpoint Write SetpushEndpoint;
+  end;
+  TPushConfigClass = Class of TPushConfig;
   
   { --------------------------------------------------------------------
     TReceivedMessage
@@ -440,15 +327,15 @@ type
   
   TReceivedMessage = Class(TGoogleBaseObject)
   Private
-    FackId : string;
+    FackId : String;
     Fmessage : TPubsubMessage;
   Protected
     //Property setters
-    Procedure SetackId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetackId(AIndex : Integer; AValue : String); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : TPubsubMessage); virtual;
   Public
   Published
-    Property ackId : string Index 0 Read FackId Write SetackId;
+    Property ackId : String Index 0 Read FackId Write SetackId;
     Property message : TPubsubMessage Index 8 Read Fmessage Write Setmessage;
   end;
   TReceivedMessageClass = Class of TReceivedMessage;
@@ -460,21 +347,21 @@ type
   TSubscription = Class(TGoogleBaseObject)
   Private
     FackDeadlineSeconds : integer;
-    Fname : string;
+    Fname : String;
     FpushConfig : TPushConfig;
-    Ftopic : string;
+    Ftopic : String;
   Protected
     //Property setters
     Procedure SetackDeadlineSeconds(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetpushConfig(AIndex : Integer; AValue : TPushConfig); virtual;
-    Procedure Settopic(AIndex : Integer; AValue : string); virtual;
+    Procedure Settopic(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property ackDeadlineSeconds : integer Index 0 Read FackDeadlineSeconds Write SetackDeadlineSeconds;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property name : String Index 8 Read Fname Write Setname;
     Property pushConfig : TPushConfig Index 16 Read FpushConfig Write SetpushConfig;
-    Property topic : string Index 24 Read Ftopic Write Settopic;
+    Property topic : String Index 24 Read Ftopic Write Settopic;
   end;
   TSubscriptionClass = Class of TSubscription;
   
@@ -484,13 +371,13 @@ type
   
   TTopic = Class(TGoogleBaseObject)
   Private
-    Fname : string;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
+    Property name : String Index 0 Read Fname Write Setname;
   end;
   TTopicClass = Class of TTopic;
   
@@ -550,7 +437,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAcknowledgeRequest.SetackIds(AIndex : Integer; AValue : TAcknowledgeRequestackIds); 
+Procedure TAcknowledgeRequest.SetackIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FackIds=AValue) then exit;
@@ -558,13 +445,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAcknowledgeRequestackIds
-  --------------------------------------------------------------------}
 
 
 
@@ -581,7 +461,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListSubscriptionsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListSubscriptionsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -591,7 +471,7 @@ end;
 
 
 
-Procedure TListSubscriptionsResponse.Setsubscriptions(AIndex : Integer; AValue : TListSubscriptionsResponsesubscriptions); 
+Procedure TListSubscriptionsResponse.Setsubscriptions(AIndex : Integer; AValue : TListSubscriptionsResponseTypesubscriptionsArray); 
 
 begin
   If (Fsubscriptions=AValue) then exit;
@@ -599,13 +479,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TListSubscriptionsResponsesubscriptions
-  --------------------------------------------------------------------}
 
 
 
@@ -615,7 +488,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTopicSubscriptionsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListTopicSubscriptionsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -625,7 +498,7 @@ end;
 
 
 
-Procedure TListTopicSubscriptionsResponse.Setsubscriptions(AIndex : Integer; AValue : TListTopicSubscriptionsResponsesubscriptions); 
+Procedure TListTopicSubscriptionsResponse.Setsubscriptions(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fsubscriptions=AValue) then exit;
@@ -638,18 +511,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListTopicSubscriptionsResponsesubscriptions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListTopicsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListTopicsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListTopicsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -659,7 +525,7 @@ end;
 
 
 
-Procedure TListTopicsResponse.Settopics(AIndex : Integer; AValue : TListTopicsResponsetopics); 
+Procedure TListTopicsResponse.Settopics(AIndex : Integer; AValue : TListTopicsResponseTypetopicsArray); 
 
 begin
   If (Ftopics=AValue) then exit;
@@ -667,13 +533,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TListTopicsResponsetopics
-  --------------------------------------------------------------------}
 
 
 
@@ -693,7 +552,7 @@ end;
 
 
 
-Procedure TModifyAckDeadlineRequest.SetackId(AIndex : Integer; AValue : string); 
+Procedure TModifyAckDeadlineRequest.SetackId(AIndex : Integer; AValue : String); 
 
 begin
   If (FackId=AValue) then exit;
@@ -727,7 +586,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishRequest.Setmessages(AIndex : Integer; AValue : TPublishRequestmessages); 
+Procedure TPublishRequest.Setmessages(AIndex : Integer; AValue : TPublishRequestTypemessagesArray); 
 
 begin
   If (Fmessages=AValue) then exit;
@@ -740,18 +599,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPublishRequestmessages
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TPublishResponse
   --------------------------------------------------------------------}
 
 
-Procedure TPublishResponse.SetmessageIds(AIndex : Integer; AValue : TPublishResponsemessageIds); 
+Procedure TPublishResponse.SetmessageIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FmessageIds=AValue) then exit;
@@ -764,9 +616,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPublishResponsemessageIds
+  TPubsubMessageTypeattributes
   --------------------------------------------------------------------}
 
+
+Class Function TPubsubMessageTypeattributes.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -775,7 +633,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPubsubMessage.Setattributes(AIndex : Integer; AValue : TPubsubMessageattributes); 
+Procedure TPubsubMessage.Setattributes(AIndex : Integer; AValue : TPubsubMessageTypeattributes); 
 
 begin
   If (Fattributes=AValue) then exit;
@@ -785,7 +643,7 @@ end;
 
 
 
-Procedure TPubsubMessage.Setdata(AIndex : Integer; AValue : string); 
+Procedure TPubsubMessage.Setdata(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -795,7 +653,7 @@ end;
 
 
 
-Procedure TPubsubMessage.SetmessageId(AIndex : Integer; AValue : string); 
+Procedure TPubsubMessage.SetmessageId(AIndex : Integer; AValue : String); 
 
 begin
   If (FmessageId=AValue) then exit;
@@ -804,19 +662,6 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TPubsubMessageattributes
-  --------------------------------------------------------------------}
-
-
-Class Function TPubsubMessageattributes.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
 
 
 
@@ -852,7 +697,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPullResponse.SetreceivedMessages(AIndex : Integer; AValue : TPullResponsereceivedMessages); 
+Procedure TPullResponse.SetreceivedMessages(AIndex : Integer; AValue : TPullResponseTypereceivedMessagesArray); 
 
 begin
   If (FreceivedMessages=AValue) then exit;
@@ -865,9 +710,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPullResponsereceivedMessages
+  TPushConfigTypeattributes
   --------------------------------------------------------------------}
 
+
+Class Function TPushConfigTypeattributes.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -876,7 +727,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPushConfig.Setattributes(AIndex : Integer; AValue : TPushConfigattributes); 
+Procedure TPushConfig.Setattributes(AIndex : Integer; AValue : TPushConfigTypeattributes); 
 
 begin
   If (Fattributes=AValue) then exit;
@@ -886,7 +737,7 @@ end;
 
 
 
-Procedure TPushConfig.SetpushEndpoint(AIndex : Integer; AValue : string); 
+Procedure TPushConfig.SetpushEndpoint(AIndex : Integer; AValue : String); 
 
 begin
   If (FpushEndpoint=AValue) then exit;
@@ -899,24 +750,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPushConfigattributes
-  --------------------------------------------------------------------}
-
-
-Class Function TPushConfigattributes.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TReceivedMessage
   --------------------------------------------------------------------}
 
 
-Procedure TReceivedMessage.SetackId(AIndex : Integer; AValue : string); 
+Procedure TReceivedMessage.SetackId(AIndex : Integer; AValue : String); 
 
 begin
   If (FackId=AValue) then exit;
@@ -953,7 +791,7 @@ end;
 
 
 
-Procedure TSubscription.Setname(AIndex : Integer; AValue : string); 
+Procedure TSubscription.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -973,7 +811,7 @@ end;
 
 
 
-Procedure TSubscription.Settopic(AIndex : Integer; AValue : string); 
+Procedure TSubscription.Settopic(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftopic=AValue) then exit;
@@ -990,7 +828,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTopic.Setname(AIndex : Integer; AValue : string); 
+Procedure TTopic.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1040,7 +878,7 @@ end;
 Class Function TPubsubAPI.APIRevision : String;
 
 begin
-  Result:='20150326';
+  Result:='20150427';
 end;
 
 Class Function TPubsubAPI.APIID : String;
@@ -1148,27 +986,20 @@ Class Procedure TPubsubAPI.RegisterAPIResources;
 
 begin
   TAcknowledgeRequest.RegisterObject;
-  TAcknowledgeRequestackIds.RegisterObject;
   TEmpty.RegisterObject;
   TListSubscriptionsResponse.RegisterObject;
-  TListSubscriptionsResponsesubscriptions.RegisterObject;
   TListTopicSubscriptionsResponse.RegisterObject;
-  TListTopicSubscriptionsResponsesubscriptions.RegisterObject;
   TListTopicsResponse.RegisterObject;
-  TListTopicsResponsetopics.RegisterObject;
   TModifyAckDeadlineRequest.RegisterObject;
   TModifyPushConfigRequest.RegisterObject;
   TPublishRequest.RegisterObject;
-  TPublishRequestmessages.RegisterObject;
   TPublishResponse.RegisterObject;
-  TPublishResponsemessageIds.RegisterObject;
+  TPubsubMessageTypeattributes.RegisterObject;
   TPubsubMessage.RegisterObject;
-  TPubsubMessageattributes.RegisterObject;
   TPullRequest.RegisterObject;
   TPullResponse.RegisterObject;
-  TPullResponsereceivedMessages.RegisterObject;
+  TPushConfigTypeattributes.RegisterObject;
   TPushConfig.RegisterObject;
-  TPushConfigattributes.RegisterObject;
   TReceivedMessage.RegisterObject;
   TSubscription.RegisterObject;
   TTopic.RegisterObject;

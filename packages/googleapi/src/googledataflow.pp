@@ -1,31 +1,19 @@
 unit googledataflow;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:51
 {$MODE objfpc}
 {$H+}
 
@@ -34,261 +22,200 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
+  TGoogleprotobufValue = TJSONSchema;
   TApproximateProgress = class;
-  TApproximateProgressArray = Array of TApproximateProgress;
   TAutoscalingSettings = class;
-  TAutoscalingSettingsArray = Array of TAutoscalingSettings;
   TComputationTopology = class;
-  TComputationTopologyArray = Array of TComputationTopology;
-  TComputationTopologyinputs = class;
-  TComputationTopologyinputsArray = Array of TComputationTopologyinputs;
-  TComputationTopologykeyRanges = class;
-  TComputationTopologykeyRangesArray = Array of TComputationTopologykeyRanges;
-  TComputationTopologyoutputs = class;
-  TComputationTopologyoutputsArray = Array of TComputationTopologyoutputs;
   TDataDiskAssignment = class;
-  TDataDiskAssignmentArray = Array of TDataDiskAssignment;
-  TDataDiskAssignmentdataDisks = class;
-  TDataDiskAssignmentdataDisksArray = Array of TDataDiskAssignmentdataDisks;
   TDerivedSource = class;
-  TDerivedSourceArray = Array of TDerivedSource;
   TDisk = class;
-  TDiskArray = Array of TDisk;
   TDynamicSourceSplit = class;
-  TDynamicSourceSplitArray = Array of TDynamicSourceSplit;
   TEnvironment = class;
-  TEnvironmentArray = Array of TEnvironment;
-  TEnvironmentexperiments = class;
-  TEnvironmentexperimentsArray = Array of TEnvironmentexperiments;
-  TEnvironmentsdkPipelineOptions = class;
-  TEnvironmentsdkPipelineOptionsArray = Array of TEnvironmentsdkPipelineOptions;
-  TEnvironmentuserAgent = class;
-  TEnvironmentuserAgentArray = Array of TEnvironmentuserAgent;
-  TEnvironmentversion = class;
-  TEnvironmentversionArray = Array of TEnvironmentversion;
-  TEnvironmentworkerPools = class;
-  TEnvironmentworkerPoolsArray = Array of TEnvironmentworkerPools;
   TFlattenInstruction = class;
-  TFlattenInstructionArray = Array of TFlattenInstruction;
-  TFlattenInstructioninputs = class;
-  TFlattenInstructioninputsArray = Array of TFlattenInstructioninputs;
-  TGoogleprotobufValue = class;
-  TGoogleprotobufValueArray = Array of TGoogleprotobufValue;
   TInstructionInput = class;
-  TInstructionInputArray = Array of TInstructionInput;
   TInstructionOutput = class;
-  TInstructionOutputArray = Array of TInstructionOutput;
-  TInstructionOutputcodec = class;
-  TInstructionOutputcodecArray = Array of TInstructionOutputcodec;
   TJob = class;
-  TJobArray = Array of TJob;
-  TJobsteps = class;
-  TJobstepsArray = Array of TJobsteps;
   TJobExecutionInfo = class;
-  TJobExecutionInfoArray = Array of TJobExecutionInfo;
-  TJobExecutionInfostages = class;
-  TJobExecutionInfostagesArray = Array of TJobExecutionInfostages;
   TJobExecutionStageInfo = class;
-  TJobExecutionStageInfoArray = Array of TJobExecutionStageInfo;
-  TJobExecutionStageInfostepName = class;
-  TJobExecutionStageInfostepNameArray = Array of TJobExecutionStageInfostepName;
   TJobMessage = class;
-  TJobMessageArray = Array of TJobMessage;
   TJobMetrics = class;
-  TJobMetricsArray = Array of TJobMetrics;
-  TJobMetricsmetrics = class;
-  TJobMetricsmetricsArray = Array of TJobMetricsmetrics;
   TKeyRangeDataDiskAssignment = class;
-  TKeyRangeDataDiskAssignmentArray = Array of TKeyRangeDataDiskAssignment;
   TKeyRangeLocation = class;
-  TKeyRangeLocationArray = Array of TKeyRangeLocation;
   TLeaseWorkItemRequest = class;
-  TLeaseWorkItemRequestArray = Array of TLeaseWorkItemRequest;
-  TLeaseWorkItemRequestworkItemTypes = class;
-  TLeaseWorkItemRequestworkItemTypesArray = Array of TLeaseWorkItemRequestworkItemTypes;
-  TLeaseWorkItemRequestworkerCapabilities = class;
-  TLeaseWorkItemRequestworkerCapabilitiesArray = Array of TLeaseWorkItemRequestworkerCapabilities;
   TLeaseWorkItemResponse = class;
-  TLeaseWorkItemResponseArray = Array of TLeaseWorkItemResponse;
-  TLeaseWorkItemResponseworkItems = class;
-  TLeaseWorkItemResponseworkItemsArray = Array of TLeaseWorkItemResponseworkItems;
   TListJobMessagesResponse = class;
-  TListJobMessagesResponseArray = Array of TListJobMessagesResponse;
-  TListJobMessagesResponsejobMessages = class;
-  TListJobMessagesResponsejobMessagesArray = Array of TListJobMessagesResponsejobMessages;
   TListJobsResponse = class;
-  TListJobsResponseArray = Array of TListJobsResponse;
-  TListJobsResponsejobs = class;
-  TListJobsResponsejobsArray = Array of TListJobsResponsejobs;
   TMapTask = class;
-  TMapTaskArray = Array of TMapTask;
-  TMapTaskinstructions = class;
-  TMapTaskinstructionsArray = Array of TMapTaskinstructions;
   TMetricStructuredName = class;
-  TMetricStructuredNameArray = Array of TMetricStructuredName;
-  TMetricStructuredNamecontext = class;
-  TMetricStructuredNamecontextArray = Array of TMetricStructuredNamecontext;
   TMetricUpdate = class;
-  TMetricUpdateArray = Array of TMetricUpdate;
   TMountedDataDisk = class;
-  TMountedDataDiskArray = Array of TMountedDataDisk;
   TMultiOutputInfo = class;
-  TMultiOutputInfoArray = Array of TMultiOutputInfo;
   TPackage = class;
-  TPackageArray = Array of TPackage;
   TParDoInstruction = class;
-  TParDoInstructionArray = Array of TParDoInstruction;
-  TParDoInstructionmultiOutputInfos = class;
-  TParDoInstructionmultiOutputInfosArray = Array of TParDoInstructionmultiOutputInfos;
-  TParDoInstructionsideInputs = class;
-  TParDoInstructionsideInputsArray = Array of TParDoInstructionsideInputs;
-  TParDoInstructionuserFn = class;
-  TParDoInstructionuserFnArray = Array of TParDoInstructionuserFn;
   TParallelInstruction = class;
-  TParallelInstructionArray = Array of TParallelInstruction;
-  TParallelInstructionoutputs = class;
-  TParallelInstructionoutputsArray = Array of TParallelInstructionoutputs;
   TPartialGroupByKeyInstruction = class;
-  TPartialGroupByKeyInstructionArray = Array of TPartialGroupByKeyInstruction;
-  TPartialGroupByKeyInstructioninputElementCodec = class;
-  TPartialGroupByKeyInstructioninputElementCodecArray = Array of TPartialGroupByKeyInstructioninputElementCodec;
-  TPartialGroupByKeyInstructionvalueCombiningFn = class;
-  TPartialGroupByKeyInstructionvalueCombiningFnArray = Array of TPartialGroupByKeyInstructionvalueCombiningFn;
   TPosition = class;
-  TPositionArray = Array of TPosition;
   TPubsubLocation = class;
-  TPubsubLocationArray = Array of TPubsubLocation;
   TReadInstruction = class;
-  TReadInstructionArray = Array of TReadInstruction;
   TReportWorkItemStatusRequest = class;
-  TReportWorkItemStatusRequestArray = Array of TReportWorkItemStatusRequest;
-  TReportWorkItemStatusRequestworkItemStatuses = class;
-  TReportWorkItemStatusRequestworkItemStatusesArray = Array of TReportWorkItemStatusRequestworkItemStatuses;
   TReportWorkItemStatusResponse = class;
-  TReportWorkItemStatusResponseArray = Array of TReportWorkItemStatusResponse;
-  TReportWorkItemStatusResponseworkItemServiceStates = class;
-  TReportWorkItemStatusResponseworkItemServiceStatesArray = Array of TReportWorkItemStatusResponseworkItemServiceStates;
   TSeqMapTask = class;
-  TSeqMapTaskArray = Array of TSeqMapTask;
-  TSeqMapTaskinputs = class;
-  TSeqMapTaskinputsArray = Array of TSeqMapTaskinputs;
-  TSeqMapTaskoutputInfos = class;
-  TSeqMapTaskoutputInfosArray = Array of TSeqMapTaskoutputInfos;
-  TSeqMapTaskuserFn = class;
-  TSeqMapTaskuserFnArray = Array of TSeqMapTaskuserFn;
   TSeqMapTaskOutputInfo = class;
-  TSeqMapTaskOutputInfoArray = Array of TSeqMapTaskOutputInfo;
   TShellTask = class;
-  TShellTaskArray = Array of TShellTask;
   TSideInputInfo = class;
-  TSideInputInfoArray = Array of TSideInputInfo;
-  TSideInputInfokind = class;
-  TSideInputInfokindArray = Array of TSideInputInfokind;
-  TSideInputInfosources = class;
-  TSideInputInfosourcesArray = Array of TSideInputInfosources;
   TSink = class;
-  TSinkArray = Array of TSink;
-  TSinkcodec = class;
-  TSinkcodecArray = Array of TSinkcodec;
-  TSinkspec = class;
-  TSinkspecArray = Array of TSinkspec;
   TSource = class;
-  TSourceArray = Array of TSource;
-  TSourcebaseSpecs = class;
-  TSourcebaseSpecsArray = Array of TSourcebaseSpecs;
-  TSourcecodec = class;
-  TSourcecodecArray = Array of TSourcecodec;
-  TSourcespec = class;
-  TSourcespecArray = Array of TSourcespec;
   TSourceFork = class;
-  TSourceForkArray = Array of TSourceFork;
   TSourceGetMetadataRequest = class;
-  TSourceGetMetadataRequestArray = Array of TSourceGetMetadataRequest;
   TSourceGetMetadataResponse = class;
-  TSourceGetMetadataResponseArray = Array of TSourceGetMetadataResponse;
   TSourceMetadata = class;
-  TSourceMetadataArray = Array of TSourceMetadata;
   TSourceOperationRequest = class;
-  TSourceOperationRequestArray = Array of TSourceOperationRequest;
   TSourceOperationResponse = class;
-  TSourceOperationResponseArray = Array of TSourceOperationResponse;
   TSourceSplitOptions = class;
-  TSourceSplitOptionsArray = Array of TSourceSplitOptions;
   TSourceSplitRequest = class;
-  TSourceSplitRequestArray = Array of TSourceSplitRequest;
   TSourceSplitResponse = class;
-  TSourceSplitResponseArray = Array of TSourceSplitResponse;
-  TSourceSplitResponsebundles = class;
-  TSourceSplitResponsebundlesArray = Array of TSourceSplitResponsebundles;
-  TSourceSplitResponseshards = class;
-  TSourceSplitResponseshardsArray = Array of TSourceSplitResponseshards;
   TSourceSplitShard = class;
-  TSourceSplitShardArray = Array of TSourceSplitShard;
   TStatus = class;
-  TStatusArray = Array of TStatus;
-  TStatusdetails = class;
-  TStatusdetailsArray = Array of TStatusdetails;
   TStep = class;
-  TStepArray = Array of TStep;
-  TStepproperties = class;
-  TSteppropertiesArray = Array of TStepproperties;
   TStreamLocation = class;
-  TStreamLocationArray = Array of TStreamLocation;
   TStreamingComputationRanges = class;
-  TStreamingComputationRangesArray = Array of TStreamingComputationRanges;
-  TStreamingComputationRangesrangeAssignments = class;
-  TStreamingComputationRangesrangeAssignmentsArray = Array of TStreamingComputationRangesrangeAssignments;
   TStreamingComputationTask = class;
-  TStreamingComputationTaskArray = Array of TStreamingComputationTask;
-  TStreamingComputationTaskcomputationRanges = class;
-  TStreamingComputationTaskcomputationRangesArray = Array of TStreamingComputationTaskcomputationRanges;
-  TStreamingComputationTaskdataDisks = class;
-  TStreamingComputationTaskdataDisksArray = Array of TStreamingComputationTaskdataDisks;
   TStreamingSetupTask = class;
-  TStreamingSetupTaskArray = Array of TStreamingSetupTask;
   TStreamingSideInputLocation = class;
-  TStreamingSideInputLocationArray = Array of TStreamingSideInputLocation;
   TStreamingStageLocation = class;
-  TStreamingStageLocationArray = Array of TStreamingStageLocation;
   TTaskRunnerSettings = class;
-  TTaskRunnerSettingsArray = Array of TTaskRunnerSettings;
-  TTaskRunnerSettingsoauthScopes = class;
-  TTaskRunnerSettingsoauthScopesArray = Array of TTaskRunnerSettingsoauthScopes;
   TTopologyConfig = class;
-  TTopologyConfigArray = Array of TTopologyConfig;
-  TTopologyConfigcomputations = class;
-  TTopologyConfigcomputationsArray = Array of TTopologyConfigcomputations;
-  TTopologyConfigdataDiskAssignments = class;
-  TTopologyConfigdataDiskAssignmentsArray = Array of TTopologyConfigdataDiskAssignments;
   TWorkItem = class;
-  TWorkItemArray = Array of TWorkItem;
-  TWorkItempackages = class;
-  TWorkItempackagesArray = Array of TWorkItempackages;
   TWorkItemServiceState = class;
-  TWorkItemServiceStateArray = Array of TWorkItemServiceState;
-  TWorkItemServiceStateharnessData = class;
-  TWorkItemServiceStateharnessDataArray = Array of TWorkItemServiceStateharnessData;
   TWorkItemStatus = class;
-  TWorkItemStatusArray = Array of TWorkItemStatus;
-  TWorkItemStatuserrors = class;
-  TWorkItemStatuserrorsArray = Array of TWorkItemStatuserrors;
-  TWorkItemStatusmetricUpdates = class;
-  TWorkItemStatusmetricUpdatesArray = Array of TWorkItemStatusmetricUpdates;
   TWorkerPool = class;
-  TWorkerPoolArray = Array of TWorkerPool;
-  TWorkerPooldataDisks = class;
-  TWorkerPooldataDisksArray = Array of TWorkerPooldataDisks;
-  TWorkerPoolmetadata = class;
-  TWorkerPoolmetadataArray = Array of TWorkerPoolmetadata;
-  TWorkerPoolpackages = class;
-  TWorkerPoolpackagesArray = Array of TWorkerPoolpackages;
-  TWorkerPoolpoolArgs = class;
-  TWorkerPoolpoolArgsArray = Array of TWorkerPoolpoolArgs;
   TWorkerSettings = class;
-  TWorkerSettingsArray = Array of TWorkerSettings;
   TWriteInstruction = class;
+  TApproximateProgressArray = Array of TApproximateProgress;
+  TAutoscalingSettingsArray = Array of TAutoscalingSettings;
+  TComputationTopologyArray = Array of TComputationTopology;
+  TDataDiskAssignmentArray = Array of TDataDiskAssignment;
+  TDerivedSourceArray = Array of TDerivedSource;
+  TDiskArray = Array of TDisk;
+  TDynamicSourceSplitArray = Array of TDynamicSourceSplit;
+  TEnvironmentArray = Array of TEnvironment;
+  TFlattenInstructionArray = Array of TFlattenInstruction;
+  TInstructionInputArray = Array of TInstructionInput;
+  TInstructionOutputArray = Array of TInstructionOutput;
+  TJobArray = Array of TJob;
+  TJobExecutionInfoArray = Array of TJobExecutionInfo;
+  TJobExecutionStageInfoArray = Array of TJobExecutionStageInfo;
+  TJobMessageArray = Array of TJobMessage;
+  TJobMetricsArray = Array of TJobMetrics;
+  TKeyRangeDataDiskAssignmentArray = Array of TKeyRangeDataDiskAssignment;
+  TKeyRangeLocationArray = Array of TKeyRangeLocation;
+  TLeaseWorkItemRequestArray = Array of TLeaseWorkItemRequest;
+  TLeaseWorkItemResponseArray = Array of TLeaseWorkItemResponse;
+  TListJobMessagesResponseArray = Array of TListJobMessagesResponse;
+  TListJobsResponseArray = Array of TListJobsResponse;
+  TMapTaskArray = Array of TMapTask;
+  TMetricStructuredNameArray = Array of TMetricStructuredName;
+  TMetricUpdateArray = Array of TMetricUpdate;
+  TMountedDataDiskArray = Array of TMountedDataDisk;
+  TMultiOutputInfoArray = Array of TMultiOutputInfo;
+  TPackageArray = Array of TPackage;
+  TParDoInstructionArray = Array of TParDoInstruction;
+  TParallelInstructionArray = Array of TParallelInstruction;
+  TPartialGroupByKeyInstructionArray = Array of TPartialGroupByKeyInstruction;
+  TPositionArray = Array of TPosition;
+  TPubsubLocationArray = Array of TPubsubLocation;
+  TReadInstructionArray = Array of TReadInstruction;
+  TReportWorkItemStatusRequestArray = Array of TReportWorkItemStatusRequest;
+  TReportWorkItemStatusResponseArray = Array of TReportWorkItemStatusResponse;
+  TSeqMapTaskArray = Array of TSeqMapTask;
+  TSeqMapTaskOutputInfoArray = Array of TSeqMapTaskOutputInfo;
+  TShellTaskArray = Array of TShellTask;
+  TSideInputInfoArray = Array of TSideInputInfo;
+  TSinkArray = Array of TSink;
+  TSourceArray = Array of TSource;
+  TSourceForkArray = Array of TSourceFork;
+  TSourceGetMetadataRequestArray = Array of TSourceGetMetadataRequest;
+  TSourceGetMetadataResponseArray = Array of TSourceGetMetadataResponse;
+  TSourceMetadataArray = Array of TSourceMetadata;
+  TSourceOperationRequestArray = Array of TSourceOperationRequest;
+  TSourceOperationResponseArray = Array of TSourceOperationResponse;
+  TSourceSplitOptionsArray = Array of TSourceSplitOptions;
+  TSourceSplitRequestArray = Array of TSourceSplitRequest;
+  TSourceSplitResponseArray = Array of TSourceSplitResponse;
+  TSourceSplitShardArray = Array of TSourceSplitShard;
+  TStatusArray = Array of TStatus;
+  TStepArray = Array of TStep;
+  TStreamLocationArray = Array of TStreamLocation;
+  TStreamingComputationRangesArray = Array of TStreamingComputationRanges;
+  TStreamingComputationTaskArray = Array of TStreamingComputationTask;
+  TStreamingSetupTaskArray = Array of TStreamingSetupTask;
+  TStreamingSideInputLocationArray = Array of TStreamingSideInputLocation;
+  TStreamingStageLocationArray = Array of TStreamingStageLocation;
+  TTaskRunnerSettingsArray = Array of TTaskRunnerSettings;
+  TTopologyConfigArray = Array of TTopologyConfig;
+  TWorkItemArray = Array of TWorkItem;
+  TWorkItemServiceStateArray = Array of TWorkItemServiceState;
+  TWorkItemStatusArray = Array of TWorkItemStatus;
+  TWorkerPoolArray = Array of TWorkerPool;
+  TWorkerSettingsArray = Array of TWorkerSettings;
   TWriteInstructionArray = Array of TWriteInstruction;
+  //Anonymous types, using auto-generated names
+  TEnvironmentTypesdkPipelineOptions = class;
+  TEnvironmentTypeuserAgent = class;
+  TEnvironmentTypeversion = class;
+  TInstructionOutputTypecodec = class;
+  TJobExecutionInfoTypestages = class;
+  TMetricStructuredNameTypecontext = class;
+  TParDoInstructionTypeuserFn = class;
+  TPartialGroupByKeyInstructionTypeinputElementCodec = class;
+  TPartialGroupByKeyInstructionTypevalueCombiningFn = class;
+  TSeqMapTaskTypeuserFn = class;
+  TSideInputInfoTypekind = class;
+  TSinkTypecodec = class;
+  TSinkTypespec = class;
+  TSourceTypebaseSpecsItem = class;
+  TSourceTypecodec = class;
+  TSourceTypespec = class;
+  TStatusTypedetailsItem = class;
+  TStepTypeproperties = class;
+  TWorkItemServiceStateTypeharnessData = class;
+  TWorkerPoolTypemetadata = class;
+  TWorkerPoolTypepoolArgs = class;
+  TComputationTopologyTypeinputsArray = Array of TStreamLocation;
+  TComputationTopologyTypekeyRangesArray = Array of TKeyRangeLocation;
+  TComputationTopologyTypeoutputsArray = Array of TStreamLocation;
+  TEnvironmentTypeworkerPoolsArray = Array of TWorkerPool;
+  TFlattenInstructionTypeinputsArray = Array of TInstructionInput;
+  TJobTypestepsArray = Array of TStep;
+  TJobMetricsTypemetricsArray = Array of TMetricUpdate;
+  TLeaseWorkItemResponseTypeworkItemsArray = Array of TWorkItem;
+  TListJobMessagesResponseTypejobMessagesArray = Array of TJobMessage;
+  TListJobsResponseTypejobsArray = Array of TJob;
+  TMapTaskTypeinstructionsArray = Array of TParallelInstruction;
+  TParDoInstructionTypemultiOutputInfosArray = Array of TMultiOutputInfo;
+  TParDoInstructionTypesideInputsArray = Array of TSideInputInfo;
+  TParallelInstructionTypeoutputsArray = Array of TInstructionOutput;
+  TReportWorkItemStatusRequestTypeworkItemStatusesArray = Array of TWorkItemStatus;
+  TReportWorkItemStatusResponseTypeworkItemServiceStatesArray = Array of TWorkItemServiceState;
+  TSeqMapTaskTypeinputsArray = Array of TSideInputInfo;
+  TSeqMapTaskTypeoutputInfosArray = Array of TSeqMapTaskOutputInfo;
+  TSideInputInfoTypesourcesArray = Array of TSource;
+  TSourceTypebaseSpecsArray = Array of TSourceTypebaseSpecsItem;
+  TSourceSplitResponseTypebundlesArray = Array of TDerivedSource;
+  TSourceSplitResponseTypeshardsArray = Array of TSourceSplitShard;
+  TStatusTypedetailsArray = Array of TStatusTypedetailsItem;
+  TStreamingComputationRangesTyperangeAssignmentsArray = Array of TKeyRangeDataDiskAssignment;
+  TStreamingComputationTaskTypecomputationRangesArray = Array of TStreamingComputationRanges;
+  TStreamingComputationTaskTypedataDisksArray = Array of TMountedDataDisk;
+  TTopologyConfigTypecomputationsArray = Array of TComputationTopology;
+  TTopologyConfigTypedataDiskAssignmentsArray = Array of TDataDiskAssignment;
+  TWorkItemTypepackagesArray = Array of TPackage;
+  TWorkItemStatusTypeerrorsArray = Array of TStatus;
+  TWorkItemStatusTypemetricUpdatesArray = Array of TMetricUpdate;
+  TWorkerPoolTypedataDisksArray = Array of TDisk;
+  TWorkerPoolTypepackagesArray = Array of TPackage;
   
   { --------------------------------------------------------------------
     TApproximateProgress
@@ -298,17 +225,17 @@ type
   Private
     FpercentComplete : integer;
     Fposition : TPosition;
-    FremainingTime : string;
+    FremainingTime : String;
   Protected
     //Property setters
     Procedure SetpercentComplete(AIndex : Integer; AValue : integer); virtual;
     Procedure Setposition(AIndex : Integer; AValue : TPosition); virtual;
-    Procedure SetremainingTime(AIndex : Integer; AValue : string); virtual;
+    Procedure SetremainingTime(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property percentComplete : integer Index 0 Read FpercentComplete Write SetpercentComplete;
     Property position : TPosition Index 8 Read Fposition Write Setposition;
-    Property remainingTime : string Index 16 Read FremainingTime Write SetremainingTime;
+    Property remainingTime : String Index 16 Read FremainingTime Write SetremainingTime;
   end;
   TApproximateProgressClass = Class of TApproximateProgress;
   
@@ -318,15 +245,15 @@ type
   
   TAutoscalingSettings = Class(TGoogleBaseObject)
   Private
-    Falgorithm : string;
+    Falgorithm : String;
     FmaxNumWorkers : integer;
   Protected
     //Property setters
-    Procedure Setalgorithm(AIndex : Integer; AValue : string); virtual;
+    Procedure Setalgorithm(AIndex : Integer; AValue : String); virtual;
     Procedure SetmaxNumWorkers(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property algorithm : string Index 0 Read Falgorithm Write Setalgorithm;
+    Property algorithm : String Index 0 Read Falgorithm Write Setalgorithm;
     Property maxNumWorkers : integer Index 8 Read FmaxNumWorkers Write SetmaxNumWorkers;
   end;
   TAutoscalingSettingsClass = Class of TAutoscalingSettings;
@@ -337,63 +264,24 @@ type
   
   TComputationTopology = Class(TGoogleBaseObject)
   Private
-    FcomputationId : string;
-    Finputs : TComputationTopologyinputs;
-    FkeyRanges : TComputationTopologykeyRanges;
-    Foutputs : TComputationTopologyoutputs;
+    FcomputationId : String;
+    Finputs : TComputationTopologyTypeinputsArray;
+    FkeyRanges : TComputationTopologyTypekeyRangesArray;
+    Foutputs : TComputationTopologyTypeoutputsArray;
   Protected
     //Property setters
-    Procedure SetcomputationId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinputs(AIndex : Integer; AValue : TComputationTopologyinputs); virtual;
-    Procedure SetkeyRanges(AIndex : Integer; AValue : TComputationTopologykeyRanges); virtual;
-    Procedure Setoutputs(AIndex : Integer; AValue : TComputationTopologyoutputs); virtual;
+    Procedure SetcomputationId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setinputs(AIndex : Integer; AValue : TComputationTopologyTypeinputsArray); virtual;
+    Procedure SetkeyRanges(AIndex : Integer; AValue : TComputationTopologyTypekeyRangesArray); virtual;
+    Procedure Setoutputs(AIndex : Integer; AValue : TComputationTopologyTypeoutputsArray); virtual;
   Public
   Published
-    Property computationId : string Index 0 Read FcomputationId Write SetcomputationId;
-    Property inputs : TComputationTopologyinputs Index 8 Read Finputs Write Setinputs;
-    Property keyRanges : TComputationTopologykeyRanges Index 16 Read FkeyRanges Write SetkeyRanges;
-    Property outputs : TComputationTopologyoutputs Index 24 Read Foutputs Write Setoutputs;
+    Property computationId : String Index 0 Read FcomputationId Write SetcomputationId;
+    Property inputs : TComputationTopologyTypeinputsArray Index 8 Read Finputs Write Setinputs;
+    Property keyRanges : TComputationTopologyTypekeyRangesArray Index 16 Read FkeyRanges Write SetkeyRanges;
+    Property outputs : TComputationTopologyTypeoutputsArray Index 24 Read Foutputs Write Setoutputs;
   end;
   TComputationTopologyClass = Class of TComputationTopology;
-  
-  { --------------------------------------------------------------------
-    TComputationTopologyinputs
-    --------------------------------------------------------------------}
-  
-  TComputationTopologyinputs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TComputationTopologyinputsClass = Class of TComputationTopologyinputs;
-  
-  { --------------------------------------------------------------------
-    TComputationTopologykeyRanges
-    --------------------------------------------------------------------}
-  
-  TComputationTopologykeyRanges = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TComputationTopologykeyRangesClass = Class of TComputationTopologykeyRanges;
-  
-  { --------------------------------------------------------------------
-    TComputationTopologyoutputs
-    --------------------------------------------------------------------}
-  
-  TComputationTopologyoutputs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TComputationTopologyoutputsClass = Class of TComputationTopologyoutputs;
   
   { --------------------------------------------------------------------
     TDataDiskAssignment
@@ -401,31 +289,18 @@ type
   
   TDataDiskAssignment = Class(TGoogleBaseObject)
   Private
-    FdataDisks : TDataDiskAssignmentdataDisks;
-    FvmInstance : string;
+    FdataDisks : TStringArray;
+    FvmInstance : String;
   Protected
     //Property setters
-    Procedure SetdataDisks(AIndex : Integer; AValue : TDataDiskAssignmentdataDisks); virtual;
-    Procedure SetvmInstance(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdataDisks(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetvmInstance(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property dataDisks : TDataDiskAssignmentdataDisks Index 0 Read FdataDisks Write SetdataDisks;
-    Property vmInstance : string Index 8 Read FvmInstance Write SetvmInstance;
+    Property dataDisks : TStringArray Index 0 Read FdataDisks Write SetdataDisks;
+    Property vmInstance : String Index 8 Read FvmInstance Write SetvmInstance;
   end;
   TDataDiskAssignmentClass = Class of TDataDiskAssignment;
-  
-  { --------------------------------------------------------------------
-    TDataDiskAssignmentdataDisks
-    --------------------------------------------------------------------}
-  
-  TDataDiskAssignmentdataDisks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDataDiskAssignmentdataDisksClass = Class of TDataDiskAssignmentdataDisks;
   
   { --------------------------------------------------------------------
     TDerivedSource
@@ -433,15 +308,15 @@ type
   
   TDerivedSource = Class(TGoogleBaseObject)
   Private
-    FderivationMode : string;
+    FderivationMode : String;
     Fsource : TSource;
   Protected
     //Property setters
-    Procedure SetderivationMode(AIndex : Integer; AValue : string); virtual;
+    Procedure SetderivationMode(AIndex : Integer; AValue : String); virtual;
     Procedure Setsource(AIndex : Integer; AValue : TSource); virtual;
   Public
   Published
-    Property derivationMode : string Index 0 Read FderivationMode Write SetderivationMode;
+    Property derivationMode : String Index 0 Read FderivationMode Write SetderivationMode;
     Property source : TSource Index 8 Read Fsource Write Setsource;
   end;
   TDerivedSourceClass = Class of TDerivedSource;
@@ -452,18 +327,18 @@ type
   
   TDisk = Class(TGoogleBaseObject)
   Private
-    FdiskType : string;
-    FmountPoint : string;
+    FdiskType : String;
+    FmountPoint : String;
     FsizeGb : integer;
   Protected
     //Property setters
-    Procedure SetdiskType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmountPoint(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdiskType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmountPoint(AIndex : Integer; AValue : String); virtual;
     Procedure SetsizeGb(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property diskType : string Index 0 Read FdiskType Write SetdiskType;
-    Property mountPoint : string Index 8 Read FmountPoint Write SetmountPoint;
+    Property diskType : String Index 0 Read FdiskType Write SetdiskType;
+    Property mountPoint : String Index 8 Read FmountPoint Write SetmountPoint;
     Property sizeGb : integer Index 16 Read FsizeGb Write SetsizeGb;
   end;
   TDiskClass = Class of TDisk;
@@ -488,109 +363,83 @@ type
   TDynamicSourceSplitClass = Class of TDynamicSourceSplit;
   
   { --------------------------------------------------------------------
+    TEnvironmentTypesdkPipelineOptions
+    --------------------------------------------------------------------}
+  
+  TEnvironmentTypesdkPipelineOptions = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TEnvironmentTypesdkPipelineOptionsClass = Class of TEnvironmentTypesdkPipelineOptions;
+  
+  { --------------------------------------------------------------------
+    TEnvironmentTypeuserAgent
+    --------------------------------------------------------------------}
+  
+  TEnvironmentTypeuserAgent = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TEnvironmentTypeuserAgentClass = Class of TEnvironmentTypeuserAgent;
+  
+  { --------------------------------------------------------------------
+    TEnvironmentTypeversion
+    --------------------------------------------------------------------}
+  
+  TEnvironmentTypeversion = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TEnvironmentTypeversionClass = Class of TEnvironmentTypeversion;
+  
+  { --------------------------------------------------------------------
     TEnvironment
     --------------------------------------------------------------------}
   
   TEnvironment = Class(TGoogleBaseObject)
   Private
-    FclusterManagerApiService : string;
-    Fdataset : string;
-    Fexperiments : TEnvironmentexperiments;
-    FsdkPipelineOptions : TEnvironmentsdkPipelineOptions;
-    FtempStoragePrefix : string;
-    FuserAgent : TEnvironmentuserAgent;
-    Fversion : TEnvironmentversion;
-    FworkerPools : TEnvironmentworkerPools;
+    FclusterManagerApiService : String;
+    Fdataset : String;
+    Fexperiments : TStringArray;
+    FsdkPipelineOptions : TEnvironmentTypesdkPipelineOptions;
+    FtempStoragePrefix : String;
+    FuserAgent : TEnvironmentTypeuserAgent;
+    Fversion : TEnvironmentTypeversion;
+    FworkerPools : TEnvironmentTypeworkerPoolsArray;
   Protected
     //Property setters
-    Procedure SetclusterManagerApiService(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdataset(AIndex : Integer; AValue : string); virtual;
-    Procedure Setexperiments(AIndex : Integer; AValue : TEnvironmentexperiments); virtual;
-    Procedure SetsdkPipelineOptions(AIndex : Integer; AValue : TEnvironmentsdkPipelineOptions); virtual;
-    Procedure SettempStoragePrefix(AIndex : Integer; AValue : string); virtual;
-    Procedure SetuserAgent(AIndex : Integer; AValue : TEnvironmentuserAgent); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : TEnvironmentversion); virtual;
-    Procedure SetworkerPools(AIndex : Integer; AValue : TEnvironmentworkerPools); virtual;
+    Procedure SetclusterManagerApiService(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdataset(AIndex : Integer; AValue : String); virtual;
+    Procedure Setexperiments(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetsdkPipelineOptions(AIndex : Integer; AValue : TEnvironmentTypesdkPipelineOptions); virtual;
+    Procedure SettempStoragePrefix(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuserAgent(AIndex : Integer; AValue : TEnvironmentTypeuserAgent); virtual;
+    Procedure Setversion(AIndex : Integer; AValue : TEnvironmentTypeversion); virtual;
+    Procedure SetworkerPools(AIndex : Integer; AValue : TEnvironmentTypeworkerPoolsArray); virtual;
   Public
   Published
-    Property clusterManagerApiService : string Index 0 Read FclusterManagerApiService Write SetclusterManagerApiService;
-    Property dataset : string Index 8 Read Fdataset Write Setdataset;
-    Property experiments : TEnvironmentexperiments Index 16 Read Fexperiments Write Setexperiments;
-    Property sdkPipelineOptions : TEnvironmentsdkPipelineOptions Index 24 Read FsdkPipelineOptions Write SetsdkPipelineOptions;
-    Property tempStoragePrefix : string Index 32 Read FtempStoragePrefix Write SettempStoragePrefix;
-    Property userAgent : TEnvironmentuserAgent Index 40 Read FuserAgent Write SetuserAgent;
-    Property version : TEnvironmentversion Index 48 Read Fversion Write Setversion;
-    Property workerPools : TEnvironmentworkerPools Index 56 Read FworkerPools Write SetworkerPools;
+    Property clusterManagerApiService : String Index 0 Read FclusterManagerApiService Write SetclusterManagerApiService;
+    Property dataset : String Index 8 Read Fdataset Write Setdataset;
+    Property experiments : TStringArray Index 16 Read Fexperiments Write Setexperiments;
+    Property sdkPipelineOptions : TEnvironmentTypesdkPipelineOptions Index 24 Read FsdkPipelineOptions Write SetsdkPipelineOptions;
+    Property tempStoragePrefix : String Index 32 Read FtempStoragePrefix Write SettempStoragePrefix;
+    Property userAgent : TEnvironmentTypeuserAgent Index 40 Read FuserAgent Write SetuserAgent;
+    Property version : TEnvironmentTypeversion Index 48 Read Fversion Write Setversion;
+    Property workerPools : TEnvironmentTypeworkerPoolsArray Index 56 Read FworkerPools Write SetworkerPools;
   end;
   TEnvironmentClass = Class of TEnvironment;
-  
-  { --------------------------------------------------------------------
-    TEnvironmentexperiments
-    --------------------------------------------------------------------}
-  
-  TEnvironmentexperiments = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TEnvironmentexperimentsClass = Class of TEnvironmentexperiments;
-  
-  { --------------------------------------------------------------------
-    TEnvironmentsdkPipelineOptions
-    --------------------------------------------------------------------}
-  
-  TEnvironmentsdkPipelineOptions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TEnvironmentsdkPipelineOptionsClass = Class of TEnvironmentsdkPipelineOptions;
-  
-  { --------------------------------------------------------------------
-    TEnvironmentuserAgent
-    --------------------------------------------------------------------}
-  
-  TEnvironmentuserAgent = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TEnvironmentuserAgentClass = Class of TEnvironmentuserAgent;
-  
-  { --------------------------------------------------------------------
-    TEnvironmentversion
-    --------------------------------------------------------------------}
-  
-  TEnvironmentversion = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TEnvironmentversionClass = Class of TEnvironmentversion;
-  
-  { --------------------------------------------------------------------
-    TEnvironmentworkerPools
-    --------------------------------------------------------------------}
-  
-  TEnvironmentworkerPools = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TEnvironmentworkerPoolsClass = Class of TEnvironmentworkerPools;
   
   { --------------------------------------------------------------------
     TFlattenInstruction
@@ -598,41 +447,15 @@ type
   
   TFlattenInstruction = Class(TGoogleBaseObject)
   Private
-    Finputs : TFlattenInstructioninputs;
+    Finputs : TFlattenInstructionTypeinputsArray;
   Protected
     //Property setters
-    Procedure Setinputs(AIndex : Integer; AValue : TFlattenInstructioninputs); virtual;
+    Procedure Setinputs(AIndex : Integer; AValue : TFlattenInstructionTypeinputsArray); virtual;
   Public
   Published
-    Property inputs : TFlattenInstructioninputs Index 0 Read Finputs Write Setinputs;
+    Property inputs : TFlattenInstructionTypeinputsArray Index 0 Read Finputs Write Setinputs;
   end;
   TFlattenInstructionClass = Class of TFlattenInstruction;
-  
-  { --------------------------------------------------------------------
-    TFlattenInstructioninputs
-    --------------------------------------------------------------------}
-  
-  TFlattenInstructioninputs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFlattenInstructioninputsClass = Class of TFlattenInstructioninputs;
-  
-  { --------------------------------------------------------------------
-    TGoogleprotobufValue
-    --------------------------------------------------------------------}
-  
-  TGoogleprotobufValue = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGoogleprotobufValueClass = Class of TGoogleprotobufValue;
   
   { --------------------------------------------------------------------
     TInstructionInput
@@ -654,29 +477,10 @@ type
   TInstructionInputClass = Class of TInstructionInput;
   
   { --------------------------------------------------------------------
-    TInstructionOutput
+    TInstructionOutputTypecodec
     --------------------------------------------------------------------}
   
-  TInstructionOutput = Class(TGoogleBaseObject)
-  Private
-    Fcodec : TInstructionOutputcodec;
-    Fname : string;
-  Protected
-    //Property setters
-    Procedure Setcodec(AIndex : Integer; AValue : TInstructionOutputcodec); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property codec : TInstructionOutputcodec Index 0 Read Fcodec Write Setcodec;
-    Property name : string Index 8 Read Fname Write Setname;
-  end;
-  TInstructionOutputClass = Class of TInstructionOutput;
-  
-  { --------------------------------------------------------------------
-    TInstructionOutputcodec
-    --------------------------------------------------------------------}
-  
-  TInstructionOutputcodec = Class(TGoogleBaseObject)
+  TInstructionOutputTypecodec = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -684,7 +488,26 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TInstructionOutputcodecClass = Class of TInstructionOutputcodec;
+  TInstructionOutputTypecodecClass = Class of TInstructionOutputTypecodec;
+  
+  { --------------------------------------------------------------------
+    TInstructionOutput
+    --------------------------------------------------------------------}
+  
+  TInstructionOutput = Class(TGoogleBaseObject)
+  Private
+    Fcodec : TInstructionOutputTypecodec;
+    Fname : String;
+  Protected
+    //Property setters
+    Procedure Setcodec(AIndex : Integer; AValue : TInstructionOutputTypecodec); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property codec : TInstructionOutputTypecodec Index 0 Read Fcodec Write Setcodec;
+    Property name : String Index 8 Read Fname Write Setname;
+  end;
+  TInstructionOutputClass = Class of TInstructionOutput;
   
   { --------------------------------------------------------------------
     TJob
@@ -692,81 +515,52 @@ type
   
   TJob = Class(TGoogleBaseObject)
   Private
-    FcreateTime : string;
-    FcurrentState : string;
-    FcurrentStateTime : string;
+    FcreateTime : String;
+    FcurrentState : String;
+    FcurrentStateTime : String;
     Fenvironment : TEnvironment;
     FexecutionInfo : TJobExecutionInfo;
-    Fid : string;
-    Fname : string;
-    FprojectId : string;
-    FrequestedState : string;
-    Fsteps : TJobsteps;
-    F_type : string;
+    Fid : String;
+    Fname : String;
+    FprojectId : String;
+    FrequestedState : String;
+    Fsteps : TJobTypestepsArray;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetcreateTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcurrentState(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcurrentStateTime(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreateTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrentState(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrentStateTime(AIndex : Integer; AValue : String); virtual;
     Procedure Setenvironment(AIndex : Integer; AValue : TEnvironment); virtual;
     Procedure SetexecutionInfo(AIndex : Integer; AValue : TJobExecutionInfo); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrequestedState(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsteps(AIndex : Integer; AValue : TJobsteps); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrequestedState(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsteps(AIndex : Integer; AValue : TJobTypestepsArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property createTime : string Index 0 Read FcreateTime Write SetcreateTime;
-    Property currentState : string Index 8 Read FcurrentState Write SetcurrentState;
-    Property currentStateTime : string Index 16 Read FcurrentStateTime Write SetcurrentStateTime;
+    Property createTime : String Index 0 Read FcreateTime Write SetcreateTime;
+    Property currentState : String Index 8 Read FcurrentState Write SetcurrentState;
+    Property currentStateTime : String Index 16 Read FcurrentStateTime Write SetcurrentStateTime;
     Property environment : TEnvironment Index 24 Read Fenvironment Write Setenvironment;
     Property executionInfo : TJobExecutionInfo Index 32 Read FexecutionInfo Write SetexecutionInfo;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property name : string Index 48 Read Fname Write Setname;
-    Property projectId : string Index 56 Read FprojectId Write SetprojectId;
-    Property requestedState : string Index 64 Read FrequestedState Write SetrequestedState;
-    Property steps : TJobsteps Index 72 Read Fsteps Write Setsteps;
-    Property _type : string Index 80 Read F_type Write Set_type;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property name : String Index 48 Read Fname Write Setname;
+    Property projectId : String Index 56 Read FprojectId Write SetprojectId;
+    Property requestedState : String Index 64 Read FrequestedState Write SetrequestedState;
+    Property steps : TJobTypestepsArray Index 72 Read Fsteps Write Setsteps;
+    Property _type : String Index 80 Read F_type Write Set_type;
   end;
   TJobClass = Class of TJob;
   
   { --------------------------------------------------------------------
-    TJobsteps
+    TJobExecutionInfoTypestages
     --------------------------------------------------------------------}
   
-  TJobsteps = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobstepsClass = Class of TJobsteps;
-  
-  { --------------------------------------------------------------------
-    TJobExecutionInfo
-    --------------------------------------------------------------------}
-  
-  TJobExecutionInfo = Class(TGoogleBaseObject)
-  Private
-    Fstages : TJobExecutionInfostages;
-  Protected
-    //Property setters
-    Procedure Setstages(AIndex : Integer; AValue : TJobExecutionInfostages); virtual;
-  Public
-  Published
-    Property stages : TJobExecutionInfostages Index 0 Read Fstages Write Setstages;
-  end;
-  TJobExecutionInfoClass = Class of TJobExecutionInfo;
-  
-  { --------------------------------------------------------------------
-    TJobExecutionInfostages
-    --------------------------------------------------------------------}
-  
-  TJobExecutionInfostages = Class(TGoogleBaseObject)
+  TJobExecutionInfoTypestages = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -774,7 +568,23 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TJobExecutionInfostagesClass = Class of TJobExecutionInfostages;
+  TJobExecutionInfoTypestagesClass = Class of TJobExecutionInfoTypestages;
+  
+  { --------------------------------------------------------------------
+    TJobExecutionInfo
+    --------------------------------------------------------------------}
+  
+  TJobExecutionInfo = Class(TGoogleBaseObject)
+  Private
+    Fstages : TJobExecutionInfoTypestages;
+  Protected
+    //Property setters
+    Procedure Setstages(AIndex : Integer; AValue : TJobExecutionInfoTypestages); virtual;
+  Public
+  Published
+    Property stages : TJobExecutionInfoTypestages Index 0 Read Fstages Write Setstages;
+  end;
+  TJobExecutionInfoClass = Class of TJobExecutionInfo;
   
   { --------------------------------------------------------------------
     TJobExecutionStageInfo
@@ -782,28 +592,15 @@ type
   
   TJobExecutionStageInfo = Class(TGoogleBaseObject)
   Private
-    FstepName : TJobExecutionStageInfostepName;
+    FstepName : TStringArray;
   Protected
     //Property setters
-    Procedure SetstepName(AIndex : Integer; AValue : TJobExecutionStageInfostepName); virtual;
+    Procedure SetstepName(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property stepName : TJobExecutionStageInfostepName Index 0 Read FstepName Write SetstepName;
+    Property stepName : TStringArray Index 0 Read FstepName Write SetstepName;
   end;
   TJobExecutionStageInfoClass = Class of TJobExecutionStageInfo;
-  
-  { --------------------------------------------------------------------
-    TJobExecutionStageInfostepName
-    --------------------------------------------------------------------}
-  
-  TJobExecutionStageInfostepName = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobExecutionStageInfostepNameClass = Class of TJobExecutionStageInfostepName;
   
   { --------------------------------------------------------------------
     TJobMessage
@@ -811,22 +608,22 @@ type
   
   TJobMessage = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    FmessageImportance : string;
-    FmessageText : string;
-    Ftime : string;
+    Fid : String;
+    FmessageImportance : String;
+    FmessageText : String;
+    Ftime : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmessageImportance(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmessageText(AIndex : Integer; AValue : string); virtual;
-    Procedure Settime(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmessageImportance(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmessageText(AIndex : Integer; AValue : String); virtual;
+    Procedure Settime(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property messageImportance : string Index 8 Read FmessageImportance Write SetmessageImportance;
-    Property messageText : string Index 16 Read FmessageText Write SetmessageText;
-    Property time : string Index 24 Read Ftime Write Settime;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property messageImportance : String Index 8 Read FmessageImportance Write SetmessageImportance;
+    Property messageText : String Index 16 Read FmessageText Write SetmessageText;
+    Property time : String Index 24 Read Ftime Write Settime;
   end;
   TJobMessageClass = Class of TJobMessage;
   
@@ -836,31 +633,18 @@ type
   
   TJobMetrics = Class(TGoogleBaseObject)
   Private
-    FmetricTime : string;
-    Fmetrics : TJobMetricsmetrics;
+    FmetricTime : String;
+    Fmetrics : TJobMetricsTypemetricsArray;
   Protected
     //Property setters
-    Procedure SetmetricTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmetrics(AIndex : Integer; AValue : TJobMetricsmetrics); virtual;
+    Procedure SetmetricTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmetrics(AIndex : Integer; AValue : TJobMetricsTypemetricsArray); virtual;
   Public
   Published
-    Property metricTime : string Index 0 Read FmetricTime Write SetmetricTime;
-    Property metrics : TJobMetricsmetrics Index 8 Read Fmetrics Write Setmetrics;
+    Property metricTime : String Index 0 Read FmetricTime Write SetmetricTime;
+    Property metrics : TJobMetricsTypemetricsArray Index 8 Read Fmetrics Write Setmetrics;
   end;
   TJobMetricsClass = Class of TJobMetrics;
-  
-  { --------------------------------------------------------------------
-    TJobMetricsmetrics
-    --------------------------------------------------------------------}
-  
-  TJobMetricsmetrics = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobMetricsmetricsClass = Class of TJobMetricsmetrics;
   
   { --------------------------------------------------------------------
     TKeyRangeDataDiskAssignment
@@ -868,20 +652,20 @@ type
   
   TKeyRangeDataDiskAssignment = Class(TGoogleBaseObject)
   Private
-    FdataDisk : string;
-    F_end : string;
-    Fstart : string;
+    FdataDisk : String;
+    F_end : String;
+    Fstart : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdataDisk(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_end(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdataDisk(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property dataDisk : string Index 0 Read FdataDisk Write SetdataDisk;
-    Property _end : string Index 8 Read F_end Write Set_end;
-    Property start : string Index 16 Read Fstart Write Setstart;
+    Property dataDisk : String Index 0 Read FdataDisk Write SetdataDisk;
+    Property _end : String Index 8 Read F_end Write Set_end;
+    Property start : String Index 16 Read Fstart Write Setstart;
   end;
   TKeyRangeDataDiskAssignmentClass = Class of TKeyRangeDataDiskAssignment;
   
@@ -891,26 +675,26 @@ type
   
   TKeyRangeLocation = Class(TGoogleBaseObject)
   Private
-    FdataDisk : string;
-    FdeliveryEndpoint : string;
-    F_end : string;
-    FpersistentDirectory : string;
-    Fstart : string;
+    FdataDisk : String;
+    FdeliveryEndpoint : String;
+    F_end : String;
+    FpersistentDirectory : String;
+    Fstart : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdataDisk(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdeliveryEndpoint(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_end(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpersistentDirectory(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdataDisk(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdeliveryEndpoint(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpersistentDirectory(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property dataDisk : string Index 0 Read FdataDisk Write SetdataDisk;
-    Property deliveryEndpoint : string Index 8 Read FdeliveryEndpoint Write SetdeliveryEndpoint;
-    Property _end : string Index 16 Read F_end Write Set_end;
-    Property persistentDirectory : string Index 24 Read FpersistentDirectory Write SetpersistentDirectory;
-    Property start : string Index 32 Read Fstart Write Setstart;
+    Property dataDisk : String Index 0 Read FdataDisk Write SetdataDisk;
+    Property deliveryEndpoint : String Index 8 Read FdeliveryEndpoint Write SetdeliveryEndpoint;
+    Property _end : String Index 16 Read F_end Write Set_end;
+    Property persistentDirectory : String Index 24 Read FpersistentDirectory Write SetpersistentDirectory;
+    Property start : String Index 32 Read Fstart Write Setstart;
   end;
   TKeyRangeLocationClass = Class of TKeyRangeLocation;
   
@@ -920,53 +704,27 @@ type
   
   TLeaseWorkItemRequest = Class(TGoogleBaseObject)
   Private
-    FcurrentWorkerTime : string;
-    FrequestedLeaseDuration : string;
-    FworkItemTypes : TLeaseWorkItemRequestworkItemTypes;
-    FworkerCapabilities : TLeaseWorkItemRequestworkerCapabilities;
-    FworkerId : string;
+    FcurrentWorkerTime : String;
+    FrequestedLeaseDuration : String;
+    FworkItemTypes : TStringArray;
+    FworkerCapabilities : TStringArray;
+    FworkerId : String;
   Protected
     //Property setters
-    Procedure SetcurrentWorkerTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrequestedLeaseDuration(AIndex : Integer; AValue : string); virtual;
-    Procedure SetworkItemTypes(AIndex : Integer; AValue : TLeaseWorkItemRequestworkItemTypes); virtual;
-    Procedure SetworkerCapabilities(AIndex : Integer; AValue : TLeaseWorkItemRequestworkerCapabilities); virtual;
-    Procedure SetworkerId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcurrentWorkerTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrequestedLeaseDuration(AIndex : Integer; AValue : String); virtual;
+    Procedure SetworkItemTypes(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetworkerCapabilities(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetworkerId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property currentWorkerTime : string Index 0 Read FcurrentWorkerTime Write SetcurrentWorkerTime;
-    Property requestedLeaseDuration : string Index 8 Read FrequestedLeaseDuration Write SetrequestedLeaseDuration;
-    Property workItemTypes : TLeaseWorkItemRequestworkItemTypes Index 16 Read FworkItemTypes Write SetworkItemTypes;
-    Property workerCapabilities : TLeaseWorkItemRequestworkerCapabilities Index 24 Read FworkerCapabilities Write SetworkerCapabilities;
-    Property workerId : string Index 32 Read FworkerId Write SetworkerId;
+    Property currentWorkerTime : String Index 0 Read FcurrentWorkerTime Write SetcurrentWorkerTime;
+    Property requestedLeaseDuration : String Index 8 Read FrequestedLeaseDuration Write SetrequestedLeaseDuration;
+    Property workItemTypes : TStringArray Index 16 Read FworkItemTypes Write SetworkItemTypes;
+    Property workerCapabilities : TStringArray Index 24 Read FworkerCapabilities Write SetworkerCapabilities;
+    Property workerId : String Index 32 Read FworkerId Write SetworkerId;
   end;
   TLeaseWorkItemRequestClass = Class of TLeaseWorkItemRequest;
-  
-  { --------------------------------------------------------------------
-    TLeaseWorkItemRequestworkItemTypes
-    --------------------------------------------------------------------}
-  
-  TLeaseWorkItemRequestworkItemTypes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLeaseWorkItemRequestworkItemTypesClass = Class of TLeaseWorkItemRequestworkItemTypes;
-  
-  { --------------------------------------------------------------------
-    TLeaseWorkItemRequestworkerCapabilities
-    --------------------------------------------------------------------}
-  
-  TLeaseWorkItemRequestworkerCapabilities = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLeaseWorkItemRequestworkerCapabilitiesClass = Class of TLeaseWorkItemRequestworkerCapabilities;
   
   { --------------------------------------------------------------------
     TLeaseWorkItemResponse
@@ -974,28 +732,15 @@ type
   
   TLeaseWorkItemResponse = Class(TGoogleBaseObject)
   Private
-    FworkItems : TLeaseWorkItemResponseworkItems;
+    FworkItems : TLeaseWorkItemResponseTypeworkItemsArray;
   Protected
     //Property setters
-    Procedure SetworkItems(AIndex : Integer; AValue : TLeaseWorkItemResponseworkItems); virtual;
+    Procedure SetworkItems(AIndex : Integer; AValue : TLeaseWorkItemResponseTypeworkItemsArray); virtual;
   Public
   Published
-    Property workItems : TLeaseWorkItemResponseworkItems Index 0 Read FworkItems Write SetworkItems;
+    Property workItems : TLeaseWorkItemResponseTypeworkItemsArray Index 0 Read FworkItems Write SetworkItems;
   end;
   TLeaseWorkItemResponseClass = Class of TLeaseWorkItemResponse;
-  
-  { --------------------------------------------------------------------
-    TLeaseWorkItemResponseworkItems
-    --------------------------------------------------------------------}
-  
-  TLeaseWorkItemResponseworkItems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLeaseWorkItemResponseworkItemsClass = Class of TLeaseWorkItemResponseworkItems;
   
   { --------------------------------------------------------------------
     TListJobMessagesResponse
@@ -1003,31 +748,18 @@ type
   
   TListJobMessagesResponse = Class(TGoogleBaseObject)
   Private
-    FjobMessages : TListJobMessagesResponsejobMessages;
-    FnextPageToken : string;
+    FjobMessages : TListJobMessagesResponseTypejobMessagesArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure SetjobMessages(AIndex : Integer; AValue : TListJobMessagesResponsejobMessages); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetjobMessages(AIndex : Integer; AValue : TListJobMessagesResponseTypejobMessagesArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property jobMessages : TListJobMessagesResponsejobMessages Index 0 Read FjobMessages Write SetjobMessages;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property jobMessages : TListJobMessagesResponseTypejobMessagesArray Index 0 Read FjobMessages Write SetjobMessages;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListJobMessagesResponseClass = Class of TListJobMessagesResponse;
-  
-  { --------------------------------------------------------------------
-    TListJobMessagesResponsejobMessages
-    --------------------------------------------------------------------}
-  
-  TListJobMessagesResponsejobMessages = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListJobMessagesResponsejobMessagesClass = Class of TListJobMessagesResponsejobMessages;
   
   { --------------------------------------------------------------------
     TListJobsResponse
@@ -1035,31 +767,18 @@ type
   
   TListJobsResponse = Class(TGoogleBaseObject)
   Private
-    Fjobs : TListJobsResponsejobs;
-    FnextPageToken : string;
+    Fjobs : TListJobsResponseTypejobsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setjobs(AIndex : Integer; AValue : TListJobsResponsejobs); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setjobs(AIndex : Integer; AValue : TListJobsResponseTypejobsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property jobs : TListJobsResponsejobs Index 0 Read Fjobs Write Setjobs;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property jobs : TListJobsResponseTypejobsArray Index 0 Read Fjobs Write Setjobs;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListJobsResponseClass = Class of TListJobsResponse;
-  
-  { --------------------------------------------------------------------
-    TListJobsResponsejobs
-    --------------------------------------------------------------------}
-  
-  TListJobsResponsejobs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListJobsResponsejobsClass = Class of TListJobsResponsejobs;
   
   { --------------------------------------------------------------------
     TMapTask
@@ -1067,62 +786,27 @@ type
   
   TMapTask = Class(TGoogleBaseObject)
   Private
-    Finstructions : TMapTaskinstructions;
-    FstageName : string;
-    FsystemName : string;
+    Finstructions : TMapTaskTypeinstructionsArray;
+    FstageName : String;
+    FsystemName : String;
   Protected
     //Property setters
-    Procedure Setinstructions(AIndex : Integer; AValue : TMapTaskinstructions); virtual;
-    Procedure SetstageName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsystemName(AIndex : Integer; AValue : string); virtual;
+    Procedure Setinstructions(AIndex : Integer; AValue : TMapTaskTypeinstructionsArray); virtual;
+    Procedure SetstageName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsystemName(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property instructions : TMapTaskinstructions Index 0 Read Finstructions Write Setinstructions;
-    Property stageName : string Index 8 Read FstageName Write SetstageName;
-    Property systemName : string Index 16 Read FsystemName Write SetsystemName;
+    Property instructions : TMapTaskTypeinstructionsArray Index 0 Read Finstructions Write Setinstructions;
+    Property stageName : String Index 8 Read FstageName Write SetstageName;
+    Property systemName : String Index 16 Read FsystemName Write SetsystemName;
   end;
   TMapTaskClass = Class of TMapTask;
   
   { --------------------------------------------------------------------
-    TMapTaskinstructions
+    TMetricStructuredNameTypecontext
     --------------------------------------------------------------------}
   
-  TMapTaskinstructions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMapTaskinstructionsClass = Class of TMapTaskinstructions;
-  
-  { --------------------------------------------------------------------
-    TMetricStructuredName
-    --------------------------------------------------------------------}
-  
-  TMetricStructuredName = Class(TGoogleBaseObject)
-  Private
-    Fcontext : TMetricStructuredNamecontext;
-    Fname : string;
-    Forigin : string;
-  Protected
-    //Property setters
-    Procedure Setcontext(AIndex : Integer; AValue : TMetricStructuredNamecontext); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setorigin(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property context : TMetricStructuredNamecontext Index 0 Read Fcontext Write Setcontext;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property origin : string Index 16 Read Forigin Write Setorigin;
-  end;
-  TMetricStructuredNameClass = Class of TMetricStructuredName;
-  
-  { --------------------------------------------------------------------
-    TMetricStructuredNamecontext
-    --------------------------------------------------------------------}
-  
-  TMetricStructuredNamecontext = Class(TGoogleBaseObject)
+  TMetricStructuredNameTypecontext = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -1130,7 +814,29 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TMetricStructuredNamecontextClass = Class of TMetricStructuredNamecontext;
+  TMetricStructuredNameTypecontextClass = Class of TMetricStructuredNameTypecontext;
+  
+  { --------------------------------------------------------------------
+    TMetricStructuredName
+    --------------------------------------------------------------------}
+  
+  TMetricStructuredName = Class(TGoogleBaseObject)
+  Private
+    Fcontext : TMetricStructuredNameTypecontext;
+    Fname : String;
+    Forigin : String;
+  Protected
+    //Property setters
+    Procedure Setcontext(AIndex : Integer; AValue : TMetricStructuredNameTypecontext); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setorigin(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property context : TMetricStructuredNameTypecontext Index 0 Read Fcontext Write Setcontext;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property origin : String Index 16 Read Forigin Write Setorigin;
+  end;
+  TMetricStructuredNameClass = Class of TMetricStructuredName;
   
   { --------------------------------------------------------------------
     TMetricUpdate
@@ -1140,36 +846,36 @@ type
   Private
     Fcumulative : boolean;
     Finternal : TGoogleprotobufValue;
-    Fkind : string;
+    Fkind : String;
     FmeanCount : TGoogleprotobufValue;
     FmeanSum : TGoogleprotobufValue;
     Fname : TMetricStructuredName;
     Fscalar : TGoogleprotobufValue;
     F_set : TGoogleprotobufValue;
-    FupdateTime : string;
+    FupdateTime : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcumulative(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setinternal(AIndex : Integer; AValue : TGoogleprotobufValue); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetmeanCount(AIndex : Integer; AValue : TGoogleprotobufValue); virtual;
     Procedure SetmeanSum(AIndex : Integer; AValue : TGoogleprotobufValue); virtual;
     Procedure Setname(AIndex : Integer; AValue : TMetricStructuredName); virtual;
     Procedure Setscalar(AIndex : Integer; AValue : TGoogleprotobufValue); virtual;
     Procedure Set_set(AIndex : Integer; AValue : TGoogleprotobufValue); virtual;
-    Procedure SetupdateTime(AIndex : Integer; AValue : string); virtual;
+    Procedure SetupdateTime(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property cumulative : boolean Index 0 Read Fcumulative Write Setcumulative;
     Property internal : TGoogleprotobufValue Index 8 Read Finternal Write Setinternal;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property meanCount : TGoogleprotobufValue Index 24 Read FmeanCount Write SetmeanCount;
     Property meanSum : TGoogleprotobufValue Index 32 Read FmeanSum Write SetmeanSum;
     Property name : TMetricStructuredName Index 40 Read Fname Write Setname;
     Property scalar : TGoogleprotobufValue Index 48 Read Fscalar Write Setscalar;
     Property _set : TGoogleprotobufValue Index 56 Read F_set Write Set_set;
-    Property updateTime : string Index 64 Read FupdateTime Write SetupdateTime;
+    Property updateTime : String Index 64 Read FupdateTime Write SetupdateTime;
   end;
   TMetricUpdateClass = Class of TMetricUpdate;
   
@@ -1179,13 +885,13 @@ type
   
   TMountedDataDisk = Class(TGoogleBaseObject)
   Private
-    FdataDisk : string;
+    FdataDisk : String;
   Protected
     //Property setters
-    Procedure SetdataDisk(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdataDisk(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property dataDisk : string Index 0 Read FdataDisk Write SetdataDisk;
+    Property dataDisk : String Index 0 Read FdataDisk Write SetdataDisk;
   end;
   TMountedDataDiskClass = Class of TMountedDataDisk;
   
@@ -1195,13 +901,13 @@ type
   
   TMultiOutputInfo = Class(TGoogleBaseObject)
   Private
-    Ftag : string;
+    Ftag : String;
   Protected
     //Property setters
-    Procedure Settag(AIndex : Integer; AValue : string); virtual;
+    Procedure Settag(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property tag : string Index 0 Read Ftag Write Settag;
+    Property tag : String Index 0 Read Ftag Write Settag;
   end;
   TMultiOutputInfoClass = Class of TMultiOutputInfo;
   
@@ -1211,18 +917,32 @@ type
   
   TPackage = Class(TGoogleBaseObject)
   Private
-    Flocation : string;
-    Fname : string;
+    Flocation : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property location : string Index 0 Read Flocation Write Setlocation;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property location : String Index 0 Read Flocation Write Setlocation;
+    Property name : String Index 8 Read Fname Write Setname;
   end;
   TPackageClass = Class of TPackage;
+  
+  { --------------------------------------------------------------------
+    TParDoInstructionTypeuserFn
+    --------------------------------------------------------------------}
+  
+  TParDoInstructionTypeuserFn = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TParDoInstructionTypeuserFnClass = Class of TParDoInstructionTypeuserFn;
   
   { --------------------------------------------------------------------
     TParDoInstruction
@@ -1231,66 +951,26 @@ type
   TParDoInstruction = Class(TGoogleBaseObject)
   Private
     Finput : TInstructionInput;
-    FmultiOutputInfos : TParDoInstructionmultiOutputInfos;
+    FmultiOutputInfos : TParDoInstructionTypemultiOutputInfosArray;
     FnumOutputs : integer;
-    FsideInputs : TParDoInstructionsideInputs;
-    FuserFn : TParDoInstructionuserFn;
+    FsideInputs : TParDoInstructionTypesideInputsArray;
+    FuserFn : TParDoInstructionTypeuserFn;
   Protected
     //Property setters
     Procedure Setinput(AIndex : Integer; AValue : TInstructionInput); virtual;
-    Procedure SetmultiOutputInfos(AIndex : Integer; AValue : TParDoInstructionmultiOutputInfos); virtual;
+    Procedure SetmultiOutputInfos(AIndex : Integer; AValue : TParDoInstructionTypemultiOutputInfosArray); virtual;
     Procedure SetnumOutputs(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetsideInputs(AIndex : Integer; AValue : TParDoInstructionsideInputs); virtual;
-    Procedure SetuserFn(AIndex : Integer; AValue : TParDoInstructionuserFn); virtual;
+    Procedure SetsideInputs(AIndex : Integer; AValue : TParDoInstructionTypesideInputsArray); virtual;
+    Procedure SetuserFn(AIndex : Integer; AValue : TParDoInstructionTypeuserFn); virtual;
   Public
   Published
     Property input : TInstructionInput Index 0 Read Finput Write Setinput;
-    Property multiOutputInfos : TParDoInstructionmultiOutputInfos Index 8 Read FmultiOutputInfos Write SetmultiOutputInfos;
+    Property multiOutputInfos : TParDoInstructionTypemultiOutputInfosArray Index 8 Read FmultiOutputInfos Write SetmultiOutputInfos;
     Property numOutputs : integer Index 16 Read FnumOutputs Write SetnumOutputs;
-    Property sideInputs : TParDoInstructionsideInputs Index 24 Read FsideInputs Write SetsideInputs;
-    Property userFn : TParDoInstructionuserFn Index 32 Read FuserFn Write SetuserFn;
+    Property sideInputs : TParDoInstructionTypesideInputsArray Index 24 Read FsideInputs Write SetsideInputs;
+    Property userFn : TParDoInstructionTypeuserFn Index 32 Read FuserFn Write SetuserFn;
   end;
   TParDoInstructionClass = Class of TParDoInstruction;
-  
-  { --------------------------------------------------------------------
-    TParDoInstructionmultiOutputInfos
-    --------------------------------------------------------------------}
-  
-  TParDoInstructionmultiOutputInfos = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TParDoInstructionmultiOutputInfosClass = Class of TParDoInstructionmultiOutputInfos;
-  
-  { --------------------------------------------------------------------
-    TParDoInstructionsideInputs
-    --------------------------------------------------------------------}
-  
-  TParDoInstructionsideInputs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TParDoInstructionsideInputsClass = Class of TParDoInstructionsideInputs;
-  
-  { --------------------------------------------------------------------
-    TParDoInstructionuserFn
-    --------------------------------------------------------------------}
-  
-  TParDoInstructionuserFn = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TParDoInstructionuserFnClass = Class of TParDoInstructionuserFn;
   
   { --------------------------------------------------------------------
     TParallelInstruction
@@ -1299,48 +979,63 @@ type
   TParallelInstruction = Class(TGoogleBaseObject)
   Private
     Fflatten : TFlattenInstruction;
-    Fname : string;
-    Foutputs : TParallelInstructionoutputs;
+    Fname : String;
+    Foutputs : TParallelInstructionTypeoutputsArray;
     FparDo : TParDoInstruction;
     FpartialGroupByKey : TPartialGroupByKeyInstruction;
     Fread : TReadInstruction;
-    FsystemName : string;
+    FsystemName : String;
     Fwrite : TWriteInstruction;
   Protected
     //Property setters
     Procedure Setflatten(AIndex : Integer; AValue : TFlattenInstruction); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setoutputs(AIndex : Integer; AValue : TParallelInstructionoutputs); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setoutputs(AIndex : Integer; AValue : TParallelInstructionTypeoutputsArray); virtual;
     Procedure SetparDo(AIndex : Integer; AValue : TParDoInstruction); virtual;
     Procedure SetpartialGroupByKey(AIndex : Integer; AValue : TPartialGroupByKeyInstruction); virtual;
     Procedure Setread(AIndex : Integer; AValue : TReadInstruction); virtual;
-    Procedure SetsystemName(AIndex : Integer; AValue : string); virtual;
+    Procedure SetsystemName(AIndex : Integer; AValue : String); virtual;
     Procedure Setwrite(AIndex : Integer; AValue : TWriteInstruction); virtual;
   Public
   Published
     Property flatten : TFlattenInstruction Index 0 Read Fflatten Write Setflatten;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property outputs : TParallelInstructionoutputs Index 16 Read Foutputs Write Setoutputs;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property outputs : TParallelInstructionTypeoutputsArray Index 16 Read Foutputs Write Setoutputs;
     Property parDo : TParDoInstruction Index 24 Read FparDo Write SetparDo;
     Property partialGroupByKey : TPartialGroupByKeyInstruction Index 32 Read FpartialGroupByKey Write SetpartialGroupByKey;
     Property read : TReadInstruction Index 40 Read Fread Write Setread;
-    Property systemName : string Index 48 Read FsystemName Write SetsystemName;
+    Property systemName : String Index 48 Read FsystemName Write SetsystemName;
     Property write : TWriteInstruction Index 56 Read Fwrite Write Setwrite;
   end;
   TParallelInstructionClass = Class of TParallelInstruction;
   
   { --------------------------------------------------------------------
-    TParallelInstructionoutputs
+    TPartialGroupByKeyInstructionTypeinputElementCodec
     --------------------------------------------------------------------}
   
-  TParallelInstructionoutputs = Class(TGoogleBaseObject)
+  TPartialGroupByKeyInstructionTypeinputElementCodec = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TParallelInstructionoutputsClass = Class of TParallelInstructionoutputs;
+  TPartialGroupByKeyInstructionTypeinputElementCodecClass = Class of TPartialGroupByKeyInstructionTypeinputElementCodec;
+  
+  { --------------------------------------------------------------------
+    TPartialGroupByKeyInstructionTypevalueCombiningFn
+    --------------------------------------------------------------------}
+  
+  TPartialGroupByKeyInstructionTypevalueCombiningFn = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TPartialGroupByKeyInstructionTypevalueCombiningFnClass = Class of TPartialGroupByKeyInstructionTypevalueCombiningFn;
   
   { --------------------------------------------------------------------
     TPartialGroupByKeyInstruction
@@ -1349,48 +1044,20 @@ type
   TPartialGroupByKeyInstruction = Class(TGoogleBaseObject)
   Private
     Finput : TInstructionInput;
-    FinputElementCodec : TPartialGroupByKeyInstructioninputElementCodec;
-    FvalueCombiningFn : TPartialGroupByKeyInstructionvalueCombiningFn;
+    FinputElementCodec : TPartialGroupByKeyInstructionTypeinputElementCodec;
+    FvalueCombiningFn : TPartialGroupByKeyInstructionTypevalueCombiningFn;
   Protected
     //Property setters
     Procedure Setinput(AIndex : Integer; AValue : TInstructionInput); virtual;
-    Procedure SetinputElementCodec(AIndex : Integer; AValue : TPartialGroupByKeyInstructioninputElementCodec); virtual;
-    Procedure SetvalueCombiningFn(AIndex : Integer; AValue : TPartialGroupByKeyInstructionvalueCombiningFn); virtual;
+    Procedure SetinputElementCodec(AIndex : Integer; AValue : TPartialGroupByKeyInstructionTypeinputElementCodec); virtual;
+    Procedure SetvalueCombiningFn(AIndex : Integer; AValue : TPartialGroupByKeyInstructionTypevalueCombiningFn); virtual;
   Public
   Published
     Property input : TInstructionInput Index 0 Read Finput Write Setinput;
-    Property inputElementCodec : TPartialGroupByKeyInstructioninputElementCodec Index 8 Read FinputElementCodec Write SetinputElementCodec;
-    Property valueCombiningFn : TPartialGroupByKeyInstructionvalueCombiningFn Index 16 Read FvalueCombiningFn Write SetvalueCombiningFn;
+    Property inputElementCodec : TPartialGroupByKeyInstructionTypeinputElementCodec Index 8 Read FinputElementCodec Write SetinputElementCodec;
+    Property valueCombiningFn : TPartialGroupByKeyInstructionTypevalueCombiningFn Index 16 Read FvalueCombiningFn Write SetvalueCombiningFn;
   end;
   TPartialGroupByKeyInstructionClass = Class of TPartialGroupByKeyInstruction;
-  
-  { --------------------------------------------------------------------
-    TPartialGroupByKeyInstructioninputElementCodec
-    --------------------------------------------------------------------}
-  
-  TPartialGroupByKeyInstructioninputElementCodec = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TPartialGroupByKeyInstructioninputElementCodecClass = Class of TPartialGroupByKeyInstructioninputElementCodec;
-  
-  { --------------------------------------------------------------------
-    TPartialGroupByKeyInstructionvalueCombiningFn
-    --------------------------------------------------------------------}
-  
-  TPartialGroupByKeyInstructionvalueCombiningFn = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TPartialGroupByKeyInstructionvalueCombiningFnClass = Class of TPartialGroupByKeyInstructionvalueCombiningFn;
   
   { --------------------------------------------------------------------
     TPosition
@@ -1398,26 +1065,26 @@ type
   
   TPosition = Class(TGoogleBaseObject)
   Private
-    FbyteOffset : string;
+    FbyteOffset : String;
     F_end : boolean;
-    Fkey : string;
-    FrecordIndex : string;
-    FshufflePosition : string;
+    Fkey : String;
+    FrecordIndex : String;
+    FshufflePosition : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetbyteOffset(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbyteOffset(AIndex : Integer; AValue : String); virtual;
     Procedure Set_end(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrecordIndex(AIndex : Integer; AValue : string); virtual;
-    Procedure SetshufflePosition(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrecordIndex(AIndex : Integer; AValue : String); virtual;
+    Procedure SetshufflePosition(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property byteOffset : string Index 0 Read FbyteOffset Write SetbyteOffset;
+    Property byteOffset : String Index 0 Read FbyteOffset Write SetbyteOffset;
     Property _end : boolean Index 8 Read F_end Write Set_end;
-    Property key : string Index 16 Read Fkey Write Setkey;
-    Property recordIndex : string Index 24 Read FrecordIndex Write SetrecordIndex;
-    Property shufflePosition : string Index 32 Read FshufflePosition Write SetshufflePosition;
+    Property key : String Index 16 Read Fkey Write Setkey;
+    Property recordIndex : String Index 24 Read FrecordIndex Write SetrecordIndex;
+    Property shufflePosition : String Index 32 Read FshufflePosition Write SetshufflePosition;
   end;
   TPositionClass = Class of TPosition;
   
@@ -1428,27 +1095,27 @@ type
   TPubsubLocation = Class(TGoogleBaseObject)
   Private
     FdropLateData : boolean;
-    FidLabel : string;
-    Fsubscription : string;
-    FtimestampLabel : string;
-    Ftopic : string;
-    FtrackingSubscription : string;
+    FidLabel : String;
+    Fsubscription : String;
+    FtimestampLabel : String;
+    Ftopic : String;
+    FtrackingSubscription : String;
   Protected
     //Property setters
     Procedure SetdropLateData(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetidLabel(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsubscription(AIndex : Integer; AValue : string); virtual;
-    Procedure SettimestampLabel(AIndex : Integer; AValue : string); virtual;
-    Procedure Settopic(AIndex : Integer; AValue : string); virtual;
-    Procedure SettrackingSubscription(AIndex : Integer; AValue : string); virtual;
+    Procedure SetidLabel(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsubscription(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimestampLabel(AIndex : Integer; AValue : String); virtual;
+    Procedure Settopic(AIndex : Integer; AValue : String); virtual;
+    Procedure SettrackingSubscription(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property dropLateData : boolean Index 0 Read FdropLateData Write SetdropLateData;
-    Property idLabel : string Index 8 Read FidLabel Write SetidLabel;
-    Property subscription : string Index 16 Read Fsubscription Write Setsubscription;
-    Property timestampLabel : string Index 24 Read FtimestampLabel Write SettimestampLabel;
-    Property topic : string Index 32 Read Ftopic Write Settopic;
-    Property trackingSubscription : string Index 40 Read FtrackingSubscription Write SettrackingSubscription;
+    Property idLabel : String Index 8 Read FidLabel Write SetidLabel;
+    Property subscription : String Index 16 Read Fsubscription Write Setsubscription;
+    Property timestampLabel : String Index 24 Read FtimestampLabel Write SettimestampLabel;
+    Property topic : String Index 32 Read Ftopic Write Settopic;
+    Property trackingSubscription : String Index 40 Read FtrackingSubscription Write SettrackingSubscription;
   end;
   TPubsubLocationClass = Class of TPubsubLocation;
   
@@ -1474,34 +1141,21 @@ type
   
   TReportWorkItemStatusRequest = Class(TGoogleBaseObject)
   Private
-    FcurrentWorkerTime : string;
-    FworkItemStatuses : TReportWorkItemStatusRequestworkItemStatuses;
-    FworkerId : string;
+    FcurrentWorkerTime : String;
+    FworkItemStatuses : TReportWorkItemStatusRequestTypeworkItemStatusesArray;
+    FworkerId : String;
   Protected
     //Property setters
-    Procedure SetcurrentWorkerTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SetworkItemStatuses(AIndex : Integer; AValue : TReportWorkItemStatusRequestworkItemStatuses); virtual;
-    Procedure SetworkerId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcurrentWorkerTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetworkItemStatuses(AIndex : Integer; AValue : TReportWorkItemStatusRequestTypeworkItemStatusesArray); virtual;
+    Procedure SetworkerId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property currentWorkerTime : string Index 0 Read FcurrentWorkerTime Write SetcurrentWorkerTime;
-    Property workItemStatuses : TReportWorkItemStatusRequestworkItemStatuses Index 8 Read FworkItemStatuses Write SetworkItemStatuses;
-    Property workerId : string Index 16 Read FworkerId Write SetworkerId;
+    Property currentWorkerTime : String Index 0 Read FcurrentWorkerTime Write SetcurrentWorkerTime;
+    Property workItemStatuses : TReportWorkItemStatusRequestTypeworkItemStatusesArray Index 8 Read FworkItemStatuses Write SetworkItemStatuses;
+    Property workerId : String Index 16 Read FworkerId Write SetworkerId;
   end;
   TReportWorkItemStatusRequestClass = Class of TReportWorkItemStatusRequest;
-  
-  { --------------------------------------------------------------------
-    TReportWorkItemStatusRequestworkItemStatuses
-    --------------------------------------------------------------------}
-  
-  TReportWorkItemStatusRequestworkItemStatuses = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReportWorkItemStatusRequestworkItemStatusesClass = Class of TReportWorkItemStatusRequestworkItemStatuses;
   
   { --------------------------------------------------------------------
     TReportWorkItemStatusResponse
@@ -1509,91 +1163,21 @@ type
   
   TReportWorkItemStatusResponse = Class(TGoogleBaseObject)
   Private
-    FworkItemServiceStates : TReportWorkItemStatusResponseworkItemServiceStates;
+    FworkItemServiceStates : TReportWorkItemStatusResponseTypeworkItemServiceStatesArray;
   Protected
     //Property setters
-    Procedure SetworkItemServiceStates(AIndex : Integer; AValue : TReportWorkItemStatusResponseworkItemServiceStates); virtual;
+    Procedure SetworkItemServiceStates(AIndex : Integer; AValue : TReportWorkItemStatusResponseTypeworkItemServiceStatesArray); virtual;
   Public
   Published
-    Property workItemServiceStates : TReportWorkItemStatusResponseworkItemServiceStates Index 0 Read FworkItemServiceStates Write SetworkItemServiceStates;
+    Property workItemServiceStates : TReportWorkItemStatusResponseTypeworkItemServiceStatesArray Index 0 Read FworkItemServiceStates Write SetworkItemServiceStates;
   end;
   TReportWorkItemStatusResponseClass = Class of TReportWorkItemStatusResponse;
   
   { --------------------------------------------------------------------
-    TReportWorkItemStatusResponseworkItemServiceStates
+    TSeqMapTaskTypeuserFn
     --------------------------------------------------------------------}
   
-  TReportWorkItemStatusResponseworkItemServiceStates = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReportWorkItemStatusResponseworkItemServiceStatesClass = Class of TReportWorkItemStatusResponseworkItemServiceStates;
-  
-  { --------------------------------------------------------------------
-    TSeqMapTask
-    --------------------------------------------------------------------}
-  
-  TSeqMapTask = Class(TGoogleBaseObject)
-  Private
-    Finputs : TSeqMapTaskinputs;
-    Fname : string;
-    FoutputInfos : TSeqMapTaskoutputInfos;
-    FstageName : string;
-    FsystemName : string;
-    FuserFn : TSeqMapTaskuserFn;
-  Protected
-    //Property setters
-    Procedure Setinputs(AIndex : Integer; AValue : TSeqMapTaskinputs); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoutputInfos(AIndex : Integer; AValue : TSeqMapTaskoutputInfos); virtual;
-    Procedure SetstageName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsystemName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetuserFn(AIndex : Integer; AValue : TSeqMapTaskuserFn); virtual;
-  Public
-  Published
-    Property inputs : TSeqMapTaskinputs Index 0 Read Finputs Write Setinputs;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property outputInfos : TSeqMapTaskoutputInfos Index 16 Read FoutputInfos Write SetoutputInfos;
-    Property stageName : string Index 24 Read FstageName Write SetstageName;
-    Property systemName : string Index 32 Read FsystemName Write SetsystemName;
-    Property userFn : TSeqMapTaskuserFn Index 40 Read FuserFn Write SetuserFn;
-  end;
-  TSeqMapTaskClass = Class of TSeqMapTask;
-  
-  { --------------------------------------------------------------------
-    TSeqMapTaskinputs
-    --------------------------------------------------------------------}
-  
-  TSeqMapTaskinputs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSeqMapTaskinputsClass = Class of TSeqMapTaskinputs;
-  
-  { --------------------------------------------------------------------
-    TSeqMapTaskoutputInfos
-    --------------------------------------------------------------------}
-  
-  TSeqMapTaskoutputInfos = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSeqMapTaskoutputInfosClass = Class of TSeqMapTaskoutputInfos;
-  
-  { --------------------------------------------------------------------
-    TSeqMapTaskuserFn
-    --------------------------------------------------------------------}
-  
-  TSeqMapTaskuserFn = Class(TGoogleBaseObject)
+  TSeqMapTaskTypeuserFn = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -1601,7 +1185,38 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TSeqMapTaskuserFnClass = Class of TSeqMapTaskuserFn;
+  TSeqMapTaskTypeuserFnClass = Class of TSeqMapTaskTypeuserFn;
+  
+  { --------------------------------------------------------------------
+    TSeqMapTask
+    --------------------------------------------------------------------}
+  
+  TSeqMapTask = Class(TGoogleBaseObject)
+  Private
+    Finputs : TSeqMapTaskTypeinputsArray;
+    Fname : String;
+    FoutputInfos : TSeqMapTaskTypeoutputInfosArray;
+    FstageName : String;
+    FsystemName : String;
+    FuserFn : TSeqMapTaskTypeuserFn;
+  Protected
+    //Property setters
+    Procedure Setinputs(AIndex : Integer; AValue : TSeqMapTaskTypeinputsArray); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoutputInfos(AIndex : Integer; AValue : TSeqMapTaskTypeoutputInfosArray); virtual;
+    Procedure SetstageName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsystemName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuserFn(AIndex : Integer; AValue : TSeqMapTaskTypeuserFn); virtual;
+  Public
+  Published
+    Property inputs : TSeqMapTaskTypeinputsArray Index 0 Read Finputs Write Setinputs;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property outputInfos : TSeqMapTaskTypeoutputInfosArray Index 16 Read FoutputInfos Write SetoutputInfos;
+    Property stageName : String Index 24 Read FstageName Write SetstageName;
+    Property systemName : String Index 32 Read FsystemName Write SetsystemName;
+    Property userFn : TSeqMapTaskTypeuserFn Index 40 Read FuserFn Write SetuserFn;
+  end;
+  TSeqMapTaskClass = Class of TSeqMapTask;
   
   { --------------------------------------------------------------------
     TSeqMapTaskOutputInfo
@@ -1610,15 +1225,15 @@ type
   TSeqMapTaskOutputInfo = Class(TGoogleBaseObject)
   Private
     Fsink : TSink;
-    Ftag : string;
+    Ftag : String;
   Protected
     //Property setters
     Procedure Setsink(AIndex : Integer; AValue : TSink); virtual;
-    Procedure Settag(AIndex : Integer; AValue : string); virtual;
+    Procedure Settag(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property sink : TSink Index 0 Read Fsink Write Setsink;
-    Property tag : string Index 8 Read Ftag Write Settag;
+    Property tag : String Index 8 Read Ftag Write Settag;
   end;
   TSeqMapTaskOutputInfoClass = Class of TSeqMapTaskOutputInfo;
   
@@ -1628,18 +1243,32 @@ type
   
   TShellTask = Class(TGoogleBaseObject)
   Private
-    Fcommand : string;
+    Fcommand : String;
     FexitCode : integer;
   Protected
     //Property setters
-    Procedure Setcommand(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcommand(AIndex : Integer; AValue : String); virtual;
     Procedure SetexitCode(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property command : string Index 0 Read Fcommand Write Setcommand;
+    Property command : String Index 0 Read Fcommand Write Setcommand;
     Property exitCode : integer Index 8 Read FexitCode Write SetexitCode;
   end;
   TShellTaskClass = Class of TShellTask;
+  
+  { --------------------------------------------------------------------
+    TSideInputInfoTypekind
+    --------------------------------------------------------------------}
+  
+  TSideInputInfoTypekind = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TSideInputInfoTypekindClass = Class of TSideInputInfoTypekind;
   
   { --------------------------------------------------------------------
     TSideInputInfo
@@ -1647,27 +1276,27 @@ type
   
   TSideInputInfo = Class(TGoogleBaseObject)
   Private
-    Fkind : TSideInputInfokind;
-    Fsources : TSideInputInfosources;
-    Ftag : string;
+    Fkind : TSideInputInfoTypekind;
+    Fsources : TSideInputInfoTypesourcesArray;
+    Ftag : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : TSideInputInfokind); virtual;
-    Procedure Setsources(AIndex : Integer; AValue : TSideInputInfosources); virtual;
-    Procedure Settag(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : TSideInputInfoTypekind); virtual;
+    Procedure Setsources(AIndex : Integer; AValue : TSideInputInfoTypesourcesArray); virtual;
+    Procedure Settag(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property kind : TSideInputInfokind Index 0 Read Fkind Write Setkind;
-    Property sources : TSideInputInfosources Index 8 Read Fsources Write Setsources;
-    Property tag : string Index 16 Read Ftag Write Settag;
+    Property kind : TSideInputInfoTypekind Index 0 Read Fkind Write Setkind;
+    Property sources : TSideInputInfoTypesourcesArray Index 8 Read Fsources Write Setsources;
+    Property tag : String Index 16 Read Ftag Write Settag;
   end;
   TSideInputInfoClass = Class of TSideInputInfo;
   
   { --------------------------------------------------------------------
-    TSideInputInfokind
+    TSinkTypecodec
     --------------------------------------------------------------------}
   
-  TSideInputInfokind = Class(TGoogleBaseObject)
+  TSinkTypecodec = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -1675,20 +1304,21 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TSideInputInfokindClass = Class of TSideInputInfokind;
+  TSinkTypecodecClass = Class of TSinkTypecodec;
   
   { --------------------------------------------------------------------
-    TSideInputInfosources
+    TSinkTypespec
     --------------------------------------------------------------------}
   
-  TSideInputInfosources = Class(TGoogleBaseObject)
+  TSinkTypespec = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TSideInputInfosourcesClass = Class of TSideInputInfosources;
+  TSinkTypespecClass = Class of TSinkTypespec;
   
   { --------------------------------------------------------------------
     TSink
@@ -1696,24 +1326,24 @@ type
   
   TSink = Class(TGoogleBaseObject)
   Private
-    Fcodec : TSinkcodec;
-    Fspec : TSinkspec;
+    Fcodec : TSinkTypecodec;
+    Fspec : TSinkTypespec;
   Protected
     //Property setters
-    Procedure Setcodec(AIndex : Integer; AValue : TSinkcodec); virtual;
-    Procedure Setspec(AIndex : Integer; AValue : TSinkspec); virtual;
+    Procedure Setcodec(AIndex : Integer; AValue : TSinkTypecodec); virtual;
+    Procedure Setspec(AIndex : Integer; AValue : TSinkTypespec); virtual;
   Public
   Published
-    Property codec : TSinkcodec Index 0 Read Fcodec Write Setcodec;
-    Property spec : TSinkspec Index 8 Read Fspec Write Setspec;
+    Property codec : TSinkTypecodec Index 0 Read Fcodec Write Setcodec;
+    Property spec : TSinkTypespec Index 8 Read Fspec Write Setspec;
   end;
   TSinkClass = Class of TSink;
   
   { --------------------------------------------------------------------
-    TSinkcodec
+    TSourceTypebaseSpecsItem
     --------------------------------------------------------------------}
   
-  TSinkcodec = Class(TGoogleBaseObject)
+  TSourceTypebaseSpecsItem = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -1721,13 +1351,13 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TSinkcodecClass = Class of TSinkcodec;
+  TSourceTypebaseSpecsItemClass = Class of TSourceTypebaseSpecsItem;
   
   { --------------------------------------------------------------------
-    TSinkspec
+    TSourceTypecodec
     --------------------------------------------------------------------}
   
-  TSinkspec = Class(TGoogleBaseObject)
+  TSourceTypecodec = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -1735,7 +1365,21 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TSinkspecClass = Class of TSinkspec;
+  TSourceTypecodecClass = Class of TSourceTypecodec;
+  
+  { --------------------------------------------------------------------
+    TSourceTypespec
+    --------------------------------------------------------------------}
+  
+  TSourceTypespec = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TSourceTypespecClass = Class of TSourceTypespec;
   
   { --------------------------------------------------------------------
     TSource
@@ -1743,68 +1387,27 @@ type
   
   TSource = Class(TGoogleBaseObject)
   Private
-    FbaseSpecs : TSourcebaseSpecs;
-    Fcodec : TSourcecodec;
+    FbaseSpecs : TSourceTypebaseSpecsArray;
+    Fcodec : TSourceTypecodec;
     FdoesNotNeedSplitting : boolean;
     Fmetadata : TSourceMetadata;
-    Fspec : TSourcespec;
+    Fspec : TSourceTypespec;
   Protected
     //Property setters
-    Procedure SetbaseSpecs(AIndex : Integer; AValue : TSourcebaseSpecs); virtual;
-    Procedure Setcodec(AIndex : Integer; AValue : TSourcecodec); virtual;
+    Procedure SetbaseSpecs(AIndex : Integer; AValue : TSourceTypebaseSpecsArray); virtual;
+    Procedure Setcodec(AIndex : Integer; AValue : TSourceTypecodec); virtual;
     Procedure SetdoesNotNeedSplitting(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setmetadata(AIndex : Integer; AValue : TSourceMetadata); virtual;
-    Procedure Setspec(AIndex : Integer; AValue : TSourcespec); virtual;
+    Procedure Setspec(AIndex : Integer; AValue : TSourceTypespec); virtual;
   Public
   Published
-    Property baseSpecs : TSourcebaseSpecs Index 0 Read FbaseSpecs Write SetbaseSpecs;
-    Property codec : TSourcecodec Index 8 Read Fcodec Write Setcodec;
+    Property baseSpecs : TSourceTypebaseSpecsArray Index 0 Read FbaseSpecs Write SetbaseSpecs;
+    Property codec : TSourceTypecodec Index 8 Read Fcodec Write Setcodec;
     Property doesNotNeedSplitting : boolean Index 16 Read FdoesNotNeedSplitting Write SetdoesNotNeedSplitting;
     Property metadata : TSourceMetadata Index 24 Read Fmetadata Write Setmetadata;
-    Property spec : TSourcespec Index 32 Read Fspec Write Setspec;
+    Property spec : TSourceTypespec Index 32 Read Fspec Write Setspec;
   end;
   TSourceClass = Class of TSource;
-  
-  { --------------------------------------------------------------------
-    TSourcebaseSpecs
-    --------------------------------------------------------------------}
-  
-  TSourcebaseSpecs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSourcebaseSpecsClass = Class of TSourcebaseSpecs;
-  
-  { --------------------------------------------------------------------
-    TSourcecodec
-    --------------------------------------------------------------------}
-  
-  TSourcecodec = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TSourcecodecClass = Class of TSourcecodec;
-  
-  { --------------------------------------------------------------------
-    TSourcespec
-    --------------------------------------------------------------------}
-  
-  TSourcespec = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TSourcespecClass = Class of TSourcespec;
   
   { --------------------------------------------------------------------
     TSourceFork
@@ -1869,17 +1472,17 @@ type
   
   TSourceMetadata = Class(TGoogleBaseObject)
   Private
-    FestimatedSizeBytes : string;
+    FestimatedSizeBytes : String;
     Finfinite : boolean;
     FproducesSortedKeys : boolean;
   Protected
     //Property setters
-    Procedure SetestimatedSizeBytes(AIndex : Integer; AValue : string); virtual;
+    Procedure SetestimatedSizeBytes(AIndex : Integer; AValue : String); virtual;
     Procedure Setinfinite(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetproducesSortedKeys(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property estimatedSizeBytes : string Index 0 Read FestimatedSizeBytes Write SetestimatedSizeBytes;
+    Property estimatedSizeBytes : String Index 0 Read FestimatedSizeBytes Write SetestimatedSizeBytes;
     Property infinite : boolean Index 8 Read Finfinite Write Setinfinite;
     Property producesSortedKeys : boolean Index 16 Read FproducesSortedKeys Write SetproducesSortedKeys;
   end;
@@ -1929,16 +1532,16 @@ type
   
   TSourceSplitOptions = Class(TGoogleBaseObject)
   Private
-    FdesiredBundleSizeBytes : string;
-    FdesiredShardSizeBytes : string;
+    FdesiredBundleSizeBytes : String;
+    FdesiredShardSizeBytes : String;
   Protected
     //Property setters
-    Procedure SetdesiredBundleSizeBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdesiredShardSizeBytes(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdesiredBundleSizeBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdesiredShardSizeBytes(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property desiredBundleSizeBytes : string Index 0 Read FdesiredBundleSizeBytes Write SetdesiredBundleSizeBytes;
-    Property desiredShardSizeBytes : string Index 8 Read FdesiredShardSizeBytes Write SetdesiredShardSizeBytes;
+    Property desiredBundleSizeBytes : String Index 0 Read FdesiredBundleSizeBytes Write SetdesiredBundleSizeBytes;
+    Property desiredShardSizeBytes : String Index 8 Read FdesiredShardSizeBytes Write SetdesiredShardSizeBytes;
   end;
   TSourceSplitOptionsClass = Class of TSourceSplitOptions;
   
@@ -1967,47 +1570,21 @@ type
   
   TSourceSplitResponse = Class(TGoogleBaseObject)
   Private
-    Fbundles : TSourceSplitResponsebundles;
-    Foutcome : string;
-    Fshards : TSourceSplitResponseshards;
+    Fbundles : TSourceSplitResponseTypebundlesArray;
+    Foutcome : String;
+    Fshards : TSourceSplitResponseTypeshardsArray;
   Protected
     //Property setters
-    Procedure Setbundles(AIndex : Integer; AValue : TSourceSplitResponsebundles); virtual;
-    Procedure Setoutcome(AIndex : Integer; AValue : string); virtual;
-    Procedure Setshards(AIndex : Integer; AValue : TSourceSplitResponseshards); virtual;
+    Procedure Setbundles(AIndex : Integer; AValue : TSourceSplitResponseTypebundlesArray); virtual;
+    Procedure Setoutcome(AIndex : Integer; AValue : String); virtual;
+    Procedure Setshards(AIndex : Integer; AValue : TSourceSplitResponseTypeshardsArray); virtual;
   Public
   Published
-    Property bundles : TSourceSplitResponsebundles Index 0 Read Fbundles Write Setbundles;
-    Property outcome : string Index 8 Read Foutcome Write Setoutcome;
-    Property shards : TSourceSplitResponseshards Index 16 Read Fshards Write Setshards;
+    Property bundles : TSourceSplitResponseTypebundlesArray Index 0 Read Fbundles Write Setbundles;
+    Property outcome : String Index 8 Read Foutcome Write Setoutcome;
+    Property shards : TSourceSplitResponseTypeshardsArray Index 16 Read Fshards Write Setshards;
   end;
   TSourceSplitResponseClass = Class of TSourceSplitResponse;
-  
-  { --------------------------------------------------------------------
-    TSourceSplitResponsebundles
-    --------------------------------------------------------------------}
-  
-  TSourceSplitResponsebundles = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSourceSplitResponsebundlesClass = Class of TSourceSplitResponsebundles;
-  
-  { --------------------------------------------------------------------
-    TSourceSplitResponseshards
-    --------------------------------------------------------------------}
-  
-  TSourceSplitResponseshards = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSourceSplitResponseshardsClass = Class of TSourceSplitResponseshards;
   
   { --------------------------------------------------------------------
     TSourceSplitShard
@@ -2015,18 +1592,32 @@ type
   
   TSourceSplitShard = Class(TGoogleBaseObject)
   Private
-    FderivationMode : string;
+    FderivationMode : String;
     Fsource : TSource;
   Protected
     //Property setters
-    Procedure SetderivationMode(AIndex : Integer; AValue : string); virtual;
+    Procedure SetderivationMode(AIndex : Integer; AValue : String); virtual;
     Procedure Setsource(AIndex : Integer; AValue : TSource); virtual;
   Public
   Published
-    Property derivationMode : string Index 0 Read FderivationMode Write SetderivationMode;
+    Property derivationMode : String Index 0 Read FderivationMode Write SetderivationMode;
     Property source : TSource Index 8 Read Fsource Write Setsource;
   end;
   TSourceSplitShardClass = Class of TSourceSplitShard;
+  
+  { --------------------------------------------------------------------
+    TStatusTypedetailsItem
+    --------------------------------------------------------------------}
+  
+  TStatusTypedetailsItem = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TStatusTypedetailsItemClass = Class of TStatusTypedetailsItem;
   
   { --------------------------------------------------------------------
     TStatus
@@ -2035,61 +1626,26 @@ type
   TStatus = Class(TGoogleBaseObject)
   Private
     Fcode : integer;
-    Fdetails : TStatusdetails;
-    Fmessage : string;
+    Fdetails : TStatusTypedetailsArray;
+    Fmessage : String;
   Protected
     //Property setters
     Procedure Setcode(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setdetails(AIndex : Integer; AValue : TStatusdetails); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdetails(AIndex : Integer; AValue : TStatusTypedetailsArray); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property code : integer Index 0 Read Fcode Write Setcode;
-    Property details : TStatusdetails Index 8 Read Fdetails Write Setdetails;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
+    Property details : TStatusTypedetailsArray Index 8 Read Fdetails Write Setdetails;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TStatusClass = Class of TStatus;
   
   { --------------------------------------------------------------------
-    TStatusdetails
+    TStepTypeproperties
     --------------------------------------------------------------------}
   
-  TStatusdetails = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TStatusdetailsClass = Class of TStatusdetails;
-  
-  { --------------------------------------------------------------------
-    TStep
-    --------------------------------------------------------------------}
-  
-  TStep = Class(TGoogleBaseObject)
-  Private
-    Fkind : string;
-    Fname : string;
-    Fproperties : TStepproperties;
-  Protected
-    //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setproperties(AIndex : Integer; AValue : TStepproperties); virtual;
-  Public
-  Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property properties : TStepproperties Index 16 Read Fproperties Write Setproperties;
-  end;
-  TStepClass = Class of TStep;
-  
-  { --------------------------------------------------------------------
-    TStepproperties
-    --------------------------------------------------------------------}
-  
-  TStepproperties = Class(TGoogleBaseObject)
+  TStepTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -2097,7 +1653,29 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TSteppropertiesClass = Class of TStepproperties;
+  TStepTypepropertiesClass = Class of TStepTypeproperties;
+  
+  { --------------------------------------------------------------------
+    TStep
+    --------------------------------------------------------------------}
+  
+  TStep = Class(TGoogleBaseObject)
+  Private
+    Fkind : String;
+    Fname : String;
+    Fproperties : TStepTypeproperties;
+  Protected
+    //Property setters
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setproperties(AIndex : Integer; AValue : TStepTypeproperties); virtual;
+  Public
+  Published
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property properties : TStepTypeproperties Index 16 Read Fproperties Write Setproperties;
+  end;
+  TStepClass = Class of TStep;
   
   { --------------------------------------------------------------------
     TStreamLocation
@@ -2127,31 +1705,18 @@ type
   
   TStreamingComputationRanges = Class(TGoogleBaseObject)
   Private
-    FcomputationId : string;
-    FrangeAssignments : TStreamingComputationRangesrangeAssignments;
+    FcomputationId : String;
+    FrangeAssignments : TStreamingComputationRangesTyperangeAssignmentsArray;
   Protected
     //Property setters
-    Procedure SetcomputationId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrangeAssignments(AIndex : Integer; AValue : TStreamingComputationRangesrangeAssignments); virtual;
+    Procedure SetcomputationId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrangeAssignments(AIndex : Integer; AValue : TStreamingComputationRangesTyperangeAssignmentsArray); virtual;
   Public
   Published
-    Property computationId : string Index 0 Read FcomputationId Write SetcomputationId;
-    Property rangeAssignments : TStreamingComputationRangesrangeAssignments Index 8 Read FrangeAssignments Write SetrangeAssignments;
+    Property computationId : String Index 0 Read FcomputationId Write SetcomputationId;
+    Property rangeAssignments : TStreamingComputationRangesTyperangeAssignmentsArray Index 8 Read FrangeAssignments Write SetrangeAssignments;
   end;
   TStreamingComputationRangesClass = Class of TStreamingComputationRanges;
-  
-  { --------------------------------------------------------------------
-    TStreamingComputationRangesrangeAssignments
-    --------------------------------------------------------------------}
-  
-  TStreamingComputationRangesrangeAssignments = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TStreamingComputationRangesrangeAssignmentsClass = Class of TStreamingComputationRangesrangeAssignments;
   
   { --------------------------------------------------------------------
     TStreamingComputationTask
@@ -2159,47 +1724,21 @@ type
   
   TStreamingComputationTask = Class(TGoogleBaseObject)
   Private
-    FcomputationRanges : TStreamingComputationTaskcomputationRanges;
-    FdataDisks : TStreamingComputationTaskdataDisks;
-    FtaskType : string;
+    FcomputationRanges : TStreamingComputationTaskTypecomputationRangesArray;
+    FdataDisks : TStreamingComputationTaskTypedataDisksArray;
+    FtaskType : String;
   Protected
     //Property setters
-    Procedure SetcomputationRanges(AIndex : Integer; AValue : TStreamingComputationTaskcomputationRanges); virtual;
-    Procedure SetdataDisks(AIndex : Integer; AValue : TStreamingComputationTaskdataDisks); virtual;
-    Procedure SettaskType(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcomputationRanges(AIndex : Integer; AValue : TStreamingComputationTaskTypecomputationRangesArray); virtual;
+    Procedure SetdataDisks(AIndex : Integer; AValue : TStreamingComputationTaskTypedataDisksArray); virtual;
+    Procedure SettaskType(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property computationRanges : TStreamingComputationTaskcomputationRanges Index 0 Read FcomputationRanges Write SetcomputationRanges;
-    Property dataDisks : TStreamingComputationTaskdataDisks Index 8 Read FdataDisks Write SetdataDisks;
-    Property taskType : string Index 16 Read FtaskType Write SettaskType;
+    Property computationRanges : TStreamingComputationTaskTypecomputationRangesArray Index 0 Read FcomputationRanges Write SetcomputationRanges;
+    Property dataDisks : TStreamingComputationTaskTypedataDisksArray Index 8 Read FdataDisks Write SetdataDisks;
+    Property taskType : String Index 16 Read FtaskType Write SettaskType;
   end;
   TStreamingComputationTaskClass = Class of TStreamingComputationTask;
-  
-  { --------------------------------------------------------------------
-    TStreamingComputationTaskcomputationRanges
-    --------------------------------------------------------------------}
-  
-  TStreamingComputationTaskcomputationRanges = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TStreamingComputationTaskcomputationRangesClass = Class of TStreamingComputationTaskcomputationRanges;
-  
-  { --------------------------------------------------------------------
-    TStreamingComputationTaskdataDisks
-    --------------------------------------------------------------------}
-  
-  TStreamingComputationTaskdataDisks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TStreamingComputationTaskdataDisksClass = Class of TStreamingComputationTaskdataDisks;
   
   { --------------------------------------------------------------------
     TStreamingSetupTask
@@ -2229,13 +1768,13 @@ type
   
   TStreamingSideInputLocation = Class(TGoogleBaseObject)
   Private
-    Ftag : string;
+    Ftag : String;
   Protected
     //Property setters
-    Procedure Settag(AIndex : Integer; AValue : string); virtual;
+    Procedure Settag(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property tag : string Index 0 Read Ftag Write Settag;
+    Property tag : String Index 0 Read Ftag Write Settag;
   end;
   TStreamingSideInputLocationClass = Class of TStreamingSideInputLocation;
   
@@ -2245,13 +1784,13 @@ type
   
   TStreamingStageLocation = Class(TGoogleBaseObject)
   Private
-    FstreamId : string;
+    FstreamId : String;
   Protected
     //Property setters
-    Procedure SetstreamId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetstreamId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property streamId : string Index 0 Read FstreamId Write SetstreamId;
+    Property streamId : String Index 0 Read FstreamId Write SetstreamId;
   end;
   TStreamingStageLocationClass = Class of TStreamingStageLocation;
   
@@ -2262,81 +1801,68 @@ type
   TTaskRunnerSettings = Class(TGoogleBaseObject)
   Private
     Falsologtostderr : boolean;
-    FbaseTaskDir : string;
-    FbaseUrl : string;
-    FcommandlinesFileName : string;
+    FbaseTaskDir : String;
+    FbaseUrl : String;
+    FcommandlinesFileName : String;
     FcontinueOnException : boolean;
-    FdataflowApiVersion : string;
-    FharnessCommand : string;
-    FlanguageHint : string;
-    FlogDir : string;
+    FdataflowApiVersion : String;
+    FharnessCommand : String;
+    FlanguageHint : String;
+    FlogDir : String;
     FlogToSerialconsole : boolean;
-    FlogUploadLocation : string;
-    FoauthScopes : TTaskRunnerSettingsoauthScopes;
+    FlogUploadLocation : String;
+    FoauthScopes : TStringArray;
     FparallelWorkerSettings : TWorkerSettings;
-    FstreamingWorkerMainClass : string;
-    FtaskGroup : string;
-    FtaskUser : string;
-    FtempStoragePrefix : string;
-    FvmId : string;
-    FworkflowFileName : string;
+    FstreamingWorkerMainClass : String;
+    FtaskGroup : String;
+    FtaskUser : String;
+    FtempStoragePrefix : String;
+    FvmId : String;
+    FworkflowFileName : String;
   Protected
     //Property setters
     Procedure Setalsologtostderr(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetbaseTaskDir(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbaseUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcommandlinesFileName(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbaseTaskDir(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbaseUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcommandlinesFileName(AIndex : Integer; AValue : String); virtual;
     Procedure SetcontinueOnException(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetdataflowApiVersion(AIndex : Integer; AValue : string); virtual;
-    Procedure SetharnessCommand(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlanguageHint(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlogDir(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdataflowApiVersion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetharnessCommand(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlanguageHint(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlogDir(AIndex : Integer; AValue : String); virtual;
     Procedure SetlogToSerialconsole(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetlogUploadLocation(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoauthScopes(AIndex : Integer; AValue : TTaskRunnerSettingsoauthScopes); virtual;
+    Procedure SetlogUploadLocation(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoauthScopes(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetparallelWorkerSettings(AIndex : Integer; AValue : TWorkerSettings); virtual;
-    Procedure SetstreamingWorkerMainClass(AIndex : Integer; AValue : string); virtual;
-    Procedure SettaskGroup(AIndex : Integer; AValue : string); virtual;
-    Procedure SettaskUser(AIndex : Integer; AValue : string); virtual;
-    Procedure SettempStoragePrefix(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvmId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetworkflowFileName(AIndex : Integer; AValue : string); virtual;
+    Procedure SetstreamingWorkerMainClass(AIndex : Integer; AValue : String); virtual;
+    Procedure SettaskGroup(AIndex : Integer; AValue : String); virtual;
+    Procedure SettaskUser(AIndex : Integer; AValue : String); virtual;
+    Procedure SettempStoragePrefix(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvmId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetworkflowFileName(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property alsologtostderr : boolean Index 0 Read Falsologtostderr Write Setalsologtostderr;
-    Property baseTaskDir : string Index 8 Read FbaseTaskDir Write SetbaseTaskDir;
-    Property baseUrl : string Index 16 Read FbaseUrl Write SetbaseUrl;
-    Property commandlinesFileName : string Index 24 Read FcommandlinesFileName Write SetcommandlinesFileName;
+    Property baseTaskDir : String Index 8 Read FbaseTaskDir Write SetbaseTaskDir;
+    Property baseUrl : String Index 16 Read FbaseUrl Write SetbaseUrl;
+    Property commandlinesFileName : String Index 24 Read FcommandlinesFileName Write SetcommandlinesFileName;
     Property continueOnException : boolean Index 32 Read FcontinueOnException Write SetcontinueOnException;
-    Property dataflowApiVersion : string Index 40 Read FdataflowApiVersion Write SetdataflowApiVersion;
-    Property harnessCommand : string Index 48 Read FharnessCommand Write SetharnessCommand;
-    Property languageHint : string Index 56 Read FlanguageHint Write SetlanguageHint;
-    Property logDir : string Index 64 Read FlogDir Write SetlogDir;
+    Property dataflowApiVersion : String Index 40 Read FdataflowApiVersion Write SetdataflowApiVersion;
+    Property harnessCommand : String Index 48 Read FharnessCommand Write SetharnessCommand;
+    Property languageHint : String Index 56 Read FlanguageHint Write SetlanguageHint;
+    Property logDir : String Index 64 Read FlogDir Write SetlogDir;
     Property logToSerialconsole : boolean Index 72 Read FlogToSerialconsole Write SetlogToSerialconsole;
-    Property logUploadLocation : string Index 80 Read FlogUploadLocation Write SetlogUploadLocation;
-    Property oauthScopes : TTaskRunnerSettingsoauthScopes Index 88 Read FoauthScopes Write SetoauthScopes;
+    Property logUploadLocation : String Index 80 Read FlogUploadLocation Write SetlogUploadLocation;
+    Property oauthScopes : TStringArray Index 88 Read FoauthScopes Write SetoauthScopes;
     Property parallelWorkerSettings : TWorkerSettings Index 96 Read FparallelWorkerSettings Write SetparallelWorkerSettings;
-    Property streamingWorkerMainClass : string Index 104 Read FstreamingWorkerMainClass Write SetstreamingWorkerMainClass;
-    Property taskGroup : string Index 112 Read FtaskGroup Write SettaskGroup;
-    Property taskUser : string Index 120 Read FtaskUser Write SettaskUser;
-    Property tempStoragePrefix : string Index 128 Read FtempStoragePrefix Write SettempStoragePrefix;
-    Property vmId : string Index 136 Read FvmId Write SetvmId;
-    Property workflowFileName : string Index 144 Read FworkflowFileName Write SetworkflowFileName;
+    Property streamingWorkerMainClass : String Index 104 Read FstreamingWorkerMainClass Write SetstreamingWorkerMainClass;
+    Property taskGroup : String Index 112 Read FtaskGroup Write SettaskGroup;
+    Property taskUser : String Index 120 Read FtaskUser Write SettaskUser;
+    Property tempStoragePrefix : String Index 128 Read FtempStoragePrefix Write SettempStoragePrefix;
+    Property vmId : String Index 136 Read FvmId Write SetvmId;
+    Property workflowFileName : String Index 144 Read FworkflowFileName Write SetworkflowFileName;
   end;
   TTaskRunnerSettingsClass = Class of TTaskRunnerSettings;
-  
-  { --------------------------------------------------------------------
-    TTaskRunnerSettingsoauthScopes
-    --------------------------------------------------------------------}
-  
-  TTaskRunnerSettingsoauthScopes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTaskRunnerSettingsoauthScopesClass = Class of TTaskRunnerSettingsoauthScopes;
   
   { --------------------------------------------------------------------
     TTopologyConfig
@@ -2344,44 +1870,18 @@ type
   
   TTopologyConfig = Class(TGoogleBaseObject)
   Private
-    Fcomputations : TTopologyConfigcomputations;
-    FdataDiskAssignments : TTopologyConfigdataDiskAssignments;
+    Fcomputations : TTopologyConfigTypecomputationsArray;
+    FdataDiskAssignments : TTopologyConfigTypedataDiskAssignmentsArray;
   Protected
     //Property setters
-    Procedure Setcomputations(AIndex : Integer; AValue : TTopologyConfigcomputations); virtual;
-    Procedure SetdataDiskAssignments(AIndex : Integer; AValue : TTopologyConfigdataDiskAssignments); virtual;
+    Procedure Setcomputations(AIndex : Integer; AValue : TTopologyConfigTypecomputationsArray); virtual;
+    Procedure SetdataDiskAssignments(AIndex : Integer; AValue : TTopologyConfigTypedataDiskAssignmentsArray); virtual;
   Public
   Published
-    Property computations : TTopologyConfigcomputations Index 0 Read Fcomputations Write Setcomputations;
-    Property dataDiskAssignments : TTopologyConfigdataDiskAssignments Index 8 Read FdataDiskAssignments Write SetdataDiskAssignments;
+    Property computations : TTopologyConfigTypecomputationsArray Index 0 Read Fcomputations Write Setcomputations;
+    Property dataDiskAssignments : TTopologyConfigTypedataDiskAssignmentsArray Index 8 Read FdataDiskAssignments Write SetdataDiskAssignments;
   end;
   TTopologyConfigClass = Class of TTopologyConfig;
-  
-  { --------------------------------------------------------------------
-    TTopologyConfigcomputations
-    --------------------------------------------------------------------}
-  
-  TTopologyConfigcomputations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTopologyConfigcomputationsClass = Class of TTopologyConfigcomputations;
-  
-  { --------------------------------------------------------------------
-    TTopologyConfigdataDiskAssignments
-    --------------------------------------------------------------------}
-  
-  TTopologyConfigdataDiskAssignments = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTopologyConfigdataDiskAssignmentsClass = Class of TTopologyConfigdataDiskAssignments;
   
   { --------------------------------------------------------------------
     TWorkItem
@@ -2389,15 +1889,15 @@ type
   
   TWorkItem = Class(TGoogleBaseObject)
   Private
-    Fconfiguration : string;
-    Fid : string;
-    FinitialReportIndex : string;
-    FjobId : string;
-    FleaseExpireTime : string;
+    Fconfiguration : String;
+    Fid : String;
+    FinitialReportIndex : String;
+    FjobId : String;
+    FleaseExpireTime : String;
     FmapTask : TMapTask;
-    Fpackages : TWorkItempackages;
-    FprojectId : string;
-    FreportStatusInterval : string;
+    Fpackages : TWorkItemTypepackagesArray;
+    FprojectId : String;
+    FreportStatusInterval : String;
     FseqMapTask : TSeqMapTask;
     FshellTask : TShellTask;
     FsourceOperationTask : TSourceOperationRequest;
@@ -2405,15 +1905,15 @@ type
     FstreamingSetupTask : TStreamingSetupTask;
   Protected
     //Property setters
-    Procedure Setconfiguration(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinitialReportIndex(AIndex : Integer; AValue : string); virtual;
-    Procedure SetjobId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetleaseExpireTime(AIndex : Integer; AValue : string); virtual;
+    Procedure Setconfiguration(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinitialReportIndex(AIndex : Integer; AValue : String); virtual;
+    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetleaseExpireTime(AIndex : Integer; AValue : String); virtual;
     Procedure SetmapTask(AIndex : Integer; AValue : TMapTask); virtual;
-    Procedure Setpackages(AIndex : Integer; AValue : TWorkItempackages); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreportStatusInterval(AIndex : Integer; AValue : string); virtual;
+    Procedure Setpackages(AIndex : Integer; AValue : TWorkItemTypepackagesArray); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreportStatusInterval(AIndex : Integer; AValue : String); virtual;
     Procedure SetseqMapTask(AIndex : Integer; AValue : TSeqMapTask); virtual;
     Procedure SetshellTask(AIndex : Integer; AValue : TShellTask); virtual;
     Procedure SetsourceOperationTask(AIndex : Integer; AValue : TSourceOperationRequest); virtual;
@@ -2421,15 +1921,15 @@ type
     Procedure SetstreamingSetupTask(AIndex : Integer; AValue : TStreamingSetupTask); virtual;
   Public
   Published
-    Property configuration : string Index 0 Read Fconfiguration Write Setconfiguration;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property initialReportIndex : string Index 16 Read FinitialReportIndex Write SetinitialReportIndex;
-    Property jobId : string Index 24 Read FjobId Write SetjobId;
-    Property leaseExpireTime : string Index 32 Read FleaseExpireTime Write SetleaseExpireTime;
+    Property configuration : String Index 0 Read Fconfiguration Write Setconfiguration;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property initialReportIndex : String Index 16 Read FinitialReportIndex Write SetinitialReportIndex;
+    Property jobId : String Index 24 Read FjobId Write SetjobId;
+    Property leaseExpireTime : String Index 32 Read FleaseExpireTime Write SetleaseExpireTime;
     Property mapTask : TMapTask Index 40 Read FmapTask Write SetmapTask;
-    Property packages : TWorkItempackages Index 48 Read Fpackages Write Setpackages;
-    Property projectId : string Index 56 Read FprojectId Write SetprojectId;
-    Property reportStatusInterval : string Index 64 Read FreportStatusInterval Write SetreportStatusInterval;
+    Property packages : TWorkItemTypepackagesArray Index 48 Read Fpackages Write Setpackages;
+    Property projectId : String Index 56 Read FprojectId Write SetprojectId;
+    Property reportStatusInterval : String Index 64 Read FreportStatusInterval Write SetreportStatusInterval;
     Property seqMapTask : TSeqMapTask Index 72 Read FseqMapTask Write SetseqMapTask;
     Property shellTask : TShellTask Index 80 Read FshellTask Write SetshellTask;
     Property sourceOperationTask : TSourceOperationRequest Index 88 Read FsourceOperationTask Write SetsourceOperationTask;
@@ -2439,54 +1939,10 @@ type
   TWorkItemClass = Class of TWorkItem;
   
   { --------------------------------------------------------------------
-    TWorkItempackages
+    TWorkItemServiceStateTypeharnessData
     --------------------------------------------------------------------}
   
-  TWorkItempackages = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TWorkItempackagesClass = Class of TWorkItempackages;
-  
-  { --------------------------------------------------------------------
-    TWorkItemServiceState
-    --------------------------------------------------------------------}
-  
-  TWorkItemServiceState = Class(TGoogleBaseObject)
-  Private
-    FharnessData : TWorkItemServiceStateharnessData;
-    FleaseExpireTime : string;
-    FnextReportIndex : string;
-    FreportStatusInterval : string;
-    FsuggestedStopPoint : TApproximateProgress;
-    FsuggestedStopPosition : TPosition;
-  Protected
-    //Property setters
-    Procedure SetharnessData(AIndex : Integer; AValue : TWorkItemServiceStateharnessData); virtual;
-    Procedure SetleaseExpireTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextReportIndex(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreportStatusInterval(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsuggestedStopPoint(AIndex : Integer; AValue : TApproximateProgress); virtual;
-    Procedure SetsuggestedStopPosition(AIndex : Integer; AValue : TPosition); virtual;
-  Public
-  Published
-    Property harnessData : TWorkItemServiceStateharnessData Index 0 Read FharnessData Write SetharnessData;
-    Property leaseExpireTime : string Index 8 Read FleaseExpireTime Write SetleaseExpireTime;
-    Property nextReportIndex : string Index 16 Read FnextReportIndex Write SetnextReportIndex;
-    Property reportStatusInterval : string Index 24 Read FreportStatusInterval Write SetreportStatusInterval;
-    Property suggestedStopPoint : TApproximateProgress Index 32 Read FsuggestedStopPoint Write SetsuggestedStopPoint;
-    Property suggestedStopPosition : TPosition Index 40 Read FsuggestedStopPosition Write SetsuggestedStopPosition;
-  end;
-  TWorkItemServiceStateClass = Class of TWorkItemServiceState;
-  
-  { --------------------------------------------------------------------
-    TWorkItemServiceStateharnessData
-    --------------------------------------------------------------------}
-  
-  TWorkItemServiceStateharnessData = Class(TGoogleBaseObject)
+  TWorkItemServiceStateTypeharnessData = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -2494,7 +1950,38 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TWorkItemServiceStateharnessDataClass = Class of TWorkItemServiceStateharnessData;
+  TWorkItemServiceStateTypeharnessDataClass = Class of TWorkItemServiceStateTypeharnessData;
+  
+  { --------------------------------------------------------------------
+    TWorkItemServiceState
+    --------------------------------------------------------------------}
+  
+  TWorkItemServiceState = Class(TGoogleBaseObject)
+  Private
+    FharnessData : TWorkItemServiceStateTypeharnessData;
+    FleaseExpireTime : String;
+    FnextReportIndex : String;
+    FreportStatusInterval : String;
+    FsuggestedStopPoint : TApproximateProgress;
+    FsuggestedStopPosition : TPosition;
+  Protected
+    //Property setters
+    Procedure SetharnessData(AIndex : Integer; AValue : TWorkItemServiceStateTypeharnessData); virtual;
+    Procedure SetleaseExpireTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextReportIndex(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreportStatusInterval(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsuggestedStopPoint(AIndex : Integer; AValue : TApproximateProgress); virtual;
+    Procedure SetsuggestedStopPosition(AIndex : Integer; AValue : TPosition); virtual;
+  Public
+  Published
+    Property harnessData : TWorkItemServiceStateTypeharnessData Index 0 Read FharnessData Write SetharnessData;
+    Property leaseExpireTime : String Index 8 Read FleaseExpireTime Write SetleaseExpireTime;
+    Property nextReportIndex : String Index 16 Read FnextReportIndex Write SetnextReportIndex;
+    Property reportStatusInterval : String Index 24 Read FreportStatusInterval Write SetreportStatusInterval;
+    Property suggestedStopPoint : TApproximateProgress Index 32 Read FsuggestedStopPoint Write SetsuggestedStopPoint;
+    Property suggestedStopPosition : TPosition Index 40 Read FsuggestedStopPosition Write SetsuggestedStopPosition;
+  end;
+  TWorkItemServiceStateClass = Class of TWorkItemServiceState;
   
   { --------------------------------------------------------------------
     TWorkItemStatus
@@ -2504,69 +1991,71 @@ type
   Private
     Fcompleted : boolean;
     FdynamicSourceSplit : TDynamicSourceSplit;
-    Ferrors : TWorkItemStatuserrors;
-    FmetricUpdates : TWorkItemStatusmetricUpdates;
+    Ferrors : TWorkItemStatusTypeerrorsArray;
+    FmetricUpdates : TWorkItemStatusTypemetricUpdatesArray;
     Fprogress : TApproximateProgress;
-    FreportIndex : string;
-    FrequestedLeaseDuration : string;
+    FreportIndex : String;
+    FrequestedLeaseDuration : String;
     FsourceFork : TSourceFork;
     FsourceOperationResponse : TSourceOperationResponse;
     FstopPosition : TPosition;
-    FworkItemId : string;
+    FworkItemId : String;
   Protected
     //Property setters
     Procedure Setcompleted(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetdynamicSourceSplit(AIndex : Integer; AValue : TDynamicSourceSplit); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TWorkItemStatuserrors); virtual;
-    Procedure SetmetricUpdates(AIndex : Integer; AValue : TWorkItemStatusmetricUpdates); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TWorkItemStatusTypeerrorsArray); virtual;
+    Procedure SetmetricUpdates(AIndex : Integer; AValue : TWorkItemStatusTypemetricUpdatesArray); virtual;
     Procedure Setprogress(AIndex : Integer; AValue : TApproximateProgress); virtual;
-    Procedure SetreportIndex(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrequestedLeaseDuration(AIndex : Integer; AValue : string); virtual;
+    Procedure SetreportIndex(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrequestedLeaseDuration(AIndex : Integer; AValue : String); virtual;
     Procedure SetsourceFork(AIndex : Integer; AValue : TSourceFork); virtual;
     Procedure SetsourceOperationResponse(AIndex : Integer; AValue : TSourceOperationResponse); virtual;
     Procedure SetstopPosition(AIndex : Integer; AValue : TPosition); virtual;
-    Procedure SetworkItemId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetworkItemId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property completed : boolean Index 0 Read Fcompleted Write Setcompleted;
     Property dynamicSourceSplit : TDynamicSourceSplit Index 8 Read FdynamicSourceSplit Write SetdynamicSourceSplit;
-    Property errors : TWorkItemStatuserrors Index 16 Read Ferrors Write Seterrors;
-    Property metricUpdates : TWorkItemStatusmetricUpdates Index 24 Read FmetricUpdates Write SetmetricUpdates;
+    Property errors : TWorkItemStatusTypeerrorsArray Index 16 Read Ferrors Write Seterrors;
+    Property metricUpdates : TWorkItemStatusTypemetricUpdatesArray Index 24 Read FmetricUpdates Write SetmetricUpdates;
     Property progress : TApproximateProgress Index 32 Read Fprogress Write Setprogress;
-    Property reportIndex : string Index 40 Read FreportIndex Write SetreportIndex;
-    Property requestedLeaseDuration : string Index 48 Read FrequestedLeaseDuration Write SetrequestedLeaseDuration;
+    Property reportIndex : String Index 40 Read FreportIndex Write SetreportIndex;
+    Property requestedLeaseDuration : String Index 48 Read FrequestedLeaseDuration Write SetrequestedLeaseDuration;
     Property sourceFork : TSourceFork Index 56 Read FsourceFork Write SetsourceFork;
     Property sourceOperationResponse : TSourceOperationResponse Index 64 Read FsourceOperationResponse Write SetsourceOperationResponse;
     Property stopPosition : TPosition Index 72 Read FstopPosition Write SetstopPosition;
-    Property workItemId : string Index 80 Read FworkItemId Write SetworkItemId;
+    Property workItemId : String Index 80 Read FworkItemId Write SetworkItemId;
   end;
   TWorkItemStatusClass = Class of TWorkItemStatus;
   
   { --------------------------------------------------------------------
-    TWorkItemStatuserrors
+    TWorkerPoolTypemetadata
     --------------------------------------------------------------------}
   
-  TWorkItemStatuserrors = Class(TGoogleBaseObject)
+  TWorkerPoolTypemetadata = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TWorkItemStatuserrorsClass = Class of TWorkItemStatuserrors;
+  TWorkerPoolTypemetadataClass = Class of TWorkerPoolTypemetadata;
   
   { --------------------------------------------------------------------
-    TWorkItemStatusmetricUpdates
+    TWorkerPoolTypepoolArgs
     --------------------------------------------------------------------}
   
-  TWorkItemStatusmetricUpdates = Class(TGoogleBaseObject)
+  TWorkerPoolTypepoolArgs = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TWorkItemStatusmetricUpdatesClass = Class of TWorkItemStatusmetricUpdates;
+  TWorkerPoolTypepoolArgsClass = Class of TWorkerPoolTypepoolArgs;
   
   { --------------------------------------------------------------------
     TWorkerPool
@@ -2575,113 +2064,59 @@ type
   TWorkerPool = Class(TGoogleBaseObject)
   Private
     FautoscalingSettings : TAutoscalingSettings;
-    FdataDisks : TWorkerPooldataDisks;
-    FdefaultPackageSet : string;
+    FdataDisks : TWorkerPoolTypedataDisksArray;
+    FdefaultPackageSet : String;
     FdiskSizeGb : integer;
-    FdiskSourceImage : string;
-    FdiskType : string;
-    Fkind : string;
-    FmachineType : string;
-    Fmetadata : TWorkerPoolmetadata;
+    FdiskSourceImage : String;
+    FdiskType : String;
+    Fkind : String;
+    FmachineType : String;
+    Fmetadata : TWorkerPoolTypemetadata;
     FnumWorkers : integer;
-    FonHostMaintenance : string;
-    Fpackages : TWorkerPoolpackages;
-    FpoolArgs : TWorkerPoolpoolArgs;
+    FonHostMaintenance : String;
+    Fpackages : TWorkerPoolTypepackagesArray;
+    FpoolArgs : TWorkerPoolTypepoolArgs;
     FtaskrunnerSettings : TTaskRunnerSettings;
-    FteardownPolicy : string;
-    Fzone : string;
+    FteardownPolicy : String;
+    Fzone : String;
   Protected
     //Property setters
     Procedure SetautoscalingSettings(AIndex : Integer; AValue : TAutoscalingSettings); virtual;
-    Procedure SetdataDisks(AIndex : Integer; AValue : TWorkerPooldataDisks); virtual;
-    Procedure SetdefaultPackageSet(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdataDisks(AIndex : Integer; AValue : TWorkerPoolTypedataDisksArray); virtual;
+    Procedure SetdefaultPackageSet(AIndex : Integer; AValue : String); virtual;
     Procedure SetdiskSizeGb(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetdiskSourceImage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdiskType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmachineType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmetadata(AIndex : Integer; AValue : TWorkerPoolmetadata); virtual;
+    Procedure SetdiskSourceImage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdiskType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmachineType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmetadata(AIndex : Integer; AValue : TWorkerPoolTypemetadata); virtual;
     Procedure SetnumWorkers(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetonHostMaintenance(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpackages(AIndex : Integer; AValue : TWorkerPoolpackages); virtual;
-    Procedure SetpoolArgs(AIndex : Integer; AValue : TWorkerPoolpoolArgs); virtual;
+    Procedure SetonHostMaintenance(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpackages(AIndex : Integer; AValue : TWorkerPoolTypepackagesArray); virtual;
+    Procedure SetpoolArgs(AIndex : Integer; AValue : TWorkerPoolTypepoolArgs); virtual;
     Procedure SettaskrunnerSettings(AIndex : Integer; AValue : TTaskRunnerSettings); virtual;
-    Procedure SetteardownPolicy(AIndex : Integer; AValue : string); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
+    Procedure SetteardownPolicy(AIndex : Integer; AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property autoscalingSettings : TAutoscalingSettings Index 0 Read FautoscalingSettings Write SetautoscalingSettings;
-    Property dataDisks : TWorkerPooldataDisks Index 8 Read FdataDisks Write SetdataDisks;
-    Property defaultPackageSet : string Index 16 Read FdefaultPackageSet Write SetdefaultPackageSet;
+    Property dataDisks : TWorkerPoolTypedataDisksArray Index 8 Read FdataDisks Write SetdataDisks;
+    Property defaultPackageSet : String Index 16 Read FdefaultPackageSet Write SetdefaultPackageSet;
     Property diskSizeGb : integer Index 24 Read FdiskSizeGb Write SetdiskSizeGb;
-    Property diskSourceImage : string Index 32 Read FdiskSourceImage Write SetdiskSourceImage;
-    Property diskType : string Index 40 Read FdiskType Write SetdiskType;
-    Property kind : string Index 48 Read Fkind Write Setkind;
-    Property machineType : string Index 56 Read FmachineType Write SetmachineType;
-    Property metadata : TWorkerPoolmetadata Index 64 Read Fmetadata Write Setmetadata;
+    Property diskSourceImage : String Index 32 Read FdiskSourceImage Write SetdiskSourceImage;
+    Property diskType : String Index 40 Read FdiskType Write SetdiskType;
+    Property kind : String Index 48 Read Fkind Write Setkind;
+    Property machineType : String Index 56 Read FmachineType Write SetmachineType;
+    Property metadata : TWorkerPoolTypemetadata Index 64 Read Fmetadata Write Setmetadata;
     Property numWorkers : integer Index 72 Read FnumWorkers Write SetnumWorkers;
-    Property onHostMaintenance : string Index 80 Read FonHostMaintenance Write SetonHostMaintenance;
-    Property packages : TWorkerPoolpackages Index 88 Read Fpackages Write Setpackages;
-    Property poolArgs : TWorkerPoolpoolArgs Index 96 Read FpoolArgs Write SetpoolArgs;
+    Property onHostMaintenance : String Index 80 Read FonHostMaintenance Write SetonHostMaintenance;
+    Property packages : TWorkerPoolTypepackagesArray Index 88 Read Fpackages Write Setpackages;
+    Property poolArgs : TWorkerPoolTypepoolArgs Index 96 Read FpoolArgs Write SetpoolArgs;
     Property taskrunnerSettings : TTaskRunnerSettings Index 104 Read FtaskrunnerSettings Write SettaskrunnerSettings;
-    Property teardownPolicy : string Index 112 Read FteardownPolicy Write SetteardownPolicy;
-    Property zone : string Index 120 Read Fzone Write Setzone;
+    Property teardownPolicy : String Index 112 Read FteardownPolicy Write SetteardownPolicy;
+    Property zone : String Index 120 Read Fzone Write Setzone;
   end;
   TWorkerPoolClass = Class of TWorkerPool;
-  
-  { --------------------------------------------------------------------
-    TWorkerPooldataDisks
-    --------------------------------------------------------------------}
-  
-  TWorkerPooldataDisks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TWorkerPooldataDisksClass = Class of TWorkerPooldataDisks;
-  
-  { --------------------------------------------------------------------
-    TWorkerPoolmetadata
-    --------------------------------------------------------------------}
-  
-  TWorkerPoolmetadata = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TWorkerPoolmetadataClass = Class of TWorkerPoolmetadata;
-  
-  { --------------------------------------------------------------------
-    TWorkerPoolpackages
-    --------------------------------------------------------------------}
-  
-  TWorkerPoolpackages = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TWorkerPoolpackagesClass = Class of TWorkerPoolpackages;
-  
-  { --------------------------------------------------------------------
-    TWorkerPoolpoolArgs
-    --------------------------------------------------------------------}
-  
-  TWorkerPoolpoolArgs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TWorkerPoolpoolArgsClass = Class of TWorkerPoolpoolArgs;
   
   { --------------------------------------------------------------------
     TWorkerSettings
@@ -2689,28 +2124,28 @@ type
   
   TWorkerSettings = Class(TGoogleBaseObject)
   Private
-    FbaseUrl : string;
+    FbaseUrl : String;
     FreportingEnabled : boolean;
-    FservicePath : string;
-    FshuffleServicePath : string;
-    FtempStoragePrefix : string;
-    FworkerId : string;
+    FservicePath : String;
+    FshuffleServicePath : String;
+    FtempStoragePrefix : String;
+    FworkerId : String;
   Protected
     //Property setters
-    Procedure SetbaseUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbaseUrl(AIndex : Integer; AValue : String); virtual;
     Procedure SetreportingEnabled(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetservicePath(AIndex : Integer; AValue : string); virtual;
-    Procedure SetshuffleServicePath(AIndex : Integer; AValue : string); virtual;
-    Procedure SettempStoragePrefix(AIndex : Integer; AValue : string); virtual;
-    Procedure SetworkerId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetservicePath(AIndex : Integer; AValue : String); virtual;
+    Procedure SetshuffleServicePath(AIndex : Integer; AValue : String); virtual;
+    Procedure SettempStoragePrefix(AIndex : Integer; AValue : String); virtual;
+    Procedure SetworkerId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property baseUrl : string Index 0 Read FbaseUrl Write SetbaseUrl;
+    Property baseUrl : String Index 0 Read FbaseUrl Write SetbaseUrl;
     Property reportingEnabled : boolean Index 8 Read FreportingEnabled Write SetreportingEnabled;
-    Property servicePath : string Index 16 Read FservicePath Write SetservicePath;
-    Property shuffleServicePath : string Index 24 Read FshuffleServicePath Write SetshuffleServicePath;
-    Property tempStoragePrefix : string Index 32 Read FtempStoragePrefix Write SettempStoragePrefix;
-    Property workerId : string Index 40 Read FworkerId Write SetworkerId;
+    Property servicePath : String Index 16 Read FservicePath Write SetservicePath;
+    Property shuffleServicePath : String Index 24 Read FshuffleServicePath Write SetshuffleServicePath;
+    Property tempStoragePrefix : String Index 32 Read FtempStoragePrefix Write SettempStoragePrefix;
+    Property workerId : String Index 40 Read FworkerId Write SetworkerId;
   end;
   TWorkerSettingsClass = Class of TWorkerSettings;
   
@@ -2809,7 +2244,7 @@ end;
 
 
 
-Procedure TApproximateProgress.SetremainingTime(AIndex : Integer; AValue : string); 
+Procedure TApproximateProgress.SetremainingTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FremainingTime=AValue) then exit;
@@ -2826,7 +2261,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalingSettings.Setalgorithm(AIndex : Integer; AValue : string); 
+Procedure TAutoscalingSettings.Setalgorithm(AIndex : Integer; AValue : String); 
 
 begin
   If (Falgorithm=AValue) then exit;
@@ -2853,7 +2288,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TComputationTopology.SetcomputationId(AIndex : Integer; AValue : string); 
+Procedure TComputationTopology.SetcomputationId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcomputationId=AValue) then exit;
@@ -2863,7 +2298,7 @@ end;
 
 
 
-Procedure TComputationTopology.Setinputs(AIndex : Integer; AValue : TComputationTopologyinputs); 
+Procedure TComputationTopology.Setinputs(AIndex : Integer; AValue : TComputationTopologyTypeinputsArray); 
 
 begin
   If (Finputs=AValue) then exit;
@@ -2873,7 +2308,7 @@ end;
 
 
 
-Procedure TComputationTopology.SetkeyRanges(AIndex : Integer; AValue : TComputationTopologykeyRanges); 
+Procedure TComputationTopology.SetkeyRanges(AIndex : Integer; AValue : TComputationTopologyTypekeyRangesArray); 
 
 begin
   If (FkeyRanges=AValue) then exit;
@@ -2883,7 +2318,7 @@ end;
 
 
 
-Procedure TComputationTopology.Setoutputs(AIndex : Integer; AValue : TComputationTopologyoutputs); 
+Procedure TComputationTopology.Setoutputs(AIndex : Integer; AValue : TComputationTopologyTypeoutputsArray); 
 
 begin
   If (Foutputs=AValue) then exit;
@@ -2896,32 +2331,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TComputationTopologyinputs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TComputationTopologykeyRanges
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TComputationTopologyoutputs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TDataDiskAssignment
   --------------------------------------------------------------------}
 
 
-Procedure TDataDiskAssignment.SetdataDisks(AIndex : Integer; AValue : TDataDiskAssignmentdataDisks); 
+Procedure TDataDiskAssignment.SetdataDisks(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FdataDisks=AValue) then exit;
@@ -2931,7 +2345,7 @@ end;
 
 
 
-Procedure TDataDiskAssignment.SetvmInstance(AIndex : Integer; AValue : string); 
+Procedure TDataDiskAssignment.SetvmInstance(AIndex : Integer; AValue : String); 
 
 begin
   If (FvmInstance=AValue) then exit;
@@ -2944,18 +2358,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDataDiskAssignmentdataDisks
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TDerivedSource
   --------------------------------------------------------------------}
 
 
-Procedure TDerivedSource.SetderivationMode(AIndex : Integer; AValue : string); 
+Procedure TDerivedSource.SetderivationMode(AIndex : Integer; AValue : String); 
 
 begin
   If (FderivationMode=AValue) then exit;
@@ -2982,7 +2389,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDisk.SetdiskType(AIndex : Integer; AValue : string); 
+Procedure TDisk.SetdiskType(AIndex : Integer; AValue : String); 
 
 begin
   If (FdiskType=AValue) then exit;
@@ -2992,7 +2399,7 @@ end;
 
 
 
-Procedure TDisk.SetmountPoint(AIndex : Integer; AValue : string); 
+Procedure TDisk.SetmountPoint(AIndex : Integer; AValue : String); 
 
 begin
   If (FmountPoint=AValue) then exit;
@@ -3042,11 +2449,50 @@ end;
 
 
 { --------------------------------------------------------------------
+  TEnvironmentTypesdkPipelineOptions
+  --------------------------------------------------------------------}
+
+
+Class Function TEnvironmentTypesdkPipelineOptions.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TEnvironmentTypeuserAgent
+  --------------------------------------------------------------------}
+
+
+Class Function TEnvironmentTypeuserAgent.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TEnvironmentTypeversion
+  --------------------------------------------------------------------}
+
+
+Class Function TEnvironmentTypeversion.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TEnvironment
   --------------------------------------------------------------------}
 
 
-Procedure TEnvironment.SetclusterManagerApiService(AIndex : Integer; AValue : string); 
+Procedure TEnvironment.SetclusterManagerApiService(AIndex : Integer; AValue : String); 
 
 begin
   If (FclusterManagerApiService=AValue) then exit;
@@ -3056,7 +2502,7 @@ end;
 
 
 
-Procedure TEnvironment.Setdataset(AIndex : Integer; AValue : string); 
+Procedure TEnvironment.Setdataset(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdataset=AValue) then exit;
@@ -3066,7 +2512,7 @@ end;
 
 
 
-Procedure TEnvironment.Setexperiments(AIndex : Integer; AValue : TEnvironmentexperiments); 
+Procedure TEnvironment.Setexperiments(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fexperiments=AValue) then exit;
@@ -3076,7 +2522,7 @@ end;
 
 
 
-Procedure TEnvironment.SetsdkPipelineOptions(AIndex : Integer; AValue : TEnvironmentsdkPipelineOptions); 
+Procedure TEnvironment.SetsdkPipelineOptions(AIndex : Integer; AValue : TEnvironmentTypesdkPipelineOptions); 
 
 begin
   If (FsdkPipelineOptions=AValue) then exit;
@@ -3086,7 +2532,7 @@ end;
 
 
 
-Procedure TEnvironment.SettempStoragePrefix(AIndex : Integer; AValue : string); 
+Procedure TEnvironment.SettempStoragePrefix(AIndex : Integer; AValue : String); 
 
 begin
   If (FtempStoragePrefix=AValue) then exit;
@@ -3096,7 +2542,7 @@ end;
 
 
 
-Procedure TEnvironment.SetuserAgent(AIndex : Integer; AValue : TEnvironmentuserAgent); 
+Procedure TEnvironment.SetuserAgent(AIndex : Integer; AValue : TEnvironmentTypeuserAgent); 
 
 begin
   If (FuserAgent=AValue) then exit;
@@ -3106,7 +2552,7 @@ end;
 
 
 
-Procedure TEnvironment.Setversion(AIndex : Integer; AValue : TEnvironmentversion); 
+Procedure TEnvironment.Setversion(AIndex : Integer; AValue : TEnvironmentTypeversion); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -3116,7 +2562,7 @@ end;
 
 
 
-Procedure TEnvironment.SetworkerPools(AIndex : Integer; AValue : TEnvironmentworkerPools); 
+Procedure TEnvironment.SetworkerPools(AIndex : Integer; AValue : TEnvironmentTypeworkerPoolsArray); 
 
 begin
   If (FworkerPools=AValue) then exit;
@@ -3129,64 +2575,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TEnvironmentexperiments
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TEnvironmentsdkPipelineOptions
-  --------------------------------------------------------------------}
-
-
-Class Function TEnvironmentsdkPipelineOptions.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TEnvironmentuserAgent
-  --------------------------------------------------------------------}
-
-
-Class Function TEnvironmentuserAgent.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TEnvironmentversion
-  --------------------------------------------------------------------}
-
-
-Class Function TEnvironmentversion.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TEnvironmentworkerPools
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TFlattenInstruction
   --------------------------------------------------------------------}
 
 
-Procedure TFlattenInstruction.Setinputs(AIndex : Integer; AValue : TFlattenInstructioninputs); 
+Procedure TFlattenInstruction.Setinputs(AIndex : Integer; AValue : TFlattenInstructionTypeinputsArray); 
 
 begin
   If (Finputs=AValue) then exit;
@@ -3194,20 +2587,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TFlattenInstructioninputs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TGoogleprotobufValue
-  --------------------------------------------------------------------}
 
 
 
@@ -3240,11 +2619,24 @@ end;
 
 
 { --------------------------------------------------------------------
+  TInstructionOutputTypecodec
+  --------------------------------------------------------------------}
+
+
+Class Function TInstructionOutputTypecodec.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TInstructionOutput
   --------------------------------------------------------------------}
 
 
-Procedure TInstructionOutput.Setcodec(AIndex : Integer; AValue : TInstructionOutputcodec); 
+Procedure TInstructionOutput.Setcodec(AIndex : Integer; AValue : TInstructionOutputTypecodec); 
 
 begin
   If (Fcodec=AValue) then exit;
@@ -3254,7 +2646,7 @@ end;
 
 
 
-Procedure TInstructionOutput.Setname(AIndex : Integer; AValue : string); 
+Procedure TInstructionOutput.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3267,24 +2659,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TInstructionOutputcodec
-  --------------------------------------------------------------------}
-
-
-Class Function TInstructionOutputcodec.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TJob
   --------------------------------------------------------------------}
 
 
-Procedure TJob.SetcreateTime(AIndex : Integer; AValue : string); 
+Procedure TJob.SetcreateTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreateTime=AValue) then exit;
@@ -3294,7 +2673,7 @@ end;
 
 
 
-Procedure TJob.SetcurrentState(AIndex : Integer; AValue : string); 
+Procedure TJob.SetcurrentState(AIndex : Integer; AValue : String); 
 
 begin
   If (FcurrentState=AValue) then exit;
@@ -3304,7 +2683,7 @@ end;
 
 
 
-Procedure TJob.SetcurrentStateTime(AIndex : Integer; AValue : string); 
+Procedure TJob.SetcurrentStateTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FcurrentStateTime=AValue) then exit;
@@ -3334,7 +2713,7 @@ end;
 
 
 
-Procedure TJob.Setid(AIndex : Integer; AValue : string); 
+Procedure TJob.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3344,7 +2723,7 @@ end;
 
 
 
-Procedure TJob.Setname(AIndex : Integer; AValue : string); 
+Procedure TJob.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3354,7 +2733,7 @@ end;
 
 
 
-Procedure TJob.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TJob.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -3364,7 +2743,7 @@ end;
 
 
 
-Procedure TJob.SetrequestedState(AIndex : Integer; AValue : string); 
+Procedure TJob.SetrequestedState(AIndex : Integer; AValue : String); 
 
 begin
   If (FrequestedState=AValue) then exit;
@@ -3374,7 +2753,7 @@ end;
 
 
 
-Procedure TJob.Setsteps(AIndex : Integer; AValue : TJobsteps); 
+Procedure TJob.Setsteps(AIndex : Integer; AValue : TJobTypestepsArray); 
 
 begin
   If (Fsteps=AValue) then exit;
@@ -3384,7 +2763,7 @@ end;
 
 
 
-Procedure TJob.Set_type(AIndex : Integer; AValue : string); 
+Procedure TJob.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3408,9 +2787,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobsteps
+  TJobExecutionInfoTypestages
   --------------------------------------------------------------------}
 
+
+Class Function TJobExecutionInfoTypestages.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -3419,7 +2804,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobExecutionInfo.Setstages(AIndex : Integer; AValue : TJobExecutionInfostages); 
+Procedure TJobExecutionInfo.Setstages(AIndex : Integer; AValue : TJobExecutionInfoTypestages); 
 
 begin
   If (Fstages=AValue) then exit;
@@ -3432,24 +2817,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobExecutionInfostages
-  --------------------------------------------------------------------}
-
-
-Class Function TJobExecutionInfostages.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TJobExecutionStageInfo
   --------------------------------------------------------------------}
 
 
-Procedure TJobExecutionStageInfo.SetstepName(AIndex : Integer; AValue : TJobExecutionStageInfostepName); 
+Procedure TJobExecutionStageInfo.SetstepName(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FstepName=AValue) then exit;
@@ -3462,18 +2834,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobExecutionStageInfostepName
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TJobMessage
   --------------------------------------------------------------------}
 
 
-Procedure TJobMessage.Setid(AIndex : Integer; AValue : string); 
+Procedure TJobMessage.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3483,7 +2848,7 @@ end;
 
 
 
-Procedure TJobMessage.SetmessageImportance(AIndex : Integer; AValue : string); 
+Procedure TJobMessage.SetmessageImportance(AIndex : Integer; AValue : String); 
 
 begin
   If (FmessageImportance=AValue) then exit;
@@ -3493,7 +2858,7 @@ end;
 
 
 
-Procedure TJobMessage.SetmessageText(AIndex : Integer; AValue : string); 
+Procedure TJobMessage.SetmessageText(AIndex : Integer; AValue : String); 
 
 begin
   If (FmessageText=AValue) then exit;
@@ -3503,7 +2868,7 @@ end;
 
 
 
-Procedure TJobMessage.Settime(AIndex : Integer; AValue : string); 
+Procedure TJobMessage.Settime(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftime=AValue) then exit;
@@ -3520,7 +2885,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobMetrics.SetmetricTime(AIndex : Integer; AValue : string); 
+Procedure TJobMetrics.SetmetricTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FmetricTime=AValue) then exit;
@@ -3530,7 +2895,7 @@ end;
 
 
 
-Procedure TJobMetrics.Setmetrics(AIndex : Integer; AValue : TJobMetricsmetrics); 
+Procedure TJobMetrics.Setmetrics(AIndex : Integer; AValue : TJobMetricsTypemetricsArray); 
 
 begin
   If (Fmetrics=AValue) then exit;
@@ -3543,18 +2908,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobMetricsmetrics
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TKeyRangeDataDiskAssignment
   --------------------------------------------------------------------}
 
 
-Procedure TKeyRangeDataDiskAssignment.SetdataDisk(AIndex : Integer; AValue : string); 
+Procedure TKeyRangeDataDiskAssignment.SetdataDisk(AIndex : Integer; AValue : String); 
 
 begin
   If (FdataDisk=AValue) then exit;
@@ -3564,7 +2922,7 @@ end;
 
 
 
-Procedure TKeyRangeDataDiskAssignment.Set_end(AIndex : Integer; AValue : string); 
+Procedure TKeyRangeDataDiskAssignment.Set_end(AIndex : Integer; AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -3574,7 +2932,7 @@ end;
 
 
 
-Procedure TKeyRangeDataDiskAssignment.Setstart(AIndex : Integer; AValue : string); 
+Procedure TKeyRangeDataDiskAssignment.Setstart(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -3602,7 +2960,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TKeyRangeLocation.SetdataDisk(AIndex : Integer; AValue : string); 
+Procedure TKeyRangeLocation.SetdataDisk(AIndex : Integer; AValue : String); 
 
 begin
   If (FdataDisk=AValue) then exit;
@@ -3612,7 +2970,7 @@ end;
 
 
 
-Procedure TKeyRangeLocation.SetdeliveryEndpoint(AIndex : Integer; AValue : string); 
+Procedure TKeyRangeLocation.SetdeliveryEndpoint(AIndex : Integer; AValue : String); 
 
 begin
   If (FdeliveryEndpoint=AValue) then exit;
@@ -3622,7 +2980,7 @@ end;
 
 
 
-Procedure TKeyRangeLocation.Set_end(AIndex : Integer; AValue : string); 
+Procedure TKeyRangeLocation.Set_end(AIndex : Integer; AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -3632,7 +2990,7 @@ end;
 
 
 
-Procedure TKeyRangeLocation.SetpersistentDirectory(AIndex : Integer; AValue : string); 
+Procedure TKeyRangeLocation.SetpersistentDirectory(AIndex : Integer; AValue : String); 
 
 begin
   If (FpersistentDirectory=AValue) then exit;
@@ -3642,7 +3000,7 @@ end;
 
 
 
-Procedure TKeyRangeLocation.Setstart(AIndex : Integer; AValue : string); 
+Procedure TKeyRangeLocation.Setstart(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -3670,7 +3028,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaseWorkItemRequest.SetcurrentWorkerTime(AIndex : Integer; AValue : string); 
+Procedure TLeaseWorkItemRequest.SetcurrentWorkerTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FcurrentWorkerTime=AValue) then exit;
@@ -3680,7 +3038,7 @@ end;
 
 
 
-Procedure TLeaseWorkItemRequest.SetrequestedLeaseDuration(AIndex : Integer; AValue : string); 
+Procedure TLeaseWorkItemRequest.SetrequestedLeaseDuration(AIndex : Integer; AValue : String); 
 
 begin
   If (FrequestedLeaseDuration=AValue) then exit;
@@ -3690,7 +3048,7 @@ end;
 
 
 
-Procedure TLeaseWorkItemRequest.SetworkItemTypes(AIndex : Integer; AValue : TLeaseWorkItemRequestworkItemTypes); 
+Procedure TLeaseWorkItemRequest.SetworkItemTypes(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FworkItemTypes=AValue) then exit;
@@ -3700,7 +3058,7 @@ end;
 
 
 
-Procedure TLeaseWorkItemRequest.SetworkerCapabilities(AIndex : Integer; AValue : TLeaseWorkItemRequestworkerCapabilities); 
+Procedure TLeaseWorkItemRequest.SetworkerCapabilities(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FworkerCapabilities=AValue) then exit;
@@ -3710,7 +3068,7 @@ end;
 
 
 
-Procedure TLeaseWorkItemRequest.SetworkerId(AIndex : Integer; AValue : string); 
+Procedure TLeaseWorkItemRequest.SetworkerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FworkerId=AValue) then exit;
@@ -3723,25 +3081,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLeaseWorkItemRequestworkItemTypes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TLeaseWorkItemRequestworkerCapabilities
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLeaseWorkItemResponse
   --------------------------------------------------------------------}
 
 
-Procedure TLeaseWorkItemResponse.SetworkItems(AIndex : Integer; AValue : TLeaseWorkItemResponseworkItems); 
+Procedure TLeaseWorkItemResponse.SetworkItems(AIndex : Integer; AValue : TLeaseWorkItemResponseTypeworkItemsArray); 
 
 begin
   If (FworkItems=AValue) then exit;
@@ -3754,18 +3098,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLeaseWorkItemResponseworkItems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListJobMessagesResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListJobMessagesResponse.SetjobMessages(AIndex : Integer; AValue : TListJobMessagesResponsejobMessages); 
+Procedure TListJobMessagesResponse.SetjobMessages(AIndex : Integer; AValue : TListJobMessagesResponseTypejobMessagesArray); 
 
 begin
   If (FjobMessages=AValue) then exit;
@@ -3775,7 +3112,7 @@ end;
 
 
 
-Procedure TListJobMessagesResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListJobMessagesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3783,13 +3120,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TListJobMessagesResponsejobMessages
-  --------------------------------------------------------------------}
 
 
 
@@ -3799,7 +3129,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListJobsResponse.Setjobs(AIndex : Integer; AValue : TListJobsResponsejobs); 
+Procedure TListJobsResponse.Setjobs(AIndex : Integer; AValue : TListJobsResponseTypejobsArray); 
 
 begin
   If (Fjobs=AValue) then exit;
@@ -3809,7 +3139,7 @@ end;
 
 
 
-Procedure TListJobsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListJobsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3822,18 +3152,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListJobsResponsejobs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMapTask
   --------------------------------------------------------------------}
 
 
-Procedure TMapTask.Setinstructions(AIndex : Integer; AValue : TMapTaskinstructions); 
+Procedure TMapTask.Setinstructions(AIndex : Integer; AValue : TMapTaskTypeinstructionsArray); 
 
 begin
   If (Finstructions=AValue) then exit;
@@ -3843,7 +3166,7 @@ end;
 
 
 
-Procedure TMapTask.SetstageName(AIndex : Integer; AValue : string); 
+Procedure TMapTask.SetstageName(AIndex : Integer; AValue : String); 
 
 begin
   If (FstageName=AValue) then exit;
@@ -3853,7 +3176,7 @@ end;
 
 
 
-Procedure TMapTask.SetsystemName(AIndex : Integer; AValue : string); 
+Procedure TMapTask.SetsystemName(AIndex : Integer; AValue : String); 
 
 begin
   If (FsystemName=AValue) then exit;
@@ -3866,9 +3189,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMapTaskinstructions
+  TMetricStructuredNameTypecontext
   --------------------------------------------------------------------}
 
+
+Class Function TMetricStructuredNameTypecontext.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -3877,7 +3206,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetricStructuredName.Setcontext(AIndex : Integer; AValue : TMetricStructuredNamecontext); 
+Procedure TMetricStructuredName.Setcontext(AIndex : Integer; AValue : TMetricStructuredNameTypecontext); 
 
 begin
   If (Fcontext=AValue) then exit;
@@ -3887,7 +3216,7 @@ end;
 
 
 
-Procedure TMetricStructuredName.Setname(AIndex : Integer; AValue : string); 
+Procedure TMetricStructuredName.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3897,7 +3226,7 @@ end;
 
 
 
-Procedure TMetricStructuredName.Setorigin(AIndex : Integer; AValue : string); 
+Procedure TMetricStructuredName.Setorigin(AIndex : Integer; AValue : String); 
 
 begin
   If (Forigin=AValue) then exit;
@@ -3906,19 +3235,6 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TMetricStructuredNamecontext
-  --------------------------------------------------------------------}
-
-
-Class Function TMetricStructuredNamecontext.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
 
 
 
@@ -3947,7 +3263,7 @@ end;
 
 
 
-Procedure TMetricUpdate.Setkind(AIndex : Integer; AValue : string); 
+Procedure TMetricUpdate.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4007,7 +3323,7 @@ end;
 
 
 
-Procedure TMetricUpdate.SetupdateTime(AIndex : Integer; AValue : string); 
+Procedure TMetricUpdate.SetupdateTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FupdateTime=AValue) then exit;
@@ -4035,7 +3351,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMountedDataDisk.SetdataDisk(AIndex : Integer; AValue : string); 
+Procedure TMountedDataDisk.SetdataDisk(AIndex : Integer; AValue : String); 
 
 begin
   If (FdataDisk=AValue) then exit;
@@ -4052,7 +3368,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMultiOutputInfo.Settag(AIndex : Integer; AValue : string); 
+Procedure TMultiOutputInfo.Settag(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -4069,7 +3385,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPackage.Setlocation(AIndex : Integer; AValue : string); 
+Procedure TPackage.Setlocation(AIndex : Integer; AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -4079,7 +3395,7 @@ end;
 
 
 
-Procedure TPackage.Setname(AIndex : Integer; AValue : string); 
+Procedure TPackage.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4088,6 +3404,19 @@ begin
 end;
 
 
+
+
+
+{ --------------------------------------------------------------------
+  TParDoInstructionTypeuserFn
+  --------------------------------------------------------------------}
+
+
+Class Function TParDoInstructionTypeuserFn.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -4106,7 +3435,7 @@ end;
 
 
 
-Procedure TParDoInstruction.SetmultiOutputInfos(AIndex : Integer; AValue : TParDoInstructionmultiOutputInfos); 
+Procedure TParDoInstruction.SetmultiOutputInfos(AIndex : Integer; AValue : TParDoInstructionTypemultiOutputInfosArray); 
 
 begin
   If (FmultiOutputInfos=AValue) then exit;
@@ -4126,7 +3455,7 @@ end;
 
 
 
-Procedure TParDoInstruction.SetsideInputs(AIndex : Integer; AValue : TParDoInstructionsideInputs); 
+Procedure TParDoInstruction.SetsideInputs(AIndex : Integer; AValue : TParDoInstructionTypesideInputsArray); 
 
 begin
   If (FsideInputs=AValue) then exit;
@@ -4136,7 +3465,7 @@ end;
 
 
 
-Procedure TParDoInstruction.SetuserFn(AIndex : Integer; AValue : TParDoInstructionuserFn); 
+Procedure TParDoInstruction.SetuserFn(AIndex : Integer; AValue : TParDoInstructionTypeuserFn); 
 
 begin
   If (FuserFn=AValue) then exit;
@@ -4145,33 +3474,6 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TParDoInstructionmultiOutputInfos
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TParDoInstructionsideInputs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TParDoInstructionuserFn
-  --------------------------------------------------------------------}
-
-
-Class Function TParDoInstructionuserFn.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
 
 
 
@@ -4190,7 +3492,7 @@ end;
 
 
 
-Procedure TParallelInstruction.Setname(AIndex : Integer; AValue : string); 
+Procedure TParallelInstruction.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4200,7 +3502,7 @@ end;
 
 
 
-Procedure TParallelInstruction.Setoutputs(AIndex : Integer; AValue : TParallelInstructionoutputs); 
+Procedure TParallelInstruction.Setoutputs(AIndex : Integer; AValue : TParallelInstructionTypeoutputsArray); 
 
 begin
   If (Foutputs=AValue) then exit;
@@ -4240,7 +3542,7 @@ end;
 
 
 
-Procedure TParallelInstruction.SetsystemName(AIndex : Integer; AValue : string); 
+Procedure TParallelInstruction.SetsystemName(AIndex : Integer; AValue : String); 
 
 begin
   If (FsystemName=AValue) then exit;
@@ -4263,9 +3565,28 @@ end;
 
 
 { --------------------------------------------------------------------
-  TParallelInstructionoutputs
+  TPartialGroupByKeyInstructionTypeinputElementCodec
   --------------------------------------------------------------------}
 
+
+Class Function TPartialGroupByKeyInstructionTypeinputElementCodec.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TPartialGroupByKeyInstructionTypevalueCombiningFn
+  --------------------------------------------------------------------}
+
+
+Class Function TPartialGroupByKeyInstructionTypevalueCombiningFn.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -4284,7 +3605,7 @@ end;
 
 
 
-Procedure TPartialGroupByKeyInstruction.SetinputElementCodec(AIndex : Integer; AValue : TPartialGroupByKeyInstructioninputElementCodec); 
+Procedure TPartialGroupByKeyInstruction.SetinputElementCodec(AIndex : Integer; AValue : TPartialGroupByKeyInstructionTypeinputElementCodec); 
 
 begin
   If (FinputElementCodec=AValue) then exit;
@@ -4294,7 +3615,7 @@ end;
 
 
 
-Procedure TPartialGroupByKeyInstruction.SetvalueCombiningFn(AIndex : Integer; AValue : TPartialGroupByKeyInstructionvalueCombiningFn); 
+Procedure TPartialGroupByKeyInstruction.SetvalueCombiningFn(AIndex : Integer; AValue : TPartialGroupByKeyInstructionTypevalueCombiningFn); 
 
 begin
   If (FvalueCombiningFn=AValue) then exit;
@@ -4307,37 +3628,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPartialGroupByKeyInstructioninputElementCodec
-  --------------------------------------------------------------------}
-
-
-Class Function TPartialGroupByKeyInstructioninputElementCodec.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TPartialGroupByKeyInstructionvalueCombiningFn
-  --------------------------------------------------------------------}
-
-
-Class Function TPartialGroupByKeyInstructionvalueCombiningFn.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TPosition
   --------------------------------------------------------------------}
 
 
-Procedure TPosition.SetbyteOffset(AIndex : Integer; AValue : string); 
+Procedure TPosition.SetbyteOffset(AIndex : Integer; AValue : String); 
 
 begin
   If (FbyteOffset=AValue) then exit;
@@ -4357,7 +3652,7 @@ end;
 
 
 
-Procedure TPosition.Setkey(AIndex : Integer; AValue : string); 
+Procedure TPosition.Setkey(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -4367,7 +3662,7 @@ end;
 
 
 
-Procedure TPosition.SetrecordIndex(AIndex : Integer; AValue : string); 
+Procedure TPosition.SetrecordIndex(AIndex : Integer; AValue : String); 
 
 begin
   If (FrecordIndex=AValue) then exit;
@@ -4377,7 +3672,7 @@ end;
 
 
 
-Procedure TPosition.SetshufflePosition(AIndex : Integer; AValue : string); 
+Procedure TPosition.SetshufflePosition(AIndex : Integer; AValue : String); 
 
 begin
   If (FshufflePosition=AValue) then exit;
@@ -4415,7 +3710,7 @@ end;
 
 
 
-Procedure TPubsubLocation.SetidLabel(AIndex : Integer; AValue : string); 
+Procedure TPubsubLocation.SetidLabel(AIndex : Integer; AValue : String); 
 
 begin
   If (FidLabel=AValue) then exit;
@@ -4425,7 +3720,7 @@ end;
 
 
 
-Procedure TPubsubLocation.Setsubscription(AIndex : Integer; AValue : string); 
+Procedure TPubsubLocation.Setsubscription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fsubscription=AValue) then exit;
@@ -4435,7 +3730,7 @@ end;
 
 
 
-Procedure TPubsubLocation.SettimestampLabel(AIndex : Integer; AValue : string); 
+Procedure TPubsubLocation.SettimestampLabel(AIndex : Integer; AValue : String); 
 
 begin
   If (FtimestampLabel=AValue) then exit;
@@ -4445,7 +3740,7 @@ end;
 
 
 
-Procedure TPubsubLocation.Settopic(AIndex : Integer; AValue : string); 
+Procedure TPubsubLocation.Settopic(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftopic=AValue) then exit;
@@ -4455,7 +3750,7 @@ end;
 
 
 
-Procedure TPubsubLocation.SettrackingSubscription(AIndex : Integer; AValue : string); 
+Procedure TPubsubLocation.SettrackingSubscription(AIndex : Integer; AValue : String); 
 
 begin
   If (FtrackingSubscription=AValue) then exit;
@@ -4489,7 +3784,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportWorkItemStatusRequest.SetcurrentWorkerTime(AIndex : Integer; AValue : string); 
+Procedure TReportWorkItemStatusRequest.SetcurrentWorkerTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FcurrentWorkerTime=AValue) then exit;
@@ -4499,7 +3794,7 @@ end;
 
 
 
-Procedure TReportWorkItemStatusRequest.SetworkItemStatuses(AIndex : Integer; AValue : TReportWorkItemStatusRequestworkItemStatuses); 
+Procedure TReportWorkItemStatusRequest.SetworkItemStatuses(AIndex : Integer; AValue : TReportWorkItemStatusRequestTypeworkItemStatusesArray); 
 
 begin
   If (FworkItemStatuses=AValue) then exit;
@@ -4509,7 +3804,7 @@ end;
 
 
 
-Procedure TReportWorkItemStatusRequest.SetworkerId(AIndex : Integer; AValue : string); 
+Procedure TReportWorkItemStatusRequest.SetworkerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FworkerId=AValue) then exit;
@@ -4522,18 +3817,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TReportWorkItemStatusRequestworkItemStatuses
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TReportWorkItemStatusResponse
   --------------------------------------------------------------------}
 
 
-Procedure TReportWorkItemStatusResponse.SetworkItemServiceStates(AIndex : Integer; AValue : TReportWorkItemStatusResponseworkItemServiceStates); 
+Procedure TReportWorkItemStatusResponse.SetworkItemServiceStates(AIndex : Integer; AValue : TReportWorkItemStatusResponseTypeworkItemServiceStatesArray); 
 
 begin
   If (FworkItemServiceStates=AValue) then exit;
@@ -4546,9 +3834,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TReportWorkItemStatusResponseworkItemServiceStates
+  TSeqMapTaskTypeuserFn
   --------------------------------------------------------------------}
 
+
+Class Function TSeqMapTaskTypeuserFn.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -4557,7 +3851,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSeqMapTask.Setinputs(AIndex : Integer; AValue : TSeqMapTaskinputs); 
+Procedure TSeqMapTask.Setinputs(AIndex : Integer; AValue : TSeqMapTaskTypeinputsArray); 
 
 begin
   If (Finputs=AValue) then exit;
@@ -4567,7 +3861,7 @@ end;
 
 
 
-Procedure TSeqMapTask.Setname(AIndex : Integer; AValue : string); 
+Procedure TSeqMapTask.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4577,7 +3871,7 @@ end;
 
 
 
-Procedure TSeqMapTask.SetoutputInfos(AIndex : Integer; AValue : TSeqMapTaskoutputInfos); 
+Procedure TSeqMapTask.SetoutputInfos(AIndex : Integer; AValue : TSeqMapTaskTypeoutputInfosArray); 
 
 begin
   If (FoutputInfos=AValue) then exit;
@@ -4587,7 +3881,7 @@ end;
 
 
 
-Procedure TSeqMapTask.SetstageName(AIndex : Integer; AValue : string); 
+Procedure TSeqMapTask.SetstageName(AIndex : Integer; AValue : String); 
 
 begin
   If (FstageName=AValue) then exit;
@@ -4597,7 +3891,7 @@ end;
 
 
 
-Procedure TSeqMapTask.SetsystemName(AIndex : Integer; AValue : string); 
+Procedure TSeqMapTask.SetsystemName(AIndex : Integer; AValue : String); 
 
 begin
   If (FsystemName=AValue) then exit;
@@ -4607,7 +3901,7 @@ end;
 
 
 
-Procedure TSeqMapTask.SetuserFn(AIndex : Integer; AValue : TSeqMapTaskuserFn); 
+Procedure TSeqMapTask.SetuserFn(AIndex : Integer; AValue : TSeqMapTaskTypeuserFn); 
 
 begin
   If (FuserFn=AValue) then exit;
@@ -4616,33 +3910,6 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TSeqMapTaskinputs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TSeqMapTaskoutputInfos
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TSeqMapTaskuserFn
-  --------------------------------------------------------------------}
-
-
-Class Function TSeqMapTaskuserFn.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
 
 
 
@@ -4661,7 +3928,7 @@ end;
 
 
 
-Procedure TSeqMapTaskOutputInfo.Settag(AIndex : Integer; AValue : string); 
+Procedure TSeqMapTaskOutputInfo.Settag(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -4678,7 +3945,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TShellTask.Setcommand(AIndex : Integer; AValue : string); 
+Procedure TShellTask.Setcommand(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcommand=AValue) then exit;
@@ -4701,11 +3968,24 @@ end;
 
 
 { --------------------------------------------------------------------
+  TSideInputInfoTypekind
+  --------------------------------------------------------------------}
+
+
+Class Function TSideInputInfoTypekind.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TSideInputInfo
   --------------------------------------------------------------------}
 
 
-Procedure TSideInputInfo.Setkind(AIndex : Integer; AValue : TSideInputInfokind); 
+Procedure TSideInputInfo.Setkind(AIndex : Integer; AValue : TSideInputInfoTypekind); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4715,7 +3995,7 @@ end;
 
 
 
-Procedure TSideInputInfo.Setsources(AIndex : Integer; AValue : TSideInputInfosources); 
+Procedure TSideInputInfo.Setsources(AIndex : Integer; AValue : TSideInputInfoTypesourcesArray); 
 
 begin
   If (Fsources=AValue) then exit;
@@ -4725,7 +4005,7 @@ end;
 
 
 
-Procedure TSideInputInfo.Settag(AIndex : Integer; AValue : string); 
+Procedure TSideInputInfo.Settag(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -4738,11 +4018,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSideInputInfokind
+  TSinkTypecodec
   --------------------------------------------------------------------}
 
 
-Class Function TSideInputInfokind.AllowAdditionalProperties : Boolean;
+Class Function TSinkTypecodec.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -4751,9 +4031,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSideInputInfosources
+  TSinkTypespec
   --------------------------------------------------------------------}
 
+
+Class Function TSinkTypespec.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -4762,7 +4048,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSink.Setcodec(AIndex : Integer; AValue : TSinkcodec); 
+Procedure TSink.Setcodec(AIndex : Integer; AValue : TSinkTypecodec); 
 
 begin
   If (Fcodec=AValue) then exit;
@@ -4772,7 +4058,7 @@ end;
 
 
 
-Procedure TSink.Setspec(AIndex : Integer; AValue : TSinkspec); 
+Procedure TSink.Setspec(AIndex : Integer; AValue : TSinkTypespec); 
 
 begin
   If (Fspec=AValue) then exit;
@@ -4785,11 +4071,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSinkcodec
+  TSourceTypebaseSpecsItem
   --------------------------------------------------------------------}
 
 
-Class Function TSinkcodec.AllowAdditionalProperties : Boolean;
+Class Function TSourceTypebaseSpecsItem.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -4798,11 +4084,24 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSinkspec
+  TSourceTypecodec
   --------------------------------------------------------------------}
 
 
-Class Function TSinkspec.AllowAdditionalProperties : Boolean;
+Class Function TSourceTypecodec.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TSourceTypespec
+  --------------------------------------------------------------------}
+
+
+Class Function TSourceTypespec.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -4815,7 +4114,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSource.SetbaseSpecs(AIndex : Integer; AValue : TSourcebaseSpecs); 
+Procedure TSource.SetbaseSpecs(AIndex : Integer; AValue : TSourceTypebaseSpecsArray); 
 
 begin
   If (FbaseSpecs=AValue) then exit;
@@ -4825,7 +4124,7 @@ end;
 
 
 
-Procedure TSource.Setcodec(AIndex : Integer; AValue : TSourcecodec); 
+Procedure TSource.Setcodec(AIndex : Integer; AValue : TSourceTypecodec); 
 
 begin
   If (Fcodec=AValue) then exit;
@@ -4855,7 +4154,7 @@ end;
 
 
 
-Procedure TSource.Setspec(AIndex : Integer; AValue : TSourcespec); 
+Procedure TSource.Setspec(AIndex : Integer; AValue : TSourceTypespec); 
 
 begin
   If (Fspec=AValue) then exit;
@@ -4864,39 +4163,6 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TSourcebaseSpecs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TSourcecodec
-  --------------------------------------------------------------------}
-
-
-Class Function TSourcecodec.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TSourcespec
-  --------------------------------------------------------------------}
-
-
-Class Function TSourcespec.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
 
 
 
@@ -4986,7 +4252,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceMetadata.SetestimatedSizeBytes(AIndex : Integer; AValue : string); 
+Procedure TSourceMetadata.SetestimatedSizeBytes(AIndex : Integer; AValue : String); 
 
 begin
   If (FestimatedSizeBytes=AValue) then exit;
@@ -5077,7 +4343,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceSplitOptions.SetdesiredBundleSizeBytes(AIndex : Integer; AValue : string); 
+Procedure TSourceSplitOptions.SetdesiredBundleSizeBytes(AIndex : Integer; AValue : String); 
 
 begin
   If (FdesiredBundleSizeBytes=AValue) then exit;
@@ -5087,7 +4353,7 @@ end;
 
 
 
-Procedure TSourceSplitOptions.SetdesiredShardSizeBytes(AIndex : Integer; AValue : string); 
+Procedure TSourceSplitOptions.SetdesiredShardSizeBytes(AIndex : Integer; AValue : String); 
 
 begin
   If (FdesiredShardSizeBytes=AValue) then exit;
@@ -5131,7 +4397,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceSplitResponse.Setbundles(AIndex : Integer; AValue : TSourceSplitResponsebundles); 
+Procedure TSourceSplitResponse.Setbundles(AIndex : Integer; AValue : TSourceSplitResponseTypebundlesArray); 
 
 begin
   If (Fbundles=AValue) then exit;
@@ -5141,7 +4407,7 @@ end;
 
 
 
-Procedure TSourceSplitResponse.Setoutcome(AIndex : Integer; AValue : string); 
+Procedure TSourceSplitResponse.Setoutcome(AIndex : Integer; AValue : String); 
 
 begin
   If (Foutcome=AValue) then exit;
@@ -5151,7 +4417,7 @@ end;
 
 
 
-Procedure TSourceSplitResponse.Setshards(AIndex : Integer; AValue : TSourceSplitResponseshards); 
+Procedure TSourceSplitResponse.Setshards(AIndex : Integer; AValue : TSourceSplitResponseTypeshardsArray); 
 
 begin
   If (Fshards=AValue) then exit;
@@ -5164,25 +4430,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSourceSplitResponsebundles
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TSourceSplitResponseshards
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSourceSplitShard
   --------------------------------------------------------------------}
 
 
-Procedure TSourceSplitShard.SetderivationMode(AIndex : Integer; AValue : string); 
+Procedure TSourceSplitShard.SetderivationMode(AIndex : Integer; AValue : String); 
 
 begin
   If (FderivationMode=AValue) then exit;
@@ -5205,6 +4457,19 @@ end;
 
 
 { --------------------------------------------------------------------
+  TStatusTypedetailsItem
+  --------------------------------------------------------------------}
+
+
+Class Function TStatusTypedetailsItem.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TStatus
   --------------------------------------------------------------------}
 
@@ -5219,7 +4484,7 @@ end;
 
 
 
-Procedure TStatus.Setdetails(AIndex : Integer; AValue : TStatusdetails); 
+Procedure TStatus.Setdetails(AIndex : Integer; AValue : TStatusTypedetailsArray); 
 
 begin
   If (Fdetails=AValue) then exit;
@@ -5229,7 +4494,7 @@ end;
 
 
 
-Procedure TStatus.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TStatus.Setmessage(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -5242,9 +4507,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TStatusdetails
+  TStepTypeproperties
   --------------------------------------------------------------------}
 
+
+Class Function TStepTypeproperties.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -5253,7 +4524,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStep.Setkind(AIndex : Integer; AValue : string); 
+Procedure TStep.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5263,7 +4534,7 @@ end;
 
 
 
-Procedure TStep.Setname(AIndex : Integer; AValue : string); 
+Procedure TStep.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5273,7 +4544,7 @@ end;
 
 
 
-Procedure TStep.Setproperties(AIndex : Integer; AValue : TStepproperties); 
+Procedure TStep.Setproperties(AIndex : Integer; AValue : TStepTypeproperties); 
 
 begin
   If (Fproperties=AValue) then exit;
@@ -5282,19 +4553,6 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TStepproperties
-  --------------------------------------------------------------------}
-
-
-Class Function TStepproperties.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
 
 
 
@@ -5340,7 +4598,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStreamingComputationRanges.SetcomputationId(AIndex : Integer; AValue : string); 
+Procedure TStreamingComputationRanges.SetcomputationId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcomputationId=AValue) then exit;
@@ -5350,7 +4608,7 @@ end;
 
 
 
-Procedure TStreamingComputationRanges.SetrangeAssignments(AIndex : Integer; AValue : TStreamingComputationRangesrangeAssignments); 
+Procedure TStreamingComputationRanges.SetrangeAssignments(AIndex : Integer; AValue : TStreamingComputationRangesTyperangeAssignmentsArray); 
 
 begin
   If (FrangeAssignments=AValue) then exit;
@@ -5363,18 +4621,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TStreamingComputationRangesrangeAssignments
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TStreamingComputationTask
   --------------------------------------------------------------------}
 
 
-Procedure TStreamingComputationTask.SetcomputationRanges(AIndex : Integer; AValue : TStreamingComputationTaskcomputationRanges); 
+Procedure TStreamingComputationTask.SetcomputationRanges(AIndex : Integer; AValue : TStreamingComputationTaskTypecomputationRangesArray); 
 
 begin
   If (FcomputationRanges=AValue) then exit;
@@ -5384,7 +4635,7 @@ end;
 
 
 
-Procedure TStreamingComputationTask.SetdataDisks(AIndex : Integer; AValue : TStreamingComputationTaskdataDisks); 
+Procedure TStreamingComputationTask.SetdataDisks(AIndex : Integer; AValue : TStreamingComputationTaskTypedataDisksArray); 
 
 begin
   If (FdataDisks=AValue) then exit;
@@ -5394,7 +4645,7 @@ end;
 
 
 
-Procedure TStreamingComputationTask.SettaskType(AIndex : Integer; AValue : string); 
+Procedure TStreamingComputationTask.SettaskType(AIndex : Integer; AValue : String); 
 
 begin
   If (FtaskType=AValue) then exit;
@@ -5402,20 +4653,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TStreamingComputationTaskcomputationRanges
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TStreamingComputationTaskdataDisks
-  --------------------------------------------------------------------}
 
 
 
@@ -5462,7 +4699,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStreamingSideInputLocation.Settag(AIndex : Integer; AValue : string); 
+Procedure TStreamingSideInputLocation.Settag(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -5479,7 +4716,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStreamingStageLocation.SetstreamId(AIndex : Integer; AValue : string); 
+Procedure TStreamingStageLocation.SetstreamId(AIndex : Integer; AValue : String); 
 
 begin
   If (FstreamId=AValue) then exit;
@@ -5506,7 +4743,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetbaseTaskDir(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SetbaseTaskDir(AIndex : Integer; AValue : String); 
 
 begin
   If (FbaseTaskDir=AValue) then exit;
@@ -5516,7 +4753,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetbaseUrl(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SetbaseUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbaseUrl=AValue) then exit;
@@ -5526,7 +4763,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetcommandlinesFileName(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SetcommandlinesFileName(AIndex : Integer; AValue : String); 
 
 begin
   If (FcommandlinesFileName=AValue) then exit;
@@ -5546,7 +4783,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetdataflowApiVersion(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SetdataflowApiVersion(AIndex : Integer; AValue : String); 
 
 begin
   If (FdataflowApiVersion=AValue) then exit;
@@ -5556,7 +4793,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetharnessCommand(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SetharnessCommand(AIndex : Integer; AValue : String); 
 
 begin
   If (FharnessCommand=AValue) then exit;
@@ -5566,7 +4803,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetlanguageHint(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SetlanguageHint(AIndex : Integer; AValue : String); 
 
 begin
   If (FlanguageHint=AValue) then exit;
@@ -5576,7 +4813,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetlogDir(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SetlogDir(AIndex : Integer; AValue : String); 
 
 begin
   If (FlogDir=AValue) then exit;
@@ -5596,7 +4833,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetlogUploadLocation(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SetlogUploadLocation(AIndex : Integer; AValue : String); 
 
 begin
   If (FlogUploadLocation=AValue) then exit;
@@ -5606,7 +4843,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetoauthScopes(AIndex : Integer; AValue : TTaskRunnerSettingsoauthScopes); 
+Procedure TTaskRunnerSettings.SetoauthScopes(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FoauthScopes=AValue) then exit;
@@ -5626,7 +4863,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetstreamingWorkerMainClass(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SetstreamingWorkerMainClass(AIndex : Integer; AValue : String); 
 
 begin
   If (FstreamingWorkerMainClass=AValue) then exit;
@@ -5636,7 +4873,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SettaskGroup(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SettaskGroup(AIndex : Integer; AValue : String); 
 
 begin
   If (FtaskGroup=AValue) then exit;
@@ -5646,7 +4883,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SettaskUser(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SettaskUser(AIndex : Integer; AValue : String); 
 
 begin
   If (FtaskUser=AValue) then exit;
@@ -5656,7 +4893,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SettempStoragePrefix(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SettempStoragePrefix(AIndex : Integer; AValue : String); 
 
 begin
   If (FtempStoragePrefix=AValue) then exit;
@@ -5666,7 +4903,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetvmId(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SetvmId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvmId=AValue) then exit;
@@ -5676,7 +4913,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetworkflowFileName(AIndex : Integer; AValue : string); 
+Procedure TTaskRunnerSettings.SetworkflowFileName(AIndex : Integer; AValue : String); 
 
 begin
   If (FworkflowFileName=AValue) then exit;
@@ -5689,18 +4926,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTaskRunnerSettingsoauthScopes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TTopologyConfig
   --------------------------------------------------------------------}
 
 
-Procedure TTopologyConfig.Setcomputations(AIndex : Integer; AValue : TTopologyConfigcomputations); 
+Procedure TTopologyConfig.Setcomputations(AIndex : Integer; AValue : TTopologyConfigTypecomputationsArray); 
 
 begin
   If (Fcomputations=AValue) then exit;
@@ -5710,7 +4940,7 @@ end;
 
 
 
-Procedure TTopologyConfig.SetdataDiskAssignments(AIndex : Integer; AValue : TTopologyConfigdataDiskAssignments); 
+Procedure TTopologyConfig.SetdataDiskAssignments(AIndex : Integer; AValue : TTopologyConfigTypedataDiskAssignmentsArray); 
 
 begin
   If (FdataDiskAssignments=AValue) then exit;
@@ -5723,25 +4953,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTopologyConfigcomputations
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTopologyConfigdataDiskAssignments
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TWorkItem
   --------------------------------------------------------------------}
 
 
-Procedure TWorkItem.Setconfiguration(AIndex : Integer; AValue : string); 
+Procedure TWorkItem.Setconfiguration(AIndex : Integer; AValue : String); 
 
 begin
   If (Fconfiguration=AValue) then exit;
@@ -5751,7 +4967,7 @@ end;
 
 
 
-Procedure TWorkItem.Setid(AIndex : Integer; AValue : string); 
+Procedure TWorkItem.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5761,7 +4977,7 @@ end;
 
 
 
-Procedure TWorkItem.SetinitialReportIndex(AIndex : Integer; AValue : string); 
+Procedure TWorkItem.SetinitialReportIndex(AIndex : Integer; AValue : String); 
 
 begin
   If (FinitialReportIndex=AValue) then exit;
@@ -5771,7 +4987,7 @@ end;
 
 
 
-Procedure TWorkItem.SetjobId(AIndex : Integer; AValue : string); 
+Procedure TWorkItem.SetjobId(AIndex : Integer; AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -5781,7 +4997,7 @@ end;
 
 
 
-Procedure TWorkItem.SetleaseExpireTime(AIndex : Integer; AValue : string); 
+Procedure TWorkItem.SetleaseExpireTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FleaseExpireTime=AValue) then exit;
@@ -5801,7 +5017,7 @@ end;
 
 
 
-Procedure TWorkItem.Setpackages(AIndex : Integer; AValue : TWorkItempackages); 
+Procedure TWorkItem.Setpackages(AIndex : Integer; AValue : TWorkItemTypepackagesArray); 
 
 begin
   If (Fpackages=AValue) then exit;
@@ -5811,7 +5027,7 @@ end;
 
 
 
-Procedure TWorkItem.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TWorkItem.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -5821,7 +5037,7 @@ end;
 
 
 
-Procedure TWorkItem.SetreportStatusInterval(AIndex : Integer; AValue : string); 
+Procedure TWorkItem.SetreportStatusInterval(AIndex : Integer; AValue : String); 
 
 begin
   If (FreportStatusInterval=AValue) then exit;
@@ -5884,9 +5100,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TWorkItempackages
+  TWorkItemServiceStateTypeharnessData
   --------------------------------------------------------------------}
 
+
+Class Function TWorkItemServiceStateTypeharnessData.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -5895,7 +5117,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWorkItemServiceState.SetharnessData(AIndex : Integer; AValue : TWorkItemServiceStateharnessData); 
+Procedure TWorkItemServiceState.SetharnessData(AIndex : Integer; AValue : TWorkItemServiceStateTypeharnessData); 
 
 begin
   If (FharnessData=AValue) then exit;
@@ -5905,7 +5127,7 @@ end;
 
 
 
-Procedure TWorkItemServiceState.SetleaseExpireTime(AIndex : Integer; AValue : string); 
+Procedure TWorkItemServiceState.SetleaseExpireTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FleaseExpireTime=AValue) then exit;
@@ -5915,7 +5137,7 @@ end;
 
 
 
-Procedure TWorkItemServiceState.SetnextReportIndex(AIndex : Integer; AValue : string); 
+Procedure TWorkItemServiceState.SetnextReportIndex(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextReportIndex=AValue) then exit;
@@ -5925,7 +5147,7 @@ end;
 
 
 
-Procedure TWorkItemServiceState.SetreportStatusInterval(AIndex : Integer; AValue : string); 
+Procedure TWorkItemServiceState.SetreportStatusInterval(AIndex : Integer; AValue : String); 
 
 begin
   If (FreportStatusInterval=AValue) then exit;
@@ -5958,19 +5180,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TWorkItemServiceStateharnessData
-  --------------------------------------------------------------------}
-
-
-Class Function TWorkItemServiceStateharnessData.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TWorkItemStatus
   --------------------------------------------------------------------}
 
@@ -5995,7 +5204,7 @@ end;
 
 
 
-Procedure TWorkItemStatus.Seterrors(AIndex : Integer; AValue : TWorkItemStatuserrors); 
+Procedure TWorkItemStatus.Seterrors(AIndex : Integer; AValue : TWorkItemStatusTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -6005,7 +5214,7 @@ end;
 
 
 
-Procedure TWorkItemStatus.SetmetricUpdates(AIndex : Integer; AValue : TWorkItemStatusmetricUpdates); 
+Procedure TWorkItemStatus.SetmetricUpdates(AIndex : Integer; AValue : TWorkItemStatusTypemetricUpdatesArray); 
 
 begin
   If (FmetricUpdates=AValue) then exit;
@@ -6025,7 +5234,7 @@ end;
 
 
 
-Procedure TWorkItemStatus.SetreportIndex(AIndex : Integer; AValue : string); 
+Procedure TWorkItemStatus.SetreportIndex(AIndex : Integer; AValue : String); 
 
 begin
   If (FreportIndex=AValue) then exit;
@@ -6035,7 +5244,7 @@ end;
 
 
 
-Procedure TWorkItemStatus.SetrequestedLeaseDuration(AIndex : Integer; AValue : string); 
+Procedure TWorkItemStatus.SetrequestedLeaseDuration(AIndex : Integer; AValue : String); 
 
 begin
   If (FrequestedLeaseDuration=AValue) then exit;
@@ -6075,7 +5284,7 @@ end;
 
 
 
-Procedure TWorkItemStatus.SetworkItemId(AIndex : Integer; AValue : string); 
+Procedure TWorkItemStatus.SetworkItemId(AIndex : Integer; AValue : String); 
 
 begin
   If (FworkItemId=AValue) then exit;
@@ -6088,16 +5297,28 @@ end;
 
 
 { --------------------------------------------------------------------
-  TWorkItemStatuserrors
+  TWorkerPoolTypemetadata
   --------------------------------------------------------------------}
 
+
+Class Function TWorkerPoolTypemetadata.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
 { --------------------------------------------------------------------
-  TWorkItemStatusmetricUpdates
+  TWorkerPoolTypepoolArgs
   --------------------------------------------------------------------}
 
+
+Class Function TWorkerPoolTypepoolArgs.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -6116,7 +5337,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetdataDisks(AIndex : Integer; AValue : TWorkerPooldataDisks); 
+Procedure TWorkerPool.SetdataDisks(AIndex : Integer; AValue : TWorkerPoolTypedataDisksArray); 
 
 begin
   If (FdataDisks=AValue) then exit;
@@ -6126,7 +5347,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetdefaultPackageSet(AIndex : Integer; AValue : string); 
+Procedure TWorkerPool.SetdefaultPackageSet(AIndex : Integer; AValue : String); 
 
 begin
   If (FdefaultPackageSet=AValue) then exit;
@@ -6146,7 +5367,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetdiskSourceImage(AIndex : Integer; AValue : string); 
+Procedure TWorkerPool.SetdiskSourceImage(AIndex : Integer; AValue : String); 
 
 begin
   If (FdiskSourceImage=AValue) then exit;
@@ -6156,7 +5377,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetdiskType(AIndex : Integer; AValue : string); 
+Procedure TWorkerPool.SetdiskType(AIndex : Integer; AValue : String); 
 
 begin
   If (FdiskType=AValue) then exit;
@@ -6166,7 +5387,7 @@ end;
 
 
 
-Procedure TWorkerPool.Setkind(AIndex : Integer; AValue : string); 
+Procedure TWorkerPool.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6176,7 +5397,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetmachineType(AIndex : Integer; AValue : string); 
+Procedure TWorkerPool.SetmachineType(AIndex : Integer; AValue : String); 
 
 begin
   If (FmachineType=AValue) then exit;
@@ -6186,7 +5407,7 @@ end;
 
 
 
-Procedure TWorkerPool.Setmetadata(AIndex : Integer; AValue : TWorkerPoolmetadata); 
+Procedure TWorkerPool.Setmetadata(AIndex : Integer; AValue : TWorkerPoolTypemetadata); 
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -6206,7 +5427,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetonHostMaintenance(AIndex : Integer; AValue : string); 
+Procedure TWorkerPool.SetonHostMaintenance(AIndex : Integer; AValue : String); 
 
 begin
   If (FonHostMaintenance=AValue) then exit;
@@ -6216,7 +5437,7 @@ end;
 
 
 
-Procedure TWorkerPool.Setpackages(AIndex : Integer; AValue : TWorkerPoolpackages); 
+Procedure TWorkerPool.Setpackages(AIndex : Integer; AValue : TWorkerPoolTypepackagesArray); 
 
 begin
   If (Fpackages=AValue) then exit;
@@ -6226,7 +5447,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetpoolArgs(AIndex : Integer; AValue : TWorkerPoolpoolArgs); 
+Procedure TWorkerPool.SetpoolArgs(AIndex : Integer; AValue : TWorkerPoolTypepoolArgs); 
 
 begin
   If (FpoolArgs=AValue) then exit;
@@ -6246,7 +5467,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetteardownPolicy(AIndex : Integer; AValue : string); 
+Procedure TWorkerPool.SetteardownPolicy(AIndex : Integer; AValue : String); 
 
 begin
   If (FteardownPolicy=AValue) then exit;
@@ -6256,7 +5477,7 @@ end;
 
 
 
-Procedure TWorkerPool.Setzone(AIndex : Integer; AValue : string); 
+Procedure TWorkerPool.Setzone(AIndex : Integer; AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -6269,51 +5490,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TWorkerPooldataDisks
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TWorkerPoolmetadata
-  --------------------------------------------------------------------}
-
-
-Class Function TWorkerPoolmetadata.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TWorkerPoolpackages
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TWorkerPoolpoolArgs
-  --------------------------------------------------------------------}
-
-
-Class Function TWorkerPoolpoolArgs.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TWorkerSettings
   --------------------------------------------------------------------}
 
 
-Procedure TWorkerSettings.SetbaseUrl(AIndex : Integer; AValue : string); 
+Procedure TWorkerSettings.SetbaseUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FbaseUrl=AValue) then exit;
@@ -6333,7 +5514,7 @@ end;
 
 
 
-Procedure TWorkerSettings.SetservicePath(AIndex : Integer; AValue : string); 
+Procedure TWorkerSettings.SetservicePath(AIndex : Integer; AValue : String); 
 
 begin
   If (FservicePath=AValue) then exit;
@@ -6343,7 +5524,7 @@ end;
 
 
 
-Procedure TWorkerSettings.SetshuffleServicePath(AIndex : Integer; AValue : string); 
+Procedure TWorkerSettings.SetshuffleServicePath(AIndex : Integer; AValue : String); 
 
 begin
   If (FshuffleServicePath=AValue) then exit;
@@ -6353,7 +5534,7 @@ end;
 
 
 
-Procedure TWorkerSettings.SettempStoragePrefix(AIndex : Integer; AValue : string); 
+Procedure TWorkerSettings.SettempStoragePrefix(AIndex : Integer; AValue : String); 
 
 begin
   If (FtempStoragePrefix=AValue) then exit;
@@ -6363,7 +5544,7 @@ end;
 
 
 
-Procedure TWorkerSettings.SetworkerId(AIndex : Integer; AValue : string); 
+Procedure TWorkerSettings.SetworkerId(AIndex : Integer; AValue : String); 
 
 begin
   If (FworkerId=AValue) then exit;
@@ -6550,86 +5731,61 @@ begin
   TApproximateProgress.RegisterObject;
   TAutoscalingSettings.RegisterObject;
   TComputationTopology.RegisterObject;
-  TComputationTopologyinputs.RegisterObject;
-  TComputationTopologykeyRanges.RegisterObject;
-  TComputationTopologyoutputs.RegisterObject;
   TDataDiskAssignment.RegisterObject;
-  TDataDiskAssignmentdataDisks.RegisterObject;
   TDerivedSource.RegisterObject;
   TDisk.RegisterObject;
   TDynamicSourceSplit.RegisterObject;
+  TEnvironmentTypesdkPipelineOptions.RegisterObject;
+  TEnvironmentTypeuserAgent.RegisterObject;
+  TEnvironmentTypeversion.RegisterObject;
   TEnvironment.RegisterObject;
-  TEnvironmentexperiments.RegisterObject;
-  TEnvironmentsdkPipelineOptions.RegisterObject;
-  TEnvironmentuserAgent.RegisterObject;
-  TEnvironmentversion.RegisterObject;
-  TEnvironmentworkerPools.RegisterObject;
   TFlattenInstruction.RegisterObject;
-  TFlattenInstructioninputs.RegisterObject;
-  TGoogleprotobufValue.RegisterObject;
   TInstructionInput.RegisterObject;
+  TInstructionOutputTypecodec.RegisterObject;
   TInstructionOutput.RegisterObject;
-  TInstructionOutputcodec.RegisterObject;
   TJob.RegisterObject;
-  TJobsteps.RegisterObject;
+  TJobExecutionInfoTypestages.RegisterObject;
   TJobExecutionInfo.RegisterObject;
-  TJobExecutionInfostages.RegisterObject;
   TJobExecutionStageInfo.RegisterObject;
-  TJobExecutionStageInfostepName.RegisterObject;
   TJobMessage.RegisterObject;
   TJobMetrics.RegisterObject;
-  TJobMetricsmetrics.RegisterObject;
   TKeyRangeDataDiskAssignment.RegisterObject;
   TKeyRangeLocation.RegisterObject;
   TLeaseWorkItemRequest.RegisterObject;
-  TLeaseWorkItemRequestworkItemTypes.RegisterObject;
-  TLeaseWorkItemRequestworkerCapabilities.RegisterObject;
   TLeaseWorkItemResponse.RegisterObject;
-  TLeaseWorkItemResponseworkItems.RegisterObject;
   TListJobMessagesResponse.RegisterObject;
-  TListJobMessagesResponsejobMessages.RegisterObject;
   TListJobsResponse.RegisterObject;
-  TListJobsResponsejobs.RegisterObject;
   TMapTask.RegisterObject;
-  TMapTaskinstructions.RegisterObject;
+  TMetricStructuredNameTypecontext.RegisterObject;
   TMetricStructuredName.RegisterObject;
-  TMetricStructuredNamecontext.RegisterObject;
   TMetricUpdate.RegisterObject;
   TMountedDataDisk.RegisterObject;
   TMultiOutputInfo.RegisterObject;
   TPackage.RegisterObject;
+  TParDoInstructionTypeuserFn.RegisterObject;
   TParDoInstruction.RegisterObject;
-  TParDoInstructionmultiOutputInfos.RegisterObject;
-  TParDoInstructionsideInputs.RegisterObject;
-  TParDoInstructionuserFn.RegisterObject;
   TParallelInstruction.RegisterObject;
-  TParallelInstructionoutputs.RegisterObject;
+  TPartialGroupByKeyInstructionTypeinputElementCodec.RegisterObject;
+  TPartialGroupByKeyInstructionTypevalueCombiningFn.RegisterObject;
   TPartialGroupByKeyInstruction.RegisterObject;
-  TPartialGroupByKeyInstructioninputElementCodec.RegisterObject;
-  TPartialGroupByKeyInstructionvalueCombiningFn.RegisterObject;
   TPosition.RegisterObject;
   TPubsubLocation.RegisterObject;
   TReadInstruction.RegisterObject;
   TReportWorkItemStatusRequest.RegisterObject;
-  TReportWorkItemStatusRequestworkItemStatuses.RegisterObject;
   TReportWorkItemStatusResponse.RegisterObject;
-  TReportWorkItemStatusResponseworkItemServiceStates.RegisterObject;
+  TSeqMapTaskTypeuserFn.RegisterObject;
   TSeqMapTask.RegisterObject;
-  TSeqMapTaskinputs.RegisterObject;
-  TSeqMapTaskoutputInfos.RegisterObject;
-  TSeqMapTaskuserFn.RegisterObject;
   TSeqMapTaskOutputInfo.RegisterObject;
   TShellTask.RegisterObject;
+  TSideInputInfoTypekind.RegisterObject;
   TSideInputInfo.RegisterObject;
-  TSideInputInfokind.RegisterObject;
-  TSideInputInfosources.RegisterObject;
+  TSinkTypecodec.RegisterObject;
+  TSinkTypespec.RegisterObject;
   TSink.RegisterObject;
-  TSinkcodec.RegisterObject;
-  TSinkspec.RegisterObject;
+  TSourceTypebaseSpecsItem.RegisterObject;
+  TSourceTypecodec.RegisterObject;
+  TSourceTypespec.RegisterObject;
   TSource.RegisterObject;
-  TSourcebaseSpecs.RegisterObject;
-  TSourcecodec.RegisterObject;
-  TSourcespec.RegisterObject;
   TSourceFork.RegisterObject;
   TSourceGetMetadataRequest.RegisterObject;
   TSourceGetMetadataResponse.RegisterObject;
@@ -6639,39 +5795,26 @@ begin
   TSourceSplitOptions.RegisterObject;
   TSourceSplitRequest.RegisterObject;
   TSourceSplitResponse.RegisterObject;
-  TSourceSplitResponsebundles.RegisterObject;
-  TSourceSplitResponseshards.RegisterObject;
   TSourceSplitShard.RegisterObject;
+  TStatusTypedetailsItem.RegisterObject;
   TStatus.RegisterObject;
-  TStatusdetails.RegisterObject;
+  TStepTypeproperties.RegisterObject;
   TStep.RegisterObject;
-  TStepproperties.RegisterObject;
   TStreamLocation.RegisterObject;
   TStreamingComputationRanges.RegisterObject;
-  TStreamingComputationRangesrangeAssignments.RegisterObject;
   TStreamingComputationTask.RegisterObject;
-  TStreamingComputationTaskcomputationRanges.RegisterObject;
-  TStreamingComputationTaskdataDisks.RegisterObject;
   TStreamingSetupTask.RegisterObject;
   TStreamingSideInputLocation.RegisterObject;
   TStreamingStageLocation.RegisterObject;
   TTaskRunnerSettings.RegisterObject;
-  TTaskRunnerSettingsoauthScopes.RegisterObject;
   TTopologyConfig.RegisterObject;
-  TTopologyConfigcomputations.RegisterObject;
-  TTopologyConfigdataDiskAssignments.RegisterObject;
   TWorkItem.RegisterObject;
-  TWorkItempackages.RegisterObject;
+  TWorkItemServiceStateTypeharnessData.RegisterObject;
   TWorkItemServiceState.RegisterObject;
-  TWorkItemServiceStateharnessData.RegisterObject;
   TWorkItemStatus.RegisterObject;
-  TWorkItemStatuserrors.RegisterObject;
-  TWorkItemStatusmetricUpdates.RegisterObject;
+  TWorkerPoolTypemetadata.RegisterObject;
+  TWorkerPoolTypepoolArgs.RegisterObject;
   TWorkerPool.RegisterObject;
-  TWorkerPooldataDisks.RegisterObject;
-  TWorkerPoolmetadata.RegisterObject;
-  TWorkerPoolpackages.RegisterObject;
-  TWorkerPoolpoolArgs.RegisterObject;
   TWorkerSettings.RegisterObject;
   TWriteInstruction.RegisterObject;
 end;

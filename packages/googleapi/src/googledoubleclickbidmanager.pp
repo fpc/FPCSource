@@ -1,31 +1,19 @@
 unit googledoubleclickbidmanager;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:53
 {$MODE objfpc}
 {$H+}
 
@@ -34,65 +22,51 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TDownloadLineItemsRequest = class;
-  TDownloadLineItemsRequestArray = Array of TDownloadLineItemsRequest;
-  TDownloadLineItemsRequestfilterIds = class;
-  TDownloadLineItemsRequestfilterIdsArray = Array of TDownloadLineItemsRequestfilterIds;
   TDownloadLineItemsResponse = class;
-  TDownloadLineItemsResponseArray = Array of TDownloadLineItemsResponse;
   TFilterPair = class;
-  TFilterPairArray = Array of TFilterPair;
   TListQueriesResponse = class;
-  TListQueriesResponseArray = Array of TListQueriesResponse;
-  TListQueriesResponsequeries = class;
-  TListQueriesResponsequeriesArray = Array of TListQueriesResponsequeries;
   TListReportsResponse = class;
-  TListReportsResponseArray = Array of TListReportsResponse;
-  TListReportsResponsereports = class;
-  TListReportsResponsereportsArray = Array of TListReportsResponsereports;
   TParameters = class;
-  TParametersArray = Array of TParameters;
-  TParametersfilters = class;
-  TParametersfiltersArray = Array of TParametersfilters;
-  TParametersgroupBys = class;
-  TParametersgroupBysArray = Array of TParametersgroupBys;
-  TParametersmetrics = class;
-  TParametersmetricsArray = Array of TParametersmetrics;
   TQuery = class;
-  TQueryArray = Array of TQuery;
   TQueryMetadata = class;
-  TQueryMetadataArray = Array of TQueryMetadata;
-  TQueryMetadatashareEmailAddress = class;
-  TQueryMetadatashareEmailAddressArray = Array of TQueryMetadatashareEmailAddress;
   TQuerySchedule = class;
-  TQueryScheduleArray = Array of TQuerySchedule;
   TReport = class;
-  TReportArray = Array of TReport;
   TReportFailure = class;
-  TReportFailureArray = Array of TReportFailure;
   TReportKey = class;
-  TReportKeyArray = Array of TReportKey;
   TReportMetadata = class;
-  TReportMetadataArray = Array of TReportMetadata;
   TReportStatus = class;
-  TReportStatusArray = Array of TReportStatus;
   TRowStatus = class;
-  TRowStatusArray = Array of TRowStatus;
-  TRowStatuserrors = class;
-  TRowStatuserrorsArray = Array of TRowStatuserrors;
   TRunQueryRequest = class;
-  TRunQueryRequestArray = Array of TRunQueryRequest;
   TUploadLineItemsRequest = class;
-  TUploadLineItemsRequestArray = Array of TUploadLineItemsRequest;
   TUploadLineItemsResponse = class;
-  TUploadLineItemsResponseArray = Array of TUploadLineItemsResponse;
   TUploadStatus = class;
+  TDownloadLineItemsRequestArray = Array of TDownloadLineItemsRequest;
+  TDownloadLineItemsResponseArray = Array of TDownloadLineItemsResponse;
+  TFilterPairArray = Array of TFilterPair;
+  TListQueriesResponseArray = Array of TListQueriesResponse;
+  TListReportsResponseArray = Array of TListReportsResponse;
+  TParametersArray = Array of TParameters;
+  TQueryArray = Array of TQuery;
+  TQueryMetadataArray = Array of TQueryMetadata;
+  TQueryScheduleArray = Array of TQuerySchedule;
+  TReportArray = Array of TReport;
+  TReportFailureArray = Array of TReportFailure;
+  TReportKeyArray = Array of TReportKey;
+  TReportMetadataArray = Array of TReportMetadata;
+  TReportStatusArray = Array of TReportStatus;
+  TRowStatusArray = Array of TRowStatus;
+  TRunQueryRequestArray = Array of TRunQueryRequest;
+  TUploadLineItemsRequestArray = Array of TUploadLineItemsRequest;
+  TUploadLineItemsResponseArray = Array of TUploadLineItemsResponse;
   TUploadStatusArray = Array of TUploadStatus;
-  TUploadStatuserrors = class;
-  TUploadStatuserrorsArray = Array of TUploadStatuserrors;
-  TUploadStatusrowStatus = class;
-  TUploadStatusrowStatusArray = Array of TUploadStatusrowStatus;
+  //Anonymous types, using auto-generated names
+  TListQueriesResponseTypequeriesArray = Array of TQuery;
+  TListReportsResponseTypereportsArray = Array of TReport;
+  TParametersTypefiltersArray = Array of TFilterPair;
+  TUploadStatusTyperowStatusArray = Array of TRowStatus;
   
   { --------------------------------------------------------------------
     TDownloadLineItemsRequest
@@ -100,34 +74,21 @@ type
   
   TDownloadLineItemsRequest = Class(TGoogleBaseObject)
   Private
-    FfilterIds : TDownloadLineItemsRequestfilterIds;
-    FfilterType : string;
-    Fformat : string;
+    FfilterIds : TStringArray;
+    FfilterType : String;
+    Fformat : String;
   Protected
     //Property setters
-    Procedure SetfilterIds(AIndex : Integer; AValue : TDownloadLineItemsRequestfilterIds); virtual;
-    Procedure SetfilterType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : string); virtual;
+    Procedure SetfilterIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetfilterType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property filterIds : TDownloadLineItemsRequestfilterIds Index 0 Read FfilterIds Write SetfilterIds;
-    Property filterType : string Index 8 Read FfilterType Write SetfilterType;
-    Property format : string Index 16 Read Fformat Write Setformat;
+    Property filterIds : TStringArray Index 0 Read FfilterIds Write SetfilterIds;
+    Property filterType : String Index 8 Read FfilterType Write SetfilterType;
+    Property format : String Index 16 Read Fformat Write Setformat;
   end;
   TDownloadLineItemsRequestClass = Class of TDownloadLineItemsRequest;
-  
-  { --------------------------------------------------------------------
-    TDownloadLineItemsRequestfilterIds
-    --------------------------------------------------------------------}
-  
-  TDownloadLineItemsRequestfilterIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDownloadLineItemsRequestfilterIdsClass = Class of TDownloadLineItemsRequestfilterIds;
   
   { --------------------------------------------------------------------
     TDownloadLineItemsResponse
@@ -135,13 +96,13 @@ type
   
   TDownloadLineItemsResponse = Class(TGoogleBaseObject)
   Private
-    FlineItems : string;
+    FlineItems : String;
   Protected
     //Property setters
-    Procedure SetlineItems(AIndex : Integer; AValue : string); virtual;
+    Procedure SetlineItems(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property lineItems : string Index 0 Read FlineItems Write SetlineItems;
+    Property lineItems : String Index 0 Read FlineItems Write SetlineItems;
   end;
   TDownloadLineItemsResponseClass = Class of TDownloadLineItemsResponse;
   
@@ -151,17 +112,17 @@ type
   
   TFilterPair = Class(TGoogleBaseObject)
   Private
-    F_type : string;
-    Fvalue : string;
+    F_type : String;
+    Fvalue : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _type : string Index 0 Read F_type Write Set_type;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property _type : String Index 0 Read F_type Write Set_type;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TFilterPairClass = Class of TFilterPair;
   
@@ -171,31 +132,18 @@ type
   
   TListQueriesResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fqueries : TListQueriesResponsequeries;
+    Fkind : String;
+    Fqueries : TListQueriesResponseTypequeriesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setqueries(AIndex : Integer; AValue : TListQueriesResponsequeries); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setqueries(AIndex : Integer; AValue : TListQueriesResponseTypequeriesArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property queries : TListQueriesResponsequeries Index 8 Read Fqueries Write Setqueries;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property queries : TListQueriesResponseTypequeriesArray Index 8 Read Fqueries Write Setqueries;
   end;
   TListQueriesResponseClass = Class of TListQueriesResponse;
-  
-  { --------------------------------------------------------------------
-    TListQueriesResponsequeries
-    --------------------------------------------------------------------}
-  
-  TListQueriesResponsequeries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListQueriesResponsequeriesClass = Class of TListQueriesResponsequeries;
   
   { --------------------------------------------------------------------
     TListReportsResponse
@@ -203,31 +151,18 @@ type
   
   TListReportsResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Freports : TListReportsResponsereports;
+    Fkind : String;
+    Freports : TListReportsResponseTypereportsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setreports(AIndex : Integer; AValue : TListReportsResponsereports); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setreports(AIndex : Integer; AValue : TListReportsResponseTypereportsArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property reports : TListReportsResponsereports Index 8 Read Freports Write Setreports;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property reports : TListReportsResponseTypereportsArray Index 8 Read Freports Write Setreports;
   end;
   TListReportsResponseClass = Class of TListReportsResponse;
-  
-  { --------------------------------------------------------------------
-    TListReportsResponsereports
-    --------------------------------------------------------------------}
-  
-  TListReportsResponsereports = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListReportsResponsereportsClass = Class of TListReportsResponsereports;
   
   { --------------------------------------------------------------------
     TParameters
@@ -235,67 +170,28 @@ type
   
   TParameters = Class(TGoogleBaseObject)
   Private
-    Ffilters : TParametersfilters;
-    FgroupBys : TParametersgroupBys;
+    Ffilters : TParametersTypefiltersArray;
+    FgroupBys : TStringArray;
     FincludeInviteData : boolean;
-    Fmetrics : TParametersmetrics;
-    F_type : string;
+    Fmetrics : TStringArray;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setfilters(AIndex : Integer; AValue : TParametersfilters); virtual;
-    Procedure SetgroupBys(AIndex : Integer; AValue : TParametersgroupBys); virtual;
+    Procedure Setfilters(AIndex : Integer; AValue : TParametersTypefiltersArray); virtual;
+    Procedure SetgroupBys(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetincludeInviteData(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setmetrics(AIndex : Integer; AValue : TParametersmetrics); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setmetrics(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property filters : TParametersfilters Index 0 Read Ffilters Write Setfilters;
-    Property groupBys : TParametersgroupBys Index 8 Read FgroupBys Write SetgroupBys;
+    Property filters : TParametersTypefiltersArray Index 0 Read Ffilters Write Setfilters;
+    Property groupBys : TStringArray Index 8 Read FgroupBys Write SetgroupBys;
     Property includeInviteData : boolean Index 16 Read FincludeInviteData Write SetincludeInviteData;
-    Property metrics : TParametersmetrics Index 24 Read Fmetrics Write Setmetrics;
-    Property _type : string Index 32 Read F_type Write Set_type;
+    Property metrics : TStringArray Index 24 Read Fmetrics Write Setmetrics;
+    Property _type : String Index 32 Read F_type Write Set_type;
   end;
   TParametersClass = Class of TParameters;
-  
-  { --------------------------------------------------------------------
-    TParametersfilters
-    --------------------------------------------------------------------}
-  
-  TParametersfilters = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TParametersfiltersClass = Class of TParametersfilters;
-  
-  { --------------------------------------------------------------------
-    TParametersgroupBys
-    --------------------------------------------------------------------}
-  
-  TParametersgroupBys = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TParametersgroupBysClass = Class of TParametersgroupBys;
-  
-  { --------------------------------------------------------------------
-    TParametersmetrics
-    --------------------------------------------------------------------}
-  
-  TParametersmetrics = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TParametersmetricsClass = Class of TParametersmetrics;
   
   { --------------------------------------------------------------------
     TQuery
@@ -303,34 +199,34 @@ type
   
   TQuery = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
+    Fkind : String;
     Fmetadata : TQueryMetadata;
     Fparams : TParameters;
-    FqueryId : string;
-    FreportDataEndTimeMs : string;
-    FreportDataStartTimeMs : string;
+    FqueryId : String;
+    FreportDataEndTimeMs : String;
+    FreportDataStartTimeMs : String;
     Fschedule : TQuerySchedule;
-    FtimezoneCode : string;
+    FtimezoneCode : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setmetadata(AIndex : Integer; AValue : TQueryMetadata); virtual;
     Procedure Setparams(AIndex : Integer; AValue : TParameters); virtual;
-    Procedure SetqueryId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreportDataEndTimeMs(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreportDataStartTimeMs(AIndex : Integer; AValue : string); virtual;
+    Procedure SetqueryId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreportDataEndTimeMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreportDataStartTimeMs(AIndex : Integer; AValue : String); virtual;
     Procedure Setschedule(AIndex : Integer; AValue : TQuerySchedule); virtual;
-    Procedure SettimezoneCode(AIndex : Integer; AValue : string); virtual;
+    Procedure SettimezoneCode(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
+    Property kind : String Index 0 Read Fkind Write Setkind;
     Property metadata : TQueryMetadata Index 8 Read Fmetadata Write Setmetadata;
     Property params : TParameters Index 16 Read Fparams Write Setparams;
-    Property queryId : string Index 24 Read FqueryId Write SetqueryId;
-    Property reportDataEndTimeMs : string Index 32 Read FreportDataEndTimeMs Write SetreportDataEndTimeMs;
-    Property reportDataStartTimeMs : string Index 40 Read FreportDataStartTimeMs Write SetreportDataStartTimeMs;
+    Property queryId : String Index 24 Read FqueryId Write SetqueryId;
+    Property reportDataEndTimeMs : String Index 32 Read FreportDataEndTimeMs Write SetreportDataEndTimeMs;
+    Property reportDataStartTimeMs : String Index 40 Read FreportDataStartTimeMs Write SetreportDataStartTimeMs;
     Property schedule : TQuerySchedule Index 48 Read Fschedule Write Setschedule;
-    Property timezoneCode : string Index 56 Read FtimezoneCode Write SettimezoneCode;
+    Property timezoneCode : String Index 56 Read FtimezoneCode Write SettimezoneCode;
   end;
   TQueryClass = Class of TQuery;
   
@@ -340,58 +236,45 @@ type
   
   TQueryMetadata = Class(TGoogleBaseObject)
   Private
-    FdataRange : string;
-    Fformat : string;
-    FgoogleCloudStoragePathForLatestReport : string;
-    FgoogleDrivePathForLatestReport : string;
-    FlatestReportRunTimeMs : string;
-    Flocale : string;
+    FdataRange : String;
+    Fformat : String;
+    FgoogleCloudStoragePathForLatestReport : String;
+    FgoogleDrivePathForLatestReport : String;
+    FlatestReportRunTimeMs : String;
+    Flocale : String;
     FreportCount : integer;
     Frunning : boolean;
     FsendNotification : boolean;
-    FshareEmailAddress : TQueryMetadatashareEmailAddress;
-    Ftitle : string;
+    FshareEmailAddress : TStringArray;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure SetdataRange(AIndex : Integer; AValue : string); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgoogleCloudStoragePathForLatestReport(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgoogleDrivePathForLatestReport(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlatestReportRunTimeMs(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocale(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdataRange(AIndex : Integer; AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgoogleCloudStoragePathForLatestReport(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgoogleDrivePathForLatestReport(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlatestReportRunTimeMs(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocale(AIndex : Integer; AValue : String); virtual;
     Procedure SetreportCount(AIndex : Integer; AValue : integer); virtual;
     Procedure Setrunning(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetsendNotification(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetshareEmailAddress(AIndex : Integer; AValue : TQueryMetadatashareEmailAddress); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure SetshareEmailAddress(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property dataRange : string Index 0 Read FdataRange Write SetdataRange;
-    Property format : string Index 8 Read Fformat Write Setformat;
-    Property googleCloudStoragePathForLatestReport : string Index 16 Read FgoogleCloudStoragePathForLatestReport Write SetgoogleCloudStoragePathForLatestReport;
-    Property googleDrivePathForLatestReport : string Index 24 Read FgoogleDrivePathForLatestReport Write SetgoogleDrivePathForLatestReport;
-    Property latestReportRunTimeMs : string Index 32 Read FlatestReportRunTimeMs Write SetlatestReportRunTimeMs;
-    Property locale : string Index 40 Read Flocale Write Setlocale;
+    Property dataRange : String Index 0 Read FdataRange Write SetdataRange;
+    Property format : String Index 8 Read Fformat Write Setformat;
+    Property googleCloudStoragePathForLatestReport : String Index 16 Read FgoogleCloudStoragePathForLatestReport Write SetgoogleCloudStoragePathForLatestReport;
+    Property googleDrivePathForLatestReport : String Index 24 Read FgoogleDrivePathForLatestReport Write SetgoogleDrivePathForLatestReport;
+    Property latestReportRunTimeMs : String Index 32 Read FlatestReportRunTimeMs Write SetlatestReportRunTimeMs;
+    Property locale : String Index 40 Read Flocale Write Setlocale;
     Property reportCount : integer Index 48 Read FreportCount Write SetreportCount;
     Property running : boolean Index 56 Read Frunning Write Setrunning;
     Property sendNotification : boolean Index 64 Read FsendNotification Write SetsendNotification;
-    Property shareEmailAddress : TQueryMetadatashareEmailAddress Index 72 Read FshareEmailAddress Write SetshareEmailAddress;
-    Property title : string Index 80 Read Ftitle Write Settitle;
+    Property shareEmailAddress : TStringArray Index 72 Read FshareEmailAddress Write SetshareEmailAddress;
+    Property title : String Index 80 Read Ftitle Write Settitle;
   end;
   TQueryMetadataClass = Class of TQueryMetadata;
-  
-  { --------------------------------------------------------------------
-    TQueryMetadatashareEmailAddress
-    --------------------------------------------------------------------}
-  
-  TQueryMetadatashareEmailAddress = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TQueryMetadatashareEmailAddressClass = Class of TQueryMetadatashareEmailAddress;
   
   { --------------------------------------------------------------------
     TQuerySchedule
@@ -399,22 +282,22 @@ type
   
   TQuerySchedule = Class(TGoogleBaseObject)
   Private
-    FendTimeMs : string;
-    Ffrequency : string;
+    FendTimeMs : String;
+    Ffrequency : String;
     FnextRunMinuteOfDay : integer;
-    FnextRunTimezoneCode : string;
+    FnextRunTimezoneCode : String;
   Protected
     //Property setters
-    Procedure SetendTimeMs(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfrequency(AIndex : Integer; AValue : string); virtual;
+    Procedure SetendTimeMs(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfrequency(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextRunMinuteOfDay(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnextRunTimezoneCode(AIndex : Integer; AValue : string); virtual;
+    Procedure SetnextRunTimezoneCode(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property endTimeMs : string Index 0 Read FendTimeMs Write SetendTimeMs;
-    Property frequency : string Index 8 Read Ffrequency Write Setfrequency;
+    Property endTimeMs : String Index 0 Read FendTimeMs Write SetendTimeMs;
+    Property frequency : String Index 8 Read Ffrequency Write Setfrequency;
     Property nextRunMinuteOfDay : integer Index 16 Read FnextRunMinuteOfDay Write SetnextRunMinuteOfDay;
-    Property nextRunTimezoneCode : string Index 24 Read FnextRunTimezoneCode Write SetnextRunTimezoneCode;
+    Property nextRunTimezoneCode : String Index 24 Read FnextRunTimezoneCode Write SetnextRunTimezoneCode;
   end;
   TQueryScheduleClass = Class of TQuerySchedule;
   
@@ -446,13 +329,13 @@ type
   
   TReportFailure = Class(TGoogleBaseObject)
   Private
-    FerrorCode : string;
+    FerrorCode : String;
   Protected
     //Property setters
-    Procedure SeterrorCode(AIndex : Integer; AValue : string); virtual;
+    Procedure SeterrorCode(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property errorCode : string Index 0 Read FerrorCode Write SeterrorCode;
+    Property errorCode : String Index 0 Read FerrorCode Write SeterrorCode;
   end;
   TReportFailureClass = Class of TReportFailure;
   
@@ -462,16 +345,16 @@ type
   
   TReportKey = Class(TGoogleBaseObject)
   Private
-    FqueryId : string;
-    FreportId : string;
+    FqueryId : String;
+    FreportId : String;
   Protected
     //Property setters
-    Procedure SetqueryId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreportId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetqueryId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreportId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property queryId : string Index 0 Read FqueryId Write SetqueryId;
-    Property reportId : string Index 8 Read FreportId Write SetreportId;
+    Property queryId : String Index 0 Read FqueryId Write SetqueryId;
+    Property reportId : String Index 8 Read FreportId Write SetreportId;
   end;
   TReportKeyClass = Class of TReportKey;
   
@@ -481,21 +364,21 @@ type
   
   TReportMetadata = Class(TGoogleBaseObject)
   Private
-    FgoogleCloudStoragePath : string;
-    FreportDataEndTimeMs : string;
-    FreportDataStartTimeMs : string;
+    FgoogleCloudStoragePath : String;
+    FreportDataEndTimeMs : String;
+    FreportDataStartTimeMs : String;
     Fstatus : TReportStatus;
   Protected
     //Property setters
-    Procedure SetgoogleCloudStoragePath(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreportDataEndTimeMs(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreportDataStartTimeMs(AIndex : Integer; AValue : string); virtual;
+    Procedure SetgoogleCloudStoragePath(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreportDataEndTimeMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreportDataStartTimeMs(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TReportStatus); virtual;
   Public
   Published
-    Property googleCloudStoragePath : string Index 0 Read FgoogleCloudStoragePath Write SetgoogleCloudStoragePath;
-    Property reportDataEndTimeMs : string Index 8 Read FreportDataEndTimeMs Write SetreportDataEndTimeMs;
-    Property reportDataStartTimeMs : string Index 16 Read FreportDataStartTimeMs Write SetreportDataStartTimeMs;
+    Property googleCloudStoragePath : String Index 0 Read FgoogleCloudStoragePath Write SetgoogleCloudStoragePath;
+    Property reportDataEndTimeMs : String Index 8 Read FreportDataEndTimeMs Write SetreportDataEndTimeMs;
+    Property reportDataStartTimeMs : String Index 16 Read FreportDataStartTimeMs Write SetreportDataStartTimeMs;
     Property status : TReportStatus Index 24 Read Fstatus Write Setstatus;
   end;
   TReportMetadataClass = Class of TReportMetadata;
@@ -507,21 +390,21 @@ type
   TReportStatus = Class(TGoogleBaseObject)
   Private
     Ffailure : TReportFailure;
-    FfinishTimeMs : string;
-    Fformat : string;
-    Fstate : string;
+    FfinishTimeMs : String;
+    Fformat : String;
+    Fstate : String;
   Protected
     //Property setters
     Procedure Setfailure(AIndex : Integer; AValue : TReportFailure); virtual;
-    Procedure SetfinishTimeMs(AIndex : Integer; AValue : string); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : string); virtual;
+    Procedure SetfinishTimeMs(AIndex : Integer; AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property failure : TReportFailure Index 0 Read Ffailure Write Setfailure;
-    Property finishTimeMs : string Index 8 Read FfinishTimeMs Write SetfinishTimeMs;
-    Property format : string Index 16 Read Fformat Write Setformat;
-    Property state : string Index 24 Read Fstate Write Setstate;
+    Property finishTimeMs : String Index 8 Read FfinishTimeMs Write SetfinishTimeMs;
+    Property format : String Index 16 Read Fformat Write Setformat;
+    Property state : String Index 24 Read Fstate Write Setstate;
   end;
   TReportStatusClass = Class of TReportStatus;
   
@@ -532,42 +415,29 @@ type
   TRowStatus = Class(TGoogleBaseObject)
   Private
     Fchanged : boolean;
-    FentityId : string;
-    FentityName : string;
-    Ferrors : TRowStatuserrors;
+    FentityId : String;
+    FentityName : String;
+    Ferrors : TStringArray;
     Fpersisted : boolean;
     FrowNumber : integer;
   Protected
     //Property setters
     Procedure Setchanged(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetentityId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetentityName(AIndex : Integer; AValue : string); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TRowStatuserrors); virtual;
+    Procedure SetentityId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetentityName(AIndex : Integer; AValue : String); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setpersisted(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetrowNumber(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
     Property changed : boolean Index 0 Read Fchanged Write Setchanged;
-    Property entityId : string Index 8 Read FentityId Write SetentityId;
-    Property entityName : string Index 16 Read FentityName Write SetentityName;
-    Property errors : TRowStatuserrors Index 24 Read Ferrors Write Seterrors;
+    Property entityId : String Index 8 Read FentityId Write SetentityId;
+    Property entityName : String Index 16 Read FentityName Write SetentityName;
+    Property errors : TStringArray Index 24 Read Ferrors Write Seterrors;
     Property persisted : boolean Index 32 Read Fpersisted Write Setpersisted;
     Property rowNumber : integer Index 40 Read FrowNumber Write SetrowNumber;
   end;
   TRowStatusClass = Class of TRowStatus;
-  
-  { --------------------------------------------------------------------
-    TRowStatuserrors
-    --------------------------------------------------------------------}
-  
-  TRowStatuserrors = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRowStatuserrorsClass = Class of TRowStatuserrors;
   
   { --------------------------------------------------------------------
     TRunQueryRequest
@@ -575,22 +445,22 @@ type
   
   TRunQueryRequest = Class(TGoogleBaseObject)
   Private
-    FdataRange : string;
-    FreportDataEndTimeMs : string;
-    FreportDataStartTimeMs : string;
-    FtimezoneCode : string;
+    FdataRange : String;
+    FreportDataEndTimeMs : String;
+    FreportDataStartTimeMs : String;
+    FtimezoneCode : String;
   Protected
     //Property setters
-    Procedure SetdataRange(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreportDataEndTimeMs(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreportDataStartTimeMs(AIndex : Integer; AValue : string); virtual;
-    Procedure SettimezoneCode(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdataRange(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreportDataEndTimeMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreportDataStartTimeMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimezoneCode(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property dataRange : string Index 0 Read FdataRange Write SetdataRange;
-    Property reportDataEndTimeMs : string Index 8 Read FreportDataEndTimeMs Write SetreportDataEndTimeMs;
-    Property reportDataStartTimeMs : string Index 16 Read FreportDataStartTimeMs Write SetreportDataStartTimeMs;
-    Property timezoneCode : string Index 24 Read FtimezoneCode Write SettimezoneCode;
+    Property dataRange : String Index 0 Read FdataRange Write SetdataRange;
+    Property reportDataEndTimeMs : String Index 8 Read FreportDataEndTimeMs Write SetreportDataEndTimeMs;
+    Property reportDataStartTimeMs : String Index 16 Read FreportDataStartTimeMs Write SetreportDataStartTimeMs;
+    Property timezoneCode : String Index 24 Read FtimezoneCode Write SettimezoneCode;
   end;
   TRunQueryRequestClass = Class of TRunQueryRequest;
   
@@ -601,18 +471,18 @@ type
   TUploadLineItemsRequest = Class(TGoogleBaseObject)
   Private
     FdryRun : boolean;
-    Fformat : string;
-    FlineItems : string;
+    Fformat : String;
+    FlineItems : String;
   Protected
     //Property setters
     Procedure SetdryRun(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlineItems(AIndex : Integer; AValue : string); virtual;
+    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlineItems(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property dryRun : boolean Index 0 Read FdryRun Write SetdryRun;
-    Property format : string Index 8 Read Fformat Write Setformat;
-    Property lineItems : string Index 16 Read FlineItems Write SetlineItems;
+    Property format : String Index 8 Read Fformat Write Setformat;
+    Property lineItems : String Index 16 Read FlineItems Write SetlineItems;
   end;
   TUploadLineItemsRequestClass = Class of TUploadLineItemsRequest;
   
@@ -638,44 +508,18 @@ type
   
   TUploadStatus = Class(TGoogleBaseObject)
   Private
-    Ferrors : TUploadStatuserrors;
-    FrowStatus : TUploadStatusrowStatus;
+    Ferrors : TStringArray;
+    FrowStatus : TUploadStatusTyperowStatusArray;
   Protected
     //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TUploadStatuserrors); virtual;
-    Procedure SetrowStatus(AIndex : Integer; AValue : TUploadStatusrowStatus); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetrowStatus(AIndex : Integer; AValue : TUploadStatusTyperowStatusArray); virtual;
   Public
   Published
-    Property errors : TUploadStatuserrors Index 0 Read Ferrors Write Seterrors;
-    Property rowStatus : TUploadStatusrowStatus Index 8 Read FrowStatus Write SetrowStatus;
+    Property errors : TStringArray Index 0 Read Ferrors Write Seterrors;
+    Property rowStatus : TUploadStatusTyperowStatusArray Index 8 Read FrowStatus Write SetrowStatus;
   end;
   TUploadStatusClass = Class of TUploadStatus;
-  
-  { --------------------------------------------------------------------
-    TUploadStatuserrors
-    --------------------------------------------------------------------}
-  
-  TUploadStatuserrors = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUploadStatuserrorsClass = Class of TUploadStatuserrors;
-  
-  { --------------------------------------------------------------------
-    TUploadStatusrowStatus
-    --------------------------------------------------------------------}
-  
-  TUploadStatusrowStatus = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUploadStatusrowStatusClass = Class of TUploadStatusrowStatus;
   
   { --------------------------------------------------------------------
     TLineitemsResource
@@ -773,7 +617,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TDownloadLineItemsRequest.SetfilterIds(AIndex : Integer; AValue : TDownloadLineItemsRequestfilterIds); 
+Procedure TDownloadLineItemsRequest.SetfilterIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FfilterIds=AValue) then exit;
@@ -783,7 +627,7 @@ end;
 
 
 
-Procedure TDownloadLineItemsRequest.SetfilterType(AIndex : Integer; AValue : string); 
+Procedure TDownloadLineItemsRequest.SetfilterType(AIndex : Integer; AValue : String); 
 
 begin
   If (FfilterType=AValue) then exit;
@@ -793,7 +637,7 @@ end;
 
 
 
-Procedure TDownloadLineItemsRequest.Setformat(AIndex : Integer; AValue : string); 
+Procedure TDownloadLineItemsRequest.Setformat(AIndex : Integer; AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -806,18 +650,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDownloadLineItemsRequestfilterIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TDownloadLineItemsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TDownloadLineItemsResponse.SetlineItems(AIndex : Integer; AValue : string); 
+Procedure TDownloadLineItemsResponse.SetlineItems(AIndex : Integer; AValue : String); 
 
 begin
   If (FlineItems=AValue) then exit;
@@ -834,7 +671,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilterPair.Set_type(AIndex : Integer; AValue : string); 
+Procedure TFilterPair.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -844,7 +681,7 @@ end;
 
 
 
-Procedure TFilterPair.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TFilterPair.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -872,7 +709,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListQueriesResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TListQueriesResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -882,7 +719,7 @@ end;
 
 
 
-Procedure TListQueriesResponse.Setqueries(AIndex : Integer; AValue : TListQueriesResponsequeries); 
+Procedure TListQueriesResponse.Setqueries(AIndex : Integer; AValue : TListQueriesResponseTypequeriesArray); 
 
 begin
   If (Fqueries=AValue) then exit;
@@ -895,18 +732,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListQueriesResponsequeries
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListReportsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListReportsResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TListReportsResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -916,7 +746,7 @@ end;
 
 
 
-Procedure TListReportsResponse.Setreports(AIndex : Integer; AValue : TListReportsResponsereports); 
+Procedure TListReportsResponse.Setreports(AIndex : Integer; AValue : TListReportsResponseTypereportsArray); 
 
 begin
   If (Freports=AValue) then exit;
@@ -929,18 +759,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListReportsResponsereports
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TParameters
   --------------------------------------------------------------------}
 
 
-Procedure TParameters.Setfilters(AIndex : Integer; AValue : TParametersfilters); 
+Procedure TParameters.Setfilters(AIndex : Integer; AValue : TParametersTypefiltersArray); 
 
 begin
   If (Ffilters=AValue) then exit;
@@ -950,7 +773,7 @@ end;
 
 
 
-Procedure TParameters.SetgroupBys(AIndex : Integer; AValue : TParametersgroupBys); 
+Procedure TParameters.SetgroupBys(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FgroupBys=AValue) then exit;
@@ -970,7 +793,7 @@ end;
 
 
 
-Procedure TParameters.Setmetrics(AIndex : Integer; AValue : TParametersmetrics); 
+Procedure TParameters.Setmetrics(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fmetrics=AValue) then exit;
@@ -980,7 +803,7 @@ end;
 
 
 
-Procedure TParameters.Set_type(AIndex : Integer; AValue : string); 
+Procedure TParameters.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1004,32 +827,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TParametersfilters
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TParametersgroupBys
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TParametersmetrics
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TQuery
   --------------------------------------------------------------------}
 
 
-Procedure TQuery.Setkind(AIndex : Integer; AValue : string); 
+Procedure TQuery.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1059,7 +861,7 @@ end;
 
 
 
-Procedure TQuery.SetqueryId(AIndex : Integer; AValue : string); 
+Procedure TQuery.SetqueryId(AIndex : Integer; AValue : String); 
 
 begin
   If (FqueryId=AValue) then exit;
@@ -1069,7 +871,7 @@ end;
 
 
 
-Procedure TQuery.SetreportDataEndTimeMs(AIndex : Integer; AValue : string); 
+Procedure TQuery.SetreportDataEndTimeMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FreportDataEndTimeMs=AValue) then exit;
@@ -1079,7 +881,7 @@ end;
 
 
 
-Procedure TQuery.SetreportDataStartTimeMs(AIndex : Integer; AValue : string); 
+Procedure TQuery.SetreportDataStartTimeMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FreportDataStartTimeMs=AValue) then exit;
@@ -1099,7 +901,7 @@ end;
 
 
 
-Procedure TQuery.SettimezoneCode(AIndex : Integer; AValue : string); 
+Procedure TQuery.SettimezoneCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FtimezoneCode=AValue) then exit;
@@ -1116,7 +918,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQueryMetadata.SetdataRange(AIndex : Integer; AValue : string); 
+Procedure TQueryMetadata.SetdataRange(AIndex : Integer; AValue : String); 
 
 begin
   If (FdataRange=AValue) then exit;
@@ -1126,7 +928,7 @@ end;
 
 
 
-Procedure TQueryMetadata.Setformat(AIndex : Integer; AValue : string); 
+Procedure TQueryMetadata.Setformat(AIndex : Integer; AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -1136,7 +938,7 @@ end;
 
 
 
-Procedure TQueryMetadata.SetgoogleCloudStoragePathForLatestReport(AIndex : Integer; AValue : string); 
+Procedure TQueryMetadata.SetgoogleCloudStoragePathForLatestReport(AIndex : Integer; AValue : String); 
 
 begin
   If (FgoogleCloudStoragePathForLatestReport=AValue) then exit;
@@ -1146,7 +948,7 @@ end;
 
 
 
-Procedure TQueryMetadata.SetgoogleDrivePathForLatestReport(AIndex : Integer; AValue : string); 
+Procedure TQueryMetadata.SetgoogleDrivePathForLatestReport(AIndex : Integer; AValue : String); 
 
 begin
   If (FgoogleDrivePathForLatestReport=AValue) then exit;
@@ -1156,7 +958,7 @@ end;
 
 
 
-Procedure TQueryMetadata.SetlatestReportRunTimeMs(AIndex : Integer; AValue : string); 
+Procedure TQueryMetadata.SetlatestReportRunTimeMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FlatestReportRunTimeMs=AValue) then exit;
@@ -1166,7 +968,7 @@ end;
 
 
 
-Procedure TQueryMetadata.Setlocale(AIndex : Integer; AValue : string); 
+Procedure TQueryMetadata.Setlocale(AIndex : Integer; AValue : String); 
 
 begin
   If (Flocale=AValue) then exit;
@@ -1206,7 +1008,7 @@ end;
 
 
 
-Procedure TQueryMetadata.SetshareEmailAddress(AIndex : Integer; AValue : TQueryMetadatashareEmailAddress); 
+Procedure TQueryMetadata.SetshareEmailAddress(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FshareEmailAddress=AValue) then exit;
@@ -1216,7 +1018,7 @@ end;
 
 
 
-Procedure TQueryMetadata.Settitle(AIndex : Integer; AValue : string); 
+Procedure TQueryMetadata.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1229,18 +1031,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TQueryMetadatashareEmailAddress
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TQuerySchedule
   --------------------------------------------------------------------}
 
 
-Procedure TQuerySchedule.SetendTimeMs(AIndex : Integer; AValue : string); 
+Procedure TQuerySchedule.SetendTimeMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FendTimeMs=AValue) then exit;
@@ -1250,7 +1045,7 @@ end;
 
 
 
-Procedure TQuerySchedule.Setfrequency(AIndex : Integer; AValue : string); 
+Procedure TQuerySchedule.Setfrequency(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffrequency=AValue) then exit;
@@ -1270,7 +1065,7 @@ end;
 
 
 
-Procedure TQuerySchedule.SetnextRunTimezoneCode(AIndex : Integer; AValue : string); 
+Procedure TQuerySchedule.SetnextRunTimezoneCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextRunTimezoneCode=AValue) then exit;
@@ -1324,7 +1119,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportFailure.SeterrorCode(AIndex : Integer; AValue : string); 
+Procedure TReportFailure.SeterrorCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FerrorCode=AValue) then exit;
@@ -1341,7 +1136,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportKey.SetqueryId(AIndex : Integer; AValue : string); 
+Procedure TReportKey.SetqueryId(AIndex : Integer; AValue : String); 
 
 begin
   If (FqueryId=AValue) then exit;
@@ -1351,7 +1146,7 @@ end;
 
 
 
-Procedure TReportKey.SetreportId(AIndex : Integer; AValue : string); 
+Procedure TReportKey.SetreportId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreportId=AValue) then exit;
@@ -1368,7 +1163,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportMetadata.SetgoogleCloudStoragePath(AIndex : Integer; AValue : string); 
+Procedure TReportMetadata.SetgoogleCloudStoragePath(AIndex : Integer; AValue : String); 
 
 begin
   If (FgoogleCloudStoragePath=AValue) then exit;
@@ -1378,7 +1173,7 @@ end;
 
 
 
-Procedure TReportMetadata.SetreportDataEndTimeMs(AIndex : Integer; AValue : string); 
+Procedure TReportMetadata.SetreportDataEndTimeMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FreportDataEndTimeMs=AValue) then exit;
@@ -1388,7 +1183,7 @@ end;
 
 
 
-Procedure TReportMetadata.SetreportDataStartTimeMs(AIndex : Integer; AValue : string); 
+Procedure TReportMetadata.SetreportDataStartTimeMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FreportDataStartTimeMs=AValue) then exit;
@@ -1425,7 +1220,7 @@ end;
 
 
 
-Procedure TReportStatus.SetfinishTimeMs(AIndex : Integer; AValue : string); 
+Procedure TReportStatus.SetfinishTimeMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FfinishTimeMs=AValue) then exit;
@@ -1435,7 +1230,7 @@ end;
 
 
 
-Procedure TReportStatus.Setformat(AIndex : Integer; AValue : string); 
+Procedure TReportStatus.Setformat(AIndex : Integer; AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -1445,7 +1240,7 @@ end;
 
 
 
-Procedure TReportStatus.Setstate(AIndex : Integer; AValue : string); 
+Procedure TReportStatus.Setstate(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -1472,7 +1267,7 @@ end;
 
 
 
-Procedure TRowStatus.SetentityId(AIndex : Integer; AValue : string); 
+Procedure TRowStatus.SetentityId(AIndex : Integer; AValue : String); 
 
 begin
   If (FentityId=AValue) then exit;
@@ -1482,7 +1277,7 @@ end;
 
 
 
-Procedure TRowStatus.SetentityName(AIndex : Integer; AValue : string); 
+Procedure TRowStatus.SetentityName(AIndex : Integer; AValue : String); 
 
 begin
   If (FentityName=AValue) then exit;
@@ -1492,7 +1287,7 @@ end;
 
 
 
-Procedure TRowStatus.Seterrors(AIndex : Integer; AValue : TRowStatuserrors); 
+Procedure TRowStatus.Seterrors(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1525,18 +1320,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TRowStatuserrors
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TRunQueryRequest
   --------------------------------------------------------------------}
 
 
-Procedure TRunQueryRequest.SetdataRange(AIndex : Integer; AValue : string); 
+Procedure TRunQueryRequest.SetdataRange(AIndex : Integer; AValue : String); 
 
 begin
   If (FdataRange=AValue) then exit;
@@ -1546,7 +1334,7 @@ end;
 
 
 
-Procedure TRunQueryRequest.SetreportDataEndTimeMs(AIndex : Integer; AValue : string); 
+Procedure TRunQueryRequest.SetreportDataEndTimeMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FreportDataEndTimeMs=AValue) then exit;
@@ -1556,7 +1344,7 @@ end;
 
 
 
-Procedure TRunQueryRequest.SetreportDataStartTimeMs(AIndex : Integer; AValue : string); 
+Procedure TRunQueryRequest.SetreportDataStartTimeMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FreportDataStartTimeMs=AValue) then exit;
@@ -1566,7 +1354,7 @@ end;
 
 
 
-Procedure TRunQueryRequest.SettimezoneCode(AIndex : Integer; AValue : string); 
+Procedure TRunQueryRequest.SettimezoneCode(AIndex : Integer; AValue : String); 
 
 begin
   If (FtimezoneCode=AValue) then exit;
@@ -1593,7 +1381,7 @@ end;
 
 
 
-Procedure TUploadLineItemsRequest.Setformat(AIndex : Integer; AValue : string); 
+Procedure TUploadLineItemsRequest.Setformat(AIndex : Integer; AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -1603,7 +1391,7 @@ end;
 
 
 
-Procedure TUploadLineItemsRequest.SetlineItems(AIndex : Integer; AValue : string); 
+Procedure TUploadLineItemsRequest.SetlineItems(AIndex : Integer; AValue : String); 
 
 begin
   If (FlineItems=AValue) then exit;
@@ -1637,7 +1425,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUploadStatus.Seterrors(AIndex : Integer; AValue : TUploadStatuserrors); 
+Procedure TUploadStatus.Seterrors(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1647,7 +1435,7 @@ end;
 
 
 
-Procedure TUploadStatus.SetrowStatus(AIndex : Integer; AValue : TUploadStatusrowStatus); 
+Procedure TUploadStatus.SetrowStatus(AIndex : Integer; AValue : TUploadStatusTyperowStatusArray); 
 
 begin
   If (FrowStatus=AValue) then exit;
@@ -1655,20 +1443,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TUploadStatuserrors
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TUploadStatusrowStatus
-  --------------------------------------------------------------------}
 
 
 
@@ -1957,20 +1731,13 @@ Class Procedure TDoubleclickbidmanagerAPI.RegisterAPIResources;
 
 begin
   TDownloadLineItemsRequest.RegisterObject;
-  TDownloadLineItemsRequestfilterIds.RegisterObject;
   TDownloadLineItemsResponse.RegisterObject;
   TFilterPair.RegisterObject;
   TListQueriesResponse.RegisterObject;
-  TListQueriesResponsequeries.RegisterObject;
   TListReportsResponse.RegisterObject;
-  TListReportsResponsereports.RegisterObject;
   TParameters.RegisterObject;
-  TParametersfilters.RegisterObject;
-  TParametersgroupBys.RegisterObject;
-  TParametersmetrics.RegisterObject;
   TQuery.RegisterObject;
   TQueryMetadata.RegisterObject;
-  TQueryMetadatashareEmailAddress.RegisterObject;
   TQuerySchedule.RegisterObject;
   TReport.RegisterObject;
   TReportFailure.RegisterObject;
@@ -1978,13 +1745,10 @@ begin
   TReportMetadata.RegisterObject;
   TReportStatus.RegisterObject;
   TRowStatus.RegisterObject;
-  TRowStatuserrors.RegisterObject;
   TRunQueryRequest.RegisterObject;
   TUploadLineItemsRequest.RegisterObject;
   TUploadLineItemsResponse.RegisterObject;
   TUploadStatus.RegisterObject;
-  TUploadStatuserrors.RegisterObject;
-  TUploadStatusrowStatus.RegisterObject;
 end;
 
 

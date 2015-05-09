@@ -1,31 +1,19 @@
 unit googlebigquery;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:49
 {$MODE objfpc}
 {$H+}
 
@@ -34,129 +22,108 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
+  TJsonValue = TJSONSchema;
   TCsvOptions = class;
-  TCsvOptionsArray = Array of TCsvOptions;
   TDataset = class;
-  TDatasetArray = Array of TDataset;
-  TDatasetaccess = class;
-  TDatasetaccessArray = Array of TDatasetaccess;
   TDatasetList = class;
-  TDatasetListArray = Array of TDatasetList;
-  TDatasetListdatasets = class;
-  TDatasetListdatasetsArray = Array of TDatasetListdatasets;
   TDatasetReference = class;
-  TDatasetReferenceArray = Array of TDatasetReference;
   TErrorProto = class;
-  TErrorProtoArray = Array of TErrorProto;
   TExternalDataConfiguration = class;
-  TExternalDataConfigurationArray = Array of TExternalDataConfiguration;
-  TExternalDataConfigurationsourceUris = class;
-  TExternalDataConfigurationsourceUrisArray = Array of TExternalDataConfigurationsourceUris;
   TGetQueryResultsResponse = class;
-  TGetQueryResultsResponseArray = Array of TGetQueryResultsResponse;
-  TGetQueryResultsResponserows = class;
-  TGetQueryResultsResponserowsArray = Array of TGetQueryResultsResponserows;
   TJob = class;
-  TJobArray = Array of TJob;
   TJobConfiguration = class;
-  TJobConfigurationArray = Array of TJobConfiguration;
   TJobConfigurationExtract = class;
-  TJobConfigurationExtractArray = Array of TJobConfigurationExtract;
-  TJobConfigurationExtractdestinationUris = class;
-  TJobConfigurationExtractdestinationUrisArray = Array of TJobConfigurationExtractdestinationUris;
   TJobConfigurationLink = class;
-  TJobConfigurationLinkArray = Array of TJobConfigurationLink;
-  TJobConfigurationLinksourceUri = class;
-  TJobConfigurationLinksourceUriArray = Array of TJobConfigurationLinksourceUri;
   TJobConfigurationLoad = class;
-  TJobConfigurationLoadArray = Array of TJobConfigurationLoad;
-  TJobConfigurationLoadprojectionFields = class;
-  TJobConfigurationLoadprojectionFieldsArray = Array of TJobConfigurationLoadprojectionFields;
-  TJobConfigurationLoadsourceUris = class;
-  TJobConfigurationLoadsourceUrisArray = Array of TJobConfigurationLoadsourceUris;
   TJobConfigurationQuery = class;
-  TJobConfigurationQueryArray = Array of TJobConfigurationQuery;
-  TJobConfigurationQuerytableDefinitions = class;
-  TJobConfigurationQuerytableDefinitionsArray = Array of TJobConfigurationQuerytableDefinitions;
   TJobConfigurationTableCopy = class;
-  TJobConfigurationTableCopyArray = Array of TJobConfigurationTableCopy;
-  TJobConfigurationTableCopysourceTables = class;
-  TJobConfigurationTableCopysourceTablesArray = Array of TJobConfigurationTableCopysourceTables;
   TJobList = class;
-  TJobListArray = Array of TJobList;
-  TJobListjobs = class;
-  TJobListjobsArray = Array of TJobListjobs;
   TJobReference = class;
-  TJobReferenceArray = Array of TJobReference;
   TJobStatistics = class;
-  TJobStatisticsArray = Array of TJobStatistics;
   TJobStatistics2 = class;
-  TJobStatistics2Array = Array of TJobStatistics2;
   TJobStatistics3 = class;
-  TJobStatistics3Array = Array of TJobStatistics3;
   TJobStatistics4 = class;
-  TJobStatistics4Array = Array of TJobStatistics4;
-  TJobStatistics4destinationUriFileCounts = class;
-  TJobStatistics4destinationUriFileCountsArray = Array of TJobStatistics4destinationUriFileCounts;
   TJobStatus = class;
-  TJobStatusArray = Array of TJobStatus;
-  TJobStatuserrors = class;
-  TJobStatuserrorsArray = Array of TJobStatuserrors;
   TJsonObject = class;
-  TJsonObjectArray = Array of TJsonObject;
-  TJsonValue = class;
-  TJsonValueArray = Array of TJsonValue;
   TProjectList = class;
-  TProjectListArray = Array of TProjectList;
-  TProjectListprojects = class;
-  TProjectListprojectsArray = Array of TProjectListprojects;
   TProjectReference = class;
-  TProjectReferenceArray = Array of TProjectReference;
   TQueryRequest = class;
-  TQueryRequestArray = Array of TQueryRequest;
   TQueryResponse = class;
-  TQueryResponseArray = Array of TQueryResponse;
-  TQueryResponserows = class;
-  TQueryResponserowsArray = Array of TQueryResponserows;
   TTable = class;
-  TTableArray = Array of TTable;
   TTableCell = class;
-  TTableCellArray = Array of TTableCell;
   TTableDataInsertAllRequest = class;
-  TTableDataInsertAllRequestArray = Array of TTableDataInsertAllRequest;
-  TTableDataInsertAllRequestrows = class;
-  TTableDataInsertAllRequestrowsArray = Array of TTableDataInsertAllRequestrows;
   TTableDataInsertAllResponse = class;
-  TTableDataInsertAllResponseArray = Array of TTableDataInsertAllResponse;
-  TTableDataInsertAllResponseinsertErrors = class;
-  TTableDataInsertAllResponseinsertErrorsArray = Array of TTableDataInsertAllResponseinsertErrors;
-  TTableDataInsertAllResponseinsertErrorserrors = class;
-  TTableDataInsertAllResponseinsertErrorserrorsArray = Array of TTableDataInsertAllResponseinsertErrorserrors;
   TTableDataList = class;
-  TTableDataListArray = Array of TTableDataList;
-  TTableDataListrows = class;
-  TTableDataListrowsArray = Array of TTableDataListrows;
   TTableFieldSchema = class;
-  TTableFieldSchemaArray = Array of TTableFieldSchema;
-  TTableFieldSchemafields = class;
-  TTableFieldSchemafieldsArray = Array of TTableFieldSchemafields;
   TTableList = class;
-  TTableListArray = Array of TTableList;
-  TTableListtables = class;
-  TTableListtablesArray = Array of TTableListtables;
   TTableReference = class;
-  TTableReferenceArray = Array of TTableReference;
   TTableRow = class;
-  TTableRowArray = Array of TTableRow;
-  TTableRowf = class;
-  TTableRowfArray = Array of TTableRowf;
   TTableSchema = class;
-  TTableSchemaArray = Array of TTableSchema;
-  TTableSchemafields = class;
-  TTableSchemafieldsArray = Array of TTableSchemafields;
   TViewDefinition = class;
+  TCsvOptionsArray = Array of TCsvOptions;
+  TDatasetArray = Array of TDataset;
+  TDatasetListArray = Array of TDatasetList;
+  TDatasetReferenceArray = Array of TDatasetReference;
+  TErrorProtoArray = Array of TErrorProto;
+  TExternalDataConfigurationArray = Array of TExternalDataConfiguration;
+  TGetQueryResultsResponseArray = Array of TGetQueryResultsResponse;
+  TJobArray = Array of TJob;
+  TJobConfigurationArray = Array of TJobConfiguration;
+  TJobConfigurationExtractArray = Array of TJobConfigurationExtract;
+  TJobConfigurationLinkArray = Array of TJobConfigurationLink;
+  TJobConfigurationLoadArray = Array of TJobConfigurationLoad;
+  TJobConfigurationQueryArray = Array of TJobConfigurationQuery;
+  TJobConfigurationTableCopyArray = Array of TJobConfigurationTableCopy;
+  TJobListArray = Array of TJobList;
+  TJobReferenceArray = Array of TJobReference;
+  TJobStatisticsArray = Array of TJobStatistics;
+  TJobStatistics2Array = Array of TJobStatistics2;
+  TJobStatistics3Array = Array of TJobStatistics3;
+  TJobStatistics4Array = Array of TJobStatistics4;
+  TJobStatusArray = Array of TJobStatus;
+  TJsonObjectArray = Array of TJsonObject;
+  TProjectListArray = Array of TProjectList;
+  TProjectReferenceArray = Array of TProjectReference;
+  TQueryRequestArray = Array of TQueryRequest;
+  TQueryResponseArray = Array of TQueryResponse;
+  TTableArray = Array of TTable;
+  TTableCellArray = Array of TTableCell;
+  TTableDataInsertAllRequestArray = Array of TTableDataInsertAllRequest;
+  TTableDataInsertAllResponseArray = Array of TTableDataInsertAllResponse;
+  TTableDataListArray = Array of TTableDataList;
+  TTableFieldSchemaArray = Array of TTableFieldSchema;
+  TTableListArray = Array of TTableList;
+  TTableReferenceArray = Array of TTableReference;
+  TTableRowArray = Array of TTableRow;
+  TTableSchemaArray = Array of TTableSchema;
   TViewDefinitionArray = Array of TViewDefinition;
+  //Anonymous types, using auto-generated names
+  TDatasetTypeaccessItem = class;
+  TDatasetListTypedatasetsItem = class;
+  TJobConfigurationQueryTypetableDefinitions = class;
+  TJobListTypejobsItem = class;
+  TProjectListTypeprojectsItem = class;
+  TTableDataInsertAllRequestTyperowsItem = class;
+  TTableDataInsertAllResponseTypeinsertErrorsItem = class;
+  TTableListTypetablesItem = class;
+  TDatasetTypeaccessArray = Array of TDatasetTypeaccessItem;
+  TDatasetListTypedatasetsArray = Array of TDatasetListTypedatasetsItem;
+  TGetQueryResultsResponseTyperowsArray = Array of TTableRow;
+  TJobConfigurationTableCopyTypesourceTablesArray = Array of TTableReference;
+  TJobListTypejobsArray = Array of TJobListTypejobsItem;
+  TJobStatusTypeerrorsArray = Array of TErrorProto;
+  TProjectListTypeprojectsArray = Array of TProjectListTypeprojectsItem;
+  TQueryResponseTyperowsArray = Array of TTableRow;
+  TTableDataInsertAllRequestTyperowsArray = Array of TTableDataInsertAllRequestTyperowsItem;
+  TTableDataInsertAllResponseTypeinsertErrorsItemTypeerrorsArray = Array of TErrorProto;
+  TTableDataInsertAllResponseTypeinsertErrorsArray = Array of TTableDataInsertAllResponseTypeinsertErrorsItem;
+  TTableDataListTyperowsArray = Array of TTableRow;
+  TTableFieldSchemaTypefieldsArray = Array of TTableFieldSchema;
+  TTableListTypetablesArray = Array of TTableListTypetablesItem;
+  TTableRowTypefArray = Array of TTableCell;
+  TTableSchemaTypefieldsArray = Array of TTableFieldSchema;
   
   { --------------------------------------------------------------------
     TCsvOptions
@@ -166,28 +133,59 @@ type
   Private
     FallowJaggedRows : boolean;
     FallowQuotedNewlines : boolean;
-    Fencoding : string;
-    FfieldDelimiter : string;
-    Fquote : string;
+    Fencoding : String;
+    FfieldDelimiter : String;
+    Fquote : String;
     FskipLeadingRows : integer;
   Protected
     //Property setters
     Procedure SetallowJaggedRows(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetallowQuotedNewlines(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setencoding(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfieldDelimiter(AIndex : Integer; AValue : string); virtual;
-    Procedure Setquote(AIndex : Integer; AValue : string); virtual;
+    Procedure Setencoding(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfieldDelimiter(AIndex : Integer; AValue : String); virtual;
+    Procedure Setquote(AIndex : Integer; AValue : String); virtual;
     Procedure SetskipLeadingRows(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
     Property allowJaggedRows : boolean Index 0 Read FallowJaggedRows Write SetallowJaggedRows;
     Property allowQuotedNewlines : boolean Index 8 Read FallowQuotedNewlines Write SetallowQuotedNewlines;
-    Property encoding : string Index 16 Read Fencoding Write Setencoding;
-    Property fieldDelimiter : string Index 24 Read FfieldDelimiter Write SetfieldDelimiter;
-    Property quote : string Index 32 Read Fquote Write Setquote;
+    Property encoding : String Index 16 Read Fencoding Write Setencoding;
+    Property fieldDelimiter : String Index 24 Read FfieldDelimiter Write SetfieldDelimiter;
+    Property quote : String Index 32 Read Fquote Write Setquote;
     Property skipLeadingRows : integer Index 40 Read FskipLeadingRows Write SetskipLeadingRows;
   end;
   TCsvOptionsClass = Class of TCsvOptions;
+  
+  { --------------------------------------------------------------------
+    TDatasetTypeaccessItem
+    --------------------------------------------------------------------}
+  
+  TDatasetTypeaccessItem = Class(TGoogleBaseObject)
+  Private
+    Fdomain : String;
+    FgroupByEmail : String;
+    Frole : String;
+    FspecialGroup : String;
+    FuserByEmail : String;
+    Fview : TTableReference;
+  Protected
+    //Property setters
+    Procedure Setdomain(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgroupByEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrole(AIndex : Integer; AValue : String); virtual;
+    Procedure SetspecialGroup(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuserByEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setview(AIndex : Integer; AValue : TTableReference); virtual;
+  Public
+  Published
+    Property domain : String Index 0 Read Fdomain Write Setdomain;
+    Property groupByEmail : String Index 8 Read FgroupByEmail Write SetgroupByEmail;
+    Property role : String Index 16 Read Frole Write Setrole;
+    Property specialGroup : String Index 24 Read FspecialGroup Write SetspecialGroup;
+    Property userByEmail : String Index 32 Read FuserByEmail Write SetuserByEmail;
+    Property view : TTableReference Index 40 Read Fview Write Setview;
+  end;
+  TDatasetTypeaccessItemClass = Class of TDatasetTypeaccessItem;
   
   { --------------------------------------------------------------------
     TDataset
@@ -195,76 +193,73 @@ type
   
   TDataset = Class(TGoogleBaseObject)
   Private
-    Faccess : TDatasetaccess;
-    FcreationTime : string;
+    Faccess : TDatasetTypeaccessArray;
+    FcreationTime : String;
     FdatasetReference : TDatasetReference;
-    FdefaultTableExpirationMs : string;
-    Fdescription : string;
-    Fetag : string;
-    FfriendlyName : string;
-    Fid : string;
-    Fkind : string;
-    FlastModifiedTime : string;
-    FselfLink : string;
+    FdefaultTableExpirationMs : String;
+    Fdescription : String;
+    Fetag : String;
+    FfriendlyName : String;
+    Fid : String;
+    Fkind : String;
+    FlastModifiedTime : String;
+    Flocation : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setaccess(AIndex : Integer; AValue : TDatasetaccess); virtual;
-    Procedure SetcreationTime(AIndex : Integer; AValue : string); virtual;
+    Procedure Setaccess(AIndex : Integer; AValue : TDatasetTypeaccessArray); virtual;
+    Procedure SetcreationTime(AIndex : Integer; AValue : String); virtual;
     Procedure SetdatasetReference(AIndex : Integer; AValue : TDatasetReference); virtual;
-    Procedure SetdefaultTableExpirationMs(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfriendlyName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlastModifiedTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdefaultTableExpirationMs(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfriendlyName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastModifiedTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property access : TDatasetaccess Index 0 Read Faccess Write Setaccess;
-    Property creationTime : string Index 8 Read FcreationTime Write SetcreationTime;
+    Property access : TDatasetTypeaccessArray Index 0 Read Faccess Write Setaccess;
+    Property creationTime : String Index 8 Read FcreationTime Write SetcreationTime;
     Property datasetReference : TDatasetReference Index 16 Read FdatasetReference Write SetdatasetReference;
-    Property defaultTableExpirationMs : string Index 24 Read FdefaultTableExpirationMs Write SetdefaultTableExpirationMs;
-    Property description : string Index 32 Read Fdescription Write Setdescription;
-    Property etag : string Index 40 Read Fetag Write Setetag;
-    Property friendlyName : string Index 48 Read FfriendlyName Write SetfriendlyName;
-    Property id : string Index 56 Read Fid Write Setid;
-    Property kind : string Index 64 Read Fkind Write Setkind;
-    Property lastModifiedTime : string Index 72 Read FlastModifiedTime Write SetlastModifiedTime;
-    Property selfLink : string Index 80 Read FselfLink Write SetselfLink;
+    Property defaultTableExpirationMs : String Index 24 Read FdefaultTableExpirationMs Write SetdefaultTableExpirationMs;
+    Property description : String Index 32 Read Fdescription Write Setdescription;
+    Property etag : String Index 40 Read Fetag Write Setetag;
+    Property friendlyName : String Index 48 Read FfriendlyName Write SetfriendlyName;
+    Property id : String Index 56 Read Fid Write Setid;
+    Property kind : String Index 64 Read Fkind Write Setkind;
+    Property lastModifiedTime : String Index 72 Read FlastModifiedTime Write SetlastModifiedTime;
+    Property location : String Index 80 Read Flocation Write Setlocation;
+    Property selfLink : String Index 88 Read FselfLink Write SetselfLink;
   end;
   TDatasetClass = Class of TDataset;
   
   { --------------------------------------------------------------------
-    TDatasetaccess
+    TDatasetListTypedatasetsItem
     --------------------------------------------------------------------}
   
-  TDatasetaccess = Class(TGoogleBaseObject)
+  TDatasetListTypedatasetsItem = Class(TGoogleBaseObject)
   Private
-    Fdomain : string;
-    FgroupByEmail : string;
-    Frole : string;
-    FspecialGroup : string;
-    FuserByEmail : string;
-    Fview : TTableReference;
+    FdatasetReference : TDatasetReference;
+    FfriendlyName : String;
+    Fid : String;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setdomain(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgroupByEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrole(AIndex : Integer; AValue : string); virtual;
-    Procedure SetspecialGroup(AIndex : Integer; AValue : string); virtual;
-    Procedure SetuserByEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setview(AIndex : Integer; AValue : TTableReference); virtual;
+    Procedure SetdatasetReference(AIndex : Integer; AValue : TDatasetReference); virtual;
+    Procedure SetfriendlyName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property domain : string Index 0 Read Fdomain Write Setdomain;
-    Property groupByEmail : string Index 8 Read FgroupByEmail Write SetgroupByEmail;
-    Property role : string Index 16 Read Frole Write Setrole;
-    Property specialGroup : string Index 24 Read FspecialGroup Write SetspecialGroup;
-    Property userByEmail : string Index 32 Read FuserByEmail Write SetuserByEmail;
-    Property view : TTableReference Index 40 Read Fview Write Setview;
+    Property datasetReference : TDatasetReference Index 0 Read FdatasetReference Write SetdatasetReference;
+    Property friendlyName : String Index 8 Read FfriendlyName Write SetfriendlyName;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
   end;
-  TDatasetaccessClass = Class of TDatasetaccess;
+  TDatasetListTypedatasetsItemClass = Class of TDatasetListTypedatasetsItem;
   
   { --------------------------------------------------------------------
     TDatasetList
@@ -272,49 +267,24 @@ type
   
   TDatasetList = Class(TGoogleBaseObject)
   Private
-    Fdatasets : TDatasetListdatasets;
-    Fetag : string;
-    Fkind : string;
-    FnextPageToken : string;
+    Fdatasets : TDatasetListTypedatasetsArray;
+    Fetag : String;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setdatasets(AIndex : Integer; AValue : TDatasetListdatasets); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdatasets(AIndex : Integer; AValue : TDatasetListTypedatasetsArray); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property datasets : TDatasetListdatasets Index 0 Read Fdatasets Write Setdatasets;
-    Property etag : string Index 8 Read Fetag Write Setetag;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property datasets : TDatasetListTypedatasetsArray Index 0 Read Fdatasets Write Setdatasets;
+    Property etag : String Index 8 Read Fetag Write Setetag;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TDatasetListClass = Class of TDatasetList;
-  
-  { --------------------------------------------------------------------
-    TDatasetListdatasets
-    --------------------------------------------------------------------}
-  
-  TDatasetListdatasets = Class(TGoogleBaseObject)
-  Private
-    FdatasetReference : TDatasetReference;
-    FfriendlyName : string;
-    Fid : string;
-    Fkind : string;
-  Protected
-    //Property setters
-    Procedure SetdatasetReference(AIndex : Integer; AValue : TDatasetReference); virtual;
-    Procedure SetfriendlyName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property datasetReference : TDatasetReference Index 0 Read FdatasetReference Write SetdatasetReference;
-    Property friendlyName : string Index 8 Read FfriendlyName Write SetfriendlyName;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-  end;
-  TDatasetListdatasetsClass = Class of TDatasetListdatasets;
   
   { --------------------------------------------------------------------
     TDatasetReference
@@ -322,16 +292,16 @@ type
   
   TDatasetReference = Class(TGoogleBaseObject)
   Private
-    FdatasetId : string;
-    FprojectId : string;
+    FdatasetId : String;
+    FprojectId : String;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property datasetId : string Index 0 Read FdatasetId Write SetdatasetId;
-    Property projectId : string Index 8 Read FprojectId Write SetprojectId;
+    Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
+    Property projectId : String Index 8 Read FprojectId Write SetprojectId;
   end;
   TDatasetReferenceClass = Class of TDatasetReference;
   
@@ -341,22 +311,22 @@ type
   
   TErrorProto = Class(TGoogleBaseObject)
   Private
-    FdebugInfo : string;
-    Flocation : string;
-    Fmessage : string;
-    Freason : string;
+    FdebugInfo : String;
+    Flocation : String;
+    Fmessage : String;
+    Freason : String;
   Protected
     //Property setters
-    Procedure SetdebugInfo(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setreason(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdebugInfo(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property debugInfo : string Index 0 Read FdebugInfo Write SetdebugInfo;
-    Property location : string Index 8 Read Flocation Write Setlocation;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-    Property reason : string Index 24 Read Freason Write Setreason;
+    Property debugInfo : String Index 0 Read FdebugInfo Write SetdebugInfo;
+    Property location : String Index 8 Read Flocation Write Setlocation;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+    Property reason : String Index 24 Read Freason Write Setreason;
   end;
   TErrorProtoClass = Class of TErrorProto;
   
@@ -366,46 +336,33 @@ type
   
   TExternalDataConfiguration = Class(TGoogleBaseObject)
   Private
-    Fcompression : string;
+    Fcompression : String;
     FcsvOptions : TCsvOptions;
     FignoreUnknownValues : boolean;
     FmaxBadRecords : integer;
     Fschema : TTableSchema;
-    FsourceFormat : string;
-    FsourceUris : TExternalDataConfigurationsourceUris;
+    FsourceFormat : String;
+    FsourceUris : TStringArray;
   Protected
     //Property setters
-    Procedure Setcompression(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcompression(AIndex : Integer; AValue : String); virtual;
     Procedure SetcsvOptions(AIndex : Integer; AValue : TCsvOptions); virtual;
     Procedure SetignoreUnknownValues(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetmaxBadRecords(AIndex : Integer; AValue : integer); virtual;
     Procedure Setschema(AIndex : Integer; AValue : TTableSchema); virtual;
-    Procedure SetsourceFormat(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceUris(AIndex : Integer; AValue : TExternalDataConfigurationsourceUris); virtual;
+    Procedure SetsourceFormat(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property compression : string Index 0 Read Fcompression Write Setcompression;
+    Property compression : String Index 0 Read Fcompression Write Setcompression;
     Property csvOptions : TCsvOptions Index 8 Read FcsvOptions Write SetcsvOptions;
     Property ignoreUnknownValues : boolean Index 16 Read FignoreUnknownValues Write SetignoreUnknownValues;
     Property maxBadRecords : integer Index 24 Read FmaxBadRecords Write SetmaxBadRecords;
     Property schema : TTableSchema Index 32 Read Fschema Write Setschema;
-    Property sourceFormat : string Index 40 Read FsourceFormat Write SetsourceFormat;
-    Property sourceUris : TExternalDataConfigurationsourceUris Index 48 Read FsourceUris Write SetsourceUris;
+    Property sourceFormat : String Index 40 Read FsourceFormat Write SetsourceFormat;
+    Property sourceUris : TStringArray Index 48 Read FsourceUris Write SetsourceUris;
   end;
   TExternalDataConfigurationClass = Class of TExternalDataConfiguration;
-  
-  { --------------------------------------------------------------------
-    TExternalDataConfigurationsourceUris
-    --------------------------------------------------------------------}
-  
-  TExternalDataConfigurationsourceUris = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TExternalDataConfigurationsourceUrisClass = Class of TExternalDataConfigurationsourceUris;
   
   { --------------------------------------------------------------------
     TGetQueryResultsResponse
@@ -414,54 +371,41 @@ type
   TGetQueryResultsResponse = Class(TGoogleBaseObject)
   Private
     FcacheHit : boolean;
-    Fetag : string;
+    Fetag : String;
     FjobComplete : boolean;
     FjobReference : TJobReference;
-    Fkind : string;
-    FpageToken : string;
-    Frows : TGetQueryResultsResponserows;
+    Fkind : String;
+    FpageToken : String;
+    Frows : TGetQueryResultsResponseTyperowsArray;
     Fschema : TTableSchema;
-    FtotalBytesProcessed : string;
-    FtotalRows : string;
+    FtotalBytesProcessed : String;
+    FtotalRows : String;
   Protected
     //Property setters
     Procedure SetcacheHit(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
     Procedure SetjobComplete(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetjobReference(AIndex : Integer; AValue : TJobReference); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrows(AIndex : Integer; AValue : TGetQueryResultsResponserows); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrows(AIndex : Integer; AValue : TGetQueryResultsResponseTyperowsArray); virtual;
     Procedure Setschema(AIndex : Integer; AValue : TTableSchema); virtual;
-    Procedure SettotalBytesProcessed(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalRows(AIndex : Integer; AValue : string); virtual;
+    Procedure SettotalBytesProcessed(AIndex : Integer; AValue : String); virtual;
+    Procedure SettotalRows(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property cacheHit : boolean Index 0 Read FcacheHit Write SetcacheHit;
-    Property etag : string Index 8 Read Fetag Write Setetag;
+    Property etag : String Index 8 Read Fetag Write Setetag;
     Property jobComplete : boolean Index 16 Read FjobComplete Write SetjobComplete;
     Property jobReference : TJobReference Index 24 Read FjobReference Write SetjobReference;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property pageToken : string Index 40 Read FpageToken Write SetpageToken;
-    Property rows : TGetQueryResultsResponserows Index 48 Read Frows Write Setrows;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property pageToken : String Index 40 Read FpageToken Write SetpageToken;
+    Property rows : TGetQueryResultsResponseTyperowsArray Index 48 Read Frows Write Setrows;
     Property schema : TTableSchema Index 56 Read Fschema Write Setschema;
-    Property totalBytesProcessed : string Index 64 Read FtotalBytesProcessed Write SettotalBytesProcessed;
-    Property totalRows : string Index 72 Read FtotalRows Write SettotalRows;
+    Property totalBytesProcessed : String Index 64 Read FtotalBytesProcessed Write SettotalBytesProcessed;
+    Property totalRows : String Index 72 Read FtotalRows Write SettotalRows;
   end;
   TGetQueryResultsResponseClass = Class of TGetQueryResultsResponse;
-  
-  { --------------------------------------------------------------------
-    TGetQueryResultsResponserows
-    --------------------------------------------------------------------}
-  
-  TGetQueryResultsResponserows = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGetQueryResultsResponserowsClass = Class of TGetQueryResultsResponserows;
   
   { --------------------------------------------------------------------
     TJob
@@ -470,36 +414,36 @@ type
   TJob = Class(TGoogleBaseObject)
   Private
     Fconfiguration : TJobConfiguration;
-    Fetag : string;
-    Fid : string;
+    Fetag : String;
+    Fid : String;
     FjobReference : TJobReference;
-    Fkind : string;
-    FselfLink : string;
+    Fkind : String;
+    FselfLink : String;
     Fstatistics : TJobStatistics;
     Fstatus : TJobStatus;
-    Fuser_email : string;
+    Fuser_email : String;
   Protected
     //Property setters
     Procedure Setconfiguration(AIndex : Integer; AValue : TJobConfiguration); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure SetjobReference(AIndex : Integer; AValue : TJobReference); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatistics(AIndex : Integer; AValue : TJobStatistics); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TJobStatus); virtual;
-    Procedure Setuser_email(AIndex : Integer; AValue : string); virtual;
+    Procedure Setuser_email(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property configuration : TJobConfiguration Index 0 Read Fconfiguration Write Setconfiguration;
-    Property etag : string Index 8 Read Fetag Write Setetag;
-    Property id : string Index 16 Read Fid Write Setid;
+    Property etag : String Index 8 Read Fetag Write Setetag;
+    Property id : String Index 16 Read Fid Write Setid;
     Property jobReference : TJobReference Index 24 Read FjobReference Write SetjobReference;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property selfLink : string Index 40 Read FselfLink Write SetselfLink;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property selfLink : String Index 40 Read FselfLink Write SetselfLink;
     Property statistics : TJobStatistics Index 48 Read Fstatistics Write Setstatistics;
     Property status : TJobStatus Index 56 Read Fstatus Write Setstatus;
-    Property user_email : string Index 64 Read Fuser_email Write Setuser_email;
+    Property user_email : String Index 64 Read Fuser_email Write Setuser_email;
   end;
   TJobClass = Class of TJob;
   
@@ -540,46 +484,33 @@ type
   
   TJobConfigurationExtract = Class(TGoogleBaseObject)
   Private
-    Fcompression : string;
-    FdestinationFormat : string;
-    FdestinationUri : string;
-    FdestinationUris : TJobConfigurationExtractdestinationUris;
-    FfieldDelimiter : string;
+    Fcompression : String;
+    FdestinationFormat : String;
+    FdestinationUri : String;
+    FdestinationUris : TStringArray;
+    FfieldDelimiter : String;
     FprintHeader : boolean;
     FsourceTable : TTableReference;
   Protected
     //Property setters
-    Procedure Setcompression(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdestinationFormat(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdestinationUri(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdestinationUris(AIndex : Integer; AValue : TJobConfigurationExtractdestinationUris); virtual;
-    Procedure SetfieldDelimiter(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcompression(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdestinationFormat(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdestinationUri(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdestinationUris(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetfieldDelimiter(AIndex : Integer; AValue : String); virtual;
     Procedure SetprintHeader(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetsourceTable(AIndex : Integer; AValue : TTableReference); virtual;
   Public
   Published
-    Property compression : string Index 0 Read Fcompression Write Setcompression;
-    Property destinationFormat : string Index 8 Read FdestinationFormat Write SetdestinationFormat;
-    Property destinationUri : string Index 16 Read FdestinationUri Write SetdestinationUri;
-    Property destinationUris : TJobConfigurationExtractdestinationUris Index 24 Read FdestinationUris Write SetdestinationUris;
-    Property fieldDelimiter : string Index 32 Read FfieldDelimiter Write SetfieldDelimiter;
+    Property compression : String Index 0 Read Fcompression Write Setcompression;
+    Property destinationFormat : String Index 8 Read FdestinationFormat Write SetdestinationFormat;
+    Property destinationUri : String Index 16 Read FdestinationUri Write SetdestinationUri;
+    Property destinationUris : TStringArray Index 24 Read FdestinationUris Write SetdestinationUris;
+    Property fieldDelimiter : String Index 32 Read FfieldDelimiter Write SetfieldDelimiter;
     Property printHeader : boolean Index 40 Read FprintHeader Write SetprintHeader;
     Property sourceTable : TTableReference Index 48 Read FsourceTable Write SetsourceTable;
   end;
   TJobConfigurationExtractClass = Class of TJobConfigurationExtract;
-  
-  { --------------------------------------------------------------------
-    TJobConfigurationExtractdestinationUris
-    --------------------------------------------------------------------}
-  
-  TJobConfigurationExtractdestinationUris = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobConfigurationExtractdestinationUrisClass = Class of TJobConfigurationExtractdestinationUris;
   
   { --------------------------------------------------------------------
     TJobConfigurationLink
@@ -587,37 +518,24 @@ type
   
   TJobConfigurationLink = Class(TGoogleBaseObject)
   Private
-    FcreateDisposition : string;
+    FcreateDisposition : String;
     FdestinationTable : TTableReference;
-    FsourceUri : TJobConfigurationLinksourceUri;
-    FwriteDisposition : string;
+    FsourceUri : TStringArray;
+    FwriteDisposition : String;
   Protected
     //Property setters
-    Procedure SetcreateDisposition(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreateDisposition(AIndex : Integer; AValue : String); virtual;
     Procedure SetdestinationTable(AIndex : Integer; AValue : TTableReference); virtual;
-    Procedure SetsourceUri(AIndex : Integer; AValue : TJobConfigurationLinksourceUri); virtual;
-    Procedure SetwriteDisposition(AIndex : Integer; AValue : string); virtual;
+    Procedure SetsourceUri(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetwriteDisposition(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property createDisposition : string Index 0 Read FcreateDisposition Write SetcreateDisposition;
+    Property createDisposition : String Index 0 Read FcreateDisposition Write SetcreateDisposition;
     Property destinationTable : TTableReference Index 8 Read FdestinationTable Write SetdestinationTable;
-    Property sourceUri : TJobConfigurationLinksourceUri Index 16 Read FsourceUri Write SetsourceUri;
-    Property writeDisposition : string Index 24 Read FwriteDisposition Write SetwriteDisposition;
+    Property sourceUri : TStringArray Index 16 Read FsourceUri Write SetsourceUri;
+    Property writeDisposition : String Index 24 Read FwriteDisposition Write SetwriteDisposition;
   end;
   TJobConfigurationLinkClass = Class of TJobConfigurationLink;
-  
-  { --------------------------------------------------------------------
-    TJobConfigurationLinksourceUri
-    --------------------------------------------------------------------}
-  
-  TJobConfigurationLinksourceUri = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobConfigurationLinksourceUriClass = Class of TJobConfigurationLinksourceUri;
   
   { --------------------------------------------------------------------
     TJobConfigurationLoad
@@ -627,87 +545,75 @@ type
   Private
     FallowJaggedRows : boolean;
     FallowQuotedNewlines : boolean;
-    FcreateDisposition : string;
+    FcreateDisposition : String;
     FdestinationTable : TTableReference;
-    Fencoding : string;
-    FfieldDelimiter : string;
+    Fencoding : String;
+    FfieldDelimiter : String;
     FignoreUnknownValues : boolean;
     FmaxBadRecords : integer;
-    FprojectionFields : TJobConfigurationLoadprojectionFields;
-    Fquote : string;
+    FprojectionFields : TStringArray;
+    Fquote : String;
     Fschema : TTableSchema;
-    FschemaInline : string;
-    FschemaInlineFormat : string;
+    FschemaInline : String;
+    FschemaInlineFormat : String;
     FskipLeadingRows : integer;
-    FsourceFormat : string;
-    FsourceUris : TJobConfigurationLoadsourceUris;
-    FwriteDisposition : string;
+    FsourceFormat : String;
+    FsourceUris : TStringArray;
+    FwriteDisposition : String;
   Protected
     //Property setters
     Procedure SetallowJaggedRows(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetallowQuotedNewlines(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetcreateDisposition(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreateDisposition(AIndex : Integer; AValue : String); virtual;
     Procedure SetdestinationTable(AIndex : Integer; AValue : TTableReference); virtual;
-    Procedure Setencoding(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfieldDelimiter(AIndex : Integer; AValue : string); virtual;
+    Procedure Setencoding(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfieldDelimiter(AIndex : Integer; AValue : String); virtual;
     Procedure SetignoreUnknownValues(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetmaxBadRecords(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetprojectionFields(AIndex : Integer; AValue : TJobConfigurationLoadprojectionFields); virtual;
-    Procedure Setquote(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprojectionFields(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setquote(AIndex : Integer; AValue : String); virtual;
     Procedure Setschema(AIndex : Integer; AValue : TTableSchema); virtual;
-    Procedure SetschemaInline(AIndex : Integer; AValue : string); virtual;
-    Procedure SetschemaInlineFormat(AIndex : Integer; AValue : string); virtual;
+    Procedure SetschemaInline(AIndex : Integer; AValue : String); virtual;
+    Procedure SetschemaInlineFormat(AIndex : Integer; AValue : String); virtual;
     Procedure SetskipLeadingRows(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetsourceFormat(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceUris(AIndex : Integer; AValue : TJobConfigurationLoadsourceUris); virtual;
-    Procedure SetwriteDisposition(AIndex : Integer; AValue : string); virtual;
+    Procedure SetsourceFormat(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetwriteDisposition(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property allowJaggedRows : boolean Index 0 Read FallowJaggedRows Write SetallowJaggedRows;
     Property allowQuotedNewlines : boolean Index 8 Read FallowQuotedNewlines Write SetallowQuotedNewlines;
-    Property createDisposition : string Index 16 Read FcreateDisposition Write SetcreateDisposition;
+    Property createDisposition : String Index 16 Read FcreateDisposition Write SetcreateDisposition;
     Property destinationTable : TTableReference Index 24 Read FdestinationTable Write SetdestinationTable;
-    Property encoding : string Index 32 Read Fencoding Write Setencoding;
-    Property fieldDelimiter : string Index 40 Read FfieldDelimiter Write SetfieldDelimiter;
+    Property encoding : String Index 32 Read Fencoding Write Setencoding;
+    Property fieldDelimiter : String Index 40 Read FfieldDelimiter Write SetfieldDelimiter;
     Property ignoreUnknownValues : boolean Index 48 Read FignoreUnknownValues Write SetignoreUnknownValues;
     Property maxBadRecords : integer Index 56 Read FmaxBadRecords Write SetmaxBadRecords;
-    Property projectionFields : TJobConfigurationLoadprojectionFields Index 64 Read FprojectionFields Write SetprojectionFields;
-    Property quote : string Index 72 Read Fquote Write Setquote;
+    Property projectionFields : TStringArray Index 64 Read FprojectionFields Write SetprojectionFields;
+    Property quote : String Index 72 Read Fquote Write Setquote;
     Property schema : TTableSchema Index 80 Read Fschema Write Setschema;
-    Property schemaInline : string Index 88 Read FschemaInline Write SetschemaInline;
-    Property schemaInlineFormat : string Index 96 Read FschemaInlineFormat Write SetschemaInlineFormat;
+    Property schemaInline : String Index 88 Read FschemaInline Write SetschemaInline;
+    Property schemaInlineFormat : String Index 96 Read FschemaInlineFormat Write SetschemaInlineFormat;
     Property skipLeadingRows : integer Index 104 Read FskipLeadingRows Write SetskipLeadingRows;
-    Property sourceFormat : string Index 112 Read FsourceFormat Write SetsourceFormat;
-    Property sourceUris : TJobConfigurationLoadsourceUris Index 120 Read FsourceUris Write SetsourceUris;
-    Property writeDisposition : string Index 128 Read FwriteDisposition Write SetwriteDisposition;
+    Property sourceFormat : String Index 112 Read FsourceFormat Write SetsourceFormat;
+    Property sourceUris : TStringArray Index 120 Read FsourceUris Write SetsourceUris;
+    Property writeDisposition : String Index 128 Read FwriteDisposition Write SetwriteDisposition;
   end;
   TJobConfigurationLoadClass = Class of TJobConfigurationLoad;
   
   { --------------------------------------------------------------------
-    TJobConfigurationLoadprojectionFields
+    TJobConfigurationQueryTypetableDefinitions
     --------------------------------------------------------------------}
   
-  TJobConfigurationLoadprojectionFields = Class(TGoogleBaseObject)
+  TJobConfigurationQueryTypetableDefinitions = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TJobConfigurationLoadprojectionFieldsClass = Class of TJobConfigurationLoadprojectionFields;
-  
-  { --------------------------------------------------------------------
-    TJobConfigurationLoadsourceUris
-    --------------------------------------------------------------------}
-  
-  TJobConfigurationLoadsourceUris = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobConfigurationLoadsourceUrisClass = Class of TJobConfigurationLoadsourceUris;
+  TJobConfigurationQueryTypetableDefinitionsClass = Class of TJobConfigurationQueryTypetableDefinitions;
   
   { --------------------------------------------------------------------
     TJobConfigurationQuery
@@ -716,58 +622,44 @@ type
   TJobConfigurationQuery = Class(TGoogleBaseObject)
   Private
     FallowLargeResults : boolean;
-    FcreateDisposition : string;
+    FcreateDisposition : String;
     FdefaultDataset : TDatasetReference;
     FdestinationTable : TTableReference;
     FflattenResults : boolean;
     FpreserveNulls : boolean;
-    Fpriority : string;
-    Fquery : string;
-    FtableDefinitions : TJobConfigurationQuerytableDefinitions;
+    Fpriority : String;
+    Fquery : String;
+    FtableDefinitions : TJobConfigurationQueryTypetableDefinitions;
     FuseQueryCache : boolean;
-    FwriteDisposition : string;
+    FwriteDisposition : String;
   Protected
     //Property setters
     Procedure SetallowLargeResults(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetcreateDisposition(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreateDisposition(AIndex : Integer; AValue : String); virtual;
     Procedure SetdefaultDataset(AIndex : Integer; AValue : TDatasetReference); virtual;
     Procedure SetdestinationTable(AIndex : Integer; AValue : TTableReference); virtual;
     Procedure SetflattenResults(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetpreserveNulls(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setpriority(AIndex : Integer; AValue : string); virtual;
-    Procedure Setquery(AIndex : Integer; AValue : string); virtual;
-    Procedure SettableDefinitions(AIndex : Integer; AValue : TJobConfigurationQuerytableDefinitions); virtual;
+    Procedure Setpriority(AIndex : Integer; AValue : String); virtual;
+    Procedure Setquery(AIndex : Integer; AValue : String); virtual;
+    Procedure SettableDefinitions(AIndex : Integer; AValue : TJobConfigurationQueryTypetableDefinitions); virtual;
     Procedure SetuseQueryCache(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetwriteDisposition(AIndex : Integer; AValue : string); virtual;
+    Procedure SetwriteDisposition(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property allowLargeResults : boolean Index 0 Read FallowLargeResults Write SetallowLargeResults;
-    Property createDisposition : string Index 8 Read FcreateDisposition Write SetcreateDisposition;
+    Property createDisposition : String Index 8 Read FcreateDisposition Write SetcreateDisposition;
     Property defaultDataset : TDatasetReference Index 16 Read FdefaultDataset Write SetdefaultDataset;
     Property destinationTable : TTableReference Index 24 Read FdestinationTable Write SetdestinationTable;
     Property flattenResults : boolean Index 32 Read FflattenResults Write SetflattenResults;
     Property preserveNulls : boolean Index 40 Read FpreserveNulls Write SetpreserveNulls;
-    Property priority : string Index 48 Read Fpriority Write Setpriority;
-    Property query : string Index 56 Read Fquery Write Setquery;
-    Property tableDefinitions : TJobConfigurationQuerytableDefinitions Index 64 Read FtableDefinitions Write SettableDefinitions;
+    Property priority : String Index 48 Read Fpriority Write Setpriority;
+    Property query : String Index 56 Read Fquery Write Setquery;
+    Property tableDefinitions : TJobConfigurationQueryTypetableDefinitions Index 64 Read FtableDefinitions Write SettableDefinitions;
     Property useQueryCache : boolean Index 72 Read FuseQueryCache Write SetuseQueryCache;
-    Property writeDisposition : string Index 80 Read FwriteDisposition Write SetwriteDisposition;
+    Property writeDisposition : String Index 80 Read FwriteDisposition Write SetwriteDisposition;
   end;
   TJobConfigurationQueryClass = Class of TJobConfigurationQuery;
-  
-  { --------------------------------------------------------------------
-    TJobConfigurationQuerytableDefinitions
-    --------------------------------------------------------------------}
-  
-  TJobConfigurationQuerytableDefinitions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TJobConfigurationQuerytableDefinitionsClass = Class of TJobConfigurationQuerytableDefinitions;
   
   { --------------------------------------------------------------------
     TJobConfigurationTableCopy
@@ -775,40 +667,67 @@ type
   
   TJobConfigurationTableCopy = Class(TGoogleBaseObject)
   Private
-    FcreateDisposition : string;
+    FcreateDisposition : String;
     FdestinationTable : TTableReference;
     FsourceTable : TTableReference;
-    FsourceTables : TJobConfigurationTableCopysourceTables;
-    FwriteDisposition : string;
+    FsourceTables : TJobConfigurationTableCopyTypesourceTablesArray;
+    FwriteDisposition : String;
   Protected
     //Property setters
-    Procedure SetcreateDisposition(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreateDisposition(AIndex : Integer; AValue : String); virtual;
     Procedure SetdestinationTable(AIndex : Integer; AValue : TTableReference); virtual;
     Procedure SetsourceTable(AIndex : Integer; AValue : TTableReference); virtual;
-    Procedure SetsourceTables(AIndex : Integer; AValue : TJobConfigurationTableCopysourceTables); virtual;
-    Procedure SetwriteDisposition(AIndex : Integer; AValue : string); virtual;
+    Procedure SetsourceTables(AIndex : Integer; AValue : TJobConfigurationTableCopyTypesourceTablesArray); virtual;
+    Procedure SetwriteDisposition(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property createDisposition : string Index 0 Read FcreateDisposition Write SetcreateDisposition;
+    Property createDisposition : String Index 0 Read FcreateDisposition Write SetcreateDisposition;
     Property destinationTable : TTableReference Index 8 Read FdestinationTable Write SetdestinationTable;
     Property sourceTable : TTableReference Index 16 Read FsourceTable Write SetsourceTable;
-    Property sourceTables : TJobConfigurationTableCopysourceTables Index 24 Read FsourceTables Write SetsourceTables;
-    Property writeDisposition : string Index 32 Read FwriteDisposition Write SetwriteDisposition;
+    Property sourceTables : TJobConfigurationTableCopyTypesourceTablesArray Index 24 Read FsourceTables Write SetsourceTables;
+    Property writeDisposition : String Index 32 Read FwriteDisposition Write SetwriteDisposition;
   end;
   TJobConfigurationTableCopyClass = Class of TJobConfigurationTableCopy;
   
   { --------------------------------------------------------------------
-    TJobConfigurationTableCopysourceTables
+    TJobListTypejobsItem
     --------------------------------------------------------------------}
   
-  TJobConfigurationTableCopysourceTables = Class(TGoogleBaseObject)
+  TJobListTypejobsItem = Class(TGoogleBaseObject)
   Private
+    Fconfiguration : TJobConfiguration;
+    FerrorResult : TErrorProto;
+    Fid : String;
+    FjobReference : TJobReference;
+    Fkind : String;
+    Fstate : String;
+    Fstatistics : TJobStatistics;
+    Fstatus : TJobStatus;
+    Fuser_email : String;
   Protected
     //Property setters
+    Procedure Setconfiguration(AIndex : Integer; AValue : TJobConfiguration); virtual;
+    Procedure SeterrorResult(AIndex : Integer; AValue : TErrorProto); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetjobReference(AIndex : Integer; AValue : TJobReference); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatistics(AIndex : Integer; AValue : TJobStatistics); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : TJobStatus); virtual;
+    Procedure Setuser_email(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property configuration : TJobConfiguration Index 0 Read Fconfiguration Write Setconfiguration;
+    Property errorResult : TErrorProto Index 8 Read FerrorResult Write SeterrorResult;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property jobReference : TJobReference Index 24 Read FjobReference Write SetjobReference;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property state : String Index 40 Read Fstate Write Setstate;
+    Property statistics : TJobStatistics Index 48 Read Fstatistics Write Setstatistics;
+    Property status : TJobStatus Index 56 Read Fstatus Write Setstatus;
+    Property user_email : String Index 64 Read Fuser_email Write Setuser_email;
   end;
-  TJobConfigurationTableCopysourceTablesClass = Class of TJobConfigurationTableCopysourceTables;
+  TJobListTypejobsItemClass = Class of TJobListTypejobsItem;
   
   { --------------------------------------------------------------------
     TJobList
@@ -816,67 +735,27 @@ type
   
   TJobList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fjobs : TJobListjobs;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fjobs : TJobListTypejobsArray;
+    Fkind : String;
+    FnextPageToken : String;
     FtotalItems : integer;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setjobs(AIndex : Integer; AValue : TJobListjobs); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setjobs(AIndex : Integer; AValue : TJobListTypejobsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property jobs : TJobListjobs Index 8 Read Fjobs Write Setjobs;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property jobs : TJobListTypejobsArray Index 8 Read Fjobs Write Setjobs;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
     Property totalItems : integer Index 32 Read FtotalItems Write SettotalItems;
   end;
   TJobListClass = Class of TJobList;
-  
-  { --------------------------------------------------------------------
-    TJobListjobs
-    --------------------------------------------------------------------}
-  
-  TJobListjobs = Class(TGoogleBaseObject)
-  Private
-    Fconfiguration : TJobConfiguration;
-    FerrorResult : TErrorProto;
-    Fid : string;
-    FjobReference : TJobReference;
-    Fkind : string;
-    Fstate : string;
-    Fstatistics : TJobStatistics;
-    Fstatus : TJobStatus;
-    Fuser_email : string;
-  Protected
-    //Property setters
-    Procedure Setconfiguration(AIndex : Integer; AValue : TJobConfiguration); virtual;
-    Procedure SeterrorResult(AIndex : Integer; AValue : TErrorProto); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetjobReference(AIndex : Integer; AValue : TJobReference); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatistics(AIndex : Integer; AValue : TJobStatistics); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : TJobStatus); virtual;
-    Procedure Setuser_email(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property configuration : TJobConfiguration Index 0 Read Fconfiguration Write Setconfiguration;
-    Property errorResult : TErrorProto Index 8 Read FerrorResult Write SeterrorResult;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property jobReference : TJobReference Index 24 Read FjobReference Write SetjobReference;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property state : string Index 40 Read Fstate Write Setstate;
-    Property statistics : TJobStatistics Index 48 Read Fstatistics Write Setstatistics;
-    Property status : TJobStatus Index 56 Read Fstatus Write Setstatus;
-    Property user_email : string Index 64 Read Fuser_email Write Setuser_email;
-  end;
-  TJobListjobsClass = Class of TJobListjobs;
   
   { --------------------------------------------------------------------
     TJobReference
@@ -884,16 +763,16 @@ type
   
   TJobReference = Class(TGoogleBaseObject)
   Private
-    FjobId : string;
-    FprojectId : string;
+    FjobId : String;
+    FprojectId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property jobId : string Index 0 Read FjobId Write SetjobId;
-    Property projectId : string Index 8 Read FprojectId Write SetprojectId;
+    Property jobId : String Index 0 Read FjobId Write SetjobId;
+    Property projectId : String Index 8 Read FprojectId Write SetprojectId;
   end;
   TJobReferenceClass = Class of TJobReference;
   
@@ -903,31 +782,31 @@ type
   
   TJobStatistics = Class(TGoogleBaseObject)
   Private
-    FcreationTime : string;
-    FendTime : string;
+    FcreationTime : String;
+    FendTime : String;
     Fextract : TJobStatistics4;
     Fload : TJobStatistics3;
     Fquery : TJobStatistics2;
-    FstartTime : string;
-    FtotalBytesProcessed : string;
+    FstartTime : String;
+    FtotalBytesProcessed : String;
   Protected
     //Property setters
-    Procedure SetcreationTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SetendTime(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendTime(AIndex : Integer; AValue : String); virtual;
     Procedure Setextract(AIndex : Integer; AValue : TJobStatistics4); virtual;
     Procedure Setload(AIndex : Integer; AValue : TJobStatistics3); virtual;
     Procedure Setquery(AIndex : Integer; AValue : TJobStatistics2); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalBytesProcessed(AIndex : Integer; AValue : string); virtual;
+    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SettotalBytesProcessed(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property creationTime : string Index 0 Read FcreationTime Write SetcreationTime;
-    Property endTime : string Index 8 Read FendTime Write SetendTime;
+    Property creationTime : String Index 0 Read FcreationTime Write SetcreationTime;
+    Property endTime : String Index 8 Read FendTime Write SetendTime;
     Property extract : TJobStatistics4 Index 16 Read Fextract Write Setextract;
     Property load : TJobStatistics3 Index 24 Read Fload Write Setload;
     Property query : TJobStatistics2 Index 32 Read Fquery Write Setquery;
-    Property startTime : string Index 40 Read FstartTime Write SetstartTime;
-    Property totalBytesProcessed : string Index 48 Read FtotalBytesProcessed Write SettotalBytesProcessed;
+    Property startTime : String Index 40 Read FstartTime Write SetstartTime;
+    Property totalBytesProcessed : String Index 48 Read FtotalBytesProcessed Write SettotalBytesProcessed;
   end;
   TJobStatisticsClass = Class of TJobStatistics;
   
@@ -938,15 +817,15 @@ type
   TJobStatistics2 = Class(TGoogleBaseObject)
   Private
     FcacheHit : boolean;
-    FtotalBytesProcessed : string;
+    FtotalBytesProcessed : String;
   Protected
     //Property setters
     Procedure SetcacheHit(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SettotalBytesProcessed(AIndex : Integer; AValue : string); virtual;
+    Procedure SettotalBytesProcessed(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property cacheHit : boolean Index 0 Read FcacheHit Write SetcacheHit;
-    Property totalBytesProcessed : string Index 8 Read FtotalBytesProcessed Write SettotalBytesProcessed;
+    Property totalBytesProcessed : String Index 8 Read FtotalBytesProcessed Write SettotalBytesProcessed;
   end;
   TJobStatistics2Class = Class of TJobStatistics2;
   
@@ -956,22 +835,22 @@ type
   
   TJobStatistics3 = Class(TGoogleBaseObject)
   Private
-    FinputFileBytes : string;
-    FinputFiles : string;
-    FoutputBytes : string;
-    FoutputRows : string;
+    FinputFileBytes : String;
+    FinputFiles : String;
+    FoutputBytes : String;
+    FoutputRows : String;
   Protected
     //Property setters
-    Procedure SetinputFileBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinputFiles(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoutputBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoutputRows(AIndex : Integer; AValue : string); virtual;
+    Procedure SetinputFileBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinputFiles(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoutputBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoutputRows(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property inputFileBytes : string Index 0 Read FinputFileBytes Write SetinputFileBytes;
-    Property inputFiles : string Index 8 Read FinputFiles Write SetinputFiles;
-    Property outputBytes : string Index 16 Read FoutputBytes Write SetoutputBytes;
-    Property outputRows : string Index 24 Read FoutputRows Write SetoutputRows;
+    Property inputFileBytes : String Index 0 Read FinputFileBytes Write SetinputFileBytes;
+    Property inputFiles : String Index 8 Read FinputFiles Write SetinputFiles;
+    Property outputBytes : String Index 16 Read FoutputBytes Write SetoutputBytes;
+    Property outputRows : String Index 24 Read FoutputRows Write SetoutputRows;
   end;
   TJobStatistics3Class = Class of TJobStatistics3;
   
@@ -981,28 +860,15 @@ type
   
   TJobStatistics4 = Class(TGoogleBaseObject)
   Private
-    FdestinationUriFileCounts : TJobStatistics4destinationUriFileCounts;
+    FdestinationUriFileCounts : TStringArray;
   Protected
     //Property setters
-    Procedure SetdestinationUriFileCounts(AIndex : Integer; AValue : TJobStatistics4destinationUriFileCounts); virtual;
+    Procedure SetdestinationUriFileCounts(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property destinationUriFileCounts : TJobStatistics4destinationUriFileCounts Index 0 Read FdestinationUriFileCounts Write SetdestinationUriFileCounts;
+    Property destinationUriFileCounts : TStringArray Index 0 Read FdestinationUriFileCounts Write SetdestinationUriFileCounts;
   end;
   TJobStatistics4Class = Class of TJobStatistics4;
-  
-  { --------------------------------------------------------------------
-    TJobStatistics4destinationUriFileCounts
-    --------------------------------------------------------------------}
-  
-  TJobStatistics4destinationUriFileCounts = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobStatistics4destinationUriFileCountsClass = Class of TJobStatistics4destinationUriFileCounts;
   
   { --------------------------------------------------------------------
     TJobStatus
@@ -1011,33 +877,20 @@ type
   TJobStatus = Class(TGoogleBaseObject)
   Private
     FerrorResult : TErrorProto;
-    Ferrors : TJobStatuserrors;
-    Fstate : string;
+    Ferrors : TJobStatusTypeerrorsArray;
+    Fstate : String;
   Protected
     //Property setters
     Procedure SeterrorResult(AIndex : Integer; AValue : TErrorProto); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TJobStatuserrors); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : string); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TJobStatusTypeerrorsArray); virtual;
+    Procedure Setstate(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property errorResult : TErrorProto Index 0 Read FerrorResult Write SeterrorResult;
-    Property errors : TJobStatuserrors Index 8 Read Ferrors Write Seterrors;
-    Property state : string Index 16 Read Fstate Write Setstate;
+    Property errors : TJobStatusTypeerrorsArray Index 8 Read Ferrors Write Seterrors;
+    Property state : String Index 16 Read Fstate Write Setstate;
   end;
   TJobStatusClass = Class of TJobStatus;
-  
-  { --------------------------------------------------------------------
-    TJobStatuserrors
-    --------------------------------------------------------------------}
-  
-  TJobStatuserrors = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobStatuserrorsClass = Class of TJobStatuserrors;
   
   { --------------------------------------------------------------------
     TJsonObject
@@ -1054,17 +907,32 @@ type
   TJsonObjectClass = Class of TJsonObject;
   
   { --------------------------------------------------------------------
-    TJsonValue
+    TProjectListTypeprojectsItem
     --------------------------------------------------------------------}
   
-  TJsonValue = Class(TGoogleBaseObject)
+  TProjectListTypeprojectsItem = Class(TGoogleBaseObject)
   Private
+    FfriendlyName : String;
+    Fid : String;
+    Fkind : String;
+    FnumericId : String;
+    FprojectReference : TProjectReference;
   Protected
     //Property setters
+    Procedure SetfriendlyName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnumericId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectReference(AIndex : Integer; AValue : TProjectReference); virtual;
   Public
   Published
+    Property friendlyName : String Index 0 Read FfriendlyName Write SetfriendlyName;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property numericId : String Index 24 Read FnumericId Write SetnumericId;
+    Property projectReference : TProjectReference Index 32 Read FprojectReference Write SetprojectReference;
   end;
-  TJsonValueClass = Class of TJsonValue;
+  TProjectListTypeprojectsItemClass = Class of TProjectListTypeprojectsItem;
   
   { --------------------------------------------------------------------
     TProjectList
@@ -1072,55 +940,27 @@ type
   
   TProjectList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fkind : string;
-    FnextPageToken : string;
-    Fprojects : TProjectListprojects;
+    Fetag : String;
+    Fkind : String;
+    FnextPageToken : String;
+    Fprojects : TProjectListTypeprojectsArray;
     FtotalItems : integer;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setprojects(AIndex : Integer; AValue : TProjectListprojects); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setprojects(AIndex : Integer; AValue : TProjectListTypeprojectsArray); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
-    Property projects : TProjectListprojects Index 24 Read Fprojects Write Setprojects;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property projects : TProjectListTypeprojectsArray Index 24 Read Fprojects Write Setprojects;
     Property totalItems : integer Index 32 Read FtotalItems Write SettotalItems;
   end;
   TProjectListClass = Class of TProjectList;
-  
-  { --------------------------------------------------------------------
-    TProjectListprojects
-    --------------------------------------------------------------------}
-  
-  TProjectListprojects = Class(TGoogleBaseObject)
-  Private
-    FfriendlyName : string;
-    Fid : string;
-    Fkind : string;
-    FnumericId : string;
-    FprojectReference : TProjectReference;
-  Protected
-    //Property setters
-    Procedure SetfriendlyName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnumericId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectReference(AIndex : Integer; AValue : TProjectReference); virtual;
-  Public
-  Published
-    Property friendlyName : string Index 0 Read FfriendlyName Write SetfriendlyName;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property numericId : string Index 24 Read FnumericId Write SetnumericId;
-    Property projectReference : TProjectReference Index 32 Read FprojectReference Write SetprojectReference;
-  end;
-  TProjectListprojectsClass = Class of TProjectListprojects;
   
   { --------------------------------------------------------------------
     TProjectReference
@@ -1128,13 +968,13 @@ type
   
   TProjectReference = Class(TGoogleBaseObject)
   Private
-    FprojectId : string;
+    FprojectId : String;
   Protected
     //Property setters
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property projectId : string Index 0 Read FprojectId Write SetprojectId;
+    Property projectId : String Index 0 Read FprojectId Write SetprojectId;
   end;
   TProjectReferenceClass = Class of TProjectReference;
   
@@ -1146,30 +986,30 @@ type
   Private
     FdefaultDataset : TDatasetReference;
     FdryRun : boolean;
-    Fkind : string;
+    Fkind : String;
     FmaxResults : integer;
     FpreserveNulls : boolean;
-    Fquery : string;
+    Fquery : String;
     FtimeoutMs : integer;
     FuseQueryCache : boolean;
   Protected
     //Property setters
     Procedure SetdefaultDataset(AIndex : Integer; AValue : TDatasetReference); virtual;
     Procedure SetdryRun(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetmaxResults(AIndex : Integer; AValue : integer); virtual;
     Procedure SetpreserveNulls(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setquery(AIndex : Integer; AValue : string); virtual;
+    Procedure Setquery(AIndex : Integer; AValue : String); virtual;
     Procedure SettimeoutMs(AIndex : Integer; AValue : integer); virtual;
     Procedure SetuseQueryCache(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
     Property defaultDataset : TDatasetReference Index 0 Read FdefaultDataset Write SetdefaultDataset;
     Property dryRun : boolean Index 8 Read FdryRun Write SetdryRun;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property maxResults : integer Index 24 Read FmaxResults Write SetmaxResults;
     Property preserveNulls : boolean Index 32 Read FpreserveNulls Write SetpreserveNulls;
-    Property query : string Index 40 Read Fquery Write Setquery;
+    Property query : String Index 40 Read Fquery Write Setquery;
     Property timeoutMs : integer Index 48 Read FtimeoutMs Write SettimeoutMs;
     Property useQueryCache : boolean Index 56 Read FuseQueryCache Write SetuseQueryCache;
   end;
@@ -1184,49 +1024,36 @@ type
     FcacheHit : boolean;
     FjobComplete : boolean;
     FjobReference : TJobReference;
-    Fkind : string;
-    FpageToken : string;
-    Frows : TQueryResponserows;
+    Fkind : String;
+    FpageToken : String;
+    Frows : TQueryResponseTyperowsArray;
     Fschema : TTableSchema;
-    FtotalBytesProcessed : string;
-    FtotalRows : string;
+    FtotalBytesProcessed : String;
+    FtotalRows : String;
   Protected
     //Property setters
     Procedure SetcacheHit(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetjobComplete(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetjobReference(AIndex : Integer; AValue : TJobReference); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrows(AIndex : Integer; AValue : TQueryResponserows); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrows(AIndex : Integer; AValue : TQueryResponseTyperowsArray); virtual;
     Procedure Setschema(AIndex : Integer; AValue : TTableSchema); virtual;
-    Procedure SettotalBytesProcessed(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalRows(AIndex : Integer; AValue : string); virtual;
+    Procedure SettotalBytesProcessed(AIndex : Integer; AValue : String); virtual;
+    Procedure SettotalRows(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property cacheHit : boolean Index 0 Read FcacheHit Write SetcacheHit;
     Property jobComplete : boolean Index 8 Read FjobComplete Write SetjobComplete;
     Property jobReference : TJobReference Index 16 Read FjobReference Write SetjobReference;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property pageToken : string Index 32 Read FpageToken Write SetpageToken;
-    Property rows : TQueryResponserows Index 40 Read Frows Write Setrows;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property pageToken : String Index 32 Read FpageToken Write SetpageToken;
+    Property rows : TQueryResponseTyperowsArray Index 40 Read Frows Write Setrows;
     Property schema : TTableSchema Index 48 Read Fschema Write Setschema;
-    Property totalBytesProcessed : string Index 56 Read FtotalBytesProcessed Write SettotalBytesProcessed;
-    Property totalRows : string Index 64 Read FtotalRows Write SettotalRows;
+    Property totalBytesProcessed : String Index 56 Read FtotalBytesProcessed Write SettotalBytesProcessed;
+    Property totalRows : String Index 64 Read FtotalRows Write SettotalRows;
   end;
   TQueryResponseClass = Class of TQueryResponse;
-  
-  { --------------------------------------------------------------------
-    TQueryResponserows
-    --------------------------------------------------------------------}
-  
-  TQueryResponserows = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TQueryResponserowsClass = Class of TQueryResponserows;
   
   { --------------------------------------------------------------------
     TTable
@@ -1234,55 +1061,55 @@ type
   
   TTable = Class(TGoogleBaseObject)
   Private
-    FcreationTime : string;
-    Fdescription : string;
-    Fetag : string;
-    FexpirationTime : string;
-    FfriendlyName : string;
-    Fid : string;
-    Fkind : string;
-    FlastModifiedTime : string;
-    FnumBytes : string;
-    FnumRows : string;
+    FcreationTime : String;
+    Fdescription : String;
+    Fetag : String;
+    FexpirationTime : String;
+    FfriendlyName : String;
+    Fid : String;
+    Fkind : String;
+    FlastModifiedTime : String;
+    FnumBytes : String;
+    FnumRows : String;
     Fschema : TTableSchema;
-    FselfLink : string;
+    FselfLink : String;
     FtableReference : TTableReference;
-    F_type : string;
+    F_type : String;
     Fview : TViewDefinition;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetcreationTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SetexpirationTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfriendlyName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlastModifiedTime(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnumBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnumRows(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexpirationTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfriendlyName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastModifiedTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnumBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnumRows(AIndex : Integer; AValue : String); virtual;
     Procedure Setschema(AIndex : Integer; AValue : TTableSchema); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure SettableReference(AIndex : Integer; AValue : TTableReference); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setview(AIndex : Integer; AValue : TViewDefinition); virtual;
   Public
   Published
-    Property creationTime : string Index 0 Read FcreationTime Write SetcreationTime;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property etag : string Index 16 Read Fetag Write Setetag;
-    Property expirationTime : string Index 24 Read FexpirationTime Write SetexpirationTime;
-    Property friendlyName : string Index 32 Read FfriendlyName Write SetfriendlyName;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property kind : string Index 48 Read Fkind Write Setkind;
-    Property lastModifiedTime : string Index 56 Read FlastModifiedTime Write SetlastModifiedTime;
-    Property numBytes : string Index 64 Read FnumBytes Write SetnumBytes;
-    Property numRows : string Index 72 Read FnumRows Write SetnumRows;
+    Property creationTime : String Index 0 Read FcreationTime Write SetcreationTime;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property etag : String Index 16 Read Fetag Write Setetag;
+    Property expirationTime : String Index 24 Read FexpirationTime Write SetexpirationTime;
+    Property friendlyName : String Index 32 Read FfriendlyName Write SetfriendlyName;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property kind : String Index 48 Read Fkind Write Setkind;
+    Property lastModifiedTime : String Index 56 Read FlastModifiedTime Write SetlastModifiedTime;
+    Property numBytes : String Index 64 Read FnumBytes Write SetnumBytes;
+    Property numRows : String Index 72 Read FnumRows Write SetnumRows;
     Property schema : TTableSchema Index 80 Read Fschema Write Setschema;
-    Property selfLink : string Index 88 Read FselfLink Write SetselfLink;
+    Property selfLink : String Index 88 Read FselfLink Write SetselfLink;
     Property tableReference : TTableReference Index 96 Read FtableReference Write SettableReference;
-    Property _type : string Index 104 Read F_type Write Set_type;
+    Property _type : String Index 104 Read F_type Write Set_type;
     Property view : TViewDefinition Index 112 Read Fview Write Setview;
   end;
   TTableClass = Class of TTable;
@@ -1304,48 +1131,67 @@ type
   TTableCellClass = Class of TTableCell;
   
   { --------------------------------------------------------------------
+    TTableDataInsertAllRequestTyperowsItem
+    --------------------------------------------------------------------}
+  
+  TTableDataInsertAllRequestTyperowsItem = Class(TGoogleBaseObject)
+  Private
+    FinsertId : String;
+    Fjson : TJsonObject;
+  Protected
+    //Property setters
+    Procedure SetinsertId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setjson(AIndex : Integer; AValue : TJsonObject); virtual;
+  Public
+  Published
+    Property insertId : String Index 0 Read FinsertId Write SetinsertId;
+    Property json : TJsonObject Index 8 Read Fjson Write Setjson;
+  end;
+  TTableDataInsertAllRequestTyperowsItemClass = Class of TTableDataInsertAllRequestTyperowsItem;
+  
+  { --------------------------------------------------------------------
     TTableDataInsertAllRequest
     --------------------------------------------------------------------}
   
   TTableDataInsertAllRequest = Class(TGoogleBaseObject)
   Private
     FignoreUnknownValues : boolean;
-    Fkind : string;
-    Frows : TTableDataInsertAllRequestrows;
+    Fkind : String;
+    Frows : TTableDataInsertAllRequestTyperowsArray;
     FskipInvalidRows : boolean;
   Protected
     //Property setters
     Procedure SetignoreUnknownValues(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrows(AIndex : Integer; AValue : TTableDataInsertAllRequestrows); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrows(AIndex : Integer; AValue : TTableDataInsertAllRequestTyperowsArray); virtual;
     Procedure SetskipInvalidRows(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
     Property ignoreUnknownValues : boolean Index 0 Read FignoreUnknownValues Write SetignoreUnknownValues;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property rows : TTableDataInsertAllRequestrows Index 16 Read Frows Write Setrows;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property rows : TTableDataInsertAllRequestTyperowsArray Index 16 Read Frows Write Setrows;
     Property skipInvalidRows : boolean Index 24 Read FskipInvalidRows Write SetskipInvalidRows;
   end;
   TTableDataInsertAllRequestClass = Class of TTableDataInsertAllRequest;
   
   { --------------------------------------------------------------------
-    TTableDataInsertAllRequestrows
+    TTableDataInsertAllResponseTypeinsertErrorsItem
     --------------------------------------------------------------------}
   
-  TTableDataInsertAllRequestrows = Class(TGoogleBaseObject)
+  TTableDataInsertAllResponseTypeinsertErrorsItem = Class(TGoogleBaseObject)
   Private
-    FinsertId : string;
-    Fjson : TJsonObject;
+    Ferrors : TTableDataInsertAllResponseTypeinsertErrorsItemTypeerrorsArray;
+    Findex : integer;
   Protected
     //Property setters
-    Procedure SetinsertId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setjson(AIndex : Integer; AValue : TJsonObject); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TTableDataInsertAllResponseTypeinsertErrorsItemTypeerrorsArray); virtual;
+    Procedure Setindex(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property insertId : string Index 0 Read FinsertId Write SetinsertId;
-    Property json : TJsonObject Index 8 Read Fjson Write Setjson;
+    Property errors : TTableDataInsertAllResponseTypeinsertErrorsItemTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
+    Property index : integer Index 8 Read Findex Write Setindex;
   end;
-  TTableDataInsertAllRequestrowsClass = Class of TTableDataInsertAllRequestrows;
+  TTableDataInsertAllResponseTypeinsertErrorsItemClass = Class of TTableDataInsertAllResponseTypeinsertErrorsItem;
   
   { --------------------------------------------------------------------
     TTableDataInsertAllResponse
@@ -1353,50 +1199,18 @@ type
   
   TTableDataInsertAllResponse = Class(TGoogleBaseObject)
   Private
-    FinsertErrors : TTableDataInsertAllResponseinsertErrors;
-    Fkind : string;
+    FinsertErrors : TTableDataInsertAllResponseTypeinsertErrorsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetinsertErrors(AIndex : Integer; AValue : TTableDataInsertAllResponseinsertErrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetinsertErrors(AIndex : Integer; AValue : TTableDataInsertAllResponseTypeinsertErrorsArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property insertErrors : TTableDataInsertAllResponseinsertErrors Index 0 Read FinsertErrors Write SetinsertErrors;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property insertErrors : TTableDataInsertAllResponseTypeinsertErrorsArray Index 0 Read FinsertErrors Write SetinsertErrors;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TTableDataInsertAllResponseClass = Class of TTableDataInsertAllResponse;
-  
-  { --------------------------------------------------------------------
-    TTableDataInsertAllResponseinsertErrors
-    --------------------------------------------------------------------}
-  
-  TTableDataInsertAllResponseinsertErrors = Class(TGoogleBaseObject)
-  Private
-    Ferrors : TTableDataInsertAllResponseinsertErrorserrors;
-    Findex : integer;
-  Protected
-    //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TTableDataInsertAllResponseinsertErrorserrors); virtual;
-    Procedure Setindex(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property errors : TTableDataInsertAllResponseinsertErrorserrors Index 0 Read Ferrors Write Seterrors;
-    Property index : integer Index 8 Read Findex Write Setindex;
-  end;
-  TTableDataInsertAllResponseinsertErrorsClass = Class of TTableDataInsertAllResponseinsertErrors;
-  
-  { --------------------------------------------------------------------
-    TTableDataInsertAllResponseinsertErrorserrors
-    --------------------------------------------------------------------}
-  
-  TTableDataInsertAllResponseinsertErrorserrors = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTableDataInsertAllResponseinsertErrorserrorsClass = Class of TTableDataInsertAllResponseinsertErrorserrors;
   
   { --------------------------------------------------------------------
     TTableDataList
@@ -1404,40 +1218,27 @@ type
   
   TTableDataList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fkind : string;
-    FpageToken : string;
-    Frows : TTableDataListrows;
-    FtotalRows : string;
+    Fetag : String;
+    Fkind : String;
+    FpageToken : String;
+    Frows : TTableDataListTyperowsArray;
+    FtotalRows : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrows(AIndex : Integer; AValue : TTableDataListrows); virtual;
-    Procedure SettotalRows(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrows(AIndex : Integer; AValue : TTableDataListTyperowsArray); virtual;
+    Procedure SettotalRows(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property pageToken : string Index 16 Read FpageToken Write SetpageToken;
-    Property rows : TTableDataListrows Index 24 Read Frows Write Setrows;
-    Property totalRows : string Index 32 Read FtotalRows Write SettotalRows;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property pageToken : String Index 16 Read FpageToken Write SetpageToken;
+    Property rows : TTableDataListTyperowsArray Index 24 Read Frows Write Setrows;
+    Property totalRows : String Index 32 Read FtotalRows Write SettotalRows;
   end;
   TTableDataListClass = Class of TTableDataList;
-  
-  { --------------------------------------------------------------------
-    TTableDataListrows
-    --------------------------------------------------------------------}
-  
-  TTableDataListrows = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTableDataListrowsClass = Class of TTableDataListrows;
   
   { --------------------------------------------------------------------
     TTableFieldSchema
@@ -1445,41 +1246,57 @@ type
   
   TTableFieldSchema = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Ffields : TTableFieldSchemafields;
-    Fmode : string;
-    Fname : string;
-    F_type : string;
+    Fdescription : String;
+    Ffields : TTableFieldSchemaTypefieldsArray;
+    Fmode : String;
+    Fname : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfields(AIndex : Integer; AValue : TTableFieldSchemafields); virtual;
-    Procedure Setmode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfields(AIndex : Integer; AValue : TTableFieldSchemaTypefieldsArray); virtual;
+    Procedure Setmode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property fields : TTableFieldSchemafields Index 8 Read Ffields Write Setfields;
-    Property mode : string Index 16 Read Fmode Write Setmode;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property _type : string Index 32 Read F_type Write Set_type;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property fields : TTableFieldSchemaTypefieldsArray Index 8 Read Ffields Write Setfields;
+    Property mode : String Index 16 Read Fmode Write Setmode;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property _type : String Index 32 Read F_type Write Set_type;
   end;
   TTableFieldSchemaClass = Class of TTableFieldSchema;
   
   { --------------------------------------------------------------------
-    TTableFieldSchemafields
+    TTableListTypetablesItem
     --------------------------------------------------------------------}
   
-  TTableFieldSchemafields = Class(TGoogleBaseObject)
+  TTableListTypetablesItem = Class(TGoogleBaseObject)
   Private
+    FfriendlyName : String;
+    Fid : String;
+    Fkind : String;
+    FtableReference : TTableReference;
+    F_type : String;
   Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
+    Procedure SetfriendlyName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SettableReference(AIndex : Integer; AValue : TTableReference); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property friendlyName : String Index 0 Read FfriendlyName Write SetfriendlyName;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property tableReference : TTableReference Index 24 Read FtableReference Write SettableReference;
+    Property _type : String Index 32 Read F_type Write Set_type;
   end;
-  TTableFieldSchemafieldsClass = Class of TTableFieldSchemafields;
+  TTableListTypetablesItemClass = Class of TTableListTypetablesItem;
   
   { --------------------------------------------------------------------
     TTableList
@@ -1487,56 +1304,27 @@ type
   
   TTableList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fkind : string;
-    FnextPageToken : string;
-    Ftables : TTableListtables;
+    Fetag : String;
+    Fkind : String;
+    FnextPageToken : String;
+    Ftables : TTableListTypetablesArray;
     FtotalItems : integer;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Settables(AIndex : Integer; AValue : TTableListtables); virtual;
+    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Settables(AIndex : Integer; AValue : TTableListTypetablesArray); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
-    Property tables : TTableListtables Index 24 Read Ftables Write Settables;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property tables : TTableListTypetablesArray Index 24 Read Ftables Write Settables;
     Property totalItems : integer Index 32 Read FtotalItems Write SettotalItems;
   end;
   TTableListClass = Class of TTableList;
-  
-  { --------------------------------------------------------------------
-    TTableListtables
-    --------------------------------------------------------------------}
-  
-  TTableListtables = Class(TGoogleBaseObject)
-  Private
-    FfriendlyName : string;
-    Fid : string;
-    Fkind : string;
-    FtableReference : TTableReference;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure SetfriendlyName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SettableReference(AIndex : Integer; AValue : TTableReference); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property friendlyName : string Index 0 Read FfriendlyName Write SetfriendlyName;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property tableReference : TTableReference Index 24 Read FtableReference Write SettableReference;
-    Property _type : string Index 32 Read F_type Write Set_type;
-  end;
-  TTableListtablesClass = Class of TTableListtables;
   
   { --------------------------------------------------------------------
     TTableReference
@@ -1544,19 +1332,19 @@ type
   
   TTableReference = Class(TGoogleBaseObject)
   Private
-    FdatasetId : string;
-    FprojectId : string;
-    FtableId : string;
+    FdatasetId : String;
+    FprojectId : String;
+    FtableId : String;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : string); virtual;
-    Procedure SettableId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure SettableId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property datasetId : string Index 0 Read FdatasetId Write SetdatasetId;
-    Property projectId : string Index 8 Read FprojectId Write SetprojectId;
-    Property tableId : string Index 16 Read FtableId Write SettableId;
+    Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
+    Property projectId : String Index 8 Read FprojectId Write SetprojectId;
+    Property tableId : String Index 16 Read FtableId Write SettableId;
   end;
   TTableReferenceClass = Class of TTableReference;
   
@@ -1566,28 +1354,15 @@ type
   
   TTableRow = Class(TGoogleBaseObject)
   Private
-    Ff : TTableRowf;
+    Ff : TTableRowTypefArray;
   Protected
     //Property setters
-    Procedure Setf(AIndex : Integer; AValue : TTableRowf); virtual;
+    Procedure Setf(AIndex : Integer; AValue : TTableRowTypefArray); virtual;
   Public
   Published
-    Property f : TTableRowf Index 0 Read Ff Write Setf;
+    Property f : TTableRowTypefArray Index 0 Read Ff Write Setf;
   end;
   TTableRowClass = Class of TTableRow;
-  
-  { --------------------------------------------------------------------
-    TTableRowf
-    --------------------------------------------------------------------}
-  
-  TTableRowf = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTableRowfClass = Class of TTableRowf;
   
   { --------------------------------------------------------------------
     TTableSchema
@@ -1595,28 +1370,15 @@ type
   
   TTableSchema = Class(TGoogleBaseObject)
   Private
-    Ffields : TTableSchemafields;
+    Ffields : TTableSchemaTypefieldsArray;
   Protected
     //Property setters
-    Procedure Setfields(AIndex : Integer; AValue : TTableSchemafields); virtual;
+    Procedure Setfields(AIndex : Integer; AValue : TTableSchemaTypefieldsArray); virtual;
   Public
   Published
-    Property fields : TTableSchemafields Index 0 Read Ffields Write Setfields;
+    Property fields : TTableSchemaTypefieldsArray Index 0 Read Ffields Write Setfields;
   end;
   TTableSchemaClass = Class of TTableSchema;
-  
-  { --------------------------------------------------------------------
-    TTableSchemafields
-    --------------------------------------------------------------------}
-  
-  TTableSchemafields = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTableSchemafieldsClass = Class of TTableSchemafields;
   
   { --------------------------------------------------------------------
     TViewDefinition
@@ -1624,13 +1386,13 @@ type
   
   TViewDefinition = Class(TGoogleBaseObject)
   Private
-    Fquery : string;
+    Fquery : String;
   Protected
     //Property setters
-    Procedure Setquery(AIndex : Integer; AValue : string); virtual;
+    Procedure Setquery(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property query : string Index 0 Read Fquery Write Setquery;
+    Property query : String Index 0 Read Fquery Write Setquery;
   end;
   TViewDefinitionClass = Class of TViewDefinition;
   
@@ -1651,7 +1413,7 @@ type
   TDatasetsListOptions = Record
     all : boolean;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TDatasetsResource = Class(TGoogleResource)
@@ -1678,8 +1440,8 @@ type
   
   TJobsGetQueryResultsOptions = Record
     maxResults : integer;
-    pageToken : string;
-    startIndex : string;
+    pageToken : String;
+    startIndex : String;
     timeoutMs : integer;
   end;
   
@@ -1689,9 +1451,9 @@ type
   TJobsListOptions = Record
     allUsers : boolean;
     maxResults : integer;
-    pageToken : string;
-    projection : string;
-    stateFilter : string;
+    pageToken : String;
+    projection : String;
+    stateFilter : String;
   end;
   
   TJobsResource = Class(TGoogleResource)
@@ -1717,7 +1479,7 @@ type
   
   TProjectsListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TProjectsResource = Class(TGoogleResource)
@@ -1738,8 +1500,8 @@ type
   
   TTabledataListOptions = Record
     maxResults : integer;
-    pageToken : string;
-    startIndex : string;
+    pageToken : String;
+    startIndex : String;
   end;
   
   TTabledataResource = Class(TGoogleResource)
@@ -1761,7 +1523,7 @@ type
   
   TTablesListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TTablesResource = Class(TGoogleResource)
@@ -1863,7 +1625,7 @@ end;
 
 
 
-Procedure TCsvOptions.Setencoding(AIndex : Integer; AValue : string); 
+Procedure TCsvOptions.Setencoding(AIndex : Integer; AValue : String); 
 
 begin
   If (Fencoding=AValue) then exit;
@@ -1873,7 +1635,7 @@ end;
 
 
 
-Procedure TCsvOptions.SetfieldDelimiter(AIndex : Integer; AValue : string); 
+Procedure TCsvOptions.SetfieldDelimiter(AIndex : Integer; AValue : String); 
 
 begin
   If (FfieldDelimiter=AValue) then exit;
@@ -1883,7 +1645,7 @@ end;
 
 
 
-Procedure TCsvOptions.Setquote(AIndex : Integer; AValue : string); 
+Procedure TCsvOptions.Setquote(AIndex : Integer; AValue : String); 
 
 begin
   If (Fquote=AValue) then exit;
@@ -1906,11 +1668,78 @@ end;
 
 
 { --------------------------------------------------------------------
+  TDatasetTypeaccessItem
+  --------------------------------------------------------------------}
+
+
+Procedure TDatasetTypeaccessItem.Setdomain(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fdomain=AValue) then exit;
+  Fdomain:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDatasetTypeaccessItem.SetgroupByEmail(AIndex : Integer; AValue : String); 
+
+begin
+  If (FgroupByEmail=AValue) then exit;
+  FgroupByEmail:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDatasetTypeaccessItem.Setrole(AIndex : Integer; AValue : String); 
+
+begin
+  If (Frole=AValue) then exit;
+  Frole:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDatasetTypeaccessItem.SetspecialGroup(AIndex : Integer; AValue : String); 
+
+begin
+  If (FspecialGroup=AValue) then exit;
+  FspecialGroup:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDatasetTypeaccessItem.SetuserByEmail(AIndex : Integer; AValue : String); 
+
+begin
+  If (FuserByEmail=AValue) then exit;
+  FuserByEmail:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDatasetTypeaccessItem.Setview(AIndex : Integer; AValue : TTableReference); 
+
+begin
+  If (Fview=AValue) then exit;
+  Fview:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TDataset
   --------------------------------------------------------------------}
 
 
-Procedure TDataset.Setaccess(AIndex : Integer; AValue : TDatasetaccess); 
+Procedure TDataset.Setaccess(AIndex : Integer; AValue : TDatasetTypeaccessArray); 
 
 begin
   If (Faccess=AValue) then exit;
@@ -1920,7 +1749,7 @@ end;
 
 
 
-Procedure TDataset.SetcreationTime(AIndex : Integer; AValue : string); 
+Procedure TDataset.SetcreationTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -1940,7 +1769,7 @@ end;
 
 
 
-Procedure TDataset.SetdefaultTableExpirationMs(AIndex : Integer; AValue : string); 
+Procedure TDataset.SetdefaultTableExpirationMs(AIndex : Integer; AValue : String); 
 
 begin
   If (FdefaultTableExpirationMs=AValue) then exit;
@@ -1950,7 +1779,7 @@ end;
 
 
 
-Procedure TDataset.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TDataset.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1960,7 +1789,7 @@ end;
 
 
 
-Procedure TDataset.Setetag(AIndex : Integer; AValue : string); 
+Procedure TDataset.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1970,7 +1799,7 @@ end;
 
 
 
-Procedure TDataset.SetfriendlyName(AIndex : Integer; AValue : string); 
+Procedure TDataset.SetfriendlyName(AIndex : Integer; AValue : String); 
 
 begin
   If (FfriendlyName=AValue) then exit;
@@ -1980,7 +1809,7 @@ end;
 
 
 
-Procedure TDataset.Setid(AIndex : Integer; AValue : string); 
+Procedure TDataset.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1990,7 +1819,7 @@ end;
 
 
 
-Procedure TDataset.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDataset.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2000,7 +1829,7 @@ end;
 
 
 
-Procedure TDataset.SetlastModifiedTime(AIndex : Integer; AValue : string); 
+Procedure TDataset.SetlastModifiedTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FlastModifiedTime=AValue) then exit;
@@ -2010,7 +1839,17 @@ end;
 
 
 
-Procedure TDataset.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TDataset.Setlocation(AIndex : Integer; AValue : String); 
+
+begin
+  If (Flocation=AValue) then exit;
+  Flocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDataset.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2023,65 +1862,45 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDatasetaccess
+  TDatasetListTypedatasetsItem
   --------------------------------------------------------------------}
 
 
-Procedure TDatasetaccess.Setdomain(AIndex : Integer; AValue : string); 
+Procedure TDatasetListTypedatasetsItem.SetdatasetReference(AIndex : Integer; AValue : TDatasetReference); 
 
 begin
-  If (Fdomain=AValue) then exit;
-  Fdomain:=AValue;
+  If (FdatasetReference=AValue) then exit;
+  FdatasetReference:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TDatasetaccess.SetgroupByEmail(AIndex : Integer; AValue : string); 
+Procedure TDatasetListTypedatasetsItem.SetfriendlyName(AIndex : Integer; AValue : String); 
 
 begin
-  If (FgroupByEmail=AValue) then exit;
-  FgroupByEmail:=AValue;
+  If (FfriendlyName=AValue) then exit;
+  FfriendlyName:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TDatasetaccess.Setrole(AIndex : Integer; AValue : string); 
+Procedure TDatasetListTypedatasetsItem.Setid(AIndex : Integer; AValue : String); 
 
 begin
-  If (Frole=AValue) then exit;
-  Frole:=AValue;
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TDatasetaccess.SetspecialGroup(AIndex : Integer; AValue : string); 
+Procedure TDatasetListTypedatasetsItem.Setkind(AIndex : Integer; AValue : String); 
 
 begin
-  If (FspecialGroup=AValue) then exit;
-  FspecialGroup:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDatasetaccess.SetuserByEmail(AIndex : Integer; AValue : string); 
-
-begin
-  If (FuserByEmail=AValue) then exit;
-  FuserByEmail:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDatasetaccess.Setview(AIndex : Integer; AValue : TTableReference); 
-
-begin
-  If (Fview=AValue) then exit;
-  Fview:=AValue;
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -2094,7 +1913,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatasetList.Setdatasets(AIndex : Integer; AValue : TDatasetListdatasets); 
+Procedure TDatasetList.Setdatasets(AIndex : Integer; AValue : TDatasetListTypedatasetsArray); 
 
 begin
   If (Fdatasets=AValue) then exit;
@@ -2104,7 +1923,7 @@ end;
 
 
 
-Procedure TDatasetList.Setetag(AIndex : Integer; AValue : string); 
+Procedure TDatasetList.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2114,7 +1933,7 @@ end;
 
 
 
-Procedure TDatasetList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDatasetList.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2124,7 +1943,7 @@ end;
 
 
 
-Procedure TDatasetList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TDatasetList.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2137,58 +1956,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDatasetListdatasets
-  --------------------------------------------------------------------}
-
-
-Procedure TDatasetListdatasets.SetdatasetReference(AIndex : Integer; AValue : TDatasetReference); 
-
-begin
-  If (FdatasetReference=AValue) then exit;
-  FdatasetReference:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDatasetListdatasets.SetfriendlyName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfriendlyName=AValue) then exit;
-  FfriendlyName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDatasetListdatasets.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDatasetListdatasets.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TDatasetReference
   --------------------------------------------------------------------}
 
 
-Procedure TDatasetReference.SetdatasetId(AIndex : Integer; AValue : string); 
+Procedure TDatasetReference.SetdatasetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -2198,7 +1970,7 @@ end;
 
 
 
-Procedure TDatasetReference.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TDatasetReference.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -2215,7 +1987,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TErrorProto.SetdebugInfo(AIndex : Integer; AValue : string); 
+Procedure TErrorProto.SetdebugInfo(AIndex : Integer; AValue : String); 
 
 begin
   If (FdebugInfo=AValue) then exit;
@@ -2225,7 +1997,7 @@ end;
 
 
 
-Procedure TErrorProto.Setlocation(AIndex : Integer; AValue : string); 
+Procedure TErrorProto.Setlocation(AIndex : Integer; AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -2235,7 +2007,7 @@ end;
 
 
 
-Procedure TErrorProto.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TErrorProto.Setmessage(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -2245,7 +2017,7 @@ end;
 
 
 
-Procedure TErrorProto.Setreason(AIndex : Integer; AValue : string); 
+Procedure TErrorProto.Setreason(AIndex : Integer; AValue : String); 
 
 begin
   If (Freason=AValue) then exit;
@@ -2262,7 +2034,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExternalDataConfiguration.Setcompression(AIndex : Integer; AValue : string); 
+Procedure TExternalDataConfiguration.Setcompression(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcompression=AValue) then exit;
@@ -2312,7 +2084,7 @@ end;
 
 
 
-Procedure TExternalDataConfiguration.SetsourceFormat(AIndex : Integer; AValue : string); 
+Procedure TExternalDataConfiguration.SetsourceFormat(AIndex : Integer; AValue : String); 
 
 begin
   If (FsourceFormat=AValue) then exit;
@@ -2322,7 +2094,7 @@ end;
 
 
 
-Procedure TExternalDataConfiguration.SetsourceUris(AIndex : Integer; AValue : TExternalDataConfigurationsourceUris); 
+Procedure TExternalDataConfiguration.SetsourceUris(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsourceUris=AValue) then exit;
@@ -2330,13 +2102,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TExternalDataConfigurationsourceUris
-  --------------------------------------------------------------------}
 
 
 
@@ -2356,7 +2121,7 @@ end;
 
 
 
-Procedure TGetQueryResultsResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TGetQueryResultsResponse.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2386,7 +2151,7 @@ end;
 
 
 
-Procedure TGetQueryResultsResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TGetQueryResultsResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2396,7 +2161,7 @@ end;
 
 
 
-Procedure TGetQueryResultsResponse.SetpageToken(AIndex : Integer; AValue : string); 
+Procedure TGetQueryResultsResponse.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -2406,7 +2171,7 @@ end;
 
 
 
-Procedure TGetQueryResultsResponse.Setrows(AIndex : Integer; AValue : TGetQueryResultsResponserows); 
+Procedure TGetQueryResultsResponse.Setrows(AIndex : Integer; AValue : TGetQueryResultsResponseTyperowsArray); 
 
 begin
   If (Frows=AValue) then exit;
@@ -2426,7 +2191,7 @@ end;
 
 
 
-Procedure TGetQueryResultsResponse.SettotalBytesProcessed(AIndex : Integer; AValue : string); 
+Procedure TGetQueryResultsResponse.SettotalBytesProcessed(AIndex : Integer; AValue : String); 
 
 begin
   If (FtotalBytesProcessed=AValue) then exit;
@@ -2436,7 +2201,7 @@ end;
 
 
 
-Procedure TGetQueryResultsResponse.SettotalRows(AIndex : Integer; AValue : string); 
+Procedure TGetQueryResultsResponse.SettotalRows(AIndex : Integer; AValue : String); 
 
 begin
   If (FtotalRows=AValue) then exit;
@@ -2444,13 +2209,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TGetQueryResultsResponserows
-  --------------------------------------------------------------------}
 
 
 
@@ -2470,7 +2228,7 @@ end;
 
 
 
-Procedure TJob.Setetag(AIndex : Integer; AValue : string); 
+Procedure TJob.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2480,7 +2238,7 @@ end;
 
 
 
-Procedure TJob.Setid(AIndex : Integer; AValue : string); 
+Procedure TJob.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2500,7 +2258,7 @@ end;
 
 
 
-Procedure TJob.Setkind(AIndex : Integer; AValue : string); 
+Procedure TJob.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2510,7 +2268,7 @@ end;
 
 
 
-Procedure TJob.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TJob.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2540,7 +2298,7 @@ end;
 
 
 
-Procedure TJob.Setuser_email(AIndex : Integer; AValue : string); 
+Procedure TJob.Setuser_email(AIndex : Integer; AValue : String); 
 
 begin
   If (Fuser_email=AValue) then exit;
@@ -2624,7 +2382,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobConfigurationExtract.Setcompression(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationExtract.Setcompression(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcompression=AValue) then exit;
@@ -2634,7 +2392,7 @@ end;
 
 
 
-Procedure TJobConfigurationExtract.SetdestinationFormat(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationExtract.SetdestinationFormat(AIndex : Integer; AValue : String); 
 
 begin
   If (FdestinationFormat=AValue) then exit;
@@ -2644,7 +2402,7 @@ end;
 
 
 
-Procedure TJobConfigurationExtract.SetdestinationUri(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationExtract.SetdestinationUri(AIndex : Integer; AValue : String); 
 
 begin
   If (FdestinationUri=AValue) then exit;
@@ -2654,7 +2412,7 @@ end;
 
 
 
-Procedure TJobConfigurationExtract.SetdestinationUris(AIndex : Integer; AValue : TJobConfigurationExtractdestinationUris); 
+Procedure TJobConfigurationExtract.SetdestinationUris(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FdestinationUris=AValue) then exit;
@@ -2664,7 +2422,7 @@ end;
 
 
 
-Procedure TJobConfigurationExtract.SetfieldDelimiter(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationExtract.SetfieldDelimiter(AIndex : Integer; AValue : String); 
 
 begin
   If (FfieldDelimiter=AValue) then exit;
@@ -2697,18 +2455,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobConfigurationExtractdestinationUris
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TJobConfigurationLink
   --------------------------------------------------------------------}
 
 
-Procedure TJobConfigurationLink.SetcreateDisposition(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationLink.SetcreateDisposition(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreateDisposition=AValue) then exit;
@@ -2728,7 +2479,7 @@ end;
 
 
 
-Procedure TJobConfigurationLink.SetsourceUri(AIndex : Integer; AValue : TJobConfigurationLinksourceUri); 
+Procedure TJobConfigurationLink.SetsourceUri(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsourceUri=AValue) then exit;
@@ -2738,7 +2489,7 @@ end;
 
 
 
-Procedure TJobConfigurationLink.SetwriteDisposition(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationLink.SetwriteDisposition(AIndex : Integer; AValue : String); 
 
 begin
   If (FwriteDisposition=AValue) then exit;
@@ -2746,13 +2497,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TJobConfigurationLinksourceUri
-  --------------------------------------------------------------------}
 
 
 
@@ -2782,7 +2526,7 @@ end;
 
 
 
-Procedure TJobConfigurationLoad.SetcreateDisposition(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationLoad.SetcreateDisposition(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreateDisposition=AValue) then exit;
@@ -2802,7 +2546,7 @@ end;
 
 
 
-Procedure TJobConfigurationLoad.Setencoding(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationLoad.Setencoding(AIndex : Integer; AValue : String); 
 
 begin
   If (Fencoding=AValue) then exit;
@@ -2812,7 +2556,7 @@ end;
 
 
 
-Procedure TJobConfigurationLoad.SetfieldDelimiter(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationLoad.SetfieldDelimiter(AIndex : Integer; AValue : String); 
 
 begin
   If (FfieldDelimiter=AValue) then exit;
@@ -2842,7 +2586,7 @@ end;
 
 
 
-Procedure TJobConfigurationLoad.SetprojectionFields(AIndex : Integer; AValue : TJobConfigurationLoadprojectionFields); 
+Procedure TJobConfigurationLoad.SetprojectionFields(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FprojectionFields=AValue) then exit;
@@ -2852,7 +2596,7 @@ end;
 
 
 
-Procedure TJobConfigurationLoad.Setquote(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationLoad.Setquote(AIndex : Integer; AValue : String); 
 
 begin
   If (Fquote=AValue) then exit;
@@ -2872,7 +2616,7 @@ end;
 
 
 
-Procedure TJobConfigurationLoad.SetschemaInline(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationLoad.SetschemaInline(AIndex : Integer; AValue : String); 
 
 begin
   If (FschemaInline=AValue) then exit;
@@ -2882,7 +2626,7 @@ end;
 
 
 
-Procedure TJobConfigurationLoad.SetschemaInlineFormat(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationLoad.SetschemaInlineFormat(AIndex : Integer; AValue : String); 
 
 begin
   If (FschemaInlineFormat=AValue) then exit;
@@ -2902,7 +2646,7 @@ end;
 
 
 
-Procedure TJobConfigurationLoad.SetsourceFormat(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationLoad.SetsourceFormat(AIndex : Integer; AValue : String); 
 
 begin
   If (FsourceFormat=AValue) then exit;
@@ -2912,7 +2656,7 @@ end;
 
 
 
-Procedure TJobConfigurationLoad.SetsourceUris(AIndex : Integer; AValue : TJobConfigurationLoadsourceUris); 
+Procedure TJobConfigurationLoad.SetsourceUris(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsourceUris=AValue) then exit;
@@ -2922,7 +2666,7 @@ end;
 
 
 
-Procedure TJobConfigurationLoad.SetwriteDisposition(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationLoad.SetwriteDisposition(AIndex : Integer; AValue : String); 
 
 begin
   If (FwriteDisposition=AValue) then exit;
@@ -2935,16 +2679,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobConfigurationLoadprojectionFields
+  TJobConfigurationQueryTypetableDefinitions
   --------------------------------------------------------------------}
 
 
+Class Function TJobConfigurationQueryTypetableDefinitions.AllowAdditionalProperties : Boolean;
 
-
-{ --------------------------------------------------------------------
-  TJobConfigurationLoadsourceUris
-  --------------------------------------------------------------------}
-
+begin
+  Result:=True;
+end;
 
 
 
@@ -2963,7 +2706,7 @@ end;
 
 
 
-Procedure TJobConfigurationQuery.SetcreateDisposition(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationQuery.SetcreateDisposition(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreateDisposition=AValue) then exit;
@@ -3013,7 +2756,7 @@ end;
 
 
 
-Procedure TJobConfigurationQuery.Setpriority(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationQuery.Setpriority(AIndex : Integer; AValue : String); 
 
 begin
   If (Fpriority=AValue) then exit;
@@ -3023,7 +2766,7 @@ end;
 
 
 
-Procedure TJobConfigurationQuery.Setquery(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationQuery.Setquery(AIndex : Integer; AValue : String); 
 
 begin
   If (Fquery=AValue) then exit;
@@ -3033,7 +2776,7 @@ end;
 
 
 
-Procedure TJobConfigurationQuery.SettableDefinitions(AIndex : Integer; AValue : TJobConfigurationQuerytableDefinitions); 
+Procedure TJobConfigurationQuery.SettableDefinitions(AIndex : Integer; AValue : TJobConfigurationQueryTypetableDefinitions); 
 
 begin
   If (FtableDefinitions=AValue) then exit;
@@ -3053,7 +2796,7 @@ end;
 
 
 
-Procedure TJobConfigurationQuery.SetwriteDisposition(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationQuery.SetwriteDisposition(AIndex : Integer; AValue : String); 
 
 begin
   If (FwriteDisposition=AValue) then exit;
@@ -3066,24 +2809,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobConfigurationQuerytableDefinitions
-  --------------------------------------------------------------------}
-
-
-Class Function TJobConfigurationQuerytableDefinitions.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TJobConfigurationTableCopy
   --------------------------------------------------------------------}
 
 
-Procedure TJobConfigurationTableCopy.SetcreateDisposition(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationTableCopy.SetcreateDisposition(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreateDisposition=AValue) then exit;
@@ -3113,7 +2843,7 @@ end;
 
 
 
-Procedure TJobConfigurationTableCopy.SetsourceTables(AIndex : Integer; AValue : TJobConfigurationTableCopysourceTables); 
+Procedure TJobConfigurationTableCopy.SetsourceTables(AIndex : Integer; AValue : TJobConfigurationTableCopyTypesourceTablesArray); 
 
 begin
   If (FsourceTables=AValue) then exit;
@@ -3123,7 +2853,7 @@ end;
 
 
 
-Procedure TJobConfigurationTableCopy.SetwriteDisposition(AIndex : Integer; AValue : string); 
+Procedure TJobConfigurationTableCopy.SetwriteDisposition(AIndex : Integer; AValue : String); 
 
 begin
   If (FwriteDisposition=AValue) then exit;
@@ -3136,38 +2866,51 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobConfigurationTableCopysourceTables
+  TJobListTypejobsItem
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TJobList
-  --------------------------------------------------------------------}
-
-
-Procedure TJobList.Setetag(AIndex : Integer; AValue : string); 
+Procedure TJobListTypejobsItem.Setconfiguration(AIndex : Integer; AValue : TJobConfiguration); 
 
 begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
+  If (Fconfiguration=AValue) then exit;
+  Fconfiguration:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TJobList.Setjobs(AIndex : Integer; AValue : TJobListjobs); 
+Procedure TJobListTypejobsItem.SeterrorResult(AIndex : Integer; AValue : TErrorProto); 
 
 begin
-  If (Fjobs=AValue) then exit;
-  Fjobs:=AValue;
+  If (FerrorResult=AValue) then exit;
+  FerrorResult:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TJobList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TJobListTypejobsItem.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TJobListTypejobsItem.SetjobReference(AIndex : Integer; AValue : TJobReference); 
+
+begin
+  If (FjobReference=AValue) then exit;
+  FjobReference:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TJobListTypejobsItem.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3177,7 +2920,84 @@ end;
 
 
 
-Procedure TJobList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TJobListTypejobsItem.Setstate(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fstate=AValue) then exit;
+  Fstate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TJobListTypejobsItem.Setstatistics(AIndex : Integer; AValue : TJobStatistics); 
+
+begin
+  If (Fstatistics=AValue) then exit;
+  Fstatistics:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TJobListTypejobsItem.Setstatus(AIndex : Integer; AValue : TJobStatus); 
+
+begin
+  If (Fstatus=AValue) then exit;
+  Fstatus:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TJobListTypejobsItem.Setuser_email(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fuser_email=AValue) then exit;
+  Fuser_email:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TJobList
+  --------------------------------------------------------------------}
+
+
+Procedure TJobList.Setetag(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fetag=AValue) then exit;
+  Fetag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TJobList.Setjobs(AIndex : Integer; AValue : TJobListTypejobsArray); 
+
+begin
+  If (Fjobs=AValue) then exit;
+  Fjobs:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TJobList.Setkind(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TJobList.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3200,108 +3020,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobListjobs
-  --------------------------------------------------------------------}
-
-
-Procedure TJobListjobs.Setconfiguration(AIndex : Integer; AValue : TJobConfiguration); 
-
-begin
-  If (Fconfiguration=AValue) then exit;
-  Fconfiguration:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TJobListjobs.SeterrorResult(AIndex : Integer; AValue : TErrorProto); 
-
-begin
-  If (FerrorResult=AValue) then exit;
-  FerrorResult:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TJobListjobs.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TJobListjobs.SetjobReference(AIndex : Integer; AValue : TJobReference); 
-
-begin
-  If (FjobReference=AValue) then exit;
-  FjobReference:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TJobListjobs.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TJobListjobs.Setstate(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fstate=AValue) then exit;
-  Fstate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TJobListjobs.Setstatistics(AIndex : Integer; AValue : TJobStatistics); 
-
-begin
-  If (Fstatistics=AValue) then exit;
-  Fstatistics:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TJobListjobs.Setstatus(AIndex : Integer; AValue : TJobStatus); 
-
-begin
-  If (Fstatus=AValue) then exit;
-  Fstatus:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TJobListjobs.Setuser_email(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fuser_email=AValue) then exit;
-  Fuser_email:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TJobReference
   --------------------------------------------------------------------}
 
 
-Procedure TJobReference.SetjobId(AIndex : Integer; AValue : string); 
+Procedure TJobReference.SetjobId(AIndex : Integer; AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -3311,7 +3034,7 @@ end;
 
 
 
-Procedure TJobReference.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TJobReference.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -3328,7 +3051,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobStatistics.SetcreationTime(AIndex : Integer; AValue : string); 
+Procedure TJobStatistics.SetcreationTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -3338,7 +3061,7 @@ end;
 
 
 
-Procedure TJobStatistics.SetendTime(AIndex : Integer; AValue : string); 
+Procedure TJobStatistics.SetendTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -3378,7 +3101,7 @@ end;
 
 
 
-Procedure TJobStatistics.SetstartTime(AIndex : Integer; AValue : string); 
+Procedure TJobStatistics.SetstartTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -3388,7 +3111,7 @@ end;
 
 
 
-Procedure TJobStatistics.SettotalBytesProcessed(AIndex : Integer; AValue : string); 
+Procedure TJobStatistics.SettotalBytesProcessed(AIndex : Integer; AValue : String); 
 
 begin
   If (FtotalBytesProcessed=AValue) then exit;
@@ -3415,7 +3138,7 @@ end;
 
 
 
-Procedure TJobStatistics2.SettotalBytesProcessed(AIndex : Integer; AValue : string); 
+Procedure TJobStatistics2.SettotalBytesProcessed(AIndex : Integer; AValue : String); 
 
 begin
   If (FtotalBytesProcessed=AValue) then exit;
@@ -3432,7 +3155,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobStatistics3.SetinputFileBytes(AIndex : Integer; AValue : string); 
+Procedure TJobStatistics3.SetinputFileBytes(AIndex : Integer; AValue : String); 
 
 begin
   If (FinputFileBytes=AValue) then exit;
@@ -3442,7 +3165,7 @@ end;
 
 
 
-Procedure TJobStatistics3.SetinputFiles(AIndex : Integer; AValue : string); 
+Procedure TJobStatistics3.SetinputFiles(AIndex : Integer; AValue : String); 
 
 begin
   If (FinputFiles=AValue) then exit;
@@ -3452,7 +3175,7 @@ end;
 
 
 
-Procedure TJobStatistics3.SetoutputBytes(AIndex : Integer; AValue : string); 
+Procedure TJobStatistics3.SetoutputBytes(AIndex : Integer; AValue : String); 
 
 begin
   If (FoutputBytes=AValue) then exit;
@@ -3462,7 +3185,7 @@ end;
 
 
 
-Procedure TJobStatistics3.SetoutputRows(AIndex : Integer; AValue : string); 
+Procedure TJobStatistics3.SetoutputRows(AIndex : Integer; AValue : String); 
 
 begin
   If (FoutputRows=AValue) then exit;
@@ -3479,7 +3202,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobStatistics4.SetdestinationUriFileCounts(AIndex : Integer; AValue : TJobStatistics4destinationUriFileCounts); 
+Procedure TJobStatistics4.SetdestinationUriFileCounts(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FdestinationUriFileCounts=AValue) then exit;
@@ -3487,13 +3210,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TJobStatistics4destinationUriFileCounts
-  --------------------------------------------------------------------}
 
 
 
@@ -3513,7 +3229,7 @@ end;
 
 
 
-Procedure TJobStatus.Seterrors(AIndex : Integer; AValue : TJobStatuserrors); 
+Procedure TJobStatus.Seterrors(AIndex : Integer; AValue : TJobStatusTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -3523,7 +3239,7 @@ end;
 
 
 
-Procedure TJobStatus.Setstate(AIndex : Integer; AValue : string); 
+Procedure TJobStatus.Setstate(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -3531,13 +3247,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TJobStatuserrors
-  --------------------------------------------------------------------}
 
 
 
@@ -3556,28 +3265,31 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJsonValue
+  TProjectListTypeprojectsItem
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TProjectList
-  --------------------------------------------------------------------}
-
-
-Procedure TProjectList.Setetag(AIndex : Integer; AValue : string); 
+Procedure TProjectListTypeprojectsItem.SetfriendlyName(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
+  If (FfriendlyName=AValue) then exit;
+  FfriendlyName:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TProjectList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TProjectListTypeprojectsItem.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProjectListTypeprojectsItem.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3587,7 +3299,54 @@ end;
 
 
 
-Procedure TProjectList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TProjectListTypeprojectsItem.SetnumericId(AIndex : Integer; AValue : String); 
+
+begin
+  If (FnumericId=AValue) then exit;
+  FnumericId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProjectListTypeprojectsItem.SetprojectReference(AIndex : Integer; AValue : TProjectReference); 
+
+begin
+  If (FprojectReference=AValue) then exit;
+  FprojectReference:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TProjectList
+  --------------------------------------------------------------------}
+
+
+Procedure TProjectList.Setetag(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fetag=AValue) then exit;
+  Fetag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProjectList.Setkind(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProjectList.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3597,7 +3356,7 @@ end;
 
 
 
-Procedure TProjectList.Setprojects(AIndex : Integer; AValue : TProjectListprojects); 
+Procedure TProjectList.Setprojects(AIndex : Integer; AValue : TProjectListTypeprojectsArray); 
 
 begin
   If (Fprojects=AValue) then exit;
@@ -3620,68 +3379,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TProjectListprojects
-  --------------------------------------------------------------------}
-
-
-Procedure TProjectListprojects.SetfriendlyName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfriendlyName=AValue) then exit;
-  FfriendlyName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TProjectListprojects.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TProjectListprojects.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TProjectListprojects.SetnumericId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnumericId=AValue) then exit;
-  FnumericId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TProjectListprojects.SetprojectReference(AIndex : Integer; AValue : TProjectReference); 
-
-begin
-  If (FprojectReference=AValue) then exit;
-  FprojectReference:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TProjectReference
   --------------------------------------------------------------------}
 
 
-Procedure TProjectReference.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TProjectReference.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -3718,7 +3420,7 @@ end;
 
 
 
-Procedure TQueryRequest.Setkind(AIndex : Integer; AValue : string); 
+Procedure TQueryRequest.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3748,7 +3450,7 @@ end;
 
 
 
-Procedure TQueryRequest.Setquery(AIndex : Integer; AValue : string); 
+Procedure TQueryRequest.Setquery(AIndex : Integer; AValue : String); 
 
 begin
   If (Fquery=AValue) then exit;
@@ -3815,7 +3517,7 @@ end;
 
 
 
-Procedure TQueryResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TQueryResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3825,7 +3527,7 @@ end;
 
 
 
-Procedure TQueryResponse.SetpageToken(AIndex : Integer; AValue : string); 
+Procedure TQueryResponse.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -3835,7 +3537,7 @@ end;
 
 
 
-Procedure TQueryResponse.Setrows(AIndex : Integer; AValue : TQueryResponserows); 
+Procedure TQueryResponse.Setrows(AIndex : Integer; AValue : TQueryResponseTyperowsArray); 
 
 begin
   If (Frows=AValue) then exit;
@@ -3855,7 +3557,7 @@ end;
 
 
 
-Procedure TQueryResponse.SettotalBytesProcessed(AIndex : Integer; AValue : string); 
+Procedure TQueryResponse.SettotalBytesProcessed(AIndex : Integer; AValue : String); 
 
 begin
   If (FtotalBytesProcessed=AValue) then exit;
@@ -3865,7 +3567,7 @@ end;
 
 
 
-Procedure TQueryResponse.SettotalRows(AIndex : Integer; AValue : string); 
+Procedure TQueryResponse.SettotalRows(AIndex : Integer; AValue : String); 
 
 begin
   If (FtotalRows=AValue) then exit;
@@ -3878,18 +3580,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TQueryResponserows
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TTable
   --------------------------------------------------------------------}
 
 
-Procedure TTable.SetcreationTime(AIndex : Integer; AValue : string); 
+Procedure TTable.SetcreationTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -3899,7 +3594,7 @@ end;
 
 
 
-Procedure TTable.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TTable.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -3909,7 +3604,7 @@ end;
 
 
 
-Procedure TTable.Setetag(AIndex : Integer; AValue : string); 
+Procedure TTable.Setetag(AIndex : Integer; AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -3919,7 +3614,7 @@ end;
 
 
 
-Procedure TTable.SetexpirationTime(AIndex : Integer; AValue : string); 
+Procedure TTable.SetexpirationTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FexpirationTime=AValue) then exit;
@@ -3929,7 +3624,7 @@ end;
 
 
 
-Procedure TTable.SetfriendlyName(AIndex : Integer; AValue : string); 
+Procedure TTable.SetfriendlyName(AIndex : Integer; AValue : String); 
 
 begin
   If (FfriendlyName=AValue) then exit;
@@ -3939,7 +3634,7 @@ end;
 
 
 
-Procedure TTable.Setid(AIndex : Integer; AValue : string); 
+Procedure TTable.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3949,7 +3644,7 @@ end;
 
 
 
-Procedure TTable.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTable.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3959,7 +3654,7 @@ end;
 
 
 
-Procedure TTable.SetlastModifiedTime(AIndex : Integer; AValue : string); 
+Procedure TTable.SetlastModifiedTime(AIndex : Integer; AValue : String); 
 
 begin
   If (FlastModifiedTime=AValue) then exit;
@@ -3969,7 +3664,7 @@ end;
 
 
 
-Procedure TTable.SetnumBytes(AIndex : Integer; AValue : string); 
+Procedure TTable.SetnumBytes(AIndex : Integer; AValue : String); 
 
 begin
   If (FnumBytes=AValue) then exit;
@@ -3979,7 +3674,7 @@ end;
 
 
 
-Procedure TTable.SetnumRows(AIndex : Integer; AValue : string); 
+Procedure TTable.SetnumRows(AIndex : Integer; AValue : String); 
 
 begin
   If (FnumRows=AValue) then exit;
@@ -3999,7 +3694,7 @@ end;
 
 
 
-Procedure TTable.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TTable.SetselfLink(AIndex : Integer; AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -4019,7 +3714,7 @@ end;
 
 
 
-Procedure TTable.Set_type(AIndex : Integer; AValue : string); 
+Procedure TTable.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4070,6 +3765,33 @@ end;
 
 
 { --------------------------------------------------------------------
+  TTableDataInsertAllRequestTyperowsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TTableDataInsertAllRequestTyperowsItem.SetinsertId(AIndex : Integer; AValue : String); 
+
+begin
+  If (FinsertId=AValue) then exit;
+  FinsertId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTableDataInsertAllRequestTyperowsItem.Setjson(AIndex : Integer; AValue : TJsonObject); 
+
+begin
+  If (Fjson=AValue) then exit;
+  Fjson:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TTableDataInsertAllRequest
   --------------------------------------------------------------------}
 
@@ -4084,7 +3806,7 @@ end;
 
 
 
-Procedure TTableDataInsertAllRequest.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTableDataInsertAllRequest.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4094,7 +3816,7 @@ end;
 
 
 
-Procedure TTableDataInsertAllRequest.Setrows(AIndex : Integer; AValue : TTableDataInsertAllRequestrows); 
+Procedure TTableDataInsertAllRequest.Setrows(AIndex : Integer; AValue : TTableDataInsertAllRequestTyperowsArray); 
 
 begin
   If (Frows=AValue) then exit;
@@ -4117,65 +3839,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTableDataInsertAllRequestrows
+  TTableDataInsertAllResponseTypeinsertErrorsItem
   --------------------------------------------------------------------}
 
 
-Procedure TTableDataInsertAllRequestrows.SetinsertId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FinsertId=AValue) then exit;
-  FinsertId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTableDataInsertAllRequestrows.Setjson(AIndex : Integer; AValue : TJsonObject); 
-
-begin
-  If (Fjson=AValue) then exit;
-  Fjson:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TTableDataInsertAllResponse
-  --------------------------------------------------------------------}
-
-
-Procedure TTableDataInsertAllResponse.SetinsertErrors(AIndex : Integer; AValue : TTableDataInsertAllResponseinsertErrors); 
-
-begin
-  If (FinsertErrors=AValue) then exit;
-  FinsertErrors:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTableDataInsertAllResponse.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TTableDataInsertAllResponseinsertErrors
-  --------------------------------------------------------------------}
-
-
-Procedure TTableDataInsertAllResponseinsertErrors.Seterrors(AIndex : Integer; AValue : TTableDataInsertAllResponseinsertErrorserrors); 
+Procedure TTableDataInsertAllResponseTypeinsertErrorsItem.Seterrors(AIndex : Integer; AValue : TTableDataInsertAllResponseTypeinsertErrorsItemTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -4185,7 +3853,7 @@ end;
 
 
 
-Procedure TTableDataInsertAllResponseinsertErrors.Setindex(AIndex : Integer; AValue : integer); 
+Procedure TTableDataInsertAllResponseTypeinsertErrorsItem.Setindex(AIndex : Integer; AValue : integer); 
 
 begin
   If (Findex=AValue) then exit;
@@ -4198,28 +3866,21 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTableDataInsertAllResponseinsertErrorserrors
+  TTableDataInsertAllResponse
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TTableDataList
-  --------------------------------------------------------------------}
-
-
-Procedure TTableDataList.Setetag(AIndex : Integer; AValue : string); 
+Procedure TTableDataInsertAllResponse.SetinsertErrors(AIndex : Integer; AValue : TTableDataInsertAllResponseTypeinsertErrorsArray); 
 
 begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
+  If (FinsertErrors=AValue) then exit;
+  FinsertErrors:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TTableDataList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTableDataInsertAllResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4229,7 +3890,34 @@ end;
 
 
 
-Procedure TTableDataList.SetpageToken(AIndex : Integer; AValue : string); 
+
+
+{ --------------------------------------------------------------------
+  TTableDataList
+  --------------------------------------------------------------------}
+
+
+Procedure TTableDataList.Setetag(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fetag=AValue) then exit;
+  Fetag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTableDataList.Setkind(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTableDataList.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -4239,7 +3927,7 @@ end;
 
 
 
-Procedure TTableDataList.Setrows(AIndex : Integer; AValue : TTableDataListrows); 
+Procedure TTableDataList.Setrows(AIndex : Integer; AValue : TTableDataListTyperowsArray); 
 
 begin
   If (Frows=AValue) then exit;
@@ -4249,7 +3937,7 @@ end;
 
 
 
-Procedure TTableDataList.SettotalRows(AIndex : Integer; AValue : string); 
+Procedure TTableDataList.SettotalRows(AIndex : Integer; AValue : String); 
 
 begin
   If (FtotalRows=AValue) then exit;
@@ -4262,18 +3950,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTableDataListrows
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TTableFieldSchema
   --------------------------------------------------------------------}
 
 
-Procedure TTableFieldSchema.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TTableFieldSchema.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4283,7 +3964,7 @@ end;
 
 
 
-Procedure TTableFieldSchema.Setfields(AIndex : Integer; AValue : TTableFieldSchemafields); 
+Procedure TTableFieldSchema.Setfields(AIndex : Integer; AValue : TTableFieldSchemaTypefieldsArray); 
 
 begin
   If (Ffields=AValue) then exit;
@@ -4293,7 +3974,7 @@ end;
 
 
 
-Procedure TTableFieldSchema.Setmode(AIndex : Integer; AValue : string); 
+Procedure TTableFieldSchema.Setmode(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmode=AValue) then exit;
@@ -4303,7 +3984,7 @@ end;
 
 
 
-Procedure TTableFieldSchema.Setname(AIndex : Integer; AValue : string); 
+Procedure TTableFieldSchema.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4313,7 +3994,7 @@ end;
 
 
 
-Procedure TTableFieldSchema.Set_type(AIndex : Integer; AValue : string); 
+Procedure TTableFieldSchema.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4337,28 +4018,31 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTableFieldSchemafields
+  TTableListTypetablesItem
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TTableList
-  --------------------------------------------------------------------}
-
-
-Procedure TTableList.Setetag(AIndex : Integer; AValue : string); 
+Procedure TTableListTypetablesItem.SetfriendlyName(AIndex : Integer; AValue : String); 
 
 begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
+  If (FfriendlyName=AValue) then exit;
+  FfriendlyName:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TTableList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTableListTypetablesItem.Setid(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTableListTypetablesItem.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4368,7 +4052,65 @@ end;
 
 
 
-Procedure TTableList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TTableListTypetablesItem.SettableReference(AIndex : Integer; AValue : TTableReference); 
+
+begin
+  If (FtableReference=AValue) then exit;
+  FtableReference:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTableListTypetablesItem.Set_type(AIndex : Integer; AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TTableListTypetablesItem.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TTableList
+  --------------------------------------------------------------------}
+
+
+Procedure TTableList.Setetag(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fetag=AValue) then exit;
+  Fetag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTableList.Setkind(AIndex : Integer; AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTableList.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4378,7 +4120,7 @@ end;
 
 
 
-Procedure TTableList.Settables(AIndex : Integer; AValue : TTableListtables); 
+Procedure TTableList.Settables(AIndex : Integer; AValue : TTableListTypetablesArray); 
 
 begin
   If (Ftables=AValue) then exit;
@@ -4401,79 +4143,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTableListtables
-  --------------------------------------------------------------------}
-
-
-Procedure TTableListtables.SetfriendlyName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfriendlyName=AValue) then exit;
-  FfriendlyName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTableListtables.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTableListtables.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTableListtables.SettableReference(AIndex : Integer; AValue : TTableReference); 
-
-begin
-  If (FtableReference=AValue) then exit;
-  FtableReference:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTableListtables.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TTableListtables.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
   TTableReference
   --------------------------------------------------------------------}
 
 
-Procedure TTableReference.SetdatasetId(AIndex : Integer; AValue : string); 
+Procedure TTableReference.SetdatasetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -4483,7 +4157,7 @@ end;
 
 
 
-Procedure TTableReference.SetprojectId(AIndex : Integer; AValue : string); 
+Procedure TTableReference.SetprojectId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -4493,7 +4167,7 @@ end;
 
 
 
-Procedure TTableReference.SettableId(AIndex : Integer; AValue : string); 
+Procedure TTableReference.SettableId(AIndex : Integer; AValue : String); 
 
 begin
   If (FtableId=AValue) then exit;
@@ -4510,7 +4184,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTableRow.Setf(AIndex : Integer; AValue : TTableRowf); 
+Procedure TTableRow.Setf(AIndex : Integer; AValue : TTableRowTypefArray); 
 
 begin
   If (Ff=AValue) then exit;
@@ -4523,18 +4197,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTableRowf
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TTableSchema
   --------------------------------------------------------------------}
 
 
-Procedure TTableSchema.Setfields(AIndex : Integer; AValue : TTableSchemafields); 
+Procedure TTableSchema.Setfields(AIndex : Integer; AValue : TTableSchemaTypefieldsArray); 
 
 begin
   If (Ffields=AValue) then exit;
@@ -4547,18 +4214,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTableSchemafields
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TViewDefinition
   --------------------------------------------------------------------}
 
 
-Procedure TViewDefinition.Setquery(AIndex : Integer; AValue : string); 
+Procedure TViewDefinition.Setquery(AIndex : Integer; AValue : String); 
 
 begin
   If (Fquery=AValue) then exit;
@@ -5077,7 +4737,7 @@ end;
 Class Function TBigqueryAPI.APIRevision : String;
 
 begin
-  Result:='20150303';
+  Result:='20141112';
 end;
 
 Class Function TBigqueryAPI.APIID : String;
@@ -5193,65 +4853,49 @@ Class Procedure TBigqueryAPI.RegisterAPIResources;
 
 begin
   TCsvOptions.RegisterObject;
+  TDatasetTypeaccessItem.RegisterObject;
   TDataset.RegisterObject;
-  TDatasetaccess.RegisterObject;
+  TDatasetListTypedatasetsItem.RegisterObject;
   TDatasetList.RegisterObject;
-  TDatasetListdatasets.RegisterObject;
   TDatasetReference.RegisterObject;
   TErrorProto.RegisterObject;
   TExternalDataConfiguration.RegisterObject;
-  TExternalDataConfigurationsourceUris.RegisterObject;
   TGetQueryResultsResponse.RegisterObject;
-  TGetQueryResultsResponserows.RegisterObject;
   TJob.RegisterObject;
   TJobConfiguration.RegisterObject;
   TJobConfigurationExtract.RegisterObject;
-  TJobConfigurationExtractdestinationUris.RegisterObject;
   TJobConfigurationLink.RegisterObject;
-  TJobConfigurationLinksourceUri.RegisterObject;
   TJobConfigurationLoad.RegisterObject;
-  TJobConfigurationLoadprojectionFields.RegisterObject;
-  TJobConfigurationLoadsourceUris.RegisterObject;
+  TJobConfigurationQueryTypetableDefinitions.RegisterObject;
   TJobConfigurationQuery.RegisterObject;
-  TJobConfigurationQuerytableDefinitions.RegisterObject;
   TJobConfigurationTableCopy.RegisterObject;
-  TJobConfigurationTableCopysourceTables.RegisterObject;
+  TJobListTypejobsItem.RegisterObject;
   TJobList.RegisterObject;
-  TJobListjobs.RegisterObject;
   TJobReference.RegisterObject;
   TJobStatistics.RegisterObject;
   TJobStatistics2.RegisterObject;
   TJobStatistics3.RegisterObject;
   TJobStatistics4.RegisterObject;
-  TJobStatistics4destinationUriFileCounts.RegisterObject;
   TJobStatus.RegisterObject;
-  TJobStatuserrors.RegisterObject;
   TJsonObject.RegisterObject;
-  TJsonValue.RegisterObject;
+  TProjectListTypeprojectsItem.RegisterObject;
   TProjectList.RegisterObject;
-  TProjectListprojects.RegisterObject;
   TProjectReference.RegisterObject;
   TQueryRequest.RegisterObject;
   TQueryResponse.RegisterObject;
-  TQueryResponserows.RegisterObject;
   TTable.RegisterObject;
   TTableCell.RegisterObject;
+  TTableDataInsertAllRequestTyperowsItem.RegisterObject;
   TTableDataInsertAllRequest.RegisterObject;
-  TTableDataInsertAllRequestrows.RegisterObject;
+  TTableDataInsertAllResponseTypeinsertErrorsItem.RegisterObject;
   TTableDataInsertAllResponse.RegisterObject;
-  TTableDataInsertAllResponseinsertErrors.RegisterObject;
-  TTableDataInsertAllResponseinsertErrorserrors.RegisterObject;
   TTableDataList.RegisterObject;
-  TTableDataListrows.RegisterObject;
   TTableFieldSchema.RegisterObject;
-  TTableFieldSchemafields.RegisterObject;
+  TTableListTypetablesItem.RegisterObject;
   TTableList.RegisterObject;
-  TTableListtables.RegisterObject;
   TTableReference.RegisterObject;
   TTableRow.RegisterObject;
-  TTableRowf.RegisterObject;
   TTableSchema.RegisterObject;
-  TTableSchemafields.RegisterObject;
   TViewDefinition.RegisterObject;
 end;
 

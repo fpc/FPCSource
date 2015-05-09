@@ -1,31 +1,19 @@
 unit googlegenomics;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:55
 {$MODE objfpc}
 {$H+}
 
@@ -34,323 +22,201 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAlignReadGroupSetsRequest = class;
-  TAlignReadGroupSetsRequestArray = Array of TAlignReadGroupSetsRequest;
-  TAlignReadGroupSetsRequestbamSourceUris = class;
-  TAlignReadGroupSetsRequestbamSourceUrisArray = Array of TAlignReadGroupSetsRequestbamSourceUris;
   TAlignReadGroupSetsResponse = class;
-  TAlignReadGroupSetsResponseArray = Array of TAlignReadGroupSetsResponse;
   TAnnotation = class;
-  TAnnotationArray = Array of TAnnotation;
-  TAnnotationinfo = class;
-  TAnnotationinfoArray = Array of TAnnotationinfo;
   TAnnotationSet = class;
-  TAnnotationSetArray = Array of TAnnotationSet;
-  TAnnotationSetinfo = class;
-  TAnnotationSetinfoArray = Array of TAnnotationSetinfo;
   TBatchAnnotationsResponse = class;
-  TBatchAnnotationsResponseArray = Array of TBatchAnnotationsResponse;
-  TBatchAnnotationsResponseentries = class;
-  TBatchAnnotationsResponseentriesArray = Array of TBatchAnnotationsResponseentries;
   TBatchAnnotationsResponseEntry = class;
-  TBatchAnnotationsResponseEntryArray = Array of TBatchAnnotationsResponseEntry;
   TBatchAnnotationsResponseEntryStatus = class;
-  TBatchAnnotationsResponseEntryStatusArray = Array of TBatchAnnotationsResponseEntryStatus;
   TBatchCreateAnnotationsRequest = class;
-  TBatchCreateAnnotationsRequestArray = Array of TBatchCreateAnnotationsRequest;
-  TBatchCreateAnnotationsRequestannotations = class;
-  TBatchCreateAnnotationsRequestannotationsArray = Array of TBatchCreateAnnotationsRequestannotations;
   TCall = class;
-  TCallArray = Array of TCall;
-  TCallgenotype = class;
-  TCallgenotypeArray = Array of TCallgenotype;
-  TCallgenotypeLikelihood = class;
-  TCallgenotypeLikelihoodArray = Array of TCallgenotypeLikelihood;
-  TCallinfo = class;
-  TCallinfoArray = Array of TCallinfo;
   TCallReadGroupSetsRequest = class;
-  TCallReadGroupSetsRequestArray = Array of TCallReadGroupSetsRequest;
-  TCallReadGroupSetsRequestsourceUris = class;
-  TCallReadGroupSetsRequestsourceUrisArray = Array of TCallReadGroupSetsRequestsourceUris;
   TCallReadGroupSetsResponse = class;
-  TCallReadGroupSetsResponseArray = Array of TCallReadGroupSetsResponse;
   TCallSet = class;
-  TCallSetArray = Array of TCallSet;
-  TCallSetinfo = class;
-  TCallSetinfoArray = Array of TCallSetinfo;
-  TCallSetvariantSetIds = class;
-  TCallSetvariantSetIdsArray = Array of TCallSetvariantSetIds;
   TCigarUnit = class;
-  TCigarUnitArray = Array of TCigarUnit;
   TCoverageBucket = class;
-  TCoverageBucketArray = Array of TCoverageBucket;
   TDataset = class;
-  TDatasetArray = Array of TDataset;
   TExperimentalCreateJobRequest = class;
-  TExperimentalCreateJobRequestArray = Array of TExperimentalCreateJobRequest;
-  TExperimentalCreateJobRequestpairedSourceUris = class;
-  TExperimentalCreateJobRequestpairedSourceUrisArray = Array of TExperimentalCreateJobRequestpairedSourceUris;
-  TExperimentalCreateJobRequestsourceUris = class;
-  TExperimentalCreateJobRequestsourceUrisArray = Array of TExperimentalCreateJobRequestsourceUris;
   TExperimentalCreateJobResponse = class;
-  TExperimentalCreateJobResponseArray = Array of TExperimentalCreateJobResponse;
   TExportReadGroupSetsRequest = class;
-  TExportReadGroupSetsRequestArray = Array of TExportReadGroupSetsRequest;
-  TExportReadGroupSetsRequestreadGroupSetIds = class;
-  TExportReadGroupSetsRequestreadGroupSetIdsArray = Array of TExportReadGroupSetsRequestreadGroupSetIds;
-  TExportReadGroupSetsRequestreferenceNames = class;
-  TExportReadGroupSetsRequestreferenceNamesArray = Array of TExportReadGroupSetsRequestreferenceNames;
   TExportReadGroupSetsResponse = class;
-  TExportReadGroupSetsResponseArray = Array of TExportReadGroupSetsResponse;
   TExportVariantSetRequest = class;
-  TExportVariantSetRequestArray = Array of TExportVariantSetRequest;
-  TExportVariantSetRequestcallSetIds = class;
-  TExportVariantSetRequestcallSetIdsArray = Array of TExportVariantSetRequestcallSetIds;
   TExportVariantSetResponse = class;
-  TExportVariantSetResponseArray = Array of TExportVariantSetResponse;
   TExternalId = class;
-  TExternalIdArray = Array of TExternalId;
   TFastqMetadata = class;
-  TFastqMetadataArray = Array of TFastqMetadata;
   TImportReadGroupSetsRequest = class;
-  TImportReadGroupSetsRequestArray = Array of TImportReadGroupSetsRequest;
-  TImportReadGroupSetsRequestsourceUris = class;
-  TImportReadGroupSetsRequestsourceUrisArray = Array of TImportReadGroupSetsRequestsourceUris;
   TImportReadGroupSetsResponse = class;
-  TImportReadGroupSetsResponseArray = Array of TImportReadGroupSetsResponse;
   TImportVariantsRequest = class;
-  TImportVariantsRequestArray = Array of TImportVariantsRequest;
-  TImportVariantsRequestsourceUris = class;
-  TImportVariantsRequestsourceUrisArray = Array of TImportVariantsRequestsourceUris;
   TImportVariantsResponse = class;
-  TImportVariantsResponseArray = Array of TImportVariantsResponse;
   TInt32Value = class;
-  TInt32ValueArray = Array of TInt32Value;
   TInterleavedFastqSource = class;
-  TInterleavedFastqSourceArray = Array of TInterleavedFastqSource;
-  TInterleavedFastqSourcesourceUris = class;
-  TInterleavedFastqSourcesourceUrisArray = Array of TInterleavedFastqSourcesourceUris;
   TJob = class;
-  TJobArray = Array of TJob;
-  TJoberrors = class;
-  TJoberrorsArray = Array of TJoberrors;
-  TJobimportedIds = class;
-  TJobimportedIdsArray = Array of TJobimportedIds;
-  TJobwarnings = class;
-  TJobwarningsArray = Array of TJobwarnings;
   TJobRequest = class;
-  TJobRequestArray = Array of TJobRequest;
-  TJobRequestdestination = class;
-  TJobRequestdestinationArray = Array of TJobRequestdestination;
-  TJobRequestsource = class;
-  TJobRequestsourceArray = Array of TJobRequestsource;
   TLinearAlignment = class;
-  TLinearAlignmentArray = Array of TLinearAlignment;
-  TLinearAlignmentcigar = class;
-  TLinearAlignmentcigarArray = Array of TLinearAlignmentcigar;
   TListBasesResponse = class;
-  TListBasesResponseArray = Array of TListBasesResponse;
   TListCoverageBucketsResponse = class;
-  TListCoverageBucketsResponseArray = Array of TListCoverageBucketsResponse;
-  TListCoverageBucketsResponsecoverageBuckets = class;
-  TListCoverageBucketsResponsecoverageBucketsArray = Array of TListCoverageBucketsResponsecoverageBuckets;
   TListDatasetsResponse = class;
-  TListDatasetsResponseArray = Array of TListDatasetsResponse;
-  TListDatasetsResponsedatasets = class;
-  TListDatasetsResponsedatasetsArray = Array of TListDatasetsResponsedatasets;
   TMergeVariantsRequest = class;
-  TMergeVariantsRequestArray = Array of TMergeVariantsRequest;
-  TMergeVariantsRequestvariants = class;
-  TMergeVariantsRequestvariantsArray = Array of TMergeVariantsRequestvariants;
   TMetadata = class;
-  TMetadataArray = Array of TMetadata;
-  TMetadatainfo = class;
-  TMetadatainfoArray = Array of TMetadatainfo;
   TPairedFastqSource = class;
-  TPairedFastqSourceArray = Array of TPairedFastqSource;
-  TPairedFastqSourcefirstSourceUris = class;
-  TPairedFastqSourcefirstSourceUrisArray = Array of TPairedFastqSourcefirstSourceUris;
-  TPairedFastqSourcesecondSourceUris = class;
-  TPairedFastqSourcesecondSourceUrisArray = Array of TPairedFastqSourcesecondSourceUris;
   TPosition = class;
-  TPositionArray = Array of TPosition;
   TQueryRange = class;
-  TQueryRangeArray = Array of TQueryRange;
   TRange = class;
-  TRangeArray = Array of TRange;
   TRangePosition = class;
-  TRangePositionArray = Array of TRangePosition;
   TRead = class;
-  TReadArray = Array of TRead;
-  TReadalignedQuality = class;
-  TReadalignedQualityArray = Array of TReadalignedQuality;
-  TReadinfo = class;
-  TReadinfoArray = Array of TReadinfo;
   TReadGroup = class;
-  TReadGroupArray = Array of TReadGroup;
-  TReadGroupinfo = class;
-  TReadGroupinfoArray = Array of TReadGroupinfo;
-  TReadGroupprograms = class;
-  TReadGroupprogramsArray = Array of TReadGroupprograms;
   TReadGroupExperiment = class;
-  TReadGroupExperimentArray = Array of TReadGroupExperiment;
   TReadGroupProgram = class;
-  TReadGroupProgramArray = Array of TReadGroupProgram;
   TReadGroupSet = class;
-  TReadGroupSetArray = Array of TReadGroupSet;
-  TReadGroupSetinfo = class;
-  TReadGroupSetinfoArray = Array of TReadGroupSetinfo;
-  TReadGroupSetreadGroups = class;
-  TReadGroupSetreadGroupsArray = Array of TReadGroupSetreadGroups;
   TReference = class;
-  TReferenceArray = Array of TReference;
-  TReferencesourceAccessions = class;
-  TReferencesourceAccessionsArray = Array of TReferencesourceAccessions;
   TReferenceBound = class;
-  TReferenceBoundArray = Array of TReferenceBound;
   TReferenceSet = class;
-  TReferenceSetArray = Array of TReferenceSet;
-  TReferenceSetreferenceIds = class;
-  TReferenceSetreferenceIdsArray = Array of TReferenceSetreferenceIds;
-  TReferenceSetsourceAccessions = class;
-  TReferenceSetsourceAccessionsArray = Array of TReferenceSetsourceAccessions;
   TSearchAnnotationSetsRequest = class;
-  TSearchAnnotationSetsRequestArray = Array of TSearchAnnotationSetsRequest;
-  TSearchAnnotationSetsRequestdatasetIds = class;
-  TSearchAnnotationSetsRequestdatasetIdsArray = Array of TSearchAnnotationSetsRequestdatasetIds;
-  TSearchAnnotationSetsRequesttypes = class;
-  TSearchAnnotationSetsRequesttypesArray = Array of TSearchAnnotationSetsRequesttypes;
   TSearchAnnotationSetsResponse = class;
-  TSearchAnnotationSetsResponseArray = Array of TSearchAnnotationSetsResponse;
-  TSearchAnnotationSetsResponseannotationSets = class;
-  TSearchAnnotationSetsResponseannotationSetsArray = Array of TSearchAnnotationSetsResponseannotationSets;
   TSearchAnnotationsRequest = class;
-  TSearchAnnotationsRequestArray = Array of TSearchAnnotationsRequest;
-  TSearchAnnotationsRequestannotationSetIds = class;
-  TSearchAnnotationsRequestannotationSetIdsArray = Array of TSearchAnnotationsRequestannotationSetIds;
   TSearchAnnotationsResponse = class;
-  TSearchAnnotationsResponseArray = Array of TSearchAnnotationsResponse;
-  TSearchAnnotationsResponseannotations = class;
-  TSearchAnnotationsResponseannotationsArray = Array of TSearchAnnotationsResponseannotations;
   TSearchCallSetsRequest = class;
-  TSearchCallSetsRequestArray = Array of TSearchCallSetsRequest;
-  TSearchCallSetsRequestvariantSetIds = class;
-  TSearchCallSetsRequestvariantSetIdsArray = Array of TSearchCallSetsRequestvariantSetIds;
   TSearchCallSetsResponse = class;
-  TSearchCallSetsResponseArray = Array of TSearchCallSetsResponse;
-  TSearchCallSetsResponsecallSets = class;
-  TSearchCallSetsResponsecallSetsArray = Array of TSearchCallSetsResponsecallSets;
   TSearchJobsRequest = class;
-  TSearchJobsRequestArray = Array of TSearchJobsRequest;
-  TSearchJobsRequeststatus = class;
-  TSearchJobsRequeststatusArray = Array of TSearchJobsRequeststatus;
   TSearchJobsResponse = class;
-  TSearchJobsResponseArray = Array of TSearchJobsResponse;
-  TSearchJobsResponsejobs = class;
-  TSearchJobsResponsejobsArray = Array of TSearchJobsResponsejobs;
   TSearchReadGroupSetsRequest = class;
-  TSearchReadGroupSetsRequestArray = Array of TSearchReadGroupSetsRequest;
-  TSearchReadGroupSetsRequestdatasetIds = class;
-  TSearchReadGroupSetsRequestdatasetIdsArray = Array of TSearchReadGroupSetsRequestdatasetIds;
   TSearchReadGroupSetsResponse = class;
-  TSearchReadGroupSetsResponseArray = Array of TSearchReadGroupSetsResponse;
-  TSearchReadGroupSetsResponsereadGroupSets = class;
-  TSearchReadGroupSetsResponsereadGroupSetsArray = Array of TSearchReadGroupSetsResponsereadGroupSets;
   TSearchReadsRequest = class;
-  TSearchReadsRequestArray = Array of TSearchReadsRequest;
-  TSearchReadsRequestreadGroupIds = class;
-  TSearchReadsRequestreadGroupIdsArray = Array of TSearchReadsRequestreadGroupIds;
-  TSearchReadsRequestreadGroupSetIds = class;
-  TSearchReadsRequestreadGroupSetIdsArray = Array of TSearchReadsRequestreadGroupSetIds;
   TSearchReadsResponse = class;
-  TSearchReadsResponseArray = Array of TSearchReadsResponse;
-  TSearchReadsResponsealignments = class;
-  TSearchReadsResponsealignmentsArray = Array of TSearchReadsResponsealignments;
   TSearchReferenceSetsRequest = class;
-  TSearchReferenceSetsRequestArray = Array of TSearchReferenceSetsRequest;
-  TSearchReferenceSetsRequestaccessions = class;
-  TSearchReferenceSetsRequestaccessionsArray = Array of TSearchReferenceSetsRequestaccessions;
-  TSearchReferenceSetsRequestmd5checksums = class;
-  TSearchReferenceSetsRequestmd5checksumsArray = Array of TSearchReferenceSetsRequestmd5checksums;
   TSearchReferenceSetsResponse = class;
-  TSearchReferenceSetsResponseArray = Array of TSearchReferenceSetsResponse;
-  TSearchReferenceSetsResponsereferenceSets = class;
-  TSearchReferenceSetsResponsereferenceSetsArray = Array of TSearchReferenceSetsResponsereferenceSets;
   TSearchReferencesRequest = class;
-  TSearchReferencesRequestArray = Array of TSearchReferencesRequest;
-  TSearchReferencesRequestaccessions = class;
-  TSearchReferencesRequestaccessionsArray = Array of TSearchReferencesRequestaccessions;
-  TSearchReferencesRequestmd5checksums = class;
-  TSearchReferencesRequestmd5checksumsArray = Array of TSearchReferencesRequestmd5checksums;
   TSearchReferencesResponse = class;
-  TSearchReferencesResponseArray = Array of TSearchReferencesResponse;
-  TSearchReferencesResponsereferences = class;
-  TSearchReferencesResponsereferencesArray = Array of TSearchReferencesResponsereferences;
   TSearchVariantSetsRequest = class;
-  TSearchVariantSetsRequestArray = Array of TSearchVariantSetsRequest;
-  TSearchVariantSetsRequestdatasetIds = class;
-  TSearchVariantSetsRequestdatasetIdsArray = Array of TSearchVariantSetsRequestdatasetIds;
   TSearchVariantSetsResponse = class;
-  TSearchVariantSetsResponseArray = Array of TSearchVariantSetsResponse;
-  TSearchVariantSetsResponsevariantSets = class;
-  TSearchVariantSetsResponsevariantSetsArray = Array of TSearchVariantSetsResponsevariantSets;
   TSearchVariantsRequest = class;
-  TSearchVariantsRequestArray = Array of TSearchVariantsRequest;
-  TSearchVariantsRequestcallSetIds = class;
-  TSearchVariantsRequestcallSetIdsArray = Array of TSearchVariantsRequestcallSetIds;
-  TSearchVariantsRequestvariantSetIds = class;
-  TSearchVariantsRequestvariantSetIdsArray = Array of TSearchVariantsRequestvariantSetIds;
   TSearchVariantsResponse = class;
-  TSearchVariantsResponseArray = Array of TSearchVariantsResponse;
-  TSearchVariantsResponsevariants = class;
-  TSearchVariantsResponsevariantsArray = Array of TSearchVariantsResponsevariants;
   TStreamReadsRequest = class;
-  TStreamReadsRequestArray = Array of TStreamReadsRequest;
-  TStreamReadsRequestreadGroupSetIds = class;
-  TStreamReadsRequestreadGroupSetIdsArray = Array of TStreamReadsRequestreadGroupSetIds;
   TStreamReadsResponse = class;
-  TStreamReadsResponseArray = Array of TStreamReadsResponse;
-  TStreamReadsResponsealignments = class;
-  TStreamReadsResponsealignmentsArray = Array of TStreamReadsResponsealignments;
   TTranscript = class;
-  TTranscriptArray = Array of TTranscript;
-  TTranscriptexons = class;
-  TTranscriptexonsArray = Array of TTranscriptexons;
   TTranscriptCodingSequence = class;
-  TTranscriptCodingSequenceArray = Array of TTranscriptCodingSequence;
   TTranscriptExon = class;
-  TTranscriptExonArray = Array of TTranscriptExon;
   TVariant = class;
-  TVariantArray = Array of TVariant;
-  TVariantalternateBases = class;
-  TVariantalternateBasesArray = Array of TVariantalternateBases;
-  TVariantcalls = class;
-  TVariantcallsArray = Array of TVariantcalls;
-  TVariantfilter = class;
-  TVariantfilterArray = Array of TVariantfilter;
-  TVariantinfo = class;
-  TVariantinfoArray = Array of TVariantinfo;
-  TVariantnames = class;
-  TVariantnamesArray = Array of TVariantnames;
   TVariantAnnotation = class;
-  TVariantAnnotationArray = Array of TVariantAnnotation;
-  TVariantAnnotationconditions = class;
-  TVariantAnnotationconditionsArray = Array of TVariantAnnotationconditions;
-  TVariantAnnotationtranscriptIds = class;
-  TVariantAnnotationtranscriptIdsArray = Array of TVariantAnnotationtranscriptIds;
   TVariantAnnotationCondition = class;
-  TVariantAnnotationConditionArray = Array of TVariantAnnotationCondition;
-  TVariantAnnotationConditionexternalIds = class;
-  TVariantAnnotationConditionexternalIdsArray = Array of TVariantAnnotationConditionexternalIds;
-  TVariantAnnotationConditionnames = class;
-  TVariantAnnotationConditionnamesArray = Array of TVariantAnnotationConditionnames;
   TVariantSet = class;
+  TAlignReadGroupSetsRequestArray = Array of TAlignReadGroupSetsRequest;
+  TAlignReadGroupSetsResponseArray = Array of TAlignReadGroupSetsResponse;
+  TAnnotationArray = Array of TAnnotation;
+  TAnnotationSetArray = Array of TAnnotationSet;
+  TBatchAnnotationsResponseArray = Array of TBatchAnnotationsResponse;
+  TBatchAnnotationsResponseEntryArray = Array of TBatchAnnotationsResponseEntry;
+  TBatchAnnotationsResponseEntryStatusArray = Array of TBatchAnnotationsResponseEntryStatus;
+  TBatchCreateAnnotationsRequestArray = Array of TBatchCreateAnnotationsRequest;
+  TCallArray = Array of TCall;
+  TCallReadGroupSetsRequestArray = Array of TCallReadGroupSetsRequest;
+  TCallReadGroupSetsResponseArray = Array of TCallReadGroupSetsResponse;
+  TCallSetArray = Array of TCallSet;
+  TCigarUnitArray = Array of TCigarUnit;
+  TCoverageBucketArray = Array of TCoverageBucket;
+  TDatasetArray = Array of TDataset;
+  TExperimentalCreateJobRequestArray = Array of TExperimentalCreateJobRequest;
+  TExperimentalCreateJobResponseArray = Array of TExperimentalCreateJobResponse;
+  TExportReadGroupSetsRequestArray = Array of TExportReadGroupSetsRequest;
+  TExportReadGroupSetsResponseArray = Array of TExportReadGroupSetsResponse;
+  TExportVariantSetRequestArray = Array of TExportVariantSetRequest;
+  TExportVariantSetResponseArray = Array of TExportVariantSetResponse;
+  TExternalIdArray = Array of TExternalId;
+  TFastqMetadataArray = Array of TFastqMetadata;
+  TImportReadGroupSetsRequestArray = Array of TImportReadGroupSetsRequest;
+  TImportReadGroupSetsResponseArray = Array of TImportReadGroupSetsResponse;
+  TImportVariantsRequestArray = Array of TImportVariantsRequest;
+  TImportVariantsResponseArray = Array of TImportVariantsResponse;
+  TInt32ValueArray = Array of TInt32Value;
+  TInterleavedFastqSourceArray = Array of TInterleavedFastqSource;
+  TJobArray = Array of TJob;
+  TJobRequestArray = Array of TJobRequest;
+  TLinearAlignmentArray = Array of TLinearAlignment;
+  TListBasesResponseArray = Array of TListBasesResponse;
+  TListCoverageBucketsResponseArray = Array of TListCoverageBucketsResponse;
+  TListDatasetsResponseArray = Array of TListDatasetsResponse;
+  TMergeVariantsRequestArray = Array of TMergeVariantsRequest;
+  TMetadataArray = Array of TMetadata;
+  TPairedFastqSourceArray = Array of TPairedFastqSource;
+  TPositionArray = Array of TPosition;
+  TQueryRangeArray = Array of TQueryRange;
+  TRangeArray = Array of TRange;
+  TRangePositionArray = Array of TRangePosition;
+  TReadArray = Array of TRead;
+  TReadGroupArray = Array of TReadGroup;
+  TReadGroupExperimentArray = Array of TReadGroupExperiment;
+  TReadGroupProgramArray = Array of TReadGroupProgram;
+  TReadGroupSetArray = Array of TReadGroupSet;
+  TReferenceArray = Array of TReference;
+  TReferenceBoundArray = Array of TReferenceBound;
+  TReferenceSetArray = Array of TReferenceSet;
+  TSearchAnnotationSetsRequestArray = Array of TSearchAnnotationSetsRequest;
+  TSearchAnnotationSetsResponseArray = Array of TSearchAnnotationSetsResponse;
+  TSearchAnnotationsRequestArray = Array of TSearchAnnotationsRequest;
+  TSearchAnnotationsResponseArray = Array of TSearchAnnotationsResponse;
+  TSearchCallSetsRequestArray = Array of TSearchCallSetsRequest;
+  TSearchCallSetsResponseArray = Array of TSearchCallSetsResponse;
+  TSearchJobsRequestArray = Array of TSearchJobsRequest;
+  TSearchJobsResponseArray = Array of TSearchJobsResponse;
+  TSearchReadGroupSetsRequestArray = Array of TSearchReadGroupSetsRequest;
+  TSearchReadGroupSetsResponseArray = Array of TSearchReadGroupSetsResponse;
+  TSearchReadsRequestArray = Array of TSearchReadsRequest;
+  TSearchReadsResponseArray = Array of TSearchReadsResponse;
+  TSearchReferenceSetsRequestArray = Array of TSearchReferenceSetsRequest;
+  TSearchReferenceSetsResponseArray = Array of TSearchReferenceSetsResponse;
+  TSearchReferencesRequestArray = Array of TSearchReferencesRequest;
+  TSearchReferencesResponseArray = Array of TSearchReferencesResponse;
+  TSearchVariantSetsRequestArray = Array of TSearchVariantSetsRequest;
+  TSearchVariantSetsResponseArray = Array of TSearchVariantSetsResponse;
+  TSearchVariantsRequestArray = Array of TSearchVariantsRequest;
+  TSearchVariantsResponseArray = Array of TSearchVariantsResponse;
+  TStreamReadsRequestArray = Array of TStreamReadsRequest;
+  TStreamReadsResponseArray = Array of TStreamReadsResponse;
+  TTranscriptArray = Array of TTranscript;
+  TTranscriptCodingSequenceArray = Array of TTranscriptCodingSequence;
+  TTranscriptExonArray = Array of TTranscriptExon;
+  TVariantArray = Array of TVariant;
+  TVariantAnnotationArray = Array of TVariantAnnotation;
+  TVariantAnnotationConditionArray = Array of TVariantAnnotationCondition;
   TVariantSetArray = Array of TVariantSet;
-  TVariantSetmetadata = class;
-  TVariantSetmetadataArray = Array of TVariantSetmetadata;
-  TVariantSetreferenceBounds = class;
-  TVariantSetreferenceBoundsArray = Array of TVariantSetreferenceBounds;
+  //Anonymous types, using auto-generated names
+  TAnnotationTypeinfo = class;
+  TAnnotationSetTypeinfo = class;
+  TCallTypeinfo = class;
+  TCallSetTypeinfo = class;
+  TMetadataTypeinfo = class;
+  TReadTypeinfo = class;
+  TReadGroupTypeinfo = class;
+  TReadGroupSetTypeinfo = class;
+  TVariantTypeinfo = class;
+  TBatchAnnotationsResponseTypeentriesArray = Array of TBatchAnnotationsResponseEntry;
+  TBatchCreateAnnotationsRequestTypeannotationsArray = Array of TAnnotation;
+  TLinearAlignmentTypecigarArray = Array of TCigarUnit;
+  TListCoverageBucketsResponseTypecoverageBucketsArray = Array of TCoverageBucket;
+  TListDatasetsResponseTypedatasetsArray = Array of TDataset;
+  TMergeVariantsRequestTypevariantsArray = Array of TVariant;
+  TReadGroupTypeprogramsArray = Array of TReadGroupProgram;
+  TReadGroupSetTypereadGroupsArray = Array of TReadGroup;
+  TSearchAnnotationSetsResponseTypeannotationSetsArray = Array of TAnnotationSet;
+  TSearchAnnotationsResponseTypeannotationsArray = Array of TAnnotation;
+  TSearchCallSetsResponseTypecallSetsArray = Array of TCallSet;
+  TSearchJobsResponseTypejobsArray = Array of TJob;
+  TSearchReadGroupSetsResponseTypereadGroupSetsArray = Array of TReadGroupSet;
+  TSearchReadsResponseTypealignmentsArray = Array of TRead;
+  TSearchReferenceSetsResponseTypereferenceSetsArray = Array of TReferenceSet;
+  TSearchReferencesResponseTypereferencesArray = Array of TReference;
+  TSearchVariantSetsResponseTypevariantSetsArray = Array of TVariantSet;
+  TSearchVariantsResponseTypevariantsArray = Array of TVariant;
+  TStreamReadsResponseTypealignmentsArray = Array of TRead;
+  TTranscriptTypeexonsArray = Array of TTranscriptExon;
+  TVariantTypecallsArray = Array of TCall;
+  TVariantAnnotationTypeconditionsArray = Array of TVariantAnnotationCondition;
+  TVariantAnnotationConditionTypeexternalIdsArray = Array of TExternalId;
+  TVariantSetTypemetadataArray = Array of TMetadata;
+  TVariantSetTypereferenceBoundsArray = Array of TReferenceBound;
   
   { --------------------------------------------------------------------
     TAlignReadGroupSetsRequest
@@ -358,40 +224,27 @@ type
   
   TAlignReadGroupSetsRequest = Class(TGoogleBaseObject)
   Private
-    FbamSourceUris : TAlignReadGroupSetsRequestbamSourceUris;
-    FdatasetId : string;
+    FbamSourceUris : TStringArray;
+    FdatasetId : String;
     FinterleavedFastqSource : TInterleavedFastqSource;
     FpairedFastqSource : TPairedFastqSource;
-    FreadGroupSetId : string;
+    FreadGroupSetId : String;
   Protected
     //Property setters
-    Procedure SetbamSourceUris(AIndex : Integer; AValue : TAlignReadGroupSetsRequestbamSourceUris); virtual;
-    Procedure SetdatasetId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbamSourceUris(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
     Procedure SetinterleavedFastqSource(AIndex : Integer; AValue : TInterleavedFastqSource); virtual;
     Procedure SetpairedFastqSource(AIndex : Integer; AValue : TPairedFastqSource); virtual;
-    Procedure SetreadGroupSetId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetreadGroupSetId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property bamSourceUris : TAlignReadGroupSetsRequestbamSourceUris Index 0 Read FbamSourceUris Write SetbamSourceUris;
-    Property datasetId : string Index 8 Read FdatasetId Write SetdatasetId;
+    Property bamSourceUris : TStringArray Index 0 Read FbamSourceUris Write SetbamSourceUris;
+    Property datasetId : String Index 8 Read FdatasetId Write SetdatasetId;
     Property interleavedFastqSource : TInterleavedFastqSource Index 16 Read FinterleavedFastqSource Write SetinterleavedFastqSource;
     Property pairedFastqSource : TPairedFastqSource Index 24 Read FpairedFastqSource Write SetpairedFastqSource;
-    Property readGroupSetId : string Index 32 Read FreadGroupSetId Write SetreadGroupSetId;
+    Property readGroupSetId : String Index 32 Read FreadGroupSetId Write SetreadGroupSetId;
   end;
   TAlignReadGroupSetsRequestClass = Class of TAlignReadGroupSetsRequest;
-  
-  { --------------------------------------------------------------------
-    TAlignReadGroupSetsRequestbamSourceUris
-    --------------------------------------------------------------------}
-  
-  TAlignReadGroupSetsRequestbamSourceUris = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAlignReadGroupSetsRequestbamSourceUrisClass = Class of TAlignReadGroupSetsRequestbamSourceUris;
   
   { --------------------------------------------------------------------
     TAlignReadGroupSetsResponse
@@ -399,15 +252,29 @@ type
   
   TAlignReadGroupSetsResponse = Class(TGoogleBaseObject)
   Private
-    FjobId : string;
+    FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property jobId : string Index 0 Read FjobId Write SetjobId;
+    Property jobId : String Index 0 Read FjobId Write SetjobId;
   end;
   TAlignReadGroupSetsResponseClass = Class of TAlignReadGroupSetsResponse;
+  
+  { --------------------------------------------------------------------
+    TAnnotationTypeinfo
+    --------------------------------------------------------------------}
+  
+  TAnnotationTypeinfo = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TAnnotationTypeinfoClass = Class of TAnnotationTypeinfo;
   
   { --------------------------------------------------------------------
     TAnnotation
@@ -415,43 +282,43 @@ type
   
   TAnnotation = Class(TGoogleBaseObject)
   Private
-    FannotationSetId : string;
-    Fid : string;
-    Finfo : TAnnotationinfo;
-    Fname : string;
+    FannotationSetId : String;
+    Fid : String;
+    Finfo : TAnnotationTypeinfo;
+    Fname : String;
     Fposition : TRangePosition;
     Ftranscript : TTranscript;
-    F_type : string;
+    F_type : String;
     Fvariant : TVariantAnnotation;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetannotationSetId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinfo(AIndex : Integer; AValue : TAnnotationinfo); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure SetannotationSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setinfo(AIndex : Integer; AValue : TAnnotationTypeinfo); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setposition(AIndex : Integer; AValue : TRangePosition); virtual;
     Procedure Settranscript(AIndex : Integer; AValue : TTranscript); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setvariant(AIndex : Integer; AValue : TVariantAnnotation); virtual;
   Public
   Published
-    Property annotationSetId : string Index 0 Read FannotationSetId Write SetannotationSetId;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property info : TAnnotationinfo Index 16 Read Finfo Write Setinfo;
-    Property name : string Index 24 Read Fname Write Setname;
+    Property annotationSetId : String Index 0 Read FannotationSetId Write SetannotationSetId;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property info : TAnnotationTypeinfo Index 16 Read Finfo Write Setinfo;
+    Property name : String Index 24 Read Fname Write Setname;
     Property position : TRangePosition Index 32 Read Fposition Write Setposition;
     Property transcript : TTranscript Index 40 Read Ftranscript Write Settranscript;
-    Property _type : string Index 48 Read F_type Write Set_type;
+    Property _type : String Index 48 Read F_type Write Set_type;
     Property variant : TVariantAnnotation Index 56 Read Fvariant Write Setvariant;
   end;
   TAnnotationClass = Class of TAnnotation;
   
   { --------------------------------------------------------------------
-    TAnnotationinfo
+    TAnnotationSetTypeinfo
     --------------------------------------------------------------------}
   
-  TAnnotationinfo = Class(TGoogleBaseObject)
+  TAnnotationSetTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -459,7 +326,7 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TAnnotationinfoClass = Class of TAnnotationinfo;
+  TAnnotationSetTypeinfoClass = Class of TAnnotationSetTypeinfo;
   
   { --------------------------------------------------------------------
     TAnnotationSet
@@ -467,48 +334,34 @@ type
   
   TAnnotationSet = Class(TGoogleBaseObject)
   Private
-    FdatasetId : string;
-    Fid : string;
-    Finfo : TAnnotationSetinfo;
-    Fname : string;
-    FreferenceSetId : string;
-    FsourceUri : string;
-    F_type : string;
+    FdatasetId : String;
+    Fid : String;
+    Finfo : TAnnotationSetTypeinfo;
+    Fname : String;
+    FreferenceSetId : String;
+    FsourceUri : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinfo(AIndex : Integer; AValue : TAnnotationSetinfo); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceSetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceUri(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setinfo(AIndex : Integer; AValue : TAnnotationSetTypeinfo); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceUri(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property datasetId : string Index 0 Read FdatasetId Write SetdatasetId;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property info : TAnnotationSetinfo Index 16 Read Finfo Write Setinfo;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property referenceSetId : string Index 32 Read FreferenceSetId Write SetreferenceSetId;
-    Property sourceUri : string Index 40 Read FsourceUri Write SetsourceUri;
-    Property _type : string Index 48 Read F_type Write Set_type;
+    Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property info : TAnnotationSetTypeinfo Index 16 Read Finfo Write Setinfo;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property referenceSetId : String Index 32 Read FreferenceSetId Write SetreferenceSetId;
+    Property sourceUri : String Index 40 Read FsourceUri Write SetsourceUri;
+    Property _type : String Index 48 Read F_type Write Set_type;
   end;
   TAnnotationSetClass = Class of TAnnotationSet;
-  
-  { --------------------------------------------------------------------
-    TAnnotationSetinfo
-    --------------------------------------------------------------------}
-  
-  TAnnotationSetinfo = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TAnnotationSetinfoClass = Class of TAnnotationSetinfo;
   
   { --------------------------------------------------------------------
     TBatchAnnotationsResponse
@@ -516,28 +369,15 @@ type
   
   TBatchAnnotationsResponse = Class(TGoogleBaseObject)
   Private
-    Fentries : TBatchAnnotationsResponseentries;
+    Fentries : TBatchAnnotationsResponseTypeentriesArray;
   Protected
     //Property setters
-    Procedure Setentries(AIndex : Integer; AValue : TBatchAnnotationsResponseentries); virtual;
+    Procedure Setentries(AIndex : Integer; AValue : TBatchAnnotationsResponseTypeentriesArray); virtual;
   Public
   Published
-    Property entries : TBatchAnnotationsResponseentries Index 0 Read Fentries Write Setentries;
+    Property entries : TBatchAnnotationsResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
   end;
   TBatchAnnotationsResponseClass = Class of TBatchAnnotationsResponse;
-  
-  { --------------------------------------------------------------------
-    TBatchAnnotationsResponseentries
-    --------------------------------------------------------------------}
-  
-  TBatchAnnotationsResponseentries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBatchAnnotationsResponseentriesClass = Class of TBatchAnnotationsResponseentries;
   
   { --------------------------------------------------------------------
     TBatchAnnotationsResponseEntry
@@ -565,15 +405,15 @@ type
   TBatchAnnotationsResponseEntryStatus = Class(TGoogleBaseObject)
   Private
     Fcode : integer;
-    Fmessage : string;
+    Fmessage : String;
   Protected
     //Property setters
     Procedure Setcode(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
+    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property code : integer Index 0 Read Fcode Write Setcode;
-    Property message : string Index 8 Read Fmessage Write Setmessage;
+    Property message : String Index 8 Read Fmessage Write Setmessage;
   end;
   TBatchAnnotationsResponseEntryStatusClass = Class of TBatchAnnotationsResponseEntryStatus;
   
@@ -583,28 +423,29 @@ type
   
   TBatchCreateAnnotationsRequest = Class(TGoogleBaseObject)
   Private
-    Fannotations : TBatchCreateAnnotationsRequestannotations;
+    Fannotations : TBatchCreateAnnotationsRequestTypeannotationsArray;
   Protected
     //Property setters
-    Procedure Setannotations(AIndex : Integer; AValue : TBatchCreateAnnotationsRequestannotations); virtual;
+    Procedure Setannotations(AIndex : Integer; AValue : TBatchCreateAnnotationsRequestTypeannotationsArray); virtual;
   Public
   Published
-    Property annotations : TBatchCreateAnnotationsRequestannotations Index 0 Read Fannotations Write Setannotations;
+    Property annotations : TBatchCreateAnnotationsRequestTypeannotationsArray Index 0 Read Fannotations Write Setannotations;
   end;
   TBatchCreateAnnotationsRequestClass = Class of TBatchCreateAnnotationsRequest;
   
   { --------------------------------------------------------------------
-    TBatchCreateAnnotationsRequestannotations
+    TCallTypeinfo
     --------------------------------------------------------------------}
   
-  TBatchCreateAnnotationsRequestannotations = Class(TGoogleBaseObject)
+  TCallTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TBatchCreateAnnotationsRequestannotationsClass = Class of TBatchCreateAnnotationsRequestannotations;
+  TCallTypeinfoClass = Class of TCallTypeinfo;
   
   { --------------------------------------------------------------------
     TCall
@@ -612,70 +453,30 @@ type
   
   TCall = Class(TGoogleBaseObject)
   Private
-    FcallSetId : string;
-    FcallSetName : string;
-    Fgenotype : TCallgenotype;
-    FgenotypeLikelihood : TCallgenotypeLikelihood;
-    Finfo : TCallinfo;
-    Fphaseset : string;
+    FcallSetId : String;
+    FcallSetName : String;
+    Fgenotype : TintegerArray;
+    FgenotypeLikelihood : TdoubleArray;
+    Finfo : TCallTypeinfo;
+    Fphaseset : String;
   Protected
     //Property setters
-    Procedure SetcallSetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcallSetName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setgenotype(AIndex : Integer; AValue : TCallgenotype); virtual;
-    Procedure SetgenotypeLikelihood(AIndex : Integer; AValue : TCallgenotypeLikelihood); virtual;
-    Procedure Setinfo(AIndex : Integer; AValue : TCallinfo); virtual;
-    Procedure Setphaseset(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcallSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcallSetName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setgenotype(AIndex : Integer; AValue : TintegerArray); virtual;
+    Procedure SetgenotypeLikelihood(AIndex : Integer; AValue : TdoubleArray); virtual;
+    Procedure Setinfo(AIndex : Integer; AValue : TCallTypeinfo); virtual;
+    Procedure Setphaseset(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property callSetId : string Index 0 Read FcallSetId Write SetcallSetId;
-    Property callSetName : string Index 8 Read FcallSetName Write SetcallSetName;
-    Property genotype : TCallgenotype Index 16 Read Fgenotype Write Setgenotype;
-    Property genotypeLikelihood : TCallgenotypeLikelihood Index 24 Read FgenotypeLikelihood Write SetgenotypeLikelihood;
-    Property info : TCallinfo Index 32 Read Finfo Write Setinfo;
-    Property phaseset : string Index 40 Read Fphaseset Write Setphaseset;
+    Property callSetId : String Index 0 Read FcallSetId Write SetcallSetId;
+    Property callSetName : String Index 8 Read FcallSetName Write SetcallSetName;
+    Property genotype : TintegerArray Index 16 Read Fgenotype Write Setgenotype;
+    Property genotypeLikelihood : TdoubleArray Index 24 Read FgenotypeLikelihood Write SetgenotypeLikelihood;
+    Property info : TCallTypeinfo Index 32 Read Finfo Write Setinfo;
+    Property phaseset : String Index 40 Read Fphaseset Write Setphaseset;
   end;
   TCallClass = Class of TCall;
-  
-  { --------------------------------------------------------------------
-    TCallgenotype
-    --------------------------------------------------------------------}
-  
-  TCallgenotype = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCallgenotypeClass = Class of TCallgenotype;
-  
-  { --------------------------------------------------------------------
-    TCallgenotypeLikelihood
-    --------------------------------------------------------------------}
-  
-  TCallgenotypeLikelihood = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCallgenotypeLikelihoodClass = Class of TCallgenotypeLikelihood;
-  
-  { --------------------------------------------------------------------
-    TCallinfo
-    --------------------------------------------------------------------}
-  
-  TCallinfo = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TCallinfoClass = Class of TCallinfo;
   
   { --------------------------------------------------------------------
     TCallReadGroupSetsRequest
@@ -683,34 +484,21 @@ type
   
   TCallReadGroupSetsRequest = Class(TGoogleBaseObject)
   Private
-    FdatasetId : string;
-    FreadGroupSetId : string;
-    FsourceUris : TCallReadGroupSetsRequestsourceUris;
+    FdatasetId : String;
+    FreadGroupSetId : String;
+    FsourceUris : TStringArray;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreadGroupSetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceUris(AIndex : Integer; AValue : TCallReadGroupSetsRequestsourceUris); virtual;
+    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreadGroupSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property datasetId : string Index 0 Read FdatasetId Write SetdatasetId;
-    Property readGroupSetId : string Index 8 Read FreadGroupSetId Write SetreadGroupSetId;
-    Property sourceUris : TCallReadGroupSetsRequestsourceUris Index 16 Read FsourceUris Write SetsourceUris;
+    Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
+    Property readGroupSetId : String Index 8 Read FreadGroupSetId Write SetreadGroupSetId;
+    Property sourceUris : TStringArray Index 16 Read FsourceUris Write SetsourceUris;
   end;
   TCallReadGroupSetsRequestClass = Class of TCallReadGroupSetsRequest;
-  
-  { --------------------------------------------------------------------
-    TCallReadGroupSetsRequestsourceUris
-    --------------------------------------------------------------------}
-  
-  TCallReadGroupSetsRequestsourceUris = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCallReadGroupSetsRequestsourceUrisClass = Class of TCallReadGroupSetsRequestsourceUris;
   
   { --------------------------------------------------------------------
     TCallReadGroupSetsResponse
@@ -718,52 +506,21 @@ type
   
   TCallReadGroupSetsResponse = Class(TGoogleBaseObject)
   Private
-    FjobId : string;
+    FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property jobId : string Index 0 Read FjobId Write SetjobId;
+    Property jobId : String Index 0 Read FjobId Write SetjobId;
   end;
   TCallReadGroupSetsResponseClass = Class of TCallReadGroupSetsResponse;
   
   { --------------------------------------------------------------------
-    TCallSet
+    TCallSetTypeinfo
     --------------------------------------------------------------------}
   
-  TCallSet = Class(TGoogleBaseObject)
-  Private
-    Fcreated : string;
-    Fid : string;
-    Finfo : TCallSetinfo;
-    Fname : string;
-    FsampleId : string;
-    FvariantSetIds : TCallSetvariantSetIds;
-  Protected
-    //Property setters
-    Procedure Setcreated(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinfo(AIndex : Integer; AValue : TCallSetinfo); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsampleId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvariantSetIds(AIndex : Integer; AValue : TCallSetvariantSetIds); virtual;
-  Public
-  Published
-    Property created : string Index 0 Read Fcreated Write Setcreated;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property info : TCallSetinfo Index 16 Read Finfo Write Setinfo;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property sampleId : string Index 32 Read FsampleId Write SetsampleId;
-    Property variantSetIds : TCallSetvariantSetIds Index 40 Read FvariantSetIds Write SetvariantSetIds;
-  end;
-  TCallSetClass = Class of TCallSet;
-  
-  { --------------------------------------------------------------------
-    TCallSetinfo
-    --------------------------------------------------------------------}
-  
-  TCallSetinfo = Class(TGoogleBaseObject)
+  TCallSetTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -771,20 +528,38 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TCallSetinfoClass = Class of TCallSetinfo;
+  TCallSetTypeinfoClass = Class of TCallSetTypeinfo;
   
   { --------------------------------------------------------------------
-    TCallSetvariantSetIds
+    TCallSet
     --------------------------------------------------------------------}
   
-  TCallSetvariantSetIds = Class(TGoogleBaseObject)
+  TCallSet = Class(TGoogleBaseObject)
   Private
+    Fcreated : String;
+    Fid : String;
+    Finfo : TCallSetTypeinfo;
+    Fname : String;
+    FsampleId : String;
+    FvariantSetIds : TStringArray;
   Protected
     //Property setters
+    Procedure Setcreated(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setinfo(AIndex : Integer; AValue : TCallSetTypeinfo); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsampleId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvariantSetIds(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
+    Property created : String Index 0 Read Fcreated Write Setcreated;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property info : TCallSetTypeinfo Index 16 Read Finfo Write Setinfo;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property sampleId : String Index 32 Read FsampleId Write SetsampleId;
+    Property variantSetIds : TStringArray Index 40 Read FvariantSetIds Write SetvariantSetIds;
   end;
-  TCallSetvariantSetIdsClass = Class of TCallSetvariantSetIds;
+  TCallSetClass = Class of TCallSet;
   
   { --------------------------------------------------------------------
     TCigarUnit
@@ -792,19 +567,19 @@ type
   
   TCigarUnit = Class(TGoogleBaseObject)
   Private
-    Foperation : string;
-    FoperationLength : string;
-    FreferenceSequence : string;
+    Foperation : String;
+    FoperationLength : String;
+    FreferenceSequence : String;
   Protected
     //Property setters
-    Procedure Setoperation(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoperationLength(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceSequence(AIndex : Integer; AValue : string); virtual;
+    Procedure Setoperation(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoperationLength(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceSequence(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property operation : string Index 0 Read Foperation Write Setoperation;
-    Property operationLength : string Index 8 Read FoperationLength Write SetoperationLength;
-    Property referenceSequence : string Index 16 Read FreferenceSequence Write SetreferenceSequence;
+    Property operation : String Index 0 Read Foperation Write Setoperation;
+    Property operationLength : String Index 8 Read FoperationLength Write SetoperationLength;
+    Property referenceSequence : String Index 16 Read FreferenceSequence Write SetreferenceSequence;
   end;
   TCigarUnitClass = Class of TCigarUnit;
   
@@ -833,22 +608,22 @@ type
   
   TDataset = Class(TGoogleBaseObject)
   Private
-    Fid : string;
+    Fid : String;
     FisPublic : boolean;
-    Fname : string;
-    FprojectNumber : string;
+    Fname : String;
+    FprojectNumber : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure SetisPublic(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
+    Property id : String Index 0 Read Fid Write Setid;
     Property isPublic : boolean Index 8 Read FisPublic Write SetisPublic;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property projectNumber : string Index 24 Read FprojectNumber Write SetprojectNumber;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property projectNumber : String Index 24 Read FprojectNumber Write SetprojectNumber;
   end;
   TDatasetClass = Class of TDataset;
   
@@ -860,54 +635,28 @@ type
   Private
     Falign : boolean;
     FcallVariants : boolean;
-    FgcsOutputPath : string;
-    FpairedSourceUris : TExperimentalCreateJobRequestpairedSourceUris;
-    FprojectNumber : string;
-    FsourceUris : TExperimentalCreateJobRequestsourceUris;
+    FgcsOutputPath : String;
+    FpairedSourceUris : TStringArray;
+    FprojectNumber : String;
+    FsourceUris : TStringArray;
   Protected
     //Property setters
     Procedure Setalign(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetcallVariants(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetgcsOutputPath(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpairedSourceUris(AIndex : Integer; AValue : TExperimentalCreateJobRequestpairedSourceUris); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceUris(AIndex : Integer; AValue : TExperimentalCreateJobRequestsourceUris); virtual;
+    Procedure SetgcsOutputPath(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpairedSourceUris(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
     Property align : boolean Index 0 Read Falign Write Setalign;
     Property callVariants : boolean Index 8 Read FcallVariants Write SetcallVariants;
-    Property gcsOutputPath : string Index 16 Read FgcsOutputPath Write SetgcsOutputPath;
-    Property pairedSourceUris : TExperimentalCreateJobRequestpairedSourceUris Index 24 Read FpairedSourceUris Write SetpairedSourceUris;
-    Property projectNumber : string Index 32 Read FprojectNumber Write SetprojectNumber;
-    Property sourceUris : TExperimentalCreateJobRequestsourceUris Index 40 Read FsourceUris Write SetsourceUris;
+    Property gcsOutputPath : String Index 16 Read FgcsOutputPath Write SetgcsOutputPath;
+    Property pairedSourceUris : TStringArray Index 24 Read FpairedSourceUris Write SetpairedSourceUris;
+    Property projectNumber : String Index 32 Read FprojectNumber Write SetprojectNumber;
+    Property sourceUris : TStringArray Index 40 Read FsourceUris Write SetsourceUris;
   end;
   TExperimentalCreateJobRequestClass = Class of TExperimentalCreateJobRequest;
-  
-  { --------------------------------------------------------------------
-    TExperimentalCreateJobRequestpairedSourceUris
-    --------------------------------------------------------------------}
-  
-  TExperimentalCreateJobRequestpairedSourceUris = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TExperimentalCreateJobRequestpairedSourceUrisClass = Class of TExperimentalCreateJobRequestpairedSourceUris;
-  
-  { --------------------------------------------------------------------
-    TExperimentalCreateJobRequestsourceUris
-    --------------------------------------------------------------------}
-  
-  TExperimentalCreateJobRequestsourceUris = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TExperimentalCreateJobRequestsourceUrisClass = Class of TExperimentalCreateJobRequestsourceUris;
   
   { --------------------------------------------------------------------
     TExperimentalCreateJobResponse
@@ -915,13 +664,13 @@ type
   
   TExperimentalCreateJobResponse = Class(TGoogleBaseObject)
   Private
-    FjobId : string;
+    FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property jobId : string Index 0 Read FjobId Write SetjobId;
+    Property jobId : String Index 0 Read FjobId Write SetjobId;
   end;
   TExperimentalCreateJobResponseClass = Class of TExperimentalCreateJobResponse;
   
@@ -931,50 +680,24 @@ type
   
   TExportReadGroupSetsRequest = Class(TGoogleBaseObject)
   Private
-    FexportUri : string;
-    FprojectNumber : string;
-    FreadGroupSetIds : TExportReadGroupSetsRequestreadGroupSetIds;
-    FreferenceNames : TExportReadGroupSetsRequestreferenceNames;
+    FexportUri : String;
+    FprojectNumber : String;
+    FreadGroupSetIds : TStringArray;
+    FreferenceNames : TStringArray;
   Protected
     //Property setters
-    Procedure SetexportUri(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreadGroupSetIds(AIndex : Integer; AValue : TExportReadGroupSetsRequestreadGroupSetIds); virtual;
-    Procedure SetreferenceNames(AIndex : Integer; AValue : TExportReadGroupSetsRequestreferenceNames); virtual;
+    Procedure SetexportUri(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreadGroupSetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetreferenceNames(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property exportUri : string Index 0 Read FexportUri Write SetexportUri;
-    Property projectNumber : string Index 8 Read FprojectNumber Write SetprojectNumber;
-    Property readGroupSetIds : TExportReadGroupSetsRequestreadGroupSetIds Index 16 Read FreadGroupSetIds Write SetreadGroupSetIds;
-    Property referenceNames : TExportReadGroupSetsRequestreferenceNames Index 24 Read FreferenceNames Write SetreferenceNames;
+    Property exportUri : String Index 0 Read FexportUri Write SetexportUri;
+    Property projectNumber : String Index 8 Read FprojectNumber Write SetprojectNumber;
+    Property readGroupSetIds : TStringArray Index 16 Read FreadGroupSetIds Write SetreadGroupSetIds;
+    Property referenceNames : TStringArray Index 24 Read FreferenceNames Write SetreferenceNames;
   end;
   TExportReadGroupSetsRequestClass = Class of TExportReadGroupSetsRequest;
-  
-  { --------------------------------------------------------------------
-    TExportReadGroupSetsRequestreadGroupSetIds
-    --------------------------------------------------------------------}
-  
-  TExportReadGroupSetsRequestreadGroupSetIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TExportReadGroupSetsRequestreadGroupSetIdsClass = Class of TExportReadGroupSetsRequestreadGroupSetIds;
-  
-  { --------------------------------------------------------------------
-    TExportReadGroupSetsRequestreferenceNames
-    --------------------------------------------------------------------}
-  
-  TExportReadGroupSetsRequestreferenceNames = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TExportReadGroupSetsRequestreferenceNamesClass = Class of TExportReadGroupSetsRequestreferenceNames;
   
   { --------------------------------------------------------------------
     TExportReadGroupSetsResponse
@@ -982,13 +705,13 @@ type
   
   TExportReadGroupSetsResponse = Class(TGoogleBaseObject)
   Private
-    FjobId : string;
+    FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property jobId : string Index 0 Read FjobId Write SetjobId;
+    Property jobId : String Index 0 Read FjobId Write SetjobId;
   end;
   TExportReadGroupSetsResponseClass = Class of TExportReadGroupSetsResponse;
   
@@ -998,40 +721,27 @@ type
   
   TExportVariantSetRequest = Class(TGoogleBaseObject)
   Private
-    FbigqueryDataset : string;
-    FbigqueryTable : string;
-    FcallSetIds : TExportVariantSetRequestcallSetIds;
-    Fformat : string;
-    FprojectNumber : string;
+    FbigqueryDataset : String;
+    FbigqueryTable : String;
+    FcallSetIds : TStringArray;
+    Fformat : String;
+    FprojectNumber : String;
   Protected
     //Property setters
-    Procedure SetbigqueryDataset(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbigqueryTable(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcallSetIds(AIndex : Integer; AValue : TExportVariantSetRequestcallSetIds); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbigqueryDataset(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbigqueryTable(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcallSetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property bigqueryDataset : string Index 0 Read FbigqueryDataset Write SetbigqueryDataset;
-    Property bigqueryTable : string Index 8 Read FbigqueryTable Write SetbigqueryTable;
-    Property callSetIds : TExportVariantSetRequestcallSetIds Index 16 Read FcallSetIds Write SetcallSetIds;
-    Property format : string Index 24 Read Fformat Write Setformat;
-    Property projectNumber : string Index 32 Read FprojectNumber Write SetprojectNumber;
+    Property bigqueryDataset : String Index 0 Read FbigqueryDataset Write SetbigqueryDataset;
+    Property bigqueryTable : String Index 8 Read FbigqueryTable Write SetbigqueryTable;
+    Property callSetIds : TStringArray Index 16 Read FcallSetIds Write SetcallSetIds;
+    Property format : String Index 24 Read Fformat Write Setformat;
+    Property projectNumber : String Index 32 Read FprojectNumber Write SetprojectNumber;
   end;
   TExportVariantSetRequestClass = Class of TExportVariantSetRequest;
-  
-  { --------------------------------------------------------------------
-    TExportVariantSetRequestcallSetIds
-    --------------------------------------------------------------------}
-  
-  TExportVariantSetRequestcallSetIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TExportVariantSetRequestcallSetIdsClass = Class of TExportVariantSetRequestcallSetIds;
   
   { --------------------------------------------------------------------
     TExportVariantSetResponse
@@ -1039,13 +749,13 @@ type
   
   TExportVariantSetResponse = Class(TGoogleBaseObject)
   Private
-    FjobId : string;
+    FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property jobId : string Index 0 Read FjobId Write SetjobId;
+    Property jobId : String Index 0 Read FjobId Write SetjobId;
   end;
   TExportVariantSetResponseClass = Class of TExportVariantSetResponse;
   
@@ -1055,16 +765,16 @@ type
   
   TExternalId = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    FsourceName : string;
+    Fid : String;
+    FsourceName : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceName(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceName(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property sourceName : string Index 8 Read FsourceName Write SetsourceName;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property sourceName : String Index 8 Read FsourceName Write SetsourceName;
   end;
   TExternalIdClass = Class of TExternalId;
   
@@ -1074,25 +784,25 @@ type
   
   TFastqMetadata = Class(TGoogleBaseObject)
   Private
-    FlibraryName : string;
-    FplatformName : string;
-    FplatformUnit : string;
-    FreadGroupName : string;
-    FsampleName : string;
+    FlibraryName : String;
+    FplatformName : String;
+    FplatformUnit : String;
+    FreadGroupName : String;
+    FsampleName : String;
   Protected
     //Property setters
-    Procedure SetlibraryName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetplatformName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetplatformUnit(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreadGroupName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsampleName(AIndex : Integer; AValue : string); virtual;
+    Procedure SetlibraryName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetplatformName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetplatformUnit(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreadGroupName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsampleName(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property libraryName : string Index 0 Read FlibraryName Write SetlibraryName;
-    Property platformName : string Index 8 Read FplatformName Write SetplatformName;
-    Property platformUnit : string Index 16 Read FplatformUnit Write SetplatformUnit;
-    Property readGroupName : string Index 24 Read FreadGroupName Write SetreadGroupName;
-    Property sampleName : string Index 32 Read FsampleName Write SetsampleName;
+    Property libraryName : String Index 0 Read FlibraryName Write SetlibraryName;
+    Property platformName : String Index 8 Read FplatformName Write SetplatformName;
+    Property platformUnit : String Index 16 Read FplatformUnit Write SetplatformUnit;
+    Property readGroupName : String Index 24 Read FreadGroupName Write SetreadGroupName;
+    Property sampleName : String Index 32 Read FsampleName Write SetsampleName;
   end;
   TFastqMetadataClass = Class of TFastqMetadata;
   
@@ -1102,37 +812,24 @@ type
   
   TImportReadGroupSetsRequest = Class(TGoogleBaseObject)
   Private
-    FdatasetId : string;
-    FpartitionStrategy : string;
-    FreferenceSetId : string;
-    FsourceUris : TImportReadGroupSetsRequestsourceUris;
+    FdatasetId : String;
+    FpartitionStrategy : String;
+    FreferenceSetId : String;
+    FsourceUris : TStringArray;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpartitionStrategy(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceSetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceUris(AIndex : Integer; AValue : TImportReadGroupSetsRequestsourceUris); virtual;
+    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpartitionStrategy(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property datasetId : string Index 0 Read FdatasetId Write SetdatasetId;
-    Property partitionStrategy : string Index 8 Read FpartitionStrategy Write SetpartitionStrategy;
-    Property referenceSetId : string Index 16 Read FreferenceSetId Write SetreferenceSetId;
-    Property sourceUris : TImportReadGroupSetsRequestsourceUris Index 24 Read FsourceUris Write SetsourceUris;
+    Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
+    Property partitionStrategy : String Index 8 Read FpartitionStrategy Write SetpartitionStrategy;
+    Property referenceSetId : String Index 16 Read FreferenceSetId Write SetreferenceSetId;
+    Property sourceUris : TStringArray Index 24 Read FsourceUris Write SetsourceUris;
   end;
   TImportReadGroupSetsRequestClass = Class of TImportReadGroupSetsRequest;
-  
-  { --------------------------------------------------------------------
-    TImportReadGroupSetsRequestsourceUris
-    --------------------------------------------------------------------}
-  
-  TImportReadGroupSetsRequestsourceUris = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TImportReadGroupSetsRequestsourceUrisClass = Class of TImportReadGroupSetsRequestsourceUris;
   
   { --------------------------------------------------------------------
     TImportReadGroupSetsResponse
@@ -1140,13 +837,13 @@ type
   
   TImportReadGroupSetsResponse = Class(TGoogleBaseObject)
   Private
-    FjobId : string;
+    FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property jobId : string Index 0 Read FjobId Write SetjobId;
+    Property jobId : String Index 0 Read FjobId Write SetjobId;
   end;
   TImportReadGroupSetsResponseClass = Class of TImportReadGroupSetsResponse;
   
@@ -1156,31 +853,18 @@ type
   
   TImportVariantsRequest = Class(TGoogleBaseObject)
   Private
-    Fformat : string;
-    FsourceUris : TImportVariantsRequestsourceUris;
+    Fformat : String;
+    FsourceUris : TStringArray;
   Protected
     //Property setters
-    Procedure Setformat(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceUris(AIndex : Integer; AValue : TImportVariantsRequestsourceUris); virtual;
+    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property format : string Index 0 Read Fformat Write Setformat;
-    Property sourceUris : TImportVariantsRequestsourceUris Index 8 Read FsourceUris Write SetsourceUris;
+    Property format : String Index 0 Read Fformat Write Setformat;
+    Property sourceUris : TStringArray Index 8 Read FsourceUris Write SetsourceUris;
   end;
   TImportVariantsRequestClass = Class of TImportVariantsRequest;
-  
-  { --------------------------------------------------------------------
-    TImportVariantsRequestsourceUris
-    --------------------------------------------------------------------}
-  
-  TImportVariantsRequestsourceUris = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TImportVariantsRequestsourceUrisClass = Class of TImportVariantsRequestsourceUris;
   
   { --------------------------------------------------------------------
     TImportVariantsResponse
@@ -1188,13 +872,13 @@ type
   
   TImportVariantsResponse = Class(TGoogleBaseObject)
   Private
-    FjobId : string;
+    FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property jobId : string Index 0 Read FjobId Write SetjobId;
+    Property jobId : String Index 0 Read FjobId Write SetjobId;
   end;
   TImportVariantsResponseClass = Class of TImportVariantsResponse;
   
@@ -1221,30 +905,17 @@ type
   TInterleavedFastqSource = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFastqMetadata;
-    FsourceUris : TInterleavedFastqSourcesourceUris;
+    FsourceUris : TStringArray;
   Protected
     //Property setters
     Procedure Setmetadata(AIndex : Integer; AValue : TFastqMetadata); virtual;
-    Procedure SetsourceUris(AIndex : Integer; AValue : TInterleavedFastqSourcesourceUris); virtual;
+    Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
     Property metadata : TFastqMetadata Index 0 Read Fmetadata Write Setmetadata;
-    Property sourceUris : TInterleavedFastqSourcesourceUris Index 8 Read FsourceUris Write SetsourceUris;
+    Property sourceUris : TStringArray Index 8 Read FsourceUris Write SetsourceUris;
   end;
   TInterleavedFastqSourceClass = Class of TInterleavedFastqSource;
-  
-  { --------------------------------------------------------------------
-    TInterleavedFastqSourcesourceUris
-    --------------------------------------------------------------------}
-  
-  TInterleavedFastqSourcesourceUris = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInterleavedFastqSourcesourceUrisClass = Class of TInterleavedFastqSourcesourceUris;
   
   { --------------------------------------------------------------------
     TJob
@@ -1252,78 +923,39 @@ type
   
   TJob = Class(TGoogleBaseObject)
   Private
-    Fcreated : string;
-    FdetailedStatus : string;
-    Ferrors : TJoberrors;
-    Fid : string;
-    FimportedIds : TJobimportedIds;
-    FprojectNumber : string;
+    Fcreated : String;
+    FdetailedStatus : String;
+    Ferrors : TStringArray;
+    Fid : String;
+    FimportedIds : TStringArray;
+    FprojectNumber : String;
     Frequest : TJobRequest;
-    Fstatus : string;
-    Fwarnings : TJobwarnings;
+    Fstatus : String;
+    Fwarnings : TStringArray;
   Protected
     //Property setters
-    Procedure Setcreated(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdetailedStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TJoberrors); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetimportedIds(AIndex : Integer; AValue : TJobimportedIds); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcreated(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdetailedStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetimportedIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
     Procedure Setrequest(AIndex : Integer; AValue : TJobRequest); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TJobwarnings); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setwarnings(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property created : string Index 0 Read Fcreated Write Setcreated;
-    Property detailedStatus : string Index 8 Read FdetailedStatus Write SetdetailedStatus;
-    Property errors : TJoberrors Index 16 Read Ferrors Write Seterrors;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property importedIds : TJobimportedIds Index 32 Read FimportedIds Write SetimportedIds;
-    Property projectNumber : string Index 40 Read FprojectNumber Write SetprojectNumber;
+    Property created : String Index 0 Read Fcreated Write Setcreated;
+    Property detailedStatus : String Index 8 Read FdetailedStatus Write SetdetailedStatus;
+    Property errors : TStringArray Index 16 Read Ferrors Write Seterrors;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property importedIds : TStringArray Index 32 Read FimportedIds Write SetimportedIds;
+    Property projectNumber : String Index 40 Read FprojectNumber Write SetprojectNumber;
     Property request : TJobRequest Index 48 Read Frequest Write Setrequest;
-    Property status : string Index 56 Read Fstatus Write Setstatus;
-    Property warnings : TJobwarnings Index 64 Read Fwarnings Write Setwarnings;
+    Property status : String Index 56 Read Fstatus Write Setstatus;
+    Property warnings : TStringArray Index 64 Read Fwarnings Write Setwarnings;
   end;
   TJobClass = Class of TJob;
-  
-  { --------------------------------------------------------------------
-    TJoberrors
-    --------------------------------------------------------------------}
-  
-  TJoberrors = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJoberrorsClass = Class of TJoberrors;
-  
-  { --------------------------------------------------------------------
-    TJobimportedIds
-    --------------------------------------------------------------------}
-  
-  TJobimportedIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobimportedIdsClass = Class of TJobimportedIds;
-  
-  { --------------------------------------------------------------------
-    TJobwarnings
-    --------------------------------------------------------------------}
-  
-  TJobwarnings = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobwarningsClass = Class of TJobwarnings;
   
   { --------------------------------------------------------------------
     TJobRequest
@@ -1331,48 +963,22 @@ type
   
   TJobRequest = Class(TGoogleBaseObject)
   Private
-    Fdestination : TJobRequestdestination;
-    Fsource : TJobRequestsource;
-    F_type : string;
+    Fdestination : TStringArray;
+    Fsource : TStringArray;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdestination(AIndex : Integer; AValue : TJobRequestdestination); virtual;
-    Procedure Setsource(AIndex : Integer; AValue : TJobRequestsource); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdestination(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setsource(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property destination : TJobRequestdestination Index 0 Read Fdestination Write Setdestination;
-    Property source : TJobRequestsource Index 8 Read Fsource Write Setsource;
-    Property _type : string Index 16 Read F_type Write Set_type;
+    Property destination : TStringArray Index 0 Read Fdestination Write Setdestination;
+    Property source : TStringArray Index 8 Read Fsource Write Setsource;
+    Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TJobRequestClass = Class of TJobRequest;
-  
-  { --------------------------------------------------------------------
-    TJobRequestdestination
-    --------------------------------------------------------------------}
-  
-  TJobRequestdestination = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobRequestdestinationClass = Class of TJobRequestdestination;
-  
-  { --------------------------------------------------------------------
-    TJobRequestsource
-    --------------------------------------------------------------------}
-  
-  TJobRequestsource = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TJobRequestsourceClass = Class of TJobRequestsource;
   
   { --------------------------------------------------------------------
     TLinearAlignment
@@ -1380,34 +986,21 @@ type
   
   TLinearAlignment = Class(TGoogleBaseObject)
   Private
-    Fcigar : TLinearAlignmentcigar;
+    Fcigar : TLinearAlignmentTypecigarArray;
     FmappingQuality : integer;
     Fposition : TPosition;
   Protected
     //Property setters
-    Procedure Setcigar(AIndex : Integer; AValue : TLinearAlignmentcigar); virtual;
+    Procedure Setcigar(AIndex : Integer; AValue : TLinearAlignmentTypecigarArray); virtual;
     Procedure SetmappingQuality(AIndex : Integer; AValue : integer); virtual;
     Procedure Setposition(AIndex : Integer; AValue : TPosition); virtual;
   Public
   Published
-    Property cigar : TLinearAlignmentcigar Index 0 Read Fcigar Write Setcigar;
+    Property cigar : TLinearAlignmentTypecigarArray Index 0 Read Fcigar Write Setcigar;
     Property mappingQuality : integer Index 8 Read FmappingQuality Write SetmappingQuality;
     Property position : TPosition Index 16 Read Fposition Write Setposition;
   end;
   TLinearAlignmentClass = Class of TLinearAlignment;
-  
-  { --------------------------------------------------------------------
-    TLinearAlignmentcigar
-    --------------------------------------------------------------------}
-  
-  TLinearAlignmentcigar = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLinearAlignmentcigarClass = Class of TLinearAlignmentcigar;
   
   { --------------------------------------------------------------------
     TListBasesResponse
@@ -1415,19 +1008,19 @@ type
   
   TListBasesResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Foffset : string;
-    Fsequence : string;
+    FnextPageToken : String;
+    Foffset : String;
+    Fsequence : String;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setoffset(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsequence(AIndex : Integer; AValue : string); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setoffset(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsequence(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property offset : string Index 8 Read Foffset Write Setoffset;
-    Property sequence : string Index 16 Read Fsequence Write Setsequence;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property offset : String Index 8 Read Foffset Write Setoffset;
+    Property sequence : String Index 16 Read Fsequence Write Setsequence;
   end;
   TListBasesResponseClass = Class of TListBasesResponse;
   
@@ -1437,34 +1030,21 @@ type
   
   TListCoverageBucketsResponse = Class(TGoogleBaseObject)
   Private
-    FbucketWidth : string;
-    FcoverageBuckets : TListCoverageBucketsResponsecoverageBuckets;
-    FnextPageToken : string;
+    FbucketWidth : String;
+    FcoverageBuckets : TListCoverageBucketsResponseTypecoverageBucketsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure SetbucketWidth(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcoverageBuckets(AIndex : Integer; AValue : TListCoverageBucketsResponsecoverageBuckets); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbucketWidth(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcoverageBuckets(AIndex : Integer; AValue : TListCoverageBucketsResponseTypecoverageBucketsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property bucketWidth : string Index 0 Read FbucketWidth Write SetbucketWidth;
-    Property coverageBuckets : TListCoverageBucketsResponsecoverageBuckets Index 8 Read FcoverageBuckets Write SetcoverageBuckets;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property bucketWidth : String Index 0 Read FbucketWidth Write SetbucketWidth;
+    Property coverageBuckets : TListCoverageBucketsResponseTypecoverageBucketsArray Index 8 Read FcoverageBuckets Write SetcoverageBuckets;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TListCoverageBucketsResponseClass = Class of TListCoverageBucketsResponse;
-  
-  { --------------------------------------------------------------------
-    TListCoverageBucketsResponsecoverageBuckets
-    --------------------------------------------------------------------}
-  
-  TListCoverageBucketsResponsecoverageBuckets = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListCoverageBucketsResponsecoverageBucketsClass = Class of TListCoverageBucketsResponsecoverageBuckets;
   
   { --------------------------------------------------------------------
     TListDatasetsResponse
@@ -1472,31 +1052,18 @@ type
   
   TListDatasetsResponse = Class(TGoogleBaseObject)
   Private
-    Fdatasets : TListDatasetsResponsedatasets;
-    FnextPageToken : string;
+    Fdatasets : TListDatasetsResponseTypedatasetsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setdatasets(AIndex : Integer; AValue : TListDatasetsResponsedatasets); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdatasets(AIndex : Integer; AValue : TListDatasetsResponseTypedatasetsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property datasets : TListDatasetsResponsedatasets Index 0 Read Fdatasets Write Setdatasets;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property datasets : TListDatasetsResponseTypedatasetsArray Index 0 Read Fdatasets Write Setdatasets;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListDatasetsResponseClass = Class of TListDatasetsResponse;
-  
-  { --------------------------------------------------------------------
-    TListDatasetsResponsedatasets
-    --------------------------------------------------------------------}
-  
-  TListDatasetsResponsedatasets = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListDatasetsResponsedatasetsClass = Class of TListDatasetsResponsedatasets;
   
   { --------------------------------------------------------------------
     TMergeVariantsRequest
@@ -1504,69 +1071,21 @@ type
   
   TMergeVariantsRequest = Class(TGoogleBaseObject)
   Private
-    Fvariants : TMergeVariantsRequestvariants;
+    Fvariants : TMergeVariantsRequestTypevariantsArray;
   Protected
     //Property setters
-    Procedure Setvariants(AIndex : Integer; AValue : TMergeVariantsRequestvariants); virtual;
+    Procedure Setvariants(AIndex : Integer; AValue : TMergeVariantsRequestTypevariantsArray); virtual;
   Public
   Published
-    Property variants : TMergeVariantsRequestvariants Index 0 Read Fvariants Write Setvariants;
+    Property variants : TMergeVariantsRequestTypevariantsArray Index 0 Read Fvariants Write Setvariants;
   end;
   TMergeVariantsRequestClass = Class of TMergeVariantsRequest;
   
   { --------------------------------------------------------------------
-    TMergeVariantsRequestvariants
+    TMetadataTypeinfo
     --------------------------------------------------------------------}
   
-  TMergeVariantsRequestvariants = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMergeVariantsRequestvariantsClass = Class of TMergeVariantsRequestvariants;
-  
-  { --------------------------------------------------------------------
-    TMetadata
-    --------------------------------------------------------------------}
-  
-  TMetadata = Class(TGoogleBaseObject)
-  Private
-    Fdescription : string;
-    Fid : string;
-    Finfo : TMetadatainfo;
-    Fkey : string;
-    Fnumber : string;
-    F_type : string;
-    Fvalue : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinfo(AIndex : Integer; AValue : TMetadatainfo); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnumber(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property info : TMetadatainfo Index 16 Read Finfo Write Setinfo;
-    Property key : string Index 24 Read Fkey Write Setkey;
-    Property number : string Index 32 Read Fnumber Write Setnumber;
-    Property _type : string Index 40 Read F_type Write Set_type;
-    Property value : string Index 48 Read Fvalue Write Setvalue;
-  end;
-  TMetadataClass = Class of TMetadata;
-  
-  { --------------------------------------------------------------------
-    TMetadatainfo
-    --------------------------------------------------------------------}
-  
-  TMetadatainfo = Class(TGoogleBaseObject)
+  TMetadataTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -1574,7 +1093,42 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TMetadatainfoClass = Class of TMetadatainfo;
+  TMetadataTypeinfoClass = Class of TMetadataTypeinfo;
+  
+  { --------------------------------------------------------------------
+    TMetadata
+    --------------------------------------------------------------------}
+  
+  TMetadata = Class(TGoogleBaseObject)
+  Private
+    Fdescription : String;
+    Fid : String;
+    Finfo : TMetadataTypeinfo;
+    Fkey : String;
+    Fnumber : String;
+    F_type : String;
+    Fvalue : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setinfo(AIndex : Integer; AValue : TMetadataTypeinfo); virtual;
+    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnumber(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+  Public
+  Published
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property info : TMetadataTypeinfo Index 16 Read Finfo Write Setinfo;
+    Property key : String Index 24 Read Fkey Write Setkey;
+    Property number : String Index 32 Read Fnumber Write Setnumber;
+    Property _type : String Index 40 Read F_type Write Set_type;
+    Property value : String Index 48 Read Fvalue Write Setvalue;
+  end;
+  TMetadataClass = Class of TMetadata;
   
   { --------------------------------------------------------------------
     TPairedFastqSource
@@ -1582,47 +1136,21 @@ type
   
   TPairedFastqSource = Class(TGoogleBaseObject)
   Private
-    FfirstSourceUris : TPairedFastqSourcefirstSourceUris;
+    FfirstSourceUris : TStringArray;
     Fmetadata : TFastqMetadata;
-    FsecondSourceUris : TPairedFastqSourcesecondSourceUris;
+    FsecondSourceUris : TStringArray;
   Protected
     //Property setters
-    Procedure SetfirstSourceUris(AIndex : Integer; AValue : TPairedFastqSourcefirstSourceUris); virtual;
+    Procedure SetfirstSourceUris(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setmetadata(AIndex : Integer; AValue : TFastqMetadata); virtual;
-    Procedure SetsecondSourceUris(AIndex : Integer; AValue : TPairedFastqSourcesecondSourceUris); virtual;
+    Procedure SetsecondSourceUris(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property firstSourceUris : TPairedFastqSourcefirstSourceUris Index 0 Read FfirstSourceUris Write SetfirstSourceUris;
+    Property firstSourceUris : TStringArray Index 0 Read FfirstSourceUris Write SetfirstSourceUris;
     Property metadata : TFastqMetadata Index 8 Read Fmetadata Write Setmetadata;
-    Property secondSourceUris : TPairedFastqSourcesecondSourceUris Index 16 Read FsecondSourceUris Write SetsecondSourceUris;
+    Property secondSourceUris : TStringArray Index 16 Read FsecondSourceUris Write SetsecondSourceUris;
   end;
   TPairedFastqSourceClass = Class of TPairedFastqSource;
-  
-  { --------------------------------------------------------------------
-    TPairedFastqSourcefirstSourceUris
-    --------------------------------------------------------------------}
-  
-  TPairedFastqSourcefirstSourceUris = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPairedFastqSourcefirstSourceUrisClass = Class of TPairedFastqSourcefirstSourceUris;
-  
-  { --------------------------------------------------------------------
-    TPairedFastqSourcesecondSourceUris
-    --------------------------------------------------------------------}
-  
-  TPairedFastqSourcesecondSourceUris = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPairedFastqSourcesecondSourceUrisClass = Class of TPairedFastqSourcesecondSourceUris;
   
   { --------------------------------------------------------------------
     TPosition
@@ -1630,18 +1158,18 @@ type
   
   TPosition = Class(TGoogleBaseObject)
   Private
-    Fposition : string;
-    FreferenceName : string;
+    Fposition : String;
+    FreferenceName : String;
     FreverseStrand : boolean;
   Protected
     //Property setters
-    Procedure Setposition(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : string); virtual;
+    Procedure Setposition(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
     Procedure SetreverseStrand(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property position : string Index 0 Read Fposition Write Setposition;
-    Property referenceName : string Index 8 Read FreferenceName Write SetreferenceName;
+    Property position : String Index 0 Read Fposition Write Setposition;
+    Property referenceName : String Index 8 Read FreferenceName Write SetreferenceName;
     Property reverseStrand : boolean Index 16 Read FreverseStrand Write SetreverseStrand;
   end;
   TPositionClass = Class of TPosition;
@@ -1652,23 +1180,23 @@ type
   
   TQueryRange = Class(TGoogleBaseObject)
   Private
-    F_end : string;
-    FreferenceId : string;
-    FreferenceName : string;
-    Fstart : string;
+    F_end : String;
+    FreferenceId : String;
+    FreferenceName : String;
+    Fstart : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _end : string Index 0 Read F_end Write Set_end;
-    Property referenceId : string Index 8 Read FreferenceId Write SetreferenceId;
-    Property referenceName : string Index 16 Read FreferenceName Write SetreferenceName;
-    Property start : string Index 24 Read Fstart Write Setstart;
+    Property _end : String Index 0 Read F_end Write Set_end;
+    Property referenceId : String Index 8 Read FreferenceId Write SetreferenceId;
+    Property referenceName : String Index 16 Read FreferenceName Write SetreferenceName;
+    Property start : String Index 24 Read Fstart Write Setstart;
   end;
   TQueryRangeClass = Class of TQueryRange;
   
@@ -1678,20 +1206,20 @@ type
   
   TRange = Class(TGoogleBaseObject)
   Private
-    F_end : string;
-    FreferenceName : string;
-    Fstart : string;
+    F_end : String;
+    FreferenceName : String;
+    Fstart : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _end : string Index 0 Read F_end Write Set_end;
-    Property referenceName : string Index 8 Read FreferenceName Write SetreferenceName;
-    Property start : string Index 16 Read Fstart Write Setstart;
+    Property _end : String Index 0 Read F_end Write Set_end;
+    Property referenceName : String Index 8 Read FreferenceName Write SetreferenceName;
+    Property start : String Index 16 Read Fstart Write Setstart;
   end;
   TRangeClass = Class of TRange;
   
@@ -1701,28 +1229,42 @@ type
   
   TRangePosition = Class(TGoogleBaseObject)
   Private
-    F_end : string;
-    FreferenceId : string;
-    FreferenceName : string;
+    F_end : String;
+    FreferenceId : String;
+    FreferenceName : String;
     FreverseStrand : boolean;
-    Fstart : string;
+    Fstart : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
     Procedure SetreverseStrand(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : string); virtual;
+    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _end : string Index 0 Read F_end Write Set_end;
-    Property referenceId : string Index 8 Read FreferenceId Write SetreferenceId;
-    Property referenceName : string Index 16 Read FreferenceName Write SetreferenceName;
+    Property _end : String Index 0 Read F_end Write Set_end;
+    Property referenceId : String Index 8 Read FreferenceId Write SetreferenceId;
+    Property referenceName : String Index 16 Read FreferenceName Write SetreferenceName;
     Property reverseStrand : boolean Index 24 Read FreverseStrand Write SetreverseStrand;
-    Property start : string Index 32 Read Fstart Write Setstart;
+    Property start : String Index 32 Read Fstart Write Setstart;
   end;
   TRangePositionClass = Class of TRangePosition;
+  
+  { --------------------------------------------------------------------
+    TReadTypeinfo
+    --------------------------------------------------------------------}
+  
+  TReadTypeinfo = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TReadTypeinfoClass = Class of TReadTypeinfo;
   
   { --------------------------------------------------------------------
     TRead
@@ -1730,58 +1272,58 @@ type
   
   TRead = Class(TGoogleBaseObject)
   Private
-    FalignedQuality : TReadalignedQuality;
-    FalignedSequence : string;
+    FalignedQuality : TintegerArray;
+    FalignedSequence : String;
     Falignment : TLinearAlignment;
     FduplicateFragment : boolean;
     FfailedVendorQualityChecks : boolean;
     FfragmentLength : integer;
-    FfragmentName : string;
-    Fid : string;
-    Finfo : TReadinfo;
+    FfragmentName : String;
+    Fid : String;
+    Finfo : TReadTypeinfo;
     FnextMatePosition : TPosition;
     FnumberReads : integer;
     FproperPlacement : boolean;
-    FreadGroupId : string;
-    FreadGroupSetId : string;
+    FreadGroupId : String;
+    FreadGroupSetId : String;
     FreadNumber : integer;
     FsecondaryAlignment : boolean;
     FsupplementaryAlignment : boolean;
   Protected
     //Property setters
-    Procedure SetalignedQuality(AIndex : Integer; AValue : TReadalignedQuality); virtual;
-    Procedure SetalignedSequence(AIndex : Integer; AValue : string); virtual;
+    Procedure SetalignedQuality(AIndex : Integer; AValue : TintegerArray); virtual;
+    Procedure SetalignedSequence(AIndex : Integer; AValue : String); virtual;
     Procedure Setalignment(AIndex : Integer; AValue : TLinearAlignment); virtual;
     Procedure SetduplicateFragment(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetfailedVendorQualityChecks(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetfragmentLength(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetfragmentName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinfo(AIndex : Integer; AValue : TReadinfo); virtual;
+    Procedure SetfragmentName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setinfo(AIndex : Integer; AValue : TReadTypeinfo); virtual;
     Procedure SetnextMatePosition(AIndex : Integer; AValue : TPosition); virtual;
     Procedure SetnumberReads(AIndex : Integer; AValue : integer); virtual;
     Procedure SetproperPlacement(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetreadGroupId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreadGroupSetId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetreadGroupId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreadGroupSetId(AIndex : Integer; AValue : String); virtual;
     Procedure SetreadNumber(AIndex : Integer; AValue : integer); virtual;
     Procedure SetsecondaryAlignment(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetsupplementaryAlignment(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
-    Property alignedQuality : TReadalignedQuality Index 0 Read FalignedQuality Write SetalignedQuality;
-    Property alignedSequence : string Index 8 Read FalignedSequence Write SetalignedSequence;
+    Property alignedQuality : TintegerArray Index 0 Read FalignedQuality Write SetalignedQuality;
+    Property alignedSequence : String Index 8 Read FalignedSequence Write SetalignedSequence;
     Property alignment : TLinearAlignment Index 16 Read Falignment Write Setalignment;
     Property duplicateFragment : boolean Index 24 Read FduplicateFragment Write SetduplicateFragment;
     Property failedVendorQualityChecks : boolean Index 32 Read FfailedVendorQualityChecks Write SetfailedVendorQualityChecks;
     Property fragmentLength : integer Index 40 Read FfragmentLength Write SetfragmentLength;
-    Property fragmentName : string Index 48 Read FfragmentName Write SetfragmentName;
-    Property id : string Index 56 Read Fid Write Setid;
-    Property info : TReadinfo Index 64 Read Finfo Write Setinfo;
+    Property fragmentName : String Index 48 Read FfragmentName Write SetfragmentName;
+    Property id : String Index 56 Read Fid Write Setid;
+    Property info : TReadTypeinfo Index 64 Read Finfo Write Setinfo;
     Property nextMatePosition : TPosition Index 72 Read FnextMatePosition Write SetnextMatePosition;
     Property numberReads : integer Index 80 Read FnumberReads Write SetnumberReads;
     Property properPlacement : boolean Index 88 Read FproperPlacement Write SetproperPlacement;
-    Property readGroupId : string Index 96 Read FreadGroupId Write SetreadGroupId;
-    Property readGroupSetId : string Index 104 Read FreadGroupSetId Write SetreadGroupSetId;
+    Property readGroupId : String Index 96 Read FreadGroupId Write SetreadGroupId;
+    Property readGroupSetId : String Index 104 Read FreadGroupSetId Write SetreadGroupSetId;
     Property readNumber : integer Index 112 Read FreadNumber Write SetreadNumber;
     Property secondaryAlignment : boolean Index 120 Read FsecondaryAlignment Write SetsecondaryAlignment;
     Property supplementaryAlignment : boolean Index 128 Read FsupplementaryAlignment Write SetsupplementaryAlignment;
@@ -1789,23 +1331,10 @@ type
   TReadClass = Class of TRead;
   
   { --------------------------------------------------------------------
-    TReadalignedQuality
+    TReadGroupTypeinfo
     --------------------------------------------------------------------}
   
-  TReadalignedQuality = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReadalignedQualityClass = Class of TReadalignedQuality;
-  
-  { --------------------------------------------------------------------
-    TReadinfo
-    --------------------------------------------------------------------}
-  
-  TReadinfo = Class(TGoogleBaseObject)
+  TReadGroupTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -1813,7 +1342,7 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TReadinfoClass = Class of TReadinfo;
+  TReadGroupTypeinfoClass = Class of TReadGroupTypeinfo;
   
   { --------------------------------------------------------------------
     TReadGroup
@@ -1821,69 +1350,42 @@ type
   
   TReadGroup = Class(TGoogleBaseObject)
   Private
-    FdatasetId : string;
-    Fdescription : string;
+    FdatasetId : String;
+    Fdescription : String;
     Fexperiment : TReadGroupExperiment;
-    Fid : string;
-    Finfo : TReadGroupinfo;
-    Fname : string;
+    Fid : String;
+    Finfo : TReadGroupTypeinfo;
+    Fname : String;
     FpredictedInsertSize : integer;
-    Fprograms : TReadGroupprograms;
-    FreferenceSetId : string;
-    FsampleId : string;
+    Fprograms : TReadGroupTypeprogramsArray;
+    FreferenceSetId : String;
+    FsampleId : String;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure Setexperiment(AIndex : Integer; AValue : TReadGroupExperiment); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinfo(AIndex : Integer; AValue : TReadGroupinfo); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setinfo(AIndex : Integer; AValue : TReadGroupTypeinfo); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetpredictedInsertSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setprograms(AIndex : Integer; AValue : TReadGroupprograms); virtual;
-    Procedure SetreferenceSetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsampleId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setprograms(AIndex : Integer; AValue : TReadGroupTypeprogramsArray); virtual;
+    Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsampleId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property datasetId : string Index 0 Read FdatasetId Write SetdatasetId;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
+    Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
     Property experiment : TReadGroupExperiment Index 16 Read Fexperiment Write Setexperiment;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property info : TReadGroupinfo Index 32 Read Finfo Write Setinfo;
-    Property name : string Index 40 Read Fname Write Setname;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property info : TReadGroupTypeinfo Index 32 Read Finfo Write Setinfo;
+    Property name : String Index 40 Read Fname Write Setname;
     Property predictedInsertSize : integer Index 48 Read FpredictedInsertSize Write SetpredictedInsertSize;
-    Property programs : TReadGroupprograms Index 56 Read Fprograms Write Setprograms;
-    Property referenceSetId : string Index 64 Read FreferenceSetId Write SetreferenceSetId;
-    Property sampleId : string Index 72 Read FsampleId Write SetsampleId;
+    Property programs : TReadGroupTypeprogramsArray Index 56 Read Fprograms Write Setprograms;
+    Property referenceSetId : String Index 64 Read FreferenceSetId Write SetreferenceSetId;
+    Property sampleId : String Index 72 Read FsampleId Write SetsampleId;
   end;
   TReadGroupClass = Class of TReadGroup;
-  
-  { --------------------------------------------------------------------
-    TReadGroupinfo
-    --------------------------------------------------------------------}
-  
-  TReadGroupinfo = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TReadGroupinfoClass = Class of TReadGroupinfo;
-  
-  { --------------------------------------------------------------------
-    TReadGroupprograms
-    --------------------------------------------------------------------}
-  
-  TReadGroupprograms = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReadGroupprogramsClass = Class of TReadGroupprograms;
   
   { --------------------------------------------------------------------
     TReadGroupExperiment
@@ -1891,22 +1393,22 @@ type
   
   TReadGroupExperiment = Class(TGoogleBaseObject)
   Private
-    FinstrumentModel : string;
-    FlibraryId : string;
-    FplatformUnit : string;
-    FsequencingCenter : string;
+    FinstrumentModel : String;
+    FlibraryId : String;
+    FplatformUnit : String;
+    FsequencingCenter : String;
   Protected
     //Property setters
-    Procedure SetinstrumentModel(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlibraryId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetplatformUnit(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsequencingCenter(AIndex : Integer; AValue : string); virtual;
+    Procedure SetinstrumentModel(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlibraryId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetplatformUnit(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsequencingCenter(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property instrumentModel : string Index 0 Read FinstrumentModel Write SetinstrumentModel;
-    Property libraryId : string Index 8 Read FlibraryId Write SetlibraryId;
-    Property platformUnit : string Index 16 Read FplatformUnit Write SetplatformUnit;
-    Property sequencingCenter : string Index 24 Read FsequencingCenter Write SetsequencingCenter;
+    Property instrumentModel : String Index 0 Read FinstrumentModel Write SetinstrumentModel;
+    Property libraryId : String Index 8 Read FlibraryId Write SetlibraryId;
+    Property platformUnit : String Index 16 Read FplatformUnit Write SetplatformUnit;
+    Property sequencingCenter : String Index 24 Read FsequencingCenter Write SetsequencingCenter;
   end;
   TReadGroupExperimentClass = Class of TReadGroupExperiment;
   
@@ -1916,67 +1418,33 @@ type
   
   TReadGroupProgram = Class(TGoogleBaseObject)
   Private
-    FcommandLine : string;
-    Fid : string;
-    Fname : string;
-    FprevProgramId : string;
-    Fversion : string;
+    FcommandLine : String;
+    Fid : String;
+    Fname : String;
+    FprevProgramId : String;
+    Fversion : String;
   Protected
     //Property setters
-    Procedure SetcommandLine(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprevProgramId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcommandLine(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevProgramId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property commandLine : string Index 0 Read FcommandLine Write SetcommandLine;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property prevProgramId : string Index 24 Read FprevProgramId Write SetprevProgramId;
-    Property version : string Index 32 Read Fversion Write Setversion;
+    Property commandLine : String Index 0 Read FcommandLine Write SetcommandLine;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property prevProgramId : String Index 24 Read FprevProgramId Write SetprevProgramId;
+    Property version : String Index 32 Read Fversion Write Setversion;
   end;
   TReadGroupProgramClass = Class of TReadGroupProgram;
   
   { --------------------------------------------------------------------
-    TReadGroupSet
+    TReadGroupSetTypeinfo
     --------------------------------------------------------------------}
   
-  TReadGroupSet = Class(TGoogleBaseObject)
-  Private
-    FdatasetId : string;
-    Ffilename : string;
-    Fid : string;
-    Finfo : TReadGroupSetinfo;
-    Fname : string;
-    FreadGroups : TReadGroupSetreadGroups;
-    FreferenceSetId : string;
-  Protected
-    //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfilename(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinfo(AIndex : Integer; AValue : TReadGroupSetinfo); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreadGroups(AIndex : Integer; AValue : TReadGroupSetreadGroups); virtual;
-    Procedure SetreferenceSetId(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property datasetId : string Index 0 Read FdatasetId Write SetdatasetId;
-    Property filename : string Index 8 Read Ffilename Write Setfilename;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property info : TReadGroupSetinfo Index 24 Read Finfo Write Setinfo;
-    Property name : string Index 32 Read Fname Write Setname;
-    Property readGroups : TReadGroupSetreadGroups Index 40 Read FreadGroups Write SetreadGroups;
-    Property referenceSetId : string Index 48 Read FreferenceSetId Write SetreferenceSetId;
-  end;
-  TReadGroupSetClass = Class of TReadGroupSet;
-  
-  { --------------------------------------------------------------------
-    TReadGroupSetinfo
-    --------------------------------------------------------------------}
-  
-  TReadGroupSetinfo = Class(TGoogleBaseObject)
+  TReadGroupSetTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -1984,20 +1452,41 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TReadGroupSetinfoClass = Class of TReadGroupSetinfo;
+  TReadGroupSetTypeinfoClass = Class of TReadGroupSetTypeinfo;
   
   { --------------------------------------------------------------------
-    TReadGroupSetreadGroups
+    TReadGroupSet
     --------------------------------------------------------------------}
   
-  TReadGroupSetreadGroups = Class(TGoogleBaseObject)
+  TReadGroupSet = Class(TGoogleBaseObject)
   Private
+    FdatasetId : String;
+    Ffilename : String;
+    Fid : String;
+    Finfo : TReadGroupSetTypeinfo;
+    Fname : String;
+    FreadGroups : TReadGroupSetTypereadGroupsArray;
+    FreferenceSetId : String;
   Protected
     //Property setters
+    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfilename(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setinfo(AIndex : Integer; AValue : TReadGroupSetTypeinfo); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreadGroups(AIndex : Integer; AValue : TReadGroupSetTypereadGroupsArray); virtual;
+    Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
+    Property filename : String Index 8 Read Ffilename Write Setfilename;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property info : TReadGroupSetTypeinfo Index 24 Read Finfo Write Setinfo;
+    Property name : String Index 32 Read Fname Write Setname;
+    Property readGroups : TReadGroupSetTypereadGroupsArray Index 40 Read FreadGroups Write SetreadGroups;
+    Property referenceSetId : String Index 48 Read FreferenceSetId Write SetreferenceSetId;
   end;
-  TReadGroupSetreadGroupsClass = Class of TReadGroupSetreadGroups;
+  TReadGroupSetClass = Class of TReadGroupSet;
   
   { --------------------------------------------------------------------
     TReference
@@ -2005,46 +1494,33 @@ type
   
   TReference = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Flength : string;
-    Fmd5checksum : string;
-    Fname : string;
+    Fid : String;
+    Flength : String;
+    Fmd5checksum : String;
+    Fname : String;
     FncbiTaxonId : integer;
-    FsourceAccessions : TReferencesourceAccessions;
-    FsourceURI : string;
+    FsourceAccessions : TStringArray;
+    FsourceURI : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlength(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmd5checksum(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlength(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmd5checksum(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetncbiTaxonId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetsourceAccessions(AIndex : Integer; AValue : TReferencesourceAccessions); virtual;
-    Procedure SetsourceURI(AIndex : Integer; AValue : string); virtual;
+    Procedure SetsourceAccessions(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetsourceURI(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property length : string Index 8 Read Flength Write Setlength;
-    Property md5checksum : string Index 16 Read Fmd5checksum Write Setmd5checksum;
-    Property name : string Index 24 Read Fname Write Setname;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property length : String Index 8 Read Flength Write Setlength;
+    Property md5checksum : String Index 16 Read Fmd5checksum Write Setmd5checksum;
+    Property name : String Index 24 Read Fname Write Setname;
     Property ncbiTaxonId : integer Index 32 Read FncbiTaxonId Write SetncbiTaxonId;
-    Property sourceAccessions : TReferencesourceAccessions Index 40 Read FsourceAccessions Write SetsourceAccessions;
-    Property sourceURI : string Index 48 Read FsourceURI Write SetsourceURI;
+    Property sourceAccessions : TStringArray Index 40 Read FsourceAccessions Write SetsourceAccessions;
+    Property sourceURI : String Index 48 Read FsourceURI Write SetsourceURI;
   end;
   TReferenceClass = Class of TReference;
-  
-  { --------------------------------------------------------------------
-    TReferencesourceAccessions
-    --------------------------------------------------------------------}
-  
-  TReferencesourceAccessions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReferencesourceAccessionsClass = Class of TReferencesourceAccessions;
   
   { --------------------------------------------------------------------
     TReferenceBound
@@ -2052,16 +1528,16 @@ type
   
   TReferenceBound = Class(TGoogleBaseObject)
   Private
-    FreferenceName : string;
-    FupperBound : string;
+    FreferenceName : String;
+    FupperBound : String;
   Protected
     //Property setters
-    Procedure SetreferenceName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetupperBound(AIndex : Integer; AValue : string); virtual;
+    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetupperBound(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property referenceName : string Index 0 Read FreferenceName Write SetreferenceName;
-    Property upperBound : string Index 8 Read FupperBound Write SetupperBound;
+    Property referenceName : String Index 0 Read FreferenceName Write SetreferenceName;
+    Property upperBound : String Index 8 Read FupperBound Write SetupperBound;
   end;
   TReferenceBoundClass = Class of TReferenceBound;
   
@@ -2071,62 +1547,36 @@ type
   
   TReferenceSet = Class(TGoogleBaseObject)
   Private
-    FassemblyId : string;
-    Fdescription : string;
-    Fid : string;
-    Fmd5checksum : string;
+    FassemblyId : String;
+    Fdescription : String;
+    Fid : String;
+    Fmd5checksum : String;
     FncbiTaxonId : integer;
-    FreferenceIds : TReferenceSetreferenceIds;
-    FsourceAccessions : TReferenceSetsourceAccessions;
-    FsourceURI : string;
+    FreferenceIds : TStringArray;
+    FsourceAccessions : TStringArray;
+    FsourceURI : String;
   Protected
     //Property setters
-    Procedure SetassemblyId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmd5checksum(AIndex : Integer; AValue : string); virtual;
+    Procedure SetassemblyId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmd5checksum(AIndex : Integer; AValue : String); virtual;
     Procedure SetncbiTaxonId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetreferenceIds(AIndex : Integer; AValue : TReferenceSetreferenceIds); virtual;
-    Procedure SetsourceAccessions(AIndex : Integer; AValue : TReferenceSetsourceAccessions); virtual;
-    Procedure SetsourceURI(AIndex : Integer; AValue : string); virtual;
+    Procedure SetreferenceIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetsourceAccessions(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetsourceURI(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property assemblyId : string Index 0 Read FassemblyId Write SetassemblyId;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property md5checksum : string Index 24 Read Fmd5checksum Write Setmd5checksum;
+    Property assemblyId : String Index 0 Read FassemblyId Write SetassemblyId;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property md5checksum : String Index 24 Read Fmd5checksum Write Setmd5checksum;
     Property ncbiTaxonId : integer Index 32 Read FncbiTaxonId Write SetncbiTaxonId;
-    Property referenceIds : TReferenceSetreferenceIds Index 40 Read FreferenceIds Write SetreferenceIds;
-    Property sourceAccessions : TReferenceSetsourceAccessions Index 48 Read FsourceAccessions Write SetsourceAccessions;
-    Property sourceURI : string Index 56 Read FsourceURI Write SetsourceURI;
+    Property referenceIds : TStringArray Index 40 Read FreferenceIds Write SetreferenceIds;
+    Property sourceAccessions : TStringArray Index 48 Read FsourceAccessions Write SetsourceAccessions;
+    Property sourceURI : String Index 56 Read FsourceURI Write SetsourceURI;
   end;
   TReferenceSetClass = Class of TReferenceSet;
-  
-  { --------------------------------------------------------------------
-    TReferenceSetreferenceIds
-    --------------------------------------------------------------------}
-  
-  TReferenceSetreferenceIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReferenceSetreferenceIdsClass = Class of TReferenceSetreferenceIds;
-  
-  { --------------------------------------------------------------------
-    TReferenceSetsourceAccessions
-    --------------------------------------------------------------------}
-  
-  TReferenceSetsourceAccessions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReferenceSetsourceAccessionsClass = Class of TReferenceSetsourceAccessions;
   
   { --------------------------------------------------------------------
     TSearchAnnotationSetsRequest
@@ -2134,56 +1584,30 @@ type
   
   TSearchAnnotationSetsRequest = Class(TGoogleBaseObject)
   Private
-    FdatasetIds : TSearchAnnotationSetsRequestdatasetIds;
-    Fname : string;
+    FdatasetIds : TStringArray;
+    Fname : String;
     FpageSize : integer;
-    FpageToken : string;
-    FreferenceSetId : string;
-    Ftypes : TSearchAnnotationSetsRequesttypes;
+    FpageToken : String;
+    FreferenceSetId : String;
+    Ftypes : TStringArray;
   Protected
     //Property setters
-    Procedure SetdatasetIds(AIndex : Integer; AValue : TSearchAnnotationSetsRequestdatasetIds); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdatasetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceSetId(AIndex : Integer; AValue : string); virtual;
-    Procedure Settypes(AIndex : Integer; AValue : TSearchAnnotationSetsRequesttypes); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure Settypes(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property datasetIds : TSearchAnnotationSetsRequestdatasetIds Index 0 Read FdatasetIds Write SetdatasetIds;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property datasetIds : TStringArray Index 0 Read FdatasetIds Write SetdatasetIds;
+    Property name : String Index 8 Read Fname Write Setname;
     Property pageSize : integer Index 16 Read FpageSize Write SetpageSize;
-    Property pageToken : string Index 24 Read FpageToken Write SetpageToken;
-    Property referenceSetId : string Index 32 Read FreferenceSetId Write SetreferenceSetId;
-    Property types : TSearchAnnotationSetsRequesttypes Index 40 Read Ftypes Write Settypes;
+    Property pageToken : String Index 24 Read FpageToken Write SetpageToken;
+    Property referenceSetId : String Index 32 Read FreferenceSetId Write SetreferenceSetId;
+    Property types : TStringArray Index 40 Read Ftypes Write Settypes;
   end;
   TSearchAnnotationSetsRequestClass = Class of TSearchAnnotationSetsRequest;
-  
-  { --------------------------------------------------------------------
-    TSearchAnnotationSetsRequestdatasetIds
-    --------------------------------------------------------------------}
-  
-  TSearchAnnotationSetsRequestdatasetIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchAnnotationSetsRequestdatasetIdsClass = Class of TSearchAnnotationSetsRequestdatasetIds;
-  
-  { --------------------------------------------------------------------
-    TSearchAnnotationSetsRequesttypes
-    --------------------------------------------------------------------}
-  
-  TSearchAnnotationSetsRequesttypes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchAnnotationSetsRequesttypesClass = Class of TSearchAnnotationSetsRequesttypes;
   
   { --------------------------------------------------------------------
     TSearchAnnotationSetsResponse
@@ -2191,31 +1615,18 @@ type
   
   TSearchAnnotationSetsResponse = Class(TGoogleBaseObject)
   Private
-    FannotationSets : TSearchAnnotationSetsResponseannotationSets;
-    FnextPageToken : string;
+    FannotationSets : TSearchAnnotationSetsResponseTypeannotationSetsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure SetannotationSets(AIndex : Integer; AValue : TSearchAnnotationSetsResponseannotationSets); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetannotationSets(AIndex : Integer; AValue : TSearchAnnotationSetsResponseTypeannotationSetsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property annotationSets : TSearchAnnotationSetsResponseannotationSets Index 0 Read FannotationSets Write SetannotationSets;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property annotationSets : TSearchAnnotationSetsResponseTypeannotationSetsArray Index 0 Read FannotationSets Write SetannotationSets;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchAnnotationSetsResponseClass = Class of TSearchAnnotationSetsResponse;
-  
-  { --------------------------------------------------------------------
-    TSearchAnnotationSetsResponseannotationSets
-    --------------------------------------------------------------------}
-  
-  TSearchAnnotationSetsResponseannotationSets = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchAnnotationSetsResponseannotationSetsClass = Class of TSearchAnnotationSetsResponseannotationSets;
   
   { --------------------------------------------------------------------
     TSearchAnnotationsRequest
@@ -2223,37 +1634,24 @@ type
   
   TSearchAnnotationsRequest = Class(TGoogleBaseObject)
   Private
-    FannotationSetIds : TSearchAnnotationsRequestannotationSetIds;
+    FannotationSetIds : TStringArray;
     FpageSize : integer;
-    FpageToken : string;
+    FpageToken : String;
     Frange : TQueryRange;
   Protected
     //Property setters
-    Procedure SetannotationSetIds(AIndex : Integer; AValue : TSearchAnnotationsRequestannotationSetIds); virtual;
+    Procedure SetannotationSetIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setrange(AIndex : Integer; AValue : TQueryRange); virtual;
   Public
   Published
-    Property annotationSetIds : TSearchAnnotationsRequestannotationSetIds Index 0 Read FannotationSetIds Write SetannotationSetIds;
+    Property annotationSetIds : TStringArray Index 0 Read FannotationSetIds Write SetannotationSetIds;
     Property pageSize : integer Index 8 Read FpageSize Write SetpageSize;
-    Property pageToken : string Index 16 Read FpageToken Write SetpageToken;
+    Property pageToken : String Index 16 Read FpageToken Write SetpageToken;
     Property range : TQueryRange Index 24 Read Frange Write Setrange;
   end;
   TSearchAnnotationsRequestClass = Class of TSearchAnnotationsRequest;
-  
-  { --------------------------------------------------------------------
-    TSearchAnnotationsRequestannotationSetIds
-    --------------------------------------------------------------------}
-  
-  TSearchAnnotationsRequestannotationSetIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchAnnotationsRequestannotationSetIdsClass = Class of TSearchAnnotationsRequestannotationSetIds;
   
   { --------------------------------------------------------------------
     TSearchAnnotationsResponse
@@ -2261,31 +1659,18 @@ type
   
   TSearchAnnotationsResponse = Class(TGoogleBaseObject)
   Private
-    Fannotations : TSearchAnnotationsResponseannotations;
-    FnextPageToken : string;
+    Fannotations : TSearchAnnotationsResponseTypeannotationsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setannotations(AIndex : Integer; AValue : TSearchAnnotationsResponseannotations); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setannotations(AIndex : Integer; AValue : TSearchAnnotationsResponseTypeannotationsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property annotations : TSearchAnnotationsResponseannotations Index 0 Read Fannotations Write Setannotations;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property annotations : TSearchAnnotationsResponseTypeannotationsArray Index 0 Read Fannotations Write Setannotations;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchAnnotationsResponseClass = Class of TSearchAnnotationsResponse;
-  
-  { --------------------------------------------------------------------
-    TSearchAnnotationsResponseannotations
-    --------------------------------------------------------------------}
-  
-  TSearchAnnotationsResponseannotations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchAnnotationsResponseannotationsClass = Class of TSearchAnnotationsResponseannotations;
   
   { --------------------------------------------------------------------
     TSearchCallSetsRequest
@@ -2293,37 +1678,24 @@ type
   
   TSearchCallSetsRequest = Class(TGoogleBaseObject)
   Private
-    Fname : string;
+    Fname : String;
     FpageSize : integer;
-    FpageToken : string;
-    FvariantSetIds : TSearchCallSetsRequestvariantSetIds;
+    FpageToken : String;
+    FvariantSetIds : TStringArray;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvariantSetIds(AIndex : Integer; AValue : TSearchCallSetsRequestvariantSetIds); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvariantSetIds(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
+    Property name : String Index 0 Read Fname Write Setname;
     Property pageSize : integer Index 8 Read FpageSize Write SetpageSize;
-    Property pageToken : string Index 16 Read FpageToken Write SetpageToken;
-    Property variantSetIds : TSearchCallSetsRequestvariantSetIds Index 24 Read FvariantSetIds Write SetvariantSetIds;
+    Property pageToken : String Index 16 Read FpageToken Write SetpageToken;
+    Property variantSetIds : TStringArray Index 24 Read FvariantSetIds Write SetvariantSetIds;
   end;
   TSearchCallSetsRequestClass = Class of TSearchCallSetsRequest;
-  
-  { --------------------------------------------------------------------
-    TSearchCallSetsRequestvariantSetIds
-    --------------------------------------------------------------------}
-  
-  TSearchCallSetsRequestvariantSetIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchCallSetsRequestvariantSetIdsClass = Class of TSearchCallSetsRequestvariantSetIds;
   
   { --------------------------------------------------------------------
     TSearchCallSetsResponse
@@ -2331,31 +1703,18 @@ type
   
   TSearchCallSetsResponse = Class(TGoogleBaseObject)
   Private
-    FcallSets : TSearchCallSetsResponsecallSets;
-    FnextPageToken : string;
+    FcallSets : TSearchCallSetsResponseTypecallSetsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure SetcallSets(AIndex : Integer; AValue : TSearchCallSetsResponsecallSets); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcallSets(AIndex : Integer; AValue : TSearchCallSetsResponseTypecallSetsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property callSets : TSearchCallSetsResponsecallSets Index 0 Read FcallSets Write SetcallSets;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property callSets : TSearchCallSetsResponseTypecallSetsArray Index 0 Read FcallSets Write SetcallSets;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchCallSetsResponseClass = Class of TSearchCallSetsResponse;
-  
-  { --------------------------------------------------------------------
-    TSearchCallSetsResponsecallSets
-    --------------------------------------------------------------------}
-  
-  TSearchCallSetsResponsecallSets = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchCallSetsResponsecallSetsClass = Class of TSearchCallSetsResponsecallSets;
   
   { --------------------------------------------------------------------
     TSearchJobsRequest
@@ -2363,43 +1722,30 @@ type
   
   TSearchJobsRequest = Class(TGoogleBaseObject)
   Private
-    FcreatedAfter : string;
-    FcreatedBefore : string;
+    FcreatedAfter : String;
+    FcreatedBefore : String;
     FpageSize : integer;
-    FpageToken : string;
-    FprojectNumber : string;
-    Fstatus : TSearchJobsRequeststatus;
+    FpageToken : String;
+    FprojectNumber : String;
+    Fstatus : TStringArray;
   Protected
     //Property setters
-    Procedure SetcreatedAfter(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreatedBefore(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreatedAfter(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreatedBefore(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : TSearchJobsRequeststatus); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property createdAfter : string Index 0 Read FcreatedAfter Write SetcreatedAfter;
-    Property createdBefore : string Index 8 Read FcreatedBefore Write SetcreatedBefore;
+    Property createdAfter : String Index 0 Read FcreatedAfter Write SetcreatedAfter;
+    Property createdBefore : String Index 8 Read FcreatedBefore Write SetcreatedBefore;
     Property pageSize : integer Index 16 Read FpageSize Write SetpageSize;
-    Property pageToken : string Index 24 Read FpageToken Write SetpageToken;
-    Property projectNumber : string Index 32 Read FprojectNumber Write SetprojectNumber;
-    Property status : TSearchJobsRequeststatus Index 40 Read Fstatus Write Setstatus;
+    Property pageToken : String Index 24 Read FpageToken Write SetpageToken;
+    Property projectNumber : String Index 32 Read FprojectNumber Write SetprojectNumber;
+    Property status : TStringArray Index 40 Read Fstatus Write Setstatus;
   end;
   TSearchJobsRequestClass = Class of TSearchJobsRequest;
-  
-  { --------------------------------------------------------------------
-    TSearchJobsRequeststatus
-    --------------------------------------------------------------------}
-  
-  TSearchJobsRequeststatus = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchJobsRequeststatusClass = Class of TSearchJobsRequeststatus;
   
   { --------------------------------------------------------------------
     TSearchJobsResponse
@@ -2407,31 +1753,18 @@ type
   
   TSearchJobsResponse = Class(TGoogleBaseObject)
   Private
-    Fjobs : TSearchJobsResponsejobs;
-    FnextPageToken : string;
+    Fjobs : TSearchJobsResponseTypejobsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setjobs(AIndex : Integer; AValue : TSearchJobsResponsejobs); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setjobs(AIndex : Integer; AValue : TSearchJobsResponseTypejobsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property jobs : TSearchJobsResponsejobs Index 0 Read Fjobs Write Setjobs;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property jobs : TSearchJobsResponseTypejobsArray Index 0 Read Fjobs Write Setjobs;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchJobsResponseClass = Class of TSearchJobsResponse;
-  
-  { --------------------------------------------------------------------
-    TSearchJobsResponsejobs
-    --------------------------------------------------------------------}
-  
-  TSearchJobsResponsejobs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchJobsResponsejobsClass = Class of TSearchJobsResponsejobs;
   
   { --------------------------------------------------------------------
     TSearchReadGroupSetsRequest
@@ -2439,37 +1772,24 @@ type
   
   TSearchReadGroupSetsRequest = Class(TGoogleBaseObject)
   Private
-    FdatasetIds : TSearchReadGroupSetsRequestdatasetIds;
-    Fname : string;
+    FdatasetIds : TStringArray;
+    Fname : String;
     FpageSize : integer;
-    FpageToken : string;
+    FpageToken : String;
   Protected
     //Property setters
-    Procedure SetdatasetIds(AIndex : Integer; AValue : TSearchReadGroupSetsRequestdatasetIds); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdatasetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property datasetIds : TSearchReadGroupSetsRequestdatasetIds Index 0 Read FdatasetIds Write SetdatasetIds;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property datasetIds : TStringArray Index 0 Read FdatasetIds Write SetdatasetIds;
+    Property name : String Index 8 Read Fname Write Setname;
     Property pageSize : integer Index 16 Read FpageSize Write SetpageSize;
-    Property pageToken : string Index 24 Read FpageToken Write SetpageToken;
+    Property pageToken : String Index 24 Read FpageToken Write SetpageToken;
   end;
   TSearchReadGroupSetsRequestClass = Class of TSearchReadGroupSetsRequest;
-  
-  { --------------------------------------------------------------------
-    TSearchReadGroupSetsRequestdatasetIds
-    --------------------------------------------------------------------}
-  
-  TSearchReadGroupSetsRequestdatasetIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchReadGroupSetsRequestdatasetIdsClass = Class of TSearchReadGroupSetsRequestdatasetIds;
   
   { --------------------------------------------------------------------
     TSearchReadGroupSetsResponse
@@ -2477,31 +1797,18 @@ type
   
   TSearchReadGroupSetsResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    FreadGroupSets : TSearchReadGroupSetsResponsereadGroupSets;
+    FnextPageToken : String;
+    FreadGroupSets : TSearchReadGroupSetsResponseTypereadGroupSetsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreadGroupSets(AIndex : Integer; AValue : TSearchReadGroupSetsResponsereadGroupSets); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreadGroupSets(AIndex : Integer; AValue : TSearchReadGroupSetsResponseTypereadGroupSetsArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property readGroupSets : TSearchReadGroupSetsResponsereadGroupSets Index 8 Read FreadGroupSets Write SetreadGroupSets;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property readGroupSets : TSearchReadGroupSetsResponseTypereadGroupSetsArray Index 8 Read FreadGroupSets Write SetreadGroupSets;
   end;
   TSearchReadGroupSetsResponseClass = Class of TSearchReadGroupSetsResponse;
-  
-  { --------------------------------------------------------------------
-    TSearchReadGroupSetsResponsereadGroupSets
-    --------------------------------------------------------------------}
-  
-  TSearchReadGroupSetsResponsereadGroupSets = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchReadGroupSetsResponsereadGroupSetsClass = Class of TSearchReadGroupSetsResponsereadGroupSets;
   
   { --------------------------------------------------------------------
     TSearchReadsRequest
@@ -2509,60 +1816,34 @@ type
   
   TSearchReadsRequest = Class(TGoogleBaseObject)
   Private
-    F_end : string;
+    F_end : String;
     FpageSize : integer;
-    FpageToken : string;
-    FreadGroupIds : TSearchReadsRequestreadGroupIds;
-    FreadGroupSetIds : TSearchReadsRequestreadGroupSetIds;
-    FreferenceName : string;
-    Fstart : string;
+    FpageToken : String;
+    FreadGroupIds : TStringArray;
+    FreadGroupSetIds : TStringArray;
+    FreferenceName : String;
+    Fstart : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreadGroupIds(AIndex : Integer; AValue : TSearchReadsRequestreadGroupIds); virtual;
-    Procedure SetreadGroupSetIds(AIndex : Integer; AValue : TSearchReadsRequestreadGroupSetIds); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : string); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreadGroupIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetreadGroupSetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _end : string Index 0 Read F_end Write Set_end;
+    Property _end : String Index 0 Read F_end Write Set_end;
     Property pageSize : integer Index 8 Read FpageSize Write SetpageSize;
-    Property pageToken : string Index 16 Read FpageToken Write SetpageToken;
-    Property readGroupIds : TSearchReadsRequestreadGroupIds Index 24 Read FreadGroupIds Write SetreadGroupIds;
-    Property readGroupSetIds : TSearchReadsRequestreadGroupSetIds Index 32 Read FreadGroupSetIds Write SetreadGroupSetIds;
-    Property referenceName : string Index 40 Read FreferenceName Write SetreferenceName;
-    Property start : string Index 48 Read Fstart Write Setstart;
+    Property pageToken : String Index 16 Read FpageToken Write SetpageToken;
+    Property readGroupIds : TStringArray Index 24 Read FreadGroupIds Write SetreadGroupIds;
+    Property readGroupSetIds : TStringArray Index 32 Read FreadGroupSetIds Write SetreadGroupSetIds;
+    Property referenceName : String Index 40 Read FreferenceName Write SetreferenceName;
+    Property start : String Index 48 Read Fstart Write Setstart;
   end;
   TSearchReadsRequestClass = Class of TSearchReadsRequest;
-  
-  { --------------------------------------------------------------------
-    TSearchReadsRequestreadGroupIds
-    --------------------------------------------------------------------}
-  
-  TSearchReadsRequestreadGroupIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchReadsRequestreadGroupIdsClass = Class of TSearchReadsRequestreadGroupIds;
-  
-  { --------------------------------------------------------------------
-    TSearchReadsRequestreadGroupSetIds
-    --------------------------------------------------------------------}
-  
-  TSearchReadsRequestreadGroupSetIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchReadsRequestreadGroupSetIdsClass = Class of TSearchReadsRequestreadGroupSetIds;
   
   { --------------------------------------------------------------------
     TSearchReadsResponse
@@ -2570,31 +1851,18 @@ type
   
   TSearchReadsResponse = Class(TGoogleBaseObject)
   Private
-    Falignments : TSearchReadsResponsealignments;
-    FnextPageToken : string;
+    Falignments : TSearchReadsResponseTypealignmentsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setalignments(AIndex : Integer; AValue : TSearchReadsResponsealignments); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setalignments(AIndex : Integer; AValue : TSearchReadsResponseTypealignmentsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property alignments : TSearchReadsResponsealignments Index 0 Read Falignments Write Setalignments;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property alignments : TSearchReadsResponseTypealignmentsArray Index 0 Read Falignments Write Setalignments;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchReadsResponseClass = Class of TSearchReadsResponse;
-  
-  { --------------------------------------------------------------------
-    TSearchReadsResponsealignments
-    --------------------------------------------------------------------}
-  
-  TSearchReadsResponsealignments = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchReadsResponsealignmentsClass = Class of TSearchReadsResponsealignments;
   
   { --------------------------------------------------------------------
     TSearchReferenceSetsRequest
@@ -2602,53 +1870,27 @@ type
   
   TSearchReferenceSetsRequest = Class(TGoogleBaseObject)
   Private
-    Faccessions : TSearchReferenceSetsRequestaccessions;
-    FassemblyId : string;
-    Fmd5checksums : TSearchReferenceSetsRequestmd5checksums;
+    Faccessions : TStringArray;
+    FassemblyId : String;
+    Fmd5checksums : TStringArray;
     FpageSize : integer;
-    FpageToken : string;
+    FpageToken : String;
   Protected
     //Property setters
-    Procedure Setaccessions(AIndex : Integer; AValue : TSearchReferenceSetsRequestaccessions); virtual;
-    Procedure SetassemblyId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmd5checksums(AIndex : Integer; AValue : TSearchReferenceSetsRequestmd5checksums); virtual;
+    Procedure Setaccessions(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetassemblyId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmd5checksums(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accessions : TSearchReferenceSetsRequestaccessions Index 0 Read Faccessions Write Setaccessions;
-    Property assemblyId : string Index 8 Read FassemblyId Write SetassemblyId;
-    Property md5checksums : TSearchReferenceSetsRequestmd5checksums Index 16 Read Fmd5checksums Write Setmd5checksums;
+    Property accessions : TStringArray Index 0 Read Faccessions Write Setaccessions;
+    Property assemblyId : String Index 8 Read FassemblyId Write SetassemblyId;
+    Property md5checksums : TStringArray Index 16 Read Fmd5checksums Write Setmd5checksums;
     Property pageSize : integer Index 24 Read FpageSize Write SetpageSize;
-    Property pageToken : string Index 32 Read FpageToken Write SetpageToken;
+    Property pageToken : String Index 32 Read FpageToken Write SetpageToken;
   end;
   TSearchReferenceSetsRequestClass = Class of TSearchReferenceSetsRequest;
-  
-  { --------------------------------------------------------------------
-    TSearchReferenceSetsRequestaccessions
-    --------------------------------------------------------------------}
-  
-  TSearchReferenceSetsRequestaccessions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchReferenceSetsRequestaccessionsClass = Class of TSearchReferenceSetsRequestaccessions;
-  
-  { --------------------------------------------------------------------
-    TSearchReferenceSetsRequestmd5checksums
-    --------------------------------------------------------------------}
-  
-  TSearchReferenceSetsRequestmd5checksums = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchReferenceSetsRequestmd5checksumsClass = Class of TSearchReferenceSetsRequestmd5checksums;
   
   { --------------------------------------------------------------------
     TSearchReferenceSetsResponse
@@ -2656,31 +1898,18 @@ type
   
   TSearchReferenceSetsResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    FreferenceSets : TSearchReferenceSetsResponsereferenceSets;
+    FnextPageToken : String;
+    FreferenceSets : TSearchReferenceSetsResponseTypereferenceSetsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceSets(AIndex : Integer; AValue : TSearchReferenceSetsResponsereferenceSets); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceSets(AIndex : Integer; AValue : TSearchReferenceSetsResponseTypereferenceSetsArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property referenceSets : TSearchReferenceSetsResponsereferenceSets Index 8 Read FreferenceSets Write SetreferenceSets;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property referenceSets : TSearchReferenceSetsResponseTypereferenceSetsArray Index 8 Read FreferenceSets Write SetreferenceSets;
   end;
   TSearchReferenceSetsResponseClass = Class of TSearchReferenceSetsResponse;
-  
-  { --------------------------------------------------------------------
-    TSearchReferenceSetsResponsereferenceSets
-    --------------------------------------------------------------------}
-  
-  TSearchReferenceSetsResponsereferenceSets = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchReferenceSetsResponsereferenceSetsClass = Class of TSearchReferenceSetsResponsereferenceSets;
   
   { --------------------------------------------------------------------
     TSearchReferencesRequest
@@ -2688,53 +1917,27 @@ type
   
   TSearchReferencesRequest = Class(TGoogleBaseObject)
   Private
-    Faccessions : TSearchReferencesRequestaccessions;
-    Fmd5checksums : TSearchReferencesRequestmd5checksums;
+    Faccessions : TStringArray;
+    Fmd5checksums : TStringArray;
     FpageSize : integer;
-    FpageToken : string;
-    FreferenceSetId : string;
+    FpageToken : String;
+    FreferenceSetId : String;
   Protected
     //Property setters
-    Procedure Setaccessions(AIndex : Integer; AValue : TSearchReferencesRequestaccessions); virtual;
-    Procedure Setmd5checksums(AIndex : Integer; AValue : TSearchReferencesRequestmd5checksums); virtual;
+    Procedure Setaccessions(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setmd5checksums(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceSetId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accessions : TSearchReferencesRequestaccessions Index 0 Read Faccessions Write Setaccessions;
-    Property md5checksums : TSearchReferencesRequestmd5checksums Index 8 Read Fmd5checksums Write Setmd5checksums;
+    Property accessions : TStringArray Index 0 Read Faccessions Write Setaccessions;
+    Property md5checksums : TStringArray Index 8 Read Fmd5checksums Write Setmd5checksums;
     Property pageSize : integer Index 16 Read FpageSize Write SetpageSize;
-    Property pageToken : string Index 24 Read FpageToken Write SetpageToken;
-    Property referenceSetId : string Index 32 Read FreferenceSetId Write SetreferenceSetId;
+    Property pageToken : String Index 24 Read FpageToken Write SetpageToken;
+    Property referenceSetId : String Index 32 Read FreferenceSetId Write SetreferenceSetId;
   end;
   TSearchReferencesRequestClass = Class of TSearchReferencesRequest;
-  
-  { --------------------------------------------------------------------
-    TSearchReferencesRequestaccessions
-    --------------------------------------------------------------------}
-  
-  TSearchReferencesRequestaccessions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchReferencesRequestaccessionsClass = Class of TSearchReferencesRequestaccessions;
-  
-  { --------------------------------------------------------------------
-    TSearchReferencesRequestmd5checksums
-    --------------------------------------------------------------------}
-  
-  TSearchReferencesRequestmd5checksums = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchReferencesRequestmd5checksumsClass = Class of TSearchReferencesRequestmd5checksums;
   
   { --------------------------------------------------------------------
     TSearchReferencesResponse
@@ -2742,31 +1945,18 @@ type
   
   TSearchReferencesResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Freferences : TSearchReferencesResponsereferences;
+    FnextPageToken : String;
+    Freferences : TSearchReferencesResponseTypereferencesArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setreferences(AIndex : Integer; AValue : TSearchReferencesResponsereferences); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setreferences(AIndex : Integer; AValue : TSearchReferencesResponseTypereferencesArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property references : TSearchReferencesResponsereferences Index 8 Read Freferences Write Setreferences;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property references : TSearchReferencesResponseTypereferencesArray Index 8 Read Freferences Write Setreferences;
   end;
   TSearchReferencesResponseClass = Class of TSearchReferencesResponse;
-  
-  { --------------------------------------------------------------------
-    TSearchReferencesResponsereferences
-    --------------------------------------------------------------------}
-  
-  TSearchReferencesResponsereferences = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchReferencesResponsereferencesClass = Class of TSearchReferencesResponsereferences;
   
   { --------------------------------------------------------------------
     TSearchVariantSetsRequest
@@ -2774,34 +1964,21 @@ type
   
   TSearchVariantSetsRequest = Class(TGoogleBaseObject)
   Private
-    FdatasetIds : TSearchVariantSetsRequestdatasetIds;
+    FdatasetIds : TStringArray;
     FpageSize : integer;
-    FpageToken : string;
+    FpageToken : String;
   Protected
     //Property setters
-    Procedure SetdatasetIds(AIndex : Integer; AValue : TSearchVariantSetsRequestdatasetIds); virtual;
+    Procedure SetdatasetIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property datasetIds : TSearchVariantSetsRequestdatasetIds Index 0 Read FdatasetIds Write SetdatasetIds;
+    Property datasetIds : TStringArray Index 0 Read FdatasetIds Write SetdatasetIds;
     Property pageSize : integer Index 8 Read FpageSize Write SetpageSize;
-    Property pageToken : string Index 16 Read FpageToken Write SetpageToken;
+    Property pageToken : String Index 16 Read FpageToken Write SetpageToken;
   end;
   TSearchVariantSetsRequestClass = Class of TSearchVariantSetsRequest;
-  
-  { --------------------------------------------------------------------
-    TSearchVariantSetsRequestdatasetIds
-    --------------------------------------------------------------------}
-  
-  TSearchVariantSetsRequestdatasetIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchVariantSetsRequestdatasetIdsClass = Class of TSearchVariantSetsRequestdatasetIds;
   
   { --------------------------------------------------------------------
     TSearchVariantSetsResponse
@@ -2809,31 +1986,18 @@ type
   
   TSearchVariantSetsResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    FvariantSets : TSearchVariantSetsResponsevariantSets;
+    FnextPageToken : String;
+    FvariantSets : TSearchVariantSetsResponseTypevariantSetsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvariantSets(AIndex : Integer; AValue : TSearchVariantSetsResponsevariantSets); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvariantSets(AIndex : Integer; AValue : TSearchVariantSetsResponseTypevariantSetsArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property variantSets : TSearchVariantSetsResponsevariantSets Index 8 Read FvariantSets Write SetvariantSets;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property variantSets : TSearchVariantSetsResponseTypevariantSetsArray Index 8 Read FvariantSets Write SetvariantSets;
   end;
   TSearchVariantSetsResponseClass = Class of TSearchVariantSetsResponse;
-  
-  { --------------------------------------------------------------------
-    TSearchVariantSetsResponsevariantSets
-    --------------------------------------------------------------------}
-  
-  TSearchVariantSetsResponsevariantSets = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchVariantSetsResponsevariantSetsClass = Class of TSearchVariantSetsResponsevariantSets;
   
   { --------------------------------------------------------------------
     TSearchVariantsRequest
@@ -2841,66 +2005,40 @@ type
   
   TSearchVariantsRequest = Class(TGoogleBaseObject)
   Private
-    FcallSetIds : TSearchVariantsRequestcallSetIds;
-    F_end : string;
+    FcallSetIds : TStringArray;
+    F_end : String;
     FmaxCalls : integer;
     FpageSize : integer;
-    FpageToken : string;
-    FreferenceName : string;
-    Fstart : string;
-    FvariantName : string;
-    FvariantSetIds : TSearchVariantsRequestvariantSetIds;
+    FpageToken : String;
+    FreferenceName : String;
+    Fstart : String;
+    FvariantName : String;
+    FvariantSetIds : TStringArray;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetcallSetIds(AIndex : Integer; AValue : TSearchVariantsRequestcallSetIds); virtual;
-    Procedure Set_end(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcallSetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
     Procedure SetmaxCalls(AIndex : Integer; AValue : integer); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvariantName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvariantSetIds(AIndex : Integer; AValue : TSearchVariantsRequestvariantSetIds); virtual;
+    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvariantName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvariantSetIds(AIndex : Integer; AValue : TStringArray); virtual;
   Public
   Published
-    Property callSetIds : TSearchVariantsRequestcallSetIds Index 0 Read FcallSetIds Write SetcallSetIds;
-    Property _end : string Index 8 Read F_end Write Set_end;
+    Property callSetIds : TStringArray Index 0 Read FcallSetIds Write SetcallSetIds;
+    Property _end : String Index 8 Read F_end Write Set_end;
     Property maxCalls : integer Index 16 Read FmaxCalls Write SetmaxCalls;
     Property pageSize : integer Index 24 Read FpageSize Write SetpageSize;
-    Property pageToken : string Index 32 Read FpageToken Write SetpageToken;
-    Property referenceName : string Index 40 Read FreferenceName Write SetreferenceName;
-    Property start : string Index 48 Read Fstart Write Setstart;
-    Property variantName : string Index 56 Read FvariantName Write SetvariantName;
-    Property variantSetIds : TSearchVariantsRequestvariantSetIds Index 64 Read FvariantSetIds Write SetvariantSetIds;
+    Property pageToken : String Index 32 Read FpageToken Write SetpageToken;
+    Property referenceName : String Index 40 Read FreferenceName Write SetreferenceName;
+    Property start : String Index 48 Read Fstart Write Setstart;
+    Property variantName : String Index 56 Read FvariantName Write SetvariantName;
+    Property variantSetIds : TStringArray Index 64 Read FvariantSetIds Write SetvariantSetIds;
   end;
   TSearchVariantsRequestClass = Class of TSearchVariantsRequest;
-  
-  { --------------------------------------------------------------------
-    TSearchVariantsRequestcallSetIds
-    --------------------------------------------------------------------}
-  
-  TSearchVariantsRequestcallSetIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchVariantsRequestcallSetIdsClass = Class of TSearchVariantsRequestcallSetIds;
-  
-  { --------------------------------------------------------------------
-    TSearchVariantsRequestvariantSetIds
-    --------------------------------------------------------------------}
-  
-  TSearchVariantsRequestvariantSetIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchVariantsRequestvariantSetIdsClass = Class of TSearchVariantsRequestvariantSetIds;
   
   { --------------------------------------------------------------------
     TSearchVariantsResponse
@@ -2908,31 +2046,18 @@ type
   
   TSearchVariantsResponse = Class(TGoogleBaseObject)
   Private
-    FnextPageToken : string;
-    Fvariants : TSearchVariantsResponsevariants;
+    FnextPageToken : String;
+    Fvariants : TSearchVariantsResponseTypevariantsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvariants(AIndex : Integer; AValue : TSearchVariantsResponsevariants); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvariants(AIndex : Integer; AValue : TSearchVariantsResponseTypevariantsArray); virtual;
   Public
   Published
-    Property nextPageToken : string Index 0 Read FnextPageToken Write SetnextPageToken;
-    Property variants : TSearchVariantsResponsevariants Index 8 Read Fvariants Write Setvariants;
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property variants : TSearchVariantsResponseTypevariantsArray Index 8 Read Fvariants Write Setvariants;
   end;
   TSearchVariantsResponseClass = Class of TSearchVariantsResponse;
-  
-  { --------------------------------------------------------------------
-    TSearchVariantsResponsevariants
-    --------------------------------------------------------------------}
-  
-  TSearchVariantsResponsevariants = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSearchVariantsResponsevariantsClass = Class of TSearchVariantsResponsevariants;
   
   { --------------------------------------------------------------------
     TStreamReadsRequest
@@ -2940,38 +2065,25 @@ type
   
   TStreamReadsRequest = Class(TGoogleBaseObject)
   Private
-    F_end : string;
-    FreadGroupSetIds : TStreamReadsRequestreadGroupSetIds;
-    FreferenceName : string;
-    Fstart : string;
+    F_end : String;
+    FreadGroupSetIds : TStringArray;
+    FreferenceName : String;
+    Fstart : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreadGroupSetIds(AIndex : Integer; AValue : TStreamReadsRequestreadGroupSetIds); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreadGroupSetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _end : string Index 0 Read F_end Write Set_end;
-    Property readGroupSetIds : TStreamReadsRequestreadGroupSetIds Index 8 Read FreadGroupSetIds Write SetreadGroupSetIds;
-    Property referenceName : string Index 16 Read FreferenceName Write SetreferenceName;
-    Property start : string Index 24 Read Fstart Write Setstart;
+    Property _end : String Index 0 Read F_end Write Set_end;
+    Property readGroupSetIds : TStringArray Index 8 Read FreadGroupSetIds Write SetreadGroupSetIds;
+    Property referenceName : String Index 16 Read FreferenceName Write SetreferenceName;
+    Property start : String Index 24 Read Fstart Write Setstart;
   end;
   TStreamReadsRequestClass = Class of TStreamReadsRequest;
-  
-  { --------------------------------------------------------------------
-    TStreamReadsRequestreadGroupSetIds
-    --------------------------------------------------------------------}
-  
-  TStreamReadsRequestreadGroupSetIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TStreamReadsRequestreadGroupSetIdsClass = Class of TStreamReadsRequestreadGroupSetIds;
   
   { --------------------------------------------------------------------
     TStreamReadsResponse
@@ -2979,28 +2091,15 @@ type
   
   TStreamReadsResponse = Class(TGoogleBaseObject)
   Private
-    Falignments : TStreamReadsResponsealignments;
+    Falignments : TStreamReadsResponseTypealignmentsArray;
   Protected
     //Property setters
-    Procedure Setalignments(AIndex : Integer; AValue : TStreamReadsResponsealignments); virtual;
+    Procedure Setalignments(AIndex : Integer; AValue : TStreamReadsResponseTypealignmentsArray); virtual;
   Public
   Published
-    Property alignments : TStreamReadsResponsealignments Index 0 Read Falignments Write Setalignments;
+    Property alignments : TStreamReadsResponseTypealignmentsArray Index 0 Read Falignments Write Setalignments;
   end;
   TStreamReadsResponseClass = Class of TStreamReadsResponse;
-  
-  { --------------------------------------------------------------------
-    TStreamReadsResponsealignments
-    --------------------------------------------------------------------}
-  
-  TStreamReadsResponsealignments = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TStreamReadsResponsealignmentsClass = Class of TStreamReadsResponsealignments;
   
   { --------------------------------------------------------------------
     TTranscript
@@ -3009,33 +2108,20 @@ type
   TTranscript = Class(TGoogleBaseObject)
   Private
     FcodingSequence : TTranscriptCodingSequence;
-    Fexons : TTranscriptexons;
-    FgeneId : string;
+    Fexons : TTranscriptTypeexonsArray;
+    FgeneId : String;
   Protected
     //Property setters
     Procedure SetcodingSequence(AIndex : Integer; AValue : TTranscriptCodingSequence); virtual;
-    Procedure Setexons(AIndex : Integer; AValue : TTranscriptexons); virtual;
-    Procedure SetgeneId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setexons(AIndex : Integer; AValue : TTranscriptTypeexonsArray); virtual;
+    Procedure SetgeneId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property codingSequence : TTranscriptCodingSequence Index 0 Read FcodingSequence Write SetcodingSequence;
-    Property exons : TTranscriptexons Index 8 Read Fexons Write Setexons;
-    Property geneId : string Index 16 Read FgeneId Write SetgeneId;
+    Property exons : TTranscriptTypeexonsArray Index 8 Read Fexons Write Setexons;
+    Property geneId : String Index 16 Read FgeneId Write SetgeneId;
   end;
   TTranscriptClass = Class of TTranscript;
-  
-  { --------------------------------------------------------------------
-    TTranscriptexons
-    --------------------------------------------------------------------}
-  
-  TTranscriptexons = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTranscriptexonsClass = Class of TTranscriptexons;
   
   { --------------------------------------------------------------------
     TTranscriptCodingSequence
@@ -3043,17 +2129,17 @@ type
   
   TTranscriptCodingSequence = Class(TGoogleBaseObject)
   Private
-    F_end : string;
-    Fstart : string;
+    F_end : String;
+    Fstart : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _end : string Index 0 Read F_end Write Set_end;
-    Property start : string Index 8 Read Fstart Write Setstart;
+    Property _end : String Index 0 Read F_end Write Set_end;
+    Property start : String Index 8 Read Fstart Write Setstart;
   end;
   TTranscriptCodingSequenceClass = Class of TTranscriptCodingSequence;
   
@@ -3063,120 +2149,28 @@ type
   
   TTranscriptExon = Class(TGoogleBaseObject)
   Private
-    F_end : string;
+    F_end : String;
     Fframe : TInt32Value;
-    Fstart : string;
+    Fstart : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
     Procedure Setframe(AIndex : Integer; AValue : TInt32Value); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : string); virtual;
+    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _end : string Index 0 Read F_end Write Set_end;
+    Property _end : String Index 0 Read F_end Write Set_end;
     Property frame : TInt32Value Index 8 Read Fframe Write Setframe;
-    Property start : string Index 16 Read Fstart Write Setstart;
+    Property start : String Index 16 Read Fstart Write Setstart;
   end;
   TTranscriptExonClass = Class of TTranscriptExon;
   
   { --------------------------------------------------------------------
-    TVariant
+    TVariantTypeinfo
     --------------------------------------------------------------------}
   
-  TVariant = Class(TGoogleBaseObject)
-  Private
-    FalternateBases : TVariantalternateBases;
-    Fcalls : TVariantcalls;
-    Fcreated : string;
-    F_end : string;
-    Ffilter : TVariantfilter;
-    Fid : string;
-    Finfo : TVariantinfo;
-    Fnames : TVariantnames;
-    Fquality : double;
-    FreferenceBases : string;
-    FreferenceName : string;
-    Fstart : string;
-    FvariantSetId : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure SetalternateBases(AIndex : Integer; AValue : TVariantalternateBases); virtual;
-    Procedure Setcalls(AIndex : Integer; AValue : TVariantcalls); virtual;
-    Procedure Setcreated(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_end(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfilter(AIndex : Integer; AValue : TVariantfilter); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinfo(AIndex : Integer; AValue : TVariantinfo); virtual;
-    Procedure Setnames(AIndex : Integer; AValue : TVariantnames); virtual;
-    Procedure Setquality(AIndex : Integer; AValue : double); virtual;
-    Procedure SetreferenceBases(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvariantSetId(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property alternateBases : TVariantalternateBases Index 0 Read FalternateBases Write SetalternateBases;
-    Property calls : TVariantcalls Index 8 Read Fcalls Write Setcalls;
-    Property created : string Index 16 Read Fcreated Write Setcreated;
-    Property _end : string Index 24 Read F_end Write Set_end;
-    Property filter : TVariantfilter Index 32 Read Ffilter Write Setfilter;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property info : TVariantinfo Index 48 Read Finfo Write Setinfo;
-    Property names : TVariantnames Index 56 Read Fnames Write Setnames;
-    Property quality : double Index 64 Read Fquality Write Setquality;
-    Property referenceBases : string Index 72 Read FreferenceBases Write SetreferenceBases;
-    Property referenceName : string Index 80 Read FreferenceName Write SetreferenceName;
-    Property start : string Index 88 Read Fstart Write Setstart;
-    Property variantSetId : string Index 96 Read FvariantSetId Write SetvariantSetId;
-  end;
-  TVariantClass = Class of TVariant;
-  
-  { --------------------------------------------------------------------
-    TVariantalternateBases
-    --------------------------------------------------------------------}
-  
-  TVariantalternateBases = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVariantalternateBasesClass = Class of TVariantalternateBases;
-  
-  { --------------------------------------------------------------------
-    TVariantcalls
-    --------------------------------------------------------------------}
-  
-  TVariantcalls = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVariantcallsClass = Class of TVariantcalls;
-  
-  { --------------------------------------------------------------------
-    TVariantfilter
-    --------------------------------------------------------------------}
-  
-  TVariantfilter = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVariantfilterClass = Class of TVariantfilter;
-  
-  { --------------------------------------------------------------------
-    TVariantinfo
-    --------------------------------------------------------------------}
-  
-  TVariantinfo = Class(TGoogleBaseObject)
+  TVariantTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -3184,20 +2178,60 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TVariantinfoClass = Class of TVariantinfo;
+  TVariantTypeinfoClass = Class of TVariantTypeinfo;
   
   { --------------------------------------------------------------------
-    TVariantnames
+    TVariant
     --------------------------------------------------------------------}
   
-  TVariantnames = Class(TGoogleBaseObject)
+  TVariant = Class(TGoogleBaseObject)
   Private
+    FalternateBases : TStringArray;
+    Fcalls : TVariantTypecallsArray;
+    Fcreated : String;
+    F_end : String;
+    Ffilter : TStringArray;
+    Fid : String;
+    Finfo : TVariantTypeinfo;
+    Fnames : TStringArray;
+    Fquality : double;
+    FreferenceBases : String;
+    FreferenceName : String;
+    Fstart : String;
+    FvariantSetId : String;
   Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
+    Procedure SetalternateBases(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setcalls(AIndex : Integer; AValue : TVariantTypecallsArray); virtual;
+    Procedure Setcreated(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfilter(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setinfo(AIndex : Integer; AValue : TVariantTypeinfo); virtual;
+    Procedure Setnames(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setquality(AIndex : Integer; AValue : double); virtual;
+    Procedure SetreferenceBases(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvariantSetId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
+    Property alternateBases : TStringArray Index 0 Read FalternateBases Write SetalternateBases;
+    Property calls : TVariantTypecallsArray Index 8 Read Fcalls Write Setcalls;
+    Property created : String Index 16 Read Fcreated Write Setcreated;
+    Property _end : String Index 24 Read F_end Write Set_end;
+    Property filter : TStringArray Index 32 Read Ffilter Write Setfilter;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property info : TVariantTypeinfo Index 48 Read Finfo Write Setinfo;
+    Property names : TStringArray Index 56 Read Fnames Write Setnames;
+    Property quality : double Index 64 Read Fquality Write Setquality;
+    Property referenceBases : String Index 72 Read FreferenceBases Write SetreferenceBases;
+    Property referenceName : String Index 80 Read FreferenceName Write SetreferenceName;
+    Property start : String Index 88 Read Fstart Write Setstart;
+    Property variantSetId : String Index 96 Read FvariantSetId Write SetvariantSetId;
   end;
-  TVariantnamesClass = Class of TVariantnames;
+  TVariantClass = Class of TVariant;
   
   { --------------------------------------------------------------------
     TVariantAnnotation
@@ -3205,60 +2239,34 @@ type
   
   TVariantAnnotation = Class(TGoogleBaseObject)
   Private
-    FalternateBases : string;
-    FclinicalSignificance : string;
-    Fconditions : TVariantAnnotationconditions;
-    Feffect : string;
-    FgeneId : string;
-    FtranscriptIds : TVariantAnnotationtranscriptIds;
-    F_type : string;
+    FalternateBases : String;
+    FclinicalSignificance : String;
+    Fconditions : TVariantAnnotationTypeconditionsArray;
+    Feffect : String;
+    FgeneId : String;
+    FtranscriptIds : TStringArray;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetalternateBases(AIndex : Integer; AValue : string); virtual;
-    Procedure SetclinicalSignificance(AIndex : Integer; AValue : string); virtual;
-    Procedure Setconditions(AIndex : Integer; AValue : TVariantAnnotationconditions); virtual;
-    Procedure Seteffect(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgeneId(AIndex : Integer; AValue : string); virtual;
-    Procedure SettranscriptIds(AIndex : Integer; AValue : TVariantAnnotationtranscriptIds); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure SetalternateBases(AIndex : Integer; AValue : String); virtual;
+    Procedure SetclinicalSignificance(AIndex : Integer; AValue : String); virtual;
+    Procedure Setconditions(AIndex : Integer; AValue : TVariantAnnotationTypeconditionsArray); virtual;
+    Procedure Seteffect(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgeneId(AIndex : Integer; AValue : String); virtual;
+    Procedure SettranscriptIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property alternateBases : string Index 0 Read FalternateBases Write SetalternateBases;
-    Property clinicalSignificance : string Index 8 Read FclinicalSignificance Write SetclinicalSignificance;
-    Property conditions : TVariantAnnotationconditions Index 16 Read Fconditions Write Setconditions;
-    Property effect : string Index 24 Read Feffect Write Seteffect;
-    Property geneId : string Index 32 Read FgeneId Write SetgeneId;
-    Property transcriptIds : TVariantAnnotationtranscriptIds Index 40 Read FtranscriptIds Write SettranscriptIds;
-    Property _type : string Index 48 Read F_type Write Set_type;
+    Property alternateBases : String Index 0 Read FalternateBases Write SetalternateBases;
+    Property clinicalSignificance : String Index 8 Read FclinicalSignificance Write SetclinicalSignificance;
+    Property conditions : TVariantAnnotationTypeconditionsArray Index 16 Read Fconditions Write Setconditions;
+    Property effect : String Index 24 Read Feffect Write Seteffect;
+    Property geneId : String Index 32 Read FgeneId Write SetgeneId;
+    Property transcriptIds : TStringArray Index 40 Read FtranscriptIds Write SettranscriptIds;
+    Property _type : String Index 48 Read F_type Write Set_type;
   end;
   TVariantAnnotationClass = Class of TVariantAnnotation;
-  
-  { --------------------------------------------------------------------
-    TVariantAnnotationconditions
-    --------------------------------------------------------------------}
-  
-  TVariantAnnotationconditions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVariantAnnotationconditionsClass = Class of TVariantAnnotationconditions;
-  
-  { --------------------------------------------------------------------
-    TVariantAnnotationtranscriptIds
-    --------------------------------------------------------------------}
-  
-  TVariantAnnotationtranscriptIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVariantAnnotationtranscriptIdsClass = Class of TVariantAnnotationtranscriptIds;
   
   { --------------------------------------------------------------------
     TVariantAnnotationCondition
@@ -3266,50 +2274,24 @@ type
   
   TVariantAnnotationCondition = Class(TGoogleBaseObject)
   Private
-    FconceptId : string;
-    FexternalIds : TVariantAnnotationConditionexternalIds;
-    Fnames : TVariantAnnotationConditionnames;
-    FomimId : string;
+    FconceptId : String;
+    FexternalIds : TVariantAnnotationConditionTypeexternalIdsArray;
+    Fnames : TStringArray;
+    FomimId : String;
   Protected
     //Property setters
-    Procedure SetconceptId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetexternalIds(AIndex : Integer; AValue : TVariantAnnotationConditionexternalIds); virtual;
-    Procedure Setnames(AIndex : Integer; AValue : TVariantAnnotationConditionnames); virtual;
-    Procedure SetomimId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetconceptId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexternalIds(AIndex : Integer; AValue : TVariantAnnotationConditionTypeexternalIdsArray); virtual;
+    Procedure Setnames(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetomimId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property conceptId : string Index 0 Read FconceptId Write SetconceptId;
-    Property externalIds : TVariantAnnotationConditionexternalIds Index 8 Read FexternalIds Write SetexternalIds;
-    Property names : TVariantAnnotationConditionnames Index 16 Read Fnames Write Setnames;
-    Property omimId : string Index 24 Read FomimId Write SetomimId;
+    Property conceptId : String Index 0 Read FconceptId Write SetconceptId;
+    Property externalIds : TVariantAnnotationConditionTypeexternalIdsArray Index 8 Read FexternalIds Write SetexternalIds;
+    Property names : TStringArray Index 16 Read Fnames Write Setnames;
+    Property omimId : String Index 24 Read FomimId Write SetomimId;
   end;
   TVariantAnnotationConditionClass = Class of TVariantAnnotationCondition;
-  
-  { --------------------------------------------------------------------
-    TVariantAnnotationConditionexternalIds
-    --------------------------------------------------------------------}
-  
-  TVariantAnnotationConditionexternalIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVariantAnnotationConditionexternalIdsClass = Class of TVariantAnnotationConditionexternalIds;
-  
-  { --------------------------------------------------------------------
-    TVariantAnnotationConditionnames
-    --------------------------------------------------------------------}
-  
-  TVariantAnnotationConditionnames = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVariantAnnotationConditionnamesClass = Class of TVariantAnnotationConditionnames;
   
   { --------------------------------------------------------------------
     TVariantSet
@@ -3317,50 +2299,24 @@ type
   
   TVariantSet = Class(TGoogleBaseObject)
   Private
-    FdatasetId : string;
-    Fid : string;
-    Fmetadata : TVariantSetmetadata;
-    FreferenceBounds : TVariantSetreferenceBounds;
+    FdatasetId : String;
+    Fid : String;
+    Fmetadata : TVariantSetTypemetadataArray;
+    FreferenceBounds : TVariantSetTypereferenceBoundsArray;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmetadata(AIndex : Integer; AValue : TVariantSetmetadata); virtual;
-    Procedure SetreferenceBounds(AIndex : Integer; AValue : TVariantSetreferenceBounds); virtual;
+    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmetadata(AIndex : Integer; AValue : TVariantSetTypemetadataArray); virtual;
+    Procedure SetreferenceBounds(AIndex : Integer; AValue : TVariantSetTypereferenceBoundsArray); virtual;
   Public
   Published
-    Property datasetId : string Index 0 Read FdatasetId Write SetdatasetId;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property metadata : TVariantSetmetadata Index 16 Read Fmetadata Write Setmetadata;
-    Property referenceBounds : TVariantSetreferenceBounds Index 24 Read FreferenceBounds Write SetreferenceBounds;
+    Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property metadata : TVariantSetTypemetadataArray Index 16 Read Fmetadata Write Setmetadata;
+    Property referenceBounds : TVariantSetTypereferenceBoundsArray Index 24 Read FreferenceBounds Write SetreferenceBounds;
   end;
   TVariantSetClass = Class of TVariantSet;
-  
-  { --------------------------------------------------------------------
-    TVariantSetmetadata
-    --------------------------------------------------------------------}
-  
-  TVariantSetmetadata = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVariantSetmetadataClass = Class of TVariantSetmetadata;
-  
-  { --------------------------------------------------------------------
-    TVariantSetreferenceBounds
-    --------------------------------------------------------------------}
-  
-  TVariantSetreferenceBounds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVariantSetreferenceBoundsClass = Class of TVariantSetreferenceBounds;
   
   { --------------------------------------------------------------------
     TAnnotationSetsResource
@@ -3423,7 +2379,7 @@ type
   
   TDatasetsListOptions = Record
     pageSize : integer;
-    pageToken : string;
+    pageToken : String;
     projectNumber : int64;
   end;
   
@@ -3677,7 +2633,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAlignReadGroupSetsRequest.SetbamSourceUris(AIndex : Integer; AValue : TAlignReadGroupSetsRequestbamSourceUris); 
+Procedure TAlignReadGroupSetsRequest.SetbamSourceUris(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FbamSourceUris=AValue) then exit;
@@ -3687,7 +2643,7 @@ end;
 
 
 
-Procedure TAlignReadGroupSetsRequest.SetdatasetId(AIndex : Integer; AValue : string); 
+Procedure TAlignReadGroupSetsRequest.SetdatasetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -3717,7 +2673,7 @@ end;
 
 
 
-Procedure TAlignReadGroupSetsRequest.SetreadGroupSetId(AIndex : Integer; AValue : string); 
+Procedure TAlignReadGroupSetsRequest.SetreadGroupSetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreadGroupSetId=AValue) then exit;
@@ -3730,18 +2686,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAlignReadGroupSetsRequestbamSourceUris
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAlignReadGroupSetsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TAlignReadGroupSetsResponse.SetjobId(AIndex : Integer; AValue : string); 
+Procedure TAlignReadGroupSetsResponse.SetjobId(AIndex : Integer; AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -3754,11 +2703,24 @@ end;
 
 
 { --------------------------------------------------------------------
+  TAnnotationTypeinfo
+  --------------------------------------------------------------------}
+
+
+Class Function TAnnotationTypeinfo.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TAnnotation
   --------------------------------------------------------------------}
 
 
-Procedure TAnnotation.SetannotationSetId(AIndex : Integer; AValue : string); 
+Procedure TAnnotation.SetannotationSetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FannotationSetId=AValue) then exit;
@@ -3768,7 +2730,7 @@ end;
 
 
 
-Procedure TAnnotation.Setid(AIndex : Integer; AValue : string); 
+Procedure TAnnotation.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3778,7 +2740,7 @@ end;
 
 
 
-Procedure TAnnotation.Setinfo(AIndex : Integer; AValue : TAnnotationinfo); 
+Procedure TAnnotation.Setinfo(AIndex : Integer; AValue : TAnnotationTypeinfo); 
 
 begin
   If (Finfo=AValue) then exit;
@@ -3788,7 +2750,7 @@ end;
 
 
 
-Procedure TAnnotation.Setname(AIndex : Integer; AValue : string); 
+Procedure TAnnotation.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3818,7 +2780,7 @@ end;
 
 
 
-Procedure TAnnotation.Set_type(AIndex : Integer; AValue : string); 
+Procedure TAnnotation.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3852,11 +2814,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAnnotationinfo
+  TAnnotationSetTypeinfo
   --------------------------------------------------------------------}
 
 
-Class Function TAnnotationinfo.AllowAdditionalProperties : Boolean;
+Class Function TAnnotationSetTypeinfo.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -3869,7 +2831,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnnotationSet.SetdatasetId(AIndex : Integer; AValue : string); 
+Procedure TAnnotationSet.SetdatasetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -3879,7 +2841,7 @@ end;
 
 
 
-Procedure TAnnotationSet.Setid(AIndex : Integer; AValue : string); 
+Procedure TAnnotationSet.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3889,7 +2851,7 @@ end;
 
 
 
-Procedure TAnnotationSet.Setinfo(AIndex : Integer; AValue : TAnnotationSetinfo); 
+Procedure TAnnotationSet.Setinfo(AIndex : Integer; AValue : TAnnotationSetTypeinfo); 
 
 begin
   If (Finfo=AValue) then exit;
@@ -3899,7 +2861,7 @@ end;
 
 
 
-Procedure TAnnotationSet.Setname(AIndex : Integer; AValue : string); 
+Procedure TAnnotationSet.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3909,7 +2871,7 @@ end;
 
 
 
-Procedure TAnnotationSet.SetreferenceSetId(AIndex : Integer; AValue : string); 
+Procedure TAnnotationSet.SetreferenceSetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -3919,7 +2881,7 @@ end;
 
 
 
-Procedure TAnnotationSet.SetsourceUri(AIndex : Integer; AValue : string); 
+Procedure TAnnotationSet.SetsourceUri(AIndex : Integer; AValue : String); 
 
 begin
   If (FsourceUri=AValue) then exit;
@@ -3929,7 +2891,7 @@ end;
 
 
 
-Procedure TAnnotationSet.Set_type(AIndex : Integer; AValue : string); 
+Procedure TAnnotationSet.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3953,24 +2915,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAnnotationSetinfo
-  --------------------------------------------------------------------}
-
-
-Class Function TAnnotationSetinfo.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TBatchAnnotationsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TBatchAnnotationsResponse.Setentries(AIndex : Integer; AValue : TBatchAnnotationsResponseentries); 
+Procedure TBatchAnnotationsResponse.Setentries(AIndex : Integer; AValue : TBatchAnnotationsResponseTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -3978,13 +2927,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TBatchAnnotationsResponseentries
-  --------------------------------------------------------------------}
 
 
 
@@ -4031,7 +2973,7 @@ end;
 
 
 
-Procedure TBatchAnnotationsResponseEntryStatus.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TBatchAnnotationsResponseEntryStatus.Setmessage(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -4048,7 +2990,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchCreateAnnotationsRequest.Setannotations(AIndex : Integer; AValue : TBatchCreateAnnotationsRequestannotations); 
+Procedure TBatchCreateAnnotationsRequest.Setannotations(AIndex : Integer; AValue : TBatchCreateAnnotationsRequestTypeannotationsArray); 
 
 begin
   If (Fannotations=AValue) then exit;
@@ -4061,9 +3003,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TBatchCreateAnnotationsRequestannotations
+  TCallTypeinfo
   --------------------------------------------------------------------}
 
+
+Class Function TCallTypeinfo.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -4072,7 +3020,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCall.SetcallSetId(AIndex : Integer; AValue : string); 
+Procedure TCall.SetcallSetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcallSetId=AValue) then exit;
@@ -4082,7 +3030,7 @@ end;
 
 
 
-Procedure TCall.SetcallSetName(AIndex : Integer; AValue : string); 
+Procedure TCall.SetcallSetName(AIndex : Integer; AValue : String); 
 
 begin
   If (FcallSetName=AValue) then exit;
@@ -4092,7 +3040,7 @@ end;
 
 
 
-Procedure TCall.Setgenotype(AIndex : Integer; AValue : TCallgenotype); 
+Procedure TCall.Setgenotype(AIndex : Integer; AValue : TintegerArray); 
 
 begin
   If (Fgenotype=AValue) then exit;
@@ -4102,7 +3050,7 @@ end;
 
 
 
-Procedure TCall.SetgenotypeLikelihood(AIndex : Integer; AValue : TCallgenotypeLikelihood); 
+Procedure TCall.SetgenotypeLikelihood(AIndex : Integer; AValue : TdoubleArray); 
 
 begin
   If (FgenotypeLikelihood=AValue) then exit;
@@ -4112,7 +3060,7 @@ end;
 
 
 
-Procedure TCall.Setinfo(AIndex : Integer; AValue : TCallinfo); 
+Procedure TCall.Setinfo(AIndex : Integer; AValue : TCallTypeinfo); 
 
 begin
   If (Finfo=AValue) then exit;
@@ -4122,7 +3070,7 @@ end;
 
 
 
-Procedure TCall.Setphaseset(AIndex : Integer; AValue : string); 
+Procedure TCall.Setphaseset(AIndex : Integer; AValue : String); 
 
 begin
   If (Fphaseset=AValue) then exit;
@@ -4135,38 +3083,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCallgenotype
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TCallgenotypeLikelihood
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TCallinfo
-  --------------------------------------------------------------------}
-
-
-Class Function TCallinfo.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TCallReadGroupSetsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TCallReadGroupSetsRequest.SetdatasetId(AIndex : Integer; AValue : string); 
+Procedure TCallReadGroupSetsRequest.SetdatasetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -4176,7 +3097,7 @@ end;
 
 
 
-Procedure TCallReadGroupSetsRequest.SetreadGroupSetId(AIndex : Integer; AValue : string); 
+Procedure TCallReadGroupSetsRequest.SetreadGroupSetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreadGroupSetId=AValue) then exit;
@@ -4186,7 +3107,7 @@ end;
 
 
 
-Procedure TCallReadGroupSetsRequest.SetsourceUris(AIndex : Integer; AValue : TCallReadGroupSetsRequestsourceUris); 
+Procedure TCallReadGroupSetsRequest.SetsourceUris(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsourceUris=AValue) then exit;
@@ -4199,18 +3120,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCallReadGroupSetsRequestsourceUris
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TCallReadGroupSetsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TCallReadGroupSetsResponse.SetjobId(AIndex : Integer; AValue : string); 
+Procedure TCallReadGroupSetsResponse.SetjobId(AIndex : Integer; AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -4223,11 +3137,24 @@ end;
 
 
 { --------------------------------------------------------------------
+  TCallSetTypeinfo
+  --------------------------------------------------------------------}
+
+
+Class Function TCallSetTypeinfo.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TCallSet
   --------------------------------------------------------------------}
 
 
-Procedure TCallSet.Setcreated(AIndex : Integer; AValue : string); 
+Procedure TCallSet.Setcreated(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcreated=AValue) then exit;
@@ -4237,7 +3164,7 @@ end;
 
 
 
-Procedure TCallSet.Setid(AIndex : Integer; AValue : string); 
+Procedure TCallSet.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4247,7 +3174,7 @@ end;
 
 
 
-Procedure TCallSet.Setinfo(AIndex : Integer; AValue : TCallSetinfo); 
+Procedure TCallSet.Setinfo(AIndex : Integer; AValue : TCallSetTypeinfo); 
 
 begin
   If (Finfo=AValue) then exit;
@@ -4257,7 +3184,7 @@ end;
 
 
 
-Procedure TCallSet.Setname(AIndex : Integer; AValue : string); 
+Procedure TCallSet.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4267,7 +3194,7 @@ end;
 
 
 
-Procedure TCallSet.SetsampleId(AIndex : Integer; AValue : string); 
+Procedure TCallSet.SetsampleId(AIndex : Integer; AValue : String); 
 
 begin
   If (FsampleId=AValue) then exit;
@@ -4277,7 +3204,7 @@ end;
 
 
 
-Procedure TCallSet.SetvariantSetIds(AIndex : Integer; AValue : TCallSetvariantSetIds); 
+Procedure TCallSet.SetvariantSetIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FvariantSetIds=AValue) then exit;
@@ -4290,31 +3217,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCallSetinfo
-  --------------------------------------------------------------------}
-
-
-Class Function TCallSetinfo.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TCallSetvariantSetIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TCigarUnit
   --------------------------------------------------------------------}
 
 
-Procedure TCigarUnit.Setoperation(AIndex : Integer; AValue : string); 
+Procedure TCigarUnit.Setoperation(AIndex : Integer; AValue : String); 
 
 begin
   If (Foperation=AValue) then exit;
@@ -4324,7 +3231,7 @@ end;
 
 
 
-Procedure TCigarUnit.SetoperationLength(AIndex : Integer; AValue : string); 
+Procedure TCigarUnit.SetoperationLength(AIndex : Integer; AValue : String); 
 
 begin
   If (FoperationLength=AValue) then exit;
@@ -4334,7 +3241,7 @@ end;
 
 
 
-Procedure TCigarUnit.SetreferenceSequence(AIndex : Integer; AValue : string); 
+Procedure TCigarUnit.SetreferenceSequence(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceSequence=AValue) then exit;
@@ -4378,7 +3285,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataset.Setid(AIndex : Integer; AValue : string); 
+Procedure TDataset.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4398,7 +3305,7 @@ end;
 
 
 
-Procedure TDataset.Setname(AIndex : Integer; AValue : string); 
+Procedure TDataset.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4408,7 +3315,7 @@ end;
 
 
 
-Procedure TDataset.SetprojectNumber(AIndex : Integer; AValue : string); 
+Procedure TDataset.SetprojectNumber(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -4445,7 +3352,7 @@ end;
 
 
 
-Procedure TExperimentalCreateJobRequest.SetgcsOutputPath(AIndex : Integer; AValue : string); 
+Procedure TExperimentalCreateJobRequest.SetgcsOutputPath(AIndex : Integer; AValue : String); 
 
 begin
   If (FgcsOutputPath=AValue) then exit;
@@ -4455,7 +3362,7 @@ end;
 
 
 
-Procedure TExperimentalCreateJobRequest.SetpairedSourceUris(AIndex : Integer; AValue : TExperimentalCreateJobRequestpairedSourceUris); 
+Procedure TExperimentalCreateJobRequest.SetpairedSourceUris(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FpairedSourceUris=AValue) then exit;
@@ -4465,7 +3372,7 @@ end;
 
 
 
-Procedure TExperimentalCreateJobRequest.SetprojectNumber(AIndex : Integer; AValue : string); 
+Procedure TExperimentalCreateJobRequest.SetprojectNumber(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -4475,7 +3382,7 @@ end;
 
 
 
-Procedure TExperimentalCreateJobRequest.SetsourceUris(AIndex : Integer; AValue : TExperimentalCreateJobRequestsourceUris); 
+Procedure TExperimentalCreateJobRequest.SetsourceUris(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsourceUris=AValue) then exit;
@@ -4488,25 +3395,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TExperimentalCreateJobRequestpairedSourceUris
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TExperimentalCreateJobRequestsourceUris
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TExperimentalCreateJobResponse
   --------------------------------------------------------------------}
 
 
-Procedure TExperimentalCreateJobResponse.SetjobId(AIndex : Integer; AValue : string); 
+Procedure TExperimentalCreateJobResponse.SetjobId(AIndex : Integer; AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -4523,7 +3416,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExportReadGroupSetsRequest.SetexportUri(AIndex : Integer; AValue : string); 
+Procedure TExportReadGroupSetsRequest.SetexportUri(AIndex : Integer; AValue : String); 
 
 begin
   If (FexportUri=AValue) then exit;
@@ -4533,7 +3426,7 @@ end;
 
 
 
-Procedure TExportReadGroupSetsRequest.SetprojectNumber(AIndex : Integer; AValue : string); 
+Procedure TExportReadGroupSetsRequest.SetprojectNumber(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -4543,7 +3436,7 @@ end;
 
 
 
-Procedure TExportReadGroupSetsRequest.SetreadGroupSetIds(AIndex : Integer; AValue : TExportReadGroupSetsRequestreadGroupSetIds); 
+Procedure TExportReadGroupSetsRequest.SetreadGroupSetIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FreadGroupSetIds=AValue) then exit;
@@ -4553,7 +3446,7 @@ end;
 
 
 
-Procedure TExportReadGroupSetsRequest.SetreferenceNames(AIndex : Integer; AValue : TExportReadGroupSetsRequestreferenceNames); 
+Procedure TExportReadGroupSetsRequest.SetreferenceNames(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FreferenceNames=AValue) then exit;
@@ -4566,25 +3459,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TExportReadGroupSetsRequestreadGroupSetIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TExportReadGroupSetsRequestreferenceNames
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TExportReadGroupSetsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TExportReadGroupSetsResponse.SetjobId(AIndex : Integer; AValue : string); 
+Procedure TExportReadGroupSetsResponse.SetjobId(AIndex : Integer; AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -4601,7 +3480,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExportVariantSetRequest.SetbigqueryDataset(AIndex : Integer; AValue : string); 
+Procedure TExportVariantSetRequest.SetbigqueryDataset(AIndex : Integer; AValue : String); 
 
 begin
   If (FbigqueryDataset=AValue) then exit;
@@ -4611,7 +3490,7 @@ end;
 
 
 
-Procedure TExportVariantSetRequest.SetbigqueryTable(AIndex : Integer; AValue : string); 
+Procedure TExportVariantSetRequest.SetbigqueryTable(AIndex : Integer; AValue : String); 
 
 begin
   If (FbigqueryTable=AValue) then exit;
@@ -4621,7 +3500,7 @@ end;
 
 
 
-Procedure TExportVariantSetRequest.SetcallSetIds(AIndex : Integer; AValue : TExportVariantSetRequestcallSetIds); 
+Procedure TExportVariantSetRequest.SetcallSetIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FcallSetIds=AValue) then exit;
@@ -4631,7 +3510,7 @@ end;
 
 
 
-Procedure TExportVariantSetRequest.Setformat(AIndex : Integer; AValue : string); 
+Procedure TExportVariantSetRequest.Setformat(AIndex : Integer; AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -4641,7 +3520,7 @@ end;
 
 
 
-Procedure TExportVariantSetRequest.SetprojectNumber(AIndex : Integer; AValue : string); 
+Procedure TExportVariantSetRequest.SetprojectNumber(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -4654,18 +3533,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TExportVariantSetRequestcallSetIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TExportVariantSetResponse
   --------------------------------------------------------------------}
 
 
-Procedure TExportVariantSetResponse.SetjobId(AIndex : Integer; AValue : string); 
+Procedure TExportVariantSetResponse.SetjobId(AIndex : Integer; AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -4682,7 +3554,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExternalId.Setid(AIndex : Integer; AValue : string); 
+Procedure TExternalId.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4692,7 +3564,7 @@ end;
 
 
 
-Procedure TExternalId.SetsourceName(AIndex : Integer; AValue : string); 
+Procedure TExternalId.SetsourceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FsourceName=AValue) then exit;
@@ -4709,7 +3581,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFastqMetadata.SetlibraryName(AIndex : Integer; AValue : string); 
+Procedure TFastqMetadata.SetlibraryName(AIndex : Integer; AValue : String); 
 
 begin
   If (FlibraryName=AValue) then exit;
@@ -4719,7 +3591,7 @@ end;
 
 
 
-Procedure TFastqMetadata.SetplatformName(AIndex : Integer; AValue : string); 
+Procedure TFastqMetadata.SetplatformName(AIndex : Integer; AValue : String); 
 
 begin
   If (FplatformName=AValue) then exit;
@@ -4729,7 +3601,7 @@ end;
 
 
 
-Procedure TFastqMetadata.SetplatformUnit(AIndex : Integer; AValue : string); 
+Procedure TFastqMetadata.SetplatformUnit(AIndex : Integer; AValue : String); 
 
 begin
   If (FplatformUnit=AValue) then exit;
@@ -4739,7 +3611,7 @@ end;
 
 
 
-Procedure TFastqMetadata.SetreadGroupName(AIndex : Integer; AValue : string); 
+Procedure TFastqMetadata.SetreadGroupName(AIndex : Integer; AValue : String); 
 
 begin
   If (FreadGroupName=AValue) then exit;
@@ -4749,7 +3621,7 @@ end;
 
 
 
-Procedure TFastqMetadata.SetsampleName(AIndex : Integer; AValue : string); 
+Procedure TFastqMetadata.SetsampleName(AIndex : Integer; AValue : String); 
 
 begin
   If (FsampleName=AValue) then exit;
@@ -4766,7 +3638,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportReadGroupSetsRequest.SetdatasetId(AIndex : Integer; AValue : string); 
+Procedure TImportReadGroupSetsRequest.SetdatasetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -4776,7 +3648,7 @@ end;
 
 
 
-Procedure TImportReadGroupSetsRequest.SetpartitionStrategy(AIndex : Integer; AValue : string); 
+Procedure TImportReadGroupSetsRequest.SetpartitionStrategy(AIndex : Integer; AValue : String); 
 
 begin
   If (FpartitionStrategy=AValue) then exit;
@@ -4786,7 +3658,7 @@ end;
 
 
 
-Procedure TImportReadGroupSetsRequest.SetreferenceSetId(AIndex : Integer; AValue : string); 
+Procedure TImportReadGroupSetsRequest.SetreferenceSetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -4796,7 +3668,7 @@ end;
 
 
 
-Procedure TImportReadGroupSetsRequest.SetsourceUris(AIndex : Integer; AValue : TImportReadGroupSetsRequestsourceUris); 
+Procedure TImportReadGroupSetsRequest.SetsourceUris(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsourceUris=AValue) then exit;
@@ -4809,18 +3681,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TImportReadGroupSetsRequestsourceUris
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TImportReadGroupSetsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TImportReadGroupSetsResponse.SetjobId(AIndex : Integer; AValue : string); 
+Procedure TImportReadGroupSetsResponse.SetjobId(AIndex : Integer; AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -4837,7 +3702,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportVariantsRequest.Setformat(AIndex : Integer; AValue : string); 
+Procedure TImportVariantsRequest.Setformat(AIndex : Integer; AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -4847,7 +3712,7 @@ end;
 
 
 
-Procedure TImportVariantsRequest.SetsourceUris(AIndex : Integer; AValue : TImportVariantsRequestsourceUris); 
+Procedure TImportVariantsRequest.SetsourceUris(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsourceUris=AValue) then exit;
@@ -4860,18 +3725,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TImportVariantsRequestsourceUris
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TImportVariantsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TImportVariantsResponse.SetjobId(AIndex : Integer; AValue : string); 
+Procedure TImportVariantsResponse.SetjobId(AIndex : Integer; AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -4915,7 +3773,7 @@ end;
 
 
 
-Procedure TInterleavedFastqSource.SetsourceUris(AIndex : Integer; AValue : TInterleavedFastqSourcesourceUris); 
+Procedure TInterleavedFastqSource.SetsourceUris(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsourceUris=AValue) then exit;
@@ -4928,18 +3786,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TInterleavedFastqSourcesourceUris
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TJob
   --------------------------------------------------------------------}
 
 
-Procedure TJob.Setcreated(AIndex : Integer; AValue : string); 
+Procedure TJob.Setcreated(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcreated=AValue) then exit;
@@ -4949,7 +3800,7 @@ end;
 
 
 
-Procedure TJob.SetdetailedStatus(AIndex : Integer; AValue : string); 
+Procedure TJob.SetdetailedStatus(AIndex : Integer; AValue : String); 
 
 begin
   If (FdetailedStatus=AValue) then exit;
@@ -4959,7 +3810,7 @@ end;
 
 
 
-Procedure TJob.Seterrors(AIndex : Integer; AValue : TJoberrors); 
+Procedure TJob.Seterrors(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -4969,7 +3820,7 @@ end;
 
 
 
-Procedure TJob.Setid(AIndex : Integer; AValue : string); 
+Procedure TJob.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4979,7 +3830,7 @@ end;
 
 
 
-Procedure TJob.SetimportedIds(AIndex : Integer; AValue : TJobimportedIds); 
+Procedure TJob.SetimportedIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FimportedIds=AValue) then exit;
@@ -4989,7 +3840,7 @@ end;
 
 
 
-Procedure TJob.SetprojectNumber(AIndex : Integer; AValue : string); 
+Procedure TJob.SetprojectNumber(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -5009,7 +3860,7 @@ end;
 
 
 
-Procedure TJob.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TJob.Setstatus(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -5019,7 +3870,7 @@ end;
 
 
 
-Procedure TJob.Setwarnings(AIndex : Integer; AValue : TJobwarnings); 
+Procedure TJob.Setwarnings(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -5032,32 +3883,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJoberrors
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TJobimportedIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TJobwarnings
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TJobRequest
   --------------------------------------------------------------------}
 
 
-Procedure TJobRequest.Setdestination(AIndex : Integer; AValue : TJobRequestdestination); 
+Procedure TJobRequest.Setdestination(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fdestination=AValue) then exit;
@@ -5067,7 +3897,7 @@ end;
 
 
 
-Procedure TJobRequest.Setsource(AIndex : Integer; AValue : TJobRequestsource); 
+Procedure TJobRequest.Setsource(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fsource=AValue) then exit;
@@ -5077,7 +3907,7 @@ end;
 
 
 
-Procedure TJobRequest.Set_type(AIndex : Integer; AValue : string); 
+Procedure TJobRequest.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5101,25 +3931,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TJobRequestdestination
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TJobRequestsource
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TLinearAlignment
   --------------------------------------------------------------------}
 
 
-Procedure TLinearAlignment.Setcigar(AIndex : Integer; AValue : TLinearAlignmentcigar); 
+Procedure TLinearAlignment.Setcigar(AIndex : Integer; AValue : TLinearAlignmentTypecigarArray); 
 
 begin
   If (Fcigar=AValue) then exit;
@@ -5152,18 +3968,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TLinearAlignmentcigar
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TListBasesResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListBasesResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListBasesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5173,7 +3982,7 @@ end;
 
 
 
-Procedure TListBasesResponse.Setoffset(AIndex : Integer; AValue : string); 
+Procedure TListBasesResponse.Setoffset(AIndex : Integer; AValue : String); 
 
 begin
   If (Foffset=AValue) then exit;
@@ -5183,7 +3992,7 @@ end;
 
 
 
-Procedure TListBasesResponse.Setsequence(AIndex : Integer; AValue : string); 
+Procedure TListBasesResponse.Setsequence(AIndex : Integer; AValue : String); 
 
 begin
   If (Fsequence=AValue) then exit;
@@ -5200,7 +4009,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListCoverageBucketsResponse.SetbucketWidth(AIndex : Integer; AValue : string); 
+Procedure TListCoverageBucketsResponse.SetbucketWidth(AIndex : Integer; AValue : String); 
 
 begin
   If (FbucketWidth=AValue) then exit;
@@ -5210,7 +4019,7 @@ end;
 
 
 
-Procedure TListCoverageBucketsResponse.SetcoverageBuckets(AIndex : Integer; AValue : TListCoverageBucketsResponsecoverageBuckets); 
+Procedure TListCoverageBucketsResponse.SetcoverageBuckets(AIndex : Integer; AValue : TListCoverageBucketsResponseTypecoverageBucketsArray); 
 
 begin
   If (FcoverageBuckets=AValue) then exit;
@@ -5220,7 +4029,7 @@ end;
 
 
 
-Procedure TListCoverageBucketsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListCoverageBucketsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5228,13 +4037,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TListCoverageBucketsResponsecoverageBuckets
-  --------------------------------------------------------------------}
 
 
 
@@ -5244,7 +4046,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListDatasetsResponse.Setdatasets(AIndex : Integer; AValue : TListDatasetsResponsedatasets); 
+Procedure TListDatasetsResponse.Setdatasets(AIndex : Integer; AValue : TListDatasetsResponseTypedatasetsArray); 
 
 begin
   If (Fdatasets=AValue) then exit;
@@ -5254,7 +4056,7 @@ end;
 
 
 
-Procedure TListDatasetsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListDatasetsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5267,18 +4069,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListDatasetsResponsedatasets
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TMergeVariantsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TMergeVariantsRequest.Setvariants(AIndex : Integer; AValue : TMergeVariantsRequestvariants); 
+Procedure TMergeVariantsRequest.Setvariants(AIndex : Integer; AValue : TMergeVariantsRequestTypevariantsArray); 
 
 begin
   If (Fvariants=AValue) then exit;
@@ -5291,9 +4086,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMergeVariantsRequestvariants
+  TMetadataTypeinfo
   --------------------------------------------------------------------}
 
+
+Class Function TMetadataTypeinfo.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -5302,7 +4103,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetadata.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TMetadata.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5312,7 +4113,7 @@ end;
 
 
 
-Procedure TMetadata.Setid(AIndex : Integer; AValue : string); 
+Procedure TMetadata.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5322,7 +4123,7 @@ end;
 
 
 
-Procedure TMetadata.Setinfo(AIndex : Integer; AValue : TMetadatainfo); 
+Procedure TMetadata.Setinfo(AIndex : Integer; AValue : TMetadataTypeinfo); 
 
 begin
   If (Finfo=AValue) then exit;
@@ -5332,7 +4133,7 @@ end;
 
 
 
-Procedure TMetadata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TMetadata.Setkey(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -5342,7 +4143,7 @@ end;
 
 
 
-Procedure TMetadata.Setnumber(AIndex : Integer; AValue : string); 
+Procedure TMetadata.Setnumber(AIndex : Integer; AValue : String); 
 
 begin
   If (Fnumber=AValue) then exit;
@@ -5352,7 +4153,7 @@ end;
 
 
 
-Procedure TMetadata.Set_type(AIndex : Integer; AValue : string); 
+Procedure TMetadata.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5362,7 +4163,7 @@ end;
 
 
 
-Procedure TMetadata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TMetadata.Setvalue(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -5386,24 +4187,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMetadatainfo
-  --------------------------------------------------------------------}
-
-
-Class Function TMetadatainfo.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TPairedFastqSource
   --------------------------------------------------------------------}
 
 
-Procedure TPairedFastqSource.SetfirstSourceUris(AIndex : Integer; AValue : TPairedFastqSourcefirstSourceUris); 
+Procedure TPairedFastqSource.SetfirstSourceUris(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FfirstSourceUris=AValue) then exit;
@@ -5423,7 +4211,7 @@ end;
 
 
 
-Procedure TPairedFastqSource.SetsecondSourceUris(AIndex : Integer; AValue : TPairedFastqSourcesecondSourceUris); 
+Procedure TPairedFastqSource.SetsecondSourceUris(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsecondSourceUris=AValue) then exit;
@@ -5436,25 +4224,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPairedFastqSourcefirstSourceUris
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPairedFastqSourcesecondSourceUris
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TPosition
   --------------------------------------------------------------------}
 
 
-Procedure TPosition.Setposition(AIndex : Integer; AValue : string); 
+Procedure TPosition.Setposition(AIndex : Integer; AValue : String); 
 
 begin
   If (Fposition=AValue) then exit;
@@ -5464,7 +4238,7 @@ end;
 
 
 
-Procedure TPosition.SetreferenceName(AIndex : Integer; AValue : string); 
+Procedure TPosition.SetreferenceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -5491,7 +4265,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQueryRange.Set_end(AIndex : Integer; AValue : string); 
+Procedure TQueryRange.Set_end(AIndex : Integer; AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -5501,7 +4275,7 @@ end;
 
 
 
-Procedure TQueryRange.SetreferenceId(AIndex : Integer; AValue : string); 
+Procedure TQueryRange.SetreferenceId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceId=AValue) then exit;
@@ -5511,7 +4285,7 @@ end;
 
 
 
-Procedure TQueryRange.SetreferenceName(AIndex : Integer; AValue : string); 
+Procedure TQueryRange.SetreferenceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -5521,7 +4295,7 @@ end;
 
 
 
-Procedure TQueryRange.Setstart(AIndex : Integer; AValue : string); 
+Procedure TQueryRange.Setstart(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -5549,7 +4323,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRange.Set_end(AIndex : Integer; AValue : string); 
+Procedure TRange.Set_end(AIndex : Integer; AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -5559,7 +4333,7 @@ end;
 
 
 
-Procedure TRange.SetreferenceName(AIndex : Integer; AValue : string); 
+Procedure TRange.SetreferenceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -5569,7 +4343,7 @@ end;
 
 
 
-Procedure TRange.Setstart(AIndex : Integer; AValue : string); 
+Procedure TRange.Setstart(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -5597,7 +4371,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRangePosition.Set_end(AIndex : Integer; AValue : string); 
+Procedure TRangePosition.Set_end(AIndex : Integer; AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -5607,7 +4381,7 @@ end;
 
 
 
-Procedure TRangePosition.SetreferenceId(AIndex : Integer; AValue : string); 
+Procedure TRangePosition.SetreferenceId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceId=AValue) then exit;
@@ -5617,7 +4391,7 @@ end;
 
 
 
-Procedure TRangePosition.SetreferenceName(AIndex : Integer; AValue : string); 
+Procedure TRangePosition.SetreferenceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -5637,7 +4411,7 @@ end;
 
 
 
-Procedure TRangePosition.Setstart(AIndex : Integer; AValue : string); 
+Procedure TRangePosition.Setstart(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -5661,11 +4435,24 @@ end;
 
 
 { --------------------------------------------------------------------
+  TReadTypeinfo
+  --------------------------------------------------------------------}
+
+
+Class Function TReadTypeinfo.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TRead
   --------------------------------------------------------------------}
 
 
-Procedure TRead.SetalignedQuality(AIndex : Integer; AValue : TReadalignedQuality); 
+Procedure TRead.SetalignedQuality(AIndex : Integer; AValue : TintegerArray); 
 
 begin
   If (FalignedQuality=AValue) then exit;
@@ -5675,7 +4462,7 @@ end;
 
 
 
-Procedure TRead.SetalignedSequence(AIndex : Integer; AValue : string); 
+Procedure TRead.SetalignedSequence(AIndex : Integer; AValue : String); 
 
 begin
   If (FalignedSequence=AValue) then exit;
@@ -5725,7 +4512,7 @@ end;
 
 
 
-Procedure TRead.SetfragmentName(AIndex : Integer; AValue : string); 
+Procedure TRead.SetfragmentName(AIndex : Integer; AValue : String); 
 
 begin
   If (FfragmentName=AValue) then exit;
@@ -5735,7 +4522,7 @@ end;
 
 
 
-Procedure TRead.Setid(AIndex : Integer; AValue : string); 
+Procedure TRead.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5745,7 +4532,7 @@ end;
 
 
 
-Procedure TRead.Setinfo(AIndex : Integer; AValue : TReadinfo); 
+Procedure TRead.Setinfo(AIndex : Integer; AValue : TReadTypeinfo); 
 
 begin
   If (Finfo=AValue) then exit;
@@ -5785,7 +4572,7 @@ end;
 
 
 
-Procedure TRead.SetreadGroupId(AIndex : Integer; AValue : string); 
+Procedure TRead.SetreadGroupId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreadGroupId=AValue) then exit;
@@ -5795,7 +4582,7 @@ end;
 
 
 
-Procedure TRead.SetreadGroupSetId(AIndex : Integer; AValue : string); 
+Procedure TRead.SetreadGroupSetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreadGroupSetId=AValue) then exit;
@@ -5838,18 +4625,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TReadalignedQuality
+  TReadGroupTypeinfo
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TReadinfo
-  --------------------------------------------------------------------}
-
-
-Class Function TReadinfo.AllowAdditionalProperties : Boolean;
+Class Function TReadGroupTypeinfo.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -5862,7 +4642,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReadGroup.SetdatasetId(AIndex : Integer; AValue : string); 
+Procedure TReadGroup.SetdatasetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -5872,7 +4652,7 @@ end;
 
 
 
-Procedure TReadGroup.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TReadGroup.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5892,7 +4672,7 @@ end;
 
 
 
-Procedure TReadGroup.Setid(AIndex : Integer; AValue : string); 
+Procedure TReadGroup.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5902,7 +4682,7 @@ end;
 
 
 
-Procedure TReadGroup.Setinfo(AIndex : Integer; AValue : TReadGroupinfo); 
+Procedure TReadGroup.Setinfo(AIndex : Integer; AValue : TReadGroupTypeinfo); 
 
 begin
   If (Finfo=AValue) then exit;
@@ -5912,7 +4692,7 @@ end;
 
 
 
-Procedure TReadGroup.Setname(AIndex : Integer; AValue : string); 
+Procedure TReadGroup.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5932,7 +4712,7 @@ end;
 
 
 
-Procedure TReadGroup.Setprograms(AIndex : Integer; AValue : TReadGroupprograms); 
+Procedure TReadGroup.Setprograms(AIndex : Integer; AValue : TReadGroupTypeprogramsArray); 
 
 begin
   If (Fprograms=AValue) then exit;
@@ -5942,7 +4722,7 @@ end;
 
 
 
-Procedure TReadGroup.SetreferenceSetId(AIndex : Integer; AValue : string); 
+Procedure TReadGroup.SetreferenceSetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -5952,7 +4732,7 @@ end;
 
 
 
-Procedure TReadGroup.SetsampleId(AIndex : Integer; AValue : string); 
+Procedure TReadGroup.SetsampleId(AIndex : Integer; AValue : String); 
 
 begin
   If (FsampleId=AValue) then exit;
@@ -5965,31 +4745,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TReadGroupinfo
-  --------------------------------------------------------------------}
-
-
-Class Function TReadGroupinfo.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TReadGroupprograms
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TReadGroupExperiment
   --------------------------------------------------------------------}
 
 
-Procedure TReadGroupExperiment.SetinstrumentModel(AIndex : Integer; AValue : string); 
+Procedure TReadGroupExperiment.SetinstrumentModel(AIndex : Integer; AValue : String); 
 
 begin
   If (FinstrumentModel=AValue) then exit;
@@ -5999,7 +4759,7 @@ end;
 
 
 
-Procedure TReadGroupExperiment.SetlibraryId(AIndex : Integer; AValue : string); 
+Procedure TReadGroupExperiment.SetlibraryId(AIndex : Integer; AValue : String); 
 
 begin
   If (FlibraryId=AValue) then exit;
@@ -6009,7 +4769,7 @@ end;
 
 
 
-Procedure TReadGroupExperiment.SetplatformUnit(AIndex : Integer; AValue : string); 
+Procedure TReadGroupExperiment.SetplatformUnit(AIndex : Integer; AValue : String); 
 
 begin
   If (FplatformUnit=AValue) then exit;
@@ -6019,7 +4779,7 @@ end;
 
 
 
-Procedure TReadGroupExperiment.SetsequencingCenter(AIndex : Integer; AValue : string); 
+Procedure TReadGroupExperiment.SetsequencingCenter(AIndex : Integer; AValue : String); 
 
 begin
   If (FsequencingCenter=AValue) then exit;
@@ -6036,7 +4796,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReadGroupProgram.SetcommandLine(AIndex : Integer; AValue : string); 
+Procedure TReadGroupProgram.SetcommandLine(AIndex : Integer; AValue : String); 
 
 begin
   If (FcommandLine=AValue) then exit;
@@ -6046,7 +4806,7 @@ end;
 
 
 
-Procedure TReadGroupProgram.Setid(AIndex : Integer; AValue : string); 
+Procedure TReadGroupProgram.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6056,7 +4816,7 @@ end;
 
 
 
-Procedure TReadGroupProgram.Setname(AIndex : Integer; AValue : string); 
+Procedure TReadGroupProgram.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6066,7 +4826,7 @@ end;
 
 
 
-Procedure TReadGroupProgram.SetprevProgramId(AIndex : Integer; AValue : string); 
+Procedure TReadGroupProgram.SetprevProgramId(AIndex : Integer; AValue : String); 
 
 begin
   If (FprevProgramId=AValue) then exit;
@@ -6076,7 +4836,7 @@ end;
 
 
 
-Procedure TReadGroupProgram.Setversion(AIndex : Integer; AValue : string); 
+Procedure TReadGroupProgram.Setversion(AIndex : Integer; AValue : String); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -6089,11 +4849,24 @@ end;
 
 
 { --------------------------------------------------------------------
+  TReadGroupSetTypeinfo
+  --------------------------------------------------------------------}
+
+
+Class Function TReadGroupSetTypeinfo.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TReadGroupSet
   --------------------------------------------------------------------}
 
 
-Procedure TReadGroupSet.SetdatasetId(AIndex : Integer; AValue : string); 
+Procedure TReadGroupSet.SetdatasetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -6103,7 +4876,7 @@ end;
 
 
 
-Procedure TReadGroupSet.Setfilename(AIndex : Integer; AValue : string); 
+Procedure TReadGroupSet.Setfilename(AIndex : Integer; AValue : String); 
 
 begin
   If (Ffilename=AValue) then exit;
@@ -6113,7 +4886,7 @@ end;
 
 
 
-Procedure TReadGroupSet.Setid(AIndex : Integer; AValue : string); 
+Procedure TReadGroupSet.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6123,7 +4896,7 @@ end;
 
 
 
-Procedure TReadGroupSet.Setinfo(AIndex : Integer; AValue : TReadGroupSetinfo); 
+Procedure TReadGroupSet.Setinfo(AIndex : Integer; AValue : TReadGroupSetTypeinfo); 
 
 begin
   If (Finfo=AValue) then exit;
@@ -6133,7 +4906,7 @@ end;
 
 
 
-Procedure TReadGroupSet.Setname(AIndex : Integer; AValue : string); 
+Procedure TReadGroupSet.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6143,7 +4916,7 @@ end;
 
 
 
-Procedure TReadGroupSet.SetreadGroups(AIndex : Integer; AValue : TReadGroupSetreadGroups); 
+Procedure TReadGroupSet.SetreadGroups(AIndex : Integer; AValue : TReadGroupSetTypereadGroupsArray); 
 
 begin
   If (FreadGroups=AValue) then exit;
@@ -6153,7 +4926,7 @@ end;
 
 
 
-Procedure TReadGroupSet.SetreferenceSetId(AIndex : Integer; AValue : string); 
+Procedure TReadGroupSet.SetreferenceSetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -6166,31 +4939,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TReadGroupSetinfo
-  --------------------------------------------------------------------}
-
-
-Class Function TReadGroupSetinfo.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TReadGroupSetreadGroups
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TReference
   --------------------------------------------------------------------}
 
 
-Procedure TReference.Setid(AIndex : Integer; AValue : string); 
+Procedure TReference.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6200,7 +4953,7 @@ end;
 
 
 
-Procedure TReference.Setlength(AIndex : Integer; AValue : string); 
+Procedure TReference.Setlength(AIndex : Integer; AValue : String); 
 
 begin
   If (Flength=AValue) then exit;
@@ -6210,7 +4963,7 @@ end;
 
 
 
-Procedure TReference.Setmd5checksum(AIndex : Integer; AValue : string); 
+Procedure TReference.Setmd5checksum(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmd5checksum=AValue) then exit;
@@ -6220,7 +4973,7 @@ end;
 
 
 
-Procedure TReference.Setname(AIndex : Integer; AValue : string); 
+Procedure TReference.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6240,7 +4993,7 @@ end;
 
 
 
-Procedure TReference.SetsourceAccessions(AIndex : Integer; AValue : TReferencesourceAccessions); 
+Procedure TReference.SetsourceAccessions(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsourceAccessions=AValue) then exit;
@@ -6250,7 +5003,7 @@ end;
 
 
 
-Procedure TReference.SetsourceURI(AIndex : Integer; AValue : string); 
+Procedure TReference.SetsourceURI(AIndex : Integer; AValue : String); 
 
 begin
   If (FsourceURI=AValue) then exit;
@@ -6263,18 +5016,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TReferencesourceAccessions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TReferenceBound
   --------------------------------------------------------------------}
 
 
-Procedure TReferenceBound.SetreferenceName(AIndex : Integer; AValue : string); 
+Procedure TReferenceBound.SetreferenceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -6284,7 +5030,7 @@ end;
 
 
 
-Procedure TReferenceBound.SetupperBound(AIndex : Integer; AValue : string); 
+Procedure TReferenceBound.SetupperBound(AIndex : Integer; AValue : String); 
 
 begin
   If (FupperBound=AValue) then exit;
@@ -6301,7 +5047,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReferenceSet.SetassemblyId(AIndex : Integer; AValue : string); 
+Procedure TReferenceSet.SetassemblyId(AIndex : Integer; AValue : String); 
 
 begin
   If (FassemblyId=AValue) then exit;
@@ -6311,7 +5057,7 @@ end;
 
 
 
-Procedure TReferenceSet.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TReferenceSet.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6321,7 +5067,7 @@ end;
 
 
 
-Procedure TReferenceSet.Setid(AIndex : Integer; AValue : string); 
+Procedure TReferenceSet.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6331,7 +5077,7 @@ end;
 
 
 
-Procedure TReferenceSet.Setmd5checksum(AIndex : Integer; AValue : string); 
+Procedure TReferenceSet.Setmd5checksum(AIndex : Integer; AValue : String); 
 
 begin
   If (Fmd5checksum=AValue) then exit;
@@ -6351,7 +5097,7 @@ end;
 
 
 
-Procedure TReferenceSet.SetreferenceIds(AIndex : Integer; AValue : TReferenceSetreferenceIds); 
+Procedure TReferenceSet.SetreferenceIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FreferenceIds=AValue) then exit;
@@ -6361,7 +5107,7 @@ end;
 
 
 
-Procedure TReferenceSet.SetsourceAccessions(AIndex : Integer; AValue : TReferenceSetsourceAccessions); 
+Procedure TReferenceSet.SetsourceAccessions(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FsourceAccessions=AValue) then exit;
@@ -6371,7 +5117,7 @@ end;
 
 
 
-Procedure TReferenceSet.SetsourceURI(AIndex : Integer; AValue : string); 
+Procedure TReferenceSet.SetsourceURI(AIndex : Integer; AValue : String); 
 
 begin
   If (FsourceURI=AValue) then exit;
@@ -6384,25 +5130,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TReferenceSetreferenceIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TReferenceSetsourceAccessions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchAnnotationSetsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TSearchAnnotationSetsRequest.SetdatasetIds(AIndex : Integer; AValue : TSearchAnnotationSetsRequestdatasetIds); 
+Procedure TSearchAnnotationSetsRequest.SetdatasetIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FdatasetIds=AValue) then exit;
@@ -6412,7 +5144,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsRequest.Setname(AIndex : Integer; AValue : string); 
+Procedure TSearchAnnotationSetsRequest.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6432,7 +5164,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsRequest.SetpageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchAnnotationSetsRequest.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6442,7 +5174,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsRequest.SetreferenceSetId(AIndex : Integer; AValue : string); 
+Procedure TSearchAnnotationSetsRequest.SetreferenceSetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -6452,7 +5184,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsRequest.Settypes(AIndex : Integer; AValue : TSearchAnnotationSetsRequesttypes); 
+Procedure TSearchAnnotationSetsRequest.Settypes(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Ftypes=AValue) then exit;
@@ -6465,25 +5197,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchAnnotationSetsRequestdatasetIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TSearchAnnotationSetsRequesttypes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchAnnotationSetsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSearchAnnotationSetsResponse.SetannotationSets(AIndex : Integer; AValue : TSearchAnnotationSetsResponseannotationSets); 
+Procedure TSearchAnnotationSetsResponse.SetannotationSets(AIndex : Integer; AValue : TSearchAnnotationSetsResponseTypeannotationSetsArray); 
 
 begin
   If (FannotationSets=AValue) then exit;
@@ -6493,7 +5211,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchAnnotationSetsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6506,18 +5224,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchAnnotationSetsResponseannotationSets
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchAnnotationsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TSearchAnnotationsRequest.SetannotationSetIds(AIndex : Integer; AValue : TSearchAnnotationsRequestannotationSetIds); 
+Procedure TSearchAnnotationsRequest.SetannotationSetIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FannotationSetIds=AValue) then exit;
@@ -6537,7 +5248,7 @@ end;
 
 
 
-Procedure TSearchAnnotationsRequest.SetpageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchAnnotationsRequest.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6560,18 +5271,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchAnnotationsRequestannotationSetIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchAnnotationsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSearchAnnotationsResponse.Setannotations(AIndex : Integer; AValue : TSearchAnnotationsResponseannotations); 
+Procedure TSearchAnnotationsResponse.Setannotations(AIndex : Integer; AValue : TSearchAnnotationsResponseTypeannotationsArray); 
 
 begin
   If (Fannotations=AValue) then exit;
@@ -6581,7 +5285,7 @@ end;
 
 
 
-Procedure TSearchAnnotationsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchAnnotationsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6594,18 +5298,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchAnnotationsResponseannotations
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchCallSetsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TSearchCallSetsRequest.Setname(AIndex : Integer; AValue : string); 
+Procedure TSearchCallSetsRequest.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6625,7 +5322,7 @@ end;
 
 
 
-Procedure TSearchCallSetsRequest.SetpageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchCallSetsRequest.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6635,7 +5332,7 @@ end;
 
 
 
-Procedure TSearchCallSetsRequest.SetvariantSetIds(AIndex : Integer; AValue : TSearchCallSetsRequestvariantSetIds); 
+Procedure TSearchCallSetsRequest.SetvariantSetIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FvariantSetIds=AValue) then exit;
@@ -6648,18 +5345,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchCallSetsRequestvariantSetIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchCallSetsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSearchCallSetsResponse.SetcallSets(AIndex : Integer; AValue : TSearchCallSetsResponsecallSets); 
+Procedure TSearchCallSetsResponse.SetcallSets(AIndex : Integer; AValue : TSearchCallSetsResponseTypecallSetsArray); 
 
 begin
   If (FcallSets=AValue) then exit;
@@ -6669,7 +5359,7 @@ end;
 
 
 
-Procedure TSearchCallSetsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchCallSetsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6682,18 +5372,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchCallSetsResponsecallSets
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchJobsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TSearchJobsRequest.SetcreatedAfter(AIndex : Integer; AValue : string); 
+Procedure TSearchJobsRequest.SetcreatedAfter(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreatedAfter=AValue) then exit;
@@ -6703,7 +5386,7 @@ end;
 
 
 
-Procedure TSearchJobsRequest.SetcreatedBefore(AIndex : Integer; AValue : string); 
+Procedure TSearchJobsRequest.SetcreatedBefore(AIndex : Integer; AValue : String); 
 
 begin
   If (FcreatedBefore=AValue) then exit;
@@ -6723,7 +5406,7 @@ end;
 
 
 
-Procedure TSearchJobsRequest.SetpageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchJobsRequest.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6733,7 +5416,7 @@ end;
 
 
 
-Procedure TSearchJobsRequest.SetprojectNumber(AIndex : Integer; AValue : string); 
+Procedure TSearchJobsRequest.SetprojectNumber(AIndex : Integer; AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -6743,7 +5426,7 @@ end;
 
 
 
-Procedure TSearchJobsRequest.Setstatus(AIndex : Integer; AValue : TSearchJobsRequeststatus); 
+Procedure TSearchJobsRequest.Setstatus(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -6756,18 +5439,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchJobsRequeststatus
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchJobsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSearchJobsResponse.Setjobs(AIndex : Integer; AValue : TSearchJobsResponsejobs); 
+Procedure TSearchJobsResponse.Setjobs(AIndex : Integer; AValue : TSearchJobsResponseTypejobsArray); 
 
 begin
   If (Fjobs=AValue) then exit;
@@ -6777,7 +5453,7 @@ end;
 
 
 
-Procedure TSearchJobsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchJobsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6790,18 +5466,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchJobsResponsejobs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchReadGroupSetsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReadGroupSetsRequest.SetdatasetIds(AIndex : Integer; AValue : TSearchReadGroupSetsRequestdatasetIds); 
+Procedure TSearchReadGroupSetsRequest.SetdatasetIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FdatasetIds=AValue) then exit;
@@ -6811,7 +5480,7 @@ end;
 
 
 
-Procedure TSearchReadGroupSetsRequest.Setname(AIndex : Integer; AValue : string); 
+Procedure TSearchReadGroupSetsRequest.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6831,7 +5500,7 @@ end;
 
 
 
-Procedure TSearchReadGroupSetsRequest.SetpageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchReadGroupSetsRequest.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6844,18 +5513,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchReadGroupSetsRequestdatasetIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchReadGroupSetsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReadGroupSetsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchReadGroupSetsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6865,7 +5527,7 @@ end;
 
 
 
-Procedure TSearchReadGroupSetsResponse.SetreadGroupSets(AIndex : Integer; AValue : TSearchReadGroupSetsResponsereadGroupSets); 
+Procedure TSearchReadGroupSetsResponse.SetreadGroupSets(AIndex : Integer; AValue : TSearchReadGroupSetsResponseTypereadGroupSetsArray); 
 
 begin
   If (FreadGroupSets=AValue) then exit;
@@ -6878,18 +5540,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchReadGroupSetsResponsereadGroupSets
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchReadsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReadsRequest.Set_end(AIndex : Integer; AValue : string); 
+Procedure TSearchReadsRequest.Set_end(AIndex : Integer; AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -6909,7 +5564,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.SetpageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchReadsRequest.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6919,7 +5574,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.SetreadGroupIds(AIndex : Integer; AValue : TSearchReadsRequestreadGroupIds); 
+Procedure TSearchReadsRequest.SetreadGroupIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FreadGroupIds=AValue) then exit;
@@ -6929,7 +5584,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.SetreadGroupSetIds(AIndex : Integer; AValue : TSearchReadsRequestreadGroupSetIds); 
+Procedure TSearchReadsRequest.SetreadGroupSetIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FreadGroupSetIds=AValue) then exit;
@@ -6939,7 +5594,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.SetreferenceName(AIndex : Integer; AValue : string); 
+Procedure TSearchReadsRequest.SetreferenceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -6949,7 +5604,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.Setstart(AIndex : Integer; AValue : string); 
+Procedure TSearchReadsRequest.Setstart(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -6973,25 +5628,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchReadsRequestreadGroupIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TSearchReadsRequestreadGroupSetIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchReadsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReadsResponse.Setalignments(AIndex : Integer; AValue : TSearchReadsResponsealignments); 
+Procedure TSearchReadsResponse.Setalignments(AIndex : Integer; AValue : TSearchReadsResponseTypealignmentsArray); 
 
 begin
   If (Falignments=AValue) then exit;
@@ -7001,7 +5642,7 @@ end;
 
 
 
-Procedure TSearchReadsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchReadsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7014,18 +5655,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchReadsResponsealignments
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchReferenceSetsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReferenceSetsRequest.Setaccessions(AIndex : Integer; AValue : TSearchReferenceSetsRequestaccessions); 
+Procedure TSearchReferenceSetsRequest.Setaccessions(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Faccessions=AValue) then exit;
@@ -7035,7 +5669,7 @@ end;
 
 
 
-Procedure TSearchReferenceSetsRequest.SetassemblyId(AIndex : Integer; AValue : string); 
+Procedure TSearchReferenceSetsRequest.SetassemblyId(AIndex : Integer; AValue : String); 
 
 begin
   If (FassemblyId=AValue) then exit;
@@ -7045,7 +5679,7 @@ end;
 
 
 
-Procedure TSearchReferenceSetsRequest.Setmd5checksums(AIndex : Integer; AValue : TSearchReferenceSetsRequestmd5checksums); 
+Procedure TSearchReferenceSetsRequest.Setmd5checksums(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fmd5checksums=AValue) then exit;
@@ -7065,7 +5699,7 @@ end;
 
 
 
-Procedure TSearchReferenceSetsRequest.SetpageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchReferenceSetsRequest.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -7078,25 +5712,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchReferenceSetsRequestaccessions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TSearchReferenceSetsRequestmd5checksums
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchReferenceSetsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReferenceSetsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchReferenceSetsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7106,7 +5726,7 @@ end;
 
 
 
-Procedure TSearchReferenceSetsResponse.SetreferenceSets(AIndex : Integer; AValue : TSearchReferenceSetsResponsereferenceSets); 
+Procedure TSearchReferenceSetsResponse.SetreferenceSets(AIndex : Integer; AValue : TSearchReferenceSetsResponseTypereferenceSetsArray); 
 
 begin
   If (FreferenceSets=AValue) then exit;
@@ -7119,18 +5739,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchReferenceSetsResponsereferenceSets
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchReferencesRequest
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReferencesRequest.Setaccessions(AIndex : Integer; AValue : TSearchReferencesRequestaccessions); 
+Procedure TSearchReferencesRequest.Setaccessions(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Faccessions=AValue) then exit;
@@ -7140,7 +5753,7 @@ end;
 
 
 
-Procedure TSearchReferencesRequest.Setmd5checksums(AIndex : Integer; AValue : TSearchReferencesRequestmd5checksums); 
+Procedure TSearchReferencesRequest.Setmd5checksums(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fmd5checksums=AValue) then exit;
@@ -7160,7 +5773,7 @@ end;
 
 
 
-Procedure TSearchReferencesRequest.SetpageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchReferencesRequest.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -7170,7 +5783,7 @@ end;
 
 
 
-Procedure TSearchReferencesRequest.SetreferenceSetId(AIndex : Integer; AValue : string); 
+Procedure TSearchReferencesRequest.SetreferenceSetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -7183,25 +5796,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchReferencesRequestaccessions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TSearchReferencesRequestmd5checksums
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchReferencesResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReferencesResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchReferencesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7211,7 +5810,7 @@ end;
 
 
 
-Procedure TSearchReferencesResponse.Setreferences(AIndex : Integer; AValue : TSearchReferencesResponsereferences); 
+Procedure TSearchReferencesResponse.Setreferences(AIndex : Integer; AValue : TSearchReferencesResponseTypereferencesArray); 
 
 begin
   If (Freferences=AValue) then exit;
@@ -7224,18 +5823,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchReferencesResponsereferences
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchVariantSetsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TSearchVariantSetsRequest.SetdatasetIds(AIndex : Integer; AValue : TSearchVariantSetsRequestdatasetIds); 
+Procedure TSearchVariantSetsRequest.SetdatasetIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FdatasetIds=AValue) then exit;
@@ -7255,7 +5847,7 @@ end;
 
 
 
-Procedure TSearchVariantSetsRequest.SetpageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchVariantSetsRequest.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -7268,18 +5860,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchVariantSetsRequestdatasetIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchVariantSetsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSearchVariantSetsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchVariantSetsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7289,7 +5874,7 @@ end;
 
 
 
-Procedure TSearchVariantSetsResponse.SetvariantSets(AIndex : Integer; AValue : TSearchVariantSetsResponsevariantSets); 
+Procedure TSearchVariantSetsResponse.SetvariantSets(AIndex : Integer; AValue : TSearchVariantSetsResponseTypevariantSetsArray); 
 
 begin
   If (FvariantSets=AValue) then exit;
@@ -7302,18 +5887,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchVariantSetsResponsevariantSets
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchVariantsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TSearchVariantsRequest.SetcallSetIds(AIndex : Integer; AValue : TSearchVariantsRequestcallSetIds); 
+Procedure TSearchVariantsRequest.SetcallSetIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FcallSetIds=AValue) then exit;
@@ -7323,7 +5901,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.Set_end(AIndex : Integer; AValue : string); 
+Procedure TSearchVariantsRequest.Set_end(AIndex : Integer; AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -7353,7 +5931,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetpageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchVariantsRequest.SetpageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -7363,7 +5941,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetreferenceName(AIndex : Integer; AValue : string); 
+Procedure TSearchVariantsRequest.SetreferenceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -7373,7 +5951,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.Setstart(AIndex : Integer; AValue : string); 
+Procedure TSearchVariantsRequest.Setstart(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -7383,7 +5961,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetvariantName(AIndex : Integer; AValue : string); 
+Procedure TSearchVariantsRequest.SetvariantName(AIndex : Integer; AValue : String); 
 
 begin
   If (FvariantName=AValue) then exit;
@@ -7393,7 +5971,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetvariantSetIds(AIndex : Integer; AValue : TSearchVariantsRequestvariantSetIds); 
+Procedure TSearchVariantsRequest.SetvariantSetIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FvariantSetIds=AValue) then exit;
@@ -7417,25 +5995,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchVariantsRequestcallSetIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TSearchVariantsRequestvariantSetIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TSearchVariantsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSearchVariantsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSearchVariantsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7445,7 +6009,7 @@ end;
 
 
 
-Procedure TSearchVariantsResponse.Setvariants(AIndex : Integer; AValue : TSearchVariantsResponsevariants); 
+Procedure TSearchVariantsResponse.Setvariants(AIndex : Integer; AValue : TSearchVariantsResponseTypevariantsArray); 
 
 begin
   If (Fvariants=AValue) then exit;
@@ -7458,18 +6022,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TSearchVariantsResponsevariants
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TStreamReadsRequest
   --------------------------------------------------------------------}
 
 
-Procedure TStreamReadsRequest.Set_end(AIndex : Integer; AValue : string); 
+Procedure TStreamReadsRequest.Set_end(AIndex : Integer; AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -7479,7 +6036,7 @@ end;
 
 
 
-Procedure TStreamReadsRequest.SetreadGroupSetIds(AIndex : Integer; AValue : TStreamReadsRequestreadGroupSetIds); 
+Procedure TStreamReadsRequest.SetreadGroupSetIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FreadGroupSetIds=AValue) then exit;
@@ -7489,7 +6046,7 @@ end;
 
 
 
-Procedure TStreamReadsRequest.SetreferenceName(AIndex : Integer; AValue : string); 
+Procedure TStreamReadsRequest.SetreferenceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -7499,7 +6056,7 @@ end;
 
 
 
-Procedure TStreamReadsRequest.Setstart(AIndex : Integer; AValue : string); 
+Procedure TStreamReadsRequest.Setstart(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -7523,18 +6080,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TStreamReadsRequestreadGroupSetIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TStreamReadsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TStreamReadsResponse.Setalignments(AIndex : Integer; AValue : TStreamReadsResponsealignments); 
+Procedure TStreamReadsResponse.Setalignments(AIndex : Integer; AValue : TStreamReadsResponseTypealignmentsArray); 
 
 begin
   If (Falignments=AValue) then exit;
@@ -7542,13 +6092,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TStreamReadsResponsealignments
-  --------------------------------------------------------------------}
 
 
 
@@ -7568,7 +6111,7 @@ end;
 
 
 
-Procedure TTranscript.Setexons(AIndex : Integer; AValue : TTranscriptexons); 
+Procedure TTranscript.Setexons(AIndex : Integer; AValue : TTranscriptTypeexonsArray); 
 
 begin
   If (Fexons=AValue) then exit;
@@ -7578,7 +6121,7 @@ end;
 
 
 
-Procedure TTranscript.SetgeneId(AIndex : Integer; AValue : string); 
+Procedure TTranscript.SetgeneId(AIndex : Integer; AValue : String); 
 
 begin
   If (FgeneId=AValue) then exit;
@@ -7591,18 +6134,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTranscriptexons
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TTranscriptCodingSequence
   --------------------------------------------------------------------}
 
 
-Procedure TTranscriptCodingSequence.Set_end(AIndex : Integer; AValue : string); 
+Procedure TTranscriptCodingSequence.Set_end(AIndex : Integer; AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -7612,7 +6148,7 @@ end;
 
 
 
-Procedure TTranscriptCodingSequence.Setstart(AIndex : Integer; AValue : string); 
+Procedure TTranscriptCodingSequence.Setstart(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -7640,7 +6176,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTranscriptExon.Set_end(AIndex : Integer; AValue : string); 
+Procedure TTranscriptExon.Set_end(AIndex : Integer; AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -7660,7 +6196,7 @@ end;
 
 
 
-Procedure TTranscriptExon.Setstart(AIndex : Integer; AValue : string); 
+Procedure TTranscriptExon.Setstart(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -7684,11 +6220,24 @@ end;
 
 
 { --------------------------------------------------------------------
+  TVariantTypeinfo
+  --------------------------------------------------------------------}
+
+
+Class Function TVariantTypeinfo.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TVariant
   --------------------------------------------------------------------}
 
 
-Procedure TVariant.SetalternateBases(AIndex : Integer; AValue : TVariantalternateBases); 
+Procedure TVariant.SetalternateBases(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FalternateBases=AValue) then exit;
@@ -7698,7 +6247,7 @@ end;
 
 
 
-Procedure TVariant.Setcalls(AIndex : Integer; AValue : TVariantcalls); 
+Procedure TVariant.Setcalls(AIndex : Integer; AValue : TVariantTypecallsArray); 
 
 begin
   If (Fcalls=AValue) then exit;
@@ -7708,7 +6257,7 @@ end;
 
 
 
-Procedure TVariant.Setcreated(AIndex : Integer; AValue : string); 
+Procedure TVariant.Setcreated(AIndex : Integer; AValue : String); 
 
 begin
   If (Fcreated=AValue) then exit;
@@ -7718,7 +6267,7 @@ end;
 
 
 
-Procedure TVariant.Set_end(AIndex : Integer; AValue : string); 
+Procedure TVariant.Set_end(AIndex : Integer; AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -7728,7 +6277,7 @@ end;
 
 
 
-Procedure TVariant.Setfilter(AIndex : Integer; AValue : TVariantfilter); 
+Procedure TVariant.Setfilter(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Ffilter=AValue) then exit;
@@ -7738,7 +6287,7 @@ end;
 
 
 
-Procedure TVariant.Setid(AIndex : Integer; AValue : string); 
+Procedure TVariant.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7748,7 +6297,7 @@ end;
 
 
 
-Procedure TVariant.Setinfo(AIndex : Integer; AValue : TVariantinfo); 
+Procedure TVariant.Setinfo(AIndex : Integer; AValue : TVariantTypeinfo); 
 
 begin
   If (Finfo=AValue) then exit;
@@ -7758,7 +6307,7 @@ end;
 
 
 
-Procedure TVariant.Setnames(AIndex : Integer; AValue : TVariantnames); 
+Procedure TVariant.Setnames(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fnames=AValue) then exit;
@@ -7778,7 +6327,7 @@ end;
 
 
 
-Procedure TVariant.SetreferenceBases(AIndex : Integer; AValue : string); 
+Procedure TVariant.SetreferenceBases(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceBases=AValue) then exit;
@@ -7788,7 +6337,7 @@ end;
 
 
 
-Procedure TVariant.SetreferenceName(AIndex : Integer; AValue : string); 
+Procedure TVariant.SetreferenceName(AIndex : Integer; AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -7798,7 +6347,7 @@ end;
 
 
 
-Procedure TVariant.Setstart(AIndex : Integer; AValue : string); 
+Procedure TVariant.Setstart(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -7808,7 +6357,7 @@ end;
 
 
 
-Procedure TVariant.SetvariantSetId(AIndex : Integer; AValue : string); 
+Procedure TVariant.SetvariantSetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FvariantSetId=AValue) then exit;
@@ -7832,52 +6381,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVariantalternateBases
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVariantcalls
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVariantfilter
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVariantinfo
-  --------------------------------------------------------------------}
-
-
-Class Function TVariantinfo.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TVariantnames
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVariantAnnotation
   --------------------------------------------------------------------}
 
 
-Procedure TVariantAnnotation.SetalternateBases(AIndex : Integer; AValue : string); 
+Procedure TVariantAnnotation.SetalternateBases(AIndex : Integer; AValue : String); 
 
 begin
   If (FalternateBases=AValue) then exit;
@@ -7887,7 +6395,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.SetclinicalSignificance(AIndex : Integer; AValue : string); 
+Procedure TVariantAnnotation.SetclinicalSignificance(AIndex : Integer; AValue : String); 
 
 begin
   If (FclinicalSignificance=AValue) then exit;
@@ -7897,7 +6405,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.Setconditions(AIndex : Integer; AValue : TVariantAnnotationconditions); 
+Procedure TVariantAnnotation.Setconditions(AIndex : Integer; AValue : TVariantAnnotationTypeconditionsArray); 
 
 begin
   If (Fconditions=AValue) then exit;
@@ -7907,7 +6415,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.Seteffect(AIndex : Integer; AValue : string); 
+Procedure TVariantAnnotation.Seteffect(AIndex : Integer; AValue : String); 
 
 begin
   If (Feffect=AValue) then exit;
@@ -7917,7 +6425,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.SetgeneId(AIndex : Integer; AValue : string); 
+Procedure TVariantAnnotation.SetgeneId(AIndex : Integer; AValue : String); 
 
 begin
   If (FgeneId=AValue) then exit;
@@ -7927,7 +6435,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.SettranscriptIds(AIndex : Integer; AValue : TVariantAnnotationtranscriptIds); 
+Procedure TVariantAnnotation.SettranscriptIds(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FtranscriptIds=AValue) then exit;
@@ -7937,7 +6445,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.Set_type(AIndex : Integer; AValue : string); 
+Procedure TVariantAnnotation.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7961,25 +6469,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVariantAnnotationconditions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVariantAnnotationtranscriptIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVariantAnnotationCondition
   --------------------------------------------------------------------}
 
 
-Procedure TVariantAnnotationCondition.SetconceptId(AIndex : Integer; AValue : string); 
+Procedure TVariantAnnotationCondition.SetconceptId(AIndex : Integer; AValue : String); 
 
 begin
   If (FconceptId=AValue) then exit;
@@ -7989,7 +6483,7 @@ end;
 
 
 
-Procedure TVariantAnnotationCondition.SetexternalIds(AIndex : Integer; AValue : TVariantAnnotationConditionexternalIds); 
+Procedure TVariantAnnotationCondition.SetexternalIds(AIndex : Integer; AValue : TVariantAnnotationConditionTypeexternalIdsArray); 
 
 begin
   If (FexternalIds=AValue) then exit;
@@ -7999,7 +6493,7 @@ end;
 
 
 
-Procedure TVariantAnnotationCondition.Setnames(AIndex : Integer; AValue : TVariantAnnotationConditionnames); 
+Procedure TVariantAnnotationCondition.Setnames(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fnames=AValue) then exit;
@@ -8009,7 +6503,7 @@ end;
 
 
 
-Procedure TVariantAnnotationCondition.SetomimId(AIndex : Integer; AValue : string); 
+Procedure TVariantAnnotationCondition.SetomimId(AIndex : Integer; AValue : String); 
 
 begin
   If (FomimId=AValue) then exit;
@@ -8022,25 +6516,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVariantAnnotationConditionexternalIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVariantAnnotationConditionnames
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TVariantSet
   --------------------------------------------------------------------}
 
 
-Procedure TVariantSet.SetdatasetId(AIndex : Integer; AValue : string); 
+Procedure TVariantSet.SetdatasetId(AIndex : Integer; AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -8050,7 +6530,7 @@ end;
 
 
 
-Procedure TVariantSet.Setid(AIndex : Integer; AValue : string); 
+Procedure TVariantSet.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8060,7 +6540,7 @@ end;
 
 
 
-Procedure TVariantSet.Setmetadata(AIndex : Integer; AValue : TVariantSetmetadata); 
+Procedure TVariantSet.Setmetadata(AIndex : Integer; AValue : TVariantSetTypemetadataArray); 
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -8070,7 +6550,7 @@ end;
 
 
 
-Procedure TVariantSet.SetreferenceBounds(AIndex : Integer; AValue : TVariantSetreferenceBounds); 
+Procedure TVariantSet.SetreferenceBounds(AIndex : Integer; AValue : TVariantSetTypereferenceBoundsArray); 
 
 begin
   If (FreferenceBounds=AValue) then exit;
@@ -8078,20 +6558,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TVariantSetmetadata
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVariantSetreferenceBounds
-  --------------------------------------------------------------------}
 
 
 
@@ -9255,163 +7721,93 @@ Class Procedure TGenomicsAPI.RegisterAPIResources;
 
 begin
   TAlignReadGroupSetsRequest.RegisterObject;
-  TAlignReadGroupSetsRequestbamSourceUris.RegisterObject;
   TAlignReadGroupSetsResponse.RegisterObject;
+  TAnnotationTypeinfo.RegisterObject;
   TAnnotation.RegisterObject;
-  TAnnotationinfo.RegisterObject;
+  TAnnotationSetTypeinfo.RegisterObject;
   TAnnotationSet.RegisterObject;
-  TAnnotationSetinfo.RegisterObject;
   TBatchAnnotationsResponse.RegisterObject;
-  TBatchAnnotationsResponseentries.RegisterObject;
   TBatchAnnotationsResponseEntry.RegisterObject;
   TBatchAnnotationsResponseEntryStatus.RegisterObject;
   TBatchCreateAnnotationsRequest.RegisterObject;
-  TBatchCreateAnnotationsRequestannotations.RegisterObject;
+  TCallTypeinfo.RegisterObject;
   TCall.RegisterObject;
-  TCallgenotype.RegisterObject;
-  TCallgenotypeLikelihood.RegisterObject;
-  TCallinfo.RegisterObject;
   TCallReadGroupSetsRequest.RegisterObject;
-  TCallReadGroupSetsRequestsourceUris.RegisterObject;
   TCallReadGroupSetsResponse.RegisterObject;
+  TCallSetTypeinfo.RegisterObject;
   TCallSet.RegisterObject;
-  TCallSetinfo.RegisterObject;
-  TCallSetvariantSetIds.RegisterObject;
   TCigarUnit.RegisterObject;
   TCoverageBucket.RegisterObject;
   TDataset.RegisterObject;
   TExperimentalCreateJobRequest.RegisterObject;
-  TExperimentalCreateJobRequestpairedSourceUris.RegisterObject;
-  TExperimentalCreateJobRequestsourceUris.RegisterObject;
   TExperimentalCreateJobResponse.RegisterObject;
   TExportReadGroupSetsRequest.RegisterObject;
-  TExportReadGroupSetsRequestreadGroupSetIds.RegisterObject;
-  TExportReadGroupSetsRequestreferenceNames.RegisterObject;
   TExportReadGroupSetsResponse.RegisterObject;
   TExportVariantSetRequest.RegisterObject;
-  TExportVariantSetRequestcallSetIds.RegisterObject;
   TExportVariantSetResponse.RegisterObject;
   TExternalId.RegisterObject;
   TFastqMetadata.RegisterObject;
   TImportReadGroupSetsRequest.RegisterObject;
-  TImportReadGroupSetsRequestsourceUris.RegisterObject;
   TImportReadGroupSetsResponse.RegisterObject;
   TImportVariantsRequest.RegisterObject;
-  TImportVariantsRequestsourceUris.RegisterObject;
   TImportVariantsResponse.RegisterObject;
   TInt32Value.RegisterObject;
   TInterleavedFastqSource.RegisterObject;
-  TInterleavedFastqSourcesourceUris.RegisterObject;
   TJob.RegisterObject;
-  TJoberrors.RegisterObject;
-  TJobimportedIds.RegisterObject;
-  TJobwarnings.RegisterObject;
   TJobRequest.RegisterObject;
-  TJobRequestdestination.RegisterObject;
-  TJobRequestsource.RegisterObject;
   TLinearAlignment.RegisterObject;
-  TLinearAlignmentcigar.RegisterObject;
   TListBasesResponse.RegisterObject;
   TListCoverageBucketsResponse.RegisterObject;
-  TListCoverageBucketsResponsecoverageBuckets.RegisterObject;
   TListDatasetsResponse.RegisterObject;
-  TListDatasetsResponsedatasets.RegisterObject;
   TMergeVariantsRequest.RegisterObject;
-  TMergeVariantsRequestvariants.RegisterObject;
+  TMetadataTypeinfo.RegisterObject;
   TMetadata.RegisterObject;
-  TMetadatainfo.RegisterObject;
   TPairedFastqSource.RegisterObject;
-  TPairedFastqSourcefirstSourceUris.RegisterObject;
-  TPairedFastqSourcesecondSourceUris.RegisterObject;
   TPosition.RegisterObject;
   TQueryRange.RegisterObject;
   TRange.RegisterObject;
   TRangePosition.RegisterObject;
+  TReadTypeinfo.RegisterObject;
   TRead.RegisterObject;
-  TReadalignedQuality.RegisterObject;
-  TReadinfo.RegisterObject;
+  TReadGroupTypeinfo.RegisterObject;
   TReadGroup.RegisterObject;
-  TReadGroupinfo.RegisterObject;
-  TReadGroupprograms.RegisterObject;
   TReadGroupExperiment.RegisterObject;
   TReadGroupProgram.RegisterObject;
+  TReadGroupSetTypeinfo.RegisterObject;
   TReadGroupSet.RegisterObject;
-  TReadGroupSetinfo.RegisterObject;
-  TReadGroupSetreadGroups.RegisterObject;
   TReference.RegisterObject;
-  TReferencesourceAccessions.RegisterObject;
   TReferenceBound.RegisterObject;
   TReferenceSet.RegisterObject;
-  TReferenceSetreferenceIds.RegisterObject;
-  TReferenceSetsourceAccessions.RegisterObject;
   TSearchAnnotationSetsRequest.RegisterObject;
-  TSearchAnnotationSetsRequestdatasetIds.RegisterObject;
-  TSearchAnnotationSetsRequesttypes.RegisterObject;
   TSearchAnnotationSetsResponse.RegisterObject;
-  TSearchAnnotationSetsResponseannotationSets.RegisterObject;
   TSearchAnnotationsRequest.RegisterObject;
-  TSearchAnnotationsRequestannotationSetIds.RegisterObject;
   TSearchAnnotationsResponse.RegisterObject;
-  TSearchAnnotationsResponseannotations.RegisterObject;
   TSearchCallSetsRequest.RegisterObject;
-  TSearchCallSetsRequestvariantSetIds.RegisterObject;
   TSearchCallSetsResponse.RegisterObject;
-  TSearchCallSetsResponsecallSets.RegisterObject;
   TSearchJobsRequest.RegisterObject;
-  TSearchJobsRequeststatus.RegisterObject;
   TSearchJobsResponse.RegisterObject;
-  TSearchJobsResponsejobs.RegisterObject;
   TSearchReadGroupSetsRequest.RegisterObject;
-  TSearchReadGroupSetsRequestdatasetIds.RegisterObject;
   TSearchReadGroupSetsResponse.RegisterObject;
-  TSearchReadGroupSetsResponsereadGroupSets.RegisterObject;
   TSearchReadsRequest.RegisterObject;
-  TSearchReadsRequestreadGroupIds.RegisterObject;
-  TSearchReadsRequestreadGroupSetIds.RegisterObject;
   TSearchReadsResponse.RegisterObject;
-  TSearchReadsResponsealignments.RegisterObject;
   TSearchReferenceSetsRequest.RegisterObject;
-  TSearchReferenceSetsRequestaccessions.RegisterObject;
-  TSearchReferenceSetsRequestmd5checksums.RegisterObject;
   TSearchReferenceSetsResponse.RegisterObject;
-  TSearchReferenceSetsResponsereferenceSets.RegisterObject;
   TSearchReferencesRequest.RegisterObject;
-  TSearchReferencesRequestaccessions.RegisterObject;
-  TSearchReferencesRequestmd5checksums.RegisterObject;
   TSearchReferencesResponse.RegisterObject;
-  TSearchReferencesResponsereferences.RegisterObject;
   TSearchVariantSetsRequest.RegisterObject;
-  TSearchVariantSetsRequestdatasetIds.RegisterObject;
   TSearchVariantSetsResponse.RegisterObject;
-  TSearchVariantSetsResponsevariantSets.RegisterObject;
   TSearchVariantsRequest.RegisterObject;
-  TSearchVariantsRequestcallSetIds.RegisterObject;
-  TSearchVariantsRequestvariantSetIds.RegisterObject;
   TSearchVariantsResponse.RegisterObject;
-  TSearchVariantsResponsevariants.RegisterObject;
   TStreamReadsRequest.RegisterObject;
-  TStreamReadsRequestreadGroupSetIds.RegisterObject;
   TStreamReadsResponse.RegisterObject;
-  TStreamReadsResponsealignments.RegisterObject;
   TTranscript.RegisterObject;
-  TTranscriptexons.RegisterObject;
   TTranscriptCodingSequence.RegisterObject;
   TTranscriptExon.RegisterObject;
+  TVariantTypeinfo.RegisterObject;
   TVariant.RegisterObject;
-  TVariantalternateBases.RegisterObject;
-  TVariantcalls.RegisterObject;
-  TVariantfilter.RegisterObject;
-  TVariantinfo.RegisterObject;
-  TVariantnames.RegisterObject;
   TVariantAnnotation.RegisterObject;
-  TVariantAnnotationconditions.RegisterObject;
-  TVariantAnnotationtranscriptIds.RegisterObject;
   TVariantAnnotationCondition.RegisterObject;
-  TVariantAnnotationConditionexternalIds.RegisterObject;
-  TVariantAnnotationConditionnames.RegisterObject;
   TVariantSet.RegisterObject;
-  TVariantSetmetadata.RegisterObject;
-  TVariantSetreferenceBounds.RegisterObject;
 end;
 
 

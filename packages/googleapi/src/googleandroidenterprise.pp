@@ -1,31 +1,19 @@
 unit googleandroidenterprise;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 9-5-15 13:22:48
 {$MODE objfpc}
 {$H+}
 
@@ -34,89 +22,72 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
+  
+  //Top-level schema types
   TAppRestrictionsSchema = class;
-  TAppRestrictionsSchemaArray = Array of TAppRestrictionsSchema;
-  TAppRestrictionsSchemarestrictions = class;
-  TAppRestrictionsSchemarestrictionsArray = Array of TAppRestrictionsSchemarestrictions;
   TAppRestrictionsSchemaRestriction = class;
-  TAppRestrictionsSchemaRestrictionArray = Array of TAppRestrictionsSchemaRestriction;
-  TAppRestrictionsSchemaRestrictionentry = class;
-  TAppRestrictionsSchemaRestrictionentryArray = Array of TAppRestrictionsSchemaRestrictionentry;
-  TAppRestrictionsSchemaRestrictionentryValue = class;
-  TAppRestrictionsSchemaRestrictionentryValueArray = Array of TAppRestrictionsSchemaRestrictionentryValue;
   TAppRestrictionsSchemaRestrictionRestrictionValue = class;
-  TAppRestrictionsSchemaRestrictionRestrictionValueArray = Array of TAppRestrictionsSchemaRestrictionRestrictionValue;
-  TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselect = class;
-  TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselectArray = Array of TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselect;
   TCollection = class;
-  TCollectionArray = Array of TCollection;
-  TCollectionproductId = class;
-  TCollectionproductIdArray = Array of TCollectionproductId;
   TCollectionViewersListResponse = class;
-  TCollectionViewersListResponseArray = Array of TCollectionViewersListResponse;
-  TCollectionViewersListResponseuser = class;
-  TCollectionViewersListResponseuserArray = Array of TCollectionViewersListResponseuser;
   TCollectionsListResponse = class;
-  TCollectionsListResponseArray = Array of TCollectionsListResponse;
-  TCollectionsListResponsecollection = class;
-  TCollectionsListResponsecollectionArray = Array of TCollectionsListResponsecollection;
   TDevice = class;
-  TDeviceArray = Array of TDevice;
   TDeviceState = class;
-  TDeviceStateArray = Array of TDeviceState;
   TDevicesListResponse = class;
-  TDevicesListResponseArray = Array of TDevicesListResponse;
-  TDevicesListResponsedevice = class;
-  TDevicesListResponsedeviceArray = Array of TDevicesListResponsedevice;
   TEnterprise = class;
-  TEnterpriseArray = Array of TEnterprise;
   TEnterpriseAccount = class;
-  TEnterpriseAccountArray = Array of TEnterpriseAccount;
   TEnterprisesListResponse = class;
-  TEnterprisesListResponseArray = Array of TEnterprisesListResponse;
-  TEnterprisesListResponseenterprise = class;
-  TEnterprisesListResponseenterpriseArray = Array of TEnterprisesListResponseenterprise;
   TEntitlement = class;
-  TEntitlementArray = Array of TEntitlement;
   TEntitlementsListResponse = class;
-  TEntitlementsListResponseArray = Array of TEntitlementsListResponse;
-  TEntitlementsListResponseentitlement = class;
-  TEntitlementsListResponseentitlementArray = Array of TEntitlementsListResponseentitlement;
   TGroupLicense = class;
-  TGroupLicenseArray = Array of TGroupLicense;
   TGroupLicenseUsersListResponse = class;
-  TGroupLicenseUsersListResponseArray = Array of TGroupLicenseUsersListResponse;
-  TGroupLicenseUsersListResponseuser = class;
-  TGroupLicenseUsersListResponseuserArray = Array of TGroupLicenseUsersListResponseuser;
   TGroupLicensesListResponse = class;
-  TGroupLicensesListResponseArray = Array of TGroupLicensesListResponse;
-  TGroupLicensesListResponsegroupLicense = class;
-  TGroupLicensesListResponsegroupLicenseArray = Array of TGroupLicensesListResponsegroupLicense;
   TInstall = class;
-  TInstallArray = Array of TInstall;
   TInstallsListResponse = class;
-  TInstallsListResponseArray = Array of TInstallsListResponse;
-  TInstallsListResponseinstall = class;
-  TInstallsListResponseinstallArray = Array of TInstallsListResponseinstall;
   TPermission = class;
-  TPermissionArray = Array of TPermission;
   TProduct = class;
-  TProductArray = Array of TProduct;
   TProductPermission = class;
-  TProductPermissionArray = Array of TProductPermission;
   TProductPermissions = class;
-  TProductPermissionsArray = Array of TProductPermissions;
-  TProductPermissionspermission = class;
-  TProductPermissionspermissionArray = Array of TProductPermissionspermission;
   TUser = class;
-  TUserArray = Array of TUser;
   TUserToken = class;
-  TUserTokenArray = Array of TUserToken;
   TUsersListResponse = class;
+  TAppRestrictionsSchemaArray = Array of TAppRestrictionsSchema;
+  TAppRestrictionsSchemaRestrictionArray = Array of TAppRestrictionsSchemaRestriction;
+  TAppRestrictionsSchemaRestrictionRestrictionValueArray = Array of TAppRestrictionsSchemaRestrictionRestrictionValue;
+  TCollectionArray = Array of TCollection;
+  TCollectionViewersListResponseArray = Array of TCollectionViewersListResponse;
+  TCollectionsListResponseArray = Array of TCollectionsListResponse;
+  TDeviceArray = Array of TDevice;
+  TDeviceStateArray = Array of TDeviceState;
+  TDevicesListResponseArray = Array of TDevicesListResponse;
+  TEnterpriseArray = Array of TEnterprise;
+  TEnterpriseAccountArray = Array of TEnterpriseAccount;
+  TEnterprisesListResponseArray = Array of TEnterprisesListResponse;
+  TEntitlementArray = Array of TEntitlement;
+  TEntitlementsListResponseArray = Array of TEntitlementsListResponse;
+  TGroupLicenseArray = Array of TGroupLicense;
+  TGroupLicenseUsersListResponseArray = Array of TGroupLicenseUsersListResponse;
+  TGroupLicensesListResponseArray = Array of TGroupLicensesListResponse;
+  TInstallArray = Array of TInstall;
+  TInstallsListResponseArray = Array of TInstallsListResponse;
+  TPermissionArray = Array of TPermission;
+  TProductArray = Array of TProduct;
+  TProductPermissionArray = Array of TProductPermission;
+  TProductPermissionsArray = Array of TProductPermissions;
+  TUserArray = Array of TUser;
+  TUserTokenArray = Array of TUserToken;
   TUsersListResponseArray = Array of TUsersListResponse;
-  TUsersListResponseuser = class;
-  TUsersListResponseuserArray = Array of TUsersListResponseuser;
+  //Anonymous types, using auto-generated names
+  TAppRestrictionsSchemaTyperestrictionsArray = Array of TAppRestrictionsSchemaRestriction;
+  TCollectionViewersListResponseTypeuserArray = Array of TUser;
+  TCollectionsListResponseTypecollectionArray = Array of TCollection;
+  TDevicesListResponseTypedeviceArray = Array of TDevice;
+  TEnterprisesListResponseTypeenterpriseArray = Array of TEnterprise;
+  TEntitlementsListResponseTypeentitlementArray = Array of TEntitlement;
+  TGroupLicenseUsersListResponseTypeuserArray = Array of TUser;
+  TGroupLicensesListResponseTypegroupLicenseArray = Array of TGroupLicense;
+  TInstallsListResponseTypeinstallArray = Array of TInstall;
+  TProductPermissionsTypepermissionArray = Array of TProductPermission;
+  TUsersListResponseTypeuserArray = Array of TUser;
   
   { --------------------------------------------------------------------
     TAppRestrictionsSchema
@@ -124,28 +95,15 @@ type
   
   TAppRestrictionsSchema = Class(TGoogleBaseObject)
   Private
-    Frestrictions : TAppRestrictionsSchemarestrictions;
+    Frestrictions : TAppRestrictionsSchemaTyperestrictionsArray;
   Protected
     //Property setters
-    Procedure Setrestrictions(AIndex : Integer; AValue : TAppRestrictionsSchemarestrictions); virtual;
+    Procedure Setrestrictions(AIndex : Integer; AValue : TAppRestrictionsSchemaTyperestrictionsArray); virtual;
   Public
   Published
-    Property restrictions : TAppRestrictionsSchemarestrictions Index 0 Read Frestrictions Write Setrestrictions;
+    Property restrictions : TAppRestrictionsSchemaTyperestrictionsArray Index 0 Read Frestrictions Write Setrestrictions;
   end;
   TAppRestrictionsSchemaClass = Class of TAppRestrictionsSchema;
-  
-  { --------------------------------------------------------------------
-    TAppRestrictionsSchemarestrictions
-    --------------------------------------------------------------------}
-  
-  TAppRestrictionsSchemarestrictions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAppRestrictionsSchemarestrictionsClass = Class of TAppRestrictionsSchemarestrictions;
   
   { --------------------------------------------------------------------
     TAppRestrictionsSchemaRestriction
@@ -154,58 +112,32 @@ type
   TAppRestrictionsSchemaRestriction = Class(TGoogleBaseObject)
   Private
     FdefaultValue : TAppRestrictionsSchemaRestrictionRestrictionValue;
-    Fdescription : string;
-    Fentry : TAppRestrictionsSchemaRestrictionentry;
-    FentryValue : TAppRestrictionsSchemaRestrictionentryValue;
-    Fkey : string;
-    FrestrictionType : string;
-    Ftitle : string;
+    Fdescription : String;
+    Fentry : TStringArray;
+    FentryValue : TStringArray;
+    Fkey : String;
+    FrestrictionType : String;
+    Ftitle : String;
   Protected
     //Property setters
     Procedure SetdefaultValue(AIndex : Integer; AValue : TAppRestrictionsSchemaRestrictionRestrictionValue); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setentry(AIndex : Integer; AValue : TAppRestrictionsSchemaRestrictionentry); virtual;
-    Procedure SetentryValue(AIndex : Integer; AValue : TAppRestrictionsSchemaRestrictionentryValue); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrestrictionType(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setentry(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetentryValue(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrestrictionType(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
   Public
   Published
     Property defaultValue : TAppRestrictionsSchemaRestrictionRestrictionValue Index 0 Read FdefaultValue Write SetdefaultValue;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property entry : TAppRestrictionsSchemaRestrictionentry Index 16 Read Fentry Write Setentry;
-    Property entryValue : TAppRestrictionsSchemaRestrictionentryValue Index 24 Read FentryValue Write SetentryValue;
-    Property key : string Index 32 Read Fkey Write Setkey;
-    Property restrictionType : string Index 40 Read FrestrictionType Write SetrestrictionType;
-    Property title : string Index 48 Read Ftitle Write Settitle;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property entry : TStringArray Index 16 Read Fentry Write Setentry;
+    Property entryValue : TStringArray Index 24 Read FentryValue Write SetentryValue;
+    Property key : String Index 32 Read Fkey Write Setkey;
+    Property restrictionType : String Index 40 Read FrestrictionType Write SetrestrictionType;
+    Property title : String Index 48 Read Ftitle Write Settitle;
   end;
   TAppRestrictionsSchemaRestrictionClass = Class of TAppRestrictionsSchemaRestriction;
-  
-  { --------------------------------------------------------------------
-    TAppRestrictionsSchemaRestrictionentry
-    --------------------------------------------------------------------}
-  
-  TAppRestrictionsSchemaRestrictionentry = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAppRestrictionsSchemaRestrictionentryClass = Class of TAppRestrictionsSchemaRestrictionentry;
-  
-  { --------------------------------------------------------------------
-    TAppRestrictionsSchemaRestrictionentryValue
-    --------------------------------------------------------------------}
-  
-  TAppRestrictionsSchemaRestrictionentryValue = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAppRestrictionsSchemaRestrictionentryValueClass = Class of TAppRestrictionsSchemaRestrictionentryValue;
   
   { --------------------------------------------------------------------
     TAppRestrictionsSchemaRestrictionRestrictionValue
@@ -213,41 +145,28 @@ type
   
   TAppRestrictionsSchemaRestrictionRestrictionValue = Class(TGoogleBaseObject)
   Private
-    F_type : string;
+    F_type : String;
     FvalueBool : boolean;
     FvalueInteger : integer;
-    FvalueMultiselect : TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselect;
-    FvalueString : string;
+    FvalueMultiselect : TStringArray;
+    FvalueString : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure SetvalueBool(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetvalueInteger(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetvalueMultiselect(AIndex : Integer; AValue : TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselect); virtual;
-    Procedure SetvalueString(AIndex : Integer; AValue : string); virtual;
+    Procedure SetvalueMultiselect(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetvalueString(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property _type : string Index 0 Read F_type Write Set_type;
+    Property _type : String Index 0 Read F_type Write Set_type;
     Property valueBool : boolean Index 8 Read FvalueBool Write SetvalueBool;
     Property valueInteger : integer Index 16 Read FvalueInteger Write SetvalueInteger;
-    Property valueMultiselect : TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselect Index 24 Read FvalueMultiselect Write SetvalueMultiselect;
-    Property valueString : string Index 32 Read FvalueString Write SetvalueString;
+    Property valueMultiselect : TStringArray Index 24 Read FvalueMultiselect Write SetvalueMultiselect;
+    Property valueString : String Index 32 Read FvalueString Write SetvalueString;
   end;
   TAppRestrictionsSchemaRestrictionRestrictionValueClass = Class of TAppRestrictionsSchemaRestrictionRestrictionValue;
-  
-  { --------------------------------------------------------------------
-    TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselect
-    --------------------------------------------------------------------}
-  
-  TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselect = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselectClass = Class of TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselect;
   
   { --------------------------------------------------------------------
     TCollection
@@ -255,40 +174,27 @@ type
   
   TCollection = Class(TGoogleBaseObject)
   Private
-    FcollectionId : string;
-    Fkind : string;
-    Fname : string;
-    FproductId : TCollectionproductId;
-    Fvisibility : string;
+    FcollectionId : String;
+    Fkind : String;
+    Fname : String;
+    FproductId : TStringArray;
+    Fvisibility : String;
   Protected
     //Property setters
-    Procedure SetcollectionId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : TCollectionproductId); virtual;
-    Procedure Setvisibility(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcollectionId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property collectionId : string Index 0 Read FcollectionId Write SetcollectionId;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property productId : TCollectionproductId Index 24 Read FproductId Write SetproductId;
-    Property visibility : string Index 32 Read Fvisibility Write Setvisibility;
+    Property collectionId : String Index 0 Read FcollectionId Write SetcollectionId;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property productId : TStringArray Index 24 Read FproductId Write SetproductId;
+    Property visibility : String Index 32 Read Fvisibility Write Setvisibility;
   end;
   TCollectionClass = Class of TCollection;
-  
-  { --------------------------------------------------------------------
-    TCollectionproductId
-    --------------------------------------------------------------------}
-  
-  TCollectionproductId = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCollectionproductIdClass = Class of TCollectionproductId;
   
   { --------------------------------------------------------------------
     TCollectionViewersListResponse
@@ -296,31 +202,18 @@ type
   
   TCollectionViewersListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fuser : TCollectionViewersListResponseuser;
+    Fkind : String;
+    Fuser : TCollectionViewersListResponseTypeuserArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : TCollectionViewersListResponseuser); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setuser(AIndex : Integer; AValue : TCollectionViewersListResponseTypeuserArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property user : TCollectionViewersListResponseuser Index 8 Read Fuser Write Setuser;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property user : TCollectionViewersListResponseTypeuserArray Index 8 Read Fuser Write Setuser;
   end;
   TCollectionViewersListResponseClass = Class of TCollectionViewersListResponse;
-  
-  { --------------------------------------------------------------------
-    TCollectionViewersListResponseuser
-    --------------------------------------------------------------------}
-  
-  TCollectionViewersListResponseuser = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCollectionViewersListResponseuserClass = Class of TCollectionViewersListResponseuser;
   
   { --------------------------------------------------------------------
     TCollectionsListResponse
@@ -328,31 +221,18 @@ type
   
   TCollectionsListResponse = Class(TGoogleBaseObject)
   Private
-    Fcollection : TCollectionsListResponsecollection;
-    Fkind : string;
+    Fcollection : TCollectionsListResponseTypecollectionArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setcollection(AIndex : Integer; AValue : TCollectionsListResponsecollection); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcollection(AIndex : Integer; AValue : TCollectionsListResponseTypecollectionArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property collection : TCollectionsListResponsecollection Index 0 Read Fcollection Write Setcollection;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property collection : TCollectionsListResponseTypecollectionArray Index 0 Read Fcollection Write Setcollection;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TCollectionsListResponseClass = Class of TCollectionsListResponse;
-  
-  { --------------------------------------------------------------------
-    TCollectionsListResponsecollection
-    --------------------------------------------------------------------}
-  
-  TCollectionsListResponsecollection = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCollectionsListResponsecollectionClass = Class of TCollectionsListResponsecollection;
   
   { --------------------------------------------------------------------
     TDevice
@@ -360,16 +240,19 @@ type
   
   TDevice = Class(TGoogleBaseObject)
   Private
-    FandroidId : string;
-    Fkind : string;
+    FandroidId : String;
+    Fkind : String;
+    FmanagementType : String;
   Protected
     //Property setters
-    Procedure SetandroidId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetandroidId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmanagementType(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property androidId : string Index 0 Read FandroidId Write SetandroidId;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property androidId : String Index 0 Read FandroidId Write SetandroidId;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property managementType : String Index 16 Read FmanagementType Write SetmanagementType;
   end;
   TDeviceClass = Class of TDevice;
   
@@ -379,16 +262,16 @@ type
   
   TDeviceState = Class(TGoogleBaseObject)
   Private
-    FaccountState : string;
-    Fkind : string;
+    FaccountState : String;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetaccountState(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountState(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountState : string Index 0 Read FaccountState Write SetaccountState;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property accountState : String Index 0 Read FaccountState Write SetaccountState;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TDeviceStateClass = Class of TDeviceState;
   
@@ -398,31 +281,18 @@ type
   
   TDevicesListResponse = Class(TGoogleBaseObject)
   Private
-    Fdevice : TDevicesListResponsedevice;
-    Fkind : string;
+    Fdevice : TDevicesListResponseTypedeviceArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setdevice(AIndex : Integer; AValue : TDevicesListResponsedevice); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdevice(AIndex : Integer; AValue : TDevicesListResponseTypedeviceArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property device : TDevicesListResponsedevice Index 0 Read Fdevice Write Setdevice;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property device : TDevicesListResponseTypedeviceArray Index 0 Read Fdevice Write Setdevice;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TDevicesListResponseClass = Class of TDevicesListResponse;
-  
-  { --------------------------------------------------------------------
-    TDevicesListResponsedevice
-    --------------------------------------------------------------------}
-  
-  TDevicesListResponsedevice = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDevicesListResponsedeviceClass = Class of TDevicesListResponsedevice;
   
   { --------------------------------------------------------------------
     TEnterprise
@@ -430,22 +300,22 @@ type
   
   TEnterprise = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    FprimaryDomain : string;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FprimaryDomain : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprimaryDomain(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprimaryDomain(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property primaryDomain : string Index 24 Read FprimaryDomain Write SetprimaryDomain;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property primaryDomain : String Index 24 Read FprimaryDomain Write SetprimaryDomain;
   end;
   TEnterpriseClass = Class of TEnterprise;
   
@@ -455,16 +325,16 @@ type
   
   TEnterpriseAccount = Class(TGoogleBaseObject)
   Private
-    FaccountEmail : string;
-    Fkind : string;
+    FaccountEmail : String;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetaccountEmail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccountEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property accountEmail : string Index 0 Read FaccountEmail Write SetaccountEmail;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property accountEmail : String Index 0 Read FaccountEmail Write SetaccountEmail;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TEnterpriseAccountClass = Class of TEnterpriseAccount;
   
@@ -474,31 +344,18 @@ type
   
   TEnterprisesListResponse = Class(TGoogleBaseObject)
   Private
-    Fenterprise : TEnterprisesListResponseenterprise;
-    Fkind : string;
+    Fenterprise : TEnterprisesListResponseTypeenterpriseArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setenterprise(AIndex : Integer; AValue : TEnterprisesListResponseenterprise); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setenterprise(AIndex : Integer; AValue : TEnterprisesListResponseTypeenterpriseArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property enterprise : TEnterprisesListResponseenterprise Index 0 Read Fenterprise Write Setenterprise;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property enterprise : TEnterprisesListResponseTypeenterpriseArray Index 0 Read Fenterprise Write Setenterprise;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TEnterprisesListResponseClass = Class of TEnterprisesListResponse;
-  
-  { --------------------------------------------------------------------
-    TEnterprisesListResponseenterprise
-    --------------------------------------------------------------------}
-  
-  TEnterprisesListResponseenterprise = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TEnterprisesListResponseenterpriseClass = Class of TEnterprisesListResponseenterprise;
   
   { --------------------------------------------------------------------
     TEntitlement
@@ -506,19 +363,19 @@ type
   
   TEntitlement = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FproductId : string;
-    Freason : string;
+    Fkind : String;
+    FproductId : String;
+    Freason : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setreason(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property productId : string Index 8 Read FproductId Write SetproductId;
-    Property reason : string Index 16 Read Freason Write Setreason;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property productId : String Index 8 Read FproductId Write SetproductId;
+    Property reason : String Index 16 Read Freason Write Setreason;
   end;
   TEntitlementClass = Class of TEntitlement;
   
@@ -528,31 +385,18 @@ type
   
   TEntitlementsListResponse = Class(TGoogleBaseObject)
   Private
-    Fentitlement : TEntitlementsListResponseentitlement;
-    Fkind : string;
+    Fentitlement : TEntitlementsListResponseTypeentitlementArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setentitlement(AIndex : Integer; AValue : TEntitlementsListResponseentitlement); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setentitlement(AIndex : Integer; AValue : TEntitlementsListResponseTypeentitlementArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property entitlement : TEntitlementsListResponseentitlement Index 0 Read Fentitlement Write Setentitlement;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property entitlement : TEntitlementsListResponseTypeentitlementArray Index 0 Read Fentitlement Write Setentitlement;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TEntitlementsListResponseClass = Class of TEntitlementsListResponse;
-  
-  { --------------------------------------------------------------------
-    TEntitlementsListResponseentitlement
-    --------------------------------------------------------------------}
-  
-  TEntitlementsListResponseentitlement = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TEntitlementsListResponseentitlementClass = Class of TEntitlementsListResponseentitlement;
   
   { --------------------------------------------------------------------
     TGroupLicense
@@ -560,28 +404,28 @@ type
   
   TGroupLicense = Class(TGoogleBaseObject)
   Private
-    FacquisitionKind : string;
-    Fapproval : string;
-    Fkind : string;
+    FacquisitionKind : String;
+    Fapproval : String;
+    Fkind : String;
     FnumProvisioned : integer;
     FnumPurchased : integer;
-    FproductId : string;
+    FproductId : String;
   Protected
     //Property setters
-    Procedure SetacquisitionKind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setapproval(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetacquisitionKind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setapproval(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnumProvisioned(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumPurchased(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property acquisitionKind : string Index 0 Read FacquisitionKind Write SetacquisitionKind;
-    Property approval : string Index 8 Read Fapproval Write Setapproval;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property acquisitionKind : String Index 0 Read FacquisitionKind Write SetacquisitionKind;
+    Property approval : String Index 8 Read Fapproval Write Setapproval;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property numProvisioned : integer Index 24 Read FnumProvisioned Write SetnumProvisioned;
     Property numPurchased : integer Index 32 Read FnumPurchased Write SetnumPurchased;
-    Property productId : string Index 40 Read FproductId Write SetproductId;
+    Property productId : String Index 40 Read FproductId Write SetproductId;
   end;
   TGroupLicenseClass = Class of TGroupLicense;
   
@@ -591,31 +435,18 @@ type
   
   TGroupLicenseUsersListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fuser : TGroupLicenseUsersListResponseuser;
+    Fkind : String;
+    Fuser : TGroupLicenseUsersListResponseTypeuserArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : TGroupLicenseUsersListResponseuser); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setuser(AIndex : Integer; AValue : TGroupLicenseUsersListResponseTypeuserArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property user : TGroupLicenseUsersListResponseuser Index 8 Read Fuser Write Setuser;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property user : TGroupLicenseUsersListResponseTypeuserArray Index 8 Read Fuser Write Setuser;
   end;
   TGroupLicenseUsersListResponseClass = Class of TGroupLicenseUsersListResponse;
-  
-  { --------------------------------------------------------------------
-    TGroupLicenseUsersListResponseuser
-    --------------------------------------------------------------------}
-  
-  TGroupLicenseUsersListResponseuser = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGroupLicenseUsersListResponseuserClass = Class of TGroupLicenseUsersListResponseuser;
   
   { --------------------------------------------------------------------
     TGroupLicensesListResponse
@@ -623,31 +454,18 @@ type
   
   TGroupLicensesListResponse = Class(TGoogleBaseObject)
   Private
-    FgroupLicense : TGroupLicensesListResponsegroupLicense;
-    Fkind : string;
+    FgroupLicense : TGroupLicensesListResponseTypegroupLicenseArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetgroupLicense(AIndex : Integer; AValue : TGroupLicensesListResponsegroupLicense); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SetgroupLicense(AIndex : Integer; AValue : TGroupLicensesListResponseTypegroupLicenseArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property groupLicense : TGroupLicensesListResponsegroupLicense Index 0 Read FgroupLicense Write SetgroupLicense;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property groupLicense : TGroupLicensesListResponseTypegroupLicenseArray Index 0 Read FgroupLicense Write SetgroupLicense;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TGroupLicensesListResponseClass = Class of TGroupLicensesListResponse;
-  
-  { --------------------------------------------------------------------
-    TGroupLicensesListResponsegroupLicense
-    --------------------------------------------------------------------}
-  
-  TGroupLicensesListResponsegroupLicense = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGroupLicensesListResponsegroupLicenseClass = Class of TGroupLicensesListResponsegroupLicense;
   
   { --------------------------------------------------------------------
     TInstall
@@ -655,21 +473,21 @@ type
   
   TInstall = Class(TGoogleBaseObject)
   Private
-    FinstallState : string;
-    Fkind : string;
-    FproductId : string;
+    FinstallState : String;
+    Fkind : String;
+    FproductId : String;
     FversionCode : integer;
   Protected
     //Property setters
-    Procedure SetinstallState(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetinstallState(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
     Procedure SetversionCode(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
-    Property installState : string Index 0 Read FinstallState Write SetinstallState;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property productId : string Index 16 Read FproductId Write SetproductId;
+    Property installState : String Index 0 Read FinstallState Write SetinstallState;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property productId : String Index 16 Read FproductId Write SetproductId;
     Property versionCode : integer Index 24 Read FversionCode Write SetversionCode;
   end;
   TInstallClass = Class of TInstall;
@@ -680,31 +498,18 @@ type
   
   TInstallsListResponse = Class(TGoogleBaseObject)
   Private
-    Finstall : TInstallsListResponseinstall;
-    Fkind : string;
+    Finstall : TInstallsListResponseTypeinstallArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setinstall(AIndex : Integer; AValue : TInstallsListResponseinstall); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setinstall(AIndex : Integer; AValue : TInstallsListResponseTypeinstallArray); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property install : TInstallsListResponseinstall Index 0 Read Finstall Write Setinstall;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property install : TInstallsListResponseTypeinstallArray Index 0 Read Finstall Write Setinstall;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TInstallsListResponseClass = Class of TInstallsListResponse;
-  
-  { --------------------------------------------------------------------
-    TInstallsListResponseinstall
-    --------------------------------------------------------------------}
-  
-  TInstallsListResponseinstall = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInstallsListResponseinstallClass = Class of TInstallsListResponseinstall;
   
   { --------------------------------------------------------------------
     TPermission
@@ -712,22 +517,22 @@ type
   
   TPermission = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Fkind : string;
-    Fname : string;
-    FpermissionId : string;
+    Fdescription : String;
+    Fkind : String;
+    Fname : String;
+    FpermissionId : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpermissionId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpermissionId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property permissionId : string Index 24 Read FpermissionId Write SetpermissionId;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property permissionId : String Index 24 Read FpermissionId Write SetpermissionId;
   end;
   TPermissionClass = Class of TPermission;
   
@@ -737,31 +542,34 @@ type
   
   TProduct = Class(TGoogleBaseObject)
   Private
-    FauthorName : string;
-    FdetailsUrl : string;
-    FiconUrl : string;
-    Fkind : string;
-    FproductId : string;
-    Ftitle : string;
-    FworkDetailsUrl : string;
+    FauthorName : String;
+    FdetailsUrl : String;
+    FiconUrl : String;
+    Fkind : String;
+    FproductId : String;
+    FrequiresContainerApp : boolean;
+    Ftitle : String;
+    FworkDetailsUrl : String;
   Protected
     //Property setters
-    Procedure SetauthorName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdetailsUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SeticonUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure SetworkDetailsUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetauthorName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdetailsUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SeticonUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrequiresContainerApp(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetworkDetailsUrl(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property authorName : string Index 0 Read FauthorName Write SetauthorName;
-    Property detailsUrl : string Index 8 Read FdetailsUrl Write SetdetailsUrl;
-    Property iconUrl : string Index 16 Read FiconUrl Write SeticonUrl;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property productId : string Index 32 Read FproductId Write SetproductId;
-    Property title : string Index 40 Read Ftitle Write Settitle;
-    Property workDetailsUrl : string Index 48 Read FworkDetailsUrl Write SetworkDetailsUrl;
+    Property authorName : String Index 0 Read FauthorName Write SetauthorName;
+    Property detailsUrl : String Index 8 Read FdetailsUrl Write SetdetailsUrl;
+    Property iconUrl : String Index 16 Read FiconUrl Write SeticonUrl;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property productId : String Index 32 Read FproductId Write SetproductId;
+    Property requiresContainerApp : boolean Index 40 Read FrequiresContainerApp Write SetrequiresContainerApp;
+    Property title : String Index 48 Read Ftitle Write Settitle;
+    Property workDetailsUrl : String Index 56 Read FworkDetailsUrl Write SetworkDetailsUrl;
   end;
   TProductClass = Class of TProduct;
   
@@ -771,16 +579,16 @@ type
   
   TProductPermission = Class(TGoogleBaseObject)
   Private
-    FpermissionId : string;
-    Fstate : string;
+    FpermissionId : String;
+    Fstate : String;
   Protected
     //Property setters
-    Procedure SetpermissionId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : string); virtual;
+    Procedure SetpermissionId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property permissionId : string Index 0 Read FpermissionId Write SetpermissionId;
-    Property state : string Index 8 Read Fstate Write Setstate;
+    Property permissionId : String Index 0 Read FpermissionId Write SetpermissionId;
+    Property state : String Index 8 Read Fstate Write Setstate;
   end;
   TProductPermissionClass = Class of TProductPermission;
   
@@ -790,34 +598,21 @@ type
   
   TProductPermissions = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fpermission : TProductPermissionspermission;
-    FproductId : string;
+    Fkind : String;
+    Fpermission : TProductPermissionsTypepermissionArray;
+    FproductId : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpermission(AIndex : Integer; AValue : TProductPermissionspermission); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpermission(AIndex : Integer; AValue : TProductPermissionsTypepermissionArray); virtual;
+    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property permission : TProductPermissionspermission Index 8 Read Fpermission Write Setpermission;
-    Property productId : string Index 16 Read FproductId Write SetproductId;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property permission : TProductPermissionsTypepermissionArray Index 8 Read Fpermission Write Setpermission;
+    Property productId : String Index 16 Read FproductId Write SetproductId;
   end;
   TProductPermissionsClass = Class of TProductPermissions;
-  
-  { --------------------------------------------------------------------
-    TProductPermissionspermission
-    --------------------------------------------------------------------}
-  
-  TProductPermissionspermission = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProductPermissionspermissionClass = Class of TProductPermissionspermission;
   
   { --------------------------------------------------------------------
     TUser
@@ -825,19 +620,19 @@ type
   
   TUser = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    FprimaryEmail : string;
+    Fid : String;
+    Fkind : String;
+    FprimaryEmail : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprimaryEmail(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprimaryEmail(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property primaryEmail : string Index 16 Read FprimaryEmail Write SetprimaryEmail;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property primaryEmail : String Index 16 Read FprimaryEmail Write SetprimaryEmail;
   end;
   TUserClass = Class of TUser;
   
@@ -847,19 +642,19 @@ type
   
   TUserToken = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Ftoken : string;
-    FuserId : string;
+    Fkind : String;
+    Ftoken : String;
+    FuserId : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Settoken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetuserId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Settoken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuserId(AIndex : Integer; AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property token : string Index 8 Read Ftoken Write Settoken;
-    Property userId : string Index 16 Read FuserId Write SetuserId;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property token : String Index 8 Read Ftoken Write Settoken;
+    Property userId : String Index 16 Read FuserId Write SetuserId;
   end;
   TUserTokenClass = Class of TUserToken;
   
@@ -869,31 +664,18 @@ type
   
   TUsersListResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fuser : TUsersListResponseuser;
+    Fkind : String;
+    Fuser : TUsersListResponseTypeuserArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : TUsersListResponseuser); virtual;
+    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setuser(AIndex : Integer; AValue : TUsersListResponseTypeuserArray); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property user : TUsersListResponseuser Index 8 Read Fuser Write Setuser;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property user : TUsersListResponseTypeuserArray Index 8 Read Fuser Write Setuser;
   end;
   TUsersListResponseClass = Class of TUsersListResponse;
-  
-  { --------------------------------------------------------------------
-    TUsersListResponseuser
-    --------------------------------------------------------------------}
-  
-  TUsersListResponseuser = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUsersListResponseuserClass = Class of TUsersListResponseuser;
   
   { --------------------------------------------------------------------
     TCollectionsResource
@@ -951,21 +733,21 @@ type
   //Optional query Options for TEnterprisesResource, method Enroll
   
   TEnterprisesEnrollOptions = Record
-    token : string;
+    token : String;
   end;
   
   
   //Optional query Options for TEnterprisesResource, method Insert
   
   TEnterprisesInsertOptions = Record
-    token : string;
+    token : String;
   end;
   
   
   //Optional query Options for TEnterprisesResource, method List
   
   TEnterprisesListOptions = Record
-    domain : string;
+    domain : String;
   end;
   
   TEnterprisesResource = Class(TGoogleResource)
@@ -1066,7 +848,7 @@ type
   //Optional query Options for TPermissionsResource, method Get
   
   TPermissionsGetOptions = Record
-    language : string;
+    language : String;
   end;
   
   TPermissionsResource = Class(TGoogleResource)
@@ -1086,14 +868,14 @@ type
   //Optional query Options for TProductsResource, method Get
   
   TProductsGetOptions = Record
-    language : string;
+    language : String;
   end;
   
   
   //Optional query Options for TProductsResource, method GetAppRestrictionsSchema
   
   TProductsGetAppRestrictionsSchemaOptions = Record
-    language : string;
+    language : String;
   end;
   
   TProductsResource = Class(TGoogleResource)
@@ -1117,7 +899,7 @@ type
   //Optional query Options for TUsersResource, method List
   
   TUsersListOptions = Record
-    email : string;
+    email : String;
   end;
   
   TUsersResource = Class(TGoogleResource)
@@ -1227,7 +1009,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAppRestrictionsSchema.Setrestrictions(AIndex : Integer; AValue : TAppRestrictionsSchemarestrictions); 
+Procedure TAppRestrictionsSchema.Setrestrictions(AIndex : Integer; AValue : TAppRestrictionsSchemaTyperestrictionsArray); 
 
 begin
   If (Frestrictions=AValue) then exit;
@@ -1235,13 +1017,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TAppRestrictionsSchemarestrictions
-  --------------------------------------------------------------------}
 
 
 
@@ -1261,7 +1036,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestriction.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TAppRestrictionsSchemaRestriction.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1271,7 +1046,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestriction.Setentry(AIndex : Integer; AValue : TAppRestrictionsSchemaRestrictionentry); 
+Procedure TAppRestrictionsSchemaRestriction.Setentry(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (Fentry=AValue) then exit;
@@ -1281,7 +1056,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestriction.SetentryValue(AIndex : Integer; AValue : TAppRestrictionsSchemaRestrictionentryValue); 
+Procedure TAppRestrictionsSchemaRestriction.SetentryValue(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FentryValue=AValue) then exit;
@@ -1291,7 +1066,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestriction.Setkey(AIndex : Integer; AValue : string); 
+Procedure TAppRestrictionsSchemaRestriction.Setkey(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -1301,7 +1076,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestriction.SetrestrictionType(AIndex : Integer; AValue : string); 
+Procedure TAppRestrictionsSchemaRestriction.SetrestrictionType(AIndex : Integer; AValue : String); 
 
 begin
   If (FrestrictionType=AValue) then exit;
@@ -1311,7 +1086,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestriction.Settitle(AIndex : Integer; AValue : string); 
+Procedure TAppRestrictionsSchemaRestriction.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1324,25 +1099,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAppRestrictionsSchemaRestrictionentry
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAppRestrictionsSchemaRestrictionentryValue
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TAppRestrictionsSchemaRestrictionRestrictionValue
   --------------------------------------------------------------------}
 
 
-Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.Set_type(AIndex : Integer; AValue : string); 
+Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.Set_type(AIndex : Integer; AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1372,7 +1133,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetvalueMultiselect(AIndex : Integer; AValue : TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselect); 
+Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetvalueMultiselect(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FvalueMultiselect=AValue) then exit;
@@ -1382,7 +1143,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetvalueString(AIndex : Integer; AValue : string); 
+Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetvalueString(AIndex : Integer; AValue : String); 
 
 begin
   If (FvalueString=AValue) then exit;
@@ -1406,18 +1167,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselect
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TCollection
   --------------------------------------------------------------------}
 
 
-Procedure TCollection.SetcollectionId(AIndex : Integer; AValue : string); 
+Procedure TCollection.SetcollectionId(AIndex : Integer; AValue : String); 
 
 begin
   If (FcollectionId=AValue) then exit;
@@ -1427,7 +1181,7 @@ end;
 
 
 
-Procedure TCollection.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCollection.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1437,7 +1191,7 @@ end;
 
 
 
-Procedure TCollection.Setname(AIndex : Integer; AValue : string); 
+Procedure TCollection.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1447,7 +1201,7 @@ end;
 
 
 
-Procedure TCollection.SetproductId(AIndex : Integer; AValue : TCollectionproductId); 
+Procedure TCollection.SetproductId(AIndex : Integer; AValue : TStringArray); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -1457,7 +1211,7 @@ end;
 
 
 
-Procedure TCollection.Setvisibility(AIndex : Integer; AValue : string); 
+Procedure TCollection.Setvisibility(AIndex : Integer; AValue : String); 
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -1470,18 +1224,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCollectionproductId
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TCollectionViewersListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TCollectionViewersListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCollectionViewersListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1491,7 +1238,7 @@ end;
 
 
 
-Procedure TCollectionViewersListResponse.Setuser(AIndex : Integer; AValue : TCollectionViewersListResponseuser); 
+Procedure TCollectionViewersListResponse.Setuser(AIndex : Integer; AValue : TCollectionViewersListResponseTypeuserArray); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -1504,18 +1251,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TCollectionViewersListResponseuser
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TCollectionsListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TCollectionsListResponse.Setcollection(AIndex : Integer; AValue : TCollectionsListResponsecollection); 
+Procedure TCollectionsListResponse.Setcollection(AIndex : Integer; AValue : TCollectionsListResponseTypecollectionArray); 
 
 begin
   If (Fcollection=AValue) then exit;
@@ -1525,7 +1265,7 @@ end;
 
 
 
-Procedure TCollectionsListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCollectionsListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1533,13 +1273,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TCollectionsListResponsecollection
-  --------------------------------------------------------------------}
 
 
 
@@ -1549,7 +1282,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDevice.SetandroidId(AIndex : Integer; AValue : string); 
+Procedure TDevice.SetandroidId(AIndex : Integer; AValue : String); 
 
 begin
   If (FandroidId=AValue) then exit;
@@ -1559,11 +1292,21 @@ end;
 
 
 
-Procedure TDevice.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDevice.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
   Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDevice.SetmanagementType(AIndex : Integer; AValue : String); 
+
+begin
+  If (FmanagementType=AValue) then exit;
+  FmanagementType:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1576,7 +1319,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeviceState.SetaccountState(AIndex : Integer; AValue : string); 
+Procedure TDeviceState.SetaccountState(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountState=AValue) then exit;
@@ -1586,7 +1329,7 @@ end;
 
 
 
-Procedure TDeviceState.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDeviceState.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1603,7 +1346,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDevicesListResponse.Setdevice(AIndex : Integer; AValue : TDevicesListResponsedevice); 
+Procedure TDevicesListResponse.Setdevice(AIndex : Integer; AValue : TDevicesListResponseTypedeviceArray); 
 
 begin
   If (Fdevice=AValue) then exit;
@@ -1613,7 +1356,7 @@ end;
 
 
 
-Procedure TDevicesListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDevicesListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1621,13 +1364,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TDevicesListResponsedevice
-  --------------------------------------------------------------------}
 
 
 
@@ -1637,7 +1373,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEnterprise.Setid(AIndex : Integer; AValue : string); 
+Procedure TEnterprise.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1647,7 +1383,7 @@ end;
 
 
 
-Procedure TEnterprise.Setkind(AIndex : Integer; AValue : string); 
+Procedure TEnterprise.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1657,7 +1393,7 @@ end;
 
 
 
-Procedure TEnterprise.Setname(AIndex : Integer; AValue : string); 
+Procedure TEnterprise.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1667,7 +1403,7 @@ end;
 
 
 
-Procedure TEnterprise.SetprimaryDomain(AIndex : Integer; AValue : string); 
+Procedure TEnterprise.SetprimaryDomain(AIndex : Integer; AValue : String); 
 
 begin
   If (FprimaryDomain=AValue) then exit;
@@ -1684,7 +1420,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEnterpriseAccount.SetaccountEmail(AIndex : Integer; AValue : string); 
+Procedure TEnterpriseAccount.SetaccountEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FaccountEmail=AValue) then exit;
@@ -1694,7 +1430,7 @@ end;
 
 
 
-Procedure TEnterpriseAccount.Setkind(AIndex : Integer; AValue : string); 
+Procedure TEnterpriseAccount.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1711,7 +1447,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEnterprisesListResponse.Setenterprise(AIndex : Integer; AValue : TEnterprisesListResponseenterprise); 
+Procedure TEnterprisesListResponse.Setenterprise(AIndex : Integer; AValue : TEnterprisesListResponseTypeenterpriseArray); 
 
 begin
   If (Fenterprise=AValue) then exit;
@@ -1721,7 +1457,7 @@ end;
 
 
 
-Procedure TEnterprisesListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TEnterprisesListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1729,13 +1465,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TEnterprisesListResponseenterprise
-  --------------------------------------------------------------------}
 
 
 
@@ -1745,7 +1474,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEntitlement.Setkind(AIndex : Integer; AValue : string); 
+Procedure TEntitlement.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1755,7 +1484,7 @@ end;
 
 
 
-Procedure TEntitlement.SetproductId(AIndex : Integer; AValue : string); 
+Procedure TEntitlement.SetproductId(AIndex : Integer; AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -1765,7 +1494,7 @@ end;
 
 
 
-Procedure TEntitlement.Setreason(AIndex : Integer; AValue : string); 
+Procedure TEntitlement.Setreason(AIndex : Integer; AValue : String); 
 
 begin
   If (Freason=AValue) then exit;
@@ -1782,7 +1511,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEntitlementsListResponse.Setentitlement(AIndex : Integer; AValue : TEntitlementsListResponseentitlement); 
+Procedure TEntitlementsListResponse.Setentitlement(AIndex : Integer; AValue : TEntitlementsListResponseTypeentitlementArray); 
 
 begin
   If (Fentitlement=AValue) then exit;
@@ -1792,7 +1521,7 @@ end;
 
 
 
-Procedure TEntitlementsListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TEntitlementsListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1805,18 +1534,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TEntitlementsListResponseentitlement
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TGroupLicense
   --------------------------------------------------------------------}
 
 
-Procedure TGroupLicense.SetacquisitionKind(AIndex : Integer; AValue : string); 
+Procedure TGroupLicense.SetacquisitionKind(AIndex : Integer; AValue : String); 
 
 begin
   If (FacquisitionKind=AValue) then exit;
@@ -1826,7 +1548,7 @@ end;
 
 
 
-Procedure TGroupLicense.Setapproval(AIndex : Integer; AValue : string); 
+Procedure TGroupLicense.Setapproval(AIndex : Integer; AValue : String); 
 
 begin
   If (Fapproval=AValue) then exit;
@@ -1836,7 +1558,7 @@ end;
 
 
 
-Procedure TGroupLicense.Setkind(AIndex : Integer; AValue : string); 
+Procedure TGroupLicense.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1866,7 +1588,7 @@ end;
 
 
 
-Procedure TGroupLicense.SetproductId(AIndex : Integer; AValue : string); 
+Procedure TGroupLicense.SetproductId(AIndex : Integer; AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -1883,7 +1605,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupLicenseUsersListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TGroupLicenseUsersListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1893,7 +1615,7 @@ end;
 
 
 
-Procedure TGroupLicenseUsersListResponse.Setuser(AIndex : Integer; AValue : TGroupLicenseUsersListResponseuser); 
+Procedure TGroupLicenseUsersListResponse.Setuser(AIndex : Integer; AValue : TGroupLicenseUsersListResponseTypeuserArray); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -1906,18 +1628,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TGroupLicenseUsersListResponseuser
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TGroupLicensesListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TGroupLicensesListResponse.SetgroupLicense(AIndex : Integer; AValue : TGroupLicensesListResponsegroupLicense); 
+Procedure TGroupLicensesListResponse.SetgroupLicense(AIndex : Integer; AValue : TGroupLicensesListResponseTypegroupLicenseArray); 
 
 begin
   If (FgroupLicense=AValue) then exit;
@@ -1927,7 +1642,7 @@ end;
 
 
 
-Procedure TGroupLicensesListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TGroupLicensesListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1935,13 +1650,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TGroupLicensesListResponsegroupLicense
-  --------------------------------------------------------------------}
 
 
 
@@ -1951,7 +1659,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstall.SetinstallState(AIndex : Integer; AValue : string); 
+Procedure TInstall.SetinstallState(AIndex : Integer; AValue : String); 
 
 begin
   If (FinstallState=AValue) then exit;
@@ -1961,7 +1669,7 @@ end;
 
 
 
-Procedure TInstall.Setkind(AIndex : Integer; AValue : string); 
+Procedure TInstall.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1971,7 +1679,7 @@ end;
 
 
 
-Procedure TInstall.SetproductId(AIndex : Integer; AValue : string); 
+Procedure TInstall.SetproductId(AIndex : Integer; AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -1998,7 +1706,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstallsListResponse.Setinstall(AIndex : Integer; AValue : TInstallsListResponseinstall); 
+Procedure TInstallsListResponse.Setinstall(AIndex : Integer; AValue : TInstallsListResponseTypeinstallArray); 
 
 begin
   If (Finstall=AValue) then exit;
@@ -2008,7 +1716,7 @@ end;
 
 
 
-Procedure TInstallsListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TInstallsListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2016,13 +1724,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TInstallsListResponseinstall
-  --------------------------------------------------------------------}
 
 
 
@@ -2032,7 +1733,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPermission.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TPermission.Setdescription(AIndex : Integer; AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2042,7 +1743,7 @@ end;
 
 
 
-Procedure TPermission.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPermission.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2052,7 +1753,7 @@ end;
 
 
 
-Procedure TPermission.Setname(AIndex : Integer; AValue : string); 
+Procedure TPermission.Setname(AIndex : Integer; AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2062,7 +1763,7 @@ end;
 
 
 
-Procedure TPermission.SetpermissionId(AIndex : Integer; AValue : string); 
+Procedure TPermission.SetpermissionId(AIndex : Integer; AValue : String); 
 
 begin
   If (FpermissionId=AValue) then exit;
@@ -2079,7 +1780,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProduct.SetauthorName(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetauthorName(AIndex : Integer; AValue : String); 
 
 begin
   If (FauthorName=AValue) then exit;
@@ -2089,7 +1790,7 @@ end;
 
 
 
-Procedure TProduct.SetdetailsUrl(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetdetailsUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FdetailsUrl=AValue) then exit;
@@ -2099,7 +1800,7 @@ end;
 
 
 
-Procedure TProduct.SeticonUrl(AIndex : Integer; AValue : string); 
+Procedure TProduct.SeticonUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FiconUrl=AValue) then exit;
@@ -2109,7 +1810,7 @@ end;
 
 
 
-Procedure TProduct.Setkind(AIndex : Integer; AValue : string); 
+Procedure TProduct.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2119,7 +1820,7 @@ end;
 
 
 
-Procedure TProduct.SetproductId(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetproductId(AIndex : Integer; AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -2129,7 +1830,17 @@ end;
 
 
 
-Procedure TProduct.Settitle(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetrequiresContainerApp(AIndex : Integer; AValue : boolean); 
+
+begin
+  If (FrequiresContainerApp=AValue) then exit;
+  FrequiresContainerApp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProduct.Settitle(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2139,7 +1850,7 @@ end;
 
 
 
-Procedure TProduct.SetworkDetailsUrl(AIndex : Integer; AValue : string); 
+Procedure TProduct.SetworkDetailsUrl(AIndex : Integer; AValue : String); 
 
 begin
   If (FworkDetailsUrl=AValue) then exit;
@@ -2156,7 +1867,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductPermission.SetpermissionId(AIndex : Integer; AValue : string); 
+Procedure TProductPermission.SetpermissionId(AIndex : Integer; AValue : String); 
 
 begin
   If (FpermissionId=AValue) then exit;
@@ -2166,7 +1877,7 @@ end;
 
 
 
-Procedure TProductPermission.Setstate(AIndex : Integer; AValue : string); 
+Procedure TProductPermission.Setstate(AIndex : Integer; AValue : String); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -2183,7 +1894,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductPermissions.Setkind(AIndex : Integer; AValue : string); 
+Procedure TProductPermissions.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2193,7 +1904,7 @@ end;
 
 
 
-Procedure TProductPermissions.Setpermission(AIndex : Integer; AValue : TProductPermissionspermission); 
+Procedure TProductPermissions.Setpermission(AIndex : Integer; AValue : TProductPermissionsTypepermissionArray); 
 
 begin
   If (Fpermission=AValue) then exit;
@@ -2203,7 +1914,7 @@ end;
 
 
 
-Procedure TProductPermissions.SetproductId(AIndex : Integer; AValue : string); 
+Procedure TProductPermissions.SetproductId(AIndex : Integer; AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -2216,18 +1927,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TProductPermissionspermission
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TUser
   --------------------------------------------------------------------}
 
 
-Procedure TUser.Setid(AIndex : Integer; AValue : string); 
+Procedure TUser.Setid(AIndex : Integer; AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2237,7 +1941,7 @@ end;
 
 
 
-Procedure TUser.Setkind(AIndex : Integer; AValue : string); 
+Procedure TUser.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2247,7 +1951,7 @@ end;
 
 
 
-Procedure TUser.SetprimaryEmail(AIndex : Integer; AValue : string); 
+Procedure TUser.SetprimaryEmail(AIndex : Integer; AValue : String); 
 
 begin
   If (FprimaryEmail=AValue) then exit;
@@ -2264,7 +1968,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserToken.Setkind(AIndex : Integer; AValue : string); 
+Procedure TUserToken.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2274,7 +1978,7 @@ end;
 
 
 
-Procedure TUserToken.Settoken(AIndex : Integer; AValue : string); 
+Procedure TUserToken.Settoken(AIndex : Integer; AValue : String); 
 
 begin
   If (Ftoken=AValue) then exit;
@@ -2284,7 +1988,7 @@ end;
 
 
 
-Procedure TUserToken.SetuserId(AIndex : Integer; AValue : string); 
+Procedure TUserToken.SetuserId(AIndex : Integer; AValue : String); 
 
 begin
   If (FuserId=AValue) then exit;
@@ -2301,7 +2005,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUsersListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TUsersListResponse.Setkind(AIndex : Integer; AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2311,7 +2015,7 @@ end;
 
 
 
-Procedure TUsersListResponse.Setuser(AIndex : Integer; AValue : TUsersListResponseuser); 
+Procedure TUsersListResponse.Setuser(AIndex : Integer; AValue : TUsersListResponseTypeuserArray); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -2319,13 +2023,6 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
-
-
-
-
-{ --------------------------------------------------------------------
-  TUsersListResponseuser
-  --------------------------------------------------------------------}
 
 
 
@@ -3314,7 +3011,7 @@ end;
 Class Function TAndroidenterpriseAPI.APIRevision : String;
 
 begin
-  Result:='20150309';
+  Result:='20141112';
 end;
 
 Class Function TAndroidenterpriseAPI.APIID : String;
@@ -3326,7 +3023,7 @@ end;
 Class Function TAndroidenterpriseAPI.APITitle : String;
 
 begin
-  Result:='Google Play MDM API';
+  Result:='Google Play EMM API';
 end;
 
 Class Function TAndroidenterpriseAPI.APIDescription : String;
@@ -3420,46 +3117,31 @@ Class Procedure TAndroidenterpriseAPI.RegisterAPIResources;
 
 begin
   TAppRestrictionsSchema.RegisterObject;
-  TAppRestrictionsSchemarestrictions.RegisterObject;
   TAppRestrictionsSchemaRestriction.RegisterObject;
-  TAppRestrictionsSchemaRestrictionentry.RegisterObject;
-  TAppRestrictionsSchemaRestrictionentryValue.RegisterObject;
   TAppRestrictionsSchemaRestrictionRestrictionValue.RegisterObject;
-  TAppRestrictionsSchemaRestrictionRestrictionValuevalueMultiselect.RegisterObject;
   TCollection.RegisterObject;
-  TCollectionproductId.RegisterObject;
   TCollectionViewersListResponse.RegisterObject;
-  TCollectionViewersListResponseuser.RegisterObject;
   TCollectionsListResponse.RegisterObject;
-  TCollectionsListResponsecollection.RegisterObject;
   TDevice.RegisterObject;
   TDeviceState.RegisterObject;
   TDevicesListResponse.RegisterObject;
-  TDevicesListResponsedevice.RegisterObject;
   TEnterprise.RegisterObject;
   TEnterpriseAccount.RegisterObject;
   TEnterprisesListResponse.RegisterObject;
-  TEnterprisesListResponseenterprise.RegisterObject;
   TEntitlement.RegisterObject;
   TEntitlementsListResponse.RegisterObject;
-  TEntitlementsListResponseentitlement.RegisterObject;
   TGroupLicense.RegisterObject;
   TGroupLicenseUsersListResponse.RegisterObject;
-  TGroupLicenseUsersListResponseuser.RegisterObject;
   TGroupLicensesListResponse.RegisterObject;
-  TGroupLicensesListResponsegroupLicense.RegisterObject;
   TInstall.RegisterObject;
   TInstallsListResponse.RegisterObject;
-  TInstallsListResponseinstall.RegisterObject;
   TPermission.RegisterObject;
   TProduct.RegisterObject;
   TProductPermission.RegisterObject;
   TProductPermissions.RegisterObject;
-  TProductPermissionspermission.RegisterObject;
   TUser.RegisterObject;
   TUserToken.RegisterObject;
   TUsersListResponse.RegisterObject;
-  TUsersListResponseuser.RegisterObject;
 end;
 
 
