@@ -137,7 +137,6 @@ compiler/avr/rgcpu.pas svneol=native#text/plain
 compiler/avr/symcpu.pas svneol=native#text/plain
 compiler/blockutl.pas svneol=native#text/plain
 compiler/browcol.pas svneol=native#text/plain
-compiler/bsdcompile -text
 compiler/catch.pas svneol=native#text/plain
 compiler/ccharset.pas svneol=native#text/plain
 compiler/cclasses.pas svneol=native#text/plain
