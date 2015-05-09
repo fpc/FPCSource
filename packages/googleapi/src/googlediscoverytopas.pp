@@ -490,8 +490,16 @@ begin
 end;
 
 function TTypeDefs.Find(ATypename: String): TTypeDef;
-begin
 
+Var
+  I : Integer;
+
+begin
+  I:=IndexOf(ATypeName);
+  if (I=-1) then
+    Result:=Nil
+  else
+    Result:=GetD(I);
 end;
 
 function TTypeDefs.AddTypeDef(ADataType: TDataType; APascalName: String;
@@ -639,7 +647,7 @@ end;
 procedure TDiscoveryJSONToPas.CollectType(S: TSchema; NamePrefix: String; IsTopLevel : Boolean);
 
 Var
-  CN,TCN,AE : String;
+  AE : String;
   Dt : TDataType;
   BaseArrayElement : Boolean;
 
@@ -790,12 +798,12 @@ begin
   else if Result='number' then
     begin
     if (AFormat='double') then
-       Result:='double'
-     else
-       Result:='integer'
+      Result:='double'
+    else
+      Result:='integer'
     end
   else if Result='string' then
-   if Aformat='date-time' then
+    if Aformat='date-time' then
       Result:='TDatetime'
     else if Aformat='date' then
       Result:='TDate'
@@ -1030,7 +1038,6 @@ procedure TDiscoveryJSONToPas.CreateInterface;
   end;
 
 Var
-  I : Integer;
   S : TTypeDef;
   R : TSchema;
 
@@ -1057,7 +1064,6 @@ end;
 procedure TDiscoveryJSONToPas.CreateImplementation;
 
 Var
-  I : Integer;
   R : TSchema;
   S : TTypeDef;
 begin
@@ -1538,11 +1544,9 @@ procedure TDiscoveryJSONToPas.CreateAPIClassImplementation;
   end;
 
 Var
-  CN,SCN : String;
+  CN : String;
   S : TSchema;
   I : Integer;
-  L : TStrings;
-  TD : TTypeDef;
 
 begin
   CN:=GetAPIClassName;
@@ -1653,8 +1657,6 @@ end;
 
 procedure TDiscoveryJSONToPas.Execute;
 
-Var
-  L : TStringList;
 begin
   Source.Clear;
   Addln('unit '+outputunitname+';');
