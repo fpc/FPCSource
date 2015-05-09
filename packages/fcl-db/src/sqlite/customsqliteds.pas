@@ -883,6 +883,8 @@ var
 begin
   Dec(FRecordCount);
   TempItem := PPDataRecord(ActiveBuffer)^;
+  if TempItem = FCacheItem then // Record is being edited
+    TempItem := FInternalActiveBuffer;
   TempItem^.Next^.Previous := TempItem^.Previous;
   TempItem^.Previous^.Next := TempItem^.Next;
   if FCurrentItem = TempItem then
