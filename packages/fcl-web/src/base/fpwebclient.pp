@@ -337,7 +337,10 @@ Function TRequestResponse.GetContentAsString: String;
 begin
   SetLength(Result,Content.Size);
   if (Length(Result)>0) then
+    begin
+    Content.Position:=0;
     Content.ReadBuffer(Result[1],Length(Result));
+    end;
 end;
 
 end.
