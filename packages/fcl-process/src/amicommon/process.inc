@@ -117,7 +117,7 @@ begin
    cos := BPTR(0);
    repeat
      Inc(UID);
-     TempName := 'T:'+HexStr(FindTask(nil)) + '_'  + HexStr(Self) + '_'+ IntToStr(UID) + '_Starter.tmp';
+     TempName := 'T:PrO_'+ HexStr(FindTask(nil)) + '_' + IntToHex(UID,8);
    until not FileExists(TempName);   
    //sysdebugln('TProcess start: "' + ExecName + ' ' + Params+'"  >' + TempName);
    cos := AmigaDos.DosOpen(PChar(TempName), MODE_READWRITE);
