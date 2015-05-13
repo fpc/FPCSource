@@ -906,7 +906,13 @@ unit cpupara;
           result:=[RS_XMM0..RS_XMM15];
       end;
 
-    procedure tx86_64paramanager.get_para_regoff(proccalloption: tproccalloption; paraloc: pcgparalocation; out reg: Byte; out off: LongInt);
+    function tcpuparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
+      begin
+        result:=[RS_ST0..RS_ST7];
+      end;
+
+
+    procedure tcpuparamanager.get_para_regoff(proccalloption: tproccalloption; paraloc: pcgparalocation; out reg: Byte; out off: LongInt);
     var
       I : SizeInt;
     begin
@@ -963,12 +969,6 @@ unit cpupara;
             end;
         end;
     end;
-
-
-    function tcpuparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
-      begin
-        result:=[RS_ST0..RS_ST7];
-      end;
 
 
     function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;

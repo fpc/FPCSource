@@ -286,7 +286,7 @@ unit cpupara;
         result:=[0..first_mm_imreg-1];
       end;
 
-    procedure ti386paramanager.get_para_regoff(proccalloption: tproccalloption; paraloc: pcgparalocation; out reg: Byte; out off: LongInt);
+    procedure tcpuparamanager.get_para_regoff(proccalloption: tproccalloption; paraloc: pcgparalocation; out reg: Byte; out off: LongInt);
     var
       I : SizeInt;
     begin

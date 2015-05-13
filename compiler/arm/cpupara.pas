@@ -75,7 +75,7 @@ unit cpupara;
         result:=VOLATILE_FPUREGISTERS;
       end;
 
-    procedure tarmparamanager.get_para_regoff(proccalloption: tproccalloption; paraloc: pcgparalocation; out reg: Byte; out off: LongInt);
+    procedure tcpuparamanager.get_para_regoff(proccalloption: tproccalloption; paraloc: pcgparalocation; out reg: Byte; out off: LongInt);
     var
       I : SizeInt;
     begin
