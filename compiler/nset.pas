@@ -756,11 +756,6 @@ implementation
            begin
              if_node:=makeifblock(labels, elseblock);
 
-             for i:=0 to blocks.count-1 do
-               begin
-                 pcaseblock(blocks[i])^.statement:=nil;
-               end;
-
              if assigned(init_block) then
                firstpass(tnode(init_block));
 
