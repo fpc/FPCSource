@@ -100,6 +100,7 @@ interface
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
        public
         constructor create(sym: tstaticvarsym);virtual;
+        destructor Destroy; override;
         procedure parse_into_asmlist;
         { the asmlist containing the definition of the parsed entity and another
           one containing the data generated for that same entity (e.g. the
@@ -445,6 +446,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         ftcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
         fdatalist:=tasmlist.create;
         curoffset:=0;
+      end;
+
+
+    destructor tasmlisttypedconstbuilder.Destroy;
+      begin
+        fdatalist.free;
+        ftcb.free;
+        inherited Destroy;
       end;
 
 
