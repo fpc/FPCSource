@@ -479,7 +479,8 @@ implementation
 
     procedure tparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
       begin
-        p.funcretloc[side]:=get_funcretloc(p,side,nil);
+        if not assigned(p.funcretloc[side].Location) then
+          p.funcretloc[side]:=get_funcretloc(p,side,nil);
       end;
 
 
