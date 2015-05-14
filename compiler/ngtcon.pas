@@ -1389,7 +1389,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           end
         else if n.nodetype=pointerconstn then
           begin
-            ftcb.emit_tai_procvar2procdef(Tai_const.Create_pint(tpointerconstnode(n).value),def);
+            ftcb.queue_emit_ordconst(tpointerconstnode(n).value,def);
             if not def.is_addressonly then
               ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
           end
