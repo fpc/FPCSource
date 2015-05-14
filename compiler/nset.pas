@@ -658,16 +658,15 @@ implementation
 
     function tcasenode.pass_1 : tnode;
       var
-         i  : integer;
-         node_thenblock,node_elseblock,if_node,temp_cleanup : tnode;
+         i: integer;
+         node_thenblock, node_elseblock, if_node,temp_cleanup : tnode;
          tempcaseexpr : ttempcreatenode;
-         if_block, init_block, stmt_block : tblocknode;
-         stmt : tstatementnode;
-         endlabel : tlabelnode;
+         if_block, init_block: tblocknode;
+         stmt: tstatementnode;
 
       function makeifblock(const labtree : pcaselabel; prevconditblock : tnode): tnode;
         var
-          condit : tnode;
+          condit: tnode;
         begin
           if assigned(labtree^.less) then
             result := makeifblock(labtree^.less, prevconditblock)
@@ -686,7 +685,8 @@ implementation
 
           result :=
             cifnode.create(
-              condit, cgotonode.create(pcaseblock(blocks[labtree^.blockid])^.statementlabel.labsym), result);
+              condit, pcaseblock(blocks[labtree^.blockid])^.statement, result);
+          pcaseblock(blocks[labtree^.blockid])^.statement:=nil;
 
           if assigned(labtree^.greater) then
             result := makeifblock(labtree^.greater, result);
@@ -754,37 +754,25 @@ implementation
 
          if (labels^.label_type = ltConstString) then
            begin
-             endlabel:=clabelnode.create(cnothingnode.create,clabelsym.create('$casestrofend'));
-             stmt_block:=internalstatements(stmt);
+             if_node:=makeifblock(labels, elseblock);
+
              for i:=0 to blocks.count-1 do
                begin
-                 pcaseblock(blocks[i])^.statementlabel:=clabelnode.create(cnothingnode.create,clabelsym.create('$casestrof'));
-                 addstatement(stmt,pcaseblock(blocks[i])^.statementlabel);
-                 addstatement(stmt,pcaseblock(blocks[i])^.statement);
                  pcaseblock(blocks[i])^.statement:=nil;
-                 addstatement(stmt,cgotonode.create(endlabel.labsym));
                end;
-
-             firstpass(tnode(stmt_block));
-
-             if_node := makeifblock(labels, elseblock);
 
              if assigned(init_block) then
                firstpass(tnode(init_block));
 
-             if_block := internalstatements(stmt);
+             if_block:=internalstatements(stmt);
 
              if assigned(init_block) then
                addstatement(stmt, init_block);
-
-             addstatement(stmt, if_node);
-             addstatement(stmt,cgotonode.create(endlabel.labsym));
-             addstatement(stmt, stmt_block);
-             addstatement(stmt, endlabel);
+             addstatement(stmt,if_node);
              if assigned(temp_cleanup) then
-               addstatement(stmt, temp_cleanup);
-             result := if_block;
-             elseblock := nil;
+               addstatement(stmt,temp_cleanup);
+             result:=if_block;
+             elseblock:= nil;
              exit;
            end;
 
