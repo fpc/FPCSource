@@ -236,7 +236,7 @@ implementation
   procedure tllvmtai_typedconstbuilder.emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef);
     begin
       if not pvdef.is_addressonly then
-        pvdef:=tprocvardef(pvdef.getcopyas(procvardef,pc_address_only));
+        pvdef:=getprocaddressprocvar(pvdef);
       emit_tai(p,pvdef);
     end;
 
@@ -444,7 +444,7 @@ implementation
         the procdef }
       if (fromdef.typ=procdef) and
          (todef.typ<>procdef) then
-        fromdef:=tprocdef(fromdef).getcopyas(procvardef,pc_address_only);
+        fromdef:=getprocaddressprocvar(tprocdef(fromdef));
       op:=llvmconvop(fromdef,todef);
       case op of
         la_ptrtoint_to_x,

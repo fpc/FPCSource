@@ -1268,7 +1268,7 @@ implementation
 
    procedure ttai_typedconstbuilder.emit_procdef_const(pd: tprocdef);
      begin
-       emit_tai(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0),pd.getcopyas(procvardef,pc_address_only));
+       emit_tai(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0),getprocaddressprocvar(pd));
      end;
 
 

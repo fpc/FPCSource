@@ -144,6 +144,7 @@ interface
         symlist       : TFPObjectList;
         ptrdefs       : tPtrDefHashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
         arraydefs     : THashSet; { list of single-element-arraydefs created in this module so we can reuse them (not saved/restored) }
+        procaddrdefs  : THashSet; { list of procvardefs created when getting the address of a procdef (not saved/restored) }
 {$ifdef llvm}
         llvmdefs      : THashSet; { defs added for llvm-specific reasons (not saved/restored) }
 {$endif llvm}
@@ -572,6 +573,7 @@ implementation
         symlist:=TFPObjectList.Create(false);
         ptrdefs:=cPtrDefHashSet.Create;
         arraydefs:=THashSet.Create(64,true,false);
+        procaddrdefs:=THashSet.Create(64,true,false);
 {$ifdef llvm}
         llvmdefs:=THashSet.Create(64,true,false);
 {$endif llvm}
@@ -689,6 +691,7 @@ implementation
         symlist.free;
         ptrdefs.free;
         arraydefs.free;
+        procaddrdefs.free;
 {$ifdef llvm}
         llvmdefs.free;
 {$endif llvm}
@@ -756,6 +759,8 @@ implementation
         ptrdefs:=cPtrDefHashSet.Create;
         arraydefs.free;
         arraydefs:=THashSet.Create(64,true,false);
+        procaddrdefs.free;
+        procaddrdefs:=THashSet.Create(64,true,false);
 {$ifdef llvm}
         llvmdefs.free;
         llvmdefs:=THashSet.Create(64,true,false);

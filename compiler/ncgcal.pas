@@ -820,7 +820,7 @@ implementation
            of far calls where the procvardef was defined does not matter,
            even though the procvardef constructor called by getcopyas looks at
            it) }
-         codeprocdef:=tabstractprocdef(procdefinition.getcopyas(procvardef,pc_address_only));
+         codeprocdef:=getprocaddressprocvar(procdefinition);
          result:=hlcg.getaddressregister(current_asmdata.CurrAsmList,codeprocdef);
          { in case we have a method pointer on a big endian target in registers,
            the method address is stored in registerhi (it's the first field
