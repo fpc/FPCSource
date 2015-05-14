@@ -389,7 +389,6 @@ implementation
                         begin
                           current_asmdata.getglobaldatalabel(lastlabel.lab);
 
-                          datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
                           { include terminating zero }
                           getmem(pc,len+1);
                           move(value_str^,pc[0],len);
@@ -408,8 +407,8 @@ implementation
                         end;
                       else
                         internalerror(2013120103);
-                      datatcb.free;
                    end;
+                   datatcb.free;
                    lab_str:=lastlabel.lab;
                    entry^.Data:=lastlabel.lab;
                 end;
