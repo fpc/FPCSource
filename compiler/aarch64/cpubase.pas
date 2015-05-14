@@ -429,7 +429,7 @@ unit cpubase;
 
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
-        is_calljmp:=o in [A_B,A_BL,A_BLR,A_RET,A_CBNZ,A_CBZ];
+        is_calljmp:=o in [A_B,A_BL,A_BLR,A_RET,A_CBNZ,A_CBZ,A_TBNZ,A_TBZ];
       end;
 
 
