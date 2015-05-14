@@ -1386,17 +1386,16 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   Message(parser_e_no_procvarnested_const);
                 ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
               end;
-            ftcb.maybe_end_aggregate(def);
           end
         else if n.nodetype=pointerconstn then
           begin
-            ftcb.maybe_begin_aggregate(def);
             ftcb.emit_tai_procvar2procdef(Tai_const.Create_pint(tpointerconstnode(n).value),def);
             if not def.is_addressonly then
               ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
           end
         else
           Message(parser_e_illegal_expression);
+        ftcb.maybe_end_aggregate(def);
         n.free;
       end;
 
