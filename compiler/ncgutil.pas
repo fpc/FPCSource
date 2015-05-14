@@ -436,6 +436,9 @@ implementation
         paramanager.freecgpara(list,paraloc1);
         { perform the fpc_pushexceptaddr call }
         pushexceptres:=hlcg.g_call_system_proc(list,pd,[@paraloc1,@paraloc2,@paraloc3],nil);
+        paraloc1.done;
+        paraloc2.done;
+        paraloc3.done;
 
         { get the result }
         location_reset(tmpresloc,LOC_REGISTER,def_cgsize(pushexceptres.def));
@@ -451,6 +454,7 @@ implementation
         paramanager.freecgpara(list,paraloc1);
         { perform the fpc_setjmp call }
         setjmpres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
+        paraloc1.done;
         location_reset(tmpresloc,LOC_REGISTER,def_cgsize(setjmpres.def));
         tmpresloc.register:=hlcg.getintregister(list,setjmpres.def);
         hlcg.gen_load_cgpara_loc(list,setjmpres.def,setjmpres,tmpresloc,true);
@@ -459,9 +463,6 @@ implementation
           longjmp'd back here }
         hlcg.a_cmp_const_reg_label(list,setjmpres.def,OC_NE,0,tmpresloc.register,exceptlabel);
         setjmpres.resetiftemp;
-        paraloc1.done;
-        paraloc2.done;
-        paraloc3.done;
      end;
 
 
