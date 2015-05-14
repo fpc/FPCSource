@@ -1,5 +1,6 @@
 unit tcsdfdata;
-// Tests specific functionality of sdfdataset (multiline etc)
+// Tests specific functionality of SdfDataSet (multiline etc)
+//                             and FixedFormatDataSet
 
 {$mode objfpc}{$H+}
 
@@ -11,13 +12,13 @@ uses
 
 type
 
-  { Ttestsdfspecific }
+  { TTestSdfSpecific }
 
-  Ttestsdfspecific = class(Ttestcase)
+  TTestSdfSpecific = class(TTestCase)
   private
+    TestDataset: TSdfDataset;
     function TestFileName(const FileName: string=''): string;
   protected
-    TestDataset: TSDFDataset;
     procedure Setup; override;
     procedure Teardown; override;
   published
@@ -38,6 +39,21 @@ type
     procedure TestEmptyFieldContents;
     Procedure TestEmptyFieldHeaderStripTrailingDelimiters;
     Procedure TestStripTrailingDelimiters;
+  end;
+
+  { TTestFixedFormatSpecific }
+
+  TTestFixedFormatSpecific = class(TTestCase)
+  private
+    TestDataset: TFixedFormatDataset;
+    function TestFileName(const FileName: string=''): string;
+    procedure CreateTestFile;
+  protected
+    procedure Setup; override;
+    procedure Teardown; override;
+  published
+    procedure TestTrimSpace;
+    procedure TestNoTrimSpace;
   end;
 
 implementation
@@ -479,13 +495,100 @@ begin
   end;
 end;
 
+
+{ TTestFixedFormatSpecific }
+
+procedure TTestFixedFormatSpecific.Setup;
+begin
+  TestDataset := TFixedFormatDataset.Create(nil);
+  TestDataset.FileMustExist := False;
+  TestDataset.Schema.Add('ID=1');
+  TestDataset.Schema.Add('NAME=10');
+  TestDataset.Schema.Add('BIRTHDAY=10');
+end;
+
+procedure TTestFixedFormatSpecific.Teardown;
+begin
+  TestDataSet.Close;
+  TestDataSet.Free;
+end;
+
+function TTestFixedFormatSpecific.TestFileName(const FileName: string): string;
+const
+  DefaultTestFileName = 'test.sdf';
+begin
+  if FileName = '' then
+    Result := DefaultTestFileName
+  else
+    Result := FileName;
+
+  if dbname <> '' then
+    begin
+    ForceDirectories(dbname);
+    Result := IncludeTrailingPathDelimiter(dbname) + Result;
+    end;
+
+  if FileExists(Result) then DeleteFile(Result);
+end;
+
+procedure TTestFixedFormatSpecific.CreateTestFile;
+var
+  FileStrings: TStringList;
+begin
+  FileStrings:=TStringList.Create;
+  try
+    FileStrings.Add('1John      2000-01-01');
+    FileStrings.Add('2Christiana2001-02-02');
+    FileStrings.SaveToFile(TestDataset.FileName);
+  finally
+    FileStrings.Free;
+  end;
+end;
+
+procedure TTestFixedFormatSpecific.TestTrimSpace;
+begin
+  TestDataset.FileName := TestFileName();
+  CreateTestFile;
+
+  TestDataset.Open;
+  AssertEquals('FieldDefs.Count', 3, TestDataset.FieldDefs.Count);
+  AssertEquals('1', TestDataset.Fields[0].AsString); // just after Open
+
+  TestDataset.Last;
+  TestDataset.First;
+  AssertEquals('RecNo', 1, TestDataset.RecNo);
+  AssertEquals('RecordCount', 2, TestDataset.RecordCount);
+  AssertEquals('1', TestDataset.Fields[0].AsString);
+  AssertEquals('John', TestDataset.Fields[1].AsString);
+  TestDataset.Next;
+  AssertEquals('2', TestDataset.Fields[0].AsString);
+  AssertEquals('Christiana', TestDataset.Fields[1].AsString);
+  TestDataset.Close;
+  AssertEquals('RecordCount after Close', 0, TestDataset.RecordCount);
+end;
+
+procedure TTestFixedFormatSpecific.TestNoTrimSpace;
+begin
+  TestDataset.FileName := TestFileName();
+  CreateTestFile;
+
+  TestDataset.TrimSpace := False;
+  TestDataset.Open;
+  AssertEquals('1', TestDataset.Fields[0].AsString);
+  AssertEquals('John      ', TestDataset.Fields[1].AsString);
+  TestDataset.Next;
+  AssertEquals('2', TestDataset.Fields[0].AsString);
+  AssertEquals('Christiana', TestDataset.Fields[1].AsString);
+end;
+
 initialization
   // Only run these tests if we are running
   // sdf tests. After all, running these when testing
   // e.g. SQL RDBMS doesn't make sense.
   if uppercase(dbconnectorname)='SDFDS' then
     begin
-    Registertest(Ttestsdfspecific);
+    RegisterTest(TTestSdfSpecific);
+    RegisterTest(TTestFixedFormatSpecific);
     end;
 end.
 
