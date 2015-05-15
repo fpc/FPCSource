@@ -436,7 +436,7 @@ begin
 end;
 
 
-Function FileOpen (Const FileName : RawbyteString; Mode : Integer) : Longint;
+Function FileOpenNoLocking (Const FileName : RawbyteString; Mode : Integer) : Longint;
 
 Var
   SystemFileName: RawByteString;
@@ -451,9 +451,15 @@ begin
 
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   repeat
-    FileOpen:=fpOpen (pointer(SystemFileName),LinuxFlags);
-  until (FileOpen<>-1) or (fpgeterrno<>ESysEINTR);
+    FileOpenNoLocking:=fpOpen (pointer(SystemFileName),LinuxFlags);
+  until (FileOpenNoLocking<>-1) or (fpgeterrno<>ESysEINTR);
+end;
 
+
+Function FileOpen (Const FileName : RawbyteString; Mode : Integer) : Longint;
+
+begin
+  FileOpen:=FileOpenNoLocking(FileName, Mode);
   FileOpen:=DoFileLocking(FileOpen, Mode);
 end;
 
@@ -483,8 +489,25 @@ end;
 
 Function FileCreate (Const FileName : RawByteString; ShareMode : Longint; Rights:LongInt ) : Longint;
 
+Var
+  fd: Longint;
 begin
-  Result:=FileCreate( FileName, Rights );
+  { if the file already exists and we can't open it using the requested
+    ShareMode (e.g. exclusive sharing), exit immediately so that we don't
+    first empty the file and then check whether we can lock this new file
+    (which we can by definition) }
+  fd:=FileOpenNoLocking(FileName,ShareMode);
+  { the file exists, check whether our locking request is compatible }
+  if fd>=0 then
+    begin
+      Result:=DoFileLocking(fd,ShareMode);
+      FileClose(fd);
+     { Can't lock -> abort }
+      if Result<0 then
+        exit;
+    end;
+  { now create the file }
+  Result:=FileCreate(FileName,Rights);
   Result:=DoFileLocking(Result,ShareMode);
 end;
 
