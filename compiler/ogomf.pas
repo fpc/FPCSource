@@ -121,6 +121,7 @@ interface
 
       TOmfObjInput = class(TObjInput)
         constructor create;override;
+        class function CanReadObjData(AReader:TObjectreader):boolean;override;
       end;
 
       { TMZExeOutput }
@@ -888,6 +889,20 @@ implementation
       begin
         inherited create;
         cobjdata:=TOmfObjData;
+      end;
+
+    class function TOmfObjInput.CanReadObjData(AReader: TObjectreader): boolean;
+      var
+        b: Byte;
+      begin
+        result:=false;
+        if AReader.Read(b,sizeof(b)) then
+          begin
+            if b=RT_THEADR then
+            { TODO: check additional fields }
+              result:=true;
+          end;
+        AReader.Seek(0);
       end;
 
 {****************************************************************************
