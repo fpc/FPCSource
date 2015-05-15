@@ -74,6 +74,9 @@ implementation
       { TInternalLinkerMsDos }
 
       TInternalLinkerMsDos=class(tinternallinker)
+      protected
+        procedure DefaultLinkScript;override;
+      public
         constructor create;override;
       end;
 
@@ -390,6 +393,33 @@ end;
 {****************************************************************************
                                TInternalLinkerMsDos
 ****************************************************************************}
+
+procedure TInternalLinkerMsDos.DefaultLinkScript;
+var
+  s: TCmdStr;
+begin
+  { add objectfiles, start with prt0 always }
+  case current_settings.x86memorymodel of
+    mm_tiny:    LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0t','',false)));
+    mm_small:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0s','',false)));
+    mm_medium:  LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0m','',false)));
+    mm_compact: LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0c','',false)));
+    mm_large:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0l','',false)));
+    mm_huge:    LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0h','',false)));
+  end;
+  while not ObjectFiles.Empty do
+  begin
+    s:=ObjectFiles.GetFirst;
+    if s<>'' then
+      LinkScript.Concat('READOBJECT ' + maybequoted(s));
+  end;
+  while not StaticLibFiles.Empty do
+  begin
+    s:=StaticLibFiles.GetFirst;
+    if s<>'' then
+      LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+  end;
+end;
 
 constructor TInternalLinkerMsDos.create;
 begin
