@@ -520,6 +520,8 @@ begin
   Resp:=Nil;
   try
     Req:=googleclient.WebClient.CreateRequest;
+    if (AInput<>'') then
+      Req.Headers.Values['Content-type']:='application/json';
     Req.SetContentFromString(AInput);
     If Not APINeedsAuth then
       Resp:=googleclient.WebClient.ExecuteRequest(AMethod,URL,Req)
