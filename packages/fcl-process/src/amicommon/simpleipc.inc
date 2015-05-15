@@ -70,7 +70,7 @@ Type
     Procedure Connect; override;
     Procedure Disconnect; override;
     Procedure SendMessage(MsgType : TMessageType; AStream : TStream); override;
-    //Function  ServerRunning : Boolean; override;
+    Function  ServerRunning : Boolean; override;
   end;
 
   TAmigaServerComm = Class(TIPCServerComm)
@@ -90,19 +90,20 @@ Type
   
 // ####### CLIENT  
   
-function SafePutToPort(Msg: PMessage; Portname: string): Integer;
+function SafePutToPort(Msg: PMessage; Portname: string): Boolean;
  var
    Port: PMsgPort;
    PName: PChar;
  begin
-   Result := -1;
+   Result := False;
    PName := PChar(Portname + #0);
    Forbid();
    Port := FindPort(PName);
    if Assigned(Port) then
    begin
-     PutMsg(Port, Msg);
-     Result := 0;
+     if Assigned(Msg) then
+       PutMsg(Port, Msg);
+     Result := True;
    end;
    Permit();
  end;
@@ -133,7 +134,7 @@ var
   PortName: string;
 begin
   Size := AStream.Size - AStream.Position;
-  FullSize := Size + Sizeof(Exec.TMessage);
+  FullSize := Size + SizeOf(TMessageType) + Sizeof(Exec.TMessage);
   PortName := PORTNAMESTART + Owner.ServerID;
   Memory := System.AllocMem(FullSize);
   MP := CreateMsgPort;
@@ -143,13 +144,20 @@ begin
     MsgHead^.mn_Length := Size;
     Temp := Memory;
     Inc(Temp, SizeOf(Exec.TMessage));
+    Move(MsgType, Temp^, SizeOf(TMessageType));
+    Inc(Temp, SizeOf(TMessageType));
     AStream.Read(Temp^, Size);
-    if SafePutToPort(MsgHead, PortName) = 0 then
+    if SafePutToPort(MsgHead, PortName) then
       WaitPort(MP);
   finally
     System.FreeMem(Memory);
     DeleteMsgPort(MP);
   end;
+end;
+
+Function TAmigaClientComm.ServerRunning : Boolean;
+begin
+  Result := SafePutToPort(nil, PORTNAMESTART + Owner.ServerID); 
 end;
 
 // ###### SERVER
@@ -213,8 +221,8 @@ begin
       Inc(Temp, SizeOf(Exec.TMessage));
       if Assigned(MsgBody) then
         System.FreeMem(MsgBody);
-      MsgBody := System.AllocMem(SizeOf(Exec.TMessage) + Msg^.mn_Length);
-      Move(Msg^, MsgBody^, SizeOf(Exec.TMessage) + Msg^.mn_Length);
+      MsgBody := System.AllocMem(SizeOf(Exec.TMessage) + SizeOf(TMessageType) + Msg^.mn_Length);
+      Move(Msg^, MsgBody^, SizeOf(Exec.TMessage) + SizeOf(TMessageType) + Msg^.mn_Length);
       ReplyMsg(Msg);
       break;
     end;
@@ -225,12 +233,16 @@ end;
 Procedure TAmigaServerComm.ReadMessage;
 var
   Temp: PByte;
+  MsgType: TMessageType;
 begin
   if Assigned(MsgBody) then
   begin
     Temp := Pointer(MsgBody);
     Inc(Temp, SizeOf(Exec.TMessage));
-    Owner.FMsgType := mtString;
+    MsgType := 0;
+    Move(Temp^, MsgType, SizeOf(TMessageType));
+    Inc(Temp, SizeOf(TMessageType));    
+    Owner.FMsgType := MsgType;
     Owner.FMsgData.Size := 0;
     Owner.FMsgData.Seek(0, soFrombeginning);
     Owner.FMsgData.WriteBuffer(temp^, MsgBody^.mn_Length);
