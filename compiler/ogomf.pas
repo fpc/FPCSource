@@ -912,6 +912,7 @@ implementation
     constructor TMZExeOutput.create;
       begin
         inherited create;
+        CObjData:=TOmfObjData;
       end;
 
 {****************************************************************************
