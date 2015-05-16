@@ -243,7 +243,7 @@ interface
 
         current_scanner : tscannerfile;  { current scanner in use }
 
-        aktcommentstyle : tcommentstyle; { needed to use read_comment from directives }
+        current_commentstyle : tcommentstyle; { needed to use read_comment from directives }
 {$ifdef PREPROCWRITE}
         preprocfile     : tpreprocfile;  { used with only preprocessing }
 {$endif PREPROCWRITE}
@@ -3803,7 +3803,7 @@ type
             if (comment_level>0) then
              readcomment;
             { we've read the whole comment }
-            aktcommentstyle:=comment_none;
+            current_commentstyle:=comment_none;
             exit;
           end;
          { Check for compiler switches }
@@ -3858,7 +3858,7 @@ type
             if (current_scanner.comment_level>0) then
              current_scanner.readcomment;
             { we've read the whole comment }
-            aktcommentstyle:=comment_none;
+            current_commentstyle:=comment_none;
           end;
       end;
 
@@ -4009,12 +4009,12 @@ type
           case c of
             '{' :
               begin
-                if aktcommentstyle=comment_tp then
+                if current_commentstyle=comment_tp then
                   inc_comment_level;
               end;
             '}' :
               begin
-                if aktcommentstyle=comment_tp then
+                if current_commentstyle=comment_tp then
                   begin
                     readchar;
                     dec_comment_level;
@@ -4026,7 +4026,7 @@ type
               end;
             '*' :
               begin
-                if aktcommentstyle=comment_oldtp then
+                if current_commentstyle=comment_oldtp then
                   begin
                     readchar;
                     if c=')' then
@@ -4213,9 +4213,9 @@ type
                end;
              '{' :
                begin
-                 if (aktcommentstyle in [comment_tp,comment_none]) then
+                 if (current_commentstyle in [comment_tp,comment_none]) then
                    begin
-                     aktcommentstyle:=comment_tp;
+                     current_commentstyle:=comment_tp;
                      if (comment_level=0) then
                        found:=1;
                      inc_comment_level;
@@ -4223,14 +4223,14 @@ type
                end;
              '*' :
                begin
-                 if (aktcommentstyle=comment_oldtp) then
+                 if (current_commentstyle=comment_oldtp) then
                    begin
                      readchar;
                      if c=')' then
                        begin
                          dec_comment_level;
                          found:=0;
-                         aktcommentstyle:=comment_none;
+                         current_commentstyle:=comment_none;
                        end
                      else
                        next_char_loaded:=true;
@@ -4240,11 +4240,11 @@ type
                end;
              '}' :
                begin
-                 if (aktcommentstyle=comment_tp) then
+                 if (current_commentstyle=comment_tp) then
                    begin
                      dec_comment_level;
                      if (comment_level=0) then
-                       aktcommentstyle:=comment_none;
+                       current_commentstyle:=comment_none;
                      found:=0;
                    end;
                end;
@@ -4254,7 +4254,7 @@ type
                   found:=2;
                end;
              '''' :
-               if (aktcommentstyle=comment_none) then
+               if (current_commentstyle=comment_none) then
                 begin
                   repeat
                     readchar;
@@ -4277,7 +4277,7 @@ type
                 end;
              '(' :
                begin
-                 if (aktcommentstyle=comment_none) then
+                 if (current_commentstyle=comment_none) then
                   begin
                     readchar;
                     if c='*' then
@@ -4287,7 +4287,7 @@ type
                         begin
                           found:=2;
                           inc_comment_level;
-                          aktcommentstyle:=comment_oldtp;
+                          current_commentstyle:=comment_oldtp;
                         end
                        else
                         begin
@@ -4303,7 +4303,7 @@ type
                end;
              '/' :
                begin
-                 if (aktcommentstyle=comment_none) then
+                 if (current_commentstyle=comment_none) then
                   begin
                     readchar;
                     if c='/' then
@@ -4330,7 +4330,7 @@ type
 
     procedure tscannerfile.skipcomment;
       begin
-        aktcommentstyle:=comment_tp;
+        current_commentstyle:=comment_tp;
         readchar;
         inc_comment_level;
       { handle compiler switches }
@@ -4356,13 +4356,13 @@ type
            end;
            readchar;
          end;
-        aktcommentstyle:=comment_none;
+        current_commentstyle:=comment_none;
       end;
 
 
     procedure tscannerfile.skipdelphicomment;
       begin
-        aktcommentstyle:=comment_delphi;
+        current_commentstyle:=comment_delphi;
         inc_comment_level;
         readchar;
         { this is not supported }
@@ -4372,7 +4372,7 @@ type
         while not (c in [#10,#13,#26]) do
           readchar;
         dec_comment_level;
-        aktcommentstyle:=comment_none;
+        current_commentstyle:=comment_none;
       end;
 
 
@@ -4380,7 +4380,7 @@ type
       var
         found : longint;
       begin
-        aktcommentstyle:=comment_oldtp;
+        current_commentstyle:=comment_oldtp;
         inc_comment_level;
         { only load a char if last already processed,
           was cause of bug1634 PM }
@@ -4445,7 +4445,7 @@ type
              readchar;
            until (found=2);
          end;
-        aktcommentstyle:=comment_none;
+        current_commentstyle:=comment_none;
       end;
 
 
