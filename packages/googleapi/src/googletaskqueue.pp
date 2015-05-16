@@ -13,7 +13,7 @@ unit googletaskqueue;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:59
+//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -24,17 +24,17 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TTask = class;
-  TTaskQueue = class;
-  TTasks = class;
-  TTasks2 = class;
+  TTask = Class;
+  TTaskQueue = Class;
+  TTasks = Class;
+  TTasks2 = Class;
   TTaskArray = Array of TTask;
   TTaskQueueArray = Array of TTaskQueue;
   TTasksArray = Array of TTasks;
   TTasks2Array = Array of TTasks2;
   //Anonymous types, using auto-generated names
-  TTaskQueueTypeacl = class;
-  TTaskQueueTypestats = class;
+  TTaskQueueTypeacl = Class;
+  TTaskQueueTypestats = Class;
   TTasksTypeitemsArray = Array of TTask;
   TTasks2TypeitemsArray = Array of TTask;
   
@@ -89,6 +89,10 @@ type
     Procedure SetadminEmails(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetconsumerEmails(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetproducerEmails(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property adminEmails : TStringArray Index 0 Read FadminEmails Write SetadminEmails;
@@ -162,6 +166,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTasksTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TTasksTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -181,6 +189,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTasks2TypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TTasks2TypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -419,6 +431,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTaskQueueTypeacl.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'adminemails' : SetLength(FadminEmails,ALength);
+  'consumeremails' : SetLength(FconsumerEmails,ALength);
+  'produceremails' : SetLength(FproducerEmails,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -550,6 +577,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTasks.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -576,6 +616,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTasks2.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -862,7 +915,7 @@ end;
 Class Function TTaskqueueAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TTaskqueueAPI.APIbasePath : string;
@@ -874,7 +927,7 @@ end;
 Class Function TTaskqueueAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/taskqueue/v1beta2/projects/';
+  Result:='https://www.googleapis.com:443/taskqueue/v1beta2/projects/';
 end;
 
 Class Function TTaskqueueAPI.APIProtocol : string;
@@ -943,7 +996,7 @@ Function TTaskqueueAPI.CreateTaskqueuesResource(AOwner : TComponent) : TTaskqueu
 
 begin
   Result:=TTaskqueuesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -967,7 +1020,7 @@ Function TTaskqueueAPI.CreateTasksResource(AOwner : TComponent) : TTasksResource
 
 begin
   Result:=TTasksResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

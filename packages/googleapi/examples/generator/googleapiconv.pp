@@ -341,7 +341,6 @@ Var
   I : Integer;
 
 begin
-  Writeln('DoAll(',LocalFile,',',URL,',', OFN ,',',AllVersions ,')');
   E:=ExtractFileExt(OFN);
   if (E='') then
     E:='.pp';

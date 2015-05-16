@@ -13,7 +13,7 @@ unit googlelogging;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:55
+//Generated on: 16-5-15 08:53:05
 {$MODE objfpc}
 {$H+}
 
@@ -24,21 +24,21 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TListLogsResponse = class;
-  TLog = class;
-  TEmpty = class;
-  TWriteLogEntriesRequest = class;
-  TLogEntry = class;
-  TLogEntryMetadata = class;
-  TWriteLogEntriesResponse = class;
-  TListLogServicesResponse = class;
-  TLogService = class;
-  TListLogServiceIndexesResponse = class;
-  TListLogSinksResponse = class;
-  TLogSink = class;
-  TLogError = class;
-  TStatus = class;
-  TListLogServiceSinksResponse = class;
+  TListLogsResponse = Class;
+  TLog = Class;
+  TEmpty = Class;
+  TWriteLogEntriesRequest = Class;
+  TLogEntry = Class;
+  TLogEntryMetadata = Class;
+  TWriteLogEntriesResponse = Class;
+  TListLogServicesResponse = Class;
+  TLogService = Class;
+  TListLogServiceIndexesResponse = Class;
+  TListLogSinksResponse = Class;
+  TLogSink = Class;
+  TLogError = Class;
+  TStatus = Class;
+  TListLogServiceSinksResponse = Class;
   TListLogsResponseArray = Array of TListLogsResponse;
   TLogArray = Array of TLog;
   TEmptyArray = Array of TEmpty;
@@ -55,11 +55,11 @@ type
   TStatusArray = Array of TStatus;
   TListLogServiceSinksResponseArray = Array of TListLogServiceSinksResponse;
   //Anonymous types, using auto-generated names
-  TWriteLogEntriesRequestTypecommonLabels = class;
-  TLogEntryTypeprotoPayload = class;
-  TLogEntryTypestructPayload = class;
-  TLogEntryMetadataTypelabels = class;
-  TStatusTypedetailsItem = class;
+  TWriteLogEntriesRequestTypecommonLabels = Class;
+  TLogEntryTypeprotoPayload = Class;
+  TLogEntryTypestructPayload = Class;
+  TLogEntryMetadataTypelabels = Class;
+  TStatusTypedetailsItem = Class;
   TListLogsResponseTypelogsArray = Array of TLog;
   TWriteLogEntriesRequestTypeentriesArray = Array of TLogEntry;
   TListLogServicesResponseTypelogServicesArray = Array of TLogService;
@@ -80,6 +80,10 @@ type
     //Property setters
     Procedure Setlogs(AIndex : Integer; AValue : TListLogsResponseTypelogsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property logs : TListLogsResponseTypelogsArray Index 0 Read Flogs Write Setlogs;
@@ -148,6 +152,10 @@ type
     //Property setters
     Procedure SetcommonLabels(AIndex : Integer; AValue : TWriteLogEntriesRequestTypecommonLabels); virtual;
     Procedure Setentries(AIndex : Integer; AValue : TWriteLogEntriesRequestTypeentriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property commonLabels : TWriteLogEntriesRequestTypecommonLabels Index 0 Read FcommonLabels Write SetcommonLabels;
@@ -290,6 +298,10 @@ type
     //Property setters
     Procedure SetlogServices(AIndex : Integer; AValue : TListLogServicesResponseTypelogServicesArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property logServices : TListLogServicesResponseTypelogServicesArray Index 0 Read FlogServices Write SetlogServices;
@@ -309,6 +321,10 @@ type
     //Property setters
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetindexKeys(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -328,6 +344,10 @@ type
     //Property setters
     Procedure SetserviceIndexPrefixes(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property serviceIndexPrefixes : TStringArray Index 0 Read FserviceIndexPrefixes Write SetserviceIndexPrefixes;
@@ -345,6 +365,10 @@ type
   Protected
     //Property setters
     Procedure Setsinks(AIndex : Integer; AValue : TListLogSinksResponseTypesinksArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property sinks : TListLogSinksResponseTypesinksArray Index 0 Read Fsinks Write Setsinks;
@@ -365,6 +389,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setdestination(AIndex : Integer; AValue : String); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TLogSinkTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -423,6 +451,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : integer); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
     Procedure Setdetails(AIndex : Integer; AValue : TStatusTypedetailsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : integer Index 0 Read Fcode Write Setcode;
@@ -441,6 +473,10 @@ type
   Protected
     //Property setters
     Procedure Setsinks(AIndex : Integer; AValue : TListLogServiceSinksResponseTypesinksArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property sinks : TListLogServiceSinksResponseTypesinksArray Index 0 Read Fsinks Write Setsinks;
@@ -448,13 +484,180 @@ type
   TListLogServiceSinksResponseClass = Class of TListLogServiceSinksResponse;
   
   { --------------------------------------------------------------------
+    TProjectsLogsEntriesResource
+    --------------------------------------------------------------------}
+  
+  TProjectsLogsEntriesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Write(projectsId: string; logsId: string; aWriteLogEntriesRequest : TWriteLogEntriesRequest) : TWriteLogEntriesResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsLogsSinksResource
+    --------------------------------------------------------------------}
+  
+  TProjectsLogsSinksResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(projectsId: string; logsId: string) : TListLogSinksResponse;
+    Function Get(projectsId: string; logsId: string; sinksId: string) : TLogSink;
+    Function Create(projectsId: string; logsId: string; aLogSink : TLogSink) : TLogSink;overload;
+    Function Update(projectsId: string; logsId: string; sinksId: string; aLogSink : TLogSink) : TLogSink;
+    Function Delete(projectsId: string; logsId: string; sinksId: string) : TEmpty;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsLogsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TProjectsLogsResource, method List
+  
+  TProjectsLogsListOptions = Record
+    serviceName : String;
+    serviceIndexPrefix : String;
+    pageSize : integer;
+    pageToken : String;
+  end;
+  
+  TProjectsLogsResource = Class(TGoogleResource)
+  Private
+    FEntriesInstance : TProjectsLogsEntriesResource;
+    FSinksInstance : TProjectsLogsSinksResource;
+    Function GetEntriesInstance : TProjectsLogsEntriesResource;virtual;
+    Function GetSinksInstance : TProjectsLogsSinksResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(projectsId: string; AQuery : string  = '') : TListLogsResponse;
+    Function List(projectsId: string; AQuery : TProjectsLogslistOptions) : TListLogsResponse;
+    Function Delete(projectsId: string; logsId: string) : TEmpty;
+    Function CreateEntriesResource(AOwner : TComponent) : TProjectsLogsEntriesResource;virtual;overload;
+    Function CreateEntriesResource : TProjectsLogsEntriesResource;virtual;overload;
+    Function CreateSinksResource(AOwner : TComponent) : TProjectsLogsSinksResource;virtual;overload;
+    Function CreateSinksResource : TProjectsLogsSinksResource;virtual;overload;
+    Property EntriesResource : TProjectsLogsEntriesResource Read GetEntriesInstance;
+    Property SinksResource : TProjectsLogsSinksResource Read GetSinksInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsLogServicesIndexesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TProjectsLogServicesIndexesResource, method List
+  
+  TProjectsLogServicesIndexesListOptions = Record
+    indexPrefix : String;
+    depth : integer;
+    log : String;
+    pageSize : integer;
+    pageToken : String;
+  end;
+  
+  TProjectsLogServicesIndexesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(projectsId: string; logServicesId: string; AQuery : string  = '') : TListLogServiceIndexesResponse;
+    Function List(projectsId: string; logServicesId: string; AQuery : TProjectsLogServicesIndexeslistOptions) : TListLogServiceIndexesResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsLogServicesSinksResource
+    --------------------------------------------------------------------}
+  
+  TProjectsLogServicesSinksResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(projectsId: string; logServicesId: string) : TListLogServiceSinksResponse;
+    Function Get(projectsId: string; logServicesId: string; sinksId: string) : TLogSink;
+    Function Create(projectsId: string; logServicesId: string; aLogSink : TLogSink) : TLogSink;overload;
+    Function Update(projectsId: string; logServicesId: string; sinksId: string; aLogSink : TLogSink) : TLogSink;
+    Function Delete(projectsId: string; logServicesId: string; sinksId: string) : TEmpty;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsLogServicesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TProjectsLogServicesResource, method List
+  
+  TProjectsLogServicesListOptions = Record
+    log : String;
+    pageSize : integer;
+    pageToken : String;
+  end;
+  
+  TProjectsLogServicesResource = Class(TGoogleResource)
+  Private
+    FIndexesInstance : TProjectsLogServicesIndexesResource;
+    FSinksInstance : TProjectsLogServicesSinksResource;
+    Function GetIndexesInstance : TProjectsLogServicesIndexesResource;virtual;
+    Function GetSinksInstance : TProjectsLogServicesSinksResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(projectsId: string; AQuery : string  = '') : TListLogServicesResponse;
+    Function List(projectsId: string; AQuery : TProjectsLogServiceslistOptions) : TListLogServicesResponse;
+    Function CreateIndexesResource(AOwner : TComponent) : TProjectsLogServicesIndexesResource;virtual;overload;
+    Function CreateIndexesResource : TProjectsLogServicesIndexesResource;virtual;overload;
+    Function CreateSinksResource(AOwner : TComponent) : TProjectsLogServicesSinksResource;virtual;overload;
+    Function CreateSinksResource : TProjectsLogServicesSinksResource;virtual;overload;
+    Property IndexesResource : TProjectsLogServicesIndexesResource Read GetIndexesInstance;
+    Property SinksResource : TProjectsLogServicesSinksResource Read GetSinksInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
   
   TProjectsResource = Class(TGoogleResource)
+  Private
+    FLogsEntriesInstance : TProjectsLogsEntriesResource;
+    FLogsSinksInstance : TProjectsLogsSinksResource;
+    FLogsInstance : TProjectsLogsResource;
+    FLogServicesIndexesInstance : TProjectsLogServicesIndexesResource;
+    FLogServicesSinksInstance : TProjectsLogServicesSinksResource;
+    FLogServicesInstance : TProjectsLogServicesResource;
+    Function GetLogsEntriesInstance : TProjectsLogsEntriesResource;virtual;
+    Function GetLogsSinksInstance : TProjectsLogsSinksResource;virtual;
+    Function GetLogsInstance : TProjectsLogsResource;virtual;
+    Function GetLogServicesIndexesInstance : TProjectsLogServicesIndexesResource;virtual;
+    Function GetLogServicesSinksInstance : TProjectsLogServicesSinksResource;virtual;
+    Function GetLogServicesInstance : TProjectsLogServicesResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateLogsEntriesResource(AOwner : TComponent) : TProjectsLogsEntriesResource;virtual;overload;
+    Function CreateLogsEntriesResource : TProjectsLogsEntriesResource;virtual;overload;
+    Function CreateLogsSinksResource(AOwner : TComponent) : TProjectsLogsSinksResource;virtual;overload;
+    Function CreateLogsSinksResource : TProjectsLogsSinksResource;virtual;overload;
+    Function CreateLogsResource(AOwner : TComponent) : TProjectsLogsResource;virtual;overload;
+    Function CreateLogsResource : TProjectsLogsResource;virtual;overload;
+    Function CreateLogServicesIndexesResource(AOwner : TComponent) : TProjectsLogServicesIndexesResource;virtual;overload;
+    Function CreateLogServicesIndexesResource : TProjectsLogServicesIndexesResource;virtual;overload;
+    Function CreateLogServicesSinksResource(AOwner : TComponent) : TProjectsLogServicesSinksResource;virtual;overload;
+    Function CreateLogServicesSinksResource : TProjectsLogServicesSinksResource;virtual;overload;
+    Function CreateLogServicesResource(AOwner : TComponent) : TProjectsLogServicesResource;virtual;overload;
+    Function CreateLogServicesResource : TProjectsLogServicesResource;virtual;overload;
+    Property LogsEntriesResource : TProjectsLogsEntriesResource Read GetLogsEntriesInstance;
+    Property LogsSinksResource : TProjectsLogsSinksResource Read GetLogsSinksInstance;
+    Property LogsResource : TProjectsLogsResource Read GetLogsInstance;
+    Property LogServicesIndexesResource : TProjectsLogServicesIndexesResource Read GetLogServicesIndexesInstance;
+    Property LogServicesSinksResource : TProjectsLogServicesSinksResource Read GetLogServicesSinksInstance;
+    Property LogServicesResource : TProjectsLogServicesResource Read GetLogServicesInstance;
   end;
   
   
@@ -464,7 +667,19 @@ type
   
   TLoggingAPI = Class(TGoogleAPI)
   Private
+    FProjectsLogsEntriesInstance : TProjectsLogsEntriesResource;
+    FProjectsLogsSinksInstance : TProjectsLogsSinksResource;
+    FProjectsLogsInstance : TProjectsLogsResource;
+    FProjectsLogServicesIndexesInstance : TProjectsLogServicesIndexesResource;
+    FProjectsLogServicesSinksInstance : TProjectsLogServicesSinksResource;
+    FProjectsLogServicesInstance : TProjectsLogServicesResource;
     FProjectsInstance : TProjectsResource;
+    Function GetProjectsLogsEntriesInstance : TProjectsLogsEntriesResource;virtual;
+    Function GetProjectsLogsSinksInstance : TProjectsLogsSinksResource;virtual;
+    Function GetProjectsLogsInstance : TProjectsLogsResource;virtual;
+    Function GetProjectsLogServicesIndexesInstance : TProjectsLogServicesIndexesResource;virtual;
+    Function GetProjectsLogServicesSinksInstance : TProjectsLogServicesSinksResource;virtual;
+    Function GetProjectsLogServicesInstance : TProjectsLogServicesResource;virtual;
     Function GetProjectsInstance : TProjectsResource;virtual;
   Public
     //Override class functions with API info
@@ -489,9 +704,27 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateProjectsLogsEntriesResource(AOwner : TComponent) : TProjectsLogsEntriesResource;virtual;overload;
+    Function CreateProjectsLogsEntriesResource : TProjectsLogsEntriesResource;virtual;overload;
+    Function CreateProjectsLogsSinksResource(AOwner : TComponent) : TProjectsLogsSinksResource;virtual;overload;
+    Function CreateProjectsLogsSinksResource : TProjectsLogsSinksResource;virtual;overload;
+    Function CreateProjectsLogsResource(AOwner : TComponent) : TProjectsLogsResource;virtual;overload;
+    Function CreateProjectsLogsResource : TProjectsLogsResource;virtual;overload;
+    Function CreateProjectsLogServicesIndexesResource(AOwner : TComponent) : TProjectsLogServicesIndexesResource;virtual;overload;
+    Function CreateProjectsLogServicesIndexesResource : TProjectsLogServicesIndexesResource;virtual;overload;
+    Function CreateProjectsLogServicesSinksResource(AOwner : TComponent) : TProjectsLogServicesSinksResource;virtual;overload;
+    Function CreateProjectsLogServicesSinksResource : TProjectsLogServicesSinksResource;virtual;overload;
+    Function CreateProjectsLogServicesResource(AOwner : TComponent) : TProjectsLogServicesResource;virtual;overload;
+    Function CreateProjectsLogServicesResource : TProjectsLogServicesResource;virtual;overload;
     Function CreateProjectsResource(AOwner : TComponent) : TProjectsResource;virtual;overload;
     Function CreateProjectsResource : TProjectsResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property ProjectsLogsEntriesResource : TProjectsLogsEntriesResource Read GetProjectsLogsEntriesInstance;
+    Property ProjectsLogsSinksResource : TProjectsLogsSinksResource Read GetProjectsLogsSinksInstance;
+    Property ProjectsLogsResource : TProjectsLogsResource Read GetProjectsLogsInstance;
+    Property ProjectsLogServicesIndexesResource : TProjectsLogServicesIndexesResource Read GetProjectsLogServicesIndexesInstance;
+    Property ProjectsLogServicesSinksResource : TProjectsLogServicesSinksResource Read GetProjectsLogServicesSinksInstance;
+    Property ProjectsLogServicesResource : TProjectsLogServicesResource Read GetProjectsLogServicesInstance;
     Property ProjectsResource : TProjectsResource Read GetProjectsInstance;
   end;
 
@@ -521,6 +754,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListLogsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'logs' : SetLength(Flogs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -605,6 +851,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWriteLogEntriesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -833,6 +1092,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListLogServicesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'logservices' : SetLength(FlogServices,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -859,6 +1131,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLogService.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'indexkeys' : SetLength(FindexKeys,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -887,6 +1172,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListLogServiceIndexesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'serviceindexprefixes' : SetLength(FserviceIndexPrefixes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -903,6 +1201,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListLogSinksResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sinks' : SetLength(Fsinks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -940,6 +1251,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLogSink.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1028,6 +1352,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'details' : SetLength(Fdetails,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1045,6 +1382,499 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListLogServiceSinksResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sinks' : SetLength(Fsinks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsLogsEntriesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsLogsEntriesResource.ResourceName : String;
+
+begin
+  Result:='entries';
+end;
+
+Class Function TProjectsLogsEntriesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TloggingAPI;
+end;
+
+Function TProjectsLogsEntriesResource.Write(projectsId: string; logsId: string; aWriteLogEntriesRequest : TWriteLogEntriesRequest) : TWriteLogEntriesResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'v1beta3/projects/{projectsId}/logs/{logsId}/entries:write';
+  _Methodid   = 'logging.projects.logs.entries.write';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logsId',logsId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aWriteLogEntriesRequest,TWriteLogEntriesResponse) as TWriteLogEntriesResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsLogsSinksResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsLogsSinksResource.ResourceName : String;
+
+begin
+  Result:='sinks';
+end;
+
+Class Function TProjectsLogsSinksResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TloggingAPI;
+end;
+
+Function TProjectsLogsSinksResource.List(projectsId: string; logsId: string) : TListLogSinksResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'v1beta3/projects/{projectsId}/logs/{logsId}/sinks';
+  _Methodid   = 'logging.projects.logs.sinks.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logsId',logsId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListLogSinksResponse) as TListLogSinksResponse;
+end;
+
+Function TProjectsLogsSinksResource.Get(projectsId: string; logsId: string; sinksId: string) : TLogSink;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'v1beta3/projects/{projectsId}/logs/{logsId}/sinks/{sinksId}';
+  _Methodid   = 'logging.projects.logs.sinks.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logsId',logsId,'sinksId',sinksId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TLogSink) as TLogSink;
+end;
+
+Function TProjectsLogsSinksResource.Create(projectsId: string; logsId: string; aLogSink : TLogSink) : TLogSink;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'v1beta3/projects/{projectsId}/logs/{logsId}/sinks';
+  _Methodid   = 'logging.projects.logs.sinks.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logsId',logsId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aLogSink,TLogSink) as TLogSink;
+end;
+
+Function TProjectsLogsSinksResource.Update(projectsId: string; logsId: string; sinksId: string; aLogSink : TLogSink) : TLogSink;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'v1beta3/projects/{projectsId}/logs/{logsId}/sinks/{sinksId}';
+  _Methodid   = 'logging.projects.logs.sinks.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logsId',logsId,'sinksId',sinksId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aLogSink,TLogSink) as TLogSink;
+end;
+
+Function TProjectsLogsSinksResource.Delete(projectsId: string; logsId: string; sinksId: string) : TEmpty;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'v1beta3/projects/{projectsId}/logs/{logsId}/sinks/{sinksId}';
+  _Methodid   = 'logging.projects.logs.sinks.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logsId',logsId,'sinksId',sinksId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TEmpty) as TEmpty;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsLogsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsLogsResource.ResourceName : String;
+
+begin
+  Result:='logs';
+end;
+
+Class Function TProjectsLogsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TloggingAPI;
+end;
+
+Function TProjectsLogsResource.List(projectsId: string; AQuery : string = '') : TListLogsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'v1beta3/projects/{projectsId}/logs';
+  _Methodid   = 'logging.projects.logs.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListLogsResponse) as TListLogsResponse;
+end;
+
+
+Function TProjectsLogsResource.List(projectsId: string; AQuery : TProjectsLogslistOptions) : TListLogsResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'serviceName',AQuery.serviceName);
+  AddToQuery(_Q,'serviceIndexPrefix',AQuery.serviceIndexPrefix);
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(projectsId,_Q);
+end;
+
+Function TProjectsLogsResource.Delete(projectsId: string; logsId: string) : TEmpty;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'v1beta3/projects/{projectsId}/logs/{logsId}';
+  _Methodid   = 'logging.projects.logs.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logsId',logsId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TEmpty) as TEmpty;
+end;
+
+
+
+Function TProjectsLogsResource.GetEntriesInstance : TProjectsLogsEntriesResource;
+
+begin
+  if (FEntriesInstance=Nil) then
+    FEntriesInstance:=CreateEntriesResource;
+  Result:=FEntriesInstance;
+end;
+
+Function TProjectsLogsResource.CreateEntriesResource : TProjectsLogsEntriesResource;
+
+begin
+  Result:=CreateEntriesResource(Self);
+end;
+
+
+Function TProjectsLogsResource.CreateEntriesResource(AOwner : TComponent) : TProjectsLogsEntriesResource;
+
+begin
+  Result:=TProjectsLogsEntriesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsLogsResource.GetSinksInstance : TProjectsLogsSinksResource;
+
+begin
+  if (FSinksInstance=Nil) then
+    FSinksInstance:=CreateSinksResource;
+  Result:=FSinksInstance;
+end;
+
+Function TProjectsLogsResource.CreateSinksResource : TProjectsLogsSinksResource;
+
+begin
+  Result:=CreateSinksResource(Self);
+end;
+
+
+Function TProjectsLogsResource.CreateSinksResource(AOwner : TComponent) : TProjectsLogsSinksResource;
+
+begin
+  Result:=TProjectsLogsSinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsLogServicesIndexesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsLogServicesIndexesResource.ResourceName : String;
+
+begin
+  Result:='indexes';
+end;
+
+Class Function TProjectsLogServicesIndexesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TloggingAPI;
+end;
+
+Function TProjectsLogServicesIndexesResource.List(projectsId: string; logServicesId: string; AQuery : string = '') : TListLogServiceIndexesResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'v1beta3/projects/{projectsId}/logServices/{logServicesId}/indexes';
+  _Methodid   = 'logging.projects.logServices.indexes.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logServicesId',logServicesId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListLogServiceIndexesResponse) as TListLogServiceIndexesResponse;
+end;
+
+
+Function TProjectsLogServicesIndexesResource.List(projectsId: string; logServicesId: string; AQuery : TProjectsLogServicesIndexeslistOptions) : TListLogServiceIndexesResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'indexPrefix',AQuery.indexPrefix);
+  AddToQuery(_Q,'depth',AQuery.depth);
+  AddToQuery(_Q,'log',AQuery.log);
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(projectsId,logServicesId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsLogServicesSinksResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsLogServicesSinksResource.ResourceName : String;
+
+begin
+  Result:='sinks';
+end;
+
+Class Function TProjectsLogServicesSinksResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TloggingAPI;
+end;
+
+Function TProjectsLogServicesSinksResource.List(projectsId: string; logServicesId: string) : TListLogServiceSinksResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'v1beta3/projects/{projectsId}/logServices/{logServicesId}/sinks';
+  _Methodid   = 'logging.projects.logServices.sinks.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logServicesId',logServicesId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListLogServiceSinksResponse) as TListLogServiceSinksResponse;
+end;
+
+Function TProjectsLogServicesSinksResource.Get(projectsId: string; logServicesId: string; sinksId: string) : TLogSink;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'v1beta3/projects/{projectsId}/logServices/{logServicesId}/sinks/{sinksId}';
+  _Methodid   = 'logging.projects.logServices.sinks.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logServicesId',logServicesId,'sinksId',sinksId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TLogSink) as TLogSink;
+end;
+
+Function TProjectsLogServicesSinksResource.Create(projectsId: string; logServicesId: string; aLogSink : TLogSink) : TLogSink;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'v1beta3/projects/{projectsId}/logServices/{logServicesId}/sinks';
+  _Methodid   = 'logging.projects.logServices.sinks.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logServicesId',logServicesId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aLogSink,TLogSink) as TLogSink;
+end;
+
+Function TProjectsLogServicesSinksResource.Update(projectsId: string; logServicesId: string; sinksId: string; aLogSink : TLogSink) : TLogSink;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'v1beta3/projects/{projectsId}/logServices/{logServicesId}/sinks/{sinksId}';
+  _Methodid   = 'logging.projects.logServices.sinks.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logServicesId',logServicesId,'sinksId',sinksId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aLogSink,TLogSink) as TLogSink;
+end;
+
+Function TProjectsLogServicesSinksResource.Delete(projectsId: string; logServicesId: string; sinksId: string) : TEmpty;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'v1beta3/projects/{projectsId}/logServices/{logServicesId}/sinks/{sinksId}';
+  _Methodid   = 'logging.projects.logServices.sinks.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId,'logServicesId',logServicesId,'sinksId',sinksId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TEmpty) as TEmpty;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsLogServicesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsLogServicesResource.ResourceName : String;
+
+begin
+  Result:='logServices';
+end;
+
+Class Function TProjectsLogServicesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TloggingAPI;
+end;
+
+Function TProjectsLogServicesResource.List(projectsId: string; AQuery : string = '') : TListLogServicesResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'v1beta3/projects/{projectsId}/logServices';
+  _Methodid   = 'logging.projects.logServices.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectsId',projectsId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListLogServicesResponse) as TListLogServicesResponse;
+end;
+
+
+Function TProjectsLogServicesResource.List(projectsId: string; AQuery : TProjectsLogServiceslistOptions) : TListLogServicesResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'log',AQuery.log);
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(projectsId,_Q);
+end;
+
+
+
+Function TProjectsLogServicesResource.GetIndexesInstance : TProjectsLogServicesIndexesResource;
+
+begin
+  if (FIndexesInstance=Nil) then
+    FIndexesInstance:=CreateIndexesResource;
+  Result:=FIndexesInstance;
+end;
+
+Function TProjectsLogServicesResource.CreateIndexesResource : TProjectsLogServicesIndexesResource;
+
+begin
+  Result:=CreateIndexesResource(Self);
+end;
+
+
+Function TProjectsLogServicesResource.CreateIndexesResource(AOwner : TComponent) : TProjectsLogServicesIndexesResource;
+
+begin
+  Result:=TProjectsLogServicesIndexesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsLogServicesResource.GetSinksInstance : TProjectsLogServicesSinksResource;
+
+begin
+  if (FSinksInstance=Nil) then
+    FSinksInstance:=CreateSinksResource;
+  Result:=FSinksInstance;
+end;
+
+Function TProjectsLogServicesResource.CreateSinksResource : TProjectsLogServicesSinksResource;
+
+begin
+  Result:=CreateSinksResource(Self);
+end;
+
+
+Function TProjectsLogServicesResource.CreateSinksResource(AOwner : TComponent) : TProjectsLogServicesSinksResource;
+
+begin
+  Result:=TProjectsLogServicesSinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
 
 
 
@@ -1063,6 +1893,150 @@ Class Function TProjectsResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TloggingAPI;
+end;
+
+
+
+Function TProjectsResource.GetLogsEntriesInstance : TProjectsLogsEntriesResource;
+
+begin
+  if (FLogsEntriesInstance=Nil) then
+    FLogsEntriesInstance:=CreateLogsEntriesResource;
+  Result:=FLogsEntriesInstance;
+end;
+
+Function TProjectsResource.CreateLogsEntriesResource : TProjectsLogsEntriesResource;
+
+begin
+  Result:=CreateLogsEntriesResource(Self);
+end;
+
+
+Function TProjectsResource.CreateLogsEntriesResource(AOwner : TComponent) : TProjectsLogsEntriesResource;
+
+begin
+  Result:=TProjectsLogsEntriesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetLogsSinksInstance : TProjectsLogsSinksResource;
+
+begin
+  if (FLogsSinksInstance=Nil) then
+    FLogsSinksInstance:=CreateLogsSinksResource;
+  Result:=FLogsSinksInstance;
+end;
+
+Function TProjectsResource.CreateLogsSinksResource : TProjectsLogsSinksResource;
+
+begin
+  Result:=CreateLogsSinksResource(Self);
+end;
+
+
+Function TProjectsResource.CreateLogsSinksResource(AOwner : TComponent) : TProjectsLogsSinksResource;
+
+begin
+  Result:=TProjectsLogsSinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetLogsInstance : TProjectsLogsResource;
+
+begin
+  if (FLogsInstance=Nil) then
+    FLogsInstance:=CreateLogsResource;
+  Result:=FLogsInstance;
+end;
+
+Function TProjectsResource.CreateLogsResource : TProjectsLogsResource;
+
+begin
+  Result:=CreateLogsResource(Self);
+end;
+
+
+Function TProjectsResource.CreateLogsResource(AOwner : TComponent) : TProjectsLogsResource;
+
+begin
+  Result:=TProjectsLogsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetLogServicesIndexesInstance : TProjectsLogServicesIndexesResource;
+
+begin
+  if (FLogServicesIndexesInstance=Nil) then
+    FLogServicesIndexesInstance:=CreateLogServicesIndexesResource;
+  Result:=FLogServicesIndexesInstance;
+end;
+
+Function TProjectsResource.CreateLogServicesIndexesResource : TProjectsLogServicesIndexesResource;
+
+begin
+  Result:=CreateLogServicesIndexesResource(Self);
+end;
+
+
+Function TProjectsResource.CreateLogServicesIndexesResource(AOwner : TComponent) : TProjectsLogServicesIndexesResource;
+
+begin
+  Result:=TProjectsLogServicesIndexesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetLogServicesSinksInstance : TProjectsLogServicesSinksResource;
+
+begin
+  if (FLogServicesSinksInstance=Nil) then
+    FLogServicesSinksInstance:=CreateLogServicesSinksResource;
+  Result:=FLogServicesSinksInstance;
+end;
+
+Function TProjectsResource.CreateLogServicesSinksResource : TProjectsLogServicesSinksResource;
+
+begin
+  Result:=CreateLogServicesSinksResource(Self);
+end;
+
+
+Function TProjectsResource.CreateLogServicesSinksResource(AOwner : TComponent) : TProjectsLogServicesSinksResource;
+
+begin
+  Result:=TProjectsLogServicesSinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetLogServicesInstance : TProjectsLogServicesResource;
+
+begin
+  if (FLogServicesInstance=Nil) then
+    FLogServicesInstance:=CreateLogServicesResource;
+  Result:=FLogServicesInstance;
+end;
+
+Function TProjectsResource.CreateLogServicesResource : TProjectsLogServicesResource;
+
+begin
+  Result:=CreateLogServicesResource(Self);
+end;
+
+
+Function TProjectsResource.CreateLogServicesResource(AOwner : TComponent) : TProjectsLogServicesResource;
+
+begin
+  Result:=TProjectsLogServicesResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -1214,6 +2188,150 @@ begin
 end;
 
 
+Function TLoggingAPI.GetProjectsLogsEntriesInstance : TProjectsLogsEntriesResource;
+
+begin
+  if (FProjectsLogsEntriesInstance=Nil) then
+    FProjectsLogsEntriesInstance:=CreateProjectsLogsEntriesResource;
+  Result:=FProjectsLogsEntriesInstance;
+end;
+
+Function TLoggingAPI.CreateProjectsLogsEntriesResource : TProjectsLogsEntriesResource;
+
+begin
+  Result:=CreateProjectsLogsEntriesResource(Self);
+end;
+
+
+Function TLoggingAPI.CreateProjectsLogsEntriesResource(AOwner : TComponent) : TProjectsLogsEntriesResource;
+
+begin
+  Result:=TProjectsLogsEntriesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TLoggingAPI.GetProjectsLogsSinksInstance : TProjectsLogsSinksResource;
+
+begin
+  if (FProjectsLogsSinksInstance=Nil) then
+    FProjectsLogsSinksInstance:=CreateProjectsLogsSinksResource;
+  Result:=FProjectsLogsSinksInstance;
+end;
+
+Function TLoggingAPI.CreateProjectsLogsSinksResource : TProjectsLogsSinksResource;
+
+begin
+  Result:=CreateProjectsLogsSinksResource(Self);
+end;
+
+
+Function TLoggingAPI.CreateProjectsLogsSinksResource(AOwner : TComponent) : TProjectsLogsSinksResource;
+
+begin
+  Result:=TProjectsLogsSinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TLoggingAPI.GetProjectsLogsInstance : TProjectsLogsResource;
+
+begin
+  if (FProjectsLogsInstance=Nil) then
+    FProjectsLogsInstance:=CreateProjectsLogsResource;
+  Result:=FProjectsLogsInstance;
+end;
+
+Function TLoggingAPI.CreateProjectsLogsResource : TProjectsLogsResource;
+
+begin
+  Result:=CreateProjectsLogsResource(Self);
+end;
+
+
+Function TLoggingAPI.CreateProjectsLogsResource(AOwner : TComponent) : TProjectsLogsResource;
+
+begin
+  Result:=TProjectsLogsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TLoggingAPI.GetProjectsLogServicesIndexesInstance : TProjectsLogServicesIndexesResource;
+
+begin
+  if (FProjectsLogServicesIndexesInstance=Nil) then
+    FProjectsLogServicesIndexesInstance:=CreateProjectsLogServicesIndexesResource;
+  Result:=FProjectsLogServicesIndexesInstance;
+end;
+
+Function TLoggingAPI.CreateProjectsLogServicesIndexesResource : TProjectsLogServicesIndexesResource;
+
+begin
+  Result:=CreateProjectsLogServicesIndexesResource(Self);
+end;
+
+
+Function TLoggingAPI.CreateProjectsLogServicesIndexesResource(AOwner : TComponent) : TProjectsLogServicesIndexesResource;
+
+begin
+  Result:=TProjectsLogServicesIndexesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TLoggingAPI.GetProjectsLogServicesSinksInstance : TProjectsLogServicesSinksResource;
+
+begin
+  if (FProjectsLogServicesSinksInstance=Nil) then
+    FProjectsLogServicesSinksInstance:=CreateProjectsLogServicesSinksResource;
+  Result:=FProjectsLogServicesSinksInstance;
+end;
+
+Function TLoggingAPI.CreateProjectsLogServicesSinksResource : TProjectsLogServicesSinksResource;
+
+begin
+  Result:=CreateProjectsLogServicesSinksResource(Self);
+end;
+
+
+Function TLoggingAPI.CreateProjectsLogServicesSinksResource(AOwner : TComponent) : TProjectsLogServicesSinksResource;
+
+begin
+  Result:=TProjectsLogServicesSinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TLoggingAPI.GetProjectsLogServicesInstance : TProjectsLogServicesResource;
+
+begin
+  if (FProjectsLogServicesInstance=Nil) then
+    FProjectsLogServicesInstance:=CreateProjectsLogServicesResource;
+  Result:=FProjectsLogServicesInstance;
+end;
+
+Function TLoggingAPI.CreateProjectsLogServicesResource : TProjectsLogServicesResource;
+
+begin
+  Result:=CreateProjectsLogServicesResource(Self);
+end;
+
+
+Function TLoggingAPI.CreateProjectsLogServicesResource(AOwner : TComponent) : TProjectsLogServicesResource;
+
+begin
+  Result:=TProjectsLogServicesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TLoggingAPI.GetProjectsInstance : TProjectsResource;
 
 begin
@@ -1233,7 +2351,7 @@ Function TLoggingAPI.CreateProjectsResource(AOwner : TComponent) : TProjectsReso
 
 begin
   Result:=TProjectsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

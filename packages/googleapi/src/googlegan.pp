@@ -13,7 +13,7 @@ unit googlegan;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:54
+//Generated on: 16-5-15 08:53:04
 {$MODE objfpc}
 {$H+}
 
@@ -24,18 +24,18 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAdvertiser = class;
-  TAdvertisers = class;
-  TCcOffer = class;
-  TCcOffers = class;
-  TEvent = class;
-  TEvents = class;
-  TLink = class;
-  TLinks = class;
-  TMoney = class;
-  TPublisher = class;
-  TPublishers = class;
-  TReport = class;
+  TAdvertiser = Class;
+  TAdvertisers = Class;
+  TCcOffer = Class;
+  TCcOffers = Class;
+  TEvent = Class;
+  TEvents = Class;
+  TLink = Class;
+  TLinks = Class;
+  TMoney = Class;
+  TPublisher = Class;
+  TPublishers = Class;
+  TReport = Class;
   TAdvertiserArray = Array of TAdvertiser;
   TAdvertisersArray = Array of TAdvertisers;
   TCcOfferArray = Array of TCcOffer;
@@ -49,11 +49,11 @@ type
   TPublishersArray = Array of TPublishers;
   TReportArray = Array of TReport;
   //Anonymous types, using auto-generated names
-  TCcOfferTypebonusRewardsItem = class;
-  TCcOfferTypedefaultFeesItem = class;
-  TCcOfferTyperewardsItem = class;
-  TEventTypeproductsItem = class;
-  TLinkTypespecialOffers = class;
+  TCcOfferTypebonusRewardsItem = Class;
+  TCcOfferTypedefaultFeesItem = Class;
+  TCcOfferTyperewardsItem = Class;
+  TEventTypeproductsItem = Class;
+  TLinkTypespecialOffers = Class;
   TAdvertisersTypeitemsArray = Array of TAdvertiser;
   TCcOfferTypebonusRewardsArray = Array of TCcOfferTypebonusRewardsItem;
   TCcOfferTypedefaultFeesArray = Array of TCcOfferTypedefaultFeesItem;
@@ -116,6 +116,10 @@ type
     Procedure SetredirectDomains(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetsiteUrl(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property allowPublisherCreatedLinks : boolean Index 0 Read FallowPublisherCreatedLinks Write SetallowPublisherCreatedLinks;
@@ -156,6 +160,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TAdvertisersTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TAdvertisersTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -373,6 +381,10 @@ type
     Procedure SettravelInsurance(AIndex : Integer; AValue : String); virtual;
     Procedure SetvariableRatesLastUpdated(AIndex : Integer; AValue : String); virtual;
     Procedure SetvariableRatesUpdateFrequency(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property additionalCardBenefits : TStringArray Index 0 Read FadditionalCardBenefits Write SetadditionalCardBenefits;
@@ -453,6 +465,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TCcOffersTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TCcOffersTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -545,6 +561,10 @@ type
     Procedure SetpublisherName(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property advertiserId : String Index 0 Read FadvertiserId Write SetadvertiserId;
@@ -582,6 +602,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TEventsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TEventsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -614,6 +638,10 @@ type
     Procedure SetpriceCut(AIndex : Integer; AValue : TMoney); virtual;
     Procedure SetpriceCutMin(AIndex : Integer; AValue : TMoney); virtual;
     Procedure SetpromotionCodes(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property freeGift : boolean Index 0 Read FfreeGift Write SetfreeGift;
@@ -717,6 +745,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TLinksTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TLinksTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -774,6 +806,10 @@ type
     Procedure SetpayoutRank(AIndex : Integer; AValue : String); virtual;
     Procedure Setsites(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property classification : String Index 0 Read Fclassification Write Setclassification;
@@ -804,6 +840,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TPublishersTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TPublishersTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -837,6 +877,10 @@ type
     Procedure Setstart_date(AIndex : Integer; AValue : String); virtual;
     Procedure Settotals_rows(AIndex : Integer; AValue : TReportTypetotals_rowsArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property column_names : TStringArray Index 0 Read Fcolumn_names Write Setcolumn_names;
@@ -1319,6 +1363,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAdvertiser.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'merchantcenterids' : SetLength(FmerchantCenterIds,ALength);
+  'redirectdomains' : SetLength(FredirectDomains,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1355,6 +1413,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAdvertisers.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2134,6 +2205,25 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCcOffer.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'additionalcardbenefits' : SetLength(FadditionalCardBenefits,ALength);
+  'approvedcategories' : SetLength(FapprovedCategories,ALength);
+  'bonusrewards' : SetLength(FbonusRewards,ALength);
+  'cardbenefits' : SetLength(FcardBenefits,ALength);
+  'defaultfees' : SetLength(FdefaultFees,ALength);
+  'prohibitedcategories' : SetLength(FprohibitedCategories,ALength);
+  'rewards' : SetLength(Frewards,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2160,6 +2250,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCcOffers.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2456,6 +2559,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEvent.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'products' : SetLength(Fproducts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2492,6 +2608,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEvents.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2579,6 +2708,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLinkTypespecialOffers.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'promotioncodes' : SetLength(FpromotionCodes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2834,6 +2976,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLinks.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2978,6 +3133,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPublisher.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sites' : SetLength(Fsites,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3014,6 +3182,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPublishers.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3112,6 +3293,21 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReport.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'column_names' : SetLength(Fcolumn_names,ALength);
+  'rows' : SetLength(Frows,ALength);
+  'totals_rows' : SetLength(Ftotals_rows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3599,7 +3795,7 @@ end;
 Class Function TGanAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TGanAPI.APIbasePath : string;
@@ -3611,7 +3807,7 @@ end;
 Class Function TGanAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/gan/v1beta1/';
+  Result:='https://www.googleapis.com:443/gan/v1beta1/';
 end;
 
 Class Function TGanAPI.APIProtocol : string;
@@ -3687,7 +3883,7 @@ Function TGanAPI.CreateAdvertisersResource(AOwner : TComponent) : TAdvertisersRe
 
 begin
   Result:=TAdvertisersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3711,7 +3907,7 @@ Function TGanAPI.CreateCcOffersResource(AOwner : TComponent) : TCcOffersResource
 
 begin
   Result:=TCcOffersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3735,7 +3931,7 @@ Function TGanAPI.CreateEventsResource(AOwner : TComponent) : TEventsResource;
 
 begin
   Result:=TEventsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3759,7 +3955,7 @@ Function TGanAPI.CreateLinksResource(AOwner : TComponent) : TLinksResource;
 
 begin
   Result:=TLinksResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3783,7 +3979,7 @@ Function TGanAPI.CreatePublishersResource(AOwner : TComponent) : TPublishersReso
 
 begin
   Result:=TPublishersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3807,7 +4003,7 @@ Function TGanAPI.CreateReportsResource(AOwner : TComponent) : TReportsResource;
 
 begin
   Result:=TReportsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

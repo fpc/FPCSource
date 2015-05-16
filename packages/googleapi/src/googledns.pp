@@ -13,7 +13,7 @@ unit googledns;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:53
+//Generated on: 16-5-15 08:53:02
 {$MODE objfpc}
 {$H+}
 
@@ -24,14 +24,14 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TChange = class;
-  TChangesListResponse = class;
-  TManagedZone = class;
-  TManagedZonesListResponse = class;
-  TProject = class;
-  TQuota = class;
-  TResourceRecordSet = class;
-  TResourceRecordSetsListResponse = class;
+  TChange = Class;
+  TChangesListResponse = Class;
+  TManagedZone = Class;
+  TManagedZonesListResponse = Class;
+  TProject = Class;
+  TQuota = Class;
+  TResourceRecordSet = Class;
+  TResourceRecordSetsListResponse = Class;
   TChangeArray = Array of TChange;
   TChangesListResponseArray = Array of TChangesListResponse;
   TManagedZoneArray = Array of TManagedZone;
@@ -67,6 +67,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property additions : TChangeTypeadditionsArray Index 0 Read Fadditions Write Setadditions;
@@ -92,6 +96,10 @@ type
     Procedure Setchanges(AIndex : Integer; AValue : TChangesListResponseTypechangesArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property changes : TChangesListResponseTypechangesArray Index 0 Read Fchanges Write Setchanges;
@@ -124,6 +132,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetnameServerSet(AIndex : Integer; AValue : String); virtual;
     Procedure SetnameServers(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTime : String Index 0 Read FcreationTime Write SetcreationTime;
@@ -151,6 +163,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetmanagedZones(AIndex : Integer; AValue : TManagedZonesListResponseTypemanagedZonesArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -237,6 +253,10 @@ type
     Procedure Setrrdatas(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setttl(AIndex : Integer; AValue : integer); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -261,6 +281,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setrrsets(AIndex : Integer; AValue : TResourceRecordSetsListResponseTyperrsetsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -472,6 +496,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TChange.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'additions' : SetLength(Fadditions,ALength);
+  'deletions' : SetLength(Fdeletions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -508,6 +546,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TChangesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'changes' : SetLength(Fchanges,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -596,6 +647,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TManagedZone.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'nameservers' : SetLength(FnameServers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -632,6 +696,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TManagedZonesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'managedzones' : SetLength(FmanagedZones,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -825,6 +902,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResourceRecordSet.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rrdatas' : SetLength(Frrdatas,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -861,6 +951,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResourceRecordSetsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rrsets' : SetLength(Frrsets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1192,7 +1295,7 @@ end;
 Class Function TDnsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TDnsAPI.APIbasePath : string;
@@ -1204,7 +1307,7 @@ end;
 Class Function TDnsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/dns/v1/projects/';
+  Result:='https://www.googleapis.com:443/dns/v1/projects/';
 end;
 
 Class Function TDnsAPI.APIProtocol : string;
@@ -1277,7 +1380,7 @@ Function TDnsAPI.CreateChangesResource(AOwner : TComponent) : TChangesResource;
 
 begin
   Result:=TChangesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1301,7 +1404,7 @@ Function TDnsAPI.CreateManagedZonesResource(AOwner : TComponent) : TManagedZones
 
 begin
   Result:=TManagedZonesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1325,7 +1428,7 @@ Function TDnsAPI.CreateProjectsResource(AOwner : TComponent) : TProjectsResource
 
 begin
   Result:=TProjectsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1349,7 +1452,7 @@ Function TDnsAPI.CreateResourceRecordSetsResource(AOwner : TComponent) : TResour
 
 begin
   Result:=TResourceRecordSetsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

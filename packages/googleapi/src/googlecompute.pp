@@ -13,7 +13,7 @@ unit googlecompute;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:50
+//Generated on: 16-5-15 08:53:00
 {$MODE objfpc}
 {$H+}
 
@@ -24,112 +24,112 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAccessConfig = class;
-  TAddress = class;
-  TAddressAggregatedList = class;
-  TAddressList = class;
-  TAddressesScopedList = class;
-  TAttachedDisk = class;
-  TAttachedDiskInitializeParams = class;
-  TBackend = class;
-  TBackendService = class;
-  TBackendServiceGroupHealth = class;
-  TBackendServiceList = class;
-  TDeprecationStatus = class;
-  TDisk = class;
-  TDiskAggregatedList = class;
-  TDiskList = class;
-  TDiskMoveRequest = class;
-  TDiskType = class;
-  TDiskTypeAggregatedList = class;
-  TDiskTypeList = class;
-  TDiskTypesScopedList = class;
-  TDisksScopedList = class;
-  TFirewall = class;
-  TFirewallList = class;
-  TForwardingRule = class;
-  TForwardingRuleAggregatedList = class;
-  TForwardingRuleList = class;
-  TForwardingRulesScopedList = class;
-  THealthCheckReference = class;
-  THealthStatus = class;
-  THostRule = class;
-  THttpHealthCheck = class;
-  THttpHealthCheckList = class;
-  TImage = class;
-  TImageList = class;
-  TInstance = class;
-  TInstanceAggregatedList = class;
-  TInstanceList = class;
-  TInstanceMoveRequest = class;
-  TInstanceProperties = class;
-  TInstanceReference = class;
-  TInstanceTemplate = class;
-  TInstanceTemplateList = class;
-  TInstancesScopedList = class;
-  TLicense = class;
-  TMachineType = class;
-  TMachineTypeAggregatedList = class;
-  TMachineTypeList = class;
-  TMachineTypesScopedList = class;
-  TMetadata = class;
-  TNetwork = class;
-  TNetworkInterface = class;
-  TNetworkList = class;
-  TOperation = class;
-  TOperationAggregatedList = class;
-  TOperationList = class;
-  TOperationsScopedList = class;
-  TPathMatcher = class;
-  TPathRule = class;
-  TProject = class;
-  TQuota = class;
-  TRegion = class;
-  TRegionList = class;
-  TResourceGroupReference = class;
-  TRoute = class;
-  TRouteList = class;
-  TScheduling = class;
-  TSerialPortOutput = class;
-  TServiceAccount = class;
-  TSnapshot = class;
-  TSnapshotList = class;
-  TTags = class;
-  TTargetHttpProxy = class;
-  TTargetHttpProxyList = class;
-  TTargetInstance = class;
-  TTargetInstanceAggregatedList = class;
-  TTargetInstanceList = class;
-  TTargetInstancesScopedList = class;
-  TTargetPool = class;
-  TTargetPoolAggregatedList = class;
-  TTargetPoolInstanceHealth = class;
-  TTargetPoolList = class;
-  TTargetPoolsAddHealthCheckRequest = class;
-  TTargetPoolsAddInstanceRequest = class;
-  TTargetPoolsRemoveHealthCheckRequest = class;
-  TTargetPoolsRemoveInstanceRequest = class;
-  TTargetPoolsScopedList = class;
-  TTargetReference = class;
-  TTargetVpnGateway = class;
-  TTargetVpnGatewayAggregatedList = class;
-  TTargetVpnGatewayList = class;
-  TTargetVpnGatewaysScopedList = class;
-  TTestFailure = class;
-  TUrlMap = class;
-  TUrlMapList = class;
-  TUrlMapReference = class;
-  TUrlMapTest = class;
-  TUrlMapValidationResult = class;
-  TUrlMapsValidateRequest = class;
-  TUrlMapsValidateResponse = class;
-  TUsageExportLocation = class;
-  TVpnTunnel = class;
-  TVpnTunnelAggregatedList = class;
-  TVpnTunnelList = class;
-  TVpnTunnelsScopedList = class;
-  TZone = class;
-  TZoneList = class;
+  TAccessConfig = Class;
+  TAddress = Class;
+  TAddressAggregatedList = Class;
+  TAddressList = Class;
+  TAddressesScopedList = Class;
+  TAttachedDisk = Class;
+  TAttachedDiskInitializeParams = Class;
+  TBackend = Class;
+  TBackendService = Class;
+  TBackendServiceGroupHealth = Class;
+  TBackendServiceList = Class;
+  TDeprecationStatus = Class;
+  TDisk = Class;
+  TDiskAggregatedList = Class;
+  TDiskList = Class;
+  TDiskMoveRequest = Class;
+  TDiskType = Class;
+  TDiskTypeAggregatedList = Class;
+  TDiskTypeList = Class;
+  TDiskTypesScopedList = Class;
+  TDisksScopedList = Class;
+  TFirewall = Class;
+  TFirewallList = Class;
+  TForwardingRule = Class;
+  TForwardingRuleAggregatedList = Class;
+  TForwardingRuleList = Class;
+  TForwardingRulesScopedList = Class;
+  THealthCheckReference = Class;
+  THealthStatus = Class;
+  THostRule = Class;
+  THttpHealthCheck = Class;
+  THttpHealthCheckList = Class;
+  TImage = Class;
+  TImageList = Class;
+  TInstance = Class;
+  TInstanceAggregatedList = Class;
+  TInstanceList = Class;
+  TInstanceMoveRequest = Class;
+  TInstanceProperties = Class;
+  TInstanceReference = Class;
+  TInstanceTemplate = Class;
+  TInstanceTemplateList = Class;
+  TInstancesScopedList = Class;
+  TLicense = Class;
+  TMachineType = Class;
+  TMachineTypeAggregatedList = Class;
+  TMachineTypeList = Class;
+  TMachineTypesScopedList = Class;
+  TMetadata = Class;
+  TNetwork = Class;
+  TNetworkInterface = Class;
+  TNetworkList = Class;
+  TOperation = Class;
+  TOperationAggregatedList = Class;
+  TOperationList = Class;
+  TOperationsScopedList = Class;
+  TPathMatcher = Class;
+  TPathRule = Class;
+  TProject = Class;
+  TQuota = Class;
+  TRegion = Class;
+  TRegionList = Class;
+  TResourceGroupReference = Class;
+  TRoute = Class;
+  TRouteList = Class;
+  TScheduling = Class;
+  TSerialPortOutput = Class;
+  TServiceAccount = Class;
+  TSnapshot = Class;
+  TSnapshotList = Class;
+  TTags = Class;
+  TTargetHttpProxy = Class;
+  TTargetHttpProxyList = Class;
+  TTargetInstance = Class;
+  TTargetInstanceAggregatedList = Class;
+  TTargetInstanceList = Class;
+  TTargetInstancesScopedList = Class;
+  TTargetPool = Class;
+  TTargetPoolAggregatedList = Class;
+  TTargetPoolInstanceHealth = Class;
+  TTargetPoolList = Class;
+  TTargetPoolsAddHealthCheckRequest = Class;
+  TTargetPoolsAddInstanceRequest = Class;
+  TTargetPoolsRemoveHealthCheckRequest = Class;
+  TTargetPoolsRemoveInstanceRequest = Class;
+  TTargetPoolsScopedList = Class;
+  TTargetReference = Class;
+  TTargetVpnGateway = Class;
+  TTargetVpnGatewayAggregatedList = Class;
+  TTargetVpnGatewayList = Class;
+  TTargetVpnGatewaysScopedList = Class;
+  TTestFailure = Class;
+  TUrlMap = Class;
+  TUrlMapList = Class;
+  TUrlMapReference = Class;
+  TUrlMapTest = Class;
+  TUrlMapValidationResult = Class;
+  TUrlMapsValidateRequest = Class;
+  TUrlMapsValidateResponse = Class;
+  TUsageExportLocation = Class;
+  TVpnTunnel = Class;
+  TVpnTunnelAggregatedList = Class;
+  TVpnTunnelList = Class;
+  TVpnTunnelsScopedList = Class;
+  TZone = Class;
+  TZoneList = Class;
   TAccessConfigArray = Array of TAccessConfig;
   TAddressArray = Array of TAddress;
   TAddressAggregatedListArray = Array of TAddressAggregatedList;
@@ -237,50 +237,50 @@ type
   TZoneArray = Array of TZone;
   TZoneListArray = Array of TZoneList;
   //Anonymous types, using auto-generated names
-  TAddressAggregatedListTypeitems = class;
-  TAddressesScopedListTypewarningTypedataItem = class;
-  TAddressesScopedListTypewarning = class;
-  TDiskAggregatedListTypeitems = class;
-  TDiskTypeAggregatedListTypeitems = class;
-  TDiskTypesScopedListTypewarningTypedataItem = class;
-  TDiskTypesScopedListTypewarning = class;
-  TDisksScopedListTypewarningTypedataItem = class;
-  TDisksScopedListTypewarning = class;
-  TFirewallTypeallowedItem = class;
-  TForwardingRuleAggregatedListTypeitems = class;
-  TForwardingRulesScopedListTypewarningTypedataItem = class;
-  TForwardingRulesScopedListTypewarning = class;
-  TImageTyperawDisk = class;
-  TInstanceAggregatedListTypeitems = class;
-  TInstancesScopedListTypewarningTypedataItem = class;
-  TInstancesScopedListTypewarning = class;
-  TMachineTypeTypescratchDisksItem = class;
-  TMachineTypeAggregatedListTypeitems = class;
-  TMachineTypesScopedListTypewarningTypedataItem = class;
-  TMachineTypesScopedListTypewarning = class;
-  TMetadataTypeitemsItem = class;
-  TOperationTypeerrorTypeerrorsItem = class;
-  TOperationTypeerror = class;
-  TOperationTypewarningsItemTypedataItem = class;
-  TOperationTypewarningsItem = class;
-  TOperationAggregatedListTypeitems = class;
-  TOperationsScopedListTypewarningTypedataItem = class;
-  TOperationsScopedListTypewarning = class;
-  TRouteTypewarningsItemTypedataItem = class;
-  TRouteTypewarningsItem = class;
-  TTargetInstanceAggregatedListTypeitems = class;
-  TTargetInstancesScopedListTypewarningTypedataItem = class;
-  TTargetInstancesScopedListTypewarning = class;
-  TTargetPoolAggregatedListTypeitems = class;
-  TTargetPoolsScopedListTypewarningTypedataItem = class;
-  TTargetPoolsScopedListTypewarning = class;
-  TTargetVpnGatewayAggregatedListTypeitems = class;
-  TTargetVpnGatewaysScopedListTypewarningTypedataItem = class;
-  TTargetVpnGatewaysScopedListTypewarning = class;
-  TVpnTunnelAggregatedListTypeitems = class;
-  TVpnTunnelsScopedListTypewarningTypedataItem = class;
-  TVpnTunnelsScopedListTypewarning = class;
-  TZoneTypemaintenanceWindowsItem = class;
+  TAddressAggregatedListTypeitems = Class;
+  TAddressesScopedListTypewarningTypedataItem = Class;
+  TAddressesScopedListTypewarning = Class;
+  TDiskAggregatedListTypeitems = Class;
+  TDiskTypeAggregatedListTypeitems = Class;
+  TDiskTypesScopedListTypewarningTypedataItem = Class;
+  TDiskTypesScopedListTypewarning = Class;
+  TDisksScopedListTypewarningTypedataItem = Class;
+  TDisksScopedListTypewarning = Class;
+  TFirewallTypeallowedItem = Class;
+  TForwardingRuleAggregatedListTypeitems = Class;
+  TForwardingRulesScopedListTypewarningTypedataItem = Class;
+  TForwardingRulesScopedListTypewarning = Class;
+  TImageTyperawDisk = Class;
+  TInstanceAggregatedListTypeitems = Class;
+  TInstancesScopedListTypewarningTypedataItem = Class;
+  TInstancesScopedListTypewarning = Class;
+  TMachineTypeTypescratchDisksItem = Class;
+  TMachineTypeAggregatedListTypeitems = Class;
+  TMachineTypesScopedListTypewarningTypedataItem = Class;
+  TMachineTypesScopedListTypewarning = Class;
+  TMetadataTypeitemsItem = Class;
+  TOperationTypeerrorTypeerrorsItem = Class;
+  TOperationTypeerror = Class;
+  TOperationTypewarningsItemTypedataItem = Class;
+  TOperationTypewarningsItem = Class;
+  TOperationAggregatedListTypeitems = Class;
+  TOperationsScopedListTypewarningTypedataItem = Class;
+  TOperationsScopedListTypewarning = Class;
+  TRouteTypewarningsItemTypedataItem = Class;
+  TRouteTypewarningsItem = Class;
+  TTargetInstanceAggregatedListTypeitems = Class;
+  TTargetInstancesScopedListTypewarningTypedataItem = Class;
+  TTargetInstancesScopedListTypewarning = Class;
+  TTargetPoolAggregatedListTypeitems = Class;
+  TTargetPoolsScopedListTypewarningTypedataItem = Class;
+  TTargetPoolsScopedListTypewarning = Class;
+  TTargetVpnGatewayAggregatedListTypeitems = Class;
+  TTargetVpnGatewaysScopedListTypewarningTypedataItem = Class;
+  TTargetVpnGatewaysScopedListTypewarning = Class;
+  TVpnTunnelAggregatedListTypeitems = Class;
+  TVpnTunnelsScopedListTypewarningTypedataItem = Class;
+  TVpnTunnelsScopedListTypewarning = Class;
+  TZoneTypemaintenanceWindowsItem = Class;
   TAddressListTypeitemsArray = Array of TAddress;
   TAddressesScopedListTypeaddressesArray = Array of TAddress;
   TAddressesScopedListTypewarningTypedataArray = Array of TAddressesScopedListTypewarningTypedataItem;
@@ -411,6 +411,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure Setusers(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property address : String Index 0 Read Faddress Write Setaddress;
@@ -486,6 +490,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -529,6 +537,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TAddressesScopedListTypewarningTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -549,6 +561,10 @@ type
     //Property setters
     Procedure Setaddresses(AIndex : Integer; AValue : TAddressesScopedListTypeaddressesArray); virtual;
     Procedure Setwarning(AIndex : Integer; AValue : TAddressesScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property addresses : TAddressesScopedListTypeaddressesArray Index 0 Read Faddresses Write Setaddresses;
@@ -587,6 +603,10 @@ type
     Procedure Setmode(AIndex : Integer; AValue : String); virtual;
     Procedure Setsource(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property autoDelete : boolean Index 0 Read FautoDelete Write SetautoDelete;
@@ -696,6 +716,10 @@ type
     Procedure Setprotocol(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure SettimeoutSec(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property backends : TBackendServiceTypebackendsArray Index 0 Read Fbackends Write Setbackends;
@@ -726,6 +750,10 @@ type
     //Property setters
     Procedure SethealthStatus(AIndex : Integer; AValue : TBackendServiceGroupHealthTypehealthStatusArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property healthStatus : TBackendServiceGroupHealthTypehealthStatusArray Index 0 Read FhealthStatus Write SethealthStatus;
@@ -751,6 +779,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -830,6 +862,10 @@ type
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -911,6 +947,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -1043,6 +1083,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -1086,6 +1130,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TDiskTypesScopedListTypewarningTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -1106,6 +1154,10 @@ type
     //Property setters
     Procedure SetdiskTypes(AIndex : Integer; AValue : TDiskTypesScopedListTypediskTypesArray); virtual;
     Procedure Setwarning(AIndex : Integer; AValue : TDiskTypesScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property diskTypes : TDiskTypesScopedListTypediskTypesArray Index 0 Read FdiskTypes Write SetdiskTypes;
@@ -1146,6 +1198,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TDisksScopedListTypewarningTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -1166,6 +1222,10 @@ type
     //Property setters
     Procedure Setdisks(AIndex : Integer; AValue : TDisksScopedListTypedisksArray); virtual;
     Procedure Setwarning(AIndex : Integer; AValue : TDisksScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property disks : TDisksScopedListTypedisksArray Index 0 Read Fdisks Write Setdisks;
@@ -1185,6 +1245,10 @@ type
     //Property setters
     Procedure SetIPProtocol(AIndex : Integer; AValue : String); virtual;
     Procedure Setports(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property IPProtocol : String Index 0 Read FIPProtocol Write SetIPProtocol;
@@ -1222,6 +1286,10 @@ type
     Procedure SetsourceRanges(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetsourceTags(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SettargetTags(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property allowed : TFirewallTypeallowedArray Index 0 Read Fallowed Write Setallowed;
@@ -1256,6 +1324,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -1372,6 +1444,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -1415,6 +1491,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TForwardingRulesScopedListTypewarningTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -1435,6 +1515,10 @@ type
     //Property setters
     Procedure SetforwardingRules(AIndex : Integer; AValue : TForwardingRulesScopedListTypeforwardingRulesArray); virtual;
     Procedure Setwarning(AIndex : Integer; AValue : TForwardingRulesScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property forwardingRules : TForwardingRulesScopedListTypeforwardingRulesArray Index 0 Read FforwardingRules Write SetforwardingRules;
@@ -1497,6 +1581,10 @@ type
     Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure Sethosts(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpathMatcher(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -1575,6 +1663,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -1645,6 +1737,10 @@ type
     Procedure SetsourceDiskId(AIndex : Integer; AValue : String); virtual;
     Procedure SetsourceType(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property archiveSizeBytes : String Index 0 Read FarchiveSizeBytes Write SetarchiveSizeBytes;
@@ -1683,6 +1779,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -1737,6 +1837,10 @@ type
     Procedure SetstatusMessage(AIndex : Integer; AValue : String); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property canIpForward : boolean Index 0 Read FcanIpForward Write SetcanIpForward;
@@ -1820,6 +1924,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -1875,6 +1983,10 @@ type
     Procedure Setscheduling(AIndex : Integer; AValue : TScheduling); virtual;
     Procedure SetserviceAccounts(AIndex : Integer; AValue : TInstancePropertiesTypeserviceAccountsArray); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property canIpForward : boolean Index 0 Read FcanIpForward Write SetcanIpForward;
@@ -1957,6 +2069,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -2000,6 +2116,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TInstancesScopedListTypewarningTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -2020,6 +2140,10 @@ type
     //Property setters
     Procedure Setinstances(AIndex : Integer; AValue : TInstancesScopedListTypeinstancesArray); virtual;
     Procedure Setwarning(AIndex : Integer; AValue : TInstancesScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property instances : TInstancesScopedListTypeinstancesArray Index 0 Read Finstances Write Setinstances;
@@ -2104,6 +2228,10 @@ type
     Procedure SetscratchDisks(AIndex : Integer; AValue : TMachineTypeTypescratchDisksArray); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -2183,6 +2311,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -2226,6 +2358,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TMachineTypesScopedListTypewarningTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -2246,6 +2382,10 @@ type
     //Property setters
     Procedure SetmachineTypes(AIndex : Integer; AValue : TMachineTypesScopedListTypemachineTypesArray); virtual;
     Procedure Setwarning(AIndex : Integer; AValue : TMachineTypesScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property machineTypes : TMachineTypesScopedListTypemachineTypesArray Index 0 Read FmachineTypes Write SetmachineTypes;
@@ -2286,6 +2426,10 @@ type
     Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property fingerprint : String Index 0 Read Ffingerprint Write Setfingerprint;
@@ -2347,6 +2491,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setnetwork(AIndex : Integer; AValue : String); virtual;
     Procedure SetnetworkIP(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accessConfigs : TNetworkInterfaceTypeaccessConfigsArray Index 0 Read FaccessConfigs Write SetaccessConfigs;
@@ -2374,6 +2522,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -2416,6 +2568,10 @@ type
   Protected
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
@@ -2455,6 +2611,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -2515,6 +2675,10 @@ type
     Procedure Setuser(AIndex : Integer; AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
     Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
@@ -2602,6 +2766,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -2645,6 +2813,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TOperationsScopedListTypewarningTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -2665,6 +2837,10 @@ type
     //Property setters
     Procedure Setoperations(AIndex : Integer; AValue : TOperationsScopedListTypeoperationsArray); virtual;
     Procedure Setwarning(AIndex : Integer; AValue : TOperationsScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property operations : TOperationsScopedListTypeoperationsArray Index 0 Read Foperations Write Setoperations;
@@ -2688,6 +2864,10 @@ type
     Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetpathRules(AIndex : Integer; AValue : TPathMatcherTypepathRulesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property defaultService : String Index 0 Read FdefaultService Write SetdefaultService;
@@ -2709,6 +2889,10 @@ type
     //Property setters
     Procedure Setpaths(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setservice(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property paths : TStringArray Index 0 Read Fpaths Write Setpaths;
@@ -2742,6 +2926,10 @@ type
     Procedure Setquotas(AIndex : Integer; AValue : TProjectTypequotasArray); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure SetusageExportLocation(AIndex : Integer; AValue : TUsageExportLocation); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property commonInstanceMetadata : TMetadata Index 0 Read FcommonInstanceMetadata Write SetcommonInstanceMetadata;
@@ -2806,6 +2994,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure Setzones(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -2839,6 +3031,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -2898,6 +3094,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TRouteTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -2946,6 +3146,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Settags(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TRouteTypewarningsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -2985,6 +3189,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -3051,6 +3259,10 @@ type
     //Property setters
     Procedure Setemail(AIndex : Integer; AValue : String); virtual;
     Procedure Setscopes(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property email : String Index 0 Read Femail Write Setemail;
@@ -3092,6 +3304,10 @@ type
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure SetstorageBytes(AIndex : Integer; AValue : String); virtual;
     Procedure SetstorageBytesStatus(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -3128,6 +3344,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -3150,6 +3370,10 @@ type
     //Property setters
     Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property fingerprint : String Index 0 Read Ffingerprint Write Setfingerprint;
@@ -3209,6 +3433,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -3319,6 +3547,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -3362,6 +3594,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TTargetInstancesScopedListTypewarningTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -3382,6 +3618,10 @@ type
     //Property setters
     Procedure SettargetInstances(AIndex : Integer; AValue : TTargetInstancesScopedListTypetargetInstancesArray); virtual;
     Procedure Setwarning(AIndex : Integer; AValue : TTargetInstancesScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property targetInstances : TTargetInstancesScopedListTypetargetInstancesArray Index 0 Read FtargetInstances Write SettargetInstances;
@@ -3421,6 +3661,10 @@ type
     Procedure Setregion(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure SetsessionAffinity(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property backupPool : String Index 0 Read FbackupPool Write SetbackupPool;
@@ -3492,6 +3736,10 @@ type
     //Property setters
     Procedure SethealthStatus(AIndex : Integer; AValue : TTargetPoolInstanceHealthTypehealthStatusArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property healthStatus : TTargetPoolInstanceHealthTypehealthStatusArray Index 0 Read FhealthStatus Write SethealthStatus;
@@ -3517,6 +3765,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -3537,6 +3789,10 @@ type
   Protected
     //Property setters
     Procedure SethealthChecks(AIndex : Integer; AValue : TTargetPoolsAddHealthCheckRequestTypehealthChecksArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property healthChecks : TTargetPoolsAddHealthCheckRequestTypehealthChecksArray Index 0 Read FhealthChecks Write SethealthChecks;
@@ -3553,6 +3809,10 @@ type
   Protected
     //Property setters
     Procedure Setinstances(AIndex : Integer; AValue : TTargetPoolsAddInstanceRequestTypeinstancesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property instances : TTargetPoolsAddInstanceRequestTypeinstancesArray Index 0 Read Finstances Write Setinstances;
@@ -3569,6 +3829,10 @@ type
   Protected
     //Property setters
     Procedure SethealthChecks(AIndex : Integer; AValue : TTargetPoolsRemoveHealthCheckRequestTypehealthChecksArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property healthChecks : TTargetPoolsRemoveHealthCheckRequestTypehealthChecksArray Index 0 Read FhealthChecks Write SethealthChecks;
@@ -3585,6 +3849,10 @@ type
   Protected
     //Property setters
     Procedure Setinstances(AIndex : Integer; AValue : TTargetPoolsRemoveInstanceRequestTypeinstancesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property instances : TTargetPoolsRemoveInstanceRequestTypeinstancesArray Index 0 Read Finstances Write Setinstances;
@@ -3624,6 +3892,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TTargetPoolsScopedListTypewarningTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -3644,6 +3916,10 @@ type
     //Property setters
     Procedure SettargetPools(AIndex : Integer; AValue : TTargetPoolsScopedListTypetargetPoolsArray); virtual;
     Procedure Setwarning(AIndex : Integer; AValue : TTargetPoolsScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property targetPools : TTargetPoolsScopedListTypetargetPoolsArray Index 0 Read FtargetPools Write SettargetPools;
@@ -3697,6 +3973,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure Settunnels(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -3773,6 +4053,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -3816,6 +4100,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TTargetVpnGatewaysScopedListTypewarningTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -3836,6 +4124,10 @@ type
     //Property setters
     Procedure SettargetVpnGateways(AIndex : Integer; AValue : TTargetVpnGatewaysScopedListTypetargetVpnGatewaysArray); virtual;
     Procedure Setwarning(AIndex : Integer; AValue : TTargetVpnGatewaysScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property targetVpnGateways : TTargetVpnGatewaysScopedListTypetargetVpnGatewaysArray Index 0 Read FtargetVpnGateways Write SettargetVpnGateways;
@@ -3898,6 +4190,10 @@ type
     Procedure SetpathMatchers(AIndex : Integer; AValue : TUrlMapTypepathMatchersArray); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Settests(AIndex : Integer; AValue : TUrlMapTypetestsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -3932,6 +4228,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -3999,6 +4299,10 @@ type
     Procedure SetloadSucceeded(AIndex : Integer; AValue : boolean); virtual;
     Procedure SettestFailures(AIndex : Integer; AValue : TUrlMapValidationResultTypetestFailuresArray); virtual;
     Procedure SettestPassed(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property loadErrors : TStringArray Index 0 Read FloadErrors Write SetloadErrors;
@@ -4097,6 +4401,10 @@ type
     Procedure SetsharedSecretHash(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure SettargetVpnGateway(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -4177,6 +4485,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -4220,6 +4532,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TVpnTunnelsScopedListTypewarningTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -4240,6 +4556,10 @@ type
     //Property setters
     Procedure SetvpnTunnels(AIndex : Integer; AValue : TVpnTunnelsScopedListTypevpnTunnelsArray); virtual;
     Procedure Setwarning(AIndex : Integer; AValue : TVpnTunnelsScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property vpnTunnels : TVpnTunnelsScopedListTypevpnTunnelsArray Index 0 Read FvpnTunnels Write SetvpnTunnels;
@@ -4300,6 +4620,10 @@ type
     Procedure Setregion(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -4333,6 +4657,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -5588,6 +5916,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAddress.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'users' : SetLength(Fusers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5715,6 +6056,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAddressList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5779,6 +6133,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAddressesScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5805,6 +6172,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAddressesScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'addresses' : SetLength(Faddresses,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5934,6 +6314,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAttachedDisk.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'licenses' : SetLength(Flicenses,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -6196,6 +6589,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBackendService.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'backends' : SetLength(Fbackends,ALength);
+  'healthchecks' : SetLength(FhealthChecks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6222,6 +6629,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBackendServiceGroupHealth.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'healthstatus' : SetLength(FhealthStatus,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -6279,6 +6699,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBackendServiceList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -6515,6 +6948,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDisk.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'licenses' : SetLength(Flicenses,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6641,6 +7087,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDiskList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -6903,6 +7362,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDiskTypeList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6967,6 +7439,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDiskTypesScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6993,6 +7478,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDiskTypesScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'disktypes' : SetLength(FdiskTypes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7058,6 +7556,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDisksScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7085,6 +7596,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDisksScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'disks' : SetLength(Fdisks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7111,6 +7635,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFirewallTypeallowedItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'ports' : SetLength(Fports,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7229,6 +7766,22 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFirewall.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'allowed' : SetLength(Fallowed,ALength);
+  'sourceranges' : SetLength(FsourceRanges,ALength);
+  'sourcetags' : SetLength(FsourceTags,ALength);
+  'targettags' : SetLength(FtargetTags,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7285,6 +7838,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFirewallList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7530,6 +8096,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TForwardingRuleList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7594,6 +8173,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TForwardingRulesScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7620,6 +8212,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TForwardingRulesScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'forwardingrules' : SetLength(FforwardingRules,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7721,6 +8326,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure THostRule.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'hosts' : SetLength(Fhosts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7916,6 +8534,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure THttpHealthCheckList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8110,6 +8741,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TImage.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'licenses' : SetLength(Flicenses,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8166,6 +8810,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TImageList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -8354,6 +9011,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstance.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'disks' : SetLength(Fdisks,ALength);
+  'networkinterfaces' : SetLength(FnetworkInterfaces,ALength);
+  'serviceaccounts' : SetLength(FserviceAccounts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8481,6 +9153,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8604,6 +9289,21 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceProperties.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'disks' : SetLength(Fdisks,ALength);
+  'networkinterfaces' : SetLength(FnetworkInterfaces,ALength);
+  'serviceaccounts' : SetLength(FserviceAccounts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -8756,6 +9456,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceTemplateList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8820,6 +9533,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstancesScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8846,6 +9572,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstancesScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9058,6 +9797,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMachineType.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'scratchdisks' : SetLength(FscratchDisks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -9185,6 +9937,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMachineTypeList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -9249,6 +10014,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMachineTypesScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -9275,6 +10053,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMachineTypesScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'machinetypes' : SetLength(FmachineTypes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9339,6 +10130,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9474,6 +10278,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TNetworkInterface.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'accessconfigs' : SetLength(FaccessConfigs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -9531,6 +10348,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TNetworkList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -9584,6 +10414,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9648,6 +10491,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9876,6 +10732,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -10003,6 +10872,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -10067,6 +10949,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationsScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -10093,6 +10988,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationsScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'operations' : SetLength(Foperations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -10141,6 +11049,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPathMatcher.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'pathrules' : SetLength(FpathRules,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -10167,6 +11088,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPathRule.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'paths' : SetLength(Fpaths,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -10264,6 +11198,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProject.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'quotas' : SetLength(Fquotas,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -10409,6 +11356,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRegion.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'quotas' : SetLength(Fquotas,ALength);
+  'zones' : SetLength(Fzones,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -10465,6 +11426,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRegionList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -10546,6 +11520,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRouteTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -10714,6 +11701,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRoute.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'tags' : SetLength(Ftags,ALength);
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -10770,6 +11771,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRouteList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -10871,6 +11885,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TServiceAccount.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'scopes' : SetLength(Fscopes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -11009,6 +12036,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSnapshot.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'licenses' : SetLength(Flicenses,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -11066,6 +12106,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSnapshotList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -11092,6 +12145,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTags.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -11226,6 +12292,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetHttpProxyList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -11451,6 +12530,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetInstanceList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -11515,6 +12607,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetInstancesScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -11541,6 +12646,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetInstancesScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'targetinstances' : SetLength(FtargetInstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -11669,6 +12787,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPool.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'healthchecks' : SetLength(FhealthChecks,ALength);
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -11766,6 +12898,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolInstanceHealth.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'healthstatus' : SetLength(FhealthStatus,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -11823,6 +12968,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -11839,6 +12997,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolsAddHealthCheckRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'healthchecks' : SetLength(FhealthChecks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -11857,6 +13028,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolsAddInstanceRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -11874,6 +13058,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolsRemoveHealthCheckRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'healthchecks' : SetLength(FhealthChecks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -11890,6 +13087,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolsRemoveInstanceRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -11955,6 +13165,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolsScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -11981,6 +13204,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolsScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'targetpools' : SetLength(FtargetPools,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -12116,6 +13352,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetVpnGateway.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'forwardingrules' : SetLength(FforwardingRules,ALength);
+  'tunnels' : SetLength(Ftunnels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -12243,6 +13493,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetVpnGatewayList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -12307,6 +13570,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetVpnGatewaysScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -12333,6 +13609,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetVpnGatewaysScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'targetvpngateways' : SetLength(FtargetVpnGateways,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -12498,6 +13787,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUrlMap.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'hostrules' : SetLength(FhostRules,ALength);
+  'pathmatchers' : SetLength(FpathMatchers,ALength);
+  'tests' : SetLength(Ftests,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -12554,6 +13858,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUrlMapList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -12665,6 +13982,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUrlMapValidationResult.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'loaderrors' : SetLength(FloadErrors,ALength);
+  'testfailures' : SetLength(FtestFailures,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -12884,6 +14215,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVpnTunnel.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'ikenetworks' : SetLength(FikeNetworks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -13011,6 +14355,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVpnTunnelList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -13075,6 +14432,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVpnTunnelsScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -13101,6 +14471,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVpnTunnelsScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'vpntunnels' : SetLength(FvpnTunnels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -13256,6 +14639,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZone.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'maintenancewindows' : SetLength(FmaintenanceWindows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -13312,6 +14708,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -16694,7 +18103,7 @@ end;
 Class Function TComputeAPI.APIRevision : String;
 
 begin
-  Result:='20150326';
+  Result:='20150401';
 end;
 
 Class Function TComputeAPI.APIID : String;
@@ -16748,7 +18157,7 @@ end;
 Class Function TComputeAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TComputeAPI.APIbasePath : string;
@@ -16760,7 +18169,7 @@ end;
 Class Function TComputeAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/compute/v1/projects/';
+  Result:='https://www.googleapis.com:443/compute/v1/projects/';
 end;
 
 Class Function TComputeAPI.APIProtocol : string;
@@ -16981,7 +18390,7 @@ Function TComputeAPI.CreateAddressesResource(AOwner : TComponent) : TAddressesRe
 
 begin
   Result:=TAddressesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17005,7 +18414,7 @@ Function TComputeAPI.CreateBackendServicesResource(AOwner : TComponent) : TBacke
 
 begin
   Result:=TBackendServicesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17029,7 +18438,7 @@ Function TComputeAPI.CreateDiskTypesResource(AOwner : TComponent) : TDiskTypesRe
 
 begin
   Result:=TDiskTypesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17053,7 +18462,7 @@ Function TComputeAPI.CreateDisksResource(AOwner : TComponent) : TDisksResource;
 
 begin
   Result:=TDisksResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17077,7 +18486,7 @@ Function TComputeAPI.CreateFirewallsResource(AOwner : TComponent) : TFirewallsRe
 
 begin
   Result:=TFirewallsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17101,7 +18510,7 @@ Function TComputeAPI.CreateForwardingRulesResource(AOwner : TComponent) : TForwa
 
 begin
   Result:=TForwardingRulesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17125,7 +18534,7 @@ Function TComputeAPI.CreateGlobalAddressesResource(AOwner : TComponent) : TGloba
 
 begin
   Result:=TGlobalAddressesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17149,7 +18558,7 @@ Function TComputeAPI.CreateGlobalForwardingRulesResource(AOwner : TComponent) : 
 
 begin
   Result:=TGlobalForwardingRulesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17173,7 +18582,7 @@ Function TComputeAPI.CreateGlobalOperationsResource(AOwner : TComponent) : TGlob
 
 begin
   Result:=TGlobalOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17197,7 +18606,7 @@ Function TComputeAPI.CreateHttpHealthChecksResource(AOwner : TComponent) : THttp
 
 begin
   Result:=THttpHealthChecksResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17221,7 +18630,7 @@ Function TComputeAPI.CreateImagesResource(AOwner : TComponent) : TImagesResource
 
 begin
   Result:=TImagesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17245,7 +18654,7 @@ Function TComputeAPI.CreateInstanceTemplatesResource(AOwner : TComponent) : TIns
 
 begin
   Result:=TInstanceTemplatesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17269,7 +18678,7 @@ Function TComputeAPI.CreateInstancesResource(AOwner : TComponent) : TInstancesRe
 
 begin
   Result:=TInstancesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17293,7 +18702,7 @@ Function TComputeAPI.CreateLicensesResource(AOwner : TComponent) : TLicensesReso
 
 begin
   Result:=TLicensesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17317,7 +18726,7 @@ Function TComputeAPI.CreateMachineTypesResource(AOwner : TComponent) : TMachineT
 
 begin
   Result:=TMachineTypesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17341,7 +18750,7 @@ Function TComputeAPI.CreateNetworksResource(AOwner : TComponent) : TNetworksReso
 
 begin
   Result:=TNetworksResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17365,7 +18774,7 @@ Function TComputeAPI.CreateProjectsResource(AOwner : TComponent) : TProjectsReso
 
 begin
   Result:=TProjectsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17389,7 +18798,7 @@ Function TComputeAPI.CreateRegionOperationsResource(AOwner : TComponent) : TRegi
 
 begin
   Result:=TRegionOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17413,7 +18822,7 @@ Function TComputeAPI.CreateRegionsResource(AOwner : TComponent) : TRegionsResour
 
 begin
   Result:=TRegionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17437,7 +18846,7 @@ Function TComputeAPI.CreateRoutesResource(AOwner : TComponent) : TRoutesResource
 
 begin
   Result:=TRoutesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17461,7 +18870,7 @@ Function TComputeAPI.CreateSnapshotsResource(AOwner : TComponent) : TSnapshotsRe
 
 begin
   Result:=TSnapshotsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17485,7 +18894,7 @@ Function TComputeAPI.CreateTargetHttpProxiesResource(AOwner : TComponent) : TTar
 
 begin
   Result:=TTargetHttpProxiesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17509,7 +18918,7 @@ Function TComputeAPI.CreateTargetInstancesResource(AOwner : TComponent) : TTarge
 
 begin
   Result:=TTargetInstancesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17533,7 +18942,7 @@ Function TComputeAPI.CreateTargetPoolsResource(AOwner : TComponent) : TTargetPoo
 
 begin
   Result:=TTargetPoolsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17557,7 +18966,7 @@ Function TComputeAPI.CreateTargetVpnGatewaysResource(AOwner : TComponent) : TTar
 
 begin
   Result:=TTargetVpnGatewaysResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17581,7 +18990,7 @@ Function TComputeAPI.CreateUrlMapsResource(AOwner : TComponent) : TUrlMapsResour
 
 begin
   Result:=TUrlMapsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17605,7 +19014,7 @@ Function TComputeAPI.CreateVpnTunnelsResource(AOwner : TComponent) : TVpnTunnels
 
 begin
   Result:=TVpnTunnelsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17629,7 +19038,7 @@ Function TComputeAPI.CreateZoneOperationsResource(AOwner : TComponent) : TZoneOp
 
 begin
   Result:=TZoneOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -17653,7 +19062,7 @@ Function TComputeAPI.CreateZonesResource(AOwner : TComponent) : TZonesResource;
 
 begin
   Result:=TZonesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

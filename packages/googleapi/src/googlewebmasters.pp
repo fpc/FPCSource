@@ -13,7 +13,7 @@ unit googlewebmasters;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:59
+//Generated on: 16-5-15 08:53:09
 {$MODE objfpc}
 {$H+}
 
@@ -24,17 +24,17 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TSitemapsListResponse = class;
-  TSitesListResponse = class;
-  TUrlCrawlErrorCount = class;
-  TUrlCrawlErrorCountsPerType = class;
-  TUrlCrawlErrorsCountsQueryResponse = class;
-  TUrlCrawlErrorsSample = class;
-  TUrlCrawlErrorsSamplesListResponse = class;
-  TUrlSampleDetails = class;
-  TWmxSite = class;
-  TWmxSitemap = class;
-  TWmxSitemapContent = class;
+  TSitemapsListResponse = Class;
+  TSitesListResponse = Class;
+  TUrlCrawlErrorCount = Class;
+  TUrlCrawlErrorCountsPerType = Class;
+  TUrlCrawlErrorsCountsQueryResponse = Class;
+  TUrlCrawlErrorsSample = Class;
+  TUrlCrawlErrorsSamplesListResponse = Class;
+  TUrlSampleDetails = Class;
+  TWmxSite = Class;
+  TWmxSitemap = Class;
+  TWmxSitemapContent = Class;
   TSitemapsListResponseArray = Array of TSitemapsListResponse;
   TSitesListResponseArray = Array of TSitesListResponse;
   TUrlCrawlErrorCountArray = Array of TUrlCrawlErrorCount;
@@ -64,6 +64,10 @@ type
   Protected
     //Property setters
     Procedure Setsitemap(AIndex : Integer; AValue : TSitemapsListResponseTypesitemapArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property sitemap : TSitemapsListResponseTypesitemapArray Index 0 Read Fsitemap Write Setsitemap;
@@ -80,6 +84,10 @@ type
   Protected
     //Property setters
     Procedure SetsiteEntry(AIndex : Integer; AValue : TSitesListResponseTypesiteEntryArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property siteEntry : TSitesListResponseTypesiteEntryArray Index 0 Read FsiteEntry Write SetsiteEntry;
@@ -119,6 +127,10 @@ type
     Procedure Setcategory(AIndex : Integer; AValue : String); virtual;
     Procedure Setentries(AIndex : Integer; AValue : TUrlCrawlErrorCountsPerTypeTypeentriesArray); virtual;
     Procedure Setplatform(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property category : String Index 0 Read Fcategory Write Setcategory;
@@ -137,6 +149,10 @@ type
   Protected
     //Property setters
     Procedure SetcountPerTypes(AIndex : Integer; AValue : TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property countPerTypes : TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray Index 0 Read FcountPerTypes Write SetcountPerTypes;
@@ -181,6 +197,10 @@ type
   Protected
     //Property setters
     Procedure SeturlCrawlErrorSample(AIndex : Integer; AValue : TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property urlCrawlErrorSample : TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray Index 0 Read FurlCrawlErrorSample Write SeturlCrawlErrorSample;
@@ -199,6 +219,10 @@ type
     //Property setters
     Procedure SetcontainingSitemaps(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetlinkedFromUrls(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property containingSitemaps : TStringArray Index 0 Read FcontainingSitemaps Write SetcontainingSitemaps;
@@ -252,6 +276,10 @@ type
     Procedure Setpath(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property contents : TWmxSitemapTypecontentsArray Index 0 Read Fcontents Write Setcontents;
@@ -459,6 +487,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSitemapsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sitemap' : SetLength(Fsitemap,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -475,6 +516,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSitesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'siteentry' : SetLength(FsiteEntry,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -540,6 +594,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUrlCrawlErrorCountsPerType.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -556,6 +623,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUrlCrawlErrorsCountsQueryResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'countpertypes' : SetLength(FcountPerTypes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -631,6 +711,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUrlCrawlErrorsSamplesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'urlcrawlerrorsample' : SetLength(FurlCrawlErrorSample,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -657,6 +750,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUrlSampleDetails.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'containingsitemaps' : SetLength(FcontainingSitemaps,ALength);
+  'linkedfromurls' : SetLength(FlinkedFromUrls,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -792,6 +899,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWmxSitemap.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'contents' : SetLength(Fcontents,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1234,7 +1354,7 @@ end;
 Class Function TWebmastersAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TWebmastersAPI.APIbasePath : string;
@@ -1246,7 +1366,7 @@ end;
 Class Function TWebmastersAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/webmasters/v3/';
+  Result:='https://www.googleapis.com:443/webmasters/v3/';
 end;
 
 Class Function TWebmastersAPI.APIProtocol : string;
@@ -1320,7 +1440,7 @@ Function TWebmastersAPI.CreateSitemapsResource(AOwner : TComponent) : TSitemapsR
 
 begin
   Result:=TSitemapsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1344,7 +1464,7 @@ Function TWebmastersAPI.CreateSitesResource(AOwner : TComponent) : TSitesResourc
 
 begin
   Result:=TSitesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1368,7 +1488,7 @@ Function TWebmastersAPI.CreateUrlcrawlerrorscountsResource(AOwner : TComponent) 
 
 begin
   Result:=TUrlcrawlerrorscountsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1392,7 +1512,7 @@ Function TWebmastersAPI.CreateUrlcrawlerrorssamplesResource(AOwner : TComponent)
 
 begin
   Result:=TUrlcrawlerrorssamplesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -13,7 +13,7 @@ unit googleplus;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:56
+//Generated on: 16-5-15 08:53:06
 {$MODE objfpc}
 {$H+}
 
@@ -24,18 +24,18 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAcl = class;
-  TActivity = class;
-  TActivityFeed = class;
-  TComment = class;
-  TCommentFeed = class;
-  TItemScope = class;
-  TMoment = class;
-  TMomentsFeed = class;
-  TPeopleFeed = class;
-  TPerson = class;
-  TPlace = class;
-  TPlusAclentryResource = class;
+  TAcl = Class;
+  TActivity = Class;
+  TActivityFeed = Class;
+  TComment = Class;
+  TCommentFeed = Class;
+  TItemScope = Class;
+  TMoment = Class;
+  TMomentsFeed = Class;
+  TPeopleFeed = Class;
+  TPerson = Class;
+  TPlace = Class;
+  TPlusAclentryResource = Class;
   TAclArray = Array of TAcl;
   TActivityArray = Array of TActivity;
   TActivityFeedArray = Array of TActivityFeed;
@@ -49,39 +49,39 @@ type
   TPlaceArray = Array of TPlace;
   TPlusAclentryResourceArray = Array of TPlusAclentryResource;
   //Anonymous types, using auto-generated names
-  TActivityTypeactorTypeimage = class;
-  TActivityTypeactorTypename = class;
-  TActivityTypeactor = class;
-  TActivityTypeobjectTypeactorTypeimage = class;
-  TActivityTypeobjectTypeactor = class;
-  TActivityTypeobjectTypeattachmentsItemTypeembed = class;
-  TActivityTypeobjectTypeattachmentsItemTypefullImage = class;
-  TActivityTypeobjectTypeattachmentsItemTypeimage = class;
-  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage = class;
-  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem = class;
-  TActivityTypeobjectTypeattachmentsItem = class;
-  TActivityTypeobjectTypeplusoners = class;
-  TActivityTypeobjectTypereplies = class;
-  TActivityTypeobjectTyperesharers = class;
-  TActivityTypeobject = class;
-  TActivityTypeprovider = class;
-  TCommentTypeactorTypeimage = class;
-  TCommentTypeactor = class;
-  TCommentTypeinReplyToItem = class;
-  TCommentTypeobject = class;
-  TCommentTypeplusoners = class;
-  TPersonTypeageRange = class;
-  TPersonTypecoverTypecoverInfo = class;
-  TPersonTypecoverTypecoverPhoto = class;
-  TPersonTypecover = class;
-  TPersonTypeemailsItem = class;
-  TPersonTypeimage = class;
-  TPersonTypename = class;
-  TPersonTypeorganizationsItem = class;
-  TPersonTypeplacesLivedItem = class;
-  TPersonTypeurlsItem = class;
-  TPlaceTypeaddress = class;
-  TPlaceTypeposition = class;
+  TActivityTypeactorTypeimage = Class;
+  TActivityTypeactorTypename = Class;
+  TActivityTypeactor = Class;
+  TActivityTypeobjectTypeactorTypeimage = Class;
+  TActivityTypeobjectTypeactor = Class;
+  TActivityTypeobjectTypeattachmentsItemTypeembed = Class;
+  TActivityTypeobjectTypeattachmentsItemTypefullImage = Class;
+  TActivityTypeobjectTypeattachmentsItemTypeimage = Class;
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage = Class;
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem = Class;
+  TActivityTypeobjectTypeattachmentsItem = Class;
+  TActivityTypeobjectTypeplusoners = Class;
+  TActivityTypeobjectTypereplies = Class;
+  TActivityTypeobjectTyperesharers = Class;
+  TActivityTypeobject = Class;
+  TActivityTypeprovider = Class;
+  TCommentTypeactorTypeimage = Class;
+  TCommentTypeactor = Class;
+  TCommentTypeinReplyToItem = Class;
+  TCommentTypeobject = Class;
+  TCommentTypeplusoners = Class;
+  TPersonTypeageRange = Class;
+  TPersonTypecoverTypecoverInfo = Class;
+  TPersonTypecoverTypecoverPhoto = Class;
+  TPersonTypecover = Class;
+  TPersonTypeemailsItem = Class;
+  TPersonTypeimage = Class;
+  TPersonTypename = Class;
+  TPersonTypeorganizationsItem = Class;
+  TPersonTypeplacesLivedItem = Class;
+  TPersonTypeurlsItem = Class;
+  TPlaceTypeaddress = Class;
+  TPlaceTypeposition = Class;
   TAclTypeitemsArray = Array of TPlusAclentryResource;
   TActivityTypeobjectTypeattachmentsItemTypethumbnailsArray = Array of TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem;
   TActivityTypeobjectTypeattachmentsArray = Array of TActivityTypeobjectTypeattachmentsItem;
@@ -114,6 +114,10 @@ type
     Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TAclTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -372,6 +376,10 @@ type
     Procedure SetobjectType(AIndex : Integer; AValue : String); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TActivityTypeobjectTypeattachmentsItemTypethumbnailsArray); virtual;
     Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property content : String Index 0 Read Fcontent Write Setcontent;
@@ -471,6 +479,10 @@ type
     Procedure Setreplies(AIndex : Integer; AValue : TActivityTypeobjectTypereplies); virtual;
     Procedure Setresharers(AIndex : Integer; AValue : TActivityTypeobjectTyperesharers); virtual;
     Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property actor : TActivityTypeobjectTypeactor Index 0 Read Factor Write Setactor;
@@ -602,6 +614,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -745,6 +761,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setverb(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property actor : TCommentTypeactor Index 0 Read Factor Write Setactor;
@@ -785,6 +805,10 @@ type
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -917,6 +941,10 @@ type
     Procedure Seturl(AIndex : Integer; AValue : String); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : String); virtual;
     Procedure SetworstRating(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property about : TItemScope Index 0 Read Fabout Write Setabout;
@@ -1036,6 +1064,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1071,6 +1103,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1386,6 +1422,10 @@ type
     Procedure Seturl(AIndex : Integer; AValue : String); virtual;
     Procedure Seturls(AIndex : Integer; AValue : TPersonTypeurlsArray); virtual;
     Procedure Setverified(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property aboutMe : String Index 0 Read FaboutMe Write SetaboutMe;
@@ -1731,6 +1771,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAcl.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2243,6 +2296,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivityTypeobjectTypeattachmentsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'thumbnails' : SetLength(Fthumbnails,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2430,6 +2496,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivityTypeobject.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'attachments' : SetLength(Fattachments,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2764,6 +2843,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivityFeed.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3038,6 +3130,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TComment.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'inreplyto' : SetLength(FinReplyTo,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3124,6 +3229,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCommentFeed.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3693,6 +3811,24 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TItemScope.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'additionalname' : SetLength(FadditionalName,ALength);
+  'associated_media' : SetLength(Fassociated_media,ALength);
+  'attendees' : SetLength(Fattendees,ALength);
+  'author' : SetLength(Fauthor,ALength);
+  'contributor' : SetLength(Fcontributor,ALength);
+  'performers' : SetLength(Fperformers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3869,6 +4005,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMomentsFeed.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3945,6 +4094,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPeopleFeed.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4697,6 +4859,22 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPerson.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'emails' : SetLength(Femails,ALength);
+  'organizations' : SetLength(Forganizations,ALength);
+  'placeslived' : SetLength(FplacesLived,ALength);
+  'urls' : SetLength(Furls,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5228,7 +5406,7 @@ end;
 Class Function TPlusAPI.APIRevision : String;
 
 begin
-  Result:='20150326';
+  Result:='20150302';
 end;
 
 Class Function TPlusAPI.APIID : String;
@@ -5282,7 +5460,7 @@ end;
 Class Function TPlusAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TPlusAPI.APIbasePath : string;
@@ -5294,7 +5472,7 @@ end;
 Class Function TPlusAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/plus/v1/';
+  Result:='https://www.googleapis.com:443/plus/v1/';
 end;
 
 Class Function TPlusAPI.APIProtocol : string;
@@ -5406,7 +5584,7 @@ Function TPlusAPI.CreateActivitiesResource(AOwner : TComponent) : TActivitiesRes
 
 begin
   Result:=TActivitiesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -5430,7 +5608,7 @@ Function TPlusAPI.CreateCommentsResource(AOwner : TComponent) : TCommentsResourc
 
 begin
   Result:=TCommentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -5454,7 +5632,7 @@ Function TPlusAPI.CreateMomentsResource(AOwner : TComponent) : TMomentsResource;
 
 begin
   Result:=TMomentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -5478,7 +5656,7 @@ Function TPlusAPI.CreatePeopleResource(AOwner : TComponent) : TPeopleResource;
 
 begin
   Result:=TPeopleResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

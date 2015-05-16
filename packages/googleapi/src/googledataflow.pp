@@ -13,7 +13,7 @@ unit googledataflow;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:51
+//Generated on: 16-5-15 08:53:01
 {$MODE objfpc}
 {$H+}
 
@@ -25,74 +25,74 @@ type
   
   //Top-level schema types
   TGoogleprotobufValue = TJSONSchema;
-  TApproximateProgress = class;
-  TAutoscalingSettings = class;
-  TComputationTopology = class;
-  TDataDiskAssignment = class;
-  TDerivedSource = class;
-  TDisk = class;
-  TDynamicSourceSplit = class;
-  TEnvironment = class;
-  TFlattenInstruction = class;
-  TInstructionInput = class;
-  TInstructionOutput = class;
-  TJob = class;
-  TJobExecutionInfo = class;
-  TJobExecutionStageInfo = class;
-  TJobMessage = class;
-  TJobMetrics = class;
-  TKeyRangeDataDiskAssignment = class;
-  TKeyRangeLocation = class;
-  TLeaseWorkItemRequest = class;
-  TLeaseWorkItemResponse = class;
-  TListJobMessagesResponse = class;
-  TListJobsResponse = class;
-  TMapTask = class;
-  TMetricStructuredName = class;
-  TMetricUpdate = class;
-  TMountedDataDisk = class;
-  TMultiOutputInfo = class;
-  TPackage = class;
-  TParDoInstruction = class;
-  TParallelInstruction = class;
-  TPartialGroupByKeyInstruction = class;
-  TPosition = class;
-  TPubsubLocation = class;
-  TReadInstruction = class;
-  TReportWorkItemStatusRequest = class;
-  TReportWorkItemStatusResponse = class;
-  TSeqMapTask = class;
-  TSeqMapTaskOutputInfo = class;
-  TShellTask = class;
-  TSideInputInfo = class;
-  TSink = class;
-  TSource = class;
-  TSourceFork = class;
-  TSourceGetMetadataRequest = class;
-  TSourceGetMetadataResponse = class;
-  TSourceMetadata = class;
-  TSourceOperationRequest = class;
-  TSourceOperationResponse = class;
-  TSourceSplitOptions = class;
-  TSourceSplitRequest = class;
-  TSourceSplitResponse = class;
-  TSourceSplitShard = class;
-  TStatus = class;
-  TStep = class;
-  TStreamLocation = class;
-  TStreamingComputationRanges = class;
-  TStreamingComputationTask = class;
-  TStreamingSetupTask = class;
-  TStreamingSideInputLocation = class;
-  TStreamingStageLocation = class;
-  TTaskRunnerSettings = class;
-  TTopologyConfig = class;
-  TWorkItem = class;
-  TWorkItemServiceState = class;
-  TWorkItemStatus = class;
-  TWorkerPool = class;
-  TWorkerSettings = class;
-  TWriteInstruction = class;
+  TApproximateProgress = Class;
+  TAutoscalingSettings = Class;
+  TComputationTopology = Class;
+  TDataDiskAssignment = Class;
+  TDerivedSource = Class;
+  TDisk = Class;
+  TDynamicSourceSplit = Class;
+  TEnvironment = Class;
+  TFlattenInstruction = Class;
+  TInstructionInput = Class;
+  TInstructionOutput = Class;
+  TJob = Class;
+  TJobExecutionInfo = Class;
+  TJobExecutionStageInfo = Class;
+  TJobMessage = Class;
+  TJobMetrics = Class;
+  TKeyRangeDataDiskAssignment = Class;
+  TKeyRangeLocation = Class;
+  TLeaseWorkItemRequest = Class;
+  TLeaseWorkItemResponse = Class;
+  TListJobMessagesResponse = Class;
+  TListJobsResponse = Class;
+  TMapTask = Class;
+  TMetricStructuredName = Class;
+  TMetricUpdate = Class;
+  TMountedDataDisk = Class;
+  TMultiOutputInfo = Class;
+  TPackage = Class;
+  TParDoInstruction = Class;
+  TParallelInstruction = Class;
+  TPartialGroupByKeyInstruction = Class;
+  TPosition = Class;
+  TPubsubLocation = Class;
+  TReadInstruction = Class;
+  TReportWorkItemStatusRequest = Class;
+  TReportWorkItemStatusResponse = Class;
+  TSeqMapTask = Class;
+  TSeqMapTaskOutputInfo = Class;
+  TShellTask = Class;
+  TSideInputInfo = Class;
+  TSink = Class;
+  TSource = Class;
+  TSourceFork = Class;
+  TSourceGetMetadataRequest = Class;
+  TSourceGetMetadataResponse = Class;
+  TSourceMetadata = Class;
+  TSourceOperationRequest = Class;
+  TSourceOperationResponse = Class;
+  TSourceSplitOptions = Class;
+  TSourceSplitRequest = Class;
+  TSourceSplitResponse = Class;
+  TSourceSplitShard = Class;
+  TStatus = Class;
+  TStep = Class;
+  TStreamLocation = Class;
+  TStreamingComputationRanges = Class;
+  TStreamingComputationTask = Class;
+  TStreamingSetupTask = Class;
+  TStreamingSideInputLocation = Class;
+  TStreamingStageLocation = Class;
+  TTaskRunnerSettings = Class;
+  TTopologyConfig = Class;
+  TWorkItem = Class;
+  TWorkItemServiceState = Class;
+  TWorkItemStatus = Class;
+  TWorkerPool = Class;
+  TWorkerSettings = Class;
+  TWriteInstruction = Class;
   TApproximateProgressArray = Array of TApproximateProgress;
   TAutoscalingSettingsArray = Array of TAutoscalingSettings;
   TComputationTopologyArray = Array of TComputationTopology;
@@ -162,27 +162,27 @@ type
   TWorkerSettingsArray = Array of TWorkerSettings;
   TWriteInstructionArray = Array of TWriteInstruction;
   //Anonymous types, using auto-generated names
-  TEnvironmentTypesdkPipelineOptions = class;
-  TEnvironmentTypeuserAgent = class;
-  TEnvironmentTypeversion = class;
-  TInstructionOutputTypecodec = class;
-  TJobExecutionInfoTypestages = class;
-  TMetricStructuredNameTypecontext = class;
-  TParDoInstructionTypeuserFn = class;
-  TPartialGroupByKeyInstructionTypeinputElementCodec = class;
-  TPartialGroupByKeyInstructionTypevalueCombiningFn = class;
-  TSeqMapTaskTypeuserFn = class;
-  TSideInputInfoTypekind = class;
-  TSinkTypecodec = class;
-  TSinkTypespec = class;
-  TSourceTypebaseSpecsItem = class;
-  TSourceTypecodec = class;
-  TSourceTypespec = class;
-  TStatusTypedetailsItem = class;
-  TStepTypeproperties = class;
-  TWorkItemServiceStateTypeharnessData = class;
-  TWorkerPoolTypemetadata = class;
-  TWorkerPoolTypepoolArgs = class;
+  TEnvironmentTypesdkPipelineOptions = Class;
+  TEnvironmentTypeuserAgent = Class;
+  TEnvironmentTypeversion = Class;
+  TInstructionOutputTypecodec = Class;
+  TJobExecutionInfoTypestages = Class;
+  TMetricStructuredNameTypecontext = Class;
+  TParDoInstructionTypeuserFn = Class;
+  TPartialGroupByKeyInstructionTypeinputElementCodec = Class;
+  TPartialGroupByKeyInstructionTypevalueCombiningFn = Class;
+  TSeqMapTaskTypeuserFn = Class;
+  TSideInputInfoTypekind = Class;
+  TSinkTypecodec = Class;
+  TSinkTypespec = Class;
+  TSourceTypebaseSpecsItem = Class;
+  TSourceTypecodec = Class;
+  TSourceTypespec = Class;
+  TStatusTypedetailsItem = Class;
+  TStepTypeproperties = Class;
+  TWorkItemServiceStateTypeharnessData = Class;
+  TWorkerPoolTypemetadata = Class;
+  TWorkerPoolTypepoolArgs = Class;
   TComputationTopologyTypeinputsArray = Array of TStreamLocation;
   TComputationTopologyTypekeyRangesArray = Array of TKeyRangeLocation;
   TComputationTopologyTypeoutputsArray = Array of TStreamLocation;
@@ -274,6 +274,10 @@ type
     Procedure Setinputs(AIndex : Integer; AValue : TComputationTopologyTypeinputsArray); virtual;
     Procedure SetkeyRanges(AIndex : Integer; AValue : TComputationTopologyTypekeyRangesArray); virtual;
     Procedure Setoutputs(AIndex : Integer; AValue : TComputationTopologyTypeoutputsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property computationId : String Index 0 Read FcomputationId Write SetcomputationId;
@@ -295,6 +299,10 @@ type
     //Property setters
     Procedure SetdataDisks(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetvmInstance(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property dataDisks : TStringArray Index 0 Read FdataDisks Write SetdataDisks;
@@ -428,6 +436,10 @@ type
     Procedure SetuserAgent(AIndex : Integer; AValue : TEnvironmentTypeuserAgent); virtual;
     Procedure Setversion(AIndex : Integer; AValue : TEnvironmentTypeversion); virtual;
     Procedure SetworkerPools(AIndex : Integer; AValue : TEnvironmentTypeworkerPoolsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property clusterManagerApiService : String Index 0 Read FclusterManagerApiService Write SetclusterManagerApiService;
@@ -451,6 +463,10 @@ type
   Protected
     //Property setters
     Procedure Setinputs(AIndex : Integer; AValue : TFlattenInstructionTypeinputsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property inputs : TFlattenInstructionTypeinputsArray Index 0 Read Finputs Write Setinputs;
@@ -540,6 +556,10 @@ type
     Procedure SetrequestedState(AIndex : Integer; AValue : String); virtual;
     Procedure Setsteps(AIndex : Integer; AValue : TJobTypestepsArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property createTime : String Index 0 Read FcreateTime Write SetcreateTime;
@@ -596,6 +616,10 @@ type
   Protected
     //Property setters
     Procedure SetstepName(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property stepName : TStringArray Index 0 Read FstepName Write SetstepName;
@@ -639,6 +663,10 @@ type
     //Property setters
     Procedure SetmetricTime(AIndex : Integer; AValue : String); virtual;
     Procedure Setmetrics(AIndex : Integer; AValue : TJobMetricsTypemetricsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property metricTime : String Index 0 Read FmetricTime Write SetmetricTime;
@@ -716,6 +744,10 @@ type
     Procedure SetworkItemTypes(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetworkerCapabilities(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetworkerId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property currentWorkerTime : String Index 0 Read FcurrentWorkerTime Write SetcurrentWorkerTime;
@@ -736,6 +768,10 @@ type
   Protected
     //Property setters
     Procedure SetworkItems(AIndex : Integer; AValue : TLeaseWorkItemResponseTypeworkItemsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property workItems : TLeaseWorkItemResponseTypeworkItemsArray Index 0 Read FworkItems Write SetworkItems;
@@ -754,6 +790,10 @@ type
     //Property setters
     Procedure SetjobMessages(AIndex : Integer; AValue : TListJobMessagesResponseTypejobMessagesArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property jobMessages : TListJobMessagesResponseTypejobMessagesArray Index 0 Read FjobMessages Write SetjobMessages;
@@ -773,6 +813,10 @@ type
     //Property setters
     Procedure Setjobs(AIndex : Integer; AValue : TListJobsResponseTypejobsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property jobs : TListJobsResponseTypejobsArray Index 0 Read Fjobs Write Setjobs;
@@ -794,6 +838,10 @@ type
     Procedure Setinstructions(AIndex : Integer; AValue : TMapTaskTypeinstructionsArray); virtual;
     Procedure SetstageName(AIndex : Integer; AValue : String); virtual;
     Procedure SetsystemName(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property instructions : TMapTaskTypeinstructionsArray Index 0 Read Finstructions Write Setinstructions;
@@ -962,6 +1010,10 @@ type
     Procedure SetnumOutputs(AIndex : Integer; AValue : integer); virtual;
     Procedure SetsideInputs(AIndex : Integer; AValue : TParDoInstructionTypesideInputsArray); virtual;
     Procedure SetuserFn(AIndex : Integer; AValue : TParDoInstructionTypeuserFn); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property input : TInstructionInput Index 0 Read Finput Write Setinput;
@@ -996,6 +1048,10 @@ type
     Procedure Setread(AIndex : Integer; AValue : TReadInstruction); virtual;
     Procedure SetsystemName(AIndex : Integer; AValue : String); virtual;
     Procedure Setwrite(AIndex : Integer; AValue : TWriteInstruction); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property flatten : TFlattenInstruction Index 0 Read Fflatten Write Setflatten;
@@ -1149,6 +1205,10 @@ type
     Procedure SetcurrentWorkerTime(AIndex : Integer; AValue : String); virtual;
     Procedure SetworkItemStatuses(AIndex : Integer; AValue : TReportWorkItemStatusRequestTypeworkItemStatusesArray); virtual;
     Procedure SetworkerId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property currentWorkerTime : String Index 0 Read FcurrentWorkerTime Write SetcurrentWorkerTime;
@@ -1167,6 +1227,10 @@ type
   Protected
     //Property setters
     Procedure SetworkItemServiceStates(AIndex : Integer; AValue : TReportWorkItemStatusResponseTypeworkItemServiceStatesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property workItemServiceStates : TReportWorkItemStatusResponseTypeworkItemServiceStatesArray Index 0 Read FworkItemServiceStates Write SetworkItemServiceStates;
@@ -1207,6 +1271,10 @@ type
     Procedure SetstageName(AIndex : Integer; AValue : String); virtual;
     Procedure SetsystemName(AIndex : Integer; AValue : String); virtual;
     Procedure SetuserFn(AIndex : Integer; AValue : TSeqMapTaskTypeuserFn); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property inputs : TSeqMapTaskTypeinputsArray Index 0 Read Finputs Write Setinputs;
@@ -1284,6 +1352,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : TSideInputInfoTypekind); virtual;
     Procedure Setsources(AIndex : Integer; AValue : TSideInputInfoTypesourcesArray); virtual;
     Procedure Settag(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : TSideInputInfoTypekind Index 0 Read Fkind Write Setkind;
@@ -1399,6 +1471,10 @@ type
     Procedure SetdoesNotNeedSplitting(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setmetadata(AIndex : Integer; AValue : TSourceMetadata); virtual;
     Procedure Setspec(AIndex : Integer; AValue : TSourceTypespec); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property baseSpecs : TSourceTypebaseSpecsArray Index 0 Read FbaseSpecs Write SetbaseSpecs;
@@ -1578,6 +1654,10 @@ type
     Procedure Setbundles(AIndex : Integer; AValue : TSourceSplitResponseTypebundlesArray); virtual;
     Procedure Setoutcome(AIndex : Integer; AValue : String); virtual;
     Procedure Setshards(AIndex : Integer; AValue : TSourceSplitResponseTypeshardsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bundles : TSourceSplitResponseTypebundlesArray Index 0 Read Fbundles Write Setbundles;
@@ -1633,6 +1713,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : integer); virtual;
     Procedure Setdetails(AIndex : Integer; AValue : TStatusTypedetailsArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : integer Index 0 Read Fcode Write Setcode;
@@ -1711,6 +1795,10 @@ type
     //Property setters
     Procedure SetcomputationId(AIndex : Integer; AValue : String); virtual;
     Procedure SetrangeAssignments(AIndex : Integer; AValue : TStreamingComputationRangesTyperangeAssignmentsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property computationId : String Index 0 Read FcomputationId Write SetcomputationId;
@@ -1732,6 +1820,10 @@ type
     Procedure SetcomputationRanges(AIndex : Integer; AValue : TStreamingComputationTaskTypecomputationRangesArray); virtual;
     Procedure SetdataDisks(AIndex : Integer; AValue : TStreamingComputationTaskTypedataDisksArray); virtual;
     Procedure SettaskType(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property computationRanges : TStreamingComputationTaskTypecomputationRangesArray Index 0 Read FcomputationRanges Write SetcomputationRanges;
@@ -1840,6 +1932,10 @@ type
     Procedure SettempStoragePrefix(AIndex : Integer; AValue : String); virtual;
     Procedure SetvmId(AIndex : Integer; AValue : String); virtual;
     Procedure SetworkflowFileName(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property alsologtostderr : boolean Index 0 Read Falsologtostderr Write Setalsologtostderr;
@@ -1876,6 +1972,10 @@ type
     //Property setters
     Procedure Setcomputations(AIndex : Integer; AValue : TTopologyConfigTypecomputationsArray); virtual;
     Procedure SetdataDiskAssignments(AIndex : Integer; AValue : TTopologyConfigTypedataDiskAssignmentsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property computations : TTopologyConfigTypecomputationsArray Index 0 Read Fcomputations Write Setcomputations;
@@ -1919,6 +2019,10 @@ type
     Procedure SetsourceOperationTask(AIndex : Integer; AValue : TSourceOperationRequest); virtual;
     Procedure SetstreamingComputationTask(AIndex : Integer; AValue : TStreamingComputationTask); virtual;
     Procedure SetstreamingSetupTask(AIndex : Integer; AValue : TStreamingSetupTask); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property configuration : String Index 0 Read Fconfiguration Write Setconfiguration;
@@ -2013,6 +2117,10 @@ type
     Procedure SetsourceOperationResponse(AIndex : Integer; AValue : TSourceOperationResponse); virtual;
     Procedure SetstopPosition(AIndex : Integer; AValue : TPosition); virtual;
     Procedure SetworkItemId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property completed : boolean Index 0 Read Fcompleted Write Setcompleted;
@@ -2097,6 +2205,10 @@ type
     Procedure SettaskrunnerSettings(AIndex : Integer; AValue : TTaskRunnerSettings); virtual;
     Procedure SetteardownPolicy(AIndex : Integer; AValue : String); virtual;
     Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property autoscalingSettings : TAutoscalingSettings Index 0 Read FautoscalingSettings Write SetautoscalingSettings;
@@ -2169,13 +2281,129 @@ type
   TWriteInstructionClass = Class of TWriteInstruction;
   
   { --------------------------------------------------------------------
+    TProjectsJobsMessagesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TProjectsJobsMessagesResource, method List
+  
+  TProjectsJobsMessagesListOptions = Record
+    endTime : String;
+    minimumImportance : String;
+    pageSize : integer;
+    pageToken : String;
+    startTime : String;
+  end;
+  
+  TProjectsJobsMessagesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(jobId: string; projectId: string; AQuery : string  = '') : TListJobMessagesResponse;
+    Function List(jobId: string; projectId: string; AQuery : TProjectsJobsMessageslistOptions) : TListJobMessagesResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsJobsWorkItemsResource
+    --------------------------------------------------------------------}
+  
+  TProjectsJobsWorkItemsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Lease(jobId: string; projectId: string; aLeaseWorkItemRequest : TLeaseWorkItemRequest) : TLeaseWorkItemResponse;
+    Function ReportStatus(jobId: string; projectId: string; aReportWorkItemStatusRequest : TReportWorkItemStatusRequest) : TReportWorkItemStatusResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsJobsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TProjectsJobsResource, method Create
+  
+  TProjectsJobsCreateOptions = Record
+    replaceJobId : String;
+    view : String;
+  end;
+  
+  
+  //Optional query Options for TProjectsJobsResource, method Get
+  
+  TProjectsJobsGetOptions = Record
+    view : String;
+  end;
+  
+  
+  //Optional query Options for TProjectsJobsResource, method GetMetrics
+  
+  TProjectsJobsGetMetricsOptions = Record
+    startTime : String;
+  end;
+  
+  
+  //Optional query Options for TProjectsJobsResource, method List
+  
+  TProjectsJobsListOptions = Record
+    pageSize : integer;
+    pageToken : String;
+    view : String;
+  end;
+  
+  TProjectsJobsResource = Class(TGoogleResource)
+  Private
+    FMessagesInstance : TProjectsJobsMessagesResource;
+    FWorkItemsInstance : TProjectsJobsWorkItemsResource;
+    Function GetMessagesInstance : TProjectsJobsMessagesResource;virtual;
+    Function GetWorkItemsInstance : TProjectsJobsWorkItemsResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(projectId: string; aJob : TJob; AQuery : string  = '') : TJob;overload;
+    Function Create(projectId: string; aJob : TJob; AQuery : TProjectsJobscreateOptions) : TJob;overload;
+    Function Get(jobId: string; projectId: string; AQuery : string  = '') : TJob;
+    Function Get(jobId: string; projectId: string; AQuery : TProjectsJobsgetOptions) : TJob;
+    Function GetMetrics(jobId: string; projectId: string; AQuery : string  = '') : TJobMetrics;
+    Function GetMetrics(jobId: string; projectId: string; AQuery : TProjectsJobsgetMetricsOptions) : TJobMetrics;
+    Function List(projectId: string; AQuery : string  = '') : TListJobsResponse;
+    Function List(projectId: string; AQuery : TProjectsJobslistOptions) : TListJobsResponse;
+    Function Patch(jobId: string; projectId: string; aJob : TJob) : TJob;
+    Function Update(jobId: string; projectId: string; aJob : TJob) : TJob;
+    Function CreateMessagesResource(AOwner : TComponent) : TProjectsJobsMessagesResource;virtual;overload;
+    Function CreateMessagesResource : TProjectsJobsMessagesResource;virtual;overload;
+    Function CreateWorkItemsResource(AOwner : TComponent) : TProjectsJobsWorkItemsResource;virtual;overload;
+    Function CreateWorkItemsResource : TProjectsJobsWorkItemsResource;virtual;overload;
+    Property MessagesResource : TProjectsJobsMessagesResource Read GetMessagesInstance;
+    Property WorkItemsResource : TProjectsJobsWorkItemsResource Read GetWorkItemsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
   
   TProjectsResource = Class(TGoogleResource)
+  Private
+    FJobsMessagesInstance : TProjectsJobsMessagesResource;
+    FJobsWorkItemsInstance : TProjectsJobsWorkItemsResource;
+    FJobsInstance : TProjectsJobsResource;
+    Function GetJobsMessagesInstance : TProjectsJobsMessagesResource;virtual;
+    Function GetJobsWorkItemsInstance : TProjectsJobsWorkItemsResource;virtual;
+    Function GetJobsInstance : TProjectsJobsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateJobsMessagesResource(AOwner : TComponent) : TProjectsJobsMessagesResource;virtual;overload;
+    Function CreateJobsMessagesResource : TProjectsJobsMessagesResource;virtual;overload;
+    Function CreateJobsWorkItemsResource(AOwner : TComponent) : TProjectsJobsWorkItemsResource;virtual;overload;
+    Function CreateJobsWorkItemsResource : TProjectsJobsWorkItemsResource;virtual;overload;
+    Function CreateJobsResource(AOwner : TComponent) : TProjectsJobsResource;virtual;overload;
+    Function CreateJobsResource : TProjectsJobsResource;virtual;overload;
+    Property JobsMessagesResource : TProjectsJobsMessagesResource Read GetJobsMessagesInstance;
+    Property JobsWorkItemsResource : TProjectsJobsWorkItemsResource Read GetJobsWorkItemsInstance;
+    Property JobsResource : TProjectsJobsResource Read GetJobsInstance;
   end;
   
   
@@ -2185,7 +2413,13 @@ type
   
   TDataflowAPI = Class(TGoogleAPI)
   Private
+    FProjectsJobsMessagesInstance : TProjectsJobsMessagesResource;
+    FProjectsJobsWorkItemsInstance : TProjectsJobsWorkItemsResource;
+    FProjectsJobsInstance : TProjectsJobsResource;
     FProjectsInstance : TProjectsResource;
+    Function GetProjectsJobsMessagesInstance : TProjectsJobsMessagesResource;virtual;
+    Function GetProjectsJobsWorkItemsInstance : TProjectsJobsWorkItemsResource;virtual;
+    Function GetProjectsJobsInstance : TProjectsJobsResource;virtual;
     Function GetProjectsInstance : TProjectsResource;virtual;
   Public
     //Override class functions with API info
@@ -2210,9 +2444,18 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateProjectsJobsMessagesResource(AOwner : TComponent) : TProjectsJobsMessagesResource;virtual;overload;
+    Function CreateProjectsJobsMessagesResource : TProjectsJobsMessagesResource;virtual;overload;
+    Function CreateProjectsJobsWorkItemsResource(AOwner : TComponent) : TProjectsJobsWorkItemsResource;virtual;overload;
+    Function CreateProjectsJobsWorkItemsResource : TProjectsJobsWorkItemsResource;virtual;overload;
+    Function CreateProjectsJobsResource(AOwner : TComponent) : TProjectsJobsResource;virtual;overload;
+    Function CreateProjectsJobsResource : TProjectsJobsResource;virtual;overload;
     Function CreateProjectsResource(AOwner : TComponent) : TProjectsResource;virtual;overload;
     Function CreateProjectsResource : TProjectsResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property ProjectsJobsMessagesResource : TProjectsJobsMessagesResource Read GetProjectsJobsMessagesInstance;
+    Property ProjectsJobsWorkItemsResource : TProjectsJobsWorkItemsResource Read GetProjectsJobsWorkItemsInstance;
+    Property ProjectsJobsResource : TProjectsJobsResource Read GetProjectsJobsInstance;
     Property ProjectsResource : TProjectsResource Read GetProjectsInstance;
   end;
 
@@ -2327,6 +2570,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TComputationTopology.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'inputs' : SetLength(Finputs,ALength);
+  'keyranges' : SetLength(FkeyRanges,ALength);
+  'outputs' : SetLength(Foutputs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2353,6 +2611,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDataDiskAssignment.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'datadisks' : SetLength(FdataDisks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2571,6 +2842,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEnvironment.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'experiments' : SetLength(Fexperiments,ALength);
+  'workerpools' : SetLength(FworkerPools,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2587,6 +2872,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFlattenInstruction.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'inputs' : SetLength(Finputs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2783,6 +3081,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJob.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'steps' : SetLength(Fsteps,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2829,6 +3140,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJobExecutionStageInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'stepname' : SetLength(FstepName,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2903,6 +3227,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJobMetrics.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'metrics' : SetLength(Fmetrics,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3077,6 +3414,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLeaseWorkItemRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'workitemtypes' : SetLength(FworkItemTypes,ALength);
+  'workercapabilities' : SetLength(FworkerCapabilities,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3093,6 +3444,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLeaseWorkItemResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'workitems' : SetLength(FworkItems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3121,6 +3485,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListJobMessagesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'jobmessages' : SetLength(FjobMessages,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3147,6 +3524,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListJobsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'jobs' : SetLength(Fjobs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3184,6 +3574,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMapTask.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instructions' : SetLength(Finstructions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3474,6 +3877,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TParDoInstruction.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'multioutputinfos' : SetLength(FmultiOutputInfos,ALength);
+  'sideinputs' : SetLength(FsideInputs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3560,6 +3977,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TParallelInstruction.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'outputs' : SetLength(Foutputs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3813,6 +4243,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReportWorkItemStatusRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'workitemstatuses' : SetLength(FworkItemStatuses,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3829,6 +4272,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReportWorkItemStatusResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'workitemservicestates' : SetLength(FworkItemServiceStates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3909,6 +4365,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSeqMapTask.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'inputs' : SetLength(Finputs,ALength);
+  'outputinfos' : SetLength(FoutputInfos,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4013,6 +4483,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSideInputInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sources' : SetLength(Fsources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4162,6 +4645,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSource.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'basespecs' : SetLength(FbaseSpecs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4426,6 +4922,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSourceSplitResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bundles' : SetLength(Fbundles,ALength);
+  'shards' : SetLength(Fshards,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4502,6 +5012,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'details' : SetLength(Fdetails,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4617,6 +5140,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStreamingComputationRanges.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rangeassignments' : SetLength(FrangeAssignments,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4653,6 +5189,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStreamingComputationTask.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'computationranges' : SetLength(FcomputationRanges,ALength);
+  'datadisks' : SetLength(FdataDisks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4922,6 +5472,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTaskRunnerSettings.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'oauthscopes' : SetLength(FoauthScopes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4948,6 +5511,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTopologyConfig.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'computations' : SetLength(Fcomputations,ALength);
+  'datadiskassignments' : SetLength(FdataDiskAssignments,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5095,6 +5672,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWorkItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'packages' : SetLength(Fpackages,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5293,6 +5883,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWorkItemStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  'metricupdates' : SetLength(FmetricUpdates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5486,6 +6090,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWorkerPool.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'datadisks' : SetLength(FdataDisks,ALength);
+  'packages' : SetLength(Fpackages,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5584,6 +6202,313 @@ end;
 
 
 { --------------------------------------------------------------------
+  TProjectsJobsMessagesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsJobsMessagesResource.ResourceName : String;
+
+begin
+  Result:='messages';
+end;
+
+Class Function TProjectsJobsMessagesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TdataflowAPI;
+end;
+
+Function TProjectsJobsMessagesResource.List(jobId: string; projectId: string; AQuery : string = '') : TListJobMessagesResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{projectId}/jobs/{jobId}/messages';
+  _Methodid   = 'dataflow.projects.jobs.messages.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['jobId',jobId,'projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListJobMessagesResponse) as TListJobMessagesResponse;
+end;
+
+
+Function TProjectsJobsMessagesResource.List(jobId: string; projectId: string; AQuery : TProjectsJobsMessageslistOptions) : TListJobMessagesResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'endTime',AQuery.endTime);
+  AddToQuery(_Q,'minimumImportance',AQuery.minimumImportance);
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'startTime',AQuery.startTime);
+  Result:=List(jobId,projectId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsJobsWorkItemsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsJobsWorkItemsResource.ResourceName : String;
+
+begin
+  Result:='workItems';
+end;
+
+Class Function TProjectsJobsWorkItemsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TdataflowAPI;
+end;
+
+Function TProjectsJobsWorkItemsResource.Lease(jobId: string; projectId: string; aLeaseWorkItemRequest : TLeaseWorkItemRequest) : TLeaseWorkItemResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{projectId}/jobs/{jobId}/workItems:lease';
+  _Methodid   = 'dataflow.projects.jobs.workItems.lease';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['jobId',jobId,'projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aLeaseWorkItemRequest,TLeaseWorkItemResponse) as TLeaseWorkItemResponse;
+end;
+
+Function TProjectsJobsWorkItemsResource.ReportStatus(jobId: string; projectId: string; aReportWorkItemStatusRequest : TReportWorkItemStatusRequest) : TReportWorkItemStatusResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{projectId}/jobs/{jobId}/workItems:reportStatus';
+  _Methodid   = 'dataflow.projects.jobs.workItems.reportStatus';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['jobId',jobId,'projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aReportWorkItemStatusRequest,TReportWorkItemStatusResponse) as TReportWorkItemStatusResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsJobsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsJobsResource.ResourceName : String;
+
+begin
+  Result:='jobs';
+end;
+
+Class Function TProjectsJobsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TdataflowAPI;
+end;
+
+Function TProjectsJobsResource.Create(projectId: string; aJob : TJob; AQuery : string = '') : TJob;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{projectId}/jobs';
+  _Methodid   = 'dataflow.projects.jobs.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aJob,TJob) as TJob;
+end;
+
+
+Function TProjectsJobsResource.Create(projectId: string; aJob : TJob; AQuery : TProjectsJobscreateOptions) : TJob;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'replaceJobId',AQuery.replaceJobId);
+  AddToQuery(_Q,'view',AQuery.view);
+  Result:=Create(projectId,aJob,_Q);
+end;
+
+Function TProjectsJobsResource.Get(jobId: string; projectId: string; AQuery : string = '') : TJob;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{projectId}/jobs/{jobId}';
+  _Methodid   = 'dataflow.projects.jobs.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['jobId',jobId,'projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TJob) as TJob;
+end;
+
+
+Function TProjectsJobsResource.Get(jobId: string; projectId: string; AQuery : TProjectsJobsgetOptions) : TJob;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'view',AQuery.view);
+  Result:=Get(jobId,projectId,_Q);
+end;
+
+Function TProjectsJobsResource.GetMetrics(jobId: string; projectId: string; AQuery : string = '') : TJobMetrics;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{projectId}/jobs/{jobId}/metrics';
+  _Methodid   = 'dataflow.projects.jobs.getMetrics';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['jobId',jobId,'projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TJobMetrics) as TJobMetrics;
+end;
+
+
+Function TProjectsJobsResource.GetMetrics(jobId: string; projectId: string; AQuery : TProjectsJobsgetMetricsOptions) : TJobMetrics;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'startTime',AQuery.startTime);
+  Result:=GetMetrics(jobId,projectId,_Q);
+end;
+
+Function TProjectsJobsResource.List(projectId: string; AQuery : string = '') : TListJobsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{projectId}/jobs';
+  _Methodid   = 'dataflow.projects.jobs.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListJobsResponse) as TListJobsResponse;
+end;
+
+
+Function TProjectsJobsResource.List(projectId: string; AQuery : TProjectsJobslistOptions) : TListJobsResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'view',AQuery.view);
+  Result:=List(projectId,_Q);
+end;
+
+Function TProjectsJobsResource.Patch(jobId: string; projectId: string; aJob : TJob) : TJob;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{projectId}/jobs/{jobId}';
+  _Methodid   = 'dataflow.projects.jobs.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['jobId',jobId,'projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aJob,TJob) as TJob;
+end;
+
+Function TProjectsJobsResource.Update(jobId: string; projectId: string; aJob : TJob) : TJob;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{projectId}/jobs/{jobId}';
+  _Methodid   = 'dataflow.projects.jobs.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['jobId',jobId,'projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aJob,TJob) as TJob;
+end;
+
+
+
+Function TProjectsJobsResource.GetMessagesInstance : TProjectsJobsMessagesResource;
+
+begin
+  if (FMessagesInstance=Nil) then
+    FMessagesInstance:=CreateMessagesResource;
+  Result:=FMessagesInstance;
+end;
+
+Function TProjectsJobsResource.CreateMessagesResource : TProjectsJobsMessagesResource;
+
+begin
+  Result:=CreateMessagesResource(Self);
+end;
+
+
+Function TProjectsJobsResource.CreateMessagesResource(AOwner : TComponent) : TProjectsJobsMessagesResource;
+
+begin
+  Result:=TProjectsJobsMessagesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsJobsResource.GetWorkItemsInstance : TProjectsJobsWorkItemsResource;
+
+begin
+  if (FWorkItemsInstance=Nil) then
+    FWorkItemsInstance:=CreateWorkItemsResource;
+  Result:=FWorkItemsInstance;
+end;
+
+Function TProjectsJobsResource.CreateWorkItemsResource : TProjectsJobsWorkItemsResource;
+
+begin
+  Result:=CreateWorkItemsResource(Self);
+end;
+
+
+Function TProjectsJobsResource.CreateWorkItemsResource(AOwner : TComponent) : TProjectsJobsWorkItemsResource;
+
+begin
+  Result:=TProjectsJobsWorkItemsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TProjectsResource
   --------------------------------------------------------------------}
 
@@ -5598,6 +6523,78 @@ Class Function TProjectsResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TdataflowAPI;
+end;
+
+
+
+Function TProjectsResource.GetJobsMessagesInstance : TProjectsJobsMessagesResource;
+
+begin
+  if (FJobsMessagesInstance=Nil) then
+    FJobsMessagesInstance:=CreateJobsMessagesResource;
+  Result:=FJobsMessagesInstance;
+end;
+
+Function TProjectsResource.CreateJobsMessagesResource : TProjectsJobsMessagesResource;
+
+begin
+  Result:=CreateJobsMessagesResource(Self);
+end;
+
+
+Function TProjectsResource.CreateJobsMessagesResource(AOwner : TComponent) : TProjectsJobsMessagesResource;
+
+begin
+  Result:=TProjectsJobsMessagesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetJobsWorkItemsInstance : TProjectsJobsWorkItemsResource;
+
+begin
+  if (FJobsWorkItemsInstance=Nil) then
+    FJobsWorkItemsInstance:=CreateJobsWorkItemsResource;
+  Result:=FJobsWorkItemsInstance;
+end;
+
+Function TProjectsResource.CreateJobsWorkItemsResource : TProjectsJobsWorkItemsResource;
+
+begin
+  Result:=CreateJobsWorkItemsResource(Self);
+end;
+
+
+Function TProjectsResource.CreateJobsWorkItemsResource(AOwner : TComponent) : TProjectsJobsWorkItemsResource;
+
+begin
+  Result:=TProjectsJobsWorkItemsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetJobsInstance : TProjectsJobsResource;
+
+begin
+  if (FJobsInstance=Nil) then
+    FJobsInstance:=CreateJobsResource;
+  Result:=FJobsInstance;
+end;
+
+Function TProjectsResource.CreateJobsResource : TProjectsJobsResource;
+
+begin
+  Result:=CreateJobsResource(Self);
+end;
+
+
+Function TProjectsResource.CreateJobsResource(AOwner : TComponent) : TProjectsJobsResource;
+
+begin
+  Result:=TProjectsJobsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -5820,6 +6817,78 @@ begin
 end;
 
 
+Function TDataflowAPI.GetProjectsJobsMessagesInstance : TProjectsJobsMessagesResource;
+
+begin
+  if (FProjectsJobsMessagesInstance=Nil) then
+    FProjectsJobsMessagesInstance:=CreateProjectsJobsMessagesResource;
+  Result:=FProjectsJobsMessagesInstance;
+end;
+
+Function TDataflowAPI.CreateProjectsJobsMessagesResource : TProjectsJobsMessagesResource;
+
+begin
+  Result:=CreateProjectsJobsMessagesResource(Self);
+end;
+
+
+Function TDataflowAPI.CreateProjectsJobsMessagesResource(AOwner : TComponent) : TProjectsJobsMessagesResource;
+
+begin
+  Result:=TProjectsJobsMessagesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TDataflowAPI.GetProjectsJobsWorkItemsInstance : TProjectsJobsWorkItemsResource;
+
+begin
+  if (FProjectsJobsWorkItemsInstance=Nil) then
+    FProjectsJobsWorkItemsInstance:=CreateProjectsJobsWorkItemsResource;
+  Result:=FProjectsJobsWorkItemsInstance;
+end;
+
+Function TDataflowAPI.CreateProjectsJobsWorkItemsResource : TProjectsJobsWorkItemsResource;
+
+begin
+  Result:=CreateProjectsJobsWorkItemsResource(Self);
+end;
+
+
+Function TDataflowAPI.CreateProjectsJobsWorkItemsResource(AOwner : TComponent) : TProjectsJobsWorkItemsResource;
+
+begin
+  Result:=TProjectsJobsWorkItemsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TDataflowAPI.GetProjectsJobsInstance : TProjectsJobsResource;
+
+begin
+  if (FProjectsJobsInstance=Nil) then
+    FProjectsJobsInstance:=CreateProjectsJobsResource;
+  Result:=FProjectsJobsInstance;
+end;
+
+Function TDataflowAPI.CreateProjectsJobsResource : TProjectsJobsResource;
+
+begin
+  Result:=CreateProjectsJobsResource(Self);
+end;
+
+
+Function TDataflowAPI.CreateProjectsJobsResource(AOwner : TComponent) : TProjectsJobsResource;
+
+begin
+  Result:=TProjectsJobsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TDataflowAPI.GetProjectsInstance : TProjectsResource;
 
 begin
@@ -5839,7 +6908,7 @@ Function TDataflowAPI.CreateProjectsResource(AOwner : TComponent) : TProjectsRes
 
 begin
   Result:=TProjectsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -13,7 +13,7 @@ unit googleanalytics;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:48
+//Generated on: 16-5-15 08:52:58
 {$MODE objfpc}
 {$H+}
 
@@ -24,54 +24,54 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAccount = class;
-  TAccountRef = class;
-  TAccountSummaries = class;
-  TAccountSummary = class;
-  TAccountTicket = class;
-  TAccounts = class;
-  TAdWordsAccount = class;
-  TAnalyticsDataimportDeleteUploadDataRequest = class;
-  TColumn = class;
-  TColumns = class;
-  TCustomDataSource = class;
-  TCustomDataSources = class;
-  TCustomDimension = class;
-  TCustomDimensions = class;
-  TCustomMetric = class;
-  TCustomMetrics = class;
-  TEntityAdWordsLink = class;
-  TEntityAdWordsLinks = class;
-  TEntityUserLink = class;
-  TEntityUserLinks = class;
-  TExperiment = class;
-  TExperiments = class;
-  TFilter = class;
-  TFilterExpression = class;
-  TFilterRef = class;
-  TFilters = class;
-  TGaData = class;
-  TGoal = class;
-  TGoals = class;
-  TMcfData = class;
-  TProfile = class;
-  TProfileFilterLink = class;
-  TProfileFilterLinks = class;
-  TProfileRef = class;
-  TProfileSummary = class;
-  TProfiles = class;
-  TRealtimeData = class;
-  TSegment = class;
-  TSegments = class;
-  TUnsampledReport = class;
-  TUnsampledReports = class;
-  TUpload = class;
-  TUploads = class;
-  TUserRef = class;
-  TWebPropertyRef = class;
-  TWebPropertySummary = class;
-  TWebproperties = class;
-  TWebproperty = class;
+  TAccount = Class;
+  TAccountRef = Class;
+  TAccountSummaries = Class;
+  TAccountSummary = Class;
+  TAccountTicket = Class;
+  TAccounts = Class;
+  TAdWordsAccount = Class;
+  TAnalyticsDataimportDeleteUploadDataRequest = Class;
+  TColumn = Class;
+  TColumns = Class;
+  TCustomDataSource = Class;
+  TCustomDataSources = Class;
+  TCustomDimension = Class;
+  TCustomDimensions = Class;
+  TCustomMetric = Class;
+  TCustomMetrics = Class;
+  TEntityAdWordsLink = Class;
+  TEntityAdWordsLinks = Class;
+  TEntityUserLink = Class;
+  TEntityUserLinks = Class;
+  TExperiment = Class;
+  TExperiments = Class;
+  TFilter = Class;
+  TFilterExpression = Class;
+  TFilterRef = Class;
+  TFilters = Class;
+  TGaData = Class;
+  TGoal = Class;
+  TGoals = Class;
+  TMcfData = Class;
+  TProfile = Class;
+  TProfileFilterLink = Class;
+  TProfileFilterLinks = Class;
+  TProfileRef = Class;
+  TProfileSummary = Class;
+  TProfiles = Class;
+  TRealtimeData = Class;
+  TSegment = Class;
+  TSegments = Class;
+  TUnsampledReport = Class;
+  TUnsampledReports = Class;
+  TUpload = Class;
+  TUploads = Class;
+  TUserRef = Class;
+  TWebPropertyRef = Class;
+  TWebPropertySummary = Class;
+  TWebproperties = Class;
+  TWebproperty = Class;
   TAccountArray = Array of TAccount;
   TAccountRefArray = Array of TAccountRef;
   TAccountSummariesArray = Array of TAccountSummaries;
@@ -121,56 +121,56 @@ type
   TWebpropertiesArray = Array of TWebproperties;
   TWebpropertyArray = Array of TWebproperty;
   //Anonymous types, using auto-generated names
-  TAccountTypechildLink = class;
-  TAccountTypepermissions = class;
-  TColumnTypeattributes = class;
-  TCustomDataSourceTypechildLink = class;
-  TCustomDataSourceTypeparentLink = class;
-  TCustomDimensionTypeparentLink = class;
-  TCustomMetricTypeparentLink = class;
-  TEntityAdWordsLinkTypeentity = class;
-  TEntityUserLinkTypeentity = class;
-  TEntityUserLinkTypepermissions = class;
-  TExperimentTypeparentLink = class;
-  TExperimentTypevariationsItem = class;
-  TFilterTypeadvancedDetails = class;
-  TFilterTypelowercaseDetails = class;
-  TFilterTypeparentLink = class;
-  TFilterTypesearchAndReplaceDetails = class;
-  TFilterTypeuppercaseDetails = class;
-  TGaDataTypecolumnHeadersItem = class;
-  TGaDataTypedataTableTypecolsItem = class;
-  TGaDataTypedataTableTyperowsItemTypecItem = class;
-  TGaDataTypedataTableTyperowsItem = class;
-  TGaDataTypedataTable = class;
-  TGaDataTypeprofileInfo = class;
-  TGaDataTypequery = class;
-  TGaDataTypetotalsForAllResults = class;
-  TGoalTypeeventDetailsTypeeventConditionsItem = class;
-  TGoalTypeeventDetails = class;
-  TGoalTypeparentLink = class;
-  TGoalTypeurlDestinationDetailsTypestepsItem = class;
-  TGoalTypeurlDestinationDetails = class;
-  TGoalTypevisitNumPagesDetails = class;
-  TGoalTypevisitTimeOnSiteDetails = class;
-  TMcfDataTypecolumnHeadersItem = class;
-  TMcfDataTypeprofileInfo = class;
-  TMcfDataTypequery = class;
-  TMcfDataTyperowsItemItemTypeconversionPathValueItem = class;
-  TMcfDataTyperowsItemItem = class;
-  TMcfDataTypetotalsForAllResults = class;
-  TProfileTypechildLink = class;
-  TProfileTypeparentLink = class;
-  TProfileTypepermissions = class;
-  TRealtimeDataTypecolumnHeadersItem = class;
-  TRealtimeDataTypeprofileInfo = class;
-  TRealtimeDataTypequery = class;
-  TRealtimeDataTypetotalsForAllResults = class;
-  TUnsampledReportTypecloudStorageDownloadDetails = class;
-  TUnsampledReportTypedriveDownloadDetails = class;
-  TWebpropertyTypechildLink = class;
-  TWebpropertyTypeparentLink = class;
-  TWebpropertyTypepermissions = class;
+  TAccountTypechildLink = Class;
+  TAccountTypepermissions = Class;
+  TColumnTypeattributes = Class;
+  TCustomDataSourceTypechildLink = Class;
+  TCustomDataSourceTypeparentLink = Class;
+  TCustomDimensionTypeparentLink = Class;
+  TCustomMetricTypeparentLink = Class;
+  TEntityAdWordsLinkTypeentity = Class;
+  TEntityUserLinkTypeentity = Class;
+  TEntityUserLinkTypepermissions = Class;
+  TExperimentTypeparentLink = Class;
+  TExperimentTypevariationsItem = Class;
+  TFilterTypeadvancedDetails = Class;
+  TFilterTypelowercaseDetails = Class;
+  TFilterTypeparentLink = Class;
+  TFilterTypesearchAndReplaceDetails = Class;
+  TFilterTypeuppercaseDetails = Class;
+  TGaDataTypecolumnHeadersItem = Class;
+  TGaDataTypedataTableTypecolsItem = Class;
+  TGaDataTypedataTableTyperowsItemTypecItem = Class;
+  TGaDataTypedataTableTyperowsItem = Class;
+  TGaDataTypedataTable = Class;
+  TGaDataTypeprofileInfo = Class;
+  TGaDataTypequery = Class;
+  TGaDataTypetotalsForAllResults = Class;
+  TGoalTypeeventDetailsTypeeventConditionsItem = Class;
+  TGoalTypeeventDetails = Class;
+  TGoalTypeparentLink = Class;
+  TGoalTypeurlDestinationDetailsTypestepsItem = Class;
+  TGoalTypeurlDestinationDetails = Class;
+  TGoalTypevisitNumPagesDetails = Class;
+  TGoalTypevisitTimeOnSiteDetails = Class;
+  TMcfDataTypecolumnHeadersItem = Class;
+  TMcfDataTypeprofileInfo = Class;
+  TMcfDataTypequery = Class;
+  TMcfDataTyperowsItemItemTypeconversionPathValueItem = Class;
+  TMcfDataTyperowsItemItem = Class;
+  TMcfDataTypetotalsForAllResults = Class;
+  TProfileTypechildLink = Class;
+  TProfileTypeparentLink = Class;
+  TProfileTypepermissions = Class;
+  TRealtimeDataTypecolumnHeadersItem = Class;
+  TRealtimeDataTypeprofileInfo = Class;
+  TRealtimeDataTypequery = Class;
+  TRealtimeDataTypetotalsForAllResults = Class;
+  TUnsampledReportTypecloudStorageDownloadDetails = Class;
+  TUnsampledReportTypedriveDownloadDetails = Class;
+  TWebpropertyTypechildLink = Class;
+  TWebpropertyTypeparentLink = Class;
+  TWebpropertyTypepermissions = Class;
   TAccountSummariesTypeitemsArray = Array of TAccountSummary;
   TAccountSummaryTypewebPropertiesArray = Array of TWebPropertySummary;
   TAccountsTypeitemsArray = Array of TAccount;
@@ -236,6 +236,10 @@ type
   Protected
     //Property setters
     Procedure Seteffective(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property effective : TStringArray Index 0 Read Feffective Write Seteffective;
@@ -328,6 +332,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TAccountSummariesTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -357,6 +365,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetwebProperties(AIndex : Integer; AValue : TAccountSummaryTypewebPropertiesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -421,6 +433,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TAccountsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -466,6 +482,10 @@ type
   Protected
     //Property setters
     Procedure SetcustomDataImportUids(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property customDataImportUids : TStringArray Index 0 Read FcustomDataImportUids Write SetcustomDataImportUids;
@@ -526,6 +546,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TColumnsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property attributeNames : TStringArray Index 0 Read FattributeNames Write SetattributeNames;
@@ -615,6 +639,10 @@ type
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetuploadType(AIndex : Integer; AValue : String); virtual;
     Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -659,6 +687,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TCustomDataSourcesTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -765,6 +797,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TCustomDimensionsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -881,6 +917,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TCustomMetricsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -932,6 +972,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetprofileIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property adWordsAccounts : TEntityAdWordsLinkTypeadWordsAccountsArray Index 0 Read FadWordsAccounts Write SetadWordsAccounts;
@@ -966,6 +1010,10 @@ type
     Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TEntityAdWordsLinksTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1012,6 +1060,10 @@ type
     //Property setters
     Procedure Seteffective(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setlocal(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property effective : TStringArray Index 0 Read Feffective Write Seteffective;
@@ -1072,6 +1124,10 @@ type
     Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TEntityUserLinksTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1196,6 +1252,10 @@ type
     Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
     Procedure SetwinnerConfidenceLevel(AIndex : Integer; AValue : double); virtual;
     Procedure SetwinnerFound(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -1253,6 +1313,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TExperimentsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1546,6 +1610,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TFiltersTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1630,6 +1698,10 @@ type
   Protected
     //Property setters
     Procedure Setc(AIndex : Integer; AValue : TGaDataTypedataTableTyperowsItemTypecArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property c : TGaDataTypedataTableTyperowsItemTypecArray Index 0 Read Fc Write Setc;
@@ -1648,6 +1720,10 @@ type
     //Property setters
     Procedure Setcols(AIndex : Integer; AValue : TGaDataTypedataTableTypecolsArray); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TGaDataTypedataTableTyperowsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property cols : TGaDataTypedataTableTypecolsArray Index 0 Read Fcols Write Setcols;
@@ -1717,6 +1793,10 @@ type
     Procedure Setsort(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setstartdate(AIndex : Integer; AValue : String); virtual;
     Procedure Setstartindex(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property dimensions : String Index 0 Read Fdimensions Write Setdimensions;
@@ -1787,6 +1867,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalsForAllResults(AIndex : Integer; AValue : TGaDataTypetotalsForAllResults); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property columnHeaders : TGaDataTypecolumnHeadersArray Index 0 Read FcolumnHeaders Write SetcolumnHeaders;
@@ -1849,6 +1933,10 @@ type
     //Property setters
     Procedure SeteventConditions(AIndex : Integer; AValue : TGoalTypeeventDetailsTypeeventConditionsArray); virtual;
     Procedure SetuseEventValue(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property eventConditions : TGoalTypeeventDetailsTypeeventConditionsArray Index 0 Read FeventConditions Write SeteventConditions;
@@ -1916,6 +2004,10 @@ type
     Procedure SetmatchType(AIndex : Integer; AValue : String); virtual;
     Procedure Setsteps(AIndex : Integer; AValue : TGoalTypeurlDestinationDetailsTypestepsArray); virtual;
     Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property caseSensitive : boolean Index 0 Read FcaseSensitive Write SetcaseSensitive;
@@ -2056,6 +2148,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TGoalsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2153,6 +2249,10 @@ type
     Procedure Setsort(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setstartdate(AIndex : Integer; AValue : String); virtual;
     Procedure Setstartindex(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property dimensions : String Index 0 Read Fdimensions Write Setdimensions;
@@ -2200,6 +2300,10 @@ type
     //Property setters
     Procedure SetconversionPathValue(AIndex : Integer; AValue : TMcfDataTyperowsItemItemTypeconversionPathValueArray); virtual;
     Procedure SetprimitiveValue(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property conversionPathValue : TMcfDataTyperowsItemItemTypeconversionPathValueArray Index 0 Read FconversionPathValue Write SetconversionPathValue;
@@ -2259,6 +2363,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalsForAllResults(AIndex : Integer; AValue : TMcfDataTypetotalsForAllResults); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property columnHeaders : TMcfDataTypecolumnHeadersArray Index 0 Read FcolumnHeaders Write SetcolumnHeaders;
@@ -2329,6 +2437,10 @@ type
   Protected
     //Property setters
     Procedure Seteffective(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property effective : TStringArray Index 0 Read Feffective Write Seteffective;
@@ -2476,6 +2588,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TProfileFilterLinksTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2573,6 +2689,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TProfilesTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2660,6 +2780,10 @@ type
     Procedure Setmaxresults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setmetrics(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setsort(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property dimensions : String Index 0 Read Fdimensions Write Setdimensions;
@@ -2711,6 +2835,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalsForAllResults(AIndex : Integer; AValue : TRealtimeDataTypetotalsForAllResults); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property columnHeaders : TRealtimeDataTypecolumnHeadersArray Index 0 Read FcolumnHeaders Write SetcolumnHeaders;
@@ -2790,6 +2918,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TSegmentsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2933,6 +3065,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TUnsampledReportsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2966,6 +3102,10 @@ type
     Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -2999,6 +3139,10 @@ type
     Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TUploadsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -3086,6 +3230,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setprofiles(AIndex : Integer; AValue : TWebPropertySummaryTypeprofilesArray); virtual;
     Procedure SetwebsiteUrl(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -3122,6 +3270,10 @@ type
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TWebpropertiesTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -3185,6 +3337,10 @@ type
   Protected
     //Property setters
     Procedure Seteffective(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property effective : TStringArray Index 0 Read Feffective Write Seteffective;
@@ -3253,13 +3409,579 @@ type
   TWebpropertyClass = Class of TWebproperty;
   
   { --------------------------------------------------------------------
+    TDataGaResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TDataGaResource, method Get
+  
+  TDataGaGetOptions = Record
+    dimensions : String;
+    enddate : String;
+    filters : String;
+    ids : String;
+    maxresults : integer;
+    metrics : String;
+    output : String;
+    samplingLevel : String;
+    segment : String;
+    sort : String;
+    startdate : String;
+    startindex : integer;
+  end;
+  
+  TDataGaResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(AQuery : string  = '') : TGaData;
+    Function Get(AQuery : TDataGagetOptions) : TGaData;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TDataMcfResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TDataMcfResource, method Get
+  
+  TDataMcfGetOptions = Record
+    dimensions : String;
+    enddate : String;
+    filters : String;
+    ids : String;
+    maxresults : integer;
+    metrics : String;
+    samplingLevel : String;
+    sort : String;
+    startdate : String;
+    startindex : integer;
+  end;
+  
+  TDataMcfResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(AQuery : string  = '') : TMcfData;
+    Function Get(AQuery : TDataMcfgetOptions) : TMcfData;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TDataRealtimeResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TDataRealtimeResource, method Get
+  
+  TDataRealtimeGetOptions = Record
+    dimensions : String;
+    filters : String;
+    ids : String;
+    maxresults : integer;
+    metrics : String;
+    sort : String;
+  end;
+  
+  TDataRealtimeResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(AQuery : string  = '') : TRealtimeData;
+    Function Get(AQuery : TDataRealtimegetOptions) : TRealtimeData;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TDataResource
     --------------------------------------------------------------------}
   
   TDataResource = Class(TGoogleResource)
+  Private
+    FGaInstance : TDataGaResource;
+    FMcfInstance : TDataMcfResource;
+    FRealtimeInstance : TDataRealtimeResource;
+    Function GetGaInstance : TDataGaResource;virtual;
+    Function GetMcfInstance : TDataMcfResource;virtual;
+    Function GetRealtimeInstance : TDataRealtimeResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateGaResource(AOwner : TComponent) : TDataGaResource;virtual;overload;
+    Function CreateGaResource : TDataGaResource;virtual;overload;
+    Function CreateMcfResource(AOwner : TComponent) : TDataMcfResource;virtual;overload;
+    Function CreateMcfResource : TDataMcfResource;virtual;overload;
+    Function CreateRealtimeResource(AOwner : TComponent) : TDataRealtimeResource;virtual;overload;
+    Function CreateRealtimeResource : TDataRealtimeResource;virtual;overload;
+    Property GaResource : TDataGaResource Read GetGaInstance;
+    Property McfResource : TDataMcfResource Read GetMcfInstance;
+    Property RealtimeResource : TDataRealtimeResource Read GetRealtimeInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementAccountSummariesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementAccountSummariesResource, method List
+  
+  TManagementAccountSummariesListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementAccountSummariesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(AQuery : string  = '') : TAccountSummaries;
+    Function List(AQuery : TManagementAccountSummarieslistOptions) : TAccountSummaries;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementAccountUserLinksResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementAccountUserLinksResource, method List
+  
+  TManagementAccountUserLinksListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementAccountUserLinksResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(accountId: string; linkId: string);
+    Function Insert(accountId: string; aEntityUserLink : TEntityUserLink) : TEntityUserLink;
+    Function List(accountId: string; AQuery : string  = '') : TEntityUserLinks;
+    Function List(accountId: string; AQuery : TManagementAccountUserLinkslistOptions) : TEntityUserLinks;
+    Function Update(accountId: string; linkId: string; aEntityUserLink : TEntityUserLink) : TEntityUserLink;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementAccountsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementAccountsResource, method List
+  
+  TManagementAccountsListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementAccountsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(AQuery : string  = '') : TAccounts;
+    Function List(AQuery : TManagementAccountslistOptions) : TAccounts;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementCustomDataSourcesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementCustomDataSourcesResource, method List
+  
+  TManagementCustomDataSourcesListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementCustomDataSourcesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(accountId: string; webPropertyId: string; AQuery : string  = '') : TCustomDataSources;
+    Function List(accountId: string; webPropertyId: string; AQuery : TManagementCustomDataSourceslistOptions) : TCustomDataSources;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementCustomDimensionsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementCustomDimensionsResource, method List
+  
+  TManagementCustomDimensionsListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  
+  //Optional query Options for TManagementCustomDimensionsResource, method Patch
+  
+  TManagementCustomDimensionsPatchOptions = Record
+    ignoreCustomDataSourceLinks : boolean;
+  end;
+  
+  
+  //Optional query Options for TManagementCustomDimensionsResource, method Update
+  
+  TManagementCustomDimensionsUpdateOptions = Record
+    ignoreCustomDataSourceLinks : boolean;
+  end;
+  
+  TManagementCustomDimensionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(accountId: string; customDimensionId: string; webPropertyId: string) : TCustomDimension;
+    Function Insert(accountId: string; webPropertyId: string; aCustomDimension : TCustomDimension) : TCustomDimension;
+    Function List(accountId: string; webPropertyId: string; AQuery : string  = '') : TCustomDimensions;
+    Function List(accountId: string; webPropertyId: string; AQuery : TManagementCustomDimensionslistOptions) : TCustomDimensions;
+    Function Patch(accountId: string; customDimensionId: string; webPropertyId: string; aCustomDimension : TCustomDimension; AQuery : string  = '') : TCustomDimension;
+    Function Patch(accountId: string; customDimensionId: string; webPropertyId: string; aCustomDimension : TCustomDimension; AQuery : TManagementCustomDimensionspatchOptions) : TCustomDimension;
+    Function Update(accountId: string; customDimensionId: string; webPropertyId: string; aCustomDimension : TCustomDimension; AQuery : string  = '') : TCustomDimension;
+    Function Update(accountId: string; customDimensionId: string; webPropertyId: string; aCustomDimension : TCustomDimension; AQuery : TManagementCustomDimensionsupdateOptions) : TCustomDimension;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementCustomMetricsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementCustomMetricsResource, method List
+  
+  TManagementCustomMetricsListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  
+  //Optional query Options for TManagementCustomMetricsResource, method Patch
+  
+  TManagementCustomMetricsPatchOptions = Record
+    ignoreCustomDataSourceLinks : boolean;
+  end;
+  
+  
+  //Optional query Options for TManagementCustomMetricsResource, method Update
+  
+  TManagementCustomMetricsUpdateOptions = Record
+    ignoreCustomDataSourceLinks : boolean;
+  end;
+  
+  TManagementCustomMetricsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(accountId: string; customMetricId: string; webPropertyId: string) : TCustomMetric;
+    Function Insert(accountId: string; webPropertyId: string; aCustomMetric : TCustomMetric) : TCustomMetric;
+    Function List(accountId: string; webPropertyId: string; AQuery : string  = '') : TCustomMetrics;
+    Function List(accountId: string; webPropertyId: string; AQuery : TManagementCustomMetricslistOptions) : TCustomMetrics;
+    Function Patch(accountId: string; customMetricId: string; webPropertyId: string; aCustomMetric : TCustomMetric; AQuery : string  = '') : TCustomMetric;
+    Function Patch(accountId: string; customMetricId: string; webPropertyId: string; aCustomMetric : TCustomMetric; AQuery : TManagementCustomMetricspatchOptions) : TCustomMetric;
+    Function Update(accountId: string; customMetricId: string; webPropertyId: string; aCustomMetric : TCustomMetric; AQuery : string  = '') : TCustomMetric;
+    Function Update(accountId: string; customMetricId: string; webPropertyId: string; aCustomMetric : TCustomMetric; AQuery : TManagementCustomMetricsupdateOptions) : TCustomMetric;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementExperimentsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementExperimentsResource, method List
+  
+  TManagementExperimentsListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementExperimentsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(accountId: string; experimentId: string; profileId: string; webPropertyId: string);
+    Function Get(accountId: string; experimentId: string; profileId: string; webPropertyId: string) : TExperiment;
+    Function Insert(accountId: string; profileId: string; webPropertyId: string; aExperiment : TExperiment) : TExperiment;
+    Function List(accountId: string; profileId: string; webPropertyId: string; AQuery : string  = '') : TExperiments;
+    Function List(accountId: string; profileId: string; webPropertyId: string; AQuery : TManagementExperimentslistOptions) : TExperiments;
+    Function Patch(accountId: string; experimentId: string; profileId: string; webPropertyId: string; aExperiment : TExperiment) : TExperiment;
+    Function Update(accountId: string; experimentId: string; profileId: string; webPropertyId: string; aExperiment : TExperiment) : TExperiment;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementFiltersResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementFiltersResource, method List
+  
+  TManagementFiltersListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementFiltersResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Delete(accountId: string; filterId: string) : TFilter;
+    Function Get(accountId: string; filterId: string) : TFilter;
+    Function Insert(accountId: string; aFilter : TFilter) : TFilter;
+    Function List(accountId: string; AQuery : string  = '') : TFilters;
+    Function List(accountId: string; AQuery : TManagementFilterslistOptions) : TFilters;
+    Function Patch(accountId: string; filterId: string; aFilter : TFilter) : TFilter;
+    Function Update(accountId: string; filterId: string; aFilter : TFilter) : TFilter;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementGoalsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementGoalsResource, method List
+  
+  TManagementGoalsListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementGoalsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(accountId: string; goalId: string; profileId: string; webPropertyId: string) : TGoal;
+    Function Insert(accountId: string; profileId: string; webPropertyId: string; aGoal : TGoal) : TGoal;
+    Function List(accountId: string; profileId: string; webPropertyId: string; AQuery : string  = '') : TGoals;
+    Function List(accountId: string; profileId: string; webPropertyId: string; AQuery : TManagementGoalslistOptions) : TGoals;
+    Function Patch(accountId: string; goalId: string; profileId: string; webPropertyId: string; aGoal : TGoal) : TGoal;
+    Function Update(accountId: string; goalId: string; profileId: string; webPropertyId: string; aGoal : TGoal) : TGoal;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementProfileFilterLinksResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementProfileFilterLinksResource, method List
+  
+  TManagementProfileFilterLinksListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementProfileFilterLinksResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(accountId: string; linkId: string; profileId: string; webPropertyId: string);
+    Function Get(accountId: string; linkId: string; profileId: string; webPropertyId: string) : TProfileFilterLink;
+    Function Insert(accountId: string; profileId: string; webPropertyId: string; aProfileFilterLink : TProfileFilterLink) : TProfileFilterLink;
+    Function List(accountId: string; profileId: string; webPropertyId: string; AQuery : string  = '') : TProfileFilterLinks;
+    Function List(accountId: string; profileId: string; webPropertyId: string; AQuery : TManagementProfileFilterLinkslistOptions) : TProfileFilterLinks;
+    Function Patch(accountId: string; linkId: string; profileId: string; webPropertyId: string; aProfileFilterLink : TProfileFilterLink) : TProfileFilterLink;
+    Function Update(accountId: string; linkId: string; profileId: string; webPropertyId: string; aProfileFilterLink : TProfileFilterLink) : TProfileFilterLink;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementProfileUserLinksResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementProfileUserLinksResource, method List
+  
+  TManagementProfileUserLinksListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementProfileUserLinksResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(accountId: string; linkId: string; profileId: string; webPropertyId: string);
+    Function Insert(accountId: string; profileId: string; webPropertyId: string; aEntityUserLink : TEntityUserLink) : TEntityUserLink;
+    Function List(accountId: string; profileId: string; webPropertyId: string; AQuery : string  = '') : TEntityUserLinks;
+    Function List(accountId: string; profileId: string; webPropertyId: string; AQuery : TManagementProfileUserLinkslistOptions) : TEntityUserLinks;
+    Function Update(accountId: string; linkId: string; profileId: string; webPropertyId: string; aEntityUserLink : TEntityUserLink) : TEntityUserLink;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementProfilesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementProfilesResource, method List
+  
+  TManagementProfilesListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementProfilesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(accountId: string; profileId: string; webPropertyId: string);
+    Function Get(accountId: string; profileId: string; webPropertyId: string) : TProfile;
+    Function Insert(accountId: string; webPropertyId: string; aProfile : TProfile) : TProfile;
+    Function List(accountId: string; webPropertyId: string; AQuery : string  = '') : TProfiles;
+    Function List(accountId: string; webPropertyId: string; AQuery : TManagementProfileslistOptions) : TProfiles;
+    Function Patch(accountId: string; profileId: string; webPropertyId: string; aProfile : TProfile) : TProfile;
+    Function Update(accountId: string; profileId: string; webPropertyId: string; aProfile : TProfile) : TProfile;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementSegmentsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementSegmentsResource, method List
+  
+  TManagementSegmentsListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementSegmentsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(AQuery : string  = '') : TSegments;
+    Function List(AQuery : TManagementSegmentslistOptions) : TSegments;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementUnsampledReportsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementUnsampledReportsResource, method List
+  
+  TManagementUnsampledReportsListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementUnsampledReportsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(accountId: string; profileId: string; unsampledReportId: string; webPropertyId: string) : TUnsampledReport;
+    Function Insert(accountId: string; profileId: string; webPropertyId: string; aUnsampledReport : TUnsampledReport) : TUnsampledReport;
+    Function List(accountId: string; profileId: string; webPropertyId: string; AQuery : string  = '') : TUnsampledReports;
+    Function List(accountId: string; profileId: string; webPropertyId: string; AQuery : TManagementUnsampledReportslistOptions) : TUnsampledReports;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementUploadsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementUploadsResource, method List
+  
+  TManagementUploadsListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementUploadsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure DeleteUploadData(accountId: string; customDataSourceId: string; webPropertyId: string; aAnalyticsDataimportDeleteUploadDataRequest : TAnalyticsDataimportDeleteUploadDataRequest);
+    Function Get(accountId: string; customDataSourceId: string; uploadId: string; webPropertyId: string) : TUpload;
+    Function List(accountId: string; customDataSourceId: string; webPropertyId: string; AQuery : string  = '') : TUploads;
+    Function List(accountId: string; customDataSourceId: string; webPropertyId: string; AQuery : TManagementUploadslistOptions) : TUploads;
+    Function UploadData(accountId: string; customDataSourceId: string; webPropertyId: string) : TUpload;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementWebPropertyAdWordsLinksResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementWebPropertyAdWordsLinksResource, method List
+  
+  TManagementWebPropertyAdWordsLinksListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementWebPropertyAdWordsLinksResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(accountId: string; webPropertyAdWordsLinkId: string; webPropertyId: string);
+    Function Get(accountId: string; webPropertyAdWordsLinkId: string; webPropertyId: string) : TEntityAdWordsLink;
+    Function Insert(accountId: string; webPropertyId: string; aEntityAdWordsLink : TEntityAdWordsLink) : TEntityAdWordsLink;
+    Function List(accountId: string; webPropertyId: string; AQuery : string  = '') : TEntityAdWordsLinks;
+    Function List(accountId: string; webPropertyId: string; AQuery : TManagementWebPropertyAdWordsLinkslistOptions) : TEntityAdWordsLinks;
+    Function Patch(accountId: string; webPropertyAdWordsLinkId: string; webPropertyId: string; aEntityAdWordsLink : TEntityAdWordsLink) : TEntityAdWordsLink;
+    Function Update(accountId: string; webPropertyAdWordsLinkId: string; webPropertyId: string; aEntityAdWordsLink : TEntityAdWordsLink) : TEntityAdWordsLink;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementWebpropertiesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementWebpropertiesResource, method List
+  
+  TManagementWebpropertiesListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementWebpropertiesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(accountId: string; webPropertyId: string) : TWebproperty;
+    Function Insert(accountId: string; aWebproperty : TWebproperty) : TWebproperty;
+    Function List(accountId: string; AQuery : string  = '') : TWebproperties;
+    Function List(accountId: string; AQuery : TManagementWebpropertieslistOptions) : TWebproperties;
+    Function Patch(accountId: string; webPropertyId: string; aWebproperty : TWebproperty) : TWebproperty;
+    Function Update(accountId: string; webPropertyId: string; aWebproperty : TWebproperty) : TWebproperty;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TManagementWebpropertyUserLinksResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TManagementWebpropertyUserLinksResource, method List
+  
+  TManagementWebpropertyUserLinksListOptions = Record
+    maxresults : integer;
+    startindex : integer;
+  end;
+  
+  TManagementWebpropertyUserLinksResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(accountId: string; linkId: string; webPropertyId: string);
+    Function Insert(accountId: string; webPropertyId: string; aEntityUserLink : TEntityUserLink) : TEntityUserLink;
+    Function List(accountId: string; webPropertyId: string; AQuery : string  = '') : TEntityUserLinks;
+    Function List(accountId: string; webPropertyId: string; AQuery : TManagementWebpropertyUserLinkslistOptions) : TEntityUserLinks;
+    Function Update(accountId: string; linkId: string; webPropertyId: string; aEntityUserLink : TEntityUserLink) : TEntityUserLink;
   end;
   
   
@@ -3268,9 +3990,112 @@ type
     --------------------------------------------------------------------}
   
   TManagementResource = Class(TGoogleResource)
+  Private
+    FAccountSummariesInstance : TManagementAccountSummariesResource;
+    FAccountUserLinksInstance : TManagementAccountUserLinksResource;
+    FAccountsInstance : TManagementAccountsResource;
+    FCustomDataSourcesInstance : TManagementCustomDataSourcesResource;
+    FCustomDimensionsInstance : TManagementCustomDimensionsResource;
+    FCustomMetricsInstance : TManagementCustomMetricsResource;
+    FExperimentsInstance : TManagementExperimentsResource;
+    FFiltersInstance : TManagementFiltersResource;
+    FGoalsInstance : TManagementGoalsResource;
+    FProfileFilterLinksInstance : TManagementProfileFilterLinksResource;
+    FProfileUserLinksInstance : TManagementProfileUserLinksResource;
+    FProfilesInstance : TManagementProfilesResource;
+    FSegmentsInstance : TManagementSegmentsResource;
+    FUnsampledReportsInstance : TManagementUnsampledReportsResource;
+    FUploadsInstance : TManagementUploadsResource;
+    FWebPropertyAdWordsLinksInstance : TManagementWebPropertyAdWordsLinksResource;
+    FWebpropertiesInstance : TManagementWebpropertiesResource;
+    FWebpropertyUserLinksInstance : TManagementWebpropertyUserLinksResource;
+    Function GetAccountSummariesInstance : TManagementAccountSummariesResource;virtual;
+    Function GetAccountUserLinksInstance : TManagementAccountUserLinksResource;virtual;
+    Function GetAccountsInstance : TManagementAccountsResource;virtual;
+    Function GetCustomDataSourcesInstance : TManagementCustomDataSourcesResource;virtual;
+    Function GetCustomDimensionsInstance : TManagementCustomDimensionsResource;virtual;
+    Function GetCustomMetricsInstance : TManagementCustomMetricsResource;virtual;
+    Function GetExperimentsInstance : TManagementExperimentsResource;virtual;
+    Function GetFiltersInstance : TManagementFiltersResource;virtual;
+    Function GetGoalsInstance : TManagementGoalsResource;virtual;
+    Function GetProfileFilterLinksInstance : TManagementProfileFilterLinksResource;virtual;
+    Function GetProfileUserLinksInstance : TManagementProfileUserLinksResource;virtual;
+    Function GetProfilesInstance : TManagementProfilesResource;virtual;
+    Function GetSegmentsInstance : TManagementSegmentsResource;virtual;
+    Function GetUnsampledReportsInstance : TManagementUnsampledReportsResource;virtual;
+    Function GetUploadsInstance : TManagementUploadsResource;virtual;
+    Function GetWebPropertyAdWordsLinksInstance : TManagementWebPropertyAdWordsLinksResource;virtual;
+    Function GetWebpropertiesInstance : TManagementWebpropertiesResource;virtual;
+    Function GetWebpropertyUserLinksInstance : TManagementWebpropertyUserLinksResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateAccountSummariesResource(AOwner : TComponent) : TManagementAccountSummariesResource;virtual;overload;
+    Function CreateAccountSummariesResource : TManagementAccountSummariesResource;virtual;overload;
+    Function CreateAccountUserLinksResource(AOwner : TComponent) : TManagementAccountUserLinksResource;virtual;overload;
+    Function CreateAccountUserLinksResource : TManagementAccountUserLinksResource;virtual;overload;
+    Function CreateAccountsResource(AOwner : TComponent) : TManagementAccountsResource;virtual;overload;
+    Function CreateAccountsResource : TManagementAccountsResource;virtual;overload;
+    Function CreateCustomDataSourcesResource(AOwner : TComponent) : TManagementCustomDataSourcesResource;virtual;overload;
+    Function CreateCustomDataSourcesResource : TManagementCustomDataSourcesResource;virtual;overload;
+    Function CreateCustomDimensionsResource(AOwner : TComponent) : TManagementCustomDimensionsResource;virtual;overload;
+    Function CreateCustomDimensionsResource : TManagementCustomDimensionsResource;virtual;overload;
+    Function CreateCustomMetricsResource(AOwner : TComponent) : TManagementCustomMetricsResource;virtual;overload;
+    Function CreateCustomMetricsResource : TManagementCustomMetricsResource;virtual;overload;
+    Function CreateExperimentsResource(AOwner : TComponent) : TManagementExperimentsResource;virtual;overload;
+    Function CreateExperimentsResource : TManagementExperimentsResource;virtual;overload;
+    Function CreateFiltersResource(AOwner : TComponent) : TManagementFiltersResource;virtual;overload;
+    Function CreateFiltersResource : TManagementFiltersResource;virtual;overload;
+    Function CreateGoalsResource(AOwner : TComponent) : TManagementGoalsResource;virtual;overload;
+    Function CreateGoalsResource : TManagementGoalsResource;virtual;overload;
+    Function CreateProfileFilterLinksResource(AOwner : TComponent) : TManagementProfileFilterLinksResource;virtual;overload;
+    Function CreateProfileFilterLinksResource : TManagementProfileFilterLinksResource;virtual;overload;
+    Function CreateProfileUserLinksResource(AOwner : TComponent) : TManagementProfileUserLinksResource;virtual;overload;
+    Function CreateProfileUserLinksResource : TManagementProfileUserLinksResource;virtual;overload;
+    Function CreateProfilesResource(AOwner : TComponent) : TManagementProfilesResource;virtual;overload;
+    Function CreateProfilesResource : TManagementProfilesResource;virtual;overload;
+    Function CreateSegmentsResource(AOwner : TComponent) : TManagementSegmentsResource;virtual;overload;
+    Function CreateSegmentsResource : TManagementSegmentsResource;virtual;overload;
+    Function CreateUnsampledReportsResource(AOwner : TComponent) : TManagementUnsampledReportsResource;virtual;overload;
+    Function CreateUnsampledReportsResource : TManagementUnsampledReportsResource;virtual;overload;
+    Function CreateUploadsResource(AOwner : TComponent) : TManagementUploadsResource;virtual;overload;
+    Function CreateUploadsResource : TManagementUploadsResource;virtual;overload;
+    Function CreateWebPropertyAdWordsLinksResource(AOwner : TComponent) : TManagementWebPropertyAdWordsLinksResource;virtual;overload;
+    Function CreateWebPropertyAdWordsLinksResource : TManagementWebPropertyAdWordsLinksResource;virtual;overload;
+    Function CreateWebpropertiesResource(AOwner : TComponent) : TManagementWebpropertiesResource;virtual;overload;
+    Function CreateWebpropertiesResource : TManagementWebpropertiesResource;virtual;overload;
+    Function CreateWebpropertyUserLinksResource(AOwner : TComponent) : TManagementWebpropertyUserLinksResource;virtual;overload;
+    Function CreateWebpropertyUserLinksResource : TManagementWebpropertyUserLinksResource;virtual;overload;
+    Property AccountSummariesResource : TManagementAccountSummariesResource Read GetAccountSummariesInstance;
+    Property AccountUserLinksResource : TManagementAccountUserLinksResource Read GetAccountUserLinksInstance;
+    Property AccountsResource : TManagementAccountsResource Read GetAccountsInstance;
+    Property CustomDataSourcesResource : TManagementCustomDataSourcesResource Read GetCustomDataSourcesInstance;
+    Property CustomDimensionsResource : TManagementCustomDimensionsResource Read GetCustomDimensionsInstance;
+    Property CustomMetricsResource : TManagementCustomMetricsResource Read GetCustomMetricsInstance;
+    Property ExperimentsResource : TManagementExperimentsResource Read GetExperimentsInstance;
+    Property FiltersResource : TManagementFiltersResource Read GetFiltersInstance;
+    Property GoalsResource : TManagementGoalsResource Read GetGoalsInstance;
+    Property ProfileFilterLinksResource : TManagementProfileFilterLinksResource Read GetProfileFilterLinksInstance;
+    Property ProfileUserLinksResource : TManagementProfileUserLinksResource Read GetProfileUserLinksInstance;
+    Property ProfilesResource : TManagementProfilesResource Read GetProfilesInstance;
+    Property SegmentsResource : TManagementSegmentsResource Read GetSegmentsInstance;
+    Property UnsampledReportsResource : TManagementUnsampledReportsResource Read GetUnsampledReportsInstance;
+    Property UploadsResource : TManagementUploadsResource Read GetUploadsInstance;
+    Property WebPropertyAdWordsLinksResource : TManagementWebPropertyAdWordsLinksResource Read GetWebPropertyAdWordsLinksInstance;
+    Property WebpropertiesResource : TManagementWebpropertiesResource Read GetWebpropertiesInstance;
+    Property WebpropertyUserLinksResource : TManagementWebpropertyUserLinksResource Read GetWebpropertyUserLinksInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TMetadataColumnsResource
+    --------------------------------------------------------------------}
+  
+  TMetadataColumnsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(reportType: string) : TColumns;
   end;
   
   
@@ -3279,9 +4104,15 @@ type
     --------------------------------------------------------------------}
   
   TMetadataResource = Class(TGoogleResource)
+  Private
+    FColumnsInstance : TMetadataColumnsResource;
+    Function GetColumnsInstance : TMetadataColumnsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateColumnsResource(AOwner : TComponent) : TMetadataColumnsResource;virtual;overload;
+    Function CreateColumnsResource : TMetadataColumnsResource;virtual;overload;
+    Property ColumnsResource : TMetadataColumnsResource Read GetColumnsInstance;
   end;
   
   
@@ -3303,12 +4134,56 @@ type
   
   TAnalyticsAPI = Class(TGoogleAPI)
   Private
+    FDataGaInstance : TDataGaResource;
+    FDataMcfInstance : TDataMcfResource;
+    FDataRealtimeInstance : TDataRealtimeResource;
     FDataInstance : TDataResource;
+    FManagementAccountSummariesInstance : TManagementAccountSummariesResource;
+    FManagementAccountUserLinksInstance : TManagementAccountUserLinksResource;
+    FManagementAccountsInstance : TManagementAccountsResource;
+    FManagementCustomDataSourcesInstance : TManagementCustomDataSourcesResource;
+    FManagementCustomDimensionsInstance : TManagementCustomDimensionsResource;
+    FManagementCustomMetricsInstance : TManagementCustomMetricsResource;
+    FManagementExperimentsInstance : TManagementExperimentsResource;
+    FManagementFiltersInstance : TManagementFiltersResource;
+    FManagementGoalsInstance : TManagementGoalsResource;
+    FManagementProfileFilterLinksInstance : TManagementProfileFilterLinksResource;
+    FManagementProfileUserLinksInstance : TManagementProfileUserLinksResource;
+    FManagementProfilesInstance : TManagementProfilesResource;
+    FManagementSegmentsInstance : TManagementSegmentsResource;
+    FManagementUnsampledReportsInstance : TManagementUnsampledReportsResource;
+    FManagementUploadsInstance : TManagementUploadsResource;
+    FManagementWebPropertyAdWordsLinksInstance : TManagementWebPropertyAdWordsLinksResource;
+    FManagementWebpropertiesInstance : TManagementWebpropertiesResource;
+    FManagementWebpropertyUserLinksInstance : TManagementWebpropertyUserLinksResource;
     FManagementInstance : TManagementResource;
+    FMetadataColumnsInstance : TMetadataColumnsResource;
     FMetadataInstance : TMetadataResource;
     FProvisioningInstance : TProvisioningResource;
+    Function GetDataGaInstance : TDataGaResource;virtual;
+    Function GetDataMcfInstance : TDataMcfResource;virtual;
+    Function GetDataRealtimeInstance : TDataRealtimeResource;virtual;
     Function GetDataInstance : TDataResource;virtual;
+    Function GetManagementAccountSummariesInstance : TManagementAccountSummariesResource;virtual;
+    Function GetManagementAccountUserLinksInstance : TManagementAccountUserLinksResource;virtual;
+    Function GetManagementAccountsInstance : TManagementAccountsResource;virtual;
+    Function GetManagementCustomDataSourcesInstance : TManagementCustomDataSourcesResource;virtual;
+    Function GetManagementCustomDimensionsInstance : TManagementCustomDimensionsResource;virtual;
+    Function GetManagementCustomMetricsInstance : TManagementCustomMetricsResource;virtual;
+    Function GetManagementExperimentsInstance : TManagementExperimentsResource;virtual;
+    Function GetManagementFiltersInstance : TManagementFiltersResource;virtual;
+    Function GetManagementGoalsInstance : TManagementGoalsResource;virtual;
+    Function GetManagementProfileFilterLinksInstance : TManagementProfileFilterLinksResource;virtual;
+    Function GetManagementProfileUserLinksInstance : TManagementProfileUserLinksResource;virtual;
+    Function GetManagementProfilesInstance : TManagementProfilesResource;virtual;
+    Function GetManagementSegmentsInstance : TManagementSegmentsResource;virtual;
+    Function GetManagementUnsampledReportsInstance : TManagementUnsampledReportsResource;virtual;
+    Function GetManagementUploadsInstance : TManagementUploadsResource;virtual;
+    Function GetManagementWebPropertyAdWordsLinksInstance : TManagementWebPropertyAdWordsLinksResource;virtual;
+    Function GetManagementWebpropertiesInstance : TManagementWebpropertiesResource;virtual;
+    Function GetManagementWebpropertyUserLinksInstance : TManagementWebpropertyUserLinksResource;virtual;
     Function GetManagementInstance : TManagementResource;virtual;
+    Function GetMetadataColumnsInstance : TMetadataColumnsResource;virtual;
     Function GetMetadataInstance : TMetadataResource;virtual;
     Function GetProvisioningInstance : TProvisioningResource;virtual;
   Public
@@ -3334,17 +4209,83 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateDataGaResource(AOwner : TComponent) : TDataGaResource;virtual;overload;
+    Function CreateDataGaResource : TDataGaResource;virtual;overload;
+    Function CreateDataMcfResource(AOwner : TComponent) : TDataMcfResource;virtual;overload;
+    Function CreateDataMcfResource : TDataMcfResource;virtual;overload;
+    Function CreateDataRealtimeResource(AOwner : TComponent) : TDataRealtimeResource;virtual;overload;
+    Function CreateDataRealtimeResource : TDataRealtimeResource;virtual;overload;
     Function CreateDataResource(AOwner : TComponent) : TDataResource;virtual;overload;
     Function CreateDataResource : TDataResource;virtual;overload;
+    Function CreateManagementAccountSummariesResource(AOwner : TComponent) : TManagementAccountSummariesResource;virtual;overload;
+    Function CreateManagementAccountSummariesResource : TManagementAccountSummariesResource;virtual;overload;
+    Function CreateManagementAccountUserLinksResource(AOwner : TComponent) : TManagementAccountUserLinksResource;virtual;overload;
+    Function CreateManagementAccountUserLinksResource : TManagementAccountUserLinksResource;virtual;overload;
+    Function CreateManagementAccountsResource(AOwner : TComponent) : TManagementAccountsResource;virtual;overload;
+    Function CreateManagementAccountsResource : TManagementAccountsResource;virtual;overload;
+    Function CreateManagementCustomDataSourcesResource(AOwner : TComponent) : TManagementCustomDataSourcesResource;virtual;overload;
+    Function CreateManagementCustomDataSourcesResource : TManagementCustomDataSourcesResource;virtual;overload;
+    Function CreateManagementCustomDimensionsResource(AOwner : TComponent) : TManagementCustomDimensionsResource;virtual;overload;
+    Function CreateManagementCustomDimensionsResource : TManagementCustomDimensionsResource;virtual;overload;
+    Function CreateManagementCustomMetricsResource(AOwner : TComponent) : TManagementCustomMetricsResource;virtual;overload;
+    Function CreateManagementCustomMetricsResource : TManagementCustomMetricsResource;virtual;overload;
+    Function CreateManagementExperimentsResource(AOwner : TComponent) : TManagementExperimentsResource;virtual;overload;
+    Function CreateManagementExperimentsResource : TManagementExperimentsResource;virtual;overload;
+    Function CreateManagementFiltersResource(AOwner : TComponent) : TManagementFiltersResource;virtual;overload;
+    Function CreateManagementFiltersResource : TManagementFiltersResource;virtual;overload;
+    Function CreateManagementGoalsResource(AOwner : TComponent) : TManagementGoalsResource;virtual;overload;
+    Function CreateManagementGoalsResource : TManagementGoalsResource;virtual;overload;
+    Function CreateManagementProfileFilterLinksResource(AOwner : TComponent) : TManagementProfileFilterLinksResource;virtual;overload;
+    Function CreateManagementProfileFilterLinksResource : TManagementProfileFilterLinksResource;virtual;overload;
+    Function CreateManagementProfileUserLinksResource(AOwner : TComponent) : TManagementProfileUserLinksResource;virtual;overload;
+    Function CreateManagementProfileUserLinksResource : TManagementProfileUserLinksResource;virtual;overload;
+    Function CreateManagementProfilesResource(AOwner : TComponent) : TManagementProfilesResource;virtual;overload;
+    Function CreateManagementProfilesResource : TManagementProfilesResource;virtual;overload;
+    Function CreateManagementSegmentsResource(AOwner : TComponent) : TManagementSegmentsResource;virtual;overload;
+    Function CreateManagementSegmentsResource : TManagementSegmentsResource;virtual;overload;
+    Function CreateManagementUnsampledReportsResource(AOwner : TComponent) : TManagementUnsampledReportsResource;virtual;overload;
+    Function CreateManagementUnsampledReportsResource : TManagementUnsampledReportsResource;virtual;overload;
+    Function CreateManagementUploadsResource(AOwner : TComponent) : TManagementUploadsResource;virtual;overload;
+    Function CreateManagementUploadsResource : TManagementUploadsResource;virtual;overload;
+    Function CreateManagementWebPropertyAdWordsLinksResource(AOwner : TComponent) : TManagementWebPropertyAdWordsLinksResource;virtual;overload;
+    Function CreateManagementWebPropertyAdWordsLinksResource : TManagementWebPropertyAdWordsLinksResource;virtual;overload;
+    Function CreateManagementWebpropertiesResource(AOwner : TComponent) : TManagementWebpropertiesResource;virtual;overload;
+    Function CreateManagementWebpropertiesResource : TManagementWebpropertiesResource;virtual;overload;
+    Function CreateManagementWebpropertyUserLinksResource(AOwner : TComponent) : TManagementWebpropertyUserLinksResource;virtual;overload;
+    Function CreateManagementWebpropertyUserLinksResource : TManagementWebpropertyUserLinksResource;virtual;overload;
     Function CreateManagementResource(AOwner : TComponent) : TManagementResource;virtual;overload;
     Function CreateManagementResource : TManagementResource;virtual;overload;
+    Function CreateMetadataColumnsResource(AOwner : TComponent) : TMetadataColumnsResource;virtual;overload;
+    Function CreateMetadataColumnsResource : TMetadataColumnsResource;virtual;overload;
     Function CreateMetadataResource(AOwner : TComponent) : TMetadataResource;virtual;overload;
     Function CreateMetadataResource : TMetadataResource;virtual;overload;
     Function CreateProvisioningResource(AOwner : TComponent) : TProvisioningResource;virtual;overload;
     Function CreateProvisioningResource : TProvisioningResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property DataGaResource : TDataGaResource Read GetDataGaInstance;
+    Property DataMcfResource : TDataMcfResource Read GetDataMcfInstance;
+    Property DataRealtimeResource : TDataRealtimeResource Read GetDataRealtimeInstance;
     Property DataResource : TDataResource Read GetDataInstance;
+    Property ManagementAccountSummariesResource : TManagementAccountSummariesResource Read GetManagementAccountSummariesInstance;
+    Property ManagementAccountUserLinksResource : TManagementAccountUserLinksResource Read GetManagementAccountUserLinksInstance;
+    Property ManagementAccountsResource : TManagementAccountsResource Read GetManagementAccountsInstance;
+    Property ManagementCustomDataSourcesResource : TManagementCustomDataSourcesResource Read GetManagementCustomDataSourcesInstance;
+    Property ManagementCustomDimensionsResource : TManagementCustomDimensionsResource Read GetManagementCustomDimensionsInstance;
+    Property ManagementCustomMetricsResource : TManagementCustomMetricsResource Read GetManagementCustomMetricsInstance;
+    Property ManagementExperimentsResource : TManagementExperimentsResource Read GetManagementExperimentsInstance;
+    Property ManagementFiltersResource : TManagementFiltersResource Read GetManagementFiltersInstance;
+    Property ManagementGoalsResource : TManagementGoalsResource Read GetManagementGoalsInstance;
+    Property ManagementProfileFilterLinksResource : TManagementProfileFilterLinksResource Read GetManagementProfileFilterLinksInstance;
+    Property ManagementProfileUserLinksResource : TManagementProfileUserLinksResource Read GetManagementProfileUserLinksInstance;
+    Property ManagementProfilesResource : TManagementProfilesResource Read GetManagementProfilesInstance;
+    Property ManagementSegmentsResource : TManagementSegmentsResource Read GetManagementSegmentsInstance;
+    Property ManagementUnsampledReportsResource : TManagementUnsampledReportsResource Read GetManagementUnsampledReportsInstance;
+    Property ManagementUploadsResource : TManagementUploadsResource Read GetManagementUploadsInstance;
+    Property ManagementWebPropertyAdWordsLinksResource : TManagementWebPropertyAdWordsLinksResource Read GetManagementWebPropertyAdWordsLinksInstance;
+    Property ManagementWebpropertiesResource : TManagementWebpropertiesResource Read GetManagementWebpropertiesInstance;
+    Property ManagementWebpropertyUserLinksResource : TManagementWebpropertyUserLinksResource Read GetManagementWebpropertyUserLinksInstance;
     Property ManagementResource : TManagementResource Read GetManagementInstance;
+    Property MetadataColumnsResource : TMetadataColumnsResource Read GetMetadataColumnsInstance;
     Property MetadataResource : TMetadataResource Read GetMetadataInstance;
     Property ProvisioningResource : TProvisioningResource Read GetProvisioningInstance;
   end;
@@ -3403,6 +4344,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountTypepermissions.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'effective' : SetLength(Feffective,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3625,6 +4579,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountSummaries.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3671,6 +4638,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountSummary.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'webproperties' : SetLength(FwebProperties,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3826,6 +4806,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccounts.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3879,6 +4872,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAnalyticsDataimportDeleteUploadDataRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'customdataimportuids' : SetLength(FcustomDataImportUids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3986,6 +4992,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TColumns.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'attributenames' : SetLength(FattributeNames,ALength);
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4231,6 +5251,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCustomDataSource.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'profileslinked' : SetLength(FprofilesLinked,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4317,6 +5350,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCustomDataSources.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4569,6 +5615,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCustomDimensions.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4863,6 +5922,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCustomMetrics.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4957,6 +6029,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEntityAdWordsLink.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'adwordsaccounts' : SetLength(FadWordsAccounts,ALength);
+  'profileids' : SetLength(FprofileIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5034,6 +6120,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEntityAdWordsLinks.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5097,6 +6196,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEntityUserLinkTypepermissions.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'effective' : SetLength(Feffective,ALength);
+  'local' : SetLength(Flocal,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5241,6 +6354,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEntityUserLinks.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5624,6 +6750,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TExperiment.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'variations' : SetLength(Fvariations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5710,6 +6849,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TExperiments.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -6376,6 +7528,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFilters.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6496,6 +7661,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGaDataTypedataTableTyperowsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'c' : SetLength(Fc,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6522,6 +7700,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGaDataTypedataTable.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'cols' : SetLength(Fcols,ALength);
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -6721,6 +7913,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGaDataTypequery.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'metrics' : SetLength(Fmetrics,ALength);
+  'sort' : SetLength(Fsort,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6901,6 +8107,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGaData.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'columnheaders' : SetLength(FcolumnHeaders,ALength);
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6995,6 +8215,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGoalTypeeventDetails.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'eventconditions' : SetLength(FeventConditions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7127,6 +8360,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGoalTypeurlDestinationDetails.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'steps' : SetLength(Fsteps,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7467,6 +8713,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGoals.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7702,6 +8961,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMcfDataTypequery.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'metrics' : SetLength(Fmetrics,ALength);
+  'sort' : SetLength(Fsort,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7755,6 +9028,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMcfDataTyperowsItemItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'conversionpathvalue' : SetLength(FconversionPathValue,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7926,6 +9212,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMcfData.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'columnheaders' : SetLength(FcolumnHeaders,ALength);
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8018,6 +9318,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProfileTypepermissions.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'effective' : SetLength(Feffective,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -8431,6 +9744,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProfileFilterLinks.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8653,6 +9979,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProfiles.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8835,6 +10174,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRealtimeDataTypequery.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'metrics' : SetLength(Fmetrics,ALength);
+  'sort' : SetLength(Fsort,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8944,6 +10297,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRealtimeData.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'columnheaders' : SetLength(FcolumnHeaders,ALength);
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9139,6 +10506,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSegments.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9480,6 +10860,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUnsampledReports.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -9546,6 +10939,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUpload.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9623,6 +11029,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUploads.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9805,6 +11224,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWebPropertySummary.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'profiles' : SetLength(Fprofiles,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -9891,6 +11323,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWebproperties.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9984,6 +11429,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWebpropertyTypepermissions.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'effective' : SetLength(Feffective,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -10156,6 +11614,157 @@ end;
 
 
 { --------------------------------------------------------------------
+  TDataGaResource
+  --------------------------------------------------------------------}
+
+
+Class Function TDataGaResource.ResourceName : String;
+
+begin
+  Result:='ga';
+end;
+
+Class Function TDataGaResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TDataGaResource.Get(AQuery : string = '') : TGaData;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'data/ga';
+  _Methodid   = 'analytics.data.ga.get';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TGaData) as TGaData;
+end;
+
+
+Function TDataGaResource.Get(AQuery : TDataGagetOptions) : TGaData;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'dimensions',AQuery.dimensions);
+  AddToQuery(_Q,'end-date',AQuery.enddate);
+  AddToQuery(_Q,'filters',AQuery.filters);
+  AddToQuery(_Q,'ids',AQuery.ids);
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'metrics',AQuery.metrics);
+  AddToQuery(_Q,'output',AQuery.output);
+  AddToQuery(_Q,'samplingLevel',AQuery.samplingLevel);
+  AddToQuery(_Q,'segment',AQuery.segment);
+  AddToQuery(_Q,'sort',AQuery.sort);
+  AddToQuery(_Q,'start-date',AQuery.startdate);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=Get(_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TDataMcfResource
+  --------------------------------------------------------------------}
+
+
+Class Function TDataMcfResource.ResourceName : String;
+
+begin
+  Result:='mcf';
+end;
+
+Class Function TDataMcfResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TDataMcfResource.Get(AQuery : string = '') : TMcfData;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'data/mcf';
+  _Methodid   = 'analytics.data.mcf.get';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TMcfData) as TMcfData;
+end;
+
+
+Function TDataMcfResource.Get(AQuery : TDataMcfgetOptions) : TMcfData;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'dimensions',AQuery.dimensions);
+  AddToQuery(_Q,'end-date',AQuery.enddate);
+  AddToQuery(_Q,'filters',AQuery.filters);
+  AddToQuery(_Q,'ids',AQuery.ids);
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'metrics',AQuery.metrics);
+  AddToQuery(_Q,'samplingLevel',AQuery.samplingLevel);
+  AddToQuery(_Q,'sort',AQuery.sort);
+  AddToQuery(_Q,'start-date',AQuery.startdate);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=Get(_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TDataRealtimeResource
+  --------------------------------------------------------------------}
+
+
+Class Function TDataRealtimeResource.ResourceName : String;
+
+begin
+  Result:='realtime';
+end;
+
+Class Function TDataRealtimeResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TDataRealtimeResource.Get(AQuery : string = '') : TRealtimeData;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'data/realtime';
+  _Methodid   = 'analytics.data.realtime.get';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TRealtimeData) as TRealtimeData;
+end;
+
+
+Function TDataRealtimeResource.Get(AQuery : TDataRealtimegetOptions) : TRealtimeData;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'dimensions',AQuery.dimensions);
+  AddToQuery(_Q,'filters',AQuery.filters);
+  AddToQuery(_Q,'ids',AQuery.ids);
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'metrics',AQuery.metrics);
+  AddToQuery(_Q,'sort',AQuery.sort);
+  Result:=Get(_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
   TDataResource
   --------------------------------------------------------------------}
 
@@ -10170,6 +11779,1785 @@ Class Function TDataResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TanalyticsAPI;
+end;
+
+
+
+Function TDataResource.GetGaInstance : TDataGaResource;
+
+begin
+  if (FGaInstance=Nil) then
+    FGaInstance:=CreateGaResource;
+  Result:=FGaInstance;
+end;
+
+Function TDataResource.CreateGaResource : TDataGaResource;
+
+begin
+  Result:=CreateGaResource(Self);
+end;
+
+
+Function TDataResource.CreateGaResource(AOwner : TComponent) : TDataGaResource;
+
+begin
+  Result:=TDataGaResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TDataResource.GetMcfInstance : TDataMcfResource;
+
+begin
+  if (FMcfInstance=Nil) then
+    FMcfInstance:=CreateMcfResource;
+  Result:=FMcfInstance;
+end;
+
+Function TDataResource.CreateMcfResource : TDataMcfResource;
+
+begin
+  Result:=CreateMcfResource(Self);
+end;
+
+
+Function TDataResource.CreateMcfResource(AOwner : TComponent) : TDataMcfResource;
+
+begin
+  Result:=TDataMcfResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TDataResource.GetRealtimeInstance : TDataRealtimeResource;
+
+begin
+  if (FRealtimeInstance=Nil) then
+    FRealtimeInstance:=CreateRealtimeResource;
+  Result:=FRealtimeInstance;
+end;
+
+Function TDataResource.CreateRealtimeResource : TDataRealtimeResource;
+
+begin
+  Result:=CreateRealtimeResource(Self);
+end;
+
+
+Function TDataResource.CreateRealtimeResource(AOwner : TComponent) : TDataRealtimeResource;
+
+begin
+  Result:=TDataRealtimeResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementAccountSummariesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementAccountSummariesResource.ResourceName : String;
+
+begin
+  Result:='accountSummaries';
+end;
+
+Class Function TManagementAccountSummariesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TManagementAccountSummariesResource.List(AQuery : string = '') : TAccountSummaries;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accountSummaries';
+  _Methodid   = 'analytics.management.accountSummaries.list';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TAccountSummaries) as TAccountSummaries;
+end;
+
+
+Function TManagementAccountSummariesResource.List(AQuery : TManagementAccountSummarieslistOptions) : TAccountSummaries;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementAccountUserLinksResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementAccountUserLinksResource.ResourceName : String;
+
+begin
+  Result:='accountUserLinks';
+end;
+
+Class Function TManagementAccountUserLinksResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Procedure TManagementAccountUserLinksResource.Delete(accountId: string; linkId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'management/accounts/{accountId}/entityUserLinks/{linkId}';
+  _Methodid   = 'analytics.management.accountUserLinks.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'linkId',linkId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TManagementAccountUserLinksResource.Insert(accountId: string; aEntityUserLink : TEntityUserLink) : TEntityUserLink;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/entityUserLinks';
+  _Methodid   = 'analytics.management.accountUserLinks.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aEntityUserLink,TEntityUserLink) as TEntityUserLink;
+end;
+
+Function TManagementAccountUserLinksResource.List(accountId: string; AQuery : string = '') : TEntityUserLinks;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/entityUserLinks';
+  _Methodid   = 'analytics.management.accountUserLinks.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TEntityUserLinks) as TEntityUserLinks;
+end;
+
+
+Function TManagementAccountUserLinksResource.List(accountId: string; AQuery : TManagementAccountUserLinkslistOptions) : TEntityUserLinks;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,_Q);
+end;
+
+Function TManagementAccountUserLinksResource.Update(accountId: string; linkId: string; aEntityUserLink : TEntityUserLink) : TEntityUserLink;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'management/accounts/{accountId}/entityUserLinks/{linkId}';
+  _Methodid   = 'analytics.management.accountUserLinks.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'linkId',linkId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aEntityUserLink,TEntityUserLink) as TEntityUserLink;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementAccountsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementAccountsResource.ResourceName : String;
+
+begin
+  Result:='accounts';
+end;
+
+Class Function TManagementAccountsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TManagementAccountsResource.List(AQuery : string = '') : TAccounts;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts';
+  _Methodid   = 'analytics.management.accounts.list';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TAccounts) as TAccounts;
+end;
+
+
+Function TManagementAccountsResource.List(AQuery : TManagementAccountslistOptions) : TAccounts;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementCustomDataSourcesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementCustomDataSourcesResource.ResourceName : String;
+
+begin
+  Result:='customDataSources';
+end;
+
+Class Function TManagementCustomDataSourcesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TManagementCustomDataSourcesResource.List(accountId: string; webPropertyId: string; AQuery : string = '') : TCustomDataSources;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources';
+  _Methodid   = 'analytics.management.customDataSources.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TCustomDataSources) as TCustomDataSources;
+end;
+
+
+Function TManagementCustomDataSourcesResource.List(accountId: string; webPropertyId: string; AQuery : TManagementCustomDataSourceslistOptions) : TCustomDataSources;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,webPropertyId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementCustomDimensionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementCustomDimensionsResource.ResourceName : String;
+
+begin
+  Result:='customDimensions';
+end;
+
+Class Function TManagementCustomDimensionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TManagementCustomDimensionsResource.Get(accountId: string; customDimensionId: string; webPropertyId: string) : TCustomDimension;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}';
+  _Methodid   = 'analytics.management.customDimensions.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'customDimensionId',customDimensionId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TCustomDimension) as TCustomDimension;
+end;
+
+Function TManagementCustomDimensionsResource.Insert(accountId: string; webPropertyId: string; aCustomDimension : TCustomDimension) : TCustomDimension;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions';
+  _Methodid   = 'analytics.management.customDimensions.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aCustomDimension,TCustomDimension) as TCustomDimension;
+end;
+
+Function TManagementCustomDimensionsResource.List(accountId: string; webPropertyId: string; AQuery : string = '') : TCustomDimensions;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions';
+  _Methodid   = 'analytics.management.customDimensions.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TCustomDimensions) as TCustomDimensions;
+end;
+
+
+Function TManagementCustomDimensionsResource.List(accountId: string; webPropertyId: string; AQuery : TManagementCustomDimensionslistOptions) : TCustomDimensions;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,webPropertyId,_Q);
+end;
+
+Function TManagementCustomDimensionsResource.Patch(accountId: string; customDimensionId: string; webPropertyId: string; aCustomDimension : TCustomDimension; AQuery : string = '') : TCustomDimension;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}';
+  _Methodid   = 'analytics.management.customDimensions.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'customDimensionId',customDimensionId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aCustomDimension,TCustomDimension) as TCustomDimension;
+end;
+
+
+Function TManagementCustomDimensionsResource.Patch(accountId: string; customDimensionId: string; webPropertyId: string; aCustomDimension : TCustomDimension; AQuery : TManagementCustomDimensionspatchOptions) : TCustomDimension;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'ignoreCustomDataSourceLinks',AQuery.ignoreCustomDataSourceLinks);
+  Result:=Patch(accountId,customDimensionId,webPropertyId,aCustomDimension,_Q);
+end;
+
+Function TManagementCustomDimensionsResource.Update(accountId: string; customDimensionId: string; webPropertyId: string; aCustomDimension : TCustomDimension; AQuery : string = '') : TCustomDimension;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}';
+  _Methodid   = 'analytics.management.customDimensions.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'customDimensionId',customDimensionId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aCustomDimension,TCustomDimension) as TCustomDimension;
+end;
+
+
+Function TManagementCustomDimensionsResource.Update(accountId: string; customDimensionId: string; webPropertyId: string; aCustomDimension : TCustomDimension; AQuery : TManagementCustomDimensionsupdateOptions) : TCustomDimension;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'ignoreCustomDataSourceLinks',AQuery.ignoreCustomDataSourceLinks);
+  Result:=Update(accountId,customDimensionId,webPropertyId,aCustomDimension,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementCustomMetricsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementCustomMetricsResource.ResourceName : String;
+
+begin
+  Result:='customMetrics';
+end;
+
+Class Function TManagementCustomMetricsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TManagementCustomMetricsResource.Get(accountId: string; customMetricId: string; webPropertyId: string) : TCustomMetric;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}';
+  _Methodid   = 'analytics.management.customMetrics.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'customMetricId',customMetricId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TCustomMetric) as TCustomMetric;
+end;
+
+Function TManagementCustomMetricsResource.Insert(accountId: string; webPropertyId: string; aCustomMetric : TCustomMetric) : TCustomMetric;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics';
+  _Methodid   = 'analytics.management.customMetrics.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aCustomMetric,TCustomMetric) as TCustomMetric;
+end;
+
+Function TManagementCustomMetricsResource.List(accountId: string; webPropertyId: string; AQuery : string = '') : TCustomMetrics;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics';
+  _Methodid   = 'analytics.management.customMetrics.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TCustomMetrics) as TCustomMetrics;
+end;
+
+
+Function TManagementCustomMetricsResource.List(accountId: string; webPropertyId: string; AQuery : TManagementCustomMetricslistOptions) : TCustomMetrics;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,webPropertyId,_Q);
+end;
+
+Function TManagementCustomMetricsResource.Patch(accountId: string; customMetricId: string; webPropertyId: string; aCustomMetric : TCustomMetric; AQuery : string = '') : TCustomMetric;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}';
+  _Methodid   = 'analytics.management.customMetrics.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'customMetricId',customMetricId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aCustomMetric,TCustomMetric) as TCustomMetric;
+end;
+
+
+Function TManagementCustomMetricsResource.Patch(accountId: string; customMetricId: string; webPropertyId: string; aCustomMetric : TCustomMetric; AQuery : TManagementCustomMetricspatchOptions) : TCustomMetric;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'ignoreCustomDataSourceLinks',AQuery.ignoreCustomDataSourceLinks);
+  Result:=Patch(accountId,customMetricId,webPropertyId,aCustomMetric,_Q);
+end;
+
+Function TManagementCustomMetricsResource.Update(accountId: string; customMetricId: string; webPropertyId: string; aCustomMetric : TCustomMetric; AQuery : string = '') : TCustomMetric;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}';
+  _Methodid   = 'analytics.management.customMetrics.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'customMetricId',customMetricId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aCustomMetric,TCustomMetric) as TCustomMetric;
+end;
+
+
+Function TManagementCustomMetricsResource.Update(accountId: string; customMetricId: string; webPropertyId: string; aCustomMetric : TCustomMetric; AQuery : TManagementCustomMetricsupdateOptions) : TCustomMetric;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'ignoreCustomDataSourceLinks',AQuery.ignoreCustomDataSourceLinks);
+  Result:=Update(accountId,customMetricId,webPropertyId,aCustomMetric,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementExperimentsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementExperimentsResource.ResourceName : String;
+
+begin
+  Result:='experiments';
+end;
+
+Class Function TManagementExperimentsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Procedure TManagementExperimentsResource.Delete(accountId: string; experimentId: string; profileId: string; webPropertyId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}';
+  _Methodid   = 'analytics.management.experiments.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'experimentId',experimentId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TManagementExperimentsResource.Get(accountId: string; experimentId: string; profileId: string; webPropertyId: string) : TExperiment;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}';
+  _Methodid   = 'analytics.management.experiments.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'experimentId',experimentId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TExperiment) as TExperiment;
+end;
+
+Function TManagementExperimentsResource.Insert(accountId: string; profileId: string; webPropertyId: string; aExperiment : TExperiment) : TExperiment;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments';
+  _Methodid   = 'analytics.management.experiments.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aExperiment,TExperiment) as TExperiment;
+end;
+
+Function TManagementExperimentsResource.List(accountId: string; profileId: string; webPropertyId: string; AQuery : string = '') : TExperiments;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments';
+  _Methodid   = 'analytics.management.experiments.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TExperiments) as TExperiments;
+end;
+
+
+Function TManagementExperimentsResource.List(accountId: string; profileId: string; webPropertyId: string; AQuery : TManagementExperimentslistOptions) : TExperiments;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,profileId,webPropertyId,_Q);
+end;
+
+Function TManagementExperimentsResource.Patch(accountId: string; experimentId: string; profileId: string; webPropertyId: string; aExperiment : TExperiment) : TExperiment;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}';
+  _Methodid   = 'analytics.management.experiments.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'experimentId',experimentId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aExperiment,TExperiment) as TExperiment;
+end;
+
+Function TManagementExperimentsResource.Update(accountId: string; experimentId: string; profileId: string; webPropertyId: string; aExperiment : TExperiment) : TExperiment;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}';
+  _Methodid   = 'analytics.management.experiments.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'experimentId',experimentId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aExperiment,TExperiment) as TExperiment;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementFiltersResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementFiltersResource.ResourceName : String;
+
+begin
+  Result:='filters';
+end;
+
+Class Function TManagementFiltersResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TManagementFiltersResource.Delete(accountId: string; filterId: string) : TFilter;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'management/accounts/{accountId}/filters/{filterId}';
+  _Methodid   = 'analytics.management.filters.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'filterId',filterId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TFilter) as TFilter;
+end;
+
+Function TManagementFiltersResource.Get(accountId: string; filterId: string) : TFilter;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/filters/{filterId}';
+  _Methodid   = 'analytics.management.filters.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'filterId',filterId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TFilter) as TFilter;
+end;
+
+Function TManagementFiltersResource.Insert(accountId: string; aFilter : TFilter) : TFilter;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/filters';
+  _Methodid   = 'analytics.management.filters.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aFilter,TFilter) as TFilter;
+end;
+
+Function TManagementFiltersResource.List(accountId: string; AQuery : string = '') : TFilters;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/filters';
+  _Methodid   = 'analytics.management.filters.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TFilters) as TFilters;
+end;
+
+
+Function TManagementFiltersResource.List(accountId: string; AQuery : TManagementFilterslistOptions) : TFilters;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,_Q);
+end;
+
+Function TManagementFiltersResource.Patch(accountId: string; filterId: string; aFilter : TFilter) : TFilter;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = 'management/accounts/{accountId}/filters/{filterId}';
+  _Methodid   = 'analytics.management.filters.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'filterId',filterId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aFilter,TFilter) as TFilter;
+end;
+
+Function TManagementFiltersResource.Update(accountId: string; filterId: string; aFilter : TFilter) : TFilter;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'management/accounts/{accountId}/filters/{filterId}';
+  _Methodid   = 'analytics.management.filters.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'filterId',filterId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aFilter,TFilter) as TFilter;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementGoalsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementGoalsResource.ResourceName : String;
+
+begin
+  Result:='goals';
+end;
+
+Class Function TManagementGoalsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TManagementGoalsResource.Get(accountId: string; goalId: string; profileId: string; webPropertyId: string) : TGoal;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}';
+  _Methodid   = 'analytics.management.goals.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'goalId',goalId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TGoal) as TGoal;
+end;
+
+Function TManagementGoalsResource.Insert(accountId: string; profileId: string; webPropertyId: string; aGoal : TGoal) : TGoal;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals';
+  _Methodid   = 'analytics.management.goals.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aGoal,TGoal) as TGoal;
+end;
+
+Function TManagementGoalsResource.List(accountId: string; profileId: string; webPropertyId: string; AQuery : string = '') : TGoals;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals';
+  _Methodid   = 'analytics.management.goals.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TGoals) as TGoals;
+end;
+
+
+Function TManagementGoalsResource.List(accountId: string; profileId: string; webPropertyId: string; AQuery : TManagementGoalslistOptions) : TGoals;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,profileId,webPropertyId,_Q);
+end;
+
+Function TManagementGoalsResource.Patch(accountId: string; goalId: string; profileId: string; webPropertyId: string; aGoal : TGoal) : TGoal;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}';
+  _Methodid   = 'analytics.management.goals.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'goalId',goalId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aGoal,TGoal) as TGoal;
+end;
+
+Function TManagementGoalsResource.Update(accountId: string; goalId: string; profileId: string; webPropertyId: string; aGoal : TGoal) : TGoal;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}';
+  _Methodid   = 'analytics.management.goals.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'goalId',goalId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aGoal,TGoal) as TGoal;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementProfileFilterLinksResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementProfileFilterLinksResource.ResourceName : String;
+
+begin
+  Result:='profileFilterLinks';
+end;
+
+Class Function TManagementProfileFilterLinksResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Procedure TManagementProfileFilterLinksResource.Delete(accountId: string; linkId: string; profileId: string; webPropertyId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}';
+  _Methodid   = 'analytics.management.profileFilterLinks.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'linkId',linkId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TManagementProfileFilterLinksResource.Get(accountId: string; linkId: string; profileId: string; webPropertyId: string) : TProfileFilterLink;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}';
+  _Methodid   = 'analytics.management.profileFilterLinks.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'linkId',linkId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TProfileFilterLink) as TProfileFilterLink;
+end;
+
+Function TManagementProfileFilterLinksResource.Insert(accountId: string; profileId: string; webPropertyId: string; aProfileFilterLink : TProfileFilterLink) : TProfileFilterLink;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks';
+  _Methodid   = 'analytics.management.profileFilterLinks.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aProfileFilterLink,TProfileFilterLink) as TProfileFilterLink;
+end;
+
+Function TManagementProfileFilterLinksResource.List(accountId: string; profileId: string; webPropertyId: string; AQuery : string = '') : TProfileFilterLinks;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks';
+  _Methodid   = 'analytics.management.profileFilterLinks.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TProfileFilterLinks) as TProfileFilterLinks;
+end;
+
+
+Function TManagementProfileFilterLinksResource.List(accountId: string; profileId: string; webPropertyId: string; AQuery : TManagementProfileFilterLinkslistOptions) : TProfileFilterLinks;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,profileId,webPropertyId,_Q);
+end;
+
+Function TManagementProfileFilterLinksResource.Patch(accountId: string; linkId: string; profileId: string; webPropertyId: string; aProfileFilterLink : TProfileFilterLink) : TProfileFilterLink;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}';
+  _Methodid   = 'analytics.management.profileFilterLinks.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'linkId',linkId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aProfileFilterLink,TProfileFilterLink) as TProfileFilterLink;
+end;
+
+Function TManagementProfileFilterLinksResource.Update(accountId: string; linkId: string; profileId: string; webPropertyId: string; aProfileFilterLink : TProfileFilterLink) : TProfileFilterLink;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}';
+  _Methodid   = 'analytics.management.profileFilterLinks.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'linkId',linkId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aProfileFilterLink,TProfileFilterLink) as TProfileFilterLink;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementProfileUserLinksResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementProfileUserLinksResource.ResourceName : String;
+
+begin
+  Result:='profileUserLinks';
+end;
+
+Class Function TManagementProfileUserLinksResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Procedure TManagementProfileUserLinksResource.Delete(accountId: string; linkId: string; profileId: string; webPropertyId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks/{linkId}';
+  _Methodid   = 'analytics.management.profileUserLinks.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'linkId',linkId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TManagementProfileUserLinksResource.Insert(accountId: string; profileId: string; webPropertyId: string; aEntityUserLink : TEntityUserLink) : TEntityUserLink;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks';
+  _Methodid   = 'analytics.management.profileUserLinks.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aEntityUserLink,TEntityUserLink) as TEntityUserLink;
+end;
+
+Function TManagementProfileUserLinksResource.List(accountId: string; profileId: string; webPropertyId: string; AQuery : string = '') : TEntityUserLinks;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks';
+  _Methodid   = 'analytics.management.profileUserLinks.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TEntityUserLinks) as TEntityUserLinks;
+end;
+
+
+Function TManagementProfileUserLinksResource.List(accountId: string; profileId: string; webPropertyId: string; AQuery : TManagementProfileUserLinkslistOptions) : TEntityUserLinks;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,profileId,webPropertyId,_Q);
+end;
+
+Function TManagementProfileUserLinksResource.Update(accountId: string; linkId: string; profileId: string; webPropertyId: string; aEntityUserLink : TEntityUserLink) : TEntityUserLink;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks/{linkId}';
+  _Methodid   = 'analytics.management.profileUserLinks.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'linkId',linkId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aEntityUserLink,TEntityUserLink) as TEntityUserLink;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementProfilesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementProfilesResource.ResourceName : String;
+
+begin
+  Result:='profiles';
+end;
+
+Class Function TManagementProfilesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Procedure TManagementProfilesResource.Delete(accountId: string; profileId: string; webPropertyId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}';
+  _Methodid   = 'analytics.management.profiles.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TManagementProfilesResource.Get(accountId: string; profileId: string; webPropertyId: string) : TProfile;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}';
+  _Methodid   = 'analytics.management.profiles.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TProfile) as TProfile;
+end;
+
+Function TManagementProfilesResource.Insert(accountId: string; webPropertyId: string; aProfile : TProfile) : TProfile;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles';
+  _Methodid   = 'analytics.management.profiles.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aProfile,TProfile) as TProfile;
+end;
+
+Function TManagementProfilesResource.List(accountId: string; webPropertyId: string; AQuery : string = '') : TProfiles;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles';
+  _Methodid   = 'analytics.management.profiles.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TProfiles) as TProfiles;
+end;
+
+
+Function TManagementProfilesResource.List(accountId: string; webPropertyId: string; AQuery : TManagementProfileslistOptions) : TProfiles;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,webPropertyId,_Q);
+end;
+
+Function TManagementProfilesResource.Patch(accountId: string; profileId: string; webPropertyId: string; aProfile : TProfile) : TProfile;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}';
+  _Methodid   = 'analytics.management.profiles.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aProfile,TProfile) as TProfile;
+end;
+
+Function TManagementProfilesResource.Update(accountId: string; profileId: string; webPropertyId: string; aProfile : TProfile) : TProfile;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}';
+  _Methodid   = 'analytics.management.profiles.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aProfile,TProfile) as TProfile;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementSegmentsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementSegmentsResource.ResourceName : String;
+
+begin
+  Result:='segments';
+end;
+
+Class Function TManagementSegmentsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TManagementSegmentsResource.List(AQuery : string = '') : TSegments;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/segments';
+  _Methodid   = 'analytics.management.segments.list';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TSegments) as TSegments;
+end;
+
+
+Function TManagementSegmentsResource.List(AQuery : TManagementSegmentslistOptions) : TSegments;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementUnsampledReportsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementUnsampledReportsResource.ResourceName : String;
+
+begin
+  Result:='unsampledReports';
+end;
+
+Class Function TManagementUnsampledReportsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TManagementUnsampledReportsResource.Get(accountId: string; profileId: string; unsampledReportId: string; webPropertyId: string) : TUnsampledReport;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports/{unsampledReportId}';
+  _Methodid   = 'analytics.management.unsampledReports.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'unsampledReportId',unsampledReportId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TUnsampledReport) as TUnsampledReport;
+end;
+
+Function TManagementUnsampledReportsResource.Insert(accountId: string; profileId: string; webPropertyId: string; aUnsampledReport : TUnsampledReport) : TUnsampledReport;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports';
+  _Methodid   = 'analytics.management.unsampledReports.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aUnsampledReport,TUnsampledReport) as TUnsampledReport;
+end;
+
+Function TManagementUnsampledReportsResource.List(accountId: string; profileId: string; webPropertyId: string; AQuery : string = '') : TUnsampledReports;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports';
+  _Methodid   = 'analytics.management.unsampledReports.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'profileId',profileId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TUnsampledReports) as TUnsampledReports;
+end;
+
+
+Function TManagementUnsampledReportsResource.List(accountId: string; profileId: string; webPropertyId: string; AQuery : TManagementUnsampledReportslistOptions) : TUnsampledReports;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,profileId,webPropertyId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementUploadsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementUploadsResource.ResourceName : String;
+
+begin
+  Result:='uploads';
+end;
+
+Class Function TManagementUploadsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Procedure TManagementUploadsResource.DeleteUploadData(accountId: string; customDataSourceId: string; webPropertyId: string; aAnalyticsDataimportDeleteUploadDataRequest : TAnalyticsDataimportDeleteUploadDataRequest);
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/deleteUploadData';
+  _Methodid   = 'analytics.management.uploads.deleteUploadData';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'customDataSourceId',customDataSourceId,'webPropertyId',webPropertyId]);
+  ServiceCall(_HTTPMethod,_P,'',aAnalyticsDataimportDeleteUploadDataRequest,Nil);
+end;
+
+Function TManagementUploadsResource.Get(accountId: string; customDataSourceId: string; uploadId: string; webPropertyId: string) : TUpload;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/uploads/{uploadId}';
+  _Methodid   = 'analytics.management.uploads.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'customDataSourceId',customDataSourceId,'uploadId',uploadId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TUpload) as TUpload;
+end;
+
+Function TManagementUploadsResource.List(accountId: string; customDataSourceId: string; webPropertyId: string; AQuery : string = '') : TUploads;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/uploads';
+  _Methodid   = 'analytics.management.uploads.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'customDataSourceId',customDataSourceId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TUploads) as TUploads;
+end;
+
+
+Function TManagementUploadsResource.List(accountId: string; customDataSourceId: string; webPropertyId: string; AQuery : TManagementUploadslistOptions) : TUploads;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,customDataSourceId,webPropertyId,_Q);
+end;
+
+Function TManagementUploadsResource.UploadData(accountId: string; customDataSourceId: string; webPropertyId: string) : TUpload;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/uploads';
+  _Methodid   = 'analytics.management.uploads.uploadData';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'customDataSourceId',customDataSourceId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TUpload) as TUpload;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementWebPropertyAdWordsLinksResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementWebPropertyAdWordsLinksResource.ResourceName : String;
+
+begin
+  Result:='webPropertyAdWordsLinks';
+end;
+
+Class Function TManagementWebPropertyAdWordsLinksResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Procedure TManagementWebPropertyAdWordsLinksResource.Delete(accountId: string; webPropertyAdWordsLinkId: string; webPropertyId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}';
+  _Methodid   = 'analytics.management.webPropertyAdWordsLinks.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyAdWordsLinkId',webPropertyAdWordsLinkId,'webPropertyId',webPropertyId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TManagementWebPropertyAdWordsLinksResource.Get(accountId: string; webPropertyAdWordsLinkId: string; webPropertyId: string) : TEntityAdWordsLink;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}';
+  _Methodid   = 'analytics.management.webPropertyAdWordsLinks.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyAdWordsLinkId',webPropertyAdWordsLinkId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TEntityAdWordsLink) as TEntityAdWordsLink;
+end;
+
+Function TManagementWebPropertyAdWordsLinksResource.Insert(accountId: string; webPropertyId: string; aEntityAdWordsLink : TEntityAdWordsLink) : TEntityAdWordsLink;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks';
+  _Methodid   = 'analytics.management.webPropertyAdWordsLinks.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aEntityAdWordsLink,TEntityAdWordsLink) as TEntityAdWordsLink;
+end;
+
+Function TManagementWebPropertyAdWordsLinksResource.List(accountId: string; webPropertyId: string; AQuery : string = '') : TEntityAdWordsLinks;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks';
+  _Methodid   = 'analytics.management.webPropertyAdWordsLinks.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TEntityAdWordsLinks) as TEntityAdWordsLinks;
+end;
+
+
+Function TManagementWebPropertyAdWordsLinksResource.List(accountId: string; webPropertyId: string; AQuery : TManagementWebPropertyAdWordsLinkslistOptions) : TEntityAdWordsLinks;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,webPropertyId,_Q);
+end;
+
+Function TManagementWebPropertyAdWordsLinksResource.Patch(accountId: string; webPropertyAdWordsLinkId: string; webPropertyId: string; aEntityAdWordsLink : TEntityAdWordsLink) : TEntityAdWordsLink;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}';
+  _Methodid   = 'analytics.management.webPropertyAdWordsLinks.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyAdWordsLinkId',webPropertyAdWordsLinkId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aEntityAdWordsLink,TEntityAdWordsLink) as TEntityAdWordsLink;
+end;
+
+Function TManagementWebPropertyAdWordsLinksResource.Update(accountId: string; webPropertyAdWordsLinkId: string; webPropertyId: string; aEntityAdWordsLink : TEntityAdWordsLink) : TEntityAdWordsLink;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}';
+  _Methodid   = 'analytics.management.webPropertyAdWordsLinks.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyAdWordsLinkId',webPropertyAdWordsLinkId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aEntityAdWordsLink,TEntityAdWordsLink) as TEntityAdWordsLink;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementWebpropertiesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementWebpropertiesResource.ResourceName : String;
+
+begin
+  Result:='webproperties';
+end;
+
+Class Function TManagementWebpropertiesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TManagementWebpropertiesResource.Get(accountId: string; webPropertyId: string) : TWebproperty;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}';
+  _Methodid   = 'analytics.management.webproperties.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TWebproperty) as TWebproperty;
+end;
+
+Function TManagementWebpropertiesResource.Insert(accountId: string; aWebproperty : TWebproperty) : TWebproperty;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties';
+  _Methodid   = 'analytics.management.webproperties.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aWebproperty,TWebproperty) as TWebproperty;
+end;
+
+Function TManagementWebpropertiesResource.List(accountId: string; AQuery : string = '') : TWebproperties;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties';
+  _Methodid   = 'analytics.management.webproperties.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TWebproperties) as TWebproperties;
+end;
+
+
+Function TManagementWebpropertiesResource.List(accountId: string; AQuery : TManagementWebpropertieslistOptions) : TWebproperties;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,_Q);
+end;
+
+Function TManagementWebpropertiesResource.Patch(accountId: string; webPropertyId: string; aWebproperty : TWebproperty) : TWebproperty;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}';
+  _Methodid   = 'analytics.management.webproperties.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aWebproperty,TWebproperty) as TWebproperty;
+end;
+
+Function TManagementWebpropertiesResource.Update(accountId: string; webPropertyId: string; aWebproperty : TWebproperty) : TWebproperty;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}';
+  _Methodid   = 'analytics.management.webproperties.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aWebproperty,TWebproperty) as TWebproperty;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TManagementWebpropertyUserLinksResource
+  --------------------------------------------------------------------}
+
+
+Class Function TManagementWebpropertyUserLinksResource.ResourceName : String;
+
+begin
+  Result:='webpropertyUserLinks';
+end;
+
+Class Function TManagementWebpropertyUserLinksResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Procedure TManagementWebpropertyUserLinksResource.Delete(accountId: string; linkId: string; webPropertyId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks/{linkId}';
+  _Methodid   = 'analytics.management.webpropertyUserLinks.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'linkId',linkId,'webPropertyId',webPropertyId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TManagementWebpropertyUserLinksResource.Insert(accountId: string; webPropertyId: string; aEntityUserLink : TEntityUserLink) : TEntityUserLink;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks';
+  _Methodid   = 'analytics.management.webpropertyUserLinks.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aEntityUserLink,TEntityUserLink) as TEntityUserLink;
+end;
+
+Function TManagementWebpropertyUserLinksResource.List(accountId: string; webPropertyId: string; AQuery : string = '') : TEntityUserLinks;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks';
+  _Methodid   = 'analytics.management.webpropertyUserLinks.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TEntityUserLinks) as TEntityUserLinks;
+end;
+
+
+Function TManagementWebpropertyUserLinksResource.List(accountId: string; webPropertyId: string; AQuery : TManagementWebpropertyUserLinkslistOptions) : TEntityUserLinks;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'max-results',AQuery.maxresults);
+  AddToQuery(_Q,'start-index',AQuery.startindex);
+  Result:=List(accountId,webPropertyId,_Q);
+end;
+
+Function TManagementWebpropertyUserLinksResource.Update(accountId: string; linkId: string; webPropertyId: string; aEntityUserLink : TEntityUserLink) : TEntityUserLink;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks/{linkId}';
+  _Methodid   = 'analytics.management.webpropertyUserLinks.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'linkId',linkId,'webPropertyId',webPropertyId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aEntityUserLink,TEntityUserLink) as TEntityUserLink;
 end;
 
 
@@ -10193,6 +13581,472 @@ end;
 
 
 
+Function TManagementResource.GetAccountSummariesInstance : TManagementAccountSummariesResource;
+
+begin
+  if (FAccountSummariesInstance=Nil) then
+    FAccountSummariesInstance:=CreateAccountSummariesResource;
+  Result:=FAccountSummariesInstance;
+end;
+
+Function TManagementResource.CreateAccountSummariesResource : TManagementAccountSummariesResource;
+
+begin
+  Result:=CreateAccountSummariesResource(Self);
+end;
+
+
+Function TManagementResource.CreateAccountSummariesResource(AOwner : TComponent) : TManagementAccountSummariesResource;
+
+begin
+  Result:=TManagementAccountSummariesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetAccountUserLinksInstance : TManagementAccountUserLinksResource;
+
+begin
+  if (FAccountUserLinksInstance=Nil) then
+    FAccountUserLinksInstance:=CreateAccountUserLinksResource;
+  Result:=FAccountUserLinksInstance;
+end;
+
+Function TManagementResource.CreateAccountUserLinksResource : TManagementAccountUserLinksResource;
+
+begin
+  Result:=CreateAccountUserLinksResource(Self);
+end;
+
+
+Function TManagementResource.CreateAccountUserLinksResource(AOwner : TComponent) : TManagementAccountUserLinksResource;
+
+begin
+  Result:=TManagementAccountUserLinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetAccountsInstance : TManagementAccountsResource;
+
+begin
+  if (FAccountsInstance=Nil) then
+    FAccountsInstance:=CreateAccountsResource;
+  Result:=FAccountsInstance;
+end;
+
+Function TManagementResource.CreateAccountsResource : TManagementAccountsResource;
+
+begin
+  Result:=CreateAccountsResource(Self);
+end;
+
+
+Function TManagementResource.CreateAccountsResource(AOwner : TComponent) : TManagementAccountsResource;
+
+begin
+  Result:=TManagementAccountsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetCustomDataSourcesInstance : TManagementCustomDataSourcesResource;
+
+begin
+  if (FCustomDataSourcesInstance=Nil) then
+    FCustomDataSourcesInstance:=CreateCustomDataSourcesResource;
+  Result:=FCustomDataSourcesInstance;
+end;
+
+Function TManagementResource.CreateCustomDataSourcesResource : TManagementCustomDataSourcesResource;
+
+begin
+  Result:=CreateCustomDataSourcesResource(Self);
+end;
+
+
+Function TManagementResource.CreateCustomDataSourcesResource(AOwner : TComponent) : TManagementCustomDataSourcesResource;
+
+begin
+  Result:=TManagementCustomDataSourcesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetCustomDimensionsInstance : TManagementCustomDimensionsResource;
+
+begin
+  if (FCustomDimensionsInstance=Nil) then
+    FCustomDimensionsInstance:=CreateCustomDimensionsResource;
+  Result:=FCustomDimensionsInstance;
+end;
+
+Function TManagementResource.CreateCustomDimensionsResource : TManagementCustomDimensionsResource;
+
+begin
+  Result:=CreateCustomDimensionsResource(Self);
+end;
+
+
+Function TManagementResource.CreateCustomDimensionsResource(AOwner : TComponent) : TManagementCustomDimensionsResource;
+
+begin
+  Result:=TManagementCustomDimensionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetCustomMetricsInstance : TManagementCustomMetricsResource;
+
+begin
+  if (FCustomMetricsInstance=Nil) then
+    FCustomMetricsInstance:=CreateCustomMetricsResource;
+  Result:=FCustomMetricsInstance;
+end;
+
+Function TManagementResource.CreateCustomMetricsResource : TManagementCustomMetricsResource;
+
+begin
+  Result:=CreateCustomMetricsResource(Self);
+end;
+
+
+Function TManagementResource.CreateCustomMetricsResource(AOwner : TComponent) : TManagementCustomMetricsResource;
+
+begin
+  Result:=TManagementCustomMetricsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetExperimentsInstance : TManagementExperimentsResource;
+
+begin
+  if (FExperimentsInstance=Nil) then
+    FExperimentsInstance:=CreateExperimentsResource;
+  Result:=FExperimentsInstance;
+end;
+
+Function TManagementResource.CreateExperimentsResource : TManagementExperimentsResource;
+
+begin
+  Result:=CreateExperimentsResource(Self);
+end;
+
+
+Function TManagementResource.CreateExperimentsResource(AOwner : TComponent) : TManagementExperimentsResource;
+
+begin
+  Result:=TManagementExperimentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetFiltersInstance : TManagementFiltersResource;
+
+begin
+  if (FFiltersInstance=Nil) then
+    FFiltersInstance:=CreateFiltersResource;
+  Result:=FFiltersInstance;
+end;
+
+Function TManagementResource.CreateFiltersResource : TManagementFiltersResource;
+
+begin
+  Result:=CreateFiltersResource(Self);
+end;
+
+
+Function TManagementResource.CreateFiltersResource(AOwner : TComponent) : TManagementFiltersResource;
+
+begin
+  Result:=TManagementFiltersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetGoalsInstance : TManagementGoalsResource;
+
+begin
+  if (FGoalsInstance=Nil) then
+    FGoalsInstance:=CreateGoalsResource;
+  Result:=FGoalsInstance;
+end;
+
+Function TManagementResource.CreateGoalsResource : TManagementGoalsResource;
+
+begin
+  Result:=CreateGoalsResource(Self);
+end;
+
+
+Function TManagementResource.CreateGoalsResource(AOwner : TComponent) : TManagementGoalsResource;
+
+begin
+  Result:=TManagementGoalsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetProfileFilterLinksInstance : TManagementProfileFilterLinksResource;
+
+begin
+  if (FProfileFilterLinksInstance=Nil) then
+    FProfileFilterLinksInstance:=CreateProfileFilterLinksResource;
+  Result:=FProfileFilterLinksInstance;
+end;
+
+Function TManagementResource.CreateProfileFilterLinksResource : TManagementProfileFilterLinksResource;
+
+begin
+  Result:=CreateProfileFilterLinksResource(Self);
+end;
+
+
+Function TManagementResource.CreateProfileFilterLinksResource(AOwner : TComponent) : TManagementProfileFilterLinksResource;
+
+begin
+  Result:=TManagementProfileFilterLinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetProfileUserLinksInstance : TManagementProfileUserLinksResource;
+
+begin
+  if (FProfileUserLinksInstance=Nil) then
+    FProfileUserLinksInstance:=CreateProfileUserLinksResource;
+  Result:=FProfileUserLinksInstance;
+end;
+
+Function TManagementResource.CreateProfileUserLinksResource : TManagementProfileUserLinksResource;
+
+begin
+  Result:=CreateProfileUserLinksResource(Self);
+end;
+
+
+Function TManagementResource.CreateProfileUserLinksResource(AOwner : TComponent) : TManagementProfileUserLinksResource;
+
+begin
+  Result:=TManagementProfileUserLinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetProfilesInstance : TManagementProfilesResource;
+
+begin
+  if (FProfilesInstance=Nil) then
+    FProfilesInstance:=CreateProfilesResource;
+  Result:=FProfilesInstance;
+end;
+
+Function TManagementResource.CreateProfilesResource : TManagementProfilesResource;
+
+begin
+  Result:=CreateProfilesResource(Self);
+end;
+
+
+Function TManagementResource.CreateProfilesResource(AOwner : TComponent) : TManagementProfilesResource;
+
+begin
+  Result:=TManagementProfilesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetSegmentsInstance : TManagementSegmentsResource;
+
+begin
+  if (FSegmentsInstance=Nil) then
+    FSegmentsInstance:=CreateSegmentsResource;
+  Result:=FSegmentsInstance;
+end;
+
+Function TManagementResource.CreateSegmentsResource : TManagementSegmentsResource;
+
+begin
+  Result:=CreateSegmentsResource(Self);
+end;
+
+
+Function TManagementResource.CreateSegmentsResource(AOwner : TComponent) : TManagementSegmentsResource;
+
+begin
+  Result:=TManagementSegmentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetUnsampledReportsInstance : TManagementUnsampledReportsResource;
+
+begin
+  if (FUnsampledReportsInstance=Nil) then
+    FUnsampledReportsInstance:=CreateUnsampledReportsResource;
+  Result:=FUnsampledReportsInstance;
+end;
+
+Function TManagementResource.CreateUnsampledReportsResource : TManagementUnsampledReportsResource;
+
+begin
+  Result:=CreateUnsampledReportsResource(Self);
+end;
+
+
+Function TManagementResource.CreateUnsampledReportsResource(AOwner : TComponent) : TManagementUnsampledReportsResource;
+
+begin
+  Result:=TManagementUnsampledReportsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetUploadsInstance : TManagementUploadsResource;
+
+begin
+  if (FUploadsInstance=Nil) then
+    FUploadsInstance:=CreateUploadsResource;
+  Result:=FUploadsInstance;
+end;
+
+Function TManagementResource.CreateUploadsResource : TManagementUploadsResource;
+
+begin
+  Result:=CreateUploadsResource(Self);
+end;
+
+
+Function TManagementResource.CreateUploadsResource(AOwner : TComponent) : TManagementUploadsResource;
+
+begin
+  Result:=TManagementUploadsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetWebPropertyAdWordsLinksInstance : TManagementWebPropertyAdWordsLinksResource;
+
+begin
+  if (FWebPropertyAdWordsLinksInstance=Nil) then
+    FWebPropertyAdWordsLinksInstance:=CreateWebPropertyAdWordsLinksResource;
+  Result:=FWebPropertyAdWordsLinksInstance;
+end;
+
+Function TManagementResource.CreateWebPropertyAdWordsLinksResource : TManagementWebPropertyAdWordsLinksResource;
+
+begin
+  Result:=CreateWebPropertyAdWordsLinksResource(Self);
+end;
+
+
+Function TManagementResource.CreateWebPropertyAdWordsLinksResource(AOwner : TComponent) : TManagementWebPropertyAdWordsLinksResource;
+
+begin
+  Result:=TManagementWebPropertyAdWordsLinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetWebpropertiesInstance : TManagementWebpropertiesResource;
+
+begin
+  if (FWebpropertiesInstance=Nil) then
+    FWebpropertiesInstance:=CreateWebpropertiesResource;
+  Result:=FWebpropertiesInstance;
+end;
+
+Function TManagementResource.CreateWebpropertiesResource : TManagementWebpropertiesResource;
+
+begin
+  Result:=CreateWebpropertiesResource(Self);
+end;
+
+
+Function TManagementResource.CreateWebpropertiesResource(AOwner : TComponent) : TManagementWebpropertiesResource;
+
+begin
+  Result:=TManagementWebpropertiesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TManagementResource.GetWebpropertyUserLinksInstance : TManagementWebpropertyUserLinksResource;
+
+begin
+  if (FWebpropertyUserLinksInstance=Nil) then
+    FWebpropertyUserLinksInstance:=CreateWebpropertyUserLinksResource;
+  Result:=FWebpropertyUserLinksInstance;
+end;
+
+Function TManagementResource.CreateWebpropertyUserLinksResource : TManagementWebpropertyUserLinksResource;
+
+begin
+  Result:=CreateWebpropertyUserLinksResource(Self);
+end;
+
+
+Function TManagementResource.CreateWebpropertyUserLinksResource(AOwner : TComponent) : TManagementWebpropertyUserLinksResource;
+
+begin
+  Result:=TManagementWebpropertyUserLinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TMetadataColumnsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TMetadataColumnsResource.ResourceName : String;
+
+begin
+  Result:='columns';
+end;
+
+Class Function TMetadataColumnsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TanalyticsAPI;
+end;
+
+Function TMetadataColumnsResource.List(reportType: string) : TColumns;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'metadata/{reportType}/columns';
+  _Methodid   = 'analytics.metadata.columns.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['reportType',reportType]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TColumns) as TColumns;
+end;
+
+
+
 { --------------------------------------------------------------------
   TMetadataResource
   --------------------------------------------------------------------}
@@ -10208,6 +14062,30 @@ Class Function TMetadataResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TanalyticsAPI;
+end;
+
+
+
+Function TMetadataResource.GetColumnsInstance : TMetadataColumnsResource;
+
+begin
+  if (FColumnsInstance=Nil) then
+    FColumnsInstance:=CreateColumnsResource;
+  Result:=FColumnsInstance;
+end;
+
+Function TMetadataResource.CreateColumnsResource : TMetadataColumnsResource;
+
+begin
+  Result:=CreateColumnsResource(Self);
+end;
+
+
+Function TMetadataResource.CreateColumnsResource(AOwner : TComponent) : TMetadataColumnsResource;
+
+begin
+  Result:=TMetadataColumnsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -10315,7 +14193,7 @@ end;
 Class Function TAnalyticsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TAnalyticsAPI.APIbasePath : string;
@@ -10327,7 +14205,7 @@ end;
 Class Function TAnalyticsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/analytics/v3/';
+  Result:='https://www.googleapis.com:443/analytics/v3/';
 end;
 
 Class Function TAnalyticsAPI.APIProtocol : string;
@@ -10477,6 +14355,78 @@ begin
 end;
 
 
+Function TAnalyticsAPI.GetDataGaInstance : TDataGaResource;
+
+begin
+  if (FDataGaInstance=Nil) then
+    FDataGaInstance:=CreateDataGaResource;
+  Result:=FDataGaInstance;
+end;
+
+Function TAnalyticsAPI.CreateDataGaResource : TDataGaResource;
+
+begin
+  Result:=CreateDataGaResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateDataGaResource(AOwner : TComponent) : TDataGaResource;
+
+begin
+  Result:=TDataGaResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetDataMcfInstance : TDataMcfResource;
+
+begin
+  if (FDataMcfInstance=Nil) then
+    FDataMcfInstance:=CreateDataMcfResource;
+  Result:=FDataMcfInstance;
+end;
+
+Function TAnalyticsAPI.CreateDataMcfResource : TDataMcfResource;
+
+begin
+  Result:=CreateDataMcfResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateDataMcfResource(AOwner : TComponent) : TDataMcfResource;
+
+begin
+  Result:=TDataMcfResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetDataRealtimeInstance : TDataRealtimeResource;
+
+begin
+  if (FDataRealtimeInstance=Nil) then
+    FDataRealtimeInstance:=CreateDataRealtimeResource;
+  Result:=FDataRealtimeInstance;
+end;
+
+Function TAnalyticsAPI.CreateDataRealtimeResource : TDataRealtimeResource;
+
+begin
+  Result:=CreateDataRealtimeResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateDataRealtimeResource(AOwner : TComponent) : TDataRealtimeResource;
+
+begin
+  Result:=TDataRealtimeResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TAnalyticsAPI.GetDataInstance : TDataResource;
 
 begin
@@ -10496,7 +14446,439 @@ Function TAnalyticsAPI.CreateDataResource(AOwner : TComponent) : TDataResource;
 
 begin
   Result:=TDataResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementAccountSummariesInstance : TManagementAccountSummariesResource;
+
+begin
+  if (FManagementAccountSummariesInstance=Nil) then
+    FManagementAccountSummariesInstance:=CreateManagementAccountSummariesResource;
+  Result:=FManagementAccountSummariesInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementAccountSummariesResource : TManagementAccountSummariesResource;
+
+begin
+  Result:=CreateManagementAccountSummariesResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementAccountSummariesResource(AOwner : TComponent) : TManagementAccountSummariesResource;
+
+begin
+  Result:=TManagementAccountSummariesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementAccountUserLinksInstance : TManagementAccountUserLinksResource;
+
+begin
+  if (FManagementAccountUserLinksInstance=Nil) then
+    FManagementAccountUserLinksInstance:=CreateManagementAccountUserLinksResource;
+  Result:=FManagementAccountUserLinksInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementAccountUserLinksResource : TManagementAccountUserLinksResource;
+
+begin
+  Result:=CreateManagementAccountUserLinksResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementAccountUserLinksResource(AOwner : TComponent) : TManagementAccountUserLinksResource;
+
+begin
+  Result:=TManagementAccountUserLinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementAccountsInstance : TManagementAccountsResource;
+
+begin
+  if (FManagementAccountsInstance=Nil) then
+    FManagementAccountsInstance:=CreateManagementAccountsResource;
+  Result:=FManagementAccountsInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementAccountsResource : TManagementAccountsResource;
+
+begin
+  Result:=CreateManagementAccountsResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementAccountsResource(AOwner : TComponent) : TManagementAccountsResource;
+
+begin
+  Result:=TManagementAccountsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementCustomDataSourcesInstance : TManagementCustomDataSourcesResource;
+
+begin
+  if (FManagementCustomDataSourcesInstance=Nil) then
+    FManagementCustomDataSourcesInstance:=CreateManagementCustomDataSourcesResource;
+  Result:=FManagementCustomDataSourcesInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementCustomDataSourcesResource : TManagementCustomDataSourcesResource;
+
+begin
+  Result:=CreateManagementCustomDataSourcesResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementCustomDataSourcesResource(AOwner : TComponent) : TManagementCustomDataSourcesResource;
+
+begin
+  Result:=TManagementCustomDataSourcesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementCustomDimensionsInstance : TManagementCustomDimensionsResource;
+
+begin
+  if (FManagementCustomDimensionsInstance=Nil) then
+    FManagementCustomDimensionsInstance:=CreateManagementCustomDimensionsResource;
+  Result:=FManagementCustomDimensionsInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementCustomDimensionsResource : TManagementCustomDimensionsResource;
+
+begin
+  Result:=CreateManagementCustomDimensionsResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementCustomDimensionsResource(AOwner : TComponent) : TManagementCustomDimensionsResource;
+
+begin
+  Result:=TManagementCustomDimensionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementCustomMetricsInstance : TManagementCustomMetricsResource;
+
+begin
+  if (FManagementCustomMetricsInstance=Nil) then
+    FManagementCustomMetricsInstance:=CreateManagementCustomMetricsResource;
+  Result:=FManagementCustomMetricsInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementCustomMetricsResource : TManagementCustomMetricsResource;
+
+begin
+  Result:=CreateManagementCustomMetricsResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementCustomMetricsResource(AOwner : TComponent) : TManagementCustomMetricsResource;
+
+begin
+  Result:=TManagementCustomMetricsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementExperimentsInstance : TManagementExperimentsResource;
+
+begin
+  if (FManagementExperimentsInstance=Nil) then
+    FManagementExperimentsInstance:=CreateManagementExperimentsResource;
+  Result:=FManagementExperimentsInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementExperimentsResource : TManagementExperimentsResource;
+
+begin
+  Result:=CreateManagementExperimentsResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementExperimentsResource(AOwner : TComponent) : TManagementExperimentsResource;
+
+begin
+  Result:=TManagementExperimentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementFiltersInstance : TManagementFiltersResource;
+
+begin
+  if (FManagementFiltersInstance=Nil) then
+    FManagementFiltersInstance:=CreateManagementFiltersResource;
+  Result:=FManagementFiltersInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementFiltersResource : TManagementFiltersResource;
+
+begin
+  Result:=CreateManagementFiltersResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementFiltersResource(AOwner : TComponent) : TManagementFiltersResource;
+
+begin
+  Result:=TManagementFiltersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementGoalsInstance : TManagementGoalsResource;
+
+begin
+  if (FManagementGoalsInstance=Nil) then
+    FManagementGoalsInstance:=CreateManagementGoalsResource;
+  Result:=FManagementGoalsInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementGoalsResource : TManagementGoalsResource;
+
+begin
+  Result:=CreateManagementGoalsResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementGoalsResource(AOwner : TComponent) : TManagementGoalsResource;
+
+begin
+  Result:=TManagementGoalsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementProfileFilterLinksInstance : TManagementProfileFilterLinksResource;
+
+begin
+  if (FManagementProfileFilterLinksInstance=Nil) then
+    FManagementProfileFilterLinksInstance:=CreateManagementProfileFilterLinksResource;
+  Result:=FManagementProfileFilterLinksInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementProfileFilterLinksResource : TManagementProfileFilterLinksResource;
+
+begin
+  Result:=CreateManagementProfileFilterLinksResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementProfileFilterLinksResource(AOwner : TComponent) : TManagementProfileFilterLinksResource;
+
+begin
+  Result:=TManagementProfileFilterLinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementProfileUserLinksInstance : TManagementProfileUserLinksResource;
+
+begin
+  if (FManagementProfileUserLinksInstance=Nil) then
+    FManagementProfileUserLinksInstance:=CreateManagementProfileUserLinksResource;
+  Result:=FManagementProfileUserLinksInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementProfileUserLinksResource : TManagementProfileUserLinksResource;
+
+begin
+  Result:=CreateManagementProfileUserLinksResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementProfileUserLinksResource(AOwner : TComponent) : TManagementProfileUserLinksResource;
+
+begin
+  Result:=TManagementProfileUserLinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementProfilesInstance : TManagementProfilesResource;
+
+begin
+  if (FManagementProfilesInstance=Nil) then
+    FManagementProfilesInstance:=CreateManagementProfilesResource;
+  Result:=FManagementProfilesInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementProfilesResource : TManagementProfilesResource;
+
+begin
+  Result:=CreateManagementProfilesResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementProfilesResource(AOwner : TComponent) : TManagementProfilesResource;
+
+begin
+  Result:=TManagementProfilesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementSegmentsInstance : TManagementSegmentsResource;
+
+begin
+  if (FManagementSegmentsInstance=Nil) then
+    FManagementSegmentsInstance:=CreateManagementSegmentsResource;
+  Result:=FManagementSegmentsInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementSegmentsResource : TManagementSegmentsResource;
+
+begin
+  Result:=CreateManagementSegmentsResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementSegmentsResource(AOwner : TComponent) : TManagementSegmentsResource;
+
+begin
+  Result:=TManagementSegmentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementUnsampledReportsInstance : TManagementUnsampledReportsResource;
+
+begin
+  if (FManagementUnsampledReportsInstance=Nil) then
+    FManagementUnsampledReportsInstance:=CreateManagementUnsampledReportsResource;
+  Result:=FManagementUnsampledReportsInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementUnsampledReportsResource : TManagementUnsampledReportsResource;
+
+begin
+  Result:=CreateManagementUnsampledReportsResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementUnsampledReportsResource(AOwner : TComponent) : TManagementUnsampledReportsResource;
+
+begin
+  Result:=TManagementUnsampledReportsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementUploadsInstance : TManagementUploadsResource;
+
+begin
+  if (FManagementUploadsInstance=Nil) then
+    FManagementUploadsInstance:=CreateManagementUploadsResource;
+  Result:=FManagementUploadsInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementUploadsResource : TManagementUploadsResource;
+
+begin
+  Result:=CreateManagementUploadsResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementUploadsResource(AOwner : TComponent) : TManagementUploadsResource;
+
+begin
+  Result:=TManagementUploadsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementWebPropertyAdWordsLinksInstance : TManagementWebPropertyAdWordsLinksResource;
+
+begin
+  if (FManagementWebPropertyAdWordsLinksInstance=Nil) then
+    FManagementWebPropertyAdWordsLinksInstance:=CreateManagementWebPropertyAdWordsLinksResource;
+  Result:=FManagementWebPropertyAdWordsLinksInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementWebPropertyAdWordsLinksResource : TManagementWebPropertyAdWordsLinksResource;
+
+begin
+  Result:=CreateManagementWebPropertyAdWordsLinksResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementWebPropertyAdWordsLinksResource(AOwner : TComponent) : TManagementWebPropertyAdWordsLinksResource;
+
+begin
+  Result:=TManagementWebPropertyAdWordsLinksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementWebpropertiesInstance : TManagementWebpropertiesResource;
+
+begin
+  if (FManagementWebpropertiesInstance=Nil) then
+    FManagementWebpropertiesInstance:=CreateManagementWebpropertiesResource;
+  Result:=FManagementWebpropertiesInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementWebpropertiesResource : TManagementWebpropertiesResource;
+
+begin
+  Result:=CreateManagementWebpropertiesResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementWebpropertiesResource(AOwner : TComponent) : TManagementWebpropertiesResource;
+
+begin
+  Result:=TManagementWebpropertiesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetManagementWebpropertyUserLinksInstance : TManagementWebpropertyUserLinksResource;
+
+begin
+  if (FManagementWebpropertyUserLinksInstance=Nil) then
+    FManagementWebpropertyUserLinksInstance:=CreateManagementWebpropertyUserLinksResource;
+  Result:=FManagementWebpropertyUserLinksInstance;
+end;
+
+Function TAnalyticsAPI.CreateManagementWebpropertyUserLinksResource : TManagementWebpropertyUserLinksResource;
+
+begin
+  Result:=CreateManagementWebpropertyUserLinksResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateManagementWebpropertyUserLinksResource(AOwner : TComponent) : TManagementWebpropertyUserLinksResource;
+
+begin
+  Result:=TManagementWebpropertyUserLinksResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -10520,7 +14902,31 @@ Function TAnalyticsAPI.CreateManagementResource(AOwner : TComponent) : TManageme
 
 begin
   Result:=TManagementResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAnalyticsAPI.GetMetadataColumnsInstance : TMetadataColumnsResource;
+
+begin
+  if (FMetadataColumnsInstance=Nil) then
+    FMetadataColumnsInstance:=CreateMetadataColumnsResource;
+  Result:=FMetadataColumnsInstance;
+end;
+
+Function TAnalyticsAPI.CreateMetadataColumnsResource : TMetadataColumnsResource;
+
+begin
+  Result:=CreateMetadataColumnsResource(Self);
+end;
+
+
+Function TAnalyticsAPI.CreateMetadataColumnsResource(AOwner : TComponent) : TMetadataColumnsResource;
+
+begin
+  Result:=TMetadataColumnsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -10544,7 +14950,7 @@ Function TAnalyticsAPI.CreateMetadataResource(AOwner : TComponent) : TMetadataRe
 
 begin
   Result:=TMetadataResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -10568,7 +14974,7 @@ Function TAnalyticsAPI.CreateProvisioningResource(AOwner : TComponent) : TProvis
 
 begin
   Result:=TProvisioningResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

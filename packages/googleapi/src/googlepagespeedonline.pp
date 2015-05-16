@@ -13,7 +13,7 @@ unit googlepagespeedonline;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:56
+//Generated on: 16-5-15 08:53:06
 {$MODE objfpc}
 {$H+}
 
@@ -24,22 +24,22 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TPagespeedApiFormatStringV2 = class;
-  TPagespeedApiImageV2 = class;
-  TResult = class;
+  TPagespeedApiFormatStringV2 = Class;
+  TPagespeedApiImageV2 = Class;
+  TResult = Class;
   TPagespeedApiFormatStringV2Array = Array of TPagespeedApiFormatStringV2;
   TPagespeedApiImageV2Array = Array of TPagespeedApiImageV2;
   TResultArray = Array of TResult;
   //Anonymous types, using auto-generated names
-  TPagespeedApiFormatStringV2TypeargsItemTyperectsItem = class;
-  TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem = class;
-  TPagespeedApiFormatStringV2TypeargsItem = class;
-  TPagespeedApiImageV2Typepage_rect = class;
-  TResultTypeformattedResultsTyperuleResults = class;
-  TResultTypeformattedResults = class;
-  TResultTypepageStats = class;
-  TResultTyperuleGroups = class;
-  TResultTypeversion = class;
+  TPagespeedApiFormatStringV2TypeargsItemTyperectsItem = Class;
+  TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem = Class;
+  TPagespeedApiFormatStringV2TypeargsItem = Class;
+  TPagespeedApiImageV2Typepage_rect = Class;
+  TResultTypeformattedResultsTyperuleResults = Class;
+  TResultTypeformattedResults = Class;
+  TResultTypepageStats = Class;
+  TResultTyperuleGroups = Class;
+  TResultTypeversion = Class;
   TPagespeedApiFormatStringV2TypeargsItemTyperectsArray = Array of TPagespeedApiFormatStringV2TypeargsItemTyperectsItem;
   TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsArray = Array of TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem;
   TPagespeedApiFormatStringV2TypeargsArray = Array of TPagespeedApiFormatStringV2TypeargsItem;
@@ -113,6 +113,10 @@ type
     Procedure Setsecondary_rects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property key : String Index 0 Read Fkey Write Setkey;
@@ -135,6 +139,10 @@ type
     //Property setters
     Procedure Setargs(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsArray); virtual;
     Procedure Setformat(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property args : TPagespeedApiFormatStringV2TypeargsArray Index 0 Read Fargs Write Setargs;
@@ -344,6 +352,10 @@ type
     Procedure Setscreenshot(AIndex : Integer; AValue : TPagespeedApiImageV2); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; AValue : TResultTypeversion); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property formattedResults : TResultTypeformattedResults Index 0 Read FformattedResults Write SetformattedResults;
@@ -583,6 +595,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPagespeedApiFormatStringV2TypeargsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rects' : SetLength(Frects,ALength);
+  'secondary_rects' : SetLength(Fsecondary_rects,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -609,6 +635,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPagespeedApiFormatStringV2.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'args' : SetLength(Fargs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1048,6 +1087,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResult.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'invalidrules' : SetLength(FinvalidRules,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1171,7 +1223,7 @@ end;
 Class Function TPagespeedonlineAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TPagespeedonlineAPI.APIbasePath : string;
@@ -1183,7 +1235,7 @@ end;
 Class Function TPagespeedonlineAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/pagespeedonline/v2/';
+  Result:='https://www.googleapis.com:443/pagespeedonline/v2/';
 end;
 
 Class Function TPagespeedonlineAPI.APIProtocol : string;
@@ -1254,7 +1306,7 @@ Function TPagespeedonlineAPI.CreatePagespeedapiResource(AOwner : TComponent) : T
 
 begin
   Result:=TPagespeedapiResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

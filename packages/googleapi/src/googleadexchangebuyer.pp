@@ -13,7 +13,7 @@ unit googleadexchangebuyer;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:47
+//Generated on: 16-5-15 08:52:57
 {$MODE objfpc}
 {$H+}
 
@@ -24,19 +24,19 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAccount = class;
-  TAccountsList = class;
-  TBillingInfo = class;
-  TBillingInfoList = class;
-  TBudget = class;
-  TCreative = class;
-  TCreativesList = class;
-  TDirectDeal = class;
-  TDirectDealsList = class;
-  TPerformanceReport = class;
-  TPerformanceReportList = class;
-  TPretargetingConfig = class;
-  TPretargetingConfigList = class;
+  TAccount = Class;
+  TAccountsList = Class;
+  TBillingInfo = Class;
+  TBillingInfoList = Class;
+  TBudget = Class;
+  TCreative = Class;
+  TCreativesList = Class;
+  TDirectDeal = Class;
+  TDirectDealsList = Class;
+  TPerformanceReport = Class;
+  TPerformanceReportList = Class;
+  TPretargetingConfig = Class;
+  TPretargetingConfigList = Class;
   TAccountArray = Array of TAccount;
   TAccountsListArray = Array of TAccountsList;
   TBillingInfoArray = Array of TBillingInfo;
@@ -51,14 +51,14 @@ type
   TPretargetingConfigArray = Array of TPretargetingConfig;
   TPretargetingConfigListArray = Array of TPretargetingConfigList;
   //Anonymous types, using auto-generated names
-  TAccountTypebidderLocationItem = class;
-  TCreativeTypecorrectionsItem = class;
-  TCreativeTypedisapprovalReasonsItem = class;
-  TCreativeTypefilteringReasonsTypereasonsItem = class;
-  TCreativeTypefilteringReasons = class;
-  TPretargetingConfigTypedimensionsItem = class;
-  TPretargetingConfigTypeexcludedPlacementsItem = class;
-  TPretargetingConfigTypeplacementsItem = class;
+  TAccountTypebidderLocationItem = Class;
+  TCreativeTypecorrectionsItem = Class;
+  TCreativeTypedisapprovalReasonsItem = Class;
+  TCreativeTypefilteringReasonsTypereasonsItem = Class;
+  TCreativeTypefilteringReasons = Class;
+  TPretargetingConfigTypedimensionsItem = Class;
+  TPretargetingConfigTypeexcludedPlacementsItem = Class;
+  TPretargetingConfigTypeplacementsItem = Class;
   TAccountTypebidderLocationArray = Array of TAccountTypebidderLocationItem;
   TAccountsListTypeitemsArray = Array of TAccount;
   TBillingInfoListTypeitemsArray = Array of TBillingInfo;
@@ -119,6 +119,10 @@ type
     Procedure SetmaximumActiveCreatives(AIndex : Integer; AValue : integer); virtual;
     Procedure SetmaximumTotalQps(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumberActiveCreatives(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bidderLocation : TAccountTypebidderLocationArray Index 0 Read FbidderLocation Write SetbidderLocation;
@@ -144,6 +148,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TAccountsListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TAccountsListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -167,6 +175,10 @@ type
     Procedure SetaccountName(AIndex : Integer; AValue : String); virtual;
     Procedure SetbillingId(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : integer Index 0 Read FaccountId Write SetaccountId;
@@ -188,6 +200,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TBillingInfoListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TBillingInfoListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -238,6 +254,10 @@ type
     //Property setters
     Procedure Setdetails(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setreason(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property details : TStringArray Index 0 Read Fdetails Write Setdetails;
@@ -257,6 +277,10 @@ type
     //Property setters
     Procedure Setdetails(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setreason(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property details : TStringArray Index 0 Read Fdetails Write Setdetails;
@@ -295,6 +319,10 @@ type
     //Property setters
     Procedure Setdate(AIndex : Integer; AValue : String); virtual;
     Procedure Setreasons(AIndex : Integer; AValue : TCreativeTypefilteringReasonsTypereasonsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property date : String Index 0 Read Fdate Write Setdate;
@@ -350,6 +378,10 @@ type
     Procedure SetvendorType(AIndex : Integer; AValue : TintegerArray); virtual;
     Procedure SetvideoURL(AIndex : Integer; AValue : String); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property HTMLSnippet : String Index 0 Read FHTMLSnippet Write SetHTMLSnippet;
@@ -389,6 +421,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TCreativesListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TCreativesListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -458,6 +494,10 @@ type
     //Property setters
     Procedure SetdirectDeals(AIndex : Integer; AValue : TDirectDealsListTypedirectDealsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property directDeals : TDirectDealsListTypedirectDealsArray Index 0 Read FdirectDeals Write SetdirectDeals;
@@ -505,6 +545,10 @@ type
     Procedure SetquotaThrottledLimit(AIndex : Integer; AValue : double); virtual;
     Procedure Setregion(AIndex : Integer; AValue : String); virtual;
     Procedure Settimestamp(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property calloutStatusRate : TTJSONSchemaArray Index 0 Read FcalloutStatusRate Write SetcalloutStatusRate;
@@ -538,6 +582,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetperformanceReport(AIndex : Integer; AValue : TPerformanceReportListTypeperformanceReportArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -658,6 +706,10 @@ type
     Procedure SetuserLists(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetvendorTypes(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setverticals(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property billingId : String Index 0 Read FbillingId Write SetbillingId;
@@ -698,6 +750,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TPretargetingConfigListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TPretargetingConfigListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1018,6 +1074,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccount.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bidderlocation' : SetLength(FbidderLocation,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1044,6 +1113,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountsList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1092,6 +1174,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBillingInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'billingid' : SetLength(FbillingId,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1118,6 +1213,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBillingInfoList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1213,6 +1321,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCreativeTypecorrectionsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'details' : SetLength(Fdetails,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1239,6 +1360,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCreativeTypedisapprovalReasonsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'details' : SetLength(Fdetails,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1293,6 +1427,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCreativeTypefilteringReasons.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'reasons' : SetLength(Freasons,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1501,6 +1648,27 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCreative.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'advertiserid' : SetLength(FadvertiserId,ALength);
+  'attribute' : SetLength(Fattribute,ALength);
+  'clickthroughurl' : SetLength(FclickThroughUrl,ALength);
+  'corrections' : SetLength(Fcorrections,ALength);
+  'disapprovalreasons' : SetLength(FdisapprovalReasons,ALength);
+  'productcategories' : SetLength(FproductCategories,ALength);
+  'restrictedcategories' : SetLength(FrestrictedCategories,ALength);
+  'sensitivecategories' : SetLength(FsensitiveCategories,ALength);
+  'vendortype' : SetLength(FvendorType,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1537,6 +1705,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCreativesList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1691,6 +1872,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDirectDealsList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'directdeals' : SetLength(FdirectDeals,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1859,6 +2053,22 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPerformanceReport.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'calloutstatusrate' : SetLength(FcalloutStatusRate,ALength);
+  'cookiematcherstatusrate' : SetLength(FcookieMatcherStatusRate,ALength);
+  'creativestatusrate' : SetLength(FcreativeStatusRate,ALength);
+  'hostedmatchstatusrate' : SetLength(FhostedMatchStatusRate,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1885,6 +2095,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPerformanceReportList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'performancereport' : SetLength(FperformanceReport,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2226,6 +2449,36 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPretargetingConfig.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'creativetype' : SetLength(FcreativeType,ALength);
+  'dimensions' : SetLength(Fdimensions,ALength);
+  'excludedcontentlabels' : SetLength(FexcludedContentLabels,ALength);
+  'excludedgeocriteriaids' : SetLength(FexcludedGeoCriteriaIds,ALength);
+  'excludedplacements' : SetLength(FexcludedPlacements,ALength);
+  'excludeduserlists' : SetLength(FexcludedUserLists,ALength);
+  'excludedverticals' : SetLength(FexcludedVerticals,ALength);
+  'geocriteriaids' : SetLength(FgeoCriteriaIds,ALength);
+  'languages' : SetLength(Flanguages,ALength);
+  'mobilecarriers' : SetLength(FmobileCarriers,ALength);
+  'mobiledevices' : SetLength(FmobileDevices,ALength);
+  'mobileoperatingsystemversions' : SetLength(FmobileOperatingSystemVersions,ALength);
+  'placements' : SetLength(Fplacements,ALength);
+  'platforms' : SetLength(Fplatforms,ALength);
+  'supportedcreativeattributes' : SetLength(FsupportedCreativeAttributes,ALength);
+  'userlists' : SetLength(FuserLists,ALength);
+  'vendortypes' : SetLength(FvendorTypes,ALength);
+  'verticals' : SetLength(Fverticals,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2252,6 +2505,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPretargetingConfigList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2785,7 +3051,7 @@ end;
 Class Function TAdexchangebuyerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TAdexchangebuyerAPI.APIbasePath : string;
@@ -2797,7 +3063,7 @@ end;
 Class Function TAdexchangebuyerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/adexchangebuyer/v1.3/';
+  Result:='https://www.googleapis.com:443/adexchangebuyer/v1.3/';
 end;
 
 Class Function TAdexchangebuyerAPI.APIProtocol : string;
@@ -2879,7 +3145,7 @@ Function TAdexchangebuyerAPI.CreateAccountsResource(AOwner : TComponent) : TAcco
 
 begin
   Result:=TAccountsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2903,7 +3169,7 @@ Function TAdexchangebuyerAPI.CreateBillingInfoResource(AOwner : TComponent) : TB
 
 begin
   Result:=TBillingInfoResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2927,7 +3193,7 @@ Function TAdexchangebuyerAPI.CreateBudgetResource(AOwner : TComponent) : TBudget
 
 begin
   Result:=TBudgetResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2951,7 +3217,7 @@ Function TAdexchangebuyerAPI.CreateCreativesResource(AOwner : TComponent) : TCre
 
 begin
   Result:=TCreativesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2975,7 +3241,7 @@ Function TAdexchangebuyerAPI.CreateDirectDealsResource(AOwner : TComponent) : TD
 
 begin
   Result:=TDirectDealsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2999,7 +3265,7 @@ Function TAdexchangebuyerAPI.CreatePerformanceReportResource(AOwner : TComponent
 
 begin
   Result:=TPerformanceReportResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3023,7 +3289,7 @@ Function TAdexchangebuyerAPI.CreatePretargetingConfigResource(AOwner : TComponen
 
 begin
   Result:=TPretargetingConfigResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

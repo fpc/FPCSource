@@ -13,7 +13,7 @@ unit googlecustomsearch;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:51
+//Generated on: 16-5-15 08:53:01
 {$MODE objfpc}
 {$H+}
 
@@ -24,27 +24,27 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TContext = class;
-  TPromotion = class;
-  TQuery = class;
-  TResult = class;
-  TSearch = class;
+  TContext = Class;
+  TPromotion = Class;
+  TQuery = Class;
+  TResult = Class;
+  TSearch = Class;
   TContextArray = Array of TContext;
   TPromotionArray = Array of TPromotion;
   TQueryArray = Array of TQuery;
   TResultArray = Array of TResult;
   TSearchArray = Array of TSearch;
   //Anonymous types, using auto-generated names
-  TContextTypefacetsItemItem = class;
-  TPromotionTypebodyLinesItem = class;
-  TPromotionTypeimage = class;
-  TResultTypeimage = class;
-  TResultTypelabelsItem = class;
-  TResultTypepagemap = class;
-  TSearchTypequeries = class;
-  TSearchTypesearchInformation = class;
-  TSearchTypespelling = class;
-  TSearchTypeurl = class;
+  TContextTypefacetsItemItem = Class;
+  TPromotionTypebodyLinesItem = Class;
+  TPromotionTypeimage = Class;
+  TResultTypeimage = Class;
+  TResultTypelabelsItem = Class;
+  TResultTypepagemap = Class;
+  TSearchTypequeries = Class;
+  TSearchTypesearchInformation = Class;
+  TSearchTypespelling = Class;
+  TSearchTypeurl = Class;
   TContextTypefacetsItemArray = Array of TContextTypefacetsItemItem;
   TContextTypefacetsArray = Array of TContextTypefacetsItemArray;
   TPromotionTypebodyLinesArray = Array of TPromotionTypebodyLinesItem;
@@ -87,6 +87,10 @@ type
     //Property setters
     Procedure Setfacets(AIndex : Integer; AValue : TContextTypefacetsArray); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property facets : TContextTypefacetsArray Index 0 Read Ffacets Write Setfacets;
@@ -161,6 +165,10 @@ type
     Procedure Setimage(AIndex : Integer; AValue : TPromotionTypeimage); virtual;
     Procedure Setlink(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bodyLines : TPromotionTypebodyLinesArray Index 0 Read FbodyLines Write SetbodyLines;
@@ -404,6 +412,10 @@ type
     Procedure Setpagemap(AIndex : Integer; AValue : TResultTypepagemap); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property cacheId : String Index 0 Read FcacheId Write SetcacheId;
@@ -526,6 +538,10 @@ type
     Procedure SetsearchInformation(AIndex : Integer; AValue : TSearchTypesearchInformation); virtual;
     Procedure Setspelling(AIndex : Integer; AValue : TSearchTypespelling); virtual;
     Procedure Seturl(AIndex : Integer; AValue : TSearchTypeurl); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property context : TContext Index 0 Read Fcontext Write Setcontext;
@@ -702,6 +718,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TContext.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'facets' : SetLength(Ffacets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -852,6 +881,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPromotion.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bodylines' : SetLength(FbodyLines,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1514,6 +1556,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResult.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'labels' : SetLength(Flabels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1726,6 +1781,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearch.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  'promotions' : SetLength(Fpromotions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1875,7 +1944,7 @@ end;
 Class Function TCustomsearchAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TCustomsearchAPI.APIbasePath : string;
@@ -1887,7 +1956,7 @@ end;
 Class Function TCustomsearchAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/customsearch/';
+  Result:='https://www.googleapis.com:443/customsearch/';
 end;
 
 Class Function TCustomsearchAPI.APIProtocol : string;
@@ -1961,7 +2030,7 @@ Function TCustomsearchAPI.CreateCseResource(AOwner : TComponent) : TCseResource;
 
 begin
   Result:=TCseResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -13,7 +13,7 @@ unit googlereplicapool;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:57
+//Generated on: 16-5-15 08:53:07
 {$MODE objfpc}
 {$H+}
 
@@ -24,15 +24,15 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TInstanceGroupManager = class;
-  TInstanceGroupManagerList = class;
-  TInstanceGroupManagersAbandonInstancesRequest = class;
-  TInstanceGroupManagersDeleteInstancesRequest = class;
-  TInstanceGroupManagersRecreateInstancesRequest = class;
-  TInstanceGroupManagersSetInstanceTemplateRequest = class;
-  TInstanceGroupManagersSetTargetPoolsRequest = class;
-  TOperation = class;
-  TOperationList = class;
+  TInstanceGroupManager = Class;
+  TInstanceGroupManagerList = Class;
+  TInstanceGroupManagersAbandonInstancesRequest = Class;
+  TInstanceGroupManagersDeleteInstancesRequest = Class;
+  TInstanceGroupManagersRecreateInstancesRequest = Class;
+  TInstanceGroupManagersSetInstanceTemplateRequest = Class;
+  TInstanceGroupManagersSetTargetPoolsRequest = Class;
+  TOperation = Class;
+  TOperationList = Class;
   TInstanceGroupManagerArray = Array of TInstanceGroupManager;
   TInstanceGroupManagerListArray = Array of TInstanceGroupManagerList;
   TInstanceGroupManagersAbandonInstancesRequestArray = Array of TInstanceGroupManagersAbandonInstancesRequest;
@@ -43,10 +43,10 @@ type
   TOperationArray = Array of TOperation;
   TOperationListArray = Array of TOperationList;
   //Anonymous types, using auto-generated names
-  TOperationTypeerrorTypeerrorsItem = class;
-  TOperationTypeerror = class;
-  TOperationTypewarningsItemTypedataItem = class;
-  TOperationTypewarningsItem = class;
+  TOperationTypeerrorTypeerrorsItem = Class;
+  TOperationTypeerror = Class;
+  TOperationTypewarningsItemTypedataItem = Class;
+  TOperationTypewarningsItem = Class;
   TInstanceGroupManagerListTypeitemsArray = Array of TInstanceGroupManager;
   TOperationTypeerrorTypeerrorsArray = Array of TOperationTypeerrorTypeerrorsItem;
   TOperationTypewarningsItemTypedataArray = Array of TOperationTypewarningsItemTypedataItem;
@@ -87,6 +87,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure SettargetPools(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SettargetSize(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property baseInstanceName : String Index 0 Read FbaseInstanceName Write SetbaseInstanceName;
@@ -123,6 +127,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -143,6 +151,10 @@ type
   Protected
     //Property setters
     Procedure Setinstances(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property instances : TStringArray Index 0 Read Finstances Write Setinstances;
@@ -159,6 +171,10 @@ type
   Protected
     //Property setters
     Procedure Setinstances(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property instances : TStringArray Index 0 Read Finstances Write Setinstances;
@@ -175,6 +191,10 @@ type
   Protected
     //Property setters
     Procedure Setinstances(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property instances : TStringArray Index 0 Read Finstances Write Setinstances;
@@ -209,6 +229,10 @@ type
     //Property setters
     Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
     Procedure SettargetPools(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property fingerprint : String Index 0 Read Ffingerprint Write Setfingerprint;
@@ -248,6 +272,10 @@ type
   Protected
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
@@ -287,6 +315,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -347,6 +379,10 @@ type
     Procedure Setuser(AIndex : Integer; AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
     Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
@@ -392,6 +428,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -651,6 +691,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManager.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'targetpools' : SetLength(FtargetPools,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -708,6 +761,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagerList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -724,6 +790,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagersAbandonInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -742,6 +821,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagersDeleteInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -758,6 +850,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagersRecreateInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -802,6 +907,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagersSetTargetPoolsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'targetpools' : SetLength(FtargetPools,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -856,6 +974,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -920,6 +1051,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1148,6 +1292,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1204,6 +1361,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1551,7 +1721,7 @@ end;
 Class Function TReplicapoolAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TReplicapoolAPI.APIbasePath : string;
@@ -1563,7 +1733,7 @@ end;
 Class Function TReplicapoolAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/replicapool/v1beta2/projects/';
+  Result:='https://www.googleapis.com:443/replicapool/v1beta2/projects/';
 end;
 
 Class Function TReplicapoolAPI.APIProtocol : string;
@@ -1641,7 +1811,7 @@ Function TReplicapoolAPI.CreateInstanceGroupManagersResource(AOwner : TComponent
 
 begin
   Result:=TInstanceGroupManagersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1665,7 +1835,7 @@ Function TReplicapoolAPI.CreateZoneOperationsResource(AOwner : TComponent) : TZo
 
 begin
   Result:=TZoneOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -13,7 +13,7 @@ unit googlegames;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:54
+//Generated on: 16-5-15 08:53:03
 {$MODE objfpc}
 {$H+}
 
@@ -24,102 +24,102 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAchievementDefinition = class;
-  TAchievementDefinitionsListResponse = class;
-  TAchievementIncrementResponse = class;
-  TAchievementRevealResponse = class;
-  TAchievementSetStepsAtLeastResponse = class;
-  TAchievementUnlockResponse = class;
-  TAchievementUpdateMultipleRequest = class;
-  TAchievementUpdateMultipleResponse = class;
-  TAchievementUpdateRequest = class;
-  TAchievementUpdateResponse = class;
-  TAggregateStats = class;
-  TAnonymousPlayer = class;
-  TApplication = class;
-  TApplicationCategory = class;
-  TCategory = class;
-  TCategoryListResponse = class;
-  TEventBatchRecordFailure = class;
-  TEventChild = class;
-  TEventDefinition = class;
-  TEventDefinitionListResponse = class;
-  TEventPeriodRange = class;
-  TEventPeriodUpdate = class;
-  TEventRecordFailure = class;
-  TEventRecordRequest = class;
-  TEventUpdateRequest = class;
-  TEventUpdateResponse = class;
-  TGamesAchievementIncrement = class;
-  TGamesAchievementSetStepsAtLeast = class;
-  TImageAsset = class;
-  TInstance = class;
-  TInstanceAndroidDetails = class;
-  TInstanceIosDetails = class;
-  TInstanceWebDetails = class;
-  TLeaderboard = class;
-  TLeaderboardEntry = class;
-  TLeaderboardListResponse = class;
-  TLeaderboardScoreRank = class;
-  TLeaderboardScores = class;
-  TMetagameConfig = class;
-  TNetworkDiagnostics = class;
-  TParticipantResult = class;
-  TPeerChannelDiagnostics = class;
-  TPeerSessionDiagnostics = class;
-  TPlayed = class;
-  TPlayer = class;
-  TPlayerAchievement = class;
-  TPlayerAchievementListResponse = class;
-  TPlayerEvent = class;
-  TPlayerEventListResponse = class;
-  TPlayerExperienceInfo = class;
-  TPlayerLeaderboardScore = class;
-  TPlayerLeaderboardScoreListResponse = class;
-  TPlayerLevel = class;
-  TPlayerListResponse = class;
-  TPlayerScore = class;
-  TPlayerScoreListResponse = class;
-  TPlayerScoreResponse = class;
-  TPlayerScoreSubmissionList = class;
-  TPushToken = class;
-  TPushTokenId = class;
-  TQuest = class;
-  TQuestContribution = class;
-  TQuestCriterion = class;
-  TQuestListResponse = class;
-  TQuestMilestone = class;
-  TRevisionCheckResponse = class;
-  TRoom = class;
-  TRoomAutoMatchStatus = class;
-  TRoomAutoMatchingCriteria = class;
-  TRoomClientAddress = class;
-  TRoomCreateRequest = class;
-  TRoomJoinRequest = class;
-  TRoomLeaveDiagnostics = class;
-  TRoomLeaveRequest = class;
-  TRoomList = class;
-  TRoomModification = class;
-  TRoomP2PStatus = class;
-  TRoomP2PStatuses = class;
-  TRoomParticipant = class;
-  TRoomStatus = class;
-  TScoreSubmission = class;
-  TSnapshot = class;
-  TSnapshotImage = class;
-  TSnapshotListResponse = class;
-  TTurnBasedAutoMatchingCriteria = class;
-  TTurnBasedMatch = class;
-  TTurnBasedMatchCreateRequest = class;
-  TTurnBasedMatchData = class;
-  TTurnBasedMatchDataRequest = class;
-  TTurnBasedMatchList = class;
-  TTurnBasedMatchModification = class;
-  TTurnBasedMatchParticipant = class;
-  TTurnBasedMatchRematch = class;
-  TTurnBasedMatchResults = class;
-  TTurnBasedMatchSync = class;
-  TTurnBasedMatchTurn = class;
+  TAchievementDefinition = Class;
+  TAchievementDefinitionsListResponse = Class;
+  TAchievementIncrementResponse = Class;
+  TAchievementRevealResponse = Class;
+  TAchievementSetStepsAtLeastResponse = Class;
+  TAchievementUnlockResponse = Class;
+  TAchievementUpdateMultipleRequest = Class;
+  TAchievementUpdateMultipleResponse = Class;
+  TAchievementUpdateRequest = Class;
+  TAchievementUpdateResponse = Class;
+  TAggregateStats = Class;
+  TAnonymousPlayer = Class;
+  TApplication = Class;
+  TApplicationCategory = Class;
+  TCategory = Class;
+  TCategoryListResponse = Class;
+  TEventBatchRecordFailure = Class;
+  TEventChild = Class;
+  TEventDefinition = Class;
+  TEventDefinitionListResponse = Class;
+  TEventPeriodRange = Class;
+  TEventPeriodUpdate = Class;
+  TEventRecordFailure = Class;
+  TEventRecordRequest = Class;
+  TEventUpdateRequest = Class;
+  TEventUpdateResponse = Class;
+  TGamesAchievementIncrement = Class;
+  TGamesAchievementSetStepsAtLeast = Class;
+  TImageAsset = Class;
+  TInstance = Class;
+  TInstanceAndroidDetails = Class;
+  TInstanceIosDetails = Class;
+  TInstanceWebDetails = Class;
+  TLeaderboard = Class;
+  TLeaderboardEntry = Class;
+  TLeaderboardListResponse = Class;
+  TLeaderboardScoreRank = Class;
+  TLeaderboardScores = Class;
+  TMetagameConfig = Class;
+  TNetworkDiagnostics = Class;
+  TParticipantResult = Class;
+  TPeerChannelDiagnostics = Class;
+  TPeerSessionDiagnostics = Class;
+  TPlayed = Class;
+  TPlayer = Class;
+  TPlayerAchievement = Class;
+  TPlayerAchievementListResponse = Class;
+  TPlayerEvent = Class;
+  TPlayerEventListResponse = Class;
+  TPlayerExperienceInfo = Class;
+  TPlayerLeaderboardScore = Class;
+  TPlayerLeaderboardScoreListResponse = Class;
+  TPlayerLevel = Class;
+  TPlayerListResponse = Class;
+  TPlayerScore = Class;
+  TPlayerScoreListResponse = Class;
+  TPlayerScoreResponse = Class;
+  TPlayerScoreSubmissionList = Class;
+  TPushToken = Class;
+  TPushTokenId = Class;
+  TQuest = Class;
+  TQuestContribution = Class;
+  TQuestCriterion = Class;
+  TQuestListResponse = Class;
+  TQuestMilestone = Class;
+  TRevisionCheckResponse = Class;
+  TRoom = Class;
+  TRoomAutoMatchStatus = Class;
+  TRoomAutoMatchingCriteria = Class;
+  TRoomClientAddress = Class;
+  TRoomCreateRequest = Class;
+  TRoomJoinRequest = Class;
+  TRoomLeaveDiagnostics = Class;
+  TRoomLeaveRequest = Class;
+  TRoomList = Class;
+  TRoomModification = Class;
+  TRoomP2PStatus = Class;
+  TRoomP2PStatuses = Class;
+  TRoomParticipant = Class;
+  TRoomStatus = Class;
+  TScoreSubmission = Class;
+  TSnapshot = Class;
+  TSnapshotImage = Class;
+  TSnapshotListResponse = Class;
+  TTurnBasedAutoMatchingCriteria = Class;
+  TTurnBasedMatch = Class;
+  TTurnBasedMatchCreateRequest = Class;
+  TTurnBasedMatchData = Class;
+  TTurnBasedMatchDataRequest = Class;
+  TTurnBasedMatchList = Class;
+  TTurnBasedMatchModification = Class;
+  TTurnBasedMatchParticipant = Class;
+  TTurnBasedMatchRematch = Class;
+  TTurnBasedMatchResults = Class;
+  TTurnBasedMatchSync = Class;
+  TTurnBasedMatchTurn = Class;
   TAchievementDefinitionArray = Array of TAchievementDefinition;
   TAchievementDefinitionsListResponseArray = Array of TAchievementDefinitionsListResponse;
   TAchievementIncrementResponseArray = Array of TAchievementIncrementResponse;
@@ -217,8 +217,8 @@ type
   TTurnBasedMatchSyncArray = Array of TTurnBasedMatchSync;
   TTurnBasedMatchTurnArray = Array of TTurnBasedMatchTurn;
   //Anonymous types, using auto-generated names
-  TPlayerTypename = class;
-  TPushTokenIdTypeios = class;
+  TPlayerTypename = Class;
+  TPushTokenIdTypeios = Class;
   TAchievementDefinitionsListResponseTypeitemsArray = Array of TAchievementDefinition;
   TAchievementUpdateMultipleRequestTypeupdatesArray = Array of TAchievementUpdateRequest;
   TAchievementUpdateMultipleResponseTypeupdatedAchievementsArray = Array of TAchievementUpdateResponse;
@@ -324,6 +324,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TAchievementDefinitionsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TAchievementDefinitionsListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -426,6 +430,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdates(AIndex : Integer; AValue : TAchievementUpdateMultipleRequestTypeupdatesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -445,6 +453,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetupdatedAchievements(AIndex : Integer; AValue : TAchievementUpdateMultipleResponseTypeupdatedAchievementsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -595,6 +607,10 @@ type
     Procedure Setleaderboard_count(AIndex : Integer; AValue : integer); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetthemeColor(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property achievement_count : integer Index 0 Read Fachievement_count Write Setachievement_count;
@@ -671,6 +687,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TCategoryListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TCategoryListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -744,6 +764,10 @@ type
     Procedure SetisDefaultImageUrl(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property childEvents : TEventDefinitionTypechildEventsArray Index 0 Read FchildEvents Write SetchildEvents;
@@ -771,6 +795,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TEventDefinitionListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TEventDefinitionListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -815,6 +843,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SettimePeriod(AIndex : Integer; AValue : TEventPeriodRange); virtual;
     Procedure Setupdates(AIndex : Integer; AValue : TEventPeriodUpdateTypeupdatesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -861,6 +893,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetrequestId(AIndex : Integer; AValue : String); virtual;
     Procedure SettimePeriods(AIndex : Integer; AValue : TEventRecordRequestTypetimePeriodsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property currentTimeMillis : String Index 0 Read FcurrentTimeMillis Write SetcurrentTimeMillis;
@@ -908,6 +944,10 @@ type
     Procedure SeteventFailures(AIndex : Integer; AValue : TEventUpdateResponseTypeeventFailuresArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetplayerEvents(AIndex : Integer; AValue : TEventUpdateResponseTypeplayerEventsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property batchFailures : TEventUpdateResponseTypebatchFailuresArray Index 0 Read FbatchFailures Write SetbatchFailures;
@@ -1192,6 +1232,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TLeaderboardListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TLeaderboardListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1248,6 +1292,10 @@ type
     Procedure SetnumScores(AIndex : Integer; AValue : String); virtual;
     Procedure SetplayerScore(AIndex : Integer; AValue : TLeaderboardEntry); virtual;
     Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TLeaderboardScoresTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1273,6 +1321,10 @@ type
     Procedure SetcurrentVersion(AIndex : Integer; AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetplayerLevels(AIndex : Integer; AValue : TMetagameConfigTypeplayerLevelsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property currentVersion : integer Index 0 Read FcurrentVersion Write SetcurrentVersion;
@@ -1531,6 +1583,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TPlayerAchievementListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TPlayerAchievementListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1581,6 +1637,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TPlayerEventListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TPlayerEventListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1673,6 +1733,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setplayer(AIndex : Integer; AValue : TPlayer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TPlayerLeaderboardScoreListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1721,6 +1785,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TPlayerListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TPlayerListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1769,6 +1837,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetsubmittedScores(AIndex : Integer; AValue : TPlayerScoreListResponseTypesubmittedScoresArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1796,6 +1868,10 @@ type
     Procedure SetleaderboardId(AIndex : Integer; AValue : String); virtual;
     Procedure SetscoreTag(AIndex : Integer; AValue : String); virtual;
     Procedure SetunbeatenScores(AIndex : Integer; AValue : TPlayerScoreResponseTypeunbeatenScoresArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property beatenScoreTimeSpans : TStringArray Index 0 Read FbeatenScoreTimeSpans Write SetbeatenScoreTimeSpans;
@@ -1819,6 +1895,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setscores(AIndex : Integer; AValue : TPlayerScoreSubmissionListTypescoresArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1929,6 +2009,10 @@ type
     Procedure SetnotifyTimestampMillis(AIndex : Integer; AValue : String); virtual;
     Procedure SetstartTimestampMillis(AIndex : Integer; AValue : String); virtual;
     Procedure Setstate(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property acceptedTimestampMillis : String Index 0 Read FacceptedTimestampMillis Write SetacceptedTimestampMillis;
@@ -2014,6 +2098,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TQuestListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TQuestListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2040,6 +2128,10 @@ type
     Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setstate(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property completionRewardData : String Index 0 Read FcompletionRewardData Write SetcompletionRewardData;
@@ -2106,6 +2198,10 @@ type
     Procedure SetroomStatusVersion(AIndex : Integer; AValue : integer); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure Setvariant(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property applicationId : String Index 0 Read FapplicationId Write SetapplicationId;
@@ -2211,6 +2307,10 @@ type
     Procedure SetnetworkDiagnostics(AIndex : Integer; AValue : TNetworkDiagnostics); virtual;
     Procedure SetrequestId(AIndex : Integer; AValue : String); virtual;
     Procedure Setvariant(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property autoMatchingCriteria : TRoomAutoMatchingCriteria Index 0 Read FautoMatchingCriteria Write SetautoMatchingCriteria;
@@ -2240,6 +2340,10 @@ type
     Procedure SetclientAddress(AIndex : Integer; AValue : TRoomClientAddress); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnetworkDiagnostics(AIndex : Integer; AValue : TNetworkDiagnostics); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property capabilities : TStringArray Index 0 Read Fcapabilities Write Setcapabilities;
@@ -2273,6 +2377,10 @@ type
     Procedure SetnetworkOperatorName(AIndex : Integer; AValue : String); virtual;
     Procedure SetpeerSession(AIndex : Integer; AValue : TRoomLeaveDiagnosticsTypepeerSessionArray); virtual;
     Procedure SetsocketsUsed(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property androidNetworkSubtype : integer Index 0 Read FandroidNetworkSubtype Write SetandroidNetworkSubtype;
@@ -2322,6 +2430,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TRoomListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TRoomListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2398,6 +2510,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdates(AIndex : Integer; AValue : TRoomP2PStatusesTypeupdatesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -2433,6 +2549,10 @@ type
     Procedure SetleaveReason(AIndex : Integer; AValue : String); virtual;
     Procedure Setplayer(AIndex : Integer; AValue : TPlayer); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property autoMatched : boolean Index 0 Read FautoMatched Write SetautoMatched;
@@ -2468,6 +2588,10 @@ type
     Procedure SetroomId(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure SetstatusVersion(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property autoMatchingStatus : TRoomAutoMatchStatus Index 0 Read FautoMatchingStatus Write SetautoMatchingStatus;
@@ -2596,6 +2720,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TSnapshotListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TSnapshotListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2677,6 +2805,10 @@ type
     Procedure SetuserMatchStatus(AIndex : Integer; AValue : String); virtual;
     Procedure Setvariant(AIndex : Integer; AValue : integer); virtual;
     Procedure SetwithParticipantId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property applicationId : String Index 0 Read FapplicationId Write SetapplicationId;
@@ -2720,6 +2852,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetrequestId(AIndex : Integer; AValue : String); virtual;
     Procedure Setvariant(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property autoMatchingCriteria : TTurnBasedAutoMatchingCriteria Index 0 Read FautoMatchingCriteria Write SetautoMatchingCriteria;
@@ -2785,6 +2921,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TTurnBasedMatchListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TTurnBasedMatchListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2884,6 +3024,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetmatchVersion(AIndex : Integer; AValue : integer); virtual;
     Procedure Setresults(AIndex : Integer; AValue : TTurnBasedMatchResultsTyperesultsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property data : TTurnBasedMatchDataRequest Index 0 Read Fdata Write Setdata;
@@ -2909,6 +3053,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetmoreAvailable(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TTurnBasedMatchSyncTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2936,6 +3084,10 @@ type
     Procedure SetmatchVersion(AIndex : Integer; AValue : integer); virtual;
     Procedure SetpendingParticipantId(AIndex : Integer; AValue : String); virtual;
     Procedure Setresults(AIndex : Integer; AValue : TTurnBasedMatchTurnTyperesultsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property data : TTurnBasedMatchDataRequest Index 0 Read Fdata Write Setdata;
@@ -3828,6 +3980,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAchievementDefinitionsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3983,6 +4148,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAchievementUpdateMultipleRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'updates' : SetLength(Fupdates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4009,6 +4187,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAchievementUpdateMultipleResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'updatedachievements' : SetLength(FupdatedAchievements,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4365,6 +4556,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TApplication.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'assets' : SetLength(Fassets,ALength);
+  'enabledfeatures' : SetLength(FenabledFeatures,ALength);
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4475,6 +4681,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCategoryListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4627,6 +4846,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEventDefinition.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'childevents' : SetLength(FchildEvents,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4663,6 +4895,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEventDefinitionListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4737,6 +4982,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEventPeriodUpdate.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'updates' : SetLength(Fupdates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4822,6 +5080,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEventRecordRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'timeperiods' : SetLength(FtimePeriods,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4905,6 +5176,21 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEventUpdateResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'batchfailures' : SetLength(FbatchFailures,ALength);
+  'eventfailures' : SetLength(FeventFailures,ALength);
+  'playerevents' : SetLength(FplayerEvents,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5486,6 +5772,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLeaderboardListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5610,6 +5909,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLeaderboardScores.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5646,6 +5958,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMetagameConfig.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'playerlevels' : SetLength(FplayerLevels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -6180,6 +6505,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPlayerAchievementListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6273,6 +6611,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPlayerEventListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -6475,6 +6826,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPlayerLeaderboardScoreListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6558,6 +6922,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPlayerListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -6643,6 +7020,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPlayerScoreListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'submittedscores' : SetLength(FsubmittedScores,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6710,6 +7100,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPlayerScoreResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'beatenscoretimespans' : SetLength(FbeatenScoreTimeSpans,ALength);
+  'unbeatenscores' : SetLength(FunbeatenScores,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6736,6 +7140,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPlayerScoreSubmissionList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'scores' : SetLength(Fscores,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7005,6 +7422,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TQuest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'milestones' : SetLength(Fmilestones,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7136,6 +7566,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TQuestListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7192,6 +7635,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TQuestMilestone.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'criteria' : SetLength(Fcriteria,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7366,6 +7822,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRoom.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'participants' : SetLength(Fparticipants,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7555,6 +8024,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRoomCreateRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'capabilities' : SetLength(Fcapabilities,ALength);
+  'invitedplayerids' : SetLength(FinvitedPlayerIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7601,6 +8084,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRoomJoinRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'capabilities' : SetLength(Fcapabilities,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7689,6 +8185,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRoomLeaveDiagnostics.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'peersession' : SetLength(FpeerSession,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7762,6 +8271,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRoomList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7904,6 +8426,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRoomP2PStatuses.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'updates' : SetLength(Fupdates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8011,6 +8546,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRoomParticipant.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'capabilities' : SetLength(Fcapabilities,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8077,6 +8625,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRoomStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'participants' : SetLength(Fparticipants,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -8357,6 +8918,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSnapshotListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8611,6 +9185,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTurnBasedMatch.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'participants' : SetLength(Fparticipants,ALength);
+  'results' : SetLength(Fresults,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -8667,6 +9255,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTurnBasedMatchCreateRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'invitedplayerids' : SetLength(FinvitedPlayerIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -8768,6 +9369,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTurnBasedMatchList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -8957,6 +9571,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTurnBasedMatchResults.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'results' : SetLength(Fresults,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -9003,6 +9630,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTurnBasedMatchSync.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9060,6 +9700,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTurnBasedMatchTurn.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'results' : SetLength(Fresults,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -10632,7 +11285,7 @@ end;
 Class Function TGamesAPI.APIRevision : String;
 
 begin
-  Result:='20150421';
+  Result:='20150511';
 end;
 
 Class Function TGamesAPI.APIID : String;
@@ -10686,7 +11339,7 @@ end;
 Class Function TGamesAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TGamesAPI.APIbasePath : string;
@@ -10698,7 +11351,7 @@ end;
 Class Function TGamesAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/games/v1/';
+  Result:='https://www.googleapis.com:443/games/v1/';
 end;
 
 Class Function TGamesAPI.APIProtocol : string;
@@ -10861,7 +11514,7 @@ Function TGamesAPI.CreateAchievementDefinitionsResource(AOwner : TComponent) : T
 
 begin
   Result:=TAchievementDefinitionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -10885,7 +11538,7 @@ Function TGamesAPI.CreateAchievementsResource(AOwner : TComponent) : TAchievemen
 
 begin
   Result:=TAchievementsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -10909,7 +11562,7 @@ Function TGamesAPI.CreateApplicationsResource(AOwner : TComponent) : TApplicatio
 
 begin
   Result:=TApplicationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -10933,7 +11586,7 @@ Function TGamesAPI.CreateEventsResource(AOwner : TComponent) : TEventsResource;
 
 begin
   Result:=TEventsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -10957,7 +11610,7 @@ Function TGamesAPI.CreateLeaderboardsResource(AOwner : TComponent) : TLeaderboar
 
 begin
   Result:=TLeaderboardsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -10981,7 +11634,7 @@ Function TGamesAPI.CreateMetagameResource(AOwner : TComponent) : TMetagameResour
 
 begin
   Result:=TMetagameResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -11005,7 +11658,7 @@ Function TGamesAPI.CreatePlayersResource(AOwner : TComponent) : TPlayersResource
 
 begin
   Result:=TPlayersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -11029,7 +11682,7 @@ Function TGamesAPI.CreatePushtokensResource(AOwner : TComponent) : TPushtokensRe
 
 begin
   Result:=TPushtokensResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -11053,7 +11706,7 @@ Function TGamesAPI.CreateQuestMilestonesResource(AOwner : TComponent) : TQuestMi
 
 begin
   Result:=TQuestMilestonesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -11077,7 +11730,7 @@ Function TGamesAPI.CreateQuestsResource(AOwner : TComponent) : TQuestsResource;
 
 begin
   Result:=TQuestsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -11101,7 +11754,7 @@ Function TGamesAPI.CreateRevisionsResource(AOwner : TComponent) : TRevisionsReso
 
 begin
   Result:=TRevisionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -11125,7 +11778,7 @@ Function TGamesAPI.CreateRoomsResource(AOwner : TComponent) : TRoomsResource;
 
 begin
   Result:=TRoomsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -11149,7 +11802,7 @@ Function TGamesAPI.CreateScoresResource(AOwner : TComponent) : TScoresResource;
 
 begin
   Result:=TScoresResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -11173,7 +11826,7 @@ Function TGamesAPI.CreateSnapshotsResource(AOwner : TComponent) : TSnapshotsReso
 
 begin
   Result:=TSnapshotsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -11197,7 +11850,7 @@ Function TGamesAPI.CreateTurnBasedMatchesResource(AOwner : TComponent) : TTurnBa
 
 begin
   Result:=TTurnBasedMatchesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

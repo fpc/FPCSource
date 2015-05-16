@@ -13,7 +13,7 @@ unit googletagmanager;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:58
+//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -24,32 +24,32 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAccount = class;
-  TAccountAccess = class;
-  TCondition = class;
-  TContainer = class;
-  TContainerAccess = class;
-  TContainerVersion = class;
-  TContainerVersionHeader = class;
-  TCreateContainerVersionRequestVersionOptions = class;
-  TCreateContainerVersionResponse = class;
-  TListAccountUsersResponse = class;
-  TListAccountsResponse = class;
-  TListContainerVersionsResponse = class;
-  TListContainersResponse = class;
-  TListMacrosResponse = class;
-  TListRulesResponse = class;
-  TListTagsResponse = class;
-  TListTriggersResponse = class;
-  TListVariablesResponse = class;
-  TMacro = class;
-  TParameter = class;
-  TPublishContainerVersionResponse = class;
-  TRule = class;
-  TTag = class;
-  TTrigger = class;
-  TUserAccess = class;
-  TVariable = class;
+  TAccount = Class;
+  TAccountAccess = Class;
+  TCondition = Class;
+  TContainer = Class;
+  TContainerAccess = Class;
+  TContainerVersion = Class;
+  TContainerVersionHeader = Class;
+  TCreateContainerVersionRequestVersionOptions = Class;
+  TCreateContainerVersionResponse = Class;
+  TListAccountUsersResponse = Class;
+  TListAccountsResponse = Class;
+  TListContainerVersionsResponse = Class;
+  TListContainersResponse = Class;
+  TListMacrosResponse = Class;
+  TListRulesResponse = Class;
+  TListTagsResponse = Class;
+  TListTriggersResponse = Class;
+  TListVariablesResponse = Class;
+  TMacro = Class;
+  TParameter = Class;
+  TPublishContainerVersionResponse = Class;
+  TRule = Class;
+  TTag = Class;
+  TTrigger = Class;
+  TUserAccess = Class;
+  TVariable = Class;
   TAccountArray = Array of TAccount;
   TAccountAccessArray = Array of TAccountAccess;
   TConditionArray = Array of TCondition;
@@ -139,6 +139,10 @@ type
   Protected
     //Property setters
     Procedure Setpermission(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property permission : TStringArray Index 0 Read Fpermission Write Setpermission;
@@ -158,6 +162,10 @@ type
     //Property setters
     Procedure Setparameter(AIndex : Integer; AValue : TConditionTypeparameterArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property parameter : TConditionTypeparameterArray Index 0 Read Fparameter Write Setparameter;
@@ -195,6 +203,10 @@ type
     Procedure SettimeZoneCountryId(AIndex : Integer; AValue : String); virtual;
     Procedure SettimeZoneId(AIndex : Integer; AValue : String); virtual;
     Procedure SetusageContext(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -223,6 +235,10 @@ type
     //Property setters
     Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
     Procedure Setpermission(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property containerId : String Index 0 Read FcontainerId Write SetcontainerId;
@@ -264,6 +280,10 @@ type
     Procedure Settag(AIndex : Integer; AValue : TContainerVersionTypetagArray); virtual;
     Procedure Settrigger(AIndex : Integer; AValue : TContainerVersionTypetriggerArray); virtual;
     Procedure Setvariable(AIndex : Integer; AValue : TContainerVersionTypevariableArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -376,6 +396,10 @@ type
   Protected
     //Property setters
     Procedure SetuserAccess(AIndex : Integer; AValue : TListAccountUsersResponseTypeuserAccessArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property userAccess : TListAccountUsersResponseTypeuserAccessArray Index 0 Read FuserAccess Write SetuserAccess;
@@ -392,6 +416,10 @@ type
   Protected
     //Property setters
     Procedure Setaccounts(AIndex : Integer; AValue : TListAccountsResponseTypeaccountsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accounts : TListAccountsResponseTypeaccountsArray Index 0 Read Faccounts Write Setaccounts;
@@ -410,6 +438,10 @@ type
     //Property setters
     Procedure SetcontainerVersion(AIndex : Integer; AValue : TListContainerVersionsResponseTypecontainerVersionArray); virtual;
     Procedure SetcontainerVersionHeader(AIndex : Integer; AValue : TListContainerVersionsResponseTypecontainerVersionHeaderArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property containerVersion : TListContainerVersionsResponseTypecontainerVersionArray Index 0 Read FcontainerVersion Write SetcontainerVersion;
@@ -427,6 +459,10 @@ type
   Protected
     //Property setters
     Procedure Setcontainers(AIndex : Integer; AValue : TListContainersResponseTypecontainersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property containers : TListContainersResponseTypecontainersArray Index 0 Read Fcontainers Write Setcontainers;
@@ -443,6 +479,10 @@ type
   Protected
     //Property setters
     Procedure Setmacros(AIndex : Integer; AValue : TListMacrosResponseTypemacrosArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property macros : TListMacrosResponseTypemacrosArray Index 0 Read Fmacros Write Setmacros;
@@ -459,6 +499,10 @@ type
   Protected
     //Property setters
     Procedure Setrules(AIndex : Integer; AValue : TListRulesResponseTyperulesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property rules : TListRulesResponseTyperulesArray Index 0 Read Frules Write Setrules;
@@ -475,6 +519,10 @@ type
   Protected
     //Property setters
     Procedure Settags(AIndex : Integer; AValue : TListTagsResponseTypetagsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property tags : TListTagsResponseTypetagsArray Index 0 Read Ftags Write Settags;
@@ -491,6 +539,10 @@ type
   Protected
     //Property setters
     Procedure Settriggers(AIndex : Integer; AValue : TListTriggersResponseTypetriggersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property triggers : TListTriggersResponseTypetriggersArray Index 0 Read Ftriggers Write Settriggers;
@@ -507,6 +559,10 @@ type
   Protected
     //Property setters
     Procedure Setvariables(AIndex : Integer; AValue : TListVariablesResponseTypevariablesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property variables : TListVariablesResponseTypevariablesArray Index 0 Read Fvariables Write Setvariables;
@@ -546,6 +602,10 @@ type
     Procedure SetscheduleEndMs(AIndex : Integer; AValue : String); virtual;
     Procedure SetscheduleStartMs(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -582,6 +642,10 @@ type
     Procedure Setmap(AIndex : Integer; AValue : TParameterTypemapArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property key : String Index 0 Read Fkey Write Setkey;
@@ -633,6 +697,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
     Procedure SetruleId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -686,6 +754,10 @@ type
     Procedure SetscheduleStartMs(AIndex : Integer; AValue : String); virtual;
     Procedure SettagId(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -752,6 +824,10 @@ type
     Procedure SetvideoPercentageList(AIndex : Integer; AValue : TParameter); virtual;
     Procedure SetwaitForTags(AIndex : Integer; AValue : TParameter); virtual;
     Procedure SetwaitForTagsTimeout(AIndex : Integer; AValue : TParameter); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -793,6 +869,10 @@ type
     Procedure SetcontainerAccess(AIndex : Integer; AValue : TUserAccessTypecontainerAccessArray); virtual;
     Procedure SetemailAddress(AIndex : Integer; AValue : String); virtual;
     Procedure SetpermissionId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountAccess : TAccountAccess Index 0 Read FaccountAccess Write SetaccountAccess;
@@ -836,6 +916,10 @@ type
     Procedure SetscheduleStartMs(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure SetvariableId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -854,6 +938,240 @@ type
   TVariableClass = Class of TVariable;
   
   { --------------------------------------------------------------------
+    TAccountsContainersMacrosResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsContainersMacrosResource, method Update
+  
+  TAccountsContainersMacrosUpdateOptions = Record
+    fingerprint : String;
+  end;
+  
+  TAccountsContainersMacrosResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(accountId: string; containerId: string; aMacro : TMacro) : TMacro;overload;
+    Procedure Delete(accountId: string; containerId: string; macroId: string);
+    Function Get(accountId: string; containerId: string; macroId: string) : TMacro;
+    Function List(accountId: string; containerId: string) : TListMacrosResponse;
+    Function Update(accountId: string; containerId: string; macroId: string; aMacro : TMacro; AQuery : string  = '') : TMacro;
+    Function Update(accountId: string; containerId: string; macroId: string; aMacro : TMacro; AQuery : TAccountsContainersMacrosupdateOptions) : TMacro;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsContainersRulesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsContainersRulesResource, method Update
+  
+  TAccountsContainersRulesUpdateOptions = Record
+    fingerprint : String;
+  end;
+  
+  TAccountsContainersRulesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(accountId: string; containerId: string; aRule : TRule) : TRule;overload;
+    Procedure Delete(accountId: string; containerId: string; ruleId: string);
+    Function Get(accountId: string; containerId: string; ruleId: string) : TRule;
+    Function List(accountId: string; containerId: string) : TListRulesResponse;
+    Function Update(accountId: string; containerId: string; ruleId: string; aRule : TRule; AQuery : string  = '') : TRule;
+    Function Update(accountId: string; containerId: string; ruleId: string; aRule : TRule; AQuery : TAccountsContainersRulesupdateOptions) : TRule;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsContainersTagsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsContainersTagsResource, method Update
+  
+  TAccountsContainersTagsUpdateOptions = Record
+    fingerprint : String;
+  end;
+  
+  TAccountsContainersTagsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(accountId: string; containerId: string; aTag : TTag) : TTag;overload;
+    Procedure Delete(accountId: string; containerId: string; tagId: string);
+    Function Get(accountId: string; containerId: string; tagId: string) : TTag;
+    Function List(accountId: string; containerId: string) : TListTagsResponse;
+    Function Update(accountId: string; containerId: string; tagId: string; aTag : TTag; AQuery : string  = '') : TTag;
+    Function Update(accountId: string; containerId: string; tagId: string; aTag : TTag; AQuery : TAccountsContainersTagsupdateOptions) : TTag;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsContainersTriggersResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsContainersTriggersResource, method Update
+  
+  TAccountsContainersTriggersUpdateOptions = Record
+    fingerprint : String;
+  end;
+  
+  TAccountsContainersTriggersResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(accountId: string; containerId: string; aTrigger : TTrigger) : TTrigger;overload;
+    Procedure Delete(accountId: string; containerId: string; triggerId: string);
+    Function Get(accountId: string; containerId: string; triggerId: string) : TTrigger;
+    Function List(accountId: string; containerId: string) : TListTriggersResponse;
+    Function Update(accountId: string; containerId: string; triggerId: string; aTrigger : TTrigger; AQuery : string  = '') : TTrigger;
+    Function Update(accountId: string; containerId: string; triggerId: string; aTrigger : TTrigger; AQuery : TAccountsContainersTriggersupdateOptions) : TTrigger;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsContainersVariablesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsContainersVariablesResource, method Update
+  
+  TAccountsContainersVariablesUpdateOptions = Record
+    fingerprint : String;
+  end;
+  
+  TAccountsContainersVariablesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(accountId: string; containerId: string; aVariable : TVariable) : TVariable;overload;
+    Procedure Delete(accountId: string; containerId: string; variableId: string);
+    Function Get(accountId: string; containerId: string; variableId: string) : TVariable;
+    Function List(accountId: string; containerId: string) : TListVariablesResponse;
+    Function Update(accountId: string; containerId: string; variableId: string; aVariable : TVariable; AQuery : string  = '') : TVariable;
+    Function Update(accountId: string; containerId: string; variableId: string; aVariable : TVariable; AQuery : TAccountsContainersVariablesupdateOptions) : TVariable;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsContainersVersionsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsContainersVersionsResource, method List
+  
+  TAccountsContainersVersionsListOptions = Record
+    headers : boolean;
+  end;
+  
+  
+  //Optional query Options for TAccountsContainersVersionsResource, method Publish
+  
+  TAccountsContainersVersionsPublishOptions = Record
+    fingerprint : String;
+  end;
+  
+  
+  //Optional query Options for TAccountsContainersVersionsResource, method Update
+  
+  TAccountsContainersVersionsUpdateOptions = Record
+    fingerprint : String;
+  end;
+  
+  TAccountsContainersVersionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(accountId: string; containerId: string; aCreateContainerVersionRequestVersionOptions : TCreateContainerVersionRequestVersionOptions) : TCreateContainerVersionResponse;overload;
+    Procedure Delete(accountId: string; containerId: string; containerVersionId: string);
+    Function Get(accountId: string; containerId: string; containerVersionId: string) : TContainerVersion;
+    Function List(accountId: string; containerId: string; AQuery : string  = '') : TListContainerVersionsResponse;
+    Function List(accountId: string; containerId: string; AQuery : TAccountsContainersVersionslistOptions) : TListContainerVersionsResponse;
+    Function Publish(accountId: string; containerId: string; containerVersionId: string; AQuery : string  = '') : TPublishContainerVersionResponse;
+    Function Publish(accountId: string; containerId: string; containerVersionId: string; AQuery : TAccountsContainersVersionspublishOptions) : TPublishContainerVersionResponse;
+    Function Restore(accountId: string; containerId: string; containerVersionId: string) : TContainerVersion;
+    Function Undelete(accountId: string; containerId: string; containerVersionId: string) : TContainerVersion;
+    Function Update(accountId: string; containerId: string; containerVersionId: string; aContainerVersion : TContainerVersion; AQuery : string  = '') : TContainerVersion;
+    Function Update(accountId: string; containerId: string; containerVersionId: string; aContainerVersion : TContainerVersion; AQuery : TAccountsContainersVersionsupdateOptions) : TContainerVersion;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsContainersResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsContainersResource, method Update
+  
+  TAccountsContainersUpdateOptions = Record
+    fingerprint : String;
+  end;
+  
+  TAccountsContainersResource = Class(TGoogleResource)
+  Private
+    FMacrosInstance : TAccountsContainersMacrosResource;
+    FRulesInstance : TAccountsContainersRulesResource;
+    FTagsInstance : TAccountsContainersTagsResource;
+    FTriggersInstance : TAccountsContainersTriggersResource;
+    FVariablesInstance : TAccountsContainersVariablesResource;
+    FVersionsInstance : TAccountsContainersVersionsResource;
+    Function GetMacrosInstance : TAccountsContainersMacrosResource;virtual;
+    Function GetRulesInstance : TAccountsContainersRulesResource;virtual;
+    Function GetTagsInstance : TAccountsContainersTagsResource;virtual;
+    Function GetTriggersInstance : TAccountsContainersTriggersResource;virtual;
+    Function GetVariablesInstance : TAccountsContainersVariablesResource;virtual;
+    Function GetVersionsInstance : TAccountsContainersVersionsResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(accountId: string; aContainer : TContainer) : TContainer;overload;
+    Procedure Delete(accountId: string; containerId: string);
+    Function Get(accountId: string; containerId: string) : TContainer;
+    Function List(accountId: string) : TListContainersResponse;
+    Function Update(accountId: string; containerId: string; aContainer : TContainer; AQuery : string  = '') : TContainer;
+    Function Update(accountId: string; containerId: string; aContainer : TContainer; AQuery : TAccountsContainersupdateOptions) : TContainer;
+    Function CreateMacrosResource(AOwner : TComponent) : TAccountsContainersMacrosResource;virtual;overload;
+    Function CreateMacrosResource : TAccountsContainersMacrosResource;virtual;overload;
+    Function CreateRulesResource(AOwner : TComponent) : TAccountsContainersRulesResource;virtual;overload;
+    Function CreateRulesResource : TAccountsContainersRulesResource;virtual;overload;
+    Function CreateTagsResource(AOwner : TComponent) : TAccountsContainersTagsResource;virtual;overload;
+    Function CreateTagsResource : TAccountsContainersTagsResource;virtual;overload;
+    Function CreateTriggersResource(AOwner : TComponent) : TAccountsContainersTriggersResource;virtual;overload;
+    Function CreateTriggersResource : TAccountsContainersTriggersResource;virtual;overload;
+    Function CreateVariablesResource(AOwner : TComponent) : TAccountsContainersVariablesResource;virtual;overload;
+    Function CreateVariablesResource : TAccountsContainersVariablesResource;virtual;overload;
+    Function CreateVersionsResource(AOwner : TComponent) : TAccountsContainersVersionsResource;virtual;overload;
+    Function CreateVersionsResource : TAccountsContainersVersionsResource;virtual;overload;
+    Property MacrosResource : TAccountsContainersMacrosResource Read GetMacrosInstance;
+    Property RulesResource : TAccountsContainersRulesResource Read GetRulesInstance;
+    Property TagsResource : TAccountsContainersTagsResource Read GetTagsInstance;
+    Property TriggersResource : TAccountsContainersTriggersResource Read GetTriggersInstance;
+    Property VariablesResource : TAccountsContainersVariablesResource Read GetVariablesInstance;
+    Property VersionsResource : TAccountsContainersVersionsResource Read GetVersionsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsPermissionsResource
+    --------------------------------------------------------------------}
+  
+  TAccountsPermissionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(accountId: string; aUserAccess : TUserAccess) : TUserAccess;overload;
+    Procedure Delete(accountId: string; permissionId: string);
+    Function Get(accountId: string; permissionId: string) : TUserAccess;
+    Function List(accountId: string) : TListAccountUsersResponse;
+    Function Update(accountId: string; permissionId: string; aUserAccess : TUserAccess) : TUserAccess;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TAccountsResource
     --------------------------------------------------------------------}
   
@@ -865,6 +1183,23 @@ type
   end;
   
   TAccountsResource = Class(TGoogleResource)
+  Private
+    FContainersMacrosInstance : TAccountsContainersMacrosResource;
+    FContainersRulesInstance : TAccountsContainersRulesResource;
+    FContainersTagsInstance : TAccountsContainersTagsResource;
+    FContainersTriggersInstance : TAccountsContainersTriggersResource;
+    FContainersVariablesInstance : TAccountsContainersVariablesResource;
+    FContainersVersionsInstance : TAccountsContainersVersionsResource;
+    FContainersInstance : TAccountsContainersResource;
+    FPermissionsInstance : TAccountsPermissionsResource;
+    Function GetContainersMacrosInstance : TAccountsContainersMacrosResource;virtual;
+    Function GetContainersRulesInstance : TAccountsContainersRulesResource;virtual;
+    Function GetContainersTagsInstance : TAccountsContainersTagsResource;virtual;
+    Function GetContainersTriggersInstance : TAccountsContainersTriggersResource;virtual;
+    Function GetContainersVariablesInstance : TAccountsContainersVariablesResource;virtual;
+    Function GetContainersVersionsInstance : TAccountsContainersVersionsResource;virtual;
+    Function GetContainersInstance : TAccountsContainersResource;virtual;
+    Function GetPermissionsInstance : TAccountsPermissionsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -872,6 +1207,30 @@ type
     Function List : TListAccountsResponse;
     Function Update(accountId: string; aAccount : TAccount; AQuery : string  = '') : TAccount;
     Function Update(accountId: string; aAccount : TAccount; AQuery : TAccountsupdateOptions) : TAccount;
+    Function CreateContainersMacrosResource(AOwner : TComponent) : TAccountsContainersMacrosResource;virtual;overload;
+    Function CreateContainersMacrosResource : TAccountsContainersMacrosResource;virtual;overload;
+    Function CreateContainersRulesResource(AOwner : TComponent) : TAccountsContainersRulesResource;virtual;overload;
+    Function CreateContainersRulesResource : TAccountsContainersRulesResource;virtual;overload;
+    Function CreateContainersTagsResource(AOwner : TComponent) : TAccountsContainersTagsResource;virtual;overload;
+    Function CreateContainersTagsResource : TAccountsContainersTagsResource;virtual;overload;
+    Function CreateContainersTriggersResource(AOwner : TComponent) : TAccountsContainersTriggersResource;virtual;overload;
+    Function CreateContainersTriggersResource : TAccountsContainersTriggersResource;virtual;overload;
+    Function CreateContainersVariablesResource(AOwner : TComponent) : TAccountsContainersVariablesResource;virtual;overload;
+    Function CreateContainersVariablesResource : TAccountsContainersVariablesResource;virtual;overload;
+    Function CreateContainersVersionsResource(AOwner : TComponent) : TAccountsContainersVersionsResource;virtual;overload;
+    Function CreateContainersVersionsResource : TAccountsContainersVersionsResource;virtual;overload;
+    Function CreateContainersResource(AOwner : TComponent) : TAccountsContainersResource;virtual;overload;
+    Function CreateContainersResource : TAccountsContainersResource;virtual;overload;
+    Function CreatePermissionsResource(AOwner : TComponent) : TAccountsPermissionsResource;virtual;overload;
+    Function CreatePermissionsResource : TAccountsPermissionsResource;virtual;overload;
+    Property ContainersMacrosResource : TAccountsContainersMacrosResource Read GetContainersMacrosInstance;
+    Property ContainersRulesResource : TAccountsContainersRulesResource Read GetContainersRulesInstance;
+    Property ContainersTagsResource : TAccountsContainersTagsResource Read GetContainersTagsInstance;
+    Property ContainersTriggersResource : TAccountsContainersTriggersResource Read GetContainersTriggersInstance;
+    Property ContainersVariablesResource : TAccountsContainersVariablesResource Read GetContainersVariablesInstance;
+    Property ContainersVersionsResource : TAccountsContainersVersionsResource Read GetContainersVersionsInstance;
+    Property ContainersResource : TAccountsContainersResource Read GetContainersInstance;
+    Property PermissionsResource : TAccountsPermissionsResource Read GetPermissionsInstance;
   end;
   
   
@@ -881,7 +1240,23 @@ type
   
   TTagmanagerAPI = Class(TGoogleAPI)
   Private
+    FAccountsContainersMacrosInstance : TAccountsContainersMacrosResource;
+    FAccountsContainersRulesInstance : TAccountsContainersRulesResource;
+    FAccountsContainersTagsInstance : TAccountsContainersTagsResource;
+    FAccountsContainersTriggersInstance : TAccountsContainersTriggersResource;
+    FAccountsContainersVariablesInstance : TAccountsContainersVariablesResource;
+    FAccountsContainersVersionsInstance : TAccountsContainersVersionsResource;
+    FAccountsContainersInstance : TAccountsContainersResource;
+    FAccountsPermissionsInstance : TAccountsPermissionsResource;
     FAccountsInstance : TAccountsResource;
+    Function GetAccountsContainersMacrosInstance : TAccountsContainersMacrosResource;virtual;
+    Function GetAccountsContainersRulesInstance : TAccountsContainersRulesResource;virtual;
+    Function GetAccountsContainersTagsInstance : TAccountsContainersTagsResource;virtual;
+    Function GetAccountsContainersTriggersInstance : TAccountsContainersTriggersResource;virtual;
+    Function GetAccountsContainersVariablesInstance : TAccountsContainersVariablesResource;virtual;
+    Function GetAccountsContainersVersionsInstance : TAccountsContainersVersionsResource;virtual;
+    Function GetAccountsContainersInstance : TAccountsContainersResource;virtual;
+    Function GetAccountsPermissionsInstance : TAccountsPermissionsResource;virtual;
     Function GetAccountsInstance : TAccountsResource;virtual;
   Public
     //Override class functions with API info
@@ -906,9 +1281,33 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateAccountsContainersMacrosResource(AOwner : TComponent) : TAccountsContainersMacrosResource;virtual;overload;
+    Function CreateAccountsContainersMacrosResource : TAccountsContainersMacrosResource;virtual;overload;
+    Function CreateAccountsContainersRulesResource(AOwner : TComponent) : TAccountsContainersRulesResource;virtual;overload;
+    Function CreateAccountsContainersRulesResource : TAccountsContainersRulesResource;virtual;overload;
+    Function CreateAccountsContainersTagsResource(AOwner : TComponent) : TAccountsContainersTagsResource;virtual;overload;
+    Function CreateAccountsContainersTagsResource : TAccountsContainersTagsResource;virtual;overload;
+    Function CreateAccountsContainersTriggersResource(AOwner : TComponent) : TAccountsContainersTriggersResource;virtual;overload;
+    Function CreateAccountsContainersTriggersResource : TAccountsContainersTriggersResource;virtual;overload;
+    Function CreateAccountsContainersVariablesResource(AOwner : TComponent) : TAccountsContainersVariablesResource;virtual;overload;
+    Function CreateAccountsContainersVariablesResource : TAccountsContainersVariablesResource;virtual;overload;
+    Function CreateAccountsContainersVersionsResource(AOwner : TComponent) : TAccountsContainersVersionsResource;virtual;overload;
+    Function CreateAccountsContainersVersionsResource : TAccountsContainersVersionsResource;virtual;overload;
+    Function CreateAccountsContainersResource(AOwner : TComponent) : TAccountsContainersResource;virtual;overload;
+    Function CreateAccountsContainersResource : TAccountsContainersResource;virtual;overload;
+    Function CreateAccountsPermissionsResource(AOwner : TComponent) : TAccountsPermissionsResource;virtual;overload;
+    Function CreateAccountsPermissionsResource : TAccountsPermissionsResource;virtual;overload;
     Function CreateAccountsResource(AOwner : TComponent) : TAccountsResource;virtual;overload;
     Function CreateAccountsResource : TAccountsResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property AccountsContainersMacrosResource : TAccountsContainersMacrosResource Read GetAccountsContainersMacrosInstance;
+    Property AccountsContainersRulesResource : TAccountsContainersRulesResource Read GetAccountsContainersRulesInstance;
+    Property AccountsContainersTagsResource : TAccountsContainersTagsResource Read GetAccountsContainersTagsInstance;
+    Property AccountsContainersTriggersResource : TAccountsContainersTriggersResource Read GetAccountsContainersTriggersInstance;
+    Property AccountsContainersVariablesResource : TAccountsContainersVariablesResource Read GetAccountsContainersVariablesInstance;
+    Property AccountsContainersVersionsResource : TAccountsContainersVersionsResource Read GetAccountsContainersVersionsInstance;
+    Property AccountsContainersResource : TAccountsContainersResource Read GetAccountsContainersInstance;
+    Property AccountsPermissionsResource : TAccountsPermissionsResource Read GetAccountsPermissionsInstance;
     Property AccountsResource : TAccountsResource Read GetAccountsInstance;
   end;
 
@@ -976,6 +1375,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountAccess.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'permission' : SetLength(Fpermission,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1013,6 +1425,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCondition.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'parameter' : SetLength(Fparameter,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1131,6 +1556,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TContainer.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'domainname' : SetLength(FdomainName,ALength);
+  'enabledbuiltinvariable' : SetLength(FenabledBuiltInVariable,ALength);
+  'usagecontext' : SetLength(FusageContext,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1157,6 +1597,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TContainerAccess.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'permission' : SetLength(Fpermission,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1294,6 +1747,23 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TContainerVersion.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'macro' : SetLength(Fmacro,ALength);
+  'rule' : SetLength(Frule,ALength);
+  'tag' : SetLength(Ftag,ALength);
+  'trigger' : SetLength(Ftrigger,ALength);
+  'variable' : SetLength(Fvariable,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1483,6 +1953,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListAccountUsersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'useraccess' : SetLength(FuserAccess,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1499,6 +1982,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListAccountsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'accounts' : SetLength(Faccounts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1527,6 +2023,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListContainerVersionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'containerversion' : SetLength(FcontainerVersion,ALength);
+  'containerversionheader' : SetLength(FcontainerVersionHeader,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1543,6 +2053,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListContainersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'containers' : SetLength(Fcontainers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1561,6 +2084,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListMacrosResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'macros' : SetLength(Fmacros,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1577,6 +2113,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListRulesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rules' : SetLength(Frules,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1595,6 +2144,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListTagsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'tags' : SetLength(Ftags,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1612,6 +2174,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListTriggersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'triggers' : SetLength(Ftriggers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1628,6 +2203,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListVariablesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'variables' : SetLength(Fvariables,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1767,6 +2355,21 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMacro.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'disablingruleid' : SetLength(FdisablingRuleId,ALength);
+  'enablingruleid' : SetLength(FenablingRuleId,ALength);
+  'parameter' : SetLength(Fparameter,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1834,6 +2437,20 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TParameter.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'list' : SetLength(Flist,ALength);
+  'map' : SetLength(Fmap,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1938,6 +2555,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRule.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'condition' : SetLength(Fcondition,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2116,6 +2746,23 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTag.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'blockingruleid' : SetLength(FblockingRuleId,ALength);
+  'blockingtriggerid' : SetLength(FblockingTriggerId,ALength);
+  'firingruleid' : SetLength(FfiringRuleId,ALength);
+  'firingtriggerid' : SetLength(FfiringTriggerId,ALength);
+  'parameter' : SetLength(Fparameter,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2315,6 +2962,21 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTrigger.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'autoeventfilter' : SetLength(FautoEventFilter,ALength);
+  'customeventfilter' : SetLength(FcustomEventFilter,ALength);
+  'filter' : SetLength(Ffilter,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2371,6 +3033,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUserAccess.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'containeraccess' : SetLength(FcontainerAccess,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2510,6 +3185,1070 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVariable.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'disablingtriggerid' : SetLength(FdisablingTriggerId,ALength);
+  'enablingtriggerid' : SetLength(FenablingTriggerId,ALength);
+  'parameter' : SetLength(Fparameter,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsContainersMacrosResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsContainersMacrosResource.ResourceName : String;
+
+begin
+  Result:='macros';
+end;
+
+Class Function TAccountsContainersMacrosResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TtagmanagerAPI;
+end;
+
+Function TAccountsContainersMacrosResource.Create(accountId: string; containerId: string; aMacro : TMacro) : TMacro;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/macros';
+  _Methodid   = 'tagmanager.accounts.containers.macros.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aMacro,TMacro) as TMacro;
+end;
+
+Procedure TAccountsContainersMacrosResource.Delete(accountId: string; containerId: string; macroId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/macros/{macroId}';
+  _Methodid   = 'tagmanager.accounts.containers.macros.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'macroId',macroId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TAccountsContainersMacrosResource.Get(accountId: string; containerId: string; macroId: string) : TMacro;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/macros/{macroId}';
+  _Methodid   = 'tagmanager.accounts.containers.macros.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'macroId',macroId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TMacro) as TMacro;
+end;
+
+Function TAccountsContainersMacrosResource.List(accountId: string; containerId: string) : TListMacrosResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/macros';
+  _Methodid   = 'tagmanager.accounts.containers.macros.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListMacrosResponse) as TListMacrosResponse;
+end;
+
+Function TAccountsContainersMacrosResource.Update(accountId: string; containerId: string; macroId: string; aMacro : TMacro; AQuery : string = '') : TMacro;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/macros/{macroId}';
+  _Methodid   = 'tagmanager.accounts.containers.macros.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'macroId',macroId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aMacro,TMacro) as TMacro;
+end;
+
+
+Function TAccountsContainersMacrosResource.Update(accountId: string; containerId: string; macroId: string; aMacro : TMacro; AQuery : TAccountsContainersMacrosupdateOptions) : TMacro;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'fingerprint',AQuery.fingerprint);
+  Result:=Update(accountId,containerId,macroId,aMacro,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsContainersRulesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsContainersRulesResource.ResourceName : String;
+
+begin
+  Result:='rules';
+end;
+
+Class Function TAccountsContainersRulesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TtagmanagerAPI;
+end;
+
+Function TAccountsContainersRulesResource.Create(accountId: string; containerId: string; aRule : TRule) : TRule;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/rules';
+  _Methodid   = 'tagmanager.accounts.containers.rules.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aRule,TRule) as TRule;
+end;
+
+Procedure TAccountsContainersRulesResource.Delete(accountId: string; containerId: string; ruleId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/rules/{ruleId}';
+  _Methodid   = 'tagmanager.accounts.containers.rules.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'ruleId',ruleId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TAccountsContainersRulesResource.Get(accountId: string; containerId: string; ruleId: string) : TRule;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/rules/{ruleId}';
+  _Methodid   = 'tagmanager.accounts.containers.rules.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'ruleId',ruleId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TRule) as TRule;
+end;
+
+Function TAccountsContainersRulesResource.List(accountId: string; containerId: string) : TListRulesResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/rules';
+  _Methodid   = 'tagmanager.accounts.containers.rules.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListRulesResponse) as TListRulesResponse;
+end;
+
+Function TAccountsContainersRulesResource.Update(accountId: string; containerId: string; ruleId: string; aRule : TRule; AQuery : string = '') : TRule;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/rules/{ruleId}';
+  _Methodid   = 'tagmanager.accounts.containers.rules.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'ruleId',ruleId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aRule,TRule) as TRule;
+end;
+
+
+Function TAccountsContainersRulesResource.Update(accountId: string; containerId: string; ruleId: string; aRule : TRule; AQuery : TAccountsContainersRulesupdateOptions) : TRule;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'fingerprint',AQuery.fingerprint);
+  Result:=Update(accountId,containerId,ruleId,aRule,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsContainersTagsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsContainersTagsResource.ResourceName : String;
+
+begin
+  Result:='tags';
+end;
+
+Class Function TAccountsContainersTagsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TtagmanagerAPI;
+end;
+
+Function TAccountsContainersTagsResource.Create(accountId: string; containerId: string; aTag : TTag) : TTag;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/tags';
+  _Methodid   = 'tagmanager.accounts.containers.tags.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aTag,TTag) as TTag;
+end;
+
+Procedure TAccountsContainersTagsResource.Delete(accountId: string; containerId: string; tagId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/tags/{tagId}';
+  _Methodid   = 'tagmanager.accounts.containers.tags.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'tagId',tagId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TAccountsContainersTagsResource.Get(accountId: string; containerId: string; tagId: string) : TTag;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/tags/{tagId}';
+  _Methodid   = 'tagmanager.accounts.containers.tags.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'tagId',tagId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TTag) as TTag;
+end;
+
+Function TAccountsContainersTagsResource.List(accountId: string; containerId: string) : TListTagsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/tags';
+  _Methodid   = 'tagmanager.accounts.containers.tags.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListTagsResponse) as TListTagsResponse;
+end;
+
+Function TAccountsContainersTagsResource.Update(accountId: string; containerId: string; tagId: string; aTag : TTag; AQuery : string = '') : TTag;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/tags/{tagId}';
+  _Methodid   = 'tagmanager.accounts.containers.tags.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'tagId',tagId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aTag,TTag) as TTag;
+end;
+
+
+Function TAccountsContainersTagsResource.Update(accountId: string; containerId: string; tagId: string; aTag : TTag; AQuery : TAccountsContainersTagsupdateOptions) : TTag;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'fingerprint',AQuery.fingerprint);
+  Result:=Update(accountId,containerId,tagId,aTag,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsContainersTriggersResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsContainersTriggersResource.ResourceName : String;
+
+begin
+  Result:='triggers';
+end;
+
+Class Function TAccountsContainersTriggersResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TtagmanagerAPI;
+end;
+
+Function TAccountsContainersTriggersResource.Create(accountId: string; containerId: string; aTrigger : TTrigger) : TTrigger;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/triggers';
+  _Methodid   = 'tagmanager.accounts.containers.triggers.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aTrigger,TTrigger) as TTrigger;
+end;
+
+Procedure TAccountsContainersTriggersResource.Delete(accountId: string; containerId: string; triggerId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/triggers/{triggerId}';
+  _Methodid   = 'tagmanager.accounts.containers.triggers.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'triggerId',triggerId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TAccountsContainersTriggersResource.Get(accountId: string; containerId: string; triggerId: string) : TTrigger;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/triggers/{triggerId}';
+  _Methodid   = 'tagmanager.accounts.containers.triggers.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'triggerId',triggerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TTrigger) as TTrigger;
+end;
+
+Function TAccountsContainersTriggersResource.List(accountId: string; containerId: string) : TListTriggersResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/triggers';
+  _Methodid   = 'tagmanager.accounts.containers.triggers.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListTriggersResponse) as TListTriggersResponse;
+end;
+
+Function TAccountsContainersTriggersResource.Update(accountId: string; containerId: string; triggerId: string; aTrigger : TTrigger; AQuery : string = '') : TTrigger;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/triggers/{triggerId}';
+  _Methodid   = 'tagmanager.accounts.containers.triggers.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'triggerId',triggerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aTrigger,TTrigger) as TTrigger;
+end;
+
+
+Function TAccountsContainersTriggersResource.Update(accountId: string; containerId: string; triggerId: string; aTrigger : TTrigger; AQuery : TAccountsContainersTriggersupdateOptions) : TTrigger;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'fingerprint',AQuery.fingerprint);
+  Result:=Update(accountId,containerId,triggerId,aTrigger,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsContainersVariablesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsContainersVariablesResource.ResourceName : String;
+
+begin
+  Result:='variables';
+end;
+
+Class Function TAccountsContainersVariablesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TtagmanagerAPI;
+end;
+
+Function TAccountsContainersVariablesResource.Create(accountId: string; containerId: string; aVariable : TVariable) : TVariable;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/variables';
+  _Methodid   = 'tagmanager.accounts.containers.variables.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aVariable,TVariable) as TVariable;
+end;
+
+Procedure TAccountsContainersVariablesResource.Delete(accountId: string; containerId: string; variableId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/variables/{variableId}';
+  _Methodid   = 'tagmanager.accounts.containers.variables.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'variableId',variableId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TAccountsContainersVariablesResource.Get(accountId: string; containerId: string; variableId: string) : TVariable;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/variables/{variableId}';
+  _Methodid   = 'tagmanager.accounts.containers.variables.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'variableId',variableId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TVariable) as TVariable;
+end;
+
+Function TAccountsContainersVariablesResource.List(accountId: string; containerId: string) : TListVariablesResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/variables';
+  _Methodid   = 'tagmanager.accounts.containers.variables.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListVariablesResponse) as TListVariablesResponse;
+end;
+
+Function TAccountsContainersVariablesResource.Update(accountId: string; containerId: string; variableId: string; aVariable : TVariable; AQuery : string = '') : TVariable;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/variables/{variableId}';
+  _Methodid   = 'tagmanager.accounts.containers.variables.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'variableId',variableId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aVariable,TVariable) as TVariable;
+end;
+
+
+Function TAccountsContainersVariablesResource.Update(accountId: string; containerId: string; variableId: string; aVariable : TVariable; AQuery : TAccountsContainersVariablesupdateOptions) : TVariable;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'fingerprint',AQuery.fingerprint);
+  Result:=Update(accountId,containerId,variableId,aVariable,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsContainersVersionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsContainersVersionsResource.ResourceName : String;
+
+begin
+  Result:='versions';
+end;
+
+Class Function TAccountsContainersVersionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TtagmanagerAPI;
+end;
+
+Function TAccountsContainersVersionsResource.Create(accountId: string; containerId: string; aCreateContainerVersionRequestVersionOptions : TCreateContainerVersionRequestVersionOptions) : TCreateContainerVersionResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/versions';
+  _Methodid   = 'tagmanager.accounts.containers.versions.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aCreateContainerVersionRequestVersionOptions,TCreateContainerVersionResponse) as TCreateContainerVersionResponse;
+end;
+
+Procedure TAccountsContainersVersionsResource.Delete(accountId: string; containerId: string; containerVersionId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/versions/{containerVersionId}';
+  _Methodid   = 'tagmanager.accounts.containers.versions.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'containerVersionId',containerVersionId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TAccountsContainersVersionsResource.Get(accountId: string; containerId: string; containerVersionId: string) : TContainerVersion;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/versions/{containerVersionId}';
+  _Methodid   = 'tagmanager.accounts.containers.versions.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'containerVersionId',containerVersionId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TContainerVersion) as TContainerVersion;
+end;
+
+Function TAccountsContainersVersionsResource.List(accountId: string; containerId: string; AQuery : string = '') : TListContainerVersionsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/versions';
+  _Methodid   = 'tagmanager.accounts.containers.versions.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListContainerVersionsResponse) as TListContainerVersionsResponse;
+end;
+
+
+Function TAccountsContainersVersionsResource.List(accountId: string; containerId: string; AQuery : TAccountsContainersVersionslistOptions) : TListContainerVersionsResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'headers',AQuery.headers);
+  Result:=List(accountId,containerId,_Q);
+end;
+
+Function TAccountsContainersVersionsResource.Publish(accountId: string; containerId: string; containerVersionId: string; AQuery : string = '') : TPublishContainerVersionResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/versions/{containerVersionId}/publish';
+  _Methodid   = 'tagmanager.accounts.containers.versions.publish';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'containerVersionId',containerVersionId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TPublishContainerVersionResponse) as TPublishContainerVersionResponse;
+end;
+
+
+Function TAccountsContainersVersionsResource.Publish(accountId: string; containerId: string; containerVersionId: string; AQuery : TAccountsContainersVersionspublishOptions) : TPublishContainerVersionResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'fingerprint',AQuery.fingerprint);
+  Result:=Publish(accountId,containerId,containerVersionId,_Q);
+end;
+
+Function TAccountsContainersVersionsResource.Restore(accountId: string; containerId: string; containerVersionId: string) : TContainerVersion;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/versions/{containerVersionId}/restore';
+  _Methodid   = 'tagmanager.accounts.containers.versions.restore';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'containerVersionId',containerVersionId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TContainerVersion) as TContainerVersion;
+end;
+
+Function TAccountsContainersVersionsResource.Undelete(accountId: string; containerId: string; containerVersionId: string) : TContainerVersion;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/versions/{containerVersionId}/undelete';
+  _Methodid   = 'tagmanager.accounts.containers.versions.undelete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'containerVersionId',containerVersionId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TContainerVersion) as TContainerVersion;
+end;
+
+Function TAccountsContainersVersionsResource.Update(accountId: string; containerId: string; containerVersionId: string; aContainerVersion : TContainerVersion; AQuery : string = '') : TContainerVersion;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/versions/{containerVersionId}';
+  _Methodid   = 'tagmanager.accounts.containers.versions.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'containerVersionId',containerVersionId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aContainerVersion,TContainerVersion) as TContainerVersion;
+end;
+
+
+Function TAccountsContainersVersionsResource.Update(accountId: string; containerId: string; containerVersionId: string; aContainerVersion : TContainerVersion; AQuery : TAccountsContainersVersionsupdateOptions) : TContainerVersion;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'fingerprint',AQuery.fingerprint);
+  Result:=Update(accountId,containerId,containerVersionId,aContainerVersion,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsContainersResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsContainersResource.ResourceName : String;
+
+begin
+  Result:='containers';
+end;
+
+Class Function TAccountsContainersResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TtagmanagerAPI;
+end;
+
+Function TAccountsContainersResource.Create(accountId: string; aContainer : TContainer) : TContainer;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'accounts/{accountId}/containers';
+  _Methodid   = 'tagmanager.accounts.containers.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aContainer,TContainer) as TContainer;
+end;
+
+Procedure TAccountsContainersResource.Delete(accountId: string; containerId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'accounts/{accountId}/containers/{containerId}';
+  _Methodid   = 'tagmanager.accounts.containers.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TAccountsContainersResource.Get(accountId: string; containerId: string) : TContainer;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}';
+  _Methodid   = 'tagmanager.accounts.containers.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TContainer) as TContainer;
+end;
+
+Function TAccountsContainersResource.List(accountId: string) : TListContainersResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers';
+  _Methodid   = 'tagmanager.accounts.containers.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListContainersResponse) as TListContainersResponse;
+end;
+
+Function TAccountsContainersResource.Update(accountId: string; containerId: string; aContainer : TContainer; AQuery : string = '') : TContainer;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'accounts/{accountId}/containers/{containerId}';
+  _Methodid   = 'tagmanager.accounts.containers.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aContainer,TContainer) as TContainer;
+end;
+
+
+Function TAccountsContainersResource.Update(accountId: string; containerId: string; aContainer : TContainer; AQuery : TAccountsContainersupdateOptions) : TContainer;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'fingerprint',AQuery.fingerprint);
+  Result:=Update(accountId,containerId,aContainer,_Q);
+end;
+
+
+
+Function TAccountsContainersResource.GetMacrosInstance : TAccountsContainersMacrosResource;
+
+begin
+  if (FMacrosInstance=Nil) then
+    FMacrosInstance:=CreateMacrosResource;
+  Result:=FMacrosInstance;
+end;
+
+Function TAccountsContainersResource.CreateMacrosResource : TAccountsContainersMacrosResource;
+
+begin
+  Result:=CreateMacrosResource(Self);
+end;
+
+
+Function TAccountsContainersResource.CreateMacrosResource(AOwner : TComponent) : TAccountsContainersMacrosResource;
+
+begin
+  Result:=TAccountsContainersMacrosResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsContainersResource.GetRulesInstance : TAccountsContainersRulesResource;
+
+begin
+  if (FRulesInstance=Nil) then
+    FRulesInstance:=CreateRulesResource;
+  Result:=FRulesInstance;
+end;
+
+Function TAccountsContainersResource.CreateRulesResource : TAccountsContainersRulesResource;
+
+begin
+  Result:=CreateRulesResource(Self);
+end;
+
+
+Function TAccountsContainersResource.CreateRulesResource(AOwner : TComponent) : TAccountsContainersRulesResource;
+
+begin
+  Result:=TAccountsContainersRulesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsContainersResource.GetTagsInstance : TAccountsContainersTagsResource;
+
+begin
+  if (FTagsInstance=Nil) then
+    FTagsInstance:=CreateTagsResource;
+  Result:=FTagsInstance;
+end;
+
+Function TAccountsContainersResource.CreateTagsResource : TAccountsContainersTagsResource;
+
+begin
+  Result:=CreateTagsResource(Self);
+end;
+
+
+Function TAccountsContainersResource.CreateTagsResource(AOwner : TComponent) : TAccountsContainersTagsResource;
+
+begin
+  Result:=TAccountsContainersTagsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsContainersResource.GetTriggersInstance : TAccountsContainersTriggersResource;
+
+begin
+  if (FTriggersInstance=Nil) then
+    FTriggersInstance:=CreateTriggersResource;
+  Result:=FTriggersInstance;
+end;
+
+Function TAccountsContainersResource.CreateTriggersResource : TAccountsContainersTriggersResource;
+
+begin
+  Result:=CreateTriggersResource(Self);
+end;
+
+
+Function TAccountsContainersResource.CreateTriggersResource(AOwner : TComponent) : TAccountsContainersTriggersResource;
+
+begin
+  Result:=TAccountsContainersTriggersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsContainersResource.GetVariablesInstance : TAccountsContainersVariablesResource;
+
+begin
+  if (FVariablesInstance=Nil) then
+    FVariablesInstance:=CreateVariablesResource;
+  Result:=FVariablesInstance;
+end;
+
+Function TAccountsContainersResource.CreateVariablesResource : TAccountsContainersVariablesResource;
+
+begin
+  Result:=CreateVariablesResource(Self);
+end;
+
+
+Function TAccountsContainersResource.CreateVariablesResource(AOwner : TComponent) : TAccountsContainersVariablesResource;
+
+begin
+  Result:=TAccountsContainersVariablesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsContainersResource.GetVersionsInstance : TAccountsContainersVersionsResource;
+
+begin
+  if (FVersionsInstance=Nil) then
+    FVersionsInstance:=CreateVersionsResource;
+  Result:=FVersionsInstance;
+end;
+
+Function TAccountsContainersResource.CreateVersionsResource : TAccountsContainersVersionsResource;
+
+begin
+  Result:=CreateVersionsResource(Self);
+end;
+
+
+Function TAccountsContainersResource.CreateVersionsResource(AOwner : TComponent) : TAccountsContainersVersionsResource;
+
+begin
+  Result:=TAccountsContainersVersionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsPermissionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsPermissionsResource.ResourceName : String;
+
+begin
+  Result:='permissions';
+end;
+
+Class Function TAccountsPermissionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TtagmanagerAPI;
+end;
+
+Function TAccountsPermissionsResource.Create(accountId: string; aUserAccess : TUserAccess) : TUserAccess;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'accounts/{accountId}/permissions';
+  _Methodid   = 'tagmanager.accounts.permissions.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aUserAccess,TUserAccess) as TUserAccess;
+end;
+
+Procedure TAccountsPermissionsResource.Delete(accountId: string; permissionId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'accounts/{accountId}/permissions/{permissionId}';
+  _Methodid   = 'tagmanager.accounts.permissions.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'permissionId',permissionId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TAccountsPermissionsResource.Get(accountId: string; permissionId: string) : TUserAccess;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/permissions/{permissionId}';
+  _Methodid   = 'tagmanager.accounts.permissions.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'permissionId',permissionId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TUserAccess) as TUserAccess;
+end;
+
+Function TAccountsPermissionsResource.List(accountId: string) : TListAccountUsersResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/permissions';
+  _Methodid   = 'tagmanager.accounts.permissions.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListAccountUsersResponse) as TListAccountUsersResponse;
+end;
+
+Function TAccountsPermissionsResource.Update(accountId: string; permissionId: string; aUserAccess : TUserAccess) : TUserAccess;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'accounts/{accountId}/permissions/{permissionId}';
+  _Methodid   = 'tagmanager.accounts.permissions.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'permissionId',permissionId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aUserAccess,TUserAccess) as TUserAccess;
+end;
 
 
 
@@ -2581,6 +4320,198 @@ begin
   _Q:='';
   AddToQuery(_Q,'fingerprint',AQuery.fingerprint);
   Result:=Update(accountId,aAccount,_Q);
+end;
+
+
+
+Function TAccountsResource.GetContainersMacrosInstance : TAccountsContainersMacrosResource;
+
+begin
+  if (FContainersMacrosInstance=Nil) then
+    FContainersMacrosInstance:=CreateContainersMacrosResource;
+  Result:=FContainersMacrosInstance;
+end;
+
+Function TAccountsResource.CreateContainersMacrosResource : TAccountsContainersMacrosResource;
+
+begin
+  Result:=CreateContainersMacrosResource(Self);
+end;
+
+
+Function TAccountsResource.CreateContainersMacrosResource(AOwner : TComponent) : TAccountsContainersMacrosResource;
+
+begin
+  Result:=TAccountsContainersMacrosResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetContainersRulesInstance : TAccountsContainersRulesResource;
+
+begin
+  if (FContainersRulesInstance=Nil) then
+    FContainersRulesInstance:=CreateContainersRulesResource;
+  Result:=FContainersRulesInstance;
+end;
+
+Function TAccountsResource.CreateContainersRulesResource : TAccountsContainersRulesResource;
+
+begin
+  Result:=CreateContainersRulesResource(Self);
+end;
+
+
+Function TAccountsResource.CreateContainersRulesResource(AOwner : TComponent) : TAccountsContainersRulesResource;
+
+begin
+  Result:=TAccountsContainersRulesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetContainersTagsInstance : TAccountsContainersTagsResource;
+
+begin
+  if (FContainersTagsInstance=Nil) then
+    FContainersTagsInstance:=CreateContainersTagsResource;
+  Result:=FContainersTagsInstance;
+end;
+
+Function TAccountsResource.CreateContainersTagsResource : TAccountsContainersTagsResource;
+
+begin
+  Result:=CreateContainersTagsResource(Self);
+end;
+
+
+Function TAccountsResource.CreateContainersTagsResource(AOwner : TComponent) : TAccountsContainersTagsResource;
+
+begin
+  Result:=TAccountsContainersTagsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetContainersTriggersInstance : TAccountsContainersTriggersResource;
+
+begin
+  if (FContainersTriggersInstance=Nil) then
+    FContainersTriggersInstance:=CreateContainersTriggersResource;
+  Result:=FContainersTriggersInstance;
+end;
+
+Function TAccountsResource.CreateContainersTriggersResource : TAccountsContainersTriggersResource;
+
+begin
+  Result:=CreateContainersTriggersResource(Self);
+end;
+
+
+Function TAccountsResource.CreateContainersTriggersResource(AOwner : TComponent) : TAccountsContainersTriggersResource;
+
+begin
+  Result:=TAccountsContainersTriggersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetContainersVariablesInstance : TAccountsContainersVariablesResource;
+
+begin
+  if (FContainersVariablesInstance=Nil) then
+    FContainersVariablesInstance:=CreateContainersVariablesResource;
+  Result:=FContainersVariablesInstance;
+end;
+
+Function TAccountsResource.CreateContainersVariablesResource : TAccountsContainersVariablesResource;
+
+begin
+  Result:=CreateContainersVariablesResource(Self);
+end;
+
+
+Function TAccountsResource.CreateContainersVariablesResource(AOwner : TComponent) : TAccountsContainersVariablesResource;
+
+begin
+  Result:=TAccountsContainersVariablesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetContainersVersionsInstance : TAccountsContainersVersionsResource;
+
+begin
+  if (FContainersVersionsInstance=Nil) then
+    FContainersVersionsInstance:=CreateContainersVersionsResource;
+  Result:=FContainersVersionsInstance;
+end;
+
+Function TAccountsResource.CreateContainersVersionsResource : TAccountsContainersVersionsResource;
+
+begin
+  Result:=CreateContainersVersionsResource(Self);
+end;
+
+
+Function TAccountsResource.CreateContainersVersionsResource(AOwner : TComponent) : TAccountsContainersVersionsResource;
+
+begin
+  Result:=TAccountsContainersVersionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetContainersInstance : TAccountsContainersResource;
+
+begin
+  if (FContainersInstance=Nil) then
+    FContainersInstance:=CreateContainersResource;
+  Result:=FContainersInstance;
+end;
+
+Function TAccountsResource.CreateContainersResource : TAccountsContainersResource;
+
+begin
+  Result:=CreateContainersResource(Self);
+end;
+
+
+Function TAccountsResource.CreateContainersResource(AOwner : TComponent) : TAccountsContainersResource;
+
+begin
+  Result:=TAccountsContainersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetPermissionsInstance : TAccountsPermissionsResource;
+
+begin
+  if (FPermissionsInstance=Nil) then
+    FPermissionsInstance:=CreatePermissionsResource;
+  Result:=FPermissionsInstance;
+end;
+
+Function TAccountsResource.CreatePermissionsResource : TAccountsPermissionsResource;
+
+begin
+  Result:=CreatePermissionsResource(Self);
+end;
+
+
+Function TAccountsResource.CreatePermissionsResource(AOwner : TComponent) : TAccountsPermissionsResource;
+
+begin
+  Result:=TAccountsPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -2658,7 +4589,7 @@ end;
 Class Function TTagmanagerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TTagmanagerAPI.APIbasePath : string;
@@ -2670,7 +4601,7 @@ end;
 Class Function TTagmanagerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/tagmanager/v1/';
+  Result:='https://www.googleapis.com:443/tagmanager/v1/';
 end;
 
 Class Function TTagmanagerAPI.APIProtocol : string;
@@ -2750,6 +4681,198 @@ begin
 end;
 
 
+Function TTagmanagerAPI.GetAccountsContainersMacrosInstance : TAccountsContainersMacrosResource;
+
+begin
+  if (FAccountsContainersMacrosInstance=Nil) then
+    FAccountsContainersMacrosInstance:=CreateAccountsContainersMacrosResource;
+  Result:=FAccountsContainersMacrosInstance;
+end;
+
+Function TTagmanagerAPI.CreateAccountsContainersMacrosResource : TAccountsContainersMacrosResource;
+
+begin
+  Result:=CreateAccountsContainersMacrosResource(Self);
+end;
+
+
+Function TTagmanagerAPI.CreateAccountsContainersMacrosResource(AOwner : TComponent) : TAccountsContainersMacrosResource;
+
+begin
+  Result:=TAccountsContainersMacrosResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTagmanagerAPI.GetAccountsContainersRulesInstance : TAccountsContainersRulesResource;
+
+begin
+  if (FAccountsContainersRulesInstance=Nil) then
+    FAccountsContainersRulesInstance:=CreateAccountsContainersRulesResource;
+  Result:=FAccountsContainersRulesInstance;
+end;
+
+Function TTagmanagerAPI.CreateAccountsContainersRulesResource : TAccountsContainersRulesResource;
+
+begin
+  Result:=CreateAccountsContainersRulesResource(Self);
+end;
+
+
+Function TTagmanagerAPI.CreateAccountsContainersRulesResource(AOwner : TComponent) : TAccountsContainersRulesResource;
+
+begin
+  Result:=TAccountsContainersRulesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTagmanagerAPI.GetAccountsContainersTagsInstance : TAccountsContainersTagsResource;
+
+begin
+  if (FAccountsContainersTagsInstance=Nil) then
+    FAccountsContainersTagsInstance:=CreateAccountsContainersTagsResource;
+  Result:=FAccountsContainersTagsInstance;
+end;
+
+Function TTagmanagerAPI.CreateAccountsContainersTagsResource : TAccountsContainersTagsResource;
+
+begin
+  Result:=CreateAccountsContainersTagsResource(Self);
+end;
+
+
+Function TTagmanagerAPI.CreateAccountsContainersTagsResource(AOwner : TComponent) : TAccountsContainersTagsResource;
+
+begin
+  Result:=TAccountsContainersTagsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTagmanagerAPI.GetAccountsContainersTriggersInstance : TAccountsContainersTriggersResource;
+
+begin
+  if (FAccountsContainersTriggersInstance=Nil) then
+    FAccountsContainersTriggersInstance:=CreateAccountsContainersTriggersResource;
+  Result:=FAccountsContainersTriggersInstance;
+end;
+
+Function TTagmanagerAPI.CreateAccountsContainersTriggersResource : TAccountsContainersTriggersResource;
+
+begin
+  Result:=CreateAccountsContainersTriggersResource(Self);
+end;
+
+
+Function TTagmanagerAPI.CreateAccountsContainersTriggersResource(AOwner : TComponent) : TAccountsContainersTriggersResource;
+
+begin
+  Result:=TAccountsContainersTriggersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTagmanagerAPI.GetAccountsContainersVariablesInstance : TAccountsContainersVariablesResource;
+
+begin
+  if (FAccountsContainersVariablesInstance=Nil) then
+    FAccountsContainersVariablesInstance:=CreateAccountsContainersVariablesResource;
+  Result:=FAccountsContainersVariablesInstance;
+end;
+
+Function TTagmanagerAPI.CreateAccountsContainersVariablesResource : TAccountsContainersVariablesResource;
+
+begin
+  Result:=CreateAccountsContainersVariablesResource(Self);
+end;
+
+
+Function TTagmanagerAPI.CreateAccountsContainersVariablesResource(AOwner : TComponent) : TAccountsContainersVariablesResource;
+
+begin
+  Result:=TAccountsContainersVariablesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTagmanagerAPI.GetAccountsContainersVersionsInstance : TAccountsContainersVersionsResource;
+
+begin
+  if (FAccountsContainersVersionsInstance=Nil) then
+    FAccountsContainersVersionsInstance:=CreateAccountsContainersVersionsResource;
+  Result:=FAccountsContainersVersionsInstance;
+end;
+
+Function TTagmanagerAPI.CreateAccountsContainersVersionsResource : TAccountsContainersVersionsResource;
+
+begin
+  Result:=CreateAccountsContainersVersionsResource(Self);
+end;
+
+
+Function TTagmanagerAPI.CreateAccountsContainersVersionsResource(AOwner : TComponent) : TAccountsContainersVersionsResource;
+
+begin
+  Result:=TAccountsContainersVersionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTagmanagerAPI.GetAccountsContainersInstance : TAccountsContainersResource;
+
+begin
+  if (FAccountsContainersInstance=Nil) then
+    FAccountsContainersInstance:=CreateAccountsContainersResource;
+  Result:=FAccountsContainersInstance;
+end;
+
+Function TTagmanagerAPI.CreateAccountsContainersResource : TAccountsContainersResource;
+
+begin
+  Result:=CreateAccountsContainersResource(Self);
+end;
+
+
+Function TTagmanagerAPI.CreateAccountsContainersResource(AOwner : TComponent) : TAccountsContainersResource;
+
+begin
+  Result:=TAccountsContainersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTagmanagerAPI.GetAccountsPermissionsInstance : TAccountsPermissionsResource;
+
+begin
+  if (FAccountsPermissionsInstance=Nil) then
+    FAccountsPermissionsInstance:=CreateAccountsPermissionsResource;
+  Result:=FAccountsPermissionsInstance;
+end;
+
+Function TTagmanagerAPI.CreateAccountsPermissionsResource : TAccountsPermissionsResource;
+
+begin
+  Result:=CreateAccountsPermissionsResource(Self);
+end;
+
+
+Function TTagmanagerAPI.CreateAccountsPermissionsResource(AOwner : TComponent) : TAccountsPermissionsResource;
+
+begin
+  Result:=TAccountsPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TTagmanagerAPI.GetAccountsInstance : TAccountsResource;
 
 begin
@@ -2769,7 +4892,7 @@ Function TTagmanagerAPI.CreateAccountsResource(AOwner : TComponent) : TAccountsR
 
 begin
   Result:=TAccountsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

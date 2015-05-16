@@ -13,7 +13,7 @@ unit googledatastore;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:51
+//Generated on: 16-5-15 08:53:01
 {$MODE objfpc}
 {$H+}
 
@@ -24,40 +24,40 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAllocateIdsRequest = class;
-  TAllocateIdsResponse = class;
-  TBeginTransactionRequest = class;
-  TBeginTransactionResponse = class;
-  TCommitRequest = class;
-  TCommitResponse = class;
-  TCompositeFilter = class;
-  TEntity = class;
-  TEntityResult = class;
-  TFilter = class;
-  TGqlQuery = class;
-  TGqlQueryArg = class;
-  TKey = class;
-  TKeyPathElement = class;
-  TKindExpression = class;
-  TLookupRequest = class;
-  TLookupResponse = class;
-  TMutation = class;
-  TMutationResult = class;
-  TPartitionId = class;
-  TProperty = class;
-  TPropertyExpression = class;
-  TPropertyFilter = class;
-  TPropertyOrder = class;
-  TPropertyReference = class;
-  TQuery = class;
-  TQueryResultBatch = class;
-  TReadOptions = class;
-  TResponseHeader = class;
-  TRollbackRequest = class;
-  TRollbackResponse = class;
-  TRunQueryRequest = class;
-  TRunQueryResponse = class;
-  TValue = class;
+  TAllocateIdsRequest = Class;
+  TAllocateIdsResponse = Class;
+  TBeginTransactionRequest = Class;
+  TBeginTransactionResponse = Class;
+  TCommitRequest = Class;
+  TCommitResponse = Class;
+  TCompositeFilter = Class;
+  TEntity = Class;
+  TEntityResult = Class;
+  TFilter = Class;
+  TGqlQuery = Class;
+  TGqlQueryArg = Class;
+  TKey = Class;
+  TKeyPathElement = Class;
+  TKindExpression = Class;
+  TLookupRequest = Class;
+  TLookupResponse = Class;
+  TMutation = Class;
+  TMutationResult = Class;
+  TPartitionId = Class;
+  TProperty = Class;
+  TPropertyExpression = Class;
+  TPropertyFilter = Class;
+  TPropertyOrder = Class;
+  TPropertyReference = Class;
+  TQuery = Class;
+  TQueryResultBatch = Class;
+  TReadOptions = Class;
+  TResponseHeader = Class;
+  TRollbackRequest = Class;
+  TRollbackResponse = Class;
+  TRunQueryRequest = Class;
+  TRunQueryResponse = Class;
+  TValue = Class;
   TAllocateIdsRequestArray = Array of TAllocateIdsRequest;
   TAllocateIdsResponseArray = Array of TAllocateIdsResponse;
   TBeginTransactionRequestArray = Array of TBeginTransactionRequest;
@@ -93,7 +93,7 @@ type
   TRunQueryResponseArray = Array of TRunQueryResponse;
   TValueArray = Array of TValue;
   //Anonymous types, using auto-generated names
-  TEntityTypeproperties = class;
+  TEntityTypeproperties = Class;
   TAllocateIdsRequestTypekeysArray = Array of TKey;
   TAllocateIdsResponseTypekeysArray = Array of TKey;
   TCompositeFilterTypefiltersArray = Array of TFilter;
@@ -128,6 +128,10 @@ type
   Protected
     //Property setters
     Procedure Setkeys(AIndex : Integer; AValue : TAllocateIdsRequestTypekeysArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property keys : TAllocateIdsRequestTypekeysArray Index 0 Read Fkeys Write Setkeys;
@@ -146,6 +150,10 @@ type
     //Property setters
     Procedure Setheader(AIndex : Integer; AValue : TResponseHeader); virtual;
     Procedure Setkeys(AIndex : Integer; AValue : TAllocateIdsResponseTypekeysArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property header : TResponseHeader Index 0 Read Fheader Write Setheader;
@@ -245,6 +253,10 @@ type
     //Property setters
     Procedure Setfilters(AIndex : Integer; AValue : TCompositeFilterTypefiltersArray); virtual;
     Procedure Set_operator(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property filters : TCompositeFilterTypefiltersArray Index 0 Read Ffilters Write Setfilters;
@@ -336,6 +348,10 @@ type
     Procedure SetnameArgs(AIndex : Integer; AValue : TGqlQueryTypenameArgsArray); virtual;
     Procedure SetnumberArgs(AIndex : Integer; AValue : TGqlQueryTypenumberArgsArray); virtual;
     Procedure SetqueryString(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property allowLiteral : boolean Index 0 Read FallowLiteral Write SetallowLiteral;
@@ -379,6 +395,10 @@ type
     //Property setters
     Procedure SetpartitionId(AIndex : Integer; AValue : TPartitionId); virtual;
     Procedure Setpath(AIndex : Integer; AValue : TKeyTypepathArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property partitionId : TPartitionId Index 0 Read FpartitionId Write SetpartitionId;
@@ -436,6 +456,10 @@ type
     //Property setters
     Procedure Setkeys(AIndex : Integer; AValue : TLookupRequestTypekeysArray); virtual;
     Procedure SetreadOptions(AIndex : Integer; AValue : TReadOptions); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property keys : TLookupRequestTypekeysArray Index 0 Read Fkeys Write Setkeys;
@@ -459,6 +483,10 @@ type
     Procedure Setfound(AIndex : Integer; AValue : TLookupResponseTypefoundArray); virtual;
     Procedure Setheader(AIndex : Integer; AValue : TResponseHeader); virtual;
     Procedure Setmissing(AIndex : Integer; AValue : TLookupResponseTypemissingArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property deferred : TLookupResponseTypedeferredArray Index 0 Read Fdeferred Write Setdeferred;
@@ -488,6 +516,10 @@ type
     Procedure SetinsertAutoId(AIndex : Integer; AValue : TMutationTypeinsertAutoIdArray); virtual;
     Procedure Setupdate(AIndex : Integer; AValue : TMutationTypeupdateArray); virtual;
     Procedure Setupsert(AIndex : Integer; AValue : TMutationTypeupsertArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property delete : TMutationTypedeleteArray Index 0 Read Fdelete Write Setdelete;
@@ -511,6 +543,10 @@ type
     //Property setters
     Procedure SetindexUpdates(AIndex : Integer; AValue : integer); virtual;
     Procedure SetinsertAutoIdKeys(AIndex : Integer; AValue : TMutationResultTypeinsertAutoIdKeysArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property indexUpdates : integer Index 0 Read FindexUpdates Write SetindexUpdates;
@@ -569,6 +605,10 @@ type
     Procedure SetlistValue(AIndex : Integer; AValue : TPropertyTypelistValueArray); virtual;
     Procedure Setmeaning(AIndex : Integer; AValue : integer); virtual;
     Procedure SetstringValue(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property blobKeyValue : String Index 0 Read FblobKeyValue Write SetblobKeyValue;
@@ -691,6 +731,10 @@ type
     Procedure Setorder(AIndex : Integer; AValue : TQueryTypeorderArray); virtual;
     Procedure Setprojection(AIndex : Integer; AValue : TQueryTypeprojectionArray); virtual;
     Procedure SetstartCursor(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property endCursor : String Index 0 Read FendCursor Write SetendCursor;
@@ -723,6 +767,10 @@ type
     Procedure SetentityResults(AIndex : Integer; AValue : TQueryResultBatchTypeentityResultsArray); virtual;
     Procedure SetmoreResults(AIndex : Integer; AValue : String); virtual;
     Procedure SetskippedResults(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property endCursor : String Index 0 Read FendCursor Write SetendCursor;
@@ -876,6 +924,10 @@ type
     Procedure SetlistValue(AIndex : Integer; AValue : TValueTypelistValueArray); virtual;
     Procedure Setmeaning(AIndex : Integer; AValue : integer); virtual;
     Procedure SetstringValue(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property blobKeyValue : String Index 0 Read FblobKeyValue Write SetblobKeyValue;
@@ -964,6 +1016,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAllocateIdsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'keys' : SetLength(Fkeys,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -990,6 +1055,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAllocateIdsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'keys' : SetLength(Fkeys,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1147,6 +1225,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCompositeFilter.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'filters' : SetLength(Ffilters,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1278,6 +1369,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGqlQuery.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'nameargs' : SetLength(FnameArgs,ALength);
+  'numberargs' : SetLength(FnumberArgs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1341,6 +1446,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TKey.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'path' : SetLength(Fpath,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1423,6 +1541,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLookupRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'keys' : SetLength(Fkeys,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1469,6 +1600,21 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLookupResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'deferred' : SetLength(Fdeferred,ALength);
+  'found' : SetLength(Ffound,ALength);
+  'missing' : SetLength(Fmissing,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1537,6 +1683,23 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMutation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'delete' : SetLength(Fdelete,ALength);
+  'insert' : SetLength(Finsert,ALength);
+  'insertautoid' : SetLength(FinsertAutoId,ALength);
+  'update' : SetLength(Fupdate,ALength);
+  'upsert' : SetLength(Fupsert,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1563,6 +1726,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMutationResult.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'insertautoidkeys' : SetLength(FinsertAutoIdKeys,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1717,6 +1893,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProperty.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'listvalue' : SetLength(FlistValue,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1957,6 +2146,22 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TQuery.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'groupby' : SetLength(FgroupBy,ALength);
+  'kinds' : SetLength(Fkinds,ALength);
+  'order' : SetLength(Forder,ALength);
+  'projection' : SetLength(Fprojection,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2013,6 +2218,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TQueryResultBatch.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entityresults' : SetLength(FentityResults,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2293,6 +2511,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TValue.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'listvalue' : SetLength(FlistValue,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2478,7 +2709,7 @@ end;
 Class Function TDatastoreAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TDatastoreAPI.APIbasePath : string;
@@ -2490,7 +2721,7 @@ end;
 Class Function TDatastoreAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/datastore/v1beta2/datasets/';
+  Result:='https://www.googleapis.com:443/datastore/v1beta2/datasets/';
 end;
 
 Class Function TDatastoreAPI.APIProtocol : string;
@@ -2590,7 +2821,7 @@ Function TDatastoreAPI.CreateDatasetsResource(AOwner : TComponent) : TDatasetsRe
 
 begin
   Result:=TDatasetsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

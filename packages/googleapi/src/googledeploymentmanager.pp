@@ -13,7 +13,7 @@ unit googledeploymentmanager;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:52
+//Generated on: 16-5-15 08:53:02
 {$MODE objfpc}
 {$H+}
 
@@ -24,20 +24,20 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TDeployment = class;
-  TDeploymentUpdate = class;
-  TDeploymentsListResponse = class;
-  TImportFile = class;
-  TManifest = class;
-  TManifestsListResponse = class;
-  TOperation = class;
-  TOperationsListResponse = class;
-  TResource = class;
-  TResourceUpdate = class;
-  TResourcesListResponse = class;
-  TTargetConfiguration = class;
-  TType = class;
-  TTypesListResponse = class;
+  TDeployment = Class;
+  TDeploymentUpdate = Class;
+  TDeploymentsListResponse = Class;
+  TImportFile = Class;
+  TManifest = Class;
+  TManifestsListResponse = Class;
+  TOperation = Class;
+  TOperationsListResponse = Class;
+  TResource = Class;
+  TResourceUpdate = Class;
+  TResourcesListResponse = Class;
+  TTargetConfiguration = Class;
+  TType = Class;
+  TTypesListResponse = Class;
   TDeploymentArray = Array of TDeployment;
   TDeploymentUpdateArray = Array of TDeploymentUpdate;
   TDeploymentsListResponseArray = Array of TDeploymentsListResponse;
@@ -53,10 +53,10 @@ type
   TTypeArray = Array of TType;
   TTypesListResponseArray = Array of TTypesListResponse;
   //Anonymous types, using auto-generated names
-  TOperationTypeerrorTypeerrorsItem = class;
-  TOperationTypeerror = class;
-  TOperationTypewarningsItemTypedataItem = class;
-  TOperationTypewarningsItem = class;
+  TOperationTypeerrorTypeerrorsItem = Class;
+  TOperationTypeerror = Class;
+  TOperationTypewarningsItemTypedataItem = Class;
+  TOperationTypewarningsItem = Class;
   TDeploymentsListResponseTypedeploymentsArray = Array of TDeployment;
   TManifestTypeimportsArray = Array of TImportFile;
   TManifestsListResponseTypemanifestsArray = Array of TManifest;
@@ -123,6 +123,10 @@ type
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setmanifest(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TStringArray Index 0 Read Ferrors Write Seterrors;
@@ -142,6 +146,10 @@ type
     //Property setters
     Procedure Setdeployments(AIndex : Integer; AValue : TDeploymentsListResponseTypedeploymentsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property deployments : TDeploymentsListResponseTypedeploymentsArray Index 0 Read Fdeployments Write Setdeployments;
@@ -192,6 +200,10 @@ type
     Procedure Setlayout(AIndex : Integer; AValue : String); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property config : String Index 0 Read Fconfig Write Setconfig;
@@ -217,6 +229,10 @@ type
     //Property setters
     Procedure Setmanifests(AIndex : Integer; AValue : TManifestsListResponseTypemanifestsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property manifests : TManifestsListResponseTypemanifestsArray Index 0 Read Fmanifests Write Setmanifests;
@@ -256,6 +272,10 @@ type
   Protected
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
@@ -295,6 +315,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -355,6 +379,10 @@ type
     Procedure Setuser(AIndex : Integer; AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
     Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
@@ -394,6 +422,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setoperations(AIndex : Integer; AValue : TOperationsListResponseTypeoperationsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -459,6 +491,10 @@ type
     Procedure Setmanifest(AIndex : Integer; AValue : String); virtual;
     Procedure Setproperties(AIndex : Integer; AValue : String); virtual;
     Procedure Setstate(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TStringArray Index 0 Read Ferrors Write Seterrors;
@@ -482,6 +518,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TResourcesListResponseTyperesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -501,6 +541,10 @@ type
     //Property setters
     Procedure Setconfig(AIndex : Integer; AValue : String); virtual;
     Procedure Setimports(AIndex : Integer; AValue : TTargetConfigurationTypeimportsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property config : String Index 0 Read Fconfig Write Setconfig;
@@ -536,6 +580,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Settypes(AIndex : Integer; AValue : TTypesListResponseTypetypesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -872,6 +920,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDeploymentUpdate.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -898,6 +959,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDeploymentsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'deployments' : SetLength(Fdeployments,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1013,6 +1087,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TManifest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'imports' : SetLength(Fimports,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1039,6 +1126,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TManifestsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'manifests' : SetLength(Fmanifests,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1093,6 +1193,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1157,6 +1270,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1385,6 +1511,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1411,6 +1550,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'operations' : SetLength(Foperations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1577,6 +1729,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResourceUpdate.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1604,6 +1769,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResourcesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1630,6 +1808,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetConfiguration.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'imports' : SetLength(Fimports,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1674,6 +1865,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTypesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'types' : SetLength(Ftypes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2139,7 +2343,7 @@ end;
 Class Function TDeploymentmanagerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TDeploymentmanagerAPI.APIbasePath : string;
@@ -2151,7 +2355,7 @@ end;
 Class Function TDeploymentmanagerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/deploymentmanager/v2beta2/projects/';
+  Result:='https://www.googleapis.com:443/deploymentmanager/v2beta2/projects/';
 end;
 
 Class Function TDeploymentmanagerAPI.APIProtocol : string;
@@ -2234,7 +2438,7 @@ Function TDeploymentmanagerAPI.CreateDeploymentsResource(AOwner : TComponent) : 
 
 begin
   Result:=TDeploymentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2258,7 +2462,7 @@ Function TDeploymentmanagerAPI.CreateManifestsResource(AOwner : TComponent) : TM
 
 begin
   Result:=TManifestsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2282,7 +2486,7 @@ Function TDeploymentmanagerAPI.CreateOperationsResource(AOwner : TComponent) : T
 
 begin
   Result:=TOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2306,7 +2510,7 @@ Function TDeploymentmanagerAPI.CreateResourcesResource(AOwner : TComponent) : TR
 
 begin
   Result:=TResourcesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2330,7 +2534,7 @@ Function TDeploymentmanagerAPI.CreateTypesResource(AOwner : TComponent) : TTypes
 
 begin
   Result:=TTypesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

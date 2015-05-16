@@ -13,7 +13,7 @@ unit googlereseller;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:57
+//Generated on: 16-5-15 08:53:07
 {$MODE objfpc}
 {$H+}
 
@@ -24,13 +24,13 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAddress = class;
-  TChangePlanRequest = class;
-  TCustomer = class;
-  TRenewalSettings = class;
-  TSeats = class;
-  TSubscription = class;
-  TSubscriptions = class;
+  TAddress = Class;
+  TChangePlanRequest = Class;
+  TCustomer = Class;
+  TRenewalSettings = Class;
+  TSeats = Class;
+  TSubscription = Class;
+  TSubscriptions = Class;
   TAddressArray = Array of TAddress;
   TChangePlanRequestArray = Array of TChangePlanRequest;
   TCustomerArray = Array of TCustomer;
@@ -39,10 +39,10 @@ type
   TSubscriptionArray = Array of TSubscription;
   TSubscriptionsArray = Array of TSubscriptions;
   //Anonymous types, using auto-generated names
-  TSubscriptionTypeplanTypecommitmentInterval = class;
-  TSubscriptionTypeplan = class;
-  TSubscriptionTypetransferInfo = class;
-  TSubscriptionTypetrialSettings = class;
+  TSubscriptionTypeplanTypecommitmentInterval = Class;
+  TSubscriptionTypeplan = Class;
+  TSubscriptionTypetransferInfo = Class;
+  TSubscriptionTypetrialSettings = Class;
   TSubscriptionsTypesubscriptionsArray = Array of TSubscription;
   
   { --------------------------------------------------------------------
@@ -339,6 +339,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setsubscriptions(AIndex : Integer; AValue : TSubscriptionsTypesubscriptionsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1068,6 +1072,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSubscriptions.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'subscriptions' : SetLength(Fsubscriptions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1436,7 +1453,7 @@ end;
 Class Function TResellerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TResellerAPI.APIbasePath : string;
@@ -1448,7 +1465,7 @@ end;
 Class Function TResellerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/apps/reseller/v1/';
+  Result:='https://www.googleapis.com:443/apps/reseller/v1/';
 end;
 
 Class Function TResellerAPI.APIProtocol : string;
@@ -1522,7 +1539,7 @@ Function TResellerAPI.CreateCustomersResource(AOwner : TComponent) : TCustomersR
 
 begin
   Result:=TCustomersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1546,7 +1563,7 @@ Function TResellerAPI.CreateSubscriptionsResource(AOwner : TComponent) : TSubscr
 
 begin
   Result:=TSubscriptionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -13,7 +13,7 @@ unit googlecontent;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:51
+//Generated on: 16-5-15 08:53:01
 {$MODE objfpc}
 {$H+}
 
@@ -24,99 +24,99 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAccount = class;
-  TAccountAdwordsLink = class;
-  TAccountIdentifier = class;
-  TAccountShipping = class;
-  TAccountShippingCarrierRate = class;
-  TAccountShippingCondition = class;
-  TAccountShippingLocationGroup = class;
-  TAccountShippingPostalCodeRange = class;
-  TAccountShippingRateTable = class;
-  TAccountShippingRateTableCell = class;
-  TAccountShippingShippingService = class;
-  TAccountShippingShippingServiceCalculationMethod = class;
-  TAccountShippingShippingServiceCostRule = class;
-  TAccountStatus = class;
-  TAccountStatusDataQualityIssue = class;
-  TAccountStatusExampleItem = class;
-  TAccountTax = class;
-  TAccountTaxTaxRule = class;
-  TAccountUser = class;
-  TAccountsAuthInfoResponse = class;
-  TAccountsCustomBatchRequest = class;
-  TAccountsCustomBatchRequestEntry = class;
-  TAccountsCustomBatchResponse = class;
-  TAccountsCustomBatchResponseEntry = class;
-  TAccountsListResponse = class;
-  TAccountshippingCustomBatchRequest = class;
-  TAccountshippingCustomBatchRequestEntry = class;
-  TAccountshippingCustomBatchResponse = class;
-  TAccountshippingCustomBatchResponseEntry = class;
-  TAccountshippingListResponse = class;
-  TAccountstatusesCustomBatchRequest = class;
-  TAccountstatusesCustomBatchRequestEntry = class;
-  TAccountstatusesCustomBatchResponse = class;
-  TAccountstatusesCustomBatchResponseEntry = class;
-  TAccountstatusesListResponse = class;
-  TAccounttaxCustomBatchRequest = class;
-  TAccounttaxCustomBatchRequestEntry = class;
-  TAccounttaxCustomBatchResponse = class;
-  TAccounttaxCustomBatchResponseEntry = class;
-  TAccounttaxListResponse = class;
-  TDatafeed = class;
-  TDatafeedFetchSchedule = class;
-  TDatafeedFormat = class;
-  TDatafeedStatus = class;
-  TDatafeedStatusError = class;
-  TDatafeedStatusExample = class;
-  TDatafeedsCustomBatchRequest = class;
-  TDatafeedsCustomBatchRequestEntry = class;
-  TDatafeedsCustomBatchResponse = class;
-  TDatafeedsCustomBatchResponseEntry = class;
-  TDatafeedsListResponse = class;
-  TDatafeedstatusesCustomBatchRequest = class;
-  TDatafeedstatusesCustomBatchRequestEntry = class;
-  TDatafeedstatusesCustomBatchResponse = class;
-  TDatafeedstatusesCustomBatchResponseEntry = class;
-  TDatafeedstatusesListResponse = class;
-  TError = class;
-  TErrors = class;
-  TInventory = class;
-  TInventoryCustomBatchRequest = class;
-  TInventoryCustomBatchRequestEntry = class;
-  TInventoryCustomBatchResponse = class;
-  TInventoryCustomBatchResponseEntry = class;
-  TInventorySetRequest = class;
-  TInventorySetResponse = class;
-  TLoyaltyPoints = class;
-  TPrice = class;
-  TProduct = class;
-  TProductAspect = class;
-  TProductCustomAttribute = class;
-  TProductCustomGroup = class;
-  TProductDestination = class;
-  TProductInstallment = class;
-  TProductShipping = class;
-  TProductShippingDimension = class;
-  TProductShippingWeight = class;
-  TProductStatus = class;
-  TProductStatusDataQualityIssue = class;
-  TProductStatusDestinationStatus = class;
-  TProductTax = class;
-  TProductUnitPricingBaseMeasure = class;
-  TProductUnitPricingMeasure = class;
-  TProductsCustomBatchRequest = class;
-  TProductsCustomBatchRequestEntry = class;
-  TProductsCustomBatchResponse = class;
-  TProductsCustomBatchResponseEntry = class;
-  TProductsListResponse = class;
-  TProductstatusesCustomBatchRequest = class;
-  TProductstatusesCustomBatchRequestEntry = class;
-  TProductstatusesCustomBatchResponse = class;
-  TProductstatusesCustomBatchResponseEntry = class;
-  TProductstatusesListResponse = class;
-  TWeight = class;
+  TAccount = Class;
+  TAccountAdwordsLink = Class;
+  TAccountIdentifier = Class;
+  TAccountShipping = Class;
+  TAccountShippingCarrierRate = Class;
+  TAccountShippingCondition = Class;
+  TAccountShippingLocationGroup = Class;
+  TAccountShippingPostalCodeRange = Class;
+  TAccountShippingRateTable = Class;
+  TAccountShippingRateTableCell = Class;
+  TAccountShippingShippingService = Class;
+  TAccountShippingShippingServiceCalculationMethod = Class;
+  TAccountShippingShippingServiceCostRule = Class;
+  TAccountStatus = Class;
+  TAccountStatusDataQualityIssue = Class;
+  TAccountStatusExampleItem = Class;
+  TAccountTax = Class;
+  TAccountTaxTaxRule = Class;
+  TAccountUser = Class;
+  TAccountsAuthInfoResponse = Class;
+  TAccountsCustomBatchRequest = Class;
+  TAccountsCustomBatchRequestEntry = Class;
+  TAccountsCustomBatchResponse = Class;
+  TAccountsCustomBatchResponseEntry = Class;
+  TAccountsListResponse = Class;
+  TAccountshippingCustomBatchRequest = Class;
+  TAccountshippingCustomBatchRequestEntry = Class;
+  TAccountshippingCustomBatchResponse = Class;
+  TAccountshippingCustomBatchResponseEntry = Class;
+  TAccountshippingListResponse = Class;
+  TAccountstatusesCustomBatchRequest = Class;
+  TAccountstatusesCustomBatchRequestEntry = Class;
+  TAccountstatusesCustomBatchResponse = Class;
+  TAccountstatusesCustomBatchResponseEntry = Class;
+  TAccountstatusesListResponse = Class;
+  TAccounttaxCustomBatchRequest = Class;
+  TAccounttaxCustomBatchRequestEntry = Class;
+  TAccounttaxCustomBatchResponse = Class;
+  TAccounttaxCustomBatchResponseEntry = Class;
+  TAccounttaxListResponse = Class;
+  TDatafeed = Class;
+  TDatafeedFetchSchedule = Class;
+  TDatafeedFormat = Class;
+  TDatafeedStatus = Class;
+  TDatafeedStatusError = Class;
+  TDatafeedStatusExample = Class;
+  TDatafeedsCustomBatchRequest = Class;
+  TDatafeedsCustomBatchRequestEntry = Class;
+  TDatafeedsCustomBatchResponse = Class;
+  TDatafeedsCustomBatchResponseEntry = Class;
+  TDatafeedsListResponse = Class;
+  TDatafeedstatusesCustomBatchRequest = Class;
+  TDatafeedstatusesCustomBatchRequestEntry = Class;
+  TDatafeedstatusesCustomBatchResponse = Class;
+  TDatafeedstatusesCustomBatchResponseEntry = Class;
+  TDatafeedstatusesListResponse = Class;
+  TError = Class;
+  TErrors = Class;
+  TInventory = Class;
+  TInventoryCustomBatchRequest = Class;
+  TInventoryCustomBatchRequestEntry = Class;
+  TInventoryCustomBatchResponse = Class;
+  TInventoryCustomBatchResponseEntry = Class;
+  TInventorySetRequest = Class;
+  TInventorySetResponse = Class;
+  TLoyaltyPoints = Class;
+  TPrice = Class;
+  TProduct = Class;
+  TProductAspect = Class;
+  TProductCustomAttribute = Class;
+  TProductCustomGroup = Class;
+  TProductDestination = Class;
+  TProductInstallment = Class;
+  TProductShipping = Class;
+  TProductShippingDimension = Class;
+  TProductShippingWeight = Class;
+  TProductStatus = Class;
+  TProductStatusDataQualityIssue = Class;
+  TProductStatusDestinationStatus = Class;
+  TProductTax = Class;
+  TProductUnitPricingBaseMeasure = Class;
+  TProductUnitPricingMeasure = Class;
+  TProductsCustomBatchRequest = Class;
+  TProductsCustomBatchRequestEntry = Class;
+  TProductsCustomBatchResponse = Class;
+  TProductsCustomBatchResponseEntry = Class;
+  TProductsListResponse = Class;
+  TProductstatusesCustomBatchRequest = Class;
+  TProductstatusesCustomBatchRequestEntry = Class;
+  TProductstatusesCustomBatchResponse = Class;
+  TProductstatusesCustomBatchResponseEntry = Class;
+  TProductstatusesListResponse = Class;
+  TWeight = Class;
   TAccountArray = Array of TAccount;
   TAccountAdwordsLinkArray = Array of TAccountAdwordsLink;
   TAccountIdentifierArray = Array of TAccountIdentifier;
@@ -291,6 +291,10 @@ type
     Procedure SetsellerId(AIndex : Integer; AValue : String); virtual;
     Procedure Setusers(AIndex : Integer; AValue : TAccountTypeusersArray); virtual;
     Procedure SetwebsiteUrl(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property adultContent : boolean Index 0 Read FadultContent Write SetadultContent;
@@ -363,6 +367,10 @@ type
     Procedure SetlocationGroups(AIndex : Integer; AValue : TAccountShippingTypelocationGroupsArray); virtual;
     Procedure SetrateTables(AIndex : Integer; AValue : TAccountShippingTyperateTablesArray); virtual;
     Procedure Setservices(AIndex : Integer; AValue : TAccountShippingTypeservicesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -460,6 +468,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetpostalCodeRanges(AIndex : Integer; AValue : TAccountShippingLocationGroupTypepostalCodeRangesArray); virtual;
     Procedure SetpostalCodes(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property country : String Index 0 Read Fcountry Write Setcountry;
@@ -504,6 +516,10 @@ type
     Procedure Setcontent(AIndex : Integer; AValue : TAccountShippingRateTableTypecontentArray); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetsaleCountry(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property content : TAccountShippingRateTableTypecontentArray Index 0 Read Fcontent Write Setcontent;
@@ -601,6 +617,10 @@ type
     Procedure SetcalculationMethod(AIndex : Integer; AValue : TAccountShippingShippingServiceCalculationMethod); virtual;
     Procedure Setchildren(AIndex : Integer; AValue : TAccountShippingShippingServiceCostRuleTypechildrenArray); virtual;
     Procedure Setcondition(AIndex : Integer; AValue : TAccountShippingCondition); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property calculationMethod : TAccountShippingShippingServiceCalculationMethod Index 0 Read FcalculationMethod Write SetcalculationMethod;
@@ -623,6 +643,10 @@ type
     Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
     Procedure SetdataQualityIssues(AIndex : Integer; AValue : TAccountStatusTypedataQualityIssuesArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -655,6 +679,10 @@ type
     Procedure SetnumItems(AIndex : Integer; AValue : integer); virtual;
     Procedure Setseverity(AIndex : Integer; AValue : String); virtual;
     Procedure SetsubmittedValue(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property country : String Index 0 Read Fcountry Write Setcountry;
@@ -710,6 +738,10 @@ type
     Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setrules(AIndex : Integer; AValue : TAccountTaxTyperulesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -777,6 +809,10 @@ type
     //Property setters
     Procedure SetaccountIdentifiers(AIndex : Integer; AValue : TAccountsAuthInfoResponseTypeaccountIdentifiersArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accountIdentifiers : TAccountsAuthInfoResponseTypeaccountIdentifiersArray Index 0 Read FaccountIdentifiers Write SetaccountIdentifiers;
@@ -794,6 +830,10 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TAccountsCustomBatchRequestTypeentriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TAccountsCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -840,6 +880,10 @@ type
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TAccountsCustomBatchResponseTypeentriesArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TAccountsCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -886,6 +930,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TAccountsListResponseTyperesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -904,6 +952,10 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TAccountshippingCustomBatchRequestTypeentriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TAccountshippingCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -950,6 +1002,10 @@ type
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TAccountshippingCustomBatchResponseTypeentriesArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TAccountshippingCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -996,6 +1052,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TAccountshippingListResponseTyperesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1014,6 +1074,10 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TAccountstatusesCustomBatchRequestTypeentriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TAccountstatusesCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -1057,6 +1121,10 @@ type
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TAccountstatusesCustomBatchResponseTypeentriesArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TAccountstatusesCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -1100,6 +1168,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TAccountstatusesListResponseTyperesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1118,6 +1190,10 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TAccounttaxCustomBatchRequestTypeentriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TAccounttaxCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -1164,6 +1240,10 @@ type
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TAccounttaxCustomBatchResponseTypeentriesArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TAccounttaxCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -1210,6 +1290,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TAccounttaxListResponseTyperesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1248,6 +1332,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SettargetCountry(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property attributeLanguage : String Index 0 Read FattributeLanguage Write SetattributeLanguage;
@@ -1344,6 +1432,10 @@ type
     Procedure SetlastUploadDate(AIndex : Integer; AValue : String); virtual;
     Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TDatafeedStatusTypewarningsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property datafeedId : String Index 0 Read FdatafeedId Write SetdatafeedId;
@@ -1373,6 +1465,10 @@ type
     Procedure Setcount(AIndex : Integer; AValue : String); virtual;
     Procedure Setexamples(AIndex : Integer; AValue : TDatafeedStatusErrorTypeexamplesArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -1414,6 +1510,10 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TDatafeedsCustomBatchRequestTypeentriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TDatafeedsCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -1460,6 +1560,10 @@ type
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TDatafeedsCustomBatchResponseTypeentriesArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TDatafeedsCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -1503,6 +1607,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TDatafeedsListResponseTyperesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1521,6 +1629,10 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TDatafeedstatusesCustomBatchRequestTypeentriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TDatafeedstatusesCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -1564,6 +1676,10 @@ type
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TDatafeedstatusesCustomBatchResponseTypeentriesArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TDatafeedstatusesCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -1607,6 +1723,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TDatafeedstatusesListResponseTyperesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1651,6 +1771,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : integer); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TErrorsTypeerrorsArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : integer Index 0 Read Fcode Write Setcode;
@@ -1700,6 +1824,10 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TInventoryCustomBatchRequestTypeentriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TInventoryCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -1746,6 +1874,10 @@ type
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TInventoryCustomBatchResponseTypeentriesArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TInventoryCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -2006,6 +2138,10 @@ type
     Procedure SetunitPricingMeasure(AIndex : Integer; AValue : TProductUnitPricingMeasure); virtual;
     Procedure SetvalidatedDestinations(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TProductTypewarningsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property additionalImageLinks : TStringArray Index 0 Read FadditionalImageLinks Write SetadditionalImageLinks;
@@ -2140,6 +2276,10 @@ type
     //Property setters
     Procedure Setattributes(AIndex : Integer; AValue : TProductCustomGroupTypeattributesArray); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property attributes : TProductCustomGroupTypeattributesArray Index 0 Read Fattributes Write Setattributes;
@@ -2285,6 +2425,10 @@ type
     Procedure Setlink(AIndex : Integer; AValue : String); virtual;
     Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationDate : String Index 0 Read FcreationDate Write SetcreationDate;
@@ -2439,6 +2583,10 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TProductsCustomBatchRequestTypeentriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TProductsCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -2485,6 +2633,10 @@ type
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TProductsCustomBatchResponseTypeentriesArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TProductsCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -2531,6 +2683,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TProductsListResponseTyperesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -2549,6 +2705,10 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TProductstatusesCustomBatchRequestTypeentriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TProductstatusesCustomBatchRequestTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -2592,6 +2752,10 @@ type
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TProductstatusesCustomBatchResponseTypeentriesArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TProductstatusesCustomBatchResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -2638,6 +2802,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TProductstatusesListResponseTyperesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -3124,6 +3292,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccount.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'adwordslinks' : SetLength(FadwordsLinks,ALength);
+  'users' : SetLength(Fusers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3244,6 +3426,22 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountShipping.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'carrierrates' : SetLength(FcarrierRates,ALength);
+  'locationgroups' : SetLength(FlocationGroups,ALength);
+  'ratetables' : SetLength(FrateTables,ALength);
+  'services' : SetLength(Fservices,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3456,6 +3654,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountShippingLocationGroup.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'locationids' : SetLength(FlocationIds,ALength);
+  'postalcoderanges' : SetLength(FpostalCodeRanges,ALength);
+  'postalcodes' : SetLength(FpostalCodes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3530,6 +3743,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountShippingRateTable.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'content' : SetLength(Fcontent,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3709,6 +3935,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountShippingShippingServiceCostRule.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'children' : SetLength(Fchildren,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3745,6 +3984,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'dataqualityissues' : SetLength(FdataQualityIssues,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3832,6 +4084,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountStatusDataQualityIssue.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'exampleitems' : SetLength(FexampleItems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3926,6 +4191,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountTax.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rules' : SetLength(Frules,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4038,6 +4316,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountsAuthInfoResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'accountidentifiers' : SetLength(FaccountIdentifiers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4054,6 +4345,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountsCustomBatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4139,6 +4443,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountsCustomBatchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4223,6 +4540,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4239,6 +4569,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountshippingCustomBatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4324,6 +4667,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountshippingCustomBatchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4408,6 +4764,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountshippingListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4424,6 +4793,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountstatusesCustomBatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4499,6 +4881,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountstatusesCustomBatchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4573,6 +4968,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccountstatusesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4589,6 +4997,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccounttaxCustomBatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4674,6 +5095,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccounttaxCustomBatchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4757,6 +5191,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccounttaxListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4874,6 +5321,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDatafeed.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'intendeddestinations' : SetLength(FintendedDestinations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5076,6 +5536,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDatafeedStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5122,6 +5596,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDatafeedStatusError.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'examples' : SetLength(Fexamples,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5176,6 +5663,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDatafeedsCustomBatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5261,6 +5761,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDatafeedsCustomBatchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5335,6 +5848,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDatafeedsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5351,6 +5877,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDatafeedstatusesCustomBatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5426,6 +5965,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDatafeedstatusesCustomBatchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5500,6 +6052,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDatafeedstatusesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5573,6 +6138,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TErrors.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5658,6 +6236,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInventoryCustomBatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5741,6 +6332,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInventoryCustomBatchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -6614,6 +7218,30 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProduct.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'additionalimagelinks' : SetLength(FadditionalImageLinks,ALength);
+  'adwordslabels' : SetLength(FadwordsLabels,ALength);
+  'aspects' : SetLength(Faspects,ALength);
+  'customattributes' : SetLength(FcustomAttributes,ALength);
+  'customgroups' : SetLength(FcustomGroups,ALength);
+  'destinations' : SetLength(Fdestinations,ALength);
+  'displayadssimilarids' : SetLength(FdisplayAdsSimilarIds,ALength);
+  'shipping' : SetLength(Fshipping,ALength);
+  'sizes' : SetLength(Fsizes,ALength);
+  'taxes' : SetLength(Ftaxes,ALength);
+  'validateddestinations' : SetLength(FvalidatedDestinations,ALength);
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6736,6 +7364,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProductCustomGroup.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'attributes' : SetLength(Fattributes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7041,6 +7682,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProductStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'dataqualityissues' : SetLength(FdataQualityIssues,ALength);
+  'destinationstatuses' : SetLength(FdestinationStatuses,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7325,6 +7980,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProductsCustomBatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7408,6 +8076,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProductsCustomBatchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7493,6 +8174,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProductsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7509,6 +8203,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProductstatusesCustomBatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7583,6 +8290,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProductstatusesCustomBatchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7667,6 +8387,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProductstatusesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -8740,7 +9473,7 @@ end;
 Class Function TContentAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TContentAPI.APIbasePath : string;
@@ -8752,7 +9485,7 @@ end;
 Class Function TContentAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/content/v2/';
+  Result:='https://www.googleapis.com:443/content/v2/';
 end;
 
 Class Function TContentAPI.APIProtocol : string;
@@ -8906,7 +9639,7 @@ Function TContentAPI.CreateAccountsResource(AOwner : TComponent) : TAccountsReso
 
 begin
   Result:=TAccountsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8930,7 +9663,7 @@ Function TContentAPI.CreateAccountshippingResource(AOwner : TComponent) : TAccou
 
 begin
   Result:=TAccountshippingResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8954,7 +9687,7 @@ Function TContentAPI.CreateAccountstatusesResource(AOwner : TComponent) : TAccou
 
 begin
   Result:=TAccountstatusesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8978,7 +9711,7 @@ Function TContentAPI.CreateAccounttaxResource(AOwner : TComponent) : TAccounttax
 
 begin
   Result:=TAccounttaxResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -9002,7 +9735,7 @@ Function TContentAPI.CreateDatafeedsResource(AOwner : TComponent) : TDatafeedsRe
 
 begin
   Result:=TDatafeedsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -9026,7 +9759,7 @@ Function TContentAPI.CreateDatafeedstatusesResource(AOwner : TComponent) : TData
 
 begin
   Result:=TDatafeedstatusesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -9050,7 +9783,7 @@ Function TContentAPI.CreateInventoryResource(AOwner : TComponent) : TInventoryRe
 
 begin
   Result:=TInventoryResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -9074,7 +9807,7 @@ Function TContentAPI.CreateProductsResource(AOwner : TComponent) : TProductsReso
 
 begin
   Result:=TProductsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -9098,7 +9831,7 @@ Function TContentAPI.CreateProductstatusesResource(AOwner : TComponent) : TProdu
 
 begin
   Result:=TProductstatusesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

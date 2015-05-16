@@ -13,7 +13,7 @@ unit googlefitness;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:53
+//Generated on: 16-5-15 08:53:03
 {$MODE objfpc}
 {$H+}
 
@@ -24,17 +24,17 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TApplication = class;
-  TDataPoint = class;
-  TDataSource = class;
-  TDataType = class;
-  TDataTypeField = class;
-  TDataset = class;
-  TDevice = class;
-  TListDataSourcesResponse = class;
-  TListSessionsResponse = class;
-  TSession = class;
-  TValue = class;
+  TApplication = Class;
+  TDataPoint = Class;
+  TDataSource = Class;
+  TDataType = Class;
+  TDataTypeField = Class;
+  TDataset = Class;
+  TDevice = Class;
+  TListDataSourcesResponse = Class;
+  TListSessionsResponse = Class;
+  TSession = Class;
+  TValue = Class;
   TApplicationArray = Array of TApplication;
   TDataPointArray = Array of TDataPoint;
   TDataSourceArray = Array of TDataSource;
@@ -103,6 +103,10 @@ type
     Procedure SetrawTimestampNanos(AIndex : Integer; AValue : String); virtual;
     Procedure SetstartTimeNanos(AIndex : Integer; AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : TDataPointTypevalueArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property computationTimeMillis : String Index 0 Read FcomputationTimeMillis Write SetcomputationTimeMillis;
@@ -163,6 +167,10 @@ type
     //Property setters
     Procedure Setfield(AIndex : Integer; AValue : TDataTypeTypefieldArray); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property field : TDataTypeTypefieldArray Index 0 Read Ffield Write Setfield;
@@ -210,6 +218,10 @@ type
     Procedure SetminStartTimeNs(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setpoint(AIndex : Integer; AValue : TDatasetTypepointArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property dataSourceId : String Index 0 Read FdataSourceId Write SetdataSourceId;
@@ -259,6 +271,10 @@ type
   Protected
     //Property setters
     Procedure SetdataSource(AIndex : Integer; AValue : TListDataSourcesResponseTypedataSourceArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property dataSource : TListDataSourcesResponseTypedataSourceArray Index 0 Read FdataSource Write SetdataSource;
@@ -279,6 +295,10 @@ type
     Procedure SetdeletedSession(AIndex : Integer; AValue : TListSessionsResponseTypedeletedSessionArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setsession(AIndex : Integer; AValue : TListSessionsResponseTypesessionArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property deletedSession : TListSessionsResponseTypedeletedSessionArray Index 0 Read FdeletedSession Write SetdeletedSession;
@@ -347,13 +367,141 @@ type
   TValueClass = Class of TValue;
   
   { --------------------------------------------------------------------
+    TUsersDataSourcesDatasetsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TUsersDataSourcesDatasetsResource, method Delete
+  
+  TUsersDataSourcesDatasetsDeleteOptions = Record
+    currentTimeMillis : int64;
+    modifiedTimeMillis : int64;
+  end;
+  
+  
+  //Optional query Options for TUsersDataSourcesDatasetsResource, method Get
+  
+  TUsersDataSourcesDatasetsGetOptions = Record
+    limit : integer;
+    pageToken : String;
+  end;
+  
+  
+  //Optional query Options for TUsersDataSourcesDatasetsResource, method Patch
+  
+  TUsersDataSourcesDatasetsPatchOptions = Record
+    currentTimeMillis : int64;
+  end;
+  
+  TUsersDataSourcesDatasetsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(dataSourceId: string; datasetId: string; userId: string; AQuery : string  = '');
+    Procedure Delete(dataSourceId: string; datasetId: string; userId: string; AQuery : TUsersDataSourcesDatasetsdeleteOptions);
+    Function Get(dataSourceId: string; datasetId: string; userId: string; AQuery : string  = '') : TDataset;
+    Function Get(dataSourceId: string; datasetId: string; userId: string; AQuery : TUsersDataSourcesDatasetsgetOptions) : TDataset;
+    Function Patch(dataSourceId: string; datasetId: string; userId: string; aDataset : TDataset; AQuery : string  = '') : TDataset;
+    Function Patch(dataSourceId: string; datasetId: string; userId: string; aDataset : TDataset; AQuery : TUsersDataSourcesDatasetspatchOptions) : TDataset;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TUsersDataSourcesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TUsersDataSourcesResource, method List
+  
+  TUsersDataSourcesListOptions = Record
+    dataTypeName : String;
+  end;
+  
+  TUsersDataSourcesResource = Class(TGoogleResource)
+  Private
+    FDatasetsInstance : TUsersDataSourcesDatasetsResource;
+    Function GetDatasetsInstance : TUsersDataSourcesDatasetsResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(userId: string; aDataSource : TDataSource) : TDataSource;overload;
+    Function Delete(dataSourceId: string; userId: string) : TDataSource;
+    Function Get(dataSourceId: string; userId: string) : TDataSource;
+    Function List(userId: string; AQuery : string  = '') : TListDataSourcesResponse;
+    Function List(userId: string; AQuery : TUsersDataSourceslistOptions) : TListDataSourcesResponse;
+    Function Patch(dataSourceId: string; userId: string; aDataSource : TDataSource) : TDataSource;
+    Function Update(dataSourceId: string; userId: string; aDataSource : TDataSource) : TDataSource;
+    Function CreateDatasetsResource(AOwner : TComponent) : TUsersDataSourcesDatasetsResource;virtual;overload;
+    Function CreateDatasetsResource : TUsersDataSourcesDatasetsResource;virtual;overload;
+    Property DatasetsResource : TUsersDataSourcesDatasetsResource Read GetDatasetsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TUsersSessionsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TUsersSessionsResource, method Delete
+  
+  TUsersSessionsDeleteOptions = Record
+    currentTimeMillis : int64;
+  end;
+  
+  
+  //Optional query Options for TUsersSessionsResource, method List
+  
+  TUsersSessionsListOptions = Record
+    endTime : String;
+    includeDeleted : boolean;
+    pageToken : String;
+    startTime : String;
+  end;
+  
+  
+  //Optional query Options for TUsersSessionsResource, method Update
+  
+  TUsersSessionsUpdateOptions = Record
+    currentTimeMillis : int64;
+  end;
+  
+  TUsersSessionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(sessionId: string; userId: string; AQuery : string  = '');
+    Procedure Delete(sessionId: string; userId: string; AQuery : TUsersSessionsdeleteOptions);
+    Function List(userId: string; AQuery : string  = '') : TListSessionsResponse;
+    Function List(userId: string; AQuery : TUsersSessionslistOptions) : TListSessionsResponse;
+    Function Update(sessionId: string; userId: string; aSession : TSession; AQuery : string  = '') : TSession;
+    Function Update(sessionId: string; userId: string; aSession : TSession; AQuery : TUsersSessionsupdateOptions) : TSession;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TUsersResource
     --------------------------------------------------------------------}
   
   TUsersResource = Class(TGoogleResource)
+  Private
+    FDataSourcesDatasetsInstance : TUsersDataSourcesDatasetsResource;
+    FDataSourcesInstance : TUsersDataSourcesResource;
+    FSessionsInstance : TUsersSessionsResource;
+    Function GetDataSourcesDatasetsInstance : TUsersDataSourcesDatasetsResource;virtual;
+    Function GetDataSourcesInstance : TUsersDataSourcesResource;virtual;
+    Function GetSessionsInstance : TUsersSessionsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateDataSourcesDatasetsResource(AOwner : TComponent) : TUsersDataSourcesDatasetsResource;virtual;overload;
+    Function CreateDataSourcesDatasetsResource : TUsersDataSourcesDatasetsResource;virtual;overload;
+    Function CreateDataSourcesResource(AOwner : TComponent) : TUsersDataSourcesResource;virtual;overload;
+    Function CreateDataSourcesResource : TUsersDataSourcesResource;virtual;overload;
+    Function CreateSessionsResource(AOwner : TComponent) : TUsersSessionsResource;virtual;overload;
+    Function CreateSessionsResource : TUsersSessionsResource;virtual;overload;
+    Property DataSourcesDatasetsResource : TUsersDataSourcesDatasetsResource Read GetDataSourcesDatasetsInstance;
+    Property DataSourcesResource : TUsersDataSourcesResource Read GetDataSourcesInstance;
+    Property SessionsResource : TUsersSessionsResource Read GetSessionsInstance;
   end;
   
   
@@ -363,7 +511,13 @@ type
   
   TFitnessAPI = Class(TGoogleAPI)
   Private
+    FUsersDataSourcesDatasetsInstance : TUsersDataSourcesDatasetsResource;
+    FUsersDataSourcesInstance : TUsersDataSourcesResource;
+    FUsersSessionsInstance : TUsersSessionsResource;
     FUsersInstance : TUsersResource;
+    Function GetUsersDataSourcesDatasetsInstance : TUsersDataSourcesDatasetsResource;virtual;
+    Function GetUsersDataSourcesInstance : TUsersDataSourcesResource;virtual;
+    Function GetUsersSessionsInstance : TUsersSessionsResource;virtual;
     Function GetUsersInstance : TUsersResource;virtual;
   Public
     //Override class functions with API info
@@ -388,9 +542,18 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateUsersDataSourcesDatasetsResource(AOwner : TComponent) : TUsersDataSourcesDatasetsResource;virtual;overload;
+    Function CreateUsersDataSourcesDatasetsResource : TUsersDataSourcesDatasetsResource;virtual;overload;
+    Function CreateUsersDataSourcesResource(AOwner : TComponent) : TUsersDataSourcesResource;virtual;overload;
+    Function CreateUsersDataSourcesResource : TUsersDataSourcesResource;virtual;overload;
+    Function CreateUsersSessionsResource(AOwner : TComponent) : TUsersSessionsResource;virtual;overload;
+    Function CreateUsersSessionsResource : TUsersSessionsResource;virtual;overload;
     Function CreateUsersResource(AOwner : TComponent) : TUsersResource;virtual;overload;
     Function CreateUsersResource : TUsersResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property UsersDataSourcesDatasetsResource : TUsersDataSourcesDatasetsResource Read GetUsersDataSourcesDatasetsInstance;
+    Property UsersDataSourcesResource : TUsersDataSourcesResource Read GetUsersDataSourcesInstance;
+    Property UsersSessionsResource : TUsersSessionsResource Read GetUsersSessionsInstance;
     Property UsersResource : TUsersResource Read GetUsersInstance;
   end;
 
@@ -528,6 +691,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDataPoint.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'value' : SetLength(Fvalue,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -643,6 +819,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDataType.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'field' : SetLength(Ffield,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -737,6 +926,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDataset.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'point' : SetLength(Fpoint,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -822,6 +1024,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListDataSourcesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'datasource' : SetLength(FdataSource,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -858,6 +1073,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListSessionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'deletedsession' : SetLength(FdeletedSession,ALength);
+  'session' : SetLength(Fsession,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -987,6 +1216,356 @@ end;
 
 
 { --------------------------------------------------------------------
+  TUsersDataSourcesDatasetsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TUsersDataSourcesDatasetsResource.ResourceName : String;
+
+begin
+  Result:='datasets';
+end;
+
+Class Function TUsersDataSourcesDatasetsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TfitnessAPI;
+end;
+
+Procedure TUsersDataSourcesDatasetsResource.Delete(dataSourceId: string; datasetId: string; userId: string; AQuery : string = '');
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{userId}/dataSources/{dataSourceId}/datasets/{datasetId}';
+  _Methodid   = 'fitness.users.dataSources.datasets.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['dataSourceId',dataSourceId,'datasetId',datasetId,'userId',userId]);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TUsersDataSourcesDatasetsResource.Delete(dataSourceId: string; datasetId: string; userId: string; AQuery : TUsersDataSourcesDatasetsdeleteOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'currentTimeMillis',AQuery.currentTimeMillis);
+  AddToQuery(_Q,'modifiedTimeMillis',AQuery.modifiedTimeMillis);
+  Delete(dataSourceId,datasetId,userId,_Q);
+end;
+
+Function TUsersDataSourcesDatasetsResource.Get(dataSourceId: string; datasetId: string; userId: string; AQuery : string = '') : TDataset;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/dataSources/{dataSourceId}/datasets/{datasetId}';
+  _Methodid   = 'fitness.users.dataSources.datasets.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['dataSourceId',dataSourceId,'datasetId',datasetId,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TDataset) as TDataset;
+end;
+
+
+Function TUsersDataSourcesDatasetsResource.Get(dataSourceId: string; datasetId: string; userId: string; AQuery : TUsersDataSourcesDatasetsgetOptions) : TDataset;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'limit',AQuery.limit);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=Get(dataSourceId,datasetId,userId,_Q);
+end;
+
+Function TUsersDataSourcesDatasetsResource.Patch(dataSourceId: string; datasetId: string; userId: string; aDataset : TDataset; AQuery : string = '') : TDataset;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{userId}/dataSources/{dataSourceId}/datasets/{datasetId}';
+  _Methodid   = 'fitness.users.dataSources.datasets.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['dataSourceId',dataSourceId,'datasetId',datasetId,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aDataset,TDataset) as TDataset;
+end;
+
+
+Function TUsersDataSourcesDatasetsResource.Patch(dataSourceId: string; datasetId: string; userId: string; aDataset : TDataset; AQuery : TUsersDataSourcesDatasetspatchOptions) : TDataset;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'currentTimeMillis',AQuery.currentTimeMillis);
+  Result:=Patch(dataSourceId,datasetId,userId,aDataset,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TUsersDataSourcesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TUsersDataSourcesResource.ResourceName : String;
+
+begin
+  Result:='dataSources';
+end;
+
+Class Function TUsersDataSourcesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TfitnessAPI;
+end;
+
+Function TUsersDataSourcesResource.Create(userId: string; aDataSource : TDataSource) : TDataSource;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/dataSources';
+  _Methodid   = 'fitness.users.dataSources.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aDataSource,TDataSource) as TDataSource;
+end;
+
+Function TUsersDataSourcesResource.Delete(dataSourceId: string; userId: string) : TDataSource;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{userId}/dataSources/{dataSourceId}';
+  _Methodid   = 'fitness.users.dataSources.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['dataSourceId',dataSourceId,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TDataSource) as TDataSource;
+end;
+
+Function TUsersDataSourcesResource.Get(dataSourceId: string; userId: string) : TDataSource;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/dataSources/{dataSourceId}';
+  _Methodid   = 'fitness.users.dataSources.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['dataSourceId',dataSourceId,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TDataSource) as TDataSource;
+end;
+
+Function TUsersDataSourcesResource.List(userId: string; AQuery : string = '') : TListDataSourcesResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/dataSources';
+  _Methodid   = 'fitness.users.dataSources.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListDataSourcesResponse) as TListDataSourcesResponse;
+end;
+
+
+Function TUsersDataSourcesResource.List(userId: string; AQuery : TUsersDataSourceslistOptions) : TListDataSourcesResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'dataTypeName',AQuery.dataTypeName);
+  Result:=List(userId,_Q);
+end;
+
+Function TUsersDataSourcesResource.Patch(dataSourceId: string; userId: string; aDataSource : TDataSource) : TDataSource;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{userId}/dataSources/{dataSourceId}';
+  _Methodid   = 'fitness.users.dataSources.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['dataSourceId',dataSourceId,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aDataSource,TDataSource) as TDataSource;
+end;
+
+Function TUsersDataSourcesResource.Update(dataSourceId: string; userId: string; aDataSource : TDataSource) : TDataSource;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{userId}/dataSources/{dataSourceId}';
+  _Methodid   = 'fitness.users.dataSources.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['dataSourceId',dataSourceId,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aDataSource,TDataSource) as TDataSource;
+end;
+
+
+
+Function TUsersDataSourcesResource.GetDatasetsInstance : TUsersDataSourcesDatasetsResource;
+
+begin
+  if (FDatasetsInstance=Nil) then
+    FDatasetsInstance:=CreateDatasetsResource;
+  Result:=FDatasetsInstance;
+end;
+
+Function TUsersDataSourcesResource.CreateDatasetsResource : TUsersDataSourcesDatasetsResource;
+
+begin
+  Result:=CreateDatasetsResource(Self);
+end;
+
+
+Function TUsersDataSourcesResource.CreateDatasetsResource(AOwner : TComponent) : TUsersDataSourcesDatasetsResource;
+
+begin
+  Result:=TUsersDataSourcesDatasetsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TUsersSessionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TUsersSessionsResource.ResourceName : String;
+
+begin
+  Result:='sessions';
+end;
+
+Class Function TUsersSessionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TfitnessAPI;
+end;
+
+Procedure TUsersSessionsResource.Delete(sessionId: string; userId: string; AQuery : string = '');
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{userId}/sessions/{sessionId}';
+  _Methodid   = 'fitness.users.sessions.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['sessionId',sessionId,'userId',userId]);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TUsersSessionsResource.Delete(sessionId: string; userId: string; AQuery : TUsersSessionsdeleteOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'currentTimeMillis',AQuery.currentTimeMillis);
+  Delete(sessionId,userId,_Q);
+end;
+
+Function TUsersSessionsResource.List(userId: string; AQuery : string = '') : TListSessionsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/sessions';
+  _Methodid   = 'fitness.users.sessions.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListSessionsResponse) as TListSessionsResponse;
+end;
+
+
+Function TUsersSessionsResource.List(userId: string; AQuery : TUsersSessionslistOptions) : TListSessionsResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'endTime',AQuery.endTime);
+  AddToQuery(_Q,'includeDeleted',AQuery.includeDeleted);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'startTime',AQuery.startTime);
+  Result:=List(userId,_Q);
+end;
+
+Function TUsersSessionsResource.Update(sessionId: string; userId: string; aSession : TSession; AQuery : string = '') : TSession;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{userId}/sessions/{sessionId}';
+  _Methodid   = 'fitness.users.sessions.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['sessionId',sessionId,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aSession,TSession) as TSession;
+end;
+
+
+Function TUsersSessionsResource.Update(sessionId: string; userId: string; aSession : TSession; AQuery : TUsersSessionsupdateOptions) : TSession;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'currentTimeMillis',AQuery.currentTimeMillis);
+  Result:=Update(sessionId,userId,aSession,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
   TUsersResource
   --------------------------------------------------------------------}
 
@@ -1001,6 +1580,78 @@ Class Function TUsersResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TfitnessAPI;
+end;
+
+
+
+Function TUsersResource.GetDataSourcesDatasetsInstance : TUsersDataSourcesDatasetsResource;
+
+begin
+  if (FDataSourcesDatasetsInstance=Nil) then
+    FDataSourcesDatasetsInstance:=CreateDataSourcesDatasetsResource;
+  Result:=FDataSourcesDatasetsInstance;
+end;
+
+Function TUsersResource.CreateDataSourcesDatasetsResource : TUsersDataSourcesDatasetsResource;
+
+begin
+  Result:=CreateDataSourcesDatasetsResource(Self);
+end;
+
+
+Function TUsersResource.CreateDataSourcesDatasetsResource(AOwner : TComponent) : TUsersDataSourcesDatasetsResource;
+
+begin
+  Result:=TUsersDataSourcesDatasetsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TUsersResource.GetDataSourcesInstance : TUsersDataSourcesResource;
+
+begin
+  if (FDataSourcesInstance=Nil) then
+    FDataSourcesInstance:=CreateDataSourcesResource;
+  Result:=FDataSourcesInstance;
+end;
+
+Function TUsersResource.CreateDataSourcesResource : TUsersDataSourcesResource;
+
+begin
+  Result:=CreateDataSourcesResource(Self);
+end;
+
+
+Function TUsersResource.CreateDataSourcesResource(AOwner : TComponent) : TUsersDataSourcesResource;
+
+begin
+  Result:=TUsersDataSourcesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TUsersResource.GetSessionsInstance : TUsersSessionsResource;
+
+begin
+  if (FSessionsInstance=Nil) then
+    FSessionsInstance:=CreateSessionsResource;
+  Result:=FSessionsInstance;
+end;
+
+Function TUsersResource.CreateSessionsResource : TUsersSessionsResource;
+
+begin
+  Result:=CreateSessionsResource(Self);
+end;
+
+
+Function TUsersResource.CreateSessionsResource(AOwner : TComponent) : TUsersSessionsResource;
+
+begin
+  Result:=TUsersSessionsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -1078,7 +1729,7 @@ end;
 Class Function TFitnessAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TFitnessAPI.APIbasePath : string;
@@ -1090,7 +1741,7 @@ end;
 Class Function TFitnessAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/fitness/v1/users/';
+  Result:='https://www.googleapis.com:443/fitness/v1/users/';
 end;
 
 Class Function TFitnessAPI.APIProtocol : string;
@@ -1153,6 +1804,78 @@ begin
 end;
 
 
+Function TFitnessAPI.GetUsersDataSourcesDatasetsInstance : TUsersDataSourcesDatasetsResource;
+
+begin
+  if (FUsersDataSourcesDatasetsInstance=Nil) then
+    FUsersDataSourcesDatasetsInstance:=CreateUsersDataSourcesDatasetsResource;
+  Result:=FUsersDataSourcesDatasetsInstance;
+end;
+
+Function TFitnessAPI.CreateUsersDataSourcesDatasetsResource : TUsersDataSourcesDatasetsResource;
+
+begin
+  Result:=CreateUsersDataSourcesDatasetsResource(Self);
+end;
+
+
+Function TFitnessAPI.CreateUsersDataSourcesDatasetsResource(AOwner : TComponent) : TUsersDataSourcesDatasetsResource;
+
+begin
+  Result:=TUsersDataSourcesDatasetsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TFitnessAPI.GetUsersDataSourcesInstance : TUsersDataSourcesResource;
+
+begin
+  if (FUsersDataSourcesInstance=Nil) then
+    FUsersDataSourcesInstance:=CreateUsersDataSourcesResource;
+  Result:=FUsersDataSourcesInstance;
+end;
+
+Function TFitnessAPI.CreateUsersDataSourcesResource : TUsersDataSourcesResource;
+
+begin
+  Result:=CreateUsersDataSourcesResource(Self);
+end;
+
+
+Function TFitnessAPI.CreateUsersDataSourcesResource(AOwner : TComponent) : TUsersDataSourcesResource;
+
+begin
+  Result:=TUsersDataSourcesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TFitnessAPI.GetUsersSessionsInstance : TUsersSessionsResource;
+
+begin
+  if (FUsersSessionsInstance=Nil) then
+    FUsersSessionsInstance:=CreateUsersSessionsResource;
+  Result:=FUsersSessionsInstance;
+end;
+
+Function TFitnessAPI.CreateUsersSessionsResource : TUsersSessionsResource;
+
+begin
+  Result:=CreateUsersSessionsResource(Self);
+end;
+
+
+Function TFitnessAPI.CreateUsersSessionsResource(AOwner : TComponent) : TUsersSessionsResource;
+
+begin
+  Result:=TUsersSessionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TFitnessAPI.GetUsersInstance : TUsersResource;
 
 begin
@@ -1172,7 +1895,7 @@ Function TFitnessAPI.CreateUsersResource(AOwner : TComponent) : TUsersResource;
 
 begin
   Result:=TUsersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

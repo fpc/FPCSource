@@ -13,7 +13,7 @@ unit googlefusiontables;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:54
+//Generated on: 16-5-15 08:53:03
 {$MODE objfpc}
 {$H+}
 
@@ -24,27 +24,27 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TBucket = class;
-  TColumn = class;
-  TColumnList = class;
-  TGeometry = class;
-  TImport = class;
-  TLine = class;
-  TLineStyle = class;
-  TPoint = class;
-  TPointStyle = class;
-  TPolygon = class;
-  TPolygonStyle = class;
-  TSqlresponse = class;
-  TStyleFunction = class;
-  TStyleSetting = class;
-  TStyleSettingList = class;
-  TTable = class;
-  TTableList = class;
-  TTask = class;
-  TTaskList = class;
-  TTemplate = class;
-  TTemplateList = class;
+  TBucket = Class;
+  TColumn = Class;
+  TColumnList = Class;
+  TGeometry = Class;
+  TImport = Class;
+  TLine = Class;
+  TLineStyle = Class;
+  TPoint = Class;
+  TPointStyle = Class;
+  TPolygon = Class;
+  TPolygonStyle = Class;
+  TSqlresponse = Class;
+  TStyleFunction = Class;
+  TStyleSetting = Class;
+  TStyleSettingList = Class;
+  TTable = Class;
+  TTableList = Class;
+  TTask = Class;
+  TTaskList = Class;
+  TTemplate = Class;
+  TTemplateList = Class;
   TBucketArray = Array of TBucket;
   TColumnArray = Array of TColumn;
   TColumnListArray = Array of TColumnList;
@@ -67,9 +67,9 @@ type
   TTemplateArray = Array of TTemplate;
   TTemplateListArray = Array of TTemplateList;
   //Anonymous types, using auto-generated names
-  TColumnTypebaseColumn = class;
-  TStyleFunctionTypegradientTypecolorsItem = class;
-  TStyleFunctionTypegradient = class;
+  TColumnTypebaseColumn = Class;
+  TStyleFunctionTypegradientTypecolorsItem = Class;
+  TStyleFunctionTypegradient = Class;
   TColumnListTypeitemsArray = Array of TColumn;
   TLineTypecoordinatesArray = Array of TdoubleArray;
   TPolygonTypecoordinatesItemArray = Array of TdoubleArray;
@@ -166,6 +166,10 @@ type
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure SetvalidValues(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetvalidateData(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property baseColumn : TColumnTypebaseColumn Index 0 Read FbaseColumn Write SetbaseColumn;
@@ -199,6 +203,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TColumnListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -223,6 +231,10 @@ type
     Procedure Setgeometries(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
     Procedure Setgeometry(AIndex : Integer; AValue : TJSONSchema); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property geometries : TTJSONSchemaArray Index 0 Read Fgeometries Write Setgeometries;
@@ -263,6 +275,10 @@ type
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TLineTypecoordinatesArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property coordinates : TLineTypecoordinatesArray Index 0 Read Fcoordinates Write Setcoordinates;
@@ -311,6 +327,10 @@ type
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property coordinates : TdoubleArray Index 0 Read Fcoordinates Write Setcoordinates;
@@ -350,6 +370,10 @@ type
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TPolygonTypecoordinatesArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property coordinates : TPolygonTypecoordinatesArray Index 0 Read Fcoordinates Write Setcoordinates;
@@ -408,6 +432,10 @@ type
     Procedure Setcolumns(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TSqlresponseTyperowsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property columns : TStringArray Index 0 Read Fcolumns Write Setcolumns;
@@ -449,6 +477,10 @@ type
     Procedure Setcolors(AIndex : Integer; AValue : TStyleFunctionTypegradientTypecolorsArray); virtual;
     Procedure Setmax(AIndex : Integer; AValue : double); virtual;
     Procedure Setmin(AIndex : Integer; AValue : double); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property colors : TStyleFunctionTypegradientTypecolorsArray Index 0 Read Fcolors Write Setcolors;
@@ -473,6 +505,10 @@ type
     Procedure SetcolumnName(AIndex : Integer; AValue : String); virtual;
     Procedure Setgradient(AIndex : Integer; AValue : TStyleFunctionTypegradient); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property buckets : TStyleFunctionTypebucketsArray Index 0 Read Fbuckets Write Setbuckets;
@@ -532,6 +568,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TStyleSettingListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -575,6 +615,10 @@ type
     Procedure SettableId(AIndex : Integer; AValue : String); virtual;
     Procedure SettablePropertiesJson(AIndex : Integer; AValue : String); virtual;
     Procedure SettablePropertiesJsonSchema(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property attribution : String Index 0 Read Fattribution Write Setattribution;
@@ -607,6 +651,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TTableListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TTableListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -660,6 +708,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TTaskListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -689,6 +741,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SettableId(AIndex : Integer; AValue : String); virtual;
     Procedure SettemplateId(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property automaticColumnNames : TStringArray Index 0 Read FautomaticColumnNames Write SetautomaticColumnNames;
@@ -716,6 +772,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TTemplateListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1242,6 +1302,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TColumn.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'validvalues' : SetLength(FvalidValues,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1288,6 +1361,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TColumnList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1336,6 +1422,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeometry.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'geometries' : SetLength(Fgeometries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1401,6 +1500,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLine.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'coordinates' : SetLength(Fcoordinates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1497,6 +1609,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPoint.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'coordinates' : SetLength(Fcoordinates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1561,6 +1686,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPolygon.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'coordinates' : SetLength(Fcoordinates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1686,6 +1824,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSqlresponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'columns' : SetLength(Fcolumns,ALength);
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1750,6 +1902,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStyleFunctionTypegradient.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'colors' : SetLength(Fcolors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1796,6 +1961,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStyleFunction.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'buckets' : SetLength(Fbuckets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1920,6 +2098,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStyleSettingList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2058,6 +2249,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTable.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'basetableids' : SetLength(FbaseTableIds,ALength);
+  'columns' : SetLength(Fcolumns,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2094,6 +2299,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTableList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2210,6 +2428,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTaskList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2277,6 +2508,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTemplate.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'automaticcolumnnames' : SetLength(FautomaticColumnNames,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2323,6 +2567,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTemplateList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3165,7 +3422,7 @@ end;
 Class Function TFusiontablesAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TFusiontablesAPI.APIbasePath : string;
@@ -3177,7 +3434,7 @@ end;
 Class Function TFusiontablesAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/fusiontables/v2/';
+  Result:='https://www.googleapis.com:443/fusiontables/v2/';
 end;
 
 Class Function TFusiontablesAPI.APIProtocol : string;
@@ -3264,7 +3521,7 @@ Function TFusiontablesAPI.CreateColumnResource(AOwner : TComponent) : TColumnRes
 
 begin
   Result:=TColumnResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3288,7 +3545,7 @@ Function TFusiontablesAPI.CreateQueryResource(AOwner : TComponent) : TQueryResou
 
 begin
   Result:=TQueryResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3312,7 +3569,7 @@ Function TFusiontablesAPI.CreateStyleResource(AOwner : TComponent) : TStyleResou
 
 begin
   Result:=TStyleResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3336,7 +3593,7 @@ Function TFusiontablesAPI.CreateTableResource(AOwner : TComponent) : TTableResou
 
 begin
   Result:=TTableResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3360,7 +3617,7 @@ Function TFusiontablesAPI.CreateTaskResource(AOwner : TComponent) : TTaskResourc
 
 begin
   Result:=TTaskResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3384,7 +3641,7 @@ Function TFusiontablesAPI.CreateTemplateResource(AOwner : TComponent) : TTemplat
 
 begin
   Result:=TTemplateResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

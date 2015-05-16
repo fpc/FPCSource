@@ -13,7 +13,7 @@ unit googlegenomics;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:55
+//Generated on: 16-5-15 08:53:04
 {$MODE objfpc}
 {$H+}
 
@@ -24,85 +24,83 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAlignReadGroupSetsRequest = class;
-  TAlignReadGroupSetsResponse = class;
-  TAnnotation = class;
-  TAnnotationSet = class;
-  TBatchAnnotationsResponse = class;
-  TBatchAnnotationsResponseEntry = class;
-  TBatchAnnotationsResponseEntryStatus = class;
-  TBatchCreateAnnotationsRequest = class;
-  TCall = class;
-  TCallReadGroupSetsRequest = class;
-  TCallReadGroupSetsResponse = class;
-  TCallSet = class;
-  TCigarUnit = class;
-  TCoverageBucket = class;
-  TDataset = class;
-  TExperimentalCreateJobRequest = class;
-  TExperimentalCreateJobResponse = class;
-  TExportReadGroupSetsRequest = class;
-  TExportReadGroupSetsResponse = class;
-  TExportVariantSetRequest = class;
-  TExportVariantSetResponse = class;
-  TExternalId = class;
-  TFastqMetadata = class;
-  TImportReadGroupSetsRequest = class;
-  TImportReadGroupSetsResponse = class;
-  TImportVariantsRequest = class;
-  TImportVariantsResponse = class;
-  TInt32Value = class;
-  TInterleavedFastqSource = class;
-  TJob = class;
-  TJobRequest = class;
-  TLinearAlignment = class;
-  TListBasesResponse = class;
-  TListCoverageBucketsResponse = class;
-  TListDatasetsResponse = class;
-  TMergeVariantsRequest = class;
-  TMetadata = class;
-  TPairedFastqSource = class;
-  TPosition = class;
-  TQueryRange = class;
-  TRange = class;
-  TRangePosition = class;
-  TRead = class;
-  TReadGroup = class;
-  TReadGroupExperiment = class;
-  TReadGroupProgram = class;
-  TReadGroupSet = class;
-  TReference = class;
-  TReferenceBound = class;
-  TReferenceSet = class;
-  TSearchAnnotationSetsRequest = class;
-  TSearchAnnotationSetsResponse = class;
-  TSearchAnnotationsRequest = class;
-  TSearchAnnotationsResponse = class;
-  TSearchCallSetsRequest = class;
-  TSearchCallSetsResponse = class;
-  TSearchJobsRequest = class;
-  TSearchJobsResponse = class;
-  TSearchReadGroupSetsRequest = class;
-  TSearchReadGroupSetsResponse = class;
-  TSearchReadsRequest = class;
-  TSearchReadsResponse = class;
-  TSearchReferenceSetsRequest = class;
-  TSearchReferenceSetsResponse = class;
-  TSearchReferencesRequest = class;
-  TSearchReferencesResponse = class;
-  TSearchVariantSetsRequest = class;
-  TSearchVariantSetsResponse = class;
-  TSearchVariantsRequest = class;
-  TSearchVariantsResponse = class;
-  TStreamReadsRequest = class;
-  TStreamReadsResponse = class;
-  TTranscript = class;
-  TTranscriptCodingSequence = class;
-  TTranscriptExon = class;
-  TVariant = class;
-  TVariantAnnotation = class;
-  TVariantAnnotationCondition = class;
-  TVariantSet = class;
+  TAlignReadGroupSetsRequest = Class;
+  TAlignReadGroupSetsResponse = Class;
+  TAnnotation = Class;
+  TAnnotationSet = Class;
+  TBatchAnnotationsResponse = Class;
+  TBatchAnnotationsResponseEntry = Class;
+  TBatchAnnotationsResponseEntryStatus = Class;
+  TBatchCreateAnnotationsRequest = Class;
+  TCall = Class;
+  TCallReadGroupSetsRequest = Class;
+  TCallReadGroupSetsResponse = Class;
+  TCallSet = Class;
+  TCigarUnit = Class;
+  TCoverageBucket = Class;
+  TDataset = Class;
+  TExperimentalCreateJobRequest = Class;
+  TExperimentalCreateJobResponse = Class;
+  TExportReadGroupSetsRequest = Class;
+  TExportReadGroupSetsResponse = Class;
+  TExportVariantSetRequest = Class;
+  TExportVariantSetResponse = Class;
+  TExternalId = Class;
+  TFastqMetadata = Class;
+  TImportReadGroupSetsRequest = Class;
+  TImportReadGroupSetsResponse = Class;
+  TImportVariantsRequest = Class;
+  TImportVariantsResponse = Class;
+  TInt32Value = Class;
+  TInterleavedFastqSource = Class;
+  TJob = Class;
+  TJobRequest = Class;
+  TLinearAlignment = Class;
+  TListBasesResponse = Class;
+  TListCoverageBucketsResponse = Class;
+  TListDatasetsResponse = Class;
+  TMergeVariantsRequest = Class;
+  TMetadata = Class;
+  TPairedFastqSource = Class;
+  TPosition = Class;
+  TQueryRange = Class;
+  TRange = Class;
+  TRangePosition = Class;
+  TRead = Class;
+  TReadGroup = Class;
+  TReadGroupExperiment = Class;
+  TReadGroupProgram = Class;
+  TReadGroupSet = Class;
+  TReference = Class;
+  TReferenceBound = Class;
+  TReferenceSet = Class;
+  TSearchAnnotationSetsRequest = Class;
+  TSearchAnnotationSetsResponse = Class;
+  TSearchAnnotationsRequest = Class;
+  TSearchAnnotationsResponse = Class;
+  TSearchCallSetsRequest = Class;
+  TSearchCallSetsResponse = Class;
+  TSearchJobsRequest = Class;
+  TSearchJobsResponse = Class;
+  TSearchReadGroupSetsRequest = Class;
+  TSearchReadGroupSetsResponse = Class;
+  TSearchReadsRequest = Class;
+  TSearchReadsResponse = Class;
+  TSearchReferenceSetsRequest = Class;
+  TSearchReferenceSetsResponse = Class;
+  TSearchReferencesRequest = Class;
+  TSearchReferencesResponse = Class;
+  TSearchVariantSetsRequest = Class;
+  TSearchVariantSetsResponse = Class;
+  TSearchVariantsRequest = Class;
+  TSearchVariantsResponse = Class;
+  TTranscript = Class;
+  TTranscriptCodingSequence = Class;
+  TTranscriptExon = Class;
+  TVariant = Class;
+  TVariantAnnotation = Class;
+  TVariantAnnotationCondition = Class;
+  TVariantSet = Class;
   TAlignReadGroupSetsRequestArray = Array of TAlignReadGroupSetsRequest;
   TAlignReadGroupSetsResponseArray = Array of TAlignReadGroupSetsResponse;
   TAnnotationArray = Array of TAnnotation;
@@ -173,8 +171,6 @@ type
   TSearchVariantSetsResponseArray = Array of TSearchVariantSetsResponse;
   TSearchVariantsRequestArray = Array of TSearchVariantsRequest;
   TSearchVariantsResponseArray = Array of TSearchVariantsResponse;
-  TStreamReadsRequestArray = Array of TStreamReadsRequest;
-  TStreamReadsResponseArray = Array of TStreamReadsResponse;
   TTranscriptArray = Array of TTranscript;
   TTranscriptCodingSequenceArray = Array of TTranscriptCodingSequence;
   TTranscriptExonArray = Array of TTranscriptExon;
@@ -183,15 +179,15 @@ type
   TVariantAnnotationConditionArray = Array of TVariantAnnotationCondition;
   TVariantSetArray = Array of TVariantSet;
   //Anonymous types, using auto-generated names
-  TAnnotationTypeinfo = class;
-  TAnnotationSetTypeinfo = class;
-  TCallTypeinfo = class;
-  TCallSetTypeinfo = class;
-  TMetadataTypeinfo = class;
-  TReadTypeinfo = class;
-  TReadGroupTypeinfo = class;
-  TReadGroupSetTypeinfo = class;
-  TVariantTypeinfo = class;
+  TAnnotationTypeinfo = Class;
+  TAnnotationSetTypeinfo = Class;
+  TCallTypeinfo = Class;
+  TCallSetTypeinfo = Class;
+  TMetadataTypeinfo = Class;
+  TReadTypeinfo = Class;
+  TReadGroupTypeinfo = Class;
+  TReadGroupSetTypeinfo = Class;
+  TVariantTypeinfo = Class;
   TBatchAnnotationsResponseTypeentriesArray = Array of TBatchAnnotationsResponseEntry;
   TBatchCreateAnnotationsRequestTypeannotationsArray = Array of TAnnotation;
   TLinearAlignmentTypecigarArray = Array of TCigarUnit;
@@ -210,7 +206,6 @@ type
   TSearchReferencesResponseTypereferencesArray = Array of TReference;
   TSearchVariantSetsResponseTypevariantSetsArray = Array of TVariantSet;
   TSearchVariantsResponseTypevariantsArray = Array of TVariant;
-  TStreamReadsResponseTypealignmentsArray = Array of TRead;
   TTranscriptTypeexonsArray = Array of TTranscriptExon;
   TVariantTypecallsArray = Array of TCall;
   TVariantAnnotationTypeconditionsArray = Array of TVariantAnnotationCondition;
@@ -236,6 +231,10 @@ type
     Procedure SetinterleavedFastqSource(AIndex : Integer; AValue : TInterleavedFastqSource); virtual;
     Procedure SetpairedFastqSource(AIndex : Integer; AValue : TPairedFastqSource); virtual;
     Procedure SetreadGroupSetId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bamSourceUris : TStringArray Index 0 Read FbamSourceUris Write SetbamSourceUris;
@@ -373,6 +372,10 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TBatchAnnotationsResponseTypeentriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entries : TBatchAnnotationsResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
@@ -427,6 +430,10 @@ type
   Protected
     //Property setters
     Procedure Setannotations(AIndex : Integer; AValue : TBatchCreateAnnotationsRequestTypeannotationsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property annotations : TBatchCreateAnnotationsRequestTypeannotationsArray Index 0 Read Fannotations Write Setannotations;
@@ -467,6 +474,10 @@ type
     Procedure SetgenotypeLikelihood(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure Setinfo(AIndex : Integer; AValue : TCallTypeinfo); virtual;
     Procedure Setphaseset(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property callSetId : String Index 0 Read FcallSetId Write SetcallSetId;
@@ -492,6 +503,10 @@ type
     Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
     Procedure SetreadGroupSetId(AIndex : Integer; AValue : String); virtual;
     Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
@@ -550,6 +565,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetsampleId(AIndex : Integer; AValue : String); virtual;
     Procedure SetvariantSetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property created : String Index 0 Read Fcreated Write Setcreated;
@@ -647,6 +666,10 @@ type
     Procedure SetpairedSourceUris(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
     Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property align : boolean Index 0 Read Falign Write Setalign;
@@ -690,6 +713,10 @@ type
     Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
     Procedure SetreadGroupSetIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetreferenceNames(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property exportUri : String Index 0 Read FexportUri Write SetexportUri;
@@ -733,6 +760,10 @@ type
     Procedure SetcallSetIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setformat(AIndex : Integer; AValue : String); virtual;
     Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bigqueryDataset : String Index 0 Read FbigqueryDataset Write SetbigqueryDataset;
@@ -822,6 +853,10 @@ type
     Procedure SetpartitionStrategy(AIndex : Integer; AValue : String); virtual;
     Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
     Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
@@ -859,6 +894,10 @@ type
     //Property setters
     Procedure Setformat(AIndex : Integer; AValue : String); virtual;
     Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property format : String Index 0 Read Fformat Write Setformat;
@@ -910,6 +949,10 @@ type
     //Property setters
     Procedure Setmetadata(AIndex : Integer; AValue : TFastqMetadata); virtual;
     Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property metadata : TFastqMetadata Index 0 Read Fmetadata Write Setmetadata;
@@ -943,6 +986,10 @@ type
     Procedure Setrequest(AIndex : Integer; AValue : TJobRequest); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property created : String Index 0 Read Fcreated Write Setcreated;
@@ -972,6 +1019,10 @@ type
     Procedure Setdestination(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setsource(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property destination : TStringArray Index 0 Read Fdestination Write Setdestination;
@@ -994,6 +1045,10 @@ type
     Procedure Setcigar(AIndex : Integer; AValue : TLinearAlignmentTypecigarArray); virtual;
     Procedure SetmappingQuality(AIndex : Integer; AValue : integer); virtual;
     Procedure Setposition(AIndex : Integer; AValue : TPosition); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property cigar : TLinearAlignmentTypecigarArray Index 0 Read Fcigar Write Setcigar;
@@ -1038,6 +1093,10 @@ type
     Procedure SetbucketWidth(AIndex : Integer; AValue : String); virtual;
     Procedure SetcoverageBuckets(AIndex : Integer; AValue : TListCoverageBucketsResponseTypecoverageBucketsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bucketWidth : String Index 0 Read FbucketWidth Write SetbucketWidth;
@@ -1058,6 +1117,10 @@ type
     //Property setters
     Procedure Setdatasets(AIndex : Integer; AValue : TListDatasetsResponseTypedatasetsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property datasets : TListDatasetsResponseTypedatasetsArray Index 0 Read Fdatasets Write Setdatasets;
@@ -1075,6 +1138,10 @@ type
   Protected
     //Property setters
     Procedure Setvariants(AIndex : Integer; AValue : TMergeVariantsRequestTypevariantsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property variants : TMergeVariantsRequestTypevariantsArray Index 0 Read Fvariants Write Setvariants;
@@ -1144,6 +1211,10 @@ type
     Procedure SetfirstSourceUris(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setmetadata(AIndex : Integer; AValue : TFastqMetadata); virtual;
     Procedure SetsecondSourceUris(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property firstSourceUris : TStringArray Index 0 Read FfirstSourceUris Write SetfirstSourceUris;
@@ -1308,6 +1379,10 @@ type
     Procedure SetreadNumber(AIndex : Integer; AValue : integer); virtual;
     Procedure SetsecondaryAlignment(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetsupplementaryAlignment(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property alignedQuality : TintegerArray Index 0 Read FalignedQuality Write SetalignedQuality;
@@ -1372,6 +1447,10 @@ type
     Procedure Setprograms(AIndex : Integer; AValue : TReadGroupTypeprogramsArray); virtual;
     Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
     Procedure SetsampleId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
@@ -1476,6 +1555,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetreadGroups(AIndex : Integer; AValue : TReadGroupSetTypereadGroupsArray); virtual;
     Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
@@ -1495,7 +1578,7 @@ type
   TReference = Class(TGoogleBaseObject)
   Private
     Fid : String;
-    Flength : String;
+    F_length : String;
     Fmd5checksum : String;
     Fname : String;
     FncbiTaxonId : integer;
@@ -1504,16 +1587,20 @@ type
   Protected
     //Property setters
     Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlength(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_length(AIndex : Integer; AValue : String); virtual;
     Procedure Setmd5checksum(AIndex : Integer; AValue : String); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetncbiTaxonId(AIndex : Integer; AValue : integer); virtual;
     Procedure SetsourceAccessions(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetsourceURI(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
-    Property length : String Index 8 Read Flength Write Setlength;
+    Property _length : String Index 8 Read F_length Write Set_length;
     Property md5checksum : String Index 16 Read Fmd5checksum Write Setmd5checksum;
     Property name : String Index 24 Read Fname Write Setname;
     Property ncbiTaxonId : integer Index 32 Read FncbiTaxonId Write SetncbiTaxonId;
@@ -1565,6 +1652,10 @@ type
     Procedure SetreferenceIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetsourceAccessions(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetsourceURI(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property assemblyId : String Index 0 Read FassemblyId Write SetassemblyId;
@@ -1598,6 +1689,10 @@ type
     Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
     Procedure Settypes(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property datasetIds : TStringArray Index 0 Read FdatasetIds Write SetdatasetIds;
@@ -1621,6 +1716,10 @@ type
     //Property setters
     Procedure SetannotationSets(AIndex : Integer; AValue : TSearchAnnotationSetsResponseTypeannotationSetsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property annotationSets : TSearchAnnotationSetsResponseTypeannotationSetsArray Index 0 Read FannotationSets Write SetannotationSets;
@@ -1644,6 +1743,10 @@ type
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
     Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setrange(AIndex : Integer; AValue : TQueryRange); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property annotationSetIds : TStringArray Index 0 Read FannotationSetIds Write SetannotationSetIds;
@@ -1665,6 +1768,10 @@ type
     //Property setters
     Procedure Setannotations(AIndex : Integer; AValue : TSearchAnnotationsResponseTypeannotationsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property annotations : TSearchAnnotationsResponseTypeannotationsArray Index 0 Read Fannotations Write Setannotations;
@@ -1688,6 +1795,10 @@ type
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
     Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetvariantSetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -1709,6 +1820,10 @@ type
     //Property setters
     Procedure SetcallSets(AIndex : Integer; AValue : TSearchCallSetsResponseTypecallSetsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property callSets : TSearchCallSetsResponseTypecallSetsArray Index 0 Read FcallSets Write SetcallSets;
@@ -1736,6 +1851,10 @@ type
     Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property createdAfter : String Index 0 Read FcreatedAfter Write SetcreatedAfter;
@@ -1759,6 +1878,10 @@ type
     //Property setters
     Procedure Setjobs(AIndex : Integer; AValue : TSearchJobsResponseTypejobsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property jobs : TSearchJobsResponseTypejobsArray Index 0 Read Fjobs Write Setjobs;
@@ -1782,6 +1905,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
     Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property datasetIds : TStringArray Index 0 Read FdatasetIds Write SetdatasetIds;
@@ -1803,6 +1930,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetreadGroupSets(AIndex : Integer; AValue : TSearchReadGroupSetsResponseTypereadGroupSetsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -1833,6 +1964,10 @@ type
     Procedure SetreadGroupSetIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
     Procedure Setstart(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property _end : String Index 0 Read F_end Write Set_end;
@@ -1857,6 +1992,10 @@ type
     //Property setters
     Procedure Setalignments(AIndex : Integer; AValue : TSearchReadsResponseTypealignmentsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property alignments : TSearchReadsResponseTypealignmentsArray Index 0 Read Falignments Write Setalignments;
@@ -1882,6 +2021,10 @@ type
     Procedure Setmd5checksums(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
     Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accessions : TStringArray Index 0 Read Faccessions Write Setaccessions;
@@ -1904,6 +2047,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetreferenceSets(AIndex : Integer; AValue : TSearchReferenceSetsResponseTypereferenceSetsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -1929,6 +2076,10 @@ type
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
     Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accessions : TStringArray Index 0 Read Faccessions Write Setaccessions;
@@ -1951,6 +2102,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setreferences(AIndex : Integer; AValue : TSearchReferencesResponseTypereferencesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -1972,6 +2127,10 @@ type
     Procedure SetdatasetIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
     Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property datasetIds : TStringArray Index 0 Read FdatasetIds Write SetdatasetIds;
@@ -1992,6 +2151,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetvariantSets(AIndex : Integer; AValue : TSearchVariantSetsResponseTypevariantSetsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -2026,6 +2189,10 @@ type
     Procedure Setstart(AIndex : Integer; AValue : String); virtual;
     Procedure SetvariantName(AIndex : Integer; AValue : String); virtual;
     Procedure SetvariantSetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property callSetIds : TStringArray Index 0 Read FcallSetIds Write SetcallSetIds;
@@ -2052,54 +2219,16 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setvariants(AIndex : Integer; AValue : TSearchVariantsResponseTypevariantsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
     Property variants : TSearchVariantsResponseTypevariantsArray Index 8 Read Fvariants Write Setvariants;
   end;
   TSearchVariantsResponseClass = Class of TSearchVariantsResponse;
-  
-  { --------------------------------------------------------------------
-    TStreamReadsRequest
-    --------------------------------------------------------------------}
-  
-  TStreamReadsRequest = Class(TGoogleBaseObject)
-  Private
-    F_end : String;
-    FreadGroupSetIds : TStringArray;
-    FreferenceName : String;
-    Fstart : String;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreadGroupSetIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
-  Public
-  Published
-    Property _end : String Index 0 Read F_end Write Set_end;
-    Property readGroupSetIds : TStringArray Index 8 Read FreadGroupSetIds Write SetreadGroupSetIds;
-    Property referenceName : String Index 16 Read FreferenceName Write SetreferenceName;
-    Property start : String Index 24 Read Fstart Write Setstart;
-  end;
-  TStreamReadsRequestClass = Class of TStreamReadsRequest;
-  
-  { --------------------------------------------------------------------
-    TStreamReadsResponse
-    --------------------------------------------------------------------}
-  
-  TStreamReadsResponse = Class(TGoogleBaseObject)
-  Private
-    Falignments : TStreamReadsResponseTypealignmentsArray;
-  Protected
-    //Property setters
-    Procedure Setalignments(AIndex : Integer; AValue : TStreamReadsResponseTypealignmentsArray); virtual;
-  Public
-  Published
-    Property alignments : TStreamReadsResponseTypealignmentsArray Index 0 Read Falignments Write Setalignments;
-  end;
-  TStreamReadsResponseClass = Class of TStreamReadsResponse;
   
   { --------------------------------------------------------------------
     TTranscript
@@ -2115,6 +2244,10 @@ type
     Procedure SetcodingSequence(AIndex : Integer; AValue : TTranscriptCodingSequence); virtual;
     Procedure Setexons(AIndex : Integer; AValue : TTranscriptTypeexonsArray); virtual;
     Procedure SetgeneId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property codingSequence : TTranscriptCodingSequence Index 0 Read FcodingSequence Write SetcodingSequence;
@@ -2215,6 +2348,10 @@ type
     Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
     Procedure Setstart(AIndex : Integer; AValue : String); virtual;
     Procedure SetvariantSetId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property alternateBases : TStringArray Index 0 Read FalternateBases Write SetalternateBases;
@@ -2256,6 +2393,10 @@ type
     Procedure SetgeneId(AIndex : Integer; AValue : String); virtual;
     Procedure SettranscriptIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property alternateBases : String Index 0 Read FalternateBases Write SetalternateBases;
@@ -2284,6 +2425,10 @@ type
     Procedure SetexternalIds(AIndex : Integer; AValue : TVariantAnnotationConditionTypeexternalIdsArray); virtual;
     Procedure Setnames(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetomimId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property conceptId : String Index 0 Read FconceptId Write SetconceptId;
@@ -2309,6 +2454,10 @@ type
     Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure Setmetadata(AIndex : Integer; AValue : TVariantSetTypemetadataArray); virtual;
     Procedure SetreferenceBounds(AIndex : Integer; AValue : TVariantSetTypereferenceBoundsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
@@ -2399,13 +2548,31 @@ type
   
   
   { --------------------------------------------------------------------
+    TExperimentalJobsResource
+    --------------------------------------------------------------------}
+  
+  TExperimentalJobsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(aExperimentalCreateJobRequest : TExperimentalCreateJobRequest) : TExperimentalCreateJobResponse;overload;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TExperimentalResource
     --------------------------------------------------------------------}
   
   TExperimentalResource = Class(TGoogleResource)
+  Private
+    FJobsInstance : TExperimentalJobsResource;
+    Function GetJobsInstance : TExperimentalJobsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateJobsResource(AOwner : TComponent) : TExperimentalJobsResource;virtual;overload;
+    Function CreateJobsResource : TExperimentalJobsResource;virtual;overload;
+    Property JobsResource : TExperimentalJobsResource Read GetJobsInstance;
   end;
   
   
@@ -2424,10 +2591,38 @@ type
   
   
   { --------------------------------------------------------------------
+    TReadgroupsetsCoveragebucketsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TReadgroupsetsCoveragebucketsResource, method List
+  
+  TReadgroupsetsCoveragebucketsListOptions = Record
+    pageSize : integer;
+    pageToken : String;
+    rangeend : int64;
+    rangereferenceName : String;
+    rangestart : int64;
+    targetBucketWidth : int64;
+  end;
+  
+  TReadgroupsetsCoveragebucketsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(readGroupSetId: string; AQuery : string  = '') : TListCoverageBucketsResponse;
+    Function List(readGroupSetId: string; AQuery : TReadgroupsetsCoveragebucketslistOptions) : TListCoverageBucketsResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TReadgroupsetsResource
     --------------------------------------------------------------------}
   
   TReadgroupsetsResource = Class(TGoogleResource)
+  Private
+    FCoveragebucketsInstance : TReadgroupsetsCoveragebucketsResource;
+    Function GetCoveragebucketsInstance : TReadgroupsetsCoveragebucketsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -2440,6 +2635,9 @@ type
     Function Patch(readGroupSetId: string; aReadGroupSet : TReadGroupSet) : TReadGroupSet;
     Function Search(aSearchReadGroupSetsRequest : TSearchReadGroupSetsRequest) : TSearchReadGroupSetsResponse;
     Function Update(readGroupSetId: string; aReadGroupSet : TReadGroupSet) : TReadGroupSet;
+    Function CreateCoveragebucketsResource(AOwner : TComponent) : TReadgroupsetsCoveragebucketsResource;virtual;overload;
+    Function CreateCoveragebucketsResource : TReadgroupsetsCoveragebucketsResource;virtual;overload;
+    Property CoveragebucketsResource : TReadgroupsetsCoveragebucketsResource Read GetCoveragebucketsInstance;
   end;
   
   
@@ -2456,15 +2654,44 @@ type
   
   
   { --------------------------------------------------------------------
+    TReferencesBasesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TReferencesBasesResource, method List
+  
+  TReferencesBasesListOptions = Record
+    _end : int64;
+    pageSize : integer;
+    pageToken : String;
+    start : int64;
+  end;
+  
+  TReferencesBasesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(referenceId: string; AQuery : string  = '') : TListBasesResponse;
+    Function List(referenceId: string; AQuery : TReferencesBaseslistOptions) : TListBasesResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TReferencesResource
     --------------------------------------------------------------------}
   
   TReferencesResource = Class(TGoogleResource)
+  Private
+    FBasesInstance : TReferencesBasesResource;
+    Function GetBasesInstance : TReferencesBasesResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(referenceId: string) : TReference;
     Function Search(aSearchReferencesRequest : TSearchReferencesRequest) : TSearchReferencesResponse;
+    Function CreateBasesResource(AOwner : TComponent) : TReferencesBasesResource;virtual;overload;
+    Function CreateBasesResource : TReferencesBasesResource;virtual;overload;
+    Property BasesResource : TReferencesBasesResource Read GetBasesInstance;
   end;
   
   
@@ -2478,18 +2705,6 @@ type
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(referenceSetId: string) : TReferenceSet;
     Function Search(aSearchReferenceSetsRequest : TSearchReferenceSetsRequest) : TSearchReferenceSetsResponse;
-  end;
-  
-  
-  { --------------------------------------------------------------------
-    TStreamingReadstoreResource
-    --------------------------------------------------------------------}
-  
-  TStreamingReadstoreResource = Class(TGoogleResource)
-  Public
-    Class Function ResourceName : String; override;
-    Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function Streamreads(aStreamReadsRequest : TStreamReadsRequest) : TStreamReadsResponse;
   end;
   
   
@@ -2538,26 +2753,30 @@ type
     FAnnotationsInstance : TAnnotationsResource;
     FCallsetsInstance : TCallsetsResource;
     FDatasetsInstance : TDatasetsResource;
+    FExperimentalJobsInstance : TExperimentalJobsResource;
     FExperimentalInstance : TExperimentalResource;
     FJobsInstance : TJobsResource;
+    FReadgroupsetsCoveragebucketsInstance : TReadgroupsetsCoveragebucketsResource;
     FReadgroupsetsInstance : TReadgroupsetsResource;
     FReadsInstance : TReadsResource;
+    FReferencesBasesInstance : TReferencesBasesResource;
     FReferencesInstance : TReferencesResource;
     FReferencesetsInstance : TReferencesetsResource;
-    FStreamingReadstoreInstance : TStreamingReadstoreResource;
     FVariantsInstance : TVariantsResource;
     FVariantsetsInstance : TVariantsetsResource;
     Function GetAnnotationSetsInstance : TAnnotationSetsResource;virtual;
     Function GetAnnotationsInstance : TAnnotationsResource;virtual;
     Function GetCallsetsInstance : TCallsetsResource;virtual;
     Function GetDatasetsInstance : TDatasetsResource;virtual;
+    Function GetExperimentalJobsInstance : TExperimentalJobsResource;virtual;
     Function GetExperimentalInstance : TExperimentalResource;virtual;
     Function GetJobsInstance : TJobsResource;virtual;
+    Function GetReadgroupsetsCoveragebucketsInstance : TReadgroupsetsCoveragebucketsResource;virtual;
     Function GetReadgroupsetsInstance : TReadgroupsetsResource;virtual;
     Function GetReadsInstance : TReadsResource;virtual;
+    Function GetReferencesBasesInstance : TReferencesBasesResource;virtual;
     Function GetReferencesInstance : TReferencesResource;virtual;
     Function GetReferencesetsInstance : TReferencesetsResource;virtual;
-    Function GetStreamingReadstoreInstance : TStreamingReadstoreResource;virtual;
     Function GetVariantsInstance : TVariantsResource;virtual;
     Function GetVariantsetsInstance : TVariantsetsResource;virtual;
   Public
@@ -2591,20 +2810,24 @@ type
     Function CreateCallsetsResource : TCallsetsResource;virtual;overload;
     Function CreateDatasetsResource(AOwner : TComponent) : TDatasetsResource;virtual;overload;
     Function CreateDatasetsResource : TDatasetsResource;virtual;overload;
+    Function CreateExperimentalJobsResource(AOwner : TComponent) : TExperimentalJobsResource;virtual;overload;
+    Function CreateExperimentalJobsResource : TExperimentalJobsResource;virtual;overload;
     Function CreateExperimentalResource(AOwner : TComponent) : TExperimentalResource;virtual;overload;
     Function CreateExperimentalResource : TExperimentalResource;virtual;overload;
     Function CreateJobsResource(AOwner : TComponent) : TJobsResource;virtual;overload;
     Function CreateJobsResource : TJobsResource;virtual;overload;
+    Function CreateReadgroupsetsCoveragebucketsResource(AOwner : TComponent) : TReadgroupsetsCoveragebucketsResource;virtual;overload;
+    Function CreateReadgroupsetsCoveragebucketsResource : TReadgroupsetsCoveragebucketsResource;virtual;overload;
     Function CreateReadgroupsetsResource(AOwner : TComponent) : TReadgroupsetsResource;virtual;overload;
     Function CreateReadgroupsetsResource : TReadgroupsetsResource;virtual;overload;
     Function CreateReadsResource(AOwner : TComponent) : TReadsResource;virtual;overload;
     Function CreateReadsResource : TReadsResource;virtual;overload;
+    Function CreateReferencesBasesResource(AOwner : TComponent) : TReferencesBasesResource;virtual;overload;
+    Function CreateReferencesBasesResource : TReferencesBasesResource;virtual;overload;
     Function CreateReferencesResource(AOwner : TComponent) : TReferencesResource;virtual;overload;
     Function CreateReferencesResource : TReferencesResource;virtual;overload;
     Function CreateReferencesetsResource(AOwner : TComponent) : TReferencesetsResource;virtual;overload;
     Function CreateReferencesetsResource : TReferencesetsResource;virtual;overload;
-    Function CreateStreamingReadstoreResource(AOwner : TComponent) : TStreamingReadstoreResource;virtual;overload;
-    Function CreateStreamingReadstoreResource : TStreamingReadstoreResource;virtual;overload;
     Function CreateVariantsResource(AOwner : TComponent) : TVariantsResource;virtual;overload;
     Function CreateVariantsResource : TVariantsResource;virtual;overload;
     Function CreateVariantsetsResource(AOwner : TComponent) : TVariantsetsResource;virtual;overload;
@@ -2614,13 +2837,15 @@ type
     Property AnnotationsResource : TAnnotationsResource Read GetAnnotationsInstance;
     Property CallsetsResource : TCallsetsResource Read GetCallsetsInstance;
     Property DatasetsResource : TDatasetsResource Read GetDatasetsInstance;
+    Property ExperimentalJobsResource : TExperimentalJobsResource Read GetExperimentalJobsInstance;
     Property ExperimentalResource : TExperimentalResource Read GetExperimentalInstance;
     Property JobsResource : TJobsResource Read GetJobsInstance;
+    Property ReadgroupsetsCoveragebucketsResource : TReadgroupsetsCoveragebucketsResource Read GetReadgroupsetsCoveragebucketsInstance;
     Property ReadgroupsetsResource : TReadgroupsetsResource Read GetReadgroupsetsInstance;
     Property ReadsResource : TReadsResource Read GetReadsInstance;
+    Property ReferencesBasesResource : TReferencesBasesResource Read GetReferencesBasesInstance;
     Property ReferencesResource : TReferencesResource Read GetReferencesInstance;
     Property ReferencesetsResource : TReferencesetsResource Read GetReferencesetsInstance;
-    Property StreamingReadstoreResource : TStreamingReadstoreResource Read GetStreamingReadstoreInstance;
     Property VariantsResource : TVariantsResource Read GetVariantsInstance;
     Property VariantsetsResource : TVariantsetsResource Read GetVariantsetsInstance;
   end;
@@ -2681,6 +2906,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAlignReadGroupSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bamsourceuris' : SetLength(FbamSourceUris,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2928,6 +3166,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBatchAnnotationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entries' : SetLength(Fentries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2998,6 +3249,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBatchCreateAnnotationsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'annotations' : SetLength(Fannotations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3079,6 +3343,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCall.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'genotype' : SetLength(Fgenotype,ALength);
+  'genotypelikelihood' : SetLength(FgenotypeLikelihood,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3115,6 +3393,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCallReadGroupSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sourceuris' : SetLength(FsourceUris,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3212,6 +3503,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCallSet.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'variantsetids' : SetLength(FvariantSetIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3391,6 +3695,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TExperimentalCreateJobRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'pairedsourceuris' : SetLength(FpairedSourceUris,ALength);
+  'sourceuris' : SetLength(FsourceUris,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3454,6 +3772,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TExportReadGroupSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'readgroupsetids' : SetLength(FreadGroupSetIds,ALength);
+  'referencenames' : SetLength(FreferenceNames,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3528,6 +3860,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TExportVariantSetRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'callsetids' : SetLength(FcallSetIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3677,6 +4022,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TImportReadGroupSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sourceuris' : SetLength(FsourceUris,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3720,6 +4078,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TImportVariantsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sourceuris' : SetLength(FsourceUris,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3781,6 +4152,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInterleavedFastqSource.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sourceuris' : SetLength(FsourceUris,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3879,6 +4263,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJob.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  'importedids' : SetLength(FimportedIds,ALength);
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3927,6 +4326,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJobRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'destination' : SetLength(Fdestination,ALength);
+  'source' : SetLength(Fsource,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3963,6 +4376,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLinearAlignment.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'cigar' : SetLength(Fcigar,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4038,6 +4464,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListCoverageBucketsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'coveragebuckets' : SetLength(FcoverageBuckets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4065,6 +4504,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListDatasetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'datasets' : SetLength(Fdatasets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4081,6 +4533,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMergeVariantsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'variants' : SetLength(Fvariants,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4219,6 +4684,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPairedFastqSource.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'firstsourceuris' : SetLength(FfirstSourceUris,ALength);
+  'secondsourceuris' : SetLength(FsecondSourceUris,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4621,6 +5100,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRead.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'alignedquality' : SetLength(FalignedQuality,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4740,6 +5232,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReadGroup.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'programs' : SetLength(Fprograms,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4935,6 +5440,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReadGroupSet.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'readgroups' : SetLength(FreadGroups,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4953,11 +5471,11 @@ end;
 
 
 
-Procedure TReference.Setlength(AIndex : Integer; AValue : String); 
+Procedure TReference.Set_length(AIndex : Integer; AValue : String); 
 
 begin
-  If (Flength=AValue) then exit;
-  Flength:=AValue;
+  If (F_length=AValue) then exit;
+  F_length:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -5011,6 +5529,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReference.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sourceaccessions' : SetLength(FsourceAccessions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5126,6 +5657,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReferenceSet.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'referenceids' : SetLength(FreferenceIds,ALength);
+  'sourceaccessions' : SetLength(FsourceAccessions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5193,6 +5738,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchAnnotationSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'datasetids' : SetLength(FdatasetIds,ALength);
+  'types' : SetLength(Ftypes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5219,6 +5778,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchAnnotationSetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'annotationsets' : SetLength(FannotationSets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5267,6 +5839,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchAnnotationsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'annotationsetids' : SetLength(FannotationSetIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5293,6 +5878,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchAnnotationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'annotations' : SetLength(Fannotations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5341,6 +5939,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchCallSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'variantsetids' : SetLength(FvariantSetIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5367,6 +5978,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchCallSetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'callsets' : SetLength(FcallSets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5435,6 +6059,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchJobsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'status' : SetLength(Fstatus,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5461,6 +6098,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchJobsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'jobs' : SetLength(Fjobs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5509,6 +6159,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchReadGroupSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'datasetids' : SetLength(FdatasetIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5535,6 +6198,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchReadGroupSetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'readgroupsets' : SetLength(FreadGroupSets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5624,6 +6300,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchReadsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'readgroupids' : SetLength(FreadGroupIds,ALength);
+  'readgroupsetids' : SetLength(FreadGroupSetIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5650,6 +6340,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchReadsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'alignments' : SetLength(Falignments,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5708,6 +6411,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchReferenceSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'accessions' : SetLength(Faccessions,ALength);
+  'md5checksums' : SetLength(Fmd5checksums,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5734,6 +6451,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchReferenceSetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'referencesets' : SetLength(FreferenceSets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5792,6 +6522,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchReferencesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'accessions' : SetLength(Faccessions,ALength);
+  'md5checksums' : SetLength(Fmd5checksums,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5818,6 +6562,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchReferencesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'references' : SetLength(Freferences,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5856,6 +6613,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchVariantSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'datasetids' : SetLength(FdatasetIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5882,6 +6652,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchVariantSetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'variantsets' : SetLength(FvariantSets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5991,6 +6774,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchVariantsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'callsetids' : SetLength(FcallSetIds,ALength);
+  'variantsetids' : SetLength(FvariantSetIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6018,80 +6815,18 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TStreamReadsRequest
-  --------------------------------------------------------------------}
-
-
-Procedure TStreamReadsRequest.Set_end(AIndex : Integer; AValue : String); 
-
-begin
-  If (F_end=AValue) then exit;
-  F_end:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TStreamReadsRequest.SetreadGroupSetIds(AIndex : Integer; AValue : TStringArray); 
-
-begin
-  If (FreadGroupSetIds=AValue) then exit;
-  FreadGroupSetIds:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TStreamReadsRequest.SetreferenceName(AIndex : Integer; AValue : String); 
-
-begin
-  If (FreferenceName=AValue) then exit;
-  FreferenceName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TStreamReadsRequest.Setstart(AIndex : Integer; AValue : String); 
-
-begin
-  If (Fstart=AValue) then exit;
-  Fstart:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TStreamReadsRequest.ExportPropertyName(Const AName : String) :String;
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchVariantsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
   Case AName of
-  '_end' : Result:='end';
+  'variants' : SetLength(Fvariants,ALength);
   else
-    Result:=Inherited ExportPropertyName(AName);
+    Inherited SetArrayLength(AName,ALength);
   end;
 end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TStreamReadsResponse
-  --------------------------------------------------------------------}
-
-
-Procedure TStreamReadsResponse.Setalignments(AIndex : Integer; AValue : TStreamReadsResponseTypealignmentsArray); 
-
-begin
-  If (Falignments=AValue) then exit;
-  Falignments:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
@@ -6129,6 +6864,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTranscript.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'exons' : SetLength(Fexons,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -6377,6 +7125,22 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVariant.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'alternatebases' : SetLength(FalternateBases,ALength);
+  'calls' : SetLength(Fcalls,ALength);
+  'filter' : SetLength(Ffilter,ALength);
+  'names' : SetLength(Fnames,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6465,6 +7229,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVariantAnnotation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'conditions' : SetLength(Fconditions,ALength);
+  'transcriptids' : SetLength(FtranscriptIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6512,6 +7290,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVariantAnnotationCondition.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'externalids' : SetLength(FexternalIds,ALength);
+  'names' : SetLength(Fnames,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6558,6 +7350,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVariantSet.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'metadata' : SetLength(Fmetadata,ALength);
+  'referencebounds' : SetLength(FreferenceBounds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7007,6 +7813,36 @@ end;
 
 
 { --------------------------------------------------------------------
+  TExperimentalJobsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TExperimentalJobsResource.ResourceName : String;
+
+begin
+  Result:='jobs';
+end;
+
+Class Function TExperimentalJobsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TgenomicsAPI;
+end;
+
+Function TExperimentalJobsResource.Create(aExperimentalCreateJobRequest : TExperimentalCreateJobRequest) : TExperimentalCreateJobResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'experimental/jobs/create';
+  _Methodid   = 'genomics.experimental.jobs.create';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,'',aExperimentalCreateJobRequest,TExperimentalCreateJobResponse) as TExperimentalCreateJobResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TExperimentalResource
   --------------------------------------------------------------------}
 
@@ -7021,6 +7857,30 @@ Class Function TExperimentalResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TgenomicsAPI;
+end;
+
+
+
+Function TExperimentalResource.GetJobsInstance : TExperimentalJobsResource;
+
+begin
+  if (FJobsInstance=Nil) then
+    FJobsInstance:=CreateJobsResource;
+  Result:=FJobsInstance;
+end;
+
+Function TExperimentalResource.CreateJobsResource : TExperimentalJobsResource;
+
+begin
+  Result:=CreateJobsResource(Self);
+end;
+
+
+Function TExperimentalResource.CreateJobsResource(AOwner : TComponent) : TExperimentalJobsResource;
+
+begin
+  Result:=TExperimentalJobsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -7081,6 +7941,57 @@ Const
 
 begin
   Result:=ServiceCall(_HTTPMethod,_Path,'',aSearchJobsRequest,TSearchJobsResponse) as TSearchJobsResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TReadgroupsetsCoveragebucketsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TReadgroupsetsCoveragebucketsResource.ResourceName : String;
+
+begin
+  Result:='coveragebuckets';
+end;
+
+Class Function TReadgroupsetsCoveragebucketsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TgenomicsAPI;
+end;
+
+Function TReadgroupsetsCoveragebucketsResource.List(readGroupSetId: string; AQuery : string = '') : TListCoverageBucketsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'readgroupsets/{readGroupSetId}/coveragebuckets';
+  _Methodid   = 'genomics.readgroupsets.coveragebuckets.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['readGroupSetId',readGroupSetId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListCoverageBucketsResponse) as TListCoverageBucketsResponse;
+end;
+
+
+Function TReadgroupsetsCoveragebucketsResource.List(readGroupSetId: string; AQuery : TReadgroupsetsCoveragebucketslistOptions) : TListCoverageBucketsResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'range.end',AQuery.rangeend);
+  AddToQuery(_Q,'range.referenceName',AQuery.rangereferenceName);
+  AddToQuery(_Q,'range.start',AQuery.rangestart);
+  AddToQuery(_Q,'targetBucketWidth',AQuery.targetBucketWidth);
+  Result:=List(readGroupSetId,_Q);
 end;
 
 
@@ -7219,6 +8130,30 @@ end;
 
 
 
+Function TReadgroupsetsResource.GetCoveragebucketsInstance : TReadgroupsetsCoveragebucketsResource;
+
+begin
+  if (FCoveragebucketsInstance=Nil) then
+    FCoveragebucketsInstance:=CreateCoveragebucketsResource;
+  Result:=FCoveragebucketsInstance;
+end;
+
+Function TReadgroupsetsResource.CreateCoveragebucketsResource : TReadgroupsetsCoveragebucketsResource;
+
+begin
+  Result:=CreateCoveragebucketsResource(Self);
+end;
+
+
+Function TReadgroupsetsResource.CreateCoveragebucketsResource(AOwner : TComponent) : TReadgroupsetsCoveragebucketsResource;
+
+begin
+  Result:=TReadgroupsetsCoveragebucketsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 { --------------------------------------------------------------------
   TReadsResource
   --------------------------------------------------------------------}
@@ -7245,6 +8180,55 @@ Const
 
 begin
   Result:=ServiceCall(_HTTPMethod,_Path,'',aSearchReadsRequest,TSearchReadsResponse) as TSearchReadsResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TReferencesBasesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TReferencesBasesResource.ResourceName : String;
+
+begin
+  Result:='bases';
+end;
+
+Class Function TReferencesBasesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TgenomicsAPI;
+end;
+
+Function TReferencesBasesResource.List(referenceId: string; AQuery : string = '') : TListBasesResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'references/{referenceId}/bases';
+  _Methodid   = 'genomics.references.bases.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['referenceId',referenceId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListBasesResponse) as TListBasesResponse;
+end;
+
+
+Function TReferencesBasesResource.List(referenceId: string; AQuery : TReferencesBaseslistOptions) : TListBasesResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'end',AQuery._end);
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'start',AQuery.start);
+  Result:=List(referenceId,_Q);
 end;
 
 
@@ -7294,6 +8278,30 @@ end;
 
 
 
+Function TReferencesResource.GetBasesInstance : TReferencesBasesResource;
+
+begin
+  if (FBasesInstance=Nil) then
+    FBasesInstance:=CreateBasesResource;
+  Result:=FBasesInstance;
+end;
+
+Function TReferencesResource.CreateBasesResource : TReferencesBasesResource;
+
+begin
+  Result:=CreateBasesResource(Self);
+end;
+
+
+Function TReferencesResource.CreateBasesResource(AOwner : TComponent) : TReferencesBasesResource;
+
+begin
+  Result:=TReferencesBasesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 { --------------------------------------------------------------------
   TReferencesetsResource
   --------------------------------------------------------------------}
@@ -7335,36 +8343,6 @@ Const
 
 begin
   Result:=ServiceCall(_HTTPMethod,_Path,'',aSearchReferenceSetsRequest,TSearchReferenceSetsResponse) as TSearchReferenceSetsResponse;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TStreamingReadstoreResource
-  --------------------------------------------------------------------}
-
-
-Class Function TStreamingReadstoreResource.ResourceName : String;
-
-begin
-  Result:='streamingReadstore';
-end;
-
-Class Function TStreamingReadstoreResource.DefaultAPI : TGoogleAPIClass;
-
-begin
-  Result:=TgenomicsAPI;
-end;
-
-Function TStreamingReadstoreResource.Streamreads(aStreamReadsRequest : TStreamReadsRequest) : TStreamReadsResponse;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = 'streamingReadstore/streamreads';
-  _Methodid   = 'genomics.streamingReadstore.streamreads';
-
-begin
-  Result:=ServiceCall(_HTTPMethod,_Path,'',aStreamReadsRequest,TStreamReadsResponse) as TStreamReadsResponse;
 end;
 
 
@@ -7609,7 +8587,7 @@ end;
 Class Function TGenomicsAPI.APIRevision : String;
 
 begin
-  Result:='20150415';
+  Result:='20150326';
 end;
 
 Class Function TGenomicsAPI.APIID : String;
@@ -7663,7 +8641,7 @@ end;
 Class Function TGenomicsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TGenomicsAPI.APIbasePath : string;
@@ -7675,7 +8653,7 @@ end;
 Class Function TGenomicsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/genomics/v1beta2/';
+  Result:='https://www.googleapis.com:443/genomics/v1beta2/';
 end;
 
 Class Function TGenomicsAPI.APIProtocol : string;
@@ -7699,15 +8677,17 @@ end;
 Class Function TGenomicsAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
-  SetLength(Result,4);
+  SetLength(Result,5);
   Result[0].Name:='https://www.googleapis.com/auth/bigquery';
   Result[0].Description:='View and manage your data in Google BigQuery';
-  Result[1].Name:='https://www.googleapis.com/auth/devstorage.read_write';
-  Result[1].Description:='Manage your data in Google Cloud Storage';
-  Result[2].Name:='https://www.googleapis.com/auth/genomics';
-  Result[2].Description:='View and manage Genomics data';
-  Result[3].Name:='https://www.googleapis.com/auth/genomics.readonly';
-  Result[3].Description:='View Genomics data';
+  Result[1].Name:='https://www.googleapis.com/auth/cloud-platform';
+  Result[1].Description:='View and manage your data across Google Cloud Platform services';
+  Result[2].Name:='https://www.googleapis.com/auth/devstorage.read_write';
+  Result[2].Description:='Manage your data in Google Cloud Storage';
+  Result[3].Name:='https://www.googleapis.com/auth/genomics';
+  Result[3].Description:='View and manage Genomics data';
+  Result[4].Name:='https://www.googleapis.com/auth/genomics.readonly';
+  Result[4].Description:='View Genomics data';
   
 end;
 
@@ -7798,8 +8778,6 @@ begin
   TSearchVariantSetsResponse.RegisterObject;
   TSearchVariantsRequest.RegisterObject;
   TSearchVariantsResponse.RegisterObject;
-  TStreamReadsRequest.RegisterObject;
-  TStreamReadsResponse.RegisterObject;
   TTranscript.RegisterObject;
   TTranscriptCodingSequence.RegisterObject;
   TTranscriptExon.RegisterObject;
@@ -7830,7 +8808,7 @@ Function TGenomicsAPI.CreateAnnotationSetsResource(AOwner : TComponent) : TAnnot
 
 begin
   Result:=TAnnotationSetsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7854,7 +8832,7 @@ Function TGenomicsAPI.CreateAnnotationsResource(AOwner : TComponent) : TAnnotati
 
 begin
   Result:=TAnnotationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7878,7 +8856,7 @@ Function TGenomicsAPI.CreateCallsetsResource(AOwner : TComponent) : TCallsetsRes
 
 begin
   Result:=TCallsetsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7902,7 +8880,31 @@ Function TGenomicsAPI.CreateDatasetsResource(AOwner : TComponent) : TDatasetsRes
 
 begin
   Result:=TDatasetsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TGenomicsAPI.GetExperimentalJobsInstance : TExperimentalJobsResource;
+
+begin
+  if (FExperimentalJobsInstance=Nil) then
+    FExperimentalJobsInstance:=CreateExperimentalJobsResource;
+  Result:=FExperimentalJobsInstance;
+end;
+
+Function TGenomicsAPI.CreateExperimentalJobsResource : TExperimentalJobsResource;
+
+begin
+  Result:=CreateExperimentalJobsResource(Self);
+end;
+
+
+Function TGenomicsAPI.CreateExperimentalJobsResource(AOwner : TComponent) : TExperimentalJobsResource;
+
+begin
+  Result:=TExperimentalJobsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -7926,7 +8928,7 @@ Function TGenomicsAPI.CreateExperimentalResource(AOwner : TComponent) : TExperim
 
 begin
   Result:=TExperimentalResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7950,7 +8952,31 @@ Function TGenomicsAPI.CreateJobsResource(AOwner : TComponent) : TJobsResource;
 
 begin
   Result:=TJobsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TGenomicsAPI.GetReadgroupsetsCoveragebucketsInstance : TReadgroupsetsCoveragebucketsResource;
+
+begin
+  if (FReadgroupsetsCoveragebucketsInstance=Nil) then
+    FReadgroupsetsCoveragebucketsInstance:=CreateReadgroupsetsCoveragebucketsResource;
+  Result:=FReadgroupsetsCoveragebucketsInstance;
+end;
+
+Function TGenomicsAPI.CreateReadgroupsetsCoveragebucketsResource : TReadgroupsetsCoveragebucketsResource;
+
+begin
+  Result:=CreateReadgroupsetsCoveragebucketsResource(Self);
+end;
+
+
+Function TGenomicsAPI.CreateReadgroupsetsCoveragebucketsResource(AOwner : TComponent) : TReadgroupsetsCoveragebucketsResource;
+
+begin
+  Result:=TReadgroupsetsCoveragebucketsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -7974,7 +9000,7 @@ Function TGenomicsAPI.CreateReadgroupsetsResource(AOwner : TComponent) : TReadgr
 
 begin
   Result:=TReadgroupsetsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7998,7 +9024,31 @@ Function TGenomicsAPI.CreateReadsResource(AOwner : TComponent) : TReadsResource;
 
 begin
   Result:=TReadsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TGenomicsAPI.GetReferencesBasesInstance : TReferencesBasesResource;
+
+begin
+  if (FReferencesBasesInstance=Nil) then
+    FReferencesBasesInstance:=CreateReferencesBasesResource;
+  Result:=FReferencesBasesInstance;
+end;
+
+Function TGenomicsAPI.CreateReferencesBasesResource : TReferencesBasesResource;
+
+begin
+  Result:=CreateReferencesBasesResource(Self);
+end;
+
+
+Function TGenomicsAPI.CreateReferencesBasesResource(AOwner : TComponent) : TReferencesBasesResource;
+
+begin
+  Result:=TReferencesBasesResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -8022,7 +9072,7 @@ Function TGenomicsAPI.CreateReferencesResource(AOwner : TComponent) : TReference
 
 begin
   Result:=TReferencesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8046,31 +9096,7 @@ Function TGenomicsAPI.CreateReferencesetsResource(AOwner : TComponent) : TRefere
 
 begin
   Result:=TReferencesetsResource.Create(AOwner);
-  Result.API:=Self;
-end;
-
-
-
-Function TGenomicsAPI.GetStreamingReadstoreInstance : TStreamingReadstoreResource;
-
-begin
-  if (FStreamingReadstoreInstance=Nil) then
-    FStreamingReadstoreInstance:=CreateStreamingReadstoreResource;
-  Result:=FStreamingReadstoreInstance;
-end;
-
-Function TGenomicsAPI.CreateStreamingReadstoreResource : TStreamingReadstoreResource;
-
-begin
-  Result:=CreateStreamingReadstoreResource(Self);
-end;
-
-
-Function TGenomicsAPI.CreateStreamingReadstoreResource(AOwner : TComponent) : TStreamingReadstoreResource;
-
-begin
-  Result:=TStreamingReadstoreResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8094,7 +9120,7 @@ Function TGenomicsAPI.CreateVariantsResource(AOwner : TComponent) : TVariantsRes
 
 begin
   Result:=TVariantsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8118,7 +9144,7 @@ Function TGenomicsAPI.CreateVariantsetsResource(AOwner : TComponent) : TVariants
 
 begin
   Result:=TVariantsetsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -13,7 +13,7 @@ unit googleappsactivity;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:48
+//Generated on: 16-5-15 08:52:58
 {$MODE objfpc}
 {$H+}
 
@@ -24,17 +24,17 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TActivity = class;
-  TEvent = class;
-  TListActivitiesResponse = class;
-  TMove = class;
-  TParent = class;
-  TPermission = class;
-  TPermissionChange = class;
-  TPhoto = class;
-  TRename = class;
-  TTarget = class;
-  TUser = class;
+  TActivity = Class;
+  TEvent = Class;
+  TListActivitiesResponse = Class;
+  TMove = Class;
+  TParent = Class;
+  TPermission = Class;
+  TPermissionChange = Class;
+  TPhoto = Class;
+  TRename = Class;
+  TTarget = Class;
+  TUser = Class;
   TActivityArray = Array of TActivity;
   TEventArray = Array of TEvent;
   TListActivitiesResponseArray = Array of TListActivitiesResponse;
@@ -67,6 +67,10 @@ type
     //Property setters
     Procedure SetcombinedEvent(AIndex : Integer; AValue : TEvent); virtual;
     Procedure SetsingleEvents(AIndex : Integer; AValue : TActivityTypesingleEventsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property combinedEvent : TEvent Index 0 Read FcombinedEvent Write SetcombinedEvent;
@@ -100,6 +104,10 @@ type
     Procedure Setrename(AIndex : Integer; AValue : TRename); virtual;
     Procedure Settarget(AIndex : Integer; AValue : TTarget); virtual;
     Procedure Setuser(AIndex : Integer; AValue : TUser); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property additionalEventTypes : TStringArray Index 0 Read FadditionalEventTypes Write SetadditionalEventTypes;
@@ -126,6 +134,10 @@ type
     //Property setters
     Procedure Setactivities(AIndex : Integer; AValue : TListActivitiesResponseTypeactivitiesArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property activities : TListActivitiesResponseTypeactivitiesArray Index 0 Read Factivities Write Setactivities;
@@ -145,6 +157,10 @@ type
     //Property setters
     Procedure SetaddedParents(AIndex : Integer; AValue : TMoveTypeaddedParentsArray); virtual;
     Procedure SetremovedParents(AIndex : Integer; AValue : TMoveTyperemovedParentsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property addedParents : TMoveTypeaddedParentsArray Index 0 Read FaddedParents Write SetaddedParents;
@@ -218,6 +234,10 @@ type
     //Property setters
     Procedure SetaddedPermissions(AIndex : Integer; AValue : TPermissionChangeTypeaddedPermissionsArray); virtual;
     Procedure SetremovedPermissions(AIndex : Integer; AValue : TPermissionChangeTyperemovedPermissionsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property addedPermissions : TPermissionChangeTypeaddedPermissionsArray Index 0 Read FaddedPermissions Write SetaddedPermissions;
@@ -391,6 +411,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivity.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'singleevents' : SetLength(FsingleEvents,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -488,6 +521,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEvent.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'additionaleventtypes' : SetLength(FadditionalEventTypes,ALength);
+  'permissionchanges' : SetLength(FpermissionChanges,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -515,6 +562,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListActivitiesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'activities' : SetLength(Factivities,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -541,6 +601,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMove.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'addedparents' : SetLength(FaddedParents,ALength);
+  'removedparents' : SetLength(FremovedParents,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -683,6 +757,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPermissionChange.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'addedpermissions' : SetLength(FaddedPermissions,ALength);
+  'removedpermissions' : SetLength(FremovedPermissions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -862,7 +950,7 @@ end;
 Class Function TAppsactivityAPI.APIRevision : String;
 
 begin
-  Result:='20140828';
+  Result:='20150326';
 end;
 
 Class Function TAppsactivityAPI.APIID : String;
@@ -916,7 +1004,7 @@ end;
 Class Function TAppsactivityAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TAppsactivityAPI.APIbasePath : string;
@@ -928,7 +1016,7 @@ end;
 Class Function TAppsactivityAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/appsactivity/v1/';
+  Result:='https://www.googleapis.com:443/appsactivity/v1/';
 end;
 
 Class Function TAppsactivityAPI.APIProtocol : string;
@@ -952,15 +1040,17 @@ end;
 Class Function TAppsactivityAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
-  SetLength(Result,4);
+  SetLength(Result,5);
   Result[0].Name:='https://www.googleapis.com/auth/activity';
   Result[0].Description:='View the activity history of your Google Apps';
   Result[1].Name:='https://www.googleapis.com/auth/drive';
   Result[1].Description:='View and manage the files in your Google Drive';
-  Result[2].Name:='https://www.googleapis.com/auth/drive.metadata.readonly';
-  Result[2].Description:='View metadata for files in your Google Drive';
-  Result[3].Name:='https://www.googleapis.com/auth/drive.readonly';
-  Result[3].Description:='View the files in your Google Drive';
+  Result[2].Name:='https://www.googleapis.com/auth/drive.metadata';
+  Result[2].Description:='View and manage metadata of files in your Google Drive';
+  Result[3].Name:='https://www.googleapis.com/auth/drive.metadata.readonly';
+  Result[3].Description:='View metadata for files in your Google Drive';
+  Result[4].Name:='https://www.googleapis.com/auth/drive.readonly';
+  Result[4].Description:='View the files in your Google Drive';
   
 end;
 
@@ -1006,7 +1096,7 @@ Function TAppsactivityAPI.CreateActivitiesResource(AOwner : TComponent) : TActiv
 
 begin
   Result:=TActivitiesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

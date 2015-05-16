@@ -13,7 +13,7 @@ unit googlecloudlatencytest;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:50
+//Generated on: 16-5-15 08:53:00
 {$MODE objfpc}
 {$H+}
 
@@ -24,13 +24,13 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAggregatedStats = class;
-  TAggregatedStatsReply = class;
-  TDoubleValue = class;
-  TIntValue = class;
-  TStats = class;
-  TStatsReply = class;
-  TStringValue = class;
+  TAggregatedStats = Class;
+  TAggregatedStatsReply = Class;
+  TDoubleValue = Class;
+  TIntValue = Class;
+  TStats = Class;
+  TStatsReply = Class;
+  TStringValue = Class;
   TAggregatedStatsArray = Array of TAggregatedStats;
   TAggregatedStatsReplyArray = Array of TAggregatedStatsReply;
   TDoubleValueArray = Array of TDoubleValue;
@@ -54,6 +54,10 @@ type
   Protected
     //Property setters
     Procedure Setstats(AIndex : Integer; AValue : TAggregatedStatsTypestatsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property stats : TAggregatedStatsTypestatsArray Index 0 Read Fstats Write Setstats;
@@ -132,6 +136,10 @@ type
     Procedure SetintValues(AIndex : Integer; AValue : TStatsTypeintValuesArray); virtual;
     Procedure SetstringValues(AIndex : Integer; AValue : TStatsTypestringValuesArray); virtual;
     Procedure Settime(AIndex : Integer; AValue : double); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property doubleValues : TStatsTypedoubleValuesArray Index 0 Read FdoubleValues Write SetdoubleValues;
@@ -243,6 +251,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAggregatedStats.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'stats' : SetLength(Fstats,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -384,6 +405,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStats.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'doublevalues' : SetLength(FdoubleValues,ALength);
+  'intvalues' : SetLength(FintValues,ALength);
+  'stringvalues' : SetLength(FstringValues,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -502,7 +538,7 @@ end;
 Class Function TCloudlatencytestAPI.APIRevision : String;
 
 begin
-  Result:='20150206';
+  Result:='20150508';
 end;
 
 Class Function TCloudlatencytestAPI.APIID : String;
@@ -636,7 +672,7 @@ Function TCloudlatencytestAPI.CreateStatscollectionResource(AOwner : TComponent)
 
 begin
   Result:=TStatscollectionResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

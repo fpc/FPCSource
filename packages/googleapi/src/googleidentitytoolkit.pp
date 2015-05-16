@@ -13,7 +13,7 @@ unit googleidentitytoolkit;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:55
+//Generated on: 16-5-15 08:53:05
 {$MODE objfpc}
 {$H+}
 
@@ -24,29 +24,29 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TCreateAuthUriResponse = class;
-  TDeleteAccountResponse = class;
-  TDownloadAccountResponse = class;
-  TGetAccountInfoResponse = class;
-  TGetOobConfirmationCodeResponse = class;
-  TGetRecaptchaParamResponse = class;
-  TIdentitytoolkitRelyingpartyCreateAuthUriRequest = class;
-  TIdentitytoolkitRelyingpartyDeleteAccountRequest = class;
-  TIdentitytoolkitRelyingpartyDownloadAccountRequest = class;
-  TIdentitytoolkitRelyingpartyGetAccountInfoRequest = class;
-  TIdentitytoolkitRelyingpartyGetPublicKeysResponse = class;
-  TIdentitytoolkitRelyingpartyResetPasswordRequest = class;
-  TIdentitytoolkitRelyingpartySetAccountInfoRequest = class;
-  TIdentitytoolkitRelyingpartyUploadAccountRequest = class;
-  TIdentitytoolkitRelyingpartyVerifyAssertionRequest = class;
-  TIdentitytoolkitRelyingpartyVerifyPasswordRequest = class;
-  TRelyingparty = class;
-  TResetPasswordResponse = class;
-  TSetAccountInfoResponse = class;
-  TUploadAccountResponse = class;
-  TUserInfo = class;
-  TVerifyAssertionResponse = class;
-  TVerifyPasswordResponse = class;
+  TCreateAuthUriResponse = Class;
+  TDeleteAccountResponse = Class;
+  TDownloadAccountResponse = Class;
+  TGetAccountInfoResponse = Class;
+  TGetOobConfirmationCodeResponse = Class;
+  TGetRecaptchaParamResponse = Class;
+  TIdentitytoolkitRelyingpartyCreateAuthUriRequest = Class;
+  TIdentitytoolkitRelyingpartyDeleteAccountRequest = Class;
+  TIdentitytoolkitRelyingpartyDownloadAccountRequest = Class;
+  TIdentitytoolkitRelyingpartyGetAccountInfoRequest = Class;
+  TIdentitytoolkitRelyingpartyGetPublicKeysResponse = Class;
+  TIdentitytoolkitRelyingpartyResetPasswordRequest = Class;
+  TIdentitytoolkitRelyingpartySetAccountInfoRequest = Class;
+  TIdentitytoolkitRelyingpartyUploadAccountRequest = Class;
+  TIdentitytoolkitRelyingpartyVerifyAssertionRequest = Class;
+  TIdentitytoolkitRelyingpartyVerifyPasswordRequest = Class;
+  TRelyingparty = Class;
+  TResetPasswordResponse = Class;
+  TSetAccountInfoResponse = Class;
+  TUploadAccountResponse = Class;
+  TUserInfo = Class;
+  TVerifyAssertionResponse = Class;
+  TVerifyPasswordResponse = Class;
   TCreateAuthUriResponseArray = Array of TCreateAuthUriResponse;
   TDeleteAccountResponseArray = Array of TDeleteAccountResponse;
   TDownloadAccountResponseArray = Array of TDownloadAccountResponse;
@@ -71,9 +71,9 @@ type
   TVerifyAssertionResponseArray = Array of TVerifyAssertionResponse;
   TVerifyPasswordResponseArray = Array of TVerifyPasswordResponse;
   //Anonymous types, using auto-generated names
-  TSetAccountInfoResponseTypeproviderUserInfoItem = class;
-  TUploadAccountResponseTypeerrorItem = class;
-  TUserInfoTypeproviderUserInfoItem = class;
+  TSetAccountInfoResponseTypeproviderUserInfoItem = Class;
+  TUploadAccountResponseTypeerrorItem = Class;
+  TUserInfoTypeproviderUserInfoItem = Class;
   TDownloadAccountResponseTypeusersArray = Array of TUserInfo;
   TGetAccountInfoResponseTypeusersArray = Array of TUserInfo;
   TIdentitytoolkitRelyingpartyUploadAccountRequestTypeusersArray = Array of TUserInfo;
@@ -142,6 +142,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setusers(AIndex : Integer; AValue : TDownloadAccountResponseTypeusersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -162,6 +166,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setusers(AIndex : Integer; AValue : TGetAccountInfoResponseTypeusersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -302,6 +310,10 @@ type
     Procedure Setemail(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetidToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetlocalId(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property email : TStringArray Index 0 Read Femail Write Setemail;
@@ -357,6 +369,7 @@ type
   Private
     FcaptchaChallenge : String;
     FcaptchaResponse : String;
+    FdisableUser : boolean;
     FdisplayName : String;
     Femail : String;
     FemailVerified : boolean;
@@ -366,10 +379,12 @@ type
     Fpassword : String;
     Fprovider : TStringArray;
     FupgradeToFederatedLogin : boolean;
+    FvalidSince : String;
   Protected
     //Property setters
     Procedure SetcaptchaChallenge(AIndex : Integer; AValue : String); virtual;
     Procedure SetcaptchaResponse(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisableUser(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
     Procedure Setemail(AIndex : Integer; AValue : String); virtual;
     Procedure SetemailVerified(AIndex : Integer; AValue : boolean); virtual;
@@ -379,19 +394,26 @@ type
     Procedure Setpassword(AIndex : Integer; AValue : String); virtual;
     Procedure Setprovider(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetupgradeToFederatedLogin(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetvalidSince(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property captchaChallenge : String Index 0 Read FcaptchaChallenge Write SetcaptchaChallenge;
     Property captchaResponse : String Index 8 Read FcaptchaResponse Write SetcaptchaResponse;
-    Property displayName : String Index 16 Read FdisplayName Write SetdisplayName;
-    Property email : String Index 24 Read Femail Write Setemail;
-    Property emailVerified : boolean Index 32 Read FemailVerified Write SetemailVerified;
-    Property idToken : String Index 40 Read FidToken Write SetidToken;
-    Property localId : String Index 48 Read FlocalId Write SetlocalId;
-    Property oobCode : String Index 56 Read FoobCode Write SetoobCode;
-    Property password : String Index 64 Read Fpassword Write Setpassword;
-    Property provider : TStringArray Index 72 Read Fprovider Write Setprovider;
-    Property upgradeToFederatedLogin : boolean Index 80 Read FupgradeToFederatedLogin Write SetupgradeToFederatedLogin;
+    Property disableUser : boolean Index 16 Read FdisableUser Write SetdisableUser;
+    Property displayName : String Index 24 Read FdisplayName Write SetdisplayName;
+    Property email : String Index 32 Read Femail Write Setemail;
+    Property emailVerified : boolean Index 40 Read FemailVerified Write SetemailVerified;
+    Property idToken : String Index 48 Read FidToken Write SetidToken;
+    Property localId : String Index 56 Read FlocalId Write SetlocalId;
+    Property oobCode : String Index 64 Read FoobCode Write SetoobCode;
+    Property password : String Index 72 Read Fpassword Write Setpassword;
+    Property provider : TStringArray Index 80 Read Fprovider Write Setprovider;
+    Property upgradeToFederatedLogin : boolean Index 88 Read FupgradeToFederatedLogin Write SetupgradeToFederatedLogin;
+    Property validSince : String Index 96 Read FvalidSince Write SetvalidSince;
   end;
   TIdentitytoolkitRelyingpartySetAccountInfoRequestClass = Class of TIdentitytoolkitRelyingpartySetAccountInfoRequest;
   
@@ -415,6 +437,10 @@ type
     Procedure SetsaltSeparator(AIndex : Integer; AValue : String); virtual;
     Procedure SetsignerKey(AIndex : Integer; AValue : String); virtual;
     Procedure Setusers(AIndex : Integer; AValue : TIdentitytoolkitRelyingpartyUploadAccountRequestTypeusersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property hashAlgorithm : String Index 0 Read FhashAlgorithm Write SethashAlgorithm;
@@ -575,6 +601,10 @@ type
     Procedure SetidToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetproviderUserInfo(AIndex : Integer; AValue : TSetAccountInfoResponseTypeproviderUserInfoArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property displayName : String Index 0 Read FdisplayName Write SetdisplayName;
@@ -616,6 +646,10 @@ type
     //Property setters
     Procedure Seterror(AIndex : Integer; AValue : TUploadAccountResponseTypeerrorArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property error : TUploadAccountResponseTypeerrorArray Index 0 Read Ferror Write Seterror;
@@ -654,6 +688,7 @@ type
   
   TUserInfo = Class(TGoogleBaseObject)
   Private
+    Fdisabled : boolean;
     FdisplayName : String;
     Femail : String;
     FemailVerified : boolean;
@@ -663,9 +698,11 @@ type
     FphotoUrl : String;
     FproviderUserInfo : TUserInfoTypeproviderUserInfoArray;
     Fsalt : String;
+    FvalidSince : String;
     Fversion : integer;
   Protected
     //Property setters
+    Procedure Setdisabled(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
     Procedure Setemail(AIndex : Integer; AValue : String); virtual;
     Procedure SetemailVerified(AIndex : Integer; AValue : boolean); virtual;
@@ -675,19 +712,26 @@ type
     Procedure SetphotoUrl(AIndex : Integer; AValue : String); virtual;
     Procedure SetproviderUserInfo(AIndex : Integer; AValue : TUserInfoTypeproviderUserInfoArray); virtual;
     Procedure Setsalt(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvalidSince(AIndex : Integer; AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property displayName : String Index 0 Read FdisplayName Write SetdisplayName;
-    Property email : String Index 8 Read Femail Write Setemail;
-    Property emailVerified : boolean Index 16 Read FemailVerified Write SetemailVerified;
-    Property localId : String Index 24 Read FlocalId Write SetlocalId;
-    Property passwordHash : String Index 32 Read FpasswordHash Write SetpasswordHash;
-    Property passwordUpdatedAt : double Index 40 Read FpasswordUpdatedAt Write SetpasswordUpdatedAt;
-    Property photoUrl : String Index 48 Read FphotoUrl Write SetphotoUrl;
-    Property providerUserInfo : TUserInfoTypeproviderUserInfoArray Index 56 Read FproviderUserInfo Write SetproviderUserInfo;
-    Property salt : String Index 64 Read Fsalt Write Setsalt;
-    Property version : integer Index 72 Read Fversion Write Setversion;
+    Property disabled : boolean Index 0 Read Fdisabled Write Setdisabled;
+    Property displayName : String Index 8 Read FdisplayName Write SetdisplayName;
+    Property email : String Index 16 Read Femail Write Setemail;
+    Property emailVerified : boolean Index 24 Read FemailVerified Write SetemailVerified;
+    Property localId : String Index 32 Read FlocalId Write SetlocalId;
+    Property passwordHash : String Index 40 Read FpasswordHash Write SetpasswordHash;
+    Property passwordUpdatedAt : double Index 48 Read FpasswordUpdatedAt Write SetpasswordUpdatedAt;
+    Property photoUrl : String Index 56 Read FphotoUrl Write SetphotoUrl;
+    Property providerUserInfo : TUserInfoTypeproviderUserInfoArray Index 64 Read FproviderUserInfo Write SetproviderUserInfo;
+    Property salt : String Index 72 Read Fsalt Write Setsalt;
+    Property validSince : String Index 80 Read FvalidSince Write SetvalidSince;
+    Property version : integer Index 88 Read Fversion Write Setversion;
   end;
   TUserInfoClass = Class of TUserInfo;
   
@@ -759,6 +803,10 @@ type
     Procedure SetproviderId(AIndex : Integer; AValue : String); virtual;
     Procedure SettimeZone(AIndex : Integer; AValue : String); virtual;
     Procedure SetverifiedProvider(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property action : String Index 0 Read Faction Write Setaction;
@@ -1009,6 +1057,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDownloadAccountResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'users' : SetLength(Fusers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1035,6 +1096,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGetAccountInfoResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'users' : SetLength(Fusers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1288,6 +1362,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TIdentitytoolkitRelyingpartyGetAccountInfoRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'email' : SetLength(Femail,ALength);
+  'localid' : SetLength(FlocalId,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1371,6 +1459,16 @@ Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetcaptchaResponse(A
 begin
   If (FcaptchaResponse=AValue) then exit;
   FcaptchaResponse:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetdisableUser(AIndex : Integer; AValue : boolean); 
+
+begin
+  If (FdisableUser=AValue) then exit;
+  FdisableUser:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1466,6 +1564,29 @@ end;
 
 
 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetvalidSince(AIndex : Integer; AValue : String); 
+
+begin
+  If (FvalidSince=AValue) then exit;
+  FvalidSince:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'provider' : SetLength(Fprovider,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
 
 
 { --------------------------------------------------------------------
@@ -1531,6 +1652,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'users' : SetLength(Fusers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1844,6 +1978,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSetAccountInfoResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'provideruserinfo' : SetLength(FproviderUserInfo,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1898,6 +2045,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUploadAccountResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'error' : SetLength(Ferror,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1951,6 +2111,16 @@ end;
 { --------------------------------------------------------------------
   TUserInfo
   --------------------------------------------------------------------}
+
+
+Procedure TUserInfo.Setdisabled(AIndex : Integer; AValue : boolean); 
+
+begin
+  If (Fdisabled=AValue) then exit;
+  Fdisabled:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 Procedure TUserInfo.SetdisplayName(AIndex : Integer; AValue : String); 
@@ -2043,6 +2213,16 @@ end;
 
 
 
+Procedure TUserInfo.SetvalidSince(AIndex : Integer; AValue : String); 
+
+begin
+  If (FvalidSince=AValue) then exit;
+  FvalidSince:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TUserInfo.Setversion(AIndex : Integer; AValue : integer); 
 
 begin
@@ -2051,6 +2231,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUserInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'provideruserinfo' : SetLength(FproviderUserInfo,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2359,6 +2552,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVerifyAssertionResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'verifiedprovider' : SetLength(FverifiedProvider,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2609,7 +2815,7 @@ end;
 Class Function TIdentitytoolkitAPI.APIRevision : String;
 
 begin
-  Result:='20150406';
+  Result:='20150513';
 end;
 
 Class Function TIdentitytoolkitAPI.APIID : String;
@@ -2663,7 +2869,7 @@ end;
 Class Function TIdentitytoolkitAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TIdentitytoolkitAPI.APIbasePath : string;
@@ -2675,7 +2881,7 @@ end;
 Class Function TIdentitytoolkitAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/identitytoolkit/v3/relyingparty/';
+  Result:='https://www.googleapis.com:443/identitytoolkit/v3/relyingparty/';
 end;
 
 Class Function TIdentitytoolkitAPI.APIProtocol : string;
@@ -2760,7 +2966,7 @@ Function TIdentitytoolkitAPI.CreateRelyingpartyResource(AOwner : TComponent) : T
 
 begin
   Result:=TRelyingpartyResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

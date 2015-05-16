@@ -13,7 +13,7 @@ unit googledrive;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:53
+//Generated on: 16-5-15 08:53:03
 {$MODE objfpc}
 {$H+}
 
@@ -24,30 +24,30 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAbout = class;
-  TApp = class;
-  TAppList = class;
-  TChange = class;
-  TChangeList = class;
-  TChannel = class;
-  TChildList = class;
-  TChildReference = class;
-  TComment = class;
-  TCommentList = class;
-  TCommentReply = class;
-  TCommentReplyList = class;
-  TFile = class;
-  TFileList = class;
-  TParentList = class;
-  TParentReference = class;
-  TPermission = class;
-  TPermissionId = class;
-  TPermissionList = class;
-  TProperty = class;
-  TPropertyList = class;
-  TRevision = class;
-  TRevisionList = class;
-  TUser = class;
+  TAbout = Class;
+  TApp = Class;
+  TAppList = Class;
+  TChange = Class;
+  TChangeList = Class;
+  TChannel = Class;
+  TChildList = Class;
+  TChildReference = Class;
+  TComment = Class;
+  TCommentList = Class;
+  TCommentReply = Class;
+  TCommentReplyList = Class;
+  TFile = Class;
+  TFileList = Class;
+  TParentList = Class;
+  TParentReference = Class;
+  TPermission = Class;
+  TPermissionId = Class;
+  TPermissionList = Class;
+  TProperty = Class;
+  TPropertyList = Class;
+  TRevision = Class;
+  TRevisionList = Class;
+  TUser = Class;
   TAboutArray = Array of TAbout;
   TAppArray = Array of TApp;
   TAppListArray = Array of TAppList;
@@ -73,26 +73,26 @@ type
   TRevisionListArray = Array of TRevisionList;
   TUserArray = Array of TUser;
   //Anonymous types, using auto-generated names
-  TAboutTypeadditionalRoleInfoItemTyperoleSetsItem = class;
-  TAboutTypeadditionalRoleInfoItem = class;
-  TAboutTypeexportFormatsItem = class;
-  TAboutTypefeaturesItem = class;
-  TAboutTypeimportFormatsItem = class;
-  TAboutTypemaxUploadSizesItem = class;
-  TAboutTypequotaBytesByServiceItem = class;
-  TAppTypeiconsItem = class;
-  TChannelTypeparams = class;
-  TCommentTypecontext = class;
-  TFileTypeexportLinks = class;
-  TFileTypeimageMediaMetadataTypelocation = class;
-  TFileTypeimageMediaMetadata = class;
-  TFileTypeindexableText = class;
-  TFileTypelabels = class;
-  TFileTypeopenWithLinks = class;
-  TFileTypethumbnail = class;
-  TFileTypevideoMediaMetadata = class;
-  TRevisionTypeexportLinks = class;
-  TUserTypepicture = class;
+  TAboutTypeadditionalRoleInfoItemTyperoleSetsItem = Class;
+  TAboutTypeadditionalRoleInfoItem = Class;
+  TAboutTypeexportFormatsItem = Class;
+  TAboutTypefeaturesItem = Class;
+  TAboutTypeimportFormatsItem = Class;
+  TAboutTypemaxUploadSizesItem = Class;
+  TAboutTypequotaBytesByServiceItem = Class;
+  TAppTypeiconsItem = Class;
+  TChannelTypeparams = Class;
+  TCommentTypecontext = Class;
+  TFileTypeexportLinks = Class;
+  TFileTypeimageMediaMetadataTypelocation = Class;
+  TFileTypeimageMediaMetadata = Class;
+  TFileTypeindexableText = Class;
+  TFileTypelabels = Class;
+  TFileTypeopenWithLinks = Class;
+  TFileTypethumbnail = Class;
+  TFileTypevideoMediaMetadata = Class;
+  TRevisionTypeexportLinks = Class;
+  TUserTypepicture = Class;
   TAboutTypeadditionalRoleInfoItemTyperoleSetsArray = Array of TAboutTypeadditionalRoleInfoItemTyperoleSetsItem;
   TAboutTypeadditionalRoleInfoArray = Array of TAboutTypeadditionalRoleInfoItem;
   TAboutTypeexportFormatsArray = Array of TAboutTypeexportFormatsItem;
@@ -129,6 +129,10 @@ type
     //Property setters
     Procedure SetadditionalRoles(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetprimaryRole(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property additionalRoles : TStringArray Index 0 Read FadditionalRoles Write SetadditionalRoles;
@@ -149,6 +153,10 @@ type
     //Property setters
     Procedure SetroleSets(AIndex : Integer; AValue : TAboutTypeadditionalRoleInfoItemTyperoleSetsArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property roleSets : TAboutTypeadditionalRoleInfoItemTyperoleSetsArray Index 0 Read FroleSets Write SetroleSets;
@@ -168,6 +176,10 @@ type
     //Property setters
     Procedure Setsource(AIndex : Integer; AValue : String); virtual;
     Procedure Settargets(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property source : String Index 0 Read Fsource Write Setsource;
@@ -206,6 +218,10 @@ type
     //Property setters
     Procedure Setsource(AIndex : Integer; AValue : String); virtual;
     Procedure Settargets(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property source : String Index 0 Read Fsource Write Setsource;
@@ -308,6 +324,10 @@ type
     Procedure SetrootFolderId(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setuser(AIndex : Integer; AValue : TUser); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property additionalRoleInfo : TAboutTypeadditionalRoleInfoArray Index 0 Read FadditionalRoleInfo Write SetadditionalRoleInfo;
@@ -415,6 +435,10 @@ type
     Procedure SetsupportsMultiOpen(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetsupportsOfflineCreate(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetuseByDefault(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property authorized : boolean Index 0 Read Fauthorized Write Setauthorized;
@@ -462,6 +486,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TAppListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property defaultAppIds : TStringArray Index 0 Read FdefaultAppIds Write SetdefaultAppIds;
@@ -529,6 +557,10 @@ type
     Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -619,6 +651,10 @@ type
     Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -713,6 +749,10 @@ type
     Procedure Setreplies(AIndex : Integer; AValue : TCommentTyperepliesArray); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property anchor : String Index 0 Read Fanchor Write Setanchor;
@@ -751,6 +791,10 @@ type
     Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TCommentListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -819,6 +863,10 @@ type
     Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TCommentReplyListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1150,6 +1198,10 @@ type
     Procedure SetwebContentLink(AIndex : Integer; AValue : String); virtual;
     Procedure SetwebViewLink(AIndex : Integer; AValue : String); virtual;
     Procedure SetwritersCanShare(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property alternateLink : String Index 0 Read FalternateLink Write SetalternateLink;
@@ -1226,6 +1278,10 @@ type
     Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1253,6 +1309,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TParentListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1327,6 +1387,10 @@ type
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
     Procedure SetwithLink(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property additionalRoles : TStringArray Index 0 Read FadditionalRoles Write SetadditionalRoles;
@@ -1381,6 +1445,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TPermissionListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1437,6 +1505,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TPropertyListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1544,6 +1616,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TRevisionListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -2191,6 +2267,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAboutTypeadditionalRoleInfoItemTyperoleSetsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'additionalroles' : SetLength(FadditionalRoles,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2229,6 +2318,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAboutTypeadditionalRoleInfoItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rolesets' : SetLength(FroleSets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2255,6 +2357,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAboutTypeexportFormatsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'targets' : SetLength(Ftargets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2309,6 +2424,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAboutTypeimportFormatsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'targets' : SetLength(Ftargets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2622,6 +2750,25 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAbout.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'additionalroleinfo' : SetLength(FadditionalRoleInfo,ALength);
+  'exportformats' : SetLength(FexportFormats,ALength);
+  'features' : SetLength(Ffeatures,ALength);
+  'foldercolorpalette' : SetLength(FfolderColorPalette,ALength);
+  'importformats' : SetLength(FimportFormats,ALength);
+  'maxuploadsizes' : SetLength(FmaxUploadSizes,ALength);
+  'quotabytesbyservice' : SetLength(FquotaBytesByService,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2906,6 +3053,23 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TApp.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'icons' : SetLength(Ficons,ALength);
+  'primaryfileextensions' : SetLength(FprimaryFileExtensions,ALength);
+  'primarymimetypes' : SetLength(FprimaryMimeTypes,ALength);
+  'secondaryfileextensions' : SetLength(FsecondaryFileExtensions,ALength);
+  'secondarymimetypes' : SetLength(FsecondaryMimeTypes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2962,6 +3126,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAppList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'defaultappids' : SetLength(FdefaultAppIds,ALength);
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3127,6 +3305,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TChangeList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3325,6 +3516,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TChildList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3568,6 +3772,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TComment.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'replies' : SetLength(Freplies,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3624,6 +3841,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCommentList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3778,6 +4008,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCommentReplyList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4714,6 +4957,23 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFile.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'ownernames' : SetLength(FownerNames,ALength);
+  'owners' : SetLength(Fowners,ALength);
+  'parents' : SetLength(Fparents,ALength);
+  'permissions' : SetLength(Fpermissions,ALength);
+  'properties' : SetLength(Fproperties,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4781,6 +5041,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFileList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4827,6 +5100,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TParentList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5043,6 +5329,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPermission.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'additionalroles' : SetLength(FadditionalRoles,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5116,6 +5415,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPermissionList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5230,6 +5542,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPropertyList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5488,6 +5813,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRevisionList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7114,7 +7452,7 @@ end;
 Class Function TDriveAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TDriveAPI.APIbasePath : string;
@@ -7126,7 +7464,7 @@ end;
 Class Function TDriveAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/drive/v2/';
+  Result:='https://www.googleapis.com:443/drive/v2/';
 end;
 
 Class Function TDriveAPI.APIProtocol : string;
@@ -7245,7 +7583,7 @@ Function TDriveAPI.CreateAboutResource(AOwner : TComponent) : TAboutResource;
 
 begin
   Result:=TAboutResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7269,7 +7607,7 @@ Function TDriveAPI.CreateAppsResource(AOwner : TComponent) : TAppsResource;
 
 begin
   Result:=TAppsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7293,7 +7631,7 @@ Function TDriveAPI.CreateChangesResource(AOwner : TComponent) : TChangesResource
 
 begin
   Result:=TChangesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7317,7 +7655,7 @@ Function TDriveAPI.CreateChannelsResource(AOwner : TComponent) : TChannelsResour
 
 begin
   Result:=TChannelsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7341,7 +7679,7 @@ Function TDriveAPI.CreateChildrenResource(AOwner : TComponent) : TChildrenResour
 
 begin
   Result:=TChildrenResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7365,7 +7703,7 @@ Function TDriveAPI.CreateCommentsResource(AOwner : TComponent) : TCommentsResour
 
 begin
   Result:=TCommentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7389,7 +7727,7 @@ Function TDriveAPI.CreateFilesResource(AOwner : TComponent) : TFilesResource;
 
 begin
   Result:=TFilesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7413,7 +7751,7 @@ Function TDriveAPI.CreateParentsResource(AOwner : TComponent) : TParentsResource
 
 begin
   Result:=TParentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7437,7 +7775,7 @@ Function TDriveAPI.CreatePermissionsResource(AOwner : TComponent) : TPermissions
 
 begin
   Result:=TPermissionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7461,7 +7799,7 @@ Function TDriveAPI.CreatePropertiesResource(AOwner : TComponent) : TPropertiesRe
 
 begin
   Result:=TPropertiesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7485,7 +7823,7 @@ Function TDriveAPI.CreateRealtimeResource(AOwner : TComponent) : TRealtimeResour
 
 begin
   Result:=TRealtimeResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7509,7 +7847,7 @@ Function TDriveAPI.CreateRepliesResource(AOwner : TComponent) : TRepliesResource
 
 begin
   Result:=TRepliesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7533,7 +7871,7 @@ Function TDriveAPI.CreateRevisionsResource(AOwner : TComponent) : TRevisionsReso
 
 begin
   Result:=TRevisionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

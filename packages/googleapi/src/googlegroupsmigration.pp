@@ -13,7 +13,7 @@ unit googlegroupsmigration;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:55
+//Generated on: 16-5-15 08:53:05
 {$MODE objfpc}
 {$H+}
 
@@ -24,7 +24,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TGroups = class;
+  TGroups = Class;
   TGroupsArray = Array of TGroups;
   //Anonymous types, using auto-generated names
   
@@ -233,7 +233,7 @@ end;
 Class Function TGroupsmigrationAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TGroupsmigrationAPI.APIbasePath : string;
@@ -245,7 +245,7 @@ end;
 Class Function TGroupsmigrationAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/groups/v1/groups/';
+  Result:='https://www.googleapis.com:443/groups/v1/groups/';
 end;
 
 Class Function TGroupsmigrationAPI.APIProtocol : string;
@@ -307,7 +307,7 @@ Function TGroupsmigrationAPI.CreateArchiveResource(AOwner : TComponent) : TArchi
 
 begin
   Result:=TArchiveResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

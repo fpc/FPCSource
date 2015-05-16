@@ -13,7 +13,7 @@ unit googlecoordinate;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:51
+//Generated on: 16-5-15 08:53:01
 {$MODE objfpc}
 {$H+}
 
@@ -24,24 +24,24 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TCustomField = class;
-  TCustomFieldDef = class;
-  TCustomFieldDefListResponse = class;
-  TCustomFields = class;
-  TEnumItemDef = class;
-  TJob = class;
-  TJobChange = class;
-  TJobListResponse = class;
-  TJobState = class;
-  TLocation = class;
-  TLocationListResponse = class;
-  TLocationRecord = class;
-  TSchedule = class;
-  TTeam = class;
-  TTeamListResponse = class;
-  TTokenPagination = class;
-  TWorker = class;
-  TWorkerListResponse = class;
+  TCustomField = Class;
+  TCustomFieldDef = Class;
+  TCustomFieldDefListResponse = Class;
+  TCustomFields = Class;
+  TEnumItemDef = Class;
+  TJob = Class;
+  TJobChange = Class;
+  TJobListResponse = Class;
+  TJobState = Class;
+  TLocation = Class;
+  TLocationListResponse = Class;
+  TLocationRecord = Class;
+  TSchedule = Class;
+  TTeam = Class;
+  TTeamListResponse = Class;
+  TTokenPagination = Class;
+  TWorker = Class;
+  TWorkerListResponse = Class;
   TCustomFieldArray = Array of TCustomField;
   TCustomFieldDefArray = Array of TCustomFieldDef;
   TCustomFieldDefListResponseArray = Array of TCustomFieldDefListResponse;
@@ -115,6 +115,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetrequiredForCheckout(AIndex : Integer; AValue : boolean); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property enabled : boolean Index 0 Read Fenabled Write Setenabled;
@@ -139,6 +143,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TCustomFieldDefListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TCustomFieldDefListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -158,6 +166,10 @@ type
     //Property setters
     Procedure SetcustomField(AIndex : Integer; AValue : TCustomFieldsTypecustomFieldArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property customField : TCustomFieldsTypecustomFieldArray Index 0 Read FcustomField Write SetcustomField;
@@ -203,6 +215,10 @@ type
     Procedure SetjobChange(AIndex : Integer; AValue : TJobTypejobChangeArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setstate(AIndex : Integer; AValue : TJobState); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -248,6 +264,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TJobListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TJobListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -282,6 +302,10 @@ type
     Procedure Setnote(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setprogress(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property assignee : String Index 0 Read Fassignee Write Setassignee;
@@ -312,6 +336,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setlat(AIndex : Integer; AValue : double); virtual;
     Procedure Setlng(AIndex : Integer; AValue : double); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property addressLine : TStringArray Index 0 Read FaddressLine Write SetaddressLine;
@@ -337,6 +365,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TLocationListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -436,6 +468,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTeamListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TTeamListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -496,6 +532,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TWorkerListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TWorkerListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -870,6 +910,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCustomFieldDef.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'enumitems' : SetLength(Fenumitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -897,6 +950,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCustomFieldDefListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -923,6 +989,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCustomFields.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'customfield' : SetLength(FcustomField,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1008,6 +1087,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJob.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'jobchange' : SetLength(FjobChange,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1081,6 +1173,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJobListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1179,6 +1284,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJobState.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'note' : SetLength(Fnote,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1226,6 +1344,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLocation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'addressline' : SetLength(FaddressLine,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1272,6 +1403,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLocationListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1451,6 +1595,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTeamListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1541,6 +1698,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWorkerListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2042,7 +2212,7 @@ end;
 Class Function TCoordinateAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TCoordinateAPI.APIbasePath : string;
@@ -2054,7 +2224,7 @@ end;
 Class Function TCoordinateAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/coordinate/v1/';
+  Result:='https://www.googleapis.com:443/coordinate/v1/';
 end;
 
 Class Function TCoordinateAPI.APIProtocol : string;
@@ -2135,7 +2305,7 @@ Function TCoordinateAPI.CreateCustomFieldDefResource(AOwner : TComponent) : TCus
 
 begin
   Result:=TCustomFieldDefResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2159,7 +2329,7 @@ Function TCoordinateAPI.CreateJobsResource(AOwner : TComponent) : TJobsResource;
 
 begin
   Result:=TJobsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2183,7 +2353,7 @@ Function TCoordinateAPI.CreateLocationResource(AOwner : TComponent) : TLocationR
 
 begin
   Result:=TLocationResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2207,7 +2377,7 @@ Function TCoordinateAPI.CreateScheduleResource(AOwner : TComponent) : TScheduleR
 
 begin
   Result:=TScheduleResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2231,7 +2401,7 @@ Function TCoordinateAPI.CreateTeamResource(AOwner : TComponent) : TTeamResource;
 
 begin
   Result:=TTeamResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2255,7 +2425,7 @@ Function TCoordinateAPI.CreateWorkerResource(AOwner : TComponent) : TWorkerResou
 
 begin
   Result:=TWorkerResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

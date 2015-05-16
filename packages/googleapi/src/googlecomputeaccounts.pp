@@ -13,7 +13,7 @@ unit googlecomputeaccounts;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:50
+//Generated on: 16-5-15 08:53:00
 {$MODE objfpc}
 {$H+}
 
@@ -24,21 +24,21 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAuthorizedKeysView = class;
-  TGroup = class;
-  TGroupList = class;
-  TGroupsAddMemberRequest = class;
-  TGroupsRemoveMemberRequest = class;
-  TLinuxAccountViews = class;
-  TLinuxGetAuthorizedKeysViewResponse = class;
-  TLinuxGetLinuxAccountViewsResponse = class;
-  TLinuxGroupView = class;
-  TLinuxUserView = class;
-  TOperation = class;
-  TOperationList = class;
-  TPublicKey = class;
-  TUser = class;
-  TUserList = class;
+  TAuthorizedKeysView = Class;
+  TGroup = Class;
+  TGroupList = Class;
+  TGroupsAddMemberRequest = Class;
+  TGroupsRemoveMemberRequest = Class;
+  TLinuxAccountViews = Class;
+  TLinuxGetAuthorizedKeysViewResponse = Class;
+  TLinuxGetLinuxAccountViewsResponse = Class;
+  TLinuxGroupView = Class;
+  TLinuxUserView = Class;
+  TOperation = Class;
+  TOperationList = Class;
+  TPublicKey = Class;
+  TUser = Class;
+  TUserList = Class;
   TAuthorizedKeysViewArray = Array of TAuthorizedKeysView;
   TGroupArray = Array of TGroup;
   TGroupListArray = Array of TGroupList;
@@ -55,10 +55,10 @@ type
   TUserArray = Array of TUser;
   TUserListArray = Array of TUserList;
   //Anonymous types, using auto-generated names
-  TOperationTypeerrorTypeerrorsItem = class;
-  TOperationTypeerror = class;
-  TOperationTypewarningsItemTypedataItem = class;
-  TOperationTypewarningsItem = class;
+  TOperationTypeerrorTypeerrorsItem = Class;
+  TOperationTypeerror = Class;
+  TOperationTypewarningsItemTypedataItem = Class;
+  TOperationTypewarningsItem = Class;
   TGroupListTypeitemsArray = Array of TGroup;
   TLinuxAccountViewsTypegroupViewsArray = Array of TLinuxGroupView;
   TLinuxAccountViewsTypeuserViewsArray = Array of TLinuxUserView;
@@ -79,6 +79,10 @@ type
   Protected
     //Property setters
     Procedure Setkeys(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property keys : TStringArray Index 0 Read Fkeys Write Setkeys;
@@ -107,6 +111,10 @@ type
     Procedure Setmembers(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -137,6 +145,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -157,6 +169,10 @@ type
   Protected
     //Property setters
     Procedure Setusers(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property users : TStringArray Index 0 Read Fusers Write Setusers;
@@ -173,6 +189,10 @@ type
   Protected
     //Property setters
     Procedure Setusers(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property users : TStringArray Index 0 Read Fusers Write Setusers;
@@ -193,6 +213,10 @@ type
     Procedure SetgroupViews(AIndex : Integer; AValue : TLinuxAccountViewsTypegroupViewsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetuserViews(AIndex : Integer; AValue : TLinuxAccountViewsTypeuserViewsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property groupViews : TLinuxAccountViewsTypegroupViewsArray Index 0 Read FgroupViews Write SetgroupViews;
@@ -247,6 +271,10 @@ type
     Procedure Setgid(AIndex : Integer; AValue : integer); virtual;
     Procedure SetgroupName(AIndex : Integer; AValue : String); virtual;
     Procedure Setmembers(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property gid : integer Index 0 Read Fgid Write Setgid;
@@ -318,6 +346,10 @@ type
   Protected
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
@@ -357,6 +389,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -417,6 +453,10 @@ type
     Procedure Setuser(AIndex : Integer; AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
     Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
@@ -462,6 +502,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -526,6 +570,10 @@ type
     Procedure Setowner(AIndex : Integer; AValue : String); virtual;
     Procedure SetpublicKeys(AIndex : Integer; AValue : TUserTypepublicKeysArray); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -558,6 +606,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -756,6 +808,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAuthorizedKeysView.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'keys' : SetLength(Fkeys,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -833,6 +898,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGroup.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'members' : SetLength(Fmembers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -890,6 +968,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGroupList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -907,6 +998,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGroupsAddMemberRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'users' : SetLength(Fusers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -923,6 +1027,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGroupsRemoveMemberRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'users' : SetLength(Fusers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -960,6 +1077,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLinuxAccountViews.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'groupviews' : SetLength(FgroupViews,ALength);
+  'userviews' : SetLength(FuserViews,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1031,6 +1162,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLinuxGroupView.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'members' : SetLength(Fmembers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1153,6 +1297,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1216,6 +1373,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1444,6 +1614,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1500,6 +1683,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1655,6 +1851,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUser.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'groups' : SetLength(Fgroups,ALength);
+  'publickeys' : SetLength(FpublicKeys,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1711,6 +1921,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUserList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2201,7 +2424,7 @@ end;
 Class Function TComputeaccountsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TComputeaccountsAPI.APIbasePath : string;
@@ -2213,7 +2436,7 @@ end;
 Class Function TComputeaccountsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/computeaccounts/alpha/projects/';
+  Result:='https://www.googleapis.com:443/computeaccounts/alpha/projects/';
 end;
 
 Class Function TComputeaccountsAPI.APIProtocol : string;
@@ -2297,7 +2520,7 @@ Function TComputeaccountsAPI.CreateGlobalAccountsOperationsResource(AOwner : TCo
 
 begin
   Result:=TGlobalAccountsOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2321,7 +2544,7 @@ Function TComputeaccountsAPI.CreateGroupsResource(AOwner : TComponent) : TGroups
 
 begin
   Result:=TGroupsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2345,7 +2568,7 @@ Function TComputeaccountsAPI.CreateLinuxResource(AOwner : TComponent) : TLinuxRe
 
 begin
   Result:=TLinuxResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2369,7 +2592,7 @@ Function TComputeaccountsAPI.CreateUsersResource(AOwner : TComponent) : TUsersRe
 
 begin
   Result:=TUsersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

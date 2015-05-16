@@ -13,7 +13,7 @@ unit googlegamesManagement;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:54
+//Generated on: 16-5-15 08:53:04
 {$MODE objfpc}
 {$H+}
 
@@ -24,20 +24,20 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAchievementResetAllResponse = class;
-  TAchievementResetMultipleForAllRequest = class;
-  TAchievementResetResponse = class;
-  TEventsResetMultipleForAllRequest = class;
-  TGamesPlayedResource = class;
-  TGamesPlayerExperienceInfoResource = class;
-  TGamesPlayerLevelResource = class;
-  THiddenPlayer = class;
-  THiddenPlayerList = class;
-  TPlayer = class;
-  TPlayerScoreResetAllResponse = class;
-  TPlayerScoreResetResponse = class;
-  TQuestsResetMultipleForAllRequest = class;
-  TScoresResetMultipleForAllRequest = class;
+  TAchievementResetAllResponse = Class;
+  TAchievementResetMultipleForAllRequest = Class;
+  TAchievementResetResponse = Class;
+  TEventsResetMultipleForAllRequest = Class;
+  TGamesPlayedResource = Class;
+  TGamesPlayerExperienceInfoResource = Class;
+  TGamesPlayerLevelResource = Class;
+  THiddenPlayer = Class;
+  THiddenPlayerList = Class;
+  TPlayer = Class;
+  TPlayerScoreResetAllResponse = Class;
+  TPlayerScoreResetResponse = Class;
+  TQuestsResetMultipleForAllRequest = Class;
+  TScoresResetMultipleForAllRequest = Class;
   TAchievementResetAllResponseArray = Array of TAchievementResetAllResponse;
   TAchievementResetMultipleForAllRequestArray = Array of TAchievementResetMultipleForAllRequest;
   TAchievementResetResponseArray = Array of TAchievementResetResponse;
@@ -53,7 +53,7 @@ type
   TQuestsResetMultipleForAllRequestArray = Array of TQuestsResetMultipleForAllRequest;
   TScoresResetMultipleForAllRequestArray = Array of TScoresResetMultipleForAllRequest;
   //Anonymous types, using auto-generated names
-  TPlayerTypename = class;
+  TPlayerTypename = Class;
   TAchievementResetAllResponseTyperesultsArray = Array of TAchievementResetResponse;
   THiddenPlayerListTypeitemsArray = Array of THiddenPlayer;
   TPlayerScoreResetAllResponseTyperesultsArray = Array of TPlayerScoreResetResponse;
@@ -70,6 +70,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setresults(AIndex : Integer; AValue : TAchievementResetAllResponseTyperesultsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -89,6 +93,10 @@ type
     //Property setters
     Procedure Setachievement_ids(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property achievement_ids : TStringArray Index 0 Read Fachievement_ids Write Setachievement_ids;
@@ -133,6 +141,10 @@ type
     //Property setters
     Procedure Setevent_ids(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property event_ids : TStringArray Index 0 Read Fevent_ids Write Setevent_ids;
@@ -242,6 +254,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : THiddenPlayerListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : THiddenPlayerListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -318,6 +334,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setresults(AIndex : Integer; AValue : TPlayerScoreResetAllResponseTyperesultsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -339,6 +359,10 @@ type
     Procedure SetdefinitionId(AIndex : Integer; AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetresetScoreTimeSpans(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property definitionId : String Index 0 Read FdefinitionId Write SetdefinitionId;
@@ -359,6 +383,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setquest_ids(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -378,6 +406,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setleaderboard_ids(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -608,6 +640,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAchievementResetAllResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'results' : SetLength(Fresults,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -634,6 +679,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAchievementResetMultipleForAllRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'achievement_ids' : SetLength(Fachievement_ids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -708,6 +766,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEventsResetMultipleForAllRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'event_ids' : SetLength(Fevent_ids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -894,6 +965,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure THiddenPlayerList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1035,6 +1119,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPlayerScoreResetAllResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'results' : SetLength(Fresults,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1072,6 +1169,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPlayerScoreResetResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resetscoretimespans' : SetLength(FresetScoreTimeSpans,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1099,6 +1209,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TQuestsResetMultipleForAllRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'quest_ids' : SetLength(Fquest_ids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1125,6 +1248,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TScoresResetMultipleForAllRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'leaderboard_ids' : SetLength(Fleaderboard_ids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1654,7 +1790,7 @@ end;
 Class Function TGamesManagementAPI.APIRevision : String;
 
 begin
-  Result:='20150421';
+  Result:='20150511';
 end;
 
 Class Function TGamesManagementAPI.APIID : String;
@@ -1708,7 +1844,7 @@ end;
 Class Function TGamesManagementAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TGamesManagementAPI.APIbasePath : string;
@@ -1720,7 +1856,7 @@ end;
 Class Function TGamesManagementAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/games/v1management/';
+  Result:='https://www.googleapis.com:443/games/v1management/';
 end;
 
 Class Function TGamesManagementAPI.APIProtocol : string;
@@ -1798,7 +1934,7 @@ Function TGamesManagementAPI.CreateAchievementsResource(AOwner : TComponent) : T
 
 begin
   Result:=TAchievementsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1822,7 +1958,7 @@ Function TGamesManagementAPI.CreateApplicationsResource(AOwner : TComponent) : T
 
 begin
   Result:=TApplicationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1846,7 +1982,7 @@ Function TGamesManagementAPI.CreateEventsResource(AOwner : TComponent) : TEvents
 
 begin
   Result:=TEventsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1870,7 +2006,7 @@ Function TGamesManagementAPI.CreatePlayersResource(AOwner : TComponent) : TPlaye
 
 begin
   Result:=TPlayersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1894,7 +2030,7 @@ Function TGamesManagementAPI.CreateQuestsResource(AOwner : TComponent) : TQuests
 
 begin
   Result:=TQuestsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1918,7 +2054,7 @@ Function TGamesManagementAPI.CreateRoomsResource(AOwner : TComponent) : TRoomsRe
 
 begin
   Result:=TRoomsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1942,7 +2078,7 @@ Function TGamesManagementAPI.CreateScoresResource(AOwner : TComponent) : TScores
 
 begin
   Result:=TScoresResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1966,7 +2102,7 @@ Function TGamesManagementAPI.CreateTurnBasedMatchesResource(AOwner : TComponent)
 
 begin
   Result:=TTurnBasedMatchesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

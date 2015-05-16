@@ -13,7 +13,7 @@ unit googleurlshortener;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:59
+//Generated on: 16-5-15 08:53:09
 {$MODE objfpc}
 {$H+}
 
@@ -24,11 +24,11 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAnalyticsSnapshot = class;
-  TAnalyticsSummary = class;
-  TStringCount = class;
-  TUrl = class;
-  TUrlHistory = class;
+  TAnalyticsSnapshot = Class;
+  TAnalyticsSummary = Class;
+  TStringCount = Class;
+  TUrl = Class;
+  TUrlHistory = Class;
   TAnalyticsSnapshotArray = Array of TAnalyticsSnapshot;
   TAnalyticsSummaryArray = Array of TAnalyticsSummary;
   TStringCountArray = Array of TStringCount;
@@ -61,6 +61,10 @@ type
     Procedure Setplatforms(AIndex : Integer; AValue : TAnalyticsSnapshotTypeplatformsArray); virtual;
     Procedure Setreferrers(AIndex : Integer; AValue : TAnalyticsSnapshotTypereferrersArray); virtual;
     Procedure SetshortUrlClicks(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property browsers : TAnalyticsSnapshotTypebrowsersArray Index 0 Read Fbrowsers Write Setbrowsers;
@@ -168,6 +172,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TUrlHistoryTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -313,6 +321,22 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAnalyticsSnapshot.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'browsers' : SetLength(Fbrowsers,ALength);
+  'countries' : SetLength(Fcountries,ALength);
+  'platforms' : SetLength(Fplatforms,ALength);
+  'referrers' : SetLength(Freferrers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -522,6 +546,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUrlHistory.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -676,7 +713,7 @@ end;
 Class Function TUrlshortenerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TUrlshortenerAPI.APIbasePath : string;
@@ -688,7 +725,7 @@ end;
 Class Function TUrlshortenerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/urlshortener/v1/';
+  Result:='https://www.googleapis.com:443/urlshortener/v1/';
 end;
 
 Class Function TUrlshortenerAPI.APIProtocol : string;
@@ -754,7 +791,7 @@ Function TUrlshortenerAPI.CreateUrlResource(AOwner : TComponent) : TUrlResource;
 
 begin
   Result:=TUrlResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

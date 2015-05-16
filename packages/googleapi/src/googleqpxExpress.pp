@@ -13,7 +13,7 @@ unit googleqpxExpress;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:57
+//Generated on: 16-5-15 08:53:07
 {$MODE objfpc}
 {$H+}
 
@@ -24,30 +24,30 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAircraftData = class;
-  TAirportData = class;
-  TBagDescriptor = class;
-  TCarrierData = class;
-  TCityData = class;
-  TData = class;
-  TFareInfo = class;
-  TFlightInfo = class;
-  TFreeBaggageAllowance = class;
-  TLegInfo = class;
-  TPassengerCounts = class;
-  TPricingInfo = class;
-  TSegmentInfo = class;
-  TSegmentPricing = class;
-  TSliceInfo = class;
-  TSliceInput = class;
-  TTaxData = class;
-  TTaxInfo = class;
-  TTimeOfDayRange = class;
-  TTripOption = class;
-  TTripOptionsRequest = class;
-  TTripOptionsResponse = class;
-  TTripsSearchRequest = class;
-  TTripsSearchResponse = class;
+  TAircraftData = Class;
+  TAirportData = Class;
+  TBagDescriptor = Class;
+  TCarrierData = Class;
+  TCityData = Class;
+  TData = Class;
+  TFareInfo = Class;
+  TFlightInfo = Class;
+  TFreeBaggageAllowance = Class;
+  TLegInfo = Class;
+  TPassengerCounts = Class;
+  TPricingInfo = Class;
+  TSegmentInfo = Class;
+  TSegmentPricing = Class;
+  TSliceInfo = Class;
+  TSliceInput = Class;
+  TTaxData = Class;
+  TTaxInfo = Class;
+  TTimeOfDayRange = Class;
+  TTripOption = Class;
+  TTripOptionsRequest = Class;
+  TTripOptionsResponse = Class;
+  TTripsSearchRequest = Class;
+  TTripsSearchResponse = Class;
   TAircraftDataArray = Array of TAircraftData;
   TAirportDataArray = Array of TAirportData;
   TBagDescriptorArray = Array of TBagDescriptor;
@@ -155,6 +155,10 @@ type
     Procedure Setdescription(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsubcode(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property commercialName : String Index 0 Read FcommercialName Write SetcommercialName;
@@ -232,6 +236,10 @@ type
     Procedure Setcity(AIndex : Integer; AValue : TDataTypecityArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Settax(AIndex : Integer; AValue : TDataTypetaxArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property aircraft : TDataTypeaircraftArray Index 0 Read Faircraft Write Setaircraft;
@@ -317,6 +325,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setpieces(AIndex : Integer; AValue : integer); virtual;
     Procedure Setpounds(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bagDescriptor : TFreeBaggageAllowanceTypebagDescriptorArray Index 0 Read FbagDescriptor Write SetbagDescriptor;
@@ -457,6 +469,10 @@ type
     Procedure SetsaleTotal(AIndex : Integer; AValue : String); virtual;
     Procedure SetsegmentPricing(AIndex : Integer; AValue : TPricingInfoTypesegmentPricingArray); virtual;
     Procedure Settax(AIndex : Integer; AValue : TPricingInfoTypetaxArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property baseFareTotal : String Index 0 Read FbaseFareTotal Write SetbaseFareTotal;
@@ -505,6 +521,10 @@ type
     Procedure Setleg(AIndex : Integer; AValue : TSegmentInfoTypelegArray); virtual;
     Procedure SetmarriedSegmentGroup(AIndex : Integer; AValue : String); virtual;
     Procedure SetsubjectToGovernmentApproval(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bookingCode : String Index 0 Read FbookingCode Write SetbookingCode;
@@ -537,6 +557,10 @@ type
     Procedure SetfreeBaggageOption(AIndex : Integer; AValue : TSegmentPricingTypefreeBaggageOptionArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetsegmentId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property fareId : String Index 0 Read FfareId Write SetfareId;
@@ -560,6 +584,10 @@ type
     Procedure Setduration(AIndex : Integer; AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setsegment(AIndex : Integer; AValue : TSliceInfoTypesegmentArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property duration : integer Index 0 Read Fduration Write Setduration;
@@ -598,6 +626,10 @@ type
     Procedure SetpermittedDepartureTime(AIndex : Integer; AValue : TTimeOfDayRange); virtual;
     Procedure SetpreferredCabin(AIndex : Integer; AValue : String); virtual;
     Procedure SetprohibitedCarrier(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property alliance : String Index 0 Read Falliance Write Setalliance;
@@ -707,6 +739,10 @@ type
     Procedure Setpricing(AIndex : Integer; AValue : TTripOptionTypepricingArray); virtual;
     Procedure SetsaleTotal(AIndex : Integer; AValue : String); virtual;
     Procedure Setslice(AIndex : Integer; AValue : TTripOptionTypesliceArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -737,6 +773,10 @@ type
     Procedure SetsaleCountry(AIndex : Integer; AValue : String); virtual;
     Procedure Setslice(AIndex : Integer; AValue : TTripOptionsRequestTypesliceArray); virtual;
     Procedure Setsolutions(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property maxPrice : String Index 0 Read FmaxPrice Write SetmaxPrice;
@@ -764,6 +804,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetrequestId(AIndex : Integer; AValue : String); virtual;
     Procedure SettripOption(AIndex : Integer; AValue : TTripOptionsResponseTypetripOptionArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property data : TData Index 0 Read Fdata Write Setdata;
@@ -998,6 +1042,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBagDescriptor.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'description' : SetLength(Fdescription,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1148,6 +1205,23 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TData.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'aircraft' : SetLength(Faircraft,ALength);
+  'airport' : SetLength(Fairport,ALength);
+  'carrier' : SetLength(Fcarrier,ALength);
+  'city' : SetLength(Fcity,ALength);
+  'tax' : SetLength(Ftax,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1330,6 +1404,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFreeBaggageAllowance.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bagdescriptor' : SetLength(FbagDescriptor,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1712,6 +1799,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPricingInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'fare' : SetLength(Ffare,ALength);
+  'segmentpricing' : SetLength(FsegmentPricing,ALength);
+  'tax' : SetLength(Ftax,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1829,6 +1931,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSegmentInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'leg' : SetLength(Fleg,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1876,6 +1991,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSegmentPricing.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'freebaggageoption' : SetLength(FfreeBaggageOption,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1912,6 +2040,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSliceInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'segment' : SetLength(Fsegment,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2029,6 +2170,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSliceInput.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'permittedcarrier' : SetLength(FpermittedCarrier,ALength);
+  'prohibitedcarrier' : SetLength(FprohibitedCarrier,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2228,6 +2383,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTripOption.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'pricing' : SetLength(Fpricing,ALength);
+  'slice' : SetLength(Fslice,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2295,6 +2464,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTripOptionsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'slice' : SetLength(Fslice,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2341,6 +2523,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTripOptionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'tripoption' : SetLength(FtripOption,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2492,7 +2687,7 @@ end;
 Class Function TQpxExpressAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TQpxExpressAPI.APIbasePath : string;
@@ -2504,7 +2699,7 @@ end;
 Class Function TQpxExpressAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/qpxExpress/v1/trips/';
+  Result:='https://www.googleapis.com:443/qpxExpress/v1/trips/';
 end;
 
 Class Function TQpxExpressAPI.APIProtocol : string;
@@ -2587,7 +2782,7 @@ Function TQpxExpressAPI.CreateTripsResource(AOwner : TComponent) : TTripsResourc
 
 begin
   Result:=TTripsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

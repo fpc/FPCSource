@@ -13,7 +13,7 @@ unit googlepubsub;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:57
+//Generated on: 16-5-15 08:53:07
 {$MODE objfpc}
 {$H+}
 
@@ -24,22 +24,22 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAcknowledgeRequest = class;
-  TEmpty = class;
-  TListSubscriptionsResponse = class;
-  TListTopicSubscriptionsResponse = class;
-  TListTopicsResponse = class;
-  TModifyAckDeadlineRequest = class;
-  TModifyPushConfigRequest = class;
-  TPublishRequest = class;
-  TPublishResponse = class;
-  TPubsubMessage = class;
-  TPullRequest = class;
-  TPullResponse = class;
-  TPushConfig = class;
-  TReceivedMessage = class;
-  TSubscription = class;
-  TTopic = class;
+  TAcknowledgeRequest = Class;
+  TEmpty = Class;
+  TListSubscriptionsResponse = Class;
+  TListTopicSubscriptionsResponse = Class;
+  TListTopicsResponse = Class;
+  TModifyAckDeadlineRequest = Class;
+  TModifyPushConfigRequest = Class;
+  TPublishRequest = Class;
+  TPublishResponse = Class;
+  TPubsubMessage = Class;
+  TPullRequest = Class;
+  TPullResponse = Class;
+  TPushConfig = Class;
+  TReceivedMessage = Class;
+  TSubscription = Class;
+  TTopic = Class;
   TAcknowledgeRequestArray = Array of TAcknowledgeRequest;
   TEmptyArray = Array of TEmpty;
   TListSubscriptionsResponseArray = Array of TListSubscriptionsResponse;
@@ -57,8 +57,8 @@ type
   TSubscriptionArray = Array of TSubscription;
   TTopicArray = Array of TTopic;
   //Anonymous types, using auto-generated names
-  TPubsubMessageTypeattributes = class;
-  TPushConfigTypeattributes = class;
+  TPubsubMessageTypeattributes = Class;
+  TPushConfigTypeattributes = Class;
   TListSubscriptionsResponseTypesubscriptionsArray = Array of TSubscription;
   TListTopicsResponseTypetopicsArray = Array of TTopic;
   TPublishRequestTypemessagesArray = Array of TPubsubMessage;
@@ -74,6 +74,10 @@ type
   Protected
     //Property setters
     Procedure SetackIds(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property ackIds : TStringArray Index 0 Read FackIds Write SetackIds;
@@ -105,6 +109,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setsubscriptions(AIndex : Integer; AValue : TListSubscriptionsResponseTypesubscriptionsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -124,6 +132,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setsubscriptions(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -143,6 +155,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Settopics(AIndex : Integer; AValue : TListTopicsResponseTypetopicsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -195,6 +211,10 @@ type
   Protected
     //Property setters
     Procedure Setmessages(AIndex : Integer; AValue : TPublishRequestTypemessagesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property messages : TPublishRequestTypemessagesArray Index 0 Read Fmessages Write Setmessages;
@@ -211,6 +231,10 @@ type
   Protected
     //Property setters
     Procedure SetmessageIds(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property messageIds : TStringArray Index 0 Read FmessageIds Write SetmessageIds;
@@ -282,6 +306,10 @@ type
   Protected
     //Property setters
     Procedure SetreceivedMessages(AIndex : Integer; AValue : TPullResponseTypereceivedMessagesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property receivedMessages : TPullResponseTypereceivedMessagesArray Index 0 Read FreceivedMessages Write SetreceivedMessages;
@@ -382,13 +410,109 @@ type
   TTopicClass = Class of TTopic;
   
   { --------------------------------------------------------------------
+    TProjectsSubscriptionsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TProjectsSubscriptionsResource, method List
+  
+  TProjectsSubscriptionsListOptions = Record
+    pageSize : integer;
+    pageToken : String;
+  end;
+  
+  TProjectsSubscriptionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Acknowledge(subscription: string; aAcknowledgeRequest : TAcknowledgeRequest) : TEmpty;
+    Function Create(_name: string; aSubscription : TSubscription) : TSubscription;overload;
+    Function Delete(subscription: string) : TEmpty;
+    Function Get(subscription: string) : TSubscription;
+    Function List(project: string; AQuery : string  = '') : TListSubscriptionsResponse;
+    Function List(project: string; AQuery : TProjectsSubscriptionslistOptions) : TListSubscriptionsResponse;
+    Function ModifyAckDeadline(subscription: string; aModifyAckDeadlineRequest : TModifyAckDeadlineRequest) : TEmpty;
+    Function ModifyPushConfig(subscription: string; aModifyPushConfigRequest : TModifyPushConfigRequest) : TEmpty;
+    Function Pull(subscription: string; aPullRequest : TPullRequest) : TPullResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsTopicsSubscriptionsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TProjectsTopicsSubscriptionsResource, method List
+  
+  TProjectsTopicsSubscriptionsListOptions = Record
+    pageSize : integer;
+    pageToken : String;
+  end;
+  
+  TProjectsTopicsSubscriptionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(topic: string; AQuery : string  = '') : TListTopicSubscriptionsResponse;
+    Function List(topic: string; AQuery : TProjectsTopicsSubscriptionslistOptions) : TListTopicSubscriptionsResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsTopicsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TProjectsTopicsResource, method List
+  
+  TProjectsTopicsListOptions = Record
+    pageSize : integer;
+    pageToken : String;
+  end;
+  
+  TProjectsTopicsResource = Class(TGoogleResource)
+  Private
+    FSubscriptionsInstance : TProjectsTopicsSubscriptionsResource;
+    Function GetSubscriptionsInstance : TProjectsTopicsSubscriptionsResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(_name: string; aTopic : TTopic) : TTopic;overload;
+    Function Delete(topic: string) : TEmpty;
+    Function Get(topic: string) : TTopic;
+    Function List(project: string; AQuery : string  = '') : TListTopicsResponse;
+    Function List(project: string; AQuery : TProjectsTopicslistOptions) : TListTopicsResponse;
+    Function Publish(topic: string; aPublishRequest : TPublishRequest) : TPublishResponse;
+    Function CreateSubscriptionsResource(AOwner : TComponent) : TProjectsTopicsSubscriptionsResource;virtual;overload;
+    Function CreateSubscriptionsResource : TProjectsTopicsSubscriptionsResource;virtual;overload;
+    Property SubscriptionsResource : TProjectsTopicsSubscriptionsResource Read GetSubscriptionsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
   
   TProjectsResource = Class(TGoogleResource)
+  Private
+    FSubscriptionsInstance : TProjectsSubscriptionsResource;
+    FTopicsSubscriptionsInstance : TProjectsTopicsSubscriptionsResource;
+    FTopicsInstance : TProjectsTopicsResource;
+    Function GetSubscriptionsInstance : TProjectsSubscriptionsResource;virtual;
+    Function GetTopicsSubscriptionsInstance : TProjectsTopicsSubscriptionsResource;virtual;
+    Function GetTopicsInstance : TProjectsTopicsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateSubscriptionsResource(AOwner : TComponent) : TProjectsSubscriptionsResource;virtual;overload;
+    Function CreateSubscriptionsResource : TProjectsSubscriptionsResource;virtual;overload;
+    Function CreateTopicsSubscriptionsResource(AOwner : TComponent) : TProjectsTopicsSubscriptionsResource;virtual;overload;
+    Function CreateTopicsSubscriptionsResource : TProjectsTopicsSubscriptionsResource;virtual;overload;
+    Function CreateTopicsResource(AOwner : TComponent) : TProjectsTopicsResource;virtual;overload;
+    Function CreateTopicsResource : TProjectsTopicsResource;virtual;overload;
+    Property SubscriptionsResource : TProjectsSubscriptionsResource Read GetSubscriptionsInstance;
+    Property TopicsSubscriptionsResource : TProjectsTopicsSubscriptionsResource Read GetTopicsSubscriptionsInstance;
+    Property TopicsResource : TProjectsTopicsResource Read GetTopicsInstance;
   end;
   
   
@@ -398,7 +522,13 @@ type
   
   TPubsubAPI = Class(TGoogleAPI)
   Private
+    FProjectsSubscriptionsInstance : TProjectsSubscriptionsResource;
+    FProjectsTopicsSubscriptionsInstance : TProjectsTopicsSubscriptionsResource;
+    FProjectsTopicsInstance : TProjectsTopicsResource;
     FProjectsInstance : TProjectsResource;
+    Function GetProjectsSubscriptionsInstance : TProjectsSubscriptionsResource;virtual;
+    Function GetProjectsTopicsSubscriptionsInstance : TProjectsTopicsSubscriptionsResource;virtual;
+    Function GetProjectsTopicsInstance : TProjectsTopicsResource;virtual;
     Function GetProjectsInstance : TProjectsResource;virtual;
   Public
     //Override class functions with API info
@@ -423,9 +553,18 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateProjectsSubscriptionsResource(AOwner : TComponent) : TProjectsSubscriptionsResource;virtual;overload;
+    Function CreateProjectsSubscriptionsResource : TProjectsSubscriptionsResource;virtual;overload;
+    Function CreateProjectsTopicsSubscriptionsResource(AOwner : TComponent) : TProjectsTopicsSubscriptionsResource;virtual;overload;
+    Function CreateProjectsTopicsSubscriptionsResource : TProjectsTopicsSubscriptionsResource;virtual;overload;
+    Function CreateProjectsTopicsResource(AOwner : TComponent) : TProjectsTopicsResource;virtual;overload;
+    Function CreateProjectsTopicsResource : TProjectsTopicsResource;virtual;overload;
     Function CreateProjectsResource(AOwner : TComponent) : TProjectsResource;virtual;overload;
     Function CreateProjectsResource : TProjectsResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property ProjectsSubscriptionsResource : TProjectsSubscriptionsResource Read GetProjectsSubscriptionsInstance;
+    Property ProjectsTopicsSubscriptionsResource : TProjectsTopicsSubscriptionsResource Read GetProjectsTopicsSubscriptionsInstance;
+    Property ProjectsTopicsResource : TProjectsTopicsResource Read GetProjectsTopicsInstance;
     Property ProjectsResource : TProjectsResource Read GetProjectsInstance;
   end;
 
@@ -445,6 +584,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAcknowledgeRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'ackids' : SetLength(FackIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -480,6 +632,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListSubscriptionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'subscriptions' : SetLength(Fsubscriptions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -507,6 +672,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListTopicSubscriptionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'subscriptions' : SetLength(Fsubscriptions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -533,6 +711,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListTopicsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'topics' : SetLength(Ftopics,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -595,6 +786,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPublishRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'messages' : SetLength(Fmessages,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -611,6 +815,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPublishResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'messageids' : SetLength(FmessageIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -705,6 +922,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPullResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'receivedmessages' : SetLength(FreceivedMessages,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -841,6 +1071,336 @@ end;
 
 
 { --------------------------------------------------------------------
+  TProjectsSubscriptionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsSubscriptionsResource.ResourceName : String;
+
+begin
+  Result:='subscriptions';
+end;
+
+Class Function TProjectsSubscriptionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TpubsubAPI;
+end;
+
+Function TProjectsSubscriptionsResource.Acknowledge(subscription: string; aAcknowledgeRequest : TAcknowledgeRequest) : TEmpty;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{+subscription}:acknowledge';
+  _Methodid   = 'pubsub.projects.subscriptions.acknowledge';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['subscription',subscription]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aAcknowledgeRequest,TEmpty) as TEmpty;
+end;
+
+Function TProjectsSubscriptionsResource.Create(_name: string; aSubscription : TSubscription) : TSubscription;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{+name}';
+  _Methodid   = 'pubsub.projects.subscriptions.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['name',_name]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aSubscription,TSubscription) as TSubscription;
+end;
+
+Function TProjectsSubscriptionsResource.Delete(subscription: string) : TEmpty;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{+subscription}';
+  _Methodid   = 'pubsub.projects.subscriptions.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['subscription',subscription]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TEmpty) as TEmpty;
+end;
+
+Function TProjectsSubscriptionsResource.Get(subscription: string) : TSubscription;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{+subscription}';
+  _Methodid   = 'pubsub.projects.subscriptions.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['subscription',subscription]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TSubscription) as TSubscription;
+end;
+
+Function TProjectsSubscriptionsResource.List(project: string; AQuery : string = '') : TListSubscriptionsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{+project}/subscriptions';
+  _Methodid   = 'pubsub.projects.subscriptions.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListSubscriptionsResponse) as TListSubscriptionsResponse;
+end;
+
+
+Function TProjectsSubscriptionsResource.List(project: string; AQuery : TProjectsSubscriptionslistOptions) : TListSubscriptionsResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(project,_Q);
+end;
+
+Function TProjectsSubscriptionsResource.ModifyAckDeadline(subscription: string; aModifyAckDeadlineRequest : TModifyAckDeadlineRequest) : TEmpty;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{+subscription}:modifyAckDeadline';
+  _Methodid   = 'pubsub.projects.subscriptions.modifyAckDeadline';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['subscription',subscription]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aModifyAckDeadlineRequest,TEmpty) as TEmpty;
+end;
+
+Function TProjectsSubscriptionsResource.ModifyPushConfig(subscription: string; aModifyPushConfigRequest : TModifyPushConfigRequest) : TEmpty;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{+subscription}:modifyPushConfig';
+  _Methodid   = 'pubsub.projects.subscriptions.modifyPushConfig';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['subscription',subscription]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aModifyPushConfigRequest,TEmpty) as TEmpty;
+end;
+
+Function TProjectsSubscriptionsResource.Pull(subscription: string; aPullRequest : TPullRequest) : TPullResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{+subscription}:pull';
+  _Methodid   = 'pubsub.projects.subscriptions.pull';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['subscription',subscription]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aPullRequest,TPullResponse) as TPullResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsTopicsSubscriptionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsTopicsSubscriptionsResource.ResourceName : String;
+
+begin
+  Result:='subscriptions';
+end;
+
+Class Function TProjectsTopicsSubscriptionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TpubsubAPI;
+end;
+
+Function TProjectsTopicsSubscriptionsResource.List(topic: string; AQuery : string = '') : TListTopicSubscriptionsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{+topic}/subscriptions';
+  _Methodid   = 'pubsub.projects.topics.subscriptions.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['topic',topic]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListTopicSubscriptionsResponse) as TListTopicSubscriptionsResponse;
+end;
+
+
+Function TProjectsTopicsSubscriptionsResource.List(topic: string; AQuery : TProjectsTopicsSubscriptionslistOptions) : TListTopicSubscriptionsResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(topic,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsTopicsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsTopicsResource.ResourceName : String;
+
+begin
+  Result:='topics';
+end;
+
+Class Function TProjectsTopicsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TpubsubAPI;
+end;
+
+Function TProjectsTopicsResource.Create(_name: string; aTopic : TTopic) : TTopic;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{+name}';
+  _Methodid   = 'pubsub.projects.topics.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['name',_name]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aTopic,TTopic) as TTopic;
+end;
+
+Function TProjectsTopicsResource.Delete(topic: string) : TEmpty;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{+topic}';
+  _Methodid   = 'pubsub.projects.topics.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['topic',topic]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TEmpty) as TEmpty;
+end;
+
+Function TProjectsTopicsResource.Get(topic: string) : TTopic;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{+topic}';
+  _Methodid   = 'pubsub.projects.topics.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['topic',topic]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TTopic) as TTopic;
+end;
+
+Function TProjectsTopicsResource.List(project: string; AQuery : string = '') : TListTopicsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{+project}/topics';
+  _Methodid   = 'pubsub.projects.topics.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListTopicsResponse) as TListTopicsResponse;
+end;
+
+
+Function TProjectsTopicsResource.List(project: string; AQuery : TProjectsTopicslistOptions) : TListTopicsResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(project,_Q);
+end;
+
+Function TProjectsTopicsResource.Publish(topic: string; aPublishRequest : TPublishRequest) : TPublishResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{+topic}:publish';
+  _Methodid   = 'pubsub.projects.topics.publish';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['topic',topic]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aPublishRequest,TPublishResponse) as TPublishResponse;
+end;
+
+
+
+Function TProjectsTopicsResource.GetSubscriptionsInstance : TProjectsTopicsSubscriptionsResource;
+
+begin
+  if (FSubscriptionsInstance=Nil) then
+    FSubscriptionsInstance:=CreateSubscriptionsResource;
+  Result:=FSubscriptionsInstance;
+end;
+
+Function TProjectsTopicsResource.CreateSubscriptionsResource : TProjectsTopicsSubscriptionsResource;
+
+begin
+  Result:=CreateSubscriptionsResource(Self);
+end;
+
+
+Function TProjectsTopicsResource.CreateSubscriptionsResource(AOwner : TComponent) : TProjectsTopicsSubscriptionsResource;
+
+begin
+  Result:=TProjectsTopicsSubscriptionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TProjectsResource
   --------------------------------------------------------------------}
 
@@ -855,6 +1415,78 @@ Class Function TProjectsResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TpubsubAPI;
+end;
+
+
+
+Function TProjectsResource.GetSubscriptionsInstance : TProjectsSubscriptionsResource;
+
+begin
+  if (FSubscriptionsInstance=Nil) then
+    FSubscriptionsInstance:=CreateSubscriptionsResource;
+  Result:=FSubscriptionsInstance;
+end;
+
+Function TProjectsResource.CreateSubscriptionsResource : TProjectsSubscriptionsResource;
+
+begin
+  Result:=CreateSubscriptionsResource(Self);
+end;
+
+
+Function TProjectsResource.CreateSubscriptionsResource(AOwner : TComponent) : TProjectsSubscriptionsResource;
+
+begin
+  Result:=TProjectsSubscriptionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetTopicsSubscriptionsInstance : TProjectsTopicsSubscriptionsResource;
+
+begin
+  if (FTopicsSubscriptionsInstance=Nil) then
+    FTopicsSubscriptionsInstance:=CreateTopicsSubscriptionsResource;
+  Result:=FTopicsSubscriptionsInstance;
+end;
+
+Function TProjectsResource.CreateTopicsSubscriptionsResource : TProjectsTopicsSubscriptionsResource;
+
+begin
+  Result:=CreateTopicsSubscriptionsResource(Self);
+end;
+
+
+Function TProjectsResource.CreateTopicsSubscriptionsResource(AOwner : TComponent) : TProjectsTopicsSubscriptionsResource;
+
+begin
+  Result:=TProjectsTopicsSubscriptionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetTopicsInstance : TProjectsTopicsResource;
+
+begin
+  if (FTopicsInstance=Nil) then
+    FTopicsInstance:=CreateTopicsResource;
+  Result:=FTopicsInstance;
+end;
+
+Function TProjectsResource.CreateTopicsResource : TProjectsTopicsResource;
+
+begin
+  Result:=CreateTopicsResource(Self);
+end;
+
+
+Function TProjectsResource.CreateTopicsResource(AOwner : TComponent) : TProjectsTopicsResource;
+
+begin
+  Result:=TProjectsTopicsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -1006,6 +1638,78 @@ begin
 end;
 
 
+Function TPubsubAPI.GetProjectsSubscriptionsInstance : TProjectsSubscriptionsResource;
+
+begin
+  if (FProjectsSubscriptionsInstance=Nil) then
+    FProjectsSubscriptionsInstance:=CreateProjectsSubscriptionsResource;
+  Result:=FProjectsSubscriptionsInstance;
+end;
+
+Function TPubsubAPI.CreateProjectsSubscriptionsResource : TProjectsSubscriptionsResource;
+
+begin
+  Result:=CreateProjectsSubscriptionsResource(Self);
+end;
+
+
+Function TPubsubAPI.CreateProjectsSubscriptionsResource(AOwner : TComponent) : TProjectsSubscriptionsResource;
+
+begin
+  Result:=TProjectsSubscriptionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TPubsubAPI.GetProjectsTopicsSubscriptionsInstance : TProjectsTopicsSubscriptionsResource;
+
+begin
+  if (FProjectsTopicsSubscriptionsInstance=Nil) then
+    FProjectsTopicsSubscriptionsInstance:=CreateProjectsTopicsSubscriptionsResource;
+  Result:=FProjectsTopicsSubscriptionsInstance;
+end;
+
+Function TPubsubAPI.CreateProjectsTopicsSubscriptionsResource : TProjectsTopicsSubscriptionsResource;
+
+begin
+  Result:=CreateProjectsTopicsSubscriptionsResource(Self);
+end;
+
+
+Function TPubsubAPI.CreateProjectsTopicsSubscriptionsResource(AOwner : TComponent) : TProjectsTopicsSubscriptionsResource;
+
+begin
+  Result:=TProjectsTopicsSubscriptionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TPubsubAPI.GetProjectsTopicsInstance : TProjectsTopicsResource;
+
+begin
+  if (FProjectsTopicsInstance=Nil) then
+    FProjectsTopicsInstance:=CreateProjectsTopicsResource;
+  Result:=FProjectsTopicsInstance;
+end;
+
+Function TPubsubAPI.CreateProjectsTopicsResource : TProjectsTopicsResource;
+
+begin
+  Result:=CreateProjectsTopicsResource(Self);
+end;
+
+
+Function TPubsubAPI.CreateProjectsTopicsResource(AOwner : TComponent) : TProjectsTopicsResource;
+
+begin
+  Result:=TProjectsTopicsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TPubsubAPI.GetProjectsInstance : TProjectsResource;
 
 begin
@@ -1025,7 +1729,7 @@ Function TPubsubAPI.CreateProjectsResource(AOwner : TComponent) : TProjectsResou
 
 begin
   Result:=TProjectsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -13,7 +13,7 @@ unit googlereplicapoolupdater;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:57
+//Generated on: 16-5-15 08:53:07
 {$MODE objfpc}
 {$H+}
 
@@ -24,26 +24,26 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TInstanceUpdate = class;
-  TInstanceUpdateList = class;
-  TOperation = class;
-  TRollingUpdate = class;
-  TRollingUpdateList = class;
+  TInstanceUpdate = Class;
+  TInstanceUpdateList = Class;
+  TOperation = Class;
+  TRollingUpdate = Class;
+  TRollingUpdateList = Class;
   TInstanceUpdateArray = Array of TInstanceUpdate;
   TInstanceUpdateListArray = Array of TInstanceUpdateList;
   TOperationArray = Array of TOperation;
   TRollingUpdateArray = Array of TRollingUpdate;
   TRollingUpdateListArray = Array of TRollingUpdateList;
   //Anonymous types, using auto-generated names
-  TInstanceUpdateTypeerrorTypeerrorsItem = class;
-  TInstanceUpdateTypeerror = class;
-  TOperationTypeerrorTypeerrorsItem = class;
-  TOperationTypeerror = class;
-  TOperationTypewarningsItemTypedataItem = class;
-  TOperationTypewarningsItem = class;
-  TRollingUpdateTypeerrorTypeerrorsItem = class;
-  TRollingUpdateTypeerror = class;
-  TRollingUpdateTypepolicy = class;
+  TInstanceUpdateTypeerrorTypeerrorsItem = Class;
+  TInstanceUpdateTypeerror = Class;
+  TOperationTypeerrorTypeerrorsItem = Class;
+  TOperationTypeerror = Class;
+  TOperationTypewarningsItemTypedataItem = Class;
+  TOperationTypewarningsItem = Class;
+  TRollingUpdateTypeerrorTypeerrorsItem = Class;
+  TRollingUpdateTypeerror = Class;
+  TRollingUpdateTypepolicy = Class;
   TInstanceUpdateTypeerrorTypeerrorsArray = Array of TInstanceUpdateTypeerrorTypeerrorsItem;
   TInstanceUpdateListTypeitemsArray = Array of TInstanceUpdate;
   TOperationTypeerrorTypeerrorsArray = Array of TOperationTypeerrorTypeerrorsItem;
@@ -84,6 +84,10 @@ type
   Protected
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TInstanceUpdateTypeerrorTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TInstanceUpdateTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
@@ -128,6 +132,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TInstanceUpdateListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -169,6 +177,10 @@ type
   Protected
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
@@ -208,6 +220,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -268,6 +284,10 @@ type
     Procedure Setuser(AIndex : Integer; AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
     Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
@@ -327,6 +347,10 @@ type
   Protected
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TRollingUpdateTypeerrorTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TRollingUpdateTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
@@ -435,6 +459,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TRollingUpdateListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -592,6 +620,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceUpdateTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -676,6 +717,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceUpdateList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -729,6 +783,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -793,6 +860,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1021,6 +1101,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1074,6 +1167,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRollingUpdateTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1335,6 +1441,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRollingUpdateList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1614,7 +1733,7 @@ end;
 Class Function TReplicapoolupdaterAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TReplicapoolupdaterAPI.APIbasePath : string;
@@ -1626,7 +1745,7 @@ end;
 Class Function TReplicapoolupdaterAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/replicapoolupdater/v1beta1/projects/';
+  Result:='https://www.googleapis.com:443/replicapoolupdater/v1beta1/projects/';
 end;
 
 Class Function TReplicapoolupdaterAPI.APIProtocol : string;
@@ -1705,7 +1824,7 @@ Function TReplicapoolupdaterAPI.CreateRollingUpdatesResource(AOwner : TComponent
 
 begin
   Result:=TRollingUpdatesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1729,7 +1848,7 @@ Function TReplicapoolupdaterAPI.CreateZoneOperationsResource(AOwner : TComponent
 
 begin
   Result:=TZoneOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

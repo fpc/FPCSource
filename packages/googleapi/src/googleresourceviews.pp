@@ -13,7 +13,7 @@ unit googleresourceviews;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:58
+//Generated on: 16-5-15 08:53:07
 {$MODE objfpc}
 {$H+}
 
@@ -24,18 +24,18 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TLabel = class;
-  TListResourceResponseItem = class;
-  TOperation = class;
-  TOperationList = class;
-  TResourceView = class;
-  TServiceEndpoint = class;
-  TZoneViewsAddResourcesRequest = class;
-  TZoneViewsGetServiceResponse = class;
-  TZoneViewsList = class;
-  TZoneViewsListResourcesResponse = class;
-  TZoneViewsRemoveResourcesRequest = class;
-  TZoneViewsSetServiceRequest = class;
+  TLabel = Class;
+  TListResourceResponseItem = Class;
+  TOperation = Class;
+  TOperationList = Class;
+  TResourceView = Class;
+  TServiceEndpoint = Class;
+  TZoneViewsAddResourcesRequest = Class;
+  TZoneViewsGetServiceResponse = Class;
+  TZoneViewsList = Class;
+  TZoneViewsListResourcesResponse = Class;
+  TZoneViewsRemoveResourcesRequest = Class;
+  TZoneViewsSetServiceRequest = Class;
   TLabelArray = Array of TLabel;
   TListResourceResponseItemArray = Array of TListResourceResponseItem;
   TOperationArray = Array of TOperation;
@@ -49,11 +49,11 @@ type
   TZoneViewsRemoveResourcesRequestArray = Array of TZoneViewsRemoveResourcesRequest;
   TZoneViewsSetServiceRequestArray = Array of TZoneViewsSetServiceRequest;
   //Anonymous types, using auto-generated names
-  TListResourceResponseItemTypeendpoints = class;
-  TOperationTypeerrorTypeerrorsItem = class;
-  TOperationTypeerror = class;
-  TOperationTypewarningsItemTypedataItem = class;
-  TOperationTypewarningsItem = class;
+  TListResourceResponseItemTypeendpoints = Class;
+  TOperationTypeerrorTypeerrorsItem = Class;
+  TOperationTypeerror = Class;
+  TOperationTypewarningsItemTypedataItem = Class;
+  TOperationTypewarningsItem = Class;
   TOperationTypeerrorTypeerrorsArray = Array of TOperationTypeerrorTypeerrorsItem;
   TOperationTypewarningsItemTypedataArray = Array of TOperationTypewarningsItemTypedataItem;
   TOperationTypewarningsArray = Array of TOperationTypewarningsItem;
@@ -149,6 +149,10 @@ type
   Protected
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
@@ -188,6 +192,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -248,6 +256,10 @@ type
     Procedure Setuser(AIndex : Integer; AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
     Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
@@ -293,6 +305,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -335,6 +351,10 @@ type
     Procedure Setresources(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setsize(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -381,6 +401,10 @@ type
   Protected
     //Property setters
     Procedure Setresources(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property resources : TStringArray Index 0 Read Fresources Write Setresources;
@@ -399,6 +423,10 @@ type
     //Property setters
     Procedure Setendpoints(AIndex : Integer; AValue : TZoneViewsGetServiceResponseTypeendpointsArray); virtual;
     Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property endpoints : TZoneViewsGetServiceResponseTypeendpointsArray Index 0 Read Fendpoints Write Setendpoints;
@@ -422,6 +450,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TZoneViewsListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -445,6 +477,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TZoneViewsListResourcesResponseTypeitemsArray); virtual;
     Procedure Setnetwork(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TZoneViewsListResourcesResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -463,6 +499,10 @@ type
   Protected
     //Property setters
     Procedure Setresources(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property resources : TStringArray Index 0 Read Fresources Write Setresources;
@@ -483,6 +523,10 @@ type
     Procedure Setendpoints(AIndex : Integer; AValue : TZoneViewsSetServiceRequestTypeendpointsArray); virtual;
     Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
     Procedure SetresourceName(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property endpoints : TZoneViewsSetServiceRequestTypeendpointsArray Index 0 Read Fendpoints Write Setendpoints;
@@ -726,6 +770,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -789,6 +846,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1017,6 +1087,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1073,6 +1156,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1201,6 +1297,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResourceView.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'endpoints' : SetLength(Fendpoints,ALength);
+  'labels' : SetLength(Flabels,ALength);
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1245,6 +1356,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneViewsAddResourcesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1271,6 +1395,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneViewsGetServiceResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'endpoints' : SetLength(Fendpoints,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1319,6 +1456,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneViewsList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1356,6 +1506,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneViewsListResourcesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1372,6 +1535,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneViewsRemoveResourcesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1409,6 +1585,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneViewsSetServiceRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'endpoints' : SetLength(Fendpoints,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1744,7 +1933,7 @@ end;
 Class Function TResourceviewsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TResourceviewsAPI.APIbasePath : string;
@@ -1756,7 +1945,7 @@ end;
 Class Function TResourceviewsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/resourceviews/v1beta2/projects/';
+  Result:='https://www.googleapis.com:443/resourceviews/v1beta2/projects/';
 end;
 
 Class Function TResourceviewsAPI.APIProtocol : string;
@@ -1842,7 +2031,7 @@ Function TResourceviewsAPI.CreateZoneOperationsResource(AOwner : TComponent) : T
 
 begin
   Result:=TZoneOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1866,7 +2055,7 @@ Function TResourceviewsAPI.CreateZoneViewsResource(AOwner : TComponent) : TZoneV
 
 begin
   Result:=TZoneViewsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

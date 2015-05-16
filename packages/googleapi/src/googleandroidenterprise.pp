@@ -13,7 +13,7 @@ unit googleandroidenterprise;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:48
+//Generated on: 16-5-15 08:52:58
 {$MODE objfpc}
 {$H+}
 
@@ -24,32 +24,32 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAppRestrictionsSchema = class;
-  TAppRestrictionsSchemaRestriction = class;
-  TAppRestrictionsSchemaRestrictionRestrictionValue = class;
-  TCollection = class;
-  TCollectionViewersListResponse = class;
-  TCollectionsListResponse = class;
-  TDevice = class;
-  TDeviceState = class;
-  TDevicesListResponse = class;
-  TEnterprise = class;
-  TEnterpriseAccount = class;
-  TEnterprisesListResponse = class;
-  TEntitlement = class;
-  TEntitlementsListResponse = class;
-  TGroupLicense = class;
-  TGroupLicenseUsersListResponse = class;
-  TGroupLicensesListResponse = class;
-  TInstall = class;
-  TInstallsListResponse = class;
-  TPermission = class;
-  TProduct = class;
-  TProductPermission = class;
-  TProductPermissions = class;
-  TUser = class;
-  TUserToken = class;
-  TUsersListResponse = class;
+  TAppRestrictionsSchema = Class;
+  TAppRestrictionsSchemaRestriction = Class;
+  TAppRestrictionsSchemaRestrictionRestrictionValue = Class;
+  TCollection = Class;
+  TCollectionViewersListResponse = Class;
+  TCollectionsListResponse = Class;
+  TDevice = Class;
+  TDeviceState = Class;
+  TDevicesListResponse = Class;
+  TEnterprise = Class;
+  TEnterpriseAccount = Class;
+  TEnterprisesListResponse = Class;
+  TEntitlement = Class;
+  TEntitlementsListResponse = Class;
+  TGroupLicense = Class;
+  TGroupLicenseUsersListResponse = Class;
+  TGroupLicensesListResponse = Class;
+  TInstall = Class;
+  TInstallsListResponse = Class;
+  TPermission = Class;
+  TProduct = Class;
+  TProductPermission = Class;
+  TProductPermissions = Class;
+  TUser = Class;
+  TUserToken = Class;
+  TUsersListResponse = Class;
   TAppRestrictionsSchemaArray = Array of TAppRestrictionsSchema;
   TAppRestrictionsSchemaRestrictionArray = Array of TAppRestrictionsSchemaRestriction;
   TAppRestrictionsSchemaRestrictionRestrictionValueArray = Array of TAppRestrictionsSchemaRestrictionRestrictionValue;
@@ -99,6 +99,10 @@ type
   Protected
     //Property setters
     Procedure Setrestrictions(AIndex : Integer; AValue : TAppRestrictionsSchemaTyperestrictionsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property restrictions : TAppRestrictionsSchemaTyperestrictionsArray Index 0 Read Frestrictions Write Setrestrictions;
@@ -127,6 +131,10 @@ type
     Procedure Setkey(AIndex : Integer; AValue : String); virtual;
     Procedure SetrestrictionType(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property defaultValue : TAppRestrictionsSchemaRestrictionRestrictionValue Index 0 Read FdefaultValue Write SetdefaultValue;
@@ -158,6 +166,10 @@ type
     Procedure SetvalueInteger(AIndex : Integer; AValue : integer); virtual;
     Procedure SetvalueMultiselect(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetvalueString(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property _type : String Index 0 Read F_type Write Set_type;
@@ -186,6 +198,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetproductId(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property collectionId : String Index 0 Read FcollectionId Write SetcollectionId;
@@ -208,6 +224,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setuser(AIndex : Integer; AValue : TCollectionViewersListResponseTypeuserArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -227,6 +247,10 @@ type
     //Property setters
     Procedure Setcollection(AIndex : Integer; AValue : TCollectionsListResponseTypecollectionArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property collection : TCollectionsListResponseTypecollectionArray Index 0 Read Fcollection Write Setcollection;
@@ -287,6 +311,10 @@ type
     //Property setters
     Procedure Setdevice(AIndex : Integer; AValue : TDevicesListResponseTypedeviceArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property device : TDevicesListResponseTypedeviceArray Index 0 Read Fdevice Write Setdevice;
@@ -350,6 +378,10 @@ type
     //Property setters
     Procedure Setenterprise(AIndex : Integer; AValue : TEnterprisesListResponseTypeenterpriseArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property enterprise : TEnterprisesListResponseTypeenterpriseArray Index 0 Read Fenterprise Write Setenterprise;
@@ -391,6 +423,10 @@ type
     //Property setters
     Procedure Setentitlement(AIndex : Integer; AValue : TEntitlementsListResponseTypeentitlementArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entitlement : TEntitlementsListResponseTypeentitlementArray Index 0 Read Fentitlement Write Setentitlement;
@@ -441,6 +477,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setuser(AIndex : Integer; AValue : TGroupLicenseUsersListResponseTypeuserArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -460,6 +500,10 @@ type
     //Property setters
     Procedure SetgroupLicense(AIndex : Integer; AValue : TGroupLicensesListResponseTypegroupLicenseArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property groupLicense : TGroupLicensesListResponseTypegroupLicenseArray Index 0 Read FgroupLicense Write SetgroupLicense;
@@ -504,6 +548,10 @@ type
     //Property setters
     Procedure Setinstall(AIndex : Integer; AValue : TInstallsListResponseTypeinstallArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property install : TInstallsListResponseTypeinstallArray Index 0 Read Finstall Write Setinstall;
@@ -606,6 +654,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setpermission(AIndex : Integer; AValue : TProductPermissionsTypepermissionArray); virtual;
     Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -670,6 +722,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setuser(AIndex : Integer; AValue : TUsersListResponseTypeuserArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1018,6 +1074,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAppRestrictionsSchema.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'restrictions' : SetLength(Frestrictions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1095,6 +1164,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAppRestrictionsSchemaRestriction.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entry' : SetLength(Fentry,ALength);
+  'entryvalue' : SetLength(FentryValue,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1163,6 +1246,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'valuemultiselect' : SetLength(FvalueMultiselect,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1220,6 +1316,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCollection.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'productid' : SetLength(FproductId,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1247,6 +1356,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCollectionViewersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'user' : SetLength(Fuser,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1273,6 +1395,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCollectionsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'collection' : SetLength(Fcollection,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1364,6 +1499,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDevicesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'device' : SetLength(Fdevice,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1466,6 +1614,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEnterprisesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'enterprise' : SetLength(Fenterprise,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1529,6 +1690,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEntitlementsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entitlement' : SetLength(Fentitlement,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1624,6 +1798,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGroupLicenseUsersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'user' : SetLength(Fuser,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1650,6 +1837,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGroupLicensesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'grouplicense' : SetLength(FgroupLicense,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1724,6 +1924,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstallsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'install' : SetLength(Finstall,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1923,6 +2136,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProductPermissions.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'permission' : SetLength(Fpermission,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2023,6 +2249,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUsersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'user' : SetLength(Fuser,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3065,7 +3304,7 @@ end;
 Class Function TAndroidenterpriseAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TAndroidenterpriseAPI.APIbasePath : string;
@@ -3077,7 +3316,7 @@ end;
 Class Function TAndroidenterpriseAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/androidenterprise/v1/';
+  Result:='https://www.googleapis.com:443/androidenterprise/v1/';
 end;
 
 Class Function TAndroidenterpriseAPI.APIProtocol : string;
@@ -3164,7 +3403,7 @@ Function TAndroidenterpriseAPI.CreateCollectionsResource(AOwner : TComponent) : 
 
 begin
   Result:=TCollectionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3188,7 +3427,7 @@ Function TAndroidenterpriseAPI.CreateCollectionviewersResource(AOwner : TCompone
 
 begin
   Result:=TCollectionviewersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3212,7 +3451,7 @@ Function TAndroidenterpriseAPI.CreateDevicesResource(AOwner : TComponent) : TDev
 
 begin
   Result:=TDevicesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3236,7 +3475,7 @@ Function TAndroidenterpriseAPI.CreateEnterprisesResource(AOwner : TComponent) : 
 
 begin
   Result:=TEnterprisesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3260,7 +3499,7 @@ Function TAndroidenterpriseAPI.CreateEntitlementsResource(AOwner : TComponent) :
 
 begin
   Result:=TEntitlementsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3284,7 +3523,7 @@ Function TAndroidenterpriseAPI.CreateGrouplicensesResource(AOwner : TComponent) 
 
 begin
   Result:=TGrouplicensesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3308,7 +3547,7 @@ Function TAndroidenterpriseAPI.CreateGrouplicenseusersResource(AOwner : TCompone
 
 begin
   Result:=TGrouplicenseusersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3332,7 +3571,7 @@ Function TAndroidenterpriseAPI.CreateInstallsResource(AOwner : TComponent) : TIn
 
 begin
   Result:=TInstallsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3356,7 +3595,7 @@ Function TAndroidenterpriseAPI.CreatePermissionsResource(AOwner : TComponent) : 
 
 begin
   Result:=TPermissionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3380,7 +3619,7 @@ Function TAndroidenterpriseAPI.CreateProductsResource(AOwner : TComponent) : TPr
 
 begin
   Result:=TProductsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3404,7 +3643,7 @@ Function TAndroidenterpriseAPI.CreateUsersResource(AOwner : TComponent) : TUsers
 
 begin
   Result:=TUsersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

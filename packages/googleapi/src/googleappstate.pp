@@ -13,7 +13,7 @@ unit googleappstate;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:48
+//Generated on: 16-5-15 08:52:58
 {$MODE objfpc}
 {$H+}
 
@@ -24,10 +24,10 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TGetResponse = class;
-  TListResponse = class;
-  TUpdateRequest = class;
-  TWriteResult = class;
+  TGetResponse = Class;
+  TListResponse = Class;
+  TUpdateRequest = Class;
+  TWriteResult = Class;
   TGetResponseArray = Array of TGetResponse;
   TListResponseArray = Array of TListResponse;
   TUpdateRequestArray = Array of TUpdateRequest;
@@ -74,6 +74,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetmaximumKeyCount(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -283,6 +287,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -496,7 +513,7 @@ end;
 Class Function TAppstateAPI.APIRevision : String;
 
 begin
-  Result:='20150429';
+  Result:='20150512';
 end;
 
 Class Function TAppstateAPI.APIID : String;
@@ -550,7 +567,7 @@ end;
 Class Function TAppstateAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TAppstateAPI.APIbasePath : string;
@@ -562,7 +579,7 @@ end;
 Class Function TAppstateAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/appstate/v1/';
+  Result:='https://www.googleapis.com:443/appstate/v1/';
 end;
 
 Class Function TAppstateAPI.APIProtocol : string;
@@ -627,7 +644,7 @@ Function TAppstateAPI.CreateStatesResource(AOwner : TComponent) : TStatesResourc
 
 begin
   Result:=TStatesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

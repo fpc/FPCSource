@@ -13,7 +13,7 @@ unit googlecloudmonitoring;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:50
+//Generated on: 16-5-15 08:53:00
 {$MODE objfpc}
 {$H+}
 
@@ -24,27 +24,27 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TDeleteMetricDescriptorResponse = class;
-  TListMetricDescriptorsRequest = class;
-  TListMetricDescriptorsResponse = class;
-  TListTimeseriesDescriptorsRequest = class;
-  TListTimeseriesDescriptorsResponse = class;
-  TListTimeseriesRequest = class;
-  TListTimeseriesResponse = class;
-  TMetricDescriptor = class;
-  TMetricDescriptorLabelDescriptor = class;
-  TMetricDescriptorTypeDescriptor = class;
-  TPoint = class;
-  TPointDistribution = class;
-  TPointDistributionBucket = class;
-  TPointDistributionOverflowBucket = class;
-  TPointDistributionUnderflowBucket = class;
-  TTimeseries = class;
-  TTimeseriesDescriptor = class;
-  TTimeseriesDescriptorLabel = class;
-  TTimeseriesPoint = class;
-  TWriteTimeseriesRequest = class;
-  TWriteTimeseriesResponse = class;
+  TDeleteMetricDescriptorResponse = Class;
+  TListMetricDescriptorsRequest = Class;
+  TListMetricDescriptorsResponse = Class;
+  TListTimeseriesDescriptorsRequest = Class;
+  TListTimeseriesDescriptorsResponse = Class;
+  TListTimeseriesRequest = Class;
+  TListTimeseriesResponse = Class;
+  TMetricDescriptor = Class;
+  TMetricDescriptorLabelDescriptor = Class;
+  TMetricDescriptorTypeDescriptor = Class;
+  TPoint = Class;
+  TPointDistribution = Class;
+  TPointDistributionBucket = Class;
+  TPointDistributionOverflowBucket = Class;
+  TPointDistributionUnderflowBucket = Class;
+  TTimeseries = Class;
+  TTimeseriesDescriptor = Class;
+  TTimeseriesDescriptorLabel = Class;
+  TTimeseriesPoint = Class;
+  TWriteTimeseriesRequest = Class;
+  TWriteTimeseriesResponse = Class;
   TDeleteMetricDescriptorResponseArray = Array of TDeleteMetricDescriptorResponse;
   TListMetricDescriptorsRequestArray = Array of TListMetricDescriptorsRequest;
   TListMetricDescriptorsResponseArray = Array of TListMetricDescriptorsResponse;
@@ -67,8 +67,8 @@ type
   TWriteTimeseriesRequestArray = Array of TWriteTimeseriesRequest;
   TWriteTimeseriesResponseArray = Array of TWriteTimeseriesResponse;
   //Anonymous types, using auto-generated names
-  TTimeseriesDescriptorTypelabels = class;
-  TWriteTimeseriesRequestTypecommonLabels = class;
+  TTimeseriesDescriptorTypelabels = Class;
+  TWriteTimeseriesRequestTypecommonLabels = Class;
   TListMetricDescriptorsResponseTypemetricsArray = Array of TMetricDescriptor;
   TListTimeseriesDescriptorsResponseTypetimeseriesArray = Array of TTimeseriesDescriptor;
   TListTimeseriesResponseTypetimeseriesArray = Array of TTimeseries;
@@ -123,6 +123,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setmetrics(AIndex : Integer; AValue : TListMetricDescriptorsResponseTypemetricsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -165,6 +169,10 @@ type
     Procedure Setoldest(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Settimeseries(AIndex : Integer; AValue : TListTimeseriesDescriptorsResponseTypetimeseriesArray); virtual;
     Procedure Setyoungest(AIndex : Integer; AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -209,6 +217,10 @@ type
     Procedure Setoldest(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Settimeseries(AIndex : Integer; AValue : TListTimeseriesResponseTypetimeseriesArray); virtual;
     Procedure Setyoungest(AIndex : Integer; AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -237,6 +249,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setproject(AIndex : Integer; AValue : String); virtual;
     Procedure SettypeDescriptor(AIndex : Integer; AValue : TMetricDescriptorTypeDescriptor); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -334,6 +350,10 @@ type
     Procedure Setbuckets(AIndex : Integer; AValue : TPointDistributionTypebucketsArray); virtual;
     Procedure SetoverflowBucket(AIndex : Integer; AValue : TPointDistributionOverflowBucket); virtual;
     Procedure SetunderflowBucket(AIndex : Integer; AValue : TPointDistributionUnderflowBucket); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property buckets : TPointDistributionTypebucketsArray Index 0 Read Fbuckets Write Setbuckets;
@@ -414,6 +434,10 @@ type
     //Property setters
     Procedure Setpoints(AIndex : Integer; AValue : TTimeseriesTypepointsArray); virtual;
     Procedure SettimeseriesDesc(AIndex : Integer; AValue : TTimeseriesDescriptor); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property points : TTimeseriesTypepointsArray Index 0 Read Fpoints Write Setpoints;
@@ -521,6 +545,10 @@ type
     //Property setters
     Procedure SetcommonLabels(AIndex : Integer; AValue : TWriteTimeseriesRequestTypecommonLabels); virtual;
     Procedure Settimeseries(AIndex : Integer; AValue : TWriteTimeseriesRequestTypetimeseriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property commonLabels : TWriteTimeseriesRequestTypecommonLabels Index 0 Read FcommonLabels Write SetcommonLabels;
@@ -741,6 +769,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListMetricDescriptorsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'metrics' : SetLength(Fmetrics,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -814,6 +855,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListTimeseriesDescriptorsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'timeseries' : SetLength(Ftimeseries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -889,6 +943,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListTimeseriesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'timeseries' : SetLength(Ftimeseries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -945,6 +1012,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMetricDescriptor.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'labels' : SetLength(Flabels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1125,6 +1205,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPointDistribution.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'buckets' : SetLength(Fbuckets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1242,6 +1335,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTimeseries.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'points' : SetLength(Fpoints,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1386,6 +1492,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWriteTimeseriesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'timeseries' : SetLength(Ftimeseries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1625,7 +1744,7 @@ end;
 Class Function TCloudmonitoringAPI.APIRevision : String;
 
 begin
-  Result:='20150311';
+  Result:='20150210';
 end;
 
 Class Function TCloudmonitoringAPI.APIID : String;
@@ -1679,7 +1798,7 @@ end;
 Class Function TCloudmonitoringAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TCloudmonitoringAPI.APIbasePath : string;
@@ -1691,7 +1810,7 @@ end;
 Class Function TCloudmonitoringAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/cloudmonitoring/v2beta2/projects/';
+  Result:='https://www.googleapis.com:443/cloudmonitoring/v2beta2/projects/';
 end;
 
 Class Function TCloudmonitoringAPI.APIProtocol : string;
@@ -1775,7 +1894,7 @@ Function TCloudmonitoringAPI.CreateMetricDescriptorsResource(AOwner : TComponent
 
 begin
   Result:=TMetricDescriptorsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1799,7 +1918,7 @@ Function TCloudmonitoringAPI.CreateTimeseriesResource(AOwner : TComponent) : TTi
 
 begin
   Result:=TTimeseriesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1823,7 +1942,7 @@ Function TCloudmonitoringAPI.CreateTimeseriesDescriptorsResource(AOwner : TCompo
 
 begin
   Result:=TTimeseriesDescriptorsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

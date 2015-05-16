@@ -13,7 +13,7 @@ unit googlemirror;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:56
+//Generated on: 16-5-15 08:53:06
 {$MODE objfpc}
 {$H+}
 
@@ -24,26 +24,26 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAccount = class;
-  TAttachment = class;
-  TAttachmentsListResponse = class;
-  TAuthToken = class;
-  TCommand = class;
-  TContact = class;
-  TContactsListResponse = class;
-  TLocation = class;
-  TLocationsListResponse = class;
-  TMenuItem = class;
-  TMenuValue = class;
-  TNotification = class;
-  TNotificationConfig = class;
-  TSetting = class;
-  TSubscription = class;
-  TSubscriptionsListResponse = class;
-  TTimelineItem = class;
-  TTimelineListResponse = class;
-  TUserAction = class;
-  TUserData = class;
+  TAccount = Class;
+  TAttachment = Class;
+  TAttachmentsListResponse = Class;
+  TAuthToken = Class;
+  TCommand = Class;
+  TContact = Class;
+  TContactsListResponse = Class;
+  TLocation = Class;
+  TLocationsListResponse = Class;
+  TMenuItem = Class;
+  TMenuValue = Class;
+  TNotification = Class;
+  TNotificationConfig = Class;
+  TSetting = Class;
+  TSubscription = Class;
+  TSubscriptionsListResponse = Class;
+  TTimelineItem = Class;
+  TTimelineListResponse = Class;
+  TUserAction = Class;
+  TUserData = Class;
   TAccountArray = Array of TAccount;
   TAttachmentArray = Array of TAttachment;
   TAttachmentsListResponseArray = Array of TAttachmentsListResponse;
@@ -95,6 +95,10 @@ type
     Procedure Setfeatures(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setpassword(AIndex : Integer; AValue : String); virtual;
     Procedure SetuserData(AIndex : Integer; AValue : TAccountTypeuserDataArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property authTokens : TAccountTypeauthTokensArray Index 0 Read FauthTokens Write SetauthTokens;
@@ -141,6 +145,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TAttachmentsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TAttachmentsListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -218,6 +226,10 @@ type
     Procedure Setsource(AIndex : Integer; AValue : String); virtual;
     Procedure SetspeakableName(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property acceptCommands : TContactTypeacceptCommandsArray Index 0 Read FacceptCommands Write SetacceptCommands;
@@ -247,6 +259,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TContactsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TContactsListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -303,6 +319,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TLocationsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TLocationsListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -330,6 +350,10 @@ type
     Procedure Setpayload(AIndex : Integer; AValue : String); virtual;
     Procedure SetremoveWhenSelected(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setvalues(AIndex : Integer; AValue : TMenuItemTypevaluesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property action : String Index 0 Read Faction Write Setaction;
@@ -383,6 +407,10 @@ type
     Procedure SetuserActions(AIndex : Integer; AValue : TNotificationTypeuserActionsArray); virtual;
     Procedure SetuserToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetverifyToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property collection : String Index 0 Read Fcollection Write Setcollection;
@@ -461,6 +489,10 @@ type
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetuserToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetverifyToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property callbackUrl : String Index 0 Read FcallbackUrl Write SetcallbackUrl;
@@ -487,6 +519,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TSubscriptionsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TSubscriptionsListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -554,6 +590,10 @@ type
     Procedure Settext(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property attachments : TTimelineItemTypeattachmentsArray Index 0 Read Fattachments Write Setattachments;
@@ -599,6 +639,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TTimelineListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TTimelineListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -716,6 +760,21 @@ type
   
   
   { --------------------------------------------------------------------
+    TTimelineAttachmentsResource
+    --------------------------------------------------------------------}
+  
+  TTimelineAttachmentsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(attachmentId: string; itemId: string);
+    Function Get(attachmentId: string; itemId: string) : TAttachment;
+    Function Insert(itemId: string) : TAttachment;
+    Function List(itemId: string) : TAttachmentsListResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TTimelineResource
     --------------------------------------------------------------------}
   
@@ -733,6 +792,9 @@ type
   end;
   
   TTimelineResource = Class(TGoogleResource)
+  Private
+    FAttachmentsInstance : TTimelineAttachmentsResource;
+    Function GetAttachmentsInstance : TTimelineAttachmentsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -743,6 +805,9 @@ type
     Function List(AQuery : TTimelinelistOptions) : TTimelineListResponse;
     Function Patch(id: string; aTimelineItem : TTimelineItem) : TTimelineItem;
     Function Update(id: string; aTimelineItem : TTimelineItem) : TTimelineItem;
+    Function CreateAttachmentsResource(AOwner : TComponent) : TTimelineAttachmentsResource;virtual;overload;
+    Function CreateAttachmentsResource : TTimelineAttachmentsResource;virtual;overload;
+    Property AttachmentsResource : TTimelineAttachmentsResource Read GetAttachmentsInstance;
   end;
   
   
@@ -757,12 +822,14 @@ type
     FLocationsInstance : TLocationsResource;
     FSettingsInstance : TSettingsResource;
     FSubscriptionsInstance : TSubscriptionsResource;
+    FTimelineAttachmentsInstance : TTimelineAttachmentsResource;
     FTimelineInstance : TTimelineResource;
     Function GetAccountsInstance : TAccountsResource;virtual;
     Function GetContactsInstance : TContactsResource;virtual;
     Function GetLocationsInstance : TLocationsResource;virtual;
     Function GetSettingsInstance : TSettingsResource;virtual;
     Function GetSubscriptionsInstance : TSubscriptionsResource;virtual;
+    Function GetTimelineAttachmentsInstance : TTimelineAttachmentsResource;virtual;
     Function GetTimelineInstance : TTimelineResource;virtual;
   Public
     //Override class functions with API info
@@ -797,6 +864,8 @@ type
     Function CreateSettingsResource : TSettingsResource;virtual;overload;
     Function CreateSubscriptionsResource(AOwner : TComponent) : TSubscriptionsResource;virtual;overload;
     Function CreateSubscriptionsResource : TSubscriptionsResource;virtual;overload;
+    Function CreateTimelineAttachmentsResource(AOwner : TComponent) : TTimelineAttachmentsResource;virtual;overload;
+    Function CreateTimelineAttachmentsResource : TTimelineAttachmentsResource;virtual;overload;
     Function CreateTimelineResource(AOwner : TComponent) : TTimelineResource;virtual;overload;
     Function CreateTimelineResource : TTimelineResource;virtual;overload;
     //Add default on-demand instances for resources
@@ -805,6 +874,7 @@ type
     Property LocationsResource : TLocationsResource Read GetLocationsInstance;
     Property SettingsResource : TSettingsResource Read GetSettingsInstance;
     Property SubscriptionsResource : TSubscriptionsResource Read GetSubscriptionsInstance;
+    Property TimelineAttachmentsResource : TTimelineAttachmentsResource Read GetTimelineAttachmentsInstance;
     Property TimelineResource : TTimelineResource Read GetTimelineInstance;
   end;
 
@@ -854,6 +924,21 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccount.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'authtokens' : SetLength(FauthTokens,ALength);
+  'features' : SetLength(Ffeatures,ALength);
+  'userdata' : SetLength(FuserData,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -928,6 +1013,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAttachmentsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1133,6 +1231,22 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TContact.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'acceptcommands' : SetLength(FacceptCommands,ALength);
+  'accepttypes' : SetLength(FacceptTypes,ALength);
+  'imageurls' : SetLength(FimageUrls,ALength);
+  'sharingfeatures' : SetLength(FsharingFeatures,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1159,6 +1273,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TContactsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1274,6 +1401,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLocationsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1340,6 +1480,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMenuItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'values' : SetLength(Fvalues,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1444,6 +1597,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TNotification.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'useractions' : SetLength(FuserActions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1606,6 +1772,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSubscription.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'operation' : SetLength(Foperation,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1632,6 +1811,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSubscriptionsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1900,6 +2092,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTimelineItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'attachments' : SetLength(Fattachments,ALength);
+  'menuitems' : SetLength(FmenuItems,ALength);
+  'recipients' : SetLength(Frecipients,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1936,6 +2143,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTimelineListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2291,6 +2511,85 @@ end;
 
 
 { --------------------------------------------------------------------
+  TTimelineAttachmentsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TTimelineAttachmentsResource.ResourceName : String;
+
+begin
+  Result:='attachments';
+end;
+
+Class Function TTimelineAttachmentsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmirrorAPI;
+end;
+
+Procedure TTimelineAttachmentsResource.Delete(attachmentId: string; itemId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'timeline/{itemId}/attachments/{attachmentId}';
+  _Methodid   = 'mirror.timeline.attachments.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['attachmentId',attachmentId,'itemId',itemId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TTimelineAttachmentsResource.Get(attachmentId: string; itemId: string) : TAttachment;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'timeline/{itemId}/attachments/{attachmentId}';
+  _Methodid   = 'mirror.timeline.attachments.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['attachmentId',attachmentId,'itemId',itemId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TAttachment) as TAttachment;
+end;
+
+Function TTimelineAttachmentsResource.Insert(itemId: string) : TAttachment;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'timeline/{itemId}/attachments';
+  _Methodid   = 'mirror.timeline.attachments.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['itemId',itemId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TAttachment) as TAttachment;
+end;
+
+Function TTimelineAttachmentsResource.List(itemId: string) : TAttachmentsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'timeline/{itemId}/attachments';
+  _Methodid   = 'mirror.timeline.attachments.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['itemId',itemId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TAttachmentsListResponse) as TAttachmentsListResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TTimelineResource
   --------------------------------------------------------------------}
 
@@ -2409,6 +2708,30 @@ end;
 
 
 
+Function TTimelineResource.GetAttachmentsInstance : TTimelineAttachmentsResource;
+
+begin
+  if (FAttachmentsInstance=Nil) then
+    FAttachmentsInstance:=CreateAttachmentsResource;
+  Result:=FAttachmentsInstance;
+end;
+
+Function TTimelineResource.CreateAttachmentsResource : TTimelineAttachmentsResource;
+
+begin
+  Result:=CreateAttachmentsResource(Self);
+end;
+
+
+Function TTimelineResource.CreateAttachmentsResource(AOwner : TComponent) : TTimelineAttachmentsResource;
+
+begin
+  Result:=TTimelineAttachmentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 { --------------------------------------------------------------------
   TMirrorAPI
   --------------------------------------------------------------------}
@@ -2482,7 +2805,7 @@ end;
 Class Function TMirrorAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TMirrorAPI.APIbasePath : string;
@@ -2494,7 +2817,7 @@ end;
 Class Function TMirrorAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/mirror/v1/';
+  Result:='https://www.googleapis.com:443/mirror/v1/';
 end;
 
 Class Function TMirrorAPI.APIProtocol : string;
@@ -2577,7 +2900,7 @@ Function TMirrorAPI.CreateAccountsResource(AOwner : TComponent) : TAccountsResou
 
 begin
   Result:=TAccountsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2601,7 +2924,7 @@ Function TMirrorAPI.CreateContactsResource(AOwner : TComponent) : TContactsResou
 
 begin
   Result:=TContactsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2625,7 +2948,7 @@ Function TMirrorAPI.CreateLocationsResource(AOwner : TComponent) : TLocationsRes
 
 begin
   Result:=TLocationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2649,7 +2972,7 @@ Function TMirrorAPI.CreateSettingsResource(AOwner : TComponent) : TSettingsResou
 
 begin
   Result:=TSettingsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2673,7 +2996,31 @@ Function TMirrorAPI.CreateSubscriptionsResource(AOwner : TComponent) : TSubscrip
 
 begin
   Result:=TSubscriptionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMirrorAPI.GetTimelineAttachmentsInstance : TTimelineAttachmentsResource;
+
+begin
+  if (FTimelineAttachmentsInstance=Nil) then
+    FTimelineAttachmentsInstance:=CreateTimelineAttachmentsResource;
+  Result:=FTimelineAttachmentsInstance;
+end;
+
+Function TMirrorAPI.CreateTimelineAttachmentsResource : TTimelineAttachmentsResource;
+
+begin
+  Result:=CreateTimelineAttachmentsResource(Self);
+end;
+
+
+Function TMirrorAPI.CreateTimelineAttachmentsResource(AOwner : TComponent) : TTimelineAttachmentsResource;
+
+begin
+  Result:=TTimelineAttachmentsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -2697,7 +3044,7 @@ Function TMirrorAPI.CreateTimelineResource(AOwner : TComponent) : TTimelineResou
 
 begin
   Result:=TTimelineResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

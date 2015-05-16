@@ -13,7 +13,7 @@ unit googleandroidpublisher;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:48
+//Generated on: 16-5-15 08:52:58
 {$MODE objfpc}
 {$H+}
 
@@ -24,51 +24,51 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TApk = class;
-  TApkBinary = class;
-  TApkListing = class;
-  TApkListingsListResponse = class;
-  TApksAddExternallyHostedRequest = class;
-  TApksAddExternallyHostedResponse = class;
-  TApksListResponse = class;
-  TAppDetails = class;
-  TAppEdit = class;
-  TEntitlement = class;
-  TEntitlementsListResponse = class;
-  TExpansionFile = class;
-  TExpansionFilesUploadResponse = class;
-  TExternallyHostedApk = class;
-  TExternallyHostedApkUsesPermission = class;
-  TImage = class;
-  TImagesDeleteAllResponse = class;
-  TImagesListResponse = class;
-  TImagesUploadResponse = class;
-  TInAppProduct = class;
-  TInAppProductListing = class;
-  TInappproductsBatchRequest = class;
-  TInappproductsBatchRequestEntry = class;
-  TInappproductsBatchResponse = class;
-  TInappproductsBatchResponseEntry = class;
-  TInappproductsInsertRequest = class;
-  TInappproductsInsertResponse = class;
-  TInappproductsListResponse = class;
-  TInappproductsUpdateRequest = class;
-  TInappproductsUpdateResponse = class;
-  TListing = class;
-  TListingsListResponse = class;
-  TMonthDay = class;
-  TPageInfo = class;
-  TPrice = class;
-  TProductPurchase = class;
-  TSeason = class;
-  TSubscriptionDeferralInfo = class;
-  TSubscriptionPurchase = class;
-  TSubscriptionPurchasesDeferRequest = class;
-  TSubscriptionPurchasesDeferResponse = class;
-  TTesters = class;
-  TTokenPagination = class;
-  TTrack = class;
-  TTracksListResponse = class;
+  TApk = Class;
+  TApkBinary = Class;
+  TApkListing = Class;
+  TApkListingsListResponse = Class;
+  TApksAddExternallyHostedRequest = Class;
+  TApksAddExternallyHostedResponse = Class;
+  TApksListResponse = Class;
+  TAppDetails = Class;
+  TAppEdit = Class;
+  TEntitlement = Class;
+  TEntitlementsListResponse = Class;
+  TExpansionFile = Class;
+  TExpansionFilesUploadResponse = Class;
+  TExternallyHostedApk = Class;
+  TExternallyHostedApkUsesPermission = Class;
+  TImage = Class;
+  TImagesDeleteAllResponse = Class;
+  TImagesListResponse = Class;
+  TImagesUploadResponse = Class;
+  TInAppProduct = Class;
+  TInAppProductListing = Class;
+  TInappproductsBatchRequest = Class;
+  TInappproductsBatchRequestEntry = Class;
+  TInappproductsBatchResponse = Class;
+  TInappproductsBatchResponseEntry = Class;
+  TInappproductsInsertRequest = Class;
+  TInappproductsInsertResponse = Class;
+  TInappproductsListResponse = Class;
+  TInappproductsUpdateRequest = Class;
+  TInappproductsUpdateResponse = Class;
+  TListing = Class;
+  TListingsListResponse = Class;
+  TMonthDay = Class;
+  TPageInfo = Class;
+  TPrice = Class;
+  TProductPurchase = Class;
+  TSeason = Class;
+  TSubscriptionDeferralInfo = Class;
+  TSubscriptionPurchase = Class;
+  TSubscriptionPurchasesDeferRequest = Class;
+  TSubscriptionPurchasesDeferResponse = Class;
+  TTesters = Class;
+  TTokenPagination = Class;
+  TTrack = Class;
+  TTracksListResponse = Class;
   TApkArray = Array of TApk;
   TApkBinaryArray = Array of TApkBinary;
   TApkListingArray = Array of TApkListing;
@@ -115,8 +115,8 @@ type
   TTrackArray = Array of TTrack;
   TTracksListResponseArray = Array of TTracksListResponse;
   //Anonymous types, using auto-generated names
-  TInAppProductTypelistings = class;
-  TInAppProductTypeprices = class;
+  TInAppProductTypelistings = Class;
+  TInAppProductTypeprices = Class;
   TApkListingsListResponseTypelistingsArray = Array of TApkListing;
   TApksListResponseTypeapksArray = Array of TApk;
   TEntitlementsListResponseTyperesourcesArray = Array of TEntitlement;
@@ -195,6 +195,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setlistings(AIndex : Integer; AValue : TApkListingsListResponseTypelistingsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -246,6 +250,10 @@ type
     //Property setters
     Procedure Setapks(AIndex : Integer; AValue : TApksListResponseTypeapksArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property apks : TApksListResponseTypeapksArray Index 0 Read Fapks Write Setapks;
@@ -336,6 +344,10 @@ type
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TEntitlementsListResponseTyperesourcesArray); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property pageInfo : TPageInfo Index 0 Read FpageInfo Write SetpageInfo;
@@ -417,6 +429,10 @@ type
     Procedure SetusesPermissions(AIndex : Integer; AValue : TExternallyHostedApkTypeusesPermissionsArray); virtual;
     Procedure SetversionCode(AIndex : Integer; AValue : integer); virtual;
     Procedure SetversionName(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property applicationLabel : String Index 0 Read FapplicationLabel Write SetapplicationLabel;
@@ -488,6 +504,10 @@ type
   Protected
     //Property setters
     Procedure Setdeleted(AIndex : Integer; AValue : TImagesDeleteAllResponseTypedeletedArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property deleted : TImagesDeleteAllResponseTypedeletedArray Index 0 Read Fdeleted Write Setdeleted;
@@ -504,6 +524,10 @@ type
   Protected
     //Property setters
     Procedure Setimages(AIndex : Integer; AValue : TImagesListResponseTypeimagesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property images : TImagesListResponseTypeimagesArray Index 0 Read Fimages Write Setimages;
@@ -629,6 +653,10 @@ type
   Protected
     //Property setters
     Procedure Setentrys(AIndex : Integer; AValue : TInappproductsBatchRequestTypeentrysArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entrys : TInappproductsBatchRequestTypeentrysArray Index 0 Read Fentrys Write Setentrys;
@@ -672,6 +700,10 @@ type
     //Property setters
     Procedure Setentrys(AIndex : Integer; AValue : TInappproductsBatchResponseTypeentrysArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property entrys : TInappproductsBatchResponseTypeentrysArray Index 0 Read Fentrys Write Setentrys;
@@ -749,6 +781,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property inappproduct : TInappproductsListResponseTypeinappproductArray Index 0 Read Finappproduct Write Setinappproduct;
@@ -830,6 +866,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setlistings(AIndex : Integer; AValue : TListingsListResponseTypelistingsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1033,6 +1073,10 @@ type
     //Property setters
     Procedure SetgoogleGroups(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetgooglePlusCommunities(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property googleGroups : TStringArray Index 0 Read FgoogleGroups Write SetgoogleGroups;
@@ -1073,6 +1117,10 @@ type
     Procedure Settrack(AIndex : Integer; AValue : String); virtual;
     Procedure SetuserFraction(AIndex : Integer; AValue : double); virtual;
     Procedure SetversionCodes(AIndex : Integer; AValue : TintegerArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property track : String Index 0 Read Ftrack Write Settrack;
@@ -1093,6 +1141,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Settracks(AIndex : Integer; AValue : TTracksListResponseTypetracksArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1101,10 +1153,148 @@ type
   TTracksListResponseClass = Class of TTracksListResponse;
   
   { --------------------------------------------------------------------
+    TEditsApklistingsResource
+    --------------------------------------------------------------------}
+  
+  TEditsApklistingsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(apkVersionCode: integer; editId: string; language: string; packageName: string);
+    Procedure Deleteall(apkVersionCode: integer; editId: string; packageName: string);
+    Function Get(apkVersionCode: integer; editId: string; language: string; packageName: string) : TApkListing;
+    Function List(apkVersionCode: integer; editId: string; packageName: string) : TApkListingsListResponse;
+    Function Patch(apkVersionCode: integer; editId: string; language: string; packageName: string; aApkListing : TApkListing) : TApkListing;
+    Function Update(apkVersionCode: integer; editId: string; language: string; packageName: string; aApkListing : TApkListing) : TApkListing;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TEditsApksResource
+    --------------------------------------------------------------------}
+  
+  TEditsApksResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Addexternallyhosted(editId: string; packageName: string; aApksAddExternallyHostedRequest : TApksAddExternallyHostedRequest) : TApksAddExternallyHostedResponse;
+    Function List(editId: string; packageName: string) : TApksListResponse;
+    Function Upload(editId: string; packageName: string) : TApk;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TEditsDetailsResource
+    --------------------------------------------------------------------}
+  
+  TEditsDetailsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(editId: string; packageName: string) : TAppDetails;
+    Function Patch(editId: string; packageName: string; aAppDetails : TAppDetails) : TAppDetails;
+    Function Update(editId: string; packageName: string; aAppDetails : TAppDetails) : TAppDetails;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TEditsExpansionfilesResource
+    --------------------------------------------------------------------}
+  
+  TEditsExpansionfilesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(apkVersionCode: integer; editId: string; expansionFileType: string; packageName: string) : TExpansionFile;
+    Function Patch(apkVersionCode: integer; editId: string; expansionFileType: string; packageName: string; aExpansionFile : TExpansionFile) : TExpansionFile;
+    Function Update(apkVersionCode: integer; editId: string; expansionFileType: string; packageName: string; aExpansionFile : TExpansionFile) : TExpansionFile;
+    Function Upload(apkVersionCode: integer; editId: string; expansionFileType: string; packageName: string) : TExpansionFilesUploadResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TEditsImagesResource
+    --------------------------------------------------------------------}
+  
+  TEditsImagesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(editId: string; imageId: string; imageType: string; language: string; packageName: string);
+    Function Deleteall(editId: string; imageType: string; language: string; packageName: string) : TImagesDeleteAllResponse;
+    Function List(editId: string; imageType: string; language: string; packageName: string) : TImagesListResponse;
+    Function Upload(editId: string; imageType: string; language: string; packageName: string) : TImagesUploadResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TEditsListingsResource
+    --------------------------------------------------------------------}
+  
+  TEditsListingsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(editId: string; language: string; packageName: string);
+    Procedure Deleteall(editId: string; packageName: string);
+    Function Get(editId: string; language: string; packageName: string) : TListing;
+    Function List(editId: string; packageName: string) : TListingsListResponse;
+    Function Patch(editId: string; language: string; packageName: string; aListing : TListing) : TListing;
+    Function Update(editId: string; language: string; packageName: string; aListing : TListing) : TListing;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TEditsTestersResource
+    --------------------------------------------------------------------}
+  
+  TEditsTestersResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(editId: string; packageName: string; track: string) : TTesters;
+    Function Patch(editId: string; packageName: string; track: string; aTesters : TTesters) : TTesters;
+    Function Update(editId: string; packageName: string; track: string; aTesters : TTesters) : TTesters;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TEditsTracksResource
+    --------------------------------------------------------------------}
+  
+  TEditsTracksResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(editId: string; packageName: string; track: string) : TTrack;
+    Function List(editId: string; packageName: string) : TTracksListResponse;
+    Function Patch(editId: string; packageName: string; track: string; aTrack : TTrack) : TTrack;
+    Function Update(editId: string; packageName: string; track: string; aTrack : TTrack) : TTrack;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TEditsResource
     --------------------------------------------------------------------}
   
   TEditsResource = Class(TGoogleResource)
+  Private
+    FApklistingsInstance : TEditsApklistingsResource;
+    FApksInstance : TEditsApksResource;
+    FDetailsInstance : TEditsDetailsResource;
+    FExpansionfilesInstance : TEditsExpansionfilesResource;
+    FImagesInstance : TEditsImagesResource;
+    FListingsInstance : TEditsListingsResource;
+    FTestersInstance : TEditsTestersResource;
+    FTracksInstance : TEditsTracksResource;
+    Function GetApklistingsInstance : TEditsApklistingsResource;virtual;
+    Function GetApksInstance : TEditsApksResource;virtual;
+    Function GetDetailsInstance : TEditsDetailsResource;virtual;
+    Function GetExpansionfilesInstance : TEditsExpansionfilesResource;virtual;
+    Function GetImagesInstance : TEditsImagesResource;virtual;
+    Function GetListingsInstance : TEditsListingsResource;virtual;
+    Function GetTestersInstance : TEditsTestersResource;virtual;
+    Function GetTracksInstance : TEditsTracksResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -1113,6 +1303,30 @@ type
     Function Get(editId: string; packageName: string) : TAppEdit;
     Function Insert(packageName: string; aAppEdit : TAppEdit) : TAppEdit;
     Function Validate(editId: string; packageName: string) : TAppEdit;
+    Function CreateApklistingsResource(AOwner : TComponent) : TEditsApklistingsResource;virtual;overload;
+    Function CreateApklistingsResource : TEditsApklistingsResource;virtual;overload;
+    Function CreateApksResource(AOwner : TComponent) : TEditsApksResource;virtual;overload;
+    Function CreateApksResource : TEditsApksResource;virtual;overload;
+    Function CreateDetailsResource(AOwner : TComponent) : TEditsDetailsResource;virtual;overload;
+    Function CreateDetailsResource : TEditsDetailsResource;virtual;overload;
+    Function CreateExpansionfilesResource(AOwner : TComponent) : TEditsExpansionfilesResource;virtual;overload;
+    Function CreateExpansionfilesResource : TEditsExpansionfilesResource;virtual;overload;
+    Function CreateImagesResource(AOwner : TComponent) : TEditsImagesResource;virtual;overload;
+    Function CreateImagesResource : TEditsImagesResource;virtual;overload;
+    Function CreateListingsResource(AOwner : TComponent) : TEditsListingsResource;virtual;overload;
+    Function CreateListingsResource : TEditsListingsResource;virtual;overload;
+    Function CreateTestersResource(AOwner : TComponent) : TEditsTestersResource;virtual;overload;
+    Function CreateTestersResource : TEditsTestersResource;virtual;overload;
+    Function CreateTracksResource(AOwner : TComponent) : TEditsTracksResource;virtual;overload;
+    Function CreateTracksResource : TEditsTracksResource;virtual;overload;
+    Property ApklistingsResource : TEditsApklistingsResource Read GetApklistingsInstance;
+    Property ApksResource : TEditsApksResource Read GetApksInstance;
+    Property DetailsResource : TEditsDetailsResource Read GetDetailsInstance;
+    Property ExpansionfilesResource : TEditsExpansionfilesResource Read GetExpansionfilesInstance;
+    Property ImagesResource : TEditsImagesResource Read GetImagesInstance;
+    Property ListingsResource : TEditsListingsResource Read GetListingsInstance;
+    Property TestersResource : TEditsTestersResource Read GetTestersInstance;
+    Property TracksResource : TEditsTracksResource Read GetTracksInstance;
   end;
   
   
@@ -1192,13 +1406,52 @@ type
   
   
   { --------------------------------------------------------------------
+    TPurchasesProductsResource
+    --------------------------------------------------------------------}
+  
+  TPurchasesProductsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(packageName: string; productId: string; token: string) : TProductPurchase;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TPurchasesSubscriptionsResource
+    --------------------------------------------------------------------}
+  
+  TPurchasesSubscriptionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Cancel(packageName: string; subscriptionId: string; token: string);
+    Function Defer(packageName: string; subscriptionId: string; token: string; aSubscriptionPurchasesDeferRequest : TSubscriptionPurchasesDeferRequest) : TSubscriptionPurchasesDeferResponse;
+    Function Get(packageName: string; subscriptionId: string; token: string) : TSubscriptionPurchase;
+    Procedure Refund(packageName: string; subscriptionId: string; token: string);
+    Procedure Revoke(packageName: string; subscriptionId: string; token: string);
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TPurchasesResource
     --------------------------------------------------------------------}
   
   TPurchasesResource = Class(TGoogleResource)
+  Private
+    FProductsInstance : TPurchasesProductsResource;
+    FSubscriptionsInstance : TPurchasesSubscriptionsResource;
+    Function GetProductsInstance : TPurchasesProductsResource;virtual;
+    Function GetSubscriptionsInstance : TPurchasesSubscriptionsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateProductsResource(AOwner : TComponent) : TPurchasesProductsResource;virtual;overload;
+    Function CreateProductsResource : TPurchasesProductsResource;virtual;overload;
+    Function CreateSubscriptionsResource(AOwner : TComponent) : TPurchasesSubscriptionsResource;virtual;overload;
+    Function CreateSubscriptionsResource : TPurchasesSubscriptionsResource;virtual;overload;
+    Property ProductsResource : TPurchasesProductsResource Read GetProductsInstance;
+    Property SubscriptionsResource : TPurchasesSubscriptionsResource Read GetSubscriptionsInstance;
   end;
   
   
@@ -1208,13 +1461,33 @@ type
   
   TAndroidpublisherAPI = Class(TGoogleAPI)
   Private
+    FEditsApklistingsInstance : TEditsApklistingsResource;
+    FEditsApksInstance : TEditsApksResource;
+    FEditsDetailsInstance : TEditsDetailsResource;
+    FEditsExpansionfilesInstance : TEditsExpansionfilesResource;
+    FEditsImagesInstance : TEditsImagesResource;
+    FEditsListingsInstance : TEditsListingsResource;
+    FEditsTestersInstance : TEditsTestersResource;
+    FEditsTracksInstance : TEditsTracksResource;
     FEditsInstance : TEditsResource;
     FEntitlementsInstance : TEntitlementsResource;
     FInappproductsInstance : TInappproductsResource;
+    FPurchasesProductsInstance : TPurchasesProductsResource;
+    FPurchasesSubscriptionsInstance : TPurchasesSubscriptionsResource;
     FPurchasesInstance : TPurchasesResource;
+    Function GetEditsApklistingsInstance : TEditsApklistingsResource;virtual;
+    Function GetEditsApksInstance : TEditsApksResource;virtual;
+    Function GetEditsDetailsInstance : TEditsDetailsResource;virtual;
+    Function GetEditsExpansionfilesInstance : TEditsExpansionfilesResource;virtual;
+    Function GetEditsImagesInstance : TEditsImagesResource;virtual;
+    Function GetEditsListingsInstance : TEditsListingsResource;virtual;
+    Function GetEditsTestersInstance : TEditsTestersResource;virtual;
+    Function GetEditsTracksInstance : TEditsTracksResource;virtual;
     Function GetEditsInstance : TEditsResource;virtual;
     Function GetEntitlementsInstance : TEntitlementsResource;virtual;
     Function GetInappproductsInstance : TInappproductsResource;virtual;
+    Function GetPurchasesProductsInstance : TPurchasesProductsResource;virtual;
+    Function GetPurchasesSubscriptionsInstance : TPurchasesSubscriptionsResource;virtual;
     Function GetPurchasesInstance : TPurchasesResource;virtual;
   Public
     //Override class functions with API info
@@ -1239,18 +1512,48 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateEditsApklistingsResource(AOwner : TComponent) : TEditsApklistingsResource;virtual;overload;
+    Function CreateEditsApklistingsResource : TEditsApklistingsResource;virtual;overload;
+    Function CreateEditsApksResource(AOwner : TComponent) : TEditsApksResource;virtual;overload;
+    Function CreateEditsApksResource : TEditsApksResource;virtual;overload;
+    Function CreateEditsDetailsResource(AOwner : TComponent) : TEditsDetailsResource;virtual;overload;
+    Function CreateEditsDetailsResource : TEditsDetailsResource;virtual;overload;
+    Function CreateEditsExpansionfilesResource(AOwner : TComponent) : TEditsExpansionfilesResource;virtual;overload;
+    Function CreateEditsExpansionfilesResource : TEditsExpansionfilesResource;virtual;overload;
+    Function CreateEditsImagesResource(AOwner : TComponent) : TEditsImagesResource;virtual;overload;
+    Function CreateEditsImagesResource : TEditsImagesResource;virtual;overload;
+    Function CreateEditsListingsResource(AOwner : TComponent) : TEditsListingsResource;virtual;overload;
+    Function CreateEditsListingsResource : TEditsListingsResource;virtual;overload;
+    Function CreateEditsTestersResource(AOwner : TComponent) : TEditsTestersResource;virtual;overload;
+    Function CreateEditsTestersResource : TEditsTestersResource;virtual;overload;
+    Function CreateEditsTracksResource(AOwner : TComponent) : TEditsTracksResource;virtual;overload;
+    Function CreateEditsTracksResource : TEditsTracksResource;virtual;overload;
     Function CreateEditsResource(AOwner : TComponent) : TEditsResource;virtual;overload;
     Function CreateEditsResource : TEditsResource;virtual;overload;
     Function CreateEntitlementsResource(AOwner : TComponent) : TEntitlementsResource;virtual;overload;
     Function CreateEntitlementsResource : TEntitlementsResource;virtual;overload;
     Function CreateInappproductsResource(AOwner : TComponent) : TInappproductsResource;virtual;overload;
     Function CreateInappproductsResource : TInappproductsResource;virtual;overload;
+    Function CreatePurchasesProductsResource(AOwner : TComponent) : TPurchasesProductsResource;virtual;overload;
+    Function CreatePurchasesProductsResource : TPurchasesProductsResource;virtual;overload;
+    Function CreatePurchasesSubscriptionsResource(AOwner : TComponent) : TPurchasesSubscriptionsResource;virtual;overload;
+    Function CreatePurchasesSubscriptionsResource : TPurchasesSubscriptionsResource;virtual;overload;
     Function CreatePurchasesResource(AOwner : TComponent) : TPurchasesResource;virtual;overload;
     Function CreatePurchasesResource : TPurchasesResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property EditsApklistingsResource : TEditsApklistingsResource Read GetEditsApklistingsInstance;
+    Property EditsApksResource : TEditsApksResource Read GetEditsApksInstance;
+    Property EditsDetailsResource : TEditsDetailsResource Read GetEditsDetailsInstance;
+    Property EditsExpansionfilesResource : TEditsExpansionfilesResource Read GetEditsExpansionfilesInstance;
+    Property EditsImagesResource : TEditsImagesResource Read GetEditsImagesInstance;
+    Property EditsListingsResource : TEditsListingsResource Read GetEditsListingsInstance;
+    Property EditsTestersResource : TEditsTestersResource Read GetEditsTestersInstance;
+    Property EditsTracksResource : TEditsTracksResource Read GetEditsTracksInstance;
     Property EditsResource : TEditsResource Read GetEditsInstance;
     Property EntitlementsResource : TEntitlementsResource Read GetEntitlementsInstance;
     Property InappproductsResource : TInappproductsResource Read GetInappproductsInstance;
+    Property PurchasesProductsResource : TPurchasesProductsResource Read GetPurchasesProductsInstance;
+    Property PurchasesSubscriptionsResource : TPurchasesSubscriptionsResource Read GetPurchasesSubscriptionsInstance;
     Property PurchasesResource : TPurchasesResource Read GetPurchasesInstance;
   end;
 
@@ -1352,6 +1655,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TApkListingsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'listings' : SetLength(Flistings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1412,6 +1728,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TApksListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'apks' : SetLength(Fapks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1570,6 +1899,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEntitlementsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1772,6 +2114,22 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TExternallyHostedApk.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'certificatebase64s' : SetLength(FcertificateBase64s,ALength);
+  'nativecodes' : SetLength(FnativeCodes,ALength);
+  'usesfeatures' : SetLength(FusesFeatures,ALength);
+  'usespermissions' : SetLength(FusesPermissions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1853,6 +2211,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TImagesDeleteAllResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'deleted' : SetLength(Fdeleted,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1869,6 +2240,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TImagesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'images' : SetLength(Fimages,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2074,6 +2458,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInappproductsBatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entrys' : SetLength(Fentrys,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2147,6 +2544,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInappproductsBatchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'entrys' : SetLength(Fentrys,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2266,6 +2676,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInappproductsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'inappproduct' : SetLength(Finappproduct,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2383,6 +2806,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListingsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'listings' : SetLength(Flistings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2705,6 +3141,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTesters.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'googlegroups' : SetLength(FgoogleGroups,ALength);
+  'googlepluscommunities' : SetLength(FgooglePlusCommunities,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2769,6 +3219,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTrack.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'versioncodes' : SetLength(FversionCodes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2796,6 +3259,666 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTracksListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'tracks' : SetLength(Ftracks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TEditsApklistingsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TEditsApklistingsResource.ResourceName : String;
+
+begin
+  Result:='apklistings';
+end;
+
+Class Function TEditsApklistingsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidpublisherAPI;
+end;
+
+Procedure TEditsApklistingsResource.Delete(apkVersionCode: integer; editId: string; language: string; packageName: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{packageName}/edits/{editId}/apks/{apkVersionCode}/listings/{language}';
+  _Methodid   = 'androidpublisher.edits.apklistings.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['apkVersionCode',apkVersionCode,'editId',editId,'language',language,'packageName',packageName]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Procedure TEditsApklistingsResource.Deleteall(apkVersionCode: integer; editId: string; packageName: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{packageName}/edits/{editId}/apks/{apkVersionCode}/listings';
+  _Methodid   = 'androidpublisher.edits.apklistings.deleteall';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['apkVersionCode',apkVersionCode,'editId',editId,'packageName',packageName]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TEditsApklistingsResource.Get(apkVersionCode: integer; editId: string; language: string; packageName: string) : TApkListing;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/edits/{editId}/apks/{apkVersionCode}/listings/{language}';
+  _Methodid   = 'androidpublisher.edits.apklistings.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['apkVersionCode',apkVersionCode,'editId',editId,'language',language,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TApkListing) as TApkListing;
+end;
+
+Function TEditsApklistingsResource.List(apkVersionCode: integer; editId: string; packageName: string) : TApkListingsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/edits/{editId}/apks/{apkVersionCode}/listings';
+  _Methodid   = 'androidpublisher.edits.apklistings.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['apkVersionCode',apkVersionCode,'editId',editId,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TApkListingsListResponse) as TApkListingsListResponse;
+end;
+
+Function TEditsApklistingsResource.Patch(apkVersionCode: integer; editId: string; language: string; packageName: string; aApkListing : TApkListing) : TApkListing;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{packageName}/edits/{editId}/apks/{apkVersionCode}/listings/{language}';
+  _Methodid   = 'androidpublisher.edits.apklistings.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['apkVersionCode',apkVersionCode,'editId',editId,'language',language,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aApkListing,TApkListing) as TApkListing;
+end;
+
+Function TEditsApklistingsResource.Update(apkVersionCode: integer; editId: string; language: string; packageName: string; aApkListing : TApkListing) : TApkListing;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{packageName}/edits/{editId}/apks/{apkVersionCode}/listings/{language}';
+  _Methodid   = 'androidpublisher.edits.apklistings.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['apkVersionCode',apkVersionCode,'editId',editId,'language',language,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aApkListing,TApkListing) as TApkListing;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TEditsApksResource
+  --------------------------------------------------------------------}
+
+
+Class Function TEditsApksResource.ResourceName : String;
+
+begin
+  Result:='apks';
+end;
+
+Class Function TEditsApksResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidpublisherAPI;
+end;
+
+Function TEditsApksResource.Addexternallyhosted(editId: string; packageName: string; aApksAddExternallyHostedRequest : TApksAddExternallyHostedRequest) : TApksAddExternallyHostedResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{packageName}/edits/{editId}/apks/externallyHosted';
+  _Methodid   = 'androidpublisher.edits.apks.addexternallyhosted';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aApksAddExternallyHostedRequest,TApksAddExternallyHostedResponse) as TApksAddExternallyHostedResponse;
+end;
+
+Function TEditsApksResource.List(editId: string; packageName: string) : TApksListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/edits/{editId}/apks';
+  _Methodid   = 'androidpublisher.edits.apks.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TApksListResponse) as TApksListResponse;
+end;
+
+Function TEditsApksResource.Upload(editId: string; packageName: string) : TApk;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{packageName}/edits/{editId}/apks';
+  _Methodid   = 'androidpublisher.edits.apks.upload';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TApk) as TApk;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TEditsDetailsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TEditsDetailsResource.ResourceName : String;
+
+begin
+  Result:='details';
+end;
+
+Class Function TEditsDetailsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidpublisherAPI;
+end;
+
+Function TEditsDetailsResource.Get(editId: string; packageName: string) : TAppDetails;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/edits/{editId}/details';
+  _Methodid   = 'androidpublisher.edits.details.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TAppDetails) as TAppDetails;
+end;
+
+Function TEditsDetailsResource.Patch(editId: string; packageName: string; aAppDetails : TAppDetails) : TAppDetails;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{packageName}/edits/{editId}/details';
+  _Methodid   = 'androidpublisher.edits.details.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aAppDetails,TAppDetails) as TAppDetails;
+end;
+
+Function TEditsDetailsResource.Update(editId: string; packageName: string; aAppDetails : TAppDetails) : TAppDetails;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{packageName}/edits/{editId}/details';
+  _Methodid   = 'androidpublisher.edits.details.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aAppDetails,TAppDetails) as TAppDetails;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TEditsExpansionfilesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TEditsExpansionfilesResource.ResourceName : String;
+
+begin
+  Result:='expansionfiles';
+end;
+
+Class Function TEditsExpansionfilesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidpublisherAPI;
+end;
+
+Function TEditsExpansionfilesResource.Get(apkVersionCode: integer; editId: string; expansionFileType: string; packageName: string) : TExpansionFile;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}';
+  _Methodid   = 'androidpublisher.edits.expansionfiles.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['apkVersionCode',apkVersionCode,'editId',editId,'expansionFileType',expansionFileType,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TExpansionFile) as TExpansionFile;
+end;
+
+Function TEditsExpansionfilesResource.Patch(apkVersionCode: integer; editId: string; expansionFileType: string; packageName: string; aExpansionFile : TExpansionFile) : TExpansionFile;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}';
+  _Methodid   = 'androidpublisher.edits.expansionfiles.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['apkVersionCode',apkVersionCode,'editId',editId,'expansionFileType',expansionFileType,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aExpansionFile,TExpansionFile) as TExpansionFile;
+end;
+
+Function TEditsExpansionfilesResource.Update(apkVersionCode: integer; editId: string; expansionFileType: string; packageName: string; aExpansionFile : TExpansionFile) : TExpansionFile;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}';
+  _Methodid   = 'androidpublisher.edits.expansionfiles.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['apkVersionCode',apkVersionCode,'editId',editId,'expansionFileType',expansionFileType,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aExpansionFile,TExpansionFile) as TExpansionFile;
+end;
+
+Function TEditsExpansionfilesResource.Upload(apkVersionCode: integer; editId: string; expansionFileType: string; packageName: string) : TExpansionFilesUploadResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}';
+  _Methodid   = 'androidpublisher.edits.expansionfiles.upload';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['apkVersionCode',apkVersionCode,'editId',editId,'expansionFileType',expansionFileType,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TExpansionFilesUploadResponse) as TExpansionFilesUploadResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TEditsImagesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TEditsImagesResource.ResourceName : String;
+
+begin
+  Result:='images';
+end;
+
+Class Function TEditsImagesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidpublisherAPI;
+end;
+
+Procedure TEditsImagesResource.Delete(editId: string; imageId: string; imageType: string; language: string; packageName: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{packageName}/edits/{editId}/listings/{language}/{imageType}/{imageId}';
+  _Methodid   = 'androidpublisher.edits.images.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'imageId',imageId,'imageType',imageType,'language',language,'packageName',packageName]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TEditsImagesResource.Deleteall(editId: string; imageType: string; language: string; packageName: string) : TImagesDeleteAllResponse;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{packageName}/edits/{editId}/listings/{language}/{imageType}';
+  _Methodid   = 'androidpublisher.edits.images.deleteall';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'imageType',imageType,'language',language,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TImagesDeleteAllResponse) as TImagesDeleteAllResponse;
+end;
+
+Function TEditsImagesResource.List(editId: string; imageType: string; language: string; packageName: string) : TImagesListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/edits/{editId}/listings/{language}/{imageType}';
+  _Methodid   = 'androidpublisher.edits.images.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'imageType',imageType,'language',language,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TImagesListResponse) as TImagesListResponse;
+end;
+
+Function TEditsImagesResource.Upload(editId: string; imageType: string; language: string; packageName: string) : TImagesUploadResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{packageName}/edits/{editId}/listings/{language}/{imageType}';
+  _Methodid   = 'androidpublisher.edits.images.upload';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'imageType',imageType,'language',language,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TImagesUploadResponse) as TImagesUploadResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TEditsListingsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TEditsListingsResource.ResourceName : String;
+
+begin
+  Result:='listings';
+end;
+
+Class Function TEditsListingsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidpublisherAPI;
+end;
+
+Procedure TEditsListingsResource.Delete(editId: string; language: string; packageName: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{packageName}/edits/{editId}/listings/{language}';
+  _Methodid   = 'androidpublisher.edits.listings.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'language',language,'packageName',packageName]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Procedure TEditsListingsResource.Deleteall(editId: string; packageName: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{packageName}/edits/{editId}/listings';
+  _Methodid   = 'androidpublisher.edits.listings.deleteall';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TEditsListingsResource.Get(editId: string; language: string; packageName: string) : TListing;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/edits/{editId}/listings/{language}';
+  _Methodid   = 'androidpublisher.edits.listings.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'language',language,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListing) as TListing;
+end;
+
+Function TEditsListingsResource.List(editId: string; packageName: string) : TListingsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/edits/{editId}/listings';
+  _Methodid   = 'androidpublisher.edits.listings.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListingsListResponse) as TListingsListResponse;
+end;
+
+Function TEditsListingsResource.Patch(editId: string; language: string; packageName: string; aListing : TListing) : TListing;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{packageName}/edits/{editId}/listings/{language}';
+  _Methodid   = 'androidpublisher.edits.listings.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'language',language,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aListing,TListing) as TListing;
+end;
+
+Function TEditsListingsResource.Update(editId: string; language: string; packageName: string; aListing : TListing) : TListing;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{packageName}/edits/{editId}/listings/{language}';
+  _Methodid   = 'androidpublisher.edits.listings.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'language',language,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aListing,TListing) as TListing;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TEditsTestersResource
+  --------------------------------------------------------------------}
+
+
+Class Function TEditsTestersResource.ResourceName : String;
+
+begin
+  Result:='testers';
+end;
+
+Class Function TEditsTestersResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidpublisherAPI;
+end;
+
+Function TEditsTestersResource.Get(editId: string; packageName: string; track: string) : TTesters;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/edits/{editId}/testers/{track}';
+  _Methodid   = 'androidpublisher.edits.testers.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName,'track',track]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TTesters) as TTesters;
+end;
+
+Function TEditsTestersResource.Patch(editId: string; packageName: string; track: string; aTesters : TTesters) : TTesters;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{packageName}/edits/{editId}/testers/{track}';
+  _Methodid   = 'androidpublisher.edits.testers.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName,'track',track]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aTesters,TTesters) as TTesters;
+end;
+
+Function TEditsTestersResource.Update(editId: string; packageName: string; track: string; aTesters : TTesters) : TTesters;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{packageName}/edits/{editId}/testers/{track}';
+  _Methodid   = 'androidpublisher.edits.testers.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName,'track',track]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aTesters,TTesters) as TTesters;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TEditsTracksResource
+  --------------------------------------------------------------------}
+
+
+Class Function TEditsTracksResource.ResourceName : String;
+
+begin
+  Result:='tracks';
+end;
+
+Class Function TEditsTracksResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidpublisherAPI;
+end;
+
+Function TEditsTracksResource.Get(editId: string; packageName: string; track: string) : TTrack;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/edits/{editId}/tracks/{track}';
+  _Methodid   = 'androidpublisher.edits.tracks.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName,'track',track]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TTrack) as TTrack;
+end;
+
+Function TEditsTracksResource.List(editId: string; packageName: string) : TTracksListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/edits/{editId}/tracks';
+  _Methodid   = 'androidpublisher.edits.tracks.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TTracksListResponse) as TTracksListResponse;
+end;
+
+Function TEditsTracksResource.Patch(editId: string; packageName: string; track: string; aTrack : TTrack) : TTrack;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{packageName}/edits/{editId}/tracks/{track}';
+  _Methodid   = 'androidpublisher.edits.tracks.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName,'track',track]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aTrack,TTrack) as TTrack;
+end;
+
+Function TEditsTracksResource.Update(editId: string; packageName: string; track: string; aTrack : TTrack) : TTrack;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{packageName}/edits/{editId}/tracks/{track}';
+  _Methodid   = 'androidpublisher.edits.tracks.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName,'track',track]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aTrack,TTrack) as TTrack;
+end;
 
 
 
@@ -2889,6 +4012,198 @@ Var
 begin
   _P:=SubstitutePath(_Path,['editId',editId,'packageName',packageName]);
   Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TAppEdit) as TAppEdit;
+end;
+
+
+
+Function TEditsResource.GetApklistingsInstance : TEditsApklistingsResource;
+
+begin
+  if (FApklistingsInstance=Nil) then
+    FApklistingsInstance:=CreateApklistingsResource;
+  Result:=FApklistingsInstance;
+end;
+
+Function TEditsResource.CreateApklistingsResource : TEditsApklistingsResource;
+
+begin
+  Result:=CreateApklistingsResource(Self);
+end;
+
+
+Function TEditsResource.CreateApklistingsResource(AOwner : TComponent) : TEditsApklistingsResource;
+
+begin
+  Result:=TEditsApklistingsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TEditsResource.GetApksInstance : TEditsApksResource;
+
+begin
+  if (FApksInstance=Nil) then
+    FApksInstance:=CreateApksResource;
+  Result:=FApksInstance;
+end;
+
+Function TEditsResource.CreateApksResource : TEditsApksResource;
+
+begin
+  Result:=CreateApksResource(Self);
+end;
+
+
+Function TEditsResource.CreateApksResource(AOwner : TComponent) : TEditsApksResource;
+
+begin
+  Result:=TEditsApksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TEditsResource.GetDetailsInstance : TEditsDetailsResource;
+
+begin
+  if (FDetailsInstance=Nil) then
+    FDetailsInstance:=CreateDetailsResource;
+  Result:=FDetailsInstance;
+end;
+
+Function TEditsResource.CreateDetailsResource : TEditsDetailsResource;
+
+begin
+  Result:=CreateDetailsResource(Self);
+end;
+
+
+Function TEditsResource.CreateDetailsResource(AOwner : TComponent) : TEditsDetailsResource;
+
+begin
+  Result:=TEditsDetailsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TEditsResource.GetExpansionfilesInstance : TEditsExpansionfilesResource;
+
+begin
+  if (FExpansionfilesInstance=Nil) then
+    FExpansionfilesInstance:=CreateExpansionfilesResource;
+  Result:=FExpansionfilesInstance;
+end;
+
+Function TEditsResource.CreateExpansionfilesResource : TEditsExpansionfilesResource;
+
+begin
+  Result:=CreateExpansionfilesResource(Self);
+end;
+
+
+Function TEditsResource.CreateExpansionfilesResource(AOwner : TComponent) : TEditsExpansionfilesResource;
+
+begin
+  Result:=TEditsExpansionfilesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TEditsResource.GetImagesInstance : TEditsImagesResource;
+
+begin
+  if (FImagesInstance=Nil) then
+    FImagesInstance:=CreateImagesResource;
+  Result:=FImagesInstance;
+end;
+
+Function TEditsResource.CreateImagesResource : TEditsImagesResource;
+
+begin
+  Result:=CreateImagesResource(Self);
+end;
+
+
+Function TEditsResource.CreateImagesResource(AOwner : TComponent) : TEditsImagesResource;
+
+begin
+  Result:=TEditsImagesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TEditsResource.GetListingsInstance : TEditsListingsResource;
+
+begin
+  if (FListingsInstance=Nil) then
+    FListingsInstance:=CreateListingsResource;
+  Result:=FListingsInstance;
+end;
+
+Function TEditsResource.CreateListingsResource : TEditsListingsResource;
+
+begin
+  Result:=CreateListingsResource(Self);
+end;
+
+
+Function TEditsResource.CreateListingsResource(AOwner : TComponent) : TEditsListingsResource;
+
+begin
+  Result:=TEditsListingsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TEditsResource.GetTestersInstance : TEditsTestersResource;
+
+begin
+  if (FTestersInstance=Nil) then
+    FTestersInstance:=CreateTestersResource;
+  Result:=FTestersInstance;
+end;
+
+Function TEditsResource.CreateTestersResource : TEditsTestersResource;
+
+begin
+  Result:=CreateTestersResource(Self);
+end;
+
+
+Function TEditsResource.CreateTestersResource(AOwner : TComponent) : TEditsTestersResource;
+
+begin
+  Result:=TEditsTestersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TEditsResource.GetTracksInstance : TEditsTracksResource;
+
+begin
+  if (FTracksInstance=Nil) then
+    FTracksInstance:=CreateTracksResource;
+  Result:=FTracksInstance;
+end;
+
+Function TEditsResource.CreateTracksResource : TEditsTracksResource;
+
+begin
+  Result:=CreateTracksResource(Self);
+end;
+
+
+Function TEditsResource.CreateTracksResource(AOwner : TComponent) : TEditsTracksResource;
+
+begin
+  Result:=TEditsTracksResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -3113,6 +4428,134 @@ end;
 
 
 { --------------------------------------------------------------------
+  TPurchasesProductsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TPurchasesProductsResource.ResourceName : String;
+
+begin
+  Result:='products';
+end;
+
+Class Function TPurchasesProductsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidpublisherAPI;
+end;
+
+Function TPurchasesProductsResource.Get(packageName: string; productId: string; token: string) : TProductPurchase;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/purchases/products/{productId}/tokens/{token}';
+  _Methodid   = 'androidpublisher.purchases.products.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['packageName',packageName,'productId',productId,'token',token]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TProductPurchase) as TProductPurchase;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TPurchasesSubscriptionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TPurchasesSubscriptionsResource.ResourceName : String;
+
+begin
+  Result:='subscriptions';
+end;
+
+Class Function TPurchasesSubscriptionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidpublisherAPI;
+end;
+
+Procedure TPurchasesSubscriptionsResource.Cancel(packageName: string; subscriptionId: string; token: string);
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel';
+  _Methodid   = 'androidpublisher.purchases.subscriptions.cancel';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['packageName',packageName,'subscriptionId',subscriptionId,'token',token]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TPurchasesSubscriptionsResource.Defer(packageName: string; subscriptionId: string; token: string; aSubscriptionPurchasesDeferRequest : TSubscriptionPurchasesDeferRequest) : TSubscriptionPurchasesDeferResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer';
+  _Methodid   = 'androidpublisher.purchases.subscriptions.defer';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['packageName',packageName,'subscriptionId',subscriptionId,'token',token]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aSubscriptionPurchasesDeferRequest,TSubscriptionPurchasesDeferResponse) as TSubscriptionPurchasesDeferResponse;
+end;
+
+Function TPurchasesSubscriptionsResource.Get(packageName: string; subscriptionId: string; token: string) : TSubscriptionPurchase;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}';
+  _Methodid   = 'androidpublisher.purchases.subscriptions.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['packageName',packageName,'subscriptionId',subscriptionId,'token',token]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TSubscriptionPurchase) as TSubscriptionPurchase;
+end;
+
+Procedure TPurchasesSubscriptionsResource.Refund(packageName: string; subscriptionId: string; token: string);
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund';
+  _Methodid   = 'androidpublisher.purchases.subscriptions.refund';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['packageName',packageName,'subscriptionId',subscriptionId,'token',token]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Procedure TPurchasesSubscriptionsResource.Revoke(packageName: string; subscriptionId: string; token: string);
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke';
+  _Methodid   = 'androidpublisher.purchases.subscriptions.revoke';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['packageName',packageName,'subscriptionId',subscriptionId,'token',token]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+
+
+{ --------------------------------------------------------------------
   TPurchasesResource
   --------------------------------------------------------------------}
 
@@ -3127,6 +4570,54 @@ Class Function TPurchasesResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TandroidpublisherAPI;
+end;
+
+
+
+Function TPurchasesResource.GetProductsInstance : TPurchasesProductsResource;
+
+begin
+  if (FProductsInstance=Nil) then
+    FProductsInstance:=CreateProductsResource;
+  Result:=FProductsInstance;
+end;
+
+Function TPurchasesResource.CreateProductsResource : TPurchasesProductsResource;
+
+begin
+  Result:=CreateProductsResource(Self);
+end;
+
+
+Function TPurchasesResource.CreateProductsResource(AOwner : TComponent) : TPurchasesProductsResource;
+
+begin
+  Result:=TPurchasesProductsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TPurchasesResource.GetSubscriptionsInstance : TPurchasesSubscriptionsResource;
+
+begin
+  if (FSubscriptionsInstance=Nil) then
+    FSubscriptionsInstance:=CreateSubscriptionsResource;
+  Result:=FSubscriptionsInstance;
+end;
+
+Function TPurchasesResource.CreateSubscriptionsResource : TPurchasesSubscriptionsResource;
+
+begin
+  Result:=CreateSubscriptionsResource(Self);
+end;
+
+
+Function TPurchasesResource.CreateSubscriptionsResource(AOwner : TComponent) : TPurchasesSubscriptionsResource;
+
+begin
+  Result:=TPurchasesSubscriptionsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -3204,7 +4695,7 @@ end;
 Class Function TAndroidpublisherAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TAndroidpublisherAPI.APIbasePath : string;
@@ -3216,7 +4707,7 @@ end;
 Class Function TAndroidpublisherAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/androidpublisher/v2/applications/';
+  Result:='https://www.googleapis.com:443/androidpublisher/v2/applications/';
 end;
 
 Class Function TAndroidpublisherAPI.APIProtocol : string;
@@ -3305,6 +4796,198 @@ begin
 end;
 
 
+Function TAndroidpublisherAPI.GetEditsApklistingsInstance : TEditsApklistingsResource;
+
+begin
+  if (FEditsApklistingsInstance=Nil) then
+    FEditsApklistingsInstance:=CreateEditsApklistingsResource;
+  Result:=FEditsApklistingsInstance;
+end;
+
+Function TAndroidpublisherAPI.CreateEditsApklistingsResource : TEditsApklistingsResource;
+
+begin
+  Result:=CreateEditsApklistingsResource(Self);
+end;
+
+
+Function TAndroidpublisherAPI.CreateEditsApklistingsResource(AOwner : TComponent) : TEditsApklistingsResource;
+
+begin
+  Result:=TEditsApklistingsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAndroidpublisherAPI.GetEditsApksInstance : TEditsApksResource;
+
+begin
+  if (FEditsApksInstance=Nil) then
+    FEditsApksInstance:=CreateEditsApksResource;
+  Result:=FEditsApksInstance;
+end;
+
+Function TAndroidpublisherAPI.CreateEditsApksResource : TEditsApksResource;
+
+begin
+  Result:=CreateEditsApksResource(Self);
+end;
+
+
+Function TAndroidpublisherAPI.CreateEditsApksResource(AOwner : TComponent) : TEditsApksResource;
+
+begin
+  Result:=TEditsApksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAndroidpublisherAPI.GetEditsDetailsInstance : TEditsDetailsResource;
+
+begin
+  if (FEditsDetailsInstance=Nil) then
+    FEditsDetailsInstance:=CreateEditsDetailsResource;
+  Result:=FEditsDetailsInstance;
+end;
+
+Function TAndroidpublisherAPI.CreateEditsDetailsResource : TEditsDetailsResource;
+
+begin
+  Result:=CreateEditsDetailsResource(Self);
+end;
+
+
+Function TAndroidpublisherAPI.CreateEditsDetailsResource(AOwner : TComponent) : TEditsDetailsResource;
+
+begin
+  Result:=TEditsDetailsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAndroidpublisherAPI.GetEditsExpansionfilesInstance : TEditsExpansionfilesResource;
+
+begin
+  if (FEditsExpansionfilesInstance=Nil) then
+    FEditsExpansionfilesInstance:=CreateEditsExpansionfilesResource;
+  Result:=FEditsExpansionfilesInstance;
+end;
+
+Function TAndroidpublisherAPI.CreateEditsExpansionfilesResource : TEditsExpansionfilesResource;
+
+begin
+  Result:=CreateEditsExpansionfilesResource(Self);
+end;
+
+
+Function TAndroidpublisherAPI.CreateEditsExpansionfilesResource(AOwner : TComponent) : TEditsExpansionfilesResource;
+
+begin
+  Result:=TEditsExpansionfilesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAndroidpublisherAPI.GetEditsImagesInstance : TEditsImagesResource;
+
+begin
+  if (FEditsImagesInstance=Nil) then
+    FEditsImagesInstance:=CreateEditsImagesResource;
+  Result:=FEditsImagesInstance;
+end;
+
+Function TAndroidpublisherAPI.CreateEditsImagesResource : TEditsImagesResource;
+
+begin
+  Result:=CreateEditsImagesResource(Self);
+end;
+
+
+Function TAndroidpublisherAPI.CreateEditsImagesResource(AOwner : TComponent) : TEditsImagesResource;
+
+begin
+  Result:=TEditsImagesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAndroidpublisherAPI.GetEditsListingsInstance : TEditsListingsResource;
+
+begin
+  if (FEditsListingsInstance=Nil) then
+    FEditsListingsInstance:=CreateEditsListingsResource;
+  Result:=FEditsListingsInstance;
+end;
+
+Function TAndroidpublisherAPI.CreateEditsListingsResource : TEditsListingsResource;
+
+begin
+  Result:=CreateEditsListingsResource(Self);
+end;
+
+
+Function TAndroidpublisherAPI.CreateEditsListingsResource(AOwner : TComponent) : TEditsListingsResource;
+
+begin
+  Result:=TEditsListingsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAndroidpublisherAPI.GetEditsTestersInstance : TEditsTestersResource;
+
+begin
+  if (FEditsTestersInstance=Nil) then
+    FEditsTestersInstance:=CreateEditsTestersResource;
+  Result:=FEditsTestersInstance;
+end;
+
+Function TAndroidpublisherAPI.CreateEditsTestersResource : TEditsTestersResource;
+
+begin
+  Result:=CreateEditsTestersResource(Self);
+end;
+
+
+Function TAndroidpublisherAPI.CreateEditsTestersResource(AOwner : TComponent) : TEditsTestersResource;
+
+begin
+  Result:=TEditsTestersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAndroidpublisherAPI.GetEditsTracksInstance : TEditsTracksResource;
+
+begin
+  if (FEditsTracksInstance=Nil) then
+    FEditsTracksInstance:=CreateEditsTracksResource;
+  Result:=FEditsTracksInstance;
+end;
+
+Function TAndroidpublisherAPI.CreateEditsTracksResource : TEditsTracksResource;
+
+begin
+  Result:=CreateEditsTracksResource(Self);
+end;
+
+
+Function TAndroidpublisherAPI.CreateEditsTracksResource(AOwner : TComponent) : TEditsTracksResource;
+
+begin
+  Result:=TEditsTracksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TAndroidpublisherAPI.GetEditsInstance : TEditsResource;
 
 begin
@@ -3324,7 +5007,7 @@ Function TAndroidpublisherAPI.CreateEditsResource(AOwner : TComponent) : TEditsR
 
 begin
   Result:=TEditsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3348,7 +5031,7 @@ Function TAndroidpublisherAPI.CreateEntitlementsResource(AOwner : TComponent) : 
 
 begin
   Result:=TEntitlementsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3372,7 +5055,55 @@ Function TAndroidpublisherAPI.CreateInappproductsResource(AOwner : TComponent) :
 
 begin
   Result:=TInappproductsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAndroidpublisherAPI.GetPurchasesProductsInstance : TPurchasesProductsResource;
+
+begin
+  if (FPurchasesProductsInstance=Nil) then
+    FPurchasesProductsInstance:=CreatePurchasesProductsResource;
+  Result:=FPurchasesProductsInstance;
+end;
+
+Function TAndroidpublisherAPI.CreatePurchasesProductsResource : TPurchasesProductsResource;
+
+begin
+  Result:=CreatePurchasesProductsResource(Self);
+end;
+
+
+Function TAndroidpublisherAPI.CreatePurchasesProductsResource(AOwner : TComponent) : TPurchasesProductsResource;
+
+begin
+  Result:=TPurchasesProductsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAndroidpublisherAPI.GetPurchasesSubscriptionsInstance : TPurchasesSubscriptionsResource;
+
+begin
+  if (FPurchasesSubscriptionsInstance=Nil) then
+    FPurchasesSubscriptionsInstance:=CreatePurchasesSubscriptionsResource;
+  Result:=FPurchasesSubscriptionsInstance;
+end;
+
+Function TAndroidpublisherAPI.CreatePurchasesSubscriptionsResource : TPurchasesSubscriptionsResource;
+
+begin
+  Result:=CreatePurchasesSubscriptionsResource(Self);
+end;
+
+
+Function TAndroidpublisherAPI.CreatePurchasesSubscriptionsResource(AOwner : TComponent) : TPurchasesSubscriptionsResource;
+
+begin
+  Result:=TPurchasesSubscriptionsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -3396,7 +5127,7 @@ Function TAndroidpublisherAPI.CreatePurchasesResource(AOwner : TComponent) : TPu
 
 begin
   Result:=TPurchasesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

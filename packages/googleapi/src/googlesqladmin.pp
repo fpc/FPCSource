@@ -13,7 +13,7 @@ unit googlesqladmin;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:58
+//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -24,46 +24,46 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAclEntry = class;
-  TBackupConfiguration = class;
-  TBackupRun = class;
-  TBackupRunsListResponse = class;
-  TBinLogCoordinates = class;
-  TCloneContext = class;
-  TDatabase = class;
-  TDatabaseFlags = class;
-  TDatabaseInstance = class;
-  TDatabasesListResponse = class;
-  TExportContext = class;
-  TFlag = class;
-  TFlagsListResponse = class;
-  TImportContext = class;
-  TInstancesCloneRequest = class;
-  TInstancesExportRequest = class;
-  TInstancesImportRequest = class;
-  TInstancesListResponse = class;
-  TInstancesRestoreBackupRequest = class;
-  TIpConfiguration = class;
-  TIpMapping = class;
-  TLocationPreference = class;
-  TMySqlReplicaConfiguration = class;
-  TOnPremisesConfiguration = class;
-  TOperation = class;
-  TOperationError = class;
-  TOperationErrors = class;
-  TOperationsListResponse = class;
-  TReplicaConfiguration = class;
-  TRestoreBackupContext = class;
-  TSettings = class;
-  TSslCert = class;
-  TSslCertDetail = class;
-  TSslCertsInsertRequest = class;
-  TSslCertsInsertResponse = class;
-  TSslCertsListResponse = class;
-  TTier = class;
-  TTiersListResponse = class;
-  TUser = class;
-  TUsersListResponse = class;
+  TAclEntry = Class;
+  TBackupConfiguration = Class;
+  TBackupRun = Class;
+  TBackupRunsListResponse = Class;
+  TBinLogCoordinates = Class;
+  TCloneContext = Class;
+  TDatabase = Class;
+  TDatabaseFlags = Class;
+  TDatabaseInstance = Class;
+  TDatabasesListResponse = Class;
+  TExportContext = Class;
+  TFlag = Class;
+  TFlagsListResponse = Class;
+  TImportContext = Class;
+  TInstancesCloneRequest = Class;
+  TInstancesExportRequest = Class;
+  TInstancesImportRequest = Class;
+  TInstancesListResponse = Class;
+  TInstancesRestoreBackupRequest = Class;
+  TIpConfiguration = Class;
+  TIpMapping = Class;
+  TLocationPreference = Class;
+  TMySqlReplicaConfiguration = Class;
+  TOnPremisesConfiguration = Class;
+  TOperation = Class;
+  TOperationError = Class;
+  TOperationErrors = Class;
+  TOperationsListResponse = Class;
+  TReplicaConfiguration = Class;
+  TRestoreBackupContext = Class;
+  TSettings = Class;
+  TSslCert = Class;
+  TSslCertDetail = Class;
+  TSslCertsInsertRequest = Class;
+  TSslCertsInsertResponse = Class;
+  TSslCertsListResponse = Class;
+  TTier = Class;
+  TTiersListResponse = Class;
+  TUser = Class;
+  TUsersListResponse = Class;
   TAclEntryArray = Array of TAclEntry;
   TBackupConfigurationArray = Array of TBackupConfiguration;
   TBackupRunArray = Array of TBackupRun;
@@ -105,9 +105,9 @@ type
   TUserArray = Array of TUser;
   TUsersListResponseArray = Array of TUsersListResponse;
   //Anonymous types, using auto-generated names
-  TExportContextTypecsvExportOptions = class;
-  TExportContextTypesqlExportOptions = class;
-  TImportContextTypecsvImportOptions = class;
+  TExportContextTypecsvExportOptions = Class;
+  TExportContextTypesqlExportOptions = Class;
+  TImportContextTypecsvImportOptions = Class;
   TBackupRunsListResponseTypeitemsArray = Array of TBackupRun;
   TDatabaseInstanceTypeipAddressesArray = Array of TIpMapping;
   TDatabasesListResponseTypeitemsArray = Array of TDatabase;
@@ -228,6 +228,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TBackupRunsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TBackupRunsListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -384,6 +388,10 @@ type
     Procedure SetserviceAccountEmailAddress(AIndex : Integer; AValue : String); virtual;
     Procedure Setsettings(AIndex : Integer; AValue : TSettings); virtual;
     Procedure Setstate(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property currentDiskSize : String Index 0 Read FcurrentDiskSize Write SetcurrentDiskSize;
@@ -421,6 +429,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TDatabasesListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TDatabasesListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -454,6 +466,10 @@ type
   Protected
     //Property setters
     Procedure Settables(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property tables : TStringArray Index 0 Read Ftables Write Settables;
@@ -480,6 +496,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetsqlExportOptions(AIndex : Integer; AValue : TExportContextTypesqlExportOptions); virtual;
     Procedure Seturi(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property csvExportOptions : TExportContextTypecsvExportOptions Index 0 Read FcsvExportOptions Write SetcsvExportOptions;
@@ -514,6 +534,10 @@ type
     Procedure SetminValue(AIndex : Integer; AValue : String); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property allowedStringValues : TStringArray Index 0 Read FallowedStringValues Write SetallowedStringValues;
@@ -538,6 +562,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TFlagsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TFlagsListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -557,6 +585,10 @@ type
     //Property setters
     Procedure Setcolumns(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Settable(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property columns : TStringArray Index 0 Read Fcolumns Write Setcolumns;
@@ -654,6 +686,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TInstancesListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TInstancesListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -692,6 +728,10 @@ type
     Procedure SetauthorizedNetworks(AIndex : Integer; AValue : TIpConfigurationTypeauthorizedNetworksArray); virtual;
     Procedure Setipv4Enabled(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetrequireSsl(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property authorizedNetworks : TIpConfigurationTypeauthorizedNetworksArray Index 0 Read FauthorizedNetworks Write SetauthorizedNetworks;
@@ -898,6 +938,10 @@ type
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TOperationErrorsTypeerrorsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TOperationErrorsTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
@@ -919,6 +963,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TOperationsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TOperationsListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1002,6 +1050,10 @@ type
     Procedure SetreplicationType(AIndex : Integer; AValue : String); virtual;
     Procedure SetsettingsVersion(AIndex : Integer; AValue : String); virtual;
     Procedure Settier(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property activationPolicy : String Index 0 Read FactivationPolicy Write SetactivationPolicy;
@@ -1129,6 +1181,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TSslCertsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TSslCertsListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1154,6 +1210,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setregion(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Settier(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property DiskQuota : String Index 0 Read FDiskQuota Write SetDiskQuota;
@@ -1176,6 +1236,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTiersListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TTiersListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1231,6 +1295,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TUsersListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TUsersListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1718,6 +1786,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBackupRunsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2113,6 +2194,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDatabaseInstance.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'ipaddresses' : SetLength(FipAddresses,ALength);
+  'replicanames' : SetLength(FreplicaNames,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2139,6 +2234,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDatabasesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2173,6 +2281,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TExportContextTypesqlExportOptions.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'tables' : SetLength(Ftables,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2240,6 +2361,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TExportContext.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'databases' : SetLength(Fdatabases,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2329,6 +2463,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFlag.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'allowedstringvalues' : SetLength(FallowedStringValues,ALength);
+  'appliesto' : SetLength(FappliesTo,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2356,6 +2504,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFlagsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2382,6 +2543,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TImportContextTypecsvImportOptions.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'columns' : SetLength(Fcolumns,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2528,6 +2702,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstancesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2581,6 +2768,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TIpConfiguration.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'authorizednetworks' : SetLength(FauthorizedNetworks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3011,6 +3211,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationErrors.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3047,6 +3260,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3248,6 +3474,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSettings.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'authorizedgaeapplications' : SetLength(FauthorizedGaeApplications,ALength);
+  'databaseflags' : SetLength(FdatabaseFlags,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3454,6 +3694,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSslCertsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3511,6 +3764,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTier.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'region' : SetLength(Fregion,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3537,6 +3803,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTiersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3651,6 +3930,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUsersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4467,7 +4759,7 @@ end;
 Class Function TSqladminAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TSqladminAPI.APIbasePath : string;
@@ -4479,7 +4771,7 @@ end;
 Class Function TSqladminAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/sql/v1beta4/';
+  Result:='https://www.googleapis.com:443/sql/v1beta4/';
 end;
 
 Class Function TSqladminAPI.APIProtocol : string;
@@ -4585,7 +4877,7 @@ Function TSqladminAPI.CreateBackupRunsResource(AOwner : TComponent) : TBackupRun
 
 begin
   Result:=TBackupRunsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4609,7 +4901,7 @@ Function TSqladminAPI.CreateDatabasesResource(AOwner : TComponent) : TDatabasesR
 
 begin
   Result:=TDatabasesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4633,7 +4925,7 @@ Function TSqladminAPI.CreateFlagsResource(AOwner : TComponent) : TFlagsResource;
 
 begin
   Result:=TFlagsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4657,7 +4949,7 @@ Function TSqladminAPI.CreateInstancesResource(AOwner : TComponent) : TInstancesR
 
 begin
   Result:=TInstancesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4681,7 +4973,7 @@ Function TSqladminAPI.CreateOperationsResource(AOwner : TComponent) : TOperation
 
 begin
   Result:=TOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4705,7 +4997,7 @@ Function TSqladminAPI.CreateSslCertsResource(AOwner : TComponent) : TSslCertsRes
 
 begin
   Result:=TSslCertsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4729,7 +5021,7 @@ Function TSqladminAPI.CreateTiersResource(AOwner : TComponent) : TTiersResource;
 
 begin
   Result:=TTiersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4753,7 +5045,7 @@ Function TSqladminAPI.CreateUsersResource(AOwner : TComponent) : TUsersResource;
 
 begin
   Result:=TUsersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

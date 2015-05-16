@@ -13,7 +13,7 @@ unit googleyoutubeAnalytics;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:23:00
+//Generated on: 16-5-15 08:53:09
 {$MODE objfpc}
 {$H+}
 
@@ -24,15 +24,15 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TBatchReport = class;
-  TBatchReportDefinition = class;
-  TBatchReportDefinitionList = class;
-  TBatchReportList = class;
-  TGroup = class;
-  TGroupItem = class;
-  TGroupItemListResponse = class;
-  TGroupListResponse = class;
-  TResultTable = class;
+  TBatchReport = Class;
+  TBatchReportDefinition = Class;
+  TBatchReportDefinitionList = Class;
+  TBatchReportList = Class;
+  TGroup = Class;
+  TGroupItem = Class;
+  TGroupItemListResponse = Class;
+  TGroupListResponse = Class;
+  TResultTable = Class;
   TBatchReportArray = Array of TBatchReport;
   TBatchReportDefinitionArray = Array of TBatchReportDefinition;
   TBatchReportDefinitionListArray = Array of TBatchReportDefinitionList;
@@ -43,12 +43,12 @@ type
   TGroupListResponseArray = Array of TGroupListResponse;
   TResultTableArray = Array of TResultTable;
   //Anonymous types, using auto-generated names
-  TBatchReportTypeoutputsItem = class;
-  TBatchReportTypetimeSpan = class;
-  TGroupTypecontentDetails = class;
-  TGroupTypesnippet = class;
-  TGroupItemTyperesource = class;
-  TResultTableTypecolumnHeadersItem = class;
+  TBatchReportTypeoutputsItem = Class;
+  TBatchReportTypetimeSpan = Class;
+  TGroupTypecontentDetails = Class;
+  TGroupTypesnippet = Class;
+  TGroupItemTyperesource = Class;
+  TResultTableTypecolumnHeadersItem = Class;
   TBatchReportTypeoutputsArray = Array of TBatchReportTypeoutputsItem;
   TBatchReportDefinitionListTypeitemsArray = Array of TBatchReportDefinition;
   TBatchReportListTypeitemsArray = Array of TBatchReport;
@@ -119,6 +119,10 @@ type
     Procedure SetreportId(AIndex : Integer; AValue : String); virtual;
     Procedure SettimeSpan(AIndex : Integer; AValue : TBatchReportTypetimeSpan); virtual;
     Procedure SettimeUpdated(AIndex : Integer; AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -171,6 +175,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TBatchReportDefinitionListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TBatchReportDefinitionListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -190,6 +198,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TBatchReportListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TBatchReportListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -324,6 +336,10 @@ type
     Procedure Setetag(AIndex : Integer; AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TGroupItemListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -346,6 +362,10 @@ type
     Procedure Setetag(AIndex : Integer; AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TGroupListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -390,6 +410,10 @@ type
     Procedure SetcolumnHeaders(AIndex : Integer; AValue : TResultTableTypecolumnHeadersArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TResultTableTyperowsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property columnHeaders : TResultTableTypecolumnHeadersArray Index 0 Read FcolumnHeaders Write SetcolumnHeaders;
@@ -757,6 +781,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBatchReport.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'outputs' : SetLength(Foutputs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -852,6 +889,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBatchReportDefinitionList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -878,6 +928,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBatchReportList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1111,6 +1174,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGroupItemListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1147,6 +1223,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGroupListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1221,6 +1310,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResultTable.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'columnheaders' : SetLength(FcolumnHeaders,ALength);
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1638,7 +1741,7 @@ end;
 Class Function TYoutubeAnalyticsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TYoutubeAnalyticsAPI.APIbasePath : string;
@@ -1650,7 +1753,7 @@ end;
 Class Function TYoutubeAnalyticsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/youtube/analytics/v1/';
+  Result:='https://www.googleapis.com:443/youtube/analytics/v1/';
 end;
 
 Class Function TYoutubeAnalyticsAPI.APIProtocol : string;
@@ -1734,7 +1837,7 @@ Function TYoutubeAnalyticsAPI.CreateBatchReportDefinitionsResource(AOwner : TCom
 
 begin
   Result:=TBatchReportDefinitionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1758,7 +1861,7 @@ Function TYoutubeAnalyticsAPI.CreateBatchReportsResource(AOwner : TComponent) : 
 
 begin
   Result:=TBatchReportsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1782,7 +1885,7 @@ Function TYoutubeAnalyticsAPI.CreateGroupItemsResource(AOwner : TComponent) : TG
 
 begin
   Result:=TGroupItemsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1806,7 +1909,7 @@ Function TYoutubeAnalyticsAPI.CreateGroupsResource(AOwner : TComponent) : TGroup
 
 begin
   Result:=TGroupsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1830,7 +1933,7 @@ Function TYoutubeAnalyticsAPI.CreateReportsResource(AOwner : TComponent) : TRepo
 
 begin
   Result:=TReportsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

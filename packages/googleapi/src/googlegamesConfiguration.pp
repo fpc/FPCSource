@@ -13,7 +13,7 @@ unit googlegamesConfiguration;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:54
+//Generated on: 16-5-15 08:53:04
 {$MODE objfpc}
 {$H+}
 
@@ -24,17 +24,17 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAchievementConfiguration = class;
-  TAchievementConfigurationDetail = class;
-  TAchievementConfigurationListResponse = class;
-  TGamesNumberAffixConfiguration = class;
-  TGamesNumberFormatConfiguration = class;
-  TImageConfiguration = class;
-  TLeaderboardConfiguration = class;
-  TLeaderboardConfigurationDetail = class;
-  TLeaderboardConfigurationListResponse = class;
-  TLocalizedString = class;
-  TLocalizedStringBundle = class;
+  TAchievementConfiguration = Class;
+  TAchievementConfigurationDetail = Class;
+  TAchievementConfigurationListResponse = Class;
+  TGamesNumberAffixConfiguration = Class;
+  TGamesNumberFormatConfiguration = Class;
+  TImageConfiguration = Class;
+  TLeaderboardConfiguration = Class;
+  TLeaderboardConfigurationDetail = Class;
+  TLeaderboardConfigurationListResponse = Class;
+  TLocalizedString = Class;
+  TLocalizedStringBundle = Class;
   TAchievementConfigurationArray = Array of TAchievementConfiguration;
   TAchievementConfigurationDetailArray = Array of TAchievementConfigurationDetail;
   TAchievementConfigurationListResponseArray = Array of TAchievementConfigurationListResponse;
@@ -134,6 +134,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TAchievementConfigurationListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TAchievementConfigurationListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -303,6 +307,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TLeaderboardConfigurationListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TLeaderboardConfigurationListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -345,6 +353,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Settranslations(AIndex : Integer; AValue : TLocalizedStringBundleTypetranslationsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -664,6 +676,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAchievementConfigurationListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1018,6 +1043,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLeaderboardConfigurationListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1081,6 +1119,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLocalizedStringBundle.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'translations' : SetLength(Ftranslations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1382,7 +1433,7 @@ end;
 Class Function TGamesConfigurationAPI.APIRevision : String;
 
 begin
-  Result:='20150421';
+  Result:='20150511';
 end;
 
 Class Function TGamesConfigurationAPI.APIID : String;
@@ -1436,7 +1487,7 @@ end;
 Class Function TGamesConfigurationAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TGamesConfigurationAPI.APIbasePath : string;
@@ -1448,7 +1499,7 @@ end;
 Class Function TGamesConfigurationAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/games/v1configuration/';
+  Result:='https://www.googleapis.com:443/games/v1configuration/';
 end;
 
 Class Function TGamesConfigurationAPI.APIProtocol : string;
@@ -1520,7 +1571,7 @@ Function TGamesConfigurationAPI.CreateAchievementConfigurationsResource(AOwner :
 
 begin
   Result:=TAchievementConfigurationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1544,7 +1595,7 @@ Function TGamesConfigurationAPI.CreateImageConfigurationsResource(AOwner : TComp
 
 begin
   Result:=TImageConfigurationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1568,7 +1619,7 @@ Function TGamesConfigurationAPI.CreateLeaderboardConfigurationsResource(AOwner :
 
 begin
   Result:=TLeaderboardConfigurationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

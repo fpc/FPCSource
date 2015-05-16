@@ -13,7 +13,7 @@ unit googlestorage;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:58
+//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -24,17 +24,17 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TBucket = class;
-  TBucketAccessControl = class;
-  TBucketAccessControls = class;
-  TBuckets = class;
-  TChannel = class;
-  TComposeRequest = class;
-  TObject = class;
-  TObjectAccessControl = class;
-  TObjectAccessControls = class;
-  TObjects = class;
-  TRewriteResponse = class;
+  TBucket = Class;
+  TBucketAccessControl = Class;
+  TBucketAccessControls = Class;
+  TBuckets = Class;
+  TChannel = Class;
+  TComposeRequest = Class;
+  TObject = Class;
+  TObjectAccessControl = Class;
+  TObjectAccessControls = Class;
+  TObjects = Class;
+  TRewriteResponse = Class;
   TBucketArray = Array of TBucket;
   TBucketAccessControlArray = Array of TBucketAccessControl;
   TBucketAccessControlsArray = Array of TBucketAccessControls;
@@ -47,22 +47,22 @@ type
   TObjectsArray = Array of TObjects;
   TRewriteResponseArray = Array of TRewriteResponse;
   //Anonymous types, using auto-generated names
-  TBucketTypecorsItem = class;
-  TBucketTypelifecycleTyperuleItemTypeaction = class;
-  TBucketTypelifecycleTyperuleItemTypecondition = class;
-  TBucketTypelifecycleTyperuleItem = class;
-  TBucketTypelifecycle = class;
-  TBucketTypelogging = class;
-  TBucketTypeowner = class;
-  TBucketTypeversioning = class;
-  TBucketTypewebsite = class;
-  TBucketAccessControlTypeprojectTeam = class;
-  TChannelTypeparams = class;
-  TComposeRequestTypesourceObjectsItemTypeobjectPreconditions = class;
-  TComposeRequestTypesourceObjectsItem = class;
-  TObjectTypemetadata = class;
-  TObjectTypeowner = class;
-  TObjectAccessControlTypeprojectTeam = class;
+  TBucketTypecorsItem = Class;
+  TBucketTypelifecycleTyperuleItemTypeaction = Class;
+  TBucketTypelifecycleTyperuleItemTypecondition = Class;
+  TBucketTypelifecycleTyperuleItem = Class;
+  TBucketTypelifecycle = Class;
+  TBucketTypelogging = Class;
+  TBucketTypeowner = Class;
+  TBucketTypeversioning = Class;
+  TBucketTypewebsite = Class;
+  TBucketAccessControlTypeprojectTeam = Class;
+  TChannelTypeparams = Class;
+  TComposeRequestTypesourceObjectsItemTypeobjectPreconditions = Class;
+  TComposeRequestTypesourceObjectsItem = Class;
+  TObjectTypemetadata = Class;
+  TObjectTypeowner = Class;
+  TObjectAccessControlTypeprojectTeam = Class;
   TBucketTypeaclArray = Array of TBucketAccessControl;
   TBucketTypecorsArray = Array of TBucketTypecorsItem;
   TBucketTypedefaultObjectAclArray = Array of TObjectAccessControl;
@@ -89,6 +89,10 @@ type
     Procedure Setmethod(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setorigin(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetresponseHeader(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property maxAgeSeconds : integer Index 0 Read FmaxAgeSeconds Write SetmaxAgeSeconds;
@@ -169,6 +173,10 @@ type
   Protected
     //Property setters
     Procedure Setrule(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property rule : TBucketTypelifecycleTyperuleArray Index 0 Read Frule Write Setrule;
@@ -292,6 +300,10 @@ type
     Procedure SettimeCreated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setversioning(AIndex : Integer; AValue : TBucketTypeversioning); virtual;
     Procedure Setwebsite(AIndex : Integer; AValue : TBucketTypewebsite); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property acl : TBucketTypeaclArray Index 0 Read Facl Write Setacl;
@@ -392,6 +404,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TBucketAccessControlsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TBucketAccessControlsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -413,6 +429,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TBucketsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TBucketsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -531,6 +551,10 @@ type
     Procedure Setdestination(AIndex : Integer; AValue : TObject); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetsourceObjects(AIndex : Integer; AValue : TComposeRequestTypesourceObjectsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property destination : TObject Index 0 Read Fdestination Write Setdestination;
@@ -628,6 +652,10 @@ type
     Procedure SetstorageClass(AIndex : Integer; AValue : String); virtual;
     Procedure SettimeDeleted(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property acl : TObjectTypeaclArray Index 0 Read Facl Write Setacl;
@@ -741,6 +769,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TTJSONSchemaArray Index 0 Read Fitems Write Setitems;
@@ -764,6 +796,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setprefixes(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TObjectsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1279,6 +1315,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBucketTypecorsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'method' : SetLength(Fmethod,ALength);
+  'origin' : SetLength(Forigin,ALength);
+  'responseheader' : SetLength(FresponseHeader,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1397,6 +1448,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBucketTypelifecycle.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rule' : SetLength(Frule,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1683,6 +1747,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBucket.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'acl' : SetLength(Facl,ALength);
+  'cors' : SetLength(Fcors,ALength);
+  'defaultobjectacl' : SetLength(FdefaultObjectAcl,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1854,6 +1933,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBucketAccessControls.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1890,6 +1982,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBuckets.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2112,6 +2217,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TComposeRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sourceobjects' : SetLength(FsourceObjects,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2400,6 +2518,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TObject.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'acl' : SetLength(Facl,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2602,6 +2733,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TObjectAccessControls.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2648,6 +2792,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TObjects.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  'prefixes' : SetLength(Fprefixes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3722,7 +3880,7 @@ end;
 Class Function TStorageAPI.APIRevision : String;
 
 begin
-  Result:='20150305';
+  Result:='20150326';
 end;
 
 Class Function TStorageAPI.APIID : String;
@@ -3776,7 +3934,7 @@ end;
 Class Function TStorageAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TStorageAPI.APIbasePath : string;
@@ -3788,7 +3946,7 @@ end;
 Class Function TStorageAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/storage/v1/';
+  Result:='https://www.googleapis.com:443/storage/v1/';
 end;
 
 Class Function TStorageAPI.APIProtocol : string;
@@ -3882,7 +4040,7 @@ Function TStorageAPI.CreateBucketAccessControlsResource(AOwner : TComponent) : T
 
 begin
   Result:=TBucketAccessControlsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3906,7 +4064,7 @@ Function TStorageAPI.CreateBucketsResource(AOwner : TComponent) : TBucketsResour
 
 begin
   Result:=TBucketsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3930,7 +4088,7 @@ Function TStorageAPI.CreateChannelsResource(AOwner : TComponent) : TChannelsReso
 
 begin
   Result:=TChannelsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3954,7 +4112,7 @@ Function TStorageAPI.CreateDefaultObjectAccessControlsResource(AOwner : TCompone
 
 begin
   Result:=TDefaultObjectAccessControlsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3978,7 +4136,7 @@ Function TStorageAPI.CreateObjectAccessControlsResource(AOwner : TComponent) : T
 
 begin
   Result:=TObjectAccessControlsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4002,7 +4160,7 @@ Function TStorageAPI.CreateObjectsResource(AOwner : TComponent) : TObjectsResour
 
 begin
   Result:=TObjectsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -13,7 +13,7 @@ unit googleaudit;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:49
+//Generated on: 16-5-15 08:52:58
 {$MODE objfpc}
 {$H+}
 
@@ -24,15 +24,15 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TActivities = class;
-  TActivity = class;
+  TActivities = Class;
+  TActivity = Class;
   TActivitiesArray = Array of TActivities;
   TActivityArray = Array of TActivity;
   //Anonymous types, using auto-generated names
-  TActivityTypeactor = class;
-  TActivityTypeeventsItemTypeparametersItem = class;
-  TActivityTypeeventsItem = class;
-  TActivityTypeid = class;
+  TActivityTypeactor = Class;
+  TActivityTypeeventsItemTypeparametersItem = Class;
+  TActivityTypeeventsItem = Class;
+  TActivityTypeid = Class;
   TActivitiesTypeitemsArray = Array of TActivity;
   TActivityTypeeventsItemTypeparametersArray = Array of TActivityTypeeventsItemTypeparametersItem;
   TActivityTypeeventsArray = Array of TActivityTypeeventsItem;
@@ -51,6 +51,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TActivitiesTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setnext(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TActivitiesTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -117,6 +121,10 @@ type
     Procedure SeteventType(AIndex : Integer; AValue : String); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setparameters(AIndex : Integer; AValue : TActivityTypeeventsItemTypeparametersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property eventType : String Index 0 Read FeventType Write SeteventType;
@@ -170,6 +178,10 @@ type
     Procedure SetipAddress(AIndex : Integer; AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetownerDomain(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property actor : TActivityTypeactor Index 0 Read Factor Write Setactor;
@@ -283,6 +295,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivities.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -393,6 +418,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivityTypeeventsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'parameters' : SetLength(Fparameters,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -507,6 +545,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivity.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'events' : SetLength(Fevents,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -638,7 +689,7 @@ end;
 Class Function TAuditAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TAuditAPI.APIbasePath : string;
@@ -650,7 +701,7 @@ end;
 Class Function TAuditAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/apps/reporting/audit/v1/';
+  Result:='https://www.googleapis.com:443/apps/reporting/audit/v1/';
 end;
 
 Class Function TAuditAPI.APIProtocol : string;
@@ -715,7 +766,7 @@ Function TAuditAPI.CreateActivitiesResource(AOwner : TComponent) : TActivitiesRe
 
 begin
   Result:=TActivitiesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

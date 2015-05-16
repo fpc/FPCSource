@@ -13,7 +13,7 @@ unit googlegmail;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:55
+//Generated on: 16-5-15 08:53:04
 {$MODE objfpc}
 {$H+}
 
@@ -24,26 +24,26 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TDraft = class;
-  THistory = class;
-  THistoryLabelAdded = class;
-  THistoryLabelRemoved = class;
-  THistoryMessageAdded = class;
-  THistoryMessageDeleted = class;
-  TLabel = class;
-  TListDraftsResponse = class;
-  TListHistoryResponse = class;
-  TListLabelsResponse = class;
-  TListMessagesResponse = class;
-  TListThreadsResponse = class;
-  TMessage = class;
-  TMessagePart = class;
-  TMessagePartBody = class;
-  TMessagePartHeader = class;
-  TModifyMessageRequest = class;
-  TModifyThreadRequest = class;
-  TProfile = class;
-  TThread = class;
+  TDraft = Class;
+  THistory = Class;
+  THistoryLabelAdded = Class;
+  THistoryLabelRemoved = Class;
+  THistoryMessageAdded = Class;
+  THistoryMessageDeleted = Class;
+  TLabel = Class;
+  TListDraftsResponse = Class;
+  TListHistoryResponse = Class;
+  TListLabelsResponse = Class;
+  TListMessagesResponse = Class;
+  TListThreadsResponse = Class;
+  TMessage = Class;
+  TMessagePart = Class;
+  TMessagePartBody = Class;
+  TMessagePartHeader = Class;
+  TModifyMessageRequest = Class;
+  TModifyThreadRequest = Class;
+  TProfile = Class;
+  TThread = Class;
   TDraftArray = Array of TDraft;
   THistoryArray = Array of THistory;
   THistoryLabelAddedArray = Array of THistoryLabelAdded;
@@ -118,6 +118,10 @@ type
     Procedure Setmessages(AIndex : Integer; AValue : THistoryTypemessagesArray); virtual;
     Procedure SetmessagesAdded(AIndex : Integer; AValue : THistoryTypemessagesAddedArray); virtual;
     Procedure SetmessagesDeleted(AIndex : Integer; AValue : THistoryTypemessagesDeletedArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -141,6 +145,10 @@ type
     //Property setters
     Procedure SetlabelIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : TMessage); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property labelIds : TStringArray Index 0 Read FlabelIds Write SetlabelIds;
@@ -160,6 +168,10 @@ type
     //Property setters
     Procedure SetlabelIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : TMessage); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property labelIds : TStringArray Index 0 Read FlabelIds Write SetlabelIds;
@@ -254,6 +266,10 @@ type
     Procedure Setdrafts(AIndex : Integer; AValue : TListDraftsResponseTypedraftsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetresultSizeEstimate(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property drafts : TListDraftsResponseTypedraftsArray Index 0 Read Fdrafts Write Setdrafts;
@@ -276,6 +292,10 @@ type
     Procedure Sethistory(AIndex : Integer; AValue : TListHistoryResponseTypehistoryArray); virtual;
     Procedure SethistoryId(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property history : TListHistoryResponseTypehistoryArray Index 0 Read Fhistory Write Sethistory;
@@ -294,6 +314,10 @@ type
   Protected
     //Property setters
     Procedure Setlabels(AIndex : Integer; AValue : TListLabelsResponseTypelabelsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property labels : TListLabelsResponseTypelabelsArray Index 0 Read Flabels Write Setlabels;
@@ -314,6 +338,10 @@ type
     Procedure Setmessages(AIndex : Integer; AValue : TListMessagesResponseTypemessagesArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetresultSizeEstimate(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property messages : TListMessagesResponseTypemessagesArray Index 0 Read Fmessages Write Setmessages;
@@ -336,6 +364,10 @@ type
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetresultSizeEstimate(AIndex : Integer; AValue : integer); virtual;
     Procedure Setthreads(AIndex : Integer; AValue : TListThreadsResponseTypethreadsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -368,6 +400,10 @@ type
     Procedure SetsizeEstimate(AIndex : Integer; AValue : integer); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : String); virtual;
     Procedure SetthreadId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property historyId : String Index 0 Read FhistoryId Write SethistoryId;
@@ -401,6 +437,10 @@ type
     Procedure SetmimeType(AIndex : Integer; AValue : String); virtual;
     Procedure SetpartId(AIndex : Integer; AValue : String); virtual;
     Procedure Setparts(AIndex : Integer; AValue : TMessagePartTypepartsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property body : TMessagePartBody Index 0 Read Fbody Write Setbody;
@@ -465,6 +505,10 @@ type
     //Property setters
     Procedure SetaddLabelIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetremoveLabelIds(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property addLabelIds : TStringArray Index 0 Read FaddLabelIds Write SetaddLabelIds;
@@ -484,6 +528,10 @@ type
     //Property setters
     Procedure SetaddLabelIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetremoveLabelIds(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property addLabelIds : TStringArray Index 0 Read FaddLabelIds Write SetaddLabelIds;
@@ -532,6 +580,10 @@ type
     Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure Setmessages(AIndex : Integer; AValue : TThreadTypemessagesArray); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property historyId : String Index 0 Read FhistoryId Write SethistoryId;
@@ -542,14 +594,236 @@ type
   TThreadClass = Class of TThread;
   
   { --------------------------------------------------------------------
+    TUsersDraftsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TUsersDraftsResource, method Get
+  
+  TUsersDraftsGetOptions = Record
+    format : String;
+  end;
+  
+  
+  //Optional query Options for TUsersDraftsResource, method List
+  
+  TUsersDraftsListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TUsersDraftsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(userId: string; aDraft : TDraft) : TDraft;overload;
+    Procedure Delete(id: string; userId: string);
+    Function Get(id: string; userId: string; AQuery : string  = '') : TDraft;
+    Function Get(id: string; userId: string; AQuery : TUsersDraftsgetOptions) : TDraft;
+    Function List(userId: string; AQuery : string  = '') : TListDraftsResponse;
+    Function List(userId: string; AQuery : TUsersDraftslistOptions) : TListDraftsResponse;
+    Function Send(userId: string; aDraft : TDraft) : TMessage;
+    Function Update(id: string; userId: string; aDraft : TDraft) : TDraft;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TUsersHistoryResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TUsersHistoryResource, method List
+  
+  TUsersHistoryListOptions = Record
+    labelId : String;
+    maxResults : integer;
+    pageToken : String;
+    startHistoryId : String;
+  end;
+  
+  TUsersHistoryResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(userId: string; AQuery : string  = '') : TListHistoryResponse;
+    Function List(userId: string; AQuery : TUsersHistorylistOptions) : TListHistoryResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TUsersLabelsResource
+    --------------------------------------------------------------------}
+  
+  TUsersLabelsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(userId: string; aLabel : TLabel) : TLabel;overload;
+    Procedure Delete(id: string; userId: string);
+    Function Get(id: string; userId: string) : TLabel;
+    Function List(userId: string) : TListLabelsResponse;
+    Function Patch(id: string; userId: string; aLabel : TLabel) : TLabel;
+    Function Update(id: string; userId: string; aLabel : TLabel) : TLabel;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TUsersMessagesAttachmentsResource
+    --------------------------------------------------------------------}
+  
+  TUsersMessagesAttachmentsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(id: string; messageId: string; userId: string) : TMessagePartBody;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TUsersMessagesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TUsersMessagesResource, method Get
+  
+  TUsersMessagesGetOptions = Record
+    format : String;
+    metadataHeaders : String;
+  end;
+  
+  
+  //Optional query Options for TUsersMessagesResource, method Import
+  
+  TUsersMessagesImportOptions = Record
+    deleted : boolean;
+    internalDateSource : String;
+    neverMarkSpam : boolean;
+    processForCalendar : boolean;
+  end;
+  
+  
+  //Optional query Options for TUsersMessagesResource, method Insert
+  
+  TUsersMessagesInsertOptions = Record
+    deleted : boolean;
+    internalDateSource : String;
+  end;
+  
+  
+  //Optional query Options for TUsersMessagesResource, method List
+  
+  TUsersMessagesListOptions = Record
+    includeSpamTrash : boolean;
+    labelIds : String;
+    maxResults : integer;
+    pageToken : String;
+    q : String;
+  end;
+  
+  TUsersMessagesResource = Class(TGoogleResource)
+  Private
+    FAttachmentsInstance : TUsersMessagesAttachmentsResource;
+    Function GetAttachmentsInstance : TUsersMessagesAttachmentsResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(id: string; userId: string);
+    Function Get(id: string; userId: string; AQuery : string  = '') : TMessage;
+    Function Get(id: string; userId: string; AQuery : TUsersMessagesgetOptions) : TMessage;
+    Function Import(userId: string; aMessage : TMessage; AQuery : string  = '') : TMessage;
+    Function Import(userId: string; aMessage : TMessage; AQuery : TUsersMessagesimportOptions) : TMessage;
+    Function Insert(userId: string; aMessage : TMessage; AQuery : string  = '') : TMessage;
+    Function Insert(userId: string; aMessage : TMessage; AQuery : TUsersMessagesinsertOptions) : TMessage;
+    Function List(userId: string; AQuery : string  = '') : TListMessagesResponse;
+    Function List(userId: string; AQuery : TUsersMessageslistOptions) : TListMessagesResponse;
+    Function Modify(id: string; userId: string; aModifyMessageRequest : TModifyMessageRequest) : TMessage;
+    Function Send(userId: string; aMessage : TMessage) : TMessage;
+    Function Trash(id: string; userId: string) : TMessage;
+    Function Untrash(id: string; userId: string) : TMessage;
+    Function CreateAttachmentsResource(AOwner : TComponent) : TUsersMessagesAttachmentsResource;virtual;overload;
+    Function CreateAttachmentsResource : TUsersMessagesAttachmentsResource;virtual;overload;
+    Property AttachmentsResource : TUsersMessagesAttachmentsResource Read GetAttachmentsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TUsersThreadsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TUsersThreadsResource, method Get
+  
+  TUsersThreadsGetOptions = Record
+    format : String;
+    metadataHeaders : String;
+  end;
+  
+  
+  //Optional query Options for TUsersThreadsResource, method List
+  
+  TUsersThreadsListOptions = Record
+    includeSpamTrash : boolean;
+    labelIds : String;
+    maxResults : integer;
+    pageToken : String;
+    q : String;
+  end;
+  
+  TUsersThreadsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(id: string; userId: string);
+    Function Get(id: string; userId: string; AQuery : string  = '') : TThread;
+    Function Get(id: string; userId: string; AQuery : TUsersThreadsgetOptions) : TThread;
+    Function List(userId: string; AQuery : string  = '') : TListThreadsResponse;
+    Function List(userId: string; AQuery : TUsersThreadslistOptions) : TListThreadsResponse;
+    Function Modify(id: string; userId: string; aModifyThreadRequest : TModifyThreadRequest) : TThread;
+    Function Trash(id: string; userId: string) : TThread;
+    Function Untrash(id: string; userId: string) : TThread;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TUsersResource
     --------------------------------------------------------------------}
   
   TUsersResource = Class(TGoogleResource)
+  Private
+    FDraftsInstance : TUsersDraftsResource;
+    FHistoryInstance : TUsersHistoryResource;
+    FLabelsInstance : TUsersLabelsResource;
+    FMessagesAttachmentsInstance : TUsersMessagesAttachmentsResource;
+    FMessagesInstance : TUsersMessagesResource;
+    FThreadsInstance : TUsersThreadsResource;
+    Function GetDraftsInstance : TUsersDraftsResource;virtual;
+    Function GetHistoryInstance : TUsersHistoryResource;virtual;
+    Function GetLabelsInstance : TUsersLabelsResource;virtual;
+    Function GetMessagesAttachmentsInstance : TUsersMessagesAttachmentsResource;virtual;
+    Function GetMessagesInstance : TUsersMessagesResource;virtual;
+    Function GetThreadsInstance : TUsersThreadsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function GetProfile(userId: string) : TProfile;
+    Function CreateDraftsResource(AOwner : TComponent) : TUsersDraftsResource;virtual;overload;
+    Function CreateDraftsResource : TUsersDraftsResource;virtual;overload;
+    Function CreateHistoryResource(AOwner : TComponent) : TUsersHistoryResource;virtual;overload;
+    Function CreateHistoryResource : TUsersHistoryResource;virtual;overload;
+    Function CreateLabelsResource(AOwner : TComponent) : TUsersLabelsResource;virtual;overload;
+    Function CreateLabelsResource : TUsersLabelsResource;virtual;overload;
+    Function CreateMessagesAttachmentsResource(AOwner : TComponent) : TUsersMessagesAttachmentsResource;virtual;overload;
+    Function CreateMessagesAttachmentsResource : TUsersMessagesAttachmentsResource;virtual;overload;
+    Function CreateMessagesResource(AOwner : TComponent) : TUsersMessagesResource;virtual;overload;
+    Function CreateMessagesResource : TUsersMessagesResource;virtual;overload;
+    Function CreateThreadsResource(AOwner : TComponent) : TUsersThreadsResource;virtual;overload;
+    Function CreateThreadsResource : TUsersThreadsResource;virtual;overload;
+    Property DraftsResource : TUsersDraftsResource Read GetDraftsInstance;
+    Property HistoryResource : TUsersHistoryResource Read GetHistoryInstance;
+    Property LabelsResource : TUsersLabelsResource Read GetLabelsInstance;
+    Property MessagesAttachmentsResource : TUsersMessagesAttachmentsResource Read GetMessagesAttachmentsInstance;
+    Property MessagesResource : TUsersMessagesResource Read GetMessagesInstance;
+    Property ThreadsResource : TUsersThreadsResource Read GetThreadsInstance;
   end;
   
   
@@ -559,7 +833,19 @@ type
   
   TGmailAPI = Class(TGoogleAPI)
   Private
+    FUsersDraftsInstance : TUsersDraftsResource;
+    FUsersHistoryInstance : TUsersHistoryResource;
+    FUsersLabelsInstance : TUsersLabelsResource;
+    FUsersMessagesAttachmentsInstance : TUsersMessagesAttachmentsResource;
+    FUsersMessagesInstance : TUsersMessagesResource;
+    FUsersThreadsInstance : TUsersThreadsResource;
     FUsersInstance : TUsersResource;
+    Function GetUsersDraftsInstance : TUsersDraftsResource;virtual;
+    Function GetUsersHistoryInstance : TUsersHistoryResource;virtual;
+    Function GetUsersLabelsInstance : TUsersLabelsResource;virtual;
+    Function GetUsersMessagesAttachmentsInstance : TUsersMessagesAttachmentsResource;virtual;
+    Function GetUsersMessagesInstance : TUsersMessagesResource;virtual;
+    Function GetUsersThreadsInstance : TUsersThreadsResource;virtual;
     Function GetUsersInstance : TUsersResource;virtual;
   Public
     //Override class functions with API info
@@ -584,9 +870,27 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateUsersDraftsResource(AOwner : TComponent) : TUsersDraftsResource;virtual;overload;
+    Function CreateUsersDraftsResource : TUsersDraftsResource;virtual;overload;
+    Function CreateUsersHistoryResource(AOwner : TComponent) : TUsersHistoryResource;virtual;overload;
+    Function CreateUsersHistoryResource : TUsersHistoryResource;virtual;overload;
+    Function CreateUsersLabelsResource(AOwner : TComponent) : TUsersLabelsResource;virtual;overload;
+    Function CreateUsersLabelsResource : TUsersLabelsResource;virtual;overload;
+    Function CreateUsersMessagesAttachmentsResource(AOwner : TComponent) : TUsersMessagesAttachmentsResource;virtual;overload;
+    Function CreateUsersMessagesAttachmentsResource : TUsersMessagesAttachmentsResource;virtual;overload;
+    Function CreateUsersMessagesResource(AOwner : TComponent) : TUsersMessagesResource;virtual;overload;
+    Function CreateUsersMessagesResource : TUsersMessagesResource;virtual;overload;
+    Function CreateUsersThreadsResource(AOwner : TComponent) : TUsersThreadsResource;virtual;overload;
+    Function CreateUsersThreadsResource : TUsersThreadsResource;virtual;overload;
     Function CreateUsersResource(AOwner : TComponent) : TUsersResource;virtual;overload;
     Function CreateUsersResource : TUsersResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property UsersDraftsResource : TUsersDraftsResource Read GetUsersDraftsInstance;
+    Property UsersHistoryResource : TUsersHistoryResource Read GetUsersHistoryInstance;
+    Property UsersLabelsResource : TUsersLabelsResource Read GetUsersLabelsInstance;
+    Property UsersMessagesAttachmentsResource : TUsersMessagesAttachmentsResource Read GetUsersMessagesAttachmentsInstance;
+    Property UsersMessagesResource : TUsersMessagesResource Read GetUsersMessagesInstance;
+    Property UsersThreadsResource : TUsersThreadsResource Read GetUsersThreadsInstance;
     Property UsersResource : TUsersResource Read GetUsersInstance;
   end;
 
@@ -684,6 +988,23 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure THistory.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'labelsadded' : SetLength(FlabelsAdded,ALength);
+  'labelsremoved' : SetLength(FlabelsRemoved,ALength);
+  'messages' : SetLength(Fmessages,ALength);
+  'messagesadded' : SetLength(FmessagesAdded,ALength);
+  'messagesdeleted' : SetLength(FmessagesDeleted,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -711,6 +1032,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure THistoryLabelAdded.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'labelids' : SetLength(FlabelIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -737,6 +1071,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure THistoryLabelRemoved.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'labelids' : SetLength(FlabelIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -917,6 +1264,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListDraftsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'drafts' : SetLength(Fdrafts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -954,6 +1314,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListHistoryResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'history' : SetLength(Fhistory,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -970,6 +1343,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListLabelsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'labels' : SetLength(Flabels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1008,6 +1394,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListMessagesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'messages' : SetLength(Fmessages,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1044,6 +1443,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListThreadsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'threads' : SetLength(Fthreads,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1132,6 +1544,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMessage.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'labelids' : SetLength(FlabelIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1198,6 +1623,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMessagePart.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'headers' : SetLength(Fheaders,ALength);
+  'parts' : SetLength(Fparts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1290,6 +1729,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TModifyMessageRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'addlabelids' : SetLength(FaddLabelIds,ALength);
+  'removelabelids' : SetLength(FremoveLabelIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1316,6 +1769,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TModifyThreadRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'addlabelids' : SetLength(FaddLabelIds,ALength);
+  'removelabelids' : SetLength(FremoveLabelIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1411,6 +1878,718 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TThread.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'messages' : SetLength(Fmessages,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TUsersDraftsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TUsersDraftsResource.ResourceName : String;
+
+begin
+  Result:='drafts';
+end;
+
+Class Function TUsersDraftsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TgmailAPI;
+end;
+
+Function TUsersDraftsResource.Create(userId: string; aDraft : TDraft) : TDraft;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/drafts';
+  _Methodid   = 'gmail.users.drafts.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aDraft,TDraft) as TDraft;
+end;
+
+Procedure TUsersDraftsResource.Delete(id: string; userId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{userId}/drafts/{id}';
+  _Methodid   = 'gmail.users.drafts.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TUsersDraftsResource.Get(id: string; userId: string; AQuery : string = '') : TDraft;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/drafts/{id}';
+  _Methodid   = 'gmail.users.drafts.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TDraft) as TDraft;
+end;
+
+
+Function TUsersDraftsResource.Get(id: string; userId: string; AQuery : TUsersDraftsgetOptions) : TDraft;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'format',AQuery.format);
+  Result:=Get(id,userId,_Q);
+end;
+
+Function TUsersDraftsResource.List(userId: string; AQuery : string = '') : TListDraftsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/drafts';
+  _Methodid   = 'gmail.users.drafts.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListDraftsResponse) as TListDraftsResponse;
+end;
+
+
+Function TUsersDraftsResource.List(userId: string; AQuery : TUsersDraftslistOptions) : TListDraftsResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(userId,_Q);
+end;
+
+Function TUsersDraftsResource.Send(userId: string; aDraft : TDraft) : TMessage;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/drafts/send';
+  _Methodid   = 'gmail.users.drafts.send';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aDraft,TMessage) as TMessage;
+end;
+
+Function TUsersDraftsResource.Update(id: string; userId: string; aDraft : TDraft) : TDraft;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{userId}/drafts/{id}';
+  _Methodid   = 'gmail.users.drafts.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aDraft,TDraft) as TDraft;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TUsersHistoryResource
+  --------------------------------------------------------------------}
+
+
+Class Function TUsersHistoryResource.ResourceName : String;
+
+begin
+  Result:='history';
+end;
+
+Class Function TUsersHistoryResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TgmailAPI;
+end;
+
+Function TUsersHistoryResource.List(userId: string; AQuery : string = '') : TListHistoryResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/history';
+  _Methodid   = 'gmail.users.history.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListHistoryResponse) as TListHistoryResponse;
+end;
+
+
+Function TUsersHistoryResource.List(userId: string; AQuery : TUsersHistorylistOptions) : TListHistoryResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'labelId',AQuery.labelId);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'startHistoryId',AQuery.startHistoryId);
+  Result:=List(userId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TUsersLabelsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TUsersLabelsResource.ResourceName : String;
+
+begin
+  Result:='labels';
+end;
+
+Class Function TUsersLabelsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TgmailAPI;
+end;
+
+Function TUsersLabelsResource.Create(userId: string; aLabel : TLabel) : TLabel;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/labels';
+  _Methodid   = 'gmail.users.labels.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aLabel,TLabel) as TLabel;
+end;
+
+Procedure TUsersLabelsResource.Delete(id: string; userId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{userId}/labels/{id}';
+  _Methodid   = 'gmail.users.labels.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TUsersLabelsResource.Get(id: string; userId: string) : TLabel;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/labels/{id}';
+  _Methodid   = 'gmail.users.labels.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TLabel) as TLabel;
+end;
+
+Function TUsersLabelsResource.List(userId: string) : TListLabelsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/labels';
+  _Methodid   = 'gmail.users.labels.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListLabelsResponse) as TListLabelsResponse;
+end;
+
+Function TUsersLabelsResource.Patch(id: string; userId: string; aLabel : TLabel) : TLabel;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{userId}/labels/{id}';
+  _Methodid   = 'gmail.users.labels.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aLabel,TLabel) as TLabel;
+end;
+
+Function TUsersLabelsResource.Update(id: string; userId: string; aLabel : TLabel) : TLabel;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{userId}/labels/{id}';
+  _Methodid   = 'gmail.users.labels.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aLabel,TLabel) as TLabel;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TUsersMessagesAttachmentsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TUsersMessagesAttachmentsResource.ResourceName : String;
+
+begin
+  Result:='attachments';
+end;
+
+Class Function TUsersMessagesAttachmentsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TgmailAPI;
+end;
+
+Function TUsersMessagesAttachmentsResource.Get(id: string; messageId: string; userId: string) : TMessagePartBody;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/messages/{messageId}/attachments/{id}';
+  _Methodid   = 'gmail.users.messages.attachments.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'messageId',messageId,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TMessagePartBody) as TMessagePartBody;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TUsersMessagesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TUsersMessagesResource.ResourceName : String;
+
+begin
+  Result:='messages';
+end;
+
+Class Function TUsersMessagesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TgmailAPI;
+end;
+
+Procedure TUsersMessagesResource.Delete(id: string; userId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{userId}/messages/{id}';
+  _Methodid   = 'gmail.users.messages.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TUsersMessagesResource.Get(id: string; userId: string; AQuery : string = '') : TMessage;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/messages/{id}';
+  _Methodid   = 'gmail.users.messages.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TMessage) as TMessage;
+end;
+
+
+Function TUsersMessagesResource.Get(id: string; userId: string; AQuery : TUsersMessagesgetOptions) : TMessage;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'format',AQuery.format);
+  AddToQuery(_Q,'metadataHeaders',AQuery.metadataHeaders);
+  Result:=Get(id,userId,_Q);
+end;
+
+Function TUsersMessagesResource.Import(userId: string; aMessage : TMessage; AQuery : string = '') : TMessage;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/messages/import';
+  _Methodid   = 'gmail.users.messages.import';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aMessage,TMessage) as TMessage;
+end;
+
+
+Function TUsersMessagesResource.Import(userId: string; aMessage : TMessage; AQuery : TUsersMessagesimportOptions) : TMessage;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'deleted',AQuery.deleted);
+  AddToQuery(_Q,'internalDateSource',AQuery.internalDateSource);
+  AddToQuery(_Q,'neverMarkSpam',AQuery.neverMarkSpam);
+  AddToQuery(_Q,'processForCalendar',AQuery.processForCalendar);
+  Result:=Import(userId,aMessage,_Q);
+end;
+
+Function TUsersMessagesResource.Insert(userId: string; aMessage : TMessage; AQuery : string = '') : TMessage;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/messages';
+  _Methodid   = 'gmail.users.messages.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aMessage,TMessage) as TMessage;
+end;
+
+
+Function TUsersMessagesResource.Insert(userId: string; aMessage : TMessage; AQuery : TUsersMessagesinsertOptions) : TMessage;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'deleted',AQuery.deleted);
+  AddToQuery(_Q,'internalDateSource',AQuery.internalDateSource);
+  Result:=Insert(userId,aMessage,_Q);
+end;
+
+Function TUsersMessagesResource.List(userId: string; AQuery : string = '') : TListMessagesResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/messages';
+  _Methodid   = 'gmail.users.messages.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListMessagesResponse) as TListMessagesResponse;
+end;
+
+
+Function TUsersMessagesResource.List(userId: string; AQuery : TUsersMessageslistOptions) : TListMessagesResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'includeSpamTrash',AQuery.includeSpamTrash);
+  AddToQuery(_Q,'labelIds',AQuery.labelIds);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'q',AQuery.q);
+  Result:=List(userId,_Q);
+end;
+
+Function TUsersMessagesResource.Modify(id: string; userId: string; aModifyMessageRequest : TModifyMessageRequest) : TMessage;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/messages/{id}/modify';
+  _Methodid   = 'gmail.users.messages.modify';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aModifyMessageRequest,TMessage) as TMessage;
+end;
+
+Function TUsersMessagesResource.Send(userId: string; aMessage : TMessage) : TMessage;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/messages/send';
+  _Methodid   = 'gmail.users.messages.send';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aMessage,TMessage) as TMessage;
+end;
+
+Function TUsersMessagesResource.Trash(id: string; userId: string) : TMessage;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/messages/{id}/trash';
+  _Methodid   = 'gmail.users.messages.trash';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TMessage) as TMessage;
+end;
+
+Function TUsersMessagesResource.Untrash(id: string; userId: string) : TMessage;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/messages/{id}/untrash';
+  _Methodid   = 'gmail.users.messages.untrash';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TMessage) as TMessage;
+end;
+
+
+
+Function TUsersMessagesResource.GetAttachmentsInstance : TUsersMessagesAttachmentsResource;
+
+begin
+  if (FAttachmentsInstance=Nil) then
+    FAttachmentsInstance:=CreateAttachmentsResource;
+  Result:=FAttachmentsInstance;
+end;
+
+Function TUsersMessagesResource.CreateAttachmentsResource : TUsersMessagesAttachmentsResource;
+
+begin
+  Result:=CreateAttachmentsResource(Self);
+end;
+
+
+Function TUsersMessagesResource.CreateAttachmentsResource(AOwner : TComponent) : TUsersMessagesAttachmentsResource;
+
+begin
+  Result:=TUsersMessagesAttachmentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TUsersThreadsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TUsersThreadsResource.ResourceName : String;
+
+begin
+  Result:='threads';
+end;
+
+Class Function TUsersThreadsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TgmailAPI;
+end;
+
+Procedure TUsersThreadsResource.Delete(id: string; userId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{userId}/threads/{id}';
+  _Methodid   = 'gmail.users.threads.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TUsersThreadsResource.Get(id: string; userId: string; AQuery : string = '') : TThread;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/threads/{id}';
+  _Methodid   = 'gmail.users.threads.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TThread) as TThread;
+end;
+
+
+Function TUsersThreadsResource.Get(id: string; userId: string; AQuery : TUsersThreadsgetOptions) : TThread;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'format',AQuery.format);
+  AddToQuery(_Q,'metadataHeaders',AQuery.metadataHeaders);
+  Result:=Get(id,userId,_Q);
+end;
+
+Function TUsersThreadsResource.List(userId: string; AQuery : string = '') : TListThreadsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{userId}/threads';
+  _Methodid   = 'gmail.users.threads.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TListThreadsResponse) as TListThreadsResponse;
+end;
+
+
+Function TUsersThreadsResource.List(userId: string; AQuery : TUsersThreadslistOptions) : TListThreadsResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'includeSpamTrash',AQuery.includeSpamTrash);
+  AddToQuery(_Q,'labelIds',AQuery.labelIds);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'q',AQuery.q);
+  Result:=List(userId,_Q);
+end;
+
+Function TUsersThreadsResource.Modify(id: string; userId: string; aModifyThreadRequest : TModifyThreadRequest) : TThread;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/threads/{id}/modify';
+  _Methodid   = 'gmail.users.threads.modify';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aModifyThreadRequest,TThread) as TThread;
+end;
+
+Function TUsersThreadsResource.Trash(id: string; userId: string) : TThread;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/threads/{id}/trash';
+  _Methodid   = 'gmail.users.threads.trash';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TThread) as TThread;
+end;
+
+Function TUsersThreadsResource.Untrash(id: string; userId: string) : TThread;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/threads/{id}/untrash';
+  _Methodid   = 'gmail.users.threads.untrash';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TThread) as TThread;
+end;
 
 
 
@@ -1444,6 +2623,150 @@ Var
 begin
   _P:=SubstitutePath(_Path,['userId',userId]);
   Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TProfile) as TProfile;
+end;
+
+
+
+Function TUsersResource.GetDraftsInstance : TUsersDraftsResource;
+
+begin
+  if (FDraftsInstance=Nil) then
+    FDraftsInstance:=CreateDraftsResource;
+  Result:=FDraftsInstance;
+end;
+
+Function TUsersResource.CreateDraftsResource : TUsersDraftsResource;
+
+begin
+  Result:=CreateDraftsResource(Self);
+end;
+
+
+Function TUsersResource.CreateDraftsResource(AOwner : TComponent) : TUsersDraftsResource;
+
+begin
+  Result:=TUsersDraftsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TUsersResource.GetHistoryInstance : TUsersHistoryResource;
+
+begin
+  if (FHistoryInstance=Nil) then
+    FHistoryInstance:=CreateHistoryResource;
+  Result:=FHistoryInstance;
+end;
+
+Function TUsersResource.CreateHistoryResource : TUsersHistoryResource;
+
+begin
+  Result:=CreateHistoryResource(Self);
+end;
+
+
+Function TUsersResource.CreateHistoryResource(AOwner : TComponent) : TUsersHistoryResource;
+
+begin
+  Result:=TUsersHistoryResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TUsersResource.GetLabelsInstance : TUsersLabelsResource;
+
+begin
+  if (FLabelsInstance=Nil) then
+    FLabelsInstance:=CreateLabelsResource;
+  Result:=FLabelsInstance;
+end;
+
+Function TUsersResource.CreateLabelsResource : TUsersLabelsResource;
+
+begin
+  Result:=CreateLabelsResource(Self);
+end;
+
+
+Function TUsersResource.CreateLabelsResource(AOwner : TComponent) : TUsersLabelsResource;
+
+begin
+  Result:=TUsersLabelsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TUsersResource.GetMessagesAttachmentsInstance : TUsersMessagesAttachmentsResource;
+
+begin
+  if (FMessagesAttachmentsInstance=Nil) then
+    FMessagesAttachmentsInstance:=CreateMessagesAttachmentsResource;
+  Result:=FMessagesAttachmentsInstance;
+end;
+
+Function TUsersResource.CreateMessagesAttachmentsResource : TUsersMessagesAttachmentsResource;
+
+begin
+  Result:=CreateMessagesAttachmentsResource(Self);
+end;
+
+
+Function TUsersResource.CreateMessagesAttachmentsResource(AOwner : TComponent) : TUsersMessagesAttachmentsResource;
+
+begin
+  Result:=TUsersMessagesAttachmentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TUsersResource.GetMessagesInstance : TUsersMessagesResource;
+
+begin
+  if (FMessagesInstance=Nil) then
+    FMessagesInstance:=CreateMessagesResource;
+  Result:=FMessagesInstance;
+end;
+
+Function TUsersResource.CreateMessagesResource : TUsersMessagesResource;
+
+begin
+  Result:=CreateMessagesResource(Self);
+end;
+
+
+Function TUsersResource.CreateMessagesResource(AOwner : TComponent) : TUsersMessagesResource;
+
+begin
+  Result:=TUsersMessagesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TUsersResource.GetThreadsInstance : TUsersThreadsResource;
+
+begin
+  if (FThreadsInstance=Nil) then
+    FThreadsInstance:=CreateThreadsResource;
+  Result:=FThreadsInstance;
+end;
+
+Function TUsersResource.CreateThreadsResource : TUsersThreadsResource;
+
+begin
+  Result:=CreateThreadsResource(Self);
+end;
+
+
+Function TUsersResource.CreateThreadsResource(AOwner : TComponent) : TUsersThreadsResource;
+
+begin
+  Result:=TUsersThreadsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -1521,7 +2844,7 @@ end;
 Class Function TGmailAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TGmailAPI.APIbasePath : string;
@@ -1533,7 +2856,7 @@ end;
 Class Function TGmailAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/gmail/v1/users/';
+  Result:='https://www.googleapis.com:443/gmail/v1/users/';
 end;
 
 Class Function TGmailAPI.APIProtocol : string;
@@ -1605,6 +2928,150 @@ begin
 end;
 
 
+Function TGmailAPI.GetUsersDraftsInstance : TUsersDraftsResource;
+
+begin
+  if (FUsersDraftsInstance=Nil) then
+    FUsersDraftsInstance:=CreateUsersDraftsResource;
+  Result:=FUsersDraftsInstance;
+end;
+
+Function TGmailAPI.CreateUsersDraftsResource : TUsersDraftsResource;
+
+begin
+  Result:=CreateUsersDraftsResource(Self);
+end;
+
+
+Function TGmailAPI.CreateUsersDraftsResource(AOwner : TComponent) : TUsersDraftsResource;
+
+begin
+  Result:=TUsersDraftsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TGmailAPI.GetUsersHistoryInstance : TUsersHistoryResource;
+
+begin
+  if (FUsersHistoryInstance=Nil) then
+    FUsersHistoryInstance:=CreateUsersHistoryResource;
+  Result:=FUsersHistoryInstance;
+end;
+
+Function TGmailAPI.CreateUsersHistoryResource : TUsersHistoryResource;
+
+begin
+  Result:=CreateUsersHistoryResource(Self);
+end;
+
+
+Function TGmailAPI.CreateUsersHistoryResource(AOwner : TComponent) : TUsersHistoryResource;
+
+begin
+  Result:=TUsersHistoryResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TGmailAPI.GetUsersLabelsInstance : TUsersLabelsResource;
+
+begin
+  if (FUsersLabelsInstance=Nil) then
+    FUsersLabelsInstance:=CreateUsersLabelsResource;
+  Result:=FUsersLabelsInstance;
+end;
+
+Function TGmailAPI.CreateUsersLabelsResource : TUsersLabelsResource;
+
+begin
+  Result:=CreateUsersLabelsResource(Self);
+end;
+
+
+Function TGmailAPI.CreateUsersLabelsResource(AOwner : TComponent) : TUsersLabelsResource;
+
+begin
+  Result:=TUsersLabelsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TGmailAPI.GetUsersMessagesAttachmentsInstance : TUsersMessagesAttachmentsResource;
+
+begin
+  if (FUsersMessagesAttachmentsInstance=Nil) then
+    FUsersMessagesAttachmentsInstance:=CreateUsersMessagesAttachmentsResource;
+  Result:=FUsersMessagesAttachmentsInstance;
+end;
+
+Function TGmailAPI.CreateUsersMessagesAttachmentsResource : TUsersMessagesAttachmentsResource;
+
+begin
+  Result:=CreateUsersMessagesAttachmentsResource(Self);
+end;
+
+
+Function TGmailAPI.CreateUsersMessagesAttachmentsResource(AOwner : TComponent) : TUsersMessagesAttachmentsResource;
+
+begin
+  Result:=TUsersMessagesAttachmentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TGmailAPI.GetUsersMessagesInstance : TUsersMessagesResource;
+
+begin
+  if (FUsersMessagesInstance=Nil) then
+    FUsersMessagesInstance:=CreateUsersMessagesResource;
+  Result:=FUsersMessagesInstance;
+end;
+
+Function TGmailAPI.CreateUsersMessagesResource : TUsersMessagesResource;
+
+begin
+  Result:=CreateUsersMessagesResource(Self);
+end;
+
+
+Function TGmailAPI.CreateUsersMessagesResource(AOwner : TComponent) : TUsersMessagesResource;
+
+begin
+  Result:=TUsersMessagesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TGmailAPI.GetUsersThreadsInstance : TUsersThreadsResource;
+
+begin
+  if (FUsersThreadsInstance=Nil) then
+    FUsersThreadsInstance:=CreateUsersThreadsResource;
+  Result:=FUsersThreadsInstance;
+end;
+
+Function TGmailAPI.CreateUsersThreadsResource : TUsersThreadsResource;
+
+begin
+  Result:=CreateUsersThreadsResource(Self);
+end;
+
+
+Function TGmailAPI.CreateUsersThreadsResource(AOwner : TComponent) : TUsersThreadsResource;
+
+begin
+  Result:=TUsersThreadsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TGmailAPI.GetUsersInstance : TUsersResource;
 
 begin
@@ -1624,7 +3091,7 @@ Function TGmailAPI.CreateUsersResource(AOwner : TComponent) : TUsersResource;
 
 begin
   Result:=TUsersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

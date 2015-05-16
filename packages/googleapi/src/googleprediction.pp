@@ -13,7 +13,7 @@ unit googleprediction;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:57
+//Generated on: 16-5-15 08:53:06
 {$MODE objfpc}
 {$H+}
 
@@ -24,13 +24,13 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAnalyze = class;
-  TInput = class;
-  TInsert = class;
-  TInsert2 = class;
-  TList = class;
-  TOutput = class;
-  TUpdate = class;
+  TAnalyze = Class;
+  TInput = Class;
+  TInsert = Class;
+  TInsert2 = Class;
+  TList = Class;
+  TOutput = Class;
+  TUpdate = Class;
   TAnalyzeArray = Array of TAnalyze;
   TInputArray = Array of TInput;
   TInsertArray = Array of TInsert;
@@ -39,24 +39,24 @@ type
   TOutputArray = Array of TOutput;
   TUpdateArray = Array of TUpdate;
   //Anonymous types, using auto-generated names
-  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem = class;
-  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical = class;
-  TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric = class;
-  TAnalyzeTypedataDescriptionTypefeaturesItemTypetext = class;
-  TAnalyzeTypedataDescriptionTypefeaturesItem = class;
-  TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric = class;
-  TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem = class;
-  TAnalyzeTypedataDescriptionTypeoutputFeature = class;
-  TAnalyzeTypedataDescription = class;
-  TAnalyzeTypeerrorsItem = class;
-  TAnalyzeTypemodelDescriptionTypeconfusionMatrix = class;
-  TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals = class;
-  TAnalyzeTypemodelDescription = class;
-  TInputTypeinput = class;
-  TInsertTypetrainingInstancesItem = class;
-  TInsertTypeutilityItem = class;
-  TInsert2TypemodelInfo = class;
-  TOutputTypeoutputMultiItem = class;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem = Class;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical = Class;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric = Class;
+  TAnalyzeTypedataDescriptionTypefeaturesItemTypetext = Class;
+  TAnalyzeTypedataDescriptionTypefeaturesItem = Class;
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric = Class;
+  TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem = Class;
+  TAnalyzeTypedataDescriptionTypeoutputFeature = Class;
+  TAnalyzeTypedataDescription = Class;
+  TAnalyzeTypeerrorsItem = Class;
+  TAnalyzeTypemodelDescriptionTypeconfusionMatrix = Class;
+  TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals = Class;
+  TAnalyzeTypemodelDescription = Class;
+  TInputTypeinput = Class;
+  TInsertTypetrainingInstancesItem = Class;
+  TInsertTypeutilityItem = Class;
+  TInsert2TypemodelInfo = Class;
+  TOutputTypeoutputMultiItem = Class;
   TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray = Array of TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem;
   TAnalyzeTypedataDescriptionTypefeaturesArray = Array of TAnalyzeTypedataDescriptionTypefeaturesItem;
   TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextArray = Array of TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem;
@@ -97,6 +97,10 @@ type
     //Property setters
     Procedure Setcount(AIndex : Integer; AValue : String); virtual;
     Procedure Setvalues(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -220,6 +224,10 @@ type
     //Property setters
     Procedure Setnumeric(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric); virtual;
     Procedure Settext(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property numeric : TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric Index 0 Read Fnumeric Write Setnumeric;
@@ -239,6 +247,10 @@ type
     //Property setters
     Procedure Setfeatures(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesArray); virtual;
     Procedure SetoutputFeature(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeature); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property features : TAnalyzeTypedataDescriptionTypefeaturesArray Index 0 Read Ffeatures Write Setfeatures;
@@ -330,6 +342,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetmodelDescription(AIndex : Integer; AValue : TAnalyzeTypemodelDescription); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property dataDescription : TAnalyzeTypedataDescription Index 0 Read FdataDescription Write SetdataDescription;
@@ -351,6 +367,10 @@ type
   Protected
     //Property setters
     Procedure SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property csvInstance : TTJSONSchemaArray Index 0 Read FcsvInstance Write SetcsvInstance;
@@ -385,6 +405,10 @@ type
     //Property setters
     Procedure SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
     Procedure Setoutput(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property csvInstance : TTJSONSchemaArray Index 0 Read FcsvInstance Write SetcsvInstance;
@@ -430,6 +454,10 @@ type
     Procedure SetstoragePMMLModelLocation(AIndex : Integer; AValue : String); virtual;
     Procedure SettrainingInstances(AIndex : Integer; AValue : TInsertTypetrainingInstancesArray); virtual;
     Procedure Setutility(AIndex : Integer; AValue : TInsertTypeutilityArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -536,6 +564,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -575,7 +607,7 @@ type
     Fkind : String;
     FoutputLabel : String;
     FoutputMulti : TOutputTypeoutputMultiArray;
-    FoutputValue : double;
+    FoutputValue : String;
     FselfLink : String;
   Protected
     //Property setters
@@ -583,15 +615,19 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetoutputLabel(AIndex : Integer; AValue : String); virtual;
     Procedure SetoutputMulti(AIndex : Integer; AValue : TOutputTypeoutputMultiArray); virtual;
-    Procedure SetoutputValue(AIndex : Integer; AValue : double); virtual;
+    Procedure SetoutputValue(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
     Property kind : String Index 8 Read Fkind Write Setkind;
     Property outputLabel : String Index 16 Read FoutputLabel Write SetoutputLabel;
     Property outputMulti : TOutputTypeoutputMultiArray Index 24 Read FoutputMulti Write SetoutputMulti;
-    Property outputValue : double Index 32 Read FoutputValue Write SetoutputValue;
+    Property outputValue : String Index 32 Read FoutputValue Write SetoutputValue;
     Property selfLink : String Index 40 Read FselfLink Write SetselfLink;
   end;
   TOutputClass = Class of TOutput;
@@ -608,6 +644,10 @@ type
     //Property setters
     Procedure SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
     Procedure Setoutput(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property csvInstance : TTJSONSchemaArray Index 0 Read FcsvInstance Write SetcsvInstance;
@@ -749,6 +789,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'values' : SetLength(Fvalues,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -942,6 +995,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeature.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'text' : SetLength(Ftext,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -968,6 +1034,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAnalyzeTypedataDescription.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'features' : SetLength(Ffeatures,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1112,6 +1191,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAnalyze.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1128,6 +1220,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInputTypeinput.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'csvinstance' : SetLength(FcsvInstance,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1172,6 +1277,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInsertTypetrainingInstancesItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'csvinstance' : SetLength(FcsvInstance,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1272,6 +1390,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInsert.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'traininginstances' : SetLength(FtrainingInstances,ALength);
+  'utility' : SetLength(Futility,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1504,6 +1636,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1590,7 +1735,7 @@ end;
 
 
 
-Procedure TOutput.SetoutputValue(AIndex : Integer; AValue : double); 
+Procedure TOutput.SetoutputValue(AIndex : Integer; AValue : String); 
 
 begin
   If (FoutputValue=AValue) then exit;
@@ -1608,6 +1753,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOutput.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'outputmulti' : SetLength(FoutputMulti,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1635,6 +1793,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUpdate.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'csvinstance' : SetLength(FcsvInstance,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1883,7 +2054,7 @@ end;
 Class Function TPredictionAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TPredictionAPI.APIbasePath : string;
@@ -1895,7 +2066,7 @@ end;
 Class Function TPredictionAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/prediction/v1.6/projects/';
+  Result:='https://www.googleapis.com:443/prediction/v1.6/projects/';
 end;
 
 Class Function TPredictionAPI.APIProtocol : string;
@@ -1987,7 +2158,7 @@ Function TPredictionAPI.CreateHostedmodelsResource(AOwner : TComponent) : THoste
 
 begin
   Result:=THostedmodelsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2011,7 +2182,7 @@ Function TPredictionAPI.CreateTrainedmodelsResource(AOwner : TComponent) : TTrai
 
 begin
   Result:=TTrainedmodelsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

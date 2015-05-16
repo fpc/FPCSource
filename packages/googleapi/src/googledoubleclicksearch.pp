@@ -13,7 +13,7 @@ unit googledoubleclicksearch;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:53
+//Generated on: 16-5-15 08:53:03
 {$MODE objfpc}
 {$H+}
 
@@ -24,19 +24,19 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAvailability = class;
-  TConversion = class;
-  TConversionList = class;
-  TCustomDimension = class;
-  TCustomMetric = class;
-  TReport = class;
-  TReportApiColumnSpec = class;
-  TReportRequest = class;
-  TReportRow = class;
-  TSavedColumn = class;
-  TSavedColumnList = class;
-  TUpdateAvailabilityRequest = class;
-  TUpdateAvailabilityResponse = class;
+  TAvailability = Class;
+  TConversion = Class;
+  TConversionList = Class;
+  TCustomDimension = Class;
+  TCustomMetric = Class;
+  TReport = Class;
+  TReportApiColumnSpec = Class;
+  TReportRequest = Class;
+  TReportRow = Class;
+  TSavedColumn = Class;
+  TSavedColumnList = Class;
+  TUpdateAvailabilityRequest = Class;
+  TUpdateAvailabilityResponse = Class;
   TAvailabilityArray = Array of TAvailability;
   TConversionArray = Array of TConversion;
   TConversionListArray = Array of TConversionList;
@@ -51,11 +51,11 @@ type
   TUpdateAvailabilityRequestArray = Array of TUpdateAvailabilityRequest;
   TUpdateAvailabilityResponseArray = Array of TUpdateAvailabilityResponse;
   //Anonymous types, using auto-generated names
-  TReportTypefilesItem = class;
-  TReportRequestTypefiltersItem = class;
-  TReportRequestTypeorderByItem = class;
-  TReportRequestTypereportScope = class;
-  TReportRequestTypetimeRange = class;
+  TReportTypefilesItem = Class;
+  TReportRequestTypefiltersItem = Class;
+  TReportRequestTypeorderByItem = Class;
+  TReportRequestTypereportScope = Class;
+  TReportRequestTypetimeRange = Class;
   TConversionTypecustomDimensionArray = Array of TCustomDimension;
   TConversionTypecustomMetricArray = Array of TCustomMetric;
   TConversionListTypeconversionArray = Array of TConversion;
@@ -174,6 +174,10 @@ type
     Procedure Setstate(AIndex : Integer; AValue : String); virtual;
     Procedure SetstoreId(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property adGroupId : String Index 0 Read FadGroupId Write SetadGroupId;
@@ -224,6 +228,10 @@ type
     //Property setters
     Procedure Setconversion(AIndex : Integer; AValue : TConversionListTypeconversionArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property conversion : TConversionListTypeconversionArray Index 0 Read Fconversion Write Setconversion;
@@ -314,6 +322,10 @@ type
     Procedure Setrows(AIndex : Integer; AValue : TReportTyperowsArray); virtual;
     Procedure SetstatisticsCurrencyCode(AIndex : Integer; AValue : String); virtual;
     Procedure SetstatisticsTimeZone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property files : TReportTypefilesArray Index 0 Read Ffiles Write Setfiles;
@@ -383,6 +395,10 @@ type
     Procedure Setcolumn(AIndex : Integer; AValue : TReportApiColumnSpec); virtual;
     Procedure Set_operator(AIndex : Integer; AValue : String); virtual;
     Procedure Setvalues(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property column : TReportApiColumnSpec Index 0 Read Fcolumn Write Setcolumn;
@@ -505,6 +521,10 @@ type
     Procedure SetstatisticsCurrency(AIndex : Integer; AValue : String); virtual;
     Procedure SettimeRange(AIndex : Integer; AValue : TReportRequestTypetimeRange); virtual;
     Procedure SetverifySingleTimeZone(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property columns : TReportRequestTypecolumnsArray Index 0 Read Fcolumns Write Setcolumns;
@@ -573,6 +593,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TSavedColumnListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TSavedColumnListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -590,6 +614,10 @@ type
   Protected
     //Property setters
     Procedure Setavailabilities(AIndex : Integer; AValue : TUpdateAvailabilityRequestTypeavailabilitiesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property availabilities : TUpdateAvailabilityRequestTypeavailabilitiesArray Index 0 Read Favailabilities Write Setavailabilities;
@@ -606,6 +634,10 @@ type
   Protected
     //Property setters
     Procedure Setavailabilities(AIndex : Integer; AValue : TUpdateAvailabilityResponseTypeavailabilitiesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property availabilities : TUpdateAvailabilityResponseTypeavailabilitiesArray Index 0 Read Favailabilities Write Setavailabilities;
@@ -1146,6 +1178,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TConversion.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'customdimension' : SetLength(FcustomDimension,ALength);
+  'custommetric' : SetLength(FcustomMetric,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1172,6 +1218,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TConversionList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'conversion' : SetLength(Fconversion,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1351,6 +1410,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReport.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'files' : SetLength(Ffiles,ALength);
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1495,6 +1568,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReportRequestTypefiltersItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'values' : SetLength(Fvalues,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1794,6 +1880,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReportRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'columns' : SetLength(Fcolumns,ALength);
+  'filters' : SetLength(Ffilters,ALength);
+  'orderby' : SetLength(ForderBy,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1882,6 +1983,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSavedColumnList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1899,6 +2013,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUpdateAvailabilityRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'availabilities' : SetLength(Favailabilities,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1915,6 +2042,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUpdateAvailabilityResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'availabilities' : SetLength(Favailabilities,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2212,7 +2352,7 @@ end;
 Class Function TDoubleclicksearchAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TDoubleclicksearchAPI.APIbasePath : string;
@@ -2224,7 +2364,7 @@ end;
 Class Function TDoubleclicksearchAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/doubleclicksearch/v2/';
+  Result:='https://www.googleapis.com:443/doubleclicksearch/v2/';
 end;
 
 Class Function TDoubleclicksearchAPI.APIProtocol : string;
@@ -2303,7 +2443,7 @@ Function TDoubleclicksearchAPI.CreateConversionResource(AOwner : TComponent) : T
 
 begin
   Result:=TConversionResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2327,7 +2467,7 @@ Function TDoubleclicksearchAPI.CreateReportsResource(AOwner : TComponent) : TRep
 
 begin
   Result:=TReportsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2351,7 +2491,7 @@ Function TDoubleclicksearchAPI.CreateSavedColumnsResource(AOwner : TComponent) :
 
 begin
   Result:=TSavedColumnsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

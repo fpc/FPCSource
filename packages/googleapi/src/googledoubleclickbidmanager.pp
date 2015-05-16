@@ -13,7 +13,7 @@ unit googledoubleclickbidmanager;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:53
+//Generated on: 16-5-15 08:53:02
 {$MODE objfpc}
 {$H+}
 
@@ -24,25 +24,25 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TDownloadLineItemsRequest = class;
-  TDownloadLineItemsResponse = class;
-  TFilterPair = class;
-  TListQueriesResponse = class;
-  TListReportsResponse = class;
-  TParameters = class;
-  TQuery = class;
-  TQueryMetadata = class;
-  TQuerySchedule = class;
-  TReport = class;
-  TReportFailure = class;
-  TReportKey = class;
-  TReportMetadata = class;
-  TReportStatus = class;
-  TRowStatus = class;
-  TRunQueryRequest = class;
-  TUploadLineItemsRequest = class;
-  TUploadLineItemsResponse = class;
-  TUploadStatus = class;
+  TDownloadLineItemsRequest = Class;
+  TDownloadLineItemsResponse = Class;
+  TFilterPair = Class;
+  TListQueriesResponse = Class;
+  TListReportsResponse = Class;
+  TParameters = Class;
+  TQuery = Class;
+  TQueryMetadata = Class;
+  TQuerySchedule = Class;
+  TReport = Class;
+  TReportFailure = Class;
+  TReportKey = Class;
+  TReportMetadata = Class;
+  TReportStatus = Class;
+  TRowStatus = Class;
+  TRunQueryRequest = Class;
+  TUploadLineItemsRequest = Class;
+  TUploadLineItemsResponse = Class;
+  TUploadStatus = Class;
   TDownloadLineItemsRequestArray = Array of TDownloadLineItemsRequest;
   TDownloadLineItemsResponseArray = Array of TDownloadLineItemsResponse;
   TFilterPairArray = Array of TFilterPair;
@@ -82,6 +82,10 @@ type
     Procedure SetfilterIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetfilterType(AIndex : Integer; AValue : String); virtual;
     Procedure Setformat(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property filterIds : TStringArray Index 0 Read FfilterIds Write SetfilterIds;
@@ -138,6 +142,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setqueries(AIndex : Integer; AValue : TListQueriesResponseTypequeriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -157,6 +165,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setreports(AIndex : Integer; AValue : TListReportsResponseTypereportsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -183,6 +195,10 @@ type
     Procedure SetincludeInviteData(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setmetrics(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property filters : TParametersTypefiltersArray Index 0 Read Ffilters Write Setfilters;
@@ -260,6 +276,10 @@ type
     Procedure SetsendNotification(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetshareEmailAddress(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property dataRange : String Index 0 Read FdataRange Write SetdataRange;
@@ -428,6 +448,10 @@ type
     Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setpersisted(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetrowNumber(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property changed : boolean Index 0 Read Fchanged Write Setchanged;
@@ -514,6 +538,10 @@ type
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetrowStatus(AIndex : Integer; AValue : TUploadStatusTyperowStatusArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TStringArray Index 0 Read Ferrors Write Seterrors;
@@ -646,6 +674,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDownloadLineItemsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'filterids' : SetLength(FfilterIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -728,6 +769,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListQueriesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'queries' : SetLength(Fqueries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -754,6 +808,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListReportsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'reports' : SetLength(Freports,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -822,6 +889,21 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TParameters.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'filters' : SetLength(Ffilters,ALength);
+  'groupbys' : SetLength(FgroupBys,ALength);
+  'metrics' : SetLength(Fmetrics,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1026,6 +1108,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TQueryMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'shareemailaddress' : SetLength(FshareEmailAddress,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1316,6 +1411,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRowStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1443,6 +1551,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUploadStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  'rowstatus' : SetLength(FrowStatus,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1681,7 +1803,7 @@ end;
 Class Function TDoubleclickbidmanagerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TDoubleclickbidmanagerAPI.APIbasePath : string;
@@ -1693,7 +1815,7 @@ end;
 Class Function TDoubleclickbidmanagerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/doubleclickbidmanager/v1/';
+  Result:='https://www.googleapis.com:443/doubleclickbidmanager/v1/';
 end;
 
 Class Function TDoubleclickbidmanagerAPI.APIProtocol : string;
@@ -1771,7 +1893,7 @@ Function TDoubleclickbidmanagerAPI.CreateLineitemsResource(AOwner : TComponent) 
 
 begin
   Result:=TLineitemsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1795,7 +1917,7 @@ Function TDoubleclickbidmanagerAPI.CreateQueriesResource(AOwner : TComponent) : 
 
 begin
   Result:=TQueriesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1819,7 +1941,7 @@ Function TDoubleclickbidmanagerAPI.CreateReportsResource(AOwner : TComponent) : 
 
 begin
   Result:=TReportsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

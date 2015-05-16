@@ -13,7 +13,7 @@ unit googleblogger;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:49
+//Generated on: 16-5-15 08:52:59
 {$MODE objfpc}
 {$H+}
 
@@ -24,21 +24,21 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TBlog = class;
-  TBlogList = class;
-  TBlogPerUserInfo = class;
-  TBlogUserInfo = class;
-  TComment = class;
-  TCommentList = class;
-  TPage = class;
-  TPageList = class;
-  TPageviews = class;
-  TPost = class;
-  TPostList = class;
-  TPostPerUserInfo = class;
-  TPostUserInfo = class;
-  TPostUserInfosList = class;
-  TUser = class;
+  TBlog = Class;
+  TBlogList = Class;
+  TBlogPerUserInfo = Class;
+  TBlogUserInfo = Class;
+  TComment = Class;
+  TCommentList = Class;
+  TPage = Class;
+  TPageList = Class;
+  TPageviews = Class;
+  TPost = Class;
+  TPostList = Class;
+  TPostPerUserInfo = Class;
+  TPostUserInfo = Class;
+  TPostUserInfosList = Class;
+  TUser = Class;
   TBlogArray = Array of TBlog;
   TBlogListArray = Array of TBlogList;
   TBlogPerUserInfoArray = Array of TBlogPerUserInfo;
@@ -55,26 +55,26 @@ type
   TPostUserInfosListArray = Array of TPostUserInfosList;
   TUserArray = Array of TUser;
   //Anonymous types, using auto-generated names
-  TBlogTypelocale = class;
-  TBlogTypepages = class;
-  TBlogTypeposts = class;
-  TCommentTypeauthorTypeimage = class;
-  TCommentTypeauthor = class;
-  TCommentTypeblog = class;
-  TCommentTypeinReplyTo = class;
-  TCommentTypepost = class;
-  TPageTypeauthorTypeimage = class;
-  TPageTypeauthor = class;
-  TPageTypeblog = class;
-  TPageviewsTypecountsItem = class;
-  TPostTypeauthorTypeimage = class;
-  TPostTypeauthor = class;
-  TPostTypeblog = class;
-  TPostTypeimagesItem = class;
-  TPostTypelocation = class;
-  TPostTypereplies = class;
-  TUserTypeblogs = class;
-  TUserTypelocale = class;
+  TBlogTypelocale = Class;
+  TBlogTypepages = Class;
+  TBlogTypeposts = Class;
+  TCommentTypeauthorTypeimage = Class;
+  TCommentTypeauthor = Class;
+  TCommentTypeblog = Class;
+  TCommentTypeinReplyTo = Class;
+  TCommentTypepost = Class;
+  TPageTypeauthorTypeimage = Class;
+  TPageTypeauthor = Class;
+  TPageTypeblog = Class;
+  TPageviewsTypecountsItem = Class;
+  TPostTypeauthorTypeimage = Class;
+  TPostTypeauthor = Class;
+  TPostTypeblog = Class;
+  TPostTypeimagesItem = Class;
+  TPostTypelocation = Class;
+  TPostTypereplies = Class;
+  TUserTypeblogs = Class;
+  TUserTypelocale = Class;
   TBlogTypepostsTypeitemsArray = Array of TPost;
   TBlogListTypeblogUserInfosArray = Array of TBlogUserInfo;
   TBlogListTypeitemsArray = Array of TBlog;
@@ -141,6 +141,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TBlogTypepostsTypeitemsArray); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TBlogTypepostsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -216,6 +220,10 @@ type
     Procedure SetblogUserInfos(AIndex : Integer; AValue : TBlogListTypeblogUserInfosArray); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TBlogListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property blogUserInfos : TBlogListTypeblogUserInfosArray Index 0 Read FblogUserInfos Write SetblogUserInfos;
@@ -431,6 +439,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -564,6 +576,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TPageListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -606,6 +622,10 @@ type
     Procedure SetblogId(AIndex : Integer; AValue : String); virtual;
     Procedure Setcounts(AIndex : Integer; AValue : TPageviewsTypecountsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property blogId : String Index 0 Read FblogId Write SetblogId;
@@ -726,6 +746,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TPostTyperepliesTypeitemsArray); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TPostTyperepliesTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -781,6 +805,10 @@ type
     Procedure SettitleLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property author : TPostTypeauthor Index 0 Read Fauthor Write Setauthor;
@@ -821,6 +849,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TPostListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -894,6 +926,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TPostUserInfosListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TPostUserInfosListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1514,6 +1550,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBlogTypeposts.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1698,6 +1747,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBlogList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bloguserinfos' : SetLength(FblogUserInfos,ALength);
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2103,6 +2166,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCommentList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2369,6 +2445,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPageList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2432,6 +2521,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPageviews.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'counts' : SetLength(Fcounts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2614,6 +2716,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPostTypereplies.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2823,6 +2938,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPost.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'images' : SetLength(Fimages,ALength);
+  'labels' : SetLength(Flabels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2869,6 +2998,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPostList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3000,6 +3142,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPostUserInfosList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4203,7 +4358,7 @@ end;
 Class Function TBloggerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TBloggerAPI.APIbasePath : string;
@@ -4215,7 +4370,7 @@ end;
 Class Function TBloggerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/blogger/v3/';
+  Result:='https://www.googleapis.com:443/blogger/v3/';
 end;
 
 Class Function TBloggerAPI.APIProtocol : string;
@@ -4313,7 +4468,7 @@ Function TBloggerAPI.CreateBlogUserInfosResource(AOwner : TComponent) : TBlogUse
 
 begin
   Result:=TBlogUserInfosResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4337,7 +4492,7 @@ Function TBloggerAPI.CreateBlogsResource(AOwner : TComponent) : TBlogsResource;
 
 begin
   Result:=TBlogsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4361,7 +4516,7 @@ Function TBloggerAPI.CreateCommentsResource(AOwner : TComponent) : TCommentsReso
 
 begin
   Result:=TCommentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4385,7 +4540,7 @@ Function TBloggerAPI.CreatePageViewsResource(AOwner : TComponent) : TPageViewsRe
 
 begin
   Result:=TPageViewsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4409,7 +4564,7 @@ Function TBloggerAPI.CreatePagesResource(AOwner : TComponent) : TPagesResource;
 
 begin
   Result:=TPagesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4433,7 +4588,7 @@ Function TBloggerAPI.CreatePostUserInfosResource(AOwner : TComponent) : TPostUse
 
 begin
   Result:=TPostUserInfosResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4457,7 +4612,7 @@ Function TBloggerAPI.CreatePostsResource(AOwner : TComponent) : TPostsResource;
 
 begin
   Result:=TPostsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4481,7 +4636,7 @@ Function TBloggerAPI.CreateUsersResource(AOwner : TComponent) : TUsersResource;
 
 begin
   Result:=TUsersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

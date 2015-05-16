@@ -13,7 +13,7 @@ unit googlebooks;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:49
+//Generated on: 16-5-15 08:52:59
 {$MODE objfpc}
 {$H+}
 
@@ -24,35 +24,35 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAnnotation = class;
-  TAnnotationdata = class;
-  TAnnotations = class;
-  TAnnotationsSummary = class;
-  TAnnotationsdata = class;
-  TBooksAnnotationsRange = class;
-  TBooksCloudloadingResource = class;
-  TBooksVolumesRecommendedRateResponse = class;
-  TBookshelf = class;
-  TBookshelves = class;
-  TCategory = class;
-  TConcurrentAccessRestriction = class;
-  TDictlayerdata = class;
-  TDownloadAccessRestriction = class;
-  TDownloadAccesses = class;
-  TGeolayerdata = class;
-  TLayersummaries = class;
-  TLayersummary = class;
-  TMetadata = class;
-  TOffers = class;
-  TReadingPosition = class;
-  TRequestAccess = class;
-  TReview = class;
-  TUsersettings = class;
-  TVolume = class;
-  TVolume2 = class;
-  TVolumeannotation = class;
-  TVolumeannotations = class;
-  TVolumes = class;
+  TAnnotation = Class;
+  TAnnotationdata = Class;
+  TAnnotations = Class;
+  TAnnotationsSummary = Class;
+  TAnnotationsdata = Class;
+  TBooksAnnotationsRange = Class;
+  TBooksCloudloadingResource = Class;
+  TBooksVolumesRecommendedRateResponse = Class;
+  TBookshelf = Class;
+  TBookshelves = Class;
+  TCategory = Class;
+  TConcurrentAccessRestriction = Class;
+  TDictlayerdata = Class;
+  TDownloadAccessRestriction = Class;
+  TDownloadAccesses = Class;
+  TGeolayerdata = Class;
+  TLayersummaries = Class;
+  TLayersummary = Class;
+  TMetadata = Class;
+  TOffers = Class;
+  TReadingPosition = Class;
+  TRequestAccess = Class;
+  TReview = Class;
+  TUsersettings = Class;
+  TVolume = Class;
+  TVolume2 = Class;
+  TVolumeannotation = Class;
+  TVolumeannotations = Class;
+  TVolumes = Class;
   TAnnotationArray = Array of TAnnotation;
   TAnnotationdataArray = Array of TAnnotationdata;
   TAnnotationsArray = Array of TAnnotations;
@@ -83,63 +83,63 @@ type
   TVolumeannotationsArray = Array of TVolumeannotations;
   TVolumesArray = Array of TVolumes;
   //Anonymous types, using auto-generated names
-  TAnnotationTypeclientVersionRanges = class;
-  TAnnotationTypecurrentVersionRanges = class;
-  TAnnotationTypelayerSummary = class;
-  TAnnotationsSummaryTypelayersItem = class;
-  TCategoryTypeitemsItem = class;
-  TDictlayerdataTypecommon = class;
-  TDictlayerdataTypedictTypesource = class;
-  TDictlayerdataTypedictTypewordsItemTypederivativesItemTypesource = class;
-  TDictlayerdataTypedictTypewordsItemTypederivativesItem = class;
-  TDictlayerdataTypedictTypewordsItemTypeexamplesItemTypesource = class;
-  TDictlayerdataTypedictTypewordsItemTypeexamplesItem = class;
-  TDictlayerdataTypedictTypewordsItemTypesensesItemTypeconjugationsItem = class;
-  TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesItemTypesource = class;
-  TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesItem = class;
-  TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItem = class;
-  TDictlayerdataTypedictTypewordsItemTypesensesItemTypesource = class;
-  TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsItemTypesource = class;
-  TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsItem = class;
-  TDictlayerdataTypedictTypewordsItemTypesensesItem = class;
-  TDictlayerdataTypedictTypewordsItemTypesource = class;
-  TDictlayerdataTypedictTypewordsItem = class;
-  TDictlayerdataTypedict = class;
-  TGeolayerdataTypecommon = class;
-  TGeolayerdataTypegeoTypeboundaryItemItem = class;
-  TGeolayerdataTypegeoTypeviewportTypehi = class;
-  TGeolayerdataTypegeoTypeviewportTypelo = class;
-  TGeolayerdataTypegeoTypeviewport = class;
-  TGeolayerdataTypegeo = class;
-  TMetadataTypeitemsItem = class;
-  TOffersTypeitemsItemTypeitemsItem = class;
-  TOffersTypeitemsItem = class;
-  TReviewTypeauthor = class;
-  TReviewTypesource = class;
-  TUsersettingsTypenotesExport = class;
-  TVolumeTypeaccessInfoTypeepub = class;
-  TVolumeTypeaccessInfoTypepdf = class;
-  TVolumeTypeaccessInfo = class;
-  TVolumeTypelayerInfoTypelayersItem = class;
-  TVolumeTypelayerInfo = class;
-  TVolumeTyperecommendedInfo = class;
-  TVolumeTypesaleInfoTypelistPrice = class;
-  TVolumeTypesaleInfoTypeoffersItemTypelistPrice = class;
-  TVolumeTypesaleInfoTypeoffersItemTyperentalDuration = class;
-  TVolumeTypesaleInfoTypeoffersItemTyperetailPrice = class;
-  TVolumeTypesaleInfoTypeoffersItem = class;
-  TVolumeTypesaleInfoTyperetailPrice = class;
-  TVolumeTypesaleInfo = class;
-  TVolumeTypesearchInfo = class;
-  TVolumeTypeuserInfoTypecopy = class;
-  TVolumeTypeuserInfoTyperentalPeriod = class;
-  TVolumeTypeuserInfoTypeuserUploadedVolumeInfo = class;
-  TVolumeTypeuserInfo = class;
-  TVolumeTypevolumeInfoTypedimensions = class;
-  TVolumeTypevolumeInfoTypeimageLinks = class;
-  TVolumeTypevolumeInfoTypeindustryIdentifiersItem = class;
-  TVolumeTypevolumeInfo = class;
-  TVolumeannotationTypecontentRanges = class;
+  TAnnotationTypeclientVersionRanges = Class;
+  TAnnotationTypecurrentVersionRanges = Class;
+  TAnnotationTypelayerSummary = Class;
+  TAnnotationsSummaryTypelayersItem = Class;
+  TCategoryTypeitemsItem = Class;
+  TDictlayerdataTypecommon = Class;
+  TDictlayerdataTypedictTypesource = Class;
+  TDictlayerdataTypedictTypewordsItemTypederivativesItemTypesource = Class;
+  TDictlayerdataTypedictTypewordsItemTypederivativesItem = Class;
+  TDictlayerdataTypedictTypewordsItemTypeexamplesItemTypesource = Class;
+  TDictlayerdataTypedictTypewordsItemTypeexamplesItem = Class;
+  TDictlayerdataTypedictTypewordsItemTypesensesItemTypeconjugationsItem = Class;
+  TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesItemTypesource = Class;
+  TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesItem = Class;
+  TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItem = Class;
+  TDictlayerdataTypedictTypewordsItemTypesensesItemTypesource = Class;
+  TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsItemTypesource = Class;
+  TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsItem = Class;
+  TDictlayerdataTypedictTypewordsItemTypesensesItem = Class;
+  TDictlayerdataTypedictTypewordsItemTypesource = Class;
+  TDictlayerdataTypedictTypewordsItem = Class;
+  TDictlayerdataTypedict = Class;
+  TGeolayerdataTypecommon = Class;
+  TGeolayerdataTypegeoTypeboundaryItemItem = Class;
+  TGeolayerdataTypegeoTypeviewportTypehi = Class;
+  TGeolayerdataTypegeoTypeviewportTypelo = Class;
+  TGeolayerdataTypegeoTypeviewport = Class;
+  TGeolayerdataTypegeo = Class;
+  TMetadataTypeitemsItem = Class;
+  TOffersTypeitemsItemTypeitemsItem = Class;
+  TOffersTypeitemsItem = Class;
+  TReviewTypeauthor = Class;
+  TReviewTypesource = Class;
+  TUsersettingsTypenotesExport = Class;
+  TVolumeTypeaccessInfoTypeepub = Class;
+  TVolumeTypeaccessInfoTypepdf = Class;
+  TVolumeTypeaccessInfo = Class;
+  TVolumeTypelayerInfoTypelayersItem = Class;
+  TVolumeTypelayerInfo = Class;
+  TVolumeTyperecommendedInfo = Class;
+  TVolumeTypesaleInfoTypelistPrice = Class;
+  TVolumeTypesaleInfoTypeoffersItemTypelistPrice = Class;
+  TVolumeTypesaleInfoTypeoffersItemTyperentalDuration = Class;
+  TVolumeTypesaleInfoTypeoffersItemTyperetailPrice = Class;
+  TVolumeTypesaleInfoTypeoffersItem = Class;
+  TVolumeTypesaleInfoTyperetailPrice = Class;
+  TVolumeTypesaleInfo = Class;
+  TVolumeTypesearchInfo = Class;
+  TVolumeTypeuserInfoTypecopy = Class;
+  TVolumeTypeuserInfoTyperentalPeriod = Class;
+  TVolumeTypeuserInfoTypeuserUploadedVolumeInfo = Class;
+  TVolumeTypeuserInfo = Class;
+  TVolumeTypevolumeInfoTypedimensions = Class;
+  TVolumeTypevolumeInfoTypeimageLinks = Class;
+  TVolumeTypevolumeInfoTypeindustryIdentifiersItem = Class;
+  TVolumeTypevolumeInfo = Class;
+  TVolumeannotationTypecontentRanges = Class;
   TAnnotationsTypeitemsArray = Array of TAnnotation;
   TAnnotationsSummaryTypelayersArray = Array of TAnnotationsSummaryTypelayersItem;
   TAnnotationsdataTypeitemsArray = Array of TAnnotationdata;
@@ -287,6 +287,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property afterSelectedText : String Index 0 Read FafterSelectedText Write SetafterSelectedText;
@@ -365,6 +369,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TAnnotationsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -414,6 +422,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setlayers(AIndex : Integer; AValue : TAnnotationsSummaryTypelayersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -437,6 +449,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TAnnotationsdataTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -567,6 +583,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TBookshelvesTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TBookshelvesTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -608,6 +628,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TCategoryTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TCategoryTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -842,6 +866,10 @@ type
     //Property setters
     Procedure Setdefinition(AIndex : Integer; AValue : String); virtual;
     Procedure Setexamples(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property definition : String Index 0 Read Fdefinition Write Setdefinition;
@@ -930,6 +958,10 @@ type
     Procedure Setsource(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypesensesItemTypesource); virtual;
     Procedure Setsyllabification(AIndex : Integer; AValue : String); virtual;
     Procedure Setsynonyms(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property conjugations : TDictlayerdataTypedictTypewordsItemTypesensesItemTypeconjugationsArray Index 0 Read Fconjugations Write Setconjugations;
@@ -978,6 +1010,10 @@ type
     Procedure Setexamples(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypeexamplesArray); virtual;
     Procedure Setsenses(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypesensesArray); virtual;
     Procedure Setsource(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypesource); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property derivatives : TDictlayerdataTypedictTypewordsItemTypederivativesArray Index 0 Read Fderivatives Write Setderivatives;
@@ -999,6 +1035,10 @@ type
     //Property setters
     Procedure Setsource(AIndex : Integer; AValue : TDictlayerdataTypedictTypesource); virtual;
     Procedure Setwords(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property source : TDictlayerdataTypedictTypesource Index 0 Read Fsource Write Setsource;
@@ -1089,6 +1129,10 @@ type
     //Property setters
     Procedure SetdownloadAccessList(AIndex : Integer; AValue : TDownloadAccessesTypedownloadAccessListArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property downloadAccessList : TDownloadAccessesTypedownloadAccessListArray Index 0 Read FdownloadAccessList Write SetdownloadAccessList;
@@ -1224,6 +1268,10 @@ type
     Procedure SetmapType(AIndex : Integer; AValue : String); virtual;
     Procedure Setviewport(AIndex : Integer; AValue : TGeolayerdataTypegeoTypeviewport); virtual;
     Procedure Setzoom(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property boundary : TGeolayerdataTypegeoTypeboundaryArray Index 0 Read Fboundary Write Setboundary;
@@ -1273,6 +1321,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TLayersummariesTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TLayersummariesTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1315,6 +1367,10 @@ type
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetvolumeAnnotationsVersion(AIndex : Integer; AValue : String); virtual;
     Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property annotationCount : integer Index 0 Read FannotationCount Write SetannotationCount;
@@ -1373,6 +1429,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TMetadataTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1427,6 +1487,10 @@ type
     Procedure SetgservicesKey(AIndex : Integer; AValue : String); virtual;
     Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TOffersTypeitemsItemTypeitemsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property artUrl : String Index 0 Read FartUrl Write SetartUrl;
@@ -1448,6 +1512,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TOffersTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TOffersTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -1759,6 +1827,10 @@ type
   Protected
     //Property setters
     Procedure Setlayers(AIndex : Integer; AValue : TVolumeTypelayerInfoTypelayersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property layers : TVolumeTypelayerInfoTypelayersArray Index 0 Read Flayers Write Setlayers;
@@ -1926,6 +1998,10 @@ type
     Procedure SetonSaleDate(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetretailPrice(AIndex : Integer; AValue : TVolumeTypesaleInfoTyperetailPrice); virtual;
     Procedure Setsaleability(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property buyLink : String Index 0 Read FbuyLink Write SetbuyLink;
@@ -2192,6 +2268,10 @@ type
     Procedure SetsamplePageCount(AIndex : Integer; AValue : integer); virtual;
     Procedure Setsubtitle(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property allowAnonLogging : boolean Index 0 Read FallowAnonLogging Write SetallowAnonLogging;
@@ -2282,6 +2362,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TVolume2TypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TVolume2TypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2351,6 +2435,10 @@ type
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property annotationDataId : String Index 0 Read FannotationDataId Write SetannotationDataId;
@@ -2388,6 +2476,10 @@ type
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
     Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TVolumeannotationsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2412,6 +2504,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TVolumesTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TVolumesTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -2419,6 +2515,29 @@ type
     Property totalItems : integer Index 16 Read FtotalItems Write SettotalItems;
   end;
   TVolumesClass = Class of TVolumes;
+  
+  { --------------------------------------------------------------------
+    TBookshelvesVolumesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TBookshelvesVolumesResource, method List
+  
+  TBookshelvesVolumesListOptions = Record
+    maxResults : integer;
+    showPreorders : boolean;
+    source : String;
+    startIndex : integer;
+  end;
+  
+  TBookshelvesVolumesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(shelf: string; userId: string; AQuery : string  = '') : TVolumes;
+    Function List(shelf: string; userId: string; AQuery : TBookshelvesVolumeslistOptions) : TVolumes;
+  end;
+  
   
   { --------------------------------------------------------------------
     TBookshelvesResource
@@ -2439,6 +2558,9 @@ type
   end;
   
   TBookshelvesResource = Class(TGoogleResource)
+  Private
+    FVolumesInstance : TBookshelvesVolumesResource;
+    Function GetVolumesInstance : TBookshelvesVolumesResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -2446,6 +2568,9 @@ type
     Function Get(shelf: string; userId: string; AQuery : TBookshelvesgetOptions) : TBookshelf;
     Function List(userId: string; AQuery : string  = '') : TBookshelves;
     Function List(userId: string; AQuery : TBookshelveslistOptions) : TBookshelves;
+    Function CreateVolumesResource(AOwner : TComponent) : TBookshelvesVolumesResource;virtual;overload;
+    Function CreateVolumesResource : TBookshelvesVolumesResource;virtual;overload;
+    Property VolumesResource : TBookshelvesVolumesResource Read GetVolumesInstance;
   end;
   
   
@@ -2503,6 +2628,93 @@ type
   
   
   { --------------------------------------------------------------------
+    TLayersAnnotationDataResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TLayersAnnotationDataResource, method Get
+  
+  TLayersAnnotationDataGetOptions = Record
+    allowWebDefinitions : boolean;
+    contentVersion : String;
+    h : integer;
+    locale : String;
+    scale : integer;
+    source : String;
+    w : integer;
+  end;
+  
+  
+  //Optional query Options for TLayersAnnotationDataResource, method List
+  
+  TLayersAnnotationDataListOptions = Record
+    annotationDataId : String;
+    contentVersion : String;
+    h : integer;
+    locale : String;
+    maxResults : integer;
+    pageToken : String;
+    scale : integer;
+    source : String;
+    updatedMax : String;
+    updatedMin : String;
+    w : integer;
+  end;
+  
+  TLayersAnnotationDataResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(annotationDataId: string; layerId: string; volumeId: string; AQuery : string  = '') : TAnnotationdata;
+    Function Get(annotationDataId: string; layerId: string; volumeId: string; AQuery : TLayersAnnotationDatagetOptions) : TAnnotationdata;
+    Function List(layerId: string; volumeId: string; AQuery : string  = '') : TAnnotationsdata;
+    Function List(layerId: string; volumeId: string; AQuery : TLayersAnnotationDatalistOptions) : TAnnotationsdata;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TLayersVolumeAnnotationsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TLayersVolumeAnnotationsResource, method Get
+  
+  TLayersVolumeAnnotationsGetOptions = Record
+    locale : String;
+    source : String;
+  end;
+  
+  
+  //Optional query Options for TLayersVolumeAnnotationsResource, method List
+  
+  TLayersVolumeAnnotationsListOptions = Record
+    contentVersion : String;
+    endOffset : String;
+    endPosition : String;
+    locale : String;
+    maxResults : integer;
+    pageToken : String;
+    showDeleted : boolean;
+    source : String;
+    startOffset : String;
+    startPosition : String;
+    updatedMax : String;
+    updatedMin : String;
+    volumeAnnotationsVersion : String;
+  end;
+  
+  TLayersVolumeAnnotationsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(annotationId: string; layerId: string; volumeId: string; AQuery : string  = '') : TVolumeannotation;
+    Function Get(annotationId: string; layerId: string; volumeId: string; AQuery : TLayersVolumeAnnotationsgetOptions) : TVolumeannotation;
+    Function List(layerId: string; volumeId: string; AQuery : string  = '') : TVolumeannotations;
+    Function List(layerId: string; volumeId: string; AQuery : TLayersVolumeAnnotationslistOptions) : TVolumeannotations;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TLayersResource
     --------------------------------------------------------------------}
   
@@ -2525,6 +2737,11 @@ type
   end;
   
   TLayersResource = Class(TGoogleResource)
+  Private
+    FAnnotationDataInstance : TLayersAnnotationDataResource;
+    FVolumeAnnotationsInstance : TLayersVolumeAnnotationsResource;
+    Function GetAnnotationDataInstance : TLayersAnnotationDataResource;virtual;
+    Function GetVolumeAnnotationsInstance : TLayersVolumeAnnotationsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -2532,6 +2749,12 @@ type
     Function Get(summaryId: string; volumeId: string; AQuery : TLayersgetOptions) : TLayersummary;
     Function List(volumeId: string; AQuery : string  = '') : TLayersummaries;
     Function List(volumeId: string; AQuery : TLayerslistOptions) : TLayersummaries;
+    Function CreateAnnotationDataResource(AOwner : TComponent) : TLayersAnnotationDataResource;virtual;overload;
+    Function CreateAnnotationDataResource : TLayersAnnotationDataResource;virtual;overload;
+    Function CreateVolumeAnnotationsResource(AOwner : TComponent) : TLayersVolumeAnnotationsResource;virtual;overload;
+    Function CreateVolumeAnnotationsResource : TLayersVolumeAnnotationsResource;virtual;overload;
+    Property AnnotationDataResource : TLayersAnnotationDataResource Read GetAnnotationDataInstance;
+    Property VolumeAnnotationsResource : TLayersVolumeAnnotationsResource Read GetVolumeAnnotationsInstance;
   end;
   
   
@@ -2590,13 +2813,240 @@ type
   
   
   { --------------------------------------------------------------------
+    TMylibraryAnnotationsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TMylibraryAnnotationsResource, method Delete
+  
+  TMylibraryAnnotationsDeleteOptions = Record
+    source : String;
+  end;
+  
+  
+  //Optional query Options for TMylibraryAnnotationsResource, method Insert
+  
+  TMylibraryAnnotationsInsertOptions = Record
+    country : String;
+    showOnlySummaryInResponse : boolean;
+    source : String;
+  end;
+  
+  
+  //Optional query Options for TMylibraryAnnotationsResource, method List
+  
+  TMylibraryAnnotationsListOptions = Record
+    contentVersion : String;
+    layerId : String;
+    layerIds : String;
+    maxResults : integer;
+    pageToken : String;
+    showDeleted : boolean;
+    source : String;
+    updatedMax : String;
+    updatedMin : String;
+    volumeId : String;
+  end;
+  
+  
+  //Optional query Options for TMylibraryAnnotationsResource, method Summary
+  
+  TMylibraryAnnotationsSummaryOptions = Record
+    layerIds : String;
+    volumeId : String;
+  end;
+  
+  
+  //Optional query Options for TMylibraryAnnotationsResource, method Update
+  
+  TMylibraryAnnotationsUpdateOptions = Record
+    source : String;
+  end;
+  
+  TMylibraryAnnotationsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(annotationId: string; AQuery : string  = '');
+    Procedure Delete(annotationId: string; AQuery : TMylibraryAnnotationsdeleteOptions);
+    Function Insert(aAnnotation : TAnnotation; AQuery : string  = '') : TAnnotation;
+    Function Insert(aAnnotation : TAnnotation; AQuery : TMylibraryAnnotationsinsertOptions) : TAnnotation;
+    Function List(AQuery : string  = '') : TAnnotations;
+    Function List(AQuery : TMylibraryAnnotationslistOptions) : TAnnotations;
+    Function Summary(AQuery : string  = '') : TAnnotationsSummary;
+    Function Summary(AQuery : TMylibraryAnnotationssummaryOptions) : TAnnotationsSummary;
+    Function Update(annotationId: string; aAnnotation : TAnnotation; AQuery : string  = '') : TAnnotation;
+    Function Update(annotationId: string; aAnnotation : TAnnotation; AQuery : TMylibraryAnnotationsupdateOptions) : TAnnotation;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TMylibraryBookshelvesVolumesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TMylibraryBookshelvesVolumesResource, method List
+  
+  TMylibraryBookshelvesVolumesListOptions = Record
+    country : String;
+    maxResults : integer;
+    projection : String;
+    q : String;
+    showPreorders : boolean;
+    source : String;
+    startIndex : integer;
+  end;
+  
+  TMylibraryBookshelvesVolumesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(shelf: string; AQuery : string  = '') : TVolumes;
+    Function List(shelf: string; AQuery : TMylibraryBookshelvesVolumeslistOptions) : TVolumes;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TMylibraryBookshelvesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TMylibraryBookshelvesResource, method AddVolume
+  
+  TMylibraryBookshelvesAddVolumeOptions = Record
+    reason : String;
+    source : String;
+    volumeId : String;
+  end;
+  
+  
+  //Optional query Options for TMylibraryBookshelvesResource, method ClearVolumes
+  
+  TMylibraryBookshelvesClearVolumesOptions = Record
+    source : String;
+  end;
+  
+  
+  //Optional query Options for TMylibraryBookshelvesResource, method Get
+  
+  TMylibraryBookshelvesGetOptions = Record
+    source : String;
+  end;
+  
+  
+  //Optional query Options for TMylibraryBookshelvesResource, method List
+  
+  TMylibraryBookshelvesListOptions = Record
+    source : String;
+  end;
+  
+  
+  //Optional query Options for TMylibraryBookshelvesResource, method MoveVolume
+  
+  TMylibraryBookshelvesMoveVolumeOptions = Record
+    source : String;
+    volumeId : String;
+    volumePosition : integer;
+  end;
+  
+  
+  //Optional query Options for TMylibraryBookshelvesResource, method RemoveVolume
+  
+  TMylibraryBookshelvesRemoveVolumeOptions = Record
+    reason : String;
+    source : String;
+    volumeId : String;
+  end;
+  
+  TMylibraryBookshelvesResource = Class(TGoogleResource)
+  Private
+    FVolumesInstance : TMylibraryBookshelvesVolumesResource;
+    Function GetVolumesInstance : TMylibraryBookshelvesVolumesResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure AddVolume(shelf: string; AQuery : string  = '');
+    Procedure AddVolume(shelf: string; AQuery : TMylibraryBookshelvesaddVolumeOptions);
+    Procedure ClearVolumes(shelf: string; AQuery : string  = '');
+    Procedure ClearVolumes(shelf: string; AQuery : TMylibraryBookshelvesclearVolumesOptions);
+    Function Get(shelf: string; AQuery : string  = '') : TBookshelf;
+    Function Get(shelf: string; AQuery : TMylibraryBookshelvesgetOptions) : TBookshelf;
+    Function List(AQuery : string  = '') : TBookshelves;
+    Function List(AQuery : TMylibraryBookshelveslistOptions) : TBookshelves;
+    Procedure MoveVolume(shelf: string; AQuery : string  = '');
+    Procedure MoveVolume(shelf: string; AQuery : TMylibraryBookshelvesmoveVolumeOptions);
+    Procedure RemoveVolume(shelf: string; AQuery : string  = '');
+    Procedure RemoveVolume(shelf: string; AQuery : TMylibraryBookshelvesremoveVolumeOptions);
+    Function CreateVolumesResource(AOwner : TComponent) : TMylibraryBookshelvesVolumesResource;virtual;overload;
+    Function CreateVolumesResource : TMylibraryBookshelvesVolumesResource;virtual;overload;
+    Property VolumesResource : TMylibraryBookshelvesVolumesResource Read GetVolumesInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TMylibraryReadingpositionsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TMylibraryReadingpositionsResource, method Get
+  
+  TMylibraryReadingpositionsGetOptions = Record
+    contentVersion : String;
+    source : String;
+  end;
+  
+  
+  //Optional query Options for TMylibraryReadingpositionsResource, method SetPosition
+  
+  TMylibraryReadingpositionsSetPositionOptions = Record
+    action : String;
+    contentVersion : String;
+    deviceCookie : String;
+    position : String;
+    source : String;
+    timestamp : String;
+  end;
+  
+  TMylibraryReadingpositionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(volumeId: string; AQuery : string  = '') : TReadingPosition;
+    Function Get(volumeId: string; AQuery : TMylibraryReadingpositionsgetOptions) : TReadingPosition;
+    Procedure SetPosition(volumeId: string; AQuery : string  = '');
+    Procedure SetPosition(volumeId: string; AQuery : TMylibraryReadingpositionssetPositionOptions);
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TMylibraryResource
     --------------------------------------------------------------------}
   
   TMylibraryResource = Class(TGoogleResource)
+  Private
+    FAnnotationsInstance : TMylibraryAnnotationsResource;
+    FBookshelvesVolumesInstance : TMylibraryBookshelvesVolumesResource;
+    FBookshelvesInstance : TMylibraryBookshelvesResource;
+    FReadingpositionsInstance : TMylibraryReadingpositionsResource;
+    Function GetAnnotationsInstance : TMylibraryAnnotationsResource;virtual;
+    Function GetBookshelvesVolumesInstance : TMylibraryBookshelvesVolumesResource;virtual;
+    Function GetBookshelvesInstance : TMylibraryBookshelvesResource;virtual;
+    Function GetReadingpositionsInstance : TMylibraryReadingpositionsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateAnnotationsResource(AOwner : TComponent) : TMylibraryAnnotationsResource;virtual;overload;
+    Function CreateAnnotationsResource : TMylibraryAnnotationsResource;virtual;overload;
+    Function CreateBookshelvesVolumesResource(AOwner : TComponent) : TMylibraryBookshelvesVolumesResource;virtual;overload;
+    Function CreateBookshelvesVolumesResource : TMylibraryBookshelvesVolumesResource;virtual;overload;
+    Function CreateBookshelvesResource(AOwner : TComponent) : TMylibraryBookshelvesResource;virtual;overload;
+    Function CreateBookshelvesResource : TMylibraryBookshelvesResource;virtual;overload;
+    Function CreateReadingpositionsResource(AOwner : TComponent) : TMylibraryReadingpositionsResource;virtual;overload;
+    Function CreateReadingpositionsResource : TMylibraryReadingpositionsResource;virtual;overload;
+    Property AnnotationsResource : TMylibraryAnnotationsResource Read GetAnnotationsInstance;
+    Property BookshelvesVolumesResource : TMylibraryBookshelvesVolumesResource Read GetBookshelvesVolumesInstance;
+    Property BookshelvesResource : TMylibraryBookshelvesResource Read GetBookshelvesInstance;
+    Property ReadingpositionsResource : TMylibraryReadingpositionsResource Read GetReadingpositionsInstance;
   end;
   
   
@@ -2690,6 +3140,113 @@ type
   
   
   { --------------------------------------------------------------------
+    TVolumesAssociatedResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TVolumesAssociatedResource, method List
+  
+  TVolumesAssociatedListOptions = Record
+    association : String;
+    locale : String;
+    maxAllowedMaturityRating : String;
+    source : String;
+  end;
+  
+  TVolumesAssociatedResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(volumeId: string; AQuery : string  = '') : TVolumes;
+    Function List(volumeId: string; AQuery : TVolumesAssociatedlistOptions) : TVolumes;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TVolumesMybooksResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TVolumesMybooksResource, method List
+  
+  TVolumesMybooksListOptions = Record
+    acquireMethod : String;
+    locale : String;
+    maxResults : integer;
+    processingState : String;
+    source : String;
+    startIndex : integer;
+  end;
+  
+  TVolumesMybooksResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(AQuery : string  = '') : TVolumes;
+    Function List(AQuery : TVolumesMybookslistOptions) : TVolumes;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TVolumesRecommendedResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TVolumesRecommendedResource, method List
+  
+  TVolumesRecommendedListOptions = Record
+    locale : String;
+    maxAllowedMaturityRating : String;
+    source : String;
+  end;
+  
+  
+  //Optional query Options for TVolumesRecommendedResource, method Rate
+  
+  TVolumesRecommendedRateOptions = Record
+    locale : String;
+    rating : String;
+    source : String;
+    volumeId : String;
+  end;
+  
+  TVolumesRecommendedResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(AQuery : string  = '') : TVolumes;
+    Function List(AQuery : TVolumesRecommendedlistOptions) : TVolumes;
+    Function Rate(AQuery : string  = '') : TBooksVolumesRecommendedRateResponse;
+    Function Rate(AQuery : TVolumesRecommendedrateOptions) : TBooksVolumesRecommendedRateResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TVolumesUseruploadedResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TVolumesUseruploadedResource, method List
+  
+  TVolumesUseruploadedListOptions = Record
+    locale : String;
+    maxResults : integer;
+    processingState : String;
+    source : String;
+    startIndex : integer;
+    volumeId : String;
+  end;
+  
+  TVolumesUseruploadedResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(AQuery : string  = '') : TVolumes;
+    Function List(AQuery : TVolumesUseruploadedlistOptions) : TVolumes;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TVolumesResource
     --------------------------------------------------------------------}
   
@@ -2724,6 +3281,15 @@ type
   end;
   
   TVolumesResource = Class(TGoogleResource)
+  Private
+    FAssociatedInstance : TVolumesAssociatedResource;
+    FMybooksInstance : TVolumesMybooksResource;
+    FRecommendedInstance : TVolumesRecommendedResource;
+    FUseruploadedInstance : TVolumesUseruploadedResource;
+    Function GetAssociatedInstance : TVolumesAssociatedResource;virtual;
+    Function GetMybooksInstance : TVolumesMybooksResource;virtual;
+    Function GetRecommendedInstance : TVolumesRecommendedResource;virtual;
+    Function GetUseruploadedInstance : TVolumesUseruploadedResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -2731,6 +3297,18 @@ type
     Function Get(volumeId: string; AQuery : TVolumesgetOptions) : TVolume;
     Function List(AQuery : string  = '') : TVolumes;
     Function List(AQuery : TVolumeslistOptions) : TVolumes;
+    Function CreateAssociatedResource(AOwner : TComponent) : TVolumesAssociatedResource;virtual;overload;
+    Function CreateAssociatedResource : TVolumesAssociatedResource;virtual;overload;
+    Function CreateMybooksResource(AOwner : TComponent) : TVolumesMybooksResource;virtual;overload;
+    Function CreateMybooksResource : TVolumesMybooksResource;virtual;overload;
+    Function CreateRecommendedResource(AOwner : TComponent) : TVolumesRecommendedResource;virtual;overload;
+    Function CreateRecommendedResource : TVolumesRecommendedResource;virtual;overload;
+    Function CreateUseruploadedResource(AOwner : TComponent) : TVolumesUseruploadedResource;virtual;overload;
+    Function CreateUseruploadedResource : TVolumesUseruploadedResource;virtual;overload;
+    Property AssociatedResource : TVolumesAssociatedResource Read GetAssociatedInstance;
+    Property MybooksResource : TVolumesMybooksResource Read GetMybooksInstance;
+    Property RecommendedResource : TVolumesRecommendedResource Read GetRecommendedInstance;
+    Property UseruploadedResource : TVolumesUseruploadedResource Read GetUseruploadedInstance;
   end;
   
   
@@ -2740,23 +3318,45 @@ type
   
   TBooksAPI = Class(TGoogleAPI)
   Private
+    FBookshelvesVolumesInstance : TBookshelvesVolumesResource;
     FBookshelvesInstance : TBookshelvesResource;
     FCloudloadingInstance : TCloudloadingResource;
     FDictionaryInstance : TDictionaryResource;
+    FLayersAnnotationDataInstance : TLayersAnnotationDataResource;
+    FLayersVolumeAnnotationsInstance : TLayersVolumeAnnotationsResource;
     FLayersInstance : TLayersResource;
     FMyconfigInstance : TMyconfigResource;
+    FMylibraryAnnotationsInstance : TMylibraryAnnotationsResource;
+    FMylibraryBookshelvesVolumesInstance : TMylibraryBookshelvesVolumesResource;
+    FMylibraryBookshelvesInstance : TMylibraryBookshelvesResource;
+    FMylibraryReadingpositionsInstance : TMylibraryReadingpositionsResource;
     FMylibraryInstance : TMylibraryResource;
     FOnboardingInstance : TOnboardingResource;
     FPromoofferInstance : TPromoofferResource;
+    FVolumesAssociatedInstance : TVolumesAssociatedResource;
+    FVolumesMybooksInstance : TVolumesMybooksResource;
+    FVolumesRecommendedInstance : TVolumesRecommendedResource;
+    FVolumesUseruploadedInstance : TVolumesUseruploadedResource;
     FVolumesInstance : TVolumesResource;
+    Function GetBookshelvesVolumesInstance : TBookshelvesVolumesResource;virtual;
     Function GetBookshelvesInstance : TBookshelvesResource;virtual;
     Function GetCloudloadingInstance : TCloudloadingResource;virtual;
     Function GetDictionaryInstance : TDictionaryResource;virtual;
+    Function GetLayersAnnotationDataInstance : TLayersAnnotationDataResource;virtual;
+    Function GetLayersVolumeAnnotationsInstance : TLayersVolumeAnnotationsResource;virtual;
     Function GetLayersInstance : TLayersResource;virtual;
     Function GetMyconfigInstance : TMyconfigResource;virtual;
+    Function GetMylibraryAnnotationsInstance : TMylibraryAnnotationsResource;virtual;
+    Function GetMylibraryBookshelvesVolumesInstance : TMylibraryBookshelvesVolumesResource;virtual;
+    Function GetMylibraryBookshelvesInstance : TMylibraryBookshelvesResource;virtual;
+    Function GetMylibraryReadingpositionsInstance : TMylibraryReadingpositionsResource;virtual;
     Function GetMylibraryInstance : TMylibraryResource;virtual;
     Function GetOnboardingInstance : TOnboardingResource;virtual;
     Function GetPromoofferInstance : TPromoofferResource;virtual;
+    Function GetVolumesAssociatedInstance : TVolumesAssociatedResource;virtual;
+    Function GetVolumesMybooksInstance : TVolumesMybooksResource;virtual;
+    Function GetVolumesRecommendedInstance : TVolumesRecommendedResource;virtual;
+    Function GetVolumesUseruploadedInstance : TVolumesUseruploadedResource;virtual;
     Function GetVolumesInstance : TVolumesResource;virtual;
   Public
     //Override class functions with API info
@@ -2781,33 +3381,66 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateBookshelvesVolumesResource(AOwner : TComponent) : TBookshelvesVolumesResource;virtual;overload;
+    Function CreateBookshelvesVolumesResource : TBookshelvesVolumesResource;virtual;overload;
     Function CreateBookshelvesResource(AOwner : TComponent) : TBookshelvesResource;virtual;overload;
     Function CreateBookshelvesResource : TBookshelvesResource;virtual;overload;
     Function CreateCloudloadingResource(AOwner : TComponent) : TCloudloadingResource;virtual;overload;
     Function CreateCloudloadingResource : TCloudloadingResource;virtual;overload;
     Function CreateDictionaryResource(AOwner : TComponent) : TDictionaryResource;virtual;overload;
     Function CreateDictionaryResource : TDictionaryResource;virtual;overload;
+    Function CreateLayersAnnotationDataResource(AOwner : TComponent) : TLayersAnnotationDataResource;virtual;overload;
+    Function CreateLayersAnnotationDataResource : TLayersAnnotationDataResource;virtual;overload;
+    Function CreateLayersVolumeAnnotationsResource(AOwner : TComponent) : TLayersVolumeAnnotationsResource;virtual;overload;
+    Function CreateLayersVolumeAnnotationsResource : TLayersVolumeAnnotationsResource;virtual;overload;
     Function CreateLayersResource(AOwner : TComponent) : TLayersResource;virtual;overload;
     Function CreateLayersResource : TLayersResource;virtual;overload;
     Function CreateMyconfigResource(AOwner : TComponent) : TMyconfigResource;virtual;overload;
     Function CreateMyconfigResource : TMyconfigResource;virtual;overload;
+    Function CreateMylibraryAnnotationsResource(AOwner : TComponent) : TMylibraryAnnotationsResource;virtual;overload;
+    Function CreateMylibraryAnnotationsResource : TMylibraryAnnotationsResource;virtual;overload;
+    Function CreateMylibraryBookshelvesVolumesResource(AOwner : TComponent) : TMylibraryBookshelvesVolumesResource;virtual;overload;
+    Function CreateMylibraryBookshelvesVolumesResource : TMylibraryBookshelvesVolumesResource;virtual;overload;
+    Function CreateMylibraryBookshelvesResource(AOwner : TComponent) : TMylibraryBookshelvesResource;virtual;overload;
+    Function CreateMylibraryBookshelvesResource : TMylibraryBookshelvesResource;virtual;overload;
+    Function CreateMylibraryReadingpositionsResource(AOwner : TComponent) : TMylibraryReadingpositionsResource;virtual;overload;
+    Function CreateMylibraryReadingpositionsResource : TMylibraryReadingpositionsResource;virtual;overload;
     Function CreateMylibraryResource(AOwner : TComponent) : TMylibraryResource;virtual;overload;
     Function CreateMylibraryResource : TMylibraryResource;virtual;overload;
     Function CreateOnboardingResource(AOwner : TComponent) : TOnboardingResource;virtual;overload;
     Function CreateOnboardingResource : TOnboardingResource;virtual;overload;
     Function CreatePromoofferResource(AOwner : TComponent) : TPromoofferResource;virtual;overload;
     Function CreatePromoofferResource : TPromoofferResource;virtual;overload;
+    Function CreateVolumesAssociatedResource(AOwner : TComponent) : TVolumesAssociatedResource;virtual;overload;
+    Function CreateVolumesAssociatedResource : TVolumesAssociatedResource;virtual;overload;
+    Function CreateVolumesMybooksResource(AOwner : TComponent) : TVolumesMybooksResource;virtual;overload;
+    Function CreateVolumesMybooksResource : TVolumesMybooksResource;virtual;overload;
+    Function CreateVolumesRecommendedResource(AOwner : TComponent) : TVolumesRecommendedResource;virtual;overload;
+    Function CreateVolumesRecommendedResource : TVolumesRecommendedResource;virtual;overload;
+    Function CreateVolumesUseruploadedResource(AOwner : TComponent) : TVolumesUseruploadedResource;virtual;overload;
+    Function CreateVolumesUseruploadedResource : TVolumesUseruploadedResource;virtual;overload;
     Function CreateVolumesResource(AOwner : TComponent) : TVolumesResource;virtual;overload;
     Function CreateVolumesResource : TVolumesResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property BookshelvesVolumesResource : TBookshelvesVolumesResource Read GetBookshelvesVolumesInstance;
     Property BookshelvesResource : TBookshelvesResource Read GetBookshelvesInstance;
     Property CloudloadingResource : TCloudloadingResource Read GetCloudloadingInstance;
     Property DictionaryResource : TDictionaryResource Read GetDictionaryInstance;
+    Property LayersAnnotationDataResource : TLayersAnnotationDataResource Read GetLayersAnnotationDataInstance;
+    Property LayersVolumeAnnotationsResource : TLayersVolumeAnnotationsResource Read GetLayersVolumeAnnotationsInstance;
     Property LayersResource : TLayersResource Read GetLayersInstance;
     Property MyconfigResource : TMyconfigResource Read GetMyconfigInstance;
+    Property MylibraryAnnotationsResource : TMylibraryAnnotationsResource Read GetMylibraryAnnotationsInstance;
+    Property MylibraryBookshelvesVolumesResource : TMylibraryBookshelvesVolumesResource Read GetMylibraryBookshelvesVolumesInstance;
+    Property MylibraryBookshelvesResource : TMylibraryBookshelvesResource Read GetMylibraryBookshelvesInstance;
+    Property MylibraryReadingpositionsResource : TMylibraryReadingpositionsResource Read GetMylibraryReadingpositionsInstance;
     Property MylibraryResource : TMylibraryResource Read GetMylibraryInstance;
     Property OnboardingResource : TOnboardingResource Read GetOnboardingInstance;
     Property PromoofferResource : TPromoofferResource Read GetPromoofferInstance;
+    Property VolumesAssociatedResource : TVolumesAssociatedResource Read GetVolumesAssociatedInstance;
+    Property VolumesMybooksResource : TVolumesMybooksResource Read GetVolumesMybooksInstance;
+    Property VolumesRecommendedResource : TVolumesRecommendedResource Read GetVolumesRecommendedInstance;
+    Property VolumesUseruploadedResource : TVolumesUseruploadedResource Read GetVolumesUseruploadedInstance;
     Property VolumesResource : TVolumesResource Read GetVolumesInstance;
   end;
 
@@ -3139,6 +3772,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAnnotation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'pageids' : SetLength(FpageIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3283,6 +3929,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAnnotations.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3367,6 +4026,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAnnotationsSummary.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'layers' : SetLength(Flayers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3413,6 +4085,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAnnotationsdata.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3659,6 +4344,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBookshelves.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3722,6 +4420,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCategory.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4111,6 +4822,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'examples' : SetLength(Fexamples,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4279,6 +5003,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'conjugations' : SetLength(Fconjugations,ALength);
+  'definitions' : SetLength(Fdefinitions,ALength);
+  'synonyms' : SetLength(Fsynonyms,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4353,6 +5092,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDictlayerdataTypedictTypewordsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'derivatives' : SetLength(Fderivatives,ALength);
+  'examples' : SetLength(Fexamples,ALength);
+  'senses' : SetLength(Fsenses,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4379,6 +5133,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDictlayerdataTypedict.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'words' : SetLength(Fwords,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4570,6 +5337,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDownloadAccesses.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'downloadaccesslist' : SetLength(FdownloadAccessList,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4823,6 +5603,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeolayerdataTypegeo.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'boundary' : SetLength(Fboundary,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4896,6 +5689,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLayersummaries.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5034,6 +5840,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLayersummary.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'annotationtypes' : SetLength(FannotationTypes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5117,6 +5936,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5232,6 +6064,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOffersTypeitemsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5258,6 +6103,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOffers.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5864,6 +6722,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVolumeTypelayerInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'layers' : SetLength(Flayers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6160,6 +7031,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVolumeTypesaleInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'offers' : SetLength(Foffers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -6785,6 +7669,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVolumeTypevolumeInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'authors' : SetLength(Fauthors,ALength);
+  'categories' : SetLength(Fcategories,ALength);
+  'industryidentifiers' : SetLength(FindustryIdentifiers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -6938,6 +7837,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVolume2.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7133,6 +8045,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVolumeannotation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'pageids' : SetLength(FpageIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7190,6 +8115,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVolumeannotations.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -7227,6 +8165,68 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVolumes.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TBookshelvesVolumesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TBookshelvesVolumesResource.ResourceName : String;
+
+begin
+  Result:='volumes';
+end;
+
+Class Function TBookshelvesVolumesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TbooksAPI;
+end;
+
+Function TBookshelvesVolumesResource.List(shelf: string; userId: string; AQuery : string = '') : TVolumes;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'users/{userId}/bookshelves/{shelf}/volumes';
+  _Methodid   = 'books.bookshelves.volumes.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['shelf',shelf,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TVolumes) as TVolumes;
+end;
+
+
+Function TBookshelvesVolumesResource.List(shelf: string; userId: string; AQuery : TBookshelvesVolumeslistOptions) : TVolumes;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'showPreorders',AQuery.showPreorders);
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'startIndex',AQuery.startIndex);
+  Result:=List(shelf,userId,_Q);
+end;
 
 
 
@@ -7299,6 +8299,30 @@ begin
   _Q:='';
   AddToQuery(_Q,'source',AQuery.source);
   Result:=List(userId,_Q);
+end;
+
+
+
+Function TBookshelvesResource.GetVolumesInstance : TBookshelvesVolumesResource;
+
+begin
+  if (FVolumesInstance=Nil) then
+    FVolumesInstance:=CreateVolumesResource;
+  Result:=FVolumesInstance;
+end;
+
+Function TBookshelvesResource.CreateVolumesResource : TBookshelvesVolumesResource;
+
+begin
+  Result:=CreateVolumesResource(Self);
+end;
+
+
+Function TBookshelvesResource.CreateVolumesResource(AOwner : TComponent) : TBookshelvesVolumesResource;
+
+begin
+  Result:=TBookshelvesVolumesResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -7425,6 +8449,181 @@ end;
 
 
 { --------------------------------------------------------------------
+  TLayersAnnotationDataResource
+  --------------------------------------------------------------------}
+
+
+Class Function TLayersAnnotationDataResource.ResourceName : String;
+
+begin
+  Result:='annotationData';
+end;
+
+Class Function TLayersAnnotationDataResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TbooksAPI;
+end;
+
+Function TLayersAnnotationDataResource.Get(annotationDataId: string; layerId: string; volumeId: string; AQuery : string = '') : TAnnotationdata;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'volumes/{volumeId}/layers/{layerId}/data/{annotationDataId}';
+  _Methodid   = 'books.layers.annotationData.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['annotationDataId',annotationDataId,'layerId',layerId,'volumeId',volumeId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAnnotationdata) as TAnnotationdata;
+end;
+
+
+Function TLayersAnnotationDataResource.Get(annotationDataId: string; layerId: string; volumeId: string; AQuery : TLayersAnnotationDatagetOptions) : TAnnotationdata;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'allowWebDefinitions',AQuery.allowWebDefinitions);
+  AddToQuery(_Q,'contentVersion',AQuery.contentVersion);
+  AddToQuery(_Q,'h',AQuery.h);
+  AddToQuery(_Q,'locale',AQuery.locale);
+  AddToQuery(_Q,'scale',AQuery.scale);
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'w',AQuery.w);
+  Result:=Get(annotationDataId,layerId,volumeId,_Q);
+end;
+
+Function TLayersAnnotationDataResource.List(layerId: string; volumeId: string; AQuery : string = '') : TAnnotationsdata;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'volumes/{volumeId}/layers/{layerId}/data';
+  _Methodid   = 'books.layers.annotationData.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['layerId',layerId,'volumeId',volumeId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAnnotationsdata) as TAnnotationsdata;
+end;
+
+
+Function TLayersAnnotationDataResource.List(layerId: string; volumeId: string; AQuery : TLayersAnnotationDatalistOptions) : TAnnotationsdata;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'annotationDataId',AQuery.annotationDataId);
+  AddToQuery(_Q,'contentVersion',AQuery.contentVersion);
+  AddToQuery(_Q,'h',AQuery.h);
+  AddToQuery(_Q,'locale',AQuery.locale);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'scale',AQuery.scale);
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'updatedMax',AQuery.updatedMax);
+  AddToQuery(_Q,'updatedMin',AQuery.updatedMin);
+  AddToQuery(_Q,'w',AQuery.w);
+  Result:=List(layerId,volumeId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TLayersVolumeAnnotationsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TLayersVolumeAnnotationsResource.ResourceName : String;
+
+begin
+  Result:='volumeAnnotations';
+end;
+
+Class Function TLayersVolumeAnnotationsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TbooksAPI;
+end;
+
+Function TLayersVolumeAnnotationsResource.Get(annotationId: string; layerId: string; volumeId: string; AQuery : string = '') : TVolumeannotation;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'volumes/{volumeId}/layers/{layerId}/annotations/{annotationId}';
+  _Methodid   = 'books.layers.volumeAnnotations.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['annotationId',annotationId,'layerId',layerId,'volumeId',volumeId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TVolumeannotation) as TVolumeannotation;
+end;
+
+
+Function TLayersVolumeAnnotationsResource.Get(annotationId: string; layerId: string; volumeId: string; AQuery : TLayersVolumeAnnotationsgetOptions) : TVolumeannotation;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'locale',AQuery.locale);
+  AddToQuery(_Q,'source',AQuery.source);
+  Result:=Get(annotationId,layerId,volumeId,_Q);
+end;
+
+Function TLayersVolumeAnnotationsResource.List(layerId: string; volumeId: string; AQuery : string = '') : TVolumeannotations;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'volumes/{volumeId}/layers/{layerId}';
+  _Methodid   = 'books.layers.volumeAnnotations.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['layerId',layerId,'volumeId',volumeId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TVolumeannotations) as TVolumeannotations;
+end;
+
+
+Function TLayersVolumeAnnotationsResource.List(layerId: string; volumeId: string; AQuery : TLayersVolumeAnnotationslistOptions) : TVolumeannotations;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'contentVersion',AQuery.contentVersion);
+  AddToQuery(_Q,'endOffset',AQuery.endOffset);
+  AddToQuery(_Q,'endPosition',AQuery.endPosition);
+  AddToQuery(_Q,'locale',AQuery.locale);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'showDeleted',AQuery.showDeleted);
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'startOffset',AQuery.startOffset);
+  AddToQuery(_Q,'startPosition',AQuery.startPosition);
+  AddToQuery(_Q,'updatedMax',AQuery.updatedMax);
+  AddToQuery(_Q,'updatedMin',AQuery.updatedMin);
+  AddToQuery(_Q,'volumeAnnotationsVersion',AQuery.volumeAnnotationsVersion);
+  Result:=List(layerId,volumeId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
   TLayersResource
   --------------------------------------------------------------------}
 
@@ -7497,6 +8696,54 @@ begin
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   AddToQuery(_Q,'source',AQuery.source);
   Result:=List(volumeId,_Q);
+end;
+
+
+
+Function TLayersResource.GetAnnotationDataInstance : TLayersAnnotationDataResource;
+
+begin
+  if (FAnnotationDataInstance=Nil) then
+    FAnnotationDataInstance:=CreateAnnotationDataResource;
+  Result:=FAnnotationDataInstance;
+end;
+
+Function TLayersResource.CreateAnnotationDataResource : TLayersAnnotationDataResource;
+
+begin
+  Result:=CreateAnnotationDataResource(Self);
+end;
+
+
+Function TLayersResource.CreateAnnotationDataResource(AOwner : TComponent) : TLayersAnnotationDataResource;
+
+begin
+  Result:=TLayersAnnotationDataResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TLayersResource.GetVolumeAnnotationsInstance : TLayersVolumeAnnotationsResource;
+
+begin
+  if (FVolumeAnnotationsInstance=Nil) then
+    FVolumeAnnotationsInstance:=CreateVolumeAnnotationsResource;
+  Result:=FVolumeAnnotationsInstance;
+end;
+
+Function TLayersResource.CreateVolumeAnnotationsResource : TLayersVolumeAnnotationsResource;
+
+begin
+  Result:=CreateVolumeAnnotationsResource(Self);
+end;
+
+
+Function TLayersResource.CreateVolumeAnnotationsResource(AOwner : TComponent) : TLayersVolumeAnnotationsResource;
+
+begin
+  Result:=TLayersVolumeAnnotationsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -7626,6 +8873,498 @@ end;
 
 
 { --------------------------------------------------------------------
+  TMylibraryAnnotationsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TMylibraryAnnotationsResource.ResourceName : String;
+
+begin
+  Result:='annotations';
+end;
+
+Class Function TMylibraryAnnotationsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TbooksAPI;
+end;
+
+Procedure TMylibraryAnnotationsResource.Delete(annotationId: string; AQuery : string = '');
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'mylibrary/annotations/{annotationId}';
+  _Methodid   = 'books.mylibrary.annotations.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['annotationId',annotationId]);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TMylibraryAnnotationsResource.Delete(annotationId: string; AQuery : TMylibraryAnnotationsdeleteOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'source',AQuery.source);
+  Delete(annotationId,_Q);
+end;
+
+Function TMylibraryAnnotationsResource.Insert(aAnnotation : TAnnotation; AQuery : string = '') : TAnnotation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'mylibrary/annotations';
+  _Methodid   = 'books.mylibrary.annotations.insert';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,aAnnotation,TAnnotation) as TAnnotation;
+end;
+
+
+Function TMylibraryAnnotationsResource.Insert(aAnnotation : TAnnotation; AQuery : TMylibraryAnnotationsinsertOptions) : TAnnotation;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'country',AQuery.country);
+  AddToQuery(_Q,'showOnlySummaryInResponse',AQuery.showOnlySummaryInResponse);
+  AddToQuery(_Q,'source',AQuery.source);
+  Result:=Insert(aAnnotation,_Q);
+end;
+
+Function TMylibraryAnnotationsResource.List(AQuery : string = '') : TAnnotations;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'mylibrary/annotations';
+  _Methodid   = 'books.mylibrary.annotations.list';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TAnnotations) as TAnnotations;
+end;
+
+
+Function TMylibraryAnnotationsResource.List(AQuery : TMylibraryAnnotationslistOptions) : TAnnotations;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'contentVersion',AQuery.contentVersion);
+  AddToQuery(_Q,'layerId',AQuery.layerId);
+  AddToQuery(_Q,'layerIds',AQuery.layerIds);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'showDeleted',AQuery.showDeleted);
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'updatedMax',AQuery.updatedMax);
+  AddToQuery(_Q,'updatedMin',AQuery.updatedMin);
+  AddToQuery(_Q,'volumeId',AQuery.volumeId);
+  Result:=List(_Q);
+end;
+
+Function TMylibraryAnnotationsResource.Summary(AQuery : string = '') : TAnnotationsSummary;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'mylibrary/annotations/summary';
+  _Methodid   = 'books.mylibrary.annotations.summary';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TAnnotationsSummary) as TAnnotationsSummary;
+end;
+
+
+Function TMylibraryAnnotationsResource.Summary(AQuery : TMylibraryAnnotationssummaryOptions) : TAnnotationsSummary;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'layerIds',AQuery.layerIds);
+  AddToQuery(_Q,'volumeId',AQuery.volumeId);
+  Result:=Summary(_Q);
+end;
+
+Function TMylibraryAnnotationsResource.Update(annotationId: string; aAnnotation : TAnnotation; AQuery : string = '') : TAnnotation;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'mylibrary/annotations/{annotationId}';
+  _Methodid   = 'books.mylibrary.annotations.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['annotationId',annotationId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aAnnotation,TAnnotation) as TAnnotation;
+end;
+
+
+Function TMylibraryAnnotationsResource.Update(annotationId: string; aAnnotation : TAnnotation; AQuery : TMylibraryAnnotationsupdateOptions) : TAnnotation;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'source',AQuery.source);
+  Result:=Update(annotationId,aAnnotation,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TMylibraryBookshelvesVolumesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TMylibraryBookshelvesVolumesResource.ResourceName : String;
+
+begin
+  Result:='volumes';
+end;
+
+Class Function TMylibraryBookshelvesVolumesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TbooksAPI;
+end;
+
+Function TMylibraryBookshelvesVolumesResource.List(shelf: string; AQuery : string = '') : TVolumes;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'mylibrary/bookshelves/{shelf}/volumes';
+  _Methodid   = 'books.mylibrary.bookshelves.volumes.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['shelf',shelf]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TVolumes) as TVolumes;
+end;
+
+
+Function TMylibraryBookshelvesVolumesResource.List(shelf: string; AQuery : TMylibraryBookshelvesVolumeslistOptions) : TVolumes;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'country',AQuery.country);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'projection',AQuery.projection);
+  AddToQuery(_Q,'q',AQuery.q);
+  AddToQuery(_Q,'showPreorders',AQuery.showPreorders);
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'startIndex',AQuery.startIndex);
+  Result:=List(shelf,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TMylibraryBookshelvesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TMylibraryBookshelvesResource.ResourceName : String;
+
+begin
+  Result:='bookshelves';
+end;
+
+Class Function TMylibraryBookshelvesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TbooksAPI;
+end;
+
+Procedure TMylibraryBookshelvesResource.AddVolume(shelf: string; AQuery : string = '');
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'mylibrary/bookshelves/{shelf}/addVolume';
+  _Methodid   = 'books.mylibrary.bookshelves.addVolume';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['shelf',shelf]);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TMylibraryBookshelvesResource.AddVolume(shelf: string; AQuery : TMylibraryBookshelvesaddVolumeOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'reason',AQuery.reason);
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'volumeId',AQuery.volumeId);
+  AddVolume(shelf,_Q);
+end;
+
+Procedure TMylibraryBookshelvesResource.ClearVolumes(shelf: string; AQuery : string = '');
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'mylibrary/bookshelves/{shelf}/clearVolumes';
+  _Methodid   = 'books.mylibrary.bookshelves.clearVolumes';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['shelf',shelf]);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TMylibraryBookshelvesResource.ClearVolumes(shelf: string; AQuery : TMylibraryBookshelvesclearVolumesOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'source',AQuery.source);
+  ClearVolumes(shelf,_Q);
+end;
+
+Function TMylibraryBookshelvesResource.Get(shelf: string; AQuery : string = '') : TBookshelf;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'mylibrary/bookshelves/{shelf}';
+  _Methodid   = 'books.mylibrary.bookshelves.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['shelf',shelf]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TBookshelf) as TBookshelf;
+end;
+
+
+Function TMylibraryBookshelvesResource.Get(shelf: string; AQuery : TMylibraryBookshelvesgetOptions) : TBookshelf;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'source',AQuery.source);
+  Result:=Get(shelf,_Q);
+end;
+
+Function TMylibraryBookshelvesResource.List(AQuery : string = '') : TBookshelves;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'mylibrary/bookshelves';
+  _Methodid   = 'books.mylibrary.bookshelves.list';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TBookshelves) as TBookshelves;
+end;
+
+
+Function TMylibraryBookshelvesResource.List(AQuery : TMylibraryBookshelveslistOptions) : TBookshelves;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'source',AQuery.source);
+  Result:=List(_Q);
+end;
+
+Procedure TMylibraryBookshelvesResource.MoveVolume(shelf: string; AQuery : string = '');
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'mylibrary/bookshelves/{shelf}/moveVolume';
+  _Methodid   = 'books.mylibrary.bookshelves.moveVolume';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['shelf',shelf]);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TMylibraryBookshelvesResource.MoveVolume(shelf: string; AQuery : TMylibraryBookshelvesmoveVolumeOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'volumeId',AQuery.volumeId);
+  AddToQuery(_Q,'volumePosition',AQuery.volumePosition);
+  MoveVolume(shelf,_Q);
+end;
+
+Procedure TMylibraryBookshelvesResource.RemoveVolume(shelf: string; AQuery : string = '');
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'mylibrary/bookshelves/{shelf}/removeVolume';
+  _Methodid   = 'books.mylibrary.bookshelves.removeVolume';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['shelf',shelf]);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TMylibraryBookshelvesResource.RemoveVolume(shelf: string; AQuery : TMylibraryBookshelvesremoveVolumeOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'reason',AQuery.reason);
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'volumeId',AQuery.volumeId);
+  RemoveVolume(shelf,_Q);
+end;
+
+
+
+Function TMylibraryBookshelvesResource.GetVolumesInstance : TMylibraryBookshelvesVolumesResource;
+
+begin
+  if (FVolumesInstance=Nil) then
+    FVolumesInstance:=CreateVolumesResource;
+  Result:=FVolumesInstance;
+end;
+
+Function TMylibraryBookshelvesResource.CreateVolumesResource : TMylibraryBookshelvesVolumesResource;
+
+begin
+  Result:=CreateVolumesResource(Self);
+end;
+
+
+Function TMylibraryBookshelvesResource.CreateVolumesResource(AOwner : TComponent) : TMylibraryBookshelvesVolumesResource;
+
+begin
+  Result:=TMylibraryBookshelvesVolumesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TMylibraryReadingpositionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TMylibraryReadingpositionsResource.ResourceName : String;
+
+begin
+  Result:='readingpositions';
+end;
+
+Class Function TMylibraryReadingpositionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TbooksAPI;
+end;
+
+Function TMylibraryReadingpositionsResource.Get(volumeId: string; AQuery : string = '') : TReadingPosition;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'mylibrary/readingpositions/{volumeId}';
+  _Methodid   = 'books.mylibrary.readingpositions.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['volumeId',volumeId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TReadingPosition) as TReadingPosition;
+end;
+
+
+Function TMylibraryReadingpositionsResource.Get(volumeId: string; AQuery : TMylibraryReadingpositionsgetOptions) : TReadingPosition;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'contentVersion',AQuery.contentVersion);
+  AddToQuery(_Q,'source',AQuery.source);
+  Result:=Get(volumeId,_Q);
+end;
+
+Procedure TMylibraryReadingpositionsResource.SetPosition(volumeId: string; AQuery : string = '');
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'mylibrary/readingpositions/{volumeId}/setPosition';
+  _Methodid   = 'books.mylibrary.readingpositions.setPosition';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['volumeId',volumeId]);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TMylibraryReadingpositionsResource.SetPosition(volumeId: string; AQuery : TMylibraryReadingpositionssetPositionOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'action',AQuery.action);
+  AddToQuery(_Q,'contentVersion',AQuery.contentVersion);
+  AddToQuery(_Q,'deviceCookie',AQuery.deviceCookie);
+  AddToQuery(_Q,'position',AQuery.position);
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'timestamp',AQuery.timestamp);
+  SetPosition(volumeId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
   TMylibraryResource
   --------------------------------------------------------------------}
 
@@ -7640,6 +9379,102 @@ Class Function TMylibraryResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TbooksAPI;
+end;
+
+
+
+Function TMylibraryResource.GetAnnotationsInstance : TMylibraryAnnotationsResource;
+
+begin
+  if (FAnnotationsInstance=Nil) then
+    FAnnotationsInstance:=CreateAnnotationsResource;
+  Result:=FAnnotationsInstance;
+end;
+
+Function TMylibraryResource.CreateAnnotationsResource : TMylibraryAnnotationsResource;
+
+begin
+  Result:=CreateAnnotationsResource(Self);
+end;
+
+
+Function TMylibraryResource.CreateAnnotationsResource(AOwner : TComponent) : TMylibraryAnnotationsResource;
+
+begin
+  Result:=TMylibraryAnnotationsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMylibraryResource.GetBookshelvesVolumesInstance : TMylibraryBookshelvesVolumesResource;
+
+begin
+  if (FBookshelvesVolumesInstance=Nil) then
+    FBookshelvesVolumesInstance:=CreateBookshelvesVolumesResource;
+  Result:=FBookshelvesVolumesInstance;
+end;
+
+Function TMylibraryResource.CreateBookshelvesVolumesResource : TMylibraryBookshelvesVolumesResource;
+
+begin
+  Result:=CreateBookshelvesVolumesResource(Self);
+end;
+
+
+Function TMylibraryResource.CreateBookshelvesVolumesResource(AOwner : TComponent) : TMylibraryBookshelvesVolumesResource;
+
+begin
+  Result:=TMylibraryBookshelvesVolumesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMylibraryResource.GetBookshelvesInstance : TMylibraryBookshelvesResource;
+
+begin
+  if (FBookshelvesInstance=Nil) then
+    FBookshelvesInstance:=CreateBookshelvesResource;
+  Result:=FBookshelvesInstance;
+end;
+
+Function TMylibraryResource.CreateBookshelvesResource : TMylibraryBookshelvesResource;
+
+begin
+  Result:=CreateBookshelvesResource(Self);
+end;
+
+
+Function TMylibraryResource.CreateBookshelvesResource(AOwner : TComponent) : TMylibraryBookshelvesResource;
+
+begin
+  Result:=TMylibraryBookshelvesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMylibraryResource.GetReadingpositionsInstance : TMylibraryReadingpositionsResource;
+
+begin
+  if (FReadingpositionsInstance=Nil) then
+    FReadingpositionsInstance:=CreateReadingpositionsResource;
+  Result:=FReadingpositionsInstance;
+end;
+
+Function TMylibraryResource.CreateReadingpositionsResource : TMylibraryReadingpositionsResource;
+
+begin
+  Result:=CreateReadingpositionsResource(Self);
+end;
+
+
+Function TMylibraryResource.CreateReadingpositionsResource(AOwner : TComponent) : TMylibraryReadingpositionsResource;
+
+begin
+  Result:=TMylibraryReadingpositionsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -7820,6 +9655,219 @@ end;
 
 
 { --------------------------------------------------------------------
+  TVolumesAssociatedResource
+  --------------------------------------------------------------------}
+
+
+Class Function TVolumesAssociatedResource.ResourceName : String;
+
+begin
+  Result:='associated';
+end;
+
+Class Function TVolumesAssociatedResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TbooksAPI;
+end;
+
+Function TVolumesAssociatedResource.List(volumeId: string; AQuery : string = '') : TVolumes;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'volumes/{volumeId}/associated';
+  _Methodid   = 'books.volumes.associated.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['volumeId',volumeId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TVolumes) as TVolumes;
+end;
+
+
+Function TVolumesAssociatedResource.List(volumeId: string; AQuery : TVolumesAssociatedlistOptions) : TVolumes;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'association',AQuery.association);
+  AddToQuery(_Q,'locale',AQuery.locale);
+  AddToQuery(_Q,'maxAllowedMaturityRating',AQuery.maxAllowedMaturityRating);
+  AddToQuery(_Q,'source',AQuery.source);
+  Result:=List(volumeId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TVolumesMybooksResource
+  --------------------------------------------------------------------}
+
+
+Class Function TVolumesMybooksResource.ResourceName : String;
+
+begin
+  Result:='mybooks';
+end;
+
+Class Function TVolumesMybooksResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TbooksAPI;
+end;
+
+Function TVolumesMybooksResource.List(AQuery : string = '') : TVolumes;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'volumes/mybooks';
+  _Methodid   = 'books.volumes.mybooks.list';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TVolumes) as TVolumes;
+end;
+
+
+Function TVolumesMybooksResource.List(AQuery : TVolumesMybookslistOptions) : TVolumes;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'acquireMethod',AQuery.acquireMethod);
+  AddToQuery(_Q,'locale',AQuery.locale);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'processingState',AQuery.processingState);
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'startIndex',AQuery.startIndex);
+  Result:=List(_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TVolumesRecommendedResource
+  --------------------------------------------------------------------}
+
+
+Class Function TVolumesRecommendedResource.ResourceName : String;
+
+begin
+  Result:='recommended';
+end;
+
+Class Function TVolumesRecommendedResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TbooksAPI;
+end;
+
+Function TVolumesRecommendedResource.List(AQuery : string = '') : TVolumes;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'volumes/recommended';
+  _Methodid   = 'books.volumes.recommended.list';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TVolumes) as TVolumes;
+end;
+
+
+Function TVolumesRecommendedResource.List(AQuery : TVolumesRecommendedlistOptions) : TVolumes;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'locale',AQuery.locale);
+  AddToQuery(_Q,'maxAllowedMaturityRating',AQuery.maxAllowedMaturityRating);
+  AddToQuery(_Q,'source',AQuery.source);
+  Result:=List(_Q);
+end;
+
+Function TVolumesRecommendedResource.Rate(AQuery : string = '') : TBooksVolumesRecommendedRateResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'volumes/recommended/rate';
+  _Methodid   = 'books.volumes.recommended.rate';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TBooksVolumesRecommendedRateResponse) as TBooksVolumesRecommendedRateResponse;
+end;
+
+
+Function TVolumesRecommendedResource.Rate(AQuery : TVolumesRecommendedrateOptions) : TBooksVolumesRecommendedRateResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'locale',AQuery.locale);
+  AddToQuery(_Q,'rating',AQuery.rating);
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'volumeId',AQuery.volumeId);
+  Result:=Rate(_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TVolumesUseruploadedResource
+  --------------------------------------------------------------------}
+
+
+Class Function TVolumesUseruploadedResource.ResourceName : String;
+
+begin
+  Result:='useruploaded';
+end;
+
+Class Function TVolumesUseruploadedResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TbooksAPI;
+end;
+
+Function TVolumesUseruploadedResource.List(AQuery : string = '') : TVolumes;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'volumes/useruploaded';
+  _Methodid   = 'books.volumes.useruploaded.list';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TVolumes) as TVolumes;
+end;
+
+
+Function TVolumesUseruploadedResource.List(AQuery : TVolumesUseruploadedlistOptions) : TVolumes;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'locale',AQuery.locale);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'processingState',AQuery.processingState);
+  AddToQuery(_Q,'source',AQuery.source);
+  AddToQuery(_Q,'startIndex',AQuery.startIndex);
+  AddToQuery(_Q,'volumeId',AQuery.volumeId);
+  Result:=List(_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
   TVolumesResource
   --------------------------------------------------------------------}
 
@@ -7904,6 +9952,102 @@ end;
 
 
 
+Function TVolumesResource.GetAssociatedInstance : TVolumesAssociatedResource;
+
+begin
+  if (FAssociatedInstance=Nil) then
+    FAssociatedInstance:=CreateAssociatedResource;
+  Result:=FAssociatedInstance;
+end;
+
+Function TVolumesResource.CreateAssociatedResource : TVolumesAssociatedResource;
+
+begin
+  Result:=CreateAssociatedResource(Self);
+end;
+
+
+Function TVolumesResource.CreateAssociatedResource(AOwner : TComponent) : TVolumesAssociatedResource;
+
+begin
+  Result:=TVolumesAssociatedResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TVolumesResource.GetMybooksInstance : TVolumesMybooksResource;
+
+begin
+  if (FMybooksInstance=Nil) then
+    FMybooksInstance:=CreateMybooksResource;
+  Result:=FMybooksInstance;
+end;
+
+Function TVolumesResource.CreateMybooksResource : TVolumesMybooksResource;
+
+begin
+  Result:=CreateMybooksResource(Self);
+end;
+
+
+Function TVolumesResource.CreateMybooksResource(AOwner : TComponent) : TVolumesMybooksResource;
+
+begin
+  Result:=TVolumesMybooksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TVolumesResource.GetRecommendedInstance : TVolumesRecommendedResource;
+
+begin
+  if (FRecommendedInstance=Nil) then
+    FRecommendedInstance:=CreateRecommendedResource;
+  Result:=FRecommendedInstance;
+end;
+
+Function TVolumesResource.CreateRecommendedResource : TVolumesRecommendedResource;
+
+begin
+  Result:=CreateRecommendedResource(Self);
+end;
+
+
+Function TVolumesResource.CreateRecommendedResource(AOwner : TComponent) : TVolumesRecommendedResource;
+
+begin
+  Result:=TVolumesRecommendedResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TVolumesResource.GetUseruploadedInstance : TVolumesUseruploadedResource;
+
+begin
+  if (FUseruploadedInstance=Nil) then
+    FUseruploadedInstance:=CreateUseruploadedResource;
+  Result:=FUseruploadedInstance;
+end;
+
+Function TVolumesResource.CreateUseruploadedResource : TVolumesUseruploadedResource;
+
+begin
+  Result:=CreateUseruploadedResource(Self);
+end;
+
+
+Function TVolumesResource.CreateUseruploadedResource(AOwner : TComponent) : TVolumesUseruploadedResource;
+
+begin
+  Result:=TVolumesUseruploadedResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 { --------------------------------------------------------------------
   TBooksAPI
   --------------------------------------------------------------------}
@@ -7977,7 +10121,7 @@ end;
 Class Function TBooksAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TBooksAPI.APIbasePath : string;
@@ -7989,7 +10133,7 @@ end;
 Class Function TBooksAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/books/v1/';
+  Result:='https://www.googleapis.com:443/books/v1/';
 end;
 
 Class Function TBooksAPI.APIProtocol : string;
@@ -8117,6 +10261,30 @@ begin
 end;
 
 
+Function TBooksAPI.GetBookshelvesVolumesInstance : TBookshelvesVolumesResource;
+
+begin
+  if (FBookshelvesVolumesInstance=Nil) then
+    FBookshelvesVolumesInstance:=CreateBookshelvesVolumesResource;
+  Result:=FBookshelvesVolumesInstance;
+end;
+
+Function TBooksAPI.CreateBookshelvesVolumesResource : TBookshelvesVolumesResource;
+
+begin
+  Result:=CreateBookshelvesVolumesResource(Self);
+end;
+
+
+Function TBooksAPI.CreateBookshelvesVolumesResource(AOwner : TComponent) : TBookshelvesVolumesResource;
+
+begin
+  Result:=TBookshelvesVolumesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TBooksAPI.GetBookshelvesInstance : TBookshelvesResource;
 
 begin
@@ -8136,7 +10304,7 @@ Function TBooksAPI.CreateBookshelvesResource(AOwner : TComponent) : TBookshelves
 
 begin
   Result:=TBookshelvesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8160,7 +10328,7 @@ Function TBooksAPI.CreateCloudloadingResource(AOwner : TComponent) : TCloudloadi
 
 begin
   Result:=TCloudloadingResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8184,7 +10352,55 @@ Function TBooksAPI.CreateDictionaryResource(AOwner : TComponent) : TDictionaryRe
 
 begin
   Result:=TDictionaryResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TBooksAPI.GetLayersAnnotationDataInstance : TLayersAnnotationDataResource;
+
+begin
+  if (FLayersAnnotationDataInstance=Nil) then
+    FLayersAnnotationDataInstance:=CreateLayersAnnotationDataResource;
+  Result:=FLayersAnnotationDataInstance;
+end;
+
+Function TBooksAPI.CreateLayersAnnotationDataResource : TLayersAnnotationDataResource;
+
+begin
+  Result:=CreateLayersAnnotationDataResource(Self);
+end;
+
+
+Function TBooksAPI.CreateLayersAnnotationDataResource(AOwner : TComponent) : TLayersAnnotationDataResource;
+
+begin
+  Result:=TLayersAnnotationDataResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TBooksAPI.GetLayersVolumeAnnotationsInstance : TLayersVolumeAnnotationsResource;
+
+begin
+  if (FLayersVolumeAnnotationsInstance=Nil) then
+    FLayersVolumeAnnotationsInstance:=CreateLayersVolumeAnnotationsResource;
+  Result:=FLayersVolumeAnnotationsInstance;
+end;
+
+Function TBooksAPI.CreateLayersVolumeAnnotationsResource : TLayersVolumeAnnotationsResource;
+
+begin
+  Result:=CreateLayersVolumeAnnotationsResource(Self);
+end;
+
+
+Function TBooksAPI.CreateLayersVolumeAnnotationsResource(AOwner : TComponent) : TLayersVolumeAnnotationsResource;
+
+begin
+  Result:=TLayersVolumeAnnotationsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -8208,7 +10424,7 @@ Function TBooksAPI.CreateLayersResource(AOwner : TComponent) : TLayersResource;
 
 begin
   Result:=TLayersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8232,7 +10448,103 @@ Function TBooksAPI.CreateMyconfigResource(AOwner : TComponent) : TMyconfigResour
 
 begin
   Result:=TMyconfigResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TBooksAPI.GetMylibraryAnnotationsInstance : TMylibraryAnnotationsResource;
+
+begin
+  if (FMylibraryAnnotationsInstance=Nil) then
+    FMylibraryAnnotationsInstance:=CreateMylibraryAnnotationsResource;
+  Result:=FMylibraryAnnotationsInstance;
+end;
+
+Function TBooksAPI.CreateMylibraryAnnotationsResource : TMylibraryAnnotationsResource;
+
+begin
+  Result:=CreateMylibraryAnnotationsResource(Self);
+end;
+
+
+Function TBooksAPI.CreateMylibraryAnnotationsResource(AOwner : TComponent) : TMylibraryAnnotationsResource;
+
+begin
+  Result:=TMylibraryAnnotationsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TBooksAPI.GetMylibraryBookshelvesVolumesInstance : TMylibraryBookshelvesVolumesResource;
+
+begin
+  if (FMylibraryBookshelvesVolumesInstance=Nil) then
+    FMylibraryBookshelvesVolumesInstance:=CreateMylibraryBookshelvesVolumesResource;
+  Result:=FMylibraryBookshelvesVolumesInstance;
+end;
+
+Function TBooksAPI.CreateMylibraryBookshelvesVolumesResource : TMylibraryBookshelvesVolumesResource;
+
+begin
+  Result:=CreateMylibraryBookshelvesVolumesResource(Self);
+end;
+
+
+Function TBooksAPI.CreateMylibraryBookshelvesVolumesResource(AOwner : TComponent) : TMylibraryBookshelvesVolumesResource;
+
+begin
+  Result:=TMylibraryBookshelvesVolumesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TBooksAPI.GetMylibraryBookshelvesInstance : TMylibraryBookshelvesResource;
+
+begin
+  if (FMylibraryBookshelvesInstance=Nil) then
+    FMylibraryBookshelvesInstance:=CreateMylibraryBookshelvesResource;
+  Result:=FMylibraryBookshelvesInstance;
+end;
+
+Function TBooksAPI.CreateMylibraryBookshelvesResource : TMylibraryBookshelvesResource;
+
+begin
+  Result:=CreateMylibraryBookshelvesResource(Self);
+end;
+
+
+Function TBooksAPI.CreateMylibraryBookshelvesResource(AOwner : TComponent) : TMylibraryBookshelvesResource;
+
+begin
+  Result:=TMylibraryBookshelvesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TBooksAPI.GetMylibraryReadingpositionsInstance : TMylibraryReadingpositionsResource;
+
+begin
+  if (FMylibraryReadingpositionsInstance=Nil) then
+    FMylibraryReadingpositionsInstance:=CreateMylibraryReadingpositionsResource;
+  Result:=FMylibraryReadingpositionsInstance;
+end;
+
+Function TBooksAPI.CreateMylibraryReadingpositionsResource : TMylibraryReadingpositionsResource;
+
+begin
+  Result:=CreateMylibraryReadingpositionsResource(Self);
+end;
+
+
+Function TBooksAPI.CreateMylibraryReadingpositionsResource(AOwner : TComponent) : TMylibraryReadingpositionsResource;
+
+begin
+  Result:=TMylibraryReadingpositionsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -8256,7 +10568,7 @@ Function TBooksAPI.CreateMylibraryResource(AOwner : TComponent) : TMylibraryReso
 
 begin
   Result:=TMylibraryResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8280,7 +10592,7 @@ Function TBooksAPI.CreateOnboardingResource(AOwner : TComponent) : TOnboardingRe
 
 begin
   Result:=TOnboardingResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8304,7 +10616,103 @@ Function TBooksAPI.CreatePromoofferResource(AOwner : TComponent) : TPromoofferRe
 
 begin
   Result:=TPromoofferResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TBooksAPI.GetVolumesAssociatedInstance : TVolumesAssociatedResource;
+
+begin
+  if (FVolumesAssociatedInstance=Nil) then
+    FVolumesAssociatedInstance:=CreateVolumesAssociatedResource;
+  Result:=FVolumesAssociatedInstance;
+end;
+
+Function TBooksAPI.CreateVolumesAssociatedResource : TVolumesAssociatedResource;
+
+begin
+  Result:=CreateVolumesAssociatedResource(Self);
+end;
+
+
+Function TBooksAPI.CreateVolumesAssociatedResource(AOwner : TComponent) : TVolumesAssociatedResource;
+
+begin
+  Result:=TVolumesAssociatedResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TBooksAPI.GetVolumesMybooksInstance : TVolumesMybooksResource;
+
+begin
+  if (FVolumesMybooksInstance=Nil) then
+    FVolumesMybooksInstance:=CreateVolumesMybooksResource;
+  Result:=FVolumesMybooksInstance;
+end;
+
+Function TBooksAPI.CreateVolumesMybooksResource : TVolumesMybooksResource;
+
+begin
+  Result:=CreateVolumesMybooksResource(Self);
+end;
+
+
+Function TBooksAPI.CreateVolumesMybooksResource(AOwner : TComponent) : TVolumesMybooksResource;
+
+begin
+  Result:=TVolumesMybooksResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TBooksAPI.GetVolumesRecommendedInstance : TVolumesRecommendedResource;
+
+begin
+  if (FVolumesRecommendedInstance=Nil) then
+    FVolumesRecommendedInstance:=CreateVolumesRecommendedResource;
+  Result:=FVolumesRecommendedInstance;
+end;
+
+Function TBooksAPI.CreateVolumesRecommendedResource : TVolumesRecommendedResource;
+
+begin
+  Result:=CreateVolumesRecommendedResource(Self);
+end;
+
+
+Function TBooksAPI.CreateVolumesRecommendedResource(AOwner : TComponent) : TVolumesRecommendedResource;
+
+begin
+  Result:=TVolumesRecommendedResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TBooksAPI.GetVolumesUseruploadedInstance : TVolumesUseruploadedResource;
+
+begin
+  if (FVolumesUseruploadedInstance=Nil) then
+    FVolumesUseruploadedInstance:=CreateVolumesUseruploadedResource;
+  Result:=FVolumesUseruploadedInstance;
+end;
+
+Function TBooksAPI.CreateVolumesUseruploadedResource : TVolumesUseruploadedResource;
+
+begin
+  Result:=CreateVolumesUseruploadedResource(Self);
+end;
+
+
+Function TBooksAPI.CreateVolumesUseruploadedResource(AOwner : TComponent) : TVolumesUseruploadedResource;
+
+begin
+  Result:=TVolumesUseruploadedResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -8328,7 +10736,7 @@ Function TBooksAPI.CreateVolumesResource(AOwner : TComponent) : TVolumesResource
 
 begin
   Result:=TVolumesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

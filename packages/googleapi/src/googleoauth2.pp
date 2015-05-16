@@ -13,7 +13,7 @@ unit googleoauth2;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:56
+//Generated on: 16-5-15 08:53:06
 {$MODE objfpc}
 {$H+}
 
@@ -24,14 +24,14 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TJwk = class;
-  TTokeninfo = class;
-  TUserinfoplus = class;
+  TJwk = Class;
+  TTokeninfo = Class;
+  TUserinfoplus = Class;
   TJwkArray = Array of TJwk;
   TTokeninfoArray = Array of TTokeninfo;
   TUserinfoplusArray = Array of TUserinfoplus;
   //Anonymous types, using auto-generated names
-  TJwkTypekeysItem = class;
+  TJwkTypekeysItem = Class;
   TJwkTypekeysArray = Array of TJwkTypekeysItem;
   
   { --------------------------------------------------------------------
@@ -75,6 +75,10 @@ type
   Protected
     //Property setters
     Procedure Setkeys(AIndex : Integer; AValue : TJwkTypekeysArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property keys : TJwkTypekeysArray Index 0 Read Fkeys Write Setkeys;
@@ -168,14 +172,54 @@ type
   TUserinfoplusClass = Class of TUserinfoplus;
   
   { --------------------------------------------------------------------
-    TUserinfoResource
+    TUserinfoV2MeResource
     --------------------------------------------------------------------}
   
-  TUserinfoResource = Class(TGoogleResource)
+  TUserinfoV2MeResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get : TUserinfoplus;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TUserinfoV2Resource
+    --------------------------------------------------------------------}
+  
+  TUserinfoV2Resource = Class(TGoogleResource)
+  Private
+    FMeInstance : TUserinfoV2MeResource;
+    Function GetMeInstance : TUserinfoV2MeResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateMeResource(AOwner : TComponent) : TUserinfoV2MeResource;virtual;overload;
+    Function CreateMeResource : TUserinfoV2MeResource;virtual;overload;
+    Property MeResource : TUserinfoV2MeResource Read GetMeInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TUserinfoResource
+    --------------------------------------------------------------------}
+  
+  TUserinfoResource = Class(TGoogleResource)
+  Private
+    FV2MeInstance : TUserinfoV2MeResource;
+    FV2Instance : TUserinfoV2Resource;
+    Function GetV2MeInstance : TUserinfoV2MeResource;virtual;
+    Function GetV2Instance : TUserinfoV2Resource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get : TUserinfoplus;
+    Function CreateV2MeResource(AOwner : TComponent) : TUserinfoV2MeResource;virtual;overload;
+    Function CreateV2MeResource : TUserinfoV2MeResource;virtual;overload;
+    Function CreateV2Resource(AOwner : TComponent) : TUserinfoV2Resource;virtual;overload;
+    Function CreateV2Resource : TUserinfoV2Resource;virtual;overload;
+    Property V2MeResource : TUserinfoV2MeResource Read GetV2MeInstance;
+    Property V2Resource : TUserinfoV2Resource Read GetV2Instance;
   end;
   
   
@@ -185,7 +229,11 @@ type
   
   TOauth2API = Class(TGoogleAPI)
   Private
+    FUserinfoV2MeInstance : TUserinfoV2MeResource;
+    FUserinfoV2Instance : TUserinfoV2Resource;
     FUserinfoInstance : TUserinfoResource;
+    Function GetUserinfoV2MeInstance : TUserinfoV2MeResource;virtual;
+    Function GetUserinfoV2Instance : TUserinfoV2Resource;virtual;
     Function GetUserinfoInstance : TUserinfoResource;virtual;
   Public
     //Override class functions with API info
@@ -210,9 +258,15 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateUserinfoV2MeResource(AOwner : TComponent) : TUserinfoV2MeResource;virtual;overload;
+    Function CreateUserinfoV2MeResource : TUserinfoV2MeResource;virtual;overload;
+    Function CreateUserinfoV2Resource(AOwner : TComponent) : TUserinfoV2Resource;virtual;overload;
+    Function CreateUserinfoV2Resource : TUserinfoV2Resource;virtual;overload;
     Function CreateUserinfoResource(AOwner : TComponent) : TUserinfoResource;virtual;overload;
     Function CreateUserinfoResource : TUserinfoResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property UserinfoV2MeResource : TUserinfoV2MeResource Read GetUserinfoV2MeInstance;
+    Property UserinfoV2Resource : TUserinfoV2Resource Read GetUserinfoV2Instance;
     Property UserinfoResource : TUserinfoResource Read GetUserinfoInstance;
   end;
 
@@ -299,6 +353,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJwk.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'keys' : SetLength(Fkeys,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -518,6 +585,79 @@ end;
 
 
 { --------------------------------------------------------------------
+  TUserinfoV2MeResource
+  --------------------------------------------------------------------}
+
+
+Class Function TUserinfoV2MeResource.ResourceName : String;
+
+begin
+  Result:='me';
+end;
+
+Class Function TUserinfoV2MeResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=Toauth2API;
+end;
+
+Function TUserinfoV2MeResource.Get : TUserinfoplus;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'userinfo/v2/me';
+  _Methodid   = 'oauth2.userinfo.v2.me.get';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,'',Nil,TUserinfoplus) as TUserinfoplus;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TUserinfoV2Resource
+  --------------------------------------------------------------------}
+
+
+Class Function TUserinfoV2Resource.ResourceName : String;
+
+begin
+  Result:='v2';
+end;
+
+Class Function TUserinfoV2Resource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=Toauth2API;
+end;
+
+
+
+Function TUserinfoV2Resource.GetMeInstance : TUserinfoV2MeResource;
+
+begin
+  if (FMeInstance=Nil) then
+    FMeInstance:=CreateMeResource;
+  Result:=FMeInstance;
+end;
+
+Function TUserinfoV2Resource.CreateMeResource : TUserinfoV2MeResource;
+
+begin
+  Result:=CreateMeResource(Self);
+end;
+
+
+Function TUserinfoV2Resource.CreateMeResource(AOwner : TComponent) : TUserinfoV2MeResource;
+
+begin
+  Result:=TUserinfoV2MeResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TUserinfoResource
   --------------------------------------------------------------------}
 
@@ -543,6 +683,54 @@ Const
 
 begin
   Result:=ServiceCall(_HTTPMethod,_Path,'',Nil,TUserinfoplus) as TUserinfoplus;
+end;
+
+
+
+Function TUserinfoResource.GetV2MeInstance : TUserinfoV2MeResource;
+
+begin
+  if (FV2MeInstance=Nil) then
+    FV2MeInstance:=CreateV2MeResource;
+  Result:=FV2MeInstance;
+end;
+
+Function TUserinfoResource.CreateV2MeResource : TUserinfoV2MeResource;
+
+begin
+  Result:=CreateV2MeResource(Self);
+end;
+
+
+Function TUserinfoResource.CreateV2MeResource(AOwner : TComponent) : TUserinfoV2MeResource;
+
+begin
+  Result:=TUserinfoV2MeResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TUserinfoResource.GetV2Instance : TUserinfoV2Resource;
+
+begin
+  if (FV2Instance=Nil) then
+    FV2Instance:=CreateV2Resource;
+  Result:=FV2Instance;
+end;
+
+Function TUserinfoResource.CreateV2Resource : TUserinfoV2Resource;
+
+begin
+  Result:=CreateV2Resource(Self);
+end;
+
+
+Function TUserinfoResource.CreateV2Resource(AOwner : TComponent) : TUserinfoV2Resource;
+
+begin
+  Result:=TUserinfoV2Resource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -620,7 +808,7 @@ end;
 Class Function TOauth2API.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TOauth2API.APIbasePath : string;
@@ -632,7 +820,7 @@ end;
 Class Function TOauth2API.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TOauth2API.APIProtocol : string;
@@ -684,6 +872,54 @@ begin
 end;
 
 
+Function TOauth2API.GetUserinfoV2MeInstance : TUserinfoV2MeResource;
+
+begin
+  if (FUserinfoV2MeInstance=Nil) then
+    FUserinfoV2MeInstance:=CreateUserinfoV2MeResource;
+  Result:=FUserinfoV2MeInstance;
+end;
+
+Function TOauth2API.CreateUserinfoV2MeResource : TUserinfoV2MeResource;
+
+begin
+  Result:=CreateUserinfoV2MeResource(Self);
+end;
+
+
+Function TOauth2API.CreateUserinfoV2MeResource(AOwner : TComponent) : TUserinfoV2MeResource;
+
+begin
+  Result:=TUserinfoV2MeResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TOauth2API.GetUserinfoV2Instance : TUserinfoV2Resource;
+
+begin
+  if (FUserinfoV2Instance=Nil) then
+    FUserinfoV2Instance:=CreateUserinfoV2Resource;
+  Result:=FUserinfoV2Instance;
+end;
+
+Function TOauth2API.CreateUserinfoV2Resource : TUserinfoV2Resource;
+
+begin
+  Result:=CreateUserinfoV2Resource(Self);
+end;
+
+
+Function TOauth2API.CreateUserinfoV2Resource(AOwner : TComponent) : TUserinfoV2Resource;
+
+begin
+  Result:=TUserinfoV2Resource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TOauth2API.GetUserinfoInstance : TUserinfoResource;
 
 begin
@@ -703,7 +939,7 @@ Function TOauth2API.CreateUserinfoResource(AOwner : TComponent) : TUserinfoResou
 
 begin
   Result:=TUserinfoResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

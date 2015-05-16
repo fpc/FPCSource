@@ -13,7 +13,7 @@ unit googletranslate;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:59
+//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -24,12 +24,12 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TDetectionsListResponse = class;
-  TDetectionsResourceItem = class;
-  TLanguagesListResponse = class;
-  TLanguagesResource = class;
-  TTranslationsListResponse = class;
-  TTranslationsResource = class;
+  TDetectionsListResponse = Class;
+  TDetectionsResourceItem = Class;
+  TLanguagesListResponse = Class;
+  TLanguagesResource = Class;
+  TTranslationsListResponse = Class;
+  TTranslationsResource = Class;
   TDetectionsListResponseArray = Array of TDetectionsListResponse;
   TDetectionsResourceItemArray = Array of TDetectionsResourceItem;
   TDetectionsResource = Array of TDetectionsResourceItem;
@@ -52,6 +52,10 @@ type
   Protected
     //Property setters
     Procedure Setdetections(AIndex : Integer; AValue : TDetectionsListResponseTypedetectionsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property detections : TDetectionsListResponseTypedetectionsArray Index 0 Read Fdetections Write Setdetections;
@@ -90,6 +94,10 @@ type
   Protected
     //Property setters
     Procedure Setlanguages(AIndex : Integer; AValue : TLanguagesListResponseTypelanguagesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property languages : TLanguagesListResponseTypelanguagesArray Index 0 Read Flanguages Write Setlanguages;
@@ -125,6 +133,10 @@ type
   Protected
     //Property setters
     Procedure Settranslations(AIndex : Integer; AValue : TTranslationsListResponseTypetranslationsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property translations : TTranslationsListResponseTypetranslationsArray Index 0 Read Ftranslations Write Settranslations;
@@ -278,6 +290,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDetectionsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'detections' : SetLength(Fdetections,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -332,6 +357,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLanguagesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'languages' : SetLength(Flanguages,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -375,6 +413,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTranslationsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'translations' : SetLength(Ftranslations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -609,7 +660,7 @@ end;
 Class Function TTranslateAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TTranslateAPI.APIbasePath : string;
@@ -621,7 +672,7 @@ end;
 Class Function TTranslateAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/language/translate/';
+  Result:='https://www.googleapis.com:443/language/translate/';
 end;
 
 Class Function TTranslateAPI.APIProtocol : string;
@@ -686,7 +737,7 @@ Function TTranslateAPI.CreateDetectionsResource(AOwner : TComponent) : TDetectio
 
 begin
   Result:=TDetections_Resource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -710,7 +761,7 @@ Function TTranslateAPI.CreateLanguagesResource(AOwner : TComponent) : TLanguages
 
 begin
   Result:=TLanguages_Resource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -734,7 +785,7 @@ Function TTranslateAPI.CreateTranslationsResource(AOwner : TComponent) : TTransl
 
 begin
   Result:=TTranslations_Resource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

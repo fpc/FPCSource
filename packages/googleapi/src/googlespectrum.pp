@@ -13,7 +13,7 @@ unit googlespectrum;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:58
+//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -24,39 +24,39 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAntennaCharacteristics = class;
-  TDatabaseSpec = class;
-  TDbUpdateSpec = class;
-  TDeviceCapabilities = class;
-  TDeviceDescriptor = class;
-  TDeviceOwner = class;
-  TDeviceValidity = class;
-  TEventTime = class;
-  TFrequencyRange = class;
-  TGeoLocation = class;
-  TGeoLocationEllipse = class;
-  TGeoLocationPoint = class;
-  TGeoLocationPolygon = class;
-  TGeoSpectrumSchedule = class;
-  TPawsGetSpectrumBatchRequest = class;
-  TPawsGetSpectrumBatchResponse = class;
-  TPawsGetSpectrumRequest = class;
-  TPawsGetSpectrumResponse = class;
-  TPawsInitRequest = class;
-  TPawsInitResponse = class;
-  TPawsNotifySpectrumUseRequest = class;
-  TPawsNotifySpectrumUseResponse = class;
-  TPawsRegisterRequest = class;
-  TPawsRegisterResponse = class;
-  TPawsVerifyDeviceRequest = class;
-  TPawsVerifyDeviceResponse = class;
-  TRulesetInfo = class;
-  TSpectrumMessage = class;
-  TSpectrumSchedule = class;
-  TVcard = class;
-  TVcardAddress = class;
-  TVcardTelephone = class;
-  TVcardTypedText = class;
+  TAntennaCharacteristics = Class;
+  TDatabaseSpec = Class;
+  TDbUpdateSpec = Class;
+  TDeviceCapabilities = Class;
+  TDeviceDescriptor = Class;
+  TDeviceOwner = Class;
+  TDeviceValidity = Class;
+  TEventTime = Class;
+  TFrequencyRange = Class;
+  TGeoLocation = Class;
+  TGeoLocationEllipse = Class;
+  TGeoLocationPoint = Class;
+  TGeoLocationPolygon = Class;
+  TGeoSpectrumSchedule = Class;
+  TPawsGetSpectrumBatchRequest = Class;
+  TPawsGetSpectrumBatchResponse = Class;
+  TPawsGetSpectrumRequest = Class;
+  TPawsGetSpectrumResponse = Class;
+  TPawsInitRequest = Class;
+  TPawsInitResponse = Class;
+  TPawsNotifySpectrumUseRequest = Class;
+  TPawsNotifySpectrumUseResponse = Class;
+  TPawsRegisterRequest = Class;
+  TPawsRegisterResponse = Class;
+  TPawsVerifyDeviceRequest = Class;
+  TPawsVerifyDeviceResponse = Class;
+  TRulesetInfo = Class;
+  TSpectrumMessage = Class;
+  TSpectrumSchedule = Class;
+  TVcard = Class;
+  TVcardAddress = Class;
+  TVcardTelephone = Class;
+  TVcardTypedText = Class;
   TAntennaCharacteristicsArray = Array of TAntennaCharacteristics;
   TDatabaseSpecArray = Array of TDatabaseSpec;
   TDbUpdateSpecArray = Array of TDbUpdateSpec;
@@ -155,6 +155,10 @@ type
   Protected
     //Property setters
     Procedure Setdatabases(AIndex : Integer; AValue : TDbUpdateSpecTypedatabasesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property databases : TDbUpdateSpecTypedatabasesArray Index 0 Read Fdatabases Write Setdatabases;
@@ -171,6 +175,10 @@ type
   Protected
     //Property setters
     Procedure SetfrequencyRanges(AIndex : Integer; AValue : TDeviceCapabilitiesTypefrequencyRangesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property frequencyRanges : TDeviceCapabilitiesTypefrequencyRangesArray Index 0 Read FfrequencyRanges Write SetfrequencyRanges;
@@ -205,6 +213,10 @@ type
     Procedure SetmodelId(AIndex : Integer; AValue : String); virtual;
     Procedure SetrulesetIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetserialNumber(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etsiEnDeviceCategory : String Index 0 Read FetsiEnDeviceCategory Write SetetsiEnDeviceCategory;
@@ -382,6 +394,10 @@ type
   Protected
     //Property setters
     Procedure Setexterior(AIndex : Integer; AValue : TGeoLocationPolygonTypeexteriorArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property exterior : TGeoLocationPolygonTypeexteriorArray Index 0 Read Fexterior Write Setexterior;
@@ -400,6 +416,10 @@ type
     //Property setters
     Procedure Setlocation(AIndex : Integer; AValue : TGeoLocation); virtual;
     Procedure SetspectrumSchedules(AIndex : Integer; AValue : TGeoSpectrumScheduleTypespectrumSchedulesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property location : TGeoLocation Index 0 Read Flocation Write Setlocation;
@@ -434,6 +454,10 @@ type
     Procedure SetrequestType(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property antenna : TAntennaCharacteristics Index 0 Read Fantenna Write Setantenna;
@@ -479,6 +503,10 @@ type
     Procedure Settimestamp(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property databaseChange : TDbUpdateSpec Index 0 Read FdatabaseChange Write SetdatabaseChange;
@@ -567,6 +595,10 @@ type
     Procedure Settimestamp(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property databaseChange : TDbUpdateSpec Index 0 Read FdatabaseChange Write SetdatabaseChange;
@@ -657,6 +689,10 @@ type
     Procedure Setspectra(AIndex : Integer; AValue : TPawsNotifySpectrumUseRequestTypespectraArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property deviceDesc : TDeviceDescriptor Index 0 Read FdeviceDesc Write SetdeviceDesc;
@@ -763,6 +799,10 @@ type
     Procedure SetdeviceDescs(AIndex : Integer; AValue : TPawsVerifyDeviceRequestTypedeviceDescsArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property deviceDescs : TPawsVerifyDeviceRequestTypedeviceDescsArray Index 0 Read FdeviceDescs Write SetdeviceDescs;
@@ -790,6 +830,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property databaseChange : TDbUpdateSpec Index 0 Read FdatabaseChange Write SetdatabaseChange;
@@ -816,6 +860,10 @@ type
     Procedure SetmaxLocationChange(AIndex : Integer; AValue : double); virtual;
     Procedure SetmaxPollingSecs(AIndex : Integer; AValue : integer); virtual;
     Procedure SetrulesetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property authority : String Index 0 Read Fauthority Write Setauthority;
@@ -837,6 +885,10 @@ type
     //Property setters
     Procedure Setbandwidth(AIndex : Integer; AValue : double); virtual;
     Procedure SetfrequencyRanges(AIndex : Integer; AValue : TSpectrumMessageTypefrequencyRangesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bandwidth : double Index 0 Read Fbandwidth Write Setbandwidth;
@@ -856,6 +908,10 @@ type
     //Property setters
     Procedure SeteventTime(AIndex : Integer; AValue : TEventTime); virtual;
     Procedure Setspectra(AIndex : Integer; AValue : TSpectrumScheduleTypespectraArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property eventTime : TEventTime Index 0 Read FeventTime Write SeteventTime;
@@ -1089,6 +1145,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDbUpdateSpec.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'databases' : SetLength(Fdatabases,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1105,6 +1174,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDeviceCapabilities.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'frequencyranges' : SetLength(FfrequencyRanges,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1212,6 +1294,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDeviceDescriptor.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rulesetids' : SetLength(FrulesetIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1490,6 +1585,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeoLocationPolygon.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'exterior' : SetLength(Fexterior,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1516,6 +1624,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeoSpectrumSchedule.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'spectrumschedules' : SetLength(FspectrumSchedules,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1624,6 +1745,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPawsGetSpectrumBatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'locations' : SetLength(Flocations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1752,6 +1886,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPawsGetSpectrumBatchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'geospectrumschedules' : SetLength(FgeoSpectrumSchedules,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1989,6 +2136,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPawsGetSpectrumResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'spectrumschedules' : SetLength(FspectrumSchedules,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2182,6 +2342,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPawsNotifySpectrumUseRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'spectra' : SetLength(Fspectra,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2415,6 +2588,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPawsVerifyDeviceRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'devicedescs' : SetLength(FdeviceDescs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2483,6 +2669,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPawsVerifyDeviceResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'devicevalidities' : SetLength(FdeviceValidities,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2530,6 +2729,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRulesetInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rulesetids' : SetLength(FrulesetIds,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2557,6 +2769,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSpectrumMessage.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'frequencyranges' : SetLength(FfrequencyRanges,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2583,6 +2808,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSpectrumSchedule.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'spectra' : SetLength(Fspectra,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2903,7 +3141,7 @@ end;
 Class Function TSpectrumAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TSpectrumAPI.APIbasePath : string;
@@ -2915,7 +3153,7 @@ end;
 Class Function TSpectrumAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/spectrum/v1explorer/paws/';
+  Result:='https://www.googleapis.com:443/spectrum/v1explorer/paws/';
 end;
 
 Class Function TSpectrumAPI.APIProtocol : string;
@@ -3007,7 +3245,7 @@ Function TSpectrumAPI.CreatePawsResource(AOwner : TComponent) : TPawsResource;
 
 begin
   Result:=TPawsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

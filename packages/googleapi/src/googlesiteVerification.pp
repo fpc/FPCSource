@@ -13,7 +13,7 @@ unit googlesiteVerification;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:58
+//Generated on: 16-5-15 08:53:07
 {$MODE objfpc}
 {$H+}
 
@@ -24,17 +24,17 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TSiteVerificationWebResourceGettokenRequest = class;
-  TSiteVerificationWebResourceGettokenResponse = class;
-  TSiteVerificationWebResourceListResponse = class;
-  TSiteVerificationWebResourceResource = class;
+  TSiteVerificationWebResourceGettokenRequest = Class;
+  TSiteVerificationWebResourceGettokenResponse = Class;
+  TSiteVerificationWebResourceListResponse = Class;
+  TSiteVerificationWebResourceResource = Class;
   TSiteVerificationWebResourceGettokenRequestArray = Array of TSiteVerificationWebResourceGettokenRequest;
   TSiteVerificationWebResourceGettokenResponseArray = Array of TSiteVerificationWebResourceGettokenResponse;
   TSiteVerificationWebResourceListResponseArray = Array of TSiteVerificationWebResourceListResponse;
   TSiteVerificationWebResourceResourceArray = Array of TSiteVerificationWebResourceResource;
   //Anonymous types, using auto-generated names
-  TSiteVerificationWebResourceGettokenRequestTypesite = class;
-  TSiteVerificationWebResourceResourceTypesite = class;
+  TSiteVerificationWebResourceGettokenRequestTypesite = Class;
+  TSiteVerificationWebResourceResourceTypesite = Class;
   TSiteVerificationWebResourceListResponseTypeitemsArray = Array of TSiteVerificationWebResourceResource;
   
   { --------------------------------------------------------------------
@@ -105,6 +105,10 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TSiteVerificationWebResourceListResponseTypeitemsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TSiteVerificationWebResourceListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -145,6 +149,10 @@ type
     Procedure Setid(AIndex : Integer; AValue : String); virtual;
     Procedure Setowners(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setsite(AIndex : Integer; AValue : TSiteVerificationWebResourceResourceTypesite); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -325,6 +333,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSiteVerificationWebResourceListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -399,6 +420,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSiteVerificationWebResourceResource.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'owners' : SetLength(Fowners,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -600,7 +634,7 @@ end;
 Class Function TSiteVerificationAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TSiteVerificationAPI.APIbasePath : string;
@@ -612,7 +646,7 @@ end;
 Class Function TSiteVerificationAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/siteVerification/v1/';
+  Result:='https://www.googleapis.com:443/siteVerification/v1/';
 end;
 
 Class Function TSiteVerificationAPI.APIProtocol : string;
@@ -681,7 +715,7 @@ Function TSiteVerificationAPI.CreateWebResourceResource(AOwner : TComponent) : T
 
 begin
   Result:=TWebResourceResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

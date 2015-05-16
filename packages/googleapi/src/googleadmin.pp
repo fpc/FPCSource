@@ -13,7 +13,7 @@ unit googleadmin;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:47
+//Generated on: 16-5-15 08:52:57
 {$MODE objfpc}
 {$H+}
 
@@ -24,27 +24,27 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TActivities = class;
-  TActivity = class;
-  TChannel = class;
-  TUsageReport = class;
-  TUsageReports = class;
+  TActivities = Class;
+  TActivity = Class;
+  TChannel = Class;
+  TUsageReport = Class;
+  TUsageReports = Class;
   TActivitiesArray = Array of TActivities;
   TActivityArray = Array of TActivity;
   TChannelArray = Array of TChannel;
   TUsageReportArray = Array of TUsageReport;
   TUsageReportsArray = Array of TUsageReports;
   //Anonymous types, using auto-generated names
-  TActivityTypeactor = class;
-  TActivityTypeeventsItemTypeparametersItem = class;
-  TActivityTypeeventsItem = class;
-  TActivityTypeid = class;
-  TChannelTypeparams = class;
-  TUsageReportTypeentity = class;
-  TUsageReportTypeparametersItemTypemsgValueItem = class;
-  TUsageReportTypeparametersItem = class;
-  TUsageReportsTypewarningsItemTypedataItem = class;
-  TUsageReportsTypewarningsItem = class;
+  TActivityTypeactor = Class;
+  TActivityTypeeventsItemTypeparametersItem = Class;
+  TActivityTypeeventsItem = Class;
+  TActivityTypeid = Class;
+  TChannelTypeparams = Class;
+  TUsageReportTypeentity = Class;
+  TUsageReportTypeparametersItemTypemsgValueItem = Class;
+  TUsageReportTypeparametersItem = Class;
+  TUsageReportsTypewarningsItemTypedataItem = Class;
+  TUsageReportsTypewarningsItem = Class;
   TActivitiesTypeitemsArray = Array of TActivity;
   TActivityTypeeventsItemTypeparametersArray = Array of TActivityTypeeventsItemTypeparametersItem;
   TActivityTypeeventsArray = Array of TActivityTypeeventsItem;
@@ -70,6 +70,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TActivitiesTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -124,6 +128,10 @@ type
     Procedure SetmultiValue(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property boolValue : boolean Index 0 Read FboolValue Write SetboolValue;
@@ -150,6 +158,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setparameters(AIndex : Integer; AValue : TActivityTypeeventsItemTypeparametersArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -205,6 +217,10 @@ type
     Procedure SetipAddress(AIndex : Integer; AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetownerDomain(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property actor : TActivityTypeactor Index 0 Read Factor Write Setactor;
@@ -335,6 +351,10 @@ type
     Procedure SetmsgValue(AIndex : Integer; AValue : TUsageReportTypeparametersItemTypemsgValueArray); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetstringValue(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property boolValue : boolean Index 0 Read FboolValue Write SetboolValue;
@@ -364,6 +384,10 @@ type
     Procedure Setetag(AIndex : Integer; AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setparameters(AIndex : Integer; AValue : TUsageReportTypeparametersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property date : String Index 0 Read Fdate Write Setdate;
@@ -407,6 +431,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TUsageReportsTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -433,6 +461,10 @@ type
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetusageReports(AIndex : Integer; AValue : TUsageReportsTypeusageReportsArray); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TUsageReportsTypewarningsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -643,6 +675,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivities.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -757,6 +802,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivityTypeeventsItemTypeparametersItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'multiintvalue' : SetLength(FmultiIntValue,ALength);
+  'multivalue' : SetLength(FmultiValue,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -804,6 +863,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivityTypeeventsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'parameters' : SetLength(Fparameters,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -928,6 +1000,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivity.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'events' : SetLength(Fevents,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1198,6 +1283,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUsageReportTypeparametersItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'msgvalue' : SetLength(FmsgValue,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1254,6 +1352,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUsageReport.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'parameters' : SetLength(Fparameters,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1319,6 +1430,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUsageReportsTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1375,6 +1499,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUsageReports.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'usagereports' : SetLength(FusageReports,ALength);
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1667,7 +1805,7 @@ end;
 Class Function TAdminAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TAdminAPI.APIbasePath : string;
@@ -1679,7 +1817,7 @@ end;
 Class Function TAdminAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/admin/reports/v1/';
+  Result:='https://www.googleapis.com:443/admin/reports/v1/';
 end;
 
 Class Function TAdminAPI.APIProtocol : string;
@@ -1757,7 +1895,7 @@ Function TAdminAPI.CreateActivitiesResource(AOwner : TComponent) : TActivitiesRe
 
 begin
   Result:=TActivitiesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1781,7 +1919,7 @@ Function TAdminAPI.CreateChannelsResource(AOwner : TComponent) : TChannelsResour
 
 begin
   Result:=TChannelsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1805,7 +1943,7 @@ Function TAdminAPI.CreateCustomerUsageReportsResource(AOwner : TComponent) : TCu
 
 begin
   Result:=TCustomerUsageReportsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1829,7 +1967,7 @@ Function TAdminAPI.CreateUserUsageReportResource(AOwner : TComponent) : TUserUsa
 
 begin
   Result:=TUserUsageReportResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

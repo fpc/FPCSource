@@ -13,7 +13,7 @@ unit googleautoscaler;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:49
+//Generated on: 16-5-15 08:52:59
 {$MODE objfpc}
 {$H+}
 
@@ -24,17 +24,17 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAutoscaler = class;
-  TAutoscalerListResponse = class;
-  TAutoscalingPolicy = class;
-  TAutoscalingPolicyCpuUtilization = class;
-  TAutoscalingPolicyCustomMetricUtilization = class;
-  TAutoscalingPolicyLoadBalancingUtilization = class;
-  TDeprecationStatus = class;
-  TOperation = class;
-  TOperationList = class;
-  TZone = class;
-  TZoneList = class;
+  TAutoscaler = Class;
+  TAutoscalerListResponse = Class;
+  TAutoscalingPolicy = Class;
+  TAutoscalingPolicyCpuUtilization = Class;
+  TAutoscalingPolicyCustomMetricUtilization = Class;
+  TAutoscalingPolicyLoadBalancingUtilization = Class;
+  TDeprecationStatus = Class;
+  TOperation = Class;
+  TOperationList = Class;
+  TZone = Class;
+  TZoneList = Class;
   TAutoscalerArray = Array of TAutoscaler;
   TAutoscalerListResponseArray = Array of TAutoscalerListResponse;
   TAutoscalingPolicyArray = Array of TAutoscalingPolicy;
@@ -47,11 +47,11 @@ type
   TZoneArray = Array of TZone;
   TZoneListArray = Array of TZoneList;
   //Anonymous types, using auto-generated names
-  TOperationTypeerrorTypeerrorsItem = class;
-  TOperationTypeerror = class;
-  TOperationTypewarningsItemTypedataItem = class;
-  TOperationTypewarningsItem = class;
-  TZoneTypemaintenanceWindowsItem = class;
+  TOperationTypeerrorTypeerrorsItem = Class;
+  TOperationTypeerror = Class;
+  TOperationTypewarningsItemTypedataItem = Class;
+  TOperationTypewarningsItem = Class;
+  TZoneTypemaintenanceWindowsItem = Class;
   TAutoscalerListResponseTypeitemsArray = Array of TAutoscaler;
   TAutoscalingPolicyTypecustomMetricUtilizationsArray = Array of TAutoscalingPolicyCustomMetricUtilization;
   TOperationTypeerrorTypeerrorsArray = Array of TOperationTypeerrorTypeerrorsItem;
@@ -112,6 +112,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TAutoscalerListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TAutoscalerListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -140,6 +144,10 @@ type
     Procedure SetloadBalancingUtilization(AIndex : Integer; AValue : TAutoscalingPolicyLoadBalancingUtilization); virtual;
     Procedure SetmaxNumReplicas(AIndex : Integer; AValue : integer); virtual;
     Procedure SetminNumReplicas(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property coolDownPeriodSec : integer Index 0 Read FcoolDownPeriodSec Write SetcoolDownPeriodSec;
@@ -265,6 +273,10 @@ type
   Protected
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
@@ -304,6 +316,10 @@ type
     Procedure Setcode(AIndex : Integer; AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -364,6 +380,10 @@ type
     Procedure Setuser(AIndex : Integer; AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
     Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
@@ -409,6 +429,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -472,6 +496,10 @@ type
     Procedure Setregion(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -505,6 +533,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -759,6 +791,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAutoscalerListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -825,6 +870,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAutoscalingPolicy.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'custommetricutilizations' : SetLength(FcustomMetricUtilizations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1008,6 +1066,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1071,6 +1142,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1299,6 +1383,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1355,6 +1452,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1510,6 +1620,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZone.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'maintenancewindows' : SetLength(FmaintenanceWindows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1566,6 +1689,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1892,7 +2028,7 @@ end;
 Class Function TAutoscalerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TAutoscalerAPI.APIbasePath : string;
@@ -1904,7 +2040,7 @@ end;
 Class Function TAutoscalerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/autoscaler/v1beta2/';
+  Result:='https://www.googleapis.com:443/autoscaler/v1beta2/';
 end;
 
 Class Function TAutoscalerAPI.APIProtocol : string;
@@ -1983,7 +2119,7 @@ Function TAutoscalerAPI.CreateAutoscalersResource(AOwner : TComponent) : TAutosc
 
 begin
   Result:=TAutoscalersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2007,7 +2143,7 @@ Function TAutoscalerAPI.CreateZoneOperationsResource(AOwner : TComponent) : TZon
 
 begin
   Result:=TZoneOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2031,7 +2167,7 @@ Function TAutoscalerAPI.CreateZonesResource(AOwner : TComponent) : TZonesResourc
 
 begin
   Result:=TZonesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -13,7 +13,7 @@ unit googlelicensing;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:55
+//Generated on: 16-5-15 08:53:05
 {$MODE objfpc}
 {$H+}
 
@@ -24,9 +24,9 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TLicenseAssignment = class;
-  TLicenseAssignmentInsert = class;
-  TLicenseAssignmentList = class;
+  TLicenseAssignment = Class;
+  TLicenseAssignmentInsert = Class;
+  TLicenseAssignmentList = Class;
   TLicenseAssignmentArray = Array of TLicenseAssignment;
   TLicenseAssignmentInsertArray = Array of TLicenseAssignmentInsert;
   TLicenseAssignmentListArray = Array of TLicenseAssignmentList;
@@ -96,6 +96,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TLicenseAssignmentListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -310,6 +314,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLicenseAssignmentList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -539,7 +556,7 @@ end;
 Class Function TLicensingAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TLicensingAPI.APIbasePath : string;
@@ -551,7 +568,7 @@ end;
 Class Function TLicensingAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/apps/licensing/v1/product/';
+  Result:='https://www.googleapis.com:443/apps/licensing/v1/product/';
 end;
 
 Class Function TLicensingAPI.APIProtocol : string;
@@ -615,7 +632,7 @@ Function TLicensingAPI.CreateLicenseAssignmentsResource(AOwner : TComponent) : T
 
 begin
   Result:=TLicenseAssignmentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

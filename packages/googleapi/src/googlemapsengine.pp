@@ -13,7 +13,7 @@ unit googlemapsengine;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:56
+//Generated on: 16-5-15 08:53:05
 {$MODE objfpc}
 {$H+}
 
@@ -24,81 +24,81 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAcquisitionTime = class;
-  TAsset = class;
-  TAssetsListResponse = class;
-  TBorder = class;
-  TColor = class;
-  TDatasource = class;
-  TDisplayRule = class;
-  TFeature = class;
-  TFeatureInfo = class;
-  TFeaturesBatchDeleteRequest = class;
-  TFeaturesBatchInsertRequest = class;
-  TFeaturesBatchPatchRequest = class;
-  TFeaturesListResponse = class;
-  TFile = class;
-  TFilter = class;
-  TGeoJsonGeometry = class;
-  TGeoJsonGeometryCollection = class;
-  TGeoJsonLineString = class;
-  TGeoJsonMultiLineString = class;
-  TGeoJsonMultiPoint = class;
-  TGeoJsonMultiPolygon = class;
-  TGeoJsonPoint = class;
-  TGeoJsonPolygon = class;
-  TGeoJsonProperties = class;
-  TIcon = class;
-  TIconStyle = class;
-  TIconsListResponse = class;
-  TLabelStyle = class;
-  TLayer = class;
-  TLayersListResponse = class;
-  TLineStyle = class;
-  TMap = class;
-  TMapFolder = class;
-  TMapItem = class;
-  TMapKmlLink = class;
-  TMapLayer = class;
-  TMapsListResponse = class;
-  TParent = class;
-  TParentsListResponse = class;
-  TPermission = class;
-  TPermissionsBatchDeleteRequest = class;
-  TPermissionsBatchDeleteResponse = class;
-  TPermissionsBatchUpdateRequest = class;
-  TPermissionsBatchUpdateResponse = class;
-  TPermissionsListResponse = class;
-  TPointStyle = class;
-  TPolygonStyle = class;
-  TProcessResponse = class;
-  TProject = class;
-  TProjectsListResponse = class;
-  TPublishResponse = class;
-  TPublishedLayer = class;
-  TPublishedLayersListResponse = class;
-  TPublishedMap = class;
-  TPublishedMapsListResponse = class;
-  TRaster = class;
-  TRasterCollection = class;
-  TRasterCollectionsListResponse = class;
-  TRasterCollectionsRaster = class;
-  TRasterCollectionsRasterBatchDeleteRequest = class;
-  TRasterCollectionsRastersBatchDeleteResponse = class;
-  TRasterCollectionsRastersBatchInsertRequest = class;
-  TRasterCollectionsRastersBatchInsertResponse = class;
-  TRasterCollectionsRastersListResponse = class;
-  TRastersListResponse = class;
-  TScaledShape = class;
-  TScalingFunction = class;
-  TSchema = class;
-  TSizeRange = class;
-  TTable = class;
-  TTableColumn = class;
-  TTablesListResponse = class;
-  TValueRange = class;
-  TVectorStyle = class;
-  TZoomLevels = class;
+  TAcquisitionTime = Class;
+  TAsset = Class;
+  TAssetsListResponse = Class;
+  TBorder = Class;
+  TColor = Class;
+  TDatasource = Class;
+  TDisplayRule = Class;
+  TFeature = Class;
+  TFeatureInfo = Class;
+  TFeaturesBatchDeleteRequest = Class;
+  TFeaturesBatchInsertRequest = Class;
+  TFeaturesBatchPatchRequest = Class;
+  TFeaturesListResponse = Class;
+  TFile = Class;
+  TFilter = Class;
+  TGeoJsonGeometry = Class;
+  TGeoJsonGeometryCollection = Class;
+  TGeoJsonLineString = Class;
+  TGeoJsonMultiLineString = Class;
+  TGeoJsonMultiPoint = Class;
+  TGeoJsonMultiPolygon = Class;
+  TGeoJsonPoint = Class;
+  TGeoJsonPolygon = Class;
+  TGeoJsonProperties = Class;
+  TIcon = Class;
+  TIconStyle = Class;
+  TIconsListResponse = Class;
+  TLabelStyle = Class;
+  TLayer = Class;
+  TLayersListResponse = Class;
+  TLineStyle = Class;
+  TMap = Class;
+  TMapFolder = Class;
+  TMapItem = Class;
+  TMapKmlLink = Class;
+  TMapLayer = Class;
+  TMapsListResponse = Class;
+  TParent = Class;
+  TParentsListResponse = Class;
+  TPermission = Class;
+  TPermissionsBatchDeleteRequest = Class;
+  TPermissionsBatchDeleteResponse = Class;
+  TPermissionsBatchUpdateRequest = Class;
+  TPermissionsBatchUpdateResponse = Class;
+  TPermissionsListResponse = Class;
+  TPointStyle = Class;
+  TPolygonStyle = Class;
+  TProcessResponse = Class;
+  TProject = Class;
+  TProjectsListResponse = Class;
+  TPublishResponse = Class;
+  TPublishedLayer = Class;
+  TPublishedLayersListResponse = Class;
+  TPublishedMap = Class;
+  TPublishedMapsListResponse = Class;
+  TRaster = Class;
+  TRasterCollection = Class;
+  TRasterCollectionsListResponse = Class;
+  TRasterCollectionsRaster = Class;
+  TRasterCollectionsRasterBatchDeleteRequest = Class;
+  TRasterCollectionsRastersBatchDeleteResponse = Class;
+  TRasterCollectionsRastersBatchInsertRequest = Class;
+  TRasterCollectionsRastersBatchInsertResponse = Class;
+  TRasterCollectionsRastersListResponse = Class;
+  TRastersListResponse = Class;
+  TScaledShape = Class;
+  TScalingFunction = Class;
+  TSchema = Class;
+  TSizeRange = Class;
+  TTable = Class;
+  TTableColumn = Class;
+  TTablesListResponse = Class;
+  TValueRange = Class;
+  TVectorStyle = Class;
+  TZoomLevels = Class;
   TAcquisitionTimeArray = Array of TAcquisitionTime;
   TAssetArray = Array of TAsset;
   TAssetsListResponseArray = Array of TAssetsListResponse;
@@ -180,7 +180,7 @@ type
   TVectorStyleArray = Array of TVectorStyle;
   TZoomLevelsArray = Array of TZoomLevels;
   //Anonymous types, using auto-generated names
-  TLineStyleTypestroke = class;
+  TLineStyleTypestroke = Class;
   TAssetsListResponseTypeassetsArray = Array of TAsset;
   TDisplayRuleTypefiltersArray = Array of TFilter;
   TFeaturesBatchInsertRequestTypefeaturesArray = Array of TFeature;
@@ -275,6 +275,10 @@ type
     Procedure Settags(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bbox : TdoubleArray Index 0 Read Fbbox Write Setbbox;
@@ -306,6 +310,10 @@ type
     //Property setters
     Procedure Setassets(AIndex : Integer; AValue : TAssetsListResponseTypeassetsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property assets : TAssetsListResponseTypeassetsArray Index 0 Read Fassets Write Setassets;
@@ -390,6 +398,10 @@ type
     Procedure SetpointOptions(AIndex : Integer; AValue : TPointStyle); virtual;
     Procedure SetpolygonOptions(AIndex : Integer; AValue : TPolygonStyle); virtual;
     Procedure SetzoomLevels(AIndex : Integer; AValue : TZoomLevels); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property filters : TDisplayRuleTypefiltersArray Index 0 Read Ffilters Write Setfilters;
@@ -452,6 +464,10 @@ type
     //Property setters
     Procedure Setgx_ids(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetprimaryKeys(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property gx_ids : TStringArray Index 0 Read Fgx_ids Write Setgx_ids;
@@ -471,6 +487,10 @@ type
     //Property setters
     Procedure Setfeatures(AIndex : Integer; AValue : TFeaturesBatchInsertRequestTypefeaturesArray); virtual;
     Procedure SetnormalizeGeometries(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property features : TFeaturesBatchInsertRequestTypefeaturesArray Index 0 Read Ffeatures Write Setfeatures;
@@ -490,6 +510,10 @@ type
     //Property setters
     Procedure Setfeatures(AIndex : Integer; AValue : TFeaturesBatchPatchRequestTypefeaturesArray); virtual;
     Procedure SetnormalizeGeometries(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property features : TFeaturesBatchPatchRequestTypefeaturesArray Index 0 Read Ffeatures Write Setfeatures;
@@ -516,6 +540,10 @@ type
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setschema(AIndex : Integer; AValue : TSchema); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property allowedQueriesPerSecond : double Index 0 Read FallowedQueriesPerSecond Write SetallowedQueriesPerSecond;
@@ -597,6 +625,10 @@ type
     //Property setters
     Procedure Setgeometries(AIndex : Integer; AValue : TGeoJsonGeometryCollectionTypegeometriesArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property geometries : TGeoJsonGeometryCollectionTypegeometriesArray Index 0 Read Fgeometries Write Setgeometries;
@@ -617,6 +649,10 @@ type
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonLineStringTypecoordinatesArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property coordinates : TGeoJsonLineStringTypecoordinatesArray Index 0 Read Fcoordinates Write Setcoordinates;
@@ -637,6 +673,10 @@ type
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiLineStringTypecoordinatesArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property coordinates : TGeoJsonMultiLineStringTypecoordinatesArray Index 0 Read Fcoordinates Write Setcoordinates;
@@ -657,6 +697,10 @@ type
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPointTypecoordinatesArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property coordinates : TGeoJsonMultiPointTypecoordinatesArray Index 0 Read Fcoordinates Write Setcoordinates;
@@ -677,6 +721,10 @@ type
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPolygonTypecoordinatesArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property coordinates : TGeoJsonMultiPolygonTypecoordinatesArray Index 0 Read Fcoordinates Write Setcoordinates;
@@ -717,6 +765,10 @@ type
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonPolygonTypecoordinatesArray); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property coordinates : TGeoJsonPolygonTypecoordinatesArray Index 0 Read Fcoordinates Write Setcoordinates;
@@ -797,6 +849,10 @@ type
     //Property setters
     Procedure Seticons(AIndex : Integer; AValue : TIconsListResponseTypeiconsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property icons : TIconsListResponseTypeiconsArray Index 0 Read Ficons Write Seticons;
@@ -886,6 +942,10 @@ type
     Procedure Setstyle(AIndex : Integer; AValue : TVectorStyle); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bbox : TdoubleArray Index 0 Read Fbbox Write Setbbox;
@@ -923,6 +983,10 @@ type
     //Property setters
     Procedure Setlayers(AIndex : Integer; AValue : TLayersListResponseTypelayersArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property layers : TLayersListResponseTypelayersArray Index 0 Read Flayers Write Setlayers;
@@ -969,6 +1033,10 @@ type
     Procedure Setdash(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure Set_label(AIndex : Integer; AValue : TLabelStyle); virtual;
     Procedure Setstroke(AIndex : Integer; AValue : TLineStyleTypestroke); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property border : TBorder Index 0 Read Fborder Write Setborder;
@@ -1024,6 +1092,10 @@ type
     Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure Setversions(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bbox : TdoubleArray Index 0 Read Fbbox Write Setbbox;
@@ -1071,6 +1143,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property contents : TMapFolderTypecontentsArray Index 0 Read Fcontents Write Setcontents;
@@ -1115,6 +1191,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property defaultViewport : TdoubleArray Index 0 Read FdefaultViewport Write SetdefaultViewport;
@@ -1146,6 +1226,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property defaultViewport : TdoubleArray Index 0 Read FdefaultViewport Write SetdefaultViewport;
@@ -1169,6 +1253,10 @@ type
     //Property setters
     Procedure Setmaps(AIndex : Integer; AValue : TMapsListResponseTypemapsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property maps : TMapsListResponseTypemapsArray Index 0 Read Fmaps Write Setmaps;
@@ -1204,6 +1292,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setparents(AIndex : Integer; AValue : TParentsListResponseTypeparentsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -1247,6 +1339,10 @@ type
   Protected
     //Property setters
     Procedure Setids(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property ids : TStringArray Index 0 Read Fids Write Setids;
@@ -1276,6 +1372,10 @@ type
   Protected
     //Property setters
     Procedure Setpermissions(AIndex : Integer; AValue : TPermissionsBatchUpdateRequestTypepermissionsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property permissions : TPermissionsBatchUpdateRequestTypepermissionsArray Index 0 Read Fpermissions Write Setpermissions;
@@ -1305,6 +1405,10 @@ type
   Protected
     //Property setters
     Procedure Setpermissions(AIndex : Integer; AValue : TPermissionsListResponseTypepermissionsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property permissions : TPermissionsListResponseTypepermissionsArray Index 0 Read Fpermissions Write Setpermissions;
@@ -1396,6 +1500,10 @@ type
   Protected
     //Property setters
     Procedure Setprojects(AIndex : Integer; AValue : TProjectsListResponseTypeprojectsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property projects : TProjectsListResponseTypeprojectsArray Index 0 Read Fprojects Write Setprojects;
@@ -1455,6 +1563,10 @@ type
     //Property setters
     Procedure Setlayers(AIndex : Integer; AValue : TPublishedLayersListResponseTypelayersArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property layers : TPublishedLayersListResponseTypelayersArray Index 0 Read Flayers Write Setlayers;
@@ -1505,6 +1617,10 @@ type
     //Property setters
     Procedure Setmaps(AIndex : Integer; AValue : TPublishedMapsListResponseTypemapsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property maps : TPublishedMapsListResponseTypemapsArray Index 0 Read Fmaps Write Setmaps;
@@ -1558,6 +1674,10 @@ type
     Procedure SetrasterType(AIndex : Integer; AValue : String); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property acquisitionTime : TAcquisitionTime Index 0 Read FacquisitionTime Write SetacquisitionTime;
@@ -1624,6 +1744,10 @@ type
     Procedure SetrasterType(AIndex : Integer; AValue : String); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property attribution : String Index 0 Read Fattribution Write Setattribution;
@@ -1658,6 +1782,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetrasterCollections(AIndex : Integer; AValue : TRasterCollectionsListResponseTyperasterCollectionsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -1691,6 +1819,10 @@ type
     Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
     Procedure SetrasterType(AIndex : Integer; AValue : String); virtual;
     Procedure Settags(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bbox : TdoubleArray Index 0 Read Fbbox Write Setbbox;
@@ -1715,6 +1847,10 @@ type
   Protected
     //Property setters
     Procedure Setids(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property ids : TStringArray Index 0 Read Fids Write Setids;
@@ -1744,6 +1880,10 @@ type
   Protected
     //Property setters
     Procedure Setids(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property ids : TStringArray Index 0 Read Fids Write Setids;
@@ -1775,6 +1915,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setrasters(AIndex : Integer; AValue : TRasterCollectionsRastersListResponseTyperastersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -1794,6 +1938,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setrasters(AIndex : Integer; AValue : TRastersListResponseTyperastersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -1862,6 +2010,10 @@ type
     Procedure Setcolumns(AIndex : Integer; AValue : TSchemaTypecolumnsArray); virtual;
     Procedure SetprimaryGeometry(AIndex : Integer; AValue : String); virtual;
     Procedure SetprimaryKey(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property columns : TSchemaTypecolumnsArray Index 0 Read Fcolumns Write Setcolumns;
@@ -1933,6 +2085,10 @@ type
     Procedure SetsourceEncoding(AIndex : Integer; AValue : String); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property bbox : TdoubleArray Index 0 Read Fbbox Write Setbbox;
@@ -1988,6 +2144,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Settables(AIndex : Integer; AValue : TTablesListResponseTypetablesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -2029,6 +2189,10 @@ type
     Procedure SetdisplayRules(AIndex : Integer; AValue : TVectorStyleTypedisplayRulesArray); virtual;
     Procedure SetfeatureInfo(AIndex : Integer; AValue : TFeatureInfo); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property displayRules : TVectorStyleTypedisplayRulesArray Index 0 Read FdisplayRules Write SetdisplayRules;
@@ -2057,6 +2221,39 @@ type
   TZoomLevelsClass = Class of TZoomLevels;
   
   { --------------------------------------------------------------------
+    TAssetsParentsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAssetsParentsResource, method List
+  
+  TAssetsParentsListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TAssetsParentsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(id: string; AQuery : string  = '') : TParentsListResponse;
+    Function List(id: string; AQuery : TAssetsParentslistOptions) : TParentsListResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAssetsPermissionsResource
+    --------------------------------------------------------------------}
+  
+  TAssetsPermissionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(id: string) : TPermissionsListResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TAssetsResource
     --------------------------------------------------------------------}
   
@@ -2080,12 +2277,58 @@ type
   end;
   
   TAssetsResource = Class(TGoogleResource)
+  Private
+    FParentsInstance : TAssetsParentsResource;
+    FPermissionsInstance : TAssetsPermissionsResource;
+    Function GetParentsInstance : TAssetsParentsResource;virtual;
+    Function GetPermissionsInstance : TAssetsPermissionsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(id: string) : TAsset;
     Function List(AQuery : string  = '') : TAssetsListResponse;
     Function List(AQuery : TAssetslistOptions) : TAssetsListResponse;
+    Function CreateParentsResource(AOwner : TComponent) : TAssetsParentsResource;virtual;overload;
+    Function CreateParentsResource : TAssetsParentsResource;virtual;overload;
+    Function CreatePermissionsResource(AOwner : TComponent) : TAssetsPermissionsResource;virtual;overload;
+    Function CreatePermissionsResource : TAssetsPermissionsResource;virtual;overload;
+    Property ParentsResource : TAssetsParentsResource Read GetParentsInstance;
+    Property PermissionsResource : TAssetsPermissionsResource Read GetPermissionsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TLayersParentsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TLayersParentsResource, method List
+  
+  TLayersParentsListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TLayersParentsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(id: string; AQuery : string  = '') : TParentsListResponse;
+    Function List(id: string; AQuery : TLayersParentslistOptions) : TParentsListResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TLayersPermissionsResource
+    --------------------------------------------------------------------}
+  
+  TLayersPermissionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function BatchDelete(id: string; aPermissionsBatchDeleteRequest : TPermissionsBatchDeleteRequest) : TPermissionsBatchDeleteResponse;
+    Function BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
+    Function List(id: string) : TPermissionsListResponse;
   end;
   
   
@@ -2143,6 +2386,11 @@ type
   end;
   
   TLayersResource = Class(TGoogleResource)
+  Private
+    FParentsInstance : TLayersParentsResource;
+    FPermissionsInstance : TLayersPermissionsResource;
+    Function GetParentsInstance : TLayersParentsResource;virtual;
+    Function GetPermissionsInstance : TLayersPermissionsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -2162,6 +2410,26 @@ type
     Function Publish(id: string; AQuery : string  = '') : TPublishResponse;
     Function Publish(id: string; AQuery : TLayerspublishOptions) : TPublishResponse;
     Function Unpublish(id: string) : TPublishResponse;
+    Function CreateParentsResource(AOwner : TComponent) : TLayersParentsResource;virtual;overload;
+    Function CreateParentsResource : TLayersParentsResource;virtual;overload;
+    Function CreatePermissionsResource(AOwner : TComponent) : TLayersPermissionsResource;virtual;overload;
+    Function CreatePermissionsResource : TLayersPermissionsResource;virtual;overload;
+    Property ParentsResource : TLayersParentsResource Read GetParentsInstance;
+    Property PermissionsResource : TLayersPermissionsResource Read GetPermissionsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TMapsPermissionsResource
+    --------------------------------------------------------------------}
+  
+  TMapsPermissionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function BatchDelete(id: string; aPermissionsBatchDeleteRequest : TPermissionsBatchDeleteRequest) : TPermissionsBatchDeleteResponse;
+    Function BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
+    Function List(id: string) : TPermissionsListResponse;
   end;
   
   
@@ -2212,6 +2480,9 @@ type
   end;
   
   TMapsResource = Class(TGoogleResource)
+  Private
+    FPermissionsInstance : TMapsPermissionsResource;
+    Function GetPermissionsInstance : TMapsPermissionsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -2228,6 +2499,32 @@ type
     Function Publish(id: string; AQuery : string  = '') : TPublishResponse;
     Function Publish(id: string; AQuery : TMapspublishOptions) : TPublishResponse;
     Function Unpublish(id: string) : TPublishResponse;
+    Function CreatePermissionsResource(AOwner : TComponent) : TMapsPermissionsResource;virtual;overload;
+    Function CreatePermissionsResource : TMapsPermissionsResource;virtual;overload;
+    Property PermissionsResource : TMapsPermissionsResource Read GetPermissionsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsIconsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TProjectsIconsResource, method List
+  
+  TProjectsIconsListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TProjectsIconsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(projectId: string; aIcon : TIcon) : TIcon;overload;
+    Function Get(id: string; projectId: string) : TIcon;
+    Function List(projectId: string; AQuery : string  = '') : TIconsListResponse;
+    Function List(projectId: string; AQuery : TProjectsIconslistOptions) : TIconsListResponse;
   end;
   
   
@@ -2236,10 +2533,83 @@ type
     --------------------------------------------------------------------}
   
   TProjectsResource = Class(TGoogleResource)
+  Private
+    FIconsInstance : TProjectsIconsResource;
+    Function GetIconsInstance : TProjectsIconsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function List : TProjectsListResponse;
+    Function CreateIconsResource(AOwner : TComponent) : TProjectsIconsResource;virtual;overload;
+    Function CreateIconsResource : TProjectsIconsResource;virtual;overload;
+    Property IconsResource : TProjectsIconsResource Read GetIconsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TRasterCollectionsParentsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TRasterCollectionsParentsResource, method List
+  
+  TRasterCollectionsParentsListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TRasterCollectionsParentsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(id: string; AQuery : string  = '') : TParentsListResponse;
+    Function List(id: string; AQuery : TRasterCollectionsParentslistOptions) : TParentsListResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TRasterCollectionsPermissionsResource
+    --------------------------------------------------------------------}
+  
+  TRasterCollectionsPermissionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function BatchDelete(id: string; aPermissionsBatchDeleteRequest : TPermissionsBatchDeleteRequest) : TPermissionsBatchDeleteResponse;
+    Function BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
+    Function List(id: string) : TPermissionsListResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TRasterCollectionsRastersResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TRasterCollectionsRastersResource, method List
+  
+  TRasterCollectionsRastersListOptions = Record
+    bbox : String;
+    createdAfter : TDatetime;
+    createdBefore : TDatetime;
+    creatorEmail : String;
+    maxResults : integer;
+    modifiedAfter : TDatetime;
+    modifiedBefore : TDatetime;
+    pageToken : String;
+    role : String;
+    search : String;
+    tags : String;
+  end;
+  
+  TRasterCollectionsRastersResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function BatchDelete(id: string; aRasterCollectionsRasterBatchDeleteRequest : TRasterCollectionsRasterBatchDeleteRequest) : TRasterCollectionsRastersBatchDeleteResponse;
+    Function BatchInsert(id: string; aRasterCollectionsRastersBatchInsertRequest : TRasterCollectionsRastersBatchInsertRequest) : TRasterCollectionsRastersBatchInsertResponse;
+    Function List(id: string; AQuery : string  = '') : TRasterCollectionsRastersListResponse;
+    Function List(id: string; AQuery : TRasterCollectionsRasterslistOptions) : TRasterCollectionsRastersListResponse;
   end;
   
   
@@ -2267,6 +2637,13 @@ type
   end;
   
   TRasterCollectionsResource = Class(TGoogleResource)
+  Private
+    FParentsInstance : TRasterCollectionsParentsResource;
+    FPermissionsInstance : TRasterCollectionsPermissionsResource;
+    FRastersInstance : TRasterCollectionsRastersResource;
+    Function GetParentsInstance : TRasterCollectionsParentsResource;virtual;
+    Function GetPermissionsInstance : TRasterCollectionsPermissionsResource;virtual;
+    Function GetRastersInstance : TRasterCollectionsRastersResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -2278,6 +2655,70 @@ type
     Function List(AQuery : TRasterCollectionslistOptions) : TRasterCollectionsListResponse;
     Procedure Patch(id: string; aRasterCollection : TRasterCollection);
     Function Process(id: string) : TProcessResponse;
+    Function CreateParentsResource(AOwner : TComponent) : TRasterCollectionsParentsResource;virtual;overload;
+    Function CreateParentsResource : TRasterCollectionsParentsResource;virtual;overload;
+    Function CreatePermissionsResource(AOwner : TComponent) : TRasterCollectionsPermissionsResource;virtual;overload;
+    Function CreatePermissionsResource : TRasterCollectionsPermissionsResource;virtual;overload;
+    Function CreateRastersResource(AOwner : TComponent) : TRasterCollectionsRastersResource;virtual;overload;
+    Function CreateRastersResource : TRasterCollectionsRastersResource;virtual;overload;
+    Property ParentsResource : TRasterCollectionsParentsResource Read GetParentsInstance;
+    Property PermissionsResource : TRasterCollectionsPermissionsResource Read GetPermissionsInstance;
+    Property RastersResource : TRasterCollectionsRastersResource Read GetRastersInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TRastersFilesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TRastersFilesResource, method Insert
+  
+  TRastersFilesInsertOptions = Record
+    filename : String;
+  end;
+  
+  TRastersFilesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Insert(id: string; AQuery : string  = '');
+    Procedure Insert(id: string; AQuery : TRastersFilesinsertOptions);
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TRastersParentsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TRastersParentsResource, method List
+  
+  TRastersParentsListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TRastersParentsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(id: string; AQuery : string  = '') : TParentsListResponse;
+    Function List(id: string; AQuery : TRastersParentslistOptions) : TParentsListResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TRastersPermissionsResource
+    --------------------------------------------------------------------}
+  
+  TRastersPermissionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function BatchDelete(id: string; aPermissionsBatchDeleteRequest : TPermissionsBatchDeleteRequest) : TPermissionsBatchDeleteResponse;
+    Function BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
+    Function List(id: string) : TPermissionsListResponse;
   end;
   
   
@@ -2305,6 +2746,13 @@ type
   end;
   
   TRastersResource = Class(TGoogleResource)
+  Private
+    FFilesInstance : TRastersFilesResource;
+    FParentsInstance : TRastersParentsResource;
+    FPermissionsInstance : TRastersPermissionsResource;
+    Function GetFilesInstance : TRastersFilesResource;virtual;
+    Function GetParentsInstance : TRastersParentsResource;virtual;
+    Function GetPermissionsInstance : TRastersPermissionsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -2315,6 +2763,111 @@ type
     Procedure Patch(id: string; aRaster : TRaster);
     Function Process(id: string) : TProcessResponse;
     Function Upload(aRaster : TRaster) : TRaster;
+    Function CreateFilesResource(AOwner : TComponent) : TRastersFilesResource;virtual;overload;
+    Function CreateFilesResource : TRastersFilesResource;virtual;overload;
+    Function CreateParentsResource(AOwner : TComponent) : TRastersParentsResource;virtual;overload;
+    Function CreateParentsResource : TRastersParentsResource;virtual;overload;
+    Function CreatePermissionsResource(AOwner : TComponent) : TRastersPermissionsResource;virtual;overload;
+    Function CreatePermissionsResource : TRastersPermissionsResource;virtual;overload;
+    Property FilesResource : TRastersFilesResource Read GetFilesInstance;
+    Property ParentsResource : TRastersParentsResource Read GetParentsInstance;
+    Property PermissionsResource : TRastersPermissionsResource Read GetPermissionsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TTablesFeaturesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TTablesFeaturesResource, method Get
+  
+  TTablesFeaturesGetOptions = Record
+    select : String;
+    version : String;
+  end;
+  
+  
+  //Optional query Options for TTablesFeaturesResource, method List
+  
+  TTablesFeaturesListOptions = Record
+    include : String;
+    intersects : String;
+    limit : integer;
+    maxResults : integer;
+    orderBy : String;
+    pageToken : String;
+    select : String;
+    version : String;
+    where : String;
+  end;
+  
+  TTablesFeaturesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure BatchDelete(id: string; aFeaturesBatchDeleteRequest : TFeaturesBatchDeleteRequest);
+    Procedure BatchInsert(id: string; aFeaturesBatchInsertRequest : TFeaturesBatchInsertRequest);
+    Procedure BatchPatch(id: string; aFeaturesBatchPatchRequest : TFeaturesBatchPatchRequest);
+    Function Get(id: string; tableId: string; AQuery : string  = '') : TFeature;
+    Function Get(id: string; tableId: string; AQuery : TTablesFeaturesgetOptions) : TFeature;
+    Function List(id: string; AQuery : string  = '') : TFeaturesListResponse;
+    Function List(id: string; AQuery : TTablesFeatureslistOptions) : TFeaturesListResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TTablesFilesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TTablesFilesResource, method Insert
+  
+  TTablesFilesInsertOptions = Record
+    filename : String;
+  end;
+  
+  TTablesFilesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Insert(id: string; AQuery : string  = '');
+    Procedure Insert(id: string; AQuery : TTablesFilesinsertOptions);
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TTablesParentsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TTablesParentsResource, method List
+  
+  TTablesParentsListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TTablesParentsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(id: string; AQuery : string  = '') : TParentsListResponse;
+    Function List(id: string; AQuery : TTablesParentslistOptions) : TParentsListResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TTablesPermissionsResource
+    --------------------------------------------------------------------}
+  
+  TTablesPermissionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function BatchDelete(id: string; aPermissionsBatchDeleteRequest : TPermissionsBatchDeleteRequest) : TPermissionsBatchDeleteResponse;
+    Function BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
+    Function List(id: string) : TPermissionsListResponse;
   end;
   
   
@@ -2349,6 +2902,15 @@ type
   end;
   
   TTablesResource = Class(TGoogleResource)
+  Private
+    FFeaturesInstance : TTablesFeaturesResource;
+    FFilesInstance : TTablesFilesResource;
+    FParentsInstance : TTablesParentsResource;
+    FPermissionsInstance : TTablesPermissionsResource;
+    Function GetFeaturesInstance : TTablesFeaturesResource;virtual;
+    Function GetFilesInstance : TTablesFilesResource;virtual;
+    Function GetParentsInstance : TTablesParentsResource;virtual;
+    Function GetPermissionsInstance : TTablesPermissionsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -2361,6 +2923,18 @@ type
     Procedure Patch(id: string; aTable : TTable);
     Function Process(id: string) : TProcessResponse;
     Function Upload(aTable : TTable) : TTable;
+    Function CreateFeaturesResource(AOwner : TComponent) : TTablesFeaturesResource;virtual;overload;
+    Function CreateFeaturesResource : TTablesFeaturesResource;virtual;overload;
+    Function CreateFilesResource(AOwner : TComponent) : TTablesFilesResource;virtual;overload;
+    Function CreateFilesResource : TTablesFilesResource;virtual;overload;
+    Function CreateParentsResource(AOwner : TComponent) : TTablesParentsResource;virtual;overload;
+    Function CreateParentsResource : TTablesParentsResource;virtual;overload;
+    Function CreatePermissionsResource(AOwner : TComponent) : TTablesPermissionsResource;virtual;overload;
+    Function CreatePermissionsResource : TTablesPermissionsResource;virtual;overload;
+    Property FeaturesResource : TTablesFeaturesResource Read GetFeaturesInstance;
+    Property FilesResource : TTablesFilesResource Read GetFilesInstance;
+    Property ParentsResource : TTablesParentsResource Read GetParentsInstance;
+    Property PermissionsResource : TTablesPermissionsResource Read GetPermissionsInstance;
   end;
   
   
@@ -2370,19 +2944,51 @@ type
   
   TMapsengineAPI = Class(TGoogleAPI)
   Private
+    FAssetsParentsInstance : TAssetsParentsResource;
+    FAssetsPermissionsInstance : TAssetsPermissionsResource;
     FAssetsInstance : TAssetsResource;
+    FLayersParentsInstance : TLayersParentsResource;
+    FLayersPermissionsInstance : TLayersPermissionsResource;
     FLayersInstance : TLayersResource;
+    FMapsPermissionsInstance : TMapsPermissionsResource;
     FMapsInstance : TMapsResource;
+    FProjectsIconsInstance : TProjectsIconsResource;
     FProjectsInstance : TProjectsResource;
+    FRasterCollectionsParentsInstance : TRasterCollectionsParentsResource;
+    FRasterCollectionsPermissionsInstance : TRasterCollectionsPermissionsResource;
+    FRasterCollectionsRastersInstance : TRasterCollectionsRastersResource;
     FRasterCollectionsInstance : TRasterCollectionsResource;
+    FRastersFilesInstance : TRastersFilesResource;
+    FRastersParentsInstance : TRastersParentsResource;
+    FRastersPermissionsInstance : TRastersPermissionsResource;
     FRastersInstance : TRastersResource;
+    FTablesFeaturesInstance : TTablesFeaturesResource;
+    FTablesFilesInstance : TTablesFilesResource;
+    FTablesParentsInstance : TTablesParentsResource;
+    FTablesPermissionsInstance : TTablesPermissionsResource;
     FTablesInstance : TTablesResource;
+    Function GetAssetsParentsInstance : TAssetsParentsResource;virtual;
+    Function GetAssetsPermissionsInstance : TAssetsPermissionsResource;virtual;
     Function GetAssetsInstance : TAssetsResource;virtual;
+    Function GetLayersParentsInstance : TLayersParentsResource;virtual;
+    Function GetLayersPermissionsInstance : TLayersPermissionsResource;virtual;
     Function GetLayersInstance : TLayersResource;virtual;
+    Function GetMapsPermissionsInstance : TMapsPermissionsResource;virtual;
     Function GetMapsInstance : TMapsResource;virtual;
+    Function GetProjectsIconsInstance : TProjectsIconsResource;virtual;
     Function GetProjectsInstance : TProjectsResource;virtual;
+    Function GetRasterCollectionsParentsInstance : TRasterCollectionsParentsResource;virtual;
+    Function GetRasterCollectionsPermissionsInstance : TRasterCollectionsPermissionsResource;virtual;
+    Function GetRasterCollectionsRastersInstance : TRasterCollectionsRastersResource;virtual;
     Function GetRasterCollectionsInstance : TRasterCollectionsResource;virtual;
+    Function GetRastersFilesInstance : TRastersFilesResource;virtual;
+    Function GetRastersParentsInstance : TRastersParentsResource;virtual;
+    Function GetRastersPermissionsInstance : TRastersPermissionsResource;virtual;
     Function GetRastersInstance : TRastersResource;virtual;
+    Function GetTablesFeaturesInstance : TTablesFeaturesResource;virtual;
+    Function GetTablesFilesInstance : TTablesFilesResource;virtual;
+    Function GetTablesParentsInstance : TTablesParentsResource;virtual;
+    Function GetTablesPermissionsInstance : TTablesPermissionsResource;virtual;
     Function GetTablesInstance : TTablesResource;virtual;
   Public
     //Override class functions with API info
@@ -2407,27 +3013,75 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateAssetsParentsResource(AOwner : TComponent) : TAssetsParentsResource;virtual;overload;
+    Function CreateAssetsParentsResource : TAssetsParentsResource;virtual;overload;
+    Function CreateAssetsPermissionsResource(AOwner : TComponent) : TAssetsPermissionsResource;virtual;overload;
+    Function CreateAssetsPermissionsResource : TAssetsPermissionsResource;virtual;overload;
     Function CreateAssetsResource(AOwner : TComponent) : TAssetsResource;virtual;overload;
     Function CreateAssetsResource : TAssetsResource;virtual;overload;
+    Function CreateLayersParentsResource(AOwner : TComponent) : TLayersParentsResource;virtual;overload;
+    Function CreateLayersParentsResource : TLayersParentsResource;virtual;overload;
+    Function CreateLayersPermissionsResource(AOwner : TComponent) : TLayersPermissionsResource;virtual;overload;
+    Function CreateLayersPermissionsResource : TLayersPermissionsResource;virtual;overload;
     Function CreateLayersResource(AOwner : TComponent) : TLayersResource;virtual;overload;
     Function CreateLayersResource : TLayersResource;virtual;overload;
+    Function CreateMapsPermissionsResource(AOwner : TComponent) : TMapsPermissionsResource;virtual;overload;
+    Function CreateMapsPermissionsResource : TMapsPermissionsResource;virtual;overload;
     Function CreateMapsResource(AOwner : TComponent) : TMapsResource;virtual;overload;
     Function CreateMapsResource : TMapsResource;virtual;overload;
+    Function CreateProjectsIconsResource(AOwner : TComponent) : TProjectsIconsResource;virtual;overload;
+    Function CreateProjectsIconsResource : TProjectsIconsResource;virtual;overload;
     Function CreateProjectsResource(AOwner : TComponent) : TProjectsResource;virtual;overload;
     Function CreateProjectsResource : TProjectsResource;virtual;overload;
+    Function CreateRasterCollectionsParentsResource(AOwner : TComponent) : TRasterCollectionsParentsResource;virtual;overload;
+    Function CreateRasterCollectionsParentsResource : TRasterCollectionsParentsResource;virtual;overload;
+    Function CreateRasterCollectionsPermissionsResource(AOwner : TComponent) : TRasterCollectionsPermissionsResource;virtual;overload;
+    Function CreateRasterCollectionsPermissionsResource : TRasterCollectionsPermissionsResource;virtual;overload;
+    Function CreateRasterCollectionsRastersResource(AOwner : TComponent) : TRasterCollectionsRastersResource;virtual;overload;
+    Function CreateRasterCollectionsRastersResource : TRasterCollectionsRastersResource;virtual;overload;
     Function CreateRasterCollectionsResource(AOwner : TComponent) : TRasterCollectionsResource;virtual;overload;
     Function CreateRasterCollectionsResource : TRasterCollectionsResource;virtual;overload;
+    Function CreateRastersFilesResource(AOwner : TComponent) : TRastersFilesResource;virtual;overload;
+    Function CreateRastersFilesResource : TRastersFilesResource;virtual;overload;
+    Function CreateRastersParentsResource(AOwner : TComponent) : TRastersParentsResource;virtual;overload;
+    Function CreateRastersParentsResource : TRastersParentsResource;virtual;overload;
+    Function CreateRastersPermissionsResource(AOwner : TComponent) : TRastersPermissionsResource;virtual;overload;
+    Function CreateRastersPermissionsResource : TRastersPermissionsResource;virtual;overload;
     Function CreateRastersResource(AOwner : TComponent) : TRastersResource;virtual;overload;
     Function CreateRastersResource : TRastersResource;virtual;overload;
+    Function CreateTablesFeaturesResource(AOwner : TComponent) : TTablesFeaturesResource;virtual;overload;
+    Function CreateTablesFeaturesResource : TTablesFeaturesResource;virtual;overload;
+    Function CreateTablesFilesResource(AOwner : TComponent) : TTablesFilesResource;virtual;overload;
+    Function CreateTablesFilesResource : TTablesFilesResource;virtual;overload;
+    Function CreateTablesParentsResource(AOwner : TComponent) : TTablesParentsResource;virtual;overload;
+    Function CreateTablesParentsResource : TTablesParentsResource;virtual;overload;
+    Function CreateTablesPermissionsResource(AOwner : TComponent) : TTablesPermissionsResource;virtual;overload;
+    Function CreateTablesPermissionsResource : TTablesPermissionsResource;virtual;overload;
     Function CreateTablesResource(AOwner : TComponent) : TTablesResource;virtual;overload;
     Function CreateTablesResource : TTablesResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property AssetsParentsResource : TAssetsParentsResource Read GetAssetsParentsInstance;
+    Property AssetsPermissionsResource : TAssetsPermissionsResource Read GetAssetsPermissionsInstance;
     Property AssetsResource : TAssetsResource Read GetAssetsInstance;
+    Property LayersParentsResource : TLayersParentsResource Read GetLayersParentsInstance;
+    Property LayersPermissionsResource : TLayersPermissionsResource Read GetLayersPermissionsInstance;
     Property LayersResource : TLayersResource Read GetLayersInstance;
+    Property MapsPermissionsResource : TMapsPermissionsResource Read GetMapsPermissionsInstance;
     Property MapsResource : TMapsResource Read GetMapsInstance;
+    Property ProjectsIconsResource : TProjectsIconsResource Read GetProjectsIconsInstance;
     Property ProjectsResource : TProjectsResource Read GetProjectsInstance;
+    Property RasterCollectionsParentsResource : TRasterCollectionsParentsResource Read GetRasterCollectionsParentsInstance;
+    Property RasterCollectionsPermissionsResource : TRasterCollectionsPermissionsResource Read GetRasterCollectionsPermissionsInstance;
+    Property RasterCollectionsRastersResource : TRasterCollectionsRastersResource Read GetRasterCollectionsRastersInstance;
     Property RasterCollectionsResource : TRasterCollectionsResource Read GetRasterCollectionsInstance;
+    Property RastersFilesResource : TRastersFilesResource Read GetRastersFilesInstance;
+    Property RastersParentsResource : TRastersParentsResource Read GetRastersParentsInstance;
+    Property RastersPermissionsResource : TRastersPermissionsResource Read GetRastersPermissionsInstance;
     Property RastersResource : TRastersResource Read GetRastersInstance;
+    Property TablesFeaturesResource : TTablesFeaturesResource Read GetTablesFeaturesInstance;
+    Property TablesFilesResource : TTablesFilesResource Read GetTablesFilesInstance;
+    Property TablesParentsResource : TTablesParentsResource Read GetTablesParentsInstance;
+    Property TablesPermissionsResource : TTablesPermissionsResource Read GetTablesPermissionsInstance;
     Property TablesResource : TTablesResource Read GetTablesInstance;
   end;
 
@@ -2637,6 +3291,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAsset.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bbox' : SetLength(Fbbox,ALength);
+  'tags' : SetLength(Ftags,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2663,6 +3331,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAssetsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'assets' : SetLength(Fassets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2812,6 +3493,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDisplayRule.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'filters' : SetLength(Ffilters,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2904,6 +3598,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFeaturesBatchDeleteRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'gx_ids' : SetLength(Fgx_ids,ALength);
+  'primarykeys' : SetLength(FprimaryKeys,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2931,6 +3639,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFeaturesBatchInsertRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'features' : SetLength(Ffeatures,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2957,6 +3678,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFeaturesBatchPatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'features' : SetLength(Ffeatures,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3025,6 +3759,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFeaturesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'features' : SetLength(Ffeatures,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3156,6 +3903,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeoJsonGeometryCollection.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'geometries' : SetLength(Fgeometries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3193,6 +3953,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeoJsonLineString.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'coordinates' : SetLength(Fcoordinates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3232,6 +4005,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeoJsonMultiLineString.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'coordinates' : SetLength(Fcoordinates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3270,6 +4056,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeoJsonMultiPoint.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'coordinates' : SetLength(Fcoordinates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3307,6 +4106,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeoJsonMultiPolygon.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'coordinates' : SetLength(Fcoordinates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3383,6 +4195,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeoJsonPolygon.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'coordinates' : SetLength(Fcoordinates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3507,6 +4332,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TIconsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'icons' : SetLength(Ficons,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3792,6 +4630,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLayer.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bbox' : SetLength(Fbbox,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3818,6 +4669,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLayersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'layers' : SetLength(Flayers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3913,6 +4777,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLineStyle.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'dash' : SetLength(Fdash,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4111,6 +4988,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMap.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bbox' : SetLength(Fbbox,ALength);
+  'versions' : SetLength(Fversions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4199,6 +5090,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMapFolder.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'contents' : SetLength(Fcontents,ALength);
+  'defaultviewport' : SetLength(FdefaultViewport,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4273,6 +5178,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMapKmlLink.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'defaultviewport' : SetLength(FdefaultViewport,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4352,6 +5270,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMapLayer.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'defaultviewport' : SetLength(FdefaultViewport,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4378,6 +5309,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMapsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'maps' : SetLength(Fmaps,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4422,6 +5366,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TParentsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'parents' : SetLength(Fparents,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4498,6 +5455,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPermissionsBatchDeleteRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'ids' : SetLength(Fids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4522,6 +5492,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPermissionsBatchUpdateRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'permissions' : SetLength(Fpermissions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4545,6 +5528,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPermissionsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'permissions' : SetLength(Fpermissions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4683,6 +5679,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProjectsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'projects' : SetLength(Fprojects,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4773,6 +5782,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPublishedLayersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'layers' : SetLength(Flayers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4867,6 +5889,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPublishedMapsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'maps' : SetLength(Fmaps,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5065,6 +6100,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRaster.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bbox' : SetLength(Fbbox,ALength);
+  'files' : SetLength(Ffiles,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5242,6 +6291,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRasterCollection.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bbox' : SetLength(Fbbox,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5268,6 +6330,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRasterCollectionsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rastercollections' : SetLength(FrasterCollections,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5366,6 +6441,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRasterCollectionsRaster.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bbox' : SetLength(Fbbox,ALength);
+  'tags' : SetLength(Ftags,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5382,6 +6471,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRasterCollectionsRasterBatchDeleteRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'ids' : SetLength(Fids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5406,6 +6508,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRasterCollectionsRastersBatchInsertRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'ids' : SetLength(Fids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5441,6 +6556,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRasterCollectionsRastersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rasters' : SetLength(Frasters,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5467,6 +6595,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRastersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rasters' : SetLength(Frasters,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5588,6 +6729,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSchema.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'columns' : SetLength(Fcolumns,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5803,6 +6957,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTable.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bbox' : SetLength(Fbbox,ALength);
+  'files' : SetLength(Ffiles,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5867,6 +7035,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTablesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'tables' : SetLength(Ftables,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -5943,6 +7124,19 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVectorStyle.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'displayrules' : SetLength(FdisplayRules,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -5970,6 +7164,87 @@ begin
 end;
 
 
+
+
+
+{ --------------------------------------------------------------------
+  TAssetsParentsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAssetsParentsResource.ResourceName : String;
+
+begin
+  Result:='parents';
+end;
+
+Class Function TAssetsParentsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TAssetsParentsResource.List(id: string; AQuery : string = '') : TParentsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'assets/{id}/parents';
+  _Methodid   = 'mapsengine.assets.parents.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TParentsListResponse) as TParentsListResponse;
+end;
+
+
+Function TAssetsParentsResource.List(id: string; AQuery : TAssetsParentslistOptions) : TParentsListResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(id,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAssetsPermissionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAssetsPermissionsResource.ResourceName : String;
+
+begin
+  Result:='permissions';
+end;
+
+Class Function TAssetsPermissionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TAssetsPermissionsResource.List(id: string) : TPermissionsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'assets/{id}/permissions';
+  _Methodid   = 'mapsengine.assets.permissions.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TPermissionsListResponse) as TPermissionsListResponse;
+end;
 
 
 
@@ -6038,6 +7313,165 @@ begin
   AddToQuery(_Q,'tags',AQuery.tags);
   AddToQuery(_Q,'type',AQuery._type);
   Result:=List(_Q);
+end;
+
+
+
+Function TAssetsResource.GetParentsInstance : TAssetsParentsResource;
+
+begin
+  if (FParentsInstance=Nil) then
+    FParentsInstance:=CreateParentsResource;
+  Result:=FParentsInstance;
+end;
+
+Function TAssetsResource.CreateParentsResource : TAssetsParentsResource;
+
+begin
+  Result:=CreateParentsResource(Self);
+end;
+
+
+Function TAssetsResource.CreateParentsResource(AOwner : TComponent) : TAssetsParentsResource;
+
+begin
+  Result:=TAssetsParentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAssetsResource.GetPermissionsInstance : TAssetsPermissionsResource;
+
+begin
+  if (FPermissionsInstance=Nil) then
+    FPermissionsInstance:=CreatePermissionsResource;
+  Result:=FPermissionsInstance;
+end;
+
+Function TAssetsResource.CreatePermissionsResource : TAssetsPermissionsResource;
+
+begin
+  Result:=CreatePermissionsResource(Self);
+end;
+
+
+Function TAssetsResource.CreatePermissionsResource(AOwner : TComponent) : TAssetsPermissionsResource;
+
+begin
+  Result:=TAssetsPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TLayersParentsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TLayersParentsResource.ResourceName : String;
+
+begin
+  Result:='parents';
+end;
+
+Class Function TLayersParentsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TLayersParentsResource.List(id: string; AQuery : string = '') : TParentsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'layers/{id}/parents';
+  _Methodid   = 'mapsengine.layers.parents.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TParentsListResponse) as TParentsListResponse;
+end;
+
+
+Function TLayersParentsResource.List(id: string; AQuery : TLayersParentslistOptions) : TParentsListResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(id,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TLayersPermissionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TLayersPermissionsResource.ResourceName : String;
+
+begin
+  Result:='permissions';
+end;
+
+Class Function TLayersPermissionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TLayersPermissionsResource.BatchDelete(id: string; aPermissionsBatchDeleteRequest : TPermissionsBatchDeleteRequest) : TPermissionsBatchDeleteResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'layers/{id}/permissions/batchDelete';
+  _Methodid   = 'mapsengine.layers.permissions.batchDelete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aPermissionsBatchDeleteRequest,TPermissionsBatchDeleteResponse) as TPermissionsBatchDeleteResponse;
+end;
+
+Function TLayersPermissionsResource.BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'layers/{id}/permissions/batchUpdate';
+  _Methodid   = 'mapsengine.layers.permissions.batchUpdate';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aPermissionsBatchUpdateRequest,TPermissionsBatchUpdateResponse) as TPermissionsBatchUpdateResponse;
+end;
+
+Function TLayersPermissionsResource.List(id: string) : TPermissionsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'layers/{id}/permissions';
+  _Methodid   = 'mapsengine.layers.permissions.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TPermissionsListResponse) as TPermissionsListResponse;
 end;
 
 
@@ -6288,6 +7722,118 @@ end;
 
 
 
+Function TLayersResource.GetParentsInstance : TLayersParentsResource;
+
+begin
+  if (FParentsInstance=Nil) then
+    FParentsInstance:=CreateParentsResource;
+  Result:=FParentsInstance;
+end;
+
+Function TLayersResource.CreateParentsResource : TLayersParentsResource;
+
+begin
+  Result:=CreateParentsResource(Self);
+end;
+
+
+Function TLayersResource.CreateParentsResource(AOwner : TComponent) : TLayersParentsResource;
+
+begin
+  Result:=TLayersParentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TLayersResource.GetPermissionsInstance : TLayersPermissionsResource;
+
+begin
+  if (FPermissionsInstance=Nil) then
+    FPermissionsInstance:=CreatePermissionsResource;
+  Result:=FPermissionsInstance;
+end;
+
+Function TLayersResource.CreatePermissionsResource : TLayersPermissionsResource;
+
+begin
+  Result:=CreatePermissionsResource(Self);
+end;
+
+
+Function TLayersResource.CreatePermissionsResource(AOwner : TComponent) : TLayersPermissionsResource;
+
+begin
+  Result:=TLayersPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TMapsPermissionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TMapsPermissionsResource.ResourceName : String;
+
+begin
+  Result:='permissions';
+end;
+
+Class Function TMapsPermissionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TMapsPermissionsResource.BatchDelete(id: string; aPermissionsBatchDeleteRequest : TPermissionsBatchDeleteRequest) : TPermissionsBatchDeleteResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'maps/{id}/permissions/batchDelete';
+  _Methodid   = 'mapsengine.maps.permissions.batchDelete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aPermissionsBatchDeleteRequest,TPermissionsBatchDeleteResponse) as TPermissionsBatchDeleteResponse;
+end;
+
+Function TMapsPermissionsResource.BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'maps/{id}/permissions/batchUpdate';
+  _Methodid   = 'mapsengine.maps.permissions.batchUpdate';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aPermissionsBatchUpdateRequest,TPermissionsBatchUpdateResponse) as TPermissionsBatchUpdateResponse;
+end;
+
+Function TMapsPermissionsResource.List(id: string) : TPermissionsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'maps/{id}/permissions';
+  _Methodid   = 'mapsengine.maps.permissions.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TPermissionsListResponse) as TPermissionsListResponse;
+end;
+
+
+
 { --------------------------------------------------------------------
   TMapsResource
   --------------------------------------------------------------------}
@@ -6492,6 +8038,107 @@ end;
 
 
 
+Function TMapsResource.GetPermissionsInstance : TMapsPermissionsResource;
+
+begin
+  if (FPermissionsInstance=Nil) then
+    FPermissionsInstance:=CreatePermissionsResource;
+  Result:=FPermissionsInstance;
+end;
+
+Function TMapsResource.CreatePermissionsResource : TMapsPermissionsResource;
+
+begin
+  Result:=CreatePermissionsResource(Self);
+end;
+
+
+Function TMapsResource.CreatePermissionsResource(AOwner : TComponent) : TMapsPermissionsResource;
+
+begin
+  Result:=TMapsPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsIconsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsIconsResource.ResourceName : String;
+
+begin
+  Result:='icons';
+end;
+
+Class Function TProjectsIconsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TProjectsIconsResource.Create(projectId: string; aIcon : TIcon) : TIcon;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'projects/{projectId}/icons';
+  _Methodid   = 'mapsengine.projects.icons.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aIcon,TIcon) as TIcon;
+end;
+
+Function TProjectsIconsResource.Get(id: string; projectId: string) : TIcon;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'projects/{projectId}/icons/{id}';
+  _Methodid   = 'mapsengine.projects.icons.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TIcon) as TIcon;
+end;
+
+Function TProjectsIconsResource.List(projectId: string; AQuery : string = '') : TIconsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'projects/{projectId}/icons';
+  _Methodid   = 'mapsengine.projects.icons.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TIconsListResponse) as TIconsListResponse;
+end;
+
+
+Function TProjectsIconsResource.List(projectId: string; AQuery : TProjectsIconslistOptions) : TIconsListResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(projectId,_Q);
+end;
+
+
+
 { --------------------------------------------------------------------
   TProjectsResource
   --------------------------------------------------------------------}
@@ -6518,6 +8165,227 @@ Const
 
 begin
   Result:=ServiceCall(_HTTPMethod,_Path,'',Nil,TProjectsListResponse) as TProjectsListResponse;
+end;
+
+
+
+Function TProjectsResource.GetIconsInstance : TProjectsIconsResource;
+
+begin
+  if (FIconsInstance=Nil) then
+    FIconsInstance:=CreateIconsResource;
+  Result:=FIconsInstance;
+end;
+
+Function TProjectsResource.CreateIconsResource : TProjectsIconsResource;
+
+begin
+  Result:=CreateIconsResource(Self);
+end;
+
+
+Function TProjectsResource.CreateIconsResource(AOwner : TComponent) : TProjectsIconsResource;
+
+begin
+  Result:=TProjectsIconsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TRasterCollectionsParentsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TRasterCollectionsParentsResource.ResourceName : String;
+
+begin
+  Result:='parents';
+end;
+
+Class Function TRasterCollectionsParentsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TRasterCollectionsParentsResource.List(id: string; AQuery : string = '') : TParentsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'rasterCollections/{id}/parents';
+  _Methodid   = 'mapsengine.rasterCollections.parents.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TParentsListResponse) as TParentsListResponse;
+end;
+
+
+Function TRasterCollectionsParentsResource.List(id: string; AQuery : TRasterCollectionsParentslistOptions) : TParentsListResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(id,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TRasterCollectionsPermissionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TRasterCollectionsPermissionsResource.ResourceName : String;
+
+begin
+  Result:='permissions';
+end;
+
+Class Function TRasterCollectionsPermissionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TRasterCollectionsPermissionsResource.BatchDelete(id: string; aPermissionsBatchDeleteRequest : TPermissionsBatchDeleteRequest) : TPermissionsBatchDeleteResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'rasterCollections/{id}/permissions/batchDelete';
+  _Methodid   = 'mapsengine.rasterCollections.permissions.batchDelete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aPermissionsBatchDeleteRequest,TPermissionsBatchDeleteResponse) as TPermissionsBatchDeleteResponse;
+end;
+
+Function TRasterCollectionsPermissionsResource.BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'rasterCollections/{id}/permissions/batchUpdate';
+  _Methodid   = 'mapsengine.rasterCollections.permissions.batchUpdate';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aPermissionsBatchUpdateRequest,TPermissionsBatchUpdateResponse) as TPermissionsBatchUpdateResponse;
+end;
+
+Function TRasterCollectionsPermissionsResource.List(id: string) : TPermissionsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'rasterCollections/{id}/permissions';
+  _Methodid   = 'mapsengine.rasterCollections.permissions.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TPermissionsListResponse) as TPermissionsListResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TRasterCollectionsRastersResource
+  --------------------------------------------------------------------}
+
+
+Class Function TRasterCollectionsRastersResource.ResourceName : String;
+
+begin
+  Result:='rasters';
+end;
+
+Class Function TRasterCollectionsRastersResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TRasterCollectionsRastersResource.BatchDelete(id: string; aRasterCollectionsRasterBatchDeleteRequest : TRasterCollectionsRasterBatchDeleteRequest) : TRasterCollectionsRastersBatchDeleteResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'rasterCollections/{id}/rasters/batchDelete';
+  _Methodid   = 'mapsengine.rasterCollections.rasters.batchDelete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aRasterCollectionsRasterBatchDeleteRequest,TRasterCollectionsRastersBatchDeleteResponse) as TRasterCollectionsRastersBatchDeleteResponse;
+end;
+
+Function TRasterCollectionsRastersResource.BatchInsert(id: string; aRasterCollectionsRastersBatchInsertRequest : TRasterCollectionsRastersBatchInsertRequest) : TRasterCollectionsRastersBatchInsertResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'rasterCollections/{id}/rasters/batchInsert';
+  _Methodid   = 'mapsengine.rasterCollections.rasters.batchInsert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aRasterCollectionsRastersBatchInsertRequest,TRasterCollectionsRastersBatchInsertResponse) as TRasterCollectionsRastersBatchInsertResponse;
+end;
+
+Function TRasterCollectionsRastersResource.List(id: string; AQuery : string = '') : TRasterCollectionsRastersListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'rasterCollections/{id}/rasters';
+  _Methodid   = 'mapsengine.rasterCollections.rasters.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TRasterCollectionsRastersListResponse) as TRasterCollectionsRastersListResponse;
+end;
+
+
+Function TRasterCollectionsRastersResource.List(id: string; AQuery : TRasterCollectionsRasterslistOptions) : TRasterCollectionsRastersListResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'bbox',AQuery.bbox);
+  AddToQuery(_Q,'createdAfter',AQuery.createdAfter);
+  AddToQuery(_Q,'createdBefore',AQuery.createdBefore);
+  AddToQuery(_Q,'creatorEmail',AQuery.creatorEmail);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'modifiedAfter',AQuery.modifiedAfter);
+  AddToQuery(_Q,'modifiedBefore',AQuery.modifiedBefore);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'role',AQuery.role);
+  AddToQuery(_Q,'search',AQuery.search);
+  AddToQuery(_Q,'tags',AQuery.tags);
+  Result:=List(id,_Q);
 end;
 
 
@@ -6662,6 +8530,235 @@ end;
 
 
 
+Function TRasterCollectionsResource.GetParentsInstance : TRasterCollectionsParentsResource;
+
+begin
+  if (FParentsInstance=Nil) then
+    FParentsInstance:=CreateParentsResource;
+  Result:=FParentsInstance;
+end;
+
+Function TRasterCollectionsResource.CreateParentsResource : TRasterCollectionsParentsResource;
+
+begin
+  Result:=CreateParentsResource(Self);
+end;
+
+
+Function TRasterCollectionsResource.CreateParentsResource(AOwner : TComponent) : TRasterCollectionsParentsResource;
+
+begin
+  Result:=TRasterCollectionsParentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TRasterCollectionsResource.GetPermissionsInstance : TRasterCollectionsPermissionsResource;
+
+begin
+  if (FPermissionsInstance=Nil) then
+    FPermissionsInstance:=CreatePermissionsResource;
+  Result:=FPermissionsInstance;
+end;
+
+Function TRasterCollectionsResource.CreatePermissionsResource : TRasterCollectionsPermissionsResource;
+
+begin
+  Result:=CreatePermissionsResource(Self);
+end;
+
+
+Function TRasterCollectionsResource.CreatePermissionsResource(AOwner : TComponent) : TRasterCollectionsPermissionsResource;
+
+begin
+  Result:=TRasterCollectionsPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TRasterCollectionsResource.GetRastersInstance : TRasterCollectionsRastersResource;
+
+begin
+  if (FRastersInstance=Nil) then
+    FRastersInstance:=CreateRastersResource;
+  Result:=FRastersInstance;
+end;
+
+Function TRasterCollectionsResource.CreateRastersResource : TRasterCollectionsRastersResource;
+
+begin
+  Result:=CreateRastersResource(Self);
+end;
+
+
+Function TRasterCollectionsResource.CreateRastersResource(AOwner : TComponent) : TRasterCollectionsRastersResource;
+
+begin
+  Result:=TRasterCollectionsRastersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TRastersFilesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TRastersFilesResource.ResourceName : String;
+
+begin
+  Result:='files';
+end;
+
+Class Function TRastersFilesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Procedure TRastersFilesResource.Insert(id: string; AQuery : string = '');
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'rasters/{id}/files';
+  _Methodid   = 'mapsengine.rasters.files.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TRastersFilesResource.Insert(id: string; AQuery : TRastersFilesinsertOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filename',AQuery.filename);
+  Insert(id,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TRastersParentsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TRastersParentsResource.ResourceName : String;
+
+begin
+  Result:='parents';
+end;
+
+Class Function TRastersParentsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TRastersParentsResource.List(id: string; AQuery : string = '') : TParentsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'rasters/{id}/parents';
+  _Methodid   = 'mapsengine.rasters.parents.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TParentsListResponse) as TParentsListResponse;
+end;
+
+
+Function TRastersParentsResource.List(id: string; AQuery : TRastersParentslistOptions) : TParentsListResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(id,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TRastersPermissionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TRastersPermissionsResource.ResourceName : String;
+
+begin
+  Result:='permissions';
+end;
+
+Class Function TRastersPermissionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TRastersPermissionsResource.BatchDelete(id: string; aPermissionsBatchDeleteRequest : TPermissionsBatchDeleteRequest) : TPermissionsBatchDeleteResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'rasters/{id}/permissions/batchDelete';
+  _Methodid   = 'mapsengine.rasters.permissions.batchDelete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aPermissionsBatchDeleteRequest,TPermissionsBatchDeleteResponse) as TPermissionsBatchDeleteResponse;
+end;
+
+Function TRastersPermissionsResource.BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'rasters/{id}/permissions/batchUpdate';
+  _Methodid   = 'mapsengine.rasters.permissions.batchUpdate';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aPermissionsBatchUpdateRequest,TPermissionsBatchUpdateResponse) as TPermissionsBatchUpdateResponse;
+end;
+
+Function TRastersPermissionsResource.List(id: string) : TPermissionsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'rasters/{id}/permissions';
+  _Methodid   = 'mapsengine.rasters.permissions.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TPermissionsListResponse) as TPermissionsListResponse;
+end;
+
+
+
 { --------------------------------------------------------------------
   TRastersResource
   --------------------------------------------------------------------}
@@ -6783,6 +8880,362 @@ Const
 
 begin
   Result:=ServiceCall(_HTTPMethod,_Path,'',aRaster,TRaster) as TRaster;
+end;
+
+
+
+Function TRastersResource.GetFilesInstance : TRastersFilesResource;
+
+begin
+  if (FFilesInstance=Nil) then
+    FFilesInstance:=CreateFilesResource;
+  Result:=FFilesInstance;
+end;
+
+Function TRastersResource.CreateFilesResource : TRastersFilesResource;
+
+begin
+  Result:=CreateFilesResource(Self);
+end;
+
+
+Function TRastersResource.CreateFilesResource(AOwner : TComponent) : TRastersFilesResource;
+
+begin
+  Result:=TRastersFilesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TRastersResource.GetParentsInstance : TRastersParentsResource;
+
+begin
+  if (FParentsInstance=Nil) then
+    FParentsInstance:=CreateParentsResource;
+  Result:=FParentsInstance;
+end;
+
+Function TRastersResource.CreateParentsResource : TRastersParentsResource;
+
+begin
+  Result:=CreateParentsResource(Self);
+end;
+
+
+Function TRastersResource.CreateParentsResource(AOwner : TComponent) : TRastersParentsResource;
+
+begin
+  Result:=TRastersParentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TRastersResource.GetPermissionsInstance : TRastersPermissionsResource;
+
+begin
+  if (FPermissionsInstance=Nil) then
+    FPermissionsInstance:=CreatePermissionsResource;
+  Result:=FPermissionsInstance;
+end;
+
+Function TRastersResource.CreatePermissionsResource : TRastersPermissionsResource;
+
+begin
+  Result:=CreatePermissionsResource(Self);
+end;
+
+
+Function TRastersResource.CreatePermissionsResource(AOwner : TComponent) : TRastersPermissionsResource;
+
+begin
+  Result:=TRastersPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TTablesFeaturesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TTablesFeaturesResource.ResourceName : String;
+
+begin
+  Result:='features';
+end;
+
+Class Function TTablesFeaturesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Procedure TTablesFeaturesResource.BatchDelete(id: string; aFeaturesBatchDeleteRequest : TFeaturesBatchDeleteRequest);
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'tables/{id}/features/batchDelete';
+  _Methodid   = 'mapsengine.tables.features.batchDelete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  ServiceCall(_HTTPMethod,_P,'',aFeaturesBatchDeleteRequest,Nil);
+end;
+
+Procedure TTablesFeaturesResource.BatchInsert(id: string; aFeaturesBatchInsertRequest : TFeaturesBatchInsertRequest);
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'tables/{id}/features/batchInsert';
+  _Methodid   = 'mapsengine.tables.features.batchInsert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  ServiceCall(_HTTPMethod,_P,'',aFeaturesBatchInsertRequest,Nil);
+end;
+
+Procedure TTablesFeaturesResource.BatchPatch(id: string; aFeaturesBatchPatchRequest : TFeaturesBatchPatchRequest);
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'tables/{id}/features/batchPatch';
+  _Methodid   = 'mapsengine.tables.features.batchPatch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  ServiceCall(_HTTPMethod,_P,'',aFeaturesBatchPatchRequest,Nil);
+end;
+
+Function TTablesFeaturesResource.Get(id: string; tableId: string; AQuery : string = '') : TFeature;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'tables/{tableId}/features/{id}';
+  _Methodid   = 'mapsengine.tables.features.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'tableId',tableId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TFeature) as TFeature;
+end;
+
+
+Function TTablesFeaturesResource.Get(id: string; tableId: string; AQuery : TTablesFeaturesgetOptions) : TFeature;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'select',AQuery.select);
+  AddToQuery(_Q,'version',AQuery.version);
+  Result:=Get(id,tableId,_Q);
+end;
+
+Function TTablesFeaturesResource.List(id: string; AQuery : string = '') : TFeaturesListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'tables/{id}/features';
+  _Methodid   = 'mapsengine.tables.features.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TFeaturesListResponse) as TFeaturesListResponse;
+end;
+
+
+Function TTablesFeaturesResource.List(id: string; AQuery : TTablesFeatureslistOptions) : TFeaturesListResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'include',AQuery.include);
+  AddToQuery(_Q,'intersects',AQuery.intersects);
+  AddToQuery(_Q,'limit',AQuery.limit);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'orderBy',AQuery.orderBy);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  AddToQuery(_Q,'select',AQuery.select);
+  AddToQuery(_Q,'version',AQuery.version);
+  AddToQuery(_Q,'where',AQuery.where);
+  Result:=List(id,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TTablesFilesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TTablesFilesResource.ResourceName : String;
+
+begin
+  Result:='files';
+end;
+
+Class Function TTablesFilesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Procedure TTablesFilesResource.Insert(id: string; AQuery : string = '');
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'tables/{id}/files';
+  _Methodid   = 'mapsengine.tables.files.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TTablesFilesResource.Insert(id: string; AQuery : TTablesFilesinsertOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filename',AQuery.filename);
+  Insert(id,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TTablesParentsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TTablesParentsResource.ResourceName : String;
+
+begin
+  Result:='parents';
+end;
+
+Class Function TTablesParentsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TTablesParentsResource.List(id: string; AQuery : string = '') : TParentsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'tables/{id}/parents';
+  _Methodid   = 'mapsengine.tables.parents.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TParentsListResponse) as TParentsListResponse;
+end;
+
+
+Function TTablesParentsResource.List(id: string; AQuery : TTablesParentslistOptions) : TParentsListResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(id,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TTablesPermissionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TTablesPermissionsResource.ResourceName : String;
+
+begin
+  Result:='permissions';
+end;
+
+Class Function TTablesPermissionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TmapsengineAPI;
+end;
+
+Function TTablesPermissionsResource.BatchDelete(id: string; aPermissionsBatchDeleteRequest : TPermissionsBatchDeleteRequest) : TPermissionsBatchDeleteResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'tables/{id}/permissions/batchDelete';
+  _Methodid   = 'mapsengine.tables.permissions.batchDelete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aPermissionsBatchDeleteRequest,TPermissionsBatchDeleteResponse) as TPermissionsBatchDeleteResponse;
+end;
+
+Function TTablesPermissionsResource.BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'tables/{id}/permissions/batchUpdate';
+  _Methodid   = 'mapsengine.tables.permissions.batchUpdate';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aPermissionsBatchUpdateRequest,TPermissionsBatchUpdateResponse) as TPermissionsBatchUpdateResponse;
+end;
+
+Function TTablesPermissionsResource.List(id: string) : TPermissionsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'tables/{id}/permissions';
+  _Methodid   = 'mapsengine.tables.permissions.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TPermissionsListResponse) as TPermissionsListResponse;
 end;
 
 
@@ -6935,6 +9388,102 @@ end;
 
 
 
+Function TTablesResource.GetFeaturesInstance : TTablesFeaturesResource;
+
+begin
+  if (FFeaturesInstance=Nil) then
+    FFeaturesInstance:=CreateFeaturesResource;
+  Result:=FFeaturesInstance;
+end;
+
+Function TTablesResource.CreateFeaturesResource : TTablesFeaturesResource;
+
+begin
+  Result:=CreateFeaturesResource(Self);
+end;
+
+
+Function TTablesResource.CreateFeaturesResource(AOwner : TComponent) : TTablesFeaturesResource;
+
+begin
+  Result:=TTablesFeaturesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTablesResource.GetFilesInstance : TTablesFilesResource;
+
+begin
+  if (FFilesInstance=Nil) then
+    FFilesInstance:=CreateFilesResource;
+  Result:=FFilesInstance;
+end;
+
+Function TTablesResource.CreateFilesResource : TTablesFilesResource;
+
+begin
+  Result:=CreateFilesResource(Self);
+end;
+
+
+Function TTablesResource.CreateFilesResource(AOwner : TComponent) : TTablesFilesResource;
+
+begin
+  Result:=TTablesFilesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTablesResource.GetParentsInstance : TTablesParentsResource;
+
+begin
+  if (FParentsInstance=Nil) then
+    FParentsInstance:=CreateParentsResource;
+  Result:=FParentsInstance;
+end;
+
+Function TTablesResource.CreateParentsResource : TTablesParentsResource;
+
+begin
+  Result:=CreateParentsResource(Self);
+end;
+
+
+Function TTablesResource.CreateParentsResource(AOwner : TComponent) : TTablesParentsResource;
+
+begin
+  Result:=TTablesParentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTablesResource.GetPermissionsInstance : TTablesPermissionsResource;
+
+begin
+  if (FPermissionsInstance=Nil) then
+    FPermissionsInstance:=CreatePermissionsResource;
+  Result:=FPermissionsInstance;
+end;
+
+Function TTablesResource.CreatePermissionsResource : TTablesPermissionsResource;
+
+begin
+  Result:=CreatePermissionsResource(Self);
+end;
+
+
+Function TTablesResource.CreatePermissionsResource(AOwner : TComponent) : TTablesPermissionsResource;
+
+begin
+  Result:=TTablesPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 { --------------------------------------------------------------------
   TMapsengineAPI
   --------------------------------------------------------------------}
@@ -7008,7 +9557,7 @@ end;
 Class Function TMapsengineAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TMapsengineAPI.APIbasePath : string;
@@ -7020,7 +9569,7 @@ end;
 Class Function TMapsengineAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/mapsengine/v1/';
+  Result:='https://www.googleapis.com:443/mapsengine/v1/';
 end;
 
 Class Function TMapsengineAPI.APIProtocol : string;
@@ -7140,6 +9689,54 @@ begin
 end;
 
 
+Function TMapsengineAPI.GetAssetsParentsInstance : TAssetsParentsResource;
+
+begin
+  if (FAssetsParentsInstance=Nil) then
+    FAssetsParentsInstance:=CreateAssetsParentsResource;
+  Result:=FAssetsParentsInstance;
+end;
+
+Function TMapsengineAPI.CreateAssetsParentsResource : TAssetsParentsResource;
+
+begin
+  Result:=CreateAssetsParentsResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateAssetsParentsResource(AOwner : TComponent) : TAssetsParentsResource;
+
+begin
+  Result:=TAssetsParentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetAssetsPermissionsInstance : TAssetsPermissionsResource;
+
+begin
+  if (FAssetsPermissionsInstance=Nil) then
+    FAssetsPermissionsInstance:=CreateAssetsPermissionsResource;
+  Result:=FAssetsPermissionsInstance;
+end;
+
+Function TMapsengineAPI.CreateAssetsPermissionsResource : TAssetsPermissionsResource;
+
+begin
+  Result:=CreateAssetsPermissionsResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateAssetsPermissionsResource(AOwner : TComponent) : TAssetsPermissionsResource;
+
+begin
+  Result:=TAssetsPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TMapsengineAPI.GetAssetsInstance : TAssetsResource;
 
 begin
@@ -7159,7 +9756,55 @@ Function TMapsengineAPI.CreateAssetsResource(AOwner : TComponent) : TAssetsResou
 
 begin
   Result:=TAssetsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetLayersParentsInstance : TLayersParentsResource;
+
+begin
+  if (FLayersParentsInstance=Nil) then
+    FLayersParentsInstance:=CreateLayersParentsResource;
+  Result:=FLayersParentsInstance;
+end;
+
+Function TMapsengineAPI.CreateLayersParentsResource : TLayersParentsResource;
+
+begin
+  Result:=CreateLayersParentsResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateLayersParentsResource(AOwner : TComponent) : TLayersParentsResource;
+
+begin
+  Result:=TLayersParentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetLayersPermissionsInstance : TLayersPermissionsResource;
+
+begin
+  if (FLayersPermissionsInstance=Nil) then
+    FLayersPermissionsInstance:=CreateLayersPermissionsResource;
+  Result:=FLayersPermissionsInstance;
+end;
+
+Function TMapsengineAPI.CreateLayersPermissionsResource : TLayersPermissionsResource;
+
+begin
+  Result:=CreateLayersPermissionsResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateLayersPermissionsResource(AOwner : TComponent) : TLayersPermissionsResource;
+
+begin
+  Result:=TLayersPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -7183,7 +9828,31 @@ Function TMapsengineAPI.CreateLayersResource(AOwner : TComponent) : TLayersResou
 
 begin
   Result:=TLayersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetMapsPermissionsInstance : TMapsPermissionsResource;
+
+begin
+  if (FMapsPermissionsInstance=Nil) then
+    FMapsPermissionsInstance:=CreateMapsPermissionsResource;
+  Result:=FMapsPermissionsInstance;
+end;
+
+Function TMapsengineAPI.CreateMapsPermissionsResource : TMapsPermissionsResource;
+
+begin
+  Result:=CreateMapsPermissionsResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateMapsPermissionsResource(AOwner : TComponent) : TMapsPermissionsResource;
+
+begin
+  Result:=TMapsPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -7207,7 +9876,31 @@ Function TMapsengineAPI.CreateMapsResource(AOwner : TComponent) : TMapsResource;
 
 begin
   Result:=TMapsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetProjectsIconsInstance : TProjectsIconsResource;
+
+begin
+  if (FProjectsIconsInstance=Nil) then
+    FProjectsIconsInstance:=CreateProjectsIconsResource;
+  Result:=FProjectsIconsInstance;
+end;
+
+Function TMapsengineAPI.CreateProjectsIconsResource : TProjectsIconsResource;
+
+begin
+  Result:=CreateProjectsIconsResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateProjectsIconsResource(AOwner : TComponent) : TProjectsIconsResource;
+
+begin
+  Result:=TProjectsIconsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -7231,7 +9924,79 @@ Function TMapsengineAPI.CreateProjectsResource(AOwner : TComponent) : TProjectsR
 
 begin
   Result:=TProjectsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetRasterCollectionsParentsInstance : TRasterCollectionsParentsResource;
+
+begin
+  if (FRasterCollectionsParentsInstance=Nil) then
+    FRasterCollectionsParentsInstance:=CreateRasterCollectionsParentsResource;
+  Result:=FRasterCollectionsParentsInstance;
+end;
+
+Function TMapsengineAPI.CreateRasterCollectionsParentsResource : TRasterCollectionsParentsResource;
+
+begin
+  Result:=CreateRasterCollectionsParentsResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateRasterCollectionsParentsResource(AOwner : TComponent) : TRasterCollectionsParentsResource;
+
+begin
+  Result:=TRasterCollectionsParentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetRasterCollectionsPermissionsInstance : TRasterCollectionsPermissionsResource;
+
+begin
+  if (FRasterCollectionsPermissionsInstance=Nil) then
+    FRasterCollectionsPermissionsInstance:=CreateRasterCollectionsPermissionsResource;
+  Result:=FRasterCollectionsPermissionsInstance;
+end;
+
+Function TMapsengineAPI.CreateRasterCollectionsPermissionsResource : TRasterCollectionsPermissionsResource;
+
+begin
+  Result:=CreateRasterCollectionsPermissionsResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateRasterCollectionsPermissionsResource(AOwner : TComponent) : TRasterCollectionsPermissionsResource;
+
+begin
+  Result:=TRasterCollectionsPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetRasterCollectionsRastersInstance : TRasterCollectionsRastersResource;
+
+begin
+  if (FRasterCollectionsRastersInstance=Nil) then
+    FRasterCollectionsRastersInstance:=CreateRasterCollectionsRastersResource;
+  Result:=FRasterCollectionsRastersInstance;
+end;
+
+Function TMapsengineAPI.CreateRasterCollectionsRastersResource : TRasterCollectionsRastersResource;
+
+begin
+  Result:=CreateRasterCollectionsRastersResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateRasterCollectionsRastersResource(AOwner : TComponent) : TRasterCollectionsRastersResource;
+
+begin
+  Result:=TRasterCollectionsRastersResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -7255,7 +10020,79 @@ Function TMapsengineAPI.CreateRasterCollectionsResource(AOwner : TComponent) : T
 
 begin
   Result:=TRasterCollectionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetRastersFilesInstance : TRastersFilesResource;
+
+begin
+  if (FRastersFilesInstance=Nil) then
+    FRastersFilesInstance:=CreateRastersFilesResource;
+  Result:=FRastersFilesInstance;
+end;
+
+Function TMapsengineAPI.CreateRastersFilesResource : TRastersFilesResource;
+
+begin
+  Result:=CreateRastersFilesResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateRastersFilesResource(AOwner : TComponent) : TRastersFilesResource;
+
+begin
+  Result:=TRastersFilesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetRastersParentsInstance : TRastersParentsResource;
+
+begin
+  if (FRastersParentsInstance=Nil) then
+    FRastersParentsInstance:=CreateRastersParentsResource;
+  Result:=FRastersParentsInstance;
+end;
+
+Function TMapsengineAPI.CreateRastersParentsResource : TRastersParentsResource;
+
+begin
+  Result:=CreateRastersParentsResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateRastersParentsResource(AOwner : TComponent) : TRastersParentsResource;
+
+begin
+  Result:=TRastersParentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetRastersPermissionsInstance : TRastersPermissionsResource;
+
+begin
+  if (FRastersPermissionsInstance=Nil) then
+    FRastersPermissionsInstance:=CreateRastersPermissionsResource;
+  Result:=FRastersPermissionsInstance;
+end;
+
+Function TMapsengineAPI.CreateRastersPermissionsResource : TRastersPermissionsResource;
+
+begin
+  Result:=CreateRastersPermissionsResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateRastersPermissionsResource(AOwner : TComponent) : TRastersPermissionsResource;
+
+begin
+  Result:=TRastersPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -7279,7 +10116,103 @@ Function TMapsengineAPI.CreateRastersResource(AOwner : TComponent) : TRastersRes
 
 begin
   Result:=TRastersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetTablesFeaturesInstance : TTablesFeaturesResource;
+
+begin
+  if (FTablesFeaturesInstance=Nil) then
+    FTablesFeaturesInstance:=CreateTablesFeaturesResource;
+  Result:=FTablesFeaturesInstance;
+end;
+
+Function TMapsengineAPI.CreateTablesFeaturesResource : TTablesFeaturesResource;
+
+begin
+  Result:=CreateTablesFeaturesResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateTablesFeaturesResource(AOwner : TComponent) : TTablesFeaturesResource;
+
+begin
+  Result:=TTablesFeaturesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetTablesFilesInstance : TTablesFilesResource;
+
+begin
+  if (FTablesFilesInstance=Nil) then
+    FTablesFilesInstance:=CreateTablesFilesResource;
+  Result:=FTablesFilesInstance;
+end;
+
+Function TMapsengineAPI.CreateTablesFilesResource : TTablesFilesResource;
+
+begin
+  Result:=CreateTablesFilesResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateTablesFilesResource(AOwner : TComponent) : TTablesFilesResource;
+
+begin
+  Result:=TTablesFilesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetTablesParentsInstance : TTablesParentsResource;
+
+begin
+  if (FTablesParentsInstance=Nil) then
+    FTablesParentsInstance:=CreateTablesParentsResource;
+  Result:=FTablesParentsInstance;
+end;
+
+Function TMapsengineAPI.CreateTablesParentsResource : TTablesParentsResource;
+
+begin
+  Result:=CreateTablesParentsResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateTablesParentsResource(AOwner : TComponent) : TTablesParentsResource;
+
+begin
+  Result:=TTablesParentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMapsengineAPI.GetTablesPermissionsInstance : TTablesPermissionsResource;
+
+begin
+  if (FTablesPermissionsInstance=Nil) then
+    FTablesPermissionsInstance:=CreateTablesPermissionsResource;
+  Result:=FTablesPermissionsInstance;
+end;
+
+Function TMapsengineAPI.CreateTablesPermissionsResource : TTablesPermissionsResource;
+
+begin
+  Result:=CreateTablesPermissionsResource(Self);
+end;
+
+
+Function TMapsengineAPI.CreateTablesPermissionsResource(AOwner : TComponent) : TTablesPermissionsResource;
+
+begin
+  Result:=TTablesPermissionsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -7303,7 +10236,7 @@ Function TMapsengineAPI.CreateTablesResource(AOwner : TComponent) : TTablesResou
 
 begin
   Result:=TTablesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

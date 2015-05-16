@@ -13,7 +13,7 @@ unit googlemanager;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:55
+//Generated on: 16-5-15 08:53:05
 {$MODE objfpc}
 {$H+}
 
@@ -24,41 +24,41 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAccessConfig = class;
-  TAction = class;
-  TAllowedRule = class;
-  TAutoscalingModule = class;
-  TAutoscalingModuleStatus = class;
-  TDeployState = class;
-  TDeployment = class;
-  TDeploymentsListResponse = class;
-  TDiskAttachment = class;
-  TEnvVariable = class;
-  TExistingDisk = class;
-  TFirewallModule = class;
-  TFirewallModuleStatus = class;
-  THealthCheckModule = class;
-  THealthCheckModuleStatus = class;
-  TLbModule = class;
-  TLbModuleStatus = class;
-  TMetadata = class;
-  TMetadataItem = class;
-  TModule = class;
-  TModuleStatus = class;
-  TNetworkInterface = class;
-  TNetworkModule = class;
-  TNetworkModuleStatus = class;
-  TNewDisk = class;
-  TNewDiskInitializeParams = class;
-  TParamOverride = class;
-  TReplicaPoolModule = class;
-  TReplicaPoolModuleStatus = class;
-  TReplicaPoolParams = class;
-  TReplicaPoolParamsV1Beta1 = class;
-  TServiceAccount = class;
-  TTag = class;
-  TTemplate = class;
-  TTemplatesListResponse = class;
+  TAccessConfig = Class;
+  TAction = Class;
+  TAllowedRule = Class;
+  TAutoscalingModule = Class;
+  TAutoscalingModuleStatus = Class;
+  TDeployState = Class;
+  TDeployment = Class;
+  TDeploymentsListResponse = Class;
+  TDiskAttachment = Class;
+  TEnvVariable = Class;
+  TExistingDisk = Class;
+  TFirewallModule = Class;
+  TFirewallModuleStatus = Class;
+  THealthCheckModule = Class;
+  THealthCheckModuleStatus = Class;
+  TLbModule = Class;
+  TLbModuleStatus = Class;
+  TMetadata = Class;
+  TMetadataItem = Class;
+  TModule = Class;
+  TModuleStatus = Class;
+  TNetworkInterface = Class;
+  TNetworkModule = Class;
+  TNetworkModuleStatus = Class;
+  TNewDisk = Class;
+  TNewDiskInitializeParams = Class;
+  TParamOverride = Class;
+  TReplicaPoolModule = Class;
+  TReplicaPoolModuleStatus = Class;
+  TReplicaPoolParams = Class;
+  TReplicaPoolParamsV1Beta1 = Class;
+  TServiceAccount = Class;
+  TTag = Class;
+  TTemplate = Class;
+  TTemplatesListResponse = Class;
   TAccessConfigArray = Array of TAccessConfig;
   TActionArray = Array of TAction;
   TAllowedRuleArray = Array of TAllowedRule;
@@ -95,10 +95,10 @@ type
   TTemplateArray = Array of TTemplate;
   TTemplatesListResponseArray = Array of TTemplatesListResponse;
   //Anonymous types, using auto-generated names
-  TDeploymentTypemodules = class;
-  TReplicaPoolModuleTypeenvVariables = class;
-  TTemplateTypeactions = class;
-  TTemplateTypemodules = class;
+  TDeploymentTypemodules = Class;
+  TReplicaPoolModuleTypeenvVariables = Class;
+  TTemplateTypeactions = Class;
+  TTemplateTypemodules = Class;
   TDeploymentTypeoverridesArray = Array of TParamOverride;
   TDeploymentsListResponseTyperesourcesArray = Array of TDeployment;
   TFirewallModuleTypeallowedArray = Array of TAllowedRule;
@@ -145,6 +145,10 @@ type
     //Property setters
     Procedure Setcommands(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SettimeoutMs(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property commands : TStringArray Index 0 Read Fcommands Write Setcommands;
@@ -164,6 +168,10 @@ type
     //Property setters
     Procedure SetIPProtocol(AIndex : Integer; AValue : String); virtual;
     Procedure Setports(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property IPProtocol : String Index 0 Read FIPProtocol Write SetIPProtocol;
@@ -276,6 +284,10 @@ type
     Procedure Setoverrides(AIndex : Integer; AValue : TDeploymentTypeoverridesArray); virtual;
     Procedure Setstate(AIndex : Integer; AValue : TDeployState); virtual;
     Procedure SettemplateName(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property creationDate : String Index 0 Read FcreationDate Write SetcreationDate;
@@ -300,6 +312,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TDeploymentsListResponseTyperesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -384,6 +400,10 @@ type
     Procedure SetsourceRanges(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetsourceTags(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SettargetTags(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property allowed : TFirewallModuleTypeallowedArray Index 0 Read Fallowed Write Setallowed;
@@ -486,6 +506,10 @@ type
     Procedure SetportRange(AIndex : Integer; AValue : String); virtual;
     Procedure SetsessionAffinity(AIndex : Integer; AValue : String); virtual;
     Procedure SettargetModules(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -529,6 +553,10 @@ type
     //Property setters
     Procedure SetfingerPrint(AIndex : Integer; AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property fingerPrint : String Index 0 Read FfingerPrint Write SetfingerPrint;
@@ -644,6 +672,10 @@ type
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setnetwork(AIndex : Integer; AValue : String); virtual;
     Procedure SetnetworkIp(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accessConfigs : TNetworkInterfaceTypeaccessConfigsArray Index 0 Read FaccessConfigs Write SetaccessConfigs;
@@ -789,6 +821,10 @@ type
     Procedure SetnumReplicas(AIndex : Integer; AValue : integer); virtual;
     Procedure SetreplicaPoolParams(AIndex : Integer; AValue : TReplicaPoolParams); virtual;
     Procedure SetresourceView(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property envVariables : TReplicaPoolModuleTypeenvVariables Index 0 Read FenvVariables Write SetenvVariables;
@@ -870,6 +906,10 @@ type
     Procedure SetserviceAccounts(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypeserviceAccountsArray); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTag); virtual;
     Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property autoRestart : boolean Index 0 Read FautoRestart Write SetautoRestart;
@@ -901,6 +941,10 @@ type
     //Property setters
     Procedure Setemail(AIndex : Integer; AValue : String); virtual;
     Procedure Setscopes(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property email : String Index 0 Read Femail Write Setemail;
@@ -920,6 +964,10 @@ type
     //Property setters
     Procedure SetfingerPrint(AIndex : Integer; AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property fingerPrint : String Index 0 Read FfingerPrint Write SetfingerPrint;
@@ -992,6 +1040,10 @@ type
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TTemplatesListResponseTyperesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -1164,6 +1216,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAction.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'commands' : SetLength(Fcommands,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1190,6 +1255,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAllowedRule.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'ports' : SetLength(Fports,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1402,6 +1480,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDeployment.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'overrides' : SetLength(Foverrides,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1428,6 +1519,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDeploymentsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1576,6 +1680,22 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFirewallModule.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'allowed' : SetLength(Fallowed,ALength);
+  'sourceranges' : SetLength(FsourceRanges,ALength);
+  'sourcetags' : SetLength(FsourceTags,ALength);
+  'targettags' : SetLength(FtargetTags,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1775,6 +1895,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLbModule.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'healthchecks' : SetLength(FhealthChecks,ALength);
+  'targetmodules' : SetLength(FtargetModules,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1828,6 +1962,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2089,6 +2236,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TNetworkInterface.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'accessconfigs' : SetLength(FaccessConfigs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2324,6 +2484,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReplicaPoolModule.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'healthchecks' : SetLength(FhealthChecks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2515,6 +2688,22 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReplicaPoolParamsV1Beta1.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'diskstoattach' : SetLength(FdisksToAttach,ALength);
+  'diskstocreate' : SetLength(FdisksToCreate,ALength);
+  'networkinterfaces' : SetLength(FnetworkInterfaces,ALength);
+  'serviceaccounts' : SetLength(FserviceAccounts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2542,6 +2731,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TServiceAccount.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'scopes' : SetLength(Fscopes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2568,6 +2770,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTag.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2668,6 +2883,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTemplatesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2929,7 +3157,7 @@ end;
 Class Function TManagerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TManagerAPI.APIbasePath : string;
@@ -2941,7 +3169,7 @@ end;
 Class Function TManagerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/manager/v1beta2/projects/';
+  Result:='https://www.googleapis.com:443/manager/v1beta2/projects/';
 end;
 
 Class Function TManagerAPI.APIProtocol : string;
@@ -3051,7 +3279,7 @@ Function TManagerAPI.CreateDeploymentsResource(AOwner : TComponent) : TDeploymen
 
 begin
   Result:=TDeploymentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3075,7 +3303,7 @@ Function TManagerAPI.CreateTemplatesResource(AOwner : TComponent) : TTemplatesRe
 
 begin
   Result:=TTemplatesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

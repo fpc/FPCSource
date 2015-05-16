@@ -13,7 +13,7 @@ unit googlegroupssettings;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:55
+//Generated on: 16-5-15 08:53:05
 {$MODE objfpc}
 {$H+}
 
@@ -24,7 +24,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TGroups = class;
+  TGroups = Class;
   TGroupsArray = Array of TGroups;
   //Anonymous types, using auto-generated names
   
@@ -603,7 +603,7 @@ end;
 Class Function TGroupssettingsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TGroupssettingsAPI.APIbasePath : string;
@@ -615,7 +615,7 @@ end;
 Class Function TGroupssettingsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/groups/v1/groups/';
+  Result:='https://www.googleapis.com:443/groups/v1/groups/';
 end;
 
 Class Function TGroupssettingsAPI.APIProtocol : string;
@@ -677,7 +677,7 @@ Function TGroupssettingsAPI.CreateGroupsResource(AOwner : TComponent) : TGroupsR
 
 begin
   Result:=TGroupsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

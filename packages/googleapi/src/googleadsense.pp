@@ -13,7 +13,7 @@ unit googleadsense;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:47
+//Generated on: 16-5-15 08:52:57
 {$MODE objfpc}
 {$H+}
 
@@ -24,29 +24,29 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAccount = class;
-  TAccounts = class;
-  TAdClient = class;
-  TAdClients = class;
-  TAdCode = class;
-  TAdStyle = class;
-  TAdUnit = class;
-  TAdUnits = class;
-  TAdsenseReportsGenerateResponse = class;
-  TAlert = class;
-  TAlerts = class;
-  TCustomChannel = class;
-  TCustomChannels = class;
-  TMetadata = class;
-  TPayment = class;
-  TPayments = class;
-  TReportingMetadataEntry = class;
-  TSavedAdStyle = class;
-  TSavedAdStyles = class;
-  TSavedReport = class;
-  TSavedReports = class;
-  TUrlChannel = class;
-  TUrlChannels = class;
+  TAccount = Class;
+  TAccounts = Class;
+  TAdClient = Class;
+  TAdClients = Class;
+  TAdCode = Class;
+  TAdStyle = Class;
+  TAdUnit = Class;
+  TAdUnits = Class;
+  TAdsenseReportsGenerateResponse = Class;
+  TAlert = Class;
+  TAlerts = Class;
+  TCustomChannel = Class;
+  TCustomChannels = Class;
+  TMetadata = Class;
+  TPayment = Class;
+  TPayments = Class;
+  TReportingMetadataEntry = Class;
+  TSavedAdStyle = Class;
+  TSavedAdStyles = Class;
+  TSavedReport = Class;
+  TSavedReports = Class;
+  TUrlChannel = Class;
+  TUrlChannels = Class;
   TAccountArray = Array of TAccount;
   TAccountsArray = Array of TAccounts;
   TAdClientArray = Array of TAdClient;
@@ -71,14 +71,14 @@ type
   TUrlChannelArray = Array of TUrlChannel;
   TUrlChannelsArray = Array of TUrlChannels;
   //Anonymous types, using auto-generated names
-  TAdStyleTypecolors = class;
-  TAdStyleTypefont = class;
-  TAdUnitTypecontentAdsSettingsTypebackupOption = class;
-  TAdUnitTypecontentAdsSettings = class;
-  TAdUnitTypefeedAdsSettings = class;
-  TAdUnitTypemobileContentAdsSettings = class;
-  TAdsenseReportsGenerateResponseTypeheadersItem = class;
-  TCustomChannelTypetargetingInfo = class;
+  TAdStyleTypecolors = Class;
+  TAdStyleTypefont = Class;
+  TAdUnitTypecontentAdsSettingsTypebackupOption = Class;
+  TAdUnitTypecontentAdsSettings = Class;
+  TAdUnitTypefeedAdsSettings = Class;
+  TAdUnitTypemobileContentAdsSettings = Class;
+  TAdsenseReportsGenerateResponseTypeheadersItem = Class;
+  TCustomChannelTypetargetingInfo = Class;
   TAccountTypesubAccountsArray = Array of TAccount;
   TAccountsTypeitemsArray = Array of TAccount;
   TAdClientsTypeitemsArray = Array of TAdClient;
@@ -113,6 +113,10 @@ type
     Procedure Setpremium(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetsubAccounts(AIndex : Integer; AValue : TAccountTypesubAccountsArray); virtual;
     Procedure Settimezone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -140,6 +144,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TAccountsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -196,6 +204,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TAdClientsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -453,6 +465,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TAdUnitsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -511,6 +527,10 @@ type
     Procedure SettotalMatchedRows(AIndex : Integer; AValue : String); virtual;
     Procedure Settotals(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property averages : TStringArray Index 0 Read Faverages Write Setaverages;
@@ -569,6 +589,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TAlertsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TAlertsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -645,6 +669,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TCustomChannelsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -666,6 +694,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TMetadataTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -713,6 +745,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TPaymentsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TPaymentsTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -742,6 +778,10 @@ type
     Procedure SetrequiredDimensions(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetrequiredMetrics(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetsupportedProducts(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property compatibleDimensions : TStringArray Index 0 Read FcompatibleDimensions Write SetcompatibleDimensions;
@@ -795,6 +835,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TSavedAdStylesTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -842,6 +886,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TSavedReportsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -889,6 +937,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TUrlChannelsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -897,6 +949,272 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TUrlChannelsClass = Class of TUrlChannels;
+  
+  { --------------------------------------------------------------------
+    TAccountsAdclientsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsAdclientsResource, method List
+  
+  TAccountsAdclientsListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TAccountsAdclientsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(accountId: string; AQuery : string  = '') : TAdClients;
+    Function List(accountId: string; AQuery : TAccountsAdclientslistOptions) : TAdClients;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsAdunitsCustomchannelsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsAdunitsCustomchannelsResource, method List
+  
+  TAccountsAdunitsCustomchannelsListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TAccountsAdunitsCustomchannelsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(accountId: string; adClientId: string; adUnitId: string; AQuery : string  = '') : TCustomChannels;
+    Function List(accountId: string; adClientId: string; adUnitId: string; AQuery : TAccountsAdunitsCustomchannelslistOptions) : TCustomChannels;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsAdunitsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsAdunitsResource, method List
+  
+  TAccountsAdunitsListOptions = Record
+    includeInactive : boolean;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TAccountsAdunitsResource = Class(TGoogleResource)
+  Private
+    FCustomchannelsInstance : TAccountsAdunitsCustomchannelsResource;
+    Function GetCustomchannelsInstance : TAccountsAdunitsCustomchannelsResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(accountId: string; adClientId: string; adUnitId: string) : TAdUnit;
+    Function GetAdCode(accountId: string; adClientId: string; adUnitId: string) : TAdCode;
+    Function List(accountId: string; adClientId: string; AQuery : string  = '') : TAdUnits;
+    Function List(accountId: string; adClientId: string; AQuery : TAccountsAdunitslistOptions) : TAdUnits;
+    Function CreateCustomchannelsResource(AOwner : TComponent) : TAccountsAdunitsCustomchannelsResource;virtual;overload;
+    Function CreateCustomchannelsResource : TAccountsAdunitsCustomchannelsResource;virtual;overload;
+    Property CustomchannelsResource : TAccountsAdunitsCustomchannelsResource Read GetCustomchannelsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsAlertsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsAlertsResource, method List
+  
+  TAccountsAlertsListOptions = Record
+    locale : String;
+  end;
+  
+  TAccountsAlertsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(accountId: string; alertId: string);
+    Function List(accountId: string; AQuery : string  = '') : TAlerts;
+    Function List(accountId: string; AQuery : TAccountsAlertslistOptions) : TAlerts;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsCustomchannelsAdunitsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsCustomchannelsAdunitsResource, method List
+  
+  TAccountsCustomchannelsAdunitsListOptions = Record
+    includeInactive : boolean;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TAccountsCustomchannelsAdunitsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(accountId: string; adClientId: string; customChannelId: string; AQuery : string  = '') : TAdUnits;
+    Function List(accountId: string; adClientId: string; customChannelId: string; AQuery : TAccountsCustomchannelsAdunitslistOptions) : TAdUnits;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsCustomchannelsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsCustomchannelsResource, method List
+  
+  TAccountsCustomchannelsListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TAccountsCustomchannelsResource = Class(TGoogleResource)
+  Private
+    FAdunitsInstance : TAccountsCustomchannelsAdunitsResource;
+    Function GetAdunitsInstance : TAccountsCustomchannelsAdunitsResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(accountId: string; adClientId: string; customChannelId: string) : TCustomChannel;
+    Function List(accountId: string; adClientId: string; AQuery : string  = '') : TCustomChannels;
+    Function List(accountId: string; adClientId: string; AQuery : TAccountsCustomchannelslistOptions) : TCustomChannels;
+    Function CreateAdunitsResource(AOwner : TComponent) : TAccountsCustomchannelsAdunitsResource;virtual;overload;
+    Function CreateAdunitsResource : TAccountsCustomchannelsAdunitsResource;virtual;overload;
+    Property AdunitsResource : TAccountsCustomchannelsAdunitsResource Read GetAdunitsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsPaymentsResource
+    --------------------------------------------------------------------}
+  
+  TAccountsPaymentsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(accountId: string) : TPayments;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsReportsSavedResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsReportsSavedResource, method Generate
+  
+  TAccountsReportsSavedGenerateOptions = Record
+    locale : String;
+    maxResults : integer;
+    startIndex : integer;
+  end;
+  
+  
+  //Optional query Options for TAccountsReportsSavedResource, method List
+  
+  TAccountsReportsSavedListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TAccountsReportsSavedResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Generate(accountId: string; savedReportId: string; AQuery : string  = '') : TAdsenseReportsGenerateResponse;
+    Function Generate(accountId: string; savedReportId: string; AQuery : TAccountsReportsSavedgenerateOptions) : TAdsenseReportsGenerateResponse;
+    Function List(accountId: string; AQuery : string  = '') : TSavedReports;
+    Function List(accountId: string; AQuery : TAccountsReportsSavedlistOptions) : TSavedReports;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsReportsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsReportsResource, method Generate
+  
+  TAccountsReportsGenerateOptions = Record
+    currency : String;
+    dimension : String;
+    endDate : String;
+    filter : String;
+    locale : String;
+    maxResults : integer;
+    metric : String;
+    sort : String;
+    startDate : String;
+    startIndex : integer;
+    useTimezoneReporting : boolean;
+  end;
+  
+  TAccountsReportsResource = Class(TGoogleResource)
+  Private
+    FSavedInstance : TAccountsReportsSavedResource;
+    Function GetSavedInstance : TAccountsReportsSavedResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Generate(accountId: string; AQuery : string  = '') : TAdsenseReportsGenerateResponse;
+    Function Generate(accountId: string; AQuery : TAccountsReportsgenerateOptions) : TAdsenseReportsGenerateResponse;
+    Function CreateSavedResource(AOwner : TComponent) : TAccountsReportsSavedResource;virtual;overload;
+    Function CreateSavedResource : TAccountsReportsSavedResource;virtual;overload;
+    Property SavedResource : TAccountsReportsSavedResource Read GetSavedInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsSavedadstylesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsSavedadstylesResource, method List
+  
+  TAccountsSavedadstylesListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TAccountsSavedadstylesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(accountId: string; savedAdStyleId: string) : TSavedAdStyle;
+    Function List(accountId: string; AQuery : string  = '') : TSavedAdStyles;
+    Function List(accountId: string; AQuery : TAccountsSavedadstyleslistOptions) : TSavedAdStyles;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsUrlchannelsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsUrlchannelsResource, method List
+  
+  TAccountsUrlchannelsListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TAccountsUrlchannelsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(accountId: string; adClientId: string; AQuery : string  = '') : TUrlChannels;
+    Function List(accountId: string; adClientId: string; AQuery : TAccountsUrlchannelslistOptions) : TUrlChannels;
+  end;
+  
   
   { --------------------------------------------------------------------
     TAccountsResource
@@ -918,6 +1236,29 @@ type
   end;
   
   TAccountsResource = Class(TGoogleResource)
+  Private
+    FAdclientsInstance : TAccountsAdclientsResource;
+    FAdunitsCustomchannelsInstance : TAccountsAdunitsCustomchannelsResource;
+    FAdunitsInstance : TAccountsAdunitsResource;
+    FAlertsInstance : TAccountsAlertsResource;
+    FCustomchannelsAdunitsInstance : TAccountsCustomchannelsAdunitsResource;
+    FCustomchannelsInstance : TAccountsCustomchannelsResource;
+    FPaymentsInstance : TAccountsPaymentsResource;
+    FReportsSavedInstance : TAccountsReportsSavedResource;
+    FReportsInstance : TAccountsReportsResource;
+    FSavedadstylesInstance : TAccountsSavedadstylesResource;
+    FUrlchannelsInstance : TAccountsUrlchannelsResource;
+    Function GetAdclientsInstance : TAccountsAdclientsResource;virtual;
+    Function GetAdunitsCustomchannelsInstance : TAccountsAdunitsCustomchannelsResource;virtual;
+    Function GetAdunitsInstance : TAccountsAdunitsResource;virtual;
+    Function GetAlertsInstance : TAccountsAlertsResource;virtual;
+    Function GetCustomchannelsAdunitsInstance : TAccountsCustomchannelsAdunitsResource;virtual;
+    Function GetCustomchannelsInstance : TAccountsCustomchannelsResource;virtual;
+    Function GetPaymentsInstance : TAccountsPaymentsResource;virtual;
+    Function GetReportsSavedInstance : TAccountsReportsSavedResource;virtual;
+    Function GetReportsInstance : TAccountsReportsResource;virtual;
+    Function GetSavedadstylesInstance : TAccountsSavedadstylesResource;virtual;
+    Function GetUrlchannelsInstance : TAccountsUrlchannelsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -925,6 +1266,39 @@ type
     Function Get(accountId: string; AQuery : TAccountsgetOptions) : TAccount;
     Function List(AQuery : string  = '') : TAccounts;
     Function List(AQuery : TAccountslistOptions) : TAccounts;
+    Function CreateAdclientsResource(AOwner : TComponent) : TAccountsAdclientsResource;virtual;overload;
+    Function CreateAdclientsResource : TAccountsAdclientsResource;virtual;overload;
+    Function CreateAdunitsCustomchannelsResource(AOwner : TComponent) : TAccountsAdunitsCustomchannelsResource;virtual;overload;
+    Function CreateAdunitsCustomchannelsResource : TAccountsAdunitsCustomchannelsResource;virtual;overload;
+    Function CreateAdunitsResource(AOwner : TComponent) : TAccountsAdunitsResource;virtual;overload;
+    Function CreateAdunitsResource : TAccountsAdunitsResource;virtual;overload;
+    Function CreateAlertsResource(AOwner : TComponent) : TAccountsAlertsResource;virtual;overload;
+    Function CreateAlertsResource : TAccountsAlertsResource;virtual;overload;
+    Function CreateCustomchannelsAdunitsResource(AOwner : TComponent) : TAccountsCustomchannelsAdunitsResource;virtual;overload;
+    Function CreateCustomchannelsAdunitsResource : TAccountsCustomchannelsAdunitsResource;virtual;overload;
+    Function CreateCustomchannelsResource(AOwner : TComponent) : TAccountsCustomchannelsResource;virtual;overload;
+    Function CreateCustomchannelsResource : TAccountsCustomchannelsResource;virtual;overload;
+    Function CreatePaymentsResource(AOwner : TComponent) : TAccountsPaymentsResource;virtual;overload;
+    Function CreatePaymentsResource : TAccountsPaymentsResource;virtual;overload;
+    Function CreateReportsSavedResource(AOwner : TComponent) : TAccountsReportsSavedResource;virtual;overload;
+    Function CreateReportsSavedResource : TAccountsReportsSavedResource;virtual;overload;
+    Function CreateReportsResource(AOwner : TComponent) : TAccountsReportsResource;virtual;overload;
+    Function CreateReportsResource : TAccountsReportsResource;virtual;overload;
+    Function CreateSavedadstylesResource(AOwner : TComponent) : TAccountsSavedadstylesResource;virtual;overload;
+    Function CreateSavedadstylesResource : TAccountsSavedadstylesResource;virtual;overload;
+    Function CreateUrlchannelsResource(AOwner : TComponent) : TAccountsUrlchannelsResource;virtual;overload;
+    Function CreateUrlchannelsResource : TAccountsUrlchannelsResource;virtual;overload;
+    Property AdclientsResource : TAccountsAdclientsResource Read GetAdclientsInstance;
+    Property AdunitsCustomchannelsResource : TAccountsAdunitsCustomchannelsResource Read GetAdunitsCustomchannelsInstance;
+    Property AdunitsResource : TAccountsAdunitsResource Read GetAdunitsInstance;
+    Property AlertsResource : TAccountsAlertsResource Read GetAlertsInstance;
+    Property CustomchannelsAdunitsResource : TAccountsCustomchannelsAdunitsResource Read GetCustomchannelsAdunitsInstance;
+    Property CustomchannelsResource : TAccountsCustomchannelsResource Read GetCustomchannelsInstance;
+    Property PaymentsResource : TAccountsPaymentsResource Read GetPaymentsInstance;
+    Property ReportsSavedResource : TAccountsReportsSavedResource Read GetReportsSavedInstance;
+    Property ReportsResource : TAccountsReportsResource Read GetReportsInstance;
+    Property SavedadstylesResource : TAccountsSavedadstylesResource Read GetSavedadstylesInstance;
+    Property UrlchannelsResource : TAccountsUrlchannelsResource Read GetUrlchannelsInstance;
   end;
   
   
@@ -950,6 +1324,27 @@ type
   
   
   { --------------------------------------------------------------------
+    TAdunitsCustomchannelsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAdunitsCustomchannelsResource, method List
+  
+  TAdunitsCustomchannelsListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TAdunitsCustomchannelsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(adClientId: string; adUnitId: string; AQuery : string  = '') : TCustomChannels;
+    Function List(adClientId: string; adUnitId: string; AQuery : TAdunitsCustomchannelslistOptions) : TCustomChannels;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TAdunitsResource
     --------------------------------------------------------------------}
   
@@ -963,6 +1358,9 @@ type
   end;
   
   TAdunitsResource = Class(TGoogleResource)
+  Private
+    FCustomchannelsInstance : TAdunitsCustomchannelsResource;
+    Function GetCustomchannelsInstance : TAdunitsCustomchannelsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
@@ -970,6 +1368,9 @@ type
     Function GetAdCode(adClientId: string; adUnitId: string) : TAdCode;
     Function List(adClientId: string; AQuery : string  = '') : TAdUnits;
     Function List(adClientId: string; AQuery : TAdunitslistOptions) : TAdUnits;
+    Function CreateCustomchannelsResource(AOwner : TComponent) : TAdunitsCustomchannelsResource;virtual;overload;
+    Function CreateCustomchannelsResource : TAdunitsCustomchannelsResource;virtual;overload;
+    Property CustomchannelsResource : TAdunitsCustomchannelsResource Read GetCustomchannelsInstance;
   end;
   
   
@@ -995,6 +1396,28 @@ type
   
   
   { --------------------------------------------------------------------
+    TCustomchannelsAdunitsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TCustomchannelsAdunitsResource, method List
+  
+  TCustomchannelsAdunitsListOptions = Record
+    includeInactive : boolean;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TCustomchannelsAdunitsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(adClientId: string; customChannelId: string; AQuery : string  = '') : TAdUnits;
+    Function List(adClientId: string; customChannelId: string; AQuery : TCustomchannelsAdunitslistOptions) : TAdUnits;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TCustomchannelsResource
     --------------------------------------------------------------------}
   
@@ -1007,12 +1430,42 @@ type
   end;
   
   TCustomchannelsResource = Class(TGoogleResource)
+  Private
+    FAdunitsInstance : TCustomchannelsAdunitsResource;
+    Function GetAdunitsInstance : TCustomchannelsAdunitsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(adClientId: string; customChannelId: string) : TCustomChannel;
     Function List(adClientId: string; AQuery : string  = '') : TCustomChannels;
     Function List(adClientId: string; AQuery : TCustomchannelslistOptions) : TCustomChannels;
+    Function CreateAdunitsResource(AOwner : TComponent) : TCustomchannelsAdunitsResource;virtual;overload;
+    Function CreateAdunitsResource : TCustomchannelsAdunitsResource;virtual;overload;
+    Property AdunitsResource : TCustomchannelsAdunitsResource Read GetAdunitsInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TMetadataDimensionsResource
+    --------------------------------------------------------------------}
+  
+  TMetadataDimensionsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List : TMetadata;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TMetadataMetricsResource
+    --------------------------------------------------------------------}
+  
+  TMetadataMetricsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List : TMetadata;
   end;
   
   
@@ -1021,9 +1474,20 @@ type
     --------------------------------------------------------------------}
   
   TMetadataResource = Class(TGoogleResource)
+  Private
+    FDimensionsInstance : TMetadataDimensionsResource;
+    FMetricsInstance : TMetadataMetricsResource;
+    Function GetDimensionsInstance : TMetadataDimensionsResource;virtual;
+    Function GetMetricsInstance : TMetadataMetricsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateDimensionsResource(AOwner : TComponent) : TMetadataDimensionsResource;virtual;overload;
+    Function CreateDimensionsResource : TMetadataDimensionsResource;virtual;overload;
+    Function CreateMetricsResource(AOwner : TComponent) : TMetadataMetricsResource;virtual;overload;
+    Function CreateMetricsResource : TMetadataMetricsResource;virtual;overload;
+    Property DimensionsResource : TMetadataDimensionsResource Read GetDimensionsInstance;
+    Property MetricsResource : TMetadataMetricsResource Read GetMetricsInstance;
   end;
   
   
@@ -1036,6 +1500,38 @@ type
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function List : TPayments;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TReportsSavedResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TReportsSavedResource, method Generate
+  
+  TReportsSavedGenerateOptions = Record
+    locale : String;
+    maxResults : integer;
+    startIndex : integer;
+  end;
+  
+  
+  //Optional query Options for TReportsSavedResource, method List
+  
+  TReportsSavedListOptions = Record
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TReportsSavedResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Generate(savedReportId: string; AQuery : string  = '') : TAdsenseReportsGenerateResponse;
+    Function Generate(savedReportId: string; AQuery : TReportsSavedgenerateOptions) : TAdsenseReportsGenerateResponse;
+    Function List(AQuery : string  = '') : TSavedReports;
+    Function List(AQuery : TReportsSavedlistOptions) : TSavedReports;
   end;
   
   
@@ -1062,11 +1558,17 @@ type
   end;
   
   TReportsResource = Class(TGoogleResource)
+  Private
+    FSavedInstance : TReportsSavedResource;
+    Function GetSavedInstance : TReportsSavedResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Generate(AQuery : string  = '') : TAdsenseReportsGenerateResponse;
     Function Generate(AQuery : TReportsgenerateOptions) : TAdsenseReportsGenerateResponse;
+    Function CreateSavedResource(AOwner : TComponent) : TReportsSavedResource;virtual;overload;
+    Function CreateSavedResource : TReportsSavedResource;virtual;overload;
+    Property SavedResource : TReportsSavedResource Read GetSavedInstance;
   end;
   
   
@@ -1119,23 +1621,55 @@ type
   
   TAdsenseAPI = Class(TGoogleAPI)
   Private
+    FAccountsAdclientsInstance : TAccountsAdclientsResource;
+    FAccountsAdunitsCustomchannelsInstance : TAccountsAdunitsCustomchannelsResource;
+    FAccountsAdunitsInstance : TAccountsAdunitsResource;
+    FAccountsAlertsInstance : TAccountsAlertsResource;
+    FAccountsCustomchannelsAdunitsInstance : TAccountsCustomchannelsAdunitsResource;
+    FAccountsCustomchannelsInstance : TAccountsCustomchannelsResource;
+    FAccountsPaymentsInstance : TAccountsPaymentsResource;
+    FAccountsReportsSavedInstance : TAccountsReportsSavedResource;
+    FAccountsReportsInstance : TAccountsReportsResource;
+    FAccountsSavedadstylesInstance : TAccountsSavedadstylesResource;
+    FAccountsUrlchannelsInstance : TAccountsUrlchannelsResource;
     FAccountsInstance : TAccountsResource;
     FAdclientsInstance : TAdclientsResource;
+    FAdunitsCustomchannelsInstance : TAdunitsCustomchannelsResource;
     FAdunitsInstance : TAdunitsResource;
     FAlertsInstance : TAlertsResource;
+    FCustomchannelsAdunitsInstance : TCustomchannelsAdunitsResource;
     FCustomchannelsInstance : TCustomchannelsResource;
+    FMetadataDimensionsInstance : TMetadataDimensionsResource;
+    FMetadataMetricsInstance : TMetadataMetricsResource;
     FMetadataInstance : TMetadataResource;
     FPaymentsInstance : TPaymentsResource;
+    FReportsSavedInstance : TReportsSavedResource;
     FReportsInstance : TReportsResource;
     FSavedadstylesInstance : TSavedadstylesResource;
     FUrlchannelsInstance : TUrlchannelsResource;
+    Function GetAccountsAdclientsInstance : TAccountsAdclientsResource;virtual;
+    Function GetAccountsAdunitsCustomchannelsInstance : TAccountsAdunitsCustomchannelsResource;virtual;
+    Function GetAccountsAdunitsInstance : TAccountsAdunitsResource;virtual;
+    Function GetAccountsAlertsInstance : TAccountsAlertsResource;virtual;
+    Function GetAccountsCustomchannelsAdunitsInstance : TAccountsCustomchannelsAdunitsResource;virtual;
+    Function GetAccountsCustomchannelsInstance : TAccountsCustomchannelsResource;virtual;
+    Function GetAccountsPaymentsInstance : TAccountsPaymentsResource;virtual;
+    Function GetAccountsReportsSavedInstance : TAccountsReportsSavedResource;virtual;
+    Function GetAccountsReportsInstance : TAccountsReportsResource;virtual;
+    Function GetAccountsSavedadstylesInstance : TAccountsSavedadstylesResource;virtual;
+    Function GetAccountsUrlchannelsInstance : TAccountsUrlchannelsResource;virtual;
     Function GetAccountsInstance : TAccountsResource;virtual;
     Function GetAdclientsInstance : TAdclientsResource;virtual;
+    Function GetAdunitsCustomchannelsInstance : TAdunitsCustomchannelsResource;virtual;
     Function GetAdunitsInstance : TAdunitsResource;virtual;
     Function GetAlertsInstance : TAlertsResource;virtual;
+    Function GetCustomchannelsAdunitsInstance : TCustomchannelsAdunitsResource;virtual;
     Function GetCustomchannelsInstance : TCustomchannelsResource;virtual;
+    Function GetMetadataDimensionsInstance : TMetadataDimensionsResource;virtual;
+    Function GetMetadataMetricsInstance : TMetadataMetricsResource;virtual;
     Function GetMetadataInstance : TMetadataResource;virtual;
     Function GetPaymentsInstance : TPaymentsResource;virtual;
+    Function GetReportsSavedInstance : TReportsSavedResource;virtual;
     Function GetReportsInstance : TReportsResource;virtual;
     Function GetSavedadstylesInstance : TSavedadstylesResource;virtual;
     Function GetUrlchannelsInstance : TUrlchannelsResource;virtual;
@@ -1162,20 +1696,52 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateAccountsAdclientsResource(AOwner : TComponent) : TAccountsAdclientsResource;virtual;overload;
+    Function CreateAccountsAdclientsResource : TAccountsAdclientsResource;virtual;overload;
+    Function CreateAccountsAdunitsCustomchannelsResource(AOwner : TComponent) : TAccountsAdunitsCustomchannelsResource;virtual;overload;
+    Function CreateAccountsAdunitsCustomchannelsResource : TAccountsAdunitsCustomchannelsResource;virtual;overload;
+    Function CreateAccountsAdunitsResource(AOwner : TComponent) : TAccountsAdunitsResource;virtual;overload;
+    Function CreateAccountsAdunitsResource : TAccountsAdunitsResource;virtual;overload;
+    Function CreateAccountsAlertsResource(AOwner : TComponent) : TAccountsAlertsResource;virtual;overload;
+    Function CreateAccountsAlertsResource : TAccountsAlertsResource;virtual;overload;
+    Function CreateAccountsCustomchannelsAdunitsResource(AOwner : TComponent) : TAccountsCustomchannelsAdunitsResource;virtual;overload;
+    Function CreateAccountsCustomchannelsAdunitsResource : TAccountsCustomchannelsAdunitsResource;virtual;overload;
+    Function CreateAccountsCustomchannelsResource(AOwner : TComponent) : TAccountsCustomchannelsResource;virtual;overload;
+    Function CreateAccountsCustomchannelsResource : TAccountsCustomchannelsResource;virtual;overload;
+    Function CreateAccountsPaymentsResource(AOwner : TComponent) : TAccountsPaymentsResource;virtual;overload;
+    Function CreateAccountsPaymentsResource : TAccountsPaymentsResource;virtual;overload;
+    Function CreateAccountsReportsSavedResource(AOwner : TComponent) : TAccountsReportsSavedResource;virtual;overload;
+    Function CreateAccountsReportsSavedResource : TAccountsReportsSavedResource;virtual;overload;
+    Function CreateAccountsReportsResource(AOwner : TComponent) : TAccountsReportsResource;virtual;overload;
+    Function CreateAccountsReportsResource : TAccountsReportsResource;virtual;overload;
+    Function CreateAccountsSavedadstylesResource(AOwner : TComponent) : TAccountsSavedadstylesResource;virtual;overload;
+    Function CreateAccountsSavedadstylesResource : TAccountsSavedadstylesResource;virtual;overload;
+    Function CreateAccountsUrlchannelsResource(AOwner : TComponent) : TAccountsUrlchannelsResource;virtual;overload;
+    Function CreateAccountsUrlchannelsResource : TAccountsUrlchannelsResource;virtual;overload;
     Function CreateAccountsResource(AOwner : TComponent) : TAccountsResource;virtual;overload;
     Function CreateAccountsResource : TAccountsResource;virtual;overload;
     Function CreateAdclientsResource(AOwner : TComponent) : TAdclientsResource;virtual;overload;
     Function CreateAdclientsResource : TAdclientsResource;virtual;overload;
+    Function CreateAdunitsCustomchannelsResource(AOwner : TComponent) : TAdunitsCustomchannelsResource;virtual;overload;
+    Function CreateAdunitsCustomchannelsResource : TAdunitsCustomchannelsResource;virtual;overload;
     Function CreateAdunitsResource(AOwner : TComponent) : TAdunitsResource;virtual;overload;
     Function CreateAdunitsResource : TAdunitsResource;virtual;overload;
     Function CreateAlertsResource(AOwner : TComponent) : TAlertsResource;virtual;overload;
     Function CreateAlertsResource : TAlertsResource;virtual;overload;
+    Function CreateCustomchannelsAdunitsResource(AOwner : TComponent) : TCustomchannelsAdunitsResource;virtual;overload;
+    Function CreateCustomchannelsAdunitsResource : TCustomchannelsAdunitsResource;virtual;overload;
     Function CreateCustomchannelsResource(AOwner : TComponent) : TCustomchannelsResource;virtual;overload;
     Function CreateCustomchannelsResource : TCustomchannelsResource;virtual;overload;
+    Function CreateMetadataDimensionsResource(AOwner : TComponent) : TMetadataDimensionsResource;virtual;overload;
+    Function CreateMetadataDimensionsResource : TMetadataDimensionsResource;virtual;overload;
+    Function CreateMetadataMetricsResource(AOwner : TComponent) : TMetadataMetricsResource;virtual;overload;
+    Function CreateMetadataMetricsResource : TMetadataMetricsResource;virtual;overload;
     Function CreateMetadataResource(AOwner : TComponent) : TMetadataResource;virtual;overload;
     Function CreateMetadataResource : TMetadataResource;virtual;overload;
     Function CreatePaymentsResource(AOwner : TComponent) : TPaymentsResource;virtual;overload;
     Function CreatePaymentsResource : TPaymentsResource;virtual;overload;
+    Function CreateReportsSavedResource(AOwner : TComponent) : TReportsSavedResource;virtual;overload;
+    Function CreateReportsSavedResource : TReportsSavedResource;virtual;overload;
     Function CreateReportsResource(AOwner : TComponent) : TReportsResource;virtual;overload;
     Function CreateReportsResource : TReportsResource;virtual;overload;
     Function CreateSavedadstylesResource(AOwner : TComponent) : TSavedadstylesResource;virtual;overload;
@@ -1183,13 +1749,29 @@ type
     Function CreateUrlchannelsResource(AOwner : TComponent) : TUrlchannelsResource;virtual;overload;
     Function CreateUrlchannelsResource : TUrlchannelsResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property AccountsAdclientsResource : TAccountsAdclientsResource Read GetAccountsAdclientsInstance;
+    Property AccountsAdunitsCustomchannelsResource : TAccountsAdunitsCustomchannelsResource Read GetAccountsAdunitsCustomchannelsInstance;
+    Property AccountsAdunitsResource : TAccountsAdunitsResource Read GetAccountsAdunitsInstance;
+    Property AccountsAlertsResource : TAccountsAlertsResource Read GetAccountsAlertsInstance;
+    Property AccountsCustomchannelsAdunitsResource : TAccountsCustomchannelsAdunitsResource Read GetAccountsCustomchannelsAdunitsInstance;
+    Property AccountsCustomchannelsResource : TAccountsCustomchannelsResource Read GetAccountsCustomchannelsInstance;
+    Property AccountsPaymentsResource : TAccountsPaymentsResource Read GetAccountsPaymentsInstance;
+    Property AccountsReportsSavedResource : TAccountsReportsSavedResource Read GetAccountsReportsSavedInstance;
+    Property AccountsReportsResource : TAccountsReportsResource Read GetAccountsReportsInstance;
+    Property AccountsSavedadstylesResource : TAccountsSavedadstylesResource Read GetAccountsSavedadstylesInstance;
+    Property AccountsUrlchannelsResource : TAccountsUrlchannelsResource Read GetAccountsUrlchannelsInstance;
     Property AccountsResource : TAccountsResource Read GetAccountsInstance;
     Property AdclientsResource : TAdclientsResource Read GetAdclientsInstance;
+    Property AdunitsCustomchannelsResource : TAdunitsCustomchannelsResource Read GetAdunitsCustomchannelsInstance;
     Property AdunitsResource : TAdunitsResource Read GetAdunitsInstance;
     Property AlertsResource : TAlertsResource Read GetAlertsInstance;
+    Property CustomchannelsAdunitsResource : TCustomchannelsAdunitsResource Read GetCustomchannelsAdunitsInstance;
     Property CustomchannelsResource : TCustomchannelsResource Read GetCustomchannelsInstance;
+    Property MetadataDimensionsResource : TMetadataDimensionsResource Read GetMetadataDimensionsInstance;
+    Property MetadataMetricsResource : TMetadataMetricsResource Read GetMetadataMetricsInstance;
     Property MetadataResource : TMetadataResource Read GetMetadataInstance;
     Property PaymentsResource : TPaymentsResource Read GetPaymentsInstance;
+    Property ReportsSavedResource : TReportsSavedResource Read GetReportsSavedInstance;
     Property ReportsResource : TReportsResource Read GetReportsInstance;
     Property SavedadstylesResource : TSavedadstylesResource Read GetSavedadstylesInstance;
     Property UrlchannelsResource : TUrlchannelsResource Read GetUrlchannelsInstance;
@@ -1262,6 +1844,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccount.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'subaccounts' : SetLength(FsubAccounts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1308,6 +1903,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAccounts.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1422,6 +2030,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAdClients.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1947,6 +2568,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAdUnits.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2092,6 +2726,23 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAdsenseReportsGenerateResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'averages' : SetLength(Faverages,ALength);
+  'headers' : SetLength(Fheaders,ALength);
+  'rows' : SetLength(Frows,ALength);
+  'totals' : SetLength(Ftotals,ALength);
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2196,6 +2847,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAlerts.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2348,6 +3012,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCustomChannels.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2374,6 +3051,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2459,6 +3149,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPayments.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2535,6 +3238,23 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReportingMetadataEntry.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'compatibledimensions' : SetLength(FcompatibleDimensions,ALength);
+  'compatiblemetrics' : SetLength(FcompatibleMetrics,ALength);
+  'requireddimensions' : SetLength(FrequiredDimensions,ALength);
+  'requiredmetrics' : SetLength(FrequiredMetrics,ALength);
+  'supportedproducts' : SetLength(FsupportedProducts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2630,6 +3350,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSavedAdStyles.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2713,6 +3446,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSavedReports.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2798,6 +3544,709 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUrlChannels.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsAdclientsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsAdclientsResource.ResourceName : String;
+
+begin
+  Result:='adclients';
+end;
+
+Class Function TAccountsAdclientsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TAccountsAdclientsResource.List(accountId: string; AQuery : string = '') : TAdClients;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/adclients';
+  _Methodid   = 'adsense.accounts.adclients.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAdClients) as TAdClients;
+end;
+
+
+Function TAccountsAdclientsResource.List(accountId: string; AQuery : TAccountsAdclientslistOptions) : TAdClients;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(accountId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsAdunitsCustomchannelsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsAdunitsCustomchannelsResource.ResourceName : String;
+
+begin
+  Result:='customchannels';
+end;
+
+Class Function TAccountsAdunitsCustomchannelsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TAccountsAdunitsCustomchannelsResource.List(accountId: string; adClientId: string; adUnitId: string; AQuery : string = '') : TCustomChannels;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/adclients/{adClientId}/adunits/{adUnitId}/customchannels';
+  _Methodid   = 'adsense.accounts.adunits.customchannels.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'adClientId',adClientId,'adUnitId',adUnitId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TCustomChannels) as TCustomChannels;
+end;
+
+
+Function TAccountsAdunitsCustomchannelsResource.List(accountId: string; adClientId: string; adUnitId: string; AQuery : TAccountsAdunitsCustomchannelslistOptions) : TCustomChannels;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(accountId,adClientId,adUnitId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsAdunitsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsAdunitsResource.ResourceName : String;
+
+begin
+  Result:='adunits';
+end;
+
+Class Function TAccountsAdunitsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TAccountsAdunitsResource.Get(accountId: string; adClientId: string; adUnitId: string) : TAdUnit;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/adclients/{adClientId}/adunits/{adUnitId}';
+  _Methodid   = 'adsense.accounts.adunits.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'adClientId',adClientId,'adUnitId',adUnitId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TAdUnit) as TAdUnit;
+end;
+
+Function TAccountsAdunitsResource.GetAdCode(accountId: string; adClientId: string; adUnitId: string) : TAdCode;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/adclients/{adClientId}/adunits/{adUnitId}/adcode';
+  _Methodid   = 'adsense.accounts.adunits.getAdCode';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'adClientId',adClientId,'adUnitId',adUnitId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TAdCode) as TAdCode;
+end;
+
+Function TAccountsAdunitsResource.List(accountId: string; adClientId: string; AQuery : string = '') : TAdUnits;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/adclients/{adClientId}/adunits';
+  _Methodid   = 'adsense.accounts.adunits.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'adClientId',adClientId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAdUnits) as TAdUnits;
+end;
+
+
+Function TAccountsAdunitsResource.List(accountId: string; adClientId: string; AQuery : TAccountsAdunitslistOptions) : TAdUnits;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'includeInactive',AQuery.includeInactive);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(accountId,adClientId,_Q);
+end;
+
+
+
+Function TAccountsAdunitsResource.GetCustomchannelsInstance : TAccountsAdunitsCustomchannelsResource;
+
+begin
+  if (FCustomchannelsInstance=Nil) then
+    FCustomchannelsInstance:=CreateCustomchannelsResource;
+  Result:=FCustomchannelsInstance;
+end;
+
+Function TAccountsAdunitsResource.CreateCustomchannelsResource : TAccountsAdunitsCustomchannelsResource;
+
+begin
+  Result:=CreateCustomchannelsResource(Self);
+end;
+
+
+Function TAccountsAdunitsResource.CreateCustomchannelsResource(AOwner : TComponent) : TAccountsAdunitsCustomchannelsResource;
+
+begin
+  Result:=TAccountsAdunitsCustomchannelsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsAlertsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsAlertsResource.ResourceName : String;
+
+begin
+  Result:='alerts';
+end;
+
+Class Function TAccountsAlertsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Procedure TAccountsAlertsResource.Delete(accountId: string; alertId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'accounts/{accountId}/alerts/{alertId}';
+  _Methodid   = 'adsense.accounts.alerts.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'alertId',alertId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TAccountsAlertsResource.List(accountId: string; AQuery : string = '') : TAlerts;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/alerts';
+  _Methodid   = 'adsense.accounts.alerts.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAlerts) as TAlerts;
+end;
+
+
+Function TAccountsAlertsResource.List(accountId: string; AQuery : TAccountsAlertslistOptions) : TAlerts;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'locale',AQuery.locale);
+  Result:=List(accountId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsCustomchannelsAdunitsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsCustomchannelsAdunitsResource.ResourceName : String;
+
+begin
+  Result:='adunits';
+end;
+
+Class Function TAccountsCustomchannelsAdunitsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TAccountsCustomchannelsAdunitsResource.List(accountId: string; adClientId: string; customChannelId: string; AQuery : string = '') : TAdUnits;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/adclients/{adClientId}/customchannels/{customChannelId}/adunits';
+  _Methodid   = 'adsense.accounts.customchannels.adunits.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'adClientId',adClientId,'customChannelId',customChannelId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAdUnits) as TAdUnits;
+end;
+
+
+Function TAccountsCustomchannelsAdunitsResource.List(accountId: string; adClientId: string; customChannelId: string; AQuery : TAccountsCustomchannelsAdunitslistOptions) : TAdUnits;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'includeInactive',AQuery.includeInactive);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(accountId,adClientId,customChannelId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsCustomchannelsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsCustomchannelsResource.ResourceName : String;
+
+begin
+  Result:='customchannels';
+end;
+
+Class Function TAccountsCustomchannelsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TAccountsCustomchannelsResource.Get(accountId: string; adClientId: string; customChannelId: string) : TCustomChannel;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/adclients/{adClientId}/customchannels/{customChannelId}';
+  _Methodid   = 'adsense.accounts.customchannels.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'adClientId',adClientId,'customChannelId',customChannelId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TCustomChannel) as TCustomChannel;
+end;
+
+Function TAccountsCustomchannelsResource.List(accountId: string; adClientId: string; AQuery : string = '') : TCustomChannels;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/adclients/{adClientId}/customchannels';
+  _Methodid   = 'adsense.accounts.customchannels.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'adClientId',adClientId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TCustomChannels) as TCustomChannels;
+end;
+
+
+Function TAccountsCustomchannelsResource.List(accountId: string; adClientId: string; AQuery : TAccountsCustomchannelslistOptions) : TCustomChannels;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(accountId,adClientId,_Q);
+end;
+
+
+
+Function TAccountsCustomchannelsResource.GetAdunitsInstance : TAccountsCustomchannelsAdunitsResource;
+
+begin
+  if (FAdunitsInstance=Nil) then
+    FAdunitsInstance:=CreateAdunitsResource;
+  Result:=FAdunitsInstance;
+end;
+
+Function TAccountsCustomchannelsResource.CreateAdunitsResource : TAccountsCustomchannelsAdunitsResource;
+
+begin
+  Result:=CreateAdunitsResource(Self);
+end;
+
+
+Function TAccountsCustomchannelsResource.CreateAdunitsResource(AOwner : TComponent) : TAccountsCustomchannelsAdunitsResource;
+
+begin
+  Result:=TAccountsCustomchannelsAdunitsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsPaymentsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsPaymentsResource.ResourceName : String;
+
+begin
+  Result:='payments';
+end;
+
+Class Function TAccountsPaymentsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TAccountsPaymentsResource.List(accountId: string) : TPayments;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/payments';
+  _Methodid   = 'adsense.accounts.payments.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TPayments) as TPayments;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsReportsSavedResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsReportsSavedResource.ResourceName : String;
+
+begin
+  Result:='saved';
+end;
+
+Class Function TAccountsReportsSavedResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TAccountsReportsSavedResource.Generate(accountId: string; savedReportId: string; AQuery : string = '') : TAdsenseReportsGenerateResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/reports/{savedReportId}';
+  _Methodid   = 'adsense.accounts.reports.saved.generate';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'savedReportId',savedReportId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAdsenseReportsGenerateResponse) as TAdsenseReportsGenerateResponse;
+end;
+
+
+Function TAccountsReportsSavedResource.Generate(accountId: string; savedReportId: string; AQuery : TAccountsReportsSavedgenerateOptions) : TAdsenseReportsGenerateResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'locale',AQuery.locale);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'startIndex',AQuery.startIndex);
+  Result:=Generate(accountId,savedReportId,_Q);
+end;
+
+Function TAccountsReportsSavedResource.List(accountId: string; AQuery : string = '') : TSavedReports;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/reports/saved';
+  _Methodid   = 'adsense.accounts.reports.saved.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TSavedReports) as TSavedReports;
+end;
+
+
+Function TAccountsReportsSavedResource.List(accountId: string; AQuery : TAccountsReportsSavedlistOptions) : TSavedReports;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(accountId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsReportsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsReportsResource.ResourceName : String;
+
+begin
+  Result:='reports';
+end;
+
+Class Function TAccountsReportsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TAccountsReportsResource.Generate(accountId: string; AQuery : string = '') : TAdsenseReportsGenerateResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/reports';
+  _Methodid   = 'adsense.accounts.reports.generate';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAdsenseReportsGenerateResponse) as TAdsenseReportsGenerateResponse;
+end;
+
+
+Function TAccountsReportsResource.Generate(accountId: string; AQuery : TAccountsReportsgenerateOptions) : TAdsenseReportsGenerateResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'currency',AQuery.currency);
+  AddToQuery(_Q,'dimension',AQuery.dimension);
+  AddToQuery(_Q,'endDate',AQuery.endDate);
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'locale',AQuery.locale);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'metric',AQuery.metric);
+  AddToQuery(_Q,'sort',AQuery.sort);
+  AddToQuery(_Q,'startDate',AQuery.startDate);
+  AddToQuery(_Q,'startIndex',AQuery.startIndex);
+  AddToQuery(_Q,'useTimezoneReporting',AQuery.useTimezoneReporting);
+  Result:=Generate(accountId,_Q);
+end;
+
+
+
+Function TAccountsReportsResource.GetSavedInstance : TAccountsReportsSavedResource;
+
+begin
+  if (FSavedInstance=Nil) then
+    FSavedInstance:=CreateSavedResource;
+  Result:=FSavedInstance;
+end;
+
+Function TAccountsReportsResource.CreateSavedResource : TAccountsReportsSavedResource;
+
+begin
+  Result:=CreateSavedResource(Self);
+end;
+
+
+Function TAccountsReportsResource.CreateSavedResource(AOwner : TComponent) : TAccountsReportsSavedResource;
+
+begin
+  Result:=TAccountsReportsSavedResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsSavedadstylesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsSavedadstylesResource.ResourceName : String;
+
+begin
+  Result:='savedadstyles';
+end;
+
+Class Function TAccountsSavedadstylesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TAccountsSavedadstylesResource.Get(accountId: string; savedAdStyleId: string) : TSavedAdStyle;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/savedadstyles/{savedAdStyleId}';
+  _Methodid   = 'adsense.accounts.savedadstyles.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'savedAdStyleId',savedAdStyleId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TSavedAdStyle) as TSavedAdStyle;
+end;
+
+Function TAccountsSavedadstylesResource.List(accountId: string; AQuery : string = '') : TSavedAdStyles;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/savedadstyles';
+  _Methodid   = 'adsense.accounts.savedadstyles.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TSavedAdStyles) as TSavedAdStyles;
+end;
+
+
+Function TAccountsSavedadstylesResource.List(accountId: string; AQuery : TAccountsSavedadstyleslistOptions) : TSavedAdStyles;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(accountId,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsUrlchannelsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsUrlchannelsResource.ResourceName : String;
+
+begin
+  Result:='urlchannels';
+end;
+
+Class Function TAccountsUrlchannelsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TAccountsUrlchannelsResource.List(accountId: string; adClientId: string; AQuery : string = '') : TUrlChannels;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/adclients/{adClientId}/urlchannels';
+  _Methodid   = 'adsense.accounts.urlchannels.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'adClientId',adClientId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TUrlChannels) as TUrlChannels;
+end;
+
+
+Function TAccountsUrlchannelsResource.List(accountId: string; adClientId: string; AQuery : TAccountsUrlchannelslistOptions) : TUrlChannels;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(accountId,adClientId,_Q);
+end;
 
 
 
@@ -2871,6 +4320,270 @@ end;
 
 
 
+Function TAccountsResource.GetAdclientsInstance : TAccountsAdclientsResource;
+
+begin
+  if (FAdclientsInstance=Nil) then
+    FAdclientsInstance:=CreateAdclientsResource;
+  Result:=FAdclientsInstance;
+end;
+
+Function TAccountsResource.CreateAdclientsResource : TAccountsAdclientsResource;
+
+begin
+  Result:=CreateAdclientsResource(Self);
+end;
+
+
+Function TAccountsResource.CreateAdclientsResource(AOwner : TComponent) : TAccountsAdclientsResource;
+
+begin
+  Result:=TAccountsAdclientsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetAdunitsCustomchannelsInstance : TAccountsAdunitsCustomchannelsResource;
+
+begin
+  if (FAdunitsCustomchannelsInstance=Nil) then
+    FAdunitsCustomchannelsInstance:=CreateAdunitsCustomchannelsResource;
+  Result:=FAdunitsCustomchannelsInstance;
+end;
+
+Function TAccountsResource.CreateAdunitsCustomchannelsResource : TAccountsAdunitsCustomchannelsResource;
+
+begin
+  Result:=CreateAdunitsCustomchannelsResource(Self);
+end;
+
+
+Function TAccountsResource.CreateAdunitsCustomchannelsResource(AOwner : TComponent) : TAccountsAdunitsCustomchannelsResource;
+
+begin
+  Result:=TAccountsAdunitsCustomchannelsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetAdunitsInstance : TAccountsAdunitsResource;
+
+begin
+  if (FAdunitsInstance=Nil) then
+    FAdunitsInstance:=CreateAdunitsResource;
+  Result:=FAdunitsInstance;
+end;
+
+Function TAccountsResource.CreateAdunitsResource : TAccountsAdunitsResource;
+
+begin
+  Result:=CreateAdunitsResource(Self);
+end;
+
+
+Function TAccountsResource.CreateAdunitsResource(AOwner : TComponent) : TAccountsAdunitsResource;
+
+begin
+  Result:=TAccountsAdunitsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetAlertsInstance : TAccountsAlertsResource;
+
+begin
+  if (FAlertsInstance=Nil) then
+    FAlertsInstance:=CreateAlertsResource;
+  Result:=FAlertsInstance;
+end;
+
+Function TAccountsResource.CreateAlertsResource : TAccountsAlertsResource;
+
+begin
+  Result:=CreateAlertsResource(Self);
+end;
+
+
+Function TAccountsResource.CreateAlertsResource(AOwner : TComponent) : TAccountsAlertsResource;
+
+begin
+  Result:=TAccountsAlertsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetCustomchannelsAdunitsInstance : TAccountsCustomchannelsAdunitsResource;
+
+begin
+  if (FCustomchannelsAdunitsInstance=Nil) then
+    FCustomchannelsAdunitsInstance:=CreateCustomchannelsAdunitsResource;
+  Result:=FCustomchannelsAdunitsInstance;
+end;
+
+Function TAccountsResource.CreateCustomchannelsAdunitsResource : TAccountsCustomchannelsAdunitsResource;
+
+begin
+  Result:=CreateCustomchannelsAdunitsResource(Self);
+end;
+
+
+Function TAccountsResource.CreateCustomchannelsAdunitsResource(AOwner : TComponent) : TAccountsCustomchannelsAdunitsResource;
+
+begin
+  Result:=TAccountsCustomchannelsAdunitsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetCustomchannelsInstance : TAccountsCustomchannelsResource;
+
+begin
+  if (FCustomchannelsInstance=Nil) then
+    FCustomchannelsInstance:=CreateCustomchannelsResource;
+  Result:=FCustomchannelsInstance;
+end;
+
+Function TAccountsResource.CreateCustomchannelsResource : TAccountsCustomchannelsResource;
+
+begin
+  Result:=CreateCustomchannelsResource(Self);
+end;
+
+
+Function TAccountsResource.CreateCustomchannelsResource(AOwner : TComponent) : TAccountsCustomchannelsResource;
+
+begin
+  Result:=TAccountsCustomchannelsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetPaymentsInstance : TAccountsPaymentsResource;
+
+begin
+  if (FPaymentsInstance=Nil) then
+    FPaymentsInstance:=CreatePaymentsResource;
+  Result:=FPaymentsInstance;
+end;
+
+Function TAccountsResource.CreatePaymentsResource : TAccountsPaymentsResource;
+
+begin
+  Result:=CreatePaymentsResource(Self);
+end;
+
+
+Function TAccountsResource.CreatePaymentsResource(AOwner : TComponent) : TAccountsPaymentsResource;
+
+begin
+  Result:=TAccountsPaymentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetReportsSavedInstance : TAccountsReportsSavedResource;
+
+begin
+  if (FReportsSavedInstance=Nil) then
+    FReportsSavedInstance:=CreateReportsSavedResource;
+  Result:=FReportsSavedInstance;
+end;
+
+Function TAccountsResource.CreateReportsSavedResource : TAccountsReportsSavedResource;
+
+begin
+  Result:=CreateReportsSavedResource(Self);
+end;
+
+
+Function TAccountsResource.CreateReportsSavedResource(AOwner : TComponent) : TAccountsReportsSavedResource;
+
+begin
+  Result:=TAccountsReportsSavedResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetReportsInstance : TAccountsReportsResource;
+
+begin
+  if (FReportsInstance=Nil) then
+    FReportsInstance:=CreateReportsResource;
+  Result:=FReportsInstance;
+end;
+
+Function TAccountsResource.CreateReportsResource : TAccountsReportsResource;
+
+begin
+  Result:=CreateReportsResource(Self);
+end;
+
+
+Function TAccountsResource.CreateReportsResource(AOwner : TComponent) : TAccountsReportsResource;
+
+begin
+  Result:=TAccountsReportsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetSavedadstylesInstance : TAccountsSavedadstylesResource;
+
+begin
+  if (FSavedadstylesInstance=Nil) then
+    FSavedadstylesInstance:=CreateSavedadstylesResource;
+  Result:=FSavedadstylesInstance;
+end;
+
+Function TAccountsResource.CreateSavedadstylesResource : TAccountsSavedadstylesResource;
+
+begin
+  Result:=CreateSavedadstylesResource(Self);
+end;
+
+
+Function TAccountsResource.CreateSavedadstylesResource(AOwner : TComponent) : TAccountsSavedadstylesResource;
+
+begin
+  Result:=TAccountsSavedadstylesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetUrlchannelsInstance : TAccountsUrlchannelsResource;
+
+begin
+  if (FUrlchannelsInstance=Nil) then
+    FUrlchannelsInstance:=CreateUrlchannelsResource;
+  Result:=FUrlchannelsInstance;
+end;
+
+Function TAccountsResource.CreateUrlchannelsResource : TAccountsUrlchannelsResource;
+
+begin
+  Result:=CreateUrlchannelsResource(Self);
+end;
+
+
+Function TAccountsResource.CreateUrlchannelsResource(AOwner : TComponent) : TAccountsUrlchannelsResource;
+
+begin
+  Result:=TAccountsUrlchannelsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 { --------------------------------------------------------------------
   TAdclientsResource
   --------------------------------------------------------------------}
@@ -2910,6 +4623,53 @@ begin
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAdunitsCustomchannelsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAdunitsCustomchannelsResource.ResourceName : String;
+
+begin
+  Result:='customchannels';
+end;
+
+Class Function TAdunitsCustomchannelsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TAdunitsCustomchannelsResource.List(adClientId: string; adUnitId: string; AQuery : string = '') : TCustomChannels;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'adclients/{adClientId}/adunits/{adUnitId}/customchannels';
+  _Methodid   = 'adsense.adunits.customchannels.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['adClientId',adClientId,'adUnitId',adUnitId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TCustomChannels) as TCustomChannels;
+end;
+
+
+Function TAdunitsCustomchannelsResource.List(adClientId: string; adUnitId: string; AQuery : TAdunitsCustomchannelslistOptions) : TCustomChannels;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(adClientId,adUnitId,_Q);
 end;
 
 
@@ -2992,6 +4752,30 @@ end;
 
 
 
+Function TAdunitsResource.GetCustomchannelsInstance : TAdunitsCustomchannelsResource;
+
+begin
+  if (FCustomchannelsInstance=Nil) then
+    FCustomchannelsInstance:=CreateCustomchannelsResource;
+  Result:=FCustomchannelsInstance;
+end;
+
+Function TAdunitsResource.CreateCustomchannelsResource : TAdunitsCustomchannelsResource;
+
+begin
+  Result:=CreateCustomchannelsResource(Self);
+end;
+
+
+Function TAdunitsResource.CreateCustomchannelsResource(AOwner : TComponent) : TAdunitsCustomchannelsResource;
+
+begin
+  Result:=TAdunitsCustomchannelsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 { --------------------------------------------------------------------
   TAlertsResource
   --------------------------------------------------------------------}
@@ -3045,6 +4829,54 @@ begin
   _Q:='';
   AddToQuery(_Q,'locale',AQuery.locale);
   Result:=List(_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TCustomchannelsAdunitsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TCustomchannelsAdunitsResource.ResourceName : String;
+
+begin
+  Result:='adunits';
+end;
+
+Class Function TCustomchannelsAdunitsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TCustomchannelsAdunitsResource.List(adClientId: string; customChannelId: string; AQuery : string = '') : TAdUnits;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'adclients/{adClientId}/customchannels/{customChannelId}/adunits';
+  _Methodid   = 'adsense.customchannels.adunits.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['adClientId',adClientId,'customChannelId',customChannelId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAdUnits) as TAdUnits;
+end;
+
+
+Function TCustomchannelsAdunitsResource.List(adClientId: string; customChannelId: string; AQuery : TCustomchannelsAdunitslistOptions) : TAdUnits;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'includeInactive',AQuery.includeInactive);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(adClientId,customChannelId,_Q);
 end;
 
 
@@ -3111,6 +4943,90 @@ end;
 
 
 
+Function TCustomchannelsResource.GetAdunitsInstance : TCustomchannelsAdunitsResource;
+
+begin
+  if (FAdunitsInstance=Nil) then
+    FAdunitsInstance:=CreateAdunitsResource;
+  Result:=FAdunitsInstance;
+end;
+
+Function TCustomchannelsResource.CreateAdunitsResource : TCustomchannelsAdunitsResource;
+
+begin
+  Result:=CreateAdunitsResource(Self);
+end;
+
+
+Function TCustomchannelsResource.CreateAdunitsResource(AOwner : TComponent) : TCustomchannelsAdunitsResource;
+
+begin
+  Result:=TCustomchannelsAdunitsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TMetadataDimensionsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TMetadataDimensionsResource.ResourceName : String;
+
+begin
+  Result:='dimensions';
+end;
+
+Class Function TMetadataDimensionsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TMetadataDimensionsResource.List : TMetadata;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'metadata/dimensions';
+  _Methodid   = 'adsense.metadata.dimensions.list';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,'',Nil,TMetadata) as TMetadata;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TMetadataMetricsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TMetadataMetricsResource.ResourceName : String;
+
+begin
+  Result:='metrics';
+end;
+
+Class Function TMetadataMetricsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TMetadataMetricsResource.List : TMetadata;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'metadata/metrics';
+  _Methodid   = 'adsense.metadata.metrics.list';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,'',Nil,TMetadata) as TMetadata;
+end;
+
+
+
 { --------------------------------------------------------------------
   TMetadataResource
   --------------------------------------------------------------------}
@@ -3126,6 +5042,54 @@ Class Function TMetadataResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TadsenseAPI;
+end;
+
+
+
+Function TMetadataResource.GetDimensionsInstance : TMetadataDimensionsResource;
+
+begin
+  if (FDimensionsInstance=Nil) then
+    FDimensionsInstance:=CreateDimensionsResource;
+  Result:=FDimensionsInstance;
+end;
+
+Function TMetadataResource.CreateDimensionsResource : TMetadataDimensionsResource;
+
+begin
+  Result:=CreateDimensionsResource(Self);
+end;
+
+
+Function TMetadataResource.CreateDimensionsResource(AOwner : TComponent) : TMetadataDimensionsResource;
+
+begin
+  Result:=TMetadataDimensionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TMetadataResource.GetMetricsInstance : TMetadataMetricsResource;
+
+begin
+  if (FMetricsInstance=Nil) then
+    FMetricsInstance:=CreateMetricsResource;
+  Result:=FMetricsInstance;
+end;
+
+Function TMetadataResource.CreateMetricsResource : TMetadataMetricsResource;
+
+begin
+  Result:=CreateMetricsResource(Self);
+end;
+
+
+Function TMetadataResource.CreateMetricsResource(AOwner : TComponent) : TMetadataMetricsResource;
+
+begin
+  Result:=TMetadataMetricsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -3156,6 +5120,78 @@ Const
 
 begin
   Result:=ServiceCall(_HTTPMethod,_Path,'',Nil,TPayments) as TPayments;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TReportsSavedResource
+  --------------------------------------------------------------------}
+
+
+Class Function TReportsSavedResource.ResourceName : String;
+
+begin
+  Result:='saved';
+end;
+
+Class Function TReportsSavedResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TadsenseAPI;
+end;
+
+Function TReportsSavedResource.Generate(savedReportId: string; AQuery : string = '') : TAdsenseReportsGenerateResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'reports/{savedReportId}';
+  _Methodid   = 'adsense.reports.saved.generate';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['savedReportId',savedReportId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAdsenseReportsGenerateResponse) as TAdsenseReportsGenerateResponse;
+end;
+
+
+Function TReportsSavedResource.Generate(savedReportId: string; AQuery : TReportsSavedgenerateOptions) : TAdsenseReportsGenerateResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'locale',AQuery.locale);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'startIndex',AQuery.startIndex);
+  Result:=Generate(savedReportId,_Q);
+end;
+
+Function TReportsSavedResource.List(AQuery : string = '') : TSavedReports;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'reports/saved';
+  _Methodid   = 'adsense.reports.saved.list';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TSavedReports) as TSavedReports;
+end;
+
+
+Function TReportsSavedResource.List(AQuery : TReportsSavedlistOptions) : TSavedReports;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(_Q);
 end;
 
 
@@ -3209,6 +5245,30 @@ begin
   AddToQuery(_Q,'startIndex',AQuery.startIndex);
   AddToQuery(_Q,'useTimezoneReporting',AQuery.useTimezoneReporting);
   Result:=Generate(_Q);
+end;
+
+
+
+Function TReportsResource.GetSavedInstance : TReportsSavedResource;
+
+begin
+  if (FSavedInstance=Nil) then
+    FSavedInstance:=CreateSavedResource;
+  Result:=FSavedInstance;
+end;
+
+Function TReportsResource.CreateSavedResource : TReportsSavedResource;
+
+begin
+  Result:=CreateSavedResource(Self);
+end;
+
+
+Function TReportsResource.CreateSavedResource(AOwner : TComponent) : TReportsSavedResource;
+
+begin
+  Result:=TReportsSavedResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -3337,7 +5397,7 @@ end;
 Class Function TAdsenseAPI.APIRevision : String;
 
 begin
-  Result:='20150303';
+  Result:='20150401';
 end;
 
 Class Function TAdsenseAPI.APIID : String;
@@ -3391,7 +5451,7 @@ end;
 Class Function TAdsenseAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TAdsenseAPI.APIbasePath : string;
@@ -3403,7 +5463,7 @@ end;
 Class Function TAdsenseAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/adsense/v1.4/';
+  Result:='https://www.googleapis.com:443/adsense/v1.4/';
 end;
 
 Class Function TAdsenseAPI.APIProtocol : string;
@@ -3478,6 +5538,270 @@ begin
 end;
 
 
+Function TAdsenseAPI.GetAccountsAdclientsInstance : TAccountsAdclientsResource;
+
+begin
+  if (FAccountsAdclientsInstance=Nil) then
+    FAccountsAdclientsInstance:=CreateAccountsAdclientsResource;
+  Result:=FAccountsAdclientsInstance;
+end;
+
+Function TAdsenseAPI.CreateAccountsAdclientsResource : TAccountsAdclientsResource;
+
+begin
+  Result:=CreateAccountsAdclientsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateAccountsAdclientsResource(AOwner : TComponent) : TAccountsAdclientsResource;
+
+begin
+  Result:=TAccountsAdclientsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetAccountsAdunitsCustomchannelsInstance : TAccountsAdunitsCustomchannelsResource;
+
+begin
+  if (FAccountsAdunitsCustomchannelsInstance=Nil) then
+    FAccountsAdunitsCustomchannelsInstance:=CreateAccountsAdunitsCustomchannelsResource;
+  Result:=FAccountsAdunitsCustomchannelsInstance;
+end;
+
+Function TAdsenseAPI.CreateAccountsAdunitsCustomchannelsResource : TAccountsAdunitsCustomchannelsResource;
+
+begin
+  Result:=CreateAccountsAdunitsCustomchannelsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateAccountsAdunitsCustomchannelsResource(AOwner : TComponent) : TAccountsAdunitsCustomchannelsResource;
+
+begin
+  Result:=TAccountsAdunitsCustomchannelsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetAccountsAdunitsInstance : TAccountsAdunitsResource;
+
+begin
+  if (FAccountsAdunitsInstance=Nil) then
+    FAccountsAdunitsInstance:=CreateAccountsAdunitsResource;
+  Result:=FAccountsAdunitsInstance;
+end;
+
+Function TAdsenseAPI.CreateAccountsAdunitsResource : TAccountsAdunitsResource;
+
+begin
+  Result:=CreateAccountsAdunitsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateAccountsAdunitsResource(AOwner : TComponent) : TAccountsAdunitsResource;
+
+begin
+  Result:=TAccountsAdunitsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetAccountsAlertsInstance : TAccountsAlertsResource;
+
+begin
+  if (FAccountsAlertsInstance=Nil) then
+    FAccountsAlertsInstance:=CreateAccountsAlertsResource;
+  Result:=FAccountsAlertsInstance;
+end;
+
+Function TAdsenseAPI.CreateAccountsAlertsResource : TAccountsAlertsResource;
+
+begin
+  Result:=CreateAccountsAlertsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateAccountsAlertsResource(AOwner : TComponent) : TAccountsAlertsResource;
+
+begin
+  Result:=TAccountsAlertsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetAccountsCustomchannelsAdunitsInstance : TAccountsCustomchannelsAdunitsResource;
+
+begin
+  if (FAccountsCustomchannelsAdunitsInstance=Nil) then
+    FAccountsCustomchannelsAdunitsInstance:=CreateAccountsCustomchannelsAdunitsResource;
+  Result:=FAccountsCustomchannelsAdunitsInstance;
+end;
+
+Function TAdsenseAPI.CreateAccountsCustomchannelsAdunitsResource : TAccountsCustomchannelsAdunitsResource;
+
+begin
+  Result:=CreateAccountsCustomchannelsAdunitsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateAccountsCustomchannelsAdunitsResource(AOwner : TComponent) : TAccountsCustomchannelsAdunitsResource;
+
+begin
+  Result:=TAccountsCustomchannelsAdunitsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetAccountsCustomchannelsInstance : TAccountsCustomchannelsResource;
+
+begin
+  if (FAccountsCustomchannelsInstance=Nil) then
+    FAccountsCustomchannelsInstance:=CreateAccountsCustomchannelsResource;
+  Result:=FAccountsCustomchannelsInstance;
+end;
+
+Function TAdsenseAPI.CreateAccountsCustomchannelsResource : TAccountsCustomchannelsResource;
+
+begin
+  Result:=CreateAccountsCustomchannelsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateAccountsCustomchannelsResource(AOwner : TComponent) : TAccountsCustomchannelsResource;
+
+begin
+  Result:=TAccountsCustomchannelsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetAccountsPaymentsInstance : TAccountsPaymentsResource;
+
+begin
+  if (FAccountsPaymentsInstance=Nil) then
+    FAccountsPaymentsInstance:=CreateAccountsPaymentsResource;
+  Result:=FAccountsPaymentsInstance;
+end;
+
+Function TAdsenseAPI.CreateAccountsPaymentsResource : TAccountsPaymentsResource;
+
+begin
+  Result:=CreateAccountsPaymentsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateAccountsPaymentsResource(AOwner : TComponent) : TAccountsPaymentsResource;
+
+begin
+  Result:=TAccountsPaymentsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetAccountsReportsSavedInstance : TAccountsReportsSavedResource;
+
+begin
+  if (FAccountsReportsSavedInstance=Nil) then
+    FAccountsReportsSavedInstance:=CreateAccountsReportsSavedResource;
+  Result:=FAccountsReportsSavedInstance;
+end;
+
+Function TAdsenseAPI.CreateAccountsReportsSavedResource : TAccountsReportsSavedResource;
+
+begin
+  Result:=CreateAccountsReportsSavedResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateAccountsReportsSavedResource(AOwner : TComponent) : TAccountsReportsSavedResource;
+
+begin
+  Result:=TAccountsReportsSavedResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetAccountsReportsInstance : TAccountsReportsResource;
+
+begin
+  if (FAccountsReportsInstance=Nil) then
+    FAccountsReportsInstance:=CreateAccountsReportsResource;
+  Result:=FAccountsReportsInstance;
+end;
+
+Function TAdsenseAPI.CreateAccountsReportsResource : TAccountsReportsResource;
+
+begin
+  Result:=CreateAccountsReportsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateAccountsReportsResource(AOwner : TComponent) : TAccountsReportsResource;
+
+begin
+  Result:=TAccountsReportsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetAccountsSavedadstylesInstance : TAccountsSavedadstylesResource;
+
+begin
+  if (FAccountsSavedadstylesInstance=Nil) then
+    FAccountsSavedadstylesInstance:=CreateAccountsSavedadstylesResource;
+  Result:=FAccountsSavedadstylesInstance;
+end;
+
+Function TAdsenseAPI.CreateAccountsSavedadstylesResource : TAccountsSavedadstylesResource;
+
+begin
+  Result:=CreateAccountsSavedadstylesResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateAccountsSavedadstylesResource(AOwner : TComponent) : TAccountsSavedadstylesResource;
+
+begin
+  Result:=TAccountsSavedadstylesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetAccountsUrlchannelsInstance : TAccountsUrlchannelsResource;
+
+begin
+  if (FAccountsUrlchannelsInstance=Nil) then
+    FAccountsUrlchannelsInstance:=CreateAccountsUrlchannelsResource;
+  Result:=FAccountsUrlchannelsInstance;
+end;
+
+Function TAdsenseAPI.CreateAccountsUrlchannelsResource : TAccountsUrlchannelsResource;
+
+begin
+  Result:=CreateAccountsUrlchannelsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateAccountsUrlchannelsResource(AOwner : TComponent) : TAccountsUrlchannelsResource;
+
+begin
+  Result:=TAccountsUrlchannelsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TAdsenseAPI.GetAccountsInstance : TAccountsResource;
 
 begin
@@ -3497,7 +5821,7 @@ Function TAdsenseAPI.CreateAccountsResource(AOwner : TComponent) : TAccountsReso
 
 begin
   Result:=TAccountsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3521,7 +5845,31 @@ Function TAdsenseAPI.CreateAdclientsResource(AOwner : TComponent) : TAdclientsRe
 
 begin
   Result:=TAdclientsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetAdunitsCustomchannelsInstance : TAdunitsCustomchannelsResource;
+
+begin
+  if (FAdunitsCustomchannelsInstance=Nil) then
+    FAdunitsCustomchannelsInstance:=CreateAdunitsCustomchannelsResource;
+  Result:=FAdunitsCustomchannelsInstance;
+end;
+
+Function TAdsenseAPI.CreateAdunitsCustomchannelsResource : TAdunitsCustomchannelsResource;
+
+begin
+  Result:=CreateAdunitsCustomchannelsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateAdunitsCustomchannelsResource(AOwner : TComponent) : TAdunitsCustomchannelsResource;
+
+begin
+  Result:=TAdunitsCustomchannelsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -3545,7 +5893,7 @@ Function TAdsenseAPI.CreateAdunitsResource(AOwner : TComponent) : TAdunitsResour
 
 begin
   Result:=TAdunitsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3569,7 +5917,31 @@ Function TAdsenseAPI.CreateAlertsResource(AOwner : TComponent) : TAlertsResource
 
 begin
   Result:=TAlertsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetCustomchannelsAdunitsInstance : TCustomchannelsAdunitsResource;
+
+begin
+  if (FCustomchannelsAdunitsInstance=Nil) then
+    FCustomchannelsAdunitsInstance:=CreateCustomchannelsAdunitsResource;
+  Result:=FCustomchannelsAdunitsInstance;
+end;
+
+Function TAdsenseAPI.CreateCustomchannelsAdunitsResource : TCustomchannelsAdunitsResource;
+
+begin
+  Result:=CreateCustomchannelsAdunitsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateCustomchannelsAdunitsResource(AOwner : TComponent) : TCustomchannelsAdunitsResource;
+
+begin
+  Result:=TCustomchannelsAdunitsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -3593,7 +5965,55 @@ Function TAdsenseAPI.CreateCustomchannelsResource(AOwner : TComponent) : TCustom
 
 begin
   Result:=TCustomchannelsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetMetadataDimensionsInstance : TMetadataDimensionsResource;
+
+begin
+  if (FMetadataDimensionsInstance=Nil) then
+    FMetadataDimensionsInstance:=CreateMetadataDimensionsResource;
+  Result:=FMetadataDimensionsInstance;
+end;
+
+Function TAdsenseAPI.CreateMetadataDimensionsResource : TMetadataDimensionsResource;
+
+begin
+  Result:=CreateMetadataDimensionsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateMetadataDimensionsResource(AOwner : TComponent) : TMetadataDimensionsResource;
+
+begin
+  Result:=TMetadataDimensionsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetMetadataMetricsInstance : TMetadataMetricsResource;
+
+begin
+  if (FMetadataMetricsInstance=Nil) then
+    FMetadataMetricsInstance:=CreateMetadataMetricsResource;
+  Result:=FMetadataMetricsInstance;
+end;
+
+Function TAdsenseAPI.CreateMetadataMetricsResource : TMetadataMetricsResource;
+
+begin
+  Result:=CreateMetadataMetricsResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateMetadataMetricsResource(AOwner : TComponent) : TMetadataMetricsResource;
+
+begin
+  Result:=TMetadataMetricsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -3617,7 +6037,7 @@ Function TAdsenseAPI.CreateMetadataResource(AOwner : TComponent) : TMetadataReso
 
 begin
   Result:=TMetadataResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3641,7 +6061,31 @@ Function TAdsenseAPI.CreatePaymentsResource(AOwner : TComponent) : TPaymentsReso
 
 begin
   Result:=TPaymentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAdsenseAPI.GetReportsSavedInstance : TReportsSavedResource;
+
+begin
+  if (FReportsSavedInstance=Nil) then
+    FReportsSavedInstance:=CreateReportsSavedResource;
+  Result:=FReportsSavedInstance;
+end;
+
+Function TAdsenseAPI.CreateReportsSavedResource : TReportsSavedResource;
+
+begin
+  Result:=CreateReportsSavedResource(Self);
+end;
+
+
+Function TAdsenseAPI.CreateReportsSavedResource(AOwner : TComponent) : TReportsSavedResource;
+
+begin
+  Result:=TReportsSavedResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -3665,7 +6109,7 @@ Function TAdsenseAPI.CreateReportsResource(AOwner : TComponent) : TReportsResour
 
 begin
   Result:=TReportsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3689,7 +6133,7 @@ Function TAdsenseAPI.CreateSavedadstylesResource(AOwner : TComponent) : TSavedad
 
 begin
   Result:=TSavedadstylesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3713,7 +6157,7 @@ Function TAdsenseAPI.CreateUrlchannelsResource(AOwner : TComponent) : TUrlchanne
 
 begin
   Result:=TUrlchannelsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

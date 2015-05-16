@@ -13,7 +13,7 @@ unit googletasks;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:59
+//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -24,16 +24,16 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TTask = class;
-  TTaskList = class;
-  TTaskLists = class;
-  TTasks = class;
+  TTask = Class;
+  TTaskList = Class;
+  TTaskLists = Class;
+  TTasks = Class;
   TTaskArray = Array of TTask;
   TTaskListArray = Array of TTaskList;
   TTaskListsArray = Array of TTaskLists;
   TTasksArray = Array of TTasks;
   //Anonymous types, using auto-generated names
-  TTaskTypelinksItem = class;
+  TTaskTypelinksItem = Class;
   TTaskTypelinksArray = Array of TTaskTypelinksItem;
   TTaskListsTypeitemsArray = Array of TTaskList;
   TTasksTypeitemsArray = Array of TTask;
@@ -99,6 +99,10 @@ type
     Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property completed : TDatetime Index 0 Read Fcompleted Write Setcompleted;
@@ -166,6 +170,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TTaskListsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -191,6 +199,10 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TTasksTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -527,6 +539,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTask.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'links' : SetLength(Flinks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -641,6 +666,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTaskLists.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -687,6 +725,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTasks.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1064,7 +1115,7 @@ end;
 Class Function TTasksAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TTasksAPI.APIbasePath : string;
@@ -1076,7 +1127,7 @@ end;
 Class Function TTasksAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/tasks/v1/';
+  Result:='https://www.googleapis.com:443/tasks/v1/';
 end;
 
 Class Function TTasksAPI.APIProtocol : string;
@@ -1144,7 +1195,7 @@ Function TTasksAPI.CreateTasklistsResource(AOwner : TComponent) : TTasklistsReso
 
 begin
   Result:=TTasklistsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1168,7 +1219,7 @@ Function TTasksAPI.CreateTasksResource(AOwner : TComponent) : TTasksResource;
 
 begin
   Result:=TTasksResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

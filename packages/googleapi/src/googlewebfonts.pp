@@ -13,7 +13,7 @@ unit googlewebfonts;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:59
+//Generated on: 16-5-15 08:53:09
 {$MODE objfpc}
 {$H+}
 
@@ -24,12 +24,12 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TWebfont = class;
-  TWebfontList = class;
+  TWebfont = Class;
+  TWebfontList = Class;
   TWebfontArray = Array of TWebfont;
   TWebfontListArray = Array of TWebfontList;
   //Anonymous types, using auto-generated names
-  TWebfontTypefiles = class;
+  TWebfontTypefiles = Class;
   TWebfontListTypeitemsArray = Array of TWebfont;
   
   { --------------------------------------------------------------------
@@ -70,6 +70,10 @@ type
     Procedure Setsubsets(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setvariants(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property category : String Index 0 Read Fcategory Write Setcategory;
@@ -95,6 +99,10 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TWebfontListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property items : TWebfontListTypeitemsArray Index 0 Read Fitems Write Setitems;
@@ -259,6 +267,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWebfont.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'subsets' : SetLength(Fsubsets,ALength);
+  'variants' : SetLength(Fvariants,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -285,6 +307,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWebfontList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -404,7 +439,7 @@ end;
 Class Function TWebfontsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TWebfontsAPI.APIbasePath : string;
@@ -416,7 +451,7 @@ end;
 Class Function TWebfontsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/webfonts/v1/';
+  Result:='https://www.googleapis.com:443/webfonts/v1/';
 end;
 
 Class Function TWebfontsAPI.APIProtocol : string;
@@ -478,7 +513,7 @@ Function TWebfontsAPI.CreateWebfontsResource(AOwner : TComponent) : TWebfontsRes
 
 begin
   Result:=TWebfontsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

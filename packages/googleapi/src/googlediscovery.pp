@@ -13,7 +13,7 @@ unit googlediscovery;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:52
+//Generated on: 16-5-15 08:53:02
 {$MODE objfpc}
 {$H+}
 
@@ -24,40 +24,40 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TDirectoryList = class;
-  TJsonSchema = class;
-  TRestDescription = class;
-  TRestMethod = class;
-  TRestResource = class;
+  TDirectoryList = Class;
+  TJsonSchema = Class;
+  TRestDescription = Class;
+  TRestMethod = Class;
+  TRestResource = Class;
   TDirectoryListArray = Array of TDirectoryList;
   TJsonSchemaArray = Array of TJsonSchema;
   TRestDescriptionArray = Array of TRestDescription;
   TRestMethodArray = Array of TRestMethod;
   TRestResourceArray = Array of TRestResource;
   //Anonymous types, using auto-generated names
-  TDirectoryListTypeitemsItemTypeicons = class;
-  TDirectoryListTypeitemsItem = class;
-  TJsonSchemaTypeannotations = class;
-  TJsonSchemaTypeproperties = class;
-  TJsonSchemaTypevariantTypemapItem = class;
-  TJsonSchemaTypevariant = class;
-  TRestDescriptionTypeauthTypeoauth2Typescopes = class;
-  TRestDescriptionTypeauthTypeoauth2 = class;
-  TRestDescriptionTypeauth = class;
-  TRestDescriptionTypeicons = class;
-  TRestDescriptionTypemethods = class;
-  TRestDescriptionTypeparameters = class;
-  TRestDescriptionTyperesources = class;
-  TRestDescriptionTypeschemas = class;
-  TRestMethodTypemediaUploadTypeprotocolsTyperesumable = class;
-  TRestMethodTypemediaUploadTypeprotocolsTypesimple = class;
-  TRestMethodTypemediaUploadTypeprotocols = class;
-  TRestMethodTypemediaUpload = class;
-  TRestMethodTypeparameters = class;
-  TRestMethodTyperequest = class;
-  TRestMethodTyperesponse = class;
-  TRestResourceTypemethods = class;
-  TRestResourceTyperesources = class;
+  TDirectoryListTypeitemsItemTypeicons = Class;
+  TDirectoryListTypeitemsItem = Class;
+  TJsonSchemaTypeannotations = Class;
+  TJsonSchemaTypeproperties = Class;
+  TJsonSchemaTypevariantTypemapItem = Class;
+  TJsonSchemaTypevariant = Class;
+  TRestDescriptionTypeauthTypeoauth2Typescopes = Class;
+  TRestDescriptionTypeauthTypeoauth2 = Class;
+  TRestDescriptionTypeauth = Class;
+  TRestDescriptionTypeicons = Class;
+  TRestDescriptionTypemethods = Class;
+  TRestDescriptionTypeparameters = Class;
+  TRestDescriptionTyperesources = Class;
+  TRestDescriptionTypeschemas = Class;
+  TRestMethodTypemediaUploadTypeprotocolsTyperesumable = Class;
+  TRestMethodTypemediaUploadTypeprotocolsTypesimple = Class;
+  TRestMethodTypemediaUploadTypeprotocols = Class;
+  TRestMethodTypemediaUpload = Class;
+  TRestMethodTypeparameters = Class;
+  TRestMethodTyperequest = Class;
+  TRestMethodTyperesponse = Class;
+  TRestResourceTypemethods = Class;
+  TRestResourceTyperesources = Class;
   TDirectoryListTypeitemsArray = Array of TDirectoryListTypeitemsItem;
   TJsonSchemaTypevariantTypemapArray = Array of TJsonSchemaTypevariantTypemapItem;
   
@@ -112,6 +112,10 @@ type
     Procedure Setpreferred(AIndex : Integer; AValue : boolean); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -143,6 +147,10 @@ type
     Procedure SetdiscoveryVersion(AIndex : Integer; AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TDirectoryListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property discoveryVersion : String Index 0 Read FdiscoveryVersion Write SetdiscoveryVersion;
@@ -161,6 +169,10 @@ type
   Protected
     //Property setters
     Procedure Setrequired(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property required : TStringArray Index 0 Read Frequired Write Setrequired;
@@ -213,6 +225,10 @@ type
     //Property setters
     Procedure Setdiscriminant(AIndex : Integer; AValue : String); virtual;
     Procedure Setmap(AIndex : Integer; AValue : TJsonSchemaTypevariantTypemapArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property discriminant : String Index 0 Read Fdiscriminant Write Setdiscriminant;
@@ -269,6 +285,10 @@ type
     Procedure Setrequired(AIndex : Integer; AValue : boolean); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
     Procedure Setvariant(AIndex : Integer; AValue : TJsonSchemaTypevariant); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property ref : String Index 0 Read Fref Write Setref;
@@ -479,6 +499,10 @@ type
     Procedure SetservicePath(AIndex : Integer; AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property auth : TRestDescriptionTypeauth Index 0 Read Fauth Write Setauth;
@@ -583,6 +607,10 @@ type
     Procedure Setaccept(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetmaxSize(AIndex : Integer; AValue : String); virtual;
     Procedure Setprotocols(AIndex : Integer; AValue : TRestMethodTypemediaUploadTypeprotocols); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accept : TStringArray Index 0 Read Faccept Write Setaccept;
@@ -680,6 +708,10 @@ type
     Procedure SetsupportsMediaUpload(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetsupportsSubscription(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetuseMediaDownloadService(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -960,6 +992,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDirectoryListTypeitemsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'labels' : SetLength(Flabels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -997,6 +1042,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDirectoryList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1013,6 +1071,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJsonSchemaTypeannotations.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'required' : SetLength(Frequired,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1091,6 +1162,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJsonSchemaTypevariant.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'map' : SetLength(Fmap,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1310,6 +1394,20 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJsonSchema.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'enum' : SetLength(Fenum,ALength);
+  'enumdescriptions' : SetLength(FenumDescriptions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1724,6 +1822,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRestDescription.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'features' : SetLength(Ffeatures,ALength);
+  'labels' : SetLength(Flabels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1841,6 +1953,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRestMethodTypemediaUpload.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'accept' : SetLength(Faccept,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2078,6 +2203,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRestMethod.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'parameterorder' : SetLength(FparameterOrder,ALength);
+  'scopes' : SetLength(Fscopes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2265,7 +2404,7 @@ end;
 Class Function TDiscoveryAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TDiscoveryAPI.APIbasePath : string;
@@ -2277,7 +2416,7 @@ end;
 Class Function TDiscoveryAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/discovery/v1/';
+  Result:='https://www.googleapis.com:443/discovery/v1/';
 end;
 
 Class Function TDiscoveryAPI.APIProtocol : string;
@@ -2364,7 +2503,7 @@ Function TDiscoveryAPI.CreateApisResource(AOwner : TComponent) : TApisResource;
 
 begin
   Result:=TApisResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

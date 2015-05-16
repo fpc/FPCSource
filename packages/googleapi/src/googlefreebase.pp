@@ -13,7 +13,7 @@ unit googlefreebase;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:53
+//Generated on: 16-5-15 08:53:03
 {$MODE objfpc}
 {$H+}
 
@@ -24,14 +24,14 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TReconcileCandidate = class;
-  TReconcileGet = class;
+  TReconcileCandidate = Class;
+  TReconcileGet = Class;
   TReconcileCandidateArray = Array of TReconcileCandidate;
   TReconcileGetArray = Array of TReconcileGet;
   //Anonymous types, using auto-generated names
-  TReconcileCandidateTypenotable = class;
-  TReconcileGetTypecosts = class;
-  TReconcileGetTypewarningItem = class;
+  TReconcileCandidateTypenotable = Class;
+  TReconcileGetTypecosts = Class;
+  TReconcileGetTypewarningItem = Class;
   TReconcileGetTypecandidateArray = Array of TReconcileCandidate;
   TReconcileGetTypewarningArray = Array of TReconcileGetTypewarningItem;
   
@@ -139,6 +139,10 @@ type
     Procedure Setcosts(AIndex : Integer; AValue : TReconcileGetTypecosts); virtual;
     Procedure Setmatch(AIndex : Integer; AValue : TReconcileCandidate); virtual;
     Procedure Setwarning(AIndex : Integer; AValue : TReconcileGetTypewarningArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property candidate : TReconcileGetTypecandidateArray Index 0 Read Fcandidate Write Setcandidate;
@@ -375,6 +379,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReconcileGet.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'candidate' : SetLength(Fcandidate,ALength);
+  'warning' : SetLength(Fwarning,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -451,7 +469,7 @@ end;
 Class Function TFreebaseAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TFreebaseAPI.APIbasePath : string;
@@ -463,7 +481,7 @@ end;
 Class Function TFreebaseAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/freebase/v1/';
+  Result:='https://www.googleapis.com:443/freebase/v1/';
 end;
 
 Class Function TFreebaseAPI.APIProtocol : string;

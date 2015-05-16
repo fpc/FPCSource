@@ -13,7 +13,7 @@ unit googlecivicinfo;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:50
+//Generated on: 16-5-15 08:53:00
 {$MODE objfpc}
 {$H+}
 
@@ -24,26 +24,26 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAdministrationRegion = class;
-  TAdministrativeBody = class;
-  TCandidate = class;
-  TChannel = class;
-  TContest = class;
-  TDivisionSearchResponse = class;
-  TDivisionSearchResult = class;
-  TElection = class;
-  TElectionOfficial = class;
-  TElectionsQueryResponse = class;
-  TElectoralDistrict = class;
-  TGeographicDivision = class;
-  TOffice = class;
-  TOfficial = class;
-  TPollingLocation = class;
-  TRepresentativeInfoData = class;
-  TRepresentativeInfoResponse = class;
-  TSimpleAddressType = class;
-  TSource = class;
-  TVoterInfoResponse = class;
+  TAdministrationRegion = Class;
+  TAdministrativeBody = Class;
+  TCandidate = Class;
+  TChannel = Class;
+  TContest = Class;
+  TDivisionSearchResponse = Class;
+  TDivisionSearchResult = Class;
+  TElection = Class;
+  TElectionOfficial = Class;
+  TElectionsQueryResponse = Class;
+  TElectoralDistrict = Class;
+  TGeographicDivision = Class;
+  TOffice = Class;
+  TOfficial = Class;
+  TPollingLocation = Class;
+  TRepresentativeInfoData = Class;
+  TRepresentativeInfoResponse = Class;
+  TSimpleAddressType = Class;
+  TSource = Class;
+  TVoterInfoResponse = Class;
   TAdministrationRegionArray = Array of TAdministrationRegion;
   TAdministrativeBodyArray = Array of TAdministrativeBody;
   TCandidateArray = Array of TCandidate;
@@ -65,8 +65,8 @@ type
   TSourceArray = Array of TSource;
   TVoterInfoResponseArray = Array of TVoterInfoResponse;
   //Anonymous types, using auto-generated names
-  TRepresentativeInfoDataTypedivisions = class;
-  TRepresentativeInfoResponseTypedivisions = class;
+  TRepresentativeInfoDataTypedivisions = Class;
+  TRepresentativeInfoResponseTypedivisions = Class;
   TAdministrationRegionTypesourcesArray = Array of TSource;
   TAdministrativeBodyTypeelectionOfficialsArray = Array of TElectionOfficial;
   TCandidateTypechannelsArray = Array of TChannel;
@@ -107,6 +107,10 @@ type
     Procedure Setlocal_jurisdiction(AIndex : Integer; AValue : TAdministrationRegion); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Setsources(AIndex : Integer; AValue : TAdministrationRegionTypesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property electionAdministrationBody : TAdministrativeBody Index 0 Read FelectionAdministrationBody Write SetelectionAdministrationBody;
@@ -151,6 +155,10 @@ type
     Procedure SetphysicalAddress(AIndex : Integer; AValue : TSimpleAddressType); virtual;
     Procedure Setvoter_services(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetvotingLocationFinderUrl(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property absenteeVotingInfoUrl : String Index 0 Read FabsenteeVotingInfoUrl Write SetabsenteeVotingInfoUrl;
@@ -193,6 +201,10 @@ type
     Procedure Setparty(AIndex : Integer; AValue : String); virtual;
     Procedure Setphone(AIndex : Integer; AValue : String); virtual;
     Procedure SetphotoUrl(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property candidateUrl : String Index 0 Read FcandidateUrl Write SetcandidateUrl;
@@ -269,6 +281,10 @@ type
     Procedure Setsources(AIndex : Integer; AValue : TContestTypesourcesArray); virtual;
     Procedure Setspecial(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property ballotPlacement : String Index 0 Read FballotPlacement Write SetballotPlacement;
@@ -303,6 +319,10 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setresults(AIndex : Integer; AValue : TDivisionSearchResponseTyperesultsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -324,6 +344,10 @@ type
     Procedure Setaliases(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetocdId(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property aliases : TStringArray Index 0 Read Faliases Write Setaliases;
@@ -394,6 +418,10 @@ type
     //Property setters
     Procedure Setelections(AIndex : Integer; AValue : TElectionsQueryResponseTypeelectionsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property elections : TElectionsQueryResponseTypeelectionsArray Index 0 Read Felections Write Setelections;
@@ -437,6 +465,10 @@ type
     Procedure SetalsoKnownAs(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure SetofficeIndices(AIndex : Integer; AValue : TintegerArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property alsoKnownAs : TStringArray Index 0 Read FalsoKnownAs Write SetalsoKnownAs;
@@ -465,6 +497,10 @@ type
     Procedure SetofficialIndices(AIndex : Integer; AValue : TintegerArray); virtual;
     Procedure Setroles(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setsources(AIndex : Integer; AValue : TOfficeTypesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property divisionId : String Index 0 Read FdivisionId Write SetdivisionId;
@@ -500,6 +536,10 @@ type
     Procedure Setphones(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetphotoUrl(AIndex : Integer; AValue : String); virtual;
     Procedure Seturls(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property address : TOfficialTypeaddressArray Index 0 Read Faddress Write Setaddress;
@@ -539,6 +579,10 @@ type
     Procedure Setsources(AIndex : Integer; AValue : TPollingLocationTypesourcesArray); virtual;
     Procedure SetstartDate(AIndex : Integer; AValue : String); virtual;
     Procedure SetvoterServices(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property address : TSimpleAddressType Index 0 Read Faddress Write Setaddress;
@@ -581,6 +625,10 @@ type
     Procedure Setdivisions(AIndex : Integer; AValue : TRepresentativeInfoDataTypedivisions); virtual;
     Procedure Setoffices(AIndex : Integer; AValue : TRepresentativeInfoDataTypeofficesArray); virtual;
     Procedure Setofficials(AIndex : Integer; AValue : TRepresentativeInfoDataTypeofficialsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property divisions : TRepresentativeInfoDataTypedivisions Index 0 Read Fdivisions Write Setdivisions;
@@ -621,6 +669,10 @@ type
     Procedure SetnormalizedInput(AIndex : Integer; AValue : TSimpleAddressType); virtual;
     Procedure Setoffices(AIndex : Integer; AValue : TRepresentativeInfoResponseTypeofficesArray); virtual;
     Procedure Setofficials(AIndex : Integer; AValue : TRepresentativeInfoResponseTypeofficialsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property divisions : TRepresentativeInfoResponseTypedivisions Index 0 Read Fdivisions Write Setdivisions;
@@ -712,6 +764,10 @@ type
     Procedure SetpollingLocations(AIndex : Integer; AValue : TVoterInfoResponseTypepollingLocationsArray); virtual;
     Procedure SetprecinctId(AIndex : Integer; AValue : String); virtual;
     Procedure Setstate(AIndex : Integer; AValue : TVoterInfoResponseTypestateArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property contests : TVoterInfoResponseTypecontestsArray Index 0 Read Fcontests Write Setcontests;
@@ -908,6 +964,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAdministrationRegion.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sources' : SetLength(Fsources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1045,6 +1114,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAdministrativeBody.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'electionofficials' : SetLength(FelectionOfficials,ALength);
+  'voter_services' : SetLength(Fvoter_services,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1131,6 +1214,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCandidate.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'channels' : SetLength(Fchannels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1358,6 +1454,22 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TContest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'candidates' : SetLength(Fcandidates,ALength);
+  'level' : SetLength(Flevel,ALength);
+  'roles' : SetLength(Froles,ALength);
+  'sources' : SetLength(Fsources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1384,6 +1496,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDivisionSearchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'results' : SetLength(Fresults,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1421,6 +1546,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDivisionSearchResult.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'aliases' : SetLength(Faliases,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1543,6 +1681,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TElectionsQueryResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'elections' : SetLength(Felections,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1617,6 +1768,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeographicDivision.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'alsoknownas' : SetLength(FalsoKnownAs,ALength);
+  'officeindices' : SetLength(FofficeIndices,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1683,6 +1848,22 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOffice.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'levels' : SetLength(Flevels,ALength);
+  'officialindices' : SetLength(FofficialIndices,ALength);
+  'roles' : SetLength(Froles,ALength);
+  'sources' : SetLength(Fsources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1770,6 +1951,23 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOfficial.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'address' : SetLength(Faddress,ALength);
+  'channels' : SetLength(Fchannels,ALength);
+  'emails' : SetLength(Femails,ALength);
+  'phones' : SetLength(Fphones,ALength);
+  'urls' : SetLength(Furls,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1868,6 +2066,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPollingLocation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sources' : SetLength(Fsources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1917,6 +2128,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRepresentativeInfoData.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'offices' : SetLength(Foffices,ALength);
+  'officials' : SetLength(Fofficials,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1987,6 +2212,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRepresentativeInfoResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'offices' : SetLength(Foffices,ALength);
+  'officials' : SetLength(Fofficials,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2198,6 +2437,24 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVoterInfoResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'contests' : SetLength(Fcontests,ALength);
+  'dropofflocations' : SetLength(FdropOffLocations,ALength);
+  'earlyvotesites' : SetLength(FearlyVoteSites,ALength);
+  'otherelections' : SetLength(FotherElections,ALength);
+  'pollinglocations' : SetLength(FpollingLocations,ALength);
+  'state' : SetLength(Fstate,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2446,7 +2703,7 @@ end;
 Class Function TCivicinfoAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TCivicinfoAPI.APIbasePath : string;
@@ -2458,7 +2715,7 @@ end;
 Class Function TCivicinfoAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/civicinfo/v2/';
+  Result:='https://www.googleapis.com:443/civicinfo/v2/';
 end;
 
 Class Function TCivicinfoAPI.APIProtocol : string;
@@ -2539,7 +2796,7 @@ Function TCivicinfoAPI.CreateDivisionsResource(AOwner : TComponent) : TDivisions
 
 begin
   Result:=TDivisionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2563,7 +2820,7 @@ Function TCivicinfoAPI.CreateElectionsResource(AOwner : TComponent) : TElections
 
 begin
   Result:=TElectionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2587,7 +2844,7 @@ Function TCivicinfoAPI.CreateRepresentativesResource(AOwner : TComponent) : TRep
 
 begin
   Result:=TRepresentativesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

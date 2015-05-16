@@ -1,33 +1,17 @@
-{ Base Google service API classes
+{ **********************************************************************
+    This file is part of the Free Component Library (FCL)
+    Copyright (c) 2015 The free pascal team.
 
-  Copyright (C) 2015 Michael Van Canneyt michael@freepascal.org
+    Base Google service API classes
 
-  This library is free software; you can redistribute it and/or modify it
-  under the terms of the GNU Library General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or (at your
-  option) any later version with the following modification:
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,and
-  to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a
-  module which is not derived from or based on this library. If you modify
-  this library, you may extend this exception to your version of the library,
-  but you are not obligated to do so. If you do not wish to do so, delete this
-  exception statement from your version.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-  This program is distributed in the hope that it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Library General Public License
-  for more details.
-
-  You should have received a copy of the GNU Library General Public License
-  along with this library; if not, write to the Free Software Foundation,
-  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-}
-
+ **********************************************************************}
 unit googleservice;
 
 {$mode objfpc}{$H+}
@@ -83,6 +67,7 @@ Type
     procedure SetGoogleClient(AValue: TGoogleClient);
   Protected
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    Function API : TGoogleAPI;// Used when creating resources.
   Public
     // All info in one fell swoop
     Class Function APIInfo : TAPIInfo; virtual;
@@ -381,7 +366,7 @@ end;
 
 { TGoogleAPI }
 
-class function TGoogleAPI.APIName: String;
+Class Function TGoogleAPI.APIName: String;
 begin
   Result:=ClassName;
   if UpCase(Result[1])='T' then
@@ -390,7 +375,7 @@ begin
     Result:=Copy(Result,1,Length(Result)-7);
 end;
 
-class function TGoogleAPI.APINeedsAuth: Boolean;
+Class Function TGoogleAPI.APINeedsAuth: Boolean;
 begin
   Result:=Length(APIAuthScopes)<>0;
 end;
@@ -405,7 +390,7 @@ begin
     FGoogleClient.FreeNotification(Self);
 end;
 
-procedure TGoogleAPI.Notification(AComponent: TComponent; Operation: TOperation
+Procedure TGoogleAPI.Notification(AComponent: TComponent; Operation: TOperation
   );
 begin
   inherited Notification(AComponent, Operation);
@@ -413,7 +398,12 @@ begin
     FGoogleClient:=Nil;
 end;
 
-class function TGoogleAPI.APIInfo: TAPIInfo;
+Function TGoogleAPI.API: TGoogleAPI;
+begin
+  Result:=Self;
+end;
+
+Class Function TGoogleAPI.APIInfo: TAPIInfo;
 begin
   Result.Name:=APIName;
   Result.Version:=APIVersion;
@@ -435,17 +425,17 @@ begin
   Result.AuthScopes:=APIAuthScopes;
 end;
 
-class procedure TGoogleAPI.RegisterAPI;
+Class Procedure TGoogleAPI.RegisterAPI;
 begin
   APIFactory.RegisterAPI(Self);
 end;
 
-class procedure TGoogleAPI.RegisterAPIResources;
+Class Procedure TGoogleAPI.RegisterAPIResources;
 begin
   // needs to be implemented in descendents
 end;
 
-function TGoogleAPI.ServiceCall(const AResource: TGoogleResource; AMethod,
+Function TGoogleAPI.ServiceCall(Const AResource: TGoogleResource; AMethod,
   APath, AQuery: String; AInput: TGoogleBaseObject;
   AReturnClass: TGoogleBaseObjectClass): TGoogleBaseObject;
 
@@ -503,7 +493,7 @@ begin
     end;
 end;
 
-function TGoogleAPI.ServiceCall(const AResource: TGoogleResource; AMethod,
+Function TGoogleAPI.ServiceCall(Const AResource: TGoogleResource; AMethod,
   APath, AQuery, AInput: String): String;
 
 Var
@@ -521,8 +511,10 @@ begin
   try
     Req:=googleclient.WebClient.CreateRequest;
     if (AInput<>'') then
+      begin
       Req.Headers.Values['Content-type']:='application/json';
-    Req.SetContentFromString(AInput);
+      Req.SetContentFromString(AInput);
+      end;
     If Not APINeedsAuth then
       Resp:=googleclient.WebClient.ExecuteRequest(AMethod,URL,Req)
     else
@@ -536,8 +528,8 @@ begin
   end;
 end;
 
-function TGoogleAPI.SubstitutePath(const AResource, APath: String;
-  const Args: array of const): String;
+Function TGoogleAPI.SubstitutePath(Const AResource, APath: String;
+  Const Args: Array of const): String;
 
 Var
   N,V : String;
@@ -577,14 +569,14 @@ begin
     end;
 end;
 
-function TGoogleAPI.CreateResource(AClass: TGoogleResourceClass
+Function TGoogleAPI.CreateResource(AClass: TGoogleResourceClass
   ): TGoogleResource;
 begin
   Result:=AClass.Create(Self);
   Result.SetAPI(Self);
 end;
 
-function TGoogleAPI.CreateResource(const Resource: String): TGoogleResource;
+Function TGoogleAPI.CreateResource(const Resource: String): TGoogleResource;
 begin
   Result:=CreateResource(APIFactory.GetResourceClass(Resource));
 end;

@@ -13,7 +13,7 @@ unit googlecontainer;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:51
+//Generated on: 16-5-15 08:53:01
 {$MODE objfpc}
 {$H+}
 
@@ -24,17 +24,16 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TCluster = class;
-  TCreateClusterRequest = class;
-  TListAggregatedClustersResponse = class;
-  TListAggregatedOperationsResponse = class;
-  TListClustersResponse = class;
-  TListOperationsResponse = class;
-  TMasterAuth = class;
-  TNodeConfig = class;
-  TOperation = class;
-  TServiceAccount = class;
-  TToken = class;
+  TCluster = Class;
+  TCreateClusterRequest = Class;
+  TListAggregatedClustersResponse = Class;
+  TListAggregatedOperationsResponse = Class;
+  TListClustersResponse = Class;
+  TListOperationsResponse = Class;
+  TMasterAuth = Class;
+  TNodeConfig = Class;
+  TOperation = Class;
+  TServiceAccount = Class;
   TClusterArray = Array of TCluster;
   TCreateClusterRequestArray = Array of TCreateClusterRequest;
   TListAggregatedClustersResponseArray = Array of TListAggregatedClustersResponse;
@@ -45,7 +44,6 @@ type
   TNodeConfigArray = Array of TNodeConfig;
   TOperationArray = Array of TOperation;
   TServiceAccountArray = Array of TServiceAccount;
-  TTokenArray = Array of TToken;
   //Anonymous types, using auto-generated names
   TListAggregatedClustersResponseTypeclustersArray = Array of TCluster;
   TListAggregatedOperationsResponseTypeoperationsArray = Array of TOperation;
@@ -143,6 +141,10 @@ type
   Protected
     //Property setters
     Procedure Setclusters(AIndex : Integer; AValue : TListAggregatedClustersResponseTypeclustersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property clusters : TListAggregatedClustersResponseTypeclustersArray Index 0 Read Fclusters Write Setclusters;
@@ -159,6 +161,10 @@ type
   Protected
     //Property setters
     Procedure Setoperations(AIndex : Integer; AValue : TListAggregatedOperationsResponseTypeoperationsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property operations : TListAggregatedOperationsResponseTypeoperationsArray Index 0 Read Foperations Write Setoperations;
@@ -175,6 +181,10 @@ type
   Protected
     //Property setters
     Procedure Setclusters(AIndex : Integer; AValue : TListClustersResponseTypeclustersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property clusters : TListClustersResponseTypeclustersArray Index 0 Read Fclusters Write Setclusters;
@@ -191,6 +201,10 @@ type
   Protected
     //Property setters
     Procedure Setoperations(AIndex : Integer; AValue : TListOperationsResponseTypeoperationsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property operations : TListOperationsResponseTypeoperationsArray Index 0 Read Foperations Write Setoperations;
@@ -233,6 +247,10 @@ type
     Procedure SetmachineType(AIndex : Integer; AValue : String); virtual;
     Procedure SetserviceAccounts(AIndex : Integer; AValue : TNodeConfigTypeserviceAccountsArray); virtual;
     Procedure SetsourceImage(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property machineType : String Index 0 Read FmachineType Write SetmachineType;
@@ -290,6 +308,10 @@ type
     //Property setters
     Procedure Setemail(AIndex : Integer; AValue : String); virtual;
     Procedure Setscopes(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property email : String Index 0 Read Femail Write Setemail;
@@ -298,32 +320,113 @@ type
   TServiceAccountClass = Class of TServiceAccount;
   
   { --------------------------------------------------------------------
-    TToken
+    TProjectsClustersResource
     --------------------------------------------------------------------}
   
-  TToken = Class(TGoogleBaseObject)
-  Private
-    FaccessToken : String;
-    FexpiryTimeSeconds : String;
-  Protected
-    //Property setters
-    Procedure SetaccessToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetexpiryTimeSeconds(AIndex : Integer; AValue : String); virtual;
+  TProjectsClustersResource = Class(TGoogleResource)
   Public
-  Published
-    Property accessToken : String Index 0 Read FaccessToken Write SetaccessToken;
-    Property expiryTimeSeconds : String Index 8 Read FexpiryTimeSeconds Write SetexpiryTimeSeconds;
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(projectId: string) : TListAggregatedClustersResponse;
   end;
-  TTokenClass = Class of TToken;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsOperationsResource
+    --------------------------------------------------------------------}
+  
+  TProjectsOperationsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function List(projectId: string) : TListAggregatedOperationsResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsZonesClustersResource
+    --------------------------------------------------------------------}
+  
+  TProjectsZonesClustersResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(projectId: string; zoneId: string; aCreateClusterRequest : TCreateClusterRequest) : TOperation;overload;
+    Function Delete(clusterId: string; projectId: string; zoneId: string) : TOperation;
+    Function Get(clusterId: string; projectId: string; zoneId: string) : TCluster;
+    Function List(projectId: string; zoneId: string) : TListClustersResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsZonesOperationsResource
+    --------------------------------------------------------------------}
+  
+  TProjectsZonesOperationsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(operationId: string; projectId: string; zoneId: string) : TOperation;
+    Function List(projectId: string; zoneId: string) : TListOperationsResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TProjectsZonesResource
+    --------------------------------------------------------------------}
+  
+  TProjectsZonesResource = Class(TGoogleResource)
+  Private
+    FClustersInstance : TProjectsZonesClustersResource;
+    FOperationsInstance : TProjectsZonesOperationsResource;
+    Function GetClustersInstance : TProjectsZonesClustersResource;virtual;
+    Function GetOperationsInstance : TProjectsZonesOperationsResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateClustersResource(AOwner : TComponent) : TProjectsZonesClustersResource;virtual;overload;
+    Function CreateClustersResource : TProjectsZonesClustersResource;virtual;overload;
+    Function CreateOperationsResource(AOwner : TComponent) : TProjectsZonesOperationsResource;virtual;overload;
+    Function CreateOperationsResource : TProjectsZonesOperationsResource;virtual;overload;
+    Property ClustersResource : TProjectsZonesClustersResource Read GetClustersInstance;
+    Property OperationsResource : TProjectsZonesOperationsResource Read GetOperationsInstance;
+  end;
+  
   
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
   
   TProjectsResource = Class(TGoogleResource)
+  Private
+    FClustersInstance : TProjectsClustersResource;
+    FOperationsInstance : TProjectsOperationsResource;
+    FZonesClustersInstance : TProjectsZonesClustersResource;
+    FZonesOperationsInstance : TProjectsZonesOperationsResource;
+    FZonesInstance : TProjectsZonesResource;
+    Function GetClustersInstance : TProjectsClustersResource;virtual;
+    Function GetOperationsInstance : TProjectsOperationsResource;virtual;
+    Function GetZonesClustersInstance : TProjectsZonesClustersResource;virtual;
+    Function GetZonesOperationsInstance : TProjectsZonesOperationsResource;virtual;
+    Function GetZonesInstance : TProjectsZonesResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateClustersResource(AOwner : TComponent) : TProjectsClustersResource;virtual;overload;
+    Function CreateClustersResource : TProjectsClustersResource;virtual;overload;
+    Function CreateOperationsResource(AOwner : TComponent) : TProjectsOperationsResource;virtual;overload;
+    Function CreateOperationsResource : TProjectsOperationsResource;virtual;overload;
+    Function CreateZonesClustersResource(AOwner : TComponent) : TProjectsZonesClustersResource;virtual;overload;
+    Function CreateZonesClustersResource : TProjectsZonesClustersResource;virtual;overload;
+    Function CreateZonesOperationsResource(AOwner : TComponent) : TProjectsZonesOperationsResource;virtual;overload;
+    Function CreateZonesOperationsResource : TProjectsZonesOperationsResource;virtual;overload;
+    Function CreateZonesResource(AOwner : TComponent) : TProjectsZonesResource;virtual;overload;
+    Function CreateZonesResource : TProjectsZonesResource;virtual;overload;
+    Property ClustersResource : TProjectsClustersResource Read GetClustersInstance;
+    Property OperationsResource : TProjectsOperationsResource Read GetOperationsInstance;
+    Property ZonesClustersResource : TProjectsZonesClustersResource Read GetZonesClustersInstance;
+    Property ZonesOperationsResource : TProjectsZonesOperationsResource Read GetZonesOperationsInstance;
+    Property ZonesResource : TProjectsZonesResource Read GetZonesInstance;
   end;
   
   
@@ -333,7 +436,17 @@ type
   
   TContainerAPI = Class(TGoogleAPI)
   Private
+    FProjectsClustersInstance : TProjectsClustersResource;
+    FProjectsOperationsInstance : TProjectsOperationsResource;
+    FProjectsZonesClustersInstance : TProjectsZonesClustersResource;
+    FProjectsZonesOperationsInstance : TProjectsZonesOperationsResource;
+    FProjectsZonesInstance : TProjectsZonesResource;
     FProjectsInstance : TProjectsResource;
+    Function GetProjectsClustersInstance : TProjectsClustersResource;virtual;
+    Function GetProjectsOperationsInstance : TProjectsOperationsResource;virtual;
+    Function GetProjectsZonesClustersInstance : TProjectsZonesClustersResource;virtual;
+    Function GetProjectsZonesOperationsInstance : TProjectsZonesOperationsResource;virtual;
+    Function GetProjectsZonesInstance : TProjectsZonesResource;virtual;
     Function GetProjectsInstance : TProjectsResource;virtual;
   Public
     //Override class functions with API info
@@ -358,9 +471,24 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateProjectsClustersResource(AOwner : TComponent) : TProjectsClustersResource;virtual;overload;
+    Function CreateProjectsClustersResource : TProjectsClustersResource;virtual;overload;
+    Function CreateProjectsOperationsResource(AOwner : TComponent) : TProjectsOperationsResource;virtual;overload;
+    Function CreateProjectsOperationsResource : TProjectsOperationsResource;virtual;overload;
+    Function CreateProjectsZonesClustersResource(AOwner : TComponent) : TProjectsZonesClustersResource;virtual;overload;
+    Function CreateProjectsZonesClustersResource : TProjectsZonesClustersResource;virtual;overload;
+    Function CreateProjectsZonesOperationsResource(AOwner : TComponent) : TProjectsZonesOperationsResource;virtual;overload;
+    Function CreateProjectsZonesOperationsResource : TProjectsZonesOperationsResource;virtual;overload;
+    Function CreateProjectsZonesResource(AOwner : TComponent) : TProjectsZonesResource;virtual;overload;
+    Function CreateProjectsZonesResource : TProjectsZonesResource;virtual;overload;
     Function CreateProjectsResource(AOwner : TComponent) : TProjectsResource;virtual;overload;
     Function CreateProjectsResource : TProjectsResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property ProjectsClustersResource : TProjectsClustersResource Read GetProjectsClustersInstance;
+    Property ProjectsOperationsResource : TProjectsOperationsResource Read GetProjectsOperationsInstance;
+    Property ProjectsZonesClustersResource : TProjectsZonesClustersResource Read GetProjectsZonesClustersInstance;
+    Property ProjectsZonesOperationsResource : TProjectsZonesOperationsResource Read GetProjectsZonesOperationsInstance;
+    Property ProjectsZonesResource : TProjectsZonesResource Read GetProjectsZonesInstance;
     Property ProjectsResource : TProjectsResource Read GetProjectsInstance;
   end;
 
@@ -575,6 +703,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListAggregatedClustersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'clusters' : SetLength(Fclusters,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -591,6 +732,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListAggregatedOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'operations' : SetLength(Foperations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -609,6 +763,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListClustersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'clusters' : SetLength(Fclusters,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -625,6 +792,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'operations' : SetLength(Foperations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -699,6 +879,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TNodeConfig.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'serviceaccounts' : SetLength(FserviceAccounts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -814,33 +1007,282 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TServiceAccount.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'scopes' : SetLength(Fscopes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
 { --------------------------------------------------------------------
-  TToken
+  TProjectsClustersResource
   --------------------------------------------------------------------}
 
 
-Procedure TToken.SetaccessToken(AIndex : Integer; AValue : String); 
+Class Function TProjectsClustersResource.ResourceName : String;
 
 begin
-  If (FaccessToken=AValue) then exit;
-  FaccessToken:=AValue;
-  MarkPropertyChanged(AIndex);
+  Result:='clusters';
+end;
+
+Class Function TProjectsClustersResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TcontainerAPI;
+end;
+
+Function TProjectsClustersResource.List(projectId: string) : TListAggregatedClustersResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{projectId}/clusters';
+  _Methodid   = 'container.projects.clusters.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListAggregatedClustersResponse) as TListAggregatedClustersResponse;
 end;
 
 
 
-Procedure TToken.SetexpiryTimeSeconds(AIndex : Integer; AValue : String); 
+{ --------------------------------------------------------------------
+  TProjectsOperationsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsOperationsResource.ResourceName : String;
 
 begin
-  If (FexpiryTimeSeconds=AValue) then exit;
-  FexpiryTimeSeconds:=AValue;
-  MarkPropertyChanged(AIndex);
+  Result:='operations';
+end;
+
+Class Function TProjectsOperationsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TcontainerAPI;
+end;
+
+Function TProjectsOperationsResource.List(projectId: string) : TListAggregatedOperationsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{projectId}/operations';
+  _Methodid   = 'container.projects.operations.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListAggregatedOperationsResponse) as TListAggregatedOperationsResponse;
 end;
 
 
+
+{ --------------------------------------------------------------------
+  TProjectsZonesClustersResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsZonesClustersResource.ResourceName : String;
+
+begin
+  Result:='clusters';
+end;
+
+Class Function TProjectsZonesClustersResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TcontainerAPI;
+end;
+
+Function TProjectsZonesClustersResource.Create(projectId: string; zoneId: string; aCreateClusterRequest : TCreateClusterRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{projectId}/zones/{zoneId}/clusters';
+  _Methodid   = 'container.projects.zones.clusters.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zoneId',zoneId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aCreateClusterRequest,TOperation) as TOperation;
+end;
+
+Function TProjectsZonesClustersResource.Delete(clusterId: string; projectId: string; zoneId: string) : TOperation;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{projectId}/zones/{zoneId}/clusters/{clusterId}';
+  _Methodid   = 'container.projects.zones.clusters.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['clusterId',clusterId,'projectId',projectId,'zoneId',zoneId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
+end;
+
+Function TProjectsZonesClustersResource.Get(clusterId: string; projectId: string; zoneId: string) : TCluster;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{projectId}/zones/{zoneId}/clusters/{clusterId}';
+  _Methodid   = 'container.projects.zones.clusters.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['clusterId',clusterId,'projectId',projectId,'zoneId',zoneId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TCluster) as TCluster;
+end;
+
+Function TProjectsZonesClustersResource.List(projectId: string; zoneId: string) : TListClustersResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{projectId}/zones/{zoneId}/clusters';
+  _Methodid   = 'container.projects.zones.clusters.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zoneId',zoneId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListClustersResponse) as TListClustersResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsZonesOperationsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsZonesOperationsResource.ResourceName : String;
+
+begin
+  Result:='operations';
+end;
+
+Class Function TProjectsZonesOperationsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TcontainerAPI;
+end;
+
+Function TProjectsZonesOperationsResource.Get(operationId: string; projectId: string; zoneId: string) : TOperation;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{projectId}/zones/{zoneId}/operations/{operationId}';
+  _Methodid   = 'container.projects.zones.operations.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['operationId',operationId,'projectId',projectId,'zoneId',zoneId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
+end;
+
+Function TProjectsZonesOperationsResource.List(projectId: string; zoneId: string) : TListOperationsResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{projectId}/zones/{zoneId}/operations';
+  _Methodid   = 'container.projects.zones.operations.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zoneId',zoneId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListOperationsResponse) as TListOperationsResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsZonesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsZonesResource.ResourceName : String;
+
+begin
+  Result:='zones';
+end;
+
+Class Function TProjectsZonesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TcontainerAPI;
+end;
+
+
+
+Function TProjectsZonesResource.GetClustersInstance : TProjectsZonesClustersResource;
+
+begin
+  if (FClustersInstance=Nil) then
+    FClustersInstance:=CreateClustersResource;
+  Result:=FClustersInstance;
+end;
+
+Function TProjectsZonesResource.CreateClustersResource : TProjectsZonesClustersResource;
+
+begin
+  Result:=CreateClustersResource(Self);
+end;
+
+
+Function TProjectsZonesResource.CreateClustersResource(AOwner : TComponent) : TProjectsZonesClustersResource;
+
+begin
+  Result:=TProjectsZonesClustersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsZonesResource.GetOperationsInstance : TProjectsZonesOperationsResource;
+
+begin
+  if (FOperationsInstance=Nil) then
+    FOperationsInstance:=CreateOperationsResource;
+  Result:=FOperationsInstance;
+end;
+
+Function TProjectsZonesResource.CreateOperationsResource : TProjectsZonesOperationsResource;
+
+begin
+  Result:=CreateOperationsResource(Self);
+end;
+
+
+Function TProjectsZonesResource.CreateOperationsResource(AOwner : TComponent) : TProjectsZonesOperationsResource;
+
+begin
+  Result:=TProjectsZonesOperationsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
 
 
 
@@ -859,6 +1301,126 @@ Class Function TProjectsResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TcontainerAPI;
+end;
+
+
+
+Function TProjectsResource.GetClustersInstance : TProjectsClustersResource;
+
+begin
+  if (FClustersInstance=Nil) then
+    FClustersInstance:=CreateClustersResource;
+  Result:=FClustersInstance;
+end;
+
+Function TProjectsResource.CreateClustersResource : TProjectsClustersResource;
+
+begin
+  Result:=CreateClustersResource(Self);
+end;
+
+
+Function TProjectsResource.CreateClustersResource(AOwner : TComponent) : TProjectsClustersResource;
+
+begin
+  Result:=TProjectsClustersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetOperationsInstance : TProjectsOperationsResource;
+
+begin
+  if (FOperationsInstance=Nil) then
+    FOperationsInstance:=CreateOperationsResource;
+  Result:=FOperationsInstance;
+end;
+
+Function TProjectsResource.CreateOperationsResource : TProjectsOperationsResource;
+
+begin
+  Result:=CreateOperationsResource(Self);
+end;
+
+
+Function TProjectsResource.CreateOperationsResource(AOwner : TComponent) : TProjectsOperationsResource;
+
+begin
+  Result:=TProjectsOperationsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetZonesClustersInstance : TProjectsZonesClustersResource;
+
+begin
+  if (FZonesClustersInstance=Nil) then
+    FZonesClustersInstance:=CreateZonesClustersResource;
+  Result:=FZonesClustersInstance;
+end;
+
+Function TProjectsResource.CreateZonesClustersResource : TProjectsZonesClustersResource;
+
+begin
+  Result:=CreateZonesClustersResource(Self);
+end;
+
+
+Function TProjectsResource.CreateZonesClustersResource(AOwner : TComponent) : TProjectsZonesClustersResource;
+
+begin
+  Result:=TProjectsZonesClustersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetZonesOperationsInstance : TProjectsZonesOperationsResource;
+
+begin
+  if (FZonesOperationsInstance=Nil) then
+    FZonesOperationsInstance:=CreateZonesOperationsResource;
+  Result:=FZonesOperationsInstance;
+end;
+
+Function TProjectsResource.CreateZonesOperationsResource : TProjectsZonesOperationsResource;
+
+begin
+  Result:=CreateZonesOperationsResource(Self);
+end;
+
+
+Function TProjectsResource.CreateZonesOperationsResource(AOwner : TComponent) : TProjectsZonesOperationsResource;
+
+begin
+  Result:=TProjectsZonesOperationsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TProjectsResource.GetZonesInstance : TProjectsZonesResource;
+
+begin
+  if (FZonesInstance=Nil) then
+    FZonesInstance:=CreateZonesResource;
+  Result:=FZonesInstance;
+end;
+
+Function TProjectsResource.CreateZonesResource : TProjectsZonesResource;
+
+begin
+  Result:=CreateZonesResource(Self);
+end;
+
+
+Function TProjectsResource.CreateZonesResource(AOwner : TComponent) : TProjectsZonesResource;
+
+begin
+  Result:=TProjectsZonesResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -882,7 +1444,7 @@ end;
 Class Function TContainerAPI.APIRevision : String;
 
 begin
-  Result:='20150420';
+  Result:='20150504';
 end;
 
 Class Function TContainerAPI.APIID : String;
@@ -936,7 +1498,7 @@ end;
 Class Function TContainerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TContainerAPI.APIbasePath : string;
@@ -948,7 +1510,7 @@ end;
 Class Function TContainerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/container/v1beta1/projects/';
+  Result:='https://www.googleapis.com:443/container/v1beta1/projects/';
 end;
 
 Class Function TContainerAPI.APIProtocol : string;
@@ -997,8 +1559,127 @@ begin
   TNodeConfig.RegisterObject;
   TOperation.RegisterObject;
   TServiceAccount.RegisterObject;
-  TToken.RegisterObject;
 end;
+
+
+Function TContainerAPI.GetProjectsClustersInstance : TProjectsClustersResource;
+
+begin
+  if (FProjectsClustersInstance=Nil) then
+    FProjectsClustersInstance:=CreateProjectsClustersResource;
+  Result:=FProjectsClustersInstance;
+end;
+
+Function TContainerAPI.CreateProjectsClustersResource : TProjectsClustersResource;
+
+begin
+  Result:=CreateProjectsClustersResource(Self);
+end;
+
+
+Function TContainerAPI.CreateProjectsClustersResource(AOwner : TComponent) : TProjectsClustersResource;
+
+begin
+  Result:=TProjectsClustersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TContainerAPI.GetProjectsOperationsInstance : TProjectsOperationsResource;
+
+begin
+  if (FProjectsOperationsInstance=Nil) then
+    FProjectsOperationsInstance:=CreateProjectsOperationsResource;
+  Result:=FProjectsOperationsInstance;
+end;
+
+Function TContainerAPI.CreateProjectsOperationsResource : TProjectsOperationsResource;
+
+begin
+  Result:=CreateProjectsOperationsResource(Self);
+end;
+
+
+Function TContainerAPI.CreateProjectsOperationsResource(AOwner : TComponent) : TProjectsOperationsResource;
+
+begin
+  Result:=TProjectsOperationsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TContainerAPI.GetProjectsZonesClustersInstance : TProjectsZonesClustersResource;
+
+begin
+  if (FProjectsZonesClustersInstance=Nil) then
+    FProjectsZonesClustersInstance:=CreateProjectsZonesClustersResource;
+  Result:=FProjectsZonesClustersInstance;
+end;
+
+Function TContainerAPI.CreateProjectsZonesClustersResource : TProjectsZonesClustersResource;
+
+begin
+  Result:=CreateProjectsZonesClustersResource(Self);
+end;
+
+
+Function TContainerAPI.CreateProjectsZonesClustersResource(AOwner : TComponent) : TProjectsZonesClustersResource;
+
+begin
+  Result:=TProjectsZonesClustersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TContainerAPI.GetProjectsZonesOperationsInstance : TProjectsZonesOperationsResource;
+
+begin
+  if (FProjectsZonesOperationsInstance=Nil) then
+    FProjectsZonesOperationsInstance:=CreateProjectsZonesOperationsResource;
+  Result:=FProjectsZonesOperationsInstance;
+end;
+
+Function TContainerAPI.CreateProjectsZonesOperationsResource : TProjectsZonesOperationsResource;
+
+begin
+  Result:=CreateProjectsZonesOperationsResource(Self);
+end;
+
+
+Function TContainerAPI.CreateProjectsZonesOperationsResource(AOwner : TComponent) : TProjectsZonesOperationsResource;
+
+begin
+  Result:=TProjectsZonesOperationsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TContainerAPI.GetProjectsZonesInstance : TProjectsZonesResource;
+
+begin
+  if (FProjectsZonesInstance=Nil) then
+    FProjectsZonesInstance:=CreateProjectsZonesResource;
+  Result:=FProjectsZonesInstance;
+end;
+
+Function TContainerAPI.CreateProjectsZonesResource : TProjectsZonesResource;
+
+begin
+  Result:=CreateProjectsZonesResource(Self);
+end;
+
+
+Function TContainerAPI.CreateProjectsZonesResource(AOwner : TComponent) : TProjectsZonesResource;
+
+begin
+  Result:=TProjectsZonesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
 
 
 Function TContainerAPI.GetProjectsInstance : TProjectsResource;
@@ -1020,7 +1701,7 @@ Function TContainerAPI.CreateProjectsResource(AOwner : TComponent) : TProjectsRe
 
 begin
   Result:=TProjectsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

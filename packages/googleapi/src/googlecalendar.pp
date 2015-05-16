@@ -13,7 +13,7 @@ unit googlecalendar;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:49
+//Generated on: 16-5-15 08:52:59
 {$MODE objfpc}
 {$H+}
 
@@ -24,30 +24,30 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TAcl = class;
-  TAclRule = class;
-  TCalendar = class;
-  TCalendarList = class;
-  TCalendarListEntry = class;
-  TCalendarNotification = class;
-  TChannel = class;
-  TColorDefinition = class;
-  TColors = class;
-  TError = class;
-  TEvent = class;
-  TEventAttachment = class;
-  TEventAttendee = class;
-  TEventDateTime = class;
-  TEventReminder = class;
-  TEvents = class;
-  TFreeBusyCalendar = class;
-  TFreeBusyGroup = class;
-  TFreeBusyRequest = class;
-  TFreeBusyRequestItem = class;
-  TFreeBusyResponse = class;
-  TSetting = class;
-  TSettings = class;
-  TTimePeriod = class;
+  TAcl = Class;
+  TAclRule = Class;
+  TCalendar = Class;
+  TCalendarList = Class;
+  TCalendarListEntry = Class;
+  TCalendarNotification = Class;
+  TChannel = Class;
+  TColorDefinition = Class;
+  TColors = Class;
+  TError = Class;
+  TEvent = Class;
+  TEventAttachment = Class;
+  TEventAttendee = Class;
+  TEventDateTime = Class;
+  TEventReminder = Class;
+  TEvents = Class;
+  TFreeBusyCalendar = Class;
+  TFreeBusyGroup = Class;
+  TFreeBusyRequest = Class;
+  TFreeBusyRequestItem = Class;
+  TFreeBusyResponse = Class;
+  TSetting = Class;
+  TSettings = Class;
+  TTimePeriod = Class;
   TAclArray = Array of TAcl;
   TAclRuleArray = Array of TAclRule;
   TCalendarArray = Array of TCalendar;
@@ -73,22 +73,22 @@ type
   TSettingsArray = Array of TSettings;
   TTimePeriodArray = Array of TTimePeriod;
   //Anonymous types, using auto-generated names
-  TAclRuleTypescope = class;
-  TCalendarListEntryTypenotificationSettings = class;
-  TChannelTypeparams = class;
-  TColorsTypecalendar = class;
-  TColorsTypeevent = class;
-  TEventTypecreator = class;
-  TEventTypeextendedPropertiesTypeprivate = class;
-  TEventTypeextendedPropertiesTypeshared = class;
-  TEventTypeextendedProperties = class;
-  TEventTypegadgetTypepreferences = class;
-  TEventTypegadget = class;
-  TEventTypeorganizer = class;
-  TEventTypereminders = class;
-  TEventTypesource = class;
-  TFreeBusyResponseTypecalendars = class;
-  TFreeBusyResponseTypegroups = class;
+  TAclRuleTypescope = Class;
+  TCalendarListEntryTypenotificationSettings = Class;
+  TChannelTypeparams = Class;
+  TColorsTypecalendar = Class;
+  TColorsTypeevent = Class;
+  TEventTypecreator = Class;
+  TEventTypeextendedPropertiesTypeprivate = Class;
+  TEventTypeextendedPropertiesTypeshared = Class;
+  TEventTypeextendedProperties = Class;
+  TEventTypegadgetTypepreferences = Class;
+  TEventTypegadget = Class;
+  TEventTypeorganizer = Class;
+  TEventTypereminders = Class;
+  TEventTypesource = Class;
+  TFreeBusyResponseTypecalendars = Class;
+  TFreeBusyResponseTypegroups = Class;
   TAclTypeitemsArray = Array of TAclRule;
   TCalendarListTypeitemsArray = Array of TCalendarListEntry;
   TCalendarListEntryTypedefaultRemindersArray = Array of TEventReminder;
@@ -121,6 +121,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextSyncToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -231,6 +235,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextSyncToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -251,6 +259,10 @@ type
   Protected
     //Property setters
     Procedure Setnotifications(AIndex : Integer; AValue : TCalendarListEntryTypenotificationSettingsTypenotificationsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property notifications : TCalendarListEntryTypenotificationSettingsTypenotificationsArray Index 0 Read Fnotifications Write Setnotifications;
@@ -301,6 +313,10 @@ type
     Procedure Setsummary(AIndex : Integer; AValue : String); virtual;
     Procedure SetsummaryOverride(AIndex : Integer; AValue : String); virtual;
     Procedure SettimeZone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accessRole : String Index 0 Read FaccessRole Write SetaccessRole;
@@ -657,6 +673,10 @@ type
     //Property setters
     Procedure Setoverrides(AIndex : Integer; AValue : TEventTyperemindersTypeoverridesArray); virtual;
     Procedure SetuseDefault(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property overrides : TEventTyperemindersTypeoverridesArray Index 0 Read Foverrides Write Setoverrides;
@@ -764,6 +784,10 @@ type
     Procedure Settransparency(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property anyoneCanAddSelf : boolean Index 0 Read FanyoneCanAddSelf Write SetanyoneCanAddSelf;
@@ -933,6 +957,10 @@ type
     Procedure Setsummary(AIndex : Integer; AValue : String); virtual;
     Procedure SettimeZone(AIndex : Integer; AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property accessRole : String Index 0 Read FaccessRole Write SetaccessRole;
@@ -961,6 +989,10 @@ type
     //Property setters
     Procedure Setbusy(AIndex : Integer; AValue : TFreeBusyCalendarTypebusyArray); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TFreeBusyCalendarTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property busy : TFreeBusyCalendarTypebusyArray Index 0 Read Fbusy Write Setbusy;
@@ -980,6 +1012,10 @@ type
     //Property setters
     Procedure Setcalendars(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TFreeBusyGroupTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property calendars : TStringArray Index 0 Read Fcalendars Write Setcalendars;
@@ -1007,6 +1043,10 @@ type
     Procedure SettimeMax(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SettimeMin(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SettimeZone(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property calendarExpansionMax : integer Index 0 Read FcalendarExpansionMax Write SetcalendarExpansionMax;
@@ -1133,6 +1173,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextSyncToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1638,6 +1682,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAcl.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1867,6 +1924,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCalendarList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1883,6 +1953,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCalendarListEntryTypenotificationSettings.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'notifications' : SetLength(Fnotifications,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2070,6 +2153,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCalendarListEntry.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'defaultreminders' : SetLength(FdefaultReminders,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2685,6 +2781,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEventTypereminders.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'overrides' : SetLength(Foverrides,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3090,6 +3199,20 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEvent.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'attendees' : SetLength(Fattendees,ALength);
+  'recurrence' : SetLength(Frecurrence,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3396,6 +3519,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEvents.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'defaultreminders' : SetLength(FdefaultReminders,ALength);
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3423,6 +3560,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFreeBusyCalendar.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'busy' : SetLength(Fbusy,ALength);
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3449,6 +3600,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFreeBusyGroup.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'calendars' : SetLength(Fcalendars,ALength);
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3516,6 +3681,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFreeBusyRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3720,6 +3898,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSettings.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4749,7 +4940,7 @@ end;
 Class Function TCalendarAPI.APIRevision : String;
 
 begin
-  Result:='20150401';
+  Result:='20150326';
 end;
 
 Class Function TCalendarAPI.APIID : String;
@@ -4803,7 +4994,7 @@ end;
 Class Function TCalendarAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TCalendarAPI.APIbasePath : string;
@@ -4815,7 +5006,7 @@ end;
 Class Function TCalendarAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/calendar/v3/';
+  Result:='https://www.googleapis.com:443/calendar/v3/';
 end;
 
 Class Function TCalendarAPI.APIProtocol : string;
@@ -4918,7 +5109,7 @@ Function TCalendarAPI.CreateAclResource(AOwner : TComponent) : TAclResource;
 
 begin
   Result:=TAclResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4942,7 +5133,7 @@ Function TCalendarAPI.CreateCalendarListResource(AOwner : TComponent) : TCalenda
 
 begin
   Result:=TCalendarListResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4966,7 +5157,7 @@ Function TCalendarAPI.CreateCalendarsResource(AOwner : TComponent) : TCalendarsR
 
 begin
   Result:=TCalendarsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4990,7 +5181,7 @@ Function TCalendarAPI.CreateChannelsResource(AOwner : TComponent) : TChannelsRes
 
 begin
   Result:=TChannelsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -5014,7 +5205,7 @@ Function TCalendarAPI.CreateColorsResource(AOwner : TComponent) : TColorsResourc
 
 begin
   Result:=TColorsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -5038,7 +5229,7 @@ Function TCalendarAPI.CreateEventsResource(AOwner : TComponent) : TEventsResourc
 
 begin
   Result:=TEventsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -5062,7 +5253,7 @@ Function TCalendarAPI.CreateFreebusyResource(AOwner : TComponent) : TFreebusyRes
 
 begin
   Result:=TFreebusyResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -5086,7 +5277,7 @@ Function TCalendarAPI.CreateSettingsResource(AOwner : TComponent) : TSettingsRes
 
 begin
   Result:=TSettingsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

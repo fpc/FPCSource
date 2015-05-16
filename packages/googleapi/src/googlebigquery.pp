@@ -13,7 +13,7 @@ unit googlebigquery;
   
    **********************************************************************
 }
-//Generated on: 9-5-15 13:22:49
+//Generated on: 16-5-15 08:52:59
 {$MODE objfpc}
 {$H+}
 
@@ -25,43 +25,43 @@ type
   
   //Top-level schema types
   TJsonValue = TJSONSchema;
-  TCsvOptions = class;
-  TDataset = class;
-  TDatasetList = class;
-  TDatasetReference = class;
-  TErrorProto = class;
-  TExternalDataConfiguration = class;
-  TGetQueryResultsResponse = class;
-  TJob = class;
-  TJobConfiguration = class;
-  TJobConfigurationExtract = class;
-  TJobConfigurationLink = class;
-  TJobConfigurationLoad = class;
-  TJobConfigurationQuery = class;
-  TJobConfigurationTableCopy = class;
-  TJobList = class;
-  TJobReference = class;
-  TJobStatistics = class;
-  TJobStatistics2 = class;
-  TJobStatistics3 = class;
-  TJobStatistics4 = class;
-  TJobStatus = class;
-  TJsonObject = class;
-  TProjectList = class;
-  TProjectReference = class;
-  TQueryRequest = class;
-  TQueryResponse = class;
-  TTable = class;
-  TTableCell = class;
-  TTableDataInsertAllRequest = class;
-  TTableDataInsertAllResponse = class;
-  TTableDataList = class;
-  TTableFieldSchema = class;
-  TTableList = class;
-  TTableReference = class;
-  TTableRow = class;
-  TTableSchema = class;
-  TViewDefinition = class;
+  TCsvOptions = Class;
+  TDataset = Class;
+  TDatasetList = Class;
+  TDatasetReference = Class;
+  TErrorProto = Class;
+  TExternalDataConfiguration = Class;
+  TGetQueryResultsResponse = Class;
+  TJob = Class;
+  TJobConfiguration = Class;
+  TJobConfigurationExtract = Class;
+  TJobConfigurationLink = Class;
+  TJobConfigurationLoad = Class;
+  TJobConfigurationQuery = Class;
+  TJobConfigurationTableCopy = Class;
+  TJobList = Class;
+  TJobReference = Class;
+  TJobStatistics = Class;
+  TJobStatistics2 = Class;
+  TJobStatistics3 = Class;
+  TJobStatistics4 = Class;
+  TJobStatus = Class;
+  TJsonObject = Class;
+  TProjectList = Class;
+  TProjectReference = Class;
+  TQueryRequest = Class;
+  TQueryResponse = Class;
+  TTable = Class;
+  TTableCell = Class;
+  TTableDataInsertAllRequest = Class;
+  TTableDataInsertAllResponse = Class;
+  TTableDataList = Class;
+  TTableFieldSchema = Class;
+  TTableList = Class;
+  TTableReference = Class;
+  TTableRow = Class;
+  TTableSchema = Class;
+  TViewDefinition = Class;
   TCsvOptionsArray = Array of TCsvOptions;
   TDatasetArray = Array of TDataset;
   TDatasetListArray = Array of TDatasetList;
@@ -100,14 +100,14 @@ type
   TTableSchemaArray = Array of TTableSchema;
   TViewDefinitionArray = Array of TViewDefinition;
   //Anonymous types, using auto-generated names
-  TDatasetTypeaccessItem = class;
-  TDatasetListTypedatasetsItem = class;
-  TJobConfigurationQueryTypetableDefinitions = class;
-  TJobListTypejobsItem = class;
-  TProjectListTypeprojectsItem = class;
-  TTableDataInsertAllRequestTyperowsItem = class;
-  TTableDataInsertAllResponseTypeinsertErrorsItem = class;
-  TTableListTypetablesItem = class;
+  TDatasetTypeaccessItem = Class;
+  TDatasetListTypedatasetsItem = Class;
+  TJobConfigurationQueryTypetableDefinitions = Class;
+  TJobListTypejobsItem = Class;
+  TProjectListTypeprojectsItem = Class;
+  TTableDataInsertAllRequestTyperowsItem = Class;
+  TTableDataInsertAllResponseTypeinsertErrorsItem = Class;
+  TTableListTypetablesItem = Class;
   TDatasetTypeaccessArray = Array of TDatasetTypeaccessItem;
   TDatasetListTypedatasetsArray = Array of TDatasetListTypedatasetsItem;
   TGetQueryResultsResponseTyperowsArray = Array of TTableRow;
@@ -219,6 +219,10 @@ type
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : String); virtual;
     Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property access : TDatasetTypeaccessArray Index 0 Read Faccess Write Setaccess;
@@ -277,6 +281,10 @@ type
     Procedure Setetag(AIndex : Integer; AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property datasets : TDatasetListTypedatasetsArray Index 0 Read Fdatasets Write Setdatasets;
@@ -352,6 +360,10 @@ type
     Procedure Setschema(AIndex : Integer; AValue : TTableSchema); virtual;
     Procedure SetsourceFormat(AIndex : Integer; AValue : String); virtual;
     Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property compression : String Index 0 Read Fcompression Write Setcompression;
@@ -392,6 +404,10 @@ type
     Procedure Setschema(AIndex : Integer; AValue : TTableSchema); virtual;
     Procedure SettotalBytesProcessed(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalRows(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property cacheHit : boolean Index 0 Read FcacheHit Write SetcacheHit;
@@ -500,6 +516,10 @@ type
     Procedure SetfieldDelimiter(AIndex : Integer; AValue : String); virtual;
     Procedure SetprintHeader(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetsourceTable(AIndex : Integer; AValue : TTableReference); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property compression : String Index 0 Read Fcompression Write Setcompression;
@@ -528,6 +548,10 @@ type
     Procedure SetdestinationTable(AIndex : Integer; AValue : TTableReference); virtual;
     Procedure SetsourceUri(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetwriteDisposition(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property createDisposition : String Index 0 Read FcreateDisposition Write SetcreateDisposition;
@@ -579,6 +603,10 @@ type
     Procedure SetsourceFormat(AIndex : Integer; AValue : String); virtual;
     Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetwriteDisposition(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property allowJaggedRows : boolean Index 0 Read FallowJaggedRows Write SetallowJaggedRows;
@@ -679,6 +707,10 @@ type
     Procedure SetsourceTable(AIndex : Integer; AValue : TTableReference); virtual;
     Procedure SetsourceTables(AIndex : Integer; AValue : TJobConfigurationTableCopyTypesourceTablesArray); virtual;
     Procedure SetwriteDisposition(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property createDisposition : String Index 0 Read FcreateDisposition Write SetcreateDisposition;
@@ -747,6 +779,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -864,6 +900,10 @@ type
   Protected
     //Property setters
     Procedure SetdestinationUriFileCounts(AIndex : Integer; AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property destinationUriFileCounts : TStringArray Index 0 Read FdestinationUriFileCounts Write SetdestinationUriFileCounts;
@@ -884,6 +924,10 @@ type
     Procedure SeterrorResult(AIndex : Integer; AValue : TErrorProto); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TJobStatusTypeerrorsArray); virtual;
     Procedure Setstate(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errorResult : TErrorProto Index 0 Read FerrorResult Write SeterrorResult;
@@ -952,6 +996,10 @@ type
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setprojects(AIndex : Integer; AValue : TProjectListTypeprojectsArray); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1041,6 +1089,10 @@ type
     Procedure Setschema(AIndex : Integer; AValue : TTableSchema); virtual;
     Procedure SettotalBytesProcessed(AIndex : Integer; AValue : String); virtual;
     Procedure SettotalRows(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property cacheHit : boolean Index 0 Read FcacheHit Write SetcacheHit;
@@ -1165,6 +1217,10 @@ type
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TTableDataInsertAllRequestTyperowsArray); virtual;
     Procedure SetskipInvalidRows(AIndex : Integer; AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property ignoreUnknownValues : boolean Index 0 Read FignoreUnknownValues Write SetignoreUnknownValues;
@@ -1186,6 +1242,10 @@ type
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TTableDataInsertAllResponseTypeinsertErrorsItemTypeerrorsArray); virtual;
     Procedure Setindex(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property errors : TTableDataInsertAllResponseTypeinsertErrorsItemTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
@@ -1205,6 +1265,10 @@ type
     //Property setters
     Procedure SetinsertErrors(AIndex : Integer; AValue : TTableDataInsertAllResponseTypeinsertErrorsArray); virtual;
     Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property insertErrors : TTableDataInsertAllResponseTypeinsertErrorsArray Index 0 Read FinsertErrors Write SetinsertErrors;
@@ -1230,6 +1294,10 @@ type
     Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TTableDataListTyperowsArray); virtual;
     Procedure SettotalRows(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1259,6 +1327,10 @@ type
     Procedure Setmode(AIndex : Integer; AValue : String); virtual;
     Procedure Setname(AIndex : Integer; AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -1316,6 +1388,10 @@ type
     Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
     Procedure Settables(AIndex : Integer; AValue : TTableListTypetablesArray); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1358,6 +1434,10 @@ type
   Protected
     //Property setters
     Procedure Setf(AIndex : Integer; AValue : TTableRowTypefArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property f : TTableRowTypefArray Index 0 Read Ff Write Setf;
@@ -1374,6 +1454,10 @@ type
   Protected
     //Property setters
     Procedure Setfields(AIndex : Integer; AValue : TTableSchemaTypefieldsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property fields : TTableSchemaTypefieldsArray Index 0 Read Ffields Write Setfields;
@@ -1858,6 +1942,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDataset.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'access' : SetLength(Faccess,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1951,6 +2048,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDatasetList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'datasets' : SetLength(Fdatasets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2103,6 +2213,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TExternalDataConfiguration.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sourceuris' : SetLength(FsourceUris,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2209,6 +2332,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGetQueryResultsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2451,6 +2587,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJobConfigurationExtract.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'destinationuris' : SetLength(FdestinationUris,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -2497,6 +2646,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJobConfigurationLink.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sourceuri' : SetLength(FsourceUri,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2674,6 +2836,20 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJobConfigurationLoad.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'projectionfields' : SetLength(FprojectionFields,ALength);
+  'sourceuris' : SetLength(FsourceUris,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2862,6 +3038,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJobConfigurationTableCopy.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sourcetables' : SetLength(FsourceTables,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3015,6 +3204,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJobList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'jobs' : SetLength(Fjobs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3211,6 +3413,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJobStatistics4.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'destinationurifilecounts' : SetLength(FdestinationUriFileCounts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3247,6 +3462,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TJobStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3374,6 +3602,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProjectList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'projects' : SetLength(Fprojects,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3575,6 +3816,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TQueryResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3835,6 +4089,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTableDataInsertAllRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3862,6 +4129,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTableDataInsertAllResponseTypeinsertErrorsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -3888,6 +4168,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTableDataInsertAllResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'inserterrors' : SetLength(FinsertErrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3945,6 +4238,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTableDataList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4013,6 +4319,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTableFieldSchema.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'fields' : SetLength(Ffields,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4139,6 +4458,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTableList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'tables' : SetLength(Ftables,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4193,6 +4525,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTableRow.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'f' : SetLength(Ff,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -4209,6 +4554,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTableSchema.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'fields' : SetLength(Ffields,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -4737,7 +5095,7 @@ end;
 Class Function TBigqueryAPI.APIRevision : String;
 
 begin
-  Result:='20141112';
+  Result:='20150326';
 end;
 
 Class Function TBigqueryAPI.APIID : String;
@@ -4791,7 +5149,7 @@ end;
 Class Function TBigqueryAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TBigqueryAPI.APIbasePath : string;
@@ -4803,7 +5161,7 @@ end;
 Class Function TBigqueryAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/bigquery/v2/';
+  Result:='https://www.googleapis.com:443/bigquery/v2/';
 end;
 
 Class Function TBigqueryAPI.APIProtocol : string;
@@ -4919,7 +5277,7 @@ Function TBigqueryAPI.CreateDatasetsResource(AOwner : TComponent) : TDatasetsRes
 
 begin
   Result:=TDatasetsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4943,7 +5301,7 @@ Function TBigqueryAPI.CreateJobsResource(AOwner : TComponent) : TJobsResource;
 
 begin
   Result:=TJobsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4967,7 +5325,7 @@ Function TBigqueryAPI.CreateProjectsResource(AOwner : TComponent) : TProjectsRes
 
 begin
   Result:=TProjectsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -4991,7 +5349,7 @@ Function TBigqueryAPI.CreateTabledataResource(AOwner : TComponent) : TTabledataR
 
 begin
   Result:=TTabledataResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -5015,7 +5373,7 @@ Function TBigqueryAPI.CreateTablesResource(AOwner : TComponent) : TTablesResourc
 
 begin
   Result:=TTablesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
