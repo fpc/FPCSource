@@ -54,7 +54,11 @@ interface
         final_asmnode : tasmnode;
         final_used : boolean;
         dfabuilder : TDFABuilder;
+
         destructor  destroy;override;
+
+        function calc_stackframe_size : longint;override;
+
         procedure printproc(pass:string);
         procedure generate_code;
         procedure generate_code_tree;
@@ -676,6 +680,12 @@ implementation
            final_asmnode.free;
          inherited destroy;
        end;
+
+
+    function tcgprocinfo.calc_stackframe_size:longint;
+      begin
+        result:=Align(tg.direction*tg.lasttemp,current_settings.alignment.localalignmin);
+      end;
 
 
     procedure tcgprocinfo.printproc(pass:string);
