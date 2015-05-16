@@ -60,6 +60,13 @@ Type
     procedure SetObjectOptions(AValue: TObjectOptions);
     Function GetAdditionalProperties : TJSONObject;
   protected
+{$ifdef ver2_6}
+    // Version 2.6.4 has a bug for i386 where the array cannot be set through RTTI.
+    // This is a helper method that sets the length of the array to the desired length,
+    // After which the new array pointer is read again.
+    // AName is guaranteed to be lowercase
+    Procedure SetArrayLength(const AName : String; ALength : Longint); virtual;
+{$endif}
     Procedure MarkPropertyChanged(AIndex : Integer);
     Function IsDateTimeProp(Info : PTypeInfo) : Boolean;
     Function DateTimePropType(Info : PTypeInfo) : TDateTimeType;
@@ -120,6 +127,18 @@ Type
   TObjectArray =  Array of TBaseObject;
   TObjectArrayArray =  Array of TObjectArray;
 
+  TBaseListEnumerator = class
+  private
+    FList: TFPObjectList;
+    FPosition: Integer;
+  public
+    constructor Create(AList: TFPObjectList);
+    function GetCurrent: TBaseObject; virtual;
+    function MoveNext: Boolean;
+    property Current: TBaseObject read GetCurrent;
+  end;
+  TBaseListEnumeratorClass = Class of TBaseListEnumerator;
+
   { TBaseObjectList }
 
   TBaseObjectList = Class(TBaseObject)
@@ -129,9 +148,11 @@ Type
     function GetO(Aindex : Integer): TBaseObject;
     procedure SetO(Aindex : Integer; AValue: TBaseObject);
     Class Function ObjectClass : TBaseObjectClass; virtual;
+    Function DoCreateEnumerator(AEnumClass : TBaseListEnumeratorClass) : TBaseListEnumerator;
   Public
     Constructor Create(AOptions : TObjectOptions = DefaultObjectOptions); Override;
     Destructor Destroy; override;
+    function GetEnumerator : TBaseListEnumerator;
     Function AddObject(Const AKind : String) : TBaseObject; virtual;
     Property Objects [Aindex : Integer] : TBaseObject Read GetO Write SetO; default;
   end;
@@ -447,24 +468,35 @@ begin
   FList[AIndex]:=AValue;
 end;
 
-Class Function TBaseObjectList.ObjectClass: TBaseObjectClass;
+class function TBaseObjectList.ObjectClass: TBaseObjectClass;
 begin
   Result:=TBaseObject;
 end;
 
-Constructor TBaseObjectList.Create(AOptions : TObjectOptions = DefaultObjectOptions);
+function TBaseObjectList.DoCreateEnumerator(AEnumClass: TBaseListEnumeratorClass
+  ): TBaseListEnumerator;
+begin
+  Result:=AEnumClass.Create(FList);
+end;
+
+constructor TBaseObjectList.Create(AOptions: TObjectOptions);
 begin
   inherited Create(AOptions);
   FList:=TFPObjectList.Create;
 end;
 
-Destructor TBaseObjectList.Destroy;
+destructor TBaseObjectList.Destroy;
 begin
   FreeAndNil(FList);
   inherited Destroy;
 end;
 
-Function TBaseObjectList.AddObject(const AKind : String): TBaseObject;
+function TBaseObjectList.GetEnumerator: TBaseListEnumerator;
+begin
+  Result:=TBaseListEnumerator.Create(FList);
+end;
+
+function TBaseObjectList.AddObject(const AKind: String): TBaseObject;
 
 Var
   C : TBaseObjectClass;
@@ -479,12 +511,31 @@ begin
   FList.Add(Result);
 end;
 
+constructor TBAseListEnumerator.Create(AList: TFPObjectList);
+begin
+  inherited Create;
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TBaseListEnumerator.GetCurrent: TBaseObject;
+begin
+  Result := TBaseObject(FList[FPosition]);
+end;
+
+function TBaseListEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FList.Count;
+end;
+
 { TBaseObject }
 
 function TBaseObject.GetDynArrayProp(P: PPropInfo): Pointer;
 begin
   Result:=Pointer(GetObjectProp(Self,P));
 end;
+
 
 procedure TBaseObject.SetDynArrayProp(P: PPropInfo; AValue: Pointer);
 begin
@@ -602,7 +653,7 @@ Var
   I : Integer;
   PA : ^pdynarraytypeinfo;
   ET : PTypeInfo;
-  AN : String;
+  LPN,AN : String;
   AP : Pointer;
   S : TJSONSchema;
 
@@ -644,13 +695,26 @@ begin
         FreeAndNil(O[i]);
       end;
     // Clear array
+{$ifdef ver2_6}
+    LPN:=Lowercase(P^.Name);
+    SetArrayLength(LPN,0);
+{$else}
     I:=0;
     DynArraySetLength(AP,P^.PropType,1,@i);
+{$endif}
     // Now, set new length
     I:=AValue.Count;
     // Writeln(ClassName,' (Array) Setting length of array property ',P^.Name,' (type: ',P^.PropType^.Name,')  to ',AValue.Count);
+{$ifdef ver2_6}
+    // Workaround for bug in 2.6.4 that cannot set the array prop correctly.
+    // Call helper routine and re-get array value
+    SetArrayLength(LPN,i);
+    AP:=GetObjectProp(Self,P);
+{$else}
     DynArraySetLength(AP,P^.PropType,1,@i);
+    I:=Length(TObjectArray(AP));
     SetDynArrayProp(P,AP);
+{$endif}
     // Fill in all elements
     For I:=0 to AValue.Count-1 do
       begin
@@ -1065,6 +1129,13 @@ begin
   Result:=fAdditionalProperties
 end;
 
+{$IFDEF VER2_6}
+procedure TBaseObject.SetArrayLength(Const AName: String; ALength: Longint);
+begin
+  Raise ERestAPI.CreateFmt('Unknown Array %s',[AName]);
+end;
+{$ENDIF}
+
 class function TBaseObject.AllowAdditionalProperties: Boolean;
 begin
   Result:=False;
@@ -1085,7 +1156,7 @@ Const
        'to;type;unit;until;uses;var;while;with;xor;dispose;exit;false;new;true;'+
        'as;class;dispinterface;except;exports;finalization;finally;initialization;'+
        'inline;is;library;on;out;packed;property;raise;resourcestring;threadvar;try;'+
-       'private;published;';
+       'private;published;length;setlength;';
 Var
   I : Integer;
 

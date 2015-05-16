@@ -31,6 +31,7 @@ Type
   Private
     FAddTimeStamp: Boolean;
     FBaseClassName: String;
+    FBaseListClassName: String;
     FClassPrefix: String;
     FExtraUnits: String;
     FLicenseText: TStrings;
@@ -68,6 +69,7 @@ Type
     Property Source : TStrings Read FSource;
   Published
     Property BaseClassName : String Read FBaseClassName Write FBaseClassName;
+    Property BaseListClassName : String Read FBaseListClassName Write FBaseListClassName;
     Property OutputUnitName : String Read FOutputUnitName Write FOutputUnitName;
     Property ExtraUnits : String Read FExtraUnits Write FExtraUnits;
     Property ClassPrefix : String Read FClassPrefix Write FClassPrefix;
