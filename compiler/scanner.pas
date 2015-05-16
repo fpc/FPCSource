@@ -273,7 +273,9 @@ implementation
       symbase,symtable,symtype,symsym,symconst,symdef,defutil,
       { This is needed for tcputype }
       cpuinfo,
-      fmodule
+      fmodule,
+      { this is needed for $I %CURRENTROUTINE%}
+      procinfo
 {$if FPC_FULLVERSION<20700}
       ,ccharset
 {$endif}
@@ -2372,40 +2374,35 @@ type
            path:=hs;
          { first check for internal macros }
            macroIsString:=true;
-           if hs='TIME' then
-            hs:=gettimestr
-           else
-            if hs='DATE' then
-             hs:=getdatestr
-           else
-            if hs='FILE' then
-             hs:=current_module.sourcefiles.get_file_name(current_filepos.fileindex)
-           else
-            if hs='LINE' then
-             hs:=tostr(current_filepos.line)
-           else
-            if hs='LINENUM' then
-              begin
-                hs:=tostr(current_filepos.line);
-                macroIsString:=false;
-              end
-           else
-            if hs='FPCVERSION' then
-             hs:=version_string
-           else
-            if hs='FPCDATE' then
-             hs:=date_string
-           else
-            if hs='FPCTARGET' then
-             hs:=target_cpu_string
-           else
-            if hs='FPCTARGETCPU' then
-             hs:=target_cpu_string
-           else
-            if hs='FPCTARGETOS' then
-             hs:=target_info.shortname
-           else
-             hs:=GetEnvironmentVariable(hs);
+           case hs of
+             'TIME':
+               hs:=gettimestr;
+             'DATE':
+               hs:=getdatestr;
+             'FILE':
+               hs:=current_module.sourcefiles.get_file_name(current_filepos.fileindex);
+             'LINE':
+               hs:=tostr(current_filepos.line);
+             'LINENUM':
+               begin
+                 hs:=tostr(current_filepos.line);
+                 macroIsString:=false;
+               end;
+             'FPCVERSION':
+               hs:=version_string;
+             'FPCDATE':
+               hs:=date_string;
+             'FPCTARGET':
+               hs:=target_cpu_string;
+             'FPCTARGETCPU':
+               hs:=target_cpu_string;
+             'FPCTARGETOS':
+               hs:=target_info.shortname;
+             'CURRENTROUTINE':
+               hs:=current_procinfo.procdef.procsym.RealName;
+             else
+               hs:=GetEnvironmentVariable(hs);
+           end;
            if hs='' then
             Message1(scan_w_include_env_not_found,path);
            { make it a stringconst }
