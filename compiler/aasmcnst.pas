@@ -389,6 +389,7 @@ implementation
 
    uses
      verbose,globals,systems,widestr,
+     fmodule,
      symbase,symtable,defutil;
 
 {****************************************************************************
@@ -1314,12 +1315,13 @@ implementation
        if optionalname<>'' then
          begin
            if optionalname[1]='$' then
-             found:=searchsym_type(copy(optionalname,2,length(optionalname)),srsym,srsymtable)
+             found:=searchsym_in_module(current_module,copy(optionalname,2,length(optionalname)),srsym,srsymtable)
            else
-             found:=searchsym_type(optionalname,srsym,srsymtable);
+             found:=searchsym_in_module(current_module,optionalname,srsym,srsymtable);
            if found then
              begin
-               if ttypesym(srsym).typedef.typ<>recorddef then
+               if (srsym.typ<>typesym) or
+                  (ttypesym(srsym).typedef.typ<>recorddef) then
                  internalerror(2014091207);
                result:=trecorddef(ttypesym(srsym).typedef);
                maybe_begin_aggregate(result);
