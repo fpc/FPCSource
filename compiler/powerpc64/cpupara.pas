@@ -146,7 +146,10 @@ begin
     filedef:
       result := LOC_REGISTER;
     arraydef:
-      result := LOC_REFERENCE;
+      if is_dynamic_array(p) then
+        getparaloc:=LOC_REGISTER
+      else
+        result := LOC_REFERENCE;
     setdef:
       if is_smallset(p) then
         result := LOC_REGISTER

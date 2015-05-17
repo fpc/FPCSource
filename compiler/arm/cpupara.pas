@@ -163,7 +163,10 @@ unit cpupara;
             filedef:
               getparaloc:=LOC_REGISTER;
             arraydef:
-              getparaloc:=LOC_REFERENCE;
+              if is_dynamic_array(p) then
+                getparaloc:=LOC_REGISTER
+              else
+                getparaloc:=LOC_REFERENCE;
             setdef:
               if is_smallset(p) then
                 getparaloc:=LOC_REGISTER
