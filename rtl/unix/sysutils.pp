@@ -396,10 +396,9 @@ begin
         fmShareCompat,
         fmShareExclusive:
           lockop:=LOCK_EX or LOCK_NB;
-        fmShareDenyWrite:
-          lockop:=LOCK_SH or LOCK_NB;
+        fmShareDenyWrite,
         fmShareDenyNone:
-          exit;
+          lockop:=LOCK_SH or LOCK_NB;
         else
           begin
             { fmShareDenyRead does not exit under *nix, only shared access
