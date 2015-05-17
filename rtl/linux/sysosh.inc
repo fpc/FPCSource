@@ -23,18 +23,12 @@ type
   { pthread_t is defined as an "unsigned long" }
   TThreadID = PtrUInt;
 
-  { pthread_mutex_t }
   PRTLCriticalSection = ^TRTLCriticalSection;
-  TRTLCriticalSection = record
-    __m_reserved: longint;
-    __m_count: longint;
-    __m_owner: pointer;
-    __m_kind:  longint;
-    __m_lock:  record
-       __status: sizeint;
-      __spinlock: longint;
-    end;
-  end;
+{$macro on}
+{$define MUTEXTYPENAME := TRTLCriticalSection}
+{$i pmutext.inc}
+{$undef MUTEXTYPENAME}
+{$macro off}
 
 
 

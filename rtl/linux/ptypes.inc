@@ -35,7 +35,6 @@ introduction)
 {$ifdef CPU64}
 const
   __SIZEOF_PTHREAD_ATTR_T = 56;
-  __SIZEOF_PTHREAD_MUTEX_T = 40;
   __SIZEOF_PTHREAD_MUTEXATTR_T = 4;
   __SIZEOF_PTHREAD_COND_T = 48;
   __SIZEOF_PTHREAD_CONDATTR_T = 4;
@@ -46,7 +45,6 @@ const
 {$else : not CPU64, i.e. CPU32}
 const
   __SIZEOF_PTHREAD_ATTR_T = 36;
-  __SIZEOF_PTHREAD_MUTEX_T = 24;
   __SIZEOF_PTHREAD_MUTEXATTR_T = 4;
   __SIZEOF_PTHREAD_COND_T = 48;
   __SIZEOF_PTHREAD_CONDATTR_T = 4;
@@ -245,24 +243,11 @@ Type
     __spinlock: cint;
   end;
 
-  pthread_mutex_t = record
-  {$ifdef USE_PTHREAD_SIZEOF}
-  case byte of
-   0 : (
-    	 __size : array[0..__SIZEOF_PTHREAD_MUTEX_T-1] of char;
-    	 __align : clong;
-       );
-  1 : (
-  {$endif}    	
-    __m_reserved: cint;
-    __m_count: cint;
-    __m_owner: pointer;
-    __m_kind:  cint;
-    __m_lock: _pthread_fastlock;
-  {$ifdef USE_PTHREAD_SIZEOF}
-       );
-  {$endif}    	
-  end;
+{$macro on}
+{$define MUTEXTYPENAME := pthread_mutex_t}
+{$i pmutext.inc}
+{$undef MUTEXTYPENAME}
+{$macro off}
 
   pthread_mutexattr_t = record
   {$ifdef USE_PTHREAD_SIZEOF}
