@@ -217,17 +217,6 @@ Type
     __sched_priority: cint;
   end;
 
-  { MIPS32 size of unions
-  __SIZEOF_PTHREAD_ATTR_T = 36;
-  __SIZEOF_PTHREAD_MUTEX_T = 24;
-  __SIZEOF_PTHREAD_MUTEXATTR_T = 4;
-  __SIZEOF_PTHREAD_COND_T = 48;
-  __SIZEOF_PTHREAD_CONDATTR_T = 4;
-  __SIZEOF_PTHREAD_RWLOCK_T = 32;
-  __SIZEOF_PTHREAD_RWLOCKATTR_T = 8;
-  __SIZEOF_PTHREAD_BARRIER_T = 20;
-  __SIZEOF_PTHREAD_BARRIERATTR_T = 4; }
-
   pthread_attr_t = record
   {$ifdef USE_PTHREAD_SIZEOF}
   case byte of
