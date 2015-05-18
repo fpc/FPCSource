@@ -1047,7 +1047,7 @@ end;
 
 procedure TStringField.SetFieldType(AValue: TFieldType);
 begin
-  if avalue in [ftString, ftFixedChar] then
+  if AValue in [ftString, ftFixedChar] then
     SetDataType(AValue);
 end;
 
@@ -1264,7 +1264,7 @@ end;
 
 procedure TWideStringField.SetFieldType(AValue: TFieldType);
 begin
-  if avalue in [ftWideString, ftFixedWideChar] then
+  if AValue in [ftWideString, ftFixedWideChar] then
     SetDataType(AValue);
 end;
 
@@ -1405,7 +1405,7 @@ constructor TLongintField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
-  SetDatatype(ftinteger);
+  SetDataType(ftInteger);
   FMinRange:=Low(LongInt);
   FMaxRange:=High(LongInt);
   FValidchars:=['+','-','0'..'9'];
@@ -1574,7 +1574,7 @@ constructor TLargeintField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
-  SetDatatype(ftLargeint);
+  SetDataType(ftLargeint);
   FMinRange:=Low(Largeint);
   FMaxRange:=High(Largeint);
   FValidchars:=['+','-','0'..'9'];
@@ -1937,7 +1937,7 @@ constructor TFloatField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
-  SetDatatype(ftFloat);
+  SetDataType(ftFloat);
   FPrecision:=15;
   FValidChars := [DecimalSeparator, '+', '-', '0'..'9', 'E', 'e'];
 end;
@@ -2782,7 +2782,7 @@ end;
 
 procedure TBlobField.SetBlobType(AValue: TBlobType);
 begin
-  SetFieldType(TFieldType(BlobType));
+  SetFieldType(TFieldType(AValue));
 end;
 
 procedure TBlobField.FreeBuffers;
@@ -3051,7 +3051,7 @@ end;
 procedure TBlobField.SetFieldType(AValue: TFieldType);
 begin
   if AValue in ftBlobTypes then
-    SetDatatype(AValue);
+    SetDataType(AValue);
 end;
 
 { TMemoField }
