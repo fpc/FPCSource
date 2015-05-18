@@ -2813,7 +2813,7 @@ function TBlobField.GetAsString: string;
 var
   Stream : TStream;
   Len    : Integer;
-  R : String;
+  S : String;
   
 begin
   Stream := GetBlobStream(bmRead);
@@ -2821,18 +2821,20 @@ begin
     with Stream do
       try
         Len := Size;
-        SetLength(R, Len);
+        SetLength(S, Len);
         if Len > 0 then
           begin
-          ReadBuffer(R[1], Len);
+          ReadBuffer(S[1], Len);
           if not Transliterate then
-            Result:=R
-          else  
+            Result := S
+          else
             begin
-            SetLength(Result,Len);
-            DataSet.Translate(@R[1],@Result[1],False);
+            SetLength(Result, Len);
+            DataSet.Translate(@S[1],@Result[1],False);
             end;
-          end;  
+          end
+        else
+          Result := '';
       finally
         Free;    
       end
@@ -2929,7 +2931,7 @@ end;
 procedure TBlobField.SetAsString(const AValue: string);
 var
   Len : Integer;
-  R : String;
+  S : String;
   
 begin
   with GetBlobStream(bmWrite) do
@@ -2938,13 +2940,13 @@ begin
       if (Len>0) then
         begin
         if Not Transliterate then
-          R:=AValue
+          S:=AValue
         else
           begin
-          SetLength(R,Len);
-          Len:=Dataset.Translate(@AValue[1],@R[1],True);
+          SetLength(S,Len);
+          Len:=DataSet.Translate(@AValue[1],@S[1],True);
           end;  
-        WriteBuffer(R[1], Len);
+        WriteBuffer(S[1], Len);
         end;
     finally
       Free;
