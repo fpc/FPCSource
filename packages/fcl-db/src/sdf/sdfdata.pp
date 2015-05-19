@@ -142,6 +142,9 @@ type
   end;
 //-----------------------------------------------------------------------------
 // TBaseTextDataSet
+
+  { TFixedFormatDataSet }
+
   TFixedFormatDataSet = class(TDataSet)
   private
     FSchema             :TStringList;
@@ -159,7 +162,7 @@ type
     procedure RemoveWhiteLines(List : TStrings; IsFileRecord : Boolean);
     procedure LoadFieldScheme(List : TStrings; MaxSize : Integer);
     function GetActiveRecBuf(out RecBuf: TRecordBuffer): Boolean;
-    procedure SetFieldPos(var Buffer : TRecordBuffer; FieldNo : Integer);
+    procedure SetFieldOfs(var Buffer : TRecordBuffer; FieldNo : Integer);
   protected
     FData               :TStringlist;
     FDataOffset         :Integer;
@@ -364,7 +367,11 @@ begin
     begin
       Len := StrToIntDef(LstFields.Values[LstFields.Names[i]], MaxLen);
       FieldDefs.Add(Trim(LstFields.Names[i]), ftString, Len, False);
-      Inc(FRecordSize, Len+1);
+      Inc(Len);
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+      Len := Align(Len, SizeOf(PtrInt));
+{$ENDIF}
+      Inc(FRecordSize, Len);
     end;
   finally
     LstFields.Free;
@@ -394,6 +401,9 @@ begin
   BindFields(TRUE);
   BookmarkSize := SizeOf(PtrInt);
   FRecInfoOfs := FRecordSize + CalcFieldsSize; // Initialize the offset for TRecInfo in the buffer
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+  FRecInfoOfs := Align(FRecInfoOfs, SizeOf(PtrInt));
+{$ENDIF}
   FRecBufSize := FRecInfoOfs + SizeOf(TRecInfo);
   FLastBookmark := FData.Count;
   FCurRec := FDataOffset - 1;
@@ -631,7 +641,7 @@ begin
   begin
     if Field.FieldNo > 0 then
     begin
-      SetFieldPos(TRecordBuffer(RecBuf), Field.FieldNo);
+      SetFieldOfs(TRecordBuffer(RecBuf), Field.FieldNo);
       Result := RecBuf < StrEnd(RecBuf); // just ''=Null
       if Result and Assigned(Buffer) then
       begin
@@ -676,7 +686,7 @@ begin
       Field.Validate(Buffer);
     if Assigned(Buffer) and (Field.FieldKind <> fkInternalCalc) then
     begin
-      SetFieldPos(TRecordBuffer(RecBuf), Field.FieldNo);
+      SetFieldOfs(TRecordBuffer(RecBuf), Field.FieldNo);
       Move(Buffer^, RecBuf[0], Field.DataSize);
     end;
   end
@@ -691,14 +701,18 @@ begin
     DataEvent(deFieldChange, PtrInt(Field));
 end;
 
-procedure TFixedFormatDataSet.SetFieldPos(var Buffer : TRecordBuffer; FieldNo : Integer);
+procedure TFixedFormatDataSet.SetFieldOfs(var Buffer : TRecordBuffer; FieldNo : Integer);
 var
-  i : Integer;
+  i, Len : Integer;
 begin
   i := 1;
   while (i < FieldNo) and (i < FieldDefs.Count) do
   begin
-    Inc(Buffer, FieldDefs.Items[i-1].Size+1);
+    Len := FieldDefs.Items[i-1].Size + 1;
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+    Len := Align(Len, SizeOf(PtrInt));
+{$ENDIF}
+    Inc(Buffer, Len);
     Inc(i);
   end;
 end;
