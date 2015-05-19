@@ -980,7 +980,7 @@ function TSQLite3Connection.GetConnectionInfo(InfoType: TConnInfoType): string;
 begin
   Result:='';
   try
-    InitializeSqlite(SQLiteDefaultLibrary);
+    InitializeSqlite;
     case InfoType of
       citServerType:
         Result:=TSQLite3ConnectionDef.TypeName;
@@ -1003,12 +1003,17 @@ procedure TSQLite3Connection.CreateDB;
 var filename: ansistring;
 begin
   CheckDisConnected;
-  filename := DatabaseName;
   try
-    checkerror(sqlite3_open(PAnsiChar(filename),@fhandle));
+    InitializeSqlite;
+    try
+      filename := DatabaseName;
+      checkerror(sqlite3_open(PAnsiChar(filename),@fhandle));
+    finally
+      sqlite3_close(fhandle);
+      fhandle := nil;
+    end;
   finally
-    sqlite3_close(fhandle);
-    fhandle := nil;
+    ReleaseSqlite;
   end;
 end;
 
