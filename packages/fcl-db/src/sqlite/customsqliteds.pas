@@ -1449,7 +1449,7 @@ var
   AFilter: String;
   i: Integer;
 begin
-  if not FMasterLink.Active or (FMasterLink.Dataset.RecordCount = 0) then //Retrieve all data
+  if not FMasterLink.Active then //Retrieve all data
     FEffectiveSQL := FSqlFilterTemplate
   else
   begin
