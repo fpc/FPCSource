@@ -1424,27 +1424,28 @@ begin
   end;
 end;
 
-// Specific functions 
+// Specific functions
+
+function GetFieldEqualExpression(AField: TField): String;
+begin
+  if not AField.IsNull then
+  begin
+    case AField.DataType of
+      //todo: handle " caracter properly
+      ftString, ftMemo:
+        Result := '"' + AField.AsString + '"';
+      ftDateTime, ftDate, ftTime:
+        Str(AField.AsDateTime, Result);
+    else
+      Result := AField.AsString;
+    end; //case
+    Result := ' = ' + Result;
+  end
+  else
+    Result := ' IS NULL';
+end;
 
 procedure TCustomSqliteDataset.SetDetailFilter;
-  function FieldToSqlStr(AField: TField): String;
-  begin
-    if not AField.IsNull then
-    begin
-      case AField.DataType of
-        //todo: handle " caracter properly
-        ftString, ftMemo:
-          Result := '"' + AField.AsString + '"';
-        ftDateTime, ftDate, ftTime:
-          Str(AField.AsDateTime, Result);
-      else
-        Result := AField.AsString;
-      end; //case
-    end
-    else
-      Result:=NullString;
-  end; //function
-
 var
   AFilter: String;
   i: Integer;
@@ -1456,7 +1457,7 @@ begin
     AFilter := ' where ';
     for i := 0 to FMasterLink.Fields.Count - 1 do
     begin
-      AFilter := AFilter + IndexFields[i].FieldName + ' = ' + FieldToSqlStr(TField(FMasterLink.Fields[i]));
+      AFilter := AFilter + IndexFields[i].FieldName + GetFieldEqualExpression(TField(FMasterLink.Fields[i]));
       if i <> FMasterLink.Fields.Count - 1 then
         AFilter := AFilter + ' and ';
     end;
