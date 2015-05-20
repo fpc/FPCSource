@@ -27,7 +27,7 @@ type
   _TElfRelocTable_= class
   private
     fList : TFPList;
-    fRelocType : byte;
+    fRelocType : longword;
     fEntrySize : integer;
     fSectionType : integer;
     fSectionName : string;

@@ -155,7 +155,7 @@ type
 
 type
   TElfRelocInfo = record
-    RelocType : byte;
+    RelocType : longword;
     SectionType : integer;
   end;
 (*
