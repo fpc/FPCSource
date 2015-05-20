@@ -186,7 +186,7 @@ Const
   OSCPUSupported : array[TOS,TCpu] of boolean = (
     { os          none   i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb  mips   mipsel jvm    i8086  aarch64 }
     { none }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false),
-    { linux }   ( false, true,  true,  true,  true,  true,  true,  true,  false, true , true , true , false, false, false),
+    { linux }   ( false, true,  true,  true,  true,  true,  true,  true,  false, true , true , true , false, false, true ),
     { go32v2 }  ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
     { win32 }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
     { os2 }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
@@ -2629,6 +2629,7 @@ begin
       x86_64:   result := GetGccDirArch('cpux86_64','-m64');
       powerpc:  result := GetGccDirArch('cpupowerpc','-m32');
       powerpc64:result := GetGccDirArch('cpupowerpc64','-m64');
+      aarch64:  result := GetGccDirArch('cpuaarch64','');
     end {case}
   else if OS = darwin then
     case CPU of
