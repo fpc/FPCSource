@@ -143,6 +143,10 @@ program fpc;
      ppcbin:='ppcarm';
      processorname:='arm';
 {$endif arm}
+{$ifdef aarch64}
+     ppcbin:='ppca64';
+     processorname:='aarch64';
+{$endif arm}
 {$ifdef sparc}
      ppcbin:='ppcsparc';
      processorname:='sparc';
@@ -202,7 +206,9 @@ program fpc;
                      else
                        if processorstr <> processorname then
                          begin
-                           if processorstr='arm' then
+                           if processorstr='aarch64' then
+                             cpusuffix:='a64'
+                           else if processorstr='arm' then
                              cpusuffix:='arm'
                            else if processorstr='i386' then
                              cpusuffix:='386'
