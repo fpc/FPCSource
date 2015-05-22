@@ -824,6 +824,74 @@ unit i_linux;
 {$endif FPC_ARMEL}
 {$endif FPC_ARMHF}
 
+       system_aarch64_linux_info  : tsysteminfo =
+          (
+            system       : system_aarch64_linux;
+            name         : 'Linux for AArch64';
+            shortname    : 'Linux';
+            flags        : [tf_needs_symbol_size,
+                            tf_needs_symbol_type,
+                            tf_files_case_sensitive,
+                            tf_requires_proper_alignment,
+                            tf_smartlink_sections,tf_pic_uses_got,
+                            tf_has_winlike_resources];
+            cpu          : cpu_aarch64;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_linux;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 8;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 16;
+                localalignmin   : 4;
+                localalignmax   : 16;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 16;
+            stacksize    : 8*1024*1024;
+            stackalign   : 16;
+            abi : abi_default;
+            llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-n32:64-S128'
+          );
+
        system_mipseb_linux_info : tsysteminfo =
           (
             system       : system_mipseb_LINUX;
@@ -1009,6 +1077,11 @@ initialization
     set_source_info(system_arm_linux_info);
   {$endif linux}
 {$endif CPUARM}
+{$ifdef cpuaarch64}
+  {$ifdef linux}
+    set_source_info(system_aarch64_linux_info);
+  {$endif linux}
+{$endif cpuaarch64}
 {$ifdef CPUMIPSEB}
   {$ifdef linux}
     set_source_info(system_mipseb_linux_info);

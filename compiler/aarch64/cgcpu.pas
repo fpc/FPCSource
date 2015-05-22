@@ -171,7 +171,7 @@ implementation
               the address of the entry itself from that page (can be relaxed by
               the linker in case the variable itself can be stored directly in
               the GOT) }
-            if target_info.system in systems_darwin then
+            if target_info.system in (systems_darwin + systems_linux) then
               begin
                 if (preferred_newbasereg=NR_NO) or
                    (ref.base=preferred_newbasereg) or
@@ -1631,9 +1631,7 @@ implementation
 
     procedure tcgaarch64.g_maybe_got_init(list : TAsmList);
       begin
-        { nothing to do on Darwin; check on ELF targets }
-        if not(target_info.system in systems_darwin) then
-          internalerror(2014112601);
+        { nothing to do on Darwin or Linux }
       end;
 
 

@@ -39,6 +39,10 @@ unit agcpugas;
         procedure WriteInstruction(hp : tai);override;
       end;
 
+      TAArch64Assembler=class(TGNUassembler)
+        constructor create(smart: boolean); override;
+      end;
+
       TAArch64AppleAssembler=class(TAppleGNUassembler)
         constructor create(smart: boolean); override;
         function MakeCmdLine: TCmdStr; override;
@@ -67,6 +71,16 @@ unit agcpugas;
        itcpugas,
        cgbase,cgutils;
 
+
+{****************************************************************************}
+{                      AArch64 Assembler writer                              }
+{****************************************************************************}
+
+    constructor TAArch64Assembler.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := TAArch64InstrWriter.create(self);
+      end;
 
 {****************************************************************************}
 {                      Apple AArch64 Assembler writer                        }
@@ -99,6 +113,8 @@ unit agcpugas;
       const
         darwin_addrpage2str: array[addr_page..addr_gotpageoffset] of string[11] =
            ('@PAGE','@PAGEOFF','@GOTPAGE','@GOTPAGEOFF');
+        linux_addrpage2str: array[addr_page..addr_gotpageoffset] of string[10] =
+           ('',':lo12:',':got:',':got_lo12:');
       begin
         if ref.base=NR_NO then
           begin
@@ -117,8 +133,7 @@ unit agcpugas;
                   if target_asm.id=as_darwin then
                     result:=ref.symbol.name+darwin_addrpage2str[ref.refaddr]
                   else
-                    { todo }
-                    internalerror(2014121502);
+                    result:=linux_addrpage2str[ref.refaddr]+ref.symbol.name
                 end
               else
                 internalerror(2015022301);
@@ -160,8 +175,7 @@ unit agcpugas;
                           if target_asm.id=as_darwin then
                             result:=result+', '+ref.symbol.name+darwin_addrpage2str[ref.refaddr]
                           else
-                            { todo }
-                            internalerror(2014122510);
+                            result:=result+', '+linux_addrpage2str[ref.refaddr]+ref.symbol.name
                         end
                       else
                         { todo: not yet generated/don't know syntax }
@@ -269,6 +283,19 @@ unit agcpugas;
 
 
     const
+       as_aarch64_gas_info : tasminfo =
+          (
+            id     : as_gas;
+            idtxt  : 'AS';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_aarch64_linux];
+            flags : [af_needar,af_smartlink_sections];
+            labelprefix : '.L';
+            comment : '// ';
+            dollarsign: '$';
+          );
+
        as_aarch64_gas_darwin_info : tasminfo =
           (
             id     : as_darwin;
@@ -284,5 +311,6 @@ unit agcpugas;
 
 
 begin
+  RegisterAssembler(as_aarch64_gas_info,TAArch64Assembler);
   RegisterAssembler(as_aarch64_gas_darwin_info,TAArch64AppleAssembler);
 end.

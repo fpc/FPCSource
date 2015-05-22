@@ -224,7 +224,7 @@ interface
        systems_android = [system_arm_android, system_i386_android, system_mipsel_android];
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
-                       system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux];
+                       system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux,system_aarch64_linux];
        systems_dragonfly = [system_x86_64_dragonfly];
        systems_freebsd = [system_i386_freebsd,
                           system_x86_64_freebsd];
@@ -958,8 +958,7 @@ begin
       default_target(system_aarch64_darwin);
     {$endif darwin}
     {$ifndef default_target_set}
-      { change to Linux once aarch64 Linux support has been implemented }
-      default_target(system_aarch64_darwin);
+      default_target(system_aarch64_linux);
       {$define default_target_set}
     {$endif}
   {$endif cpuaarch64}

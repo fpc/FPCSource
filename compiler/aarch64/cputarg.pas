@@ -36,7 +36,7 @@ implementation
 **************************************}
 
     {$ifndef NOTARGETLINUX}
-//      ,t_linux
+      ,t_linux
     {$endif}
     {$ifndef NOTARGETBSD}
       ,t_bsd
