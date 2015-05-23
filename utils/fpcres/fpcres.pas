@@ -253,6 +253,7 @@ begin
     mtmips : Result.MachineType:=emtmips;
     mtmipsel : Result.MachineType:=emtmipsel;
     mtppc64le : Result.MachineType:=emtppc64le;
+    mtaarch64 : Result.MachineType:=emtaarch64;
   end;
 end;
 
