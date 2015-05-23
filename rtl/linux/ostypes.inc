@@ -290,7 +290,12 @@ CONST
 {$endif not cpumips}
 {$endif not cpusparc}
 
-{$if defined(cpuarm) or defined(cpualpha) or defined(cpublackfin) or defined(cpum68k)}
+    AT_FDCWD = -100;
+    AT_REMOVEDIR = $200;
+    clone_flags_fork = $01200011;
+      { SIGCHLD | CLONE_CHILD_CLEARTID | CLONE_CHILD_SETTID }
+
+{$if defined(cpuarm) or defined(cpualpha) or defined(cpublackfin) or defined(cpum68k) or defined(aarch64)}
     O_LARGEFILE =   $20000;
 {$endif}
 {$if defined(cpusparc) or defined(cpusparc64)}

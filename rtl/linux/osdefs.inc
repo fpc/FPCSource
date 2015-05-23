@@ -85,3 +85,7 @@
   {$endif FPC_ABI_EABI}
 {$endif cpuarm}
 
+{$ifdef cpuaarch64}
+  {$define generic_linux_syscalls}
+  {$undef usestime}
+{$endif cpuaarch64}

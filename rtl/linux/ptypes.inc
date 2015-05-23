@@ -30,9 +30,19 @@ and all three 32-bit systems returned completely identical types too
 introduction)
 }
 
-{$ifdef CPUMIPS}
+{$if defined(CPUMIPS) or defined(cpuaarch64)}
 {$define USE_PTHREAD_SIZEOF}
-{$ifdef CPU64}
+{$if defined(cpuaarch64)}
+const
+  __SIZEOF_PTHREAD_ATTR_T = 64;
+  __SIZEOF_PTHREAD_MUTEXATTR_T = 8;
+  __SIZEOF_PTHREAD_COND_T = 48;
+  __SIZEOF_PTHREAD_CONDATTR_T = 8;
+  __SIZEOF_PTHREAD_RWLOCK_T = 56;
+  __SIZEOF_PTHREAD_RWLOCKATTR_T = 8;
+  __SIZEOF_PTHREAD_BARRIER_T = 32;
+  __SIZEOF_PTHREAD_BARRIERATTR_T = 8;
+{$elseif defined(CPU64)}
 const
   __SIZEOF_PTHREAD_ATTR_T = 56;
   __SIZEOF_PTHREAD_MUTEXATTR_T = 4;
@@ -53,7 +63,7 @@ const
   __SIZEOF_PTHREAD_BARRIER_T = 20;
   __SIZEOF_PTHREAD_BARRIERATTR_T = 4;
 {$endif CPU32}
-{$endif MIPS}
+{$endif}
 
 {$I ctypes.inc}
 {$packrecords c}

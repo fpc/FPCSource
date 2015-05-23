@@ -297,7 +297,11 @@ end;
 function fpgetpgrp : pid_t;
 
 begin
+{$if defined(generic_linux_syscalls)}
+ fpgetpgrp:=do_syscall(syscall_nr_getpgid,0);
+{$else}
  fpgetpgrp:=do_syscall(syscall_nr_getpgrp);
+{$endif}
 end;
 
 function fpsetsid : pid_t;
@@ -327,29 +331,59 @@ Function fplink(existing:pchar;newone:pchar):cint;
   In effect, new will be the same file as old.
 }
 begin
+{$if defined(generic_linux_syscalls)}
+  fpLink:=Do_Syscall(syscall_nr_linkat,AT_FDCWD,TSysParam(existing),AT_FDCWD,TSysParam(newone),0);
+{$else}
   fpLink:=Do_Syscall(syscall_nr_link,TSysParam(existing),TSysParam(newone));
+{$endif}
 end;
 
 Function fpmkfifo(path:pchar;mode:mode_t):cint;
 
 begin
 
+{$if defined(generic_linux_syscalls)}
+fpmkfifo:=do_syscall(syscall_nr_mknodat,AT_FDCWD,TSysParam(path),TSysParam(mode or S_IFIFO),TSysParam(0));
+{$else}
 fpmkfifo:=do_syscall(syscall_nr_mknod,TSysParam(path),TSysParam(mode or S_IFIFO),TSysParam(0));
+{$endif}
 end;
 
 Function fpchmod(path:pchar;mode:mode_t):cint;
 
 begin
+{$if defined(generic_linux_syscalls)}
+  fpchmod:=do_syscall(syscall_nr_fchmodat,AT_FDCWD,TSysParam(path),TSysParam(mode),0);
+{$else}
   fpchmod:=do_syscall(syscall_nr_chmod,TSysParam(path),TSysParam(mode));
+{$endif}
 end;
 
 Function fpchown(path:pchar;owner:uid_t;group:gid_t):cint;
 
 begin
+{$if defined(generic_linux_syscalls)}
+  fpChOwn:=do_syscall(syscall_nr_fchownat,AT_FDCWD,TSysParam(path),TSysParam(owner),TSysParam(group),0);
+{$else}
   fpChOwn:=do_syscall(syscall_nr_chown,TSysParam(path),TSysParam(owner),TSysParam(group));
+{$endif}
 end;
 
-{$ifndef NO_SYSCALL_UTIME}
+{$if defined(generic_linux_syscalls)}
+
+Function fpUtime(path:pchar;times:putimbuf):cint;
+var
+  tsa: Array[0..1] of timespec;
+begin
+  tsa[0].tv_sec := times^.actime;
+  tsa[0].tv_nsec := 0;
+  tsa[1].tv_sec := times^.modtime;
+  tsa[1].tv_nsec := 0;
+  fputime:=do_syscall(syscall_nr_utimensat,AT_FDCWD,TSysParam(path),
+                      TSysParam(@tsa),0);
+end;
+
+{$elseif not defined(NO_SYSCALL_UTIME)}
 
 Function fpUtime(path:pchar;times:putimbuf):cint;
 
@@ -377,7 +411,11 @@ end;
 Function fppipe(var fildes : tfildes):cint;
 
 begin
+{$if defined(generic_linux_syscalls)}
+ fppipe:=do_syscall(syscall_nr_pipe2,TSysParam(@fildes),0);
+{$else}
  fppipe:=do_syscall(syscall_nr_pipe,TSysParam(@fildes));
+{$endif}
 end;
 {$endif FPC_BASEUNIX_HAS_FPPIPE}
 
@@ -422,6 +460,18 @@ Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cin
   Select checks whether the file descriptor sets in readfs/writefs/exceptfs
   have changed.
 }
+{$if defined(generic_linux_syscalls)}
+
+var ts : timespec;
+begin
+  ts.tv_sec := timeout^.tv_sec;
+  ts.tv_nsec := timeout^.tv_usec * 1000;
+  fpSelect:=do_syscall(syscall_nr_pselect6,n,
+                       tsysparam(readfds),tsysparam(writefds),
+                       tsysparam(exceptfds),tsysparam(@ts),0);
+end;
+
+{$else}
 
 begin
 {$ifdef cpux86_64}
@@ -436,10 +486,22 @@ begin
 {$endif bunxfunc_fpselect_implemented}
 end;
 
+{$endif}
+
 function fpPoll(fds: ppollfd; nfds: cuint; timeout: clong): cint;
+{$if defined(generic_linux_syscalls)}
+var ts : timespec;
+begin
+  ts.tv_sec := timeout div 1000;
+  ts.tv_nsec := (timeout mod 1000) * 1000000;
+  fpPoll:=do_syscall(syscall_nr_ppoll,tsysparam(fds),tsysparam(nfds),
+                     tsysparam(@ts),0);
+end;
+{$else}
 begin
   fpPoll:=do_syscall(syscall_nr_poll,tsysparam(fds),tsysparam(nfds),tsysparam(timeout));
 end;
+{$endif}
 
 Function fpLstat(path:pchar;Info:pstat):cint;
 {
@@ -447,6 +509,9 @@ Function fpLstat(path:pchar;Info:pstat):cint;
 }
 
 begin
+{$if defined(generic_linux_syscalls)}
+ fpLStat:=do_syscall(syscall_nr_fstatat,AT_FDCWD,TSysParam(path),TSysParam(info),0)
+{$else}
  fpLStat:=do_syscall(
 {$ifdef cpu64}
     syscall_nr_lstat,
@@ -454,6 +519,7 @@ begin
     syscall_nr_lstat64,
 {$endif}
     TSysParam(path),TSysParam(info));
+{$endif}
 end;
 
 
@@ -465,12 +531,12 @@ function fpNice(N:cint):cint;
 Doesn't exist in BSD. Linux emu uses setpriority in a construct as below:
 }
 
-{$ifdef cpux86_64}
+{$if defined(generic_linux_syscalls) or defined(cpux86_64)}
 var
   oldprio : cint;
 {$endif}
 begin
-{$ifdef cpux86_64}
+{$if defined(generic_linux_syscalls) or defined(cpux86_64)}
   oldprio:=fpGetPriority(Prio_Process,0);
   fpNice:=fpSetPriority(Prio_Process,0,oldprio+N);
   if fpNice=0 then
@@ -536,7 +602,11 @@ Function fpSymlink(oldname,newname:pchar):cint;
 }
 
 begin
+{$if defined(generic_linux_syscalls)}
+  fpsymlink:=do_syscall(syscall_nr_symlinkat,TSysParam(oldname),AT_FDCWD,TSysParam(newname));
+{$else}
   fpsymlink:=do_syscall(syscall_nr_symlink,TSysParam(oldname),TSysParam(newname));
+{$endif}
 end;
 
 function Fppread(fd: cint; buf: pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PREAD'];

@@ -19,10 +19,12 @@
   from the system unit interface; macro's have to be on at this point
   because they're use to propagate the MUTEXTYPENAME here }
 
-{$ifdef CPUMIPS}
+{$if defined(CPUMIPS) or defined(cpuaarch64)}
 {$define USE_PTHREAD_SIZEOF}
 
-{$ifdef CPU64}
+{$if defined(cpuaarch64)}
+  {$define __SIZEOF_PTHREAD_MUTEX_T := 48}
+{$elseif defined(CPU64)}
   {$define __SIZEOF_PTHREAD_MUTEX_T := 40}
 {$else CPU64}
   {$define __SIZEOF_PTHREAD_MUTEX_T := 24}
