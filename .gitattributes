@@ -8029,6 +8029,7 @@ rtl/aix/termiosproc.inc svneol=native#text/plain
 rtl/aix/unxconst.inc svneol=native#text/plain
 rtl/aix/unxfunc.inc svneol=native#text/plain
 rtl/amicommon/README.TXT svneol=native#text/plain
+rtl/amicommon/athreads.pp svneol=native#text/plain
 rtl/amicommon/classes.pp svneol=native#text/plain
 rtl/amicommon/dos.pp svneol=native#text/plain
 rtl/amicommon/osdebug.inc svneol=native#text/plain
