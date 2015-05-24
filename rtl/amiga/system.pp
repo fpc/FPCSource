@@ -114,6 +114,7 @@ implementation
 
 {$I system.inc}
 {$I osdebug.inc}
+{$I m68kamiga.inc}
 
 {$IFDEF AMIGAOS4}
   // Required to allow opening of utility library interface...
