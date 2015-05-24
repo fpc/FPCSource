@@ -22,45 +22,45 @@
 
 function InterLockedDecrement (var Target: longint) : longint;
   begin
-    Forbid();
+    Forbid;
     Dec(Target);
     Result := Target;
-    Permit();
+    Permit;
   end;
 
 
 function InterLockedIncrement (var Target: longint) : longint;
   begin
-    Forbid()
+    Forbid;
     Inc(Target);
     Result := Target;
-    Permit();
+    Permit;
   end;
 
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint;
   begin
-    Forbid();
+    Forbid;
     Result := Target;
     Target := Source;
-    Permit();
+    Permit;
   end;
 
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
   begin
-    Forbid();
+    Forbid;
     Result := Target;
     Target := Target + Source;
-    Permit();
+    Permit;
   end;
 
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
   begin
-    Forbid();
+    Forbid;
     Result := Target;
     if Target = Comperand then
       Target := NewValue;
-    Permit();
+    Permit;
   end;
