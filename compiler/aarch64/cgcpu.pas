@@ -165,66 +165,59 @@ implementation
             { no relative symbol support (needed) yet }
             if assigned(ref.relsymbol) then
               internalerror(2014111001);
-            { on Darwin: load the address from the GOT. There does not appear to
-              be a non-GOT variant. This consists of first loading the address
-              of the page containing the GOT entry for this variable, and then
-              the address of the entry itself from that page (can be relaxed by
-              the linker in case the variable itself can be stored directly in
-              the GOT) }
-            if target_info.system in (systems_darwin + systems_linux) then
+            { loading a symbol address (whether it's in the GOT or not) consists
+              of two parts: first load the page on which it is located, then
+              either the offset in the page or load the value at that offset in
+              the page. This final GOT-load can be relaxed by the linker in case
+              the variable itself can be stored directly in the GOT }
+            if (preferred_newbasereg=NR_NO) or
+               (ref.base=preferred_newbasereg) or
+               (ref.index=preferred_newbasereg) then
+              preferred_newbasereg:=getaddressregister(list);
+            { load the (GOT) page }
+            reference_reset_symbol(href,ref.symbol,0,8);
+            if ((ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) and
+                (ref.symbol.bind in [AB_LOCAL,AB_GLOBAL])) or
+               ((ref.symbol.typ=AT_DATA) and
+                (ref.symbol.bind=AB_LOCAL)) then
+              href.refaddr:=addr_page
+            else
+              href.refaddr:=addr_gotpage;
+            list.concat(taicpu.op_reg_ref(A_ADRP,preferred_newbasereg,href));
+            { load the GOT entry (= address of the variable) }
+            reference_reset_base(href,preferred_newbasereg,0,sizeof(pint));
+            href.symbol:=ref.symbol;
+            { code symbols defined in the current compilation unit do not
+              have to be accessed via the GOT }
+            if ((ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) and
+                (ref.symbol.bind in [AB_LOCAL,AB_GLOBAL])) or
+               ((ref.symbol.typ=AT_DATA) and
+                (ref.symbol.bind=AB_LOCAL)) then
               begin
-                if (preferred_newbasereg=NR_NO) or
-                   (ref.base=preferred_newbasereg) or
-                   (ref.index=preferred_newbasereg) then
-                  preferred_newbasereg:=getaddressregister(list);
-                { load the (GOT) page }
-                reference_reset_symbol(href,ref.symbol,0,8);
-                if ((ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) and
-                    (ref.symbol.bind in [AB_LOCAL,AB_GLOBAL])) or
-                   ((ref.symbol.typ=AT_DATA) and
-                    (ref.symbol.bind=AB_LOCAL)) then
-                  href.refaddr:=addr_page
-                else
-                  href.refaddr:=addr_gotpage;
-                list.concat(taicpu.op_reg_ref(A_ADRP,preferred_newbasereg,href));
-                { load the GOT entry (= address of the variable) }
-                reference_reset_base(href,preferred_newbasereg,0,sizeof(pint));
-                href.symbol:=ref.symbol;
-                { code symbols defined in the current compilation unit do not
-                  have to be accessed via the GOT }
-                if ((ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) and
-                    (ref.symbol.bind in [AB_LOCAL,AB_GLOBAL])) or
-                   ((ref.symbol.typ=AT_DATA) and
-                    (ref.symbol.bind=AB_LOCAL)) then
-                  begin
-                    href.base:=NR_NO;
-                    href.refaddr:=addr_pageoffset;
-                    list.concat(taicpu.op_reg_reg_ref(A_ADD,preferred_newbasereg,preferred_newbasereg,href));
-                  end
-                else
-                  begin
-                    href.refaddr:=addr_gotpageoffset;
-                    { use a_load_ref_reg() rather than directly encoding the LDR,
-                      so that we'll check the validity of the reference }
-                    a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,preferred_newbasereg);
-                  end;
-                { set as new base register }
-                if ref.base=NR_NO then
-                  ref.base:=preferred_newbasereg
-                else if ref.index=NR_NO then
-                  ref.index:=preferred_newbasereg
-                else
-                  begin
-                    { make sure it's valid in case ref.base is SP -> make it
-                      the second operand}
-                    a_op_reg_reg_reg(list,OP_ADD,OS_ADDR,preferred_newbasereg,ref.base,preferred_newbasereg);
-                    ref.base:=preferred_newbasereg
-                  end;
-                ref.symbol:=nil;
+                href.base:=NR_NO;
+                href.refaddr:=addr_pageoffset;
+                list.concat(taicpu.op_reg_reg_ref(A_ADD,preferred_newbasereg,preferred_newbasereg,href));
               end
             else
-              { todo }
-              internalerror(2014111003);
+              begin
+                href.refaddr:=addr_gotpageoffset;
+                { use a_load_ref_reg() rather than directly encoding the LDR,
+                  so that we'll check the validity of the reference }
+                a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,preferred_newbasereg);
+              end;
+            { set as new base register }
+            if ref.base=NR_NO then
+              ref.base:=preferred_newbasereg
+            else if ref.index=NR_NO then
+              ref.index:=preferred_newbasereg
+            else
+              begin
+                { make sure it's valid in case ref.base is SP -> make it
+                  the second operand}
+                a_op_reg_reg_reg(list,OP_ADD,OS_ADDR,preferred_newbasereg,ref.base,preferred_newbasereg);
+                ref.base:=preferred_newbasereg
+              end;
+            ref.symbol:=nil;
           end;
 
         { base & index }
