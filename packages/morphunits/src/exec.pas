@@ -555,7 +555,7 @@ type
   TMemList = packed record
     ml_Node      : TNode;
     ml_NumEntries: Word;
-    ml_ME        : PMemEntry;
+    ml_ME        : array [0..0] of TMemEntry;
   end;
 
 
