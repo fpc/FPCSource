@@ -68,6 +68,7 @@ interface
     procedure checktreenodetypes(n : tnode;typeset : tnodetypeset);
 
     procedure load_procvar_from_calln(var p1:tnode);
+    function get_local_or_para_sym(const aname: string): tsym;
     function maybe_call_procvar(var p1:tnode;tponly:boolean):boolean;
     function load_high_value_node(vs:tparavarsym):tnode;
     function load_self_node:tnode;
@@ -425,7 +426,7 @@ implementation
       end;
 
 
-    function get_local_or_para_sym(const aname:string):tsym;
+    function get_local_or_para_sym(const aname: string): tsym;
       var
         pd : tprocdef;
       begin

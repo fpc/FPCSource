@@ -121,6 +121,12 @@ interface
           procdefinitionderef : tderef;
           { tree that contains the pointer to the object for this method }
           methodpointer  : tnode;
+          { tree that contains the self/vmt parameter when this node was created
+            (so it's still valid when this node is processed in an inline
+             context)
+          }
+          call_self_node,
+          call_vmt_node: tnode;
           { initialize/finalization of temps }
           callinitblock,
           callcleanupblock : tblocknode;
@@ -1348,6 +1354,21 @@ implementation
          funcretnode:=nil;
          paralength:=-1;
          varargsparas:=nil;
+         if assigned(current_structdef) and
+            assigned(mp) then
+           begin
+             { can't determine now yet if it will be necessary or not, so
+               always create it if there is a 'self' symbol in the current
+               context }
+             if get_local_or_para_sym('self')<>nil then
+               call_self_node:=load_self_node;
+            { only needed when calling a destructor from an exception block in a
+              contructor of a TP-style object }
+            if is_object(current_structdef) and
+               (current_procinfo.procdef.proctypeoption=potype_constructor) and
+               (cnf_create_failed in callflags) then
+              call_vmt_node:=load_vmt_pointer_node;
+           end;
       end;
 
 
@@ -1470,6 +1491,8 @@ implementation
       begin
         callinitblock:=tblocknode(ppuloadnode(ppufile));
         methodpointer:=ppuloadnode(ppufile);
+        call_self_node:=ppuloadnode(ppufile);
+        call_vmt_node:=ppuloadnode(ppufile);
         callcleanupblock:=tblocknode(ppuloadnode(ppufile));
         funcretnode:=ppuloadnode(ppufile);
         inherited ppuload(t,ppufile);
@@ -1485,6 +1508,8 @@ implementation
       begin
         ppuwritenode(ppufile,callinitblock);
         ppuwritenode(ppufile,methodpointer);
+        ppuwritenode(ppufile,call_self_node);
+        ppuwritenode(ppufile,call_vmt_node);
         ppuwritenode(ppufile,callcleanupblock);
         ppuwritenode(ppufile,funcretnode);
         inherited ppuwrite(ppufile);
@@ -1501,6 +1526,10 @@ implementation
         procdefinitionderef.build(procdefinition);
         if assigned(methodpointer) then
           methodpointer.buildderefimpl;
+        if assigned(call_self_node) then
+          call_self_node.buildderefimpl;
+        if assigned(call_vmt_node) then
+          call_vmt_node.buildderefimpl;
         if assigned(callinitblock) then
           callinitblock.buildderefimpl;
         if assigned(callcleanupblock) then
@@ -1522,6 +1551,10 @@ implementation
         procdefinition:=tabstractprocdef(procdefinitionderef.resolve);
         if assigned(methodpointer) then
           methodpointer.derefimpl;
+        if assigned(call_self_node) then
+          call_self_node.derefimpl;
+        if assigned(call_vmt_node) then
+          call_vmt_node.derefimpl;
         if assigned(callinitblock) then
           callinitblock.derefimpl;
         if assigned(callcleanupblock) then
@@ -1583,6 +1616,14 @@ implementation
           n.methodpointer:=methodpointer.dogetcopy
         else
           n.methodpointer:=nil;
+        if assigned(call_self_node) then
+          n.call_self_node:=call_self_node.dogetcopy
+        else
+          n.call_self_node:=nil;
+        if assigned(call_vmt_node) then
+          n.call_vmt_node:=call_vmt_node.dogetcopy
+        else
+          n.call_vmt_node:=nil;
         { must be copied before the funcretnode, because the callcleanup block
           may contain a ttempdeletenode that sets the tempinfo of the
           corresponding temp to ti_nextref_set_hookoncopy_nil, and this nextref
@@ -2033,7 +2074,7 @@ implementation
         { inherited }
         else if (cnf_inherited in callnodeflags) then
           begin
-            selftree:=load_self_node;
+            selftree:=call_self_node;
            { we can call an inherited class static/method from a regular method
              -> self node must change from instance pointer to vmt pointer)
            }
@@ -2089,7 +2130,7 @@ implementation
                           end;
                       end
                     else
-                      selftree:=load_self_node
+                      selftree:=call_self_node
                   else
                     selftree:=methodpointer.getcopy;
                 end;
@@ -2126,7 +2167,7 @@ implementation
         else
           begin
             if methodpointer.nodetype=typen then
-              selftree:=load_self_node
+              selftree:=call_self_node
             else
               selftree:=methodpointer.getcopy;
           end;
@@ -2369,7 +2410,7 @@ implementation
              temp:=ctempcreatenode.create(objcsupertype,objcsupertype.size,tt_persistent,false);
              addstatement(statements,temp);
              { initialize objc_super record }
-             selftree:=load_self_node;
+             selftree:=call_self_node;
 
              { we can call an inherited class static/method from a regular method
                -> self node must change from instance pointer to vmt pointer)
@@ -2539,7 +2580,7 @@ implementation
             else
               { destructor called from exception block in constructor }
               if (cnf_create_failed in callnodeflags) then
-                vmttree:=ctypeconvnode.create_internal(load_vmt_pointer_node,voidpointertype)
+                vmttree:=ctypeconvnode.create_internal(call_vmt_node,voidpointertype)
             else
               { inherited call, no create/destroy }
               if (cnf_inherited in callnodeflags) then
@@ -3562,6 +3603,11 @@ implementation
                methodpointer:=nil;
                parameters:=nil;
              end;
+
+         if assigned(call_self_node) then
+           typecheckpass(call_self_node);
+         if assigned(call_vmt_node) then
+           typecheckpass(call_vmt_node);
 
          finally
            aktcallnode:=oldcallnode;
