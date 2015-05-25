@@ -1642,6 +1642,10 @@ type
     FCond: Pointer;
     FInitialSuspended: boolean;
 {$endif}
+{$if defined(amiga) or defined(morphos)}
+  private
+    FInitialSuspended: boolean;
+{$endif}
   public
     constructor Create(CreateSuspended: Boolean;
                        const StackSize: SizeUInt = DefaultStackSize);
