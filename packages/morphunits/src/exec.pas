@@ -544,7 +544,7 @@ type
   TMemEntry = packed record
     me_Un: packed record
     case Byte of
-      0 : (meu_Regs: DWord);
+      0 : (meu_Reqs: DWord);
       1 : (meu_Addr: Pointer)
     end;
     me_Length: DWord;
