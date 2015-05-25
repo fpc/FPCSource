@@ -1353,17 +1353,8 @@ implementation
 
     constructor tcallnode.create_procvar(l,r:tnode);
       begin
-         inherited create(calln,l,r);
-         symtableprocentry:=nil;
-         symtableproc:=nil;
-         methodpointer:=nil;
-         callinitblock:=nil;
-         callcleanupblock:=nil;
-         procdefinition:=nil;
-         callnodeflags:=[cnf_return_value_used];
-         funcretnode:=nil;
-         paralength:=-1;
-         varargsparas:=nil;
+         create(l,nil,nil,nil,[]);
+         right:=r;
       end;
 
 
