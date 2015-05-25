@@ -136,9 +136,23 @@ begin
       tmpNext:=p^.nextThread;
       if not p^.mainthread and p^.exited then
         begin
+{$IFDEF DEBUG_MT}
+          SysDebugLn('FPC AThreads: Releasing resources for thread ID:'+hexStr(Pointer(threadID)));
+{$ENDIF}
           while GetMsg(p^.replyPort) <> nil do begin end;
           DeleteMsgPort(p^.replyPort);
           dispose(p^.replyMsg);
+{$ifdef DEBUG_MT}
+          { When debug mode enabled, release the threadvars here, later, because the "normal" location }
+          { is too early, because debug messages on the thread might still use the heap manager (KB) }
+{$ifdef AMIGA}
+          ObtainSemaphore(ASYS_heapSemaphore);
+{$endif}
+          FreePooled(ASYS_heapPool,p^.threadVars,p^.threadVarsSize);
+{$ifdef AMIGA}
+          ReleaseSemaphore(ASYS_heapSemaphore);
+{$endif}
+{$endif}
           dispose(p);
           if pprev <> nil then
             pprev^.nextThread:=tmpNext;
@@ -313,13 +327,20 @@ begin
   p:=PThreadInfo(PProcess(FindTask(nil))^.pr_Task.tc_UserData);
   if (p <> nil) and (p^.threadVars <> nil) then
     begin
+{$ifndef DEBUG_MT}
+      { When debug mode is enabled, do not release threadvars here, because }
+      { Debug messages later might still need the heapmanager, which depends }
+      { on the threadvar (KB) }
 {$ifdef AMIGA}
       ObtainSemaphore(ASYS_heapSemaphore);
 {$endif}
       FreePooled(ASYS_heapPool,p^.threadVars,p^.threadVarsSize);
+      p^.threadVars:=nil;
+      p^.threadVarsSize:=0;
 {$ifdef AMIGA}
       ReleaseSemaphore(ASYS_heapSemaphore);
 {$endif}
+{$endif DEBUG_MT}
     end
   else
     begin
@@ -529,7 +550,7 @@ end;
 
 procedure AEndThread(ExitCode : DWord);
 begin
-  DoneThread;
+  { Do not call DoneThread here. It will be called by the threadfunction, when it exits. }
 end;
 
 
@@ -615,16 +636,28 @@ begin
   p:=GetThreadInfo(AThreadList,threadHandle);
   if (p <> nil) then
     begin
+      if not p^.exited then
+        begin
 {$ifdef DEBUG_MT}
-      SysDebugLn('FPC AThreads: Waiting for thread to exit, ID:'+hexStr(Pointer(threadHandle)));
+          SysDebugLn('FPC AThreads: Waiting for thread to exit, ID:'+hexStr(Pointer(threadHandle)));
 {$endif}
-      { WaitPort in SendMessageToThread will break the Forbid() state... }
-      if p^.suspended then
-        SendMessageToThread(m,p,toExit,true);
+          { WaitPort in SendMessageToThread will break the Forbid() state... }
+          if p^.suspended then
+            begin
+              SendMessageToThread(m,p,toExit,true);
+{$ifdef DEBUG_MT}
+              SysDebugLn('FPC AThreads: Signaled suspended thread to exit, ID:'+hexStr(Pointer(threadHandle)));
+{$endif}
+            end;
 
-      { WaitPort will break the Forbid() state... }
-      WaitPort(p^.replyPort);
-      GetMsg(p^.replyPort);
+          { WaitPort will break the Forbid() state... }
+          WaitPort(p^.replyPort);
+          GetMsg(p^.replyPort);
+        end
+      else
+{$ifdef DEBUG_MT}
+        SysDebugLn('FPC AThreads: Thread already exited, ID:'+hexStr(Pointer(threadHandle)));
+{$endif}
       AWaitForThreadTerminate:=DWord(p^.exitCode);
     end
   else
