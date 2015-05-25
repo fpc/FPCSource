@@ -1480,6 +1480,8 @@ implementation
          funcretnode.free;
          if assigned(varargsparas) then
            varargsparas.free;
+         call_self_node.free;
+         call_vmt_node.free;
 {$ifndef symansistr}
          stringdispose(fforcedprocname);
 {$endif symansistr}
@@ -2074,7 +2076,7 @@ implementation
         { inherited }
         else if (cnf_inherited in callnodeflags) then
           begin
-            selftree:=call_self_node;
+            selftree:=call_self_node.getcopy;
            { we can call an inherited class static/method from a regular method
              -> self node must change from instance pointer to vmt pointer)
            }
@@ -2130,7 +2132,7 @@ implementation
                           end;
                       end
                     else
-                      selftree:=call_self_node
+                      selftree:=call_self_node.getcopy
                   else
                     selftree:=methodpointer.getcopy;
                 end;
@@ -2167,7 +2169,7 @@ implementation
         else
           begin
             if methodpointer.nodetype=typen then
-              selftree:=call_self_node
+              selftree:=call_self_node.getcopy
             else
               selftree:=methodpointer.getcopy;
           end;
@@ -2410,7 +2412,7 @@ implementation
              temp:=ctempcreatenode.create(objcsupertype,objcsupertype.size,tt_persistent,false);
              addstatement(statements,temp);
              { initialize objc_super record }
-             selftree:=call_self_node;
+             selftree:=call_self_node.getcopy;
 
              { we can call an inherited class static/method from a regular method
                -> self node must change from instance pointer to vmt pointer)
@@ -2580,7 +2582,7 @@ implementation
             else
               { destructor called from exception block in constructor }
               if (cnf_create_failed in callnodeflags) then
-                vmttree:=ctypeconvnode.create_internal(call_vmt_node,voidpointertype)
+                vmttree:=ctypeconvnode.create_internal(call_vmt_node.getcopy,voidpointertype)
             else
               { inherited call, no create/destroy }
               if (cnf_inherited in callnodeflags) then
