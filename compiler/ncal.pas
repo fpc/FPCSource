@@ -3837,7 +3837,12 @@ implementation
                (methodpointer.nodetype=typen) and
                is_objectpascal_helper(ttypenode(methodpointer).typedef) and
                not ttypenode(methodpointer).helperallowed then
-             Message(parser_e_no_category_as_types);
+             begin
+               CGMessage(parser_e_no_category_as_types);
+               { we get an internal error when trying to insert the hidden
+                 parameters in this case }
+               exit;
+             end;
 
            { can we get rid of the call? }
            if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and
