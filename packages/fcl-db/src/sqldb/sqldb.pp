@@ -1224,7 +1224,7 @@ begin
     DatabaseError(SErrTransactionnSet);
 
   if not Connected then Open;
-  if not (ATransaction.Active or (stoUseImplicit in ATransaction.Options)) then
+  if not ATransaction.Active then
     ATransaction.MaybeStartTransaction;
 
   try
