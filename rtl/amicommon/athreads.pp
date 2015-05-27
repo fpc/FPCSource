@@ -30,7 +30,7 @@ procedure SetAThreadBaseName(s: String);
 implementation
 
 uses
-  sysutils, exec, amigados, utility;
+  exec, amigados, utility;
 
 const
   threadvarblocksize : dword = 0;
@@ -78,6 +78,14 @@ var
   AThreadNum: LongInt;
   AThreadListSemaphore: TSignalSemaphore;
 
+{$IFDEF DEBUG_MT}
+{ Simple IntToStr() replacement which works with ShortStrings }
+function IToStr(const i: LongInt): String;
+begin
+  Str(I,result);
+end;
+{$ENDIF}
+
 { Function to add a thread to the running threads list }
 procedure AddToThreadList(var l: PThreadInfo; ti: PThreadInfo);
 var
@@ -101,7 +109,7 @@ begin
   ti^.num:=AThreadNum;
   inc(AThreadListLen);
 {$IFDEF DEBUG_MT}
-  SysDebugLn('FPC AThreads: thread ID:'+hexstr(Pointer(ti^.threadID))+' added, now '+inttostr(AThreadListLen)+' thread(s) in list.');
+  SysDebugLn('FPC AThreads: thread ID:'+hexstr(Pointer(ti^.threadID))+' added, now '+IToStr(AThreadListLen)+' thread(s) in list.');
 {$ENDIF}
   ReleaseSemaphore(@AThreadListSemaphore);
 end;
@@ -282,9 +290,6 @@ procedure AAllocateThreadVars;
 var
   p: PThreadInfo;
 begin
-{$ifdef DEBUG_MT}
-  SysDebugLn('FPC AThreads: Allocating threadvars');
-{$endif}
   { we've to allocate the memory from system  }
   { because the FPC heap management uses      }
   { exceptions which use threadvars but       }
@@ -293,6 +298,9 @@ begin
   p:=PThreadInfo(PProcess(FindTask(nil))^.pr_Task.tc_UserData);
   if p <> nil then
     begin
+{$ifdef DEBUG_MT}
+      SysDebugLn('FPC AThreads: Allocating threadvars, ID:'+hexStr(Pointer(p^.threadID)));
+{$endif}
 {$ifdef AMIGA}
       ObtainSemaphore(ASYS_heapSemaphore);
 {$endif}
@@ -321,12 +329,12 @@ procedure AReleaseThreadVars;
 var
   p: PThreadInfo;
 begin
-{$ifdef DEBUG_MT}
-  SysDebugLn('FPC AThreads: Releasing threadvars');
-{$endif}
   p:=PThreadInfo(PProcess(FindTask(nil))^.pr_Task.tc_UserData);
   if (p <> nil) and (p^.threadVars <> nil) then
     begin
+{$ifdef DEBUG_MT}
+      SysDebugLn('FPC AThreads: Releasing threadvars, ID:'+hexStr(Pointer(p^.threadID)));
+{$endif}
 {$ifndef DEBUG_MT}
       { When debug mode is enabled, do not release threadvars here, because }
       { Debug messages later might still need the heapmanager, which depends }
@@ -385,10 +393,13 @@ var
   thisThread: PProcess;
   threadMsg: PThreadMsg;
   resumeMsg: PThreadMsg;
-  exitSuspend: boolean; // true if we have to exit instead of suspend
+  exitSuspend: boolean; // true if we have to exit instead of resuming
   threadInfo: PThreadInfo;
 begin
   thisThread:=PProcess(FindTask(nil));
+{$ifdef DEBUG_MT}
+  SysDebugLn('FPC AThreads: Entering subthread function, ID:'+hexStr(thisThread));
+{$endif}
 
   { wait for our start message to arrive, then fetch it }
   WaitPort(@thisThread^.pr_MsgPort);
@@ -403,11 +414,7 @@ begin
     because the exception management and io depends on threadvars }
   AAllocateThreadVars;
 
-{$ifdef DEBUG_MT}
-  { first debug line can't be before threadvar allocation }
-  SysDebugLn('FPC AThreads: Entering subthread function, ID:'+hexStr(thisThread));
-{$endif}
-
+  { Rename the thread into something sensible }
   if threadInfo^.name <> '' then
     begin
 {$ifdef DEBUG_MT}
@@ -436,7 +443,7 @@ begin
       threadInfo^.suspended:=false;
       ReplyMsg(PMessage(resumeMsg));
 {$ifdef DEBUG_MT}
-      SysDebugLn('FPC AThreads: Resuming subthread on entry, ID:'+hexStr(thisThread)+', resumed only to exit: '+inttostr(ord(exitSuspend)));
+      SysDebugLn('FPC AThreads: Resuming subthread on entry, ID:'+hexStr(thisThread)+', resumed only to exit: '+IToStr(ord(exitSuspend)));
 {$endif}
     end;
 
@@ -472,7 +479,11 @@ end;
 
 function CreateNewProc(Tags : Array Of PtrUInt) : PProcess;
 begin
+{$IFDEF AROS}
+  CreateNewProc:=AmigaDOS.CreateNewProc(@Tags[0]);
+{$ELSE}
   CreateNewProc:=CreateNewProcTagList(@Tags);
+{$ENDIF}
 end;
 
 function ABeginThread(sa : Pointer;stacksize : PtrUInt;
@@ -506,7 +517,7 @@ begin
   threadInfo^.suspended:=(creationFlags and CREATE_SUSPENDED) > 0;
 
 {$ifdef DEBUG_MT}
-  SysDebugLn('FPC AThreads: Starting new thread... Stack size: '+inttostr(threadInfo^.stackLen));
+  SysDebugLn('FPC AThreads: Starting new thread... Stack size: '+IToStr(threadInfo^.stackLen));
 {$endif}
   subThread:=CreateNewProc([
                            {$IFDEF MORPHOS}
@@ -538,7 +549,7 @@ begin
 {$endif}
   AddToThreadList(AThreadList,threadInfo);
   { AddToThreadList assigned us a number, so use it to name the thread }
-  threadInfo^.name:=GetAThreadBaseName+' #'+inttostr(threadInfo^.num);
+  threadInfo^.name:=GetAThreadBaseName+' #'+IToStr(threadInfo^.num);
   SendMessageToThread(threadMsg,threadInfo,toStart,true);
 
   ABeginThread:=ThreadId;
