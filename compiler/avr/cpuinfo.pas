@@ -58,6 +58,10 @@ Type
 
       ct_avrsim,
 
+      ct_attiny24,
+      ct_attiny44,
+      ct_attiny84,
+
       ct_atmega8,
       ct_atmega16,
       ct_atmega32,
@@ -133,6 +137,7 @@ Const
         eeprombase:0;
         eepromsize:4096;
         ),
+        (
    	controllertypestr:'ATTINY24';
         controllerunitstr:'ATTINYX4';
         flashbase:0;
@@ -142,6 +147,7 @@ Const
         eeprombase:0;
         eepromsize:128
         ),
+        (
    	controllertypestr:'ATTINY44';
         controllerunitstr:'ATTINYX4';
         flashbase:0;
@@ -151,6 +157,7 @@ Const
         eeprombase:0;
         eepromsize:256
         ),
+        (
    	controllertypestr:'ATTINY84';
         controllerunitstr:'ATTINYX4';
         flashbase:0;
