@@ -19,18 +19,25 @@ unit athreads;
 
 interface
 
-{$WARNING These should be in the system unit }
-{ some BeginThread flags we support }
-const
-  CREATE_SUSPENDED = 1;
-  STACK_SIZE_PARAM_IS_A_RESERVATION = 2;
-
 procedure SetAThreadBaseName(s: String);
+
 
 implementation
 
+{ enable this to compile athreads easily outside the RTL }
+{.$DEFINE ATHREADS_STANDALONE} 
+
+{$IFDEF ATHREADS_STANDALONE}
 uses
   exec, amigados, utility;
+{$ELSE}
+{ * Include sytem specific includes * }
+{$include execd.inc}
+{$include execf.inc}
+{$include timerd.inc}
+{$include doslibd.inc}
+{$include doslibf.inc}
+{$ENDIF}
 
 const
   threadvarblocksize : dword = 0;
@@ -195,7 +202,7 @@ begin
   if l = nil then
     exit;
 
-  ObtainSemaphore(@AThreadListSemaphore);
+  ObtainSemaphoreShared(@AThreadListSemaphore);
   p:=l;
   while (p <> nil) and (p^.threadID <> threadID) do
     p:=p^.nextThread;
@@ -209,7 +216,7 @@ var
   p: PThreadInfo;
 begin
   CountRunningThreads:=0;
-  ObtainSemaphore(@AThreadListSemaphore);
+  ObtainSemaphoreShared(@AThreadListSemaphore);
   p:=l;
   while p <> nil do
     begin
@@ -255,7 +262,7 @@ end;
 
 function GetAThreadBaseName: String;
 begin
-  ObtainSemaphore(@AThreadListSemaphore);
+  ObtainSemaphoreShared(@AThreadListSemaphore);
   GetAThreadBaseName:=SubThreadBaseName;
   ReleaseSemaphore(@AThreadListSemaphore);
 end;
@@ -383,11 +390,6 @@ begin
 end;
 
 
-{$IFDEF DEBUG_MT}
-{$PUSH}
-{ Because the string concat in SysDebugLn causes exception frames }
-{$IMPLICITEXCEPTIONS OFF}
-{$ENDIF}
 procedure ThreadFunc; cdecl;
 var
   thisThread: PProcess;
@@ -472,18 +474,11 @@ begin
   threadInfo^.exited:=true;
   PutMsg(threadInfo^.replyPort,threadInfo^.replyMsg);
 end;
-{$IFDEF DEBUG_MT}
-{$POP} { reset implicitexceptions state }
-{$ENDIF}
 
 
-function CreateNewProc(Tags : Array Of PtrUInt) : PProcess;
+function CreateNewProcess(const Tags : Array Of PtrUInt) : PProcess;
 begin
-{$IFDEF AROS}
-  CreateNewProc:=AmigaDOS.CreateNewProc(@Tags[0]);
-{$ELSE}
-  CreateNewProc:=CreateNewProcTagList(@Tags);
-{$ENDIF}
+  result:=CreateNewProc(@Tags[0]);
 end;
 
 function ABeginThread(sa : Pointer;stacksize : PtrUInt;
@@ -519,15 +514,14 @@ begin
 {$ifdef DEBUG_MT}
   SysDebugLn('FPC AThreads: Starting new thread... Stack size: '+IToStr(threadInfo^.stackLen));
 {$endif}
-  subThread:=CreateNewProc([
-                           {$IFDEF MORPHOS}
-                           NP_CodeType,CODETYPE_PPC,
-                           NP_PPCStackSize, threadInfo^.stacklen,
-                           {$ELSE}
-                           NP_StackSize, threadInfo^.stacklen,
-                           {$ENDIF}
-                           NP_Entry,PtrUInt(@ThreadFunc),
-                           TAG_DONE]);
+  subThread:=CreateNewProcess([NP_Entry,PtrUInt(@ThreadFunc),
+                               {$IFDEF MORPHOS}
+                               NP_CodeType,CODETYPE_PPC,
+                               NP_PPCStackSize,threadInfo^.stacklen,
+                               {$ELSE}
+                               NP_StackSize,threadInfo^.stacklen,
+                               {$ENDIF}
+                               TAG_DONE]);
   if subThread = nil then
     begin
 {$ifdef DEBUG_MT}
@@ -927,7 +921,7 @@ begin
     running in the background... So even waiting here forever is better than
     exiting with active threads, which will most likely just kill the OS
     immediately. (KB) }
-  ObtainSemaphore(@AThreadListSemaphore);
+  ObtainSemaphoreShared(@AThreadListSemaphore);
 
 {$IFDEF DEBUG_MT}
   if AThreadListLen > 1 then
@@ -943,7 +937,7 @@ begin
       ReleaseSemaphore(@AThreadListSemaphore);
       DOSDelay(1);
       { Reobtain the semaphore... }
-      ObtainSemaphore(@AThreadListSemaphore);
+      ObtainSemaphoreShared(@AThreadListSemaphore);
     end;
 
 {$IFDEF DEBUG_MT}
