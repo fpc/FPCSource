@@ -8287,6 +8287,7 @@ rtl/embedded/arm/lpc13xx.pp svneol=native#text/pascal
 rtl/embedded/arm/lpc1768.pp svneol=native#text/pascal
 rtl/embedded/arm/lpc21x4.pp svneol=native#text/plain
 rtl/embedded/arm/lpc8xx.pp svneol=native#text/pascal
+rtl/embedded/arm/mk20d7.pp svneol=native#text/plain
 rtl/embedded/arm/sc32442b.pp svneol=native#text/pascal
 rtl/embedded/arm/stm32f0xx.pp svneol=native#text/plain
 rtl/embedded/arm/stm32f10x_cl.pp svneol=native#text/plain

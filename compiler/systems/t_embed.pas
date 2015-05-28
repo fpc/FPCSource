@@ -492,6 +492,10 @@ begin
 
       { Allwinner }
       ct_allwinner_a20,
+
+      ct_mk20dx128xxx7,
+      ct_mk20dx256xxx7,
+      ct_mk20dx64xxx7,
       
       ct_sc32442b,
       ct_thumb2bare:

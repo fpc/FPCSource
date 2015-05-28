@@ -345,6 +345,11 @@ Type
       { Allwinner }
       ct_allwinner_a20,
 
+      { Freescale }
+      ct_mk20dx128xxx7,
+      ct_mk20dx256xxx7,
+      ct_mk20dx64xxx7,
+
       // generic Thumb2 target
       ct_thumb2bare
      );
@@ -717,6 +722,11 @@ Const
 
       { Allwinner }
       (controllertypestr:'ALLWINNER_A20'; controllerunitstr:'ALLWINNER_A20';     flashbase:$00000000; flashsize:$00000000;  srambase:$40000000; sramsize:$80000000),
+
+      { Freescale }
+      (controllertypestr:'MK20DX128XXX7'; controllerunitstr:'MK20D7'; flashbase:$00000000; flashsize:$00020000; srambase:$20000000; sramsize:$00004000),
+      (controllertypestr:'MK20DX256XXX7'; controllerunitstr:'MK20D7'; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00008000),
+      (controllertypestr:'MK20DX64XXX7';  controllerunitstr:'MK20D7'; flashbase:$00000000; flashsize:$00010000; srambase:$20000000; sramsize:$00002000),
 
       { Bare bones }
       (controllertypestr:'THUMB2_BARE';	controllerunitstr:'THUMB2_BARE';	flashbase:$00000000;	flashsize:$00002000;	srambase:$20000000;	sramsize:$00000400)
