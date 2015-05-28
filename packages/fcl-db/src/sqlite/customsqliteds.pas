@@ -889,10 +889,10 @@ begin
   TempItem^.Previous^.Next := TempItem^.Next;
   if FCurrentItem = TempItem then
   begin
-    if FCurrentItem^.Previous <> FBeginItem then
-      FCurrentItem := FCurrentItem^.Previous
+    if FCurrentItem^.Next <> FEndItem then
+      FCurrentItem := FCurrentItem^.Next
     else
-      FCurrentItem := FCurrentItem^.Next;  
+      FCurrentItem := FCurrentItem^.Previous;  
   end; 
   // Dec FNextAutoInc (only if deleted item is the last record)  
   if FAutoIncFieldNo <> -1 then
