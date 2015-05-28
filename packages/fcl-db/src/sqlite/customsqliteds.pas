@@ -759,10 +759,7 @@ begin
   case GetMode of
     gmPrior:
       if (FCurrentItem^.Previous = FBeginItem) or (FCurrentItem = FBeginItem) then
-      begin
-        Result := grBOF;
-        FCurrentItem := FBeginItem;
-      end
+        Result := grBOF
       else
         FCurrentItem:=FCurrentItem^.Previous;
     gmCurrent:
@@ -888,14 +885,16 @@ var
 begin
   Dec(FRecordCount);
   TempItem := PPDataRecord(ActiveBuffer)^;
+  if TempItem = FCacheItem then // Record is being edited
+    TempItem := FInternalActiveBuffer;
   TempItem^.Next^.Previous := TempItem^.Previous;
   TempItem^.Previous^.Next := TempItem^.Next;
   if FCurrentItem = TempItem then
   begin
-    if FCurrentItem^.Previous <> FBeginItem then
-      FCurrentItem := FCurrentItem^.Previous
+    if FCurrentItem^.Next <> FEndItem then
+      FCurrentItem := FCurrentItem^.Next
     else
-      FCurrentItem := FCurrentItem^.Next;  
+      FCurrentItem := FCurrentItem^.Previous;  
   end; 
   // Dec FNextAutoInc (only if deleted item is the last record)  
   if FAutoIncFieldNo <> -1 then
@@ -1427,39 +1426,40 @@ begin
   end;
 end;
 
-// Specific functions 
+// Specific functions
+
+function GetFieldEqualExpression(AField: TField): String;
+begin
+  if not AField.IsNull then
+  begin
+    case AField.DataType of
+      //todo: handle " caracter properly
+      ftString, ftMemo:
+        Result := '"' + AField.AsString + '"';
+      ftDateTime, ftDate, ftTime:
+        Str(AField.AsDateTime, Result);
+    else
+      Result := AField.AsString;
+    end; //case
+    Result := ' = ' + Result;
+  end
+  else
+    Result := ' IS NULL';
+end;
 
 procedure TCustomSqliteDataset.SetDetailFilter;
-  function FieldToSqlStr(AField: TField): String;
-  begin
-    if not AField.IsNull then
-    begin
-      case AField.DataType of
-        //todo: handle " caracter properly
-        ftString, ftMemo:
-          Result := '"' + AField.AsString + '"';
-        ftDateTime, ftDate, ftTime:
-          Str(AField.AsDateTime, Result);
-      else
-        Result := AField.AsString;
-      end; //case
-    end
-    else
-      Result:=NullString;
-  end; //function
-
 var
   AFilter: String;
   i: Integer;
 begin
-  if not FMasterLink.Active or (FMasterLink.Dataset.RecordCount = 0) then //Retrieve all data
+  if not FMasterLink.Active then //Retrieve all data
     FEffectiveSQL := FSqlFilterTemplate
   else
   begin
     AFilter := ' where ';
     for i := 0 to FMasterLink.Fields.Count - 1 do
     begin
-      AFilter := AFilter + IndexFields[i].FieldName + ' = ' + FieldToSqlStr(TField(FMasterLink.Fields[i]));
+      AFilter := AFilter + IndexFields[i].FieldName + GetFieldEqualExpression(TField(FMasterLink.Fields[i]));
       if i <> FMasterLink.Fields.Count - 1 then
         AFilter := AFilter + ' and ';
     end;
