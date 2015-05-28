@@ -790,15 +790,13 @@ function TCustomSqliteDataset.GetRecNo: Integer;
 var
   TempItem, TempActive: PDataRecord;
 begin
-  Result := -1;
+  Result := 0;
   if (FRecordCount = 0) or (State = dsInsert) then
     Exit;  
   TempItem := FBeginItem;
   TempActive := PPDataRecord(ActiveBuffer)^;
   if TempActive = FCacheItem then // Record is being edited
     TempActive := FInternalActiveBuffer;
-  //RecNo is 1 based
-  Inc(Result);
   while TempActive <> TempItem do
   begin
     if TempItem^.Next <> nil then
@@ -808,9 +806,8 @@ begin
     end  
     else
     begin
-      Result := -1;
+      Result := 0;
       DatabaseError('GetRecNo - ActiveItem Not Found', Self);
-      break;
     end;      
   end;  
 end;
