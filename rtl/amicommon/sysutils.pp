@@ -63,7 +63,7 @@ uses
 {$i sysutils.inc}
 
 
-{ * Include sytem specific includes * }
+{ * Include system specific includes * }
 {$include execd.inc}
 {$include execf.inc}
 {$include timerd.inc}
@@ -900,7 +900,7 @@ end;
 procedure Sleep(Milliseconds: cardinal);
 begin
   // Amiga dos.library Delay() has precision of 1/50 seconds
-  Delay(Milliseconds div 20);
+  DOSDelay(Milliseconds div 20);
 end;
 
 
