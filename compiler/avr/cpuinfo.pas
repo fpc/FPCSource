@@ -133,6 +133,33 @@ Const
         eeprombase:0;
         eepromsize:4096;
         ),
+   	controllertypestr:'ATTINY24';
+        controllerunitstr:'ATTINYX4';
+        flashbase:0;
+        flashsize:2048;
+        srambase:0;
+        sramsize:128;
+        eeprombase:0;
+        eepromsize:128
+        ),
+   	controllertypestr:'ATTINY44';
+        controllerunitstr:'ATTINYX4';
+        flashbase:0;
+        flashsize:4096;
+        srambase:0;
+        sramsize:256;
+        eeprombase:0;
+        eepromsize:256
+        ),
+   	controllertypestr:'ATTINY84';
+        controllerunitstr:'ATTINYX4';
+        flashbase:0;
+        flashsize:8192;
+        srambase:0;
+        sramsize:512;
+        eeprombase:0;
+        eepromsize:512
+        ),
         (
    	controllertypestr:'ATMEGA8';
         controllerunitstr:'ATMEGA8';

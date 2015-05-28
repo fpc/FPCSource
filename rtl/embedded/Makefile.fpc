@@ -84,7 +84,7 @@ endif
 endif
 
 ifeq ($(ARCH),avr)
-CPU_UNITS=atmega128 atmega8 avrsim
+CPU_UNITS=atmega128 atmega8 avrsim attinyx4
 endif
 
 ifeq ($(ARCH),i386)

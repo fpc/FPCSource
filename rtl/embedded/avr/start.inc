@@ -32,6 +32,10 @@
         cpc XH, YH
         brne .LZeroBssLoop
 
+{$ifdef RELBRANCHES}
+        rjmp PASCALMAIN
+{$else RELBRANCHES}
         jmp PASCALMAIN
+{$endif RELBRANCHES}
         .text
 

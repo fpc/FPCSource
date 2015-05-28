@@ -369,7 +369,7 @@ CPU_UNITS=allwinner_a20
 endif
 endif
 ifeq ($(ARCH),avr)
-CPU_UNITS=atmega128 atmega8 avrsim
+CPU_UNITS=atmega128 atmega8 avrsim attinyx4
 endif
 ifeq ($(ARCH),i386)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
