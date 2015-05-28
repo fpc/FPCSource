@@ -4,13 +4,13 @@
       asm
         cli
       .Lhalt:
-        jmp .Lhalt
+        rjmp .Lhalt
       end;
 
     procedure Default_IRQ_handler; assembler; nostackframe; public name '_Default_IRQ_handler';noreturn;
       asm
       .Lloop:
-        jmp .Lloop
+        rjmp .Lloop
       end;
 
     var

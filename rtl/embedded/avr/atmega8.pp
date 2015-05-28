@@ -5,7 +5,6 @@ Register definitions and startup code for ATMEL ATmega128
 unit atmega8;
 
 {$goto on}
-{$macro on}
 
   interface
     const
@@ -253,9 +252,6 @@ unit atmega8;
        MUX1 =  1;
        MUX0 =  0;
 
-    {$define DOCALL:=call}
-    {$define DOJMP:=jmp}
-
   implementation
 
 {$i avrcommon.inc}
@@ -286,7 +282,7 @@ unit atmega8;
       asm
         .init
         .globl _start
-//        .org 0x00
+
         jmp _start
         jmp Int00Handler
         jmp Int01Handler
