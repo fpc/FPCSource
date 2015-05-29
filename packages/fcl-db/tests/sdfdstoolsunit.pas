@@ -140,4 +140,3 @@ end;
 initialization
   RegisterClass(TSdfDSDBConnector);
 end.
-
