@@ -402,6 +402,7 @@ implementation
         curtai : tai;
         again : boolean;
         l : tasmlabel;
+        inasmblock : Boolean;
       begin
         again:=true;
         while again do
@@ -436,31 +437,41 @@ implementation
               end;
 
             curtai:=tai(list.first);
+            inasmblock:=false;
             while assigned(curtai) do
               begin
-                if (curtai.typ=ait_instruction) and
-                  (taicpu(curtai).opcode in [A_BRxx]) and
-                  ((taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset>64) or
-                   (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset<-63)
-                  ) then
-                  begin
-                    current_asmdata.getjumplabel(l);
-                    list.insertafter(tai_label.create(l),curtai);
-                    list.insertafter(taicpu.op_sym(A_JMP,taicpu(curtai).oper[0]^.ref^.symbol),curtai);
-                    taicpu(curtai).oper[0]^.ref^.symbol:=l;
-                    taicpu(curtai).condition:=inverse_cond(taicpu(curtai).condition);
-                    again:=true;
-                  end
-                { replace JMP by RJMP? }
-                else if (curtai.typ=ait_instruction) and
-                  (taicpu(curtai).opcode=A_JMP) and
-                  (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset<=2048) and
-                  (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset>=-2047) then
-                  begin
-                    taicpu(curtai).opcode:=A_RJMP;
-                    again:=true;
-                  end;
-
+                case curtai.typ of
+                  ait_instruction:
+                    case taicpu(curtai).opcode of
+                      A_BRxx:
+                        if (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset>64) or
+                          (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset<-63) then
+                          begin
+                            current_asmdata.getjumplabel(l);
+                            list.insertafter(tai_label.create(l),curtai);
+                            list.insertafter(taicpu.op_sym(A_JMP,taicpu(curtai).oper[0]^.ref^.symbol),curtai);
+                            taicpu(curtai).oper[0]^.ref^.symbol:=l;
+                            taicpu(curtai).condition:=inverse_cond(taicpu(curtai).condition);
+                            again:=true;
+                          end;
+                      A_JMP:
+                        { replace JMP by RJMP? ...
+                          ... but do not mess with asm block }
+                        if not(inasmblock) and (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset<=2048) and
+                        (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset>=-2047) then
+                        begin
+                          taicpu(curtai).opcode:=A_RJMP;
+                          again:=true;
+                        end;
+                    end;
+                  ait_marker:
+                    case tai_marker(curtai).Kind of
+                      mark_AsmBlockStart:
+                        inasmblock:=true;
+                      mark_AsmBlockEnd:
+                        inasmblock:=false;
+                    end;
+                end;
                 curtai:=tai(curtai.next);
               end;
           end;
