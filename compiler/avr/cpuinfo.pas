@@ -62,10 +62,12 @@ Type
       ct_attiny44,
       ct_attiny84,
 
+      ct_atmega48,
+      ct_atmega88,
+
       ct_atmega8,
       ct_atmega16,
       ct_atmega32,
-      ct_atmega48,
       ct_atmega64,
       ct_atmega128
      );
@@ -118,7 +120,7 @@ Const
    {$WARN 3177 OFF}
    embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
    ((
-   	controllertypestr:'';
+        controllertypestr:'';
         controllerunitstr:'';
         flashbase:0;
         flashsize:0;
@@ -126,8 +128,8 @@ Const
         sramsize:0;
         eeprombase:0;
         eepromsize:0
-   	),
-   	(
+        ),
+        (
         controllertypestr:'AVRSIM';
         controllerunitstr:'AVRSIM';
         flashbase:0;
@@ -138,7 +140,7 @@ Const
         eepromsize:4096;
         ),
         (
-   	controllertypestr:'ATTINY24';
+        controllertypestr:'ATTINY24';
         controllerunitstr:'ATTINYX4';
         flashbase:0;
         flashsize:2048;
@@ -148,7 +150,7 @@ Const
         eepromsize:128
         ),
         (
-   	controllertypestr:'ATTINY44';
+        controllertypestr:'ATTINY44';
         controllerunitstr:'ATTINYX4';
         flashbase:0;
         flashsize:4096;
@@ -158,7 +160,7 @@ Const
         eepromsize:256
         ),
         (
-   	controllertypestr:'ATTINY84';
+        controllertypestr:'ATTINY84';
         controllerunitstr:'ATTINYX4';
         flashbase:0;
         flashsize:8192;
@@ -167,8 +169,30 @@ Const
         eeprombase:0;
         eepromsize:512
         ),
+
         (
-   	controllertypestr:'ATMEGA8';
+        controllertypestr:'ATMEGA48';
+        controllerunitstr:'ATMEGA48FAM';
+        flashbase:0;
+        flashsize:4*1024;
+        srambase:0;
+        sramsize:512;
+        eeprombase:0;
+        eepromsize:256;
+        ),
+        (
+        controllertypestr:'ATMEGA88';
+        controllerunitstr:'ATMEGA48FAM';
+        flashbase:0;
+        flashsize:8*1024;
+        srambase:0;
+        sramsize:1024;
+        eeprombase:0;
+        eepromsize:512;
+        ),
+
+        (
+        controllertypestr:'ATMEGA8';
         controllerunitstr:'ATMEGA8';
         flashbase:0;
         flashsize:$2000;
@@ -178,7 +202,7 @@ Const
         eepromsize:512
         ),
         (
-   	controllertypestr:'ATMEGA16';
+        controllertypestr:'ATMEGA16';
         controllerunitstr:'ATMEGA16';
         flashbase:0;
         flashsize:$4000;
@@ -188,7 +212,7 @@ Const
         eepromsize:512
         ),
         (
-   	controllertypestr:'ATMEGA32';
+        controllertypestr:'ATMEGA32';
         controllerunitstr:'ATMEGA32';
         flashbase:0;
         flashsize:$8000;
@@ -197,17 +221,7 @@ Const
         eeprombase:0;
         eepromsize:512
         ),
-   	(
-        controllertypestr:'ATMEGA48';
-        controllerunitstr:'ATMEGA48';
-        flashbase:0;
-        flashsize:$1000;
-        srambase:0;
-        sramsize:512;
-        eeprombase:0;
-        eepromsize:256;
-        ),
-   	(
+        (
         controllertypestr:'ATMEGA64';
         controllerunitstr:'ATMEGA64';
         flashbase:0;
@@ -217,7 +231,7 @@ Const
         eeprombase:0;
         eepromsize:2048;
         ),
-   	(
+        (
         controllertypestr:'ATMEGA128';
         controllerunitstr:'ATMEGA128';
         flashbase:0;
