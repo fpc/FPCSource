@@ -601,7 +601,6 @@ unit atmega48fam;
         rjmp Int22Handler
         rjmp Int23Handler
         rjmp Int24Handler
-        rjmp Int25Handler
 
         {
           all ATMEL MCUs use the same startup code, the details are
@@ -634,7 +633,6 @@ unit atmega48fam;
         .weak Int22Handler
         .weak Int23Handler
         .weak Int24Handler
-        .weak Int25Handler
 
         .set Int00Handler, Default_IRQ_handler
         .set Int01Handler, Default_IRQ_handler
@@ -661,7 +659,6 @@ unit atmega48fam;
         .set Int22Handler, Default_IRQ_handler
         .set Int23Handler, Default_IRQ_handler
         .set Int24Handler, Default_IRQ_handler
-        .set Int25Handler, Default_IRQ_handler
       end;
 
 end.
