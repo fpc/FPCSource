@@ -190,6 +190,26 @@ Const
         eeprombase:0;
         eepromsize:512;
         ),
+        (
+        controllertypestr:'ATMEGA168';
+        controllerunitstr:'ATMEGA168FAM';
+        flashbase:0;
+        flashsize:16*1024;
+        srambase:0;
+        sramsize:1024;
+        eeprombase:0;
+        eepromsize:512;
+        ),
+        (
+        controllertypestr:'ATMEGA368';
+        controllerunitstr:'ATMEGA168FAM';
+        flashbase:0;
+        flashsize:32*1024;
+        srambase:0;
+        sramsize:2*1024;
+        eeprombase:0;
+        eepromsize:1024;
+        ),
 
         (
         controllertypestr:'ATMEGA8';
