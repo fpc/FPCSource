@@ -64,6 +64,8 @@ Type
 
       ct_atmega48,
       ct_atmega88,
+      ct_atmega168,
+      ct_atmega368,
 
       ct_atmega8,
       ct_atmega16,
