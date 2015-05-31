@@ -120,8 +120,13 @@ interface
       { TOmfObjInput }
 
       TOmfObjInput = class(TObjInput)
+      private
+        FRawRecord: TOmfRawRecord;
+      public
         constructor create;override;
+        destructor destroy;override;
         class function CanReadObjData(AReader:TObjectreader):boolean;override;
+        function ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;override;
       end;
 
       { TMZExeOutput }
@@ -889,6 +894,13 @@ implementation
       begin
         inherited create;
         cobjdata:=TOmfObjData;
+        FRawRecord:=TOmfRawRecord.Create;
+      end;
+
+    destructor TOmfObjInput.destroy;
+      begin
+        FRawRecord.Free;
+        inherited destroy;
       end;
 
     class function TOmfObjInput.CanReadObjData(AReader: TObjectreader): boolean;
@@ -903,6 +915,76 @@ implementation
               result:=true;
           end;
         AReader.Seek(0);
+      end;
+
+    function TOmfObjInput.ReadObjData(AReader: TObjectreader; out objdata: TObjData): boolean;
+      begin
+        FReader:=AReader;
+        InputFileName:=AReader.FileName;
+        objdata:=CObjData.Create(InputFileName);
+        result:=false;
+        FRawRecord.ReadFrom(FReader);
+        if not FRawRecord.VerifyChecksumByte then
+          begin
+            InputError('Invalid checksum in OMF record');
+            exit;
+          end;
+        if FRawRecord.RecordType<>RT_THEADR then
+          begin
+            InputError('Can''t read OMF header');
+            exit;
+          end;
+        repeat
+          FRawRecord.ReadFrom(FReader);
+          if not FRawRecord.VerifyChecksumByte then
+            begin
+              InputError('Invalid checksum in OMF record');
+              exit;
+            end;
+          case FRawRecord.RecordType of
+            RT_LNAMES:
+              begin
+                {todo}
+              end;
+            RT_SEGDEF,RT_SEGDEF32:
+              begin
+                {todo}
+              end;
+            RT_GRPDEF:
+              begin
+                {todo}
+              end;
+            RT_COMENT:
+              begin
+                {todo}
+              end;
+            RT_EXTDEF:
+              begin
+                {todo}
+              end;
+            RT_PUBDEF,RT_PUBDEF32:
+              begin
+                {todo}
+              end;
+            RT_LEDATA,RT_LEDATA32:
+              begin
+                {todo}
+              end;
+            RT_FIXUPP,RT_FIXUPP32:
+              begin
+                {todo}
+              end;
+            RT_MODEND,RT_MODEND32:
+              begin
+                {todo}
+              end;
+            else
+              begin
+                InputError('Unsupported OMF record type $'+HexStr(FRawRecord.RecordType,2));
+                exit;
+              end;
+          end;
+        until FRawRecord.RecordType in [RT_MODEND,RT_MODEND32];
       end;
 
 {****************************************************************************
