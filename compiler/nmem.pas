@@ -153,7 +153,7 @@ implementation
       globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,symbase,defutil,defcmp,
-      nbas,ninl,nutils,
+      nbas,ninl,nutils,objcutil,
       wpobase,
 {$ifdef i8086}
       cpuinfo,
@@ -248,39 +248,26 @@ implementation
            include(current_procinfo.flags,pi_needs_got);
          if left.nodetype<>typen then
            begin
-             if (target_info.system=system_aarch64_darwin) and
-                (is_objc_class_or_protocol(left.resultdef) or
+             if (is_objc_class_or_protocol(left.resultdef) or
                  is_objcclassref(left.resultdef)) then
                begin
-                 { on Darwin/AArch64, the isa field is opaque and we must
-                   call Object_getClass to obtain the actual ISA pointer }
-                 result:=ccallnode.createinternfromunit('OBJC','OBJECT_GETCLASS',ccallparanode.create(left,nil));
-                 inserttypeconv_explicit(result,resultdef);
-                 { reused }
-                 left:=nil;
-               end
-             else if is_javaclass(left.resultdef) and
-                (left.nodetype<>typen) and
-                (left.resultdef.typ<>classrefdef) then
-               begin
-                 { call java.lang.Object.getClass() }
-                 vs:=search_struct_member(tobjectdef(left.resultdef),'GETCLASS');
-                 if not assigned(vs) or
-                    (tsym(vs).typ<>procsym) then
-                   internalerror(2011041901);
-                 result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[]);
-                 inserttypeconv_explicit(result,resultdef);
+                 if target_info.system=system_aarch64_darwin then
+                   begin
+                     { on Darwin/AArch64, the isa field is opaque and we must
+                       call Object_getClass to obtain the actual ISA pointer }
+                     result:=ccallnode.createinternfromunit('OBJC','OBJECT_GETCLASS',ccallparanode.create(left,nil));
+                     inserttypeconv_explicit(result,resultdef);
+                   end
+                 else
+                   result:=objcloadbasefield(left,'ISA');
                  { reused }
                  left:=nil;
                end
              else
-               firstpass(left)
+               firstpass(left);
            end
          else if not is_objcclass(left.resultdef) and
-                 not is_objcclassref(left.resultdef) and
-                 not is_javaclass(left.resultdef) and
-                 not is_javaclassref(left.resultdef) and
-                 not is_javainterface(left.resultdef) then
+                 not is_objcclassref(left.resultdef) then
            begin
              if not(nf_ignore_for_wpo in flags) and
                 (not assigned(current_procinfo) or
