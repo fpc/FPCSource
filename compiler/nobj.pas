@@ -46,6 +46,7 @@ interface
         procedure prot_get_procdefs_recursive(ImplProt:TImplementedInterface;ProtDef:TObjectDef);
         procedure intf_optimize_vtbls;
         procedure intf_allocate_vtbls;
+        procedure generate_vmt_def;
       public
         constructor create(c:tobjectdef);
         procedure  generate_vmt;
@@ -57,9 +58,9 @@ implementation
 
     uses
        SysUtils,
-       globals,verbose,systems,
+       globals,verbose,systems,fmodule,
        node,
-       symbase,symtable,symconst,symtype,defcmp,
+       symbase,symtable,symconst,symtype,defcmp,defutil,
        symcpu,
        dbgbase,
        wpobase
@@ -786,6 +787,90 @@ implementation
       end;
 
 
+    procedure TVMTBuilder.generate_vmt_def;
+      var
+        i: longint;
+        vmtdef: trecorddef;
+        systemvmt: tdef;
+        sym: tsym;
+        symtab: tsymtable;
+      begin
+        { these types don't have an actual VMT, we only use the other methods
+          in TVMTBuilder to determine duplicates/overrides }
+        if _class.objecttype in [
+           odt_helper,
+           odt_objcclass,
+           odt_objccategory,
+           odt_objcprotocol,
+           odt_javaclass,
+           odt_interfacecom_property,
+           odt_interfacecom_function,
+           odt_interfacejava] then
+         exit;
+
+        { todo in the future }
+        if _class.objecttype = odt_cppclass then
+          exit;
+
+        { the VMT definition may already exist in case of generics }
+        if searchsym_in_module(current_module,'vmtdef$'+_class.mangledparaname,sym,symtab) then
+          exit;
+        { create VMT type definition }
+        vmtdef:=crecorddef.create_global_internal(
+          '$vmtdef$'+_class.mangledparaname,
+          0,
+          target_info.alignment.recordalignmin,
+          target_info.alignment.maxCrecordalign);
+        { standard VMT fields }
+        case _Class.objecttype of
+          odt_class:
+            begin
+              systemvmt:=search_system_type('TVMT').typedef;
+              { does the TVMT type look like we expect? (so that this code is
+                easily triggered in case the definition of the VMT would
+                change) }
+              if (systemvmt.typ<>recorddef) or
+                 (trecorddef(systemvmt).symtable.SymList.count<>25) then
+                internalerror(2015052601);
+              { system.tvmt is a record that represents the VMT of TObject,
+                including its virtual methods. We only want the non-method
+                fields, as the methods will be added automatically based on
+                the VMT we generated here only add the 12 first fields }
+              for i:=0 to 11 do
+                begin
+                  sym:=tsym(trecorddef(systemvmt).symtable.SymList[i]);
+                  if sym.typ<>fieldvarsym then
+                    internalerror(2015052602);
+                  vmtdef.add_field_by_def(tfieldvarsym(sym).vardef);
+                end;
+            end;
+           odt_interfacecom,odt_interfacecorba,odt_dispinterface:
+             { nothing }
+             ;
+          odt_object:
+            begin
+              { size, -size, parent vmt [, dmt ] }
+              vmtdef.add_field_by_def(ptrsinttype);
+              vmtdef.add_field_by_def(ptrsinttype);
+              vmtdef.add_field_by_def(voidpointertype);
+{$ifdef WITHDMT}
+              vmtdef.add_field_by_def(voidpointertype);
+{$endif WITHDMT}
+            end;
+          else
+            internalerror(2015052605);
+        end;
+
+        { now add the methods }
+        for i:=0 to _class.vmtentries.count-1 do
+          vmtdef.add_field_by_def(
+            getprocaddressprocvar(pvmtentry(_class.vmtentries[i])^.procdef)
+          );
+        { the VMT ends with a nil pointer }
+        vmtdef.add_field_by_def(voidcodepointertype);
+      end;
+
+
     procedure TVMTBuilder.generate_vmt;
       var
         i : longint;
@@ -829,7 +914,7 @@ implementation
             { Allocate interface tables }
             intf_allocate_vtbls;
           end;
-
+        generate_vmt_def;
         current_structdef:=old_current_structdef;
       end;
 

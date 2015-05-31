@@ -89,6 +89,7 @@ interface
          function  needs_separate_initrtti:boolean;virtual;abstract;
          procedure ChangeOwner(st:TSymtable);
          procedure register_created_object_type;virtual;
+         function  get_top_level_symtable: tsymtable;
       end;
 
 {************************************************
@@ -354,6 +355,15 @@ implementation
 
     procedure tdef.register_created_object_type;
       begin
+      end;
+
+
+    function tdef.get_top_level_symtable: tsymtable;
+      begin
+        result:=owner;
+        while assigned(result) and
+              assigned(result.defowner) do
+          result:=tdef(result.defowner).owner;
       end;
 
 {****************************************************************************

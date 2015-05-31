@@ -84,6 +84,7 @@ interface
           procedure register_created_object_types;
           function get_expect_loc: tcgloc;
        protected
+          procedure gen_vmt_entry_load; virtual;
           procedure gen_syscall_para(para: tcallparanode); virtual;
           procedure objc_convert_to_message_send;virtual;
 
@@ -123,6 +124,8 @@ interface
           procdefinitionderef : tderef;
           { tree that contains the pointer to the object for this method }
           methodpointer  : tnode;
+          { tree representing the VMT entry to call (if any) }
+          vmt_entry      : tnode;
           { tree that contains the self/vmt parameter when this node was created
             (so it's still valid when this node is processed in an inline
              context)
@@ -1484,6 +1487,7 @@ implementation
            varargsparas.free;
          call_self_node.free;
          call_vmt_node.free;
+         vmt_entry.free;
 {$ifndef symansistr}
          stringdispose(fforcedprocname);
 {$endif symansistr}
@@ -2320,6 +2324,36 @@ implementation
             result:=LOC_FPUREGISTER
         else
           result:=LOC_REFERENCE
+      end;
+
+
+    procedure tcallnode.gen_vmt_entry_load;
+      var
+        vmt_def: trecorddef;
+      begin
+        if not assigned(right) and
+           (forcedprocname='') and
+           (po_virtualmethod in procdefinition.procoptions) and
+           not is_objectpascal_helper(tprocdef(procdefinition).struct) and
+           assigned(methodpointer) and
+           (methodpointer.nodetype<>typen) then
+          begin
+            vmt_entry:=load_vmt_for_self_node(methodpointer.getcopy);
+            { get the right entry in the VMT }
+            vmt_entry:=cderefnode.create(vmt_entry);
+            typecheckpass(vmt_entry);
+            vmt_def:=trecorddef(vmt_entry.resultdef);
+            { tobjectdef(tprocdef(procdefinition).struct) can be a parent of the
+              methodpointer's resultdef, but the vmtmethodoffset of the method
+              in that objectdef is obviously the same as in any child class }
+            vmt_entry:=csubscriptnode.create(
+                trecordsymtable(vmt_def.symtable).findfieldbyoffset(
+                  tobjectdef(tprocdef(procdefinition).struct).vmtmethodoffset(tprocdef(procdefinition).extnumber)
+                ),
+               vmt_entry
+              );
+            firstpass(vmt_entry);
+          end;
       end;
 
 
@@ -4093,6 +4127,9 @@ implementation
            end
          else
            expectloc:=LOC_VOID;
+
+         { create tree for VMT entry if required }
+         gen_vmt_entry_load;
       end;
 
 {$ifdef state_tracking}

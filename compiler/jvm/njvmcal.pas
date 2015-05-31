@@ -50,6 +50,7 @@ interface
          procedure extra_post_call_code; override;
          function dispatch_procvar: tnode;
          procedure remove_hidden_paras;
+         procedure gen_vmt_entry_load; override;
         public
          function pass_typecheck: tnode; override;
          function pass_1: tnode; override;
@@ -489,6 +490,12 @@ implementation
             prevpara:=para;
           para:=nextpara;
         end;
+    end;
+
+
+  procedure tjvmcallnode.gen_vmt_entry_load;
+    begin
+      { nothing to do }
     end;
 
 

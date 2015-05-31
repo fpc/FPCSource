@@ -711,6 +711,7 @@ procedure fpc_largeset_comp_sets(set1,set2 : pointer;size : longint); compilerpr
 procedure fpc_largeset_contains_sets(set1,set2 : pointer; size: longint); compilerproc;
 {$endif LARGESETS}
 
+procedure fpc_objecterror; compilerproc;
 procedure fpc_rangeerror; compilerproc;
 procedure fpc_divbyzero; compilerproc;
 procedure fpc_overflow; compilerproc;

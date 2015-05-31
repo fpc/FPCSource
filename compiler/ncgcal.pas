@@ -890,8 +890,7 @@ implementation
         href : treference;
         pop_size : longint;
         vmtoffset : aint;
-        pvreg,
-        vmtreg : tregister;
+        pvreg : tregister;
         oldaktcallnode : tcallnode;
         retlocitem: pcgparalocation;
         pd : tprocdef;
@@ -1001,37 +1000,26 @@ implementation
                  if tprocdef(procdefinition).extnumber=$ffff then
                    internalerror(200304021);
 
-                 secondpass(methodpointer);
+                 { load the VMT entry (address of the virtual method) }
+                 secondpass(vmt_entry);
 
-                 { Load VMT from self }
-                 if methodpointer.resultdef.typ=objectdef then
-                   gen_load_vmt_register(current_asmdata.CurrAsmList,tobjectdef(methodpointer.resultdef),methodpointer.location,vmtreg)
-                 else
-                   begin
-                     { Load VMT value in register }
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,methodpointer.location,methodpointer.resultdef,methodpointer.resultdef,false);
-                     vmtreg:=methodpointer.location.register;
-                     { test validity of VMT }
-                     if not(is_interface(tprocdef(procdefinition).struct)) and
-                        not(is_cppclass(tprocdef(procdefinition).struct)) then
-                       cg.g_maybe_testvmt(current_asmdata.CurrAsmList,vmtreg,tobjectdef(tprocdef(procdefinition).struct));
-                   end;
-
-                 { Call through VMT, generate a VTREF symbol to notify the linker }
-                 vmtoffset:=tobjectdef(tprocdef(procdefinition).struct).vmtmethodoffset(tprocdef(procdefinition).extnumber);
                  { register call for WPO }
                  if (not assigned(current_procinfo) or
                      wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
                    tobjectdef(tprocdef(procdefinition).struct).register_vmt_call(tprocdef(procdefinition).extnumber);
 
-                 reference_reset_base(href,vmtreg,vmtoffset,proc_addr_voidptrdef.alignment);
+                 if not(vmt_entry.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                   internalerror(2015052502);
+                 href:=vmt_entry.location.reference;
                  pvreg:=NR_NO;
 
                  callref:=can_call_ref(href);
                  if not callref then
                    begin
                      pvreg:=get_call_reg(current_asmdata.CurrAsmList);
-                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,href,pvreg);
+                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,
+                       vmt_entry.resultdef,vmt_entry.resultdef,
+                       href,pvreg);
                    end;
 
                  { Load parameters that are in temporary registers in the

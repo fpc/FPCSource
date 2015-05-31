@@ -260,11 +260,11 @@ implementation
                    end
                  else
                    result:=objcloadbasefield(left,'ISA');
-                 { reused }
-                 left:=nil;
                end
              else
-               firstpass(left);
+               result:=ctypeconvnode.create_internal(load_vmt_for_self_node(left),resultdef);
+             { reused }
+             left:=nil;
            end
          else if not is_objcclass(left.resultdef) and
                  not is_objcclassref(left.resultdef) then

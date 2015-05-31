@@ -430,6 +430,7 @@ interface
           function  needs_separate_initrtti : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
           function  vmt_mangledname : TSymStr;
+          function  vmt_def: trecorddef;
           procedure check_forwards; override;
           procedure insertvmt;
           function  vmt_offset: asizeint;
@@ -6641,6 +6642,19 @@ implementation
         if not(oo_has_vmt in objectoptions) then
           Message1(parser_n_object_has_no_vmt,objrealname^);
         vmt_mangledname:=make_mangledname('VMT',owner,objname^);
+      end;
+
+
+    function tobjectdef.vmt_def: trecorddef;
+      var
+        vmttypesym: tsym;
+      begin
+        vmttypesym:=tsym(get_top_level_symtable.Find('vmtdef$'+mangledparaname));
+        if not assigned(vmttypesym) or
+           (vmttypesym.typ<>symconst.typesym) or
+           (ttypesym(vmttypesym).typedef.typ<>recorddef) then
+          internalerror(2015052501);
+        result:=trecorddef(ttypesym(vmttypesym).typedef);
       end;
 
 

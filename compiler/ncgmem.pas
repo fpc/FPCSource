@@ -138,11 +138,8 @@ implementation
                end;
            end
          else
-           begin
-             { left contains self, load vmt from self }
-             secondpass(left);
-             gen_load_vmt_register(current_asmdata.CurrAsmList,tobjectdef(left.resultdef),left.location,location.register);
-           end;
+           { should be handled in pass 1 }
+           internalerror(2015052801);
       end;
 
 

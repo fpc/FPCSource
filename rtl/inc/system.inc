@@ -736,6 +736,10 @@ begin
 end;
 {$endif ndef FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
 
+procedure fpc_objecterror; compilerproc;
+begin
+  HandleErrorAddrFrameInd(210,get_pc_addr,get_frame);
+end;
 
 procedure fpc_rangeerror;[public,alias:'FPC_RANGEERROR']; compilerproc;
 begin

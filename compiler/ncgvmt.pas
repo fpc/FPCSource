@@ -1086,7 +1086,9 @@ implementation
               genintmsgtab(tcb,intmessagetable,intmessagetabledef);
           end;
 
-         tcb.begin_anonymous_record('',voidpointertype.alignment,
+         { reuse the type created in nobj, so we get internal consistency
+           checking for free }
+         tcb.begin_anonymous_record('$vmtdef$'+_class.mangledparaname,voidpointertype.alignment,
            targetinfos[target_info.system]^.alignment.recordalignmin,
            targetinfos[target_info.system]^.alignment.maxCrecordalign);
 

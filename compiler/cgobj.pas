@@ -348,7 +348,6 @@ unit cgobj;
           procedure optimize_op_const(size: TCGSize; var op: topcg; var a : tcgint);virtual;
 
 
-          procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
              to destination.
 
@@ -2183,52 +2182,6 @@ implementation
         a_load_reg_ref(list,size,size,tmpreg,ref);
       end;
 {$endif cpuflags}
-
-
-    procedure tcg.g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
-      var
-        hrefvmt : treference;
-        cgpara1,cgpara2 : TCGPara;
-        pd: tprocdef;
-      begin
-        cgpara1.init;
-        cgpara2.init;
-        if (cs_check_object in current_settings.localswitches) then
-         begin
-           pd:=search_system_proc('fpc_check_object_ext');
-           paramanager.getintparaloc(list,pd,1,cgpara1);
-           paramanager.getintparaloc(list,pd,2,cgpara2);
-           reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname,AT_DATA),0,sizeof(pint));
-           if pd.is_pushleftright then
-             begin
-               a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
-               a_loadaddr_ref_cgpara(list,hrefvmt,cgpara2);
-             end
-           else
-             begin
-               a_loadaddr_ref_cgpara(list,hrefvmt,cgpara2);
-               a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
-             end;
-           paramanager.freecgpara(list,cgpara1);
-           paramanager.freecgpara(list,cgpara2);
-           allocallcpuregisters(list);
-           a_call_name(list,'fpc_check_object_ext',false);
-           deallocallcpuregisters(list);
-         end
-        else
-         if (cs_check_range in current_settings.localswitches) then
-          begin
-            pd:=search_system_proc('fpc_check_object');
-            paramanager.getintparaloc(list,pd,1,cgpara1);
-            a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
-            paramanager.freecgpara(list,cgpara1);
-            allocallcpuregisters(list);
-            a_call_name(list,'fpc_check_object',false);
-            deallocallcpuregisters(list);
-          end;
-        cgpara1.done;
-        cgpara2.done;
-      end;
 
 
 {*****************************************************************************
