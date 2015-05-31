@@ -322,7 +322,7 @@ implementation
                         end;
                     end;
                 else
-                  insert_tai_typeconversions(tai_const(tai_simpletypedconst(p).val));
+                  insert_tai_typeconversions(tai_simpletypedconst(p).val);
               end;
             end;
           tck_array,
