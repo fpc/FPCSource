@@ -62,6 +62,7 @@ interface
        private
           { number of parameters passed from the source, this does not include the hidden parameters }
           paralength   : smallint;
+          function getforcedprocname: TSymStr;
           function  is_simple_para_load(p:tnode; may_be_in_reg: boolean):boolean;
           procedure maybe_load_in_temp(var p:tnode);
           function  gen_high_tree(var p:tnode;paradef:tdef):tnode;
@@ -109,6 +110,7 @@ interface
 {$else symansistr}
           fforcedprocname: pshortstring;
 {$endif symansistr}
+          property forcedprocname: TSymStr read getforcedprocname;
        public
           { the symbol containing the definition of the procedure }
           { to call                                               }
@@ -1817,6 +1819,20 @@ implementation
               result:=not(ti_may_be_in_reg in ttemprefnode(hp).tempinfo^.flags);
           end;
       end;
+
+
+    function tcallnode.getforcedprocname: TSymStr;
+      begin
+{$ifdef symansistr}
+        result:=fforcedprocname;
+{$else}
+        if assigned(fforcedprocname) then
+          result:=fforcedprocname^
+        else
+          result:='';
+{$endif}
+      end;
+
 
     function look_for_call(var n: tnode; arg: pointer): foreachnoderesult;
       begin
