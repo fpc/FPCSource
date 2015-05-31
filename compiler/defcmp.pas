@@ -2010,15 +2010,18 @@ implementation
                 if (vo_is_hidden_para in currpara1.varoptions)<>(vo_is_hidden_para in currpara2.varoptions) then
                   exit;
                 eq:=te_exact;
-                if not(vo_is_self in currpara1.varoptions) and
-                   not(vo_is_self in currpara2.varoptions) then
+                if (([vo_is_self,vo_is_vmt]*currpara1.varoptions)=[]) and
+                   (([vo_is_self,vo_is_vmt]*currpara2.varoptions)=[]) then
                  begin
                    if not(cpo_ignorevarspez in cpoptions) and
                       (currpara1.varspez<>currpara2.varspez) then
                     exit;
                    eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                         convtype,hpd,cdoptions);
-                 end;
+                 end
+                else if ([vo_is_self,vo_is_vmt]*currpara1.varoptions)<>
+                         ([vo_is_self,vo_is_vmt]*currpara2.varoptions) then
+                   eq:=te_incompatible;
               end
              else
               begin

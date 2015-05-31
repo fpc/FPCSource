@@ -225,9 +225,7 @@ implementation
                          (tobjectdef(tprocdef(pd).struct).extendeddef.typ<>objectdef)
                        )) then
                  begin
-                   { can't use classrefdef as type because inheriting
-                     will then always file because of a type mismatch }
-                   vs:=cparavarsym.create('$vmt',paranr_vmt,vs_value,voidpointertype,[vo_is_vmt,vo_is_hidden_para]);
+                   vs:=cparavarsym.create('$vmt',paranr_vmt,vs_value,cclassrefdef.create(tprocdef(pd).struct),[vo_is_vmt,vo_is_hidden_para]);
                    pd.parast.insert(vs);
                  end;
 

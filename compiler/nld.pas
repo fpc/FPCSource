@@ -346,11 +346,6 @@ implementation
                       (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
                      resultdef:=cclassrefdef.create(tprocdef(symtableentry.owner.defowner).struct)
                  end
-               else if vo_is_vmt in tabstractvarsym(symtableentry).varoptions then
-                 begin
-                   resultdef:=tprocdef(symtableentry.owner.defowner).struct;
-                   resultdef:=cclassrefdef.create(resultdef);
-                 end;
              end;
            procsym :
              begin
