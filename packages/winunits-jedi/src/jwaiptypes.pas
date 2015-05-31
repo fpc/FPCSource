@@ -350,7 +350,7 @@ const
 
 type
   IF_OPER_STATUS = (
-    IfOperStatusUp,
+    IfOperStatusUp = 1,
     IfOperStatusDown,
     IfOperStatusTesting,
     IfOperStatusUnknown,

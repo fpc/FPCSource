@@ -1069,7 +1069,7 @@ Type
        tExAllData = record
         ed_Next     : pExAllData;
         ed_Name     : STRPTR;
-        ed_Type,
+        ed_Type     : LongInt;
         ed_Size,
         ed_Prot,
         ed_Days,

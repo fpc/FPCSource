@@ -1,6 +1,6 @@
 %{
 program h2pas;
-
+{$H+}
 (*
     Copyright (c) 1998-2000 by Florian Klaempfl
 

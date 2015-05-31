@@ -475,9 +475,6 @@ begin
       LastChild := Child;
       Child := Child.NextSibling;
     end;
-    { No child found, let's create one if we are at the end of the path }
-    if DotPos > 0 then
-      Raise Exception.CreateFmt('Link path does not exist: %s',[APathName]);
     Result := TLinkNode.Create(ChildName, ALinkTo);
     if Assigned(LastChild) then
       LastChild.FNextSibling := Result

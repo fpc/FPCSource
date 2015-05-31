@@ -9155,7 +9155,7 @@ end;
 
 function IMAGE_FIRST_SECTION(NtHeader: PImageNtHeaders): PImageSectionHeader;
 begin
-  Result := PImageSectionHeader(Cardinal(NtHeader) +
+  Result := PImageSectionHeader(ptruint(NtHeader) +
       FieldOffset(NtHeader^, NtHeader^.OptionalHeader) +
       NtHeader^.FileHeader.SizeOfOptionalHeader);
 end;

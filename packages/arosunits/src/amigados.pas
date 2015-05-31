@@ -1023,7 +1023,7 @@ type
   TExAllData = record
     ed_Next: PExAllData;
     ed_Name: PChar;        // Name of the file
-    ed_Type,               // Type of File
+    ed_Type: LongInt;      // Type of File
     ed_Size,               // Size of File
     ed_Prot,               // Protection Bits
 { The following three fields are de facto an embedded datestamp
