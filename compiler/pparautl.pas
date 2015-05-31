@@ -235,6 +235,8 @@ implementation
                   type or equal to an instance of it }
                 if is_objectpascal_helper(tprocdef(pd).struct) then
                   selfdef:=tobjectdef(tprocdef(pd).struct).extendeddef
+                else if is_objccategory(tprocdef(pd).struct) then
+                  selfdef:=tobjectdef(tprocdef(pd).struct).childof
                 else
                   selfdef:=tprocdef(pd).struct;
                 { Generate self variable, for classes we need
