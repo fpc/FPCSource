@@ -65,9 +65,12 @@ implementation
 
     function tllvmsubscriptnode.handle_platform_subscript: boolean;
       var
-        subscripteddef,
+        parentdef,
+        subscriptdef,
+        currentstructdef,
         llvmfielddef: tdef;
         newbase: tregister;
+        implicitpointer: boolean;
       begin
         if not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
           internalerror(2014011905);
@@ -82,17 +85,44 @@ implementation
           end
         else
           begin
+            implicitpointer:=is_implicit_pointer_object_type(left.resultdef);
+            currentstructdef:=left.resultdef;
+            { in case the field is part of a parent of the current object,
+              index into the parents until we're at the parent containing the
+              field; if it's an implicit pointer type, these embedded parents
+              will be of the structure type of the class rather than of the
+              class time itself -> one indirection fewer }
+            while vs.owner<>tabstractrecorddef(currentstructdef).symtable do
+              begin
+                { only objectdefs have parents and hence the owner of the
+                  fieldvarsym can be different from the current def's owner }
+                parentdef:=tobjectdef(currentstructdef).childof;
+                if implicitpointer then
+                  newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,parentdef)
+                else
+                  newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(parentdef));
+                location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
+                if implicitpointer then
+                  subscriptdef:=currentstructdef
+                else
+                  subscriptdef:=getpointerdef(currentstructdef);
+                { recurse into the first field }
+                current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,location.reference,s32inttype,0,true));
+                reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset));
+                { go to the parent }
+                currentstructdef:=parentdef;
+              end;
             { get the type of the corresponding field in the llvm shadow
               definition }
-            llvmfielddef:=tabstractrecordsymtable(tabstractrecorddef(left.resultdef).symtable).llvmst[vs.llvmfieldnr].def;
+            llvmfielddef:=tabstractrecordsymtable(tabstractrecorddef(currentstructdef).symtable).llvmst[vs.llvmfieldnr].def;
+            if implicitpointer then
+              subscriptdef:=currentstructdef
+            else
+              subscriptdef:=getpointerdef(currentstructdef);
             { load the address of that shadow field }
             newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef));
             location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
-            if is_implicit_pointer_object_type(left.resultdef) then
-              subscripteddef:=left.resultdef
-            else
-              subscripteddef:=getpointerdef(left.resultdef);
-            current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscripteddef,location.reference,s32inttype,vs.llvmfieldnr,true));
+            current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,location.reference,s32inttype,vs.llvmfieldnr,true));
             reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset));
             { in case of an 80 bits extended type, typecast from an array of 10
               bytes (used because otherwise llvm will allocate the ABI-defined
