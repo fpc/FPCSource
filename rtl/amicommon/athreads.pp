@@ -57,7 +57,8 @@ type
     threadVars: Pointer;     { have threadvars ptr as first field, so no offset is needed to access it (faster) }
     threadVarsSize: DWord;   { size of the allocated threadvars block }
     nextThread: PThreadInfo; { threadinfos are a linked list, using this field }
-    threadID: TThreadID;     { thread ID, as returned by CreateNewProc() }
+    threadPtr: PProcess;     { our thread pointer, as returned by CreateNewProc(). invalid after exited field is true! }
+    threadID: TThreadID;     { thread Unique ID }
     stackLen: PtrUInt;       { stack size the thread was construced with }
     exitCode: Pointer;       { exitcode after the process has exited     }
     f: TThreadFunc;          { ThreadFunc function pointer }
@@ -91,6 +92,13 @@ begin
   Str(I,result);
 end;
 
+{$IFDEF DEBUG_MT}
+function IToHStr(const i: LongInt): String;
+begin
+  result:=HexStr(Pointer(i));
+end;
+{$ENDIF}
+
 { Function to add a thread to the running threads list }
 procedure AddToThreadList(var l: PThreadInfo; ti: PThreadInfo);
 var
@@ -99,6 +107,7 @@ var
 begin
   inList:=False;
   ObtainSemaphore(@AThreadListSemaphore);
+
   if l = nil then
     { if the list is not yet allocated, the newly added
       threadinfo will be the first item }
@@ -110,11 +119,12 @@ begin
       while (p^.nextThread<>nil) do p:=p^.nextThread;
       p^.nextThread:=ti;
     end;
+
   inc(AThreadNum);
   ti^.num:=AThreadNum;
   inc(AThreadListLen);
 {$IFDEF DEBUG_MT}
-  SysDebugLn('FPC AThreads: thread ID:'+hexstr(Pointer(ti^.threadID))+' added, now '+IToStr(AThreadListLen)+' thread(s) in list.');
+  SysDebugLn('FPC AThreads: thread ID:'+IToHStr(ti^.threadID)+' added, now '+IToStr(AThreadListLen)+' thread(s) in list.');
 {$ENDIF}
   ReleaseSemaphore(@AThreadListSemaphore);
 end;
@@ -150,9 +160,9 @@ begin
       if not p^.mainthread and p^.exited then
         begin
 {$IFDEF DEBUG_MT}
-          SysDebugLn('FPC AThreads: Releasing resources for thread ID:'+hexStr(Pointer(threadID)));
+          SysDebugLn('FPC AThreads: Releasing resources for thread ID:'+IToHStr(threadID));
           if (p^.threadVars <> nil) or (p^.threadVarsSize <> 0) then
-            SysDebugLn('FPC AThreads: WARNING, threadvars area wasn''t properly freed!'+hexStr(Pointer(threadID)));
+            SysDebugLn('FPC AThreads: WARNING, threadvars area wasn''t properly freed!'+IToHStr(threadID));
 {$ENDIF}
           dispose(p);
           if pprev <> nil then
@@ -162,14 +172,14 @@ begin
       else
         begin
 {$IFDEF DEBUG_MT}
-          SysDebugLn('FPC AThreads: Error! Attempt to remove threadID, which is the mainthread or not exited:'+hexStr(Pointer(threadID)));
+          SysDebugLn('FPC AThreads: Error! Attempt to remove threadID, which is the mainthread or not exited:'+IToHStr(threadID));
 {$ENDIF}
           inList:=false;
         end;
     end
 {$IFDEF DEBUG_MT}
   else
-    SysDebugLn('FPC AThreads: Error! Attempt to remove threadID, which is not in list:'+hexStr(Pointer(threadID)))
+    SysDebugLn('FPC AThreads: Error! Attempt to remove threadID, which is not in list:'+IToHstr(threadID))
 {$ENDIF}
   ;
   ReleaseSemaphore(@AThreadListSemaphore);
@@ -194,6 +204,12 @@ begin
     p:=p^.nextThread;
   GetThreadInfo:=p;
   ReleaseSemaphore(@AThreadListSemaphore);
+end;
+
+{ Get current thread's ThreadInfo structure }
+function GetCurrentThreadInfo: PThreadInfo;
+begin
+  result:=PThreadInfo(PProcess(FindTask(nil))^.pr_Task.tc_UserData);
 end;
 
 { Returns the number of threads still not exited in our threadlist }
@@ -234,7 +250,7 @@ begin
       tm_ThreadInfo:=p;
       tm_Operation:=op;
     end;
-  PutMsg(@PProcess(p^.threadID)^.pr_MsgPort,@threadMsg);
+  PutMsg(@p^.threadPtr^.pr_MsgPort,@threadMsg);
 
   if waitReply then
     begin
@@ -275,7 +291,7 @@ begin
 {$IFDEF DEBUG_MT}
   {SysDebugLn('FPC AThreads: RelocateThreadvar');}
 {$ENDIF}
-  p:=PThreadInfo(PProcess(FindTask(nil))^.pr_Task.tc_UserData);
+  p:=GetCurrentThreadInfo;
   if (p <> nil) and (p^.threadVars <> nil) then
     result:=p^.threadVars + Offset
   else
@@ -292,11 +308,11 @@ begin
   { exceptions which use threadvars but       }
   { these aren't allocated yet ...            }
   { allocate room on the heap for the thread vars }
-  p:=PThreadInfo(PProcess(FindTask(nil))^.pr_Task.tc_UserData);
+  p:=GetCurrentThreadInfo;
   if p <> nil then
     begin
 {$ifdef DEBUG_MT}
-      SysDebugLn('FPC AThreads: Allocating threadvars, ID:'+hexStr(Pointer(p^.threadID)));
+      SysDebugLn('FPC AThreads: Allocating threadvars, ID:'+IToHStr(p^.threadID));
 {$endif}
 {$ifdef AMIGA}
       ObtainSemaphore(ASYS_heapSemaphore);
@@ -326,11 +342,11 @@ procedure AReleaseThreadVars;
 var
   p: PThreadInfo;
 begin
-  p:=PThreadInfo(PProcess(FindTask(nil))^.pr_Task.tc_UserData);
+  p:=GetCurrentThreadInfo;
   if (p <> nil) and (p^.threadVars <> nil) then
     begin
 {$ifdef DEBUG_MT}
-      SysDebugLn('FPC AThreads: Releasing threadvars, ID:'+hexStr(Pointer(p^.threadID)));
+      SysDebugLn('FPC AThreads: Releasing threadvars, ID:'+IToHStr(p^.threadID));
 {$endif}
 {$ifdef AMIGA}
       ObtainSemaphore(ASYS_heapSemaphore);
@@ -369,7 +385,8 @@ begin
       threadInfo^.mainThread:=true;
       InitSemaphore(@threadInfo^.mutex);
       ObtainSemaphore(@threadInfo^.mutex);
-      threadInfo^.threadID:=TThreadID(p);
+      threadInfo^.threadPtr:=p;
+      threadInfo^.threadID:=TThreadID(threadInfo);
       InitThreadVars(@ARelocateThreadvar);
       AddToThreadList(AThreadList,threadInfo);
     end;
@@ -385,9 +402,6 @@ var
   threadInfo: PThreadInfo;
 begin
   thisThread:=PProcess(FindTask(nil));
-{$ifdef DEBUG_MT}
-  SysDebugLn('FPC AThreads: Entering subthread function, ID:'+hexStr(thisThread));
-{$endif}
 
   { wait for our start message to arrive, then fetch it }
   WaitPort(@thisThread^.pr_MsgPort);
@@ -398,6 +412,9 @@ begin
   threadInfo:=threadMsg^.tm_ThreadInfo;
   thisThread^.pr_Task.tc_userData:=threadInfo;
 
+{$ifdef DEBUG_MT}
+  SysDebugLn('FPC AThreads: Entering subthread function, ID:'+hexStr(threadInfo));
+{$endif}
   { Obtain the threads' mutex, used for exit sync }
   ObtainSemaphore(@threadInfo^.mutex);
 
@@ -410,7 +427,7 @@ begin
     begin
 {$ifdef DEBUG_MT}
       { this line can't be before threadvar allocation }
-      SysDebugLn('FPC AThreads: Renaming thread ID:'+hexStr(thisThread)+' to '+threadInfo^.name);
+      SysDebugLn('FPC AThreads: Renaming thread ID:'+hexStr(threadInfo)+' to '+threadInfo^.name);
 {$endif}
       thisThread^.pr_Task.tc_Node.ln_Name:=PChar(@threadInfo^.name[1]);
     end;
@@ -426,7 +443,7 @@ begin
   if threadInfo^.suspended then
     begin
 {$ifdef DEBUG_MT}
-      SysDebugLn('FPC AThreads: Suspending subthread on entry, ID:'+hexStr(thisThread));
+      SysDebugLn('FPC AThreads: Suspending subthread on entry, ID:'+hexStr(threadInfo));
 {$endif}
       WaitPort(@thisThread^.pr_MsgPort);
       resumeMsg:=PThreadMsg(GetMsg(@thisThread^.pr_MsgPort));
@@ -434,7 +451,7 @@ begin
       threadInfo^.suspended:=false;
       ReplyMsg(PMessage(resumeMsg));
 {$ifdef DEBUG_MT}
-      SysDebugLn('FPC AThreads: Resuming subthread on entry, ID:'+hexStr(thisThread)+', resumed only to exit: '+IToStr(ord(exitSuspend)));
+      SysDebugLn('FPC AThreads: Resuming subthread on entry, ID:'+hexStr(threadInfo)+', resumed only to exit: '+IToStr(ord(exitSuspend)));
 {$endif}
     end;
 
@@ -447,7 +464,7 @@ begin
     end;
 
 {$ifdef DEBUG_MT}
-  SysDebugLn('FPC AThreads: Exiting Subthread function, ID:'+hexStr(thisThread));
+  SysDebugLn('FPC AThreads: Exiting Subthread function, ID:'+hexStr(threadInfo));
 {$endif}
   Forbid();
   threadInfo^.exited:=true;
@@ -483,8 +500,10 @@ begin
     in a MT safe way, is to use the heap }
   new(threadInfo);
   FillChar(threadInfo^,sizeof(TThreadInfo),0);
+  InitSemaphore(@threadInfo^.mutex);
   threadInfo^.f:=ThreadFunction;
   threadInfo^.p:=p;
+
   if (creationFlags and STACK_SIZE_PARAM_IS_A_RESERVATION) > 0 then
     threadInfo^.stackLen:=stacksize
   else
@@ -509,23 +528,22 @@ begin
 {$endif}
       exit;
     end;
-  ThreadID:=TThreadID(subThread);
+  ThreadID:=TThreadID(threadInfo);
+  threadInfo^.threadPtr:=subThread;
   threadInfo^.threadID:=ThreadID;
-  InitSemaphore(@threadInfo^.mutex);
-
-  // the thread should be started here, and waiting 
-  // for our start message, so send it
-{$ifdef DEBUG_MT}
-  SysDebugLn('FPC AThreads: Sending start message to subthread and waiting for reply ID:'+hexStr(subThread));
-{$endif}
   AddToThreadList(AThreadList,threadInfo);
+
+  { the thread should be started, and waiting for our start message, so send it }
+{$ifdef DEBUG_MT}
+  SysDebugLn('FPC AThreads: Sending start message to subthread and waiting for reply, ID:'+IToHStr(threadID));
+{$endif}
   { AddToThreadList assigned us a number, so use it to name the thread }
   threadInfo^.name:=GetAThreadBaseName+' #'+IToStr(threadInfo^.num);
   SendMessageToThread(threadMsg,threadInfo,toStart,true);
 
   ABeginThread:=ThreadId;
 {$ifdef DEBUG_MT}
-  SysDebugLn('FPC AThreads: Thread created successfully, ID:'+hexStr(subThread));
+  SysDebugLn('FPC AThreads: Thread created successfully, ID:'+IToHStr(threadID));
 {$endif}
 end;
 
@@ -539,7 +557,7 @@ end;
 function ASuspendThread (threadHandle : TThreadID) : dword;
 begin
 {$ifdef DEBUG_MT}
-  SysDebugLn('FPC AThreads: unsupported operation: SuspendThread called for ID:'+hexStr(Pointer(threadHandle)));
+  SysDebugLn('FPC AThreads: unsupported operation: SuspendThread called for ID:'+IToHStr(threadHandle));
 {$endif}
   // cannot be properly supported on Amiga
   result:=dword(-1);
@@ -557,7 +575,7 @@ begin
   if (p <> nil) and p^.suspended then
     begin
 {$ifdef DEBUG_MT}
-      SysDebugLn('FPC AThreads: Waiting for thread to resume, ID:'+hexStr(Pointer(threadHandle)));
+      SysDebugLn('FPC AThreads: Waiting for thread to resume, ID:'+IToHStr(threadHandle));
 {$endif}
       { WaitPort in SendMessageToThread will break the Forbid() state... }
       SendMessageToThread(m,p,toResume,true);
@@ -565,8 +583,9 @@ begin
     end
   else
     begin
+      SysDebugLn('FPC AThreads: szijjal gazt:'+hexstr(p)+' mi?'+IToStr(ord(p^.suspended))+' mimi?'+IToStr(ord(p^.exited)));
 {$ifdef DEBUG_MT}
-      SysDebugLn('FPC AThreads: Error, attempt to resume a non-suspended thread, or invalid thread ID:'+hexStr(Pointer(threadHandle)));
+      SysDebugLn('FPC AThreads: Error, attempt to resume a non-suspended thread, or invalid thread ID:'+IToHStr(threadHandle));
 {$endif}
       AResumeThread:=dword(-1);
     end;
@@ -590,7 +609,7 @@ end;
 function AKillThread (threadHandle : TThreadID) : dword;
 begin
 {$ifdef DEBUG_MT}
-  SysDebugLn('FPC AThreads: unsupported operation: KillThread called for ID:'+hexStr(Pointer(threadHandle)));
+  SysDebugLn('FPC AThreads: unsupported operation: KillThread called for ID:'+IToHStr(threadHandle));
 {$endif}
   // cannot be properly supported on Amiga
   AKillThread:=dword(-1);
@@ -621,14 +640,14 @@ begin
       if not p^.exited then
         begin
 {$ifdef DEBUG_MT}
-          SysDebugLn('FPC AThreads: Waiting for thread to exit, ID:'+hexStr(Pointer(threadHandle)));
+          SysDebugLn('FPC AThreads: Waiting for thread to exit, ID:'+IToHStr(threadHandle));
 {$endif}
           { WaitPort in SendMessageToThread will break the Forbid() state... }
           if p^.suspended then
             begin
               SendMessageToThread(m,p,toExit,true);
 {$ifdef DEBUG_MT}
-              SysDebugLn('FPC AThreads: Signaled suspended thread to exit, ID:'+hexStr(Pointer(threadHandle)));
+              SysDebugLn('FPC AThreads: Signaled suspended thread to exit, ID:'+IToHStr(threadHandle));
 {$endif}
             end;
 
@@ -640,14 +659,14 @@ begin
         end
       else
 {$ifdef DEBUG_MT}
-        SysDebugLn('FPC AThreads: Thread already exited, ID:'+hexStr(Pointer(threadHandle)));
+        SysDebugLn('FPC AThreads: Thread already exited, ID:'+IToHStr(threadHandle));
 {$endif}
       AWaitForThreadTerminate:=DWord(p^.exitCode);
     end
   else
     begin
 {$ifdef DEBUG_MT}
-      SysDebugLn('FPC AThreads: Error, attempt to wait for invalid thread ID to exit, ID:'+hexStr(Pointer(threadHandle)));
+      SysDebugLn('FPC AThreads: Error, attempt to wait for invalid thread ID to exit, ID:'+IToHStr(threadHandle));
 {$endif}
       AWaitForThreadTerminate:=dword(-1); { Return non-zero code on error. }
     end;
@@ -671,7 +690,7 @@ end;
 
 function AGetCurrentThreadId : TThreadID;
 begin
-  AGetCurrentThreadId := TThreadID(FindTask(nil));
+  AGetCurrentThreadId := TThreadID(GetCurrentThreadInfo);
 end;
 
 
@@ -830,11 +849,10 @@ begin
 {$endif}
   result:=true;
 
-  ThreadID := TThreadID(FindTask(nil));
-{$ifdef DEBUG_MT}
-{$endif DEBUG_MT}
   // We assume that if you set the thread manager, the application is multithreading.
   InitAThreading;
+
+  ThreadID := TThreadID(GetCurrentThreadInfo);
 end;
 
 function ADoneThreads : Boolean;
@@ -961,7 +979,9 @@ initialization
   AThreadNum:=-1; { Mainthread will be 0. }
   InitSemaphore(@AThreadListSemaphore);
   SetAThreadManager;
-
+{$IFDEF DEBUG_MT}
+  SysDebugLn('FPC AThreads: Unit Initialization Done');
+{$ENDIF}
 finalization
 {$IFDEF DEBUG_MT}
   SysDebugLn('FPC AThreads: Unit Finalization');
