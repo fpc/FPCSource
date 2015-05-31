@@ -65,6 +65,7 @@ implementation
 
     function tllvmsubscriptnode.handle_platform_subscript: boolean;
       var
+        subscripteddef,
         llvmfielddef: tdef;
         newbase: tregister;
       begin
@@ -87,7 +88,11 @@ implementation
             { load the address of that shadow field }
             newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef));
             location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
-            current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,getpointerdef(left.resultdef),location.reference,s32inttype,vs.llvmfieldnr,true));
+            if is_implicit_pointer_object_type(left.resultdef) then
+              subscripteddef:=left.resultdef
+            else
+              subscripteddef:=getpointerdef(left.resultdef);
+            current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscripteddef,location.reference,s32inttype,vs.llvmfieldnr,true));
             reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset));
             { in case of an 80 bits extended type, typecast from an array of 10
               bytes (used because otherwise llvm will allocate the ABI-defined
