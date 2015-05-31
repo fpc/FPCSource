@@ -67,7 +67,8 @@ type
     num: longint;            { This was the "num"th thread to created }
     mainthread: boolean;     { true if this is our main thread }
     exited: boolean;         { true if the thread has exited, and can be cleaned up }
-    suspended: boolean;      { true if the thread was started suspended, and not resumed yet }
+    startSuspended: boolean; { true if the thread was started suspended, and not resumed yet }
+    suspended: boolean;      { true if the thread is currently suspended }
     mutex: TSignalSemaphore; { thread's mutex. locked during the thread's life. }
     name: String;            { Thread's name }
   end;
@@ -440,7 +441,7 @@ begin
   { if creating a suspended thread, wait for the wakeup message to arrive }
   { then check if we actually have to resume, or exit }
   exitSuspend:=false;
-  if threadInfo^.suspended then
+  if threadInfo^.startSuspended then
     begin
 {$ifdef DEBUG_MT}
       SysDebugLn('FPC AThreads: Suspending subthread on entry, ID:'+hexStr(threadInfo));
@@ -448,7 +449,7 @@ begin
       WaitPort(@thisThread^.pr_MsgPort);
       resumeMsg:=PThreadMsg(GetMsg(@thisThread^.pr_MsgPort));
       exitSuspend:=resumeMsg^.tm_Operation <> toResume;
-      threadInfo^.suspended:=false;
+      threadInfo^.startSuspended:=false;
       ReplyMsg(PMessage(resumeMsg));
 {$ifdef DEBUG_MT}
       SysDebugLn('FPC AThreads: Resuming subthread on entry, ID:'+hexStr(threadInfo)+', resumed only to exit: '+IToStr(ord(exitSuspend)));
@@ -508,7 +509,7 @@ begin
     threadInfo^.stackLen:=stacksize
   else
     threadInfo^.stackLen:=System.StackLength; { inherit parent's stack size }
-  threadInfo^.suspended:=(creationFlags and CREATE_SUSPENDED) > 0;
+  threadInfo^.startSuspended:=(creationFlags and CREATE_SUSPENDED) > 0;
 
 {$ifdef DEBUG_MT}
   SysDebugLn('FPC AThreads: Starting new thread... Stack size: '+IToStr(threadInfo^.stackLen));
@@ -555,12 +556,39 @@ end;
 
 
 function ASuspendThread (threadHandle : TThreadID) : dword;
+var
+  p: PThreadInfo;
+  m: PThreadMsg;
 begin
+  ASuspendThread:=0;
+  if GetCurrentThreadID = threadHandle then
+    begin
+      p:=GetThreadInfo(AThreadList,threadHandle);
+      if p <> nil then
+        begin
+          p^.suspended:=true;
+          while p^.suspended do
+            begin
+              WaitPort(@p^.threadPtr^.pr_MsgPort);
+              m:=PThreadMsg(GetMsg(@p^.threadPtr^.pr_MsgPort));
+              if m^.tm_Operation = toResume then
+                p^.suspended:=false
+              else
 {$ifdef DEBUG_MT}
-  SysDebugLn('FPC AThreads: unsupported operation: SuspendThread called for ID:'+IToHStr(threadHandle));
+                SysDebugLn('FPC AThreads: Got message during suspend, but it wasn''t toResume! ID:'+IToHStr(threadHandle))
 {$endif}
-  // cannot be properly supported on Amiga
-  result:=dword(-1);
+              ;
+              ReplyMsg(PMessage(m));
+            end;
+        end;
+    end
+  else
+    begin
+{$ifdef DEBUG_MT}
+      SysDebugLn('FPC AThreads: SuspendThread called for ID:'+IToHStr(threadHandle)+' which is not the current thread!');
+{$endif}
+      result:=dword(-1);
+    end;
 end;
 
 
@@ -572,7 +600,7 @@ begin
   AResumeThread:=0;
   Forbid();
   p:=GetThreadInfo(AThreadList,threadHandle);
-  if (p <> nil) and p^.suspended then
+  if (p <> nil) and (p^.suspended or p^.startSuspended) then
     begin
 {$ifdef DEBUG_MT}
       SysDebugLn('FPC AThreads: Waiting for thread to resume, ID:'+IToHStr(threadHandle));
@@ -642,11 +670,11 @@ begin
           SysDebugLn('FPC AThreads: Waiting for thread to exit, ID:'+IToHStr(threadHandle));
 {$endif}
           { WaitPort in SendMessageToThread will break the Forbid() state... }
-          if p^.suspended then
+          if p^.startSuspended then
             begin
               SendMessageToThread(m,p,toExit,true);
 {$ifdef DEBUG_MT}
-              SysDebugLn('FPC AThreads: Signaled suspended thread to exit, ID:'+IToHStr(threadHandle));
+              SysDebugLn('FPC AThreads: Signaled start-suspended thread to exit, ID:'+IToHStr(threadHandle));
 {$endif}
             end;
 
