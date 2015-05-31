@@ -43,6 +43,7 @@ Type
 Implementation
 
   uses
+    cutils,
     cpuinfo,
     aasmbase,aasmcpu,
     globals,globtype,
@@ -86,6 +87,14 @@ Implementation
   function MatchOperand(const oper: TOper; const reg: TRegister): boolean; inline;
     begin
       result := (oper.typ = top_reg) and (oper.reg = reg);
+    end;
+
+
+  function MatchInstruction(const instr: tai; const op: TAsmOp): boolean;
+    begin
+      result :=
+        (instr.typ = ait_instruction) and
+        (taicpu(instr).opcode = op);
     end;
 
 
@@ -189,6 +198,60 @@ Implementation
                     taicpu(p).opcode:=A_IN;
                     taicpu(p).loadconst(1,taicpu(p).oper[1]^.ref^.offset-32);
                   end;
+              A_IN:
+                  if GetNextInstruction(p,hp1) then
+                    begin
+                      {
+                        in rX,Y
+                        ori rX,n
+                        out Y,rX
+
+                        into
+                        sbi rX,lg(n)
+                      }
+                      if MatchInstruction(hp1,A_ORI) and
+                        (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
+                        (PopCnt(byte(taicpu(hp1).oper[1]^.val))=1) and
+                        GetNextInstruction(hp1,hp2) and
+                        MatchInstruction(hp2,A_OUT) and
+                        MatchOperand(taicpu(hp2).oper[1]^,taicpu(p).oper[0]^) and
+                        MatchOperand(taicpu(hp2).oper[0]^,taicpu(p).oper[1]^) then
+                        begin
+                          taicpu(p).opcode:=A_SBI;
+                          taicpu(p).loadconst(0,taicpu(p).oper[1]^.val);
+                          taicpu(p).loadconst(1,BsrByte(taicpu(hp1).oper[1]^.val)-1);
+                          asml.Remove(hp1);
+                          hp1.Free;
+                          asml.Remove(hp2);
+                          hp2.Free;
+                          result:=true;
+                        end
+                       {
+                        in rX,Y
+                        andi rX,not(n)
+                        out Y,rX
+
+                        into
+                        cbi rX,lg(n)
+                      }
+                      else if MatchInstruction(hp1,A_ANDI) and
+                         (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
+                         (PopCnt(byte(not(taicpu(hp1).oper[1]^.val)))=1) and
+                         GetNextInstruction(hp1,hp2) and
+                         MatchInstruction(hp2,A_OUT) and
+                         MatchOperand(taicpu(hp2).oper[1]^,taicpu(p).oper[0]^) and
+                         MatchOperand(taicpu(hp2).oper[0]^,taicpu(p).oper[1]^) then
+                        begin
+                          taicpu(p).opcode:=A_CBI;
+                          taicpu(p).loadconst(0,taicpu(p).oper[1]^.val);
+                          taicpu(p).loadconst(1,BsrByte(not(taicpu(hp1).oper[1]^.val))-1);
+                          asml.Remove(hp1);
+                          hp1.Free;
+                          asml.Remove(hp2);
+                          hp2.Free;
+                          result:=true;
+                        end;
+                    end;
               A_CLR:
                 begin
                   { turn the common
