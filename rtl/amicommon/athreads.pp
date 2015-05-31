@@ -583,7 +583,6 @@ begin
     end
   else
     begin
-      SysDebugLn('FPC AThreads: szijjal gazt:'+hexstr(p)+' mi?'+IToStr(ord(p^.suspended))+' mimi?'+IToStr(ord(p^.exited)));
 {$ifdef DEBUG_MT}
       SysDebugLn('FPC AThreads: Error, attempt to resume a non-suspended thread, or invalid thread ID:'+IToHStr(threadHandle));
 {$endif}
