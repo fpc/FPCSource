@@ -1982,6 +1982,10 @@ implementation
                           ctypeconvnode.create_internal(left,methodpointertype));
                 typecheckpass(left);
               end;
+            if lt=niln then
+              inserttypeconv_explicit(left,right.resultdef)
+            else
+              inserttypeconv_explicit(right,left.resultdef)
           end
 
        { support dynamicarray=nil,dynamicarray<>nil }
