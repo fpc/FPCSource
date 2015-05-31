@@ -376,8 +376,8 @@ implementation
             end;
           classrefdef :
             begin
-              { todo: define proper type for VMT and use that  }
-              encodedstr:=encodedstr+'i8*';
+              llvmaddencodedtype_intern(tobjectdef(tclassrefdef(def).pointeddef).vmt_def,flags,encodedstr);
+              encodedstr:=encodedstr+'*';
             end;
           setdef :
             begin
