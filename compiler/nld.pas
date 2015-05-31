@@ -333,27 +333,24 @@ implementation
                    { and behaves as if its address escapes its parent block         }
                    make_not_regable(self,[ra_addr_taken]);
                  end;
-               { fix self type which is declared as voidpointer in the
-                 definition }
-               if vo_is_self in tabstractvarsym(symtableentry).varoptions then
+               resultdef:=tabstractvarsym(symtableentry).vardef;
+               { self for objects is passed as var-parameter on the caller
+                 side, but on the callee-side we use it as a pointer ->
+                 adjust }
+               if (vo_is_self in tabstractvarsym(symtableentry).varoptions) then
                  begin
-                   resultdef:=tprocdef(symtableentry.owner.defowner).struct;
-                   if is_objectpascal_helper(resultdef) then
-                     resultdef:=tobjectdef(resultdef).extendeddef;
-                   if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
-                      (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
-                     resultdef:=cclassrefdef.create(resultdef)
-                   else if (is_object(resultdef) or is_record(resultdef)) and
-                           (loadnf_load_self_pointer in loadnodeflags) then
-                     resultdef:=getpointerdef(resultdef);
+                   if (is_object(resultdef) or is_record(resultdef)) and
+                      (loadnf_load_self_pointer in loadnodeflags) then
+                     resultdef:=getpointerdef(resultdef)
+                   else if (resultdef=objc_idtype) and
+                      (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
+                     resultdef:=cclassrefdef.create(tprocdef(symtableentry.owner.defowner).struct)
                  end
                else if vo_is_vmt in tabstractvarsym(symtableentry).varoptions then
                  begin
                    resultdef:=tprocdef(symtableentry.owner.defowner).struct;
                    resultdef:=cclassrefdef.create(resultdef);
-                 end
-               else
-                 resultdef:=tabstractvarsym(symtableentry).vardef;
+                 end;
              end;
            procsym :
              begin
