@@ -20,7 +20,7 @@
 *****************************************************************************}
 
 function Fptime(tloc:pTime_t): Time_t; [public, alias : 'FPC_SYSC_TIME'];
-{$ifdef FPC_USEGETTIMEOFDAY}
+{$if defined(generic_linux_syscalls) or defined(FPC_USEGETTIMEOFDAY)}
 VAR tv     : timeval;
     tz     : timezone;
     retval : longint;
@@ -49,7 +49,11 @@ end;
 function Fpopen(path: pchar; flags : cint; mode: mode_t):cint; [public, alias : 'FPC_SYSC_OPEN'];
 
 Begin
+{$if defined(generic_linux_syscalls)}
+ Fpopen:=do_syscall(syscall_nr_openat,AT_FDCWD,TSysParam(path),TSysParam(flags or O_LARGEFILE),TSysParam(mode));
+{$else}
  Fpopen:=do_syscall(syscall_nr_open,TSysParam(path),TSysParam(flags or O_LARGEFILE),TSysParam(mode));
+{$endif}
 End;
 
 function Fpclose(fd : cint): cint; [public, alias : 'FPC_SYSC_CLOSE'];
@@ -98,20 +102,32 @@ end;
 function Fpunlink(path: pchar): cint; [public, alias : 'FPC_SYSC_UNLINK'];
 
 begin
+{$if defined(generic_linux_syscalls)}
+  Fpunlink:=do_syscall(syscall_nr_unlinkat,AT_FDCWD,TSysParam(path),0);
+{$else}
   Fpunlink:=do_syscall(syscall_nr_unlink,TSysParam(path));
+{$endif}
 end;
 
 function Fprename(old : pchar; newpath: pchar): cint; [public, alias : 'FPC_SYSC_RENAME'];
 
 begin
+{$if defined(generic_linux_syscalls)}
+  Fprename:=do_syscall(syscall_nr_renameat,AT_FDCWD,TSysParam(old),AT_FDCWD,TSysParam(newpath));
+{$else}
   Fprename:=do_syscall(syscall_nr_rename,TSysParam(old),TSysParam(newpath));
+{$endif}
 end;
 
 function Fpstat(path: pchar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STAT'];
 
 begin
 {$if defined(cpu64)}
-  Fpstat:=do_syscall(syscall_nr_stat,TSysParam(path),TSysParam(@buf));
+  {$if defined(generic_linux_syscalls)}
+    Fpstat:=do_syscall(syscall_nr_fstatat,AT_FDCWD,TSysParam(path),TSysParam(@buf),0);
+  {$else}
+    Fpstat:=do_syscall(syscall_nr_stat,TSysParam(path),TSysParam(@buf));
+  {$endif}
 {$else}
   Fpstat:=do_syscall(syscall_nr_stat64,TSysParam(path),TSysParam(@buf));
 {$endif}
@@ -130,13 +146,21 @@ end;
 function Fpmkdir(path : pchar; mode: mode_t):cint; [public, alias : 'FPC_SYSC_MKDIR'];
 
 begin
+{$if defined(generic_linux_syscalls)}
+  Fpmkdir:=do_syscall(syscall_nr_mkdirat,AT_FDCWD,TSysParam(path),TSysParam(mode));
+{$else}
   Fpmkdir:=do_syscall(syscall_nr_mkdir,TSysParam(path),TSysParam(mode));
+{$endif}
 end;
 
 function Fprmdir(path : pchar): cint;  [public, alias : 'FPC_SYSC_RMDIR'];
 
 begin
+{$if defined(generic_linux_syscalls)}
+ Fprmdir:=do_syscall(syscall_nr_unlinkat,AT_FDCWD,TSysParam(path),AT_REMOVEDIR);
+{$else}
  Fprmdir:=do_syscall(syscall_nr_rmdir,TSysParam(path));
+{$endif}
 end;
 
 function Fpopendir(dirname : pchar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
@@ -363,7 +387,11 @@ function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FS
 
 begin
 {$if defined(cpu64)}
-  FpFStat:=do_SysCall(syscall_nr_fstat,TSysParam(fd),TSysParam(@sb));
+  {$if defined(generic_linux_syscalls)}
+    FpFStat:=do_SysCall(syscall_nr_fstat,TSysParam(fd),TSysParam(@sb));
+  {$else}
+    FpFStat:=do_SysCall(syscall_nr_fstat,TSysParam(fd),TSysParam(@sb));
+  {$endif}
 {$else}
   FpFStat:=do_SysCall(syscall_nr_fstat64,TSysParam(fd),TSysParam(@sb));
 {$endif}
@@ -380,9 +408,14 @@ function Fpfork : pid_t;  [public, alias : 'FPC_SYSC_FORK'];
   A negative value indicates that an error has occurred, the error is returned in
   LinuxError.
 }
-
+var
+  pid : Int64;
 Begin
+{$if defined(generic_linux_syscalls)}
+ Fpfork:=Do_syscall(syscall_nr_clone,clone_flags_fork,0,0,0,TSysParam(@pid));
+{$else}
  Fpfork:=Do_syscall(SysCall_nr_fork);
+{$endif}
 End;
 {$endif FPC_SYSTEM_HAS_FPFORK}
 
@@ -425,7 +458,7 @@ function Fpwaitpid(pid : pid_t; stat_loc : pcint; options: cint): pid_t; [public
 }
 
 begin
-{$ifdef WAIT4}
+{$if defined(generic_linux_syscalls) or defined(WAIT4)}
  FpWaitPID:=do_syscall(syscall_nr_Wait4,PID,TSysParam(Stat_loc),options,0);
 {$else WAIT4}
  FpWaitPID:=do_syscall(syscall_nr_WaitPID,PID,TSysParam(Stat_loc),options);
@@ -447,7 +480,11 @@ function Fpaccess(pathname : pchar; amode : cint): cint; [public, alias : 'FPC_S
 }
 
 begin
+{$if defined(generic_linux_syscalls)}
+ FpAccess:=do_syscall(syscall_nr_faccessat,AT_FDCWD,TSysParam(pathname),amode,0);
+{$else}
  FpAccess:=do_syscall(syscall_nr_access,TSysParam(pathname),amode);
+{$endif}
 end;
 
 (* overloaded
@@ -481,7 +518,16 @@ end;
 Function FpDup2(fildes,fildes2:cint):cint; [public, alias : 'FPC_SYSC_DUP2'];
 
 begin
+{$if defined(generic_linux_syscalls)}
+ if fildes<>fildes2 then
+   Fpdup2:=do_syscall(syscall_nr_dup3,TSysParam(fildes),TSysParam(fildes2),0)
+ else if do_syscall(syscall_nr_fcntl,TSysParam(fildes),1)<>-1 then
+   Fpdup2:=fildes2
+ else
+   Fpdup2:=-1;
+{$else}
  Fpdup2:=do_syscall(syscall_nr_dup2,TSysParam(fildes),TSysParam(fildes2));
+{$endif}
 end;
 
 
@@ -572,7 +618,11 @@ end;
 Function FpReadLink(name,linkname:pchar;maxlen:size_t):cint;  [public, alias : 'FPC_SYSC_READLINK'];
 
 begin
+{$if defined(generic_linux_syscalls)}
+  Fpreadlink:=do_syscall(syscall_nr_readlinkat,AT_FDCWD,TSysParam(name),TSysParam(linkname),maxlen);
+{$else}
   Fpreadlink:=do_syscall(syscall_nr_readlink, TSysParam(name),TSysParam(linkname),maxlen);
+{$endif}
 end;
 
 

@@ -17,6 +17,8 @@
 **********************************************************************}
 unit Linux;
 
+{$i osdefs.inc}
+
 {$packrecords c}
 {$ifdef FPC_USE_LIBC} 
  {$linklib rt} // for clock* functions
@@ -525,7 +527,11 @@ end;
 
 function epoll_create(size: cint): cint;
 begin
+{$if defined(generic_linux_syscalls)}
+  epoll_create := do_syscall(syscall_nr_epoll_create1,0)
+{$else}
   epoll_create := do_syscall(syscall_nr_epoll_create,tsysparam(size));
+{$endif}
 end;
 
 function epoll_ctl(epfd, op, fd: cint; event: pepoll_event): cint;
@@ -536,8 +542,13 @@ end;
 
 function epoll_wait(epfd: cint; events: pepoll_event; maxevents, timeout: cint): cint;
 begin
+{$if defined(generic_linux_syscalls)}
+  epoll_wait := do_syscall(syscall_nr_epoll_pwait, tsysparam(epfd),
+    tsysparam(events), tsysparam(maxevents), tsysparam(timeout),0);
+{$else}
   epoll_wait := do_syscall(syscall_nr_epoll_wait, tsysparam(epfd),
     tsysparam(events), tsysparam(maxevents), tsysparam(timeout));
+{$endif}
 end;
 
 function capget(header:Puser_cap_header;data:Puser_cap_data):cint;
@@ -693,7 +704,11 @@ end;
 function inotify_init1(flags:cint):cint;
 
 begin
+{$if defined(generic_linux_syscalls)}
+  inotify_init1:=do_SysCall(syscall_nr_inotify_init1,tsysparam(flags));
+{$else}
   inotify_init1:=do_SysCall(syscall_nr_inotify_init,tsysparam(flags));
+{$endif}
 end;
 
 function inotify_add_watch(fd:cint; name:Pchar; mask:cuint32):cint;

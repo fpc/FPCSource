@@ -155,7 +155,7 @@ type
 
 type
   TElfRelocInfo = record
-    RelocType : byte;
+    RelocType : longword;
     SectionType : integer;
   end;
 (*
@@ -551,6 +551,7 @@ begin
     emtppc64  : begin fMachineTypeInt:=EM_PPC64; fBits:=ELFCLASS64; fOrder:=ELFDATA2MSB; end;
     emtarm    : begin fMachineTypeInt:=EM_ARM; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end;
     emtarmeb  : begin fMachineTypeInt:=EM_ARM; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;
+    emtaarch64: begin fMachineTypeInt:=EM_AARCH64; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;
     emtalpha  : begin fMachineTypeInt:=EM_ALPHA; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;
     emtia64   : begin fMachineTypeInt:=EM_IA_64; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;
     emtx86_64 : begin fMachineTypeInt:=EM_X86_64; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;

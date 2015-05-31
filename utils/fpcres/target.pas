@@ -83,7 +83,7 @@ var
     (name : 'ia64';         formats : [ofElf]),                   //mtia64
     (name : 'mips';         formats : [ofElf]; alias : 'mipseb'), //mtmips
     (name : 'mipsel';       formats : [ofElf]),                   //mtmipsel
-    (name : 'aarch64';      formats : [ofMachO]),                 //mtaarch64
+    (name : 'aarch64';      formats : [ofElf, ofMachO]),          //mtaarch64
     (name : 'bigendian';    formats : [ofExt]),                   //mtBigEndian
     (name : 'littleendian'; formats : [ofExt])                    //mtLittleEndian
   );
@@ -100,7 +100,7 @@ var
     (name : 'elf';      ext : '.or';     machines : [mti386,mtx86_64,mtppc,
                                                      mtppc64,mtarm,mtarmeb,
                                                      mtm68k,mtsparc,mtalpha,
-                                                     mtia64,mtmips,mtmipsel]),
+                                                     mtaarch64]),
     (name : 'coff';     ext : '.o';      machines : [mti386,mtx86_64,mtarm,
                                                      mtppc,mtppc64]),
     (name : 'xcoff';    ext : '.o';      machines : [mtppc{,mtppc64}]),
