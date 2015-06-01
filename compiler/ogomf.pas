@@ -125,6 +125,7 @@ interface
         FRawRecord: TOmfRawRecord;
 
         function ReadLNames(RawRec: TOmfRawRecord): Boolean;
+        function ReadSegDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
 
         property LNames: TOmfOrderedNameCollection read FLNames;
       public
@@ -895,7 +896,7 @@ implementation
                                TOmfObjInput
 ****************************************************************************}
 
-        function TOmfObjInput.ReadLNames(RawRec: TOmfRawRecord): Boolean;
+    function TOmfObjInput.ReadLNames(RawRec: TOmfRawRecord): Boolean;
       var
         LNamesRec: TOmfRecord_LNAMES;
       begin
@@ -904,6 +905,77 @@ implementation
         LNamesRec.Names:=LNames;
         LNamesRec.DecodeFrom(RawRec);
         LNamesRec.Free;
+        Result:=True;
+      end;
+
+    function TOmfObjInput.ReadSegDef(RawRec: TOmfRawRecord; objdata: TObjData): Boolean;
+      var
+        SegDefRec: TOmfRecord_SEGDEF;
+        SegmentName,SegClassName,OverlayName: string;
+        SecAlign: ShortInt;
+        secoptions: TObjSectionOptions;
+        objsec: TOmfObjSection;
+      begin
+        Result:=False;
+        SegDefRec:=TOmfRecord_SEGDEF.Create;
+        SegDefRec.DecodeFrom(RawRec);
+        if (SegDefRec.SegmentNameIndex<1) or (SegDefRec.SegmentNameIndex>LNames.Count) then
+          begin
+            InputError('Segment name index out of range');
+            SegDefRec.Free;
+            exit;
+          end;
+        SegmentName:=LNames[SegDefRec.SegmentNameIndex];
+        if (SegDefRec.ClassNameIndex<1) or (SegDefRec.ClassNameIndex>LNames.Count) then
+          begin
+            InputError('Segment class name index out of range');
+            SegDefRec.Free;
+            exit;
+          end;
+        SegClassName:=LNames[SegDefRec.ClassNameIndex];
+        if (SegDefRec.OverlayNameIndex<1) or (SegDefRec.OverlayNameIndex>LNames.Count) then
+          begin
+            InputError('Segment overlay name index out of range');
+            SegDefRec.Free;
+            exit;
+          end;
+        OverlayName:=LNames[SegDefRec.OverlayNameIndex];
+        case SegDefRec.Alignment of
+          saRelocatableByteAligned:
+            SecAlign:=1;
+          saRelocatableWordAligned:
+            SecAlign:=2;
+          saRelocatableParaAligned:
+            SecAlign:=16;
+          saRelocatableDWordAligned:
+            SecAlign:=4;
+          saRelocatablePageAligned:
+            begin
+              InputError('Page segment alignment not supported');
+              SegDefRec.Free;
+              exit;
+            end;
+          saAbsolute:
+            begin
+              InputError('Absolute segment alignment not supported');
+              SegDefRec.Free;
+              exit;
+            end;
+          saNotSupported,
+          saNotDefined:
+            begin
+              InputError('Invalid (unsupported/undefined) OMF segment alignment');
+              SegDefRec.Free;
+              exit;
+            end;
+        end;
+        secoptions:=[];
+        objsec:=TOmfObjSection(objdata.createsection(SegmentName,SecAlign,secoptions,false));
+        objsec.FClassName:=SegClassName;
+        objsec.FOverlayName:=OverlayName;
+        objsec.FCombination:=SegDefRec.Combination;
+        objsec.FUse:=SegDefRec.Use;
+        SegDefRec.Free;
         Result:=True;
       end;
 
@@ -966,9 +1038,8 @@ implementation
               if not ReadLNames(FRawRecord) then
                 exit;
             RT_SEGDEF,RT_SEGDEF32:
-              begin
-                {todo}
-              end;
+              if not ReadSegDef(FRawRecord,objdata) then
+                exit;
             RT_GRPDEF:
               begin
                 {todo}
