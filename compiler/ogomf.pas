@@ -121,7 +121,12 @@ interface
 
       TOmfObjInput = class(TObjInput)
       private
+        FLNames: TOmfOrderedNameCollection;
         FRawRecord: TOmfRawRecord;
+
+        function ReadLNames(RawRec: TOmfRawRecord): Boolean;
+
+        property LNames: TOmfOrderedNameCollection read FLNames;
       public
         constructor create;override;
         destructor destroy;override;
@@ -890,16 +895,30 @@ implementation
                                TOmfObjInput
 ****************************************************************************}
 
+        function TOmfObjInput.ReadLNames(RawRec: TOmfRawRecord): Boolean;
+      var
+        LNamesRec: TOmfRecord_LNAMES;
+      begin
+        Result:=False;
+        LNamesRec:=TOmfRecord_LNAMES.Create;
+        LNamesRec.Names:=LNames;
+        LNamesRec.DecodeFrom(RawRec);
+        LNamesRec.Free;
+        Result:=True;
+      end;
+
     constructor TOmfObjInput.create;
       begin
         inherited create;
         cobjdata:=TOmfObjData;
+        FLNames:=TOmfOrderedNameCollection.Create;
         FRawRecord:=TOmfRawRecord.Create;
       end;
 
     destructor TOmfObjInput.destroy;
       begin
         FRawRecord.Free;
+        FLNames.Free;
         inherited destroy;
       end;
 
@@ -923,6 +942,7 @@ implementation
         InputFileName:=AReader.FileName;
         objdata:=CObjData.Create(InputFileName);
         result:=false;
+        LNames.Clear;
         FRawRecord.ReadFrom(FReader);
         if not FRawRecord.VerifyChecksumByte then
           begin
@@ -943,9 +963,8 @@ implementation
             end;
           case FRawRecord.RecordType of
             RT_LNAMES:
-              begin
-                {todo}
-              end;
+              if not ReadLNames(FRawRecord) then
+                exit;
             RT_SEGDEF,RT_SEGDEF32:
               begin
                 {todo}
