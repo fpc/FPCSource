@@ -976,6 +976,13 @@ implementation
         objsec.FOverlayName:=OverlayName;
         objsec.FCombination:=SegDefRec.Combination;
         objsec.FUse:=SegDefRec.Use;
+        if SegDefRec.SegmentLength>High(objsec.Size) then
+          begin
+            InputError('Segment too large');
+            SegDefRec.Free;
+            exit;
+          end;
+        objsec.Size:=SegDefRec.SegmentLength;
         SegDefRec.Free;
         Result:=True;
       end;
