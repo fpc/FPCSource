@@ -126,6 +126,7 @@ interface
 
         function ReadLNames(RawRec: TOmfRawRecord): Boolean;
         function ReadSegDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
+        function ReadGrpDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
 
         property LNames: TOmfOrderedNameCollection read FLNames;
       public
@@ -979,6 +980,40 @@ implementation
         Result:=True;
       end;
 
+    function TOmfObjInput.ReadGrpDef(RawRec: TOmfRawRecord; objdata: TObjData): Boolean;
+      var
+        GrpDefRec: TOmfRecord_GRPDEF;
+        GroupName: string;
+        SecGroup: TObjSectionGroup;
+        i,SegIndex: Integer;
+      begin
+        Result:=False;
+        GrpDefRec:=TOmfRecord_GRPDEF.Create;
+        GrpDefRec.DecodeFrom(RawRec);
+        if (GrpDefRec.GroupNameIndex<1) or (GrpDefRec.GroupNameIndex>LNames.Count) then
+          begin
+            InputError('Group name index out of range');
+            GrpDefRec.Free;
+            exit;
+          end;
+        GroupName:=LNames[GrpDefRec.GroupNameIndex];
+        SecGroup:=objdata.createsectiongroup(GroupName);
+        SetLength(SecGroup.members,Length(GrpDefRec.SegmentList));
+        for i:=0 to Length(GrpDefRec.SegmentList)-1 do
+          begin
+            SegIndex:=GrpDefRec.SegmentList[i];
+            if (SegIndex<1) or (SegIndex>objdata.ObjSectionList.Count) then
+              begin
+                InputError('Segment name index out of range in group definition');
+                GrpDefRec.Free;
+                exit;
+              end;
+            SecGroup.members[i]:=TOmfObjSection(objdata.ObjSectionList[SegIndex-1]);
+          end;
+        GrpDefRec.Free;
+        Result:=True;
+      end;
+
     constructor TOmfObjInput.create;
       begin
         inherited create;
@@ -1041,9 +1076,8 @@ implementation
               if not ReadSegDef(FRawRecord,objdata) then
                 exit;
             RT_GRPDEF:
-              begin
-                {todo}
-              end;
+              if not ReadGrpDef(FRawRecord,objdata) then
+                exit;
             RT_COMENT:
               begin
                 {todo}
