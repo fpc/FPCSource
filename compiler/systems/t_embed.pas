@@ -541,6 +541,11 @@ begin
       Add('    {');
       Add('    _text_start = .;');
       Add('    KEEP(*(.init, .init.*))');
+      if embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7' then
+        begin
+          Add('    . = 0x400;');
+          Add('    KEEP(*(.flash_config, *.flash_config.*))');
+        end;
       Add('    *(.text, .text.*)');
       Add('    *(.strings)');
       Add('    *(.rodata, .rodata.*)');

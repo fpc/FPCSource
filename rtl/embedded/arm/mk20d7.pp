@@ -21914,13 +21914,43 @@ procedure INT_PORTE_interrupt; external name 'INT_PORTE_interrupt';
 
 {$i cortexm4f_start.inc}
 
+  procedure FlashConfiguration; assembler; nostackframe;
+  label flash_conf;
+  asm
+    .section ".flash_config.flash_conf"
+  flash_conf:
+    .byte 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF
+
+    .text
+  end;
+
+  procedure LowLevelStartup; assembler; nostackframe;
+  asm
+    // Unlock watchdog
+    ldr	r0, .LWDOG_BASE
+    movw	r1, #50464
+    strh	r1, [r0, #0xE]
+    movw	r1, #55592
+    strh	r1, [r0, #0xE]
+    nop
+    nop
+    // Disable watchdog for now
+    movs r1, #0
+    strh r1, [r0, #0]
+
+    b Startup
+
+  .LWDOG_BASE:
+    .long 0x40052000
+  end;
+
   procedure Vectors; assembler; nostackframe;
   label interrupt_vectors;
   asm
     .section ".init.interrupt_vectors"
     interrupt_vectors:
     .long _stack_top
-    .long Startup                                      // int -15
+    .long LowLevelStartup                              // int -15
     .long NonMaskableInt_interrupt                     // int -14
     .long HardFault_interrupt                          // int -13
     .long MemoryManagement_interrupt                   // int -12
