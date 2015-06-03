@@ -122,13 +122,16 @@ interface
       TOmfObjInput = class(TObjInput)
       private
         FLNames: TOmfOrderedNameCollection;
+        FExtDefs: TFPHashObjectList;
         FRawRecord: TOmfRawRecord;
 
         function ReadLNames(RawRec: TOmfRawRecord): Boolean;
         function ReadSegDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadGrpDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
+        function ReadExtDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
 
         property LNames: TOmfOrderedNameCollection read FLNames;
+        property ExtDefs: TFPHashObjectList read FExtDefs;
       public
         constructor create;override;
         destructor destroy;override;
@@ -1021,17 +1024,45 @@ implementation
         Result:=True;
       end;
 
+    function TOmfObjInput.ReadExtDef(RawRec: TOmfRawRecord; objdata: TObjData): Boolean;
+      var
+        ExtDefRec: TOmfRecord_EXTDEF;
+        ExtDefElem: TOmfExternalNameElement;
+        OldCount,NewCount,i: Integer;
+        objsym: TObjSymbol;
+      begin
+        Result:=False;
+        ExtDefRec:=TOmfRecord_EXTDEF.Create;
+        ExtDefRec.ExternalNames:=ExtDefs;
+        OldCount:=ExtDefs.Count;
+        ExtDefRec.DecodeFrom(RawRec);
+        NewCount:=ExtDefs.Count;
+        for i:=OldCount to NewCount-1 do
+          begin
+            ExtDefElem:=TOmfExternalNameElement(ExtDefs[i]);
+            objsym:=objdata.CreateSymbol(ExtDefElem.Name);
+            objsym.bind:=AB_EXTERNAL;
+            objsym.typ:=AT_FUNCTION;
+            objsym.objsection:=nil;
+            objsym.offset:=0;
+            objsym.size:=0;
+          end;
+        Result:=True;
+      end;
+
     constructor TOmfObjInput.create;
       begin
         inherited create;
         cobjdata:=TOmfObjData;
         FLNames:=TOmfOrderedNameCollection.Create;
+        FExtDefs:=TFPHashObjectList.Create;
         FRawRecord:=TOmfRawRecord.Create;
       end;
 
     destructor TOmfObjInput.destroy;
       begin
         FRawRecord.Free;
+        FExtDefs.Free;
         FLNames.Free;
         inherited destroy;
       end;
@@ -1057,6 +1088,7 @@ implementation
         objdata:=CObjData.Create(InputFileName);
         result:=false;
         LNames.Clear;
+        ExtDefs.Clear;
         FRawRecord.ReadFrom(FReader);
         if not FRawRecord.VerifyChecksumByte then
           begin
@@ -1090,9 +1122,8 @@ implementation
                 {todo}
               end;
             RT_EXTDEF:
-              begin
-                {todo}
-              end;
+              if not ReadExtDef(FRawRecord,objdata) then
+                exit;
             RT_PUBDEF,RT_PUBDEF32:
               begin
                 {todo}
