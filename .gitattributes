@@ -7490,6 +7490,7 @@ packages/winunits-base/src/richedit.pp svneol=native#text/plain
 packages/winunits-base/src/shellapi.pp svneol=native#text/plain
 packages/winunits-base/src/shfolder.pp svneol=native#text/plain
 packages/winunits-base/src/shlobj.pp svneol=native#text/plain
+packages/winunits-base/src/shlwapi.pp svneol=native#text/plain
 packages/winunits-base/src/stdole2.pas svneol=native#text/plain
 packages/winunits-base/src/tmschema.inc svneol=native#text/plain
 packages/winunits-base/src/typelib.pas svneol=native#text/plain
