@@ -495,11 +495,6 @@ PROCEDURE LockRexxBase(resource : ULONG location 'd0'); syscall RexxSysBase 450;
 PROCEDURE UnlockRexxBase(resource : ULONG location 'd0'); syscall RexxSysBase 456;
 
 FUNCTION CreateArgstring(const argstring : string; length : ULONG) : pCHAR;
-FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : string; host : pCHAR) : pRexxMsg;
-FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : pCHAR; host : string) : pRexxMsg;
-FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : string; host : string) : pRexxMsg;
-PROCEDURE DeleteArgstring(argstring : string);
-FUNCTION LengthArgstring(const argstring : string) : ULONG;
 
 {Here we read how to compile this unit}
 {You can remove this include and use a define instead}
@@ -514,40 +509,14 @@ var
 
 IMPLEMENTATION
 
-uses
 {$ifndef dont_use_openlib}
-amsgbox,
+uses
+  amsgbox;
 {$endif dont_use_openlib}
-pastoc;
 
 FUNCTION CreateArgstring(const argstring : string; length : ULONG) : pCHAR;
 begin
-       CreateArgstring := CreateArgstring(pas2c(argstring),length);
-end;
-
-FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : string; host : pCHAR) : pRexxMsg;
-begin
-       CreateRexxMsg := CreateRexxMsg(port,pas2c(extension),host);
-end;
-
-FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : pCHAR; host : string) : pRexxMsg;
-begin
-       CreateRexxMsg := CreateRexxMsg(port,extension,pas2c(host));
-end;
-
-FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : string; host : string) : pRexxMsg;
-begin
-       CreateRexxMsg := CreateRexxMsg(port,pas2c(extension),pas2c(host));
-end;
-
-PROCEDURE DeleteArgstring(argstring : string);
-begin
-       DeleteArgstring(pas2c(argstring));
-end;
-
-FUNCTION LengthArgstring(const argstring : string) : ULONG;
-begin
-       LengthArgstring := LengthArgstring(pas2c(argstring));
+       CreateArgstring := CreateArgstring(PChar(RawByteString(argstring)),length);
 end;
 
 const
