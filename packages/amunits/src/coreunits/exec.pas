@@ -1307,7 +1307,6 @@ FUNCTION AVL_FindNextNodeByKey(CONST root : pAVLNode location 'a0'; key : POINTE
 FUNCTION AVL_FindFirstNode(CONST root : pAVLNode location 'a0') : pAVLNode; syscall _ExecBase 900;
 FUNCTION AVL_FindLastNode(CONST root : pAVLNode location 'a0') : pAVLNode; syscall _ExecBase 906;
 
-PROCEDURE AddMemList(size : ULONG; attributes : ULONG; pri : LONGINT; base : POINTER; const name : String);
 FUNCTION FindName(list : pList; const name : String) : pNode;
 FUNCTION FindPort(const name : String) : pMsgPort;
 FUNCTION FindResident(const name : String) : pResident;
@@ -1325,73 +1324,71 @@ function IsMsgPortEmpty( mp : pMsgPort): boolean;
 
 IMPLEMENTATION
 
-uses pastoc;
-
-function BitMask(no :shortint): longint;
+function BitMask(no :shortint): longint; inline;
 begin
    BitMask := 1 shl no;
 end;
 
-function IsListEmpty( list : pList): boolean;
+function IsListEmpty( list : pList): boolean; inline;
 begin
      IsListEmpty := list^.lh_TailPred = pnode(list);
 end;
 
-function IsMsgPortEmpty( mp : pMsgPort): boolean;
+function IsMsgPortEmpty( mp : pMsgPort): boolean; inline;
 begin
      with mp^ do
          IsMsgPortEmpty := mp_MsgList.lh_TailPred = pNode(@mp_MsgList);
 end;
 
-PROCEDURE AddMemList(size : ULONG; attributes : ULONG; pri : LONGINT; base : POINTER; const name : String);
-BEGIN
-    AddMemList(size,attributes,pri,base,pas2c(name));
-END;
 FUNCTION FindName(list : pList; const name : String) : pNode;
 BEGIN
-    FindName := FindName(list,pas2c(name));
+    FindName := FindName(list,PChar(RawByteString(name)));
 END;
+
 FUNCTION FindPort(const name : String) : pMsgPort;
 BEGIN
-    FindPort := FindPort(pas2c(name));
+    FindPort := FindPort(PChar(RawByteString(name)));
 END;
+
 FUNCTION FindResident(const name : String) : pResident;
 BEGIN
-    FindResident := FindResident(pas2c(name));
+    FindResident := FindResident(PChar(RawByteString(name)));
 END;
+
 FUNCTION FindSemaphore(const sigSem : String) : pSignalSemaphore;
 BEGIN
-    FindSemaphore := FindSemaphore(pas2c(sigSem));
+    FindSemaphore := FindSemaphore(PChar(RawByteString(sigSem)));
 END;
+
 FUNCTION FindTask(const name : String) : pTask;
 BEGIN
-    FindTask := FindTask(pas2c(name));
+    FindTask := FindTask(PChar(RawByteString(name)));
 END;
+
 FUNCTION OldOpenLibrary(const libName : String) : pLibrary;
 BEGIN
-    OldOpenLibrary := OldOpenLibrary(pas2c(libName));
+    OldOpenLibrary := OldOpenLibrary(PChar(RawByteString(libName)));
 END;
+
 FUNCTION OpenDevice(const devName : String; unite : ULONG; ioRequest : pIORequest;
 flags : ULONG) : shortint;
 BEGIN
-    OpenDevice := OpenDevice(pas2c(devName),unite,ioRequest,flags);
+    OpenDevice := OpenDevice(PChar(RawByteString(devName)),unite,ioRequest,flags);
 END;
+
 FUNCTION OpenLibrary(const libName : String; version : ULONG) : pLibrary;
 BEGIN
-    OpenLibrary := OpenLibrary(pas2c(libName),version);
+    OpenLibrary := OpenLibrary(PChar(RawByteString(libName)),version);
 END;
+
 FUNCTION OpenResource(const resName : String) : POINTER;
 BEGIN
-    OpenResource := OpenResource(pas2c(resName));
+    OpenResource := OpenResource(PChar(RawByteString(resName)));
 END;
+
 function RawDoFmt(const formatString : String;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;
 BEGIN
-    RawDoFmt := RawDoFmt(pas2c(formatString),dataStream,putChProc,putChData);
+    RawDoFmt := RawDoFmt(PChar(RawByteString(formatString)),dataStream,putChProc,putChData);
 END;
 
 END. (* UNIT EXEC *)
-
-
-
-
-
