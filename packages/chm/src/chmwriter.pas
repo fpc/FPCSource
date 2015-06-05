@@ -1533,7 +1533,7 @@ begin
   FURLSTRStream.Free;
   FURLTBLStream.Free;
   FFiftiMainStream.Free;
-  FIDXHdrStream.Create;
+  FIDXHdrStream.Free;
   SpareString.free;
   SpareUrlStr.free;
   FAvlUrlStr.FreeAndClear;
