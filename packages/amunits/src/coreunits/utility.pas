@@ -387,47 +387,45 @@ FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGI
 
 IMPLEMENTATION
 
-uses pastoc;
-
 
 function AllocNamedObjectA(const name : string;const TagList : pTagItem) : pNamedObject;
 begin
-       AllocNamedObjectA := AllocNamedObjectA(pas2c(name),TagList);
+       AllocNamedObjectA := AllocNamedObjectA(PChar(RawByteString(name)),TagList);
 end;
 
 FUNCTION FindNamedObject(nameSpace : pNamedObject; CONST name : string; lastObject : pNamedObject) : pNamedObject;
 begin
-       FindNamedObject := FindNamedObject(nameSpace,pas2c(name),lastObject);
+       FindNamedObject := FindNamedObject(nameSpace,PChar(RawByteString(name)),lastObject);
 end;
 
 FUNCTION Stricmp(CONST string1 : string; CONST string2 : pCHAR) : LONGINT;
 begin
-       Stricmp := Stricmp(pas2c(string1),string2);
+       Stricmp := Stricmp(PChar(RawbyteString(string1)),string2);
 end;
 
 FUNCTION Stricmp(CONST string1 : pCHAR; CONST string2 : string) : LONGINT;
 begin
-       Stricmp := Stricmp(string1,pas2c(string2));
+       Stricmp := Stricmp(string1,PChar(RawbyteString(string2)));
 end;
 
 FUNCTION Stricmp(CONST string1 : string; CONST string2 : string) : LONGINT;
 begin
-       Stricmp := Stricmp(pas2c(string1),pas2c(string2));
+       Stricmp := Stricmp(PChar(RawbyteString(string1)),PChar(RawbyteString(string2)));
 end;
 
 FUNCTION Strnicmp(CONST string1 : string; CONST string2 : pCHAR; length : LONGINT) : LONGINT;
 begin
-       Strnicmp := Strnicmp(pas2c(string1),string2,length);
+       Strnicmp := Strnicmp(PChar(RawbyteString(string1)),string2,length);
 end;
 
 FUNCTION Strnicmp(CONST string1 : pCHAR; CONST string2 : string; length : LONGINT) : LONGINT;
 begin
-       Strnicmp := Strnicmp(string1,pas2c(string2),length);
+       Strnicmp := Strnicmp(string1,PChar(RawbyteString(string2)),length);
 end;
 
 FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGINT) : LONGINT;
 begin
-       Strnicmp := Strnicmp(pas2c(string1),pas2c(string2),length);
+       Strnicmp := Strnicmp(PChar(RawbyteString(string1)),PChar(RawbyteString(string2)),length);
 end;
 
 
