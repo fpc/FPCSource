@@ -39,3 +39,9 @@ type
 const
   CREATE_SUSPENDED = 1;
   STACK_SIZE_PARAM_IS_A_RESERVATION = 2;
+
+{ Thread Init/Exit Procedure support }
+Procedure AddThreadInitProc(Proc: TProcedure);
+Procedure AddThreadExitProc(Proc: TProcedure);
+Procedure DoThreadInitProcChain;
+Procedure DoThreadExitProcChain;
