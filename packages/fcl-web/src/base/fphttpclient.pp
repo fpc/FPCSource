@@ -281,7 +281,7 @@ Function EncodeURLElement(S : String) : String;
 Function DecodeURLElement(Const S : String) : String;
 
 implementation
-{$if not defined(aros) and not defined(amiga)}
+{$if not defined(hasamiga)}
 uses sslsockets;
 {$endif}
 
@@ -433,7 +433,7 @@ begin
   if Assigned(FonGetSocketHandler) then
     FOnGetSocketHandler(Self,UseSSL,Result);
   if (Result=Nil) then
-  {$if not defined(AROS) and not defined(Amiga)}  
+  {$if not defined(HASAMIGA)}
     If UseSSL then
       Result:=TSSLSocketHandler.Create
     else

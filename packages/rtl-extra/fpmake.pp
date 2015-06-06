@@ -27,8 +27,7 @@ Const
   ObjectsOSes   = [amiga,aros,emx,gba,go32v2,morphos,msdos,nds,netware,netwlibc,os2,win32,win64,wince]+UnixLikes;
   WinsockOSes   = [win32,win64,wince,os2,emx,netware,netwlibc];
   WinSock2OSes  = [win32,win64,wince];
-  // sockets of  morphos is implemented, but not active
-  SocketsOSes   = UnixLikes+[amiga,aros,netware,netwlibc,os2,wince,win32,win64];
+  SocketsOSes   = UnixLikes+AllAmigaLikeOSes+[netware,netwlibc,os2,wince,win32,win64];
   Socksyscall   = [beos,freebsd,haiku,linux,netbsd,openbsd,dragonfly];
   Socklibc	= unixlikes-socksyscall;
   gpmOSes	= [Linux,Android];
