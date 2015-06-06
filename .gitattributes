@@ -6836,7 +6836,6 @@ packages/rtl-extra/src/linux/unixsock.inc svneol=native#text/plain
 packages/rtl-extra/src/linux/unixsockets.inc svneol=native#text/plain
 packages/rtl-extra/src/linux/unixsocketsh.inc svneol=native#text/plain
 packages/rtl-extra/src/linux/unxsockh.inc svneol=native#text/plain
-packages/rtl-extra/src/morphos/sockets.pp svneol=native#text/plain
 packages/rtl-extra/src/msdos/printer.pp svneol=native#text/plain
 packages/rtl-extra/src/netbsd/unixsock.inc svneol=native#text/plain
 packages/rtl-extra/src/netbsd/unxsockh.inc svneol=native#text/plain

@@ -67,6 +67,7 @@ begin
     // unit from that directory. Maybe we should try to merge the WinSock(2)
     // units to remove the wince directory completely...
     P.SourcePath.Add('src/win',[win32,win64,wince]);
+    P.SourcePath.Add('src/amiga',[morphos]);
 
     P.IncludePath.Add('src/bsd',AllBSDOSes);
     P.IncludePath.Add('src/inc');

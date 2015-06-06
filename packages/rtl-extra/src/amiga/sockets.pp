@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2007 by the Free Pascal development team
+    Copyright (c) 1999-2015 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -11,6 +11,7 @@
 
  **********************************************************************}
 {$PACKRECORDS 2}
+{.$DEFINE SOCKETS_DEBUG}
 unit Sockets;
 Interface
 
@@ -258,14 +259,37 @@ end;
 {$i sockovl.inc}
 {$i sockets.inc}
 
-// FIXME: this doesn't make any sense here, because SocketBase should be task-specific
-// but FPC doesn't support that yet (TODO)
-{$WARNING FIX ME, TODO}
+const
+  BSDSOCKET_LIBRARY_VER = 4;
 
+procedure BSDSocketOpen;
+begin
+{$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: Opening bsdsocket.library...');
+{$ENDIF}
+  SocketBase:=OpenLibrary('bsdsocket.library', BSDSOCKET_LIBRARY_VER);
+{$IFDEF SOCKETS_DEBUG}
+  if SocketBase = nil then
+    SysDebugLn('FPC Sockets: FAILED to open bsdsocket.library.')
+  else
+    SysDebugLn('FPC Sockets: bsdsocket.library opened successfully.');
+{$ENDIF}
+end;
+
+procedure BSDSocketClose;
+begin
+  if (SocketBase<>NIL) then CloseLibrary(SocketBase);
+  SocketBase:=NIL;
+{$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: bsdsocket.library closed.');
+{$ENDIF}
+end;
 
 initialization
-  SocketBase := OpenLibrary('bsdsocket.library',0);
+  AddThreadInitProc(@BSDSocketOpen);
+  AddThreadExitProc(@BSDSocketClose);
+  BSDSocketOpen;
+
 finalization
-  if SocketBase <> nil then
-    CloseLibrary(SocketBase);
+  BSDSocketClose;
 end.
