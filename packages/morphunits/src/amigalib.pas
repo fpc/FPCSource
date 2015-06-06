@@ -35,7 +35,7 @@ procedure DISPATCHERARG(var cl; var obj; var msg); assembler;
 
 implementation
 
-uses intuition;
+uses exec, intuition, utility;
 
 function DoMethodA(obj : longword; msg1 : Pointer): longword; assembler;
 asm
@@ -109,6 +109,17 @@ asm
   stw r6,(r4)   // obj
   lwz r6,36(r2) // REG_a1
   stw r6,(r5)   // msg
+end;
+
+type
+  THookSubEntryFunc = function(a, b, c: Pointer): longword;
+
+function HookEntry: longword;
+var
+  hook: PHook;
+begin
+  hook:=REG_A0;
+  HookEntry:=THookSubEntryFunc(hook^.h_SubEntry)(hook, REG_A2, REG_A1);
 end;
 
 end.
