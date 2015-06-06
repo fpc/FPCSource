@@ -110,7 +110,7 @@ Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;  
 //function  fpbind      (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
 //function  fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  maybelibc
 
-var
+threadvar
   SocketBase: PLibrary;
 
 function bsd_socket(Domain: LongInt location 'd0'; Type_: LongInt location 'd1'; Protocol: LongInt location 'd2'): LongInt; syscall SocketBase 30;
@@ -133,6 +133,15 @@ function bsd_inet_ntoa(in_: LongWord location 'd0'): PChar; syscall SocketBase 1
 function bsd_inet_addr(const cp: PChar location 'a0'): LongWord; syscall SocketBase 180;
 function bsd_gethostbyname(const Name: PChar location 'a0'): PHostEnt; syscall SocketBase 210;
 function bsd_gethostbyaddr(const Addr: PByte location 'a0'; Len: LongInt location 'd0'; Type_: LongInt location 'd1'): PHostEnt; syscall SocketBase 216;
+
+{ Definition for Release(CopyOf)Socket unique id }
+const
+  UNIQUE_ID = -1;
+
+{ Amiga-specific functions for passing socket descriptors between threads (processes) }
+function ObtainSocket(id: LongInt location 'd0'; domain: LongInt location 'd1'; _type: LongInt location 'd2'; protocol: LongInt location 'd3'): LongInt; syscall SocketBase 144;
+function ReleaseSocket(s: LongInt location 'd0'; id: LongInt location 'd1'): LongInt; syscall SocketBase 150;
+function ReleaseCopyOfSocket(s: LongInt location 'd0'; id: LongInt location 'd1'): LongInt; syscall SocketBase 156;
 
 Implementation
 
