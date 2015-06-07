@@ -33,6 +33,8 @@ function DoSuperNew(class_: pointer; obj: pointer; tags: array of LongWord): lon
 // This procedure is used to pop dispatcher args from emulstruc
 procedure DISPATCHERARG(var cl; var obj; var msg); assembler;
 
+function HookEntry: longword;
+
 implementation
 
 uses exec, intuition, utility;
