@@ -140,9 +140,55 @@ interface
         function ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;override;
       end;
 
+      { TMZExeRelocation }
+
+      TMZExeRelocation = record
+        offset: Word;
+        segment: Word;
+      end;
+      TMZExeRelocations = array of TMZExeRelocation;
+      TMZExeExtraHeaderData = array of Byte;
+
+      { TMZExeHeader }
+
+      TMZExeHeader = class
+      private
+        FChecksum: Word;
+        FExtraHeaderData: TMZExeExtraHeaderData;
+        FHeaderSizeAlignment: Integer;
+        FInitialCS: Word;
+        FInitialIP: Word;
+        FInitialSP: Word;
+        FInitialSS: Word;
+        FLoadableImageSize: DWord;
+        FMaxExtraParagraphs: Word;
+        FMinExtraParagraphs: Word;
+        FOverlayNumber: Word;
+        FRelocations: TMZExeRelocations;
+        procedure SetHeaderSizeAlignment(AValue: Integer);
+      public
+        constructor Create;
+        procedure WriteTo(aWriter: TObjectWriter);
+        property HeaderSizeAlignment: Integer read FHeaderSizeAlignment write SetHeaderSizeAlignment; {default=16, must be multiple of 16}
+        property Relocations: TMZExeRelocations read FRelocations write FRelocations;
+        property ExtraHeaderData: TMZExeExtraHeaderData read FExtraHeaderData write FExtraHeaderData;
+        property LoadableImageSize: DWord read FLoadableImageSize write FLoadableImageSize;
+        property MinExtraParagraphs: Word read FMinExtraParagraphs write FMinExtraParagraphs;
+        property MaxExtraParagraphs: Word read FMaxExtraParagraphs write FMaxExtraParagraphs;
+        property InitialSS: Word read FInitialSS write FInitialSS;
+        property InitialSP: Word read FInitialSP write FInitialSP;
+        property Checksum: Word read FChecksum write FChecksum;
+        property InitialIP: Word read FInitialIP write FInitialIP;
+        property InitialCS: Word read FInitialCS write FInitialCS;
+        property OverlayNumber: Word read FOverlayNumber write FOverlayNumber;
+      end;
+
       { TMZExeOutput }
 
       TMZExeOutput = class(TExeOutput)
+      protected
+        function writeData:boolean;override;
+      public
         constructor create;override;
       end;
 
@@ -1214,8 +1260,100 @@ implementation
       end;
 
 {****************************************************************************
+                               TMZExeHeader
+****************************************************************************}
+
+    procedure TMZExeHeader.SetHeaderSizeAlignment(AValue: Integer);
+      begin
+        if (AValue<16) or ((AValue mod 16) <> 0) then
+          Internalerror(2015060601);
+        FHeaderSizeAlignment:=AValue;
+      end;
+
+    constructor TMZExeHeader.Create;
+      begin
+        FHeaderSizeAlignment:=16;
+      end;
+
+    procedure TMZExeHeader.WriteTo(aWriter: TObjectWriter);
+      var
+        NumRelocs: Word;
+        HeaderSizeInBytes: DWord;
+        HeaderParagraphs: Word;
+        RelocTableOffset: Word;
+        BytesInLastBlock: Word;
+        BlocksInFile: Word;
+        HeaderBytes: array [0..$1B] of Byte;
+        RelocBytes: array [0..3] of Byte;
+        TotalExeSize: DWord;
+        i: Integer;
+      begin
+        NumRelocs:=Length(Relocations);
+        RelocTableOffset:=$1C+Length(ExtraHeaderData);
+        HeaderSizeInBytes:=Align(RelocTableOffset+4*NumRelocs,16);
+        HeaderParagraphs:=HeaderSizeInBytes div 16;
+        TotalExeSize:=HeaderSizeInBytes+LoadableImageSize;
+        BlocksInFile:=(TotalExeSize+511) div 512;
+        BytesInLastBlock:=TotalExeSize mod 512;
+
+        HeaderBytes[$00]:=$4D;  { 'M' }
+        HeaderBytes[$01]:=$5A;  { 'Z' }
+        HeaderBytes[$02]:=Byte(BytesInLastBlock);
+        HeaderBytes[$03]:=Byte(BytesInLastBlock shr 8);
+        HeaderBytes[$04]:=Byte(BlocksInFile);
+        HeaderBytes[$05]:=Byte(BlocksInFile shr 8);
+        HeaderBytes[$06]:=Byte(NumRelocs);
+        HeaderBytes[$07]:=Byte(NumRelocs shr 8);
+        HeaderBytes[$08]:=Byte(HeaderParagraphs);
+        HeaderBytes[$09]:=Byte(HeaderParagraphs shr 8);
+        HeaderBytes[$0A]:=Byte(MinExtraParagraphs);
+        HeaderBytes[$0B]:=Byte(MinExtraParagraphs shr 8);
+        HeaderBytes[$0C]:=Byte(MaxExtraParagraphs);
+        HeaderBytes[$0D]:=Byte(MaxExtraParagraphs shr 8);
+        HeaderBytes[$0E]:=Byte(InitialSS);
+        HeaderBytes[$0F]:=Byte(InitialSS shr 8);
+        HeaderBytes[$10]:=Byte(InitialSP);
+        HeaderBytes[$11]:=Byte(InitialSP shr 8);
+        HeaderBytes[$12]:=Byte(Checksum);
+        HeaderBytes[$13]:=Byte(Checksum shr 8);
+        HeaderBytes[$14]:=Byte(InitialIP);
+        HeaderBytes[$15]:=Byte(InitialIP shr 8);
+        HeaderBytes[$16]:=Byte(InitialCS);
+        HeaderBytes[$17]:=Byte(InitialCS shr 8);
+        HeaderBytes[$18]:=Byte(RelocTableOffset);
+        HeaderBytes[$19]:=Byte(RelocTableOffset shr 8);
+        HeaderBytes[$1A]:=Byte(OverlayNumber);
+        HeaderBytes[$1B]:=Byte(OverlayNumber shr 8);
+        aWriter.write(HeaderBytes[0],$1C);
+        aWriter.write(ExtraHeaderData[0],Length(ExtraHeaderData));
+        for i:=0 to NumRelocs-1 do
+          with Relocations[i] do
+            begin
+              RelocBytes[0]:=Byte(offset);
+              RelocBytes[1]:=Byte(offset shr 8);
+              RelocBytes[2]:=Byte(segment);
+              RelocBytes[3]:=Byte(segment shr 8);
+              aWriter.write(RelocBytes[0],4);
+            end;
+        { pad with zeros until the end of header (paragraph aligned) }
+        aWriter.WriteZeros(HeaderSizeInBytes-aWriter.Size);
+      end;
+
+{****************************************************************************
                                TMZExeOutput
 ****************************************************************************}
+
+    function TMZExeOutput.writeData: boolean;
+      var
+        Header: TMZExeHeader;
+      begin
+        Result:=False;
+        Header:=TMZExeHeader.Create;
+        {todo: fill header data}
+        Header.WriteTo(FWriter);
+        Header.Free;
+        Result:=True;
+      end;
 
     constructor TMZExeOutput.create;
       begin
