@@ -215,6 +215,10 @@ var
                           Routine to read 80-bit reals
 ****************************************************************************
 }
+{$PUSH}
+{$WARN 6018 OFF} { Turn off unreachable code warning }
+{ On platforms with sizeof(ext) <> 10 the code below will cause an unreachable
+  code warning, which will cause compilation failures with -Sew (KB) }
 type
   TSplit80bitReal = packed record
     case byte of
@@ -291,6 +295,7 @@ const
 
     result:=temp;
   end;
+{$POP}
 
 const has_errors : boolean = false;
       has_warnings : boolean = false;
