@@ -25,15 +25,12 @@ type
   TThreadID = THandle;
 
   PRTLCriticalSection = ^TRTLCriticalSection;
-{$IFDEF AROS}
-  TRTLCriticalSection = Pointer;
-{$ELSE}
   TRTLCriticalSection = record
     { This must actually be bigger or equal to sizeof(TSignalSemaphore)
-      which seems to be 46 bytes on MorphOS and Amiga/m68k. }
+      which seems to be 46 bytes on MorphOS and Amiga/m68k and
+      56 bytes on AROS/x86 ABIv0. }
     semaphore: array[0..63] of byte;
   end;
-{$ENDIF}
 
 { BeginThread flags we support in AThreads }
 const
