@@ -24,6 +24,30 @@ var
   ExecBase: Pointer;
 
 
+{ Some types for classic Amiga and AROS compatibility }
+type
+  STRPTR    = PChar;
+  ULONG     = Longword;
+  LONG      = Longint;
+  APTR      = Pointer;
+  BPTR      = Longint;
+  BSTR      = Longint;
+  BOOL      = Smallint; { I think this could be changed to WordBool (KB) }
+  UWORD     = Word;
+  WORDBITS  = Word;
+  LONGBITS  = Longword;
+  PLONGBITS = ^LONGBITS;
+  UBYTE     = Byte;
+  PULONG    = ^Longword;
+  PAPTR     = ^APTR;
+  PLONG     = ^LONG;
+
+{ Some constants for classic Amiga and AROS compatibility }
+const
+  LTrue  : Longint = 1;
+  LFalse : Longint = 0;
+
+
 { * emulinterface consts from MorphOS SDK * }
 
 const
