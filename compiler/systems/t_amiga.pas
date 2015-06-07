@@ -27,7 +27,7 @@ unit t_amiga;
 interface
 
     uses
-      link;
+      rescmn, comprsrc, link;
 
 
 type
@@ -277,9 +277,9 @@ end;
 
 initialization
 {$ifdef m68k}
-{ TODO: No executable creation support for m68k yet!}
   RegisterLinker(ld_amiga,TLinkerAmiga);
   RegisterTarget(system_m68k_Amiga_info);
+  RegisterRes(res_ext_info, TWinLikeResourceFile);
 {$endif m68k}
 {$ifdef powerpc}
   RegisterLinker(ld_amiga,TLinkerAmiga);
