@@ -248,11 +248,11 @@ const
        end;
      pMUIS_InfoClient = ^tMUIS_InfoClient;
 
-      
+
 
 { ** Object Types for MUI_MakeObject()                                      }
 { ************************************************************************* }
-                                                                             
+
 const
   MUIO_Label         = 1;    { PChar label, LongWord flags  }
   MUIO_Button        = 2;    { PChar label  }
@@ -379,7 +379,7 @@ const
   MUII_BACKGROUND     = 128;     { These are direct color     }
   MUII_SHADOW         = 129;     { combinations and are not   }
   MUII_SHINE          = 130;     { affected by users prefs.   }
-  MUII_FILL           = 131;     
+  MUII_FILL           = 131;
   MUII_SHADOWBACK     = 132;     { Generally, you should      }
   MUII_SHADOWFILL     = 133;     { avoid using them. Better   }
   MUII_SHADOWSHINE    = 134;     { use one of the customized  }
@@ -782,7 +782,7 @@ type
   end;
   pMUIP_NoNotifySet = ^tMUIP_NoNotifySet;
 
-  tMUIP_Notify = record        { ...  } 
+  tMUIP_Notify = record        { ...  }
     MethodID : LongWord;
     TrigAttr : LongWord;
     TrigVal : LongWord;
@@ -1016,7 +1016,7 @@ type
   pMUIP_Application_AddInputHandler = ^tMUIP_Application_AddInputHandler;
 
   tMUIP_Application_BuildSettingsPanel = record
-    MethodID : LongWord; 
+    MethodID : LongWord;
     number: LongWord;
   end;
   pMUIP_Application_BuildSettingsPanel = ^tMUIP_Application_BuildSettingsPanel;
@@ -1328,7 +1328,7 @@ const
 { FIX ME!!! #define MUIV_Window_AltWidth_Visible(p) (-100-(p)) }
 { FIX ME!!! #define MUIV_Window_AltWidth_Screen(p) (-200-(p)) }
   MUIV_Window_AltWidth_Scaled = -(1000);
-{ FIX ME!!! #define MUIV_Window_Height_MinMax(p) (0-(p))     }   
+{ FIX ME!!! #define MUIV_Window_Height_MinMax(p) (0-(p))     }
 { FIX ME!!! #define MUIV_Window_Height_Visible(p) (-100-(p)) }
 { FIX ME!!! #define MUIV_Window_Height_Screen(p) (-200-(p))  }
   MUIV_Window_Height_Scaled = -(1000);
@@ -1398,12 +1398,12 @@ type
   { MUI_MinMax structure holds information about minimum, maximum
     and default dimensions of an object.  }
   tMUI_MinMax = record
-    MinWidth  : shortint;
-    MinHeight : shortint;
-    MaxWidth  : shortint;
-    MaxHeight : shortint;
-    DefWidth  : shortint;
-    DefHeight : shortint;
+    MinWidth  : Word;
+    MinHeight : word;
+    MaxWidth  : Word;
+    MaxHeight : Word;
+    DefWidth  : Word;
+    DefHeight : Word;
   end;
   pMUI_MinMax = ^tMUI_MinMax;
 
@@ -1890,7 +1890,7 @@ const
   MUIA_Prop_UseWinBorder = $8042deee; { V13 i.. LongInt            }
   MUIA_Prop_Visible      = $8042fea6; { V4  isg LongInt            }
 
-const  
+const
   MUIV_Prop_UseWinBorder_None = 0;
   MUIV_Prop_UseWinBorder_Left = 1;
   MUIV_Prop_UseWinBorder_Right = 2;
@@ -3313,10 +3313,10 @@ syscall legacy MUIMasterBase 36;
 
 function MUI_RequestA(app : POINTER location 'd0';
                       win : POINTER location 'd1';
-                      flags : LongWord location 'd2'; 
-                      title : pChar location 'a0'; 
-                      gadgets : pChar location 'a1'; 
-                      format : pChar location 'a2'; 
+                      flags : LongWord location 'd2';
+                      title : pChar location 'a0';
+                      gadgets : pChar location 'a1';
+                      format : pChar location 'a2';
                       params : POINTER location 'a3') : longint;
 syscall legacy MUIMasterBase 42;
 
@@ -3350,10 +3350,10 @@ syscall legacy MUIMasterBase 96;
 procedure MUI_Redraw(obj : pObject_ location 'a0'; flags : LongWord location 'd0');
 syscall legacy MUIMasterBase 102;
 
-function MUI_CreateCustomClass(base : pLibrary location 'a0'; 
-                               supername : pChar location 'a1'; 
-                               supermcc : pMUI_CustomClass location 'a2'; 
-                               datasize : LONGINT location 'd0'; 
+function MUI_CreateCustomClass(base : pLibrary location 'a0';
+                               supername : pChar location 'a1';
+                               supermcc : pMUI_CustomClass location 'a2';
+                               datasize : LONGINT location 'd0';
                                dispatcher : POINTER location 'a3') : pMUI_CustomClass;
 syscall legacy MUIMasterBase 108;
 
@@ -3363,32 +3363,32 @@ syscall legacy MUIMasterBase 114;
 function MUI_MakeObjectA(typ: LONGINT location 'd0'; params : pLongWord location 'a0') : pLongWord;
 syscall legacy MUIMasterBase 120;
 
-function MUI_Layout(obj : pObject_ location 'a0'; 
-                    l : LONGINT location 'd0'; 
-                    t : LONGINT location 'd1'; 
-                    w : LONGINT location 'd2'; 
-                    h : LONGINT location 'd3'; 
+function MUI_Layout(obj : pObject_ location 'a0';
+                    l : LONGINT location 'd0';
+                    t : LONGINT location 'd1';
+                    w : LONGINT location 'd2';
+                    h : LONGINT location 'd3';
                     flags : LongWord location 'd4') : BOOLEAN;
 syscall legacy MUIMasterBase 126;
 
 
-function MUI_ObtainPen(mri : pMUI_RenderInfo location 'a0'; 
-                       spec : pMUI_PenSpec location 'a1'; 
+function MUI_ObtainPen(mri : pMUI_RenderInfo location 'a0';
+                       spec : pMUI_PenSpec location 'a1';
                        flags : LongWord location 'd0') : LONGINT;
 syscall legacy MUIMasterBase 156;
 
-procedure MUI_ReleasePen(mri : pMUI_RenderInfo location 'a0'; 
+procedure MUI_ReleasePen(mri : pMUI_RenderInfo location 'a0';
                          pen : LONGINT location 'd0');
 syscall legacy MUIMasterBase 162;
 
-function MUI_AddClipping(mri : pMUI_RenderInfo location 'a0'; 
-                         l : smallint location 'd0'; 
-                         t : smallint location 'd1'; 
-                         w : smallint location 'd2'; 
+function MUI_AddClipping(mri : pMUI_RenderInfo location 'a0';
+                         l : smallint location 'd0';
+                         t : smallint location 'd1';
+                         w : smallint location 'd2';
                          h : smallint location 'd3') : POINTER;
 syscall legacy MUIMasterBase 168;
 
-procedure MUI_RemoveClipping(mri : pMUI_RenderInfo location 'a0'; 
+procedure MUI_RemoveClipping(mri : pMUI_RenderInfo location 'a0';
                              h : POINTER location 'a1');
 syscall legacy MUIMasterBase 174;
 
@@ -3460,7 +3460,7 @@ function OBJ_IsInObject(x,y : smallint; obj : pObject_): boolean; inline;
 
 function MUIV_Window_AltHeight_MinMax(p : longint) : longint;  inline;
 function MUIV_Window_AltHeight_Visible(p : longint) : longint; inline;
-function MUIV_Window_AltHeight_Screen(p : longint) : longint;  inline; 
+function MUIV_Window_AltHeight_Screen(p : longint) : longint;  inline;
 function MUIV_Window_AltTopEdge_Delta(p : longint) : longint;  inline;
 function MUIV_Window_AltWidth_MinMax(p : longint) : longint;   inline;
 function MUIV_Window_AltWidth_Visible(p : longint) : longint;  inline;
