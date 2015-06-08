@@ -1398,12 +1398,12 @@ type
   { MUI_MinMax structure holds information about minimum, maximum
     and default dimensions of an object.  }
   tMUI_MinMax = record
-    MinWidth  : Word;
-    MinHeight : word;
-    MaxWidth  : Word;
-    MaxHeight : Word;
-    DefWidth  : Word;
-    DefHeight : Word;
+    MinWidth  : SmallInt;
+    MinHeight : SmallInt;
+    MaxWidth  : SmallInt;
+    MaxHeight : SmallInt;
+    DefWidth  : SmallInt;
+    DefHeight : SmallInt;
   end;
   pMUI_MinMax = ^tMUI_MinMax;
 
