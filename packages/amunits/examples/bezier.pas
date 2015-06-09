@@ -35,7 +35,7 @@ Program Bezier;
    nils.sjoholm@mailbox.swipnet.se
 }
 
-uses exec, intuition, agraphics, utility,pastoc, systemvartags;
+uses exec, intuition, agraphics, utility, systemvartags;
 
 type
     PointRec = packed Record
@@ -249,9 +249,9 @@ begin
 
     rp := w^.RPort;
     GfxMove(rp, 252, 30);
-    GfxText(rp, pas2c('Enter points by pressing the left mouse button'), 46);
+    GfxText(rp, 'Enter points by pressing the left mouse button', 46);
     GfxMove(rp, 252, 40);
-    GfxText(rp, pas2c('Double click on the last point to begin drawing'), 47);
+    GfxText(rp, 'Double click on the last point to begin drawing', 47);
     repeat
         GetPoints;  { Both these routines will quit if }
         DrawBezier; { the window is closed. }
