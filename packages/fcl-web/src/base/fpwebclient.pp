@@ -117,6 +117,8 @@ Type
     // Must create a request.
     Function DoCreateRequest : TWebClientRequest; virtual; abstract;
   Public
+    Destructor Destroy; override;
+
     // Executes the HTTP method AMethod on AURL. Raises an exception on error.
     // On success, TWebClientResponse is returned. It must be freed by the caller.
     Function ExecuteRequest(Const AMethod,AURL : String; ARequest : TWebClientRequest) : TWebClientResponse;
@@ -231,6 +233,12 @@ begin
     Str:=Str+sLineBreak;
     FlogStream.Write(str[1],length(str));
     end;
+end;
+
+destructor TAbstractWebClient.Destroy;
+begin
+  LogFile:='';
+  inherited Destroy;
 end;
 
 procedure TAbstractWebClient.LogRequest(AMethod, AURL: String;
