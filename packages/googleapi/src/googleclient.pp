@@ -81,6 +81,7 @@ Type
     Procedure CheckDefaults; virtual;
   Public
     Constructor Create(AOwner : TComponent); override;
+    Destructor Destroy; override;
     Function GetAuthHandler : TOAuth2Handler;
   Published
     Property AuthHandler : TOAuth2Handler Read GetAuthHandler Write SetAuthHandler;
@@ -359,14 +360,20 @@ begin
   GetAuthHandler.OnUserConsent:=AValue;
 end;
 
-Constructor TGoogleClient.Create(AOwner: TComponent);
+constructor TGoogleClient.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FConfig:=TGoogleClientConfig.Create;
   CheckDefaults;
 end;
 
-Procedure TGoogleClient.CheckDefaults;
+destructor TGoogleClient.Destroy;
+begin
+  FConfig.Free;
+  inherited Destroy;
+end;
+
+procedure TGoogleClient.CheckDefaults;
 
 begin
   With AuthHandler.Config do
@@ -379,7 +386,7 @@ begin
 end;
 
 
-Function TGoogleClient.GetAuthHandler: TOAuth2Handler;
+function TGoogleClient.GetAuthHandler: TOAuth2Handler;
 
 begin
   if (FAuthHandler=Nil) then
