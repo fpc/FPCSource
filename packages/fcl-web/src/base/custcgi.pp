@@ -370,8 +370,9 @@ begin
           V:=HTTPDecode(V);
         SetHTTPVariable(M.V,V)
         end;
-      end
+      end;
     end;
+  ReadContent;
 end;
 
 procedure TCGIRequest.ReadContent;
