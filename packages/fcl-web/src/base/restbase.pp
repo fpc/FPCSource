@@ -223,7 +223,7 @@ Var
 function DateTimeToRFC3339(ADate :TDateTime):string;
 
 begin
-  Result:=FormatDateTime('yyyy-mm-dd"T"hh:nn:ss.zzz"Z"',ADate);
+  Result:=FormatDateTime('yyyy-mm-dd"T"hh":"nn":"ss"."zzz"Z"',ADate);
 end;
 
 function DateToRFC3339(ADate: TDateTime): string;
