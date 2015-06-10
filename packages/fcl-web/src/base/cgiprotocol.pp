@@ -5,7 +5,7 @@ unit cgiprotocol;
 interface
 
 Const
-  CGIVarCount = 44 ;
+  CGIVarCount = 45 ;
 
 Type
   TCGIVarArray = Array[1..CGIVarCount] of String;
@@ -36,28 +36,29 @@ Const
     { 22 } 'HTTP_REFERER',
     { 23 } 'HTTP_USER_AGENT',
     { 24 } 'HTTP_COOKIE',
+    { 25 } 'HTTP_IF_NONE_MATCH',
 
      // Additional Apache vars
-    { 25 } 'HTTP_CONNECTION',
-    { 26 } 'HTTP_ACCEPT_LANGUAGE',
-    { 27 } 'HTTP_HOST',
-    { 28 } 'SERVER_SIGNATURE',
-    { 29 } 'SERVER_ADDR',
-    { 30 } 'DOCUMENT_ROOT',
-    { 31 } 'SERVER_ADMIN',
-    { 32 } 'SCRIPT_FILENAME',
-    { 33 } 'REMOTE_PORT',
-    { 34 } 'REQUEST_URI',
-    { 35 } 'CONTENT',
-    { 36 } 'HTTP_X_REQUESTED_WITH',
-    { 37 } 'HTTP_AUTHORIZATION',
-    { 38 } 'SCRIPT_URI',
-    { 39 } 'SCRIPT_URL',
-    { 40 } 'CONTEXT_DOCUMENT_ROOT',
-    { 41 } 'CONTEXT_PREFIX',
-    { 42 } 'HTTP_CACHE_CONTROL',
-    { 43 } 'HTTP_PRAGMA',
-    { 44 } 'REQUEST_SCHEME'
+    { 26 } 'HTTP_CONNECTION',
+    { 27 } 'HTTP_ACCEPT_LANGUAGE',
+    { 28 } 'HTTP_HOST',
+    { 29 } 'SERVER_SIGNATURE',
+    { 30 } 'SERVER_ADDR',
+    { 31 } 'DOCUMENT_ROOT',
+    { 32 } 'SERVER_ADMIN',
+    { 33 } 'SCRIPT_FILENAME',
+    { 34 } 'REMOTE_PORT',
+    { 35 } 'REQUEST_URI',
+    { 36 } 'CONTENT',
+    { 37 } 'HTTP_X_REQUESTED_WITH',
+    { 38 } 'HTTP_AUTHORIZATION',
+    { 39 } 'SCRIPT_URI',
+    { 40 } 'SCRIPT_URL',
+    { 41 } 'CONTEXT_DOCUMENT_ROOT',
+    { 42 } 'CONTEXT_PREFIX',
+    { 43 } 'HTTP_CACHE_CONTROL',
+    { 44 } 'HTTP_PRAGMA',
+    { 45 } 'REQUEST_SCHEME'
     );
 
 Function IndexOfCGIVar(AVarName: String): Integer;
