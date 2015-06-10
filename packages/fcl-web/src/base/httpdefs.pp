@@ -356,7 +356,7 @@ type
     property Date: String Index Ord(hhDate) Read GetHeaderValue Write SetHeaderValue;
     property Expires: String Index Ord(hhExpires) Read GetHeaderValue Write SetHeaderValue;
     property From: String Index Ord(hhFrom) Read GetHeaderValue Write SetHeaderValue;
-    Property Host : String Index Ord(hhHost) Read GetFieldValue Write SetFieldValue;
+    Property Host : String Index Ord(hhHost) Read GetHeaderValue Write SetHeaderValue;
     property IfModifiedSince: String Index Ord(hhIfModifiedSince) Read GetHeaderValue Write SetHeaderValue;
     property LastModified: String Index Ord(hhLastModified) Read GetHeaderValue Write SetHeaderValue;
     property Location: String Index Ord(hhLocation) Read GetHeaderValue Write SetHeaderValue;
