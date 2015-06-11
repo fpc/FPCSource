@@ -2193,8 +2193,8 @@ var
 
 Procedure DatabaseError (Const Msg : String); overload;
 Procedure DatabaseError (Const Msg : String; Comp : TComponent); overload;
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const); overload;
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const; Comp : TComponent); overload;
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const); overload;
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const; Comp : TComponent); overload;
 Function ExtractFieldName(Const Fields: String; var Pos: Integer): String;
 Function DateTimeRecToDateTime(DT: TFieldType; Data: TDateTimeRec): TDateTime;
 Function DateTimeToDateTimeRec(DT: TFieldType; Data: TDateTime): TDateTimeRec;
@@ -2229,13 +2229,13 @@ begin
     DatabaseError(Msg);
 end;
 
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const);
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const);
 
 begin
   Raise EDatabaseError.CreateFmt(Fmt,Args);
 end;
 
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const;
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const;
                             Comp : TComponent);
 begin
   if assigned(comp) then
