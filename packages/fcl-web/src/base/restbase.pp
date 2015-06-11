@@ -234,7 +234,7 @@ end;
 function TimeToRFC3339(ADate :TDateTime):string;
 
 begin
-  Result:=FormatDateTime('hh:nn:ss.zzz',ADate);
+  Result:=FormatDateTime('hh":"nn":"ss"."zzz',ADate);
 end;
 
 
