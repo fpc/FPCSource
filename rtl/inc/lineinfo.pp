@@ -22,8 +22,13 @@ interface
 {$S-}
 {$Q-}
 
+{$IF FPC_VERSION<3}
+Type 
+  CodePointer = Pointer;
+{$ENDIF}
+
 function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boolean;
-function StabBackTraceStr(addr:{$IF FPC_VERSION>=3}CodePointer{$ELSE}Pointer{$ENDIF}):string;
+function StabBackTraceStr(addr:CodePointer):string;
 procedure CloseStabs;
 
 implementation
@@ -94,7 +99,7 @@ begin
   writeln(stderr,filename,' Baseaddr: ',hexstr(ptruint(baseaddr),sizeof(baseaddr)*2));
 {$endif DEBUG_LINEINFO}
 
-  // Check if GetModuleByAddr has work
+  // Check if GetModuleByAddr has worked
   if filename = '' then
     exit;
 
@@ -289,7 +294,7 @@ begin
 end;
 
 
-function StabBackTraceStr(addr:{$IF FPC_VERSION>=3}CodePointer{$ELSE}Pointer{$ENDIF}):string;
+function StabBackTraceStr(addr:CodePointer):string;
 var
   func,
   source : string;
