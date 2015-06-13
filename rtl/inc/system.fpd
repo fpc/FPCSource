@@ -79,6 +79,7 @@ Procedure Pack(Const A : UnpackedArrayType; StartIndex : TIndexType; Out Z : Pac
 Procedure UnPack(Const Z : PackedArrayType; Out A : UnpackedArrayType; StartIndex : TIndexType);
 Function Slice(Const A : ArrayType; ACount : Integer) : ArrayType2;
 Function Default(Const T : AnyType) : AnyType;
+Function TypeInfo(Const T : AnyType) : Pointer;
  
 {$IFNDEF GO32V2}
 Var
