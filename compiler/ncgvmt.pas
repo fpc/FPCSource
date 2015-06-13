@@ -769,8 +769,12 @@ implementation
         end;
 
         { IIDStr }
-        tcb.emit_tai(Tai_const.CreateName(
-          make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0),getpointerdef(getarraydef(cansichartype,length(AImplIntf.IntfDef.iidstr^)+1)));
+        tcb.queue_init(getpointerdef(cshortstringtype));
+        tcb.queue_emit_asmsym(
+          current_asmdata.RefAsmSymbol(
+            make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),
+            AT_DATA),
+          getpointerdef(getarraydef(cansichartype,length(AImplIntf.IntfDef.iidstr^)+1)));
         { IType }
         tcb.emit_ord_const(aint(AImplIntf.VtblImplIntf.IType),interfaceentrytypedef);
         tcb.maybe_end_aggregate(interfaceentrydef);
@@ -1037,6 +1041,9 @@ implementation
          interfacetabledef,
          strmessagetabledef,
          intmessagetabledef: trecorddef;
+         parentvmtdef: tdef;
+         pinterfacetabledef,
+         pstringmessagetabledef: tdef;
       begin
 {$ifdef WITHDMT}
          dmtlabel:=gendmt;
@@ -1109,22 +1116,27 @@ implementation
          { but this is not used in FPC ? (PM) }
          { it's not used yet, but the delphi-operators as and is need it (FK) }
          { it is not written for parents that don't have any vmt !! }
+         if is_class(_class) then
+           parentvmtdef:=getpointerdef(search_system_type('TVMT').typedef)
+         else
+           parentvmtdef:=voidpointertype;
          if assigned(_class.childof) and
             (oo_has_vmt in _class.childof.objectoptions) then
            begin
-             tcb.queue_init(voidpointertype);
+             tcb.queue_init(parentvmtdef);
              tcb.queue_emit_asmsym(
                current_asmdata.RefAsmSymbol(_class.childof.vmt_mangledname,AT_DATA),
                tfieldvarsym(_class.childof.vmt_field).vardef);
            end
          else
-           tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+           tcb.emit_tai(Tai_const.Create_nil_dataptr,parentvmtdef);
 
          { write extended info for classes, for the order see rtl/inc/objpash.inc }
          if is_class(_class) then
           begin
             { pointer to class name string }
-            tcb.emit_tai(Tai_const.Create_sym(classnamelabel),getpointerdef(classnamedef));
+            tcb.queue_init(getpointerdef(cshortstringtype));
+            tcb.queue_emit_asmsym(classnamelabel,classnamedef);
             { pointer to dynamic table or nil }
             if (oo_has_msgint in _class.objectoptions) then
               begin
@@ -1159,23 +1171,28 @@ implementation
             { auto table }
             tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
             { interface table }
+            pinterfacetabledef:=search_system_type('PINTERFACETABLE').typedef;
             if _class.ImplementedInterfaces.count>0 then
               begin
-                tcb.queue_init(voidpointertype);
+                tcb.queue_init(pinterfacetabledef);
                 tcb.queue_emit_asmsym(interfacetable,interfacetabledef)
               end
             else if _class.implements_any_interfaces then
-              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
+              tcb.emit_tai(Tai_const.Create_nil_dataptr,pinterfacetabledef)
             else
-              tcb.emit_tai(Tai_const.Create_sym(current_asmdata.RefAsmSymbol('FPC_EMPTYINTF',AT_DATA)),voidpointertype);
+              begin
+                tcb.queue_init(pinterfacetabledef);
+                tcb.queue_emit_asmsym(current_asmdata.RefAsmSymbol('FPC_EMPTYINTF',AT_DATA),ptruinttype);
+              end;
             { table for string messages }
+            pstringmessagetabledef:=search_system_type('PSTRINGMESSAGETABLE').typedef;
             if (oo_has_msgstr in _class.objectoptions) then
               begin
                 tcb.queue_init(voidpointertype);
-                tcb.queue_emit_asmsym(strmessagetable,strmessagetabledef);
+                tcb.queue_emit_asmsym(strmessagetable,pstringmessagetabledef);
               end
             else
-              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+              tcb.emit_tai(Tai_const.Create_nil_dataptr,pstringmessagetabledef);
           end;
          { write virtual methods }
          writevirtualmethods(tcb);
