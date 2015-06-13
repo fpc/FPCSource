@@ -398,14 +398,20 @@ interface
 
 
     procedure tcgtypeconvnode.second_char_to_string;
+      var
+        tmpref: treference;
       begin
          location_reset_ref(location,LOC_REFERENCE,OS_NO,2);
          case tstringdef(resultdef).stringtype of
            st_shortstring :
              begin
                tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,location.reference);
+               tmpref:=location.reference;
+               hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
+                 getpointerdef(cshortstringtype),
+                 getpointerdef(left.resultdef),tmpref);
                hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
-                 location.reference);
+                 tmpref);
                location_freetemp(current_asmdata.CurrAsmList,left.location);
              end;
            { the rest is removed in the resultdef pass and converted to compilerprocs }
