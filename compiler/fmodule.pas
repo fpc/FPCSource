@@ -44,7 +44,7 @@ interface
     uses
        cutils,cclasses,cfileutl,
        globtype,finput,ogbase,
-       symbase,symconst,symsym,symcpu,
+       symbase,symconst,symsym,
        wpobase,
        aasmbase,aasmtai,aasmdata;
 
