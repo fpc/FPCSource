@@ -185,6 +185,12 @@ $(error When compiling for arm-embedded, a sub-architecture (e.g. SUBARCH=armv4t
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
+ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(SUBARCH),)
+$(error When compiling for avr-embedded, a sub-architecture (e.g. SUBARCH=avr25 or SUBARCH=avr35) must be defined)
+endif
+override FPCOPT+=-Cp$(SUBARCH)
+endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for mipsel-embedded, a sub-architecture (e.g. SUBARCH=pic32mx) must be defined)
@@ -369,7 +375,12 @@ CPU_UNITS=allwinner_a20
 endif
 endif
 ifeq ($(ARCH),avr)
-CPU_UNITS=atmega128 atmega8 atmega16 avrsim attinyx4 atmega48fam atmega168fam
+ifeq ($(SUBARCH),avr25)
+CPU_UNITS=attinyx4 attiny2313
+endif
+ifeq ($(SUBARCH),avr35)
+CPU_UNITS=atmega128 atmega8 atmega16 avrsim atmega48fam atmega168fam
+endif
 endif
 ifeq ($(ARCH),i386)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo

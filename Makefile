@@ -184,6 +184,12 @@ $(error When compiling for arm-embedded, a sub-architecture (e.g. SUBARCH=armv4t
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
+ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(SUBARCH),)
+$(error When compiling for avr-embedded, a sub-architecture (e.g. SUBARCH=avr25 or SUBARCH=avr35) must be defined)
+endif
+override FPCOPT+=-Cp$(SUBARCH)
+endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for mipsel-embedded, a sub-architecture (e.g. SUBARCH=pic32mx) must be defined)
