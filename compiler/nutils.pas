@@ -737,9 +737,24 @@ implementation
                   p := tunarynode(p).left;
                 end;
               labeln,
-              blockn,
-              callparan:
+              blockn:
                 p := tunarynode(p).left;
+              callparan:
+                begin
+                  { call to decr? }
+                  if is_managed_type(tunarynode(p).left.resultdef) and (tcallparanode(p).parasym.varspez=vs_out) then
+                    begin
+                      result:=NODE_COMPLEXITY_INF;
+                      exit;
+                    end
+                  else
+                    begin
+                      inc(result);
+                      if (result = NODE_COMPLEXITY_INF) then
+                        exit;
+                      p := tunarynode(p).left;
+                    end;
+                end;
               notn,
               derefn :
                 begin
