@@ -1382,26 +1382,26 @@ implementation
                 case def2regtyp(llvmparadef) of
                   R_INTREGISTER,
                   R_ADDRESSREGISTER:
-                    a_load_loc_ref(list,llvmparadef,para.def,hloc,destloc.reference);
+                    a_load_loc_ref(list,llvmparadef,vardef,hloc,destloc.reference);
                   R_FPUREGISTER:
-                    a_loadfpu_loc_ref(list,llvmparadef,para.def,hloc,destloc.reference);
+                    a_loadfpu_loc_ref(list,llvmparadef,vardef,hloc,destloc.reference);
                   R_MMREGISTER:
-                    a_loadmm_loc_ref(list,llvmparadef,para.def,hloc,destloc.reference,nil);
+                    a_loadmm_loc_ref(list,llvmparadef,vardef,hloc,destloc.reference,nil);
                   else
                     internalerror(2014080801);
                   end;
               end;
             LOC_REGISTER:
               begin
-                a_load_loc_reg(list,llvmparadef,para.def,hloc,destloc.register);
+                a_load_loc_reg(list,llvmparadef,vardef,hloc,destloc.register);
               end;
             LOC_FPUREGISTER:
               begin
-                a_loadfpu_loc_reg(list,llvmparadef,para.def,hloc,destloc.register);
+                a_loadfpu_loc_reg(list,llvmparadef,vardef,hloc,destloc.register);
               end;
             LOC_MMREGISTER:
               begin
-                a_loadmm_loc_reg(list,llvmparadef,para.def,hloc,destloc.register,nil);
+                a_loadmm_loc_reg(list,llvmparadef,vardef,hloc,destloc.register,nil);
               end;
             { TODO other possible locations }
             else
