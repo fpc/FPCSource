@@ -58,6 +58,9 @@ interface
 Type
   Float = MaxFloatType;
 
+Const
+  MinFloat = 0;
+  MaxFloat = 0;
 {$ENDIF}
 
 {$ifndef FPUNONE}
