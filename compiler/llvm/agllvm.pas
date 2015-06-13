@@ -949,7 +949,10 @@ implementation
                   asmwrite(copy(s, length('llv_')+1, 255));
                   asmwrite(' ');
                 end;
-              asmwrite(llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def), '', lpd_alias));
+              if taillvmalias(hp).def.typ=procdef then
+                asmwrite(llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def), '', lpd_alias))
+              else
+                asmwrite(llvmencodetypename(taillvmalias(hp).def));
               asmwrite('* ');
               asmwriteln(LlvmAsmSymName(taillvmalias(hp).oldsym));
             end;
