@@ -92,11 +92,15 @@ type
 { windows isn't defined in 2.0.2 (FK) }
 {$if not(defined(windows)) and not(defined(win32))}
    { Win32 reuses the struct from the Windows unit }
+{$DEFINE HAS_SYSTEMTIME}
+{$endif windows}
+
+{$IFNDEF HAS_SYSTEMTIME}
    TSystemTime = record
       Year, Month, Day, DayOfWeek: word;
       Hour, Minute, Second, MilliSecond: word;
    end ;
-{$endif windows}
+{$ENDIF}
 
    TTimeStamp = record
       Time: longint;   { Number of milliseconds since midnight }
