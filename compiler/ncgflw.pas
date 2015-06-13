@@ -830,7 +830,7 @@ implementation
                end;
 
              hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,
-               aint(cmp_const.svalue),left.location,l3);
+               tcgint(cmp_const.svalue),left.location,l3);
            end;
 
          { this is the break label: }
