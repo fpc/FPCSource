@@ -633,7 +633,7 @@ implementation
               tg.ungettemp(list,tmpref);
             end
           else
-            list.concat(taillvm.op_reg_size_ref_size(la_bitcast,register,fromsize,sref,tosize))
+            list.concat(taillvm.op_reg_size_ref_size(llvmconvop(fromsize,tosize),register,fromsize,sref,tosize))
         end
       else
         begin
