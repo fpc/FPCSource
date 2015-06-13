@@ -938,7 +938,7 @@ implementation
               if taillvmalias(hp).linkage<>lll_default then
                 begin
                   str(taillvmalias(hp).linkage, s);
-                  asmwrite(copy(s, length('lll_'), 255));
+                  asmwrite(copy(s, length('lll_')+1, 255));
                   asmwrite(' ');
                 end
               else
@@ -946,7 +946,7 @@ implementation
               if taillvmalias(hp).vis<>llv_default then
                 begin
                   str(taillvmalias(hp).vis, s);
-                  asmwrite(copy(s, length('llv_'), 255));
+                  asmwrite(copy(s, length('llv_')+1, 255));
                   asmwrite(' ');
                 end;
               asmwrite(llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def), '', lpd_alias));
