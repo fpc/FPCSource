@@ -634,17 +634,18 @@ begin
       Add('OUTPUT_FORMAT("elf32-avr","elf32-avr","elf32-avr")');
       Add('OUTPUT_ARCH(avr:2)');
       Add('MEMORY');
-      Add('{');
       with embedded_controllers[current_settings.controllertype] do
         begin
+          Add('{');
           Add('  text      (rx)   : ORIGIN = 0, LENGTH = 0x'+IntToHex(flashsize,8));
           Add('  data      (rw!x) : ORIGIN = 0x800060, LENGTH = 0x'+IntToHex(sramsize,8));
           Add('  eeprom    (rw!x) : ORIGIN = 0x810000, LENGTH = 0x'+IntToHex(eepromsize,8));
           Add('  fuse      (rw!x) : ORIGIN = 0x820000, LENGTH = 1K');
           Add('  lock      (rw!x) : ORIGIN = 0x830000, LENGTH = 1K');
           Add('  signature (rw!x) : ORIGIN = 0x840000, LENGTH = 1K');
+          Add('}');
+          Add('_stack_top = 0x' + IntToHex(sramsize-1,4) + ';');
         end;
-      Add('}');
       Add('SECTIONS');
       Add('{');
       Add('  /* Read-only sections, merged into text segment: */');
@@ -860,8 +861,6 @@ begin
       Add('  .debug_loc      0 : { *(.debug_loc) }');
       Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
       Add('}');
-      { last address of ram on an atmega128 }
-      Add('_stack_top = 0x0fff;');
     end;
 {$endif AVR}
 

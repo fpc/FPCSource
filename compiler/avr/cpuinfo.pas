@@ -61,6 +61,7 @@ Type
       ct_attiny24,
       ct_attiny44,
       ct_attiny84,
+      ct_attiny2313,
 
       ct_atmega48,
       ct_atmega88,
@@ -170,6 +171,16 @@ Const
         sramsize:512;
         eeprombase:0;
         eepromsize:512
+        ),
+        (
+        controllertypestr:'ATTINY2313';
+        controllerunitstr:'ATTINY2313';
+        flashbase:0;
+        flashsize:2048;
+        srambase:0;
+        sramsize:128;
+        eeprombase:0;
+        eepromsize:128
         ),
 
         (

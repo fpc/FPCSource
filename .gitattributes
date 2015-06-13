@@ -8299,6 +8299,7 @@ rtl/embedded/avr/atmega16.pp svneol=native#text/plain
 rtl/embedded/avr/atmega168fam.pp svneol=native#text/plain
 rtl/embedded/avr/atmega48fam.pp svneol=native#text/plain
 rtl/embedded/avr/atmega8.pp svneol=native#text/plain
+rtl/embedded/avr/attiny2313.pp svneol=native#text/plain
 rtl/embedded/avr/attinyx4.pp svneol=native#text/plain
 rtl/embedded/avr/avrcommon.inc svneol=native#text/plain
 rtl/embedded/avr/avrsim.pp svneol=native#text/plain
