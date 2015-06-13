@@ -2191,7 +2191,7 @@ implementation
          { treated as references to external symbols, needed for darwin.   }
 
          { make sure we don't change the binding of real external symbols }
-         if not(po_external in pd.procoptions) then
+         if ([po_external,po_weakexternal]*pd.procoptions)=[] then
            begin
              if (po_global in pd.procoptions) or
                 (cs_profile in current_settings.moduleswitches) then
