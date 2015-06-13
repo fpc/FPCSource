@@ -174,7 +174,7 @@ implementation
       kind: ttypedconstkind;
       info: tllvmaggregateinformation;
     begin
-      if assigned(fqueued_tai) then
+      if queue_is_active then
         begin
           kind:=tck_simple;
           { finalise the queued expression }
