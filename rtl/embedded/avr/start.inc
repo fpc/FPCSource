@@ -14,33 +14,29 @@
         ldi ZL,lo8(_etext)
         ldi ZH,hi8(_etext)
 
-        cpi XL, lo8(_edata)
-        cpc XH, YH
-        breq .LCopyDataLoopEnd
+        rjmp .LCopyDataLoopEntry
 .LCopyDataLoop:
         lpm r0, Z+
         st X+, r0
 
+.LCopyDataLoopEntry:
         cpi XL, lo8(_edata)
         cpc XH, YH
         brne .LCopyDataLoop
-.LCopyDataLoopEnd:
 
         // Zero .bss section
         ldi XL,lo8(_bss_start)
         ldi XH,hi8(_bss_start)
         ldi YH,hi8(_bss_end)
 
-        cpi XL, lo8(_bss_end)
-        cpc XH, YH
-        breq .LZeroBssLoopEnd
+        rjmp .LZeroBssLoopEntry
 .LZeroBssLoop:
         st X+, r1
 
+.LZeroBssLoopEntry:
         cpi XL, lo8(_bss_end)
         cpc XH, YH
         brne .LZeroBssLoop
-.LZeroBssLoopEnd:
 
 {$ifdef RELBRANCHES}
         rjmp PASCALMAIN
