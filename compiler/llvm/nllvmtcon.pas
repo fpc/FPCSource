@@ -393,7 +393,7 @@ implementation
     begin
       { update range checking info }
       inherited;
-      llvmfielddef:=tabstractrecordsymtable(def.symtable).llvmst[vs.llvmfieldnr].def;
+      llvmfielddef:=tabstractrecordsymtable(def.symtable).llvmst[vs].def;
       { get the address of the llvm-struct field that corresponds to this
         Pascal field }
       getllvmfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,s32inttype,vs.llvmfieldnr,true);

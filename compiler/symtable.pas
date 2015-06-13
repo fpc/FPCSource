@@ -154,7 +154,7 @@ interface
          equivst: tabstractrecordsymtable;
          curroffset: aint;
          recordalignmin: shortint;
-         function get(index: longint): tllvmshadowsymtableentry;
+         function get(f: tfieldvarsym): tllvmshadowsymtableentry;
         public
          symdeflist: TFPObjectList;
 
@@ -169,7 +169,7 @@ interface
          procedure addalignmentpadding(finalsize: aint);
          procedure buildmapping(variantstarts: tfplist);
          procedure buildtable(variantstarts: tfplist);
-         property items[index: longint]: tllvmshadowsymtableentry read get; default;
+         property items[index: tfieldvarsym]: tllvmshadowsymtableentry read get; default;
        end;
 {$endif llvm}
 
@@ -1686,9 +1686,9 @@ implementation
                               TLlvmShadowSymtable
 ****************************************************************************}
 
-   function tllvmshadowsymtable.get(index: longint): tllvmshadowsymtableentry;
+   function tllvmshadowsymtable.get(f: tfieldvarsym): tllvmshadowsymtableentry;
       begin
-        result:=tllvmshadowsymtableentry(symdeflist[index])
+        result:=tllvmshadowsymtableentry(symdeflist[f.llvmfieldnr])
       end;
 
 

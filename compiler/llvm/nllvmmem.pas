@@ -114,7 +114,7 @@ implementation
               end;
             { get the type of the corresponding field in the llvm shadow
               definition }
-            llvmfielddef:=tabstractrecordsymtable(tabstractrecorddef(currentstructdef).symtable).llvmst[vs.llvmfieldnr].def;
+            llvmfielddef:=tabstractrecordsymtable(tabstractrecorddef(currentstructdef).symtable).llvmst[vs].def;
             if implicitpointer then
               subscriptdef:=currentstructdef
             else
