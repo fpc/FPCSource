@@ -341,6 +341,11 @@ type
      procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); virtual;
      { ... an ordinal constant }
      procedure queue_emit_ordconst(value: int64; def: tdef); virtual;
+    protected
+     { returns whether queue_init has been called without a corresponding
+       queue_emit_* to finish it }
+     function queue_is_active: boolean;
+    public
 
      { finalize the internal asmlist (if necessary) and return it.
        This asmlist will be freed when the builder is destroyed, so add its
@@ -1472,10 +1477,17 @@ implementation
        fqueue_offset:=low(fqueue_offset);
      end;
 
+
    procedure ttai_typedconstbuilder.queue_emit_ordconst(value: int64; def: tdef);
      begin
        emit_ord_const(value,def);
        fqueue_offset:=low(fqueue_offset);
+     end;
+
+
+   function ttai_typedconstbuilder.queue_is_active: boolean;
+     begin
+       result:=fqueue_offset<>low(fqueue_offset)
      end;
 
 
