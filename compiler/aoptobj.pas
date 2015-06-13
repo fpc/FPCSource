@@ -1178,7 +1178,11 @@ Unit AoptObj;
 
     function IsJumpToLabel(hp: taicpu): boolean;
       begin
+{$if defined(avr)}
+        result:=(hp.opcode in aopt_uncondjmp) and
+{$else avr}
         result:=(hp.opcode=aopt_uncondjmp) and
+{$endif avr}
 {$if defined(arm) or defined(aarch64)}
           (hp.condition=c_None) and
 {$endif arm or aarch64}

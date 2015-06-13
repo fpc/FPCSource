@@ -45,7 +45,7 @@ Implementation
   uses
     cutils,
     cpuinfo,
-    aasmbase,aasmcpu,
+    aasmbase,aasmcpu,aasmdata,
     globals,globtype,
     cgutils;
 
@@ -132,9 +132,10 @@ Implementation
 
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
-      hp1,hp2,hp3: tai;
+      hp1,hp2,hp3,hp4,hp5: tai;
       alloc, dealloc: tai_regalloc;
       i: integer;
+      l: TAsmLabel;
     begin
       result := false;
       case p.typ of
@@ -265,7 +266,8 @@ Implementation
                           into
                           sbi rX,lg(n)
                         }
-                        if MatchInstruction(hp1,A_ORI) and
+                        if (taicpu(p).oper[1]^.val<=31) and
+                          MatchInstruction(hp1,A_ORI) and
                           (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
                           (PopCnt(byte(taicpu(hp1).oper[1]^.val))=1) and
                           GetNextInstruction(hp1,hp2) and
@@ -275,7 +277,7 @@ Implementation
                           begin
                             taicpu(p).opcode:=A_SBI;
                             taicpu(p).loadconst(0,taicpu(p).oper[1]^.val);
-                            taicpu(p).loadconst(1,BsrByte(taicpu(hp1).oper[1]^.val)-1);
+                            taicpu(p).loadconst(1,BsrByte(taicpu(hp1).oper[1]^.val));
                             asml.Remove(hp1);
                             hp1.Free;
                             asml.Remove(hp2);
@@ -290,7 +292,8 @@ Implementation
                           into
                           cbi rX,lg(n)
                         }
-                        else if MatchInstruction(hp1,A_ANDI) and
+                        else if (taicpu(p).oper[1]^.val<=31) and
+                           MatchInstruction(hp1,A_ANDI) and
                            (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
                            (PopCnt(byte(not(taicpu(hp1).oper[1]^.val)))=1) and
                            GetNextInstruction(hp1,hp2) and
@@ -300,11 +303,51 @@ Implementation
                           begin
                             taicpu(p).opcode:=A_CBI;
                             taicpu(p).loadconst(0,taicpu(p).oper[1]^.val);
-                            taicpu(p).loadconst(1,BsrByte(not(taicpu(hp1).oper[1]^.val))-1);
+                            taicpu(p).loadconst(1,BsrByte(not(taicpu(hp1).oper[1]^.val)));
                             asml.Remove(hp1);
                             hp1.Free;
                             asml.Remove(hp2);
                             hp2.Free;
+                            result:=true;
+                          end
+                         {
+                              in rX,Y
+                              andi rX,n
+                              breq/brne L1
+
+                          into
+                              sbis/sbic Y,lg(n)
+                              jmp L1
+                            .Ltemp:
+                        }
+                        else if (taicpu(p).oper[1]^.val<=31) and
+                           MatchInstruction(hp1,A_ANDI) and
+                           (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
+                           (PopCnt(byte(taicpu(hp1).oper[1]^.val))=1) and
+                           GetNextInstruction(hp1,hp2) and
+                           MatchInstruction(hp2,A_BRxx) and
+                           (taicpu(hp2).condition in [C_EQ,C_NE]) then
+                          begin
+                            if taicpu(hp2).condition=C_EQ then
+                              taicpu(p).opcode:=A_SBIS
+                            else
+                              taicpu(p).opcode:=A_SBIC;
+
+                            taicpu(p).loadconst(0,taicpu(p).oper[1]^.val);
+                            taicpu(p).loadconst(1,BsrByte(taicpu(hp1).oper[1]^.val));
+                            asml.Remove(hp1);
+                            hp1.Free;
+
+                            taicpu(hp2).condition:=C_None;
+                            if CPUAVR_HAS_JMP_CALL in cpu_capabilities[current_settings.cputype] then
+                              taicpu(hp2).opcode:=A_JMP
+                            else
+                              taicpu(hp2).opcode:=A_RJMP;
+
+                            current_asmdata.getjumplabel(l);
+                            l.increfs;
+                            asml.InsertAfter(tai_label.create(l), hp2);
+
                             result:=true;
                           end;
                       end;
@@ -527,6 +570,98 @@ Implementation
                           if not assigned(hp1) then
                             break;
                         end;
+                  end;
+                A_SBIC,
+                A_SBIS:
+                  begin
+                    {
+                      Turn
+                          sbic/sbis X, y
+                          jmp .L1
+                          op
+                        .L1:
+
+                      into
+                          sbis/sbic X,y
+                          op
+                        .L1:
+                    }
+                    if GetNextInstruction(p, hp1) and
+                       (hp1.typ=ait_instruction) and
+                       (taicpu(hp1).opcode in [A_JMP,A_RJMP]) and
+                       (taicpu(hp1).ops>0) and
+                       (taicpu(hp1).oper[0]^.typ = top_ref) and
+                       (taicpu(hp1).oper[0]^.ref^.symbol is TAsmLabel) and
+                       GetNextInstruction(hp1, hp2) and
+                       (hp2.typ=ait_instruction) and
+                       (not taicpu(hp2).is_jmp) and
+                       GetNextInstruction(hp2, hp3) and
+                       (hp3.typ=ait_label) and
+                       (taicpu(hp1).oper[0]^.ref^.symbol=tai_label(hp3).labsym) then
+                      begin
+                        if taicpu(p).opcode=A_SBIC then
+                          taicpu(p).opcode:=A_SBIS
+                        else
+                          taicpu(p).opcode:=A_SBIC;
+
+                        tai_label(hp3).labsym.decrefs;
+
+                        AsmL.remove(hp1);
+                        taicpu(hp1).Free;
+
+                        result:=true;
+                      end
+                    {
+                      Turn
+                          sbiX X, y
+                          jmp .L1
+                          jmp .L2
+                        .L1:
+                          op
+                        .L2:
+
+                      into
+                          sbiX X,y
+                        .L1:
+                          op
+                        .L2:
+                    }
+                    else if GetNextInstruction(p, hp1) and
+                       (hp1.typ=ait_instruction) and
+                       (taicpu(hp1).opcode in [A_JMP,A_RJMP]) and
+                       (taicpu(hp1).ops>0) and
+                       (taicpu(hp1).oper[0]^.typ = top_ref) and
+                       (taicpu(hp1).oper[0]^.ref^.symbol is TAsmLabel) and
+
+                       GetNextInstruction(hp1, hp2) and
+                       (hp2.typ=ait_instruction) and
+                       (taicpu(hp2).opcode in [A_JMP,A_RJMP]) and
+                       (taicpu(hp2).ops>0) and
+                       (taicpu(hp2).oper[0]^.typ = top_ref) and
+                       (taicpu(hp2).oper[0]^.ref^.symbol is TAsmLabel) and
+
+                       GetNextInstruction(hp2, hp3) and
+                       (hp3.typ=ait_label) and
+                       (taicpu(hp1).oper[0]^.ref^.symbol=tai_label(hp3).labsym) and
+
+                       GetNextInstruction(hp3, hp4) and
+                       (hp4.typ=ait_instruction) and
+
+                       GetNextInstruction(hp4, hp5) and
+                       (hp3.typ=ait_label) and
+                       (taicpu(hp2).oper[0]^.ref^.symbol=tai_label(hp5).labsym) then
+                      begin
+                        tai_label(hp3).labsym.decrefs;
+                        tai_label(hp5).labsym.decrefs;
+
+                        AsmL.remove(hp1);
+                        taicpu(hp1).Free;
+
+                        AsmL.remove(hp2);
+                        taicpu(hp2).Free;
+
+                        result:=true;
+                      end;
                   end;
               end;
           end;

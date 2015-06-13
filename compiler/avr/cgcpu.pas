@@ -431,7 +431,8 @@ unit cgcpu;
 
      procedure tcgavr.a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister);
        begin
-         if (op in [OP_MUL,OP_IMUL]) and (size in [OS_16,OS_S16]) then
+         if (op in [OP_MUL,OP_IMUL]) and (size in [OS_16,OS_S16]) and
+            (CPUAVR_HAS_MUL in cpu_capabilities[current_settings.cputype]) then
            begin
              getcpuregister(list,NR_R0);
              getcpuregister(list,NR_R1);
@@ -577,55 +578,64 @@ unit cgcpu;
              begin
                if size in [OS_8,OS_S8] then
                  begin
-                   cg.a_reg_alloc(list,NR_R0);
-                   cg.a_reg_alloc(list,NR_R1);
-                   list.concat(taicpu.op_reg_reg(topcg2asmop[op],dst,src));
-                   list.concat(taicpu.op_reg(A_CLR,NR_R1));
-                   cg.a_reg_dealloc(list,NR_R1);
-                   list.concat(taicpu.op_reg_reg(A_MOV,dst,NR_R0));
-                   cg.a_reg_dealloc(list,NR_R0);
+                   if CPUAVR_HAS_MUL in cpu_capabilities[current_settings.cputype] then
+                     begin
+                       cg.a_reg_alloc(list,NR_R0);
+                       cg.a_reg_alloc(list,NR_R1);
+                       list.concat(taicpu.op_reg_reg(topcg2asmop[op],dst,src));
+                       list.concat(taicpu.op_reg(A_CLR,NR_R1));
+                       cg.a_reg_dealloc(list,NR_R1);
+                       list.concat(taicpu.op_reg_reg(A_MOV,dst,NR_R0));
+                       cg.a_reg_dealloc(list,NR_R0);
+                     end
+                   else
+                     internalerror(2015061001);
                  end
                else if size=OS_16 then
                  begin
-                   tmpreg:=getintregister(list,OS_16);
-                   emit_mov(list,tmpreg,dst);
-                   emit_mov(list,GetNextReg(tmpreg),GetNextReg(dst));
-                   list.concat(taicpu.op_reg_reg(A_MUL,tmpreg,src));
-                   emit_mov(list,dst,NR_R0);
-                   emit_mov(list,GetNextReg(dst),NR_R1);
-                   list.concat(taicpu.op_reg_reg(A_MUL,GetNextReg(tmpreg),src));
-                   list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
-                   list.concat(taicpu.op_reg_reg(A_MUL,tmpreg,GetNextReg(src)));
-                   list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
-                   list.concat(taicpu.op_reg(A_CLR,NR_R1));
-
-                   { keep code for muls with overflow checking
-                   pd:=search_system_proc('fpc_mul_word');
-                   paraloc1.init;
-                   paraloc2.init;
-                   paraloc3.init;
-                   paramanager.getintparaloc(list,pd,1,paraloc1);
-                   paramanager.getintparaloc(list,pd,2,paraloc2);
-                   paramanager.getintparaloc(list,pd,3,paraloc3);
-                   a_load_const_cgpara(list,OS_8,0,paraloc3);
-                   a_load_reg_cgpara(list,OS_16,src,paraloc2);
-                   a_load_reg_cgpara(list,OS_16,dst,paraloc1);
-                   paramanager.freecgpara(list,paraloc3);
-                   paramanager.freecgpara(list,paraloc2);
-                   paramanager.freecgpara(list,paraloc1);
-                   alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                   a_call_name(list,'FPC_MUL_WORD',false);
-                   dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                   cg.a_reg_alloc(list,NR_R24);
-                   cg.a_reg_alloc(list,NR_R25);
-                   cg.a_load_reg_reg(list,OS_8,OS_8,NR_R24,dst);
-                   cg.a_reg_dealloc(list,NR_R24);
-                   cg.a_load_reg_reg(list,OS_8,OS_8,NR_R25,GetNextReg(dst));
-                   cg.a_reg_dealloc(list,NR_R25);
-                   paraloc3.done;
-                   paraloc2.done;
-                   paraloc1.done;
-                   }
+                   if CPUAVR_HAS_MUL in cpu_capabilities[current_settings.cputype] then
+                     begin
+                       tmpreg:=getintregister(list,OS_16);
+                       emit_mov(list,tmpreg,dst);
+                       emit_mov(list,GetNextReg(tmpreg),GetNextReg(dst));
+                       list.concat(taicpu.op_reg_reg(A_MUL,tmpreg,src));
+                       emit_mov(list,dst,NR_R0);
+                       emit_mov(list,GetNextReg(dst),NR_R1);
+                       list.concat(taicpu.op_reg_reg(A_MUL,GetNextReg(tmpreg),src));
+                       list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
+                       list.concat(taicpu.op_reg_reg(A_MUL,tmpreg,GetNextReg(src)));
+                       list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
+                       list.concat(taicpu.op_reg(A_CLR,NR_R1));
+                     end
+                   else
+                     begin
+                       { keep code for muls with overflow checking }
+                       pd:=search_system_proc('fpc_mul_word');
+                       paraloc1.init;
+                       paraloc2.init;
+                       paraloc3.init;
+                       paramanager.getintparaloc(list,pd,1,paraloc1);
+                       paramanager.getintparaloc(list,pd,2,paraloc2);
+                       paramanager.getintparaloc(list,pd,3,paraloc3);
+                       a_load_const_cgpara(list,OS_8,0,paraloc3);
+                       a_load_reg_cgpara(list,OS_16,src,paraloc2);
+                       a_load_reg_cgpara(list,OS_16,dst,paraloc1);
+                       paramanager.freecgpara(list,paraloc3);
+                       paramanager.freecgpara(list,paraloc2);
+                       paramanager.freecgpara(list,paraloc1);
+                       alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                       a_call_name(list,'FPC_MUL_WORD',false);
+                       dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.a_reg_alloc(list,NR_R24);
+                       cg.a_reg_alloc(list,NR_R25);
+                       cg.a_load_reg_reg(list,OS_8,OS_8,NR_R24,dst);
+                       cg.a_reg_dealloc(list,NR_R24);
+                       cg.a_load_reg_reg(list,OS_8,OS_8,NR_R25,GetNextReg(dst));
+                       cg.a_reg_dealloc(list,NR_R25);
+                       paraloc3.done;
+                       paraloc2.done;
+                       paraloc1.done;
+                     end;
                  end
                else
                  internalerror(2011022002);
@@ -1691,7 +1701,46 @@ unit cgcpu;
          regs : tcpuregisterset;
          reg : tsuperregister;
       begin
-        if not(nostackframe) then
+        if po_interrupt in current_procinfo.procdef.procoptions then
+          begin
+            { check if the framepointer is actually used, this is done here because
+              we have to know the size of the locals (must be 0), avr does not know
+              an sp based stack }
+
+            if not(current_procinfo.procdef.stack_tainting_parameter(calleeside)) and
+              (localsize=0) then
+              current_procinfo.framepointer:=NR_NO;
+
+            { save int registers,
+              but only if the procedure returns }
+            if not(po_noreturn in current_procinfo.procdef.procoptions) then
+              regs:=rg[R_INTREGISTER].used_in_proc
+            else
+              regs:=[];
+            { if the framepointer is potentially used, save it always because we need a proper stack frame,
+              even if the procedure never returns, the procedure could be e.g. a nested one accessing
+              an outer stackframe }
+            if current_procinfo.framepointer<>NR_NO then
+              regs:=regs+[RS_R28,RS_R29];
+
+            regs:=regs+[RS_R0];
+
+            for reg:=RS_R31 downto RS_R0 do
+              if reg in regs then
+                list.concat(taicpu.op_reg(A_PUSH,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
+
+            { Save SREG }
+            list.concat(taicpu.op_reg_const(A_IN, NR_R0, $3F));
+            list.concat(taicpu.op_reg(A_PUSH, NR_R0));
+
+            if current_procinfo.framepointer<>NR_NO then
+              begin
+                list.concat(taicpu.op_reg_const(A_IN,NR_R28,NIO_SP_LO));
+                list.concat(taicpu.op_reg_const(A_IN,NR_R29,NIO_SP_HI));
+                a_adjust_sp(list,-localsize);
+              end;
+          end
+        else if not(nostackframe) then
           begin
             { check if the framepointer is actually used, this is done here because
               we have to know the size of the locals (must be 0), avr does not know
@@ -1738,7 +1787,29 @@ unit cgcpu;
         }
         if po_noreturn in current_procinfo.procdef.procoptions then
           exit;
-        if not(nostackframe) then
+        if po_interrupt in current_procinfo.procdef.procoptions then
+          begin
+            regs:=rg[R_INTREGISTER].used_in_proc;
+            if current_procinfo.framepointer<>NR_NO then
+              begin
+                regs:=regs+[RS_R28,RS_R29];
+                LocalSize:=current_procinfo.calc_stackframe_size;
+                a_adjust_sp(list,LocalSize);
+              end;
+
+            { Reload SREG }
+            regs:=regs+[RS_R0];
+
+            list.concat(taicpu.op_reg(A_POP, NR_R0));
+            list.concat(taicpu.op_const_reg(A_OUT, $3F, NR_R0));
+
+            for reg:=RS_R0 to RS_R31 do
+              if reg in regs then
+                list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
+
+            list.concat(taicpu.op_none(A_RETI));
+          end
+        else if not(nostackframe) then
           begin
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
             if current_procinfo.framepointer<>NR_NO then
@@ -1750,8 +1821,10 @@ unit cgcpu;
             for reg:=RS_R0 to RS_R31 do
               if reg in regs then
                 list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
-          end;
-        list.concat(taicpu.op_none(A_RET));
+            list.concat(taicpu.op_none(A_RET));
+          end
+        else
+          list.concat(taicpu.op_none(A_RET));
       end;
 
 
