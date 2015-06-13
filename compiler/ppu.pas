@@ -315,9 +315,9 @@ type
     function  getlongint:longint;
     function getint64:int64;
     function  getqword:qword;
-    function getaint:aint;
-    function getasizeint:asizeint;
-    function getaword:aword;
+    function getaint:{$ifdef generic_cpu}int64{$else}aint{$endif};
+    function getasizeint:{$ifdef generic_cpu}int64{$else}asizeint{$endif};
+    function getaword:{$ifdef generic_cpu}qword{$else}aword{$endif};
     function  getreal:ppureal;
     function  getrealsize(sizeofreal : longint):ppureal;
     function  getstring:string;
@@ -779,7 +779,7 @@ begin
 end;
 
 
-function tppufile.getaint:aint;
+function tppufile.getaint:{$ifdef generic_cpu}int64{$else}aint{$endif};
 begin
 {$ifdef generic_cpu}
   if CpuAluBitSize[tsystemcpu(header.cpu)]=64 then
@@ -807,7 +807,7 @@ begin
 end;
 
 
-function tppufile.getasizeint:asizeint;
+function tppufile.getasizeint:{$ifdef generic_cpu}int64{$else}asizeint{$endif};
 begin
 {$ifdef generic_cpu}
   if CpuAddrBitSize[tsystemcpu(header.cpu)]=64 then
@@ -833,7 +833,7 @@ begin
 end;
 
 
-function tppufile.getaword:aword;
+function tppufile.getaword:{$ifdef generic_cpu}qword{$else}aword{$endif};
 begin
 {$ifdef generic_cpu}
   if CpuAluBitSize[tsystemcpu(header.cpu)]=64 then
