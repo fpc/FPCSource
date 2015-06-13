@@ -26,19 +26,43 @@ unit nllvmld;
 interface
 
     uses
-      ncgnstld;
+      globtype,
+      cgutils,
+      symtype,
+      ncgld, ncgnstld;
 
     type
       tllvmloadnode = class(tcgnestloadnode)
+      end;
+
+      { tllvmarrayconstructornode }
+
+      tllvmarrayconstructornode = class(tcgarrayconstructornode)
+       protected
+        procedure makearrayref(var ref: treference; eledef: tdef); override;
       end;
 
 
 implementation
 
      uses
-       nld;
+       aasmdata,
+       nld,
+       symdef,
+       hlcgobj;
+
+{ tllvmarrayconstructornode }
+
+procedure tllvmarrayconstructornode.makearrayref(var ref: treference; eledef: tdef);
+  begin
+    { the array elements are addressed as pointer to the individual elements ->
+      convert }
+    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(resultdef),getpointerdef(eledef),ref);
+  end;
+
 
 begin
   cloadnode:=tllvmloadnode;
+  carrayconstructornode:=tllvmarrayconstructornode;
 end.
 
