@@ -132,7 +132,7 @@ implementation
         reference_reset_symbol(href, lab_str, 0, const_align(strpointerdef.size));
         current_asmdata.CurrAsmList.concat(
           taillvm.getelementptr_reg_size_ref_size_const(reg,dataptrdef,href,
-          s32inttype,field.llvmfieldnr,true));
+          s32inttype,field.llvmfieldnr,false));
         { convert into a pointer to the individual elements }
         hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dataptrdef,strpointerdef,reg,location.register);
       end;
