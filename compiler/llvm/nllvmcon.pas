@@ -99,6 +99,7 @@ implementation
         srsymtable: tsymtable;
         offset: pint;
         field: tfieldvarsym;
+        llvmfield: tllvmshadowsymtableentry;
         dataptrdef: tdef;
         reg: tregister;
         href: treference;
@@ -121,6 +122,9 @@ implementation
         offset:=ctai_typedconstbuilder.get_string_symofs(stringtype,winlikewidestring);
         { field corresponding to this offset }
         field:=trecordsymtable(strrecdef.symtable).findfieldbyoffset(offset);
+        llvmfield:=trecordsymtable(strrecdef.symtable).llvmst[field];
+        if llvmfield.fieldoffset<>field.fieldoffset then
+          internalerror(2015061001);
         { pointerdef to the string data array }
         dataptrdef:=getpointerdef(field.vardef);
         { load the address of the string data }
