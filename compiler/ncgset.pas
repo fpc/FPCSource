@@ -485,7 +485,7 @@ implementation
                          hlcg.a_label(current_asmdata.CurrAsmList, l);
                        end;
 
-                     hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,left.resultdef,right.resultdef,uopdef,
+                     hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,opdef,right.resultdef,uopdef,
                        pleftreg,right.location,location.register);
 
                      if needslabel then
