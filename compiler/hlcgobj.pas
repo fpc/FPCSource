@@ -563,6 +563,7 @@ unit hlcgobj;
 
           procedure gen_proc_symbol(list:TAsmList);virtual;
           procedure gen_proc_symbol_end(list:TAsmList);virtual;
+          procedure handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr); virtual;
 
           procedure gen_initialize_code(list:TAsmList);virtual;
           procedure gen_finalize_code(list:TAsmList);virtual;
@@ -4376,6 +4377,40 @@ implementation
            end;
         end;
     end;
+
+
+  procedure thlcgobj.handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr);
+    begin
+      { External declared in implementation, and there was already a
+        forward (or interface) declaration then we need to generate
+        a stub that calls the external routine }
+      if (not pd.forwarddef) and
+         (pd.hasforward) then
+        begin
+          if importname<>'' then
+            begin
+             { add the procedure to the al_procedures }
+             maybe_new_object_file(list);
+             new_section(list,sec_code,lower(pd.mangledname),current_settings.alignment.procalign);
+             if (po_global in pd.procoptions) then
+               list.concat(Tai_symbol.createname_global(pd.mangledname,AT_FUNCTION,0))
+             else
+               list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
+
+             g_external_wrapper(list,pd,importname);
+            end;
+          { remove the external stuff, so that the interface crc
+            doesn't change. This makes the function calls less
+            efficient, but it means that the interface doesn't
+            change if the function is ever redirected to another
+            function or implemented in the unit. }
+          pd.procoptions:=pd.procoptions-[po_external,po_has_importname,po_has_importdll];
+          stringdispose(pd.import_name);
+          stringdispose(pd.import_dll);
+          pd.import_nr:=0;
+        end;
+    end;
+
 
   procedure thlcgobj.gen_initialize_code(list: TAsmList);
     begin

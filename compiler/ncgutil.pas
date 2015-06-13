@@ -84,8 +84,6 @@ interface
     procedure gen_restore_used_regs(list:TAsmList);
     procedure gen_load_para_value(list:TAsmList);
 
-    procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
-
     procedure get_used_regvars(n: tnode; var rv: tusedregvars);
     { adds the regvars used in n and its children to rv.allregvars,
       those which were already in rv.allregvars to rv.commonregvars and
@@ -1488,25 +1486,6 @@ implementation
           cg.g_restore_registers(list);
       end;
 
-
-{****************************************************************************
-                           External handling
-****************************************************************************}
-
-    procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
-      begin
-        create_hlcodegen;
-        { add the procedure to the al_procedures }
-        maybe_new_object_file(list);
-        new_section(list,sec_code,lower(pd.mangledname),current_settings.alignment.procalign);
-        if (po_global in pd.procoptions) then
-          list.concat(Tai_symbol.createname_global(pd.mangledname,AT_FUNCTION,0))
-        else
-          list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
-
-        hlcg.g_external_wrapper(list,pd,externalname);
-        destroy_hlcodegen;
-      end;
 
 {****************************************************************************
                                Const Data
