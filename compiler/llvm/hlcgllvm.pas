@@ -85,6 +85,7 @@ uses
 
       procedure gen_proc_symbol(list: TAsmList); override;
       procedure gen_proc_symbol_end(list: TAsmList); override;
+      procedure handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr); override;
       procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean); override;
       procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean); override;
      protected
@@ -148,7 +149,7 @@ implementation
     defutil,llvmdef,llvmsym,
     aasmtai,aasmcpu,
     aasmllvm,llvmbase,tgllvm,
-    symtable,
+    symtable,symllvm,
     paramgr,llvmpara,
     procinfo,cpuinfo,cgobj,cgllvm,cghlcpu;
 
@@ -442,12 +443,11 @@ implementation
       calldef: tdef;
       res: tregister;
     begin
-      if not pd.owner.iscurrentunit or
-         (s<>pd.mangledname) or
-         (po_external in pd.procoptions) then
+      if not pd.owner.iscurrentunit then
         begin
           asmsym:=current_asmdata.RefAsmSymbol(tprocdef(pd).mangledname);
-          if not asmsym.declared then
+          if (not asmsym.declared) and
+             (asmsym.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
             current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.create(asmsym,pd,nil,sec_code,pd.alignment));
         end;
       a_call_common(list,pd,paras,forceresdef,res,calldef,hlretdef,llvmretdef,callparas);
@@ -1032,6 +1032,8 @@ implementation
       mangledname: TSymStr;
       asmsym: tasmsymbol;
     begin
+      if po_external in current_procinfo.procdef.procoptions then
+        exit;
       item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
       mangledname:=current_procinfo.procdef.mangledname;
       { predefine the real function name as local/global, so the aliases can
@@ -1055,6 +1057,17 @@ implementation
     begin
       list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
       { todo: darwin main proc, or handle in other way? }
+    end;
+
+
+  procedure thlcgllvm.handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr);
+    var
+      asmsym: tasmsymbol;
+    begin
+      { Windows-style import names are not yet supported -> ignore
+        importname for now }
+      asmsym:=current_asmdata.RefAsmSymbol(tllvmprocdef(pd).external_mangledname,AT_FUNCTION);
+      list.concat(taillvmalias.create(asmsym,pd.mangledname,pd,llv_default,lll_internal));
     end;
 
 
@@ -1661,6 +1674,8 @@ implementation
     var
       asmsym: TAsmSymbol;
     begin
+      if po_external in procdef.procoptions then
+        exit;
       asmsym:=current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION);
       list.concat(taillvmalias.create(asmsym,procdef.mangledname,procdef,llv_default,lll_default));
     end;

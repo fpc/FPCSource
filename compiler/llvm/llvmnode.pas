@@ -39,6 +39,7 @@ implementation
     tgllvm,hlcgllvm,
     nllvmadd,nllvmcal,nllvmcnv,nllvmcon,nllvminl,nllvmld,nllvmmat,nllvmmem,
     nllvmtcon,nllvmutil,
-    llvmpara;
+    llvmpara,
+    symllvm;
 
 end.

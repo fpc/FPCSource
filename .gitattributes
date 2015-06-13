@@ -344,6 +344,7 @@ compiler/llvm/nllvmmem.pas svneol=native#text/plain
 compiler/llvm/nllvmtcon.pas svneol=native#text/plain
 compiler/llvm/nllvmutil.pas svneol=native#text/plain
 compiler/llvm/rgllvm.pas svneol=native#text/plain
+compiler/llvm/symllvm.pas svneol=native#text/plain
 compiler/llvm/tgllvm.pas svneol=native#text/plain
 compiler/m68k/aasmcpu.pas svneol=native#text/plain
 compiler/m68k/ag68kgas.pas svneol=native#text/plain

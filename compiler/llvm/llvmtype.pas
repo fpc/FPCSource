@@ -54,7 +54,7 @@ interface
           generated, as these alias declarations can appear anywhere }
         asmsymtypes: THashSet;
 
-        procedure record_asmsym_def(sym: TAsmSymbol; def: tdef);
+        procedure record_asmsym_def(sym: TAsmSymbol; def: tdef; redefine: boolean);
         function  get_asmsym_def(sym: TAsmSymbol): tdef;
 
         function record_def(def:tdef): tdef;
@@ -86,6 +86,7 @@ interface
         procedure insert_typedconst_typeconversion(p: tai_abstracttypedconst);
         procedure insert_tai_typeconversions(p: tai);
         procedure insert_asmlist_typeconversions(list: tasmlist);
+        procedure update_asmlist_alias_types(list: tasmlist);
 
       public
         constructor Create;override;
@@ -108,15 +109,17 @@ implementation
                               TDebugInfoDwarf
 ****************************************************************************}
 
-    procedure TLLVMTypeInfo.record_asmsym_def(sym: TAsmSymbol; def: tdef);
+    procedure TLLVMTypeInfo.record_asmsym_def(sym: TAsmSymbol; def: tdef; redefine: boolean);
       var
         res: PHashSetItem;
       begin
         res:=asmsymtypes.FindOrAdd(@sym,sizeof(sym));
-        { if there are multiple definitions of the same symbol, we're in
-          trouble anyway, so don't bother checking whether data is already
-          assigned }
-        res^.Data:=def;
+        { due to internal aliases with different signatures, we may end up with
+          multiple defs for the same symbol -> use the one from the declaration,
+          and insert typecasts as necessary elsewhere }
+        if redefine or
+           not assigned(res^.Data) then
+          res^.Data:=def;
       end;
 
 
@@ -193,12 +196,12 @@ implementation
           ait_llvmalias:
             begin
               appenddef(deftypelist,taillvmalias(p).def);
-              record_asmsym_def(taillvmalias(p).newsym,taillvmalias(p).def);
+              record_asmsym_def(taillvmalias(p).newsym,taillvmalias(p).def,false);
             end;
           ait_llvmdecl:
             begin
               appenddef(deftypelist,taillvmdecl(p).def);
-              record_asmsym_def(taillvmdecl(p).namesym,taillvmdecl(p).def);
+              record_asmsym_def(taillvmdecl(p).namesym,taillvmdecl(p).def,true);
               collect_asmlist_info(deftypelist,taillvmdecl(p).initdata);
             end;
           ait_llvmins:
@@ -361,6 +364,38 @@ implementation
         while assigned(hp) do
           begin
             insert_tai_typeconversions(hp);
+            hp:=tai(hp.next);
+          end;
+      end;
+
+    procedure TLLVMTypeInfo.update_asmlist_alias_types(list: tasmlist);
+      var
+        hp: tai;
+        def: tdef;
+      begin
+        if not assigned(list) then
+          exit;
+        hp:=tai(list.first);
+        while assigned(hp) do
+          begin
+            case hp.typ of
+              ait_llvmalias:
+                begin
+                  { replace the def of the alias declaration with the def of
+                    the aliased symbol -> we'll insert the appropriate type
+                    conversions for all uses of this symbol in the code (since
+                    every use also specifies the used type) }
+                  record_asmsym_def(taillvmalias(hp).oldsym,taillvmalias(hp).def,false);
+                  def:=get_asmsym_def(taillvmalias(hp).oldsym);
+                  if taillvmalias(hp).def<>def then
+                    begin
+                      taillvmalias(hp).def:=def;
+                      record_asmsym_def(taillvmalias(hp).newsym,def,true);
+                    end;
+                end;
+              ait_llvmdecl:
+                update_asmlist_alias_types(taillvmdecl(hp).initdata);
+            end;
             hp:=tai(hp.next);
           end;
       end;
@@ -536,6 +571,13 @@ implementation
           if hal<>al_start then
             collect_asmlist_info(current_asmdata.asmlists[al_start],current_asmdata.asmlists[hal]);
 
+        { update the defs of all alias declarations so they match those of the
+          declarations of the symbols they alias }
+        for hal:=low(TasmlistType) to high(TasmlistType) do
+          if hal<>al_start then
+            update_asmlist_alias_types(current_asmdata.asmlists[hal]);
+
+        { and insert the necessary type conversions }
         for hal:=low(TasmlistType) to high(TasmlistType) do
           if hal<>al_start then
             insert_asmlist_typeconversions(current_asmdata.asmlists[hal]);
