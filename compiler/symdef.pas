@@ -1244,8 +1244,12 @@ implementation
                        crc:=UpdateCrc32(crc,hs[1],length(hs));
                      end;
                  end;
-               hs:=hp.vardef.mangledparaname;
-               crc:=UpdateCrc32(crc,hs[1],length(hs));
+               if not is_void(tprocdef(st.defowner).returndef) then
+                 begin
+                   { add a little prefix so that x(integer; integer) is different from x(integer):integer }
+                   hs:='$$'+tprocdef(st.defowner).returndef.mangledparaname;
+                   crc:=UpdateCrc32(crc,hs[1],length(hs));
+                 end;
                s:=Copy(s,1,oldlen)+'$crc'+hexstr(crc,8);
              end;
            if prefix<>'' then
@@ -3417,8 +3421,10 @@ implementation
 
     constructor tarraydef.create_from_pointer(def:tpointerdef);
       begin
-         { use -1 so that the elecount will not overflow }
-         self.create(0,high(asizeint)-1,ptrsinttype);
+         { divide by the element size and do -1 so the array will have a valid size,
+           further, the element size might be 0 e.g. for empty records, so use max(...,1)
+           to avoid a division by zero }
+         self.create(0,(high(asizeint) div max(def.pointeddef.size,1))-1,ptrsinttype);
          arrayoptions:=[ado_IsConvertedPointer];
          setelementdef(def.pointeddef);
       end;
@@ -5507,8 +5513,12 @@ implementation
                     crc:=UpdateCrc32(crc,hs[1],length(hs));
                   end;
               end;
-            hs:=hp.vardef.mangledparaname;
-            crc:=UpdateCrc32(crc,hs[1],length(hs));
+            if not is_void(returndef) then
+              begin
+                { add a little prefix so that x(integer; integer) is different from x(integer):integer }
+                hs:='$$'+returndef.mangledparaname;
+                crc:=UpdateCrc32(crc,hs[1],length(hs));
+              end;
             defaultmangledname:=Copy(defaultmangledname,1,oldlen)+'$crc'+hexstr(crc,8);
           end;
       end;

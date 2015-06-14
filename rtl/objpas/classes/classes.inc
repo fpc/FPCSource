@@ -83,6 +83,9 @@ var
   { this list holds all instances of external threads that need to be freed at
     the end of the program }
   ExternalThreads: TThreadList;
+  { this list signals that the ExternalThreads list is cleared and thus the
+    thread instances don't need to remove themselves }
+  ExternalThreadsCleanup: Boolean = False;
 
   { this must be a global var, otherwise unwanted optimizations might happen in
     TThread.SpinWait() }
@@ -135,6 +138,7 @@ type
     procedure Execute; override;
   public
     constructor Create;
+    destructor Destroy; override;
   end;
 
 
@@ -149,6 +153,25 @@ begin
   FExternalThread := True;
   { the parameter is unimportant if FExternalThread is True }
   inherited Create(False);
+  with ExternalThreads.LockList do
+    try
+      Add(Self);
+    finally
+      ExternalThreads.UnlockList;
+    end;
+end;
+
+
+destructor TExternalThread.Destroy;
+begin
+  inherited;
+  if not ExternalThreadsCleanup then
+    with ExternalThreads.LockList do
+      try
+        Extract(Self);
+      finally
+        ExternalThreads.UnlockList;
+      end;
 end;
 
 
@@ -2180,6 +2203,7 @@ begin
   InitHandlerList:=Nil;
   FindGlobalComponentList.Free;
   FindGlobalComponentList:=nil;
+  ExternalThreadsCleanup:=True;
   with ExternalThreads.LockList do
     try
       for i := 0 to Count - 1 do
