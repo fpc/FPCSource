@@ -5,7 +5,7 @@ unit fpcsvexport;
 interface
 
 uses
-  Classes, SysUtils, DB, fpDBExport;
+  Classes, SysUtils, fpDBExport, csvreadwrite;
 
 Type
   { TCSVFormatSettings }
@@ -14,35 +14,40 @@ Type
   Private
     FDelimiter: String;
     FHeaderRow: Boolean;
-    FQuoteStrings: TQuoteStrings;
+    FIgnoreOuterWhiteSpace: Boolean;
     FRowDelimiter: String;
-    FStringQuoteChar: String;
+    FQuoteChar: Char;
   Public
     Constructor Create(DoInitSettings : Boolean); override;
     Procedure Assign(Source : TPersistent); override;
+    // Kept for compatibility with older versions; please replace with QuoteChar
+    Property StringQuoteChar : Char Read FQuoteChar Write FQuoteChar; deprecated 'Please replace with QuoteChar';
   Published
     // Properties
+    // Delimiter between fields/columns. Traditionally , for CSV.
     Property FieldDelimiter : String Read FDelimiter Write FDelimiter;
+    //If no, CSV is RFC 4180 compliant; if yes, it matches the unofficial Creativyst specification
+    Property IgnoreOuterWhitespace : Boolean Read FIgnoreOuterWhiteSpace write FIgnoreOuterWhiteSpace;
+    // Line ending to be used between rows of data (e.g. #13#10 for standard CSV)
     Property RowDelimiter : String Read FRowDelimiter Write FRowDelimiter;
+    // Whether or not the file should have a header row with field names
     Property HeaderRow : Boolean Read FHeaderRow Write FHeaderRow default true;
-    Property QuoteStrings : TQuoteStrings Read FQuoteStrings Write FQuoteStrings;
-    Property StringQuoteChar : String Read FStringQuoteChar Write FStringQuoteChar;
+    // If fields need to be surrounded by quotes, use this character (e.g. ")
+    Property QuoteChar : Char Read FQuoteChar Write FQuoteChar;
   end;
 
   { TCustomCSVExporter }
 
   TCustomCSVExporter = Class(TCustomFileExporter)
   private
-    FCurrentRow:String;
+    FCSVOut: TCSVBuilder;
     function GetCSVFormatsettings: TCSVFormatSettings;
-    procedure OutputRow(const ARow: String);
     procedure SetCSVFormatSettings(const AValue: TCSVFormatSettings);
   Protected
     Function CreateFormatSettings : TCustomExportFormatSettings; override;
     Procedure DoBeforeExecute; override;
     Procedure DoAfterExecute; override;
     Procedure DoDataHeader; override;
-    Procedure DoDataRowStart; override;
     Procedure ExportField(EF : TExportFieldItem); override;
     Procedure DoDataRowEnd; override;
   Public
@@ -82,27 +87,23 @@ implementation
 procedure TCustomCSVExporter.DoBeforeExecute;
 begin
   inherited DoBeforeExecute;
+  FCSVOut:=TCSVBuilder.Create;
+  if (FormatSettings.FieldDelimiter<>'') then
+    FCSVOut.Delimiter:=FormatSettings.FieldDelimiter[1];
+  FCSVOut.IgnoreOuterWhitespace:=FormatSettings.IgnoreOuterWhitespace;
+  FCSVOut.LineEnding:=FormatSettings.RowDelimiter;
+  FCSVOut.QuoteChar:=FormatSettings.QuoteChar;
   OpenTextFile;
+  FCSVOut.SetOutput(Stream); //output to the export stream
 end;
 
 procedure TCustomCSVExporter.DoAfterExecute;
 begin
+  FCSVOut.Free;
   CloseTextFile;
   inherited DoAfterExecute;
 end;
 
-procedure TCustomCSVExporter.OutputRow(Const ARow : String);
-
-Var
-  RD : String;
-
-begin
-  RD:=FormatSettings.RowDelimiter;
-  If (RD='') then
-    Writeln(TextFile,ARow)
-  else
-    Write(TextFile,ARow,RD)
-end;
 
 function TCustomCSVExporter.GetCSVFormatsettings: TCSVFormatSettings;
 begin
@@ -124,84 +125,29 @@ end;
 procedure TCustomCSVExporter.DoDataHeader;
 
 Var
-  S : String;
   I : Integer;
 
 begin
   If FormatSettings.HeaderRow then
     begin
-    S:='';
     For I:=0 to ExportFields.Count-1 do
       begin
-      If (S<>'') then
-        S:=S+FormatSettings.FieldDelimiter;
-      S:=S+ExportFields[i].ExportedName;
+      FCSVOut.AppendCell(ExportFields[i].ExportedName);
       end;
-    OutputRow(S);
+    FCSVOut.AppendRow; //close off with line ending
     end;
   inherited DoDataHeader;
 end;
 
 
-procedure TCustomCSVExporter.DoDataRowStart;
-begin
-  FCurrentRow:='';
-end;
-
 procedure TCustomCSVExporter.ExportField(EF: TExportFieldItem);
-
-  Function HaveSpace(Const S : String;QS : TQuoteStrings) : Boolean;
-
-  begin
-    Result:=(qsSpace in QS) and (Pos(' ',S)<>0)
-  end;
-
-  Function HaveDelimiter(Const S : String;QS : TQuoteStrings) : Boolean;
-
-  Var
-    FD : String;
-
-  begin
-    Result:=(qsDelimiter in QS);
-    If Result then
-      begin
-      FD:=FormatSettings.FieldDelimiter;
-      Result:=(FD<>'') and (Pos(FD,S)<>0);
-      end;
-  end;
-
-Var
-  S,C : String;
-  QS  : TQuoteStrings;
-
 begin
-  S:=FormatField(EF.Field);
-  QS:=FormatSettings.QuoteStrings;
-  {If specified, quote everything that can contain delimiters;
-  leave numeric, date fields alone:}
-  If (
-  (EF.Field.DataType in StringFieldTypes) or
-  (EF.Field.DataType in MemoFieldTypes) or
-  (EF.Field.DataType in BlobFieldTypes)
-  )
-  and (QS<>[]) then
-    begin
-    If (qsAlways in QS) or HaveSpace(S,QS) or HaveDelimiter(S,QS) then
-      begin
-      C:=FormatSettings.StringQuoteChar;
-      S:=C+S+C;
-      end;
-    end;
-  If (FCurrentRow<>'') then
-    FCurrentRow:=FCurrentRow+FormatSettings.FieldDelimiter;
-  FCurrentRow:=FCurrentRow+S;
+  FCSVOut.AppendCell(FormatField(EF.Field));
 end;
-
 
 procedure TCustomCSVExporter.DoDataRowEnd;
 begin
-  OutputRow(FCurrentRow);
-  FCurrentRow:='';
+  FCSVOut.AppendRow; //Line ending
 end;
 
 constructor TCustomCSVExporter.Create(Aowner: TComponent);
@@ -213,14 +159,12 @@ end;
 
 constructor TCSVFormatSettings.Create(DoInitSettings: Boolean);
 begin
+  // These defaults are meant to be Excel CSV compatible
   inherited Create(DoInitSettings);
   FHeaderRow:=True;
   FDelimiter:=',';
-  FStringQuoteChar:='"';
-  FQuoteStrings:=[qsSpace, qsDelimiter];
-  {Sensible defaults as reading unquoted strings with delimiters/spaces will
-  either fail by creating phantom fields (qsDelimiter) or delete leading or
-  trailing data/spaces (qsSpace)}
+  FQuoteChar:='"';
+  FRowDelimiter:=LineEnding;
 end;
 
 procedure TCSVFormatSettings.Assign(Source: TPersistent);
@@ -233,10 +177,9 @@ begin
     begin
     FS:=Source as TCSVFormatSettings;
     FDelimiter:=FS.FDelimiter;
-    FHeaderRow:=FS.FHEaderRow;
-    FQuoteStrings:=FS.FQuoteStrings;
+    FHeaderRow:=FS.FHeaderRow;
     FRowDelimiter:=FS.FRowDelimiter;
-    FStringQuoteChar:=FS.FStringQuoteChar;
+    FQuoteChar:=FS.FQuoteChar;
     end;
   inherited Assign(Source);
 end;
@@ -250,8 +193,8 @@ end;
 Procedure UnRegisterCSVExportFormat;
 
 begin
+  ExportFormats.UnRegisterExportFormat(SCSVExport);
 end;
 
 
 end.
-

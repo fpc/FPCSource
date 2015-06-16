@@ -454,17 +454,17 @@ var
 begin
   query1:= DBConnector.GetNDataset(11);
   datalink1:= TDataLink.create;
-  datasource1:= tdatasource.create(nil);
+  datasource1:= TDataSource.create(nil);
   try
-    datalink1.datasource:= datasource1;
-    datasource1.dataset:= query1;
+    datalink1.DataSource:= datasource1;
+    datasource1.DataSet:= query1;
 
-    query1.active := true;
+    query1.active := True;
     query1.active := False;
     CheckEquals(0, THackDataLink(datalink1).RecordCount);
-    query1.active := true;
+    query1.active := True;
     CheckTrue(THackDataLink(datalink1).RecordCount>0);
-    query1.active := false;
+    query1.active := False;
   finally
     datalink1.free;
     datasource1.free;
@@ -488,13 +488,11 @@ begin
     CheckEquals(count,RecordCount);
 
     Close;
-
     end;
 end;
 
 procedure TTestCursorDBBasics.TestRecNo;
-var i       : longint;
-    passed  : boolean;
+var passed  : boolean;
 begin
   with DBConnector.GetNDataset(0) do
     begin
@@ -502,27 +500,23 @@ begin
     // return 0
     passed := false;
     try
-      i := recno;
+      passed := RecNo = 0;
     except on E: Exception do
-      begin
       passed := E.classname = EDatabaseError.className
-      end;
     end;
     if not passed then
       CheckEquals(0,RecNo,'Failed to get the RecNo from a closed dataset');
 
-    // Accessing Recordcount on a closed dataset should raise an EDatabaseError or should
+    // Accessing RecordCount on a closed dataset should raise an EDatabaseError or should
     // return 0
     passed := false;
     try
-      i := recordcount;
+      passed := RecordCount = 0;
     except on E: Exception do
-      begin
       passed := E.classname = EDatabaseError.className
-      end;
     end;
     if not passed then
-      CheckEquals(0,RecNo,'Failed to get the Recordcount from a closed dataset');
+      CheckEquals(0,RecordCount,'Failed to get the RecordCount from a closed dataset');
 
     Open;
 
@@ -564,6 +558,16 @@ begin
     CheckEquals(1,RecordCount);
 
     Close;
+
+    // Tests if RecordCount resets to 0 after dataset is closed
+    passed := false;
+    try
+      passed := RecordCount = 0;
+    except on E: Exception do
+      passed := E.classname = EDatabaseError.className
+    end;
+    if not passed then
+      CheckEquals(0,RecordCount,'RecordCount after Close');
     end;
 end;
 

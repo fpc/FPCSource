@@ -322,6 +322,7 @@ type
     procedure CheckInactive;
     class procedure CheckTypeSize(AValue: Longint); virtual;
     procedure Change; virtual;
+    procedure Bind(Binding: Boolean); virtual;
     procedure DataChanged;
     procedure FreeBuffers; virtual;
     function GetAsBCD: TBCD; virtual;
@@ -1713,6 +1714,19 @@ type
     property OnPostError: TDataSetErrorEvent read FOnPostError write FOnPostError;
   end;
 
+  TDataSetEnumerator = class
+  private
+    FDataSet: TDataSet;
+    FBOF: Boolean;
+    function GetCurrent: TFields;
+  public  
+    constructor Create(ADataSet: TDataSet);
+    function MoveNext: Boolean;
+    property Current: TFields read GetCurrent;
+  end;
+
+{ TDataLink }
+
   TDataLink = class(TPersistent)
   private
     FFirstRecord,
@@ -1940,16 +1954,19 @@ type
     procedure SetBeforeConnect(const AValue: TNotifyEvent);
     procedure SetBeforeDisconnect(const AValue: TNotifyEvent);
   protected
+    procedure DoLoginPrompt; virtual;
     procedure DoConnect; virtual;
     procedure DoDisconnect; virtual;
     function GetConnected : boolean; virtual;
     Function GetDataset(Index : longint) : TDataset; virtual;
     Function GetDataSetCount : Longint; virtual;
+    procedure GetLoginParams(out ADatabaseName, AUserName, APassword: string); virtual;
     procedure InternalHandleException; virtual;
     procedure Loaded; override;
     procedure SetConnected (Value : boolean); virtual;
+    procedure SetLoginParams(const ADatabaseName, AUserName, APassword: string); virtual;
     property ForcedClose : Boolean read FForcedClose write FForcedClose;
-    property Streamedconnected: Boolean read FStreamedConnected write FStreamedConnected;
+    property StreamedConnected: Boolean read FStreamedConnected write FStreamedConnected;
   public
     procedure Close(ForceClose: Boolean=False);
     destructor Destroy; override;
@@ -2168,6 +2185,10 @@ const
   ftBlobTypes = [ftBlob, ftMemo, ftGraphic, ftFmtMemo, ftParadoxOle,
     ftDBaseOle, ftTypedBinary, ftOraBlob, ftOraClob, ftWideMemo];
 
+var
+  LoginDialogExProc: function(const ADatabaseName: string; var AUserName, APassword: string; UserNameReadOnly: Boolean): Boolean = nil;
+
+
 { Auxiliary functions }
 
 Procedure DatabaseError (Const Msg : String); overload;
@@ -2183,6 +2204,8 @@ function BuffersEqual(Buf1, Buf2: Pointer; Size: Integer): Boolean;
 
 function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : boolean;
 
+operator Enumerator(ADataSet: TDataSet): TDataSetEnumerator;
+ 
 implementation
 
 uses dbconst,typinfo;

@@ -258,11 +258,14 @@ type
   private
     FDelimiter : Char;
     FFirstLineAsSchema : Boolean;
-    FFMultiLine         :Boolean;
+    FFMultiLine        : Boolean;
+    FStripTrailingDelimiters : Boolean;
+    procedure DoStripTrailingDelimiters(var S: String; All : Boolean);
     procedure SetMultiLine(const Value: Boolean);
     procedure SetFirstLineAsSchema(Value : Boolean);
     procedure SetDelimiter(Value : Char);
   protected
+    function GetRecordCount: Integer; override;
     procedure InternalInitFieldDefs; override;
     function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean)
              : TGetResult; override;
@@ -274,6 +277,8 @@ type
     property AllowMultiLine: Boolean read FFMultiLine write SetMultiLine default True; //Whether or not to allow fields containing CR and/or LF
     property Delimiter: Char read FDelimiter write SetDelimiter;
     property FirstLineAsSchema: Boolean read FFirstLineAsSchema write SetFirstLineAsSchema;
+    // Set this to True if you want to strip all last delimiters
+    Property StripTrailingDelimiters : Boolean Read FStripTrailingDelimiters Write FStripTrailingDelimiters;
   end;
 procedure Register;
 
@@ -859,6 +864,8 @@ end;
 procedure TSdfDataSet.InternalInitFieldDefs;
 var
   pStart, pEnd, len : Integer;
+  SL,Fn : String;
+
 begin
   if not IsCursorOpen then
     exit;
@@ -875,43 +882,45 @@ begin
   else if (Schema.Count = 0) or (FirstLineAsSchema) then
   begin
     Schema.Clear;
-    len := Length(FData[0]);
+    SL:=FData[0];
+    if StripTrailingDelimiters then
+      DoStripTrailingDelimiters(SL,True);
+    len := Length(SL);
     pEnd := 1;
     repeat
-      while (pEnd <= len) and (FData[0][pEnd] in [#1..' ']) do
+      while (pEnd<=len) and (SL[pEnd] in [#1..' ']) do
         Inc(pEnd);
-
       if (pEnd > len) then
         break;
-
       pStart := pEnd;
-
-      if (FData[0][pStart] = '"') then
-       begin
+      if (SL[pStart] = '"') then
+        begin
         repeat
           Inc(pEnd);
-        until (pEnd > len)  or (FData[0][pEnd] = '"');
-
-        if (FData[0][pEnd] = '"') then
+        until (pEnd > len)  or (SL[pEnd] = '"');
+        if (SL[pEnd] = '"') then
           Inc(pStart);
-       end
+        end
       else
-       while (pEnd <= len) and (FData[0][pEnd]  <> Delimiter) do
-        Inc(pEnd);
-
+        while (pEnd<=len) and (SL[pEnd]<>Delimiter) do
+          Inc(pEnd);
       if (FirstLineAsSchema) then
-       Schema.Add(Copy(FData[0], pStart, pEnd - pStart))
+        FN:=Copy(SL,pStart,pEnd - pStart)
       else
-       Schema.Add(Format('Field%d', [Schema.Count + 1]));
-
-      if (FData[0][pEnd] = '"') then
-        while (pEnd <= len) and (FData[0][pEnd] <> Delimiter) do
+        FN:='';
+      if (FN='') then // Pend-PStart=0 is possible: a,b,,c
+        FN:=Format('Field%d', [Schema.Count + 1]);
+      Schema.Add(FN);
+      if (Pend<=Len) and (SL[pEnd] = '"') then
+        while (pEnd <= len) and (SL[pEnd] <> Delimiter) do
           Inc(pEnd);
-
-      if (FData[0][pEnd] = Delimiter) then
-          Inc(pEnd);
-
+//      if (SL[pEnd]=Delimiter) then
+        Inc(pEnd);
     until (pEnd > len);
+    // Special case: f1,f2, is 3 fields, last unnamed.
+    if (Len>0) and (SL[Len]=Delimiter) then
+      Schema.Add(Format('Field%d', [Schema.Count + 1]));
+
   end;
   inherited;
 end;
@@ -1092,18 +1101,35 @@ begin
       end;
     Result := Result + Str + FDelimiter;
   end;
-  p := Length(Result);
-  while (p > 0) and (Result[p] = FDelimiter) do
-  begin
-    System.Delete(Result, p, 1);
+  DoStripTrailingDelimiters(Result,StripTrailingDelimiters)
+end;
+
+procedure TSdfDataSet.DoStripTrailingDelimiters(var S: String; All: Boolean);
+
+var
+  L,P : integer;
+begin
+//  Write('S "',S,'" -> "');
+  L:=Length(S);
+  P:=L;
+  while (p>0) and (S[p]=FDelimiter) and (All or (P=L)) do
     Dec(p);
-  end;
+  if P<L then
+    S:=Copy(S,1,P);
+//  Writeln(s,'"');
 end;
 
 procedure TSdfDataSet.SetDelimiter(Value : Char);
 begin
   CheckInactive;
   FDelimiter := Value;
+end;
+
+function TSdfDataSet.GetRecordCount: Integer;
+begin
+  Result:=Inherited GetRecordCount;
+  If Result>0 then
+    Result:=Result-Ord(FirstLineAsSchema);
 end;
 
 procedure TSdfDataSet.SetFirstLineAsSchema(Value : Boolean);

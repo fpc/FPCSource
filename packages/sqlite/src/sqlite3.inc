@@ -36,10 +36,10 @@ const
   {$DEFINE S}
 {$ENDIF}
 
-const
-  SQLITE_VERSION        = '3.7.9';
-  SQLITE_VERSION_NUMBER = 3007009;
-  SQLITE_SOURCE_ID      = '2011-11-01 00:52:41 c7c6050ef060877ebe77b41d959e9df13f8c9b5e';
+{
+  Header converted from Sqlite version 3.7.9
+  SOURCE_ID = '2011-11-01 00:52:41 c7c6050ef060877ebe77b41d959e9df13f8c9b5e'
+}
 
 //SQLITE_EXTERN const char sqlite3_version[];
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_libversion{$IFDEF D}: function{$ENDIF}(): pansichar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
@@ -250,16 +250,17 @@ type
     Open         : function(vfs: psqlite3_vfs; zName: pansichar; f: psqlite3_file; flags: cint; pOutFlags: pcint): cint; cdecl;
     Delete       : function(vfs: psqlite3_vfs; zName: pansichar; syncDir: cint): cint; cdecl;
     Access       : function(vfs: psqlite3_vfs; zName: pansichar; flags: cint): cint; cdecl;
-    GetTempname  : function(vfs: psqlite3_vfs; nOut: cint; zOut: pansichar): cint; cdecl;
     FullPathname : function(vfs: psqlite3_vfs; zName: pansichar; nOut: cint; zOut: pansichar): cint; cdecl;
     DlOpen       : function(vfs: psqlite3_vfs; zFilename: pansichar): pointer; cdecl;
     DlError      : procedure(vfs: psqlite3_vfs; nByte: cint; zErrMsg: pansichar); cdecl;
     DlSym        : function(vfs: psqlite3_vfs; addr: pointer; zSymbol: pansichar): pointer; cdecl;
     DlClose      : procedure(vfs: psqlite3_vfs; addr: pointer); cdecl;
     Randomness   : function(vfs: psqlite3_vfs; nByte: cint; zOut: pansichar): cint; cdecl;
-    Sleep        : function(vfs: psqlite3_vfs; microseconds: cint): cint; cdecl;
+    Sleep        : function(vfs: psqlite3_vfs; microseconds: cint): cint; cdecl;    
     CurrentTime  : function(vfs: psqlite3_vfs; time: pcdouble): cint; cdecl;
-    xSetSystemCall : function(vfs: psqlite3_vfs; zName: pansichar; sqlite3_syscall_ptr : pointer) : cint;
+    GetLastError : function(vfs: psqlite3_vfs; code: cint; msg: pansichar): cint; cdecl;
+    CurrentTimeInt64 : function(vfs: psqlite3_vfs; time: psqlite3_int64): cint; cdecl; 	
+    xSetSystemCall : function(vfs: psqlite3_vfs; zName: pansichar; sqlite3_syscall_ptr : pointer) : cint; cdecl;
     xGetSystemCall : function(vfs: psqlite3_vfs; zName: pansichar) : pointer; cdecl;
     xNextSystemCall : function(vfs: psqlite3_vfs; zName: pansichar) : pansichar; cdecl;
   end;

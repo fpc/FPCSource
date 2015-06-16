@@ -27,12 +27,6 @@
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="../src/base;../src/sqldb/odbc;../src/sqldb/mssql;../src/sqldb/sqlite;../src/sqldb/postgres;../src/sqldb/oracle;../src/memds;../src/sqldb;../src/sqldb/interbase;../src/sqldb/mysql;../src/dbase;../src/sdf"/>
           </SearchPaths>
-          <Other>
-            <CompilerMessages>
-              <UseMsgFile Value="True"/>
-            </CompilerMessages>
-            <CompilerPath Value="$(CompPath)"/>
-          </Other>
         </CompilerOptions>
       </Item2>
       <Item3 Name="Default_no_local_ppus">
@@ -46,12 +40,6 @@
               <GenerateDebugInfo Value="False"/>
             </Debugging>
           </Linking>
-          <Other>
-            <CompilerMessages>
-              <UseMsgFile Value="True"/>
-            </CompilerMessages>
-            <CompilerPath Value="$(CompPath)"/>
-          </Other>
         </CompilerOptions>
       </Item3>
       <Item4 Name="Default_no_local_ppus_debug">
@@ -65,12 +53,6 @@
               <OptimizationLevel Value="0"/>
             </Optimizations>
           </CodeGeneration>
-          <Other>
-            <CompilerMessages>
-              <UseMsgFile Value="True"/>
-            </CompilerMessages>
-            <CompilerPath Value="$(CompPath)"/>
-          </Other>
         </CompilerOptions>
       </Item4>
     </BuildModes>
@@ -82,7 +64,6 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
     <RequiredPackages Count="4">
@@ -99,17 +80,20 @@
         <PackageName Value="FCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="2">
+    <Units Count="3">
       <Unit0>
         <Filename Value="dbtestframework_gui.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dbtestframework_gui"/>
       </Unit0>
       <Unit1>
         <Filename Value="dbguitestrunner.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="DBGuiTestRunner"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="tccsvdataset.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tccsvdataset"/>
+      </Unit2>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -123,12 +107,6 @@
         <GenerateDebugInfo Value="False"/>
       </Debugging>
     </Linking>
-    <Other>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="7">

@@ -35,7 +35,7 @@ uses
   TestSpecificTBufDataset,
   TestSpecificTDBF,
   TestSpecificTMemDataset,
-  TestDBExport;
+  TestDBExport, tccsvdataset;
 
 {$R *.res}
 

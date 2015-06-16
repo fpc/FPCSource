@@ -791,7 +791,7 @@ begin
   srctype:=dbcoltype(FDBProc,i);
   data:=dbdata(FDBProc,i);
   datalen:=dbdatlen(FDBProc,i);
-  Result:=assigned(data) and (datalen<>0);
+  Result:=assigned(data) and (datalen>=0);
   if not Result then
     Exit;
 
