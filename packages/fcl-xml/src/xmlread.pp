@@ -91,11 +91,6 @@ uses
   UriParser, dtdmodel;
 
 type
-  TDOMDocumentTypeEx = class(TDOMDocumentType);
-  TXMLDocumentEx = class(TXMLDocument);
-
-  TDOMEntityEx = class(TDOMEntity);
-
   TLoader = object
     doc: TDOMDocument;
     reader: TXMLTextReader;
@@ -237,23 +232,23 @@ end;
 
 procedure TLoader.ProcessFragment(AOwner: TDOMNode; AReader: TXMLTextReader);
 var
-  DoctypeNode: TDOMDocumentTypeEx;
+  DoctypeNode: TDOMDocumentType;
 begin
   doc := AOwner.OwnerDocument;
   reader := AReader;
   reader.OnEntity := @ProcessEntity;
   reader.FragmentMode := True;
   reader.XML11 := doc.XMLVersion = '1.1';
-  DoctypeNode := TDOMDocumentTypeEx(doc.DocType);
+  DoctypeNode := doc.DocType;
   if Assigned(DoctypeNode) then
-    reader.DtdSchemaInfo := DocTypeNode.FModel.Reference;
+    reader.DtdSchemaInfo := DocTypeNode.Model.Reference;
   ParseContent(aOwner as TDOMNode_WithChildren);
 end;
 
 procedure TLoader.ProcessEntity(Sender: TXMLTextReader; AEntity: TEntityDecl);
 var
   DoctypeNode: TDOMDocumentType;
-  Ent: TDOMEntityEx;
+  Ent: TDOMEntity;
   src: TXMLCharSource;
   InnerReader: TXMLTextReader;
   InnerLoader: TLoader;
@@ -261,7 +256,7 @@ begin
   DoctypeNode := TDOMDocument(doc).DocType;
   if DoctypeNode = nil then
     Exit;
-  Ent := TDOMEntityEx(DocTypeNode.Entities.GetNamedItem(AEntity.FName));
+  Ent := TDOMEntity(DocTypeNode.Entities.GetNamedItem(AEntity.FName));
   if Ent = nil then
     Exit;
   Sender.EntityToSource(AEntity, Src);
@@ -291,18 +286,8 @@ begin
     if not reader.Read then
       Exit;
     case cursor.NodeType of
-      DOCUMENT_NODE:
-        begin
-          if reader.XMLVersion <> xmlVersionUnknown then
-            TXMLDocumentEx(cursor).FXMLVersion := reader.XMLVersion;
-          TXMLDocumentEx(cursor).FXMLEncoding := reader.XMLEncoding;
-        end;
-      ENTITY_NODE:
-        begin
-          if reader.XMLVersion <> xmlVersionUnknown then
-            TDOMEntityEx(cursor).FXMLVersion := reader.XMLVersion;
-          TDOMEntityEx(cursor).FXMLEncoding := reader.XMLEncoding;
-        end;
+      DOCUMENT_NODE, ENTITY_NODE:
+        (cursor as TDOMNode_TopLevel).SetHeaderData(reader.XMLVersion,reader.XMLEncoding);
     end;
   end;
 
