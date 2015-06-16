@@ -176,6 +176,7 @@ const Oid_Bool     = 16;
       Oid_Int8     = 20;
       Oid_int2     = 21;
       Oid_Int4     = 23;
+      Oid_JSON     = 114;
       Oid_Float4   = 700;
       Oid_Money    = 790;
       Oid_Float8   = 701;
@@ -751,7 +752,7 @@ begin
                              if size > MaxSmallint then size := MaxSmallint;
                              end;
 //    Oid_text               : Result := ftstring;
-    Oid_text               : Result := ftMemo;
+    Oid_text,Oid_JSON      : Result := ftMemo;
     Oid_Bytea              : Result := ftBlob;
     Oid_oid                : Result := ftInteger;
     Oid_int8               : Result := ftLargeInt;

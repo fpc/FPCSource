@@ -1778,6 +1778,15 @@ begin
     FPrecision := 2;
 end;
 
+function TFloatField.GetAsBCD: TBCD;
+var f : Double;
+begin
+  if GetData(@f) then
+    Result := DoubleToBCD(f)
+  else
+    Result := NullBCD;
+end;
+
 function TFloatField.GetAsFloat: Double;
 
 begin
@@ -1809,11 +1818,11 @@ end;
 
 function TFloatField.GetAsString: string;
 
-var R : Double;
+var f : Double;
 
 begin
-  If GetData(@R) then
-    Result:=FloatToStr(R)
+  If GetData(@f) then
+    Result:=FloatToStr(f)
   else
     Result:='';
 end;
@@ -1859,6 +1868,11 @@ begin
     TheText:=FloatToStrF(E,ff,FPrecision,Digits);
 end;
 
+procedure TFloatField.SetAsBCD(const AValue: TBCD);
+begin
+  SetAsFloat(BCDToDouble(AValue));
+end;
+
 procedure TFloatField.SetAsFloat(AValue: Double);
 
 begin
@@ -1881,15 +1895,15 @@ end;
 
 procedure TFloatField.SetAsString(const AValue: string);
 
-var R : Double;
+var f : Double;
 
 begin
   If (AValue='') then
     Clear
   else  
     try
-      R := StrToFloat(AValue);
-      SetAsFloat(R);
+      f := StrToFloat(AValue);
+      SetAsFloat(f);
     except
       DatabaseErrorFmt(SNotAFloat, [AValue]);
     end;

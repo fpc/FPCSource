@@ -427,7 +427,7 @@ const
 
 type
   xTrace = procedure(user: pointer; s: pansichar); cdecl;
-  xProfile = procedure(user: pointer; s: char; i: sqlite3_uint64); cdecl;
+  xProfile = procedure(user: pointer; s: pansichar; i: sqlite3_uint64); cdecl;
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_trace{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: xTrace; user: pointer): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_profile{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: xProfile; user: pointer): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
