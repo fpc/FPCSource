@@ -1632,6 +1632,10 @@ implementation
           n.call_vmt_node:=call_vmt_node.dogetcopy
         else
           n.call_vmt_node:=nil;
+        if assigned(vmt_entry) then
+          n.vmt_entry:=vmt_entry.dogetcopy
+        else
+          n.vmt_entry:=nil;
         { must be copied before the funcretnode, because the callcleanup block
           may contain a ttempdeletenode that sets the tempinfo of the
           corresponding temp to ti_nextref_set_hookoncopy_nil, and this nextref
@@ -1681,6 +1685,8 @@ implementation
           inherited docompare(p) and
           (symtableprocentry = tcallnode(p).symtableprocentry) and
           (procdefinition = tcallnode(p).procdefinition) and
+          { this implicitly also compares the vmt_entry node, as it is
+            deterministically based on the methodpointer }
           (methodpointer.isequal(tcallnode(p).methodpointer)) and
           (((cnf_typedefset in callnodeflags) and (cnf_typedefset in tcallnode(p).callnodeflags) and
             (equal_defs(typedef,tcallnode(p).typedef))) or
