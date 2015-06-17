@@ -1144,11 +1144,13 @@ begin
    begin
      if fileexists(FTableOfContentsFileName) then
        begin
+         FreeAndNil(FTocStream);
          FTocStream:=TMemoryStream.Create;
          try
            FTocStream.loadfromfile(FTableOfContentsFilename);
-           writeln(ftableofcontentsfilename, ' ' ,ftocstream.size);
+           //writeln(ftableofcontentsfilename, ' ' ,ftocstream.size);
            FTocStream.Position:=0;
+           FreeAndNil(FToc);
            FToc:=TChmSiteMap.Create(sttoc);
            FToc.loadfromstream(FTocStream);
            ftoc.savetofile('bla.something');
@@ -1167,10 +1169,12 @@ begin
    begin
      if fileexists(FIndexFileName) then
        begin
+        FreeAndNil(FIndexStream);
         FIndexStream:=TMemoryStream.Create;
         try
           FIndexStream.LoadFromFile(FIndexFileName);
           FIndexStream.Position:=0;
+          FreeAndNil(FIndex);
           FIndex:=TChmSiteMap.Create(stindex);
           FIndex.loadfromfile(FIndexFileName);
         except
