@@ -29,6 +29,7 @@ Type
   Private
     FHTTP : TFPHTTPClient;
   Public
+    function GetHeaders: TStrings;override;
     Constructor Create(AHTTP : TFPHTTPClient);
     Destructor Destroy; override;
   end;
@@ -44,7 +45,6 @@ Type
     Function GetStatusText : String; override;
   Public
     Constructor Create(AHTTP : TFPHTTPRequest);
-    Destructor Destroy; override;
   end;
 
   { TFPHTTPWebClient }
@@ -61,6 +61,10 @@ uses dateutils;
 
 { TFPHTTPRequest }
 
+function TFPHTTPRequest.GetHeaders: TStrings;
+begin
+  Result:=FHTTP.RequestHeaders;
+end;
 
 constructor TFPHTTPRequest.Create(AHTTP: TFPHTTPClient);
 begin
@@ -105,17 +109,13 @@ begin
   FHTTP:=AHTTP.FHTTP;
 end;
 
-Destructor TFPHTTPResponse.Destroy;
-begin
-  FreeAndNil(FHTTP);
-  inherited Destroy;
-end;
 
 { TFPHTTPWebClient }
 
 Function TFPHTTPWebClient.DoCreateRequest: TWebClientRequest;
 begin
   Result:=TFPHTTPRequest.Create(TFPHTTPClient.Create(Self));
+  Result.Headers.NameValueSeparator:=':';
 end;
 
 Function TFPHTTPWebClient.DoHTTPMethod(Const AMethod, AURL: String;
@@ -129,7 +129,6 @@ Var
 begin
   U:=AURL;
   H:=TFPHTTPRequest(ARequest).FHTTP;
-  TFPHTTPRequest(ARequest).FHTTP:=Nil;
   S:=ARequest.ParamsAsQuery;
   if (S<>'') then
     begin
@@ -139,6 +138,13 @@ begin
     end;
   Result:=TFPHTTPResponse.Create(ARequest as TFPHTTPRequest);
   try
+    if Assigned(ARequest.Content) and (ARequest.Headers.IndexOfName('Content-length')<0) then
+      H.AddHeader('Content-length',IntToStr(ARequest.Content.size));
+    if ARequest.Content.Size>0 then
+      begin
+      H.RequestBody:=ARequest.Content;
+      H.RequestBody.Position:=0;
+      end;
     H.HTTPMethod(AMethod,U,Result.Content,[]); // Will rais an exception
   except
     FreeAndNil(Result);

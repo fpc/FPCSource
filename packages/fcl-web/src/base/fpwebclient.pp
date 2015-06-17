@@ -46,6 +46,7 @@ Type
   TWebClientRequest = Class(TRequestResponse)
   Private
     FExtraParams : TStrings;
+    FResponseStream: TStream;
   Protected
     function GetExtraParams: TStrings; virtual;
   Public
@@ -54,7 +55,7 @@ Type
     // Query Parameters to include in request
     Property Params : TStrings Read GetExtraParams;
     // If you want the response to go to this stream, set this in the request
-    Property ResponseContent : TStream Read FStream Write FStream;
+    Property ResponseContent : TStream Read FResponseStream Write FResponseStream;
   end;
 
 
@@ -116,6 +117,8 @@ Type
     // Must create a request.
     Function DoCreateRequest : TWebClientRequest; virtual; abstract;
   Public
+    Destructor Destroy; override;
+
     // Executes the HTTP method AMethod on AURL. Raises an exception on error.
     // On success, TWebClientResponse is returned. It must be freed by the caller.
     Function ExecuteRequest(Const AMethod,AURL : String; ARequest : TWebClientRequest) : TWebClientResponse;
@@ -165,13 +168,13 @@ begin
 end;
 
 
-Destructor TWebClientRequest.Destroy;
+destructor TWebClientRequest.Destroy;
 begin
   FreeAndNil(FExtraParams);
   inherited Destroy;
 end;
 
-Function TWebClientRequest.ParamsAsQuery: String;
+function TWebClientRequest.ParamsAsQuery: String;
 
 Var
   N,V : String;
@@ -230,6 +233,12 @@ begin
     Str:=Str+sLineBreak;
     FlogStream.Write(str[1],length(str));
     end;
+end;
+
+destructor TAbstractWebClient.Destroy;
+begin
+  LogFile:='';
+  inherited Destroy;
 end;
 
 procedure TAbstractWebClient.LogRequest(AMethod, AURL: String;
@@ -336,7 +345,10 @@ Function TRequestResponse.GetContentAsString: String;
 begin
   SetLength(Result,Content.Size);
   if (Length(Result)>0) then
+    begin
+    Content.Position:=0;
     Content.ReadBuffer(Result[1],Length(Result));
+    end;
 end;
 
 end.

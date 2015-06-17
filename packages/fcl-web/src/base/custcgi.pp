@@ -188,27 +188,28 @@ Const
     { 22: 'HTTP_REFERER'           } (h:hhReferer; v : hvUnknown),
     { 23: 'HTTP_USER_AGENT'        } (h:hhUserAgent; v : hvUnknown),
     { 24: 'HTTP_COOKIE'            } (h:hhUnknown; v : hvCookie),
+    { 25: 'HTTP_IF_NONE_MATCH      } (h:hhIfNoneMatch; v : hvUnknown),
      // Additional Apache vars
-    { 25: 'HTTP_CONNECTION'        } (h:hhConnection; v : hvUnknown),
-    { 26: 'HTTP_ACCEPT_LANGUAGE'   } (h:hhAcceptLanguage; v : hvUnknown),
-    { 27: 'HTTP_HOST'              } (h:hhHost; v : hvUnknown),
-    { 28: 'SERVER_SIGNATURE'       } (h:hhUnknown; v : hvUnknown),
-    { 29: 'SERVER_ADDR'            } (h:hhUnknown; v : hvUnknown),
-    { 30: 'DOCUMENT_ROOT'          } (h:hhUnknown; v : hvUnknown),
-    { 31: 'SERVER_ADMIN'           } (h:hhUnknown; v : hvUnknown),
-    { 32: 'SCRIPT_FILENAME'        } (h:hhUnknown; v : hvUnknown),
-    { 33: 'REMOTE_PORT'            } (h:hhUnknown; v : hvUnknown),
-    { 34: 'REQUEST_URI'            } (h:hhUnknown; v : hvUnknown),
-    { 35: 'CONTENT'                } (h:hhUnknown; v : hvContent),
-    { 36: 'XHTTPREQUESTEDWITH'     } (h:hhUnknown; v : hvXRequestedWith),
-    { 37: 'HTTP_AUTHORIZATION'     } (h:hhAuthorization; v : hvUnknown),
-    { 38: 'SCRIPT_URI'             } (h:hhUnknown; v : hvUnknown),
-    { 39: 'SCRIPT_URL'             } (h:hhUnknown; v : hvURL),
-    { 40: 'CONTEXT_DOCUMENT_ROOT'  } (h:hhUnknown; v : hvUnknown),
-    { 41: 'CONTEXT_PREFIX'         } (h:hhUnknown; v : hvUnknown),
-    { 42: 'HTTP_CACHE_CONTROL'     } (h:hhCacheControl; v : hvUnknown),
-    { 43: 'HTTP_PRAGMA'            } (h:hhPragma; v : hvUnknown),
-    { 44: 'REQUEST_SCHEME'         } (h:hhUnknown; v : hvUnknown)
+    { 26: 'HTTP_CONNECTION'        } (h:hhConnection; v : hvUnknown),
+    { 27: 'HTTP_ACCEPT_LANGUAGE'   } (h:hhAcceptLanguage; v : hvUnknown),
+    { 28: 'HTTP_HOST'              } (h:hhHost; v : hvUnknown),
+    { 29: 'SERVER_SIGNATURE'       } (h:hhUnknown; v : hvUnknown),
+    { 30: 'SERVER_ADDR'            } (h:hhUnknown; v : hvUnknown),
+    { 31: 'DOCUMENT_ROOT'          } (h:hhUnknown; v : hvUnknown),
+    { 32: 'SERVER_ADMIN'           } (h:hhUnknown; v : hvUnknown),
+    { 33: 'SCRIPT_FILENAME'        } (h:hhUnknown; v : hvUnknown),
+    { 34: 'REMOTE_PORT'            } (h:hhUnknown; v : hvUnknown),
+    { 35: 'REQUEST_URI'            } (h:hhUnknown; v : hvUnknown),
+    { 36: 'CONTENT'                } (h:hhUnknown; v : hvContent),
+    { 37: 'XHTTPREQUESTEDWITH'     } (h:hhUnknown; v : hvXRequestedWith),
+    { 38: 'HTTP_AUTHORIZATION'     } (h:hhAuthorization; v : hvUnknown),
+    { 39: 'SCRIPT_URI'             } (h:hhUnknown; v : hvUnknown),
+    { 40: 'SCRIPT_URL'             } (h:hhUnknown; v : hvURL),
+    { 41: 'CONTEXT_DOCUMENT_ROOT'  } (h:hhUnknown; v : hvUnknown),
+    { 42: 'CONTEXT_PREFIX'         } (h:hhUnknown; v : hvUnknown),
+    { 43: 'HTTP_CACHE_CONTROL'     } (h:hhCacheControl; v : hvUnknown),
+    { 44: 'HTTP_PRAGMA'            } (h:hhPragma; v : hvUnknown),
+    { 45: 'REQUEST_SCHEME'         } (h:hhUnknown; v : hvUnknown)
   );
 
 procedure TCgiHandler.GetCGIVarList(List: TStrings);
@@ -370,8 +371,9 @@ begin
           V:=HTTPDecode(V);
         SetHTTPVariable(M.V,V)
         end;
-      end
+      end;
     end;
+  ReadContent;
 end;
 
 procedure TCGIRequest.ReadContent;
