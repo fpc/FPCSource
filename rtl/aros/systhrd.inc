@@ -153,7 +153,7 @@ end;
 
 procedure SysThreadSwitch;
 begin
-  Delay(0);
+  DOSDelay(0);
 end;
 
 function SysSuspendThread(ThreadHandle: THandle): dword;

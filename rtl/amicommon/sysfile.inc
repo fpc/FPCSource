@@ -40,6 +40,7 @@ var
   tmpHandle : LongInt;
 begin
   if l=nil then exit;
+  ObtainSemaphore(ASYS_fileSemaphore);
 
   { First, close all tracked files }
   tmpNext:=l^.next;
@@ -58,6 +59,7 @@ begin
     l:=l^.next;
     dispose(tmpNext);
   end;
+  ReleaseSemaphore(ASYS_fileSemaphore);
 end;
 
 { Function to be called to add a file to the opened file list }
@@ -67,6 +69,8 @@ var
   inList: Boolean;
 begin
   inList:=False;
+  ObtainSemaphore(ASYS_fileSemaphore);
+
   if l<>nil then begin
     { if there is a valid filelist, search for the value }
     { in the list to avoid double additions }
@@ -93,6 +97,7 @@ begin
     RawDoFmt('FPC_FILE_DEBUG: Error! Trying add filehandle a filehandle twice: $%lx !'+#10,@h,pointer(1),nil);
 {$ENDIF}
   ;
+  ReleaseSemaphore(ASYS_fileSemaphore);
 end;
 
 { Function to be called to remove a file from the list }
@@ -108,6 +113,7 @@ begin
     exit;
   end;
 
+  ObtainSemaphore(ASYS_fileSemaphore);
   p:=l;
   while (p^.next<>nil) and (not inList) do
     if p^.next^.handle=h then inList:=True
@@ -123,6 +129,7 @@ begin
     RawDoFmt('FPC_FILE_DEBUG: Error! Trying to remove not existing filehandle: $%lx !'+#10,@h,pointer(1),nil);
 {$ENDIF}
   ;
+  ReleaseSemaphore(ASYS_fileSemaphore);
 
   RemoveFromList:=inList;
 end;
@@ -140,6 +147,7 @@ begin
     exit;
   end;
 
+  ObtainSemaphore(ASYS_fileSemaphore);
   p:=l;
   while (p^.next<>nil) and (inList=nil) do
     if p^.next^.handle=h then inList:=p^.next
@@ -150,6 +158,7 @@ begin
     RawDoFmt('FPC_FILE_DEBUG: Warning! Check for not existing filehandle: $%lx !'+#10,@h,pointer(1),nil);
 {$ENDIF}
 
+  ReleaseSemaphore(ASYS_fileSemaphore);
   CheckInList:=inList;
 end;
 

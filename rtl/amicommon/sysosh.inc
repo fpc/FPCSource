@@ -23,9 +23,19 @@ type
   THandle = LongInt;
 {$endif CPU64}
   TThreadID = THandle;
-  
+
   PRTLCriticalSection = ^TRTLCriticalSection;
+{$IFDEF AROS}
   TRTLCriticalSection = Pointer;
+{$ELSE}
+  TRTLCriticalSection = record
+    { This must actually be bigger or equal to sizeof(TSignalSemaphore)
+      which seems to be 46 bytes on MorphOS and Amiga/m68k. }
+    semaphore: array[0..63] of byte;
+  end;
+{$ENDIF}
 
-
-
+{ BeginThread flags we support in AThreads }
+const
+  CREATE_SUSPENDED = 1;
+  STACK_SIZE_PARAM_IS_A_RESERVATION = 2;

@@ -384,7 +384,7 @@ asm
 @LMEMSET3:
 end;
 
-
+{$IFNDEF HASAMIGA}
 function InterLockedDecrement (var Target: longint) : longint;
   begin
   {$warning FIX ME}
@@ -424,6 +424,7 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
     if Target = Comperand then
       Target := NewValue;
   end;
+{$ENDIF HASAMIGA}
 
 {$if defined(CPUM68K_HAS_BYTEREV) or defined(CPUM68K_HAS_ROLROR)}
 { Disabled for now, because not all cases below were tested. (KB) }

@@ -322,7 +322,7 @@ end;
 
 procedure EmptyFunc;
 begin
-  Delay(1);
+  DOSDelay(1);
   ReleaseSemaphore(@AROSThreadStruct^.EmptySemaphore);
 end;
 
@@ -379,7 +379,7 @@ begin
       NP_Entry, PtrUInt(@EmptyFunc),
       TAG_DONE, TAG_END]);
     ObtainSemaphore(@AROSThreadStruct^.EmptySemaphore);
-    Delay(1);
+    DOSDelay(1);
   end;
   //
   NewThread^.Task := CreateNewProcTags([

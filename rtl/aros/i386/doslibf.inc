@@ -34,7 +34,7 @@ function IoErr: longint; syscall AOS_DOSBase 22;
 procedure dosExit(ErrCode: longint); syscall AOS_DOSBase 24;
 function SetProtection(const name: PChar; protect: longword): LongInt; syscall AOS_DOSBase 31;
 function DateStamp(date: PDateStamp): PDateStamp; syscall AOS_DOSBase 32;
-procedure Delay(ticks: LongWord); syscall AOS_DOSBase 33;
+procedure dosDelay(ticks: LongWord); syscall AOS_DOSBase 33;
 function AllocDosObject(Type_: LongWord; const Tags: PTagItem): Pointer; syscall AOS_DOSBase 38;
 procedure FreeDosObject(Type_: LongWord; Ptr: Pointer); syscall AOS_DOSBase 39;
 function SetFileDate(name: PChar; date: PDateStamp): LongBool; syscall AOS_DOSBase 66;

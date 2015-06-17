@@ -64,6 +64,7 @@ var
   MOS_UtilityBase: Pointer;
 
   ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  ASYS_fileSemaphore: Pointer; { mutex semaphore for filelist access arbitration }
   ASYS_origDir  : LongInt; { original directory on startup }
   MOS_ambMsg   : Pointer;
   MOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
@@ -367,6 +368,11 @@ begin
  { Creating the memory pool for growing heap }
  ASYS_heapPool:=CreatePool(MEMF_FAST or MEMF_SEM_PROTECTED,growheapsize2,growheapsize1);
  if ASYS_heapPool=nil then Halt(1);
+ 
+ { Initialize semaphore for filelist access arbitration }
+ ASYS_fileSemaphore:=AllocPooled(ASYS_heapPool,sizeof(TSignalSemaphore));
+ if ASYS_fileSemaphore = nil then Halt(1);
+ InitSemaphore(ASYS_fileSemaphore);
 
  if MOS_ambMsg=nil then begin
    MOS_ConHandle:=0;

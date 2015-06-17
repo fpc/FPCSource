@@ -67,6 +67,7 @@ var
   AROS_ThreadLib : Pointer; public name 'AROS_THREADLIB';
 
   ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  ASYS_fileSemaphore: Pointer; { mutex semaphore for filelist access arbitration }
   ASYS_origDir  : LongInt; { original directory on startup }
   AOS_wbMsg    : Pointer;
   AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
@@ -141,13 +142,57 @@ begin
   //
   if AOS_wbMsg <> nil then
   begin
-    // forbid -> Amiga RKM Libraries Manual 
+    // forbid -> Amiga RKM Libraries Manual
     Forbid();
     // Reply WBStartupMessage
     ReplyMsg(AOS_wbMsg);
   end;
   //
   HaltProc(ExitCode);
+end;
+
+function GetWBArgsNum: Integer;
+var
+  startup: PWBStartup;
+begin
+  GetWBArgsNum := 0;
+  Startup := nil;
+  Startup := PWBStartup(AOS_wbMsg);
+  if Startup <> nil then
+  begin
+    Result := Startup^.sm_NumArgs - 1;
+  end;
+end;
+
+function GetWBArg(Idx: Integer): string;
+var
+  startup: PWBStartup;
+  wbarg: PWBArgList;
+  Path: array[0..254] of Char;
+  strPath: string;
+  Len: Integer;
+begin
+  GetWBArg := '';
+  FillChar(Path[0],255,#0);
+  Startup := PWBStartup(AOS_wbMsg);
+  if Startup <> nil then
+  begin
+    //if (Idx >= 0) and (Idx < Startup^.sm_NumArgs) then
+    begin
+      wbarg := Startup^.sm_ArgList;
+      if NameFromLock(wbarg^[Idx + 1].wa_Lock,@Path[0],255) then
+      begin
+        Len := 0;
+        while (Path[Len] <> #0) and (Len < 254) do
+          Inc(Len);
+        if Len > 0 then
+          if (Path[Len - 1] <> ':') and (Path[Len - 1] <> '/') then
+            Path[Len] := '/';
+        strPath := Path;
+      end;
+      Result := strPath + wbarg^[Idx + 1].wa_Name;
+    end;
+  end;
 end;
 
 { Generates correct argument array on startup }
@@ -175,6 +220,7 @@ var
   Start: Word;
   Ende: Word;
   LocalIndex: Word;
+  i: Integer;
   P : PChar;
   {$H+}
   Temp : string;
@@ -192,7 +238,14 @@ begin
   { check if we're started from Workbench }
   if AOS_wbMsg <> nil then
   begin
-    ArgC := 0;
+    ArgC := GetWBArgsNum + 1;
+    for i := 1 to ArgC - 1 do
+    begin
+      Temp := GetWBArg(i);
+      AllocArg(i, Length(Temp));
+      Move(Temp[1], Argv[i]^, Length(Temp));
+      Argv[i][Length(Temp)] := #0;
+    end;
     Exit;
   end;
 
@@ -215,7 +268,7 @@ begin
     begin
       while (p[count]<>#0) and (p[count]<>'"') and (p[count]<>LineEnding) do
       begin
-        Inc(Count) 
+        Inc(Count)
       end;
     end else
     begin
@@ -239,7 +292,7 @@ begin
     end;
     if inQuotes and (p[count] = '"') then
       Inc(Count);
-    inQuotes := False; 
+    inQuotes := False;
   end;
   argc:=localindex;
 end;
@@ -296,50 +349,6 @@ end;
 {*****************************************************************************
                              ParamStr/Randomize
 *****************************************************************************}
-
-function GetWBArgsNum: Integer;
-var
-  startup: PWBStartup;
-begin
-  GetWBArgsNum := 0;
-  Startup := nil;
-  Startup := PWBStartup(AOS_wbMsg);
-  if Startup <> nil then
-  begin
-    Result := Startup^.sm_NumArgs - 1;
-  end;
-end;
-
-function GetWBArg(Idx: Integer): string;
-var
-  startup: PWBStartup;
-  wbarg: PWBArgList;
-  Path: array[0..254] of Char;
-  strPath: string;
-  Len: Integer;
-begin
-  GetWBArg := '';
-  FillChar(Path[0],255,#0);
-  Startup := PWBStartup(AOS_wbMsg);
-  if Startup <> nil then
-  begin
-    //if (Idx >= 0) and (Idx < Startup^.sm_NumArgs) then
-    begin
-      wbarg := Startup^.sm_ArgList;
-      if NameFromLock(wbarg^[Idx + 1].wa_Lock,@Path[0],255) then
-      begin
-        Len := 0;
-        while (Path[Len] <> #0) and (Len < 254) do
-          Inc(Len);
-        if Len > 0 then
-          if (Path[Len - 1] <> ':') and (Path[Len - 1] <> '/') then
-            Path[Len] := '/';
-        strPath := Path;
-      end;
-      Result := strPath + wbarg^[Idx + 1].wa_Name;
-    end;
-  end;
-end;
 
 { number of args }
 function paramcount : longint;
@@ -401,12 +410,18 @@ begin
   AOS_UtilityBase := OpenLibrary('utility.library', 0);
   if AOS_UtilityBase = nil then
     Halt(1);
-    
+
   { Creating the memory pool for growing heap }
   ASYS_heapPool := CreatePool(MEMF_ANY or MEMF_SEM_PROTECTED, growheapsize2, growheapsize1);
   if ASYS_heapPool = nil then
     Halt(1);
-  
+
+  { Initialize semaphore for filelist access arbitration }
+  ASYS_fileSemaphore:=AllocPooled(ASYS_heapPool,sizeof(TSignalSemaphore));
+  if ASYS_fileSemaphore = nil then
+    Halt(1);
+  InitSemaphore(ASYS_fileSemaphore);
+
   if AOS_wbMsg = nil then begin
     StdInputHandle := THandle(dosInput);
     StdOutputHandle := THandle(dosOutput);
