@@ -157,8 +157,12 @@ begin
             else
              FixFileName[i]:=s[i];
  {$else}
+ {$ifndef hasamiga}
       '/' : FixFileName[i]:='\';
  'A'..'Z' : FixFileName[i]:=char(byte(s[i])+32);
+ {$else}
+      '\' : FixFileName[i]:='/';
+ {$endif}
  {$endif}
      else
       FixFileName[i]:=s[i];
