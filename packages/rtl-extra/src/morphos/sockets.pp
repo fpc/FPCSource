@@ -80,7 +80,8 @@ const
   pseudo_AF_PIP  = 25;              {* Help Identify PIP packets *}
 
   AF_MAX         = 26;
-
+  SO_LINGER     = $0080;
+  SOL_SOCKET    = $FFFF;
 
 const
   EsockEINTR            = 4; // EsysEINTR;   
@@ -120,11 +121,11 @@ function bsd_recvfrom(s : LongInt location 'd0'; buf : pChar location 'a0'; len 
 function bsd_recv(s : LongInt location 'd0'; buf : pChar location 'a0'; len : LongInt location 'd1'; flags : LongInt location 'd2') : LongInt; syscall legacy SocketBase 078;
 function bsd_shutdown(s : LongInt location 'd0'; how : LongInt location 'd1') : LongInt; syscall legacy SocketBase 084;
 function bsd_closesocket(d : LongInt location 'd0') : LongInt; syscall legacy SocketBase 120;
+function bsd_Errno: LongInt; syscall SocketBase 162;
 function bsd_inet_ntoa(in_ : DWord location 'd0') : pChar; syscall legacy SocketBase 174;
 function bsd_inet_addr(const cp : pChar location 'a0') : DWord; syscall legacy SocketBase 180;
 function bsd_gethostbyname(const name : pChar location 'a0') : phostent; syscall legacy SocketBase 210;
 function bsd_gethostbyaddr(const addr : pChar location 'a0'; len : LongInt location 'd0'; type_ : LongInt location 'd1') : phostent; syscall legacy SocketBase 216;
-
 
 Implementation
 

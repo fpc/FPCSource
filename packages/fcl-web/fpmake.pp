@@ -18,7 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.0.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,dragonfly];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly];
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');
@@ -26,8 +26,8 @@ begin
     P.Dependencies.Add('fcl-net');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fastcgi');
-    P.Dependencies.Add('httpd22', AllOses - [amiga,aros]);
-    P.Dependencies.Add('httpd24', AllOses - [amiga,aros]);
+    P.Dependencies.Add('httpd22', AllOses - [amiga,aros,morphos]);
+    P.Dependencies.Add('httpd24', AllOses - [amiga,aros,morphos]);
     // (Temporary) indirect dependencies, not detected by fpcmake:
     P.Dependencies.Add('univint',[MacOSX,iphonesim]);
 
@@ -123,12 +123,12 @@ begin
       end;
     with P.Targets.AddUnit('fpfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros];
+        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros,morphos];
         Dependencies.AddUnit('custfcgi');
       end;
     with P.Targets.AddUnit('custfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros];
+        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros,morphos];
         Dependencies.AddUnit('httpprotocol');
         Dependencies.AddUnit('cgiprotocol');
         Dependencies.AddUnit('custcgi');
@@ -138,7 +138,7 @@ begin
       end;
     with P.Targets.AddUnit('fpapache.pp') do
       begin
-        OSes:=AllOses-[amiga,aros];
+        OSes:=AllOses-[amiga,aros,morphos];
         Dependencies.AddUnit('httpprotocol');
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
@@ -146,7 +146,7 @@ begin
       end;
     with P.Targets.AddUnit('fpapache24.pp') do
       begin
-        OSes:=AllOses-[amiga,aros];
+        OSes:=AllOses-[amiga,aros,morphos];
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
