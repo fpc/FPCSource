@@ -39,7 +39,8 @@ type
     { don't modify.                                          }
     { Replacement for Fill }
 {0} AnchorPtr : Pointer;    { Pointer to the Anchorpath structure }
-{4} Fill: Array[1..15] of Byte; {future use}
+{4} AttrArg: Word;          { The initial Attributes argument }
+{6} Fill: Array[1..13] of Byte; {future use}
     {End of replacement for fill}
     Attr : BYTE;        {attribute of found file}
     Time : LongInt;     {last modify date of found file}
@@ -89,7 +90,6 @@ const
   SecsPerDay       : LongInt  = 86400;
   SecsPerHour      : Integer  = 3600;
   SecsPerMinute    : ShortInt = 60;
-  TICKSPERSECOND    = 50;
 
 
 {******************************************************************************
@@ -144,6 +144,28 @@ begin
     IsLeapYear:=False;
 end;
 
+procedure AmigaDateStampToDateTime(var ds: TDateStamp; var dt: DateTime);
+var
+  cd: PClockData;
+  time: LongInt;
+begin
+  new(cd);
+  time := ds.ds_Days * (24 * 60 * 60) +
+          ds.ds_Minute * 60 +
+          ds.ds_Tick div TICKS_PER_SECOND;
+  Amiga2Date(time,cd);
+  with cd^ do
+    begin
+      dt.year:=year;
+      dt.month:=month;
+      dt.day:=mday;
+      dt.hour:=hour;
+      dt.min:=min;
+      dt.sec:=sec;
+    end;
+  dispose(cd);
+end;
+
 procedure Amiga2DateStamp(Date : LongInt; var TotalDays,Minutes,Ticks: longint);
 { Converts a value in seconds past 1978 to a value in AMIGA DateStamp format }
 { Taken from SWAG and modified to work with the Amiga format - CEC           }
@@ -195,7 +217,7 @@ begin
   Minutes:=Minutes+Min;
   { Find the number of seconds and convert to ticks }
   S := LocalDate;
-  Ticks:=TICKSPERSECOND*S;
+  Ticks:=TICKS_PER_SECOND*S;
 end;
 
 
@@ -317,26 +339,26 @@ end;
 
 function Create_Timer(theUnit : longint) : pTimeRequest;
 var
-    Error : longint;
-    TimerPort : pMsgPort;
-    TimeReq : pTimeRequest;
+  Error : longint;
+  TimerPort : pMsgPort;
+  TimeReq : pTimeRequest;
 begin
-    TimerPort := CreatePort(Nil, 0);
-    if TimerPort = Nil then
-  Create_Timer := Nil;
-    TimeReq := pTimeRequest(CreateExtIO(TimerPort,sizeof(tTimeRequest)));
-    if TimeReq = Nil then begin
-  DeletePort(TimerPort);
-  Create_Timer := Nil;
-    end;
-    Error := OpenDevice(TIMERNAME, theUnit, pIORequest(TimeReq), 0);
-    if Error <> 0 then begin
-  DeleteExtIO(pIORequest(TimeReq));
-  DeletePort(TimerPort);
-  Create_Timer := Nil;
-    end;
-    TimerBase := pointer(TimeReq^.tr_Node.io_Device);
-    Create_Timer := pTimeRequest(TimeReq);
+  TimerPort := CreatePort(Nil, 0);
+  if TimerPort = Nil then
+    Create_Timer := Nil;
+  TimeReq := pTimeRequest(CreateExtIO(TimerPort,sizeof(tTimeRequest)));
+  if TimeReq = Nil then begin
+    DeletePort(TimerPort);
+    Create_Timer := Nil;
+  end;
+  Error := OpenDevice(TIMERNAME, theUnit, pIORequest(TimeReq), 0);
+  if Error <> 0 then begin
+    DeleteExtIO(pIORequest(TimeReq));
+    DeletePort(TimerPort);
+    Create_Timer := Nil;
+  end;
+  TimerBase := pointer(TimeReq^.tr_Node.io_Device);
+  Create_Timer := pTimeRequest(TimeReq);
 end;
 
 Procedure Delete_Timer(WhichTimer : pTimeRequest);
@@ -513,6 +535,18 @@ end;
 {******************************************************************************
                                --- Disk ---
 ******************************************************************************}
+const
+  PROC_WIN_DISABLE = Pointer(-1);
+  PROC_WIN_WB      = Pointer(0);
+
+function SetProcessWinPtr(p: Pointer): Pointer; inline;
+var
+  MyProc: PProcess;
+begin
+  MyProc := PProcess(FindTask(Nil));
+  SetProcessWinPtr := MyProc^.pr_WindowPtr;
+  MyProc^.pr_WindowPtr := p;
+end;
 
 {
   The Diskfree and Disksize functions need a file on the specified drive, since this
@@ -617,14 +651,11 @@ function DiskSize(Drive: AnsiString): Int64;
 var
   DirLock: LongInt;
   Inf: TInfoData;
-  MyProc: PProcess;
   OldWinPtr: Pointer;
 begin
   DiskSize := -1;
   //
-  MyProc := PProcess(FindTask(Nil));
-  OldWinPtr := MyProc^.pr_WindowPtr;
-  MyProc^.pr_WindowPtr := Pointer(-1);
+  OldWinPtr:=SetProcessWinPtr(PROC_WIN_DISABLE);
   //
   DirLock := Lock(PChar(Drive), SHARED_LOCK);
   if DirLock <> 0 then
@@ -633,8 +664,7 @@ begin
       DiskSize := Int64(Inf.id_NumBlocks) * Inf.id_BytesPerBlock;
     UnLock(DirLock);
   end;
-  if OldWinPtr <> Pointer(-1) then
-    MyProc^.pr_WindowPtr := OldWinPtr;
+  SetProcessWinPtr(OldWinPtr);
 end;
 
 function DiskSize(Drive: Byte): Int64;
@@ -651,14 +681,11 @@ function DiskFree(Drive: AnsiString): Int64;
 var
   DirLock: LongInt;
   Inf: TInfoData;
-  MyProc: PProcess;
   OldWinPtr: Pointer;
 begin
   DiskFree := -1;
   //
-  MyProc := PProcess(FindTask(Nil));
-  OldWinPtr := MyProc^.pr_WindowPtr;
-  MyProc^.pr_WindowPtr := Pointer(-1);
+  OldWinPtr:=SetProcessWinPtr(PROC_WIN_DISABLE);
   //
   DirLock := Lock(PChar(Drive), SHARED_LOCK);
   if DirLock <> 0 then
@@ -667,8 +694,7 @@ begin
       DiskFree := Int64(Inf.id_NumBlocks - Inf.id_NumBlocksUsed) * Inf.id_BytesPerBlock;
     UnLock(DirLock);
   end;
-  if OldWinPtr <> Pointer(-1) then
-    MyProc^.pr_WindowPtr := OldWinPtr;
+  SetProcessWinPtr(OldWinPtr);
 end;
 
 function DiskFree(Drive: Byte): Int64;
@@ -679,42 +705,48 @@ begin
   DiskFree := DiskFree(DeviceList[Drive]);
 end;
 
-procedure FindFirst(const Path: PathStr; Attr: Word; Var f: SearchRec);
+procedure FindMatch(Result: LongInt; var f: SearchRec);
 var
- tmpStr: array[0..255] of Char;
- Anchor: PAnchorPath;
- Result: LongInt;
+  quit: boolean;
+  dt: DateTime;
 begin
-  tmpStr:=PathConv(path)+#0;
   DosError:=0;
-
-  new(Anchor);
-  FillChar(Anchor^,sizeof(TAnchorPath),#0);
-
-  Result:=MatchFirst(@tmpStr,Anchor);
-  f.AnchorPtr:=Anchor;
-  if Result = ERROR_NO_MORE_ENTRIES then
-    DosError:=18
-  else
-    if Result<>0 then DosError:=3;
+  quit:=false;
+  while not quit do
+    begin
+      if Result = ERROR_NO_MORE_ENTRIES then
+        DosError:=18
+      else
+        if Result<>0 then DosError:=3;
+      if DosError=0 then
+        begin
+          { if we're not looking for a directory, but we found one, try to skip it }
+          if ((f.AttrArg and Directory) = 0) and (PAnchorPath(f.AnchorPtr)^.ap_Info.fib_DirEntryType > 0) then
+            Result:=MatchNext(f.AnchorPtr)
+          else
+            quit:=true;
+        end
+      else
+        quit:=true;
+    end;
 
   if DosError=0 then begin
-    {-------------------------------------------------------------------}
-    { Here we fill up the SearchRec attribute, but we also do check     }
-    { something else, if the it does not match the mask we are looking  }
-    { for we should go to the next file or directory.                   }
-    {-------------------------------------------------------------------}
-    with Anchor^.ap_Info do begin
-      f.Time := fib_Date.ds_Days * (24 * 60 * 60) +
-                fib_Date.ds_Minute * 60 +
-                fib_Date.ds_Tick div 50;
+    { Fill up the Searchrec information     }
+    { and also check if the files are with  }
+    { the correct attributes                }
+    with PAnchorPath(f.AnchorPtr)^.ap_Info do begin
+
+      { Convert Amiga DateStamp to DOS file time }
+      AmigaDateStampToDateTime(fib_Date,dt);
+      PackTime(dt,f.time);
+
       f.attr := 0;
       {*------------------------------------*}
       {* Determine if is a file or a folder *}
       {*------------------------------------*}
-      if fib_DirEntryType>0 then f.attr:=f.attr OR DIRECTORY;
+      if fib_DirEntryType > 0 then f.attr:=f.attr OR DIRECTORY;
 
-      {*------------------------------------*}
+      {*------------------------------------* }
       {* Determine if Read only             *}
       {*  Readonly if R flag on and W flag  *}
       {*   off.                             *}
@@ -729,47 +761,27 @@ begin
   end;
 end;
 
+procedure FindFirst(const Path: PathStr; Attr: Word; Var f: SearchRec);
+var
+ tmpStr: array[0..255] of Char;
+ Anchor: PAnchorPath;
+begin
+  tmpStr:=PathConv(path)+#0;
+
+  new(Anchor);
+  FillChar(Anchor^,sizeof(TAnchorPath),#0);
+
+  f.AnchorPtr:=Anchor;
+  f.AttrArg:=Attr;
+
+  FindMatch(MatchFirst(@tmpStr,Anchor),f);
+end;
 
 procedure FindNext(Var f: SearchRec);
 var
  Result: longint;
- Anchor: PAnchorPath;
 begin
-  DosError:=0;
-  Result:=MatchNext(f.AnchorPtr);
-  if Result = ERROR_NO_MORE_ENTRIES then
-    DosError:=18
-  else
-    if Result <> 0 then DosError:=3;
-
-  if DosError=0 then begin
-    { Fill up the Searchrec information     }
-    { and also check if the files are with  }
-    { the correct attributes                }
-    Anchor:=pAnchorPath(f.AnchorPtr);
-    with Anchor^.ap_Info do begin
-      f.Time := fib_Date.ds_Days * (24 * 60 * 60) +
-                fib_Date.ds_Minute * 60 +
-                fib_Date.ds_Tick div 50;
-      f.attr := 0;
-      {*------------------------------------*}
-      {* Determine if is a file or a folder *}
-      {*------------------------------------*}
-      if fib_DirEntryType > 0 then f.attr:=f.attr OR DIRECTORY;
-
-      {*------------------------------------*}
-      {* Determine if Read only             *}
-      {*  Readonly if R flag on and W flag  *}
-      {*   off.                             *}
-      {* Should we check also that EXEC     *}
-      {* is zero? for read only?            *}
-      {*------------------------------------*}
-      if ((fib_Protection and FIBF_READ) <> 0) and
-         ((fib_Protection and FIBF_WRITE) = 0) then f.attr:=f.attr or READONLY;
-      f.Name := strpas(fib_FileName);
-      f.Size := fib_Size;
-    end; { end with }
-  end;
+  FindMatch(MatchNext(f.AnchorPtr),f);
 end;
 
 procedure FindClose(Var f: SearchRec);
@@ -843,7 +855,7 @@ begin
              with FInfo^.fib_Date do
              FTime := ds_Days * (24 * 60 * 60) +
              ds_Minute * 60 +
-             ds_Tick div 50;
+             ds_Tick div TICKS_PER_SECOND;
         end else begin
              FTime := 0;
         end;
