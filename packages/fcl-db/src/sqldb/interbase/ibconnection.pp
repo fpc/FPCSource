@@ -731,7 +731,7 @@ begin
     BlockSize:=isc_vax_integer(@resbuf[1],2);
     IBStatementType:=isc_vax_integer(@resbuf[3],blockSize);
     assert(resbuf[3+blockSize]=isc_info_end);
-    // If the statementtype is isc_info_sql_stmt_exec_procedure then
+    // If the StatementType is isc_info_sql_stmt_exec_procedure then
     // override the statement type derived by parsing the query.
     // This to recognize statements like 'insert into .. returning' correctly
     case IBStatementType of
@@ -753,6 +753,7 @@ begin
         if isc_dsql_describe(@Status[0], @Statement, 1, SQLDA) <> 0 then
           CheckError('PrepareSelect', Status);
         end;
+      FSelectable := SQLDA^.SQLD > 0;
       {$push}
       {$R-}
       for x := 0 to SQLDA^.SQLD - 1 do with SQLDA^.SQLVar[x] do

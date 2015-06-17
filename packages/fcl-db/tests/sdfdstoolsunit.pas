@@ -88,7 +88,7 @@ begin
     ForceDirectories(dbname);
     DeleteFile(FileName);
     FileMustExist:=False;
-    
+
     SetFieldDatasetSchema(Schema);
 
     Open;
@@ -133,10 +133,10 @@ begin
     begin
     FileName := dbname+PathDelim+'fpdev_field.dat';
     SetFieldDatasetSchema(Schema);
+    TrimSpace := False;
     end;
 end;
 
 initialization
   RegisterClass(TSdfDSDBConnector);
 end.
-

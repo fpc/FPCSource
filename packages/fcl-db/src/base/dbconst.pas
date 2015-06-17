@@ -22,7 +22,7 @@ Resourcestring
   SActiveDataset           = 'Operation cannot be performed on an active dataset';
   SBadParamFieldType       = 'Bad fieldtype for parameter "%s".';
   SCantSetAutoIncFields    = 'AutoInc Fields are read-only';
-  SConnected               = 'Operation cannot be performed on an connected database';
+  SConnected               = 'Operation cannot be performed on a connected database';
   SDatasetReadOnly         = 'Dataset is read-only.';
   SDatasetRegistered       = 'Dataset already registered : "%s"';
   SDuplicateFieldName      = 'Duplicate fieldname : "%s"';

@@ -1224,7 +1224,7 @@ begin
     DatabaseError(SErrTransactionnSet);
 
   if not Connected then Open;
-  if not (ATransaction.Active or (stoUseImplicit in ATransaction.Options)) then
+  if not ATransaction.Active then
     ATransaction.MaybeStartTransaction;
 
   try
@@ -1663,7 +1663,7 @@ var x          : integer;
 begin
   sql_fields := '';
   sql_values := '';
-  returning_fields :='';
+  returning_fields := '';
   for x := 0 to Query.Fields.Count -1 do
     begin
     F:=Query.Fields[x];
@@ -1673,7 +1673,7 @@ begin
       sql_values := sql_values + ':"' + F.FieldName + '",';
       end;
     if ReturningClause and (pfRefreshOnInsert in F.ProviderFlags) then
-      returning_fields :=returning_fields+FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
+      returning_fields := returning_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
     end;
   if length(sql_fields) = 0 then
     DatabaseErrorFmt(sNoUpdateFields,['insert'],self);
@@ -1686,7 +1686,7 @@ begin
     if ReturningClause then
       begin
       setlength(returning_fields,length(returning_fields)-1);
-      result:=Result+' returning '+returning_fields;
+      Result := Result + ' returning ' + returning_fields;
       end;
     end;
 end;
@@ -1704,7 +1704,7 @@ var x : integer;
 begin
   sql_set := '';
   sql_where := '';
-  returning_fields :='';
+  returning_fields := '';
   for x := 0 to Query.Fields.Count -1 do
     begin
     F:=Query.Fields[x];
@@ -1712,7 +1712,7 @@ begin
     if (pfInUpdate in F.ProviderFlags) and (not F.ReadOnly) then
       sql_set := sql_set +FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] +'=:"' + F.FieldName + '",';
     if ReturningClause and (pfRefreshOnUpdate in F.ProviderFlags) then
-      returning_fields :=returning_fields+FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
+      returning_fields := returning_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
     end;
   if length(sql_set) = 0 then DatabaseErrorFmt(sNoUpdateFields,['update'],self);
   setlength(sql_set,length(sql_set)-1);
@@ -1724,7 +1724,7 @@ begin
     if ReturningClause then
       begin
       setlength(returning_fields,length(returning_fields)-1);
-      result:=Result+' returning '+returning_fields;
+      Result := Result + ' returning ' + returning_fields;
       end;
     end;
 end;
@@ -1753,10 +1753,10 @@ Var
   Where : String;
 
 begin
-  Where:='';
   Result:=Query.RefreshSQL.Text;
   if (Result='') then
     begin
+    Where:='';
     PF:=RefreshFlags[UpdateKind];
     For F in Query.Fields do
       begin
@@ -1773,7 +1773,7 @@ begin
         begin
         if (Where<>'') then
           Where:=Where+' AND ';
-        Where:=Where+'('+FieldNameQuoteChars[0]+F.FieldName+FieldNameQuoteChars[0]+' = :'+F.FieldName+')';
+        Where:=Where+'('+FieldNameQuoteChars[0]+F.FieldName+FieldNameQuoteChars[1]+' = :'+F.FieldName+')';
         end;
       end;
     if (Where='') then
@@ -1804,31 +1804,37 @@ var
 
 begin
   qry:=Nil;
-  ReturningClause:=(sqSupportReturning in Connoptions) and not (sqoRefreshUsingSelect in Query.Options);
+  ReturningClause:=(sqSupportReturning in ConnOptions) and not (sqoRefreshUsingSelect in Query.Options) and (Query.RefreshSQL.Count=0);
   case UpdateKind of
     ukInsert : begin
-               s := trim(Query.FInsertSQL.Text);
+               s := Trim(Query.FInsertSQL.Text);
                if s = '' then
-                 s := ConstructInsertSQL(Query,ReturningClause);
-               qry := InitialiseUpdateStatement(Query,Query.FInsertQry);
+                 s := ConstructInsertSQL(Query, ReturningClause)
+               else
+                 ReturningClause := False;
+               qry := InitialiseUpdateStatement(Query, Query.FInsertQry);
                end;
     ukModify : begin
-               s := trim(Query.FUpdateSQL.Text);
-               if (s='') and (not assigned(Query.FUpdateQry) or (Query.UpdateMode<>upWhereKeyOnly)) then //first time or dynamic where part
-                 s := ConstructUpdateSQL(Query,ReturningClause);
-               qry := InitialiseUpdateStatement(Query,Query.FUpdateQry);
+               s := Trim(Query.FUpdateSQL.Text);
+               if s = '' then begin
+                 //if not assigned(Query.FUpdateQry) or (Query.UpdateMode<>upWhereKeyOnly) then // first time or dynamic where part
+                   s := ConstructUpdateSQL(Query, ReturningClause);
+               end
+               else
+                 ReturningClause := False;
+               qry := InitialiseUpdateStatement(Query, Query.FUpdateQry);
                end;
     ukDelete : begin
-               s := trim(Query.FDeleteSQL.Text);
+               s := Trim(Query.FDeleteSQL.Text);
                if (s='') and (not assigned(Query.FDeleteQry) or (Query.UpdateMode<>upWhereKeyOnly)) then
                  s := ConstructDeleteSQL(Query);
-               qry := InitialiseUpdateStatement(Query,Query.FDeleteQry);
-               ReturningClause:=False;
+               ReturningClause := False;
+               qry := InitialiseUpdateStatement(Query, Query.FDeleteQry);
                end;
   end;
   if (s<>'') and (qry.SQL.Text<>s) then
     qry.SQL.Text:=s; //assign only when changed, to avoid UnPrepare/Prepare
-  Assert(qry.sql.Text<>'');
+  Assert(qry.SQL.Text<>'');
   for x:=0 to Qry.Params.Count-1 do
     begin
     P:=Qry.Params[x];
@@ -1840,13 +1846,15 @@ begin
     ApplyFieldUpdate(Query.Cursor,P as TSQLDBParam,Fld,B);
     end;
   if ReturningClause then
+    begin
+    Qry.Close;
     Qry.Open
+    end
   else
     Qry.Execute;
   if (scoApplyUpdatesChecksRowsAffected in Options) and (Qry.RowsAffected<>1) then
     begin
-    if ReturningClause then
-      Qry.Close;
+    Qry.Close;
     DatabaseErrorFmt(SErrFailedToUpdateRecord, [Qry.RowsAffected], Query);
     end;
   if ReturningClause then

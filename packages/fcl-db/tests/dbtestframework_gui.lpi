@@ -18,7 +18,7 @@
     <VersionInfo>
       <StringTable ProductVersion=""/>
     </VersionInfo>
-    <BuildModes Count="4">
+    <BuildModes Count="5">
       <Item1 Name="Default" Default="True"/>
       <Item2 Name="debug">
         <CompilerOptions>
@@ -55,6 +55,18 @@
           </CodeGeneration>
         </CompilerOptions>
       </Item4>
+      <Item5 Name="TestSqlite3DS">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="../src/base;../src/sqldb/odbc;../src/sqldb/mssql;../src/sqldb/sqlite;../src/sqldb/postgres;../src/sqldb/oracle;../src/memds;../src/sqldb;../src/sqldb/interbase;../src/sqldb/mysql;../src/dbase;../src/sdf;../src/export"/>
+          </SearchPaths>
+          <Other>
+            <CustomOptions Value="-dTEST_SQLITE3DS"/>
+          </Other>
+        </CompilerOptions>
+      </Item5> 
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -80,10 +92,11 @@
         <PackageName Value="FCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="4">
       <Unit0>
         <Filename Value="dbtestframework_gui.lpr"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="DBGuiTestRunner"/> 
       </Unit0>
       <Unit1>
         <Filename Value="dbguitestrunner.pas"/>
@@ -92,8 +105,12 @@
       <Unit2>
         <Filename Value="tccsvdataset.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tccsvdataset"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="sqlite3dstoolsunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Sqlite3DSToolsUnit"/>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -866,8 +866,7 @@ type
   // This type is needed for compatibility. While it should contain only blob
   // types, it actually does not.
   // Instead of this, please use ftBlobTypes
-  TBlobType = ftBlob..ftWideMemo deprecated
-    'Warning: Does not contain BLOB types. Please use ftBlobTypes.';
+  TBlobType = ftBlob..ftWideMemo deprecated 'Warning: Does not contain BLOB types. Please use ftBlobTypes.';
 
   TBlobField = class(TField)
   private
@@ -876,7 +875,7 @@ type
     Function GetBlobStream (Mode : TBlobStreamMode) : TStream;
     // Wrapper that retrieves FDataType as a TBlobType
     function GetBlobType: TBlobType;
-    // Wrapper that calls SetFieldtype
+    // Wrapper that calls SetFieldType
     procedure SetBlobType(AValue: TBlobType);
   protected
     procedure FreeBuffers; override;
@@ -906,7 +905,7 @@ type
     property Value: string read GetAsString write SetAsString;
     property Transliterate: Boolean read FTransliterate write FTransliterate;
   published
-    property BlobType: TBlobType read GetBlobType write SetBlobType;
+    property BlobType: TBlobType read GetBlobType write SetBlobType default ftBlob;
     property Size default 0;
   end;
 
@@ -2194,8 +2193,8 @@ var
 
 Procedure DatabaseError (Const Msg : String); overload;
 Procedure DatabaseError (Const Msg : String; Comp : TComponent); overload;
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const); overload;
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const; Comp : TComponent); overload;
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const); overload;
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const; Comp : TComponent); overload;
 Function ExtractFieldName(Const Fields: String; var Pos: Integer): String;
 Function DateTimeRecToDateTime(DT: TFieldType; Data: TDateTimeRec): TDateTime;
 Function DateTimeToDateTimeRec(DT: TFieldType; Data: TDateTime): TDateTimeRec;
@@ -2230,13 +2229,13 @@ begin
     DatabaseError(Msg);
 end;
 
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const);
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const);
 
 begin
   Raise EDatabaseError.CreateFmt(Fmt,Args);
 end;
 
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const;
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const;
                             Comp : TComponent);
 begin
   if assigned(comp) then

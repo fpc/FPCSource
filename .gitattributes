@@ -2267,6 +2267,7 @@ packages/fcl-db/tests/memdstoolsunit.pas svneol=native#text/plain
 packages/fcl-db/tests/reruntest.sh svneol=native#text/plain
 packages/fcl-db/tests/sdfdstoolsunit.pas svneol=native#text/plain
 packages/fcl-db/tests/sqldbtoolsunit.pas svneol=native#text/plain
+packages/fcl-db/tests/sqlite3dstoolsunit.pas svneol=LF#text/plain eol=lf
 packages/fcl-db/tests/tccsvdataset.pp svneol=native#text/plain
 packages/fcl-db/tests/tcgensql.pas svneol=native#text/plain
 packages/fcl-db/tests/tcparser.pas svneol=native#text/plain
