@@ -1520,12 +1520,12 @@ uses exec, intuition,utility,agraphics,iffparse;
      { MUI_MinMax structure holds information about minimum, maximum
        and default dimensions of an object.  }
        tMUI_MinMax = record
-            MinWidth : WORD;
-            MinHeight : WORD;
-            MaxWidth : WORD;
-            MaxHeight : WORD;
-            DefWidth : WORD;
-            DefHeight : WORD;
+            MinWidth : SmallInt;
+            MinHeight : SmallInt;
+            MaxWidth : SmallInt;
+            MaxHeight : SmallInt;
+            DefWidth : SmallInt;
+            DefHeight : SmallInt;
          end;
        pMUI_MinMax = ^tMUI_MinMax;
 
