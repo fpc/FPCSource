@@ -159,12 +159,10 @@ function SetSuperAttrsA(cl : pIClass; obj: pObject_; msg : APTR): ulong;
 
 }
 
-procedure printf(Fmtstr : pchar; Args : array of const);
-procedure printf(Fmtstr : string; Args : array of const);
+procedure printf(Fmtstr : pchar; const Args : array of const);
+procedure printf(Fmtstr : string; const Args : array of const);
 
 IMPLEMENTATION
-
-uses pastoc;
 
 {*  Exec support functions from amiga.lib  *}
 
@@ -393,35 +391,36 @@ begin
     SetSuperAttrsA := DoSuperMethodA(cl, obj, @arr);
 end;
 
-var
-  argarray : array [0..20] of longint;
 
-function gettheconst(args : array of const): pointer;
+procedure printf(Fmtstr : pchar; const Args : array of const);
 var
-   i : longint;
-
+  i,j : longint;
+  argarray : array of longint;
+  strarray : array of RawByteString;
 begin
-
-    for i := 0 to High(args) do begin
-        case args[i].vtype of
-            vtinteger : argarray[i] := longint(args[i].vinteger);
-            vtpchar   : argarray[i] := longint(args[i].vpchar);
-            vtchar    : argarray[i] := longint(args[i].vchar);
-            vtpointer : argarray[i] := longint(args[i].vpointer);
-            vtstring  : argarray[i] := longint(pas2c(args[i].vstring^));
-        end;
+  SetLength(argarray, length(args));
+  SetLength(strarray, length(args));
+  j:=0;
+  for i := low(args) to High(args) do 
+    begin
+      case args[i].vtype of
+        vtinteger : argarray[i] := longint(args[i].vinteger);
+        vtpchar   : argarray[i] := longint(args[i].vpchar);
+        vtchar    : argarray[i] := longint(args[i].vchar);
+        vtpointer : argarray[i] := longint(args[i].vpointer);
+        vtstring  : begin
+            strarray[j]:=RawByteString(args[i].vstring^);
+            argarray[i]:=longint(PChar(strarray[j]));
+            inc(j);
+          end;
+      end;
     end;
-    gettheconst := @argarray;
+  VPrintf(Fmtstr,@argarray[0]);
 end;
 
-procedure printf(Fmtstr : pchar; Args : array of const);
+procedure printf(Fmtstr : string; const Args : array of const);
 begin
-    VPrintf(Fmtstr,gettheconst(Args));
-end;
-
-procedure printf(Fmtstr : string; Args : array of const);
-begin
-    VPrintf(pas2c(Fmtstr) ,gettheconst(Args));
+  printf(PChar(RawByteString(Fmtstr)), Args);
 end;
 
 

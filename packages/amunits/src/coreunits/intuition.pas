@@ -4211,42 +4211,37 @@ FUNCTION MakeClass(const classID : pCHAR;const superClassID : string;const super
 FUNCTION MakeClass(const classID : string;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 FUNCTION NewObjectA(classPtr : pIClass;const classID : string;const tagList : pTagItem) : POINTER;
 PROCEDURE SetDefaultPubScreen(const name : string);
-PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : string;const screenTitle : pCHAR);
-PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : pCHAR;const screenTitle : string);
-PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : string;const screenTitle : string);
 FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
 PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
 
 IMPLEMENTATION
 
-uses pastoc;
-
-function INST_DATA (cl: pIClass; o: p_Object): Pointer;
+function INST_DATA (cl: pIClass; o: p_Object): Pointer; inline;
 begin
     INST_DATA := Pointer(Longint(o) + cl^.cl_InstOffset);
 end;
 
-function SIZEOF_INSTANCE (cl: pIClass): Longint;
+function SIZEOF_INSTANCE (cl: pIClass): Longint; inline;
 begin
     SIZEOF_INSTANCE := cl^.cl_InstOffset + cl^.cl_InstSize + sizeof(t_Object);
 end;
 
-function BASEOBJECT (o: p_Object): Pointer;
+function BASEOBJECT (o: p_Object): Pointer; inline;
 begin
     BASEOBJECT := Pointer(Longint(o) + sizeof(t_Object));
 end;
 
-function _OBJ(o: p_Object): p_Object;
+function _OBJ(o: p_Object): p_Object; inline;
 begin
      _OBJ := p_Object(o);
 END;
 
-function __OBJECT (o: Pointer): p_Object;
+function __OBJECT (o: Pointer): p_Object; inline;
 begin
     __OBJECT := p_Object(Longint(o) - sizeof(t_Object))
 end;
 
-function OCLASS (o: Pointer): pIClass;
+function OCLASS (o: Pointer): pIClass; inline;
 var
     obj: p_Object;
 begin
@@ -4254,22 +4249,22 @@ begin
     OCLASS := obj^.o_Class;
 end;
 
-function SHIFTITEM (n: smallint): word;
+function SHIFTITEM (n: smallint): word; inline;
 begin
     SHIFTITEM := (n and $3f) shl 5
 end;
 
-function SHIFTMENU (n: smallint): word;
+function SHIFTMENU (n: smallint): word; inline;
 begin
     SHIFTMENU := n and $1f
 end;
 
-function SHIFTSUB (n: smallint): word;
+function SHIFTSUB (n: smallint): word; inline;
 begin
     SHIFTSUB := (n and $1f) shl 11
 end;
 
-function FULLMENUNUM (menu, item, sub: smallint): word;
+function FULLMENUNUM (menu, item, sub: smallint): word; inline;
 begin
     FULLMENUNUM := ((sub and $1f) shl 11) or
                     ((item and $3f) shl 5) or
@@ -4283,104 +4278,89 @@ end;
   A/BPen values of the image class objects as well. This can't work
   in pascal, of course! }
 
-function IM_BGPEN (im: pImage): byte;
+function IM_BGPEN (im: pImage): byte; inline;
 begin
     IM_BGPEN := im^.PlaneOnOff;
 end;
 
-function IM_BOX (im: pImage): pIBox;
+function IM_BOX (im: pImage): pIBox; inline;
 begin
     IM_BOX := pIBox(@im^.LeftEdge);
 END;
 
-function IM_FGPEN (im: pImage): byte;
+function IM_FGPEN (im: pImage): byte; inline;
 begin
     IM_FGPEN := im^.PlanePick;
 end;
 
-function GADGET_BOX (g: pGadget): pIBox;
+function GADGET_BOX (g: pGadget): pIBox; inline;
 begin
     GADGET_BOX := pIBox(@g^.LeftEdge);
 end;
 
-function CUSTOM_HOOK (gadget: pGadget): pHook;
+function CUSTOM_HOOK (gadget: pGadget): pHook; inline;
 begin
     CUSTOM_HOOK := pHook(gadget^.MutualExclude);
 end;
 
-function ITEMNUM( n : Word): Word;
+function ITEMNUM( n : Word): Word; inline;
 begin
     ITEMNUM := (n shr 5) and $3F
 end;
 
-function MENUNUM( n : Word): Word;
+function MENUNUM( n : Word): Word; inline;
 begin
     MENUNUM := n and $1f
 end;
 
-function SUBNUM( n : Word): Word;
+function SUBNUM( n : Word): Word; inline;
 begin
     SUBNUM := (n shr 11) and $1f
 end;
 
-FUNCTION DisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG) : BOOLEAN;
+FUNCTION DisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG) : BOOLEAN; inline;
 begin
-      DisplayAlert := DisplayAlert(alertNumber,pas2c(string_),height);
+      DisplayAlert := DisplayAlert(alertNumber,PChar(RawByteString(string_)),height);
 end;
 
-FUNCTION LockPubScreen(const name : string) : pScreen;
+FUNCTION LockPubScreen(const name : string) : pScreen; inline;
 begin
-      LockPubScreen := LockPubScreen(pas2c(name));
+      LockPubScreen := LockPubScreen(PChar(RawByteString(name)));
 end;
 
 FUNCTION MakeClass(const classID : string;const superClassID : pCHAR;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 begin
-      MakeClass := MakeClass(pas2c(classID),superClassID,superClassPtr,instanceSize,flags);
+      MakeClass := MakeClass(PChar(RawByteString(classID)),superClassID,superClassPtr,instanceSize,flags);
 end;
 
 FUNCTION MakeClass(const classID : pCHAR;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 begin
-      MakeClass := MakeClass(classID,pas2c(superClassID),superClassPtr,instanceSize,flags);
+      MakeClass := MakeClass(classID,PChar(RawByteString(superClassID)),superClassPtr,instanceSize,flags);
 end;
 
 FUNCTION MakeClass(const classID : string;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 begin
-      MakeClass := MakeClass(pas2c(classID),pas2c(superClassID),superClassPtr,instanceSize,flags);
+      MakeClass := MakeClass(PChar(RawByteString(classID)),PChar(RawByteString(superClassID)),superClassPtr,instanceSize,flags);
 end;
 
 FUNCTION NewObjectA(classPtr : pIClass;const classID : string;const tagList : pTagItem) : POINTER;
 begin
-      NewObjectA := NewObjectA(classPtr,pas2c(classID),taglist);
+      NewObjectA := NewObjectA(classPtr,PChar(RawByteString(classID)),taglist);
 end;
 
 PROCEDURE SetDefaultPubScreen(const name : string);
 begin
-      SetDefaultPubScreen(pas2c(name));
-end;
-
-PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : string;const screenTitle : pCHAR);
-begin
-      SetWindowTitles(window,pas2c(windowTitle),screenTitle);
-end;
-
-PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : pCHAR;const screenTitle : string);
-begin
-      SetWindowTitles(window,windowTitle,pas2c(screenTitle));
-end;
-
-PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : string;const screenTitle : string);
-begin
-      SetWindowTitles(window,pas2c(windowTitle),pas2c(screenTitle));
+      SetDefaultPubScreen(PChar(RawByteString(name)));
 end;
 
 FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
 begin
-      TimedDisplayAlert := TimedDisplayAlert(alertNumber,pas2c(string_),height,time);
+      TimedDisplayAlert := TimedDisplayAlert(alertNumber,PChar(RawByteString(string_)),height,time);
 end;
 
 PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
 begin
-      UnlockPubScreen(pas2c(name),screen);
+      UnlockPubScreen(PChar(RawByteString(name)),screen);
 end;
 
 
