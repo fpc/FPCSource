@@ -479,14 +479,14 @@ end;
       If ((amount >= 4) and
           ((offs and 3) = 0)) or
          (amount >= 4+4-(offs and 3)) Then
-      { allign target }
+      { align target }
         Begin
           If (offs and 3) <> 0 then
           { this cannot go past a window boundary bacause the }
           { size of a window is always a multiple of 4        }
             Begin
               {$ifdef logging}
-              LogLn('Alligning by reading '+strf(4-(offs and 3))+' pixels');
+              LogLn('Aligning by reading '+strf(4-(offs and 3))+' pixels');
               {$endif logging}
               for l := 1 to 4-(offs and 3) do
                 WordArray(Data)[index+l-1] :=
@@ -498,7 +498,7 @@ end;
           {$ifdef logging}
           LogLn('Offset is now '+hexstr(offs,8)+', amount left: '+strf(amount));
           {$endif logging}
-          { offs is now 4-bytes alligned }
+          { offs is now 4-bytes aligned }
           If amount <= ($10000-(Offs and $ffff)) Then
              bankrest := amount
           else {the rest won't fit anymore in the current window }
@@ -599,24 +599,23 @@ end;
                     (HLength >= 4+4-(offs and 3)) Then
                  { align target }
                    Begin
-                     l := 0;
                      If (offs and 3) <> 0 then
                      { this cannot go past a window boundary bacause the }
                      { size of a window is always a multiple of 4        }
                        Begin
                          {$ifdef logging2}
-                         LogLn('Alligning by drawing '+strf(4-(offs and 3))+' pixels');
+                         LogLn('Aligning by drawing '+strf(4-(offs and 3))+' pixels');
                          {$endif logging2}
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] :=
                              Mem[WinReadSeg:word(offs)+l-1] And Byte(CurrentColor);
+                         Dec(HLength, l);
+                         inc(offs, l);
                        End;
-                     Dec(HLength, l);
-                     inc(offs, l);
                      {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
-                     { offs is now 4-bytes alligned }
+                     { offs is now 4-bytes aligned }
                      If HLength <= ($10000-(Offs and $ffff)) Then
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
@@ -669,26 +668,25 @@ end;
                  If ((HLength >= 4) and
                      ((offs and 3) = 0)) or
                     (HLength >= 4+4-(offs and 3)) Then
-                 { allign target }
+                 { align target }
                    Begin
-                     l := 0;
                      If (offs and 3) <> 0 then
                      { this cannot go past a window boundary bacause the }
                      { size of a window is always a multiple of 4        }
                        Begin
                          {$ifdef logging2}
-                         LogLn('Alligning by drawing '+strf(4-(offs and 3))+' pixels');
+                         LogLn('Aligning by drawing '+strf(4-(offs and 3))+' pixels');
                          {$endif logging}
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] :=
                              Mem[WinReadSeg:word(offs)+l-1] Xor Byte(CurrentColor);
+                         Dec(HLength, l);
+                         inc(offs, l);
                        End;
-                     Dec(HLength, l);
-                     inc(offs, l);
                      {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
-                     { offs is now 4-bytes alligned }
+                     { offs is now 4-bytes aligned }
                      If HLength <= ($10000-(Offs and $ffff)) Then
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
@@ -741,22 +739,21 @@ end;
                  If ((HLength >= 4) and
                      ((offs and 3) = 0)) or
                     (HLength >= 4+4-(offs and 3)) Then
-                 { allign target }
+                 { align target }
                    Begin
-                     l := 0;
                      If (offs and 3) <> 0 then
                      { this cannot go past a window boundary bacause the }
                      { size of a window is always a multiple of 4        }
                        Begin
                          {$ifdef logging2}
-                         LogLn('Alligning by drawing '+strf(4-(offs and 3))+' pixels');
+                         LogLn('Aligning by drawing '+strf(4-(offs and 3))+' pixels');
                          {$endif logging}
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] :=
                              Mem[WinReadSeg:word(offs)+l-1] Or Byte(CurrentColor);
+                         Dec(HLength, l);
+                         inc(offs, l);
                        End;
-                     Dec(HLength, l);
-                     inc(offs, l);
                      { it is possible that by aligningm we ended up in a new }
                      { bank, so set the correct bank again to make sure      }
                      setwritebank(offs shr 16);
@@ -764,7 +761,7 @@ end;
                      {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
-                     { offs is now 4-bytes alligned }
+                     { offs is now 4-bytes aligned }
                      If HLength <= ($10000-(Offs and $ffff)) Then
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
@@ -814,25 +811,24 @@ end;
                  If ((HLength >= 4) and
                      ((offs and 3) = 0)) or
                     (HLength >= 4+4-(offs and 3)) Then
-                 { allign target }
+                 { align target }
                    Begin
-                     l := 0;
                      If (offs and 3) <> 0 then
                      { this cannot go past a window boundary bacause the }
                      { size of a window is always a multiple of 4        }
                        Begin
                          {$ifdef logging2}
-                         LogLn('Alligning by drawing '+strf(4-(offs and 3))+' pixels');
+                         LogLn('Aligning by drawing '+strf(4-(offs and 3))+' pixels');
                          {$endif logging}
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] := Byte(Mask);
+                         Dec(HLength, l);
+                         inc(offs, l);
                        End;
-                     Dec(HLength, l);
-                     inc(offs, l);
                      {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
-                     { offs is now 4-bytes alligned }
+                     { offs is now 4-bytes aligned }
                      If HLength <= ($10000-(Offs and $ffff)) Then
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
@@ -1092,7 +1088,6 @@ end;
            (amount > 7+8-(offs and 7))) Then
          Begin
            { align target }
-           l := 0;
            If (offs and 7) <> 0 then
            { this cannot go past a window boundary bacause the }
            { size of a window is always a multiple of 8        }
@@ -1107,13 +1102,13 @@ end;
                    Mem[WinWriteSeg:word(offs)+l-1] := fill.pat[patternPos and 7];
                    inc(patternPos)
                  end;
+               Dec(amount, l);
+               inc(offs, l);
              End;
-           Dec(amount, l);
-           inc(offs, l);
            {$ifdef logging2}
            LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(amount));
            {$endif logging2}
-           { offs is now 8-bytes alligned }
+           { offs is now 8-bytes aligned }
            If amount <= ($10000-(Offs and $ffff)) Then
               bankrest := amount
            else {the rest won't fit anymore in the current window }
@@ -1376,6 +1371,323 @@ end;
          End
      End;
   end;
+
+  procedure HLineVESA32kOr64k(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+
+   var Offs: Longint;
+       mask, l, bankrest: longint;
+       curbank, hlength: smallint;
+   Begin
+    { must we swap the values? }
+    if x > x2 then
+      Begin
+        x := x xor x2;
+        x2 := x xor x2;
+        x:= x xor x2;
+      end;
+    { First convert to global coordinates }
+    X   := X + StartXViewPort;
+    X2  := X2 + StartXViewPort;
+    Y   := Y + StartYViewPort;
+    if ClipPixels then
+      Begin
+         if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
+                StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+            exit;
+      end;
+    {$ifdef logging2}
+    LogLn('hline '+strf(x)+' - '+strf(x2)+' on '+strf(y)+' in mode '+strf(currentwritemode));
+    {$endif logging2}
+    HLength := x2 - x + 1;
+    {$ifdef logging2}
+    LogLn('length: '+strf(hlength));
+    {$endif logging2}
+    if HLength>0 then
+      begin
+         Offs:=(Longint(y)+YOffset)*bytesperline+2*x;
+         {$ifdef logging2}
+         LogLn('Offs: '+strf(offs)+' -- '+hexstr(offs,8));
+         {$endif logging2}
+         Mask := longint(word(CurrentColor)+word(CurrentColor) shl 16);
+         Case CurrentWriteMode of
+           AndPut:
+             Begin
+               Repeat
+                 curbank := smallint(offs shr 16);
+                 SetWriteBank(curbank);
+                 SetReadBank(curbank);
+                 {$ifdef logging2}
+                 LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
+                 {$endif logging2}
+                 If ((HLength >= 2) and
+                     ((offs and 3) = 0)) or
+                    (HLength >= 3) Then
+                 { align target }
+                   Begin
+                     If (offs and 3) <> 0 then
+                     { this cannot go past a window boundary because the }
+                     { size of a window is always a multiple of 4        }
+                       Begin
+                         {$ifdef logging2}
+                         LogLn('Aligning by drawing 1 pixel');
+                         {$endif logging2}
+                         MemW[WinWriteSeg:word(offs)] :=
+                           MemW[WinReadSeg:word(offs)] And Word(CurrentColor);
+                         Dec(HLength);
+                         inc(offs, 2);
+                       End;
+                     {$ifdef logging2}
+                     LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
+                     {$endif logging}
+                     { offs is now 4-bytes aligned }
+                     If HLength <= (($10000-(Offs and $ffff)) shr 1) Then
+                        bankrest := HLength
+                     else {the rest won't fit anymore in the current window }
+                       bankrest := ($10000 - (Offs and $ffff)) shr 1;
+                     { it is possible that by aligningm we ended up in a new }
+                     { bank, so set the correct bank again to make sure      }
+                     setwritebank(offs shr 16);
+                     setreadbank(offs shr 16);
+                     {$ifdef logging2}
+                     LogLn('Rest to be drawn in this window: '+strf(bankrest));
+                     {$endif logging}
+                     For l := 0 to (Bankrest div 2)-1 Do
+                       MemL[WinWriteSeg:word(offs)+l*4] :=
+                         MemL[WinReadSeg:word(offs)+l*4] And Mask;
+                     inc(offs,l*4+4);
+                     dec(hlength,l*2+2);
+                     {$ifdef logging2}
+                     LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
+                     {$endif logging}
+                   End
+                 Else
+                   Begin
+                     {$ifdef logging2}
+                     LogLn('Drawing leftover: '+strf(HLength)+' at offset '+hexstr(offs,8));
+                     {$endif logging}
+                     if HLength > 0 then
+                       begin
+                         { this may cross a bank at any time, so adjust          }
+                         { because this loop always runs for very little pixels, }
+                         { there's little gained by splitting it up              }
+                         setreadbank(offs shr 16);
+                         setwritebank(offs shr 16);
+                         MemW[WinWriteSeg:word(offs)] :=
+                           MemW[WinReadSeg:word(offs)] And Word(currentColor);
+                         HLength := 0
+                       end;
+                   End
+               Until HLength = 0;
+             End;
+           XorPut:
+             Begin
+               Repeat
+                 curbank := smallint(offs shr 16);
+                 SetWriteBank(curbank);
+                 SetReadBank(curbank);
+                 {$ifdef logging2}
+                 LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
+                 {$endif logging2}
+                 If ((HLength >= 2) and
+                     ((offs and 3) = 0)) or
+                    (HLength >= 3) Then
+                 { align target }
+                   Begin
+                     If (offs and 3) <> 0 then
+                     { this cannot go past a window boundary because the }
+                     { size of a window is always a multiple of 4        }
+                       Begin
+                         {$ifdef logging2}
+                         LogLn('Aligning by drawing 1 pixel');
+                         {$endif logging2}
+                         MemW[WinWriteSeg:word(offs)] :=
+                           MemW[WinReadSeg:word(offs)] Xor Word(CurrentColor);
+                         Dec(HLength);
+                         inc(offs, 2);
+                       End;
+                     {$ifdef logging2}
+                     LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
+                     {$endif logging}
+                     { offs is now 4-bytes aligned }
+                     If HLength <= (($10000-(Offs and $ffff)) shr 1) Then
+                        bankrest := HLength
+                     else {the rest won't fit anymore in the current window }
+                       bankrest := ($10000 - (Offs and $ffff)) shr 1;
+                     { it is possible that by aligningm we ended up in a new }
+                     { bank, so set the correct bank again to make sure      }
+                     setwritebank(offs shr 16);
+                     setreadbank(offs shr 16);
+                     {$ifdef logging2}
+                     LogLn('Rest to be drawn in this window: '+strf(bankrest));
+                     {$endif logging}
+                     For l := 0 to (Bankrest div 2)-1 Do
+                       MemL[WinWriteSeg:word(offs)+l*4] :=
+                         MemL[WinReadSeg:word(offs)+l*4] Xor Mask;
+                     inc(offs,l*4+4);
+                     dec(hlength,l*2+2);
+                     {$ifdef logging2}
+                     LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
+                     {$endif logging}
+                   End
+                 Else
+                   Begin
+                     {$ifdef logging2}
+                     LogLn('Drawing leftover: '+strf(HLength)+' at offset '+hexstr(offs,8));
+                     {$endif logging}
+                     if HLength > 0 then
+                       begin
+                         { this may cross a bank at any time, so adjust          }
+                         { because this loop always runs for very little pixels, }
+                         { there's little gained by splitting it up              }
+                         setreadbank(offs shr 16);
+                         setwritebank(offs shr 16);
+                         MemW[WinWriteSeg:word(offs)] :=
+                           MemW[WinReadSeg:word(offs)] Xor Word(currentColor);
+                         HLength := 0
+                       end;
+                   End
+               Until HLength = 0;
+             End;
+           OrPut:
+             Begin
+               Repeat
+                 curbank := smallint(offs shr 16);
+                 SetWriteBank(curbank);
+                 SetReadBank(curbank);
+                 {$ifdef logging2}
+                 LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
+                 {$endif logging2}
+                 If ((HLength >= 2) and
+                     ((offs and 3) = 0)) or
+                    (HLength >= 3) Then
+                 { align target }
+                   Begin
+                     If (offs and 3) <> 0 then
+                     { this cannot go past a window boundary because the }
+                     { size of a window is always a multiple of 4        }
+                       Begin
+                         {$ifdef logging2}
+                         LogLn('Aligning by drawing 1 pixel');
+                         {$endif logging2}
+                         MemW[WinWriteSeg:word(offs)] :=
+                           MemW[WinReadSeg:word(offs)] Or Word(CurrentColor);
+                         Dec(HLength);
+                         inc(offs, 2);
+                       End;
+                     {$ifdef logging2}
+                     LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
+                     {$endif logging}
+                     { offs is now 4-bytes aligned }
+                     If HLength <= (($10000-(Offs and $ffff)) shr 1) Then
+                        bankrest := HLength
+                     else {the rest won't fit anymore in the current window }
+                       bankrest := ($10000 - (Offs and $ffff)) shr 1;
+                     { it is possible that by aligningm we ended up in a new }
+                     { bank, so set the correct bank again to make sure      }
+                     setwritebank(offs shr 16);
+                     setreadbank(offs shr 16);
+                     {$ifdef logging2}
+                     LogLn('Rest to be drawn in this window: '+strf(bankrest));
+                     {$endif logging}
+                     For l := 0 to (Bankrest div 2)-1 Do
+                       MemL[WinWriteSeg:word(offs)+l*4] :=
+                         MemL[WinReadSeg:word(offs)+l*4] Or Mask;
+                     inc(offs,l*4+4);
+                     dec(hlength,l*2+2);
+                     {$ifdef logging2}
+                     LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
+                     {$endif logging}
+                   End
+                 Else
+                   Begin
+                     {$ifdef logging2}
+                     LogLn('Drawing leftover: '+strf(HLength)+' at offset '+hexstr(offs,8));
+                     {$endif logging}
+                     if HLength > 0 then
+                       begin
+                         { this may cross a bank at any time, so adjust          }
+                         { because this loop always runs for very little pixels, }
+                         { there's little gained by splitting it up              }
+                         setreadbank(offs shr 16);
+                         setwritebank(offs shr 16);
+                         MemW[WinWriteSeg:word(offs)] :=
+                           MemW[WinReadSeg:word(offs)] Or Word(currentColor);
+                         HLength := 0
+                       end;
+                   End
+               Until HLength = 0;
+             End
+           Else
+             Begin
+               If CurrentWriteMode = NotPut Then
+                 Mask := Not(Mask);
+               Repeat
+                 curbank := smallint(offs shr 16);
+                 SetWriteBank(curbank);
+                 SetReadBank(curbank);
+                 {$ifdef logging2}
+                 LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
+                 {$endif logging2}
+                 If ((HLength >= 2) and
+                     ((offs and 3) = 0)) or
+                    (HLength >= 3) Then
+                 { align target }
+                   Begin
+                     If (offs and 3) <> 0 then
+                     { this cannot go past a window boundary because the }
+                     { size of a window is always a multiple of 4        }
+                       Begin
+                         {$ifdef logging2}
+                         LogLn('Aligning by drawing 1 pixel');
+                         {$endif logging2}
+                         MemW[WinWriteSeg:word(offs)] := Word(Mask);
+                         Dec(HLength);
+                         inc(offs, 2);
+                       End;
+                     {$ifdef logging2}
+                     LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
+                     {$endif logging}
+                     { offs is now 4-bytes aligned }
+                     If HLength <= (($10000-(Offs and $ffff)) shr 1) Then
+                        bankrest := HLength
+                     else {the rest won't fit anymore in the current window }
+                       bankrest := ($10000 - (Offs and $ffff)) shr 1;
+                     { it is possible that by aligningm we ended up in a new }
+                     { bank, so set the correct bank again to make sure      }
+                     setwritebank(offs shr 16);
+                     setreadbank(offs shr 16);
+                     {$ifdef logging2}
+                     LogLn('Rest to be drawn in this window: '+strf(bankrest));
+                     {$endif logging}
+                     For l := 0 to (Bankrest div 2)-1 Do
+                       MemL[WinWriteSeg:word(offs)+l*4] := Mask;
+                     inc(offs,l*4+4);
+                     dec(hlength,l*2+2);
+                     {$ifdef logging2}
+                     LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
+                     {$endif logging}
+                   End
+                 Else
+                   Begin
+                     {$ifdef logging2}
+                     LogLn('Drawing leftover: '+strf(HLength)+' at offset '+hexstr(offs,8));
+                     {$endif logging}
+                     if HLength > 0 then
+                       begin
+                         { this may cross a bank at any time, so adjust          }
+                         { because this loop always runs for very little pixels, }
+                         { there's little gained by splitting it up              }
+                         setreadbank(offs shr 16);
+                         setwritebank(offs shr 16);
+                         MemW[WinWriteSeg:word(offs)] := Word(Mask);
+                         HLength := 0
+                       end;
+                   End
+               Until HLength = 0;
+             End;
+         End;
+       end;
+   end;
 
 {$ifdef FPC}
  {************************************************************************}

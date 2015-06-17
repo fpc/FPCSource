@@ -13,7 +13,15 @@
 
  **********************************************************************}
 unit Graph;
+
 interface
+
+{ used to create a file containing all calls to WM_PAINT
+  WARNING this probably creates HUGE files PM }
+{ $define DEBUG_WM_PAINT}
+
+{ debug child window handling }
+{ $define DEBUGCHILDS}
 
 {
   To be able to use standard file handles in the graph thread,
@@ -21,7 +29,16 @@ interface
   to ensure that thread varaibles are correctly initialized.
   This new default setting can be overridden by defining
   USE_WINDOWS_API_THREAD_FUNCTIONS macro.
-}
+
+  Use API thread functions by default, to avoid interferences due to
+  initialization of threadvars, this solves e.g. #27508 (which does not
+  mean though that interworking with CRT is guranteed in any way)
+
+  undefine this when debugging the graph unit due to writelns in the
+  debug code }
+{$if not(defined(DEBUG_WM_PAINT)) and not(defined(DEBUGCHILDS))}
+{$define USE_WINDOWS_API_THREAD_FUNCTIONS}
+{$endif not(defined(DEBUG_WM_PAINT)) and not(defined(DEBUGCHILDS))}
 
 {$ifndef USE_WINDOWS_API_THREAD_FUNCTIONS}
   {$define USE_SYSTEM_BEGIN_THREAD}
@@ -134,10 +151,6 @@ const
 
 {$i graph.inc}
 
-
-{ used to create a file containing all calls to WM_PAINT
-  WARNING this probably creates HUGE files PM }
-{ $define DEBUG_WM_PAINT}
 var
    savedscreen : hbitmap;
    graphrunning : boolean;
