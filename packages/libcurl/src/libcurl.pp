@@ -20,7 +20,18 @@ unit libcurl;
 
 interface
 
-uses unixtype;
+{$IFDEF WINDOWS}
+uses
+  ctypes;
+
+type
+  time_t = clong;
+  PTime_t = ^time_t;
+  off_t  = clong;
+{$ELSE}
+uses
+  unixtype;
+{$ENDIF}
 
 {$IFDEF FPC}
 {$PACKRECORDS C}
