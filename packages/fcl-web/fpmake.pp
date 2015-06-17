@@ -48,6 +48,8 @@ begin
     T.ResourceStrings:=true;
       with T.Dependencies do
         begin
+          AddUnit('httpprotocol');
+          AddUnit('cgiprotocol');
           AddUnit('httpdefs');
         end;
     T:=P.Targets.AddUnit('ezcgi.pp');
@@ -83,7 +85,12 @@ begin
           AddUnit('fphttp');
           AddUnit('websession');
         end;
+    T:=P.Targets.AddUnit('httpprotocol.pp');
+    T:=P.Targets.AddUnit('cgiprotocol.pp');
+
     T:=P.Targets.AddUnit('httpdefs.pp');
+    T.Dependencies.AddUnit('httpprotocol');
+    
     T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('iniwebsession.pp');
     T.ResourceStrings:=true;
@@ -122,6 +129,9 @@ begin
     with P.Targets.AddUnit('custfcgi.pp') do
       begin
         OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros];
+        Dependencies.AddUnit('httpprotocol');
+        Dependencies.AddUnit('cgiprotocol');
+        Dependencies.AddUnit('custcgi');
         Dependencies.AddUnit('httpdefs');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
@@ -129,6 +139,7 @@ begin
     with P.Targets.AddUnit('fpapache.pp') do
       begin
         OSes:=AllOses-[amiga,aros];
+        Dependencies.AddUnit('httpprotocol');
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
@@ -219,6 +230,17 @@ begin
       AddUnit('webjsonrpc');
       AddUnit('httpdefs');
       end;
+    T:=P.Targets.AddUnit('fpwebclient.pp');
+    T:=P.Targets.AddUnit('fpjwt.pp');
+    T:=P.Targets.AddUnit('fpoauth2.pp');
+    T.Dependencies.AddUnit('fpwebclient');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpoauth2ini.pp');
+    T.Dependencies.AddUnit('fpoauth2');
+    T:=P.Targets.AddUnit('fphttpwebclient.pp');
+    T.Dependencies.AddUnit('fpwebclient');
+    T:=P.Targets.AddUnit('restbase.pp');
+    T:=P.Targets.AddUnit('restcodegen.pp');
 {$ifndef ALLPACKAGES}
     Run;
     end;
