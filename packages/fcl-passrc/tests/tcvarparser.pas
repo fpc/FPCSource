@@ -47,6 +47,7 @@ Type
     Procedure TestVarPublic;
     Procedure TestVarPublicName;
     Procedure TestVarDeprecatedExternalName;
+    Procedure TestVarHintPriorToInit;
   end;
 
 implementation
@@ -291,6 +292,20 @@ begin
   CheckHint(TPasMemberHint(Getenumvalue(typeinfo(TPasMemberHint),'hdeprecated')));
   AssertEquals('Variable modifiers',[vmexternal],TheVar.VarModifiers);
   AssertEquals('Library name','''me''',TheVar.ExportName);
+end;
+
+procedure TTestVarParser.TestVarHintPriorToInit;
+
+Var
+  E : TBoolConstExpr;
+
+begin
+  ParseVar('boolean platform = false','');
+  CheckHint(TPasMemberHint(Getenumvalue(typeinfo(TPasMemberHint),'hplatform')));
+  AssertNotNull('Correctly initialized',Thevar.Expr);
+  AssertEquals('Correctly initialized',TBoolConstExpr,Thevar.Expr.ClassType);
+  E:=Thevar.Expr as TBoolConstExpr;
+  AssertEquals('Correct initialization value',False, E.Value);
 end;
 
 initialization
