@@ -460,7 +460,9 @@ begin
   if not exitSuspend then
     begin
       InitThread(threadInfo^.stackLen);
+      DoThreadInitProcChain;
       threadInfo^.exitCode:=Pointer(threadInfo^.f(threadInfo^.p));
+      DoThreadExitProcChain;
       DoneThread;
     end;
 

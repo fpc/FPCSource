@@ -100,6 +100,8 @@ function DoSuperMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong;
 function CoerceMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong;
 function SetSuperAttrsA(cl : pIClass; obj: pObject_; msg : APTR): ulong;
 
+procedure HookEntry;
+
 {
 
    NAME
@@ -391,6 +393,19 @@ begin
     SetSuperAttrsA := DoSuperMethodA(cl, obj, @arr);
 end;
 
+{ Do *NOT* change this to nostackframe! }
+{ The compiler will build a stackframe with link/unlk. So that will actually correct
+  the stackpointer for both Pascal/StdCall and cdecl functions, so the stackpointer will
+  be correct on exit. It also needs no manual RTS. The argument push order is also
+  correct for both. (KB) }
+procedure HookEntry; assembler; 
+asm
+  move.l a1,-(a7)    // Msg
+  move.l a2,-(a7)    // Obj
+  move.l a0,-(a7)    // PHook
+  move.l 12(a0),a0   // h_SubEntry = Offset 12
+  jsr (a0)           // Call the SubEntry
+end;
 
 procedure printf(Fmtstr : pchar; const Args : array of const);
 var

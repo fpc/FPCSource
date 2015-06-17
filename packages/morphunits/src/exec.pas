@@ -23,8 +23,30 @@ interface
 var
   ExecBase: Pointer;
 
-{.$include execd.inc}
-{.$include execf.inc}
+
+{ Some types for classic Amiga and AROS compatibility }
+type
+  STRPTR    = PChar;
+  ULONG     = Longword;
+  LONG      = Longint;
+  APTR      = Pointer;
+  BPTR      = Longint;
+  BSTR      = Longint;
+  BOOL      = Smallint; { I think this could be changed to WordBool (KB) }
+  UWORD     = Word;
+  WORDBITS  = Word;
+  LONGBITS  = Longword;
+  PLONGBITS = ^LONGBITS;
+  UBYTE     = Byte;
+  PULONG    = ^Longword;
+  PAPTR     = ^APTR;
+  PLONG     = ^LONG;
+
+{ Some constants for classic Amiga and AROS compatibility }
+const
+  LTrue  : Longint = 1;
+  LFalse : Longint = 0;
+
 
 { * emulinterface consts from MorphOS SDK * }
 
@@ -66,6 +88,26 @@ type
     Func     : Pointer;
   end;
 
+function REG_D0: DWord;
+function REG_D1: DWord;
+function REG_D2: DWord;
+function REG_D3: DWord;
+function REG_D4: DWord;
+function REG_D5: DWord;
+function REG_D6: DWord;
+function REG_D7: DWord;
+
+function REG_A0: Pointer;
+function REG_A1: Pointer;
+function REG_A2: Pointer;
+function REG_A3: Pointer;
+function REG_A4: Pointer;
+function REG_A5: Pointer;
+function REG_A6: Pointer;
+function REG_A7: Pointer;
+
+function REG_PC: Pointer;
+function REG_SR: DWord;
 
 { * "dummy" definitions from utility, which we can't include here because it
   *  would create a circular dependency (KB) }
@@ -2369,6 +2411,98 @@ function NewGetTaskAttrs(Task    : PTask;
                          Tags    : array of DWord): Cardinal; Inline;
 begin
   NewGetTaskAttrs:=NewGetTaskAttrsA(Task,Data,DataSize,TType,@Tags);
+end;
+
+
+function REG_D0: DWord; assembler; nostackframe;
+asm
+  lwz r3,0(r2)
+end;
+
+function REG_D1: DWord; assembler; nostackframe;
+asm
+  lwz r3,4(r2)
+end;
+
+function REG_D2: DWord; assembler; nostackframe;
+asm
+  lwz r3,8(r2)
+end;
+
+function REG_D3: DWord; assembler; nostackframe;
+asm
+  lwz r3,12(r2)
+end;
+
+function REG_D4: DWord; assembler; nostackframe;
+asm
+  lwz r3,16(r2)
+end;
+
+function REG_D5: DWord; assembler; nostackframe;
+asm
+  lwz r3,20(r2)
+end;
+
+function REG_D6: DWord; assembler; nostackframe;
+asm
+  lwz r3,24(r2)
+end;
+
+function REG_D7: DWord; assembler; nostackframe;
+asm
+  lwz r3,28(r2)
+end;
+
+
+function REG_A0: Pointer; assembler; nostackframe;
+asm
+  lwz r3,32(r2) 
+end;
+
+function REG_A1: Pointer; assembler; nostackframe;
+asm
+  lwz r3,36(r2) 
+end;
+function REG_A2: Pointer; assembler; nostackframe;
+asm
+  lwz r3,40(r2) 
+end;
+
+function REG_A3: Pointer; assembler; nostackframe;
+asm
+  lwz r3,44(r2) 
+end;
+
+function REG_A4: Pointer; assembler; nostackframe;
+asm
+  lwz r3,48(r2) 
+end;
+
+function REG_A5: Pointer; assembler; nostackframe;
+asm
+  lwz r3,52(r2) 
+end;
+
+function REG_A6: Pointer; assembler; nostackframe;
+asm
+  lwz r3,56(r2) 
+end;
+
+function REG_A7: Pointer; assembler; nostackframe;
+asm
+  lwz r3,60(r2) 
+end;
+
+
+function REG_PC: Pointer; assembler; nostackframe;
+asm
+  lwz r3,64(r2)
+end;
+
+function REG_SR: DWord; assembler; nostackframe;
+asm
+  lwz r3,68(r2)
 end;
 
 

@@ -110,7 +110,6 @@ TYPE
        PULONG   = ^longword;
        PAPTR    = ^APTR;
        PLONG    = ^LONG;
-       psmallint = ^smallint;
 
 const
        {There is a problem with boolean
