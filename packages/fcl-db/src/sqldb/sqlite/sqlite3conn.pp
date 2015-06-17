@@ -178,7 +178,6 @@ Var
   I : Integer;
   P : TParam;  
   str1: string;
-  do1: double;
   wstr1: widestring;
   
 begin
@@ -191,23 +190,16 @@ begin
       case P.DataType of
         ftInteger,
         ftAutoInc,
-        ftBoolean,
         ftSmallint: checkerror(sqlite3_bind_int(fstatement,I,P.AsInteger));
         ftWord:     checkerror(sqlite3_bind_int(fstatement,I,P.AsWord));
+        ftBoolean:  checkerror(sqlite3_bind_int(fstatement,I,ord(P.AsBoolean)));
         ftLargeint: checkerror(sqlite3_bind_int64(fstatement,I,P.AsLargeint));
         ftBcd,
         ftFloat,
-        ftCurrency:
-                begin
-                do1:= P.AsFloat;
-                checkerror(sqlite3_bind_double(fstatement,I,do1));
-                end;
+        ftCurrency: checkerror(sqlite3_bind_double(fstatement, I, P.AsFloat));
         ftDateTime,
         ftDate,
-        ftTime: begin
-                do1:= P.AsFloat - JulianEpoch;
-                checkerror(sqlite3_bind_double(fstatement,I,do1));
-                end;
+        ftTime:     checkerror(sqlite3_bind_double(fstatement, I, P.AsFloat - JulianEpoch));
         ftFMTBcd:
                 begin
                 str1:=BCDToStr(P.AsFMTBCD, Fconnection.FSQLFormatSettings);
