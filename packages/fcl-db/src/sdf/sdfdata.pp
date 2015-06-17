@@ -563,12 +563,9 @@ end;
 function TFixedFormatDataSet.GetActiveRecBuf(var RecBuf: TRecordBuffer): Boolean;
 begin
   case State of
-    dsBrowse: if IsEmpty then RecBuf := nil else RecBuf := ActiveBuffer;
-    dsEdit, dsInsert: RecBuf := ActiveBuffer;
     dsCalcFields: RecBuf := CalcBuffer;
     dsFilter: RecBuf := FFilterBuffer;
-  else
-    RecBuf := nil;
+    else if IsEmpty then RecBuf := nil else RecBuf := ActiveBuffer;
   end;
   Result := RecBuf <> nil;
 end;

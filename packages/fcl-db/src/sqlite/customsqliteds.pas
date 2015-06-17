@@ -309,6 +309,7 @@ const
   //sqlite2.x.x and sqlite3.x.x define these constants equally
   SQLITE_OK = 0;
   SQLITE_ROW = 100;
+  SQLITE_DONE = 101;
   
   NullString = 'NULL';
   
@@ -756,10 +757,7 @@ begin
   case GetMode of
     gmPrior:
       if (FCurrentItem^.Previous = FBeginItem) or (FCurrentItem = FBeginItem) then
-      begin
-        Result := grBOF;
-        FCurrentItem := FBeginItem;
-      end
+        Result := grBOF
       else
         FCurrentItem:=FCurrentItem^.Previous;
     gmCurrent:
@@ -1783,7 +1781,7 @@ begin
     WriteLn('  SQL: ',SqlTemp);
     {$endif}
     ExecSQL(SQLTemp);
-    Result := FReturnCode = SQLITE_OK;
+    Result := FReturnCode = SQLITE_DONE;
   end
   else
     Result := False;

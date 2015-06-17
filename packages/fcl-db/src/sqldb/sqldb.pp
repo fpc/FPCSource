@@ -163,6 +163,8 @@ type
     function GetPort: cardinal;
     procedure SetOptions(AValue: TSQLConnectionOptions);
     procedure SetPort(const AValue: cardinal);
+    function AttemptCommit(trans : TSQLHandle) : boolean; 
+    function AttemptRollBack(trans : TSQLHandle) : boolean; 
   protected
     FConnOptions         : TConnOptions;
     FSQLFormatSettings   : TFormatSettings;
@@ -402,7 +404,7 @@ type
 
   { TCustomSQLQuery }
 
-  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh, sqoPreferRefresh);
+  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh, sqoRefreshUsingSelect);
   TSQLQueryOptions = Set of TSQLQueryOption;
 
   TCustomSQLQuery = class (TCustomBufDataset)
@@ -1264,6 +1266,30 @@ begin
     Delete(IndexOfName('Port'));
 end;
 
+function TSQLConnection.AttemptCommit(trans: TSQLHandle): boolean;
+begin
+  try
+    Result:=Commit(trans);
+  except
+    if ForcedClose then
+      Result:=True
+    else
+      Raise;
+  end;
+end;
+
+function TSQLConnection.AttemptRollBack(trans: TSQLHandle): boolean;
+begin
+  try
+    Result:=Rollback(trans);
+  except
+    if ForcedClose then
+      Result:=True
+    else
+      Raise;
+  end;
+end;
+
 procedure TSQLConnection.GetDBInfo(const ASchemaType : TSchemaType; const ASchemaObjectName, AReturnField : string; AList: TStrings);
 
 var qry : TCustomSQLQuery;
@@ -1624,7 +1650,8 @@ begin
 end;
 
 
-function TSQLConnection.ConstructInsertSQL(Query : TCustomSQLQuery; Var ReturningClause : Boolean) : string;
+function TSQLConnection.ConstructInsertSQL(Query: TCustomSQLQuery;
+  var ReturningClause: Boolean): string;
 
 var x          : integer;
     sql_fields : string;
@@ -1665,7 +1692,8 @@ begin
 end;
 
 
-function TSQLConnection.ConstructUpdateSQL(Query: TCustomSQLQuery; Var ReturningClause : Boolean): string;
+function TSQLConnection.ConstructUpdateSQL(Query: TCustomSQLQuery;
+  var ReturningClause: Boolean): string;
 
 var x : integer;
     F : TField;
@@ -1776,7 +1804,7 @@ var
 
 begin
   qry:=Nil;
-  ReturningClause:=(sqSupportReturning in Connoptions) and not (sqoPreferRefresh in Query.Options);
+  ReturningClause:=(sqSupportReturning in Connoptions) and not (sqoRefreshUsingSelect in Query.Options);
   case UpdateKind of
     ukInsert : begin
                s := trim(Query.FInsertSQL.Text);
@@ -1983,7 +2011,7 @@ begin
     CloseDataSets;
     If LogEvent(detCommit) then
       Log(detCommit,SCommitting);
-    if (stoUseImplicit in Options) or SQLConnection.Commit(FTrans) then
+    if (stoUseImplicit in Options) or SQLConnection.AttemptCommit(FTrans) then
       begin
       CloseTrans;
       FreeAndNil(FTrans);
@@ -2010,7 +2038,7 @@ begin
     CloseDataSets;
     If LogEvent(detRollback) then
       Log(detRollback,SRollingBack);
-    if SQLConnection.RollBack(FTrans) then
+    if SQLConnection.AttemptRollBack(FTrans) then
       begin
       CloseTrans;
       FreeAndNil(FTrans);
@@ -2352,7 +2380,7 @@ Var
 
 begin
   Result:=(FRefreshSQL.Count<>0);
-  DoReturning:=(sqSupportReturning in SQLConnection.ConnOptions) and not (sqoPreferRefresh in Options);
+  DoReturning:=(sqSupportReturning in SQLConnection.ConnOptions) and not (sqoRefreshUsingSelect in Options);
   if Not (Result or DoReturning) then
     begin
     PF:=RefreshFlags[UpdateKind];

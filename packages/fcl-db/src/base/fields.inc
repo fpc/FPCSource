@@ -100,10 +100,8 @@ begin
     Result.SetFieldType(DataType);
     Result.FReadOnly:=(faReadOnly in Attributes);
 {$ifdef dsdebug}
-    Writeln ('TFieldDef.CreateField : Trying to set dataset');
-{$endif dsdebug}
-{$ifdef dsdebug}
     Writeln ('TFieldDef.CreateField : Result Fieldno : ',Result.FieldNo,'; Self : ',FieldNo);
+    Writeln ('TFieldDef.CreateField : Trying to set dataset');
 {$endif dsdebug}
     Result.Dataset:=TFieldDefs(Collection).Dataset;
     If (Result is TFloatField) then
@@ -418,8 +416,7 @@ end;
 procedure TField.Clear;
 
 begin
-  if FieldKind in [fkData, fkInternalCalc] then
-    SetData(Nil);
+  SetData(Nil);
 end;
 
 procedure TField.DataChanged;
@@ -626,7 +623,7 @@ begin
     Result:=FFieldName;
 end;
 
-function TField.IsDisplayStored: Boolean;
+function TField.IsDisplayLabelStored: Boolean;
 
 begin
   Result:=(DisplayLabel<>FieldName);
@@ -1509,7 +1506,6 @@ begin
 end;
 
 procedure TLongintField.SetAsInteger(AValue: Longint);
-var Min, Max: Longint;
 begin
   If CheckRange(AValue) then
     SetData(@AValue)
@@ -2494,8 +2490,8 @@ end;
 function TBCDField.GetDefaultWidth: Longint;
 
 begin
-  if precision > 0 then result := precision
-    else result := 10;
+  if Precision > 0 then Result := Precision+1
+  else Result := 10;
 end;
 
 procedure TBCDField.GetText(var TheText: string; ADisplayText: Boolean);
@@ -2583,8 +2579,8 @@ begin
   FMinValue := 0;
   FValidChars := [DecimalSeparator, '+', '-', '0'..'9'];
   SetDataType(ftBCD);
-  FPrecision := 15;
-  Size:=4;
+  Precision := 18;
+  Size := 4;
 end;
 
 
@@ -2605,8 +2601,8 @@ begin
   SetDataType(ftFMTBCD);
 // Max.precision for NUMERIC,DECIMAL datatypes supported by some databases:
 //  Firebird-18; Oracle,SqlServer-38; MySQL-65; PostgreSQL-1000
-  Precision := 15; //default number of digits
-  Size:=4; //default number of digits after decimal place
+  Precision := 18; //default number of digits
+  Size := 4; //default number of digits after decimal place
 end;
 
 function TFMTBCDField.GetDataSize: Integer;
@@ -2817,17 +2813,28 @@ function TBlobField.GetAsString: string;
 var
   Stream : TStream;
   Len    : Integer;
+  R : String;
+  
 begin
   Stream := GetBlobStream(bmRead);
   if Stream <> nil then
     with Stream do
       try
         Len := Size;
-        SetLength(Result, Len);
+        SetLength(R, Len);
         if Len > 0 then
-          ReadBuffer(Result[1], Len);
+          begin
+          ReadBuffer(R[1], Len);
+          if not Transliterate then
+            Result:=R
+          else  
+            begin
+            SetLength(Result,Len);
+            DataSet.Translate(@R[1],@Result[1],False);
+            end;
+          end;  
       finally
-        Free
+        Free;    
       end
   else
     Result := '';
@@ -2922,12 +2929,23 @@ end;
 procedure TBlobField.SetAsString(const AValue: string);
 var
   Len : Integer;
+  R : String;
+  
 begin
   with GetBlobStream(bmWrite) do
     try
       Len := Length(AValue);
-      if Len > 0 then
-        WriteBuffer(AValue[1], Len);
+      if (Len>0) then
+        begin
+        if Not Transliterate then
+          R:=AValue
+        else
+          begin
+          SetLength(R,Len);
+          Len:=Dataset.Translate(@AValue[1],@R[1],True);
+          end;  
+        WriteBuffer(R[1], Len);
+        end;
     finally
       Free;
     end;
