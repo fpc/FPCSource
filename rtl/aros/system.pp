@@ -25,8 +25,6 @@ interface
 
 {$define FPC_IS_SYSTEM}
 
-{$define DISABLE_NO_THREAD_MANAGER}
-
 {$I systemh.inc}
 {$I osdebugh.inc}
 
@@ -120,6 +118,11 @@ begin
   if Killed then
     Exit;
   Killed := True;
+
+  { Dispose the thread init/exit chains }
+  CleanupThreadProcChain(threadInitProcList);
+  CleanupThreadProcChain(threadExitProcList);
+
   { Closing opened files }
   CloseList(ASYS_fileList);
   { Changing back to original directory if changed }

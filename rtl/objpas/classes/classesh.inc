@@ -1622,14 +1622,7 @@ type
     FSuspendedExternal: boolean;
     FPid: LongInt;
 {$endif}
-{$ifdef aros}
-  private
-    // see tthread.inc, ThreadFunc and TThread.Resume
-    FSem: Pointer;
-    FCond: Pointer;
-    FInitialSuspended: boolean;
-{$endif}
-{$if defined(amiga) or defined(morphos)}
+{$if defined(hasamiga)}
   private
     FInitialSuspended: boolean;
 {$endif}
