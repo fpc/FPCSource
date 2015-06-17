@@ -402,6 +402,9 @@ endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 override TARGET_DIRS+=amiga
 endif
+ifeq ($(FULL_TARGET),m68k-atari)
+override TARGET_DIRS+=atari
+endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 override TARGET_DIRS+=openbsd
 endif
@@ -1773,6 +1776,9 @@ endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 TARGET_DIRS_AMIGA=1
 endif
+ifeq ($(FULL_TARGET),m68k-atari)
+TARGET_DIRS_ATARI=1
+endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 TARGET_DIRS_OPENBSD=1
 endif
@@ -2861,6 +2867,51 @@ amiga_makefiles:
 amiga:
 	$(MAKE) -C amiga all
 .PHONY: amiga_all amiga_debug amiga_smart amiga_release amiga_units amiga_examples amiga_shared amiga_install amiga_sourceinstall amiga_exampleinstall amiga_distinstall amiga_zipinstall amiga_zipsourceinstall amiga_zipexampleinstall amiga_zipdistinstall amiga_clean amiga_distclean amiga_cleanall amiga_info amiga_makefiles amiga
+endif
+ifdef TARGET_DIRS_ATARI
+atari_all:
+	$(MAKE) -C atari all
+atari_debug:
+	$(MAKE) -C atari debug
+atari_smart:
+	$(MAKE) -C atari smart
+atari_release:
+	$(MAKE) -C atari release
+atari_units:
+	$(MAKE) -C atari units
+atari_examples:
+	$(MAKE) -C atari examples
+atari_shared:
+	$(MAKE) -C atari shared
+atari_install:
+	$(MAKE) -C atari install
+atari_sourceinstall:
+	$(MAKE) -C atari sourceinstall
+atari_exampleinstall:
+	$(MAKE) -C atari exampleinstall
+atari_distinstall:
+	$(MAKE) -C atari distinstall
+atari_zipinstall:
+	$(MAKE) -C atari zipinstall
+atari_zipsourceinstall:
+	$(MAKE) -C atari zipsourceinstall
+atari_zipexampleinstall:
+	$(MAKE) -C atari zipexampleinstall
+atari_zipdistinstall:
+	$(MAKE) -C atari zipdistinstall
+atari_clean:
+	$(MAKE) -C atari clean
+atari_distclean:
+	$(MAKE) -C atari distclean
+atari_cleanall:
+	$(MAKE) -C atari cleanall
+atari_info:
+	$(MAKE) -C atari info
+atari_makefiles:
+	$(MAKE) -C atari makefiles
+atari:
+	$(MAKE) -C atari all
+.PHONY: atari_all atari_debug atari_smart atari_release atari_units atari_examples atari_shared atari_install atari_sourceinstall atari_exampleinstall atari_distinstall atari_zipinstall atari_zipsourceinstall atari_zipexampleinstall atari_zipdistinstall atari_clean atari_distclean atari_cleanall atari_info atari_makefiles atari
 endif
 ifdef TARGET_DIRS_PALMOS
 palmos_all:
