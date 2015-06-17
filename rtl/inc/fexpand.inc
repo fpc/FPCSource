@@ -479,7 +479,7 @@ begin
 {$ENDIF FPC_FEXPAND_NO_DOTS_UPDIR}
 
 {$IFDEF FPC_FEXPAND_UPDIR_HELPER}
-    (* Now remove all references to '//' plus previous directories... *)
+    { Now remove all references to '//' or '::' plus previous directories... }
     I := Pos (DirectorySeparator + DirectorySeparator, Dirs);
     while I <> 0 do
         begin
@@ -506,22 +506,6 @@ begin
                 Delete (Dirs, Succ (J), I - J + 2);
         end;
 {$ENDIF FPC_FEXPAND_NO_DOTS_UPDIR}
-
-{$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
-    (* Remove a possible reference to '/' at the *)
-    (* end of line plus the previous directory.  *)
-    I := Length (Dirs);
-    if (I > 0) and (Dirs [I] = DirectorySeparator) then
-        begin
-            J := Pred (I);
-            while (J > 0) and (Dirs [J] <> DirectorySeparator) do
-                Dec (J);
-            if (J = 0) then
-                Dirs := ''
-            else
-                Delete (Dirs, J, Succ (I - J));
-        end;
-{$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
 
 {$IFNDEF FPC_FEXPAND_NO_CURDIR}
  {$IFNDEF FPC_FEXPAND_DIRSEP_IS_CURDIR}
@@ -666,7 +650,7 @@ end;
    parent directory and so on (Amiga). Please, note that you can decide
    to support both '..' and DirectorySeparator as references to the parent
    directory at the same time for compatibility reasons - however this
-   support makes it impossible to use anotherwise possibly valid name
+   support makes it impossible to use otherwise possibly valid name
    of '..'.
 
    FPC_FEXPAND_DIRSEP_IS_CURDIR - DirectorySeparator at the beginning of
