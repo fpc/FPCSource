@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=prt0
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
-      fpintres dos heaptrc lineinfo ctypes \
+      fpextres dos heaptrc lineinfo ctypes \
       sysutils fgl classes math typinfo \
       charset cpall getopts \
       types rtlconsts sysconst \
@@ -196,8 +196,8 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
-fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/fpintres.pp
+fpextres$(PPUEXT) : $(INC)/fpextres.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -Sg $(INC)/fpextres.pp
 
 #
 # Other system-dependent RTL Units
