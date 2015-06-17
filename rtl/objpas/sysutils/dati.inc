@@ -164,6 +164,8 @@ begin
       Date:=Date+1/(msecsperday*2)
     else  
       Date:=Date-1/(msecsperday*2);
+    if Date>MaxDateTime then
+       Raise EConvertError.CreateFmt('%f is not a valid TDatetime encoding, maximum value is %f.',[Date,MaxDateTime]);
     j := pred((Trunc(System.Int(Date)) + 693900) SHL 2);
     ly:= j DIV 146097;
     j:= j - 146097 * cardinal(ly);
@@ -216,8 +218,9 @@ end;
 
 procedure DateTimeToSystemTime(DateTime: TDateTime; out SystemTime: TSystemTime);
 begin
-  DecodeDate(DateTime, SystemTime.Year, SystemTime.Month, SystemTime.Day);
+  DecodeDateFully(DateTime, SystemTime.Year, SystemTime.Month, SystemTime.Day,SystemTime.DayOfWeek);
   DecodeTime(DateTime, SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond);
+  Dec(SystemTime.DayOfWeek);
 end ;
 
 {   SystemTimeToDateTime converts SystemTime to a TDateTime value   }
