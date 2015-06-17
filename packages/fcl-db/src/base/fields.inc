@@ -632,6 +632,12 @@ begin
   Result:=(DisplayLabel<>FieldName);
 end;
 
+Function TField.IsDisplayWidthStored : Boolean;
+
+begin
+  Result:=(FDisplayWidth<>0);
+end;
+
 function TField.GetLookupList: TLookupList;
 begin
   if not Assigned(FLookupList) then

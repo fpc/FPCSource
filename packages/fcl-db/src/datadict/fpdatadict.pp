@@ -1647,6 +1647,7 @@ end;
 
 destructor TFPDataDictionary.Destroy;
 begin
+  FreeAndNil(FDomains);
   FreeAndNil(FSequences);
   FreeAndNil(FTables);
   inherited Destroy;

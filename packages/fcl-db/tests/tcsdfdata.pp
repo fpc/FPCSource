@@ -6,7 +6,7 @@ unit tcsdfdata;
 interface
 
 uses
-  Classes, SysUtils, Fpcunit, Testutils, Testregistry, testdecorator,
+  Classes, SysUtils, Fpcunit, TestRegistry,
   dateutils,sdfdata,ToolsUnit;
 
 type
@@ -15,7 +15,7 @@ type
 
   Ttestsdfspecific = class(Ttestcase)
   private
-    procedure TestEmptyFieldContents;
+    function TestFileName(const FileName: string=''): string;
   protected
     TestDataset: TSDFDataset;
     procedure Setup; override;
@@ -33,25 +33,39 @@ type
     procedure TestInputOurFormat;
     }
     procedure TestDelimitedTextOutput;
-    procedure TestEmptyHeader;
-    Procedure TestEmptyHeader2;
-    Procedure TestEmptyHeaderStripTrailingDelimiters;
+    procedure TestEmptyFieldHeader;
+    Procedure TestEmptyFieldNoHeader;
+    procedure TestEmptyFieldContents;
+    Procedure TestEmptyFieldHeaderStripTrailingDelimiters;
     Procedure TestStripTrailingDelimiters;
   end;
 
 implementation
 
+function Ttestsdfspecific.TestFileName(const FileName: string): string;
+const
+  DefaultTestFileName = 'test.csv';
+begin
+  if FileName = '' then
+    Result := DefaultTestFileName
+  else
+    Result := FileName;
+
+  if dbname <> '' then
+    begin
+    ForceDirectories(dbname);
+    Result := IncludeTrailingPathDelimiter(dbname) + Result;
+    end;
+
+  if FileExists(Result) then DeleteFile(Result);
+end;
+
 procedure Ttestsdfspecific.TestEmptyFileHeader;
 // An empty file should return 0 records even if it has a header
-const
-  InputFilename='empty.csv';
 begin
-  TestDataSet.Close;
-
-  if FileExists(InputFilename) then DeleteFile(InputFilename);
-  TestDataset.FileMustExist:=false;
-  TestDataset.FirstLineAsSchema := True;  
-  TestDataset.FileName:=InputFilename;
+  // with Schema, with Header line
+  TestDataset.FirstLineAsSchema := True;
+  TestDataset.FileName := TestFileName('empty.csv');
   TestDataset.Open;
 
   TestDataset.Last;
@@ -62,15 +76,10 @@ end;
 
 procedure Ttestsdfspecific.TestEmptyFileNoHeader;
 // An empty file should return 0 records even if it has a header
-const
-  InputFilename='empty.csv';
 begin
-  TestDataSet.Close;
-
-  if FileExists(InputFilename) then DeleteFile(InputFilename);
-  TestDataset.FileMustExist:=false;
-  TestDataset.FirstLineAsSchema := false;  
-  TestDataset.FileName:=InputFilename;
+  // with Schema, without Header line
+  TestDataset.FirstLineAsSchema := False;
+  TestDataset.FileName := TestFileName('empty.csv');
   TestDataset.Open;
 
   TestDataset.Last;
@@ -81,73 +90,71 @@ end;
 
 procedure Ttestsdfspecific.TestSingleLineHeader;
 // A file with a single data line and header should return 1 records
-const
-  InputFilename='singleh.csv';
 var
   FileStrings: TStringList;
 begin
-  TestDataSet.Close;
+  // with Schema, with Header line, which differs from Schema
+  TestDataset.FirstLineAsSchema := True;
+  TestDataset.FileName := TestFileName('singleh.csv');
 
-  if FileExists(InputFilename) then DeleteFile(InputFilename);
   FileStrings:=TStringList.Create;
   try
-    FileStrings.Add('ID,NAME,BIRTHDAY');
-    FileStrings.Add('1,SimpleName,31-12-1976');
-    FileStrings.SaveToFile(InputFileName);
+    FileStrings.Add('ID,NAME,BIRTHDAY,GENDER'); // 4 fields override 3 fields in Schema
+    FileStrings.Add('1,SimpleName,31-12-1976,M');
+    FileStrings.SaveToFile(TestDataset.FileName);
   finally
     FileStrings.Free;
   end;
 
-  TestDataset.FileMustExist:=false;
-  TestDataset.FirstLineAsSchema := true;
-  TestDataset.FileName:=InputFilename;
   TestDataset.Open;
+  AssertEquals('FieldDefs.Count', 4, TestDataset.FieldDefs.Count);
+  AssertEquals('1', TestDataset.Fields[0].AsString); // just after Open
 
   TestDataset.Last;
   TestDataset.First;
-  AssertEquals('Number of records in test dataset', 1, TestDataset.RecordCount);
+  AssertEquals('RecNo', 1, TestDataset.RecNo);
+  AssertEquals('RecordCount', 1, TestDataset.RecordCount);
   TestDataset.Close;
+  AssertEquals('RecordCount after Close', 0, TestDataset.RecordCount);
 end;
 
 procedure Ttestsdfspecific.TestSingleLineNoHeader;
 // A file with a single data line, no header should return 1 records
-const
-  InputFilename='single.csv';
 var
   FileStrings: TStringList;
 begin
-  TestDataSet.Close;
+  // with Schema, without Header line
+  TestDataset.FirstLineAsSchema := False;
+  TestDataset.FileName := TestFileName('singleh.csv');
 
-  if FileExists(InputFilename) then DeleteFile(InputFilename);
   FileStrings:=TStringList.Create;
   try
     FileStrings.Add('1,SimpleName,31-12-1976');
-    FileStrings.SaveToFile(InputFileName);
+    FileStrings.SaveToFile(TestDataset.FileName);
   finally
     FileStrings.Free;
   end;
 
-  TestDataset.FileMustExist:=false;
-  TestDataset.FirstLineAsSchema := false;
-  TestDataset.FileName:=InputFilename;
   TestDataset.Open;
+  AssertEquals('FieldDefs.Count', 3, TestDataset.FieldDefs.Count);
+  AssertEquals('1', TestDataset.Fields[0].AsString);
 
   TestDataset.Last;
   TestDataset.First;
-  AssertEquals('Number of records in test dataset', 1, TestDataset.RecordCount);
+  AssertEquals('RecNo', 1, TestDataset.RecNo);
+  AssertEquals('RecordCount', 1, TestDataset.RecordCount);
   TestDataset.Close;
+  AssertEquals('RecordCount after Close', 0, TestDataset.RecordCount);
 end;
 
 procedure Ttestsdfspecific.TestOutput;
 // Basic assignment test: assign some difficult data to records and
-// see if the recordcount is correct.
-const
-  OutputFilename='output.csv';
+// see if the RecordCount is correct.
+var
+  i: integer;
 begin
-  TestDataSet.Close;
-
-  if FileExists(OutputFilename) then DeleteFile(OutputFileName);
-  TestDataset.FileName:=OutputFileName;
+  // with Schema, with Header line
+  TestDataset.FileName := TestFileName('output.csv');
   TestDataset.Open;
   // Fill test data
   TestDataset.Append;
@@ -165,25 +172,35 @@ begin
   TestDataset.Post;
 
   TestDataset.Append;
-  TestDataset.FieldByName('ID').AsInteger := 3;
+  TestDataset.FieldByName('ID').AsInteger := 4;
   //Data with delimiter and quote (to test 19376)
   TestDataset.FieldByName('NAME').AsString := 'Delimiter,"and";quote';
   TestDataset.FieldByName('BIRTHDAY').AsDateTime := ScanDateTime('yyyymmdd', '19761231', 1);
   TestDataset.Post;
 
-
-  TestDataset.Append;
-  TestDataset.FieldByName('ID').AsInteger := 4;
+  TestDataset.Insert;
+  TestDataset.FieldByName('ID').AsInteger := 3;
   // Regular data
   TestDataset.FieldByName('NAME').AsString := 'Just a long line of text without anything special';
   TestDataset.FieldByName('BIRTHDAY').AsDateTime := ScanDateTime('yyyymmdd', '19761231', 1);
   TestDataset.Post;
 
-  TestDataset.Last;
+  // test sequential order of records
   TestDataset.First;
-  // This fails - seems it sees the header as a record, too?
-  AssertEquals('Number of records in test dataset', 4, TestDataset.RecordCount);
+  for i:=1 to 4 do begin
+    AssertEquals('RecNo', i, TestDataset.RecNo);
+    AssertEquals(i, TestDataset.FieldByName('ID').AsInteger);
+    TestDataset.Next;
+  end;
+  // set/test RecNo
+  for i:=1 to 4 do begin
+    TestDataset.RecNo := i;
+    AssertEquals('RecNo', i, TestDataset.RecNo);
+    AssertEquals(i, TestDataset.FieldByName('ID').AsInteger);
+  end;
+  AssertEquals('RecordCount', 4, TestDataset.RecordCount);
   TestDataset.Close;
+  AssertEquals('RecordCount after Close', 0, TestDataset.RecordCount);
 end;
 
 {
@@ -258,7 +275,6 @@ procedure Ttestsdfspecific.TestDelimitedTextOutput;
 // Mainly check if writing & reading quotes works.
 // to do: more fully test RFC4180
 const
-  OutputFileName='delim.csv';
   Value1='Delimiter,"and";quote';
   Value2='J"T"';
   Value3='Just a long line';
@@ -268,21 +284,19 @@ const
   Value7='Some "random" quotes';
 Var
   F : Text;
-  FileStrings: TStringList;
-  OneRecord: TStringList;
 begin
+  // with Schema, with Header line
   TestDataset.Close;
-  TestDataset.AllowMultiLine:=true;
-  TestDataset.FirstLineAsSchema:=true;
-  if FileExists(OutputFileName) then DeleteFile(OutputFileName);
-  Assign(F,OutputFileName);
+  TestDataset.AllowMultiLine := True;
+  TestDataset.FirstLineAsSchema := True;
+  TestDataset.FileName := TestFileName('delim.csv');
+  Assign(F, TestDataset.FileName);
   Rewrite(F);
   Writeln(F,'Field1,Field2,Field3,Field4,Field5,Field6,Field7');
   Writeln(F,'"Delimiter,""and"";quote","J""T""",Just a long line,"Just a quoted long line","multi');
   Writeln(F,'line","Delimiter,and;done","Some ""random"" quotes"');
   Close(F);
   // Load our dataset
-  TestDataset.FileName:=OutputFileName;
   TestDataset.Open;
 //  AssertEquals('Field count',7,TEstDataset.Fielddefs.Count);
 //  AssertEquals('Record count',1,TEstDataset.RecordCount);
@@ -296,90 +310,104 @@ begin
   AssertEquals('Field7',Value7, TestDataSet.Fields[6].AsString);
 end;
 
-procedure Ttestsdfspecific.TestEmptyHeader;
-
-const
-  OutputFileName='delim.csv';
-
+procedure Ttestsdfspecific.TestEmptyFieldContents;
 Var
   F : Text;
 begin
-  TestDataset.Close;
-  TestDataset.AllowMultiLine:=False;
-  if FileExists(OutputFileName) then DeleteFile(OutputFileName);
-  Assign(F,OutputFileName);
+  // with empty Field name in Header line
+  TestDataset.FirstLineAsSchema := True;
+  TestDataset.Delimiter := ';';
+  TestDataset.FileName := TestFileName();
+
+  Assign(F, TestDataset.FileName);
+  Rewrite(F);
+  Writeln(F,'1;2;3;;5');
+  Writeln(F,'11;12;13;;15');
+  Close(F);
+
+  TestDataset.Open;
+  AssertEquals('FieldDefs.Count',5,TestDataset.FieldDefs.Count);
+  AssertEquals('RecordCount',1,TestDataset.RecordCount);
+end;
+
+procedure Ttestsdfspecific.TestEmptyFieldHeader;
+Var
+  F : Text;
+begin
+  // with empty Field name in Header line
+  TestDataset.Delimiter := ';';
+  TestDataset.FirstLineAsSchema := True;
+  TestDataset.FileName := TestFileName();
+
+  Assign(F, TestDataset.FileName);
   Rewrite(F);
   Writeln(F,'1;2;3;;5');
   Close(F);
-  TestDataset.FirstLineAsSchema:=True;
-  TestDataset.Delimiter := ';';
-  TestDataset.FileName:=OutputFileName;
+
   TestDataset.Open;
-  AssertEquals('Correct field count',5,TestDataset.FieldDefs.Count);
+  AssertEquals('FieldDefs.Count',5,TestDataset.FieldDefs.Count);
+  AssertEquals('RecordCount', 0, TestDataset.RecordCount);
 end;
 
-procedure Ttestsdfspecific.TestEmptyHeader2;
-
-const
-  OutputFileName='delim.csv';
+procedure Ttestsdfspecific.TestEmptyFieldNoHeader;
 
 Var
   F : Text;
   S : String;
 
 begin
-  TestDataset.Close;
-  TestDataset.AllowMultiLine:=False;
-  if FileExists(OutputFileName) then DeleteFile(OutputFileName);
-  Assign(F,OutputFileName);
+  // without Schema, without Header line
+  TestDataset.Schema.Clear;
+  TestDataset.FirstLineAsSchema := False;
+  TestDataset.Delimiter := ';';
+  TestDataset.FileName := TestFileName();
+
+  Assign(F, TestDataset.FileName);
   Rewrite(F);
   Writeln(F,'value1;value2;;;');
   Close(F);
-  TestDataset.FirstLineAsSchema:=False;
-  TestDataset.Delimiter := ';';
-  TestDataset.FileName:=OutputFileName;
-  TestDataset.Schema.Clear;
+
   TestDataset.Open;
-  AssertEquals('Correct field count',5,TestDataset.FieldDefs.Count);
+  AssertEquals('FieldDefs.Count',5,TestDataset.FieldDefs.Count);
+  AssertEquals('RecordCount', 1, TestDataset.RecordCount);
   TestDataset.Edit;
   TestDataset.Fields[0].AsString:='Value1';
   TestDataset.Post;
   TestDataset.Close;
-  Assign(F,OutputFileName);
+
+  Assign(F, TestDataset.FileName);
   Reset(F);
   ReadLn(F,S);
   Close(F);
   AssertEquals('No data lost','Value1;value2;;;',S);
 end;
 
-procedure Ttestsdfspecific.TestEmptyHeaderStripTrailingDelimiters;
-const
-  OutputFileName='delim.csv';
-
+procedure Ttestsdfspecific.TestEmptyFieldHeaderStripTrailingDelimiters;
 Var
   F : Text;
   S : String;
 
 begin
-  TestDataset.Close;
-  TestDataset.AllowMultiLine:=False;
-  if FileExists(OutputFileName) then DeleteFile(OutputFileName);
-  Assign(F,OutputFileName);
+  // without Schema, without Header line
+  TestDataset.Schema.Clear;
+  TestDataset.FirstLineAsSchema := False;
+  TestDataset.Delimiter := ';';
+  TestDataset.StripTrailingDelimiters := True;
+  TestDataset.FileName := TestFileName();
+
+  Assign(F, TestDataset.FileName);
   Rewrite(F);
   Writeln(F,'value1;value2;;;');
   Close(F);
-  TestDataset.StripTrailingDelimiters:=True;
-  TestDataset.FirstLineAsSchema:=False;
-  TestDataset.Delimiter := ';';
-  TestDataset.FileName:=OutputFileName;
-  TestDataset.Schema.Clear;
+
   TestDataset.Open;
-  AssertEquals('Correct field count',2,TestDataset.FieldDefs.Count);
+  AssertEquals('FieldDefs.Count',2,TestDataset.FieldDefs.Count);
   TestDataset.Edit;
   TestDataset.Fields[0].AsString:='Value1';
   TestDataset.Post;
   TestDataset.Close;
-  Assign(F,OutputFileName);
+
+  Assign(F, TestDataset.FileName);
   Reset(F);
   ReadLn(F,S);
   Close(F);
@@ -387,63 +415,38 @@ begin
 end;
 
 procedure Ttestsdfspecific.TestStripTrailingDelimiters;
-const
-  OutputFileName='delim.csv';
-
 Var
   F : Text;
-  S,S2 : String;
+  S1,S2 : String;
 
 begin
-  TestDataset.Close;
-  TestDataset.AllowMultiLine:=False;
-  if FileExists(OutputFileName) then DeleteFile(OutputFileName);
-  Assign(F,OutputFileName);
+  // without Schema, with Header line
+  TestDataset.Schema.Clear;
+  TestDataset.FirstLineAsSchema := True;
+  TestDataset.Delimiter := ';';
+  TestDataset.StripTrailingDelimiters := True;
+  TestDataset.FileName := TestFileName();;
+
+  Assign(F, TestDataset.FileName);
   Rewrite(F);
   Writeln(F,'value1;value2;;;');
   Writeln(F,'value1;value2;;;');
   Close(F);
-  TestDataset.StripTrailingDelimiters:=True;
-  TestDataset.FirstLineAsSchema:=False;
-  TestDataset.Delimiter := ';';
-  TestDataset.FileName:=OutputFileName;
-  TestDataset.Schema.Clear;
+
   TestDataset.Open;
-  AssertEquals('Correct field count',2,TestDataset.FieldDefs.Count);
+  AssertEquals('FieldDefs.Count',2,TestDataset.FieldDefs.Count);
   TestDataset.Edit;
   TestDataset.Fields[0].AsString:='Value1';
   TestDataset.Post;
   TestDataset.Close;
-  Assign(F,OutputFileName);
+
+  Assign(F, TestDataset.FileName);
   Reset(F);
-  ReadLn(F,S);
+  ReadLn(F,S1);
   ReadLn(F,S2);
   Close(F);
-  AssertEquals('Headers lost','Value1;value2',S);
-  AssertEquals('Data lost','Value1;value2',S);
-end;
-
-procedure Ttestsdfspecific.TestEmptyFieldContents;
-
-const
-  OutputFileName='delim.csv';
-
-Var
-  F : Text;
-begin
-  TestDataset.Close;
-  TestDataset.AllowMultiLine:=False;
-  if FileExists(OutputFileName) then DeleteFile(OutputFileName);
-  Assign(F,OutputFileName);
-  Rewrite(F);
-  Writeln(F,'1;2;3;;5');
-  Writeln(F,'11;12;13;;15');
-  Close(F);
-  TestDataset.FirstLineAsSchema:=True;
-  TestDataset.Delimiter := ';';
-  TestDataset.FileName:=OutputFileName;
-  TestDataset.Open;
-  AssertEquals('Correct field count',5,TestDataset.FieldDefs.Count);
+  AssertEquals('Headers lost','value1;value2;;;',S1); // should striping affect also header line ?
+  AssertEquals('Data lost','Value1;value2',S2);
 end;
 
 
@@ -452,8 +455,9 @@ procedure Ttestsdfspecific.Setup;
 begin
   TestDataset := TSDFDataset.Create(nil);
   TestDataset.Delimiter := ',';
-  TestDataset.FileMustExist:=false;
+  TestDataset.FileMustExist := False;
   TestDataset.FirstLineAsSchema := True;
+  TestDataset.AllowMultiLine := False;
   TestDataset.Schema.Add('ID');
   TestDataset.Schema.Add('NAME');
   TestDataset.Schema.Add('BIRTHDAY');

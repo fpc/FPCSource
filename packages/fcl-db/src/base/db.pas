@@ -315,6 +315,7 @@ type
     procedure SetReadOnly(const AValue: Boolean);
     procedure SetVisible(const AValue: Boolean);
     function IsDisplayStored : Boolean;
+    function IsDisplayWidthStored: Boolean;
     function GetLookupList: TLookupList;
     procedure CalcLookupValue;
   protected
@@ -429,7 +430,7 @@ type
     property ConstraintErrorMessage: string read FConstraintErrorMessage write FConstraintErrorMessage;
     property DefaultExpression: string read FDefaultExpression write FDefaultExpression;
     property DisplayLabel : string read GetDisplayName write SetDisplayLabel stored IsDisplayStored;
-    property DisplayWidth: Longint read GetDisplayWidth write SetDisplayWidth;
+    property DisplayWidth: Longint read GetDisplayWidth write SetDisplayWidth stored IsDisplayWidthStored;
     property FieldKind: TFieldKind read FFieldKind write FFieldKind;
     property FieldName: string read FFieldName write FFieldName;
     property HasConstraints: Boolean read FHasConstraints;
@@ -1914,7 +1915,7 @@ type
     Function AllowClose(DS: TDBDataset): Boolean; virtual;
     Procedure SetDatabase (Value : TDatabase); virtual;
     procedure CloseTrans;
-    procedure openTrans;
+    procedure OpenTrans;
     Procedure CheckDatabase;
     Procedure CheckActive;
     Procedure CheckInactive;
@@ -1928,7 +1929,7 @@ type
     procedure Loaded; override;
   Public
     constructor Create(AOwner: TComponent); override;
-    Destructor destroy; override;
+    Destructor Destroy; override;
     procedure CloseDataSets;
     Property DataBase : TDatabase Read FDatabase Write SetDatabase;
   published

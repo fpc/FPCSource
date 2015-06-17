@@ -122,6 +122,7 @@ Resourcestring
   SErrRefreshNotSingleton     = 'Refresh SQL resulted in multiple records: %d.';
   SErrRefreshEmptyResult      = 'Refresh SQL resulted in empty result set.';
   SErrNoKeyFieldForRefreshClause = 'No key field found to construct refresh SQL WHERE clause';
+  SErrFailedToFetchReturningResult = 'Failed to fetch returning result';
 
 Implementation
 
