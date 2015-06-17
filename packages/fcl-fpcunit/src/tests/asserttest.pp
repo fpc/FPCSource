@@ -23,6 +23,8 @@ uses
 
 type
 
+  { TAssertTest }
+
   TAssertTest = class(TTestCase)
   published
     procedure TestFail;
@@ -37,11 +39,25 @@ type
     procedure TestAssertTrue;
     procedure TestAssertFalse;
     procedure TestAssertNotSame;
+    procedure TestExpectExceptionOK;
+    procedure TestExpectExceptionNoException;
+    procedure TestExpectExceptionWrongExceptionClass;
+    procedure TestExpectExceptionWrongExceptionMessage;
+    procedure TestExpectExceptionWrongExceptionContext;
   end;
+
+  EMyException = Class(Exception);
+
+  { TMyTest }
 
   TMyTest = class(TTestCase)
   published
     procedure RaiseIgnoreTest;
+    procedure TestExpectException;
+    procedure TestExpectExceptionNone;
+    procedure TestExpectExceptionWrongClass;
+    procedure TestExpectExceptionWrongMessage;
+    procedure TestExpectExceptionWrongHelpContext;
   end;
 
   TTestIgnore = class(TTestCase)
@@ -233,10 +249,115 @@ begin
   Fail('Error: Objects are the same!');
 end;
 
+procedure TAssertTest.TestExpectExceptionOK;
+var
+  t: TMyTest;
+  res: TTestResult;
+begin
+  t := TMyTest.CreateWithName('TestExpectException');
+  res := t.CreateResultAndRun;
+  assertEquals('no test was run', 1, res.RunTests);
+  assertEquals('no Ignored Test present', 0, res.NumberOfIgnoredTests);
+  assertEquals('no failed Test present', 0, res.NumberOfFailures);
+  t.Free;
+  res.Free;
+end;
+
+procedure TAssertTest.TestExpectExceptionNoException;
+
+var
+  t: TMyTest;
+  res: TTestResult;
+begin
+  t := TMyTest.CreateWithName('TestExpectExceptionNone');
+  res := t.CreateResultAndRun;
+  assertEquals('no test was run', 1, res.RunTests);
+  assertEquals('no Ignored Test present', 0, res.NumberOfIgnoredTests);
+  assertEquals('no failed Test present', 1, res.NumberOfFailures);
+  assertEquals('Correct error message','Error message : Exception EMyException expected but no exception was raised',TTestFailure(res.Failures[0]).ExceptionMessage);
+  t.Free;
+  res.Free;
+end;
+
+procedure TAssertTest.TestExpectExceptionWrongExceptionClass;
+var
+  t: TMyTest;
+  res: TTestResult;
+begin
+  t := TMyTest.CreateWithName('TestExpectExceptionWrongClass');
+  res := t.CreateResultAndRun;
+  assertEquals('no test was run', 1, res.RunTests);
+  assertEquals('no Ignored Test present', 0, res.NumberOfIgnoredTests);
+  assertEquals('no failed Test present', 1, res.NumberOfFailures);
+  assertEquals('Correct error message','Error message : Exception EMyException expected but Exception was raised',TTestFailure(res.Failures[0]).ExceptionMessage);
+  t.Free;
+  res.Free;
+end;
+
+procedure TAssertTest.TestExpectExceptionWrongExceptionMessage;
+
+var
+  t: TMyTest;
+  res: TTestResult;
+begin
+  t := TMyTest.CreateWithName('TestExpectExceptionWrongMessage');
+  res := t.CreateResultAndRun;
+  assertEquals('no test was run', 1, res.RunTests);
+  assertEquals('no Ignored Test present', 0, res.NumberOfIgnoredTests);
+  assertEquals('no failed Test present', 1, res.NumberOfFailures);
+  assertEquals('Correct error message','Error message : Exception raised but exception property Message differs:  expected: <A message> but was: <A wrong message>',TTestFailure(res.Failures[0]).ExceptionMessage);
+  t.Free;
+  res.Free;
+end;
+
+procedure TAssertTest.TestExpectExceptionWrongExceptionContext;
+var
+  t: TMyTest;
+  res: TTestResult;
+begin
+  t := TMyTest.CreateWithName('TestExpectExceptionWrongHelpContext');
+  res := t.CreateResultAndRun;
+  assertEquals('no test was run', 1, res.RunTests);
+  assertEquals('no Ignored Test present', 0, res.NumberOfIgnoredTests);
+  assertEquals('no failed Test present', 1, res.NumberOfFailures);
+  assertEquals('Correct error message','Error message : Exception raised but exception property HelpContext differs:  expected: <123> but was: <124>',TTestFailure(res.Failures[0]).ExceptionMessage);
+  t.Free;
+  res.Free;
+end;
+
 procedure TMyTest.RaiseIgnoreTest;
 begin
   Ignore('This is an ignored test');
-  AssertEquals('the compiler can count', 3, 1+1); 
+  AssertEquals('the compiler can count', 3, 2);
+end;
+
+procedure TMyTest.TestExpectException;
+begin
+  ExpectException('Error message',EMyException,'A message',123);
+  Raise EMyException.CreateHelp('A message',123);
+end;
+
+procedure TMyTest.TestExpectExceptionNone;
+begin
+  ExpectException('Error message',EMyException,'A message',123);
+end;
+
+procedure TMyTest.TestExpectExceptionWrongClass;
+begin
+  ExpectException('Error message',EMyException,'A message',123);
+  Raise Exception.CreateHelp('A message',123);
+end;
+
+procedure TMyTest.TestExpectExceptionWrongMessage;
+begin
+  ExpectException('Error message',EMyException,'A message',123);
+  Raise EMyException.CreateHelp('A wrong message',123);
+end;
+
+procedure TMyTest.TestExpectExceptionWrongHelpContext;
+begin
+  ExpectException('Error message',EMyException,'A message',123);
+  Raise EMyException.CreateHelp('A message',124);
 end;
 
 procedure TTestIgnore.TestIgnoreResult;
@@ -262,14 +383,14 @@ var
 begin
   t := TMyTest.CreateWithName('RaiseIgnoreTest');
   t.EnableIgnores := false;
-  res := t.CreateResultandRun;
+  res := t.CreateResultAndRun;
   assertEquals('no test was run', 1, res.RunTests);
   assertEquals('Ignored Test reported even if the switch is not active', 0, res.NumberOfIgnoredTests);
   assertEquals('no failure caught', 1, res.NumberOfFailures);
   assertFalse('failure is signalled as Ignored Test and the switch is not active', 
     TTestFailure(res.Failures[0]).IsIgnoredTest);
   assertEquals('wrong failure name', 'EAssertionFailedError', TTestFailure(res.Failures[0]).ExceptionClassName);
-  assertEquals('wrong message', 'the compiler can count expected: <3> but was: <2>', TTestFailure(res.Failures[0]).ExceptionMessage);
+  assertEquals('wrong message', '"the compiler can count" expected: <3> but was: <2>', TTestFailure(res.Failures[0]).ExceptionMessage);
   t.Free;
   res.Free;
 end;

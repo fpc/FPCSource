@@ -68,6 +68,8 @@ type
   private
     FLevel: integer;
     FCount: integer;
+    FSkipAddressInfo: Boolean;
+    FSparse: Boolean;
     FTestTime: TDateTime;
     FFileName: string;
     FSuiteResultsStack : TSuiteResultsStack;
@@ -83,6 +85,8 @@ type
     FOnEndTestSuite: TTestEvent;
     FSkipTiming: Boolean;
   protected
+    procedure SetSkipAddressInfo(AValue: Boolean); virtual;
+    procedure SetSparse(AValue: Boolean); virtual;
     procedure WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer); virtual;
     procedure WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime); virtual;
     procedure WriteSuiteHeader(ATestSuite: TTestSuite; ALevel: integer); virtual;
@@ -122,7 +126,9 @@ type
     property OnStartTestSuite: TTestEvent read FOnStartTestSuite write FOnStartTestSuite;
     property OnEndTestSuite: TTestEvent read FOnEndTestSuite write FOnEndTestSuite;
     Property SkipTiming : Boolean Read FSkipTiming Write FSkipTiming;
-  end; 
+    Property Sparse : Boolean Read FSparse Write SetSparse;
+    Property SkipAddressInfo : Boolean Read FSkipAddressInfo Write SetSkipAddressInfo;
+  end;
 
 implementation
 
@@ -272,6 +278,18 @@ begin
     FOnAddError(Self, ATest, AError);
 end;
 
+procedure TCustomResultsWriter.SetSkipAddressInfo(AValue: Boolean);
+begin
+  if FSkipAddressInfo=AValue then Exit;
+  FSkipAddressInfo:=AValue;
+end;
+
+procedure TCustomResultsWriter.SetSparse(AValue: Boolean);
+begin
+  if FSparse=AValue then Exit;
+  FSparse:=AValue;
+end;
+
 procedure TCustomResultsWriter.WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer);
 begin
   if Assigned(FOnWriteTestHeader) then 
@@ -291,9 +309,9 @@ begin
     FOnWriteSuiteHeader(Self, ATestSuite, ALevel);
 end;
 
-procedure TCustomResultsWriter.WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer; 
-  ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer; ANumFailures: integer;
-  ANumIgnores: integer);
+procedure TCustomResultsWriter.WriteSuiteFooter(ATestSuite: TTestSuite;
+  ALevel: integer; ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer;
+  aNumFailures: integer; ANumIgnores: integer);
 begin
   if Assigned(FOnWriteSuiteFooter) then 
     FOnWriteSuiteFooter(Self, ATestSuite, ALevel, ATiming, ANumRuns, ANumErrors, 
