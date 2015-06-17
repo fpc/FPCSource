@@ -13,7 +13,6 @@
 
  **********************************************************************}
 {
- missing elf.h // Elfheader
  BSTR Funktions
  
  defines:
@@ -1936,8 +1935,316 @@ const
   ERROR_BROKEN_PIPE = 400;  // An attempt to write on a pipe without any reader has been made
   ERROR_WOULD_BLOCK = 401;  // A Read() or a Write() on a file opened with the FMF_NONBLOCK flag would block
   ERROR_INTERRUPTED = 402;  // The I/O file operation has been interrupted for some reason  
-{$endif}
+  
+// elf.h  
+  
+type
+  //*
+  //* Define one of ELF_64BIT or ELF_32BIT in your code if you want to enforce specific
+  //* version of ELF structures. Otherwize it fails back to your native machine's size.
+  //*  
+  {$IFDEF ELF_64BIT}
+  {$define elf_ptr_t}
+  elf_ptr_t             = UQUAD;
+  elf_uintptr_t         = UQUAD;
+  elf_intptr_t          = QUAD;
+  {$ENDIF}
 
+  {$IFDEF ELF_32BIT}
+  {$define elf_ptr_t}
+  elf_ptr_t             = ULONG;
+  elf_uintptr_t         = ULONG;
+  elf_intptr_t          = LONG;
+  {$ENDIF}
+
+  {$IFNDEF elf_ptr_t}
+  elf_ptr_t             = APTR;
+  elf_uintptr_t         = IPTR;
+  elf_intptr_t          = SIPTR;
+  {$ENDIF}
+
+
+Const
+  SHT_PROGBITS          =  1;
+  SHT_SYMTAB            =  2;
+  SHT_STRTAB            =  3;
+  SHT_RELA              =  4;
+  SHT_NOBITS            =  8;
+  SHT_REL               =  9;
+  SHT_SYMTAB_SHNDX      = 18;
+  SHT_ARM_ATTRIBUTES    = $70000003;
+  
+  ET_REL                =  1;
+  ET_EXEC               =  2;
+  
+  EM_386                =  3;
+  EM_68K                =  4;
+  EM_PPC                = 20;
+  EM_ARM                = 40;
+  EM_X86_64             = 62;     //* AMD x86-64 */
+  
+  R_386_NONE            = 0;
+  R_386_32              = 1;
+  R_386_PC32            = 2;
+
+  //* AMD x86-64 relocations.  */
+  R_X86_64_NONE         =  0;      //* No reloc */
+  R_X86_64_64           =  1;      //* Direct 64 bit  */
+  R_X86_64_PC32         =  2;      //* PC relative 32 bit signed */
+  R_X86_64_32           = 10;
+  R_X86_64_32S          = 11;
+  
+  R_68K_NONE            = 0;
+  R_68K_32              = 1;
+  R_68K_16              = 2;
+  R_68K_8               = 3;
+  R_68K_PC32            = 4;
+  R_68K_PC16            = 5;
+  R_68K_PC8             = 6;
+  
+  R_PPC_NONE            =   0;
+  R_PPC_ADDR32          =   1;
+  R_PPC_ADDR16_LO       =   4;
+  R_PPC_ADDR16_HA       =   6;
+  R_PPC_REL24           =  10;
+  R_PPC_REL32           =  26;
+  R_PPC_REL16_LO        = 250;
+  R_PPC_REL16_HA        = 252;
+  
+  R_ARM_NONE            =  0;
+  R_ARM_PC24            =  1;
+  R_ARM_ABS32           =  2;
+  R_ARM_CALL            = 28;
+  R_ARM_JUMP24          = 29;
+  R_ARM_TARGET1         = 38;
+  R_ARM_V4BX            = 40;
+  R_ARM_TARGET2         = 41;
+  R_ARM_PREL31          = 42;
+  R_ARM_MOVW_ABS_NC     = 43;
+  R_ARM_MOVT_ABS        = 44;
+  R_ARM_THM_CALL        = 10;
+  R_ARM_THM_JUMP24      = 30;
+  R_ARM_THM_MOVW_ABS_NC = 47;
+  R_ARM_THM_MOVT_ABS    = 48;
+ 
+  STT_NOTYPE            =  0;
+  STT_OBJECT            =  1;
+  STT_FUNC              =  2;
+  STT_SECTION           =  3;
+  STT_FILE              =  4;
+  STT_LOPROC            = 13;
+  STT_HIPROC            = 15;
+ 
+  STB_LOCAL             =  0;
+  STB_GLOBAL            =  1;
+  STB_WEAK              =  2;
+  STB_LOOS              = 10;
+  STB_GNU_UNIQUE        = 10;
+  STB_HIOS              = 12;
+  STB_LOPROC            = 13;
+  STB_HIPROC            = 15;
+ 
+  SHN_UNDEF             = 0;
+  SHN_LORESERVE         = $ff00;
+  SHN_ABS               = $fff1;
+  SHN_COMMON            = $fff2;
+  SHN_XINDEX            = $ffff;
+  SHN_HIRESERVE         = $ffff;
+ 
+  SHF_WRITE             = (1 shl 0);
+  SHF_ALLOC             = (1 shl 1);
+  SHF_EXECINSTR         = (1 shl 2);
+ 
+  //  ELF_ST_TYPE(i)    ((i) & 0x0F)
+ 
+  EI_VERSION            =  6;
+  EV_CURRENT            =  1;
+ 
+  EI_DATA               =  5;
+  ELFDATA2LSB           =  1;
+  ELFDATA2MSB           =  2;
+ 
+  EI_CLASS              =  4;
+  ELFCLASS32            =  1;
+  ELFCLASS64            =  2;             //* 64-bit objects */
+ 
+  EI_OSABI              =  7;
+  EI_ABIVERSION         =  8;
+ 
+  ELFOSABI_AROS         = 15;
+ 
+  PF_X                  = (1 shl 0);
+  
+  ATTR_VERSION_CURRENT  = $41;
+
+type
+  PElfHeader = ^TELFHeader;
+  TElfHeader = record
+    Ident:     array [0..16-1] of Byte;
+    Type_:     Word;
+    Machine:   Word;
+    Version:   LongWord;
+    Entry:     elf_ptr_t;
+    PhOff:     elf_uintptr_t;
+    ShOff:     elf_uintptr_t;
+    Flags:     LongWord;
+    EhSize:    Word;
+    PhentSize: Word;
+    PhNum:     Word;
+    ShentSize: Word;
+    ShNum:     Word;
+    ShStrndx:  Word;  
+  end;
+  
+  PSHeader  = ^TSHeader;
+  TSHeader = record
+    Name:      LongWord;
+    Type_:     LongWord;
+    Flags:     elf_uintptr_t ;
+    Addr:      elf_ptr_t     ;
+    Offset:    elf_uintptr_t ;
+    Size:      elf_uintptr_t ;
+    Link:      LongWord;
+    Info:      LongWord;
+    AddrAlign: elf_uintptr_t ;
+    EntSize:   elf_uintptr_t ;
+  end;
+  
+  {$DEFINE PT_LOAD}
+
+{$IFDEF ELF_64BIT}
+  TPHeader = record
+    Type_:  LongWord;
+    Flags:  LongWord;
+    Offset: elf_uintptr_t;
+    VAddr:  elf_ptr_t;
+    PAddr:  elf_ptr_t;  
+    Filesz: elf_uintptr_t;
+    Memsz:  elf_uintptr_t;
+    Align:  elf_uintptr_t;
+  end;
+  
+  TSymbol = record
+    Name:    LongWord; // Offset of the name string in the string table
+    Info:    Byte;     // What kind of symbol is this ? (global, variable, etc)
+    Other:   Byte;     // undefined                                        
+    ShIndex: Word;     // In which section is the symbol defined ?               
+    Value:   elf_uintptr_t ; // Varies; eg. the offset of the symbol in its hunk
+    Size:    elf_uintptr_t ; // How much memory does the symbol occupy    
+  end;
+
+  // 209 #define ELF_R_SYM(i)          (ULONG)((i) >> 32)
+  // 210 #define ELF_R_TYPE(i)         (ULONG)((i) & 0xffffffffULL)
+  // 211 #define ELF_R_INFO(sym, type) (((UQUAD)(sym) << 32) + (type))
+
+{$ELSE ELF_64BIT}
+  TPHeader = record
+    Type_:  LongWord;
+    Offset: LongWord;
+    VAddr:  elf_ptr_t;
+    PAddr:  elf_ptr_t;  
+    Filesz: LongWord;
+    Memsz:  LongWord;
+    Flags:  LongWord;
+    Align:  LongWord;
+  end;
+  
+  TSymbol = record
+    Name:    LongWord;       // Offset of the name string in the string table
+    Value:   elf_uintptr_t;  // Varies; eg. the offset of the symbol in its hunk
+    Size:    elf_uintptr_t;  // How much memory does the symbol occupy
+    Info:    Byte;           // What kind of symbol is this ? (global, variable, etc)
+    Other:   Byte;           // undefined
+    ShIndex: Word;           // In which section is the symbol defined?
+  end;
+  
+  // 237 #define ELF_R_SYM(val)        ((val) >> 8)
+  // 238 #define ELF_R_TYPE(val)       ((val) & 0xff)
+  // 239 #define ELF_R_INFO(sym, type) (((sym) << 8) + ((type) & 0xff))
+{$ENDIF}
+
+
+  // 243 #define ELF_S_BIND(val)         ((val) >> 4)
+  // 244 #define ELF_S_TYPE(val)         ((val) & 0xF)
+  // 245 #define ELF_S_INFO(bind, type)  (((bind) << 4) + ((type) & 0xF))
+
+  TRel = record
+    Offset: elf_uintptr_t;     // Address of the relocation relative to the section it refers to
+    Info:   elf_uintptr_t;     // Type of the relocation
+  end;
+
+  TRelA = record
+    Offset: elf_uintptr_t;     // Address of the relocation relative to the section it refers to
+    Info:   elf_uintptr_t;     // Type of the relocation
+    Addend: elf_uintptr_t;     // Constant addend used to compute value
+  end;
+
+
+  (*
+ 260 /* Note: the conversion below is not in line with ELF specification and is fixed in GNU binutils since 2008
+ 261  * See: https://sourceware.org/bugzilla/show_bug.cgi?id=5900
+ 262  */
+ 263 /* convert section header number to array index */
+ 264 /*#define SHINDEX(n) \
+ 265     ((n) < SHN_LORESERVE ? (n) : ((n) <= SHN_HIRESERVE ? 0 : (n) - (SHN_HIRESERVE + 1 - SHN_LORESERVE)))*/
+ 266 
+ 267 /* convert section header array index to section number */
+ 268 /*#define SHNUM(i) \
+ 269     ((i) < SHN_LORESERVE ? (i) : (i) + (SHN_HIRESERVE + 1 - SHN_LORESERVE))*/
+ 270 
+ 271 /* ARM-specific attributes section definitions follow */
+ 272 
+ 273 #define  
+  *)
+ 
+  TAttrs_Section = record
+    Size:   LongWord;
+    Vendor: array[0..0] of char;   // NULL-terminated name
+  end;                             // Vendor-specific subsections follow
+ 
+  TAttrs_SubSection = packed record
+    Tag: Byte;
+    Size: LongWord;  
+  end;
+
+const 
+  Tag_File                 = 1;
+  Tag_Section              = 2;
+  Tag_Symbol               = 3;
+  Tag_CPU_raw_name         = 4;
+  Tag_CPU_name             = 5;
+  Tag_CPU_arch             = 6;
+  Tag_FP_arch              = 10;
+  Tag_compatibility        = 32;
+  Tag_also_compatible_with = 65;
+  Tag_conformance          = 67;
+
+  // Tag_CPU_arch values
+  ELF_CPU_PREv4    = 0;
+  ELF_CPU_ARMv4    = 1;
+  ELF_CPU_ARMv4T   = 2;
+  ELF_CPU_ARMv5T   = 3;
+  ELF_CPU_ARMv5TE  = 4;
+  ELF_CPU_ARMv5TEJ = 5;
+  ELF_CPU_ARMv6    = 6;
+  ELF_CPU_ARMv6KZ  = 7;
+  ELF_CPU_ARMv6T2  = 8;
+  ELF_CPU_ARMv6K   = 9;
+  ELF_CPU_ARMv7    = 10;
+  ELF_CPU_ARM_v6M  = 11;
+  ELF_CPU_ARMv6SM  = 12;
+  ELF_CPU_ARMv7EM  = 13;
+
+  //* Tag_FP_arch values */
+  ELF_FP_None     = 0;
+  ELF_FP_v1       = 1;
+  ELF_FP_v2       = 2;
+  ELF_FP_v3       = 3;
+  ELF_FP_v3_Short = 4;
+  ELF_FP_v4       = 5;
+  ELF_FP_v4_Short = 6;  
+
+{$endif}
 
 
 procedure AbortPkt(Port: PMsgPort; Pkt: PDosPacket); syscall AOS_DOSBase 44;
@@ -2117,6 +2424,20 @@ function CreateNewProcTags(const Tags: array of const): PProcess;
 function NewLoadSegTags(const File_: STRPTR; const Tags: array of const): BPTR;
 function SystemTags(const Command: STRPTR; const Tags: array of const): LongInt;
 
+// elf.h
+
+function ELF_ST_TYPE(i: LongWord): LongWord;
+{$ifdef ELF_64BIT}
+function ELF_R_SYM(i: QWord): QWord;
+function ELF_R_TYPE(i: QWord): QWord;
+function ELF_R_INFO(Sym: QWord; Type_: QWord): QWord;
+{$else}
+function ELF_R_SYM(i: LongWord): LongWord;
+function ELF_R_TYPE(i: LongWord): LongWord;
+function ELF_R_INFO(Sym: LongWord; Type_: LongWord): LongWord;
+{$endif}
+
+
 const
   BNULL = nil;
 
@@ -2127,7 +2448,43 @@ implementation
 
 uses
   tagsarray;
+
+function ELF_ST_TYPE(i: LongWord): LongWord;
+begin
+  Result := i and $0F;
+end;   
+
+{$ifdef ELF_64BIT}
+  function ELF_R_SYM(i: QWord): QWord;
+  begin
+    Result := i shr 32;
+  end;
   
+  function ELF_R_TYPE(i: QWord): QWord;
+  begin
+    Result := i and $ffffffff;
+  end;
+  
+  function ELF_R_INFO(Sym: QWord; Type_: QWord): QWord;
+  begin
+    Result := Sym shl 32 + Type_;
+  end;
+{$else}
+  function ELF_R_SYM(i: LongWord): LongWord;
+  begin
+    Result := i shr 8;
+  end;
+  
+  function ELF_R_TYPE(i: LongWord): LongWord;
+  begin
+    Result := i and $ff;
+  end;
+  
+  function ELF_R_INFO(Sym: LongWord; Type_: LongWord): LongWord;
+  begin
+    Result := Sym shl 8 + (Type_ and $ff);
+  end;
+{$endif}
   
 function AllocDosObjectTags(const Type_: LongWord; const Tags: array of const): APTR;
 var

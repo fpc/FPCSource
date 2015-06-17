@@ -181,7 +181,7 @@ var
     bm1,
     bm2 : pBitMap;
     rp : pRastPort;
-    Temp : Array [0..7] of PLANEPTR;
+    Temp : Array [0..7] of TPLANEPTR;
 begin
     s := w^.WScreen;
     rp := w^.RPort;

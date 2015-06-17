@@ -365,7 +365,7 @@ begin
  if MOS_UtilityBase=nil then Halt(1);
 
  { Creating the memory pool for growing heap }
- ASYS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
+ ASYS_heapPool:=CreatePool(MEMF_FAST or MEMF_SEM_PROTECTED,growheapsize2,growheapsize1);
  if ASYS_heapPool=nil then Halt(1);
 
  if MOS_ambMsg=nil then begin

@@ -42,7 +42,7 @@ USES Exec,utility,agraphics;
 VAR RenderBase : pLibrary;
 
 type
-    pPLANEPTR = ^PLANEPTR;
+    pPLANEPTR = ^TPLANEPTR;
 
 const
     RENDERNAME : PChar = 'render.library';
