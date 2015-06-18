@@ -66,6 +66,7 @@ begin
     P.Dependencies.Add('hash');
     P.Dependencies.Add('univint',[darwin,iphonesim]);
     P.Dependencies.Add('rtl-extra');
+    P.Dependencies.Add('rtl-objpas');
 	
     P.Version:='3.0.1';
 

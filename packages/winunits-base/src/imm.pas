@@ -314,17 +314,17 @@ function ImmReleaseContext(wnd: HWND; imc: HIMC): LongBool; stdcall; external Im
 function ImmAssociateContext(wnd: HWND; imc: HIMC): HIMC; stdcall; external Imm name 'ImmAssociateContext';
 
 function ImmAssociateContextEx(wnd: HWND; imc: HIMC; dwFlags: DWORD): LongBool; stdcall; external Imm name 'ImmAssociateContextEx';
-function ImmGetCompositionStringA(imc: HIMC; dwIndex: DWORD;
+function ImmGetCompositionStringA(imc: HIMC; dwIndex: LONG;
     lpBuf: LPVOID; dwBufLen: DWORD): Longword; stdcall; external Imm name 'ImmGetCompositionStringA';
-function ImmGetCompositionStringW(imc: HIMC; dwIndex: DWORD;
+function ImmGetCompositionStringW(imc: HIMC; dwIndex: LONG;
     lpBuf: LPVOID; dwBufLen: DWORD): Longword; stdcall; external Imm name 'ImmGetCompositionStringW';
 
 {$ifndef UNICODE}
 function ImmGetCompositionString(imc: HIMC; dwIndex: DWORD;
-    lpBuf: LPVOID; dwBufLen: DWORD): Longword; stdcall; external Imm name 'ImmGetCompositionStringA';
+    lpBuf: LPVOID; dwBufLen: DWORD): LONG; stdcall; external Imm name 'ImmGetCompositionStringA';
 {$else}
 function ImmGetCompositionString(imc: HIMC; dwIndex: DWORD;
-    lpBuf: LPVOID; dwBufLen: DWORD): Longword; stdcall; external Imm name 'ImmGetCompositionStringW';
+    lpBuf: LPVOID; dwBufLen: DWORD): LONG; stdcall; external Imm name 'ImmGetCompositionStringW';
 {$endif}
 
 function ImmSetCompositionStringA(imc: HIMC; dwIndex: DWORD; lpComp: LPVOID;
