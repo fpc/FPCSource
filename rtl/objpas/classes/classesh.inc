@@ -392,6 +392,7 @@ type
       { functions and properties to match TBits class }
       procedure SetBit(bit : longint; value : Boolean);
       procedure SetSize(value : longint);
+   Protected   
       procedure CheckBitIndex (Bit : longint;CurrentSize : Boolean);
    public
       { Public declarations }
