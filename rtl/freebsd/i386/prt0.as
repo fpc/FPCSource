@@ -18,7 +18,7 @@
 #
 
         .file   "prt1.as"
-        .version        "01.01"
+
 gcc2_compiled.:
 .section        .rodata
 .LC0:
@@ -147,3 +147,5 @@ operatingsystem_parameters:
 
 //.section .threadvar,"aw",@nobits
         .comm   ___fpc_threadvar_offset,4
+
+.section .note.GNU-stack,"",@progbits
