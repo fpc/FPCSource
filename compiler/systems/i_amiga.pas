@@ -47,7 +47,7 @@ unit i_amiga;
             asmext       : '.s';
             objext       : '.o';
             resext       : '.res';
-            resobjext    : '.or';
+            resobjext    : '.fpcres'; { Because 68k Amiga uses external resources for now }
             sharedlibext : '.library';
             staticlibext : '.a';
             staticlibprefix : 'libp';
@@ -66,7 +66,7 @@ unit i_amiga;
             link         : ld_none;
             linkextern   : ld_amiga;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_ext;
             dbg          : dbg_stabs;
             script       : script_amiga;
             endian       : endian_big;
