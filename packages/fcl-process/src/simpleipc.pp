@@ -76,6 +76,7 @@ Type
     Procedure CheckActive;
     Procedure Activate; virtual; abstract;
     Procedure Deactivate; virtual; abstract;
+    Procedure Loaded; override;
     Property Busy : Boolean Read FBusy;
   Published
     Property Active : Boolean Read FActive Write SetActive;
@@ -238,24 +239,29 @@ end;
 
 procedure TSimpleIPC.CheckInactive;
 begin
-  If Active then
-    DoError(SErrActive,[]);
+  if not (csLoading in ComponentState) then
+    If Active then
+      DoError(SErrActive,[]);
 end;
 
 procedure TSimpleIPC.CheckActive;
 begin
-  If Not Active then
-    DoError(SErrInActive,[]);
+  if not (csLoading in ComponentState) then
+    If Not Active then
+      DoError(SErrInActive,[]);
 end;
 
 procedure TSimpleIPC.SetActive(const AValue: Boolean);
 begin
   if (FActive<>AValue) then
     begin
-    If AValue then
-      Activate
-    else
-      Deactivate;
+    if (csLoading in ComponentState) then
+      FActive:=AValue
+    else  
+      If AValue then
+        Activate
+      else
+        Deactivate;
     end;
 end;
 
@@ -265,6 +271,20 @@ begin
     begin
     CheckInactive;
     FServerID:=AValue
+    end;
+end;
+
+Procedure TSimpleIPC.Loaded; 
+
+Var
+  B : Boolean;
+
+begin
+  B:=FActive;
+  if B then
+    begin
+    Factive:=False;
+    Activate;
     end;
 end;
 
@@ -373,6 +393,9 @@ procedure TSimpleIPCServer.Deactivate;
 begin
   StopServer;
 end;
+
+
+
 
 { ---------------------------------------------------------------------
     TSimpleIPCClient
