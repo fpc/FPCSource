@@ -76,8 +76,8 @@ begin
     wins[i] := newwin(NLINES, NCOLS, y, x);
     FmtStr(lab, 'Window Number %d', [i + 1]);
     win_show(wins[i], lab, i + 1);
-    y += 3;
-    x += 7;
+    Inc(y,3);
+    Inc(x,7);
   end
 end;
 
