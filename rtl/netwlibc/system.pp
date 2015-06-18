@@ -13,7 +13,7 @@
  **********************************************************************}
 { no stack check in system }
 {$S-}
-unit system;
+unit System;
 
 interface
 
