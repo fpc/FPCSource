@@ -223,7 +223,8 @@ const
       112 : InOutRes := 101;
       110 : InOutRes := 5;
       114 : InOutRes := 6;
-      290 : InOutRes := 290;
+      206 : InOutRes := 3; (* TH: Path too long *)
+      290 : InOutRes := 4;
      end;
      { all other cases ... we keep the same error code }
    end;
@@ -318,7 +319,7 @@ type
     Nested_RepRec: PExceptionReportRecord;
     Address: pointer;
     ParamCount: cardinal;
-    Parameters: array [0..MaxExceptionParameters] of cardinal;
+    Parameters: array [0..Pred (MaxExceptionParameters)] of cardinal;
   end;
 
   TContextRecord = packed record

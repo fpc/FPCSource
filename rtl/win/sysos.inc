@@ -362,6 +362,7 @@ type
          begin
            res :=5;
          end;
+       ERROR_FILENAME_EXCED_RANGE : Res := 3;
        else
          begin
            { other error codes can directly be mapped }
