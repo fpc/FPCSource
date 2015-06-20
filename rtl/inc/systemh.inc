@@ -798,6 +798,10 @@ procedure ReadDependencyBarrier;
 procedure ReadWriteBarrier;
 procedure WriteBarrier;
 
+{$ifdef ARM}
+  {$i armprocs.inc}
+{$endif ARM}
+
 
 {****************************************************************************
                           Math Routines

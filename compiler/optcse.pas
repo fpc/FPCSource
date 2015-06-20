@@ -72,6 +72,7 @@ unit optcse;
                with more than one parameter }
              in_fma_single,in_fma_double,in_fma_extended,in_fma_float128])
           ) or
+          (tinlinenode(n).inlinenumber >= 200) or
           ((n.nodetype=callparan) and not(assigned(tcallparanode(n).right))) or
           ((n.nodetype=loadn) and
             not((tloadnode(n).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) and

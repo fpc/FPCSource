@@ -26,13 +26,14 @@ unit narminl;
 interface
 
     uses
-      node,ninl,ncginl;
+      node,ninl,ncginl,ncal,ncon;
 
     type
       tarminlinenode = class(tcgInlineNode)
         function first_abs_real: tnode; override;
         function first_sqr_real: tnode; override;
         function first_sqrt_real: tnode; override;
+        function first_arm: tnode; override;
         { atn,sin,cos,lgn isn't supported by the linux fpe
         function first_arctan_real: tnode; override;
         function first_ln_real: tnode; override;
@@ -50,6 +51,8 @@ interface
         }
         procedure second_prefetch; override;
         procedure second_abs_long; override;
+
+        procedure second_arm; override;
       private
         procedure load_fpu_location(out singleprec: boolean);
       end;
@@ -201,6 +204,13 @@ implementation
           end;
       end;
 
+
+    function tarminlinenode.first_arm : tnode;
+      begin
+        case inlinenumber of
+          {$i armfirst.inc}
+        end;
+      end;
 
     { atn,sin,cos,lgn isn't supported by the linux fpe
     function tarminlinenode.first_arctan_real: tnode;
@@ -403,6 +413,76 @@ implementation
         current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg_const(A_RSB,location.register,location.register, 0), C_MI));
 
         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+      end;
+
+
+    procedure tarminlinenode.second_arm;
+
+      var
+        paraarray : array[1..4] of tnode;
+        i : integer;
+        op: TAsmOp;
+        pf: TOpPostfix;
+
+      function GetConstInt(n: tnode): longint;
+        begin
+          if is_constintnode(n) then
+            result:=tordconstnode(n).value.svalue
+          else
+            Message(type_e_constant_expr_expected);
+        end;
+
+      procedure GetParameters(count: longint);
+        var
+          i: longint;
+          p: tnode;
+        begin
+          if count=1 then
+            paraarray[1]:=left
+          else
+            begin
+              p:=left;
+              for i := count downto 1 do
+                begin
+                  paraarray[i]:=tcallparanode(p).paravalue;
+                  p:=tcallparanode(p).nextpara;
+                end;
+            end;
+        end;
+
+      procedure location_make_ref(var loc: tlocation);
+        var
+          hloc: tlocation;
+        begin
+          case loc.loc of
+            LOC_CREGISTER,
+            LOC_REGISTER:
+              begin
+                location_reset_ref(hloc, LOC_REFERENCE, OS_32, 1);
+                hloc.reference.base:=loc.register;
+
+                loc:=hloc;
+              end;
+            LOC_CREFERENCE,
+            LOC_REFERENCE:
+              begin
+              end;
+          else
+            begin
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,loc,u32inttype,u32inttype,false);
+
+              location_reset_ref(hloc, LOC_REFERENCE, OS_32, 1);
+              hloc.reference.base:=loc.register;
+
+              loc:=hloc;
+            end;
+          end;
+        end;
+
+      begin
+        case inlinenumber of
+          {$i armsecond.inc}
+        end;
       end;
 
 begin

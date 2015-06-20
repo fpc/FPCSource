@@ -29,11 +29,12 @@ interface
        node,htypechk,cpuinfo,symtype;
 
     {$i compinnr.inc}
+    {$i arm/arminnr.inc}
 
     type
        tinlinenode = class(tunarynode)
-          inlinenumber : byte;
-          constructor create(number : byte;is_const:boolean;l : tnode);virtual;
+          inlinenumber : word;
+          constructor create(number : word;is_const:boolean;l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
@@ -86,6 +87,7 @@ interface
           function first_seg: tnode; virtual;
           function first_sar: tnode; virtual;
           function first_fma : tnode; virtual;
+          function first_arm : tnode; virtual;
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -104,7 +106,7 @@ interface
     var
        cinlinenode : tinlinenodeclass = tinlinenode;
 
-   function geninlinenode(number : byte;is_const:boolean;l : tnode) : tinlinenode;
+   function geninlinenode(number : word;is_const:boolean;l : tnode) : tinlinenode;
 
 implementation
 
@@ -118,7 +120,7 @@ implementation
       cgbase,procinfo
       ;
 
-   function geninlinenode(number : byte;is_const:boolean;l : tnode) : tinlinenode;
+   function geninlinenode(number : word;is_const:boolean;l : tnode) : tinlinenode;
 
      begin
         geninlinenode:=cinlinenode.create(number,is_const,l);
@@ -128,7 +130,7 @@ implementation
                            TINLINENODE
 *****************************************************************************}
 
-    constructor tinlinenode.create(number : byte;is_const:boolean;l : tnode);
+    constructor tinlinenode.create(number : word;is_const:boolean;l : tnode);
 
       begin
          inherited create(inlinen,l);
@@ -141,14 +143,14 @@ implementation
     constructor tinlinenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        inlinenumber:=ppufile.getbyte;
+        inlinenumber:=ppufile.getword;
       end;
 
 
     procedure tinlinenode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putbyte(inlinenumber);
+        ppufile.putword(inlinenumber);
       end;
 
 
@@ -2578,6 +2580,25 @@ implementation
         end;
 
 
+      procedure CheckParameters(count: integer);
+        var
+          p: tnode;
+        begin
+          if count=1 then
+            set_varstate(left,vs_read,[vsf_must_be_valid])
+          else
+            begin
+              p:=left;
+              while count>0 do
+                begin
+                  set_varstate(tcallparanode(p).left,vs_read,[vsf_must_be_valid]);
+
+                  p:=tcallparanode(p).right;
+                  dec(count);
+                end;
+            end;
+        end;
+
       var
          hightree,
          hp        : tnode;
@@ -3272,6 +3293,10 @@ implementation
                   set_varstate(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,vs_read,[vsf_must_be_valid]);
                   resultdef:=tcallparanode(left).left.resultdef;
                 end;
+
+{$ifdef ARM}
+              {$i armtype.inc}
+{$endif ARM}
               else
                 internalerror(8);
             end;
@@ -3596,6 +3621,8 @@ implementation
          in_fma_extended,
          in_fma_float128:
            result:=first_fma;
+         in_arm_first..in_arm_last:
+           result:=first_arm;
          else
            internalerror(89);
           end;
@@ -4304,6 +4331,13 @@ implementation
      function tinlinenode.first_fma: tnode;
        begin
          CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'FMA');
+         result:=nil;
+       end;
+
+
+     function tinlinenode.first_arm: tnode;
+       begin
+         CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'ARM');
          result:=nil;
        end;
 

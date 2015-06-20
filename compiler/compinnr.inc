@@ -136,3 +136,5 @@ const
 
    { SSE }
 
+{ ARM }
+   in_arm_base         = 300;
