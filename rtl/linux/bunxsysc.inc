@@ -492,10 +492,15 @@ function fpPoll(fds: ppollfd; nfds: cuint; timeout: clong): cint;
 {$if defined(generic_linux_syscalls)}
 var ts : timespec;
 begin
-  ts.tv_sec := timeout div 1000;
-  ts.tv_nsec := (timeout mod 1000) * 1000000;
-  fpPoll:=do_syscall(syscall_nr_ppoll,tsysparam(fds),tsysparam(nfds),
-                     tsysparam(@ts),0);
+  if timeout<0 then
+    fpPoll:=do_syscall(syscall_nr_ppoll,tsysparam(fds),tsysparam(nfds),0,0)
+  else
+    begin
+      ts.tv_sec := timeout div 1000;
+      ts.tv_nsec := (timeout mod 1000) * 1000000;
+      fpPoll:=do_syscall(syscall_nr_ppoll,tsysparam(fds),tsysparam(nfds),
+                         tsysparam(@ts),0);
+    end
 end;
 {$else}
 begin
