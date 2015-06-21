@@ -1580,7 +1580,11 @@ implementation
               localvarsym :
                 begin
                   vs:=tabstractnormalvarsym(sym);
-                  vs.initialloc.size:=def_cgsize(vs.vardef);
+                  if is_vector(vs.vardef) and
+                     fits_in_mm_register(vs.vardef) then
+                    vs.initialloc.size:=def_cgmmsize(vs.vardef)
+                  else
+                    vs.initialloc.size:=def_cgsize(vs.vardef);
                   if ([po_assembler,po_nostackframe] * pd.procoptions = [po_assembler,po_nostackframe]) and
                      (vo_is_funcret in vs.varoptions) then
                     begin

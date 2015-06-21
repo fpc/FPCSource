@@ -1770,7 +1770,12 @@ implementation
                      varregable:=vr_mmreg
                    else
                      varregable:=vr_fpureg;
-                 end;
+                 end
+            else if is_vector(vardef) and
+                    fits_in_mm_register(vardef) then
+              begin
+                varregable:=vr_mmreg;
+              end;
           end;
       end;
 

@@ -139,7 +139,18 @@ const
 
 { ARM }
    in_arm_base             = 300;
+
+{ X86 }
+   in_x86_base         = 500;  
    
 {$ifdef ARM}
   {$i arminnr.inc}
 {$endif ARM}
+
+{$ifdef i386}
+  {$i x86innr.inc}
+{$endif i386}
+
+{$ifdef x86_64}
+  {$i x86innr.inc}
+{$endif x86_64}

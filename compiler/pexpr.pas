@@ -255,7 +255,7 @@ implementation
        end;
 
 
-     function statement_syssym(l : byte) : tnode;
+     function statement_syssym(l : word) : tnode;
       var
         p1,p2,paras  : tnode;
         err,

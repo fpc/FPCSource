@@ -1237,6 +1237,14 @@ unit cgx86;
             else
               result:=A_MOVQ;
           end
+        else if (tcgsize2size[fromsize]=tcgsize2size[tosize]) and
+                (fromsize=OS_M128) then
+          begin
+            if UseAVX then
+              result:=A_VMOVDQU
+            else
+              result:=A_MOVDQU;
+          end
         else
           internalerror(2010060104);
         if result=A_NONE then
@@ -1260,6 +1268,8 @@ unit cgx86;
                   instr:=taicpu.op_reg_reg(A_MOVAPD,S_NO,reg1,reg2);
                 OS_M64:
                   instr:=taicpu.op_reg_reg(A_MOVQ,S_NO,reg1,reg2);
+                OS_M128:
+                  instr:=taicpu.op_reg_reg(A_MOVAPS,S_NO,reg1,reg2);
                 else
                   internalerror(2006091201);
               end
@@ -1317,7 +1327,7 @@ unit cgx86;
          make_simple_ref(list,tmpref);
          if shuffle=nil then
            begin
-             if fromsize=OS_M64 then
+             if fromsize in [OS_64,OS_S64,OS_M64] then
                list.concat(taicpu.op_ref_reg(A_MOVQ,S_NO,tmpref,reg))
              else
 {$ifdef x86_64}
@@ -1352,7 +1362,7 @@ unit cgx86;
          make_simple_ref(list,tmpref);
          if shuffle=nil then
            begin
-             if fromsize=OS_M64 then
+             if fromsize in [OS_64,OS_S64,OS_M64] then
                list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,tmpref))
              else
 {$ifdef x86_64}

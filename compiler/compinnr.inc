@@ -138,3 +138,6 @@ const
 
 { ARM }
    in_arm_base         = 300;
+
+{ X86 }
+   in_x86_base         = 500;

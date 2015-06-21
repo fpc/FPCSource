@@ -316,6 +316,21 @@ implementation
         wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far);
         longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far);
   {$endif i8086}
+        x86_m64type:=carraydef.create(0,1,s32inttype);
+        x86_m128type:=carraydef.create(0,3,s32inttype);
+        x86_m128dtype:=carraydef.create(0,1,s32inttype);
+        x86_m128itype:=carraydef.create(0,3,s32inttype);
+        x86_m256type:=carraydef.create(0,7,s32inttype);
+        x86_m256dtype:=carraydef.create(0,3,s32inttype);
+        x86_m256itype:=carraydef.create(0,7,s32inttype);
+
+        tarraydef(x86_m64type).elementdef:=s32floattype;
+        tarraydef(x86_m128type).elementdef:=s32floattype;
+        tarraydef(x86_m128dtype).elementdef:=s64floattype;
+        tarraydef(x86_m128itype).elementdef:=s32floattype;
+        tarraydef(x86_m256type).elementdef:=s32floattype;
+        tarraydef(x86_m256dtype).elementdef:=s64floattype;
+        tarraydef(x86_m256itype).elementdef:=s32floattype;
 {$endif x86}
         set_default_ptr_types;
         cfiletype:=cfiledef.createuntyped;
@@ -375,6 +390,13 @@ implementation
         addtype('FarPointer',voidfarpointertype);
         addtype('HugePointer',voidhugepointertype);
   {$endif i8086}
+        addtype('__m64',x86_m64type);
+        addtype('__m128', x86_m128type);
+        addtype('__m128d',x86_m128dtype);
+        addtype('__m128i',x86_m128itype);
+        addtype('__m256', x86_m256type);
+        addtype('__m256d',x86_m256dtype);
+        addtype('__m256i',x86_m256itype);
 {$endif x86}
         addtype('ShortString',cshortstringtype);
 {$ifdef support_longstring}
@@ -458,6 +480,13 @@ implementation
         addtype('$word_farpointer',wordfarpointertype);
         addtype('$longint_farpointer',longintfarpointertype);
   {$endif i8086}
+        addtype('$__m64',  x86_m64type);
+        addtype('$__m128', x86_m128type);
+        addtype('$__m128d',x86_m128dtype);
+        addtype('$__m128i',x86_m128itype);
+        addtype('$__m256', x86_m256type);
+        addtype('$__m256d',x86_m256dtype);
+        addtype('$__m256i',x86_m256itype);
 {$endif x86}
         addtype('$openchararray',openchararraytype);
         addtype('$file',cfiletype);
@@ -596,6 +625,13 @@ implementation
         loadtype('word_farpointer',wordfarpointertype);
         loadtype('longint_farpointer',longintfarpointertype);
   {$endif i8086}
+        loadtype('__m64',  x86_m64type);
+        loadtype('__m128', x86_m128type);
+        loadtype('__m128d',x86_m128dtype);
+        loadtype('__m128i',x86_m128itype);
+        loadtype('__m256', x86_m256type);
+        loadtype('__m256d',x86_m256dtype);
+        loadtype('__m256i',x86_m256itype);
 {$endif x86}
         loadtype('file',cfiletype);
         if not(target_info.system in systems_managed_vm) then

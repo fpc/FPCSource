@@ -194,6 +194,8 @@ begin
 
     if CompilerTarget in [x86_64, i386] then
       P.Options.Add('-Fu../compiler/x86');
+    if CompilerTarget in [x86_64, i386] then
+      P.Options.Add('-Fi../compiler/x86');
     if CompilerTarget in [powerpc, powerpc64] then
       P.Options.Add('-Fu../compiler/ppcgen');
     if CompilerTarget = x86_64 then

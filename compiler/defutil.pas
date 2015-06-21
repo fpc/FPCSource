@@ -1081,8 +1081,9 @@ implementation
       begin
         result:=(p.typ=arraydef) and
                 not(is_special_array(p)) and
+                (tarraydef(p).elementdef.typ in [floatdef,orddef]) {and
                 (tarraydef(p).elementdef.typ=floatdef) and
-                (tfloatdef(tarraydef(p).elementdef).floattype in [s32real,s64real]);
+                (tfloatdef(tarraydef(p).elementdef).floattype in [s32real,s64real])};
       end;
 
 
@@ -1092,21 +1093,60 @@ implementation
 {$ifdef x86}
         result:= is_vector(p) and
                  (
-                  (tarraydef(p).elementdef.typ=floatdef) and
                   (
-                   (tarraydef(p).lowrange=0) and
-                   (tarraydef(p).highrange=3) and
-                   (tfloatdef(tarraydef(p).elementdef).floattype=s32real)
-                  )
-                 ) or
+                   (tarraydef(p).elementdef.typ=floatdef) and
+                   (
+                    (tarraydef(p).lowrange=0) and
+                    (tarraydef(p).highrange=3) and
+                    (tfloatdef(tarraydef(p).elementdef).floattype=s32real)
+                   )
+                  ) or
 
-                 (
-                  (tarraydef(p).elementdef.typ=floatdef) and
                   (
-                   (tarraydef(p).lowrange=0) and
-                   (tarraydef(p).highrange=1) and
-                   (tfloatdef(tarraydef(p).elementdef).floattype=s64real)
-                  )
+                   (tarraydef(p).elementdef.typ=floatdef) and
+                   (
+                    (tarraydef(p).lowrange=0) and
+                    (tarraydef(p).highrange=1) and
+                    (tfloatdef(tarraydef(p).elementdef).floattype=s64real)
+                   )
+                  ) {or
+
+                  // MMX registers
+                  (
+                   (tarraydef(p).elementdef.typ=floatdef) and
+                   (
+                    (tarraydef(p).lowrange=0) and
+                    (tarraydef(p).highrange=1) and
+                    (tfloatdef(tarraydef(p).elementdef).floattype=s32real)
+                   )
+                  ) or
+
+                  (
+                   (tarraydef(p).elementdef.typ=orddef) and
+                   (
+                    (tarraydef(p).lowrange=0) and
+                    (tarraydef(p).highrange=1) and
+                    (torddef(tarraydef(p).elementdef).ordtype in [s32bit,u32bit])
+                   )
+                  )  or
+
+                  (
+                   (tarraydef(p).elementdef.typ=orddef) and
+                   (
+                    (tarraydef(p).lowrange=0) and
+                    (tarraydef(p).highrange=3) and
+                    (torddef(tarraydef(p).elementdef).ordtype in [s16bit,u16bit])
+                   )
+                  ) or
+
+                  (
+                   (tarraydef(p).elementdef.typ=orddef) and
+                   (
+                    (tarraydef(p).lowrange=0) and
+                    (tarraydef(p).highrange=7) and
+                    (torddef(tarraydef(p).elementdef).ordtype in [s8bit,u8bit])
+                   )
+                  ) }
                  );
 {$else x86}
         result:=false;

@@ -872,6 +872,16 @@ implementation
                 begin
                   if left.resultdef.typ=arraydef then
                     begin
+                      case left.location.loc of
+                        LOC_CMMREGISTER,
+                        LOC_MMREGISTER:
+                          hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location.register,nil);
+                        LOC_REFERENCE,
+                        LOC_CREFERENCE:
+                          hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location.reference,nil);
+                        else
+                          internalerror(2009112601);
+                      end;
                     end
                   else
                     begin

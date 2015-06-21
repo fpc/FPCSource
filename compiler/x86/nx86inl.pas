@@ -46,6 +46,7 @@ interface
           function first_trunc_real: tnode; override;
           function first_popcnt: tnode; override;
           function first_fma: tnode; override;
+          function first_sse: tnode; override;
           { second pass override to generate these nodes }
           procedure second_IncludeExclude;override;
           procedure second_pi; override;
@@ -66,6 +67,7 @@ interface
 {$endif not i8086}
           procedure second_popcnt;override;
           procedure second_fma;override;
+          procedure second_sse;override;
        private
           procedure load_fpu_location(lnode: tnode);
        end;
@@ -257,6 +259,19 @@ implementation
            begin
              expectloc:=LOC_MMREGISTER;
              Result:=nil;
+           end
+         else
+{$endif i8086}
+           Result:=inherited first_fma;
+       end;
+
+
+     function tx86inlinenode.first_sse : tnode;
+       begin
+{$ifndef i8086}
+         if ((cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_SSEUNIT])<>[]) then
+           case inlinenumber of
+             {$i x86first.inc}
            end
          else
 {$endif i8086}
@@ -916,6 +931,90 @@ implementation
          else
 {$endif i8086}
            internalerror(2014032301);
+      end;
+
+    procedure tx86inlinenode.second_sse;
+
+      var
+        paraarray : array[1..4] of tnode;
+        i : integer;
+        op: TAsmOp;
+
+      function GetConstInt(n: tnode): longint;
+        begin
+          if is_constintnode(n) then
+            result:=tordconstnode(n).value.svalue
+          else
+            Message(type_e_constant_expr_expected);
+        end;
+
+      procedure GetParameters(count: longint);
+        var
+          i: longint;
+          p: tnode;
+        begin
+          if (count=1) and
+             (not (left is tcallparanode)) then
+            paraarray[1]:=left
+          else
+            begin
+              p:=left;
+              for i := count downto 1 do
+                begin
+                  paraarray[i]:=tcallparanode(p).paravalue;
+                  p:=tcallparanode(p).nextpara;
+                end;
+            end;
+        end;
+
+      procedure location_force_mmxreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
+        var
+          reg : tregister;
+        begin
+          if (l.loc<>LOC_MMXREGISTER)  and
+             ((l.loc<>LOC_CMMXREGISTER) or (not maybeconst)) then
+            begin
+              reg:=tcgx86(cg).getmmxregister(list);
+              cg.a_loadmm_loc_reg(list,OS_M64,l,reg,nil);
+              location_freetemp(list,l);
+              location_reset(l,LOC_MMXREGISTER,OS_M64);
+              l.register:=reg;
+            end;
+        end;
+
+      procedure location_make_ref(var loc: tlocation);
+        var
+          hloc: tlocation;
+        begin
+          case loc.loc of
+            LOC_CREGISTER,
+            LOC_REGISTER:
+              begin
+                location_reset_ref(hloc, LOC_REFERENCE, OS_32, 1);
+                hloc.reference.base:=loc.register;
+
+                loc:=hloc;
+              end;
+            LOC_CREFERENCE,
+            LOC_REFERENCE:
+              begin
+              end;
+          else
+            begin
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,loc,u32inttype,u32inttype,false);
+
+              location_reset_ref(hloc, LOC_REFERENCE, OS_32, 1);
+              hloc.reference.base:=loc.register;
+
+              loc:=hloc;
+            end;
+          end;
+        end;
+
+      begin
+        case inlinenumber of
+          {$i x86second.inc}
+        end;
       end;
 
 end.

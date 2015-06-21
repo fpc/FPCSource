@@ -341,10 +341,10 @@ override NOCPUDEF=1
 override FPCOPT+= -d$(PPC_TARGET)
 override FPCOPT+=-dBrowserCol -dGDB
 ifeq ($(PPC_TARGET),i386)
-override FPCOPT+= -Fu$(COMPILERDIR)/x86
+override FPCOPT+= -Fu$(COMPILERDIR)/x86 -Fi$(COMPILERDIR)/x86
 endif
 ifeq ($(PPC_TARGET),x86_64)
-override FPCOPT+= -Fu$(COMPILERDIR)/x86 -dNOOPT
+override FPCOPT+= -Fu$(COMPILERDIR)/x86 -Fi$(COMPILERDIR)/x86 -dNOOPT
 endif
 ifeq ($(PPC_TARGET),powerpc)
 override FPCOPT+= -Fu$(COMPILERDIR)/ppcgen

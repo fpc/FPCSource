@@ -30,6 +30,7 @@ interface
 
     {$i compinnr.inc}
     {$i arm/arminnr.inc}
+    {$i x86/x86innr.inc}
 
     type
        tinlinenode = class(tunarynode)
@@ -87,6 +88,7 @@ interface
           function first_seg: tnode; virtual;
           function first_sar: tnode; virtual;
           function first_fma : tnode; virtual;
+          function first_sse : tnode; virtual;
           function first_arm : tnode; virtual;
         private
           function handle_str: tnode;
@@ -2584,8 +2586,11 @@ implementation
         var
           p: tnode;
         begin
-          if count=1 then
-            set_varstate(left,vs_read,[vsf_must_be_valid])
+          if (count=1) and
+             (not (left is tcallparanode)) then
+            begin
+              set_varstate(left,vs_read,[vsf_must_be_valid])
+            end
           else
             begin
               p:=left;
@@ -3294,6 +3299,9 @@ implementation
                   resultdef:=tcallparanode(left).left.resultdef;
                 end;
 
+{$ifdef x86}
+              {$i x86type.inc}
+{$endif x86}
 {$ifdef ARM}
               {$i armtype.inc}
 {$endif ARM}
@@ -3621,6 +3629,8 @@ implementation
          in_fma_extended,
          in_fma_float128:
            result:=first_fma;
+         in_x86_first..in_x86_last:
+           result:=first_sse;
          in_arm_first..in_arm_last:
            result:=first_arm;
          else
@@ -4331,6 +4341,13 @@ implementation
      function tinlinenode.first_fma: tnode;
        begin
          CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'FMA');
+         result:=nil;
+       end;
+
+
+     function tinlinenode.first_sse: tnode;
+       begin
+         CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'SSE');
          result:=nil;
        end;
 

@@ -61,6 +61,7 @@ interface
           procedure second_popcnt; virtual;
           procedure second_seg; virtual; abstract;
           procedure second_fma; virtual;
+          procedure second_sse; virtual;
           procedure second_arm; virtual;
        end;
 
@@ -198,6 +199,8 @@ implementation
             in_fma_float128:
                second_fma;
 
+            in_x86_first..in_x86_last:
+               second_sse;
             in_arm_first..in_arm_last:
                second_arm;
             else internalerror(9);
@@ -783,6 +786,13 @@ implementation
       begin
         internalerror(2014032701);
       end;
+
+
+    procedure tcginlinenode.second_sse;
+      begin
+        internalerror(2015062001);
+      end;
+
 
     procedure tcginlinenode.second_arm;
       begin
