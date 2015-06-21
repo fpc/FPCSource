@@ -460,6 +460,8 @@ Type
 function clock_getres(clk_id : clockid_t; res : ptimespec) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_getres'; {$ENDIF}
 function clock_gettime(clk_id : clockid_t; tp: ptimespec) : cint;  {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_gettime'; {$ENDIF}
 function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_settime'; {$ENDIF}
+function setregid(rgid,egid : uid_t): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'setregid'; {$ENDIF} 
+function setreuid(ruid,euid : uid_t): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'setreuid'; {$ENDIF} 
 
 implementation
 
@@ -740,5 +742,17 @@ function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint;
 begin
   clock_settime:=do_SysCall(syscall_nr_clock_settime,tsysparam(clk_id),tsysparam(tp));
 end;
+
+function setregid(rgid,egid : uid_t): cint;
+
+begin
+  setregid:=do_syscall(syscall_nr_setregid,rgid,egid);
+end;
+ 
+function setreuid(ruid,euid : uid_t): cint;
+begin
+  setreuid:=do_syscall(syscall_nr_setreuid,ruid,euid);
+end;
+
 {$endif}
 end.

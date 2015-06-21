@@ -22,7 +22,7 @@ Resourcestring
   SActiveDataset           = 'Operation cannot be performed on an active dataset';
   SBadParamFieldType       = 'Bad fieldtype for parameter "%s".';
   SCantSetAutoIncFields    = 'AutoInc Fields are read-only';
-  SConnected               = 'Operation cannot be performed on an connected database';
+  SConnected               = 'Operation cannot be performed on a connected database';
   SDatasetReadOnly         = 'Dataset is read-only.';
   SDatasetRegistered       = 'Dataset already registered : "%s"';
   SDuplicateFieldName      = 'Duplicate fieldname : "%s"';
@@ -83,6 +83,7 @@ Resourcestring
   SLookupInfoError         = 'Lookup information for field ''%s'' is incomplete';
   SUnsupportedFieldType    = 'Fieldtype %s is not supported';
   SInvPacketRecordsValue   = 'PacketRecords has to be larger then 0';
+  SInvPacketRecordsValueFieldNames = 'PacketRecords must be -1 if IndexFieldNames is set';
   SInvalidSearchFieldType  = 'Searching in fields of type %s is not supported';
   SDatasetEmpty            = 'The dataset is empty';
   SFieldIsNull             = 'The field is null';
@@ -121,6 +122,7 @@ Resourcestring
   SErrRefreshNotSingleton     = 'Refresh SQL resulted in multiple records: %d.';
   SErrRefreshEmptyResult      = 'Refresh SQL resulted in empty result set.';
   SErrNoKeyFieldForRefreshClause = 'No key field found to construct refresh SQL WHERE clause';
+  SErrFailedToFetchReturningResult = 'Failed to fetch returning result';
 
 Implementation
 

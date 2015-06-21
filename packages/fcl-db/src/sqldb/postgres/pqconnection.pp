@@ -89,12 +89,14 @@ type
     FConnectString       : string;
     FIntegerDateTimes    : boolean;
     FVerboseErrors       : Boolean;
+  protected
+    // Protected so they can be used by descendents.
     procedure CheckConnectionStatus(var conn: PPGconn);
     procedure CheckResultError(var res: PPGresult; conn:PPGconn; ErrMsg: string);
     function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer; Out ATypeOID : oid) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
     Procedure GetExtendedFieldInfo(cursor: TPQCursor; Bindings : TFieldBindings);
-  protected
+
     procedure ApplyFieldUpdate(C : TSQLCursor; P: TSQLDBParam; F: TField; UseOldValue: Boolean); override;
     Function ErrorOnUnknownType : Boolean;
     // Add connection to pool.
@@ -121,12 +123,13 @@ type
     function Commit(trans : TSQLHandle) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     function StartImplicitTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
-    function StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
+    function StartDBTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
-    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
+    function GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string; override;
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -176,6 +179,7 @@ const Oid_Bool     = 16;
       Oid_Int8     = 20;
       Oid_int2     = 21;
       Oid_Int4     = 23;
+      Oid_JSON     = 114;
       Oid_Float4   = 700;
       Oid_Money    = 790;
       Oid_Float8   = 701;
@@ -272,7 +276,7 @@ constructor TPQConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction];
+  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction,sqSupportReturning];
   FieldNameQuoteChars:=DoubleQuotes;
   VerboseErrors:=True;
   FConnectionPool:=TThreadlist.Create;
@@ -331,7 +335,7 @@ begin
 {$EndIf}
 end;
 
-Procedure TPQConnection.GetExtendedFieldInfo(cursor: TPQCursor;
+procedure TPQConnection.GetExtendedFieldInfo(cursor: TPQCursor;
   Bindings: TFieldBindings);
 
 Var
@@ -386,7 +390,7 @@ begin
     P.SQLDBData:=TPQCursor(C).GetFieldBinding(F.FieldDef);
 end;
 
-Function TPQConnection.ErrorOnUnknownType: Boolean;
+function TPQConnection.ErrorOnUnknownType: Boolean;
 begin
   Result:=False;
 end;
@@ -554,8 +558,8 @@ begin
   Result := true;
 end;
 
-function TPQConnection.StartDBTransaction(trans: TSQLHandle;
-  AParams: string): boolean;
+function TPQConnection.StartDBTransaction(trans: TSQLHandle; AParams: string
+  ): boolean;
 
 Var
   res : PPGresult;
@@ -723,7 +727,7 @@ begin
 end;
 
 function TPQConnection.TranslateFldType(res: PPGresult; Tuple: integer; out
-  Size: integer; Out ATypeOID: oid): TFieldType;
+  Size: integer; out ATypeOID: oid): TFieldType;
 
 const
   VARHDRSZ=sizeof(longint);
@@ -751,7 +755,7 @@ begin
                              if size > MaxSmallint then size := MaxSmallint;
                              end;
 //    Oid_text               : Result := ftstring;
-    Oid_text               : Result := ftMemo;
+    Oid_text,Oid_JSON      : Result := ftMemo;
     Oid_Bytea              : Result := ftBlob;
     Oid_oid                : Result := ftInteger;
     Oid_int8               : Result := ftLargeInt;
@@ -804,18 +808,18 @@ begin
   end;
 end;
 
-Function TPQConnection.AllocateCursorHandle: TSQLCursor;
+function TPQConnection.AllocateCursorHandle: TSQLCursor;
 
 begin
   result := TPQCursor.create;
 end;
 
-Procedure TPQConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
+procedure TPQConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 begin
   FreeAndNil(cursor);
 end;
 
-Function TPQConnection.AllocateTransactionHandle: TSQLHandle;
+function TPQConnection.AllocateTransactionHandle: TSQLHandle;
 
 begin
   result := TPQTrans.create;
@@ -1492,6 +1496,11 @@ begin
     s := inherited;
   end; {case}
   result := s;
+end;
+
+function TPQConnection.GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string;
+begin
+  Result := Format('SELECT nextval(''%s'')', [SequenceName]);
 end;
 
 procedure TPQConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef;

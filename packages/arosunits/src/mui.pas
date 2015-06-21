@@ -530,16 +530,16 @@ uses
             ehn_Class : PIClass;
             ehn_Events : LongWord;
          end;
-{$else}         
+{$else}
        tMUI_EventHandlerNode = record
             ehn_Node : TNode;
             ehn_Flags : WORD;
             ehn_Object : PObject_;
             ehn_Class : PIClass;
             ehn_Events : LongWord;
-            ehn_Priority : BYTE;            
+            ehn_Priority : BYTE;
          end;
-{$endif}         
+{$endif}
        pMUI_EventHandlerNode = ^tMUI_EventHandlerNode;
     { flags for ehn_Flags  }
 
@@ -1508,12 +1508,12 @@ uses
      { MUI_MinMax structure holds information about minimum, maximum
        and default dimensions of an object.  }
        tMUI_MinMax = record
-            MinWidth : WORD;
-            MinHeight : WORD;
-            MaxWidth : WORD;
-            MaxHeight : WORD;
-            DefWidth : WORD;
-            DefHeight : WORD;
+            MinWidth : SmallInt;
+            MinHeight : SmallInt;
+            MaxWidth : SmallInt;
+            MaxHeight : SmallInt;
+            DefWidth : SmallInt;
+            DefHeight : SmallInt;
          end;
        pMUI_MinMax = ^tMUI_MinMax;
 
@@ -3469,7 +3469,7 @@ uses
 var
   MUIMasterBase : pLibrary;
 
-function MUI_NewObjectA(class_ : PChar; tags : pTagItem) : PObject_; syscall MUIMasterBase 5; 
+function MUI_NewObjectA(class_ : PChar; tags : pTagItem) : PObject_; syscall MUIMasterBase 5;
 procedure MUI_DisposeObject(obj : PObject_); syscall MUIMasterBase 6;
 function MUI_RequestA(app : Pointer; win : Pointer; flags : LONGBITS; title : PChar; gadgets : PChar; format : PChar; params : Pointer) : LongInt; syscall MUIMasterBase 7;
 function MUI_AllocAslRequest(typ : LongWord; tags : pTagItem) : Pointer; syscall MUIMasterBase 8;

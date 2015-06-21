@@ -11,7 +11,8 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
       fpintres dos heaptrc lineinfo ctypes \
       sysutils fgl classes math typinfo \
       charset cpall getopts \
-      types rtlconsts sysconst character
+      types rtlconsts sysconst character \
+      athreads
 implicitunits=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 \
       unicodedata unicodenumtable
@@ -195,6 +196,9 @@ fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
 #
 # Other system-dependent RTL Units
 #
+
+athreads$(PPUEXT) : athreads.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(AMIINC)/athreads.pp
 
 #exec$(PPUEXT)    : exec.pp execf.inc execd.inc
 

@@ -8,11 +8,11 @@ main=rtl
 [target]
 loaders=prt0
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
-      dos heaptrc ctypes \
+      fpintres dos heaptrc ctypes \
       sysutils classes fgl math typinfo \
       charset cpall getopts \
-      types rtlconsts sysconst
-
+      types rtlconsts sysconst \
+      athreads
 #      exec timer doslib utility hardware inputevent keymap graphics layers 
 #      intuition aboxlib mui 
 # these units are here, because they depend on system interface units above
@@ -171,49 +171,54 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
+fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/fpintres.pp
+
 #
 # Other system-dependent RTL Units
 #
 
-exec$(PPUEXT)    : exec.pp execf.inc execd.inc
+athreadss$(PPUEXT) : $(AMIINC)/athreads.pp $(SYSTEMUNIT)$(PPUEXT)
 
-timer$(PPUEXT)   : timer.pp timerd.inc timerf.inc
+#exec$(PPUEXT)    : exec.pp execf.inc execd.inc
 
-utility$(PPUEXT) : utility.pp exec$(PPUEXT) utilf.inc utild1.inc utild2.inc
+#timer$(PPUEXT)   : timer.pp timerd.inc timerf.inc
 
-doslib$(PPUEXT)  : doslib.pp exec$(PPUEXT) timer$(PPUEXT) doslibd.inc doslibf.inc
+#utility$(PPUEXT) : utility.pp exec$(PPUEXT) utilf.inc utild1.inc utild2.inc
 
-hardware$(PPUEXT): hardware.pas exec$(PPUEXT)
+#doslib$(PPUEXT)  : doslib.pp exec$(PPUEXT) timer$(PPUEXT) doslibd.inc doslibf.inc
 
-inputevent$(PPUEXT): inputevent.pas exec$(PPUEXT) timer$(PPUEXT) utility$(PPUEXT)
+#hardware$(PPUEXT): hardware.pas exec$(PPUEXT)
 
-graphics$(PPUEXT): graphics.pas exec$(PPUEXT) utility$(PPUEXT) hardware$(PPUEXT)
+#inputevent$(PPUEXT): inputevent.pas exec$(PPUEXT) timer$(PPUEXT) utility$(PPUEXT)
 
-layers$(PPUEXT)  : layers.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
+#graphics$(PPUEXT): graphics.pas exec$(PPUEXT) utility$(PPUEXT) hardware$(PPUEXT)
 
-intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT) \
-                    inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
+#layers$(PPUEXT)  : layers.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
 
-aboxlib$(PPUEXT): aboxlib.pas
+#intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT) \
+#                    inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
 
-clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
+#aboxlib$(PPUEXT): aboxlib.pas
 
-datatype$(PPUEXT): datatypes.pas exec$(PPUEXT) doslib$(PPUEXT) intuition$(PPUEXT) \
-                   utility$(PPUEXT) graphics$(PPUEXT)
+#clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
 
-asl$(PPUEXT): asl.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
+#datatype$(PPUEXT): datatypes.pas exec$(PPUEXT) doslib$(PPUEXT) intuition$(PPUEXT) \
+#                   utility$(PPUEXT) graphics$(PPUEXT)
 
-ahi$(PPUEXT): ahi.pas exec$(PPUEXT) utility$(PPUEXT)
+#asl$(PPUEXT): asl.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
 
-mui$(PPUEXT): mui.pas exec$(PPUEXT) utility$(PPUEXT) intuition$(PPUEXT) graphics$(PPUEXT)
+#ahi$(PPUEXT): ahi.pas exec$(PPUEXT) utility$(PPUEXT)
 
-tinygl$(PPUEXT): tinygl.pp exec$(PPUEXT)
+#mui$(PPUEXT): mui.pas exec$(PPUEXT) utility$(PPUEXT) intuition$(PPUEXT) graphics$(PPUEXT)
 
-get9$(PPUEXT): get9.pas exec$(PPUEXT)
+#tinygl$(PPUEXT): tinygl.pp exec$(PPUEXT)
 
-muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)
+#get9$(PPUEXT): get9.pas exec$(PPUEXT)
 
-kvm$(PPUEXT) : kvm.pp
+#muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)
+
+#kvm$(PPUEXT) : kvm.pp
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 

@@ -256,12 +256,18 @@ var block : TVerBlockHeader;
     tmp : integer;
     vinfo : TVerTranslationInfo;
     before : int64;
+    isBlockHeaderRead: boolean;
 begin
   Result:=0;
+  isBlockHeaderRead:=false;
   while toread>0 do
   begin
     before:=RawData.Position;
-    ReadBlockHeader(block);
+    if not isBlockHeaderRead then
+    begin
+      ReadBlockHeader(block);
+      isBlockHeaderRead:=true;
+    end;
     if (block.valtype<>0) or (block.key<>'Translation') then
       RawData.Seek(block.vallength,soFromCurrent)
     else

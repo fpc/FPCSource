@@ -240,7 +240,7 @@ begin
     end;
 end;
 
-function Nvu2FmtBCE(b:pbyte):tBCD;
+function Nvu2FmtBCD(b:pbyte):tBCD;
 var
   i,j       : integer;
   bb,size   : byte;
@@ -370,7 +370,7 @@ begin
                             AsDateTime := ComposeDateTime(EncodeDate(odt.year,odt.month,odt.day), EncodeTime(odt.hour,odt.min,odt.sec,odt.fsec div 1000000));
                             end;
         ftFMTBcd          : begin
-                            AsFMTBCD:=Nvu2FmtBCE(ParamBuffers[i].buffer);
+                            AsFMTBCD:=Nvu2FmtBCD(ParamBuffers[i].buffer);
                             end;
         end;
 
@@ -767,30 +767,27 @@ end;
 
 function TOracleConnection.StartDBTransaction(trans: TSQLHandle; AParams: string): boolean;
 var
-  x_flags : ub4;
+  flags : ub4;
   i : Integer;
   s : string;
   locTrans : TOracleTrans;
 begin
-  locTrans := TOracleTrans(trans);
-  if ( Length(AParams) = 0 ) then begin
-    x_flags := OCI_TRANS_NEW or OCI_TRANS_READWRITE;
-  end else begin
-    x_flags := OCI_DEFAULT;
+  flags := OCI_TRANS_READWRITE;
+  if AParams <> '' then begin
     i := 1;
     s := ExtractSubStr(AParams,i,StdWordDelims);
     while ( s <> '' ) do begin
       if ( s = 'readonly' ) then
-        x_flags := x_flags and OCI_TRANS_READONLY
+        flags := OCI_TRANS_READONLY
       else if ( s = 'serializable' ) then
-        x_flags := x_flags and OCI_TRANS_SERIALIZABLE
+        flags := OCI_TRANS_SERIALIZABLE
       else if ( s = 'readwrite' ) then
-        x_flags := x_flags and OCI_TRANS_READWRITE;
+        flags := OCI_TRANS_READWRITE;
       s := ExtractSubStr(AParams,i,StdWordDelims);
     end;
-    x_flags := x_flags and OCI_TRANS_NEW;
   end;
-  locTrans.FOciFlags := x_flags;
+  locTrans := TOracleTrans(trans);
+  locTrans.FOciFlags := flags or OCI_TRANS_NEW;
   InternalStartDBTransaction(locTrans);
   Result := True;
 end;
@@ -1089,7 +1086,7 @@ begin
         move(cur,buffer^,SizeOf(Currency));
         end;
       ftFmtBCD :
-        pBCD(buffer)^:= Nvu2FmtBCE(fieldbuffers[FieldDef.FieldNo-1].buffer);
+        pBCD(buffer)^:= Nvu2FmtBCD(fieldbuffers[FieldDef.FieldNo-1].buffer);
       ftFloat :
         move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(double));
       ftSmallInt :

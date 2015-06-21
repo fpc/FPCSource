@@ -392,6 +392,7 @@ type
       { functions and properties to match TBits class }
       procedure SetBit(bit : longint; value : Boolean);
       procedure SetSize(value : longint);
+   Protected   
       procedure CheckBitIndex (Bit : longint;CurrentSize : Boolean);
    public
       { Public declarations }
@@ -609,6 +610,7 @@ type
     FAdapter: IStringsAdapter;
     FLBS : TTextLineBreakStyle;
     FStrictDelimiter : Boolean;
+    FLineBreak : String;
     function GetCommaText: string;
     function GetName(Index: Integer): string;
     function GetValue(const Name: string): string;
@@ -626,6 +628,8 @@ type
     Function GetDelimiter : Char;
     Function GetNameValueSeparator : Char;
     Function GetQuoteChar: Char;
+    Function GetLineBreak : String;
+    procedure SetLineBreak(const S : String);
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure Error(const Msg: string; Data: Integer);
@@ -647,10 +651,14 @@ type
     Function GetValueFromIndex(Index: Integer): string;
     Procedure SetValueFromIndex(Index: Integer; const Value: string);
     Procedure CheckSpecialChars;
+    Class Function GetNextLine (Const Value : String; Var S : String; Var P : Integer) : Boolean;
+    Function GetNextLinebreak (Const Value : String; Var S : String; Var P : Integer) : Boolean;
   public
     destructor Destroy; override;
-    function Add(const S: string): Integer; virtual;
-    function AddObject(const S: string; AObject: TObject): Integer; virtual;
+    function Add(const S: string): Integer; virtual; overload;
+    function AddObject(const S: string; AObject: TObject): Integer; virtual; overload;
+    function Add(const Fmt : string; const Args : Array of const): Integer; overload;
+    function AddObject(const Fmt: string; Args : Array of const; AObject: TObject): Integer; overload;
     procedure Append(const S: string);
     procedure AddStrings(TheStrings: TStrings); overload; virtual;
     procedure AddStrings(const TheStrings: array of string); overload; virtual;
@@ -682,6 +690,7 @@ type
     Property TextLineBreakStyle : TTextLineBreakStyle Read GetLBS Write SetLBS;
     property Delimiter: Char read GetDelimiter write SetDelimiter;
     property DelimitedText: string read GetDelimitedText write SetDelimitedText;
+    property LineBreak : string Read GetLineBreak write SetLineBreak;
     Property StrictDelimiter : Boolean Read FStrictDelimiter Write FStrictDelimiter;
     property QuoteChar: Char read GetQuoteChar write SetQuoteChar;
     Property NameValueSeparator : Char Read GetNameValueSeparator Write SetNameValueSeparator;
@@ -1123,6 +1132,7 @@ type
     function ReadInt32: LongInt; virtual; abstract;
     function ReadInt64: Int64; virtual; abstract;
     function ReadSet(EnumType: Pointer): Integer; virtual; abstract;
+    procedure ReadSignature; virtual; abstract;
     function ReadStr: String; virtual; abstract;
     function ReadString(StringType: TValueType): String; virtual; abstract;
     function ReadWideString: WideString;virtual;abstract;
@@ -1175,6 +1185,7 @@ type
     function ReadInt32: LongInt; override;
     function ReadInt64: Int64; override;
     function ReadSet(EnumType: Pointer): Integer; override;
+    procedure ReadSignature; override;
     function ReadStr: String; override;
     function ReadString(StringType: TValueType): String; override;
     function ReadWideString: WideString;override;
@@ -1283,6 +1294,7 @@ type
     procedure ReadListEnd;
     function ReadRootComponent(ARoot: TComponent): TComponent;
     function ReadVariant: Variant;
+    procedure ReadSignature;
     function ReadString: string;
     function ReadWideString: WideString;
     function ReadUnicodeString: UnicodeString;
@@ -1315,6 +1327,7 @@ type
     procedure BeginCollection; virtual; abstract;  { Ends with the next "EndList" }
     procedure BeginComponent(Component: TComponent; Flags: TFilerFlags;
       ChildPos: Integer); virtual; abstract;  { Ends after the second "EndList" }
+    procedure WriteSignature; virtual; abstract;
     procedure BeginList; virtual; abstract;
     procedure EndList; virtual; abstract;
     procedure BeginProperty(const PropName: String); virtual; abstract;
@@ -1351,8 +1364,6 @@ type
     FBufSize: Integer;
     FBufPos: Integer;
     FBufEnd: Integer;
-    FSignatureWritten: Boolean;
-
     procedure WriteWord(w : word); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteDWord(lw : longword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteQWord(qw : qword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -1364,6 +1375,7 @@ type
   public
     constructor Create(Stream: TStream; BufSize: Integer);
     destructor Destroy; override;
+    procedure WriteSignature; override;
 
     procedure BeginCollection; override;
     procedure BeginComponent(Component: TComponent; Flags: TFilerFlags;
@@ -1460,6 +1472,7 @@ type
     procedure WriteSet(Value: LongInt; SetType: Pointer);
     procedure WriteListBegin;
     procedure WriteListEnd;
+    Procedure WriteSignature;
     procedure WriteRootComponent(ARoot: TComponent);
     procedure WriteString(const Value: string);
     procedure WriteWideString(const Value: WideString);
@@ -1602,7 +1615,7 @@ type
     procedure Queue(aMethod: TThreadMethod);
     property ReturnValue: Integer read FReturnValue write FReturnValue;
     property Terminated: Boolean read FTerminated;
-{$ifdef windows}
+{$if defined(windows) or defined(OS2)}
   private
     FInitialSuspended: boolean;
 {$endif}
@@ -1622,11 +1635,8 @@ type
     FSuspendedExternal: boolean;
     FPid: LongInt;
 {$endif}
-{$ifdef aros}
+{$if defined(hasamiga)}
   private
-    // see tthread.inc, ThreadFunc and TThread.Resume
-    FSem: Pointer;
-    FCond: Pointer;
     FInitialSuspended: boolean;
 {$endif}
   public

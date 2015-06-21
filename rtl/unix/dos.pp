@@ -245,6 +245,7 @@ var
 begin
   GetDate (Year, Month, Day,dow);
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) ;
+  tv.tv_usec:= Sec100 * 10000;
   fpSettimeofday(@tv,nil);
 end;
 
@@ -255,6 +256,7 @@ var
 begin
   GetTime ( Hour, Min, Sec, Sec100 );
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Min, Sec ) ;
+  tv.tv_usec:= Sec100 * 10000;
   fpSettimeofday(@tv,nil);
 end;
 
@@ -264,6 +266,7 @@ var
   tv : timeval;
 begin
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) ;
+  tv.tv_usec:= 0;
   SetDatetime:=fpSettimeofday(@tv,nil)=0;
 end;
 
@@ -319,7 +322,7 @@ Begin
     begin
       doserror:=2;
       exit;
-    end;  
+    end;
   pid:=fpFork;
   if pid=0 then
    begin

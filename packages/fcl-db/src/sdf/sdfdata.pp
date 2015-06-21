@@ -137,11 +137,14 @@ type
 // TRecInfo
   PRecInfo = ^TRecInfo;
   TRecInfo = packed record
-    RecordNumber: PtrInt;
+    Bookmark: PtrInt;
     BookmarkFlag: TBookmarkFlag;
   end;
 //-----------------------------------------------------------------------------
 // TBaseTextDataSet
+
+  { TFixedFormatDataSet }
+
   TFixedFormatDataSet = class(TDataSet)
   private
     FSchema             :TStringList;
@@ -158,19 +161,18 @@ type
     procedure SetReadOnly(Value : Boolean);
     procedure RemoveWhiteLines(List : TStrings; IsFileRecord : Boolean);
     procedure LoadFieldScheme(List : TStrings; MaxSize : Integer);
-    function GetActiveRecBuf(var RecBuf: TRecordBuffer): Boolean;
-    procedure SetFieldPos(var Buffer : TRecordBuffer; FieldNo : Integer);
+    function GetActiveRecBuf(out RecBuf: TRecordBuffer): Boolean;
+    procedure SetFieldOfs(var Buffer : TRecordBuffer; FieldNo : Integer);
   protected
     FData               :TStringlist;
+    FDataOffset         :Integer;
     FCurRec             :Integer;
-    FRecBufSize         :Integer;
     FRecordSize         :Integer;
-    FLastBookmark       :PtrInt;
+    FRecBufSize         :Integer;
     FRecInfoOfs         :Integer;
-    FBookmarkOfs        :Integer;
+    FLastBookmark       :PtrInt;
     FSaveChanges        :Boolean;
     FDefaultRecordLength:Cardinal;
-    FDataOffset         : Integer;
   protected
     function AllocRecordBuffer: TRecordBuffer; override;
     procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
@@ -200,8 +202,7 @@ type
     function GetRecNo: Integer; override;
     procedure SetRecNo(Value: Integer); override;
     function GetCanModify: boolean; override;
-    function TxtGetRecord(Buffer : TRecordBuffer; GetMode: TGetMode): TGetResult;
-    function RecordFilter(RecBuf: Pointer; ARecNo: Integer): Boolean;
+    function RecordFilter(RecBuf: TRecordBuffer): Boolean;
     function BufToStore(Buffer: TRecordBuffer): String; virtual;
     function StoreToBuf(Source: String): String; virtual;
   public
@@ -209,6 +210,7 @@ type
       write FDefaultRecordLength default 250;
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
+    function  BookmarkValid(ABookmark: TBookmark): Boolean; override;
     function  GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
     procedure RemoveBlankRecords; dynamic;
     procedure RemoveExtraColumns; dynamic;
@@ -258,23 +260,28 @@ type
   private
     FDelimiter : Char;
     FFirstLineAsSchema : Boolean;
-    FFMultiLine         :Boolean;
+    FMultiLine         : Boolean;
+    FStripTrailingDelimiters : Boolean;
+    procedure DoStripTrailingDelimiters(var S: String);
     procedure SetMultiLine(const Value: Boolean);
     procedure SetFirstLineAsSchema(Value : Boolean);
     procedure SetDelimiter(Value : Char);
   protected
     procedure InternalInitFieldDefs; override;
-    function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean)
-             : TGetResult; override;
     function BufToStore(Buffer: TRecordBuffer): String; override;
     function StoreToBuf(Source: String): String; override;
+    function ExtractDelimited(const S: String; var Pos: integer): string;
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property AllowMultiLine: Boolean read FFMultiLine write SetMultiLine default True; //Whether or not to allow fields containing CR and/or LF
+    // Whether or not to allow fields containing CR and/or LF (on write only)
+    property AllowMultiLine: Boolean read FMultiLine write SetMultiLine;
     property Delimiter: Char read FDelimiter write SetDelimiter;
     property FirstLineAsSchema: Boolean read FFirstLineAsSchema write SetFirstLineAsSchema;
+    // Set this to True if you want to strip all last delimiters
+    Property StripTrailingDelimiters : Boolean Read FStripTrailingDelimiters Write FStripTrailingDelimiters;
   end;
+
 procedure Register;
 
 implementation
@@ -289,9 +296,9 @@ begin
   FFileMustExist  := TRUE;
   FLoadfromStream := False;
   FRecordSize   := 0;
-  FTrimSpace     := TRUE;
+  FTrimSpace    := TRUE;
   FSchema       := TStringList.Create;
-  FData         := TStringList.Create;  // Load the textfile into a stringlist
+  FData         := TStringList.Create;  // Load the textfile into a StringList
   inherited Create(AOwner);
 end;
 
@@ -334,31 +341,37 @@ end;
 
 procedure TFixedFormatDataSet.InternalInitFieldDefs;
 var
-  i, len, Maxlen :Integer;
+  i, Len, MaxLen :Integer;
   LstFields      :TStrings;
 begin
   if not Assigned(FData) then
     exit;
-  FRecordSize := 0;
-  Maxlen := 0;
+
+  MaxLen := 0;
   FieldDefs.Clear;
   for i := FData.Count - 1 downto 0 do  // Find out the longest record
   begin
-    len := Length(FData[i]);
-    if len > Maxlen then
-      Maxlen := len;
+    Len := Length(FData[i]);
+    if Len > MaxLen then
+      MaxLen := Len;
     FData.Objects[i] := TObject(Pointer(i+1));   // Fabricate Bookmarks
   end;
-  if (Maxlen = 0) then
-    Maxlen := FDefaultRecordLength;
+  if (MaxLen = 0) then
+    MaxLen := FDefaultRecordLength;
+
+  FRecordSize := 0;
   LstFields := TStringList.Create;
   try
-    LoadFieldScheme(LstFields, Maxlen);
+    LoadFieldScheme(LstFields, MaxLen);
     for i := 0 to LstFields.Count -1 do  // Add fields
     begin
-      len := StrToIntDef(LstFields.Values[LstFields.Names[i]], Maxlen);
-      FieldDefs.Add(Trim(LstFields.Names[i]), ftString, len, False);
-      Inc(FRecordSize, len);
+      Len := StrToIntDef(LstFields.Values[LstFields.Names[i]], MaxLen);
+      FieldDefs.Add(Trim(LstFields.Names[i]), ftString, Len, False);
+      Inc(Len);
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+      Len := Align(Len, SizeOf(PtrInt));
+{$ENDIF}
+      Inc(FRecordSize, Len);
     end;
   finally
     LstFields.Free;
@@ -369,7 +382,6 @@ procedure TFixedFormatDataSet.InternalOpen;
 var
   Stream : TStream;
 begin
-  FCurRec := -1;
   FSaveChanges := FALSE;
   if not Assigned(FData) then
     FData := TStringList.Create;
@@ -382,16 +394,19 @@ begin
     FData.LoadFromFile(FileName);
   FRecordSize := FDefaultRecordLength;
   InternalInitFieldDefs;
+  if FRecordSize = 0 then
+    FRecordSize := FDefaultRecordLength;
   if DefaultFields then
     CreateFields;
   BindFields(TRUE);
-  if FRecordSize = 0 then
-    FRecordSize := FDefaultRecordLength;
   BookmarkSize := SizeOf(PtrInt);
   FRecInfoOfs := FRecordSize + CalcFieldsSize; // Initialize the offset for TRecInfo in the buffer
-  FBookmarkOfs := FRecInfoOfs + SizeOf(TRecInfo);
-  FRecBufSize := FBookmarkOfs + BookmarkSize;
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+  FRecInfoOfs := Align(FRecInfoOfs, SizeOf(PtrInt));
+{$ENDIF}
+  FRecBufSize := FRecInfoOfs + SizeOf(TRecInfo);
   FLastBookmark := FData.Count;
+  FCurRec := FDataOffset - 1;
 end;
 
 procedure TFixedFormatDataSet.InternalClose;
@@ -399,7 +414,7 @@ begin
   if (not FReadOnly) and (FSaveChanges) then  // Write any edits to disk
     FData.SaveToFile(FileName);
   FLoadfromStream := False;
-  FData.Clear;
+  FData.Clear;          // Clear data
   BindFields(FALSE);
   if DefaultFields then // Destroy the TField
     DestroyFields;
@@ -475,47 +490,80 @@ end;
 
 function TFixedFormatDataSet.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode;
   DoCheck: Boolean): TGetResult;
+var
+  Accepted : Boolean;
 begin
-  if (FData.Count < (1+FDataOffset)) then
+  if (FData.Count <= FDataOffset) then
     Result := grEOF
   else
-    Result := TxtGetRecord(Buffer, GetMode);
-  if Result = grOK then
   begin
-    if (CalcFieldsSize > 0) then
-      GetCalcFields(Buffer);
-    with PRecInfo(Buffer + FRecInfoOfs)^ do
-    begin
-      BookmarkFlag := bfCurrent;
-      RecordNumber := PtrInt(FData.Objects[FCurRec]);
-    end;
-  end
-  else
-    if (Result = grError) and DoCheck then
-      DatabaseError('No Records');
+    Result := grOK;
+    repeat
+      Accepted := TRUE;
+      case GetMode of
+        gmNext:
+          if FCurRec >= FData.Count - 1  then
+            Result := grEOF
+          else
+            Inc(FCurRec);
+        gmPrior:
+          if FCurRec <= FDataOffset then
+            Result := grBOF
+          else
+            Dec(FCurRec);
+        gmCurrent:
+          if (FCurRec < FDataOffset) or (FCurRec >= FData.Count) then
+            Result := grError;
+      end;
+
+      if Result = grOk then
+      begin
+        Move(StoreToBuf(FData[FCurRec])[1], Buffer[0], FRecordSize);
+        with PRecInfo(Buffer + FRecInfoOfs)^ do
+        begin
+          Bookmark := PtrInt(FData.Objects[FCurRec]);
+          BookmarkFlag := bfCurrent;
+        end;
+        if CalcFieldsSize > 0 then GetCalcFields(Buffer);
+
+        if Filtered then
+        begin
+          Accepted := RecordFilter(Buffer);
+          if not Accepted and (GetMode = gmCurrent) then
+            Inc(FCurRec);
+        end;
+      end
+      else if (Result = grError) and DoCheck then
+        DatabaseError('No Records');
+    until (Result <> grOK) or Accepted;
+  end;
 end;
 
 function TFixedFormatDataSet.GetRecordCount: Longint;
 begin
-  Result := FData.Count;
+  Result := FData.Count - FDataOffset;
+  if Result < 0 then Result := 0; // closed dataset
 end;
 
 function TFixedFormatDataSet.GetRecNo: Longint;
 var
-  BufPtr: TRecordBuffer;
+  RecBuf: TRecordBuffer;
 begin
-  Result := -1;
-  if GetActiveRecBuf(BufPtr) then
-    Result := PRecInfo(BufPtr + FRecInfoOfs)^.RecordNumber;
+  Result := 0;
+  if GetActiveRecBuf(RecBuf) and (State <> dsInsert) then
+  begin
+    InternalSetToRecord(RecBuf);
+    Result := FCurRec + 1 - FDataOffset;
+  end;
 end;
 
 procedure TFixedFormatDataSet.SetRecNo(Value: Integer);
 begin
   CheckBrowseMode;
-  if (Value >= 0) and (Value < FData.Count) and (Value <> RecNo) then
+  if (Value >= 0) and (Value <= RecordCount) and (Value <> RecNo) then
   begin
     DoBeforeScroll;
-    FCurRec := Value - 1;
+    FCurRec := Value - 1 + FDataOffset;
     Resync([]);
     DoAfterScroll;
   end;
@@ -526,67 +574,26 @@ begin
   Result := FRecordSize;
 end;
 
-function TFixedFormatDataSet.GetActiveRecBuf(var RecBuf: TRecordBuffer): Boolean;
+function TFixedFormatDataSet.GetActiveRecBuf(out RecBuf: TRecordBuffer): Boolean;
 begin
   case State of
-    dsBrowse: if IsEmpty then RecBuf := nil else RecBuf := ActiveBuffer;
-    dsEdit, dsInsert: RecBuf := ActiveBuffer;
     dsCalcFields: RecBuf := CalcBuffer;
     dsFilter: RecBuf := FFilterBuffer;
-  else
-    RecBuf := nil;
+    else if IsEmpty then RecBuf := nil else RecBuf := ActiveBuffer;
   end;
   Result := RecBuf <> nil;
 end;
 
-function TFixedFormatDataSet.TxtGetRecord(Buffer : TRecordBuffer; GetMode: TGetMode): TGetResult;
+function TFixedFormatDataSet.RecordFilter(RecBuf: TRecordBuffer): Boolean;
 var
-  Accepted : Boolean;
-begin
-  Result := grOK;
-  repeat
-    Accepted := TRUE;
-    case GetMode of
-      gmNext:
-        if FCurRec >= RecordCount - 1  then
-          Result := grEOF
-        else
-          Inc(FCurRec);
-      gmPrior:
-        if FCurRec <= FDataOffset then
-          Result := grBOF
-        else
-          Dec(FCurRec);
-      gmCurrent:
-        if (FCurRec < FDataOffset) or (FCurRec >= RecordCount) then
-          Result := grError;
-    end;
-    if (Result = grOk) then
-    begin
-      Move(PChar(StoreToBuf(FData[FCurRec]))^, Buffer[0], FRecordSize);
-      if Filtered then
-      begin
-        Accepted := RecordFilter(Buffer, FCurRec +1);
-        if not Accepted and (GetMode = gmCurrent) then
-          Inc(FCurRec);
-      end;
-    end;
-  until Accepted;
-end;
-
-function TFixedFormatDataSet.RecordFilter(RecBuf: Pointer; ARecNo: Integer): Boolean;
-var
-  Accept: Boolean;
   SaveState: TDataSetState;
 begin                          // Returns true if accepted in the filter
   SaveState := SetTempState(dsFilter);
   FFilterBuffer := RecBuf;
-  PRecInfo(FFilterBuffer + FRecInfoOfs)^.RecordNumber := ARecNo;
-  Accept := TRUE;
-  if Accept and Assigned(OnFilterRecord) then
-    OnFilterRecord(Self, Accept);
+  Result := TRUE;
+  if Result and Assigned(OnFilterRecord) then
+    OnFilterRecord(Self, Result);
   RestoreState(SaveState);
-  Result := Accept;
 end;
 
 function TFixedFormatDataSet.GetCanModify: boolean;
@@ -626,37 +633,38 @@ end;
 
 function TFixedFormatDataSet.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 var
-  TempPos, RecBuf : PChar;
+  RecBuf,
+  BufEnd: PChar;
 begin
   Result := GetActiveRecBuf(TRecordBuffer(RecBuf));
   if Result then
   begin
     if Field.FieldNo > 0 then
     begin
-      TempPos := RecBuf;
-      SetFieldPos(TRecordBuffer(RecBuf), Field.FieldNo);
-      Result := (RecBuf < StrEnd(TempPos));
-    end
-    else
-      if (State in [dsBrowse, dsEdit, dsInsert, dsCalcFields]) then
+      SetFieldOfs(TRecordBuffer(RecBuf), Field.FieldNo);
+      Result := RecBuf < StrEnd(RecBuf); // just ''=Null
+      if Result and Assigned(Buffer) then
       begin
-        Inc(RecBuf, FRecordSize + Field.Offset);
-        Result := Boolean(Byte(RecBuf[0]));
+        StrLCopy(Buffer, RecBuf, Field.Size);
+        if FTrimSpace then // trim trailing spaces
+        begin
+          BufEnd := StrEnd(Buffer);
+          repeat
+            Dec(BufEnd);
+            if (BufEnd^ = ' ') then
+              BufEnd^ := #0
+            else
+              break;
+          until (BufEnd = Buffer);
+        end;
       end;
-  end;
-  if Result and (Buffer <> nil) then
-  begin
-    StrLCopy(Buffer, RecBuf, Field.Size);
-    if FTrimSpace then
+    end
+    else // fkCalculated, fkLookup
     begin
-      TempPos := StrEnd(Buffer);
-      repeat
-        Dec(TempPos);
-        if (TempPos[0] = ' ') then
-          TempPos[0]:= #0
-        else
-          break;
-      until (TempPos = Buffer);
+      Inc(RecBuf, FRecordSize + Field.Offset); // Offset is calculated using DataSize not Size
+      Result := Boolean(RecBuf[0]);
+      if Result and Assigned(Buffer) then
+        Move(RecBuf[1], Buffer^, Field.DataSize);
     end;
   end;
 end;
@@ -664,8 +672,6 @@ end;
 procedure TFixedFormatDataSet.SetFieldData(Field: TField; Buffer: Pointer);
 var
   RecBuf: PChar;
-  BufEnd: PChar;
-  p : Integer;
 begin
   if not (State in dsWriteModes) then
     DatabaseErrorFmt(SNotEditing, [Name], Self);
@@ -678,36 +684,35 @@ begin
       DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);
     if State in [dsEdit, dsInsert, dsNewValue] then
       Field.Validate(Buffer);
-    if Field.FieldKind <> fkInternalCalc then
+    if Assigned(Buffer) and (Field.FieldKind <> fkInternalCalc) then
     begin
-      SetFieldPos(TRecordBuffer(RecBuf), Field.FieldNo);
-      BufEnd := StrEnd(pansichar(ActiveBuffer));  // Fill with blanks when necessary
-      if BufEnd > RecBuf then
-        BufEnd := RecBuf;
-      FillChar(BufEnd[0], Field.Size + PtrInt(RecBuf) - PtrInt(BufEnd), Ord(' '));
-      p := StrLen(Buffer);
-      if p > Field.Size then
-        p := Field.Size;
-      Move(Buffer^, RecBuf[0], p);
+      SetFieldOfs(TRecordBuffer(RecBuf), Field.FieldNo);
+      Move(Buffer^, RecBuf[0], Field.DataSize);
     end;
   end
   else // fkCalculated, fkLookup
   begin
     Inc(RecBuf, FRecordSize + Field.Offset);
-    Move(Buffer^, RecBuf[0], Field.Size);
+    Boolean(RecBuf[0]) := Assigned(Buffer);
+    if Assigned(Buffer) then
+      Move(Buffer^, RecBuf[1], Field.DataSize);
   end;
   if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
-    DataEvent(deFieldChange, Ptrint(Field));
+    DataEvent(deFieldChange, PtrInt(Field));
 end;
 
-procedure TFixedFormatDataSet.SetFieldPos(var Buffer : TRecordBuffer; FieldNo : Integer);
+procedure TFixedFormatDataSet.SetFieldOfs(var Buffer : TRecordBuffer; FieldNo : Integer);
 var
-  i : Integer;
+  i, Len : Integer;
 begin
   i := 1;
   while (i < FieldNo) and (i < FieldDefs.Count) do
   begin
-    Inc(Buffer, FieldDefs.Items[i-1].Size);
+    Len := FieldDefs.Items[i-1].Size + 1;
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+    Len := Align(Len, SizeOf(PtrInt));
+{$ENDIF}
+    Inc(Buffer, Len);
     Inc(i);
   end;
 end;
@@ -715,7 +720,7 @@ end;
 // Navigation / Editing
 procedure TFixedFormatDataSet.InternalFirst;
 begin
-  FCurRec := -1;
+  FCurRec := FDataOffset - 1;
 end;
 
 procedure TFixedFormatDataSet.InternalLast;
@@ -725,14 +730,12 @@ end;
 
 procedure TFixedFormatDataSet.InternalPost;
 begin
+  inherited InternalPost;
   FSaveChanges := TRUE;
-  inherited UpdateRecord;
   if (State = dsEdit) then // just update the data in the string list
-  begin
-    FData[FCurRec] := BufToStore(ActiveBuffer);
-  end
-  else
-    InternalAddRecord(ActiveBuffer, FALSE);
+    FData[FCurRec] := BufToStore(ActiveBuffer)
+  else // append or insert
+    InternalAddRecord(ActiveBuffer, GetBookmarkFlag(ActiveBuffer)=bfEOF);
 end;
 
 procedure TFixedFormatDataSet.InternalEdit;
@@ -754,10 +757,15 @@ begin
   Inc(FLastBookmark);
   if DoAppend then
     InternalLast;
-  if (FCurRec >=0) then
+  if (FCurRec >= FDataOffset) then
     FData.InsertObject(FCurRec, BufToStore(Buffer), TObject(Pointer(FLastBookmark)))
   else
     FData.AddObject(BufToStore(Buffer), TObject(Pointer(FLastBookmark)));
+end;
+
+function TFixedFormatDataSet.BookmarkValid(ABookmark: TBookmark): Boolean;
+begin
+  Result := Assigned(ABookmark) and (FData.IndexOfObject(TObject(PPtrInt(ABookmark)^)) <> -1);
 end;
 
 procedure TFixedFormatDataSet.InternalGotoBookmark(ABookmark: Pointer);
@@ -774,7 +782,7 @@ end;
 procedure TFixedFormatDataSet.InternalSetToRecord(Buffer: TRecordBuffer);
 begin
   if (State <> dsInsert) then
-    InternalGotoBookmark(@PRecInfo(Buffer + FRecInfoOfs)^.RecordNumber);
+    InternalGotoBookmark(@PRecInfo(Buffer + FRecInfoOfs)^.Bookmark);
 end;
 
 function TFixedFormatDataSet.GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag;
@@ -824,7 +832,7 @@ var
   i : Integer;
 begin
   for i := FData.Count -1 downto 0 do
-    FData[i] := BufToStore(trecordbuffer(StoreToBuf(FData[i])));
+    FData[i] := BufToStore(TRecordBuffer(StoreToBuf(FData[i])));
   FData.SaveToFile(FileName);
 end;
 
@@ -836,13 +844,46 @@ begin
 end;
 
 function TFixedFormatDataSet.StoreToBuf(Source: String): String;
+var i, Len: integer;
+    Src, Dest: PChar;
 begin
-  Result := Source;
+  // moves fixed length fields from Source to record buffer and null-terminates each field
+  SetLength(Result, FRecordSize);
+  Src  := PChar(Source);
+  Dest := PChar(Result);
+  for i := 0 to FieldDefs.Count - 1 do
+  begin
+    Len := FieldDefs[i].Size;
+    Move(Src^, Dest^, Len);
+    Inc(Src, Len);
+    Inc(Dest, Len);
+    Dest^ := #0;
+    Inc(Dest);
+  end;
 end;
 
 function TFixedFormatDataSet.BufToStore(Buffer: TRecordBuffer): String;
+var i, Len, SrcLen: integer;
+    Src, Dest: PChar;
 begin
-  Result := Copy(pansichar(Buffer), 1, FRecordSize);
+  // calculate fixed length record size
+  Len := 0;
+  for i := 0 to FieldDefs.Count - 1 do
+    Inc(Len, FieldDefs[i].Size);
+  SetLength(Result, Len);
+
+  Src  := PChar(Buffer);
+  Dest := PChar(Result);
+  for i := 0 to FieldDefs.Count - 1 do
+  begin
+    Len := FieldDefs[i].Size;
+    Move(Src^, Dest^, Len);
+    // fields in record buffer are null-terminated, but pad them with spaces to fixed length
+    SrcLen := StrLen(Src);
+    FillChar(Dest[SrcLen], Len-SrcLen, ' ');
+    Inc(Src, Len+1);
+    Inc(Dest, Len);
+  end;
 end;
 
 //-----------------------------------------------------------------------------
@@ -853,12 +894,82 @@ begin
   inherited Create(AOwner);
   FDelimiter := ',';
   FFirstLineAsSchema := FALSE;
-  FFMultiLine :=False;
+  FMultiLine := False;
+end;
+
+function TSdfDataSet.ExtractDelimited(const S: String; var Pos: integer): string;
+const
+  CR: char = #13;
+  LF: char = #10;
+  DQ: char = '"';
+var
+  Len, P1: integer;
+  pSrc, pDest: PChar;
+begin
+  Len := Length(S);
+  P1 := Pos;
+
+  // RFC 4180:
+  //   Spaces are considered part of a field and should not be ignored
+  //
+  //   If double-quotes are used to enclose fields, then a double-quote
+  //   appearing inside a field must be escaped by preceding it with
+  //   another double quote
+
+  if (S[Pos] = DQ) then
+    // quoted field
+    begin
+    // skip leading quote
+    Inc(Pos);
+    // allocate output buffer
+    SetLength(Result, Len-P1+1);
+    pSrc := @S[Pos];
+    pDest := @Result[1];
+    while (Pos <= Len) do
+      begin
+      if (pSrc[0] = DQ) then
+        begin
+        if (pSrc[1] = DQ) then // doubled DQ
+          begin
+          Inc(pSrc);
+          Inc(Pos);
+          end
+        else if (pSrc[1] in [Delimiter,' ',CR,LF,#0]) then // DQ followed by delimiter or end of record
+          break;
+        end
+      else if not FMultiLine and (pSrc[0] in [CR,LF,#0]) then // end of record while multiline disabled
+        break;
+      pDest^ := pSrc^;
+      Inc(pSrc);
+      Inc(pDest);
+      Inc(Pos);
+      end;
+    SetLength(Result, pDest-@Result[1]);
+    // skip trailing DQ and white spaces after DQ
+    while (Pos <= Len) and not(S[Pos] in [Delimiter,CR,LF,#0]) do
+      Inc(Pos);
+    end
+  else
+    // unquoted field name
+    begin
+    while (Pos <= Len) and not(S[Pos] in [Delimiter,CR,LF,#0]) do
+      Inc(Pos);
+    Result := Copy(S, P1, Pos-P1);
+    end;
+
+  // skip final field delimiter
+  if (Pos <= Len) and (S[Pos] = Delimiter) then
+    Inc(Pos);
+  // skip end of record, line break CRLF
+  while (Pos <= Len) and (S[Pos] in [CR,LF]) do
+    Inc(Pos);
 end;
 
 procedure TSdfDataSet.InternalInitFieldDefs;
 var
-  pStart, pEnd, len : Integer;
+  Len, Pos : Integer;
+  SchemaLine, S, FN : String;
+
 begin
   if not IsCursorOpen then
     exit;
@@ -868,236 +979,127 @@ begin
     FData.Append(Schema.DelimitedText);
   end
   else if (FData.Count = 0) or (Trim(FData[0]) = '') then
-    begin
+  begin
     FirstLineAsSchema := FALSE;
-    FDataOffset:=0;
-    end
-  else if (Schema.Count = 0) or (FirstLineAsSchema) then
+  end
+  else if (Schema.Count = 0) or FirstLineAsSchema then
   begin
     Schema.Clear;
-    len := Length(FData[0]);
-    pEnd := 1;
-    repeat
-      while (pEnd <= len) and (FData[0][pEnd] in [#1..' ']) do
-        Inc(pEnd);
+    SchemaLine:=FData[0];
 
-      if (pEnd > len) then
-        break;
+    if StripTrailingDelimiters then
+      DoStripTrailingDelimiters(SchemaLine);
 
-      pStart := pEnd;
-
-      if (FData[0][pStart] = '"') then
-       begin
-        repeat
-          Inc(pEnd);
-        until (pEnd > len)  or (FData[0][pEnd] = '"');
-
-        if (FData[0][pEnd] = '"') then
-          Inc(pStart);
-       end
+    Len := Length(SchemaLine);
+    Pos := 1;
+    while Pos <= Len do
+    begin
+      S := ExtractDelimited(SchemaLine, Pos);
+      if FirstLineAsSchema then
+        FN := S
       else
-       while (pEnd <= len) and (FData[0][pEnd]  <> Delimiter) do
-        Inc(pEnd);
-
-      if (FirstLineAsSchema) then
-       Schema.Add(Copy(FData[0], pStart, pEnd - pStart))
-      else
-       Schema.Add(Format('Field%d', [Schema.Count + 1]));
-
-      if (FData[0][pEnd] = '"') then
-        while (pEnd <= len) and (FData[0][pEnd] <> Delimiter) do
-          Inc(pEnd);
-
-      if (FData[0][pEnd] = Delimiter) then
-          Inc(pEnd);
-
-    until (pEnd > len);
+        FN := '';
+      if FN = '' then // Special case: "a,b,,c"
+        FN := Format('Field%d', [Schema.Count + 1]);
+      Schema.Add(FN);
+    end;
+    // Special case: "f1,f2," are 3 fields, last unnamed.
+    if (Len>0) and (SchemaLine[Len]=Delimiter) then
+      Schema.Add(Format('Field%d', [Schema.Count + 1]));
   end;
   inherited;
 end;
 
-function TSdfDataSet.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode;
-  DoCheck: Boolean): TGetResult;
-begin
-  if FirstLineAsSchema then
-  begin
-    if (FData.Count < 2) then
-      begin
-      if GetMode=gmPrior then
-       Result := grBOF
-      else
-       Result := grEOF
-      end
-    else
-      begin
-      If (FCurrec=-1) and (GetMode=gmNext) then
-        inc(FCurrec);
-      Result := inherited GetRecord(Buffer, GetMode, DoCheck);
-      end;
-  end
-  else
-    Result := inherited GetRecord(Buffer, GetMode, DoCheck);
-end;
-
 function TSdfDataSet.StoreToBuf(Source: String): String;
-const
- CR    :char = #13;
- LF    :char = #10;
- Quote :char = #34; // Character that encloses field if quoted. Hard-coded to "
 var
-  IsQuoted   // Whether or not field starts with a quote
-                :Boolean;
-  FieldMaxSize, // Maximum fields size as defined in FieldDefs
-  i,         // Field counter (0..)
-  p          // Length of string in field
-                :Integer;
-  pDeQuoted, // Temporary buffer for dedoubling quotes
-  pRet,      // Pointer to insertion point in return value
-  pStr,      // Beginning of field
-  pStrEnd    // End of field
-                :PChar;
-  Ret           :String;
+  MaxLen, // Maximum field length as defined in FieldDefs + null terminator
+  i,
+  Pos,
+  Len     : Integer; // Actual length of field
+  S       : String;
+  Dest    : PChar;
 begin
-  SetLength(Ret, FRecordSize);
-  FillChar(PChar(Ret)^, FRecordSize, Ord(' '));
+  SetLength(Result, FRecordSize);
+  FillChar(Result[1], FRecordSize, Ord(' '));
 
-  PStrEnd := PChar(Source);
-  pRet := PChar(Ret);
+  Pos := 1;
+  Dest := PChar(Result);
 
   for i := 0 to FieldDefs.Count - 1 do
-   begin
-    FieldMaxSize := FieldDefs[i].Size;
-    IsQuoted := false;
-    while Boolean(Byte(pStrEnd[0])) and (pStrEnd[0] in [#1..' ']) do
-    begin
-     if FFMultiLine then
-      begin
-       if ((pStrEnd[0]=CR) or (pStrEnd[0]=LF)) then
-        begin
-         //view this as text, not control characters, so do nothing
-         //todo: check if this is really necessary, probably revert
-         //to original code as quoted case is handled below
-        end;
-      end
-     else
-      begin
-       Inc(pStrEnd);
-      end;
-    end;
+  begin
+    MaxLen := FieldDefs[i].Size;
+    S := ExtractDelimited(Source, Pos);
+    Len := Length(S);
 
-    if not Boolean(Byte(pStrEnd[0])) then
-     break;
+    if Len > MaxLen then
+      Len := MaxLen;
 
-    pStr := pStrEnd;
-
-    if (pStr[0] = Quote) then
-     begin
-      IsQuoted := true; // See below: accept end of string without explicit quote
-      if FFMultiLine then
-       begin
-        repeat
-         Inc(pStrEnd);
-        until not Boolean(Byte(pStrEnd[0])) or
-         ((pStrEnd[0] = Quote) and ((pStrEnd + 1)[0] in [Delimiter,#0]));
-       end
-      else
-       begin
-        // No multiline, so treat cr/lf as end of record
-         repeat
-          Inc(pStrEnd);
-         until not Boolean(Byte(pStrEnd[0])) or
-          ((pStrEnd[0] = Quote) and ((pStrEnd + 1)[0] in [Delimiter,CR,LF,#0]));
-       end;
-
-      if (pStrEnd[0] = Quote) then
-       Inc(pStr); //Skip final quote
-     end
+    if Len = 0 then // bug in StrPLCopy
+      Dest^ := #0
     else
-      while Boolean(Byte(pStrEnd[0])) and (pStrEnd[0] <> Delimiter) do
-        Inc(pStrEnd);
+      StrPLCopy(Dest, S, Len); // null-terminate
 
-    // Copy over entire field (or at least up to field length):
-    p := pStrEnd - pStr;
-    if IsQuoted then
-    begin
-     pDeQuoted := pRet; //Needed to avoid changing insertion point
-     // Copy entire field but not more than maximum field length:
-     // (We can mess with pStr now; the next loop will reset it after
-     // pStrEnd):
-     while (pstr < pStrEnd) and (pDeQuoted-pRet <= FieldMaxSize) do
-     begin
-      if pStr^ = Quote then inc(pStr);// skip first quote
-      pDeQuoted^ := pStr^;
-      inc(pStr);
-      inc(pDeQuoted);
-     end;
-    end
-    else
-    begin
-     if (p > FieldMaxSize) then
-       p := FieldMaxSize;
-     Move(pStr[0], pRet[0], p);
-    end;
-
-    Inc(pRet, FieldMaxSize);
-
-    // Move the end of field position past quotes and delimiters
-    // ready for processing the next field
-    if (pStrEnd[0] = Quote) then
-      while Boolean(Byte(pStrEnd[0])) and (pStrEnd[0] <> Delimiter) do
-        Inc(pStrEnd);
-
-    if (pStrEnd[0] = Delimiter) then
-     Inc(pStrEnd);
+    Inc(Dest, MaxLen+1);
    end;
-
-  Result := ret;
 end;
 
 function TSdfDataSet.BufToStore(Buffer: TRecordBuffer): String;
 const
- QuoteDelimiter='"';
+  CR: char = #13;
+  LF: char = #10;
+  DQ: char = '"';
 var
-  Str : String;
-  p, i : Integer;
+  Src: PChar;
+  S : String;
+  i, MaxLen, Len : Integer;
   QuoteMe: boolean;
 begin
   Result := '';
-  p := 1;
+  Src := PChar(Buffer);
   for i := 0 to FieldDefs.Count - 1 do
   begin
+    MaxLen := FieldDefs[i].Size;
+    Len := StrLen(Src); // field values are null-terminated in record buffer
+    if Len > MaxLen then
+      Len := MaxLen;
+    SetString(S, Src, Len);
+    Inc(Src, MaxLen+1);
+
     QuoteMe:=false;
-    Str := Trim(Copy(pansichar(Buffer), p, FieldDefs[i].Size));
-    Inc(p, FieldDefs[i].Size);
-    if FFMultiLine then
+    if FMultiLine then
       begin
-       // If multiline enabled, quote whenever we find carriage return or linefeed
-       if (not QuoteMe) and (StrScan(PChar(Str), #10) <> nil) then QuoteMe:=true;
-       if (not QuoteMe) and (StrScan(PChar(Str), #13) <> nil) then QuoteMe:=true;
+      // If multiline enabled, quote whenever we find carriage return or linefeed
+      if (not QuoteMe) and ((Pos(CR, S) > 0) or (Pos(LF, S) > 0)) then QuoteMe:=true;
       end
     else
       begin
-       // If we don't allow multiline, remove all CR and LF because they mess with the record ends:
-       Str := StringReplace(Str, #10, '', [rfReplaceAll]);
-       Str := StringReplace(Str, #13, '', [rfReplaceAll]);
+      // If we don't allow multiline, remove all CR and LF because they mess with the record ends:
+      S := StringReplace(S, CR, '', [rfReplaceAll]);
+      S := StringReplace(S, LF, '', [rfReplaceAll]);
       end;
-    // Check for any delimiters or quotes occurring in field text  
-    if (not QuoteMe) then
-	  if (StrScan(PChar(Str), FDelimiter) <> nil) or
-	    (StrScan(PChar(Str), QuoteDelimiter) <> nil) then QuoteMe:=true;
-    if (QuoteMe) then
-      begin
-      Str := Stringreplace(Str, QuoteDelimiter, QuoteDelimiter+QuoteDelimiter, [rfReplaceAll]);
-      Str := QuoteDelimiter + Str + QuoteDelimiter;
-      end;
-    Result := Result + Str + FDelimiter;
+
+    // Check for any delimiters or quotes occurring in field text
+    if not QuoteMe then
+      QuoteMe := (Pos(FDelimiter, S) > 0) or (Pos(DQ, S) > 0);
+
+    if QuoteMe then
+      S := AnsiQuotedStr(S, DQ);
+
+    Result := Result + S + FDelimiter;
   end;
-  p := Length(Result);
-  while (p > 0) and (Result[p] = FDelimiter) do
-  begin
-    System.Delete(Result, p, 1);
-    Dec(p);
-  end;
+  DoStripTrailingDelimiters(Result)
+end;
+
+procedure TSdfDataSet.DoStripTrailingDelimiters(var S: String);
+var
+  L,P : integer;
+begin
+  L:=Length(S);
+  P:=L;
+  while (P>0) and (S[P]=FDelimiter) and ((P=L) or StripTrailingDelimiters) do
+    Dec(P);
+  if P<L then
+    S:=Copy(S,1,P);
 end;
 
 procedure TSdfDataSet.SetDelimiter(Value : Char);
@@ -1115,7 +1117,7 @@ end;
 
 procedure TSdfDataSet.SetMultiLine(const Value: Boolean);
 begin
-  FFMultiLine:=Value;
+  FMultiLine:=Value;
 end;
 
 

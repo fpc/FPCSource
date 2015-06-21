@@ -29,6 +29,54 @@
 {****************************************************************************}
 
 
+{               68881/2 FPCR Encodings
+   Rounding Mode                 Rounding Precision
+    (RND Field)        Encoding    (PREC Field)
+ To Nearest (RN)         0 0        Extend (X)
+ To Zero (RZ)            0 1        Single (S)
+ To Minus Infinity (RM)  1 0        Double (D)
+ To Plus Infinity (RP)   1 1        Undefined
+}
+
+{ 68881/2 FPCR layout }
+{ Exception Enable Byte: }
+{ 15 - BSUN  - Branch/Set on Unordered }
+{ 14 - SNAN  - Signal Not A Number }
+{ 13 - OPERR - Operand Error }
+{ 12 - OVFL  - Overflow }
+{ 11 - UNFL  - Underflow }
+{ 10 - DZ    - Divide by Zero }
+{ 09 - INEX2 - Inexact Operation }
+{ 08 - INEX1 - Inexact Decimal Input }
+{ Mode Control Byte: }
+{ 07 - PREC  - Rounding Precision }
+{ 06 - PREC  - Rounding Precision }
+{ 05 - RND   - Rounding Mode }
+{ 04 - RND   - Rounding Mode }
+{ 03 - 0     - Reserved, Set to zero }
+{ 02 - 0     - Reserved, Set to zero }
+{ 01 - 0     - Reserved, Set to zero }
+{ 00 - 0     - Reserved, Set to zero }
+
+
+{$IFNDEF FPU_SOFT}
+{$DEFINE FPC_SYSTEM_HAS_SYSRESETFPU}
+procedure SysResetFPU; assembler;
+asm
+  clr.l    d0
+  fmove.l  d0,fpcr
+end;
+
+{$DEFINE FPC_SYSTEM_HAS_SYSINITFPU}
+procedure SysInitFPU; assembler;
+asm
+  clr.l   d0
+  // FIX ME:
+  // move.w 0,d0 // enable a sane set of exception flags here
+  fmove.l d0,fpcr
+end;
+{$ENDIF}
+
 procedure fpc_cpuinit;
   begin
     SysResetFPU;
@@ -336,7 +384,7 @@ asm
 @LMEMSET3:
 end;
 
-
+{$IFNDEF HASAMIGA}
 function InterLockedDecrement (var Target: longint) : longint;
   begin
   {$warning FIX ME}
@@ -376,6 +424,7 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
     if Target = Comperand then
       Target := NewValue;
   end;
+{$ENDIF HASAMIGA}
 
 {$if defined(CPUM68K_HAS_BYTEREV) or defined(CPUM68K_HAS_ROLROR)}
 { Disabled for now, because not all cases below were tested. (KB) }

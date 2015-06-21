@@ -36,12 +36,7 @@ Type
   TFPHTTPConnectionRequest = Class(TRequest)
   private
     FConnection: TFPHTTPConnection;
-    FRemoteAddress: String;
-    FServerPort: String;
-    FQueryString : String;
   protected
-    function GetFieldValue(Index: Integer): String; override;
-    procedure SetFieldValue(Index: Integer; Value: String);override;
     Procedure InitRequestVars; override;
   published
     Property Connection : TFPHTTPConnection Read FConnection;
@@ -111,6 +106,7 @@ Type
     FOnAllowConnect: TConnectQuery;
     FOnRequest: THTTPServerRequestHandler;
     FOnRequestError: TRequestErrorHandler;
+    FAddress: string;
     FPort: Word;
     FQueueSize: Word;
     FServer : TInetServer;
@@ -122,6 +118,7 @@ Type
     function GetActive: Boolean;
     procedure SetActive(const AValue: Boolean);
     procedure SetOnAllowConnect(const AValue: TConnectQuery);
+    procedure SetAddress(const AValue: string);
     procedure SetPort(const AValue: Word);
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
@@ -164,6 +161,8 @@ Type
   protected
     // Set to true to start listening.
     Property Active : Boolean Read GetActive Write SetActive Default false;
+    // Address to listen on.
+    Property Address : string Read FAddress Write SetAddress;
     // Port to listen on.
     Property Port : Word Read FPort Write SetPort Default 80;
     // Max connections on queue (for Listen call)
@@ -257,13 +256,32 @@ begin
   end;
 end;
 
+Function GetHostNameByAddress(const AnAddress: String): String;
+var
+  Resolver: THostResolver;
+begin
+  Result := '';
+  if AnAddress = '' then exit;
+  Resolver := THostResolver.Create(nil);
+  try
+    if Resolver.AddressLookup(AnAddress) then
+      Result := Resolver.ResolvedName
+  finally
+    FreeAndNil(Resolver);
+  end;
+end;
+
 procedure TFPHTTPConnectionRequest.InitRequestVars;
 Var
   P : Integer;
+  S : String;
 begin
-  P:=Pos('?',URI);
+  S:=URL;
+  P:=Pos('?',S);
   if (P<>0) then
-    FQueryString:=Copy(URI,P+1,Length(URI)-P);
+    SetHTTPVariable(hvQuery,Copy(S,P+1,Length(S)-P));
+  if Assigned(FConnection) and FConnection.LookupHostNames then
+    SetHTTPVariable(hvRemoteHost,GetHostNameByAddress(RemoteAddress));
   inherited InitRequestVars;
 end;
 
@@ -275,51 +293,7 @@ begin
     Result := '';
 end;
 
-Function GetHostNameByAddress(const AnAddress: String): String;
-var
-  Resolver: THostResolver;
-begin
-  Result := '';
-  if AnAddress = '' then exit;
 
-  Resolver := THostResolver.Create(nil);
-  try
-    if Resolver.AddressLookup(AnAddress) then
-      Result := Resolver.ResolvedName
-  finally
-    FreeAndNil(Resolver);
-  end;
-end;
-
-
-Procedure TFPHTTPConnectionRequest.SetFieldValue(Index : Integer; Value : String);
-
-begin
-  case Index of
-    27 : FRemoteAddress := Value;
-    30 : FServerPort := Value;
-    33 : FQueryString:=Value
-  else
-    Inherited SetFieldValue(Index,Value);
-  end;  
-end;
-
-Function TFPHTTPConnectionRequest.GetFieldValue(Index : Integer) : String;
-
-begin
-  case Index of
-    27 : Result := FRemoteAddress;
-    28 : // Remote server name
-         if Assigned(FConnection) and FConnection.LookupHostNames then
-           Result := GetHostNameByAddress(FRemoteAddress) 
-         else
-           Result:='';  
-    30 : Result := FServerPort;
-    33 : Result:=FQueryString
-  else
-    Result:=Inherited GetFieldValue(Index);
-  end; 
-end;
 
 procedure TFPHTTPConnectionResponse.DoSendHeaders(Headers: TStrings);
 
@@ -468,11 +442,18 @@ procedure ParseStartLine(Request : TFPHTTPConnectionRequest; AStartLine : String
 
 Var
   S : String;
-
+  I : Integer;
+  
 begin
   Request.Method:=GetNextWord(AStartLine);
   Request.URL:=GetNextWord(AStartLine);
-  Request.PathInfo:=Request.URL;
+  S:=Request.URL;
+  If (S<>'') and (S[1]='/') then
+    Delete(S,1,1);
+  I:=Pos('?',S);
+  if (I>0) then
+    S:=Copy(S,1,I-1);
+  Request.PathInfo:=S;
   S:=GetNextWord(AStartLine);
   If (Pos('HTTP/',S)<>1) then
     Raise EHTTPServer.CreateHelp(SErrMissingProtocol,400);
@@ -683,6 +664,13 @@ begin
   FOnAllowConnect:=AValue;
 end;
 
+procedure TFPCustomHttpServer.SetAddress(const AValue: string);
+begin
+  if FAddress=AValue then exit;
+  CheckInactive;
+  FAddress:=AValue;
+end;
+
 procedure TFPCustomHttpServer.SetPort(const AValue: Word);
 begin
   if FPort=AValue then exit;
@@ -773,7 +761,10 @@ end;
 
 procedure TFPCustomHttpServer.CreateServerSocket;
 begin
-  FServer:=TInetServer.Create(FPort);
+  if FAddress='' then
+    FServer:=TInetServer.Create(FPort)
+  else
+    FServer:=TInetServer.Create(FAddress,FPort);
   FServer.MaxConnections:=-1;
   FServer.OnConnectQuery:=OnAllowConnect;
   FServer.OnConnect:=@DOConnect;

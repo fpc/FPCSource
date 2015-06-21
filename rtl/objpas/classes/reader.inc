@@ -145,13 +145,9 @@ begin
 end;
 
 procedure TBinaryObjectReader.BeginRootComponent;
-var
-  Signature: LongInt;
 begin
   { Read filer signature }
-  Read(Signature, 4);
-  if Signature <> LongInt(unaligned(FilerSignature)) then
-    raise EReadError.Create(SInvalidImage);
+  ReadSignature;
 end;
 
 procedure TBinaryObjectReader.BeginComponent(var Flags: TFilerFlags;
@@ -312,6 +308,15 @@ begin
     SkipSetBody;
     raise;
   end;
+end;
+
+procedure TBinaryObjectReader.ReadSignature;
+var
+  Signature: LongInt;
+begin
+  Read(Signature, 4);
+  if Signature <> LongInt(unaligned(FilerSignature)) then
+    raise EReadError.Create(SInvalidImage);
 end;
 
 function TBinaryObjectReader.ReadStr: String;
@@ -1019,6 +1024,11 @@ begin
     Result := FDriver.ReadFloat
   end else
     Result := ReadInt64;
+end;
+
+procedure TReader.ReadSignature;
+begin
+  FDriver.ReadSignature;
 end;
 
 function TReader.ReadSingle: Single;

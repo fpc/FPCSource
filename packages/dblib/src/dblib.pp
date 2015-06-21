@@ -173,6 +173,7 @@ const
 
   // Error codes:
   SYBEFCON = 20002;      // SQL Server connection failed
+  SYBESMSG = 20018;      // General SQL Server error: Check messages from the SQL Server.
 
 type
   PLOGINREC=Pointer;
@@ -275,8 +276,8 @@ type
     str: array[0..DBMAXCHAR-1] of AnsiChar;
   end;
 
-  DBERRHANDLE_PROC=function(dbproc: PDBPROCESS; severity, dberr, oserr:INT; dberrstr, oserrstr:PChar):INT; cdecl;
-  DBMSGHANDLE_PROC=function(dbproc: PDBPROCESS; msgno: DBINT; msgstate, severity:INT; msgtext, srvname, procname:PChar; line:DBUSMALLINT):INT; cdecl;
+  DBERRHANDLE_PROC=function(dbproc: PDBPROCESS; severity, dberr, oserr:INT; dberrstr, oserrstr:PAnsiChar):INT; cdecl;
+  DBMSGHANDLE_PROC=function(dbproc: PDBPROCESS; msgno: DBINT; msgstate, severity:INT; msgtext, srvname, procname:PAnsiChar; line:DBUSMALLINT):INT; cdecl;
 
   {$IFDEF ntwdblib}
     {$PACKRECORDS 2}
@@ -305,27 +306,27 @@ var
   DBLibInit: boolean=false; //was dbinit() already called ?
 
 {$IFNDEF LOAD_DYNAMICALLY}
-  function dbinit():{$IFDEF freetds}RETCODE{$ELSE}PChar{$ENDIF}; cdecl; external DBLIBDLL;
+  function dbinit():{$IFDEF freetds}RETCODE{$ELSE}PAnsiChar{$ENDIF}; cdecl; external DBLIBDLL;
   function dblogin():PLOGINREC; cdecl; external DBLIBDLL;
-  function dbsetlname(login:PLOGINREC; value:PChar; which:INT):RETCODE; cdecl; external DBLIBDLL;
+  function dbsetlname(login:PLOGINREC; value:PAnsiChar; which:INT):RETCODE; cdecl; external DBLIBDLL;
   function dbsetlogintime(seconds:INT):RETCODE; cdecl; external DBLIBDLL;
   function dbsettime(seconds:INT):RETCODE; cdecl; external DBLIBDLL;
   function dberrhandle(handler:DBERRHANDLE_PROC):DBERRHANDLE_PROC; cdecl; external DBLIBDLL;
   function dbmsghandle(handler:DBMSGHANDLE_PROC):DBMSGHANDLE_PROC; cdecl; external DBLIBDLL;
-  function dbsetopt(dbproc:PDBPROCESS; option: INT; param:PChar {$IFDEF freetds};int_param:INT{$ENDIF}):RETCODE; cdecl; external DBLIBDLL;
-  function dbuse(dbproc:PDBPROCESS; dbname:PChar):RETCODE; cdecl; external DBLIBDLL;
-  function dbcmd(dbproc:PDBPROCESS; cmdstring:PChar):RETCODE; cdecl; external DBLIBDLL;
+  function dbsetopt(dbproc:PDBPROCESS; option: INT; param:PAnsiChar {$IFDEF freetds};int_param:INT{$ENDIF}):RETCODE; cdecl; external DBLIBDLL;
+  function dbuse(dbproc:PDBPROCESS; dbname:PAnsiChar):RETCODE; cdecl; external DBLIBDLL;
+  function dbcmd(dbproc:PDBPROCESS; cmdstring:PAnsiChar):RETCODE; cdecl; external DBLIBDLL;
   function dbcmdrow(dbproc:PDBPROCESS):RETCODE; cdecl; external DBLIBDLL;
   function dbsqlexec(dbproc:PDBPROCESS):RETCODE; cdecl; external DBLIBDLL;
   function dbresults(dbproc:PDBPROCESS):RETCODE; cdecl; external DBLIBDLL;
   function dbmorecmds(dbproc:PDBPROCESS):RETCODE; cdecl; external DBLIBDLL;
   function dbnextrow(dbproc:PDBPROCESS):STATUS; cdecl; external DBLIBDLL;
   function dbnumcols(dbproc:PDBPROCESS):INT; cdecl; external DBLIBDLL;
-  function dbcolname(dbproc:PDBPROCESS; column:INT):PChar; cdecl; external DBLIBDLL;
+  function dbcolname(dbproc:PDBPROCESS; column:INT):PAnsiChar; cdecl; external DBLIBDLL;
   function dbcoltype(dbproc:PDBPROCESS; column:INT):INT; cdecl; external DBLIBDLL;
   function dbcollen(dbproc:PDBPROCESS; column:INT):DBINT; cdecl; external DBLIBDLL;
   function dbcolinfo(dbproc:PDBPROCESS; typ:INT; column:DBINT; computeid:DBINT; dbcol:PDBCOL):RETCODE; cdecl; external DBLIBDLL;
-  function dbprtype(token:INT):PChar; cdecl; external DBLIBDLL;
+  function dbprtype(token:INT):PAnsiChar; cdecl; external DBLIBDLL;
   function dbdatlen(dbproc:PDBPROCESS; column:INT):DBINT; cdecl; external DBLIBDLL;
   function dbdata(dbproc:PDBPROCESS; column:INT):PByte; cdecl; external DBLIBDLL;
   function dbwillconvert(srctype, desttype: INT):{$IFDEF freetds}DBBOOL{$ELSE}BOOL{$ENDIF}; cdecl; external DBLIBDLL;
@@ -340,41 +341,41 @@ var
   procedure dbfreelogin(login:PLOGINREC); cdecl; external DBLIBDLL {$IFDEF freetds}name 'dbloginfree'{$ENDIF};
   procedure dbexit(); cdecl; external DBLIBDLL;
   {$IFDEF ntwdblib}
-  function dbopen(login:PLOGINREC; servername:PChar):PDBPROCESS; cdecl; external DBLIBDLL;
+  function dbopen(login:PLOGINREC; servername:PAnsiChar):PDBPROCESS; cdecl; external DBLIBDLL;
   function dbclose(dbproc:PDBPROCESS):RETCODE; cdecl; external DBLIBDLL;
   procedure dbwinexit; cdecl; external DBLIBDLL;
   {$ENDIF}
   {$IFDEF freetds}
-  function tdsdbopen(login:PLOGINREC; servername:PChar; msdblib:INT):PDBPROCESS; cdecl; external DBLIBDLL;
+  function tdsdbopen(login:PLOGINREC; servername:PAnsiChar; msdblib:INT):PDBPROCESS; cdecl; external DBLIBDLL;
   function dbtablecolinfo(dbproc:PDBPROCESS; column:DBINT; dbcol:PDBCOL):RETCODE; cdecl; external DBLIBDLL;
   function dbtds(dbproc:PDBPROCESS):INT; cdecl; external DBLIBDLL;
   function dbsetlversion(login:PLOGINREC; version:BYTE):RETCODE; cdecl; external DBLIBDLL;
-  function dbservcharset(dbproc:PDBPROCESS):PChar; cdecl; external DBLIBDLL;
+  function dbservcharset(dbproc:PDBPROCESS):PAnsiChar; cdecl; external DBLIBDLL;
   procedure dbclose(dbproc:PDBPROCESS); cdecl; external DBLIBDLL;
   {$ENDIF}
 {$ELSE}
   var
-  dbinit: function():{$IFDEF freetds}RETCODE{$ELSE}PChar{$ENDIF}; cdecl;
+  dbinit: function():{$IFDEF freetds}RETCODE{$ELSE}PAnsiChar{$ENDIF}; cdecl;
   dblogin: function():PLOGINREC; cdecl;
-  dbsetlname: function(login:PLOGINREC; value:PChar; which:INT):RETCODE; cdecl;
+  dbsetlname: function(login:PLOGINREC; value:PAnsiChar; which:INT):RETCODE; cdecl;
   dbsetlogintime: function(seconds:INT):RETCODE; cdecl;
   dbsettime: function(seconds:INT):RETCODE; cdecl;
   dberrhandle: function(handler:DBERRHANDLE_PROC):DBERRHANDLE_PROC; cdecl;
   dbmsghandle: function(handler:DBMSGHANDLE_PROC):DBMSGHANDLE_PROC; cdecl;
-  dbsetopt: function(dbproc:PDBPROCESS; option: INT; param:PChar {$IFDEF freetds};int_param:INT{$ENDIF}):RETCODE; cdecl;
-  dbuse: function(dbproc:PDBPROCESS; dbname:PChar):RETCODE; cdecl;
-  dbcmd: function(dbproc:PDBPROCESS; cmdstring:PChar):RETCODE; cdecl;
+  dbsetopt: function(dbproc:PDBPROCESS; option: INT; param:PAnsiChar {$IFDEF freetds};int_param:INT{$ENDIF}):RETCODE; cdecl;
+  dbuse: function(dbproc:PDBPROCESS; dbname:PAnsiChar):RETCODE; cdecl;
+  dbcmd: function(dbproc:PDBPROCESS; cmdstring:PAnsiChar):RETCODE; cdecl;
   dbcmdrow: function(dbproc:PDBPROCESS):RETCODE; cdecl;
   dbsqlexec: function(dbproc:PDBPROCESS):RETCODE; cdecl;
   dbresults: function(dbproc:PDBPROCESS):RETCODE; cdecl;
   dbmorecmds: function(dbproc:PDBPROCESS):RETCODE; cdecl;
   dbnextrow: function(dbproc:PDBPROCESS):STATUS; cdecl;
   dbnumcols: function(dbproc:PDBPROCESS):INT; cdecl;
-  dbcolname: function(dbproc:PDBPROCESS; column:INT):PChar; cdecl;
+  dbcolname: function(dbproc:PDBPROCESS; column:INT):PAnsiChar; cdecl;
   dbcoltype: function(dbproc:PDBPROCESS; column:INT):INT; cdecl;
   dbcollen: function(dbproc:PDBPROCESS; column:INT):DBINT; cdecl;
   dbcolinfo: function(dbproc:PDBPROCESS; typ:INT; column:DBINT; computeid:DBINT; dbcol:PDBCOL):RETCODE; cdecl;
-  dbprtype: function(token:INT):PChar; cdecl;
+  dbprtype: function(token:INT):PAnsiChar; cdecl;
   dbdatlen: function(dbproc:PDBPROCESS; column:INT):DBINT; cdecl;
   dbdata: function(dbproc:PDBPROCESS; column:INT):PByte; cdecl;
   dbwillconvert: function(srctype, desttype: INT):{$IFDEF freetds}DBBOOL{$ELSE}BOOL{$ENDIF}; cdecl;
@@ -389,16 +390,16 @@ var
   dbexit: procedure(); cdecl;
   dbfreelogin: procedure(login:PLOGINREC); cdecl;
   {$IFDEF ntwdblib}
-  dbopen: function(login:PLOGINREC; servername:PChar):PDBPROCESS; cdecl;
+  dbopen: function(login:PLOGINREC; servername:PAnsiChar):PDBPROCESS; cdecl;
   dbclose: function(dbproc:PDBPROCESS):RETCODE; cdecl;
   dbwinexit: procedure; cdecl;
   {$ENDIF}
   {$IFDEF freetds}
-  tdsdbopen: function(login:PLOGINREC; servername:PChar; msdblib:INT):PDBPROCESS; cdecl;
+  tdsdbopen: function(login:PLOGINREC; servername:PAnsiChar; msdblib:INT):PDBPROCESS; cdecl;
   dbtablecolinfo: function(dbproc:PDBPROCESS; column:DBINT; dbcol:PDBCOL):RETCODE; cdecl;
   dbtds: function(dbproc:PDBPROCESS):INT; cdecl;
   dbsetlversion: function(login:PLOGINREC; version:BYTE):RETCODE; cdecl;
-  dbservcharset: function(dbproc:PDBPROCESS):PChar; cdecl;
+  dbservcharset: function(dbproc:PDBPROCESS):PAnsiChar; cdecl;
   dbclose: procedure(dbproc:PDBPROCESS); cdecl;
   {$ENDIF}
 
@@ -407,17 +408,17 @@ var
 {$ENDIF}
 
 {$IFDEF ntwdblib}
-function tdsdbopen(login:PLOGINREC; servername:PChar; msdblib:INT):PDBPROCESS;
+function tdsdbopen(login:PLOGINREC; servername:PAnsiChar; msdblib:INT):PDBPROCESS;
 function dbtablecolinfo(dbproc:PDBPROCESS; column:DBINT; dbcol:PDBCOL):RETCODE;
 function dbsetlversion(login:PLOGINREC; version:BYTE):RETCODE;
 function dbtds(dbproc:PDBPROCESS):INT;
-function dbversion():PChar;
+function dbversion():PAnsiChar;
 {$ENDIF}
 {$IFDEF freetds}
-function dbopen(login:PLOGINREC; servername:PChar):PDBPROCESS;
+function dbopen(login:PLOGINREC; servername:PAnsiChar):PDBPROCESS;
 procedure dbwinexit;
 {$ENDIF}
-function dbsetlcharset(login:PLOGINREC; charset:PChar):RETCODE;
+function dbsetlcharset(login:PLOGINREC; charset:PAnsiChar):RETCODE;
 function dbsetlsecure(login:PLOGINREC):RETCODE;
 function dbdatetimeallcrack(dta: PDBDATETIMEALL): TDateTime;
 function dbmoneytocurr(pdbmoney: PQWord): Currency;
@@ -534,12 +535,12 @@ end;
 
 //functions, which are not implemented by FreeTDS:
 {$IFDEF freetds}
-function dbopen(login:PLOGINREC; servername:PChar):PDBPROCESS;
+function dbopen(login:PLOGINREC; servername:PAnsiChar):PDBPROCESS;
 begin
   Result:=tdsdbopen(login, servername, 1{1=MSDBLIB or 0=SYBDBLIB});
 end;
 
-function dbsetlcharset(login:PLOGINREC; charset:PChar):RETCODE;
+function dbsetlcharset(login:PLOGINREC; charset:PAnsiChar):RETCODE;
 begin
   Result:=dbsetlname(login, charset, 10);
 end;
@@ -558,7 +559,7 @@ end;
 
 //functions which are not implemented by ntwdblib:
 {$IFDEF ntwdblib}
-function tdsdbopen(login:PLOGINREC; servername:PChar; msdblib:INT):PDBPROCESS;
+function tdsdbopen(login:PLOGINREC; servername:PAnsiChar; msdblib:INT):PDBPROCESS;
 begin
   Result:=dbopen(login, servername);
 end;
@@ -578,7 +579,7 @@ begin
   Result:=dbsetlname(login, nil, version);
 end;
 
-function dbsetlcharset(login:PLOGINREC; charset:PChar):RETCODE;
+function dbsetlcharset(login:PLOGINREC; charset:PAnsiChar):RETCODE;
 begin
   Result:=SUCCEED;
 end;
@@ -593,7 +594,7 @@ begin
   Result:=0;
 end;
 
-function dbversion():PChar;
+function dbversion():PAnsiChar;
 begin
   Result:='DB Library version 8.00';
 end;

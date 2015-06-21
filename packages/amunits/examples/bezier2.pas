@@ -1,4 +1,4 @@
-Program Bezier;
+Program Bezier2;
 
 
 {  This program draws Bezier curves in the slow, simple, recursive
@@ -26,7 +26,7 @@ Program Bezier;
    nils.sjoholm@mailbox.swipnet.se
 }
 
-uses exec, intuition, agraphics, utility, pastoc, systemvartags;
+uses exec, intuition, agraphics, utility, systemvartags;
 
 type
     PointRec = Record

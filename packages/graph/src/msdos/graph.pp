@@ -216,16 +216,16 @@ var
   Offset: Word;
   B, Mask, Shift: Byte;
 begin
-  X:= X + StartXViewPort;
-  Y:= Y + StartYViewPort;
-  { convert to absolute coordinates and then verify clipping...}
+  { verify clipping and then convert to absolute coordinates...}
   if ClipPixels then
   begin
-    if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+    if (X < 0) or (X > ViewWidth) then
       exit;
-    if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+    if (Y < 0) or (Y > ViewHeight) then
       exit;
   end;
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
   Offset := (Y shr 2) * 90 + (X shr 3) + VideoOfs;
   case Y and 3 of
     1: Inc(Offset, $2000);
@@ -620,16 +620,16 @@ var
   Offset: Word;
   B, Mask, Shift: Byte;
 begin
-  X:= X + StartXViewPort;
-  Y:= Y + StartYViewPort;
-  { convert to absolute coordinates and then verify clipping...}
+  { verify clipping and then convert to absolute coordinates...}
   if ClipPixels then
   begin
-    if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+    if (X < 0) or (X > ViewWidth) then
       exit;
-    if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+    if (Y < 0) or (Y > ViewHeight) then
       exit;
   end;
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
   Offset := (Y shr 1) * 80 + (X shr 2);
   if (Y and 1) <> 0 then
     Inc(Offset, 8192);
@@ -930,16 +930,16 @@ var
   Offset: Word;
   B, Mask, Shift: Byte;
 begin
-  X:= X + StartXViewPort;
-  Y:= Y + StartYViewPort;
-  { convert to absolute coordinates and then verify clipping...}
+  { verify clipping and then convert to absolute coordinates...}
   if ClipPixels then
   begin
-    if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+    if (X < 0) or (X > ViewWidth) then
       exit;
-    if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+    if (Y < 0) or (Y > ViewHeight) then
       exit;
   end;
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
   Offset := (Y shr 1) * 80 + (X shr 3);
   if (Y and 1) <> 0 then
     Inc(Offset, 8192);
@@ -1238,16 +1238,16 @@ var
   Offset: Word;
   B, Mask, Shift: Byte;
 begin
-  X:= X + StartXViewPort;
-  Y:= Y + StartYViewPort;
-  { convert to absolute coordinates and then verify clipping...}
+  { verify clipping and then convert to absolute coordinates...}
   if ClipPixels then
   begin
-    if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+    if (X < 0) or (X > ViewWidth) then
       exit;
-    if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+    if (Y < 0) or (Y > ViewHeight) then
       exit;
   end;
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
   Offset := Y * 80 + (X shr 3);
   Shift := 7 - (X and 7);
   Mask := 1 shl Shift;
@@ -1548,16 +1548,16 @@ end;
      dummy: byte;
 {$endif asmgraph}
   Begin
+    { verify clipping and then convert to absolute coordinates...}
+    if ClipPixels then
+    begin
+      if (X < 0) or (X > ViewWidth) then
+        exit;
+      if (Y < 0) or (Y > ViewHeight) then
+        exit;
+    end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-    { convert to absolute coordinates and then verify clipping...}
-    if ClipPixels then
-     Begin
-       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
-         exit;
-       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
-         exit;
-     end;
 {$ifndef asmgraph}
      offset := y * 80 + (x shr 3) + VideoOfs;
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
@@ -2261,7 +2261,7 @@ End;
 
 
  procedure SetVisual200(page: word); {$ifndef fpc}far;{$endif fpc}
-  { two page supPort... }
+  { four page support... }
   begin
     if page > HardwarePages then exit;
     asm
@@ -2296,12 +2296,13 @@ End;
   end;
 
  procedure SetActive200(page: word); {$ifndef fpc}far;{$endif fpc}
-  { two page supPort... }
+  { four page support... }
   begin
     case page of
      0 : VideoOfs := 0;
      1 : VideoOfs := 16384;
      2 : VideoOfs := 32768;
+     3 : VideoOfs := 49152;
     else
       VideoOfs := 0;
     end;
@@ -2363,16 +2364,16 @@ End;
  Procedure PutPixel320(X,Y : smallint; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in local coordinates. Clipping if required. }
   Begin
+    { verify clipping and then convert to absolute coordinates...}
+    if ClipPixels then
+    begin
+      if (X < 0) or (X > ViewWidth) then
+        exit;
+      if (Y < 0) or (Y > ViewHeight) then
+        exit;
+    end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-    { convert to absolute coordinates and then verify clipping...}
-    if ClipPixels then
-     Begin
-       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
-         exit;
-       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
-         exit;
-     end;
     asm
       mov    es, [SegA000]
       mov    ax, [Y]
@@ -2706,16 +2707,16 @@ const CrtAddress: word = 0;
  var offset: word;
 {$endif asmgraph}
   begin
+    { verify clipping and then convert to absolute coordinates...}
+    if ClipPixels then
+    begin
+      if (X < 0) or (X > ViewWidth) then
+        exit;
+      if (Y < 0) or (Y > ViewHeight) then
+        exit;
+    end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-    { convert to absolute coordinates and then verify clipping...}
-    if ClipPixels then
-     Begin
-       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
-         exit;
-       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
-         exit;
-     end;
 {$ifndef asmgraph}
     offset := y * 80 + x shr 2 + VideoOfs;
     PortW[$3c4] := (hi(word(FirstPlane)) shl 8) shl (x and 3)+ lo(word(FirstPlane));
@@ -3230,6 +3231,7 @@ const CrtAddress: word = 0;
       mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
       mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
       mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
+      mode.HLine := {$ifdef fpc}@{$endif}HLineVESA32kOr64k;
     end;
 
     procedure FillCommonVESA32k(var mode: TModeInfo);
@@ -3246,10 +3248,12 @@ const CrtAddress: word = 0;
     end;
 
    var
-    HGCDetected : Boolean;
-    CGADetected : Boolean; { TRUE means real CGA, *not* EGA or VGA }
-    EGADetected : Boolean; { TRUE means EGA or higher (VGA) }
-    VGADetected : Boolean;
+    HGCDetected : Boolean = FALSE;
+    CGADetected : Boolean = FALSE; { TRUE means real CGA, *not* EGA or VGA }
+    EGAColorDetected : Boolean = FALSE; { TRUE means true EGA with a color monitor }
+    EGAMonoDetected : Boolean = FALSE; { TRUE means true EGA with a monochrome (MDA) monitor }
+    MCGADetected : Boolean = FALSE;
+    VGADetected : Boolean = FALSE;
     mode: TModeInfo;
     regs: Registers;
    begin
@@ -3260,45 +3264,83 @@ const CrtAddress: word = 0;
      if assigned(ModeList) then
        exit;
 
-
-     HGCDetected := FALSE;
-     CGADetected := FALSE;
-     EGADetected := FALSE;
-     VGADetected := FALSE;
-     { check if EGA adapter supPorted...       }
-     regs.ah:=$12;
-     regs.bx:=$FF10;
-     intr($10,regs);     { get EGA information }
-     EGADetected:=regs.bh<>$FF;
-{$ifdef logging}
-     LogLn('EGA detected: '+strf(Longint(EGADetected)));
-{$endif logging}
-     { check if VGA adapter supPorted...       }
-     if EGADetected then
+     { check if VGA/MCGA adapter supported...       }
+     regs.ax:=$1a00;
+     intr($10,regs);    { get display combination code...}
+     if regs.al=$1a then
        begin
-         regs.ax:=$1a00;
-         intr($10,regs);    { get display combination code...}
-         if regs.al=$1a then
+         while regs.bx <> 0 do
            begin
-             { now check if this is the ATI EGA }
-             regs.ax:=$1c00; { get state size for save...     }
-                             { ... all imPortant data         }
-             regs.cx:=$07;
-             intr($10,regs);
-             VGADetected:=regs.al=$1c;
+             case regs.bl of
+               1: { monochrome adapter (MDA or HGC) }
+                 begin
+                   { check if Hercules adapter supported ... }
+                   HGCDetected:=Test6845($3B4);
+                 end;
+               2: CGADetected:=TRUE;
+               4: EGAColorDetected:=TRUE;
+               5: EGAMonoDetected:=TRUE;
+               {6: PGA, this is rare stuff, how do we handle it? }
+               7, 8: VGADetected:=TRUE;
+               10, 11, 12: MCGADetected:=TRUE;
+             end;
+             { check both primary and secondary display adapter }
+             regs.bx:=regs.bx shr 8;
            end;
        end;
-{$ifdef logging}
-       LogLn('VGA detected: '+strf(Longint(VGADetected)));
-{$endif logging}
-     { older than EGA? }
-     if not EGADetected then
+     if VGADetected then
        begin
-         { check if Hercules adapter supPorted ... }
+         { now check if this is the ATI EGA }
+         regs.ax:=$1c00; { get state size for save...     }
+                         { ... all important data         }
+         regs.cx:=$07;
+         intr($10,regs);
+         VGADetected:=regs.al=$1c;
+       end;
+     if not VGADetected and not MCGADetected and
+        not EGAColorDetected and not EGAMonoDetected and
+        not CGADetected and not HGCDetected then
+       begin
+         { check if EGA adapter supported...       }
+         regs.ah:=$12;
+         regs.bx:=$FF10;
+         intr($10,regs);     { get EGA information }
+         if regs.bh<>$FF then
+           case regs.cl of
+             0..3, { primary: MDA/HGC,   secondary: EGA color }
+             6..9: { primary: EGA color, secondary: MDA/HGC (optional) }
+               begin
+                 EGAColorDetected:=TRUE;
+                 { check if Hercules adapter supported ... }
+                 HGCDetected:=Test6845($3B4);
+               end;
+             4..5, { primary: CGA,        secondary: EGA mono }
+             10..11: { primary: EGA mono, secondary: CGA (optional) }
+               begin
+                 EGAMonoDetected:=TRUE;
+                 { check if CGA adapter supported ... }
+                 CGADetected := Test6845($3D4);
+               end;
+           end;
+       end;
+     { older than EGA? }
+     if not VGADetected and not MCGADetected and
+        not EGAColorDetected and not EGAMonoDetected and
+        not CGADetected and not HGCDetected then
+       begin
+         { check if Hercules adapter supported ... }
          HGCDetected := Test6845($3B4);
-         { check if CGA adapter supPorted ... }
+         { check if CGA adapter supported ... }
          CGADetected := Test6845($3D4);
        end;
+{$ifdef logging}
+     LogLn('HGC detected: '+strf(Longint(HGCDetected)));
+     LogLn('CGA detected: '+strf(Longint(CGADetected)));
+     LogLn('EGA color detected: '+strf(Longint(EGAColorDetected)));
+     LogLn('EGA mono detected: '+strf(Longint(EGAMonoDetected)));
+     LogLn('MCGA detected: '+strf(Longint(MCGADetected)));
+     LogLn('VGA detected: '+strf(Longint(VGADetected)));
+{$endif logging}
      if HGCDetected then
        begin
          { HACK:
@@ -3335,7 +3377,7 @@ const CrtAddress: word = 0;
          mode.YAspect := 10000;
          AddMode(mode);
        end;
-     if CGADetected or EGADetected then
+     if CGADetected or EGAColorDetected or MCGADetected or VGADetected then
        begin
          { HACK:
            until we create Save/RestoreStateCGA, we use Save/RestoreStateVGA
@@ -3388,7 +3430,7 @@ const CrtAddress: word = 0;
          AddMode(mode);
        end;
 
-     if EGADetected then
+     if EGAColorDetected or VGADetected then
        begin
          { HACK:
            until we create Save/RestoreStateEGA, we use Save/RestoreStateVGA
@@ -3406,7 +3448,7 @@ const CrtAddress: word = 0;
          mode.ModeName:='640 x 200 EGA';
          mode.MaxX := 639;
          mode.MaxY := 199;
-         mode.HardwarePages := 2;
+         mode.HardwarePages := 3;
          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual200;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive200;
          mode.InitMode := {$ifdef fpc}@{$endif}Init640x200x16;
@@ -3430,8 +3472,14 @@ const CrtAddress: word = 0;
          AddMode(mode);
        end;
 
-     if VGADetected then
+     if MCGADetected or VGADetected then
        begin
+         { HACK:
+           until we create Save/RestoreStateEGA, we use Save/RestoreStateVGA
+           with the inWindows flag enabled (so we only save the mode number
+           and nothing else) }
+         if not VGADetected then
+           inWindows := true;
          SaveVideoState := @SaveStateVGA;
 {$ifdef logging}
          LogLn('Setting VGA SaveVideoState to '+strf(longint(SaveVideoState)));
@@ -3530,7 +3578,18 @@ const CrtAddress: word = 0;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
          AddMode(mode);
+       end;
 
+     if VGADetected then
+       begin
+         SaveVideoState := @SaveStateVGA;
+{$ifdef logging}
+         LogLn('Setting VGA SaveVideoState to '+strf(longint(SaveVideoState)));
+{$endif logging}
+         RestoreVideoState := @RestoreStateVGA;
+{$ifdef logging}
+         LogLn('Setting VGA RestoreVideoState to '+strf(longint(RestoreVideoState)));
+{$endif logging}
          { now add all standard VGA modes...       }
          InitMode(mode);
          mode.DriverNumber:= LowRes;
@@ -3562,7 +3621,7 @@ const CrtAddress: word = 0;
          mode.ModeName:='640 x 200 EGA'; { yes, it says 'EGA' even for the VGA driver; this is TP7 compatible }
          mode.MaxX := 639;
          mode.MaxY := 199;
-         mode.HardwarePages := 2;
+         mode.HardwarePages := 3;
          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual200;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive200;
          mode.InitMode := {$ifdef fpc}@{$endif}Init640x200x16;

@@ -18,7 +18,7 @@ unit fpapache;
 interface
 
 uses
-  SysUtils,Classes,CustWeb,httpDefs,fpHTTP,httpd, apr, SyncObjs;
+  SysUtils,Classes,CustWeb,httpDefs,fpHTTP,httpd,httpprotocol, apr, SyncObjs;
 
 Type
 
@@ -31,11 +31,11 @@ Type
     FApache : TApacheHandler;
     FRequest : PRequest_rec;
   Protected
-    Function GetFieldValue(Index : Integer) : String; override;
     Procedure InitFromRequest;
     procedure ReadContent; override;
   Public
     Constructor CreateReq(App : TApacheHandler; ARequest : PRequest_rec);
+    Function GetCustomHeader(const Name: String) : String; override;
     Property ApacheRequest : Prequest_rec Read FRequest;
     Property ApacheApp : TApacheHandler Read FApache;
   end;
@@ -179,6 +179,12 @@ const
   HPRIO : Array[THandlerPriority] of Integer
         = (APR_HOOK_FIRST,APR_HOOK_MIDDLE,APR_HOOK_LAST);
 
+Function MaybeP(P : Pchar) : String;
+
+begin
+  If (P<>Nil) then
+    Result:=StrPas(P);
+end;
 
 Procedure InitApache;
 
@@ -448,60 +454,6 @@ end;
 
 { TApacheRequest }
 
-function TApacheRequest.GetFieldValue(Index: Integer): String;
-
-  Function MaybeP(P : Pchar) : String;
-  
-  begin
-    If (P<>Nil) then
-      Result:=StrPas(P);
-  end;
-
-var
-  FN : String;
-  I : Integer;
-  
-begin
-  Result:='';
-  If (Index in [1..NoHTTPFields]) then
-    begin
-    FN:=HTTPFieldNames[Index];
-    Result:=MaybeP(apr_table_get(FRequest^.headers_in,pchar(FN)));
-    end;
-  if (Result='') and Assigned(FRequest) then
-    case Index of
-      0  : Result:=MaybeP(FRequest^.protocol); // ProtocolVersion
-      7  : Result:=MaybeP(FRequest^.content_encoding); //ContentEncoding
-      25 : Result:=MaybeP(FRequest^.path_info); // PathInfo
-      26 : Result:=MaybeP(FRequest^.filename); // PathTranslated
-      27 : // RemoteAddr
-           If (FRequest^.Connection<>Nil) then
-             Result:=MaybeP(FRequest^.Connection^.remote_ip);
-      28 : // RemoteHost
-           If (FRequest^.Connection<>Nil) then
-             begin
-             Result:=MaybeP(ap_get_remote_host(FRequest^.Connection,
-                            FRequest^.per_dir_config,
-//                            nil,
-                            REMOTE_NAME,@i));
-             end;                   
-      29 : begin // ScriptName
-           Result:=MaybeP(FRequest^.unparsed_uri);
-           I:=Pos('?',Result)-1;
-           If (I=-1) then
-             I:=Length(Result);
-           Result:=Copy(Result,1,I-Length(PathInfo));
-           end;
-      30 : Result:=IntToStr(ap_get_server_port(FRequest)); // ServerPort
-      31 : Result:=MaybeP(FRequest^.method); // Method
-      32 : Result:=MaybeP(FRequest^.unparsed_uri); // URL
-      33 : Result:=MaybeP(FRequest^.args); // Query
-      34 : Result:=MaybeP(FRequest^.HostName); // Host
-    else
-      Result:=inherited GetFieldValue(Index);
-    end;
-end;
-
 procedure TApacheRequest.ReadContent;
 
   Function MinS(A,B : Integer) : Integer;
@@ -542,11 +494,46 @@ begin
 end;
 
 procedure TApacheRequest.InitFromRequest;
+
+
+Var
+  H : THeader;
+  V : String;
+  I : Integer;
+
 begin
   ParseCookies;
+  For H in THeader do
+    begin
+    V:=MaybeP(apr_table_get(FRequest^.headers_in,PAnsiChar(HTTPHeaderNames[h])));
+    If (V<>'') then
+      SetHeader(H,V);
+    end;
+  // Some Specials;
+  SetHeader(hhContentEncoding,MaybeP(FRequest^.content_encoding));
+  SetHTTPVariable(hvHTTPVersion,MaybeP(FRequest^.protocol));
+  SetHTTPVariable(hvPathInfo,MaybeP(FRequest^.path_info));
+  SetHTTPVariable(hvPathTranslated,MaybeP(FRequest^.filename));
+  If (FRequest^.Connection<>Nil) then
+    begin
+    SetHTTPVariable(hvRemoteAddress,MaybeP(FRequest^.Connection^.remote_ip));
+    SetHTTPVariable(hvRemoteHost,MaybeP(ap_get_remote_host(FRequest^.Connection,
+                   FRequest^.per_dir_config, REMOTE_NAME,@i)));
+    end;
+  V:=MaybeP(FRequest^.unparsed_uri);
+  I:=Pos('?',V)-1;
+  If (I=-1) then
+    I:=Length(V);
+  SetHTTPVariable(hvScriptName,Copy(V,1,I-Length(PathInfo)));
+  SetHTTPVariable(hvServerPort,IntToStr(ap_get_server_port(FRequest)));
+  SetHTTPVariable(hvMethod,MaybeP(FRequest^.method));
+  SetHTTPVariable(hvURL,FRequest^.unparsed_uri);
+  SetHTTPVariable(hvQuery,MaybeP(FRequest^.args));
+  SetHeader(hhHost,MaybeP(FRequest^.HostName));
 end;
 
-Constructor TApacheRequest.CreateReq(App : TApacheHandler; ARequest : PRequest_rec);
+constructor TApacheRequest.CreateReq(App: TApacheHandler; ARequest: PRequest_rec
+  );
 
 begin
   FApache:=App;
@@ -554,6 +541,13 @@ begin
   ReturnedPathInfo:=App.BaseLocation;
   Inherited Create;
   InitFromRequest;
+end;
+
+function TApacheRequest.GetCustomHeader(const Name: String): String;
+begin
+  Result:=inherited GetCustomHeader(Name);
+  if Result='' then
+    Result:=MaybeP(apr_table_get(FRequest^.headers_in,pchar(Name)));
 end;
 
 { TApacheResponse }

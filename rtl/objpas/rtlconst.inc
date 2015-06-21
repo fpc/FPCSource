@@ -139,6 +139,7 @@ ResourceString
   SImageReadFail                = 'The ImageList data could not be read from stream';
   SImageWriteFail               = 'The ImageList data could not be written to stream';
   SIndexOutOfRange              = 'Grid index out of range';
+  SParamIsNil                   = 'Parameter %s cannot be nil';
   SIniFileWriteError            = 'Unable to write to "%s"';
   SInsertLineError              = 'Line could not be inserted';
   SInvalidActionCreation        = 'Invalid action creation';

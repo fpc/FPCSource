@@ -18,7 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.0.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,dragonfly];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly];
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');
@@ -26,8 +26,8 @@ begin
     P.Dependencies.Add('fcl-net');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fastcgi');
-    P.Dependencies.Add('httpd22', AllOses - [amiga,aros]);
-    P.Dependencies.Add('httpd24', AllOses - [amiga,aros]);
+    P.Dependencies.Add('httpd22', AllOses - [amiga,aros,morphos]);
+    P.Dependencies.Add('httpd24', AllOses - [amiga,aros,morphos]);
     // (Temporary) indirect dependencies, not detected by fpcmake:
     P.Dependencies.Add('univint',[MacOSX,iphonesim]);
 
@@ -48,6 +48,8 @@ begin
     T.ResourceStrings:=true;
       with T.Dependencies do
         begin
+          AddUnit('httpprotocol');
+          AddUnit('cgiprotocol');
           AddUnit('httpdefs');
         end;
     T:=P.Targets.AddUnit('ezcgi.pp');
@@ -83,7 +85,12 @@ begin
           AddUnit('fphttp');
           AddUnit('websession');
         end;
+    T:=P.Targets.AddUnit('httpprotocol.pp');
+    T:=P.Targets.AddUnit('cgiprotocol.pp');
+
     T:=P.Targets.AddUnit('httpdefs.pp');
+    T.Dependencies.AddUnit('httpprotocol');
+    
     T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('iniwebsession.pp');
     T.ResourceStrings:=true;
@@ -116,26 +123,30 @@ begin
       end;
     with P.Targets.AddUnit('fpfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros];
+        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros,morphos];
         Dependencies.AddUnit('custfcgi');
       end;
     with P.Targets.AddUnit('custfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros];
+        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros,morphos];
+        Dependencies.AddUnit('httpprotocol');
+        Dependencies.AddUnit('cgiprotocol');
+        Dependencies.AddUnit('custcgi');
         Dependencies.AddUnit('httpdefs');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
       end;
     with P.Targets.AddUnit('fpapache.pp') do
       begin
-        OSes:=AllOses-[amiga,aros];
+        OSes:=AllOses-[amiga,aros,morphos];
+        Dependencies.AddUnit('httpprotocol');
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
       end;
     with P.Targets.AddUnit('fpapache24.pp') do
       begin
-        OSes:=AllOses-[amiga,aros];
+        OSes:=AllOses-[amiga,aros,morphos];
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
@@ -219,6 +230,17 @@ begin
       AddUnit('webjsonrpc');
       AddUnit('httpdefs');
       end;
+    T:=P.Targets.AddUnit('fpwebclient.pp');
+    T:=P.Targets.AddUnit('fpjwt.pp');
+    T:=P.Targets.AddUnit('fpoauth2.pp');
+    T.Dependencies.AddUnit('fpwebclient');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpoauth2ini.pp');
+    T.Dependencies.AddUnit('fpoauth2');
+    T:=P.Targets.AddUnit('fphttpwebclient.pp');
+    T.Dependencies.AddUnit('fpwebclient');
+    T:=P.Targets.AddUnit('restbase.pp');
+    T:=P.Targets.AddUnit('restcodegen.pp');
 {$ifndef ALLPACKAGES}
     Run;
     end;

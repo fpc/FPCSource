@@ -192,7 +192,7 @@ end;
     repeat
       r:=Read(PByte(@Buffer)[t],Count);
       inc(t,r);
-    until (t=Count) or (r=0);
+    until (t=Count) or (r<=0);
     if (t<Count) then
       Raise EReadError.Create(SReadError);
   end;
@@ -207,7 +207,7 @@ end;
       Repeat
          r:=Write(PByte(@Buffer)[t],Count);
          inc(t,r);
-      Until (t=count) or (r=0);
+      Until (t=count) or (r<=0);
       if (t<Count) then
          Raise EWriteError.Create(SWriteError);
     end;
@@ -833,8 +833,11 @@ begin
   Result:=Length(FDataString)-FPosition;
   If Result>Count then Result:=Count;
   // This supposes FDataString to be of type AnsiString !
-  Move (Pchar(FDataString)[FPosition],Buffer,Result);
-  FPosition:=FPosition+Result;
+  if Result>0 then
+   begin
+   Move (Pchar(FDataString)[FPosition],Buffer,Result);
+   FPosition:=FPosition+Result;
+   end;
 end;
 
 

@@ -48,7 +48,7 @@ type
         x,y     : Word;
     end;
 
-    PLANEPTR = Pointer;
+    TPLANEPTR = PByte;
 
     pBitMap = ^tBitMap;
     tBitMap = record
@@ -57,7 +57,7 @@ type
         Flags           : Byte;
         Depth           : Byte;
         pad             : Word;
-        Planes          : Array [0..7] of PLANEPTR;
+        Planes          : Array [0..7] of TPLANEPTR;
     end;
 {* flags for AllocBitMap, etc. *}
 const
@@ -2199,7 +2199,7 @@ var
 function BltBitMap(srcBitMap : pBitMap location 'a0'; xSrc : LongInt location 'd0'; ySrc : LongInt location 'd1'; destBitMap : pBitMap location 'a1'; xDest : LongInt location 'd2'; yDest : LongInt location 'd3'; xSize : LongInt location 'd4'; ySize : LongInt location 'd5'; minterm : CARDINAL location 'd6'; mask : CARDINAL location 'd7'; tempA : pCHAR location 'a2') : LongInt;
 SysCall GfxBase 030;
 
-procedure BltTemplate(source : pCHAR location 'a0'; xSrc : LongInt location 'd0'; srcMod : LongInt location 'd1'; destRP : pRastPort location 'a1'; xDest : LongInt location 'd2'; yDest : LongInt location 'd3'; xSize : LongInt location 'd4'; ySize : LongInt location 'd5');
+procedure BltTemplate(source : pWORD location 'a0'; xSrc : LongInt location 'd0'; srcMod : LongInt location 'd1'; destRP : pRastPort location 'a1'; xDest : LongInt location 'd2'; yDest : LongInt location 'd3'; xSize : LongInt location 'd4'; ySize : LongInt location 'd5');
 SysCall GfxBase 036;
 
 procedure ClearEOL(rp : pRastPort location 'a1');
@@ -2412,7 +2412,7 @@ SysCall GfxBase 456;
 procedure DisownBlitter;
 SysCall GfxBase 462;
 
-function InitTmpRas(tmpRas : pTmpRas location 'a0'; buffer : pCHAR location 'a1'; size : LongInt location 'd0') : pTmpRas;
+function InitTmpRas(tmpRas : pTmpRas location 'a0'; buffer : Pointer location 'a1'; size : LongInt location 'd0') : pTmpRas;
 SysCall GfxBase 468;
 
 procedure AskFont(rp : pRastPort location 'a1'; textAttr : pTextAttr location 'a0');
@@ -2424,10 +2424,10 @@ SysCall GfxBase 480;
 procedure RemFont(textFont : pTextFont location 'a1');
 SysCall GfxBase 486;
 
-function AllocRaster(width : CARDINAL location 'd0'; height : CARDINAL location 'd1') : pCHAR;
+function AllocRaster(width : CARDINAL location 'd0'; height : CARDINAL location 'd1') : TPlanePtr;
 SysCall GfxBase 492;
 
-procedure FreeRaster(p : pCHAR location 'a0'; width : CARDINAL location 'd0'; height : CARDINAL location 'd1');
+procedure FreeRaster(p : TPlanePtr location 'a0'; width : CARDINAL location 'd0'; height : CARDINAL location 'd1');
 SysCall GfxBase 498;
 
 procedure AndRectRegion(region : pRegion location 'a0'; rectangle : pRectangle location 'a1');

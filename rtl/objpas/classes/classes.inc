@@ -83,6 +83,9 @@ var
   { this list holds all instances of external threads that need to be freed at
     the end of the program }
   ExternalThreads: TThreadList;
+  { this list signals that the ExternalThreads list is cleared and thus the
+    thread instances don't need to remove themselves }
+  ExternalThreadsCleanup: Boolean = False;
 
   { this must be a global var, otherwise unwanted optimizations might happen in
     TThread.SpinWait() }
@@ -135,6 +138,7 @@ type
     procedure Execute; override;
   public
     constructor Create;
+    destructor Destroy; override;
   end;
 
 
@@ -149,6 +153,25 @@ begin
   FExternalThread := True;
   { the parameter is unimportant if FExternalThread is True }
   inherited Create(False);
+  with ExternalThreads.LockList do
+    try
+      Add(Self);
+    finally
+      ExternalThreads.UnlockList;
+    end;
+end;
+
+
+destructor TExternalThread.Destroy;
+begin
+  inherited;
+  if not ExternalThreadsCleanup then
+    with ExternalThreads.LockList do
+      try
+        Extract(Self);
+      finally
+        ExternalThreads.UnlockList;
+      end;
 end;
 
 
@@ -236,7 +259,7 @@ begin
 // enable for all platforms once http://bugs.freepascal.org/view.php?id=16884
 // is fixed for all platforms (in case the fix for non-unix platforms also
 // requires this field at least)
-{$if defined(unix) or defined(windows)}
+{$if defined(unix) or defined(windows) or defined(os2) or defined(hasamiga)}
   if not FExternalThread and not FInitialSuspended then
     Resume;
 {$endif}
@@ -2180,6 +2203,7 @@ begin
   InitHandlerList:=Nil;
   FindGlobalComponentList.Free;
   FindGlobalComponentList:=nil;
+  ExternalThreadsCleanup:=True;
   with ExternalThreads.LockList do
     try
       for i := 0 to Count - 1 do

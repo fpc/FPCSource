@@ -31,12 +31,15 @@ Type
     Procedure TestEmptyStatement;
     Procedure TestEmptyStatements;
     Procedure TestBlock;
+    Procedure TestBlockComment;
+    Procedure TestBlock2Comments;
     Procedure TestAssignment;
     Procedure TestAssignmentAdd;
     Procedure TestAssignmentMinus;
     Procedure TestAssignmentMul;
     Procedure TestAssignmentDivision;
     Procedure TestCall;
+    Procedure TestCallComment;
     Procedure TestCallQualified;
     Procedure TestCallQualified2;
     Procedure TestCallNoArgs;
@@ -89,6 +92,7 @@ Type
     Procedure TestTryExceptOn2;
     Procedure TestTryExceptOnElse;
     Procedure TestTryExceptOnIfElse;
+    Procedure TestAsm;
   end;
 
 implementation
@@ -135,7 +139,8 @@ begin
   Result:=TestStatement([ASource]);
 end;
 
-function TTestStatementParser.TestStatement(ASource: array of string): TPasImplElement;
+function TTestStatementParser.TestStatement(ASource: array of string
+  ): TPasImplElement;
 
 
 begin
@@ -152,7 +157,7 @@ begin
   Result:=FStatement;
 end;
 
-procedure TTestStatementParser.ExpectParserError(Const Msg : string);
+procedure TTestStatementParser.ExpectParserError(const Msg: string);
 begin
   AssertException(Msg,EParserError,@ParseModule);
 end;
@@ -205,6 +210,36 @@ begin
   AssertEquals('Block statement',TPasImplBeginBlock,Statement.ClassType);
   B:= Statement as TPasImplBeginBlock;
   AssertEquals('Empty block',0,B.Elements.Count);
+end;
+
+procedure TTestStatementParser.TestBlockComment;
+Var
+  B : TPasImplBeginBlock;
+
+begin
+  Engine.NeedComments:=True;
+  TestStatement(['{ This is a comment }','begin','end']);
+  AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+  AssertNotNull('Statement assigned',PasProgram.InitializationSection.Elements[0]);
+  AssertEquals('Block statement',TPasImplBeginBlock,Statement.ClassType);
+  B:= Statement as TPasImplBeginBlock;
+  AssertEquals('Empty block',0,B.Elements.Count);
+  AssertEquals('No DocComment','',B.DocComment);
+end;
+
+procedure TTestStatementParser.TestBlock2Comments;
+Var
+  B : TPasImplBeginBlock;
+
+begin
+  Engine.NeedComments:=True;
+  TestStatement(['{ This is a comment }','// Another comment','begin','end']);
+  AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+  AssertNotNull('Statement assigned',PasProgram.InitializationSection.Elements[0]);
+  AssertEquals('Block statement',TPasImplBeginBlock,Statement.ClassType);
+  B:= Statement as TPasImplBeginBlock;
+  AssertEquals('Empty block',0,B.Elements.Count);
+  AssertEquals('No DocComment','',B.DocComment);
 end;
 
 procedure TTestStatementParser.TestAssignment;
@@ -299,6 +334,21 @@ begin
   AssertEquals('Simple statement',TPasImplSimple,Statement.ClassType);
   S:=Statement as TPasImplSimple;
   AssertExpression('Doit call',S.Expr,pekIdent,'Doit');
+end;
+
+procedure TTestStatementParser.TestCallComment;
+
+Var
+  S : TPasImplSimple;
+begin
+  Engine.NeedComments:=True;
+  TestStatement(['//comment line','Doit;']);
+  AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+  AssertEquals('Simple statement',TPasImplSimple,Statement.ClassType);
+  AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+  S:=Statement as TPasImplSimple;
+  AssertExpression('Doit call',S.Expr,pekIdent,'Doit');
+  AssertEquals('No DocComment','',S.DocComment);
 end;
 
 procedure TTestStatementParser.TestCallQualified;
@@ -1393,6 +1443,21 @@ begin
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(EE.Elements[0]).ClassType);
   S:=TPasImplSimple(EE.Elements[0]);
   AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomethingMore');
+end;
+
+procedure TTestStatementParser.TestAsm;
+
+Var
+  T : TPasImplAsmStatement;
+
+begin
+  TestStatement(['asm','  mov eax,1','end;']);
+  T:=AssertStatement('Asm statement',TPasImplAsmStatement) as TPasImplAsmStatement;
+  AssertEquals('Asm tokens',4,T.Tokens.Count);
+  AssertEquals('token 1 ','mov',T.Tokens[0]);
+  AssertEquals('token 2 ','eax',T.Tokens[1]);
+  AssertEquals('token 3 ',',',T.Tokens[2]);
+  AssertEquals('token 4 ','1',T.Tokens[3]);
 end;
 
 initialization

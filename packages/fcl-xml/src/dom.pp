@@ -223,7 +223,6 @@ type
     procedure SetPrefix(const Value: DOMString); virtual;
     function GetOwnerDocument: TDOMDocument; virtual;
     function GetBaseURI: DOMString;
-    procedure SetReadOnly(Value: Boolean);
     procedure Changing;
   public
     constructor Create(AOwner: TDOMDocument);
@@ -270,6 +269,7 @@ type
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; virtual;
     function FindNode(const ANodeName: DOMString): TDOMNode; virtual;
     function CompareName(const name: DOMString): Integer; virtual;
+    procedure SetReadOnly(Value: Boolean);    
     property Flags: TNodeFlags read FFlags;
   end;
 
@@ -312,6 +312,8 @@ type
   public
     property InputEncoding: DOMString read FInputEncoding;
     property XMLEncoding: DOMString read FXMLEncoding;
+    // extension
+    procedure SetHeaderData(aXmlVersion: TXMLVersion; const aXmlEncoding: DOMString);
   end;
 
 // -------------------------------------------------------
@@ -695,6 +697,8 @@ type
     property PublicID: DOMString read GetPublicID;
     property SystemID: DOMString read GetSystemID;
     property InternalSubset: DOMString read GetInternalSubset;
+  // extension
+    property Model: TDTDModel read FModel;
   end;
 
 
@@ -2112,6 +2116,13 @@ end;
 function TDOMNode_TopLevel.GetXMLVersion: DOMString;
 begin
   Result := xmlVersionStr[FXMLVersion];
+end;
+
+procedure TDOMNode_TopLevel.SetHeaderData(aXmlVersion: TXMLVersion; const aXmlEncoding: DOMString);
+begin
+  if aXmlVersion <> xmlVersionUnknown then
+    FXMLVersion := aXmlVersion;
+  FXMLEncoding := aXmlEncoding;
 end;
 
 // -------------------------------------------------------

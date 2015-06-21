@@ -111,6 +111,7 @@ const
     ERROR_DISK_FULL = 112;
     ERROR_DIR_NOT_EMPTY = 145;
     ERROR_ALREADY_EXISTS = 183;
+    ERROR_FILENAME_EXCED_RANGE = 206;
 
     EXCEPTION_MAXIMUM_PARAMETERS = 15;
 
@@ -361,6 +362,7 @@ type
          begin
            res :=5;
          end;
+       ERROR_FILENAME_EXCED_RANGE : Res := 3;
        else
          begin
            { other error codes can directly be mapped }

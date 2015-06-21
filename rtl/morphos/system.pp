@@ -64,6 +64,7 @@ var
   MOS_UtilityBase: Pointer;
 
   ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  ASYS_fileSemaphore: Pointer; { mutex semaphore for filelist access arbitration }
   ASYS_origDir  : LongInt; { original directory on startup }
   MOS_ambMsg   : Pointer;
   MOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
@@ -98,6 +99,10 @@ procedure System_exit;
 var
   oldDirLock: LongInt;
 begin
+  { Dispose the thread init/exit chains }
+  CleanupThreadProcChain(threadInitProcList);
+  CleanupThreadProcChain(threadExitProcList);
+
   { We must remove the CTRL-C FLAG here because halt }
   { may call I/O routines, which in turn might call  }
   { halt, so a recursive stack crash                 }
@@ -365,18 +370,25 @@ begin
  if MOS_UtilityBase=nil then Halt(1);
 
  { Creating the memory pool for growing heap }
- ASYS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
+ ASYS_heapPool:=CreatePool(MEMF_FAST or MEMF_SEM_PROTECTED,growheapsize2,growheapsize1);
  if ASYS_heapPool=nil then Halt(1);
+ 
+ { Initialize semaphore for filelist access arbitration }
+ ASYS_fileSemaphore:=AllocPooled(ASYS_heapPool,sizeof(TSignalSemaphore));
+ if ASYS_fileSemaphore = nil then Halt(1);
+ InitSemaphore(ASYS_fileSemaphore);
 
  if MOS_ambMsg=nil then begin
    MOS_ConHandle:=0;
    StdInputHandle:=dosInput;
    StdOutputHandle:=dosOutput;
+   StdErrorHandle:=StdOutputHandle;
  end else begin
    MOS_ConHandle:=Open(MOS_ConName,MODE_OLDFILE);
    if MOS_ConHandle<>0 then begin
      StdInputHandle:=MOS_ConHandle;
      StdOutputHandle:=MOS_ConHandle;
+     StdErrorHandle:=MOS_ConHandle;
    end else
      Halt(1);
  end;
@@ -389,10 +401,8 @@ begin
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
 
-  { * MorphOS doesn't have a separate stderr, just like AmigaOS (???) * }
-  StdErrorHandle:=StdOutputHandle;
-  // OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-  // OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
 end;
 
 function GetProcessID: SizeUInt;

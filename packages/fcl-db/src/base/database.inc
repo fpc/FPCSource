@@ -40,10 +40,10 @@ end;
 
 procedure TDatabase.DoDisconnect;
 begin
-  Closedatasets;
-  Closetransactions;
+  CloseDatasets;
+  CloseTransactions;
   DoInternalDisConnect;
-  if csloading in ComponentState then
+  if csLoading in ComponentState then
     FOpenAfterRead := false;
   FConnected := False;
 end;
@@ -95,7 +95,12 @@ begin
   If Assigned(FTransactions) then
     begin
     For I:=FTransactions.Count-1 downto 0 do
-      TDBTransaction(FTransactions[i]).EndTransaction;
+      try
+        TDBTransaction(FTransactions[i]).EndTransaction;
+      except
+        if not ForcedClose then
+          Raise;
+      end;    
     end;
 end;
 
@@ -217,7 +222,7 @@ end;
 
 
 { ---------------------------------------------------------------------
-    TDBdataset
+    TDBDataset
   ---------------------------------------------------------------------}
 
 Procedure TDBDataset.SetDatabase (Value : TDatabase);
@@ -345,7 +350,7 @@ begin
   FActive := false;
 end;
 
-procedure TDBTransaction.openTrans;
+procedure TDBTransaction.OpenTrans;
 
 begin
   FActive := true;
@@ -368,7 +373,7 @@ end;
 constructor TDBTransaction.Create(AOwner: TComponent);
 
 begin
-  inherited create(AOwner);
+  inherited Create(AOwner);
   FDatasets:=TList.Create;
 end;
 
@@ -403,7 +408,7 @@ begin
     end;
 end;
 
-destructor TDBTransaction.destroy;
+destructor TDBTransaction.Destroy;
 
 begin
   Database:=Nil;
@@ -423,6 +428,18 @@ begin
       TDBDataset(FDataSets[i]).Transaction:=Nil;
 end;
 
+function TDBTransaction.GetDataset(Index: longint): TDBDataset;
+
+begin
+  If Assigned(FDatasets) then
+    Result:=TDBDataset(FDatasets[Index])
+  else
+  begin
+    Result := nil;
+    DatabaseError(SNoDatasets);
+  end;
+end;
+
 function TDBTransaction.GetDataSetCount: Longint;
 
 begin
@@ -430,18 +447,6 @@ begin
     Result:=FDatasets.Count
   else
     Result:=0;
-end;
-
-procedure TDBTransaction.UnRegisterDataset (DS : TDBDataset);
-
-Var I : longint;
-
-begin
-  I:=FDatasets.IndexOf(DS);
-  If I<>-1 then
-    FDatasets.Delete(I)
-  else
-    DatabaseErrorFmt(SNoDatasetRegistered,[DS.Name]);
 end;
 
 procedure TDBTransaction.RegisterDataset (DS : TDBDataset);
@@ -456,26 +461,21 @@ begin
     DatabaseErrorFmt(SDatasetRegistered,[DS.Name]);
 end;
 
-function TDBTransaction.GetDataset(Index: longint): TDBDataset;
+procedure TDBTransaction.UnRegisterDataset (DS : TDBDataset);
+
+Var I : longint;
 
 begin
-  If Assigned(FDatasets) then
-    Result:=TDBDataset(FDatasets[Index])
+  I:=FDatasets.IndexOf(DS);
+  If I<>-1 then
+    FDatasets.Delete(I)
   else
-  begin
-    result := nil;
-    DatabaseError(SNoDatasets);
-  end;
+    DatabaseErrorFmt(SNoDatasetRegistered,[DS.Name]);
 end;
 
 { ---------------------------------------------------------------------
     TCustomConnection
   ---------------------------------------------------------------------}
-
-procedure TCustomConnection.SetAfterConnect(const AValue: TNotifyEvent);
-begin
-  FAfterConnect:=AValue;
-end;
 
 function TCustomConnection.GetDataSet(Index: Longint): TDataSet;
 begin
@@ -495,6 +495,11 @@ begin
     ShowException(ExceptObject,ExceptAddr);
 end;
 
+procedure TCustomConnection.SetAfterConnect(const AValue: TNotifyEvent);
+begin
+  FAfterConnect:=AValue;
+end;
+
 procedure TCustomConnection.SetAfterDisconnect(const AValue: TNotifyEvent);
 begin
   FAfterDisconnect:=AValue;
@@ -505,7 +510,30 @@ begin
   FBeforeConnect:=AValue;
 end;
 
+procedure TCustomConnection.SetBeforeDisconnect(const AValue: TNotifyEvent);
+begin
+  FBeforeDisconnect:=AValue;
+end;
+
+procedure TCustomConnection.DoLoginPrompt;
+
+var
+  ADatabaseName, AUserName, APassword: string;
+
+begin
+  if FLoginPrompt then
+    begin
+    GetLoginParams(ADatabaseName, AUserName, APassword);
+    if Assigned(FOnLogin) then
+      FOnLogin(Self, AUserName, APassword)
+    else if Assigned(LoginDialogExProc) then
+      LoginDialogExProc(ADatabaseName, AUserName, APassword, False);
+    SetLoginParams(ADatabaseName, AUserName, APassword);
+    end;
+end;
+
 procedure TCustomConnection.SetConnected(Value: boolean);
+
 begin
   If Value<>Connected then
     begin
@@ -520,8 +548,7 @@ begin
         begin
         if Assigned(BeforeConnect) then
           BeforeConnect(self);
-        if FLoginPrompt then if assigned(FOnLogin) then
-          FOnLogin(self,'','');
+        DoLoginPrompt;
         DoConnect;
         if Assigned(AfterConnect) then
           AfterConnect(self);
@@ -538,9 +565,24 @@ begin
     end;
 end;
 
-procedure TCustomConnection.SetBeforeDisconnect(const AValue: TNotifyEvent);
+procedure TCustomConnection.GetLoginParams(out ADatabaseName, AUserName, APassword: string);
 begin
-  FBeforeDisconnect:=AValue;
+  if IsPublishedProp(Self,'DatabaseName') then
+    ADatabaseName := GetStrProp(Self,'DatabaseName');
+  if IsPublishedProp(Self,'UserName') then
+    AUserName := GetStrProp(Self,'UserName');
+  if IsPublishedProp(Self,'Password') then
+    APassword := 'Password';
+end;
+
+procedure TCustomConnection.SetLoginParams(const ADatabaseName, AUserName, APassword: string);
+begin
+  if IsPublishedProp(Self,'DatabaseName') then
+    SetStrProp(Self,'DatabaseName',ADatabaseName);
+  if IsPublishedProp(Self,'UserName') then
+    SetStrProp(Self,'UserName',AUserName);
+  if IsPublishedProp(Self,'Password') then
+    SetStrProp(Self,'Password',APassword);
 end;
 
 procedure TCustomConnection.DoConnect;

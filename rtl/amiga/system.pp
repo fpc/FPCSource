@@ -79,6 +79,8 @@ var
 {$ENDIF}
 
   ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  ASYS_heapSemaphore: Pointer; { 68k OS from 3.x has no MEMF_SEM_PROTECTED for pools, have to do it ourselves }
+  ASYS_fileSemaphore: Pointer; { mutex semaphore for filelist access arbitration }
   ASYS_origDir  : LongInt; { original directory on startup }
   AOS_wbMsg    : Pointer; public name '_WBenchMsg'; { the "public" part is amunits compatibility kludge }
   _WBenchMsg   : Pointer; external name '_WBenchMsg'; { amunits compatibility kludge }
@@ -112,6 +114,7 @@ implementation
 
 {$I system.inc}
 {$I osdebug.inc}
+{$I m68kamiga.inc}
 
 {$IFDEF AMIGAOS4}
   // Required to allow opening of utility library interface...
@@ -138,6 +141,10 @@ procedure System_exit;
 var
   oldDirLock: LongInt;
 begin
+  { Dispose the thread init/exit chains }
+  CleanupThreadProcChain(threadInitProcList);
+  CleanupThreadProcChain(threadExitProcList);
+
   { We must remove the CTRL-C FLAG here because halt }
   { may call I/O routines, which in turn might call  }
   { halt, so a recursive stack crash                 }
@@ -353,15 +360,25 @@ begin
   { Creating the memory pool for growing heap }
   ASYS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
   if ASYS_heapPool=nil then Halt(1);
+  ASYS_heapSemaphore:=AllocPooled(ASYS_heapPool,sizeof(TSignalSemaphore));
+  if ASYS_heapSemaphore = nil then Halt(1);
+  InitSemaphore(ASYS_heapSemaphore);
+
+  { Initialize semaphore for filelist access arbitration }
+  ASYS_fileSemaphore:=AllocPooled(ASYS_heapPool,sizeof(TSignalSemaphore));
+  if ASYS_fileSemaphore = nil then Halt(1);
+  InitSemaphore(ASYS_fileSemaphore);
 
   if AOS_wbMsg=nil then begin
     StdInputHandle:=dosInput;
     StdOutputHandle:=dosOutput;
+    StdErrorHandle:=StdOutputHandle;
   end else begin
     AOS_ConHandle:=Open(AOS_ConName,MODE_OLDFILE);
     if AOS_ConHandle<>0 then begin
       StdInputHandle:=AOS_ConHandle;
       StdOutputHandle:=AOS_ConHandle;
+      StdErrorHandle:=AOS_ConHandle;
     end else
       Halt(1);
   end;
@@ -374,11 +391,8 @@ begin
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
 
-  { * AmigaOS doesn't have a separate stderr * }
-
-  StdErrorHandle:=StdOutputHandle;
-  //OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-  //OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
 end;
 
 function GetProcessID: SizeUInt;

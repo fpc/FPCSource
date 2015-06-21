@@ -38,6 +38,7 @@ type
   QUAD         = Int64;
   UQUAD        = QWord;
   IPTR         = NativeUInt;
+  SIPTR        = NativeInt;
   PIPTR        = ^IPTR;
   STRPTR       = PChar;
   CONST_STRPTR = PChar;  

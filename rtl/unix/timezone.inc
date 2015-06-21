@@ -35,11 +35,11 @@ var
   num_leaps,
   num_types    : longint;
 
-  transitions  : plongint;
-  type_idxs    : pbyte;
-  types        : pttinfo;
-  zone_names   : pchar;
-  leaps        : pleap;
+  transitions  : plongint = nil;
+  type_idxs    : pbyte = Nil;
+  types        : pttinfo = Nil;
+  zone_names   : pchar = Nil;
+  leaps        : pleap = Nil;
 
 function find_transition(timer:longint):pttinfo;
 var
@@ -217,7 +217,7 @@ begin
   num_transitions:=tzhead.tzh_timecnt;
   num_types:=tzhead.tzh_typecnt;
   chars:=tzhead.tzh_charcnt;
-
+  num_leaps:=tzhead.tzh_leapcnt;
   reallocmem(transitions,num_transitions*sizeof(longint));
   reallocmem(type_idxs,num_transitions);
   reallocmem(types,num_types*sizeof(tttinfo));
@@ -323,14 +323,19 @@ procedure DoneLocalTime;
 begin
   if assigned(transitions) then
    freemem(transitions);
+  transitions:=nil;
   if assigned(type_idxs) then
    freemem(type_idxs);
+  type_idxs:=nil;
   if assigned(types) then
    freemem(types);
+  types:=nil;
   if assigned(zone_names) then
    freemem(zone_names);
+  zone_names:=Nil;
   if assigned(leaps) then
    freemem(leaps);
+  leaps:=nil;
   num_transitions:=0;
   num_leaps:=0;
   num_types:=0;

@@ -725,11 +725,16 @@ begin
       ftString, ftFixedChar:
         begin
         FieldSize := col.MaxLength;
-        if FieldSize > dsMaxStringSize then FieldSize := dsMaxStringSize;
+        if FieldSize >= $3FFFFFFF then // varchar(max)
+           FieldType := ftMemo;
+
         end;
-      ftMemo, ftBlob,
       ftBytes, ftVarBytes:
+        begin
         FieldSize := col.MaxLength;
+        if FieldSize >= $3FFFFFFF then // varbinary(max)
+           FieldType := ftBlob;
+        end;
       ftBCD:
         begin
         FieldSize := col.Scale;
@@ -738,10 +743,10 @@ begin
         end;
       ftGuid:
         FieldSize := 38;
-    else
-      FieldSize := 0;
-      if col.Identity and (FieldType = ftInteger) then
-        FieldType := ftAutoInc;
+      else
+        FieldSize := 0;
+        if col.Identity and (FieldType = ftInteger) then
+          FieldType := ftAutoInc;
     end;
 
     with FieldDefs.Add(FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, (col.Null=0) and (not col.Identity), i) do
@@ -786,7 +791,7 @@ begin
   srctype:=dbcoltype(FDBProc,i);
   data:=dbdata(FDBProc,i);
   datalen:=dbdatlen(FDBProc,i);
-  Result:=assigned(data) and (datalen<>0);
+  Result:=assigned(data) and (datalen>=0);
   if not Result then
     Exit;
 

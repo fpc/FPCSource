@@ -954,12 +954,6 @@ Initialization
   FillChar(ConsoleInfo, SizeOf(ConsoleInfo), 0);
   GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), ConsoleInfo);
 
-finalization
-  if beeperDevice <> INVALID_HANDLE_VALUE then begin
-    nosound;
-    CloseHandle(beeperDevice);
-    DefineDosDevice(DDD_REMOVE_DEFINITION,'DosBeep','\Device\Beep');
-  end;
   TextAttr := ConsoleInfo.wAttributes;
 
   { Not required, the dos crt does also not touch the mouse }
@@ -982,4 +976,10 @@ finalization
   AssignCrt(Input);
   Reset(Input);
   TextRec(Input).Handle:= GetStdHandle(STD_INPUT_HANDLE);
+finalization
+  if beeperDevice <> INVALID_HANDLE_VALUE then begin
+    nosound;
+    CloseHandle(beeperDevice);
+    DefineDosDevice(DDD_REMOVE_DEFINITION,'DosBeep','\Device\Beep');
+  end;
 end. { unit Crt }

@@ -45,10 +45,10 @@ const
   DaySunday    = 7;
 
   // Fraction of a day
-  OneHour        = 1/HoursPerDay;
-  OneMinute      = 1/MinsPerDay;
-  OneSecond      = 1/SecsPerDay;
-  OneMillisecond = 1/MSecsPerDay;
+  OneHour        = TDateTime(1)/HoursPerDay;
+  OneMinute      = TDateTime(1)/MinsPerDay;
+  OneSecond      = TDateTime(1)/SecsPerDay;
+  OneMillisecond = TDateTime(1)/MSecsPerDay;
 
   { This is actual days per year but you need to know if it's a leap year}
   DaysPerYear: array [Boolean] of Word = (365, 366);
@@ -1414,14 +1414,43 @@ end;
     Increment/decrement functions.
   ---------------------------------------------------------------------}
 
+{ TDateTime is not defined in the interval [-1.0..0.0[. Additionally, when
+  negative the time part must be treated using its absolute value (0.25 always
+  means "6 a.m.") -> skip the gap and convert the time part when crossing the
+  gap -- and take care of rounding errors }
 Procedure MaybeSkipTimeWarp(OldDate: TDateTime; var NewDate: TDateTime);
 begin
-  if (OldDate>0) and (NewDate<0) then
-    NewDate:=NewDate-0.5
-  else if (OldDate<-1.0) and (NewDate>-1.0) then
-    NewDate:=NewDate+0.5;
+  if (OldDate>=0) and (NewDate<-TDateTimeEpsilon) then
+    NewDate:=int(NewDate-1.0+TDateTimeEpsilon)-frac(1.0+frac(NewDate))
+  else if (OldDate<=-1.0) and (NewDate>-1.0+TDateTimeEpsilon) then
+    NewDate:=int(NewDate+1.0-TDateTimeEpsilon)+frac(1.0-abs(frac(1.0+NewDate)));
 end;
 
+
+function IncNegativeTime(AValue, Addend: TDateTime): TDateTime;
+var
+  newtime: tdatetime;
+begin
+  newtime:=-frac(Avalue)+frac(Addend);
+  { handle rounding errors }
+  if SameValue(newtime,int(newtime)+1,TDateTimeEpsilon) then
+    newtime:=int(newtime)+1
+  else if SameValue(newtime,int(newtime),TDateTimeEpsilon) then
+    newtime:=int(newtime);
+  { time underflow -> previous day }
+  if newtime<-TDateTimeEpsilon then
+    begin
+      newtime:=1.0+newtime;
+      avalue:=int(avalue)-1;
+    end
+  { time overflow -> next day }
+  else if newtime>=1.0-TDateTimeEpsilon then
+    begin
+      newtime:=newtime-1.0;
+      avalue:=int(avalue)+1;
+    end;
+  Result:=int(AValue)+int(Addend)-newtime;
+end;
 
 Function IncYear(const AValue: TDateTime; const ANumberOfYears: Integer ): TDateTime;
 
@@ -1470,7 +1499,10 @@ end;
 
 Function IncHour(const AValue: TDateTime; const ANumberOfHours: Int64): TDateTime;
 begin
-  Result:=AValue+ANumberOfHours/HoursPerDay;
+  if AValue>=0 then
+    Result:=AValue+ANumberOfHours/HoursPerDay
+  else
+    Result:=IncNegativeTime(Avalue,ANumberOfHours/HoursPerDay);
   MaybeSkipTimeWarp(AValue,Result);
 end;
 
@@ -1483,7 +1515,10 @@ end;
 
 Function IncMinute(const AValue: TDateTime; const ANumberOfMinutes: Int64): TDateTime;
 begin
-  Result:=AValue+ANumberOfMinutes / MinsPerDay;
+  if AValue>=0 then
+    Result:=AValue+ANumberOfMinutes/MinsPerDay
+  else
+    Result:=IncNegativeTime(Avalue,ANumberOfMinutes/MinsPerDay);
   MaybeSkipTimeWarp(AValue,Result);
 end;
 
@@ -1496,7 +1531,10 @@ end;
 
 Function IncSecond(const AValue: TDateTime; const ANumberOfSeconds: Int64): TDateTime;
 begin
-  Result:=AValue+ANumberOfSeconds / SecsPerDay;
+  if AValue>=0 then
+    Result:=AValue+ANumberOfSeconds/SecsPerDay
+  else
+    Result:=IncNegativeTime(Avalue,ANumberOfSeconds/SecsPerDay);
   MaybeSkipTimeWarp(AValue,Result);
 end;
 
@@ -1509,7 +1547,10 @@ end;
 
 Function IncMilliSecond(const AValue: TDateTime; const ANumberOfMilliSeconds: Int64): TDateTime;
 begin
-  Result:=AValue+ANumberOfMilliSeconds/MSecsPerDay;
+  if Avalue>=0 then
+    Result:=AValue+ANumberOfMilliSeconds/MSecsPerDay
+  else
+    Result:=IncNegativeTime(Avalue,ANumberOfMilliSeconds/MSecsPerDay);
   MaybeSkipTimeWarp(AValue,Result);
 end;
 
@@ -2498,9 +2539,9 @@ function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
 
 begin
   if (TZOffset > 0) then
-    Result := UT - EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
+    Result := UT + EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
   else if (TZOffset < 0) then
-    Result := UT + EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
+    Result := UT - EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
   else
     Result := UT;
 end;
@@ -2515,9 +2556,9 @@ Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;
 
 begin
   if (TZOffset > 0) then
-    Result := LT + EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
+    Result := LT - EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
   else if (TZOffset < 0) then
-    Result := LT - EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
+    Result := LT + EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
   else
     Result := LT;
 end;

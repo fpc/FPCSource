@@ -84,7 +84,8 @@ procedure emx_init; external 'EMX' index 1;
       112 : InOutRes := 101;
       110 : InOutRes := 5;
       114 : InOutRes := 6;
-      290 : InOutRes := 290;
+      206 : InOutRes := 3;
+      290 : InOutRes := 4;
      end;
      { all other cases ... we keep the same error code }
    end;

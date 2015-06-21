@@ -46,6 +46,7 @@ begin
           AddUnit('ole2');
           AddUnit('activex');
           AddUnit('shellapi');
+          AddUnit('shlwapi');
           AddUnit('shlobj');
           AddUnit('oleserver');
           AddUnit('shfolder');
@@ -82,6 +83,7 @@ begin
     T:=P.Targets.AddImplicitUnit('oleserver.pp');
     T:=P.Targets.AddImplicitUnit('richedit.pp');
     T:=P.Targets.AddImplicitUnit('shellapi.pp');
+    T:=P.Targets.AddImplicitUnit('shlwapi.pp');
     T:=P.Targets.AddImplicitUnit('shfolder.pp');
     T:=P.Targets.AddImplicitUnit('shlobj.pp');
     T:=P.Targets.AddImplicitUnit('winver.pp');

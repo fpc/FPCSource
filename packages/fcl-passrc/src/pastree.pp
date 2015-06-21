@@ -105,6 +105,7 @@ type
   TPasElement = class(TPasElementBase)
   private
     FData: TObject;
+    FDocComment: String;
     FRefCount: LongWord;
     FName: string;
     FParent: TPasElement;
@@ -133,6 +134,7 @@ type
     Property Hints : TPasMemberHints Read FHints Write FHints;
     Property CustomData : TObject Read FData Write FData;
     Property HintMessage : String Read FHintMessage Write FHintMessage;
+    Property DocComment : String Read FDocComment Write FDocComment;
   end;
 
   TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekNil, pekBoolConst, pekRange,
@@ -956,6 +958,17 @@ type
   TFinalizationSection = class(TPasImplBlock)
   end;
 
+  { TPasImplAsmStatement }
+
+  TPasImplAsmStatement = class (TPasImplStatement)
+  private
+    FTokens: TStrings;
+  Public
+    constructor Create(const AName: string; AParent: TPasElement); override;
+    destructor Destroy; override;
+    Property Tokens : TStrings Read FTokens;
+  end;
+
   { TPasImplRepeatUntil }
 
   TPasImplRepeatUntil = class(TPasImplBlock)
@@ -1182,6 +1195,21 @@ implementation
 
 uses SysUtils;
 
+{ TPasImplAsmStatement }
+
+constructor TPasImplAsmStatement.Create(const AName: string;
+  AParent: TPasElement);
+begin
+  inherited Create(AName, AParent);
+  FTokens:=TStringList.Create;
+end;
+
+destructor TPasImplAsmStatement.Destroy;
+begin
+  FreeAndNil(FTokens);
+  inherited Destroy;
+end;
+
 { TPasClassConstructor }
 
 function TPasClassConstructor.TypeName: string;
@@ -1306,7 +1334,7 @@ end;
 
 function TPasElement.ElementTypeName: string; begin Result := SPasTreeElement end;
 
-function TPasElement.HintsString: String;
+Function TPasElement.HintsString: String;
 
 Var
   H : TPasmemberHint;
@@ -1567,7 +1595,7 @@ begin
   end;
 end;
 
-function TPasElement.GetDeclaration (full : boolean): string;
+function TPasElement.GetDeclaration(full: Boolean): string;
 
 begin
   if Full then

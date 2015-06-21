@@ -213,8 +213,8 @@ begin
   for i:=0 to SampleCnt-1 do begin
     if SampleBits[i]>64 then
       TiffError('Samples bigger than 64 bit not supported');
-    if not (SampleBits[i] in [1, 8, 16]) then
-      TiffError('Only samples of 1, 8 and 16 bit are supported');
+    if not (SampleBits[i] in [1, 8, 12, 16]) then
+      TiffError('Only samples of 1, 8, 12 and 16 bit are supported');
     inc(SampleBitsPerPixel, SampleBits[i]);
   end;
   case IFD.PhotoMetricInterpretation of
@@ -228,8 +228,8 @@ begin
           IFD.AlphaBits:=AlphaBits;
         end;
       end;
-      if not (GrayBits in [1, 8, 16]) then
-        TiffError('gray image only supported with gray BitsPerSample 1, 8 or 16');
+      if not (GrayBits in [1, 8, 12, 16]) then
+        TiffError('gray image only supported with gray BitsPerSample 1, 8, 12 or 16');
       if not (AlphaBits in [0, 8, 16]) then
         TiffError('gray image only supported with alpha BitsPerSample 8 or 16');
     end;
@@ -366,6 +366,7 @@ procedure TFPReaderTiff.ReadImgValue(BitCount: Word; var Run: Pointer; x: dword;
   Predictor: word; var LastValue: word; out Value: Word); inline;
 var
   BitNumber: byte;
+  Byte1, Byte2: byte;
 begin
   case BitCount of
   1:
@@ -390,6 +391,18 @@ begin
       end;
       Value:=Value shl 8+Value;
       inc(Run);
+    end;
+  12:
+    begin
+      Byte1 := PCUInt8(Run)^;
+      Byte2 := PCUInt8(Run+1)^;
+      if (x mod 2) = 0 then begin
+        Value := (((Byte1) shl 4) or (Byte2 shr 4)) * 16;
+        inc(Run);
+      end else begin
+        Value := (((Byte1 and $0F) shl 8) or Byte2) * 16;
+        inc(Run, 2);
+      end;
     end;
   16:
     begin
@@ -551,6 +564,9 @@ begin
   if Debug then
     writeln('ReadIFD Start=',Start);
   {$endif}
+  // set default values if not read from file
+  IFD.RowsPerStrip := $FFFFFFFF;
+  
   Result:=0;
   SetStreamPos(Start);
   IFD.IFDStart:=Start;
@@ -1973,7 +1989,7 @@ begin
   for i:=0 to ImageCount-1 do begin
     CurImg:=Images[i];
     NewSize:=Int64(CurImg.ImageWidth)*CurImg.ImageHeight;
-    if (NewSize<BestSize) then continue;
+    if (NewSize<=BestSize) then continue;
     BestSize:=NewSize;
     Best:=i;
   end;

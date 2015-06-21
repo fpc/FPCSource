@@ -478,7 +478,8 @@ type
 
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
-
+    FManualMergeChangeLog : Boolean;
+    
     procedure ProcessFieldsToCompareStruct(const AFields, ADescFields, ACInsFields: TList;
       const AIndexOptions: TIndexOptions; const ALocateOptions: TLocateOptions; out ACompareStruct: TDBCompareStruct);
     function BufferOffset: integer;
@@ -495,7 +496,6 @@ type
     function GetRecordUpdateBufferCached(const ABookmark : TBufBookmark; IncludePrior : boolean = false) : boolean;
     function GetActiveRecordUpdateBuffer : boolean;
     procedure ParseFilter(const AFilter: string);
-    function GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader;
 
     function GetIndexDefs : TIndexDefs;
     function GetIndexFieldNames: String;
@@ -559,6 +559,7 @@ type
     function IsReadFromPacket : Boolean;
     function getnextpacket : integer;
     procedure ActiveBufferToRecord;
+    function GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader; virtual;
     // abstracts, must be overidden by descendents
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
@@ -597,6 +598,7 @@ type
     property ChangeCount : Integer read GetChangeCount;
     property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount default 2;
     property ReadOnly : Boolean read FReadOnly write SetReadOnly default false;
+    property ManualMergeChangeLog : Boolean read FManualMergeChangeLog write FManualMergeChangeLog default False;
   published
     property FileName : string read FFileName write FFileName;
     property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
@@ -842,6 +844,7 @@ end;
 constructor TCustomBufDataset.Create(AOwner : TComponent);
 begin
   Inherited Create(AOwner);
+  FManualMergeChangeLog := False;
   FMaxIndexesCount:=2;
   FIndexesCount:=0;
 
@@ -857,8 +860,15 @@ end;
 
 procedure TCustomBufDataset.SetPacketRecords(aValue : integer);
 begin
-  if (aValue = -1) or (aValue > 0) then FPacketRecords := aValue
-    else DatabaseError(SInvPacketRecordsValue);
+  if (aValue = -1) or (aValue > 0) then
+    begin
+    if (IndexFieldNames='') then
+      FPacketRecords := aValue
+    else if AValue<>-1 then
+      DatabaseError(SInvPacketRecordsValueFieldNames);
+    end
+  else
+    DatabaseError(SInvPacketRecordsValue);
 end;
 
 destructor TCustomBufDataset.Destroy;
@@ -1252,7 +1262,7 @@ begin
   InitDefaultIndexes;
   CalcRecordSize;
 
-  FBRecordcount := 0;
+  FBRecordCount := 0;
 
   for IndexNr:=0 to FIndexesCount-1 do with FIndexes[IndexNr] do
     InitialiseSpareRecord(IntAllocRecordBuffer);
@@ -1283,6 +1293,7 @@ var r  : integer;
 begin
   FOpen:=False;
   FReadFromFile:=False;
+  FBRecordCount:=0;
 
   if FIndexesCount>0 then with FIndexes[0] do if IsInitialized then
     begin
@@ -1891,6 +1902,7 @@ begin
       BuildIndex(FIndexes[1]);
       Resync([rmCenter]);
       end;
+    FPacketRecords:=-1;
     FIndexDefs.Updated:=false;
     end
   else
@@ -2416,9 +2428,8 @@ begin
       inc(r);
       end;
   finally
-    if FailedCount = 0 then
+    if (FailedCount=0) and Not ManualMergeChangeLog then
       MergeChangeLog;
-
     InternalGotoBookmark(@StoreCurrRec);
     Resync([]);
     EnableControls;
@@ -2676,7 +2687,10 @@ end;
 
 function TCustomBufDataset.GetRecordCount: Longint;
 begin
-  Result := FBRecordCount;
+  if Active then
+    Result := FBRecordCount
+  else
+    Result:=0;  
 end;
 
 function TCustomBufDataset.UpdateStatus: TUpdateStatus;

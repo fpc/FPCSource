@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-Unit system;
+Unit System;
 
 {$namespace org.freepascal.rtl}
 

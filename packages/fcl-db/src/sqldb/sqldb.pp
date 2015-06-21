@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, DB, bufdataset, sqlscript;
 
 type
-  TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages, stSchemata);
+  TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages, stSchemata, stSequences);
 
   TStatementType = (stUnknown, stSelect, stInsert, stUpdate, stDelete,
     stDDL, stGetSegment, stPutSegment, stExecProcedure,
@@ -138,7 +138,7 @@ type
 
   { TSQLConnection }
 
-  TConnOption = (sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeSlash, sqEscapeRepeat, sqImplicitTransaction, sqLastInsertID);
+  TConnOption = (sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeSlash, sqEscapeRepeat, sqImplicitTransaction, sqLastInsertID, sqSupportReturning);
   TConnOptions= set of TConnOption;
 
   TSQLConnectionOption = (scoExplicitConnect, scoApplyUpdatesChecksRowsAffected);
@@ -163,6 +163,8 @@ type
     function GetPort: cardinal;
     procedure SetOptions(AValue: TSQLConnectionOptions);
     procedure SetPort(const AValue: cardinal);
+    function AttemptCommit(trans : TSQLHandle) : boolean; 
+    function AttemptRollBack(trans : TSQLHandle) : boolean; 
   protected
     FConnOptions         : TConnOptions;
     FSQLFormatSettings   : TFormatSettings;
@@ -172,11 +174,11 @@ type
     // One day, this may be factored out to a TSQLResolver class.
     // The following allow construction of update queries. They can be adapted as needed by descendents to fit the DB engine.
     procedure AddFieldToUpdateWherePart(var sql_where: string; UpdateMode : TUpdateMode; F: TField); virtual;
-    function ConstructInsertSQL(Query: TCustomSQLQuery): string; virtual;
-    function ConstructUpdateSQL(Query: TCustomSQLQuery): string; virtual;
+    function ConstructInsertSQL(Query: TCustomSQLQuery; Var ReturningClause : Boolean): string; virtual;
+    function ConstructUpdateSQL(Query: TCustomSQLQuery; Var ReturningClause : Boolean): string; virtual;
     function ConstructDeleteSQL(Query: TCustomSQLQuery): string; virtual;
     function ConstructRefreshSQL(Query: TCustomSQLQuery; UpdateKind : TUpdateKind): string; virtual;
-    function InitialiseUpdateStatement(Query: TCustomSQLQuery; var qry: TCustomSQLStatement): TCustomSQLStatement;
+    function InitialiseUpdateStatement(Query: TCustomSQLQuery; var qry: TCustomSQLQuery): TCustomSQLQuery;
     procedure ApplyFieldUpdate(C : TSQLCursor; P: TSQLDBParam; F: TField; UseOldValue: Boolean); virtual;
     // This is the call that updates a record, it used to be in TSQLQuery.
     procedure ApplyRecUpdate(Query : TCustomSQLQuery; UpdateKind : TUpdateKind); virtual;
@@ -210,12 +212,13 @@ type
     function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
     function RollBack(trans : TSQLHandle) : boolean; virtual; abstract;
     function StartImplicitTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual;
-    function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual; abstract;
+    function StartDBTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual; abstract;
     procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
 
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
+    function GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string; virtual;
 
     Procedure MaybeConnect;
 
@@ -234,10 +237,12 @@ type
     procedure GetProcedureNames(List : TStrings); virtual;
     procedure GetFieldNames(const TableName : string; List : TStrings); virtual;
     procedure GetSchemaNames(List: TStrings); virtual;
+    procedure GetSequenceNames(List: TStrings); virtual;
     function GetConnectionInfo(InfoType:TConnInfoType): string; virtual;
     function GetStatementInfo(const ASQL: string): TSQLStatementInfo; virtual;
     procedure CreateDB; virtual;
     procedure DropDB; virtual;
+    function GetNextValue(const SequenceName: string; IncrementBy: integer=1): Int64; virtual;
     property ConnOptions: TConnOptions read FConnOptions;
   published
     property Password : string read FPassword write FPassword;
@@ -372,9 +377,34 @@ type
     Property Transaction;
   end;
 
+
+  { TSQLSequence }
+
+  TSQLSequenceApplyEvent = (saeOnNewRecord, saeOnPost);
+
+  TSQLSequence = class(TPersistent)
+  private
+    FQuery: TCustomSQLQuery;
+    FFieldName: String;
+    FSequenceName: String;
+    FIncrementBy: Integer;
+    FApplyEvent: TSQLSequenceApplyEvent;
+  public
+    constructor Create(AQuery: TCustomSQLQuery);
+    procedure Assign(Source: TPersistent); override;
+    procedure Apply;
+    function GetNextValue: Int64;
+  published
+    property FieldName: String read FFieldName write FFieldName;
+    property SequenceName: String read FSequenceName write FSequenceName;
+    property IncrementBy: Integer read FIncrementBy write FIncrementBy default 1;
+    property ApplyEvent: TSQLSequenceApplyEvent read FApplyEvent write FApplyEvent default saeOnNewRecord;
+  end;
+
+
   { TCustomSQLQuery }
 
-  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit);
+  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh, sqoRefreshUsingSelect);
   TSQLQueryOptions = Set of TSQLQueryOption;
 
   TCustomSQLQuery = class (TCustomBufDataset)
@@ -405,7 +435,8 @@ type
 
     FInsertQry,
     FUpdateQry,
-    FDeleteQry           : TCustomSQLStatement;
+    FDeleteQry           : TCustomSQLQuery;
+    FSequence            : TSQLSequence;
     procedure FreeFldBuffers;
     function GetParamCheck: Boolean;
     function GetParams: TParams;
@@ -437,6 +468,7 @@ type
     Function RefreshLastInsertID(Field: TField): Boolean; virtual;
     Function NeedRefreshRecord (UpdateKind: TUpdateKind): Boolean; virtual;
     Function RefreshRecord (UpdateKind: TUpdateKind) : Boolean; virtual;
+    Procedure ApplyReturningResult(Q : TCustomSQLQuery; UpdateKind : TUpdateKind);
     Function Cursor : TSQLCursor;
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
@@ -454,6 +486,7 @@ type
     procedure InternalClose; override;
     procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
+    Procedure InternalRefresh; override;
     function  GetCanModify: Boolean; override;
     Function IsPrepared : Boolean; virtual;
     Procedure SetActive (Value : Boolean); override;
@@ -464,6 +497,8 @@ type
     procedure BeforeRefreshOpenCursor; override;
     procedure SetReadOnly(AValue : Boolean); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure DoOnNewRecord; override;
+    procedure DoBeforePost; override;
     class function FieldDefsClass : TFieldDefsClass; override;
     // IProviderSupport methods
     function PSGetUpdateException(E: Exception; Prev: EUpdateError): EUpdateError; override;
@@ -531,6 +566,7 @@ type
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey default true;
     property StatementType : TStatementType read GetStatementType;
     Property DataSource : TDataSource Read GetDataSource Write SetDataSource;
+    property Sequence: TSQLSequence read FSequence write FSequence;
     property ServerFilter: string read FServerFilterText write SetServerFilterText;
     property ServerFiltered: Boolean read FServerFiltered write SetServerFiltered default False;
     property ServerIndexDefs : TServerIndexDefs read GetServerIndexDefs;
@@ -589,6 +625,7 @@ type
     property UpdateMode;
     property UsePrimaryKeyAsKey;
     Property DataSource;
+    property Sequence;
     property ServerFilter;
     property ServerFiltered;
     property ServerIndexDefs;
@@ -665,7 +702,7 @@ type
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
-    function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; override;
+    function StartDBTransaction(trans : TSQLHandle; aParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string); override;
@@ -745,6 +782,7 @@ begin
   Result := Format('%.2d:%.2d:%.2d.%.3d',[hour,minute,second,millisecond]);
 end;
 
+
 { TSQLDBFieldDefs }
 
 class function TSQLDBFieldDefs.FieldDefClass: TFieldDefClass;
@@ -752,12 +790,14 @@ begin
   Result:=TSQLDBFieldDef;
 end;
 
+
 { TSQLDBParams }
 
 class function TSQLDBParams.ParamClass: TParamClass;
 begin
   Result:=TSQLDBParam;
 end;
+
 
 { ESQLDatabaseError }
 
@@ -782,8 +822,6 @@ begin
   SQLState  := ASQLState;
 end;
 
-Type
-  TInternalTransaction = Class(TSQLTransaction);
 
 { TCustomSQLStatement }
 
@@ -825,9 +863,24 @@ begin
     begin
     FDatabase.FreeNotification(Self);
     FDatabase.RegisterStatement(Self);
-    if (Transaction=nil) and (Assigned(FDatabase.Transaction)) then
-      transaction := FDatabase.Transaction;
+    if Assigned(Database.Transaction) and (not Assigned(Transaction) or (Transaction.DataBase <> Database)) then
+      Transaction := Database.Transaction;
     OnChangeSQL(Self);
+    end;
+end;
+
+procedure TCustomSQLStatement.SetTransaction(AValue: TSQLTransaction);
+begin
+  if FTransaction=AValue then Exit;
+  UnPrepare;
+  if Assigned(FTransaction) then
+    FTransaction.RemoveFreeNotification(Self);
+  FTransaction:=AValue;
+  if Assigned(FTransaction) then
+    begin
+    FTransaction.FreeNotification(Self);
+    if Assigned(Transaction.DataBase) and (Database <> Transaction.DataBase) then
+      Database := Transaction.DataBase as TSQLConnection;
     end;
 end;
 
@@ -856,21 +909,6 @@ procedure TCustomSQLStatement.SetSQL(AValue: TStrings);
 begin
   if FSQL=AValue then Exit;
   FSQL.Assign(AValue);
-end;
-
-procedure TCustomSQLStatement.SetTransaction(AValue: TSQLTransaction);
-begin
-  if FTransaction=AValue then Exit;
-  UnPrepare;
-  if Assigned(FTransaction) then
-    FTransaction.RemoveFreeNotification(Self);
-  FTransaction:=AValue;
-  if Assigned(FTransaction) then
-    begin
-    FTransaction.FreeNotification(Self);
-    If (Database=Nil) then
-      Database:=Transaction.Database as TSQLConnection;
-    end;
 end;
 
 Procedure TCustomSQLStatement.DoExecute;
@@ -950,7 +988,7 @@ begin
   Database:=Nil;
   DataSource:=Nil;
   FreeAndNil(FDataLink);
-  FreeAndNil(Fparams);
+  FreeAndNil(FParams);
   FreeAndNil(FSQL);
   inherited Destroy;
 end;
@@ -975,8 +1013,6 @@ Function TCustomSQLStatement.IsSelectable: Boolean;
 begin
   Result:=False;
 end;
-
-
 
 procedure TCustomSQLStatement.GetStatementInfo(var ASQL: String; out Info: TSQLStatementInfo);
 
@@ -1090,6 +1126,7 @@ begin
   Result:=FRowsAffected;
 end;
 
+
 { TSQLConnection }
 
 constructor TSQLConnection.Create(AOwner: TComponent);
@@ -1187,7 +1224,7 @@ begin
     DatabaseError(SErrTransactionnSet);
 
   if not Connected then Open;
-  if not (ATransaction.Active or (stoUseImplicit in ATransaction.Options)) then
+  if not ATransaction.Active then
     ATransaction.MaybeStartTransaction;
 
   try
@@ -1227,6 +1264,30 @@ begin
     Params.Values['Port']:=IntToStr(AValue)
   else with params do if IndexOfName('Port') > -1 then
     Delete(IndexOfName('Port'));
+end;
+
+function TSQLConnection.AttemptCommit(trans: TSQLHandle): boolean;
+begin
+  try
+    Result:=Commit(trans);
+  except
+    if ForcedClose then
+      Result:=True
+    else
+      Raise;
+  end;
+end;
+
+function TSQLConnection.AttemptRollBack(trans: TSQLHandle): boolean;
+begin
+  try
+    Result:=Rollback(trans);
+  except
+    if ForcedClose then
+      Result:=True
+    else
+      Raise;
+  end;
 end;
 
 procedure TSQLConnection.GetDBInfo(const ASchemaType : TSchemaType; const ASchemaObjectName, AReturnField : string; AList: TStrings);
@@ -1285,6 +1346,11 @@ end;
 procedure TSQLConnection.GetSchemaNames(List: TStrings);
 begin
   GetDBInfo(stSchemata,'','SCHEMA_NAME',List);
+end;
+
+procedure TSQLConnection.GetSequenceNames(List: TStrings);
+begin
+  GetDBInfo(stSequences,'','SEQUENCE_NAME',List);
 end;
 
 function TSQLConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
@@ -1509,12 +1575,12 @@ begin
   Result := nil;
 end;
 
-Function TSQLConnection.LogEvent(EventType: TDBEventType): Boolean;
+function TSQLConnection.LogEvent(EventType: TDBEventType): Boolean;
 begin
   Result:=(Assigned(FOnLog) or Assigned(GlobalDBLogHook)) and (EventType in LogEvents);
 end;
 
-Procedure TSQLConnection.Log(EventType: TDBEventType; Const Msg: String);
+procedure TSQLConnection.Log(EventType: TDBEventType; const Msg: String);
 
 Var
   M : String;
@@ -1535,28 +1601,31 @@ begin
     end;
 end;
 
-Procedure TSQLConnection.RegisterStatement(S: TCustomSQLStatement);
+procedure TSQLConnection.RegisterStatement(S: TCustomSQLStatement);
 begin
   if FStatements.IndexOf(S)=-1 then
     FStatements.Add(S);
 end;
 
-Procedure TSQLConnection.UnRegisterStatement(S: TCustomSQLStatement);
+procedure TSQLConnection.UnRegisterStatement(S: TCustomSQLStatement);
 begin
   if Assigned(FStatements) then // Can be nil, when we are destroying and datasets are uncoupled.
     FStatements.Remove(S);
 end;
 
 
-function TSQLConnection.InitialiseUpdateStatement(Query : TCustomSQLQuery; var qry : TCustomSQLStatement): TCustomSQLStatement;
+function TSQLConnection.InitialiseUpdateStatement(Query : TCustomSQLQuery; var qry : TCustomSQLQuery): TCustomSQLQuery;
 
 begin
   if not assigned(qry) then
   begin
-    qry := TCustomSQLStatement.Create(nil);
+    qry := TCustomSQLQuery.Create(nil);
     qry.ParseSQL := False;
     qry.DataBase := Self;
     qry.Transaction := Query.SQLTransaction;
+    qry.Unidirectional:=True;
+    qry.UsePrimaryKeyAsKey:=False;
+    qry.PacketRecords:=1;
   end;
   Result:=qry;
 end;
@@ -1581,16 +1650,20 @@ begin
 end;
 
 
-function TSQLConnection.ConstructInsertSQL(Query : TCustomSQLQuery) : string;
+function TSQLConnection.ConstructInsertSQL(Query: TCustomSQLQuery;
+  var ReturningClause: Boolean): string;
 
 var x          : integer;
     sql_fields : string;
     sql_values : string;
+    returning_fields : String;
     F : TField;
+
 
 begin
   sql_fields := '';
   sql_values := '';
+  returning_fields := '';
   for x := 0 to Query.Fields.Count -1 do
     begin
     F:=Query.Fields[x];
@@ -1599,37 +1672,61 @@ begin
       sql_fields := sql_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
       sql_values := sql_values + ':"' + F.FieldName + '",';
       end;
+    if ReturningClause and (pfRefreshOnInsert in F.ProviderFlags) then
+      returning_fields := returning_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
     end;
   if length(sql_fields) = 0 then
     DatabaseErrorFmt(sNoUpdateFields,['insert'],self);
   setlength(sql_fields,length(sql_fields)-1);
   setlength(sql_values,length(sql_values)-1);
-
   result := 'insert into ' + Query.FTableName + ' (' + sql_fields + ') values (' + sql_values + ')';
+  if ReturningClause then
+    begin
+    ReturningClause:=length(returning_fields) <> 0 ;
+    if ReturningClause then
+      begin
+      setlength(returning_fields,length(returning_fields)-1);
+      Result := Result + ' returning ' + returning_fields;
+      end;
+    end;
 end;
 
 
-function TSQLConnection.ConstructUpdateSQL(Query: TCustomSQLQuery): string;
+function TSQLConnection.ConstructUpdateSQL(Query: TCustomSQLQuery;
+  var ReturningClause: Boolean): string;
 
 var x : integer;
     F : TField;
     sql_set    : string;
     sql_where  : string;
+    returning_fields : String;
 
 begin
   sql_set := '';
   sql_where := '';
+  returning_fields := '';
   for x := 0 to Query.Fields.Count -1 do
     begin
     F:=Query.Fields[x];
     AddFieldToUpdateWherePart(sql_where,Query.UpdateMode,F);
     if (pfInUpdate in F.ProviderFlags) and (not F.ReadOnly) then
       sql_set := sql_set +FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] +'=:"' + F.FieldName + '",';
+    if ReturningClause and (pfRefreshOnUpdate in F.ProviderFlags) then
+      returning_fields := returning_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
     end;
   if length(sql_set) = 0 then DatabaseErrorFmt(sNoUpdateFields,['update'],self);
   setlength(sql_set,length(sql_set)-1);
   if length(sql_where) = 0 then DatabaseErrorFmt(sNoWhereFields,['update'],self);
   result := 'update ' + Query.FTableName + ' set ' + sql_set + ' where ' + sql_where;
+  if ReturningClause then
+    begin
+    ReturningClause:=length(returning_fields) <> 0 ;
+    if ReturningClause then
+      begin
+      setlength(returning_fields,length(returning_fields)-1);
+      Result := Result + ' returning ' + returning_fields;
+      end;
+    end;
 end;
 
 
@@ -1656,10 +1753,10 @@ Var
   Where : String;
 
 begin
-  Where:='';
   Result:=Query.RefreshSQL.Text;
   if (Result='') then
     begin
+    Where:='';
     PF:=RefreshFlags[UpdateKind];
     For F in Query.Fields do
       begin
@@ -1676,7 +1773,7 @@ begin
         begin
         if (Where<>'') then
           Where:=Where+' AND ';
-        Where:=Where+'('+FieldNameQuoteChars[0]+F.FieldName+FieldNameQuoteChars[0]+' = :'+F.FieldName+')';
+        Where:=Where+'('+FieldNameQuoteChars[0]+F.FieldName+FieldNameQuoteChars[1]+' = :'+F.FieldName+')';
         end;
       end;
     if (Where='') then
@@ -1698,36 +1795,46 @@ end;
 procedure TSQLConnection.ApplyRecUpdate(Query: TCustomSQLQuery; UpdateKind: TUpdateKind);
 
 var
-  qry : TCustomSQLStatement;
+  qry : TCustomSQLQuery;
   s   : string;
   x   : integer;
   Fld : TField;
   P : TParam;
-  B : Boolean;
+  B,ReturningClause : Boolean;
 
 begin
+  qry:=Nil;
+  ReturningClause:=(sqSupportReturning in ConnOptions) and not (sqoRefreshUsingSelect in Query.Options) and (Query.RefreshSQL.Count=0);
   case UpdateKind of
     ukInsert : begin
-               s := trim(Query.FInsertSQL.Text);
-               if s = '' then s := ConstructInsertSQL(Query);
-               qry := InitialiseUpdateStatement(Query,Query.FInsertQry);
+               s := Trim(Query.FInsertSQL.Text);
+               if s = '' then
+                 s := ConstructInsertSQL(Query, ReturningClause)
+               else
+                 ReturningClause := False;
+               qry := InitialiseUpdateStatement(Query, Query.FInsertQry);
                end;
     ukModify : begin
-               s := trim(Query.FUpdateSQL.Text);
-               if (s='') and (not assigned(Query.FUpdateQry) or (Query.UpdateMode<>upWhereKeyOnly)) then //first time or dynamic where part
-                 s := ConstructUpdateSQL(Query);
-               qry := InitialiseUpdateStatement(Query,Query.FUpdateQry);
+               s := Trim(Query.FUpdateSQL.Text);
+               if s = '' then begin
+                 //if not assigned(Query.FUpdateQry) or (Query.UpdateMode<>upWhereKeyOnly) then // first time or dynamic where part
+                   s := ConstructUpdateSQL(Query, ReturningClause);
+               end
+               else
+                 ReturningClause := False;
+               qry := InitialiseUpdateStatement(Query, Query.FUpdateQry);
                end;
     ukDelete : begin
-               s := trim(Query.FDeleteSQL.Text);
+               s := Trim(Query.FDeleteSQL.Text);
                if (s='') and (not assigned(Query.FDeleteQry) or (Query.UpdateMode<>upWhereKeyOnly)) then
                  s := ConstructDeleteSQL(Query);
-               qry := InitialiseUpdateStatement(Query,Query.FDeleteQry);
+               ReturningClause := False;
+               qry := InitialiseUpdateStatement(Query, Query.FDeleteQry);
                end;
   end;
   if (s<>'') and (qry.SQL.Text<>s) then
     qry.SQL.Text:=s; //assign only when changed, to avoid UnPrepare/Prepare
-  assert(qry.sql.Text<>'');
+  Assert(qry.SQL.Text<>'');
   for x:=0 to Qry.Params.Count-1 do
     begin
     P:=Qry.Params[x];
@@ -1738,9 +1845,20 @@ begin
     Fld:=Query.FieldByName(S);
     ApplyFieldUpdate(Query.Cursor,P as TSQLDBParam,Fld,B);
     end;
-  Qry.Execute;
+  if ReturningClause then
+    begin
+    Qry.Close;
+    Qry.Open
+    end
+  else
+    Qry.Execute;
   if (scoApplyUpdatesChecksRowsAffected in Options) and (Qry.RowsAffected<>1) then
+    begin
+    Qry.Close;
     DatabaseErrorFmt(SErrFailedToUpdateRecord, [Qry.RowsAffected], Query);
+    end;
+  if ReturningClause then
+    Query.ApplyReturningResult(Qry,UpdateKind);
 end;
 
 function TSQLConnection.RefreshLastInsertID(Query: TCustomSQLQuery; Field: TField): Boolean;
@@ -1764,11 +1882,36 @@ begin
   case SchemaType of
     stProcedures: Result := 'SELECT *, ROUTINE_NAME AS PROCEDURE_NAME FROM INFORMATION_SCHEMA.ROUTINES';
     stSchemata  : Result := 'SELECT * FROM INFORMATION_SCHEMA.SCHEMATA';
+    stSequences : Result := 'SELECT * FROM INFORMATION_SCHEMA.SEQUENCES';
     else DatabaseError(SMetadataUnavailable);
   end;
 end;
 
-Procedure TSQLConnection.MaybeConnect;
+function TSQLConnection.GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string;
+begin
+  Result := 'SELECT NEXT VALUE FOR ' + SequenceName;
+end;
+
+function TSQLConnection.GetNextValue(const SequenceName: string; IncrementBy: integer): Int64;
+var
+  Q: TCustomSQLQuery;
+begin
+  Result := 0;
+  Q := TCustomSQLQuery.Create(nil);
+  try
+    Q.DataBase := Self;
+    Q.Transaction := Transaction;
+    Q.SQL.Text := GetNextValueSQL(SequenceName, IncrementBy);
+    Q.Open;
+    if not Q.Eof then
+      Result := Q.Fields[0].AsLargeInt;
+    Q.Close;
+  finally
+    FreeAndNil(Q);
+  end;
+end;
+
+procedure TSQLConnection.MaybeConnect;
 begin
   If Not Connected then
     begin
@@ -1790,7 +1933,23 @@ begin
   DatabaseError(SNotSupported);
 end;
 
+
 { TSQLTransaction }
+
+constructor TSQLTransaction.Create(AOwner : TComponent);
+begin
+  inherited Create(AOwner);
+  FParams := TStringList.Create;
+  Action := caRollBack;
+end;
+
+destructor TSQLTransaction.Destroy;
+begin
+  EndTransaction;
+  FreeAndNil(FTrans);
+  FreeAndNil(FParams);
+  inherited Destroy;
+end;
 
 procedure TSQLTransaction.EndTransaction;
 
@@ -1860,7 +2019,7 @@ begin
     CloseDataSets;
     If LogEvent(detCommit) then
       Log(detCommit,SCommitting);
-    if (stoUseImplicit in Options) or SQLConnection.Commit(FTrans) then
+    if (stoUseImplicit in Options) or SQLConnection.AttemptCommit(FTrans) then
       begin
       CloseTrans;
       FreeAndNil(FTrans);
@@ -1887,7 +2046,7 @@ begin
     CloseDataSets;
     If LogEvent(detRollback) then
       Log(detRollback,SRollingBack);
-    if SQLConnection.RollBack(FTrans) then
+    if SQLConnection.AttemptRollBack(FTrans) then
       begin
       CloseTrans;
       FreeAndNil(FTrans);
@@ -1931,24 +2090,9 @@ begin
     end
   else
     begin
-    if Db.StartdbTransaction(FTrans,FParams.CommaText) then
+    if Db.StartDBTransaction(FTrans,FParams.CommaText) then
       OpenTrans
     end;
-end;
-
-constructor TSQLTransaction.Create(AOwner : TComponent);
-begin
-  inherited Create(AOwner);
-  FParams := TStringList.Create;
-  Action := caRollBack;
-end;
-
-destructor TSQLTransaction.Destroy;
-begin
-  EndTransaction;
-  FreeAndNil(FTrans);
-  FreeAndNil(FParams);
-  inherited Destroy;
 end;
 
 Procedure TSQLTransaction.SetDatabase(Value: TDatabase);
@@ -1957,19 +2101,15 @@ begin
   If Value<>Database then
     begin
     if Assigned(Value) and not (Value is TSQLConnection) then
-      DatabaseErrorFmt(SErrNotASQLConnection,[value.Name],self);
+      DatabaseErrorFmt(SErrNotASQLConnection, [Value.Name], Self);
     CheckInactive;
     if (stoUseImplicit in Options) and Assigned(Value) and Not (sqImplicitTransaction in TSQLConnection(Value).ConnOptions) then
-           DatabaseErrorFmt(SErrNoImplicitTransaction,[Value.ClassName]);
+      DatabaseErrorFmt(SErrNoImplicitTransaction, [Value.ClassName]);
     If Assigned(Database) then
-      begin
-      with SQLConnection do
-        if Transaction = self then Transaction := nil;
-      end;
-    inherited SetDatabase(Value);
+      if SQLConnection.Transaction = Self then SQLConnection.Transaction := nil;
+    inherited;
     If Assigned(Database) and not (csLoading in ComponentState) then
-      If (SQLConnection.Transaction=Nil) then
-        SQLConnection.Transaction:=Self;
+      If SQLConnection.Transaction = Nil then SQLConnection.Transaction := Self;
     end;
 end;
 
@@ -1992,6 +2132,50 @@ begin
       M:=Msg;
     SQLConnection.Log(EventType,M);
     end;
+end;
+
+
+{ TSQLSequence }
+
+constructor TSQLSequence.Create(AQuery: TCustomSQLQuery);
+begin
+  inherited Create;
+  FQuery := AQuery;
+  FApplyEvent := saeOnNewRecord;
+  FIncrementBy := 1;
+end;
+
+procedure TSQLSequence.Assign(Source: TPersistent);
+var SourceSequence: TSQLSequence;
+begin
+  if Source is TSQLSequence then
+  begin
+    SourceSequence := TSQLSequence(Source);
+    FFieldName    := SourceSequence.FieldName;
+    FSequenceName := SourceSequence.SequenceName;
+    FIncrementBy  := SourceSequence.IncrementBy;
+    FApplyEvent   := SourceSequence.ApplyEvent;
+  end
+  else
+    inherited;
+end;
+
+procedure TSQLSequence.Apply;
+var Field: TField;
+begin
+  if Assigned(FQuery) and (FSequenceName<>'') and (FFieldName<>'') then
+  begin
+    Field := FQuery.FindField(FFieldName);
+    if Assigned(Field) and Field.IsNull then
+      Field.AsLargeInt := GetNextValue;
+  end;
+end;
+
+function TSQLSequence.GetNextValue: Int64;
+begin
+  if (FQuery=Nil) or (FQuery.SQLConnection=Nil) then
+    DatabaseError(SErrDatabasenAssigned);
+  Result := FQuery.SQLConnection.GetNextValue(FSequenceName, FIncrementBy);
 end;
 
 
@@ -2096,6 +2280,7 @@ begin
   FRefreshSQL := TStringList.Create;
   FRefreshSQL.OnChange := @OnChangeModifySQL;
 
+  FSequence := TSQLSequence.Create(Self);
   FServerIndexDefs := TServerIndexDefs.Create(Self);
 
   FServerFiltered := False;
@@ -2120,11 +2305,12 @@ begin
   FreeAndNil(FUpdateSQL);
   FreeAndNil(FDeleteSQL);
   FreeAndNil(FRefreshSQL);
-  FServerIndexDefs.Free;
+  FreeAndNil(FSequence);
+  FreeAndNil(FServerIndexDefs);
   inherited Destroy;
 end;
 
-function TCustomSQLQuery.ParamByName(Const AParamName: String): TParam;
+function TCustomSQLQuery.ParamByName(const AParamName: String): TParam;
 
 begin
   Result:=Params.ParamByName(AParamName);
@@ -2136,37 +2322,36 @@ begin
   CheckInactive;
 end;
 
-Procedure TCustomSQLQuery.SetTransaction(Value: TDBTransaction);
+procedure TCustomSQLQuery.SetDatabase(Value : TDatabase);
+
+var DB : TSQLConnection;
 
 begin
+  if Database = Value then Exit;
+  if Assigned(Value) and not (Value is TSQLConnection) then
+    DatabaseErrorFmt(SErrNotASQLConnection, [Value.Name], Self);
+  UnPrepare;
+  DB := TSQLConnection(Value);
+  If Assigned(FStatement) then
+    FStatement.Database := DB;
+  inherited;
+  if Assigned(DB) and Assigned(DB.Transaction) and (not Assigned(Transaction) or (Transaction.DataBase<>Database)) then
+    Transaction := DB.Transaction;
+end;
+
+procedure TCustomSQLQuery.SetTransaction(Value: TDBTransaction);
+
+begin
+  if Transaction = Value then Exit;
   UnPrepare;
   inherited;
   If Assigned(FStatement) then
-    FStatement.Transaction:=TSQLTransaction(Value);
-  If (Transaction<>Nil) and (Database=Nil) then
-    Database:=SQLTransaction.Database;
+    FStatement.Transaction := TSQLTransaction(Value);
+  If Assigned(Transaction) and Assigned(Transaction.DataBase) and (Database<>Transaction.DataBase) then
+    Database := Transaction.Database;
 end;
 
-procedure TCustomSQLQuery.SetDatabase(Value : TDatabase);
-
-var db : tsqlconnection;
-
-begin
-  if (Database <> Value) then
-    begin
-    if assigned(value) and not (Value is TSQLConnection) then
-      DatabaseErrorFmt(SErrNotASQLConnection,[value.Name],self);
-    UnPrepare;
-    db := TSQLConnection(Value);
-    If Assigned(FStatement) then
-      FStatement.Database:=DB;
-    inherited setdatabase(value);
-    if assigned(value) and (Transaction = nil) and (Assigned(db.Transaction)) then
-      transaction := Db.Transaction;
-    end;
-end;
-
-Function TCustomSQLQuery.IsPrepared: Boolean;
+function TCustomSQLQuery.IsPrepared: Boolean;
 
 begin
   if Assigned(Fstatement) then
@@ -2175,7 +2360,7 @@ begin
     Result := False;
 end;
 
-Function TCustomSQLQuery.AddFilter(SQLstr: string): string;
+function TCustomSQLQuery.AddFilter(SQLstr: string): string;
 
 begin
   if (FWhereStartPos > 0) and (FWhereStopPos > 0) then
@@ -2193,15 +2378,18 @@ begin
   Result := SQLstr;
 end;
 
-Function TCustomSQLQuery.NeedRefreshRecord(UpdateKind: TUpdateKind): Boolean;
+function TCustomSQLQuery.NeedRefreshRecord(UpdateKind: TUpdateKind): Boolean;
 
 
 Var
   PF : TProviderFlag;
   I : Integer;
+  DoReturning : Boolean;
+
 begin
   Result:=(FRefreshSQL.Count<>0);
-  if Not Result then
+  DoReturning:=(sqSupportReturning in SQLConnection.ConnOptions) and not (sqoRefreshUsingSelect in Options);
+  if Not (Result or DoReturning) then
     begin
     PF:=RefreshFlags[UpdateKind];
     I:=0;
@@ -2213,7 +2401,7 @@ begin
     end;
 end;
 
-Function TCustomSQLQuery.RefreshRecord(UpdateKind: TUpdateKind) : Boolean;
+function TCustomSQLQuery.RefreshRecord(UpdateKind: TUpdateKind): Boolean;
 
 Var
   Q : TCustomSQLQuery;
@@ -2263,6 +2451,25 @@ begin
   end;
 end;
 
+procedure TCustomSQLQuery.ApplyReturningResult(Q: TCustomSQLQuery; UpdateKind : TUpdateKind);
+
+Var
+  S : TDataSetState;
+  refreshFlag  : TProviderFlag;
+  F : TField;
+
+begin
+  RefreshFlag:=RefreshFlags[UpdateKind];
+  S:=SetTempState(dsRefreshFields);
+  try
+    For F in Fields do
+      if RefreshFlag in F.ProviderFlags then
+        F.Assign(Q.FieldByName(F.FieldName));
+  finally
+    RestoreState(S);
+  end;
+end;
+
 procedure TCustomSQLQuery.ApplyFilter;
 
 begin
@@ -2276,7 +2483,7 @@ begin
   First;
 end;
 
-Procedure TCustomSQLQuery.SetActive(Value: Boolean);
+procedure TCustomSQLQuery.SetActive(Value: Boolean);
 
 begin
   inherited SetActive(Value);
@@ -2351,7 +2558,7 @@ begin
   Result := FServerIndexDefs;
 end;
 
-function TCustomSQLQuery.GetSQL: TStringlist;
+function TCustomSQLQuery.GetSQL: TStringList;
 begin
   Result:=TStringList(Fstatement.SQL);
 end;
@@ -2366,7 +2573,7 @@ begin
   Result:=Transaction as TSQLTransaction;
 end;
 
-Function TCustomSQLQuery.Cursor: TSQLCursor;
+function TCustomSQLQuery.Cursor: TSQLCursor;
 begin
   Result:=FStatement.Cursor;
 end;
@@ -2513,6 +2720,13 @@ begin
   inherited InternalOpen;
 end;
 
+procedure TCustomSQLQuery.InternalRefresh;
+begin
+  if (ChangeCount>0) and (sqoCancelUpdatesOnRefresh in Options) then
+    CancelUpdates;
+  inherited InternalRefresh;
+end;
+
 // public part
 
 procedure TCustomSQLQuery.ExecSQL;
@@ -2534,7 +2748,7 @@ begin
   end;
 end;
 
-Procedure TCustomSQLQuery.ApplyUpdates(MaxErrors: Integer);
+procedure TCustomSQLQuery.ApplyUpdates(MaxErrors: Integer);
 begin
   inherited ApplyUpdates(MaxErrors);
   If sqoAutoCommit in Options then
@@ -2545,14 +2759,14 @@ begin
     end;
 end;
 
-Procedure TCustomSQLQuery.Post;
+procedure TCustomSQLQuery.Post;
 begin
   inherited Post;
   If (sqoAutoApplyUpdates in Options) then
     ApplyUpdates;
 end;
 
-Procedure TCustomSQLQuery.Delete;
+procedure TCustomSQLQuery.Delete;
 begin
   inherited Delete;
   If (sqoAutoApplyUpdates in Options) then
@@ -2575,7 +2789,7 @@ begin
     FServerFiltered := False;
 end;
 
-procedure TCustomSQLQuery.SetSQL(const AValue: TStringlist);
+procedure TCustomSQLQuery.SetSQL(const AValue: TStringList);
 begin
   FStatement.SQL.Assign(AValue);
 end;
@@ -2599,7 +2813,7 @@ begin
     SQLConnection.UpdateIndexDefs(ServerIndexDefs,FTableName);
 end;
 
-Function TCustomSQLQuery.NeedLastInsertID : TField;
+function TCustomSQLQuery.NeedLastInsertID: TField;
 
 Var
   I : Integer;
@@ -2619,7 +2833,7 @@ begin
     end
 end;
 
-Function TCustomSQLQuery.RefreshLastInsertID(Field : TField) : Boolean;
+function TCustomSQLQuery.RefreshLastInsertID(Field: TField): Boolean;
 
 begin
   Result:=SQLConnection.RefreshLastInsertID(Self, Field);
@@ -2705,12 +2919,12 @@ begin
     UnPrepareStatement(Cursor);
 end;
 
-Function TCustomSQLQuery.LogEvent(EventType: TDBEventType): Boolean;
+function TCustomSQLQuery.LogEvent(EventType: TDBEventType): Boolean;
 begin
   Result:=Assigned(Database) and SQLConnection.LogEvent(EventType);
 end;
 
-Procedure TCustomSQLQuery.Log(EventType: TDBEventType; Const Msg: String);
+procedure TCustomSQLQuery.Log(EventType: TDBEventType; const Msg: String);
 
 Var
   M : String;
@@ -2789,7 +3003,7 @@ begin
   FStatement.Params.Assign(AValue);
 end;
 
-Procedure TCustomSQLQuery.SetDataSource(AValue: TDataSource);
+procedure TCustomSQLQuery.SetDataSource(AValue: TDataSource);
 
 Var
   DS : TDataSource;
@@ -2806,7 +3020,7 @@ begin
     end;
 end;
 
-Function TCustomSQLQuery.GetDataSource: TDataSource;
+function TCustomSQLQuery.GetDataSource: TDataSource;
 
 begin
   If Assigned(FStatement) then
@@ -2821,6 +3035,20 @@ begin
   Inherited;
   If (Operation=opRemove) and (AComponent=DataSource) then
     DataSource:=Nil;
+end;
+
+procedure TCustomSQLQuery.DoOnNewRecord;
+begin
+  inherited;
+  if FSequence.ApplyEvent = saeOnNewRecord then
+    FSequence.Apply;
+end;
+
+procedure TCustomSQLQuery.DoBeforePost;
+begin
+  if (State = dsInsert) and (FSequence.ApplyEvent = saeOnPost) then
+    FSequence.Apply;
+  inherited;
 end;
 
 function TCustomSQLQuery.PSGetUpdateException(E: Exception; Prev: EUpdateError): EUpdateError;
@@ -3205,11 +3433,10 @@ begin
   Result:=FProxy.RollBack(trans);
 end;
 
-function TSQLConnector.StartdbTransaction(trans: TSQLHandle; aParams: string
-  ): boolean;
+function TSQLConnector.StartDBTransaction(trans: TSQLHandle; aParams: string): boolean;
 begin
   CheckProxy;
-  Result:=FProxy.StartdbTransaction(trans, aParams);
+  Result:=FProxy.StartDBTransaction(trans, aParams);
 end;
 
 procedure TSQLConnector.CommitRetaining(trans: TSQLHandle);

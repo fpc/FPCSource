@@ -178,7 +178,7 @@ type
     procedure SetSize(const AValue: Integer);
     procedure SetRequired(const AValue: Boolean);
   public
-    constructor create(ACollection : TCollection); override;
+    constructor Create(ACollection : TCollection); override;
     constructor Create(AOwner: TFieldDefs; const AName: string;
       ADataType: TFieldType; ASize: Integer; ARequired: Boolean; AFieldNo: Longint); overload;
     destructor Destroy; override;
@@ -191,8 +191,8 @@ type
   Published
     property Attributes: TFieldAttributes read FAttributes write SetAttributes default [];
     property DataType: TFieldType read FDataType write SetDataType;
-    property Precision: Longint read FPrecision write SetPrecision;
-    property Size: Integer read FSize write SetSize;
+    property Precision: Longint read FPrecision write SetPrecision default 0;
+    property Size: Integer read FSize write SetSize default 0;
   end;
   TFieldDefClass = Class of TFieldDef;
 
@@ -314,7 +314,8 @@ type
     procedure SetLookup(const AValue: Boolean);
     procedure SetReadOnly(const AValue: Boolean);
     procedure SetVisible(const AValue: Boolean);
-    function IsDisplayStored : Boolean;
+    function IsDisplayLabelStored : Boolean;
+    function IsDisplayWidthStored: Boolean;
     function GetLookupList: TLookupList;
     procedure CalcLookupValue;
   protected
@@ -322,6 +323,7 @@ type
     procedure CheckInactive;
     class procedure CheckTypeSize(AValue: Longint); virtual;
     procedure Change; virtual;
+    procedure Bind(Binding: Boolean); virtual;
     procedure DataChanged;
     procedure FreeBuffers; virtual;
     function GetAsBCD: TBCD; virtual;
@@ -427,8 +429,8 @@ type
     property CustomConstraint: string read FCustomConstraint write FCustomConstraint;
     property ConstraintErrorMessage: string read FConstraintErrorMessage write FConstraintErrorMessage;
     property DefaultExpression: string read FDefaultExpression write FDefaultExpression;
-    property DisplayLabel : string read GetDisplayName write SetDisplayLabel stored IsDisplayStored;
-    property DisplayWidth: Longint read GetDisplayWidth write SetDisplayWidth;
+    property DisplayLabel : string read GetDisplayName write SetDisplayLabel stored IsDisplayLabelStored;
+    property DisplayWidth: Longint read GetDisplayWidth write SetDisplayWidth stored IsDisplayWidthStored;
     property FieldKind: TFieldKind read FFieldKind write FFieldKind;
     property FieldName: string read FFieldName write FFieldName;
     property HasConstraints: Boolean read FHasConstraints;
@@ -637,6 +639,7 @@ type
     procedure SetCurrency(const AValue: Boolean);
     procedure SetPrecision(const AValue: Longint);
   protected
+    function GetAsBCD: TBCD; override;
     function GetAsFloat: Double; override;
     function GetAsLargeInt: LargeInt; override;
     function GetAsInteger: Longint; override;
@@ -644,6 +647,7 @@ type
     function GetAsString: string; override;
     function GetDataSize: Integer; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
+    procedure SetAsBCD(const AValue: TBCD); override;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLargeInt(AValue: LargeInt); override;
     procedure SetAsInteger(AValue: Longint); override;
@@ -849,7 +853,7 @@ type
     function CheckRange(AValue : TBCD) : Boolean;
     property Value: TBCD read GetAsBCD write SetAsBCD;
   published
-    property Precision: Longint read FPrecision write FPrecision default 15;
+    property Precision: Longint read FPrecision write FPrecision default 18;
     property Currency: Boolean read FCurrency write FCurrency;
     property MaxValue: string read GetMaxValue write SetMaxValue;
     property MinValue: string read GetMinValue write SetMinValue;
@@ -862,8 +866,7 @@ type
   // This type is needed for compatibility. While it should contain only blob
   // types, it actually does not.
   // Instead of this, please use ftBlobTypes
-  TBlobType = ftBlob..ftWideMemo deprecated
-    'Warning: Does not contain BLOB types. Please use ftBlobTypes.';
+  TBlobType = ftBlob..ftWideMemo deprecated 'Warning: Does not contain BLOB types. Please use ftBlobTypes.';
 
   TBlobField = class(TField)
   private
@@ -872,7 +875,7 @@ type
     Function GetBlobStream (Mode : TBlobStreamMode) : TStream;
     // Wrapper that retrieves FDataType as a TBlobType
     function GetBlobType: TBlobType;
-    // Wrapper that calls SetFieldtype
+    // Wrapper that calls SetFieldType
     procedure SetBlobType(AValue: TBlobType);
   protected
     procedure FreeBuffers; override;
@@ -902,7 +905,7 @@ type
     property Value: string read GetAsString write SetAsString;
     property Transliterate: Boolean read FTransliterate write FTransliterate;
   published
-    property BlobType: TBlobType read GetBlobType write SetBlobType;
+    property BlobType: TBlobType read GetBlobType write SetBlobType default ftBlob;
     property Size default 0;
   end;
 
@@ -1711,6 +1714,19 @@ type
     property OnPostError: TDataSetErrorEvent read FOnPostError write FOnPostError;
   end;
 
+  TDataSetEnumerator = class
+  private
+    FDataSet: TDataSet;
+    FBOF: Boolean;
+    function GetCurrent: TFields;
+  public  
+    constructor Create(ADataSet: TDataSet);
+    function MoveNext: Boolean;
+    property Current: TFields read GetCurrent;
+  end;
+
+{ TDataLink }
+
   TDataLink = class(TPersistent)
   private
     FFirstRecord,
@@ -1898,7 +1914,7 @@ type
     Function AllowClose(DS: TDBDataset): Boolean; virtual;
     Procedure SetDatabase (Value : TDatabase); virtual;
     procedure CloseTrans;
-    procedure openTrans;
+    procedure OpenTrans;
     Procedure CheckDatabase;
     Procedure CheckActive;
     Procedure CheckInactive;
@@ -1912,7 +1928,7 @@ type
     procedure Loaded; override;
   Public
     constructor Create(AOwner: TComponent); override;
-    Destructor destroy; override;
+    Destructor Destroy; override;
     procedure CloseDataSets;
     Property DataBase : TDatabase Read FDatabase Write SetDatabase;
   published
@@ -1938,16 +1954,19 @@ type
     procedure SetBeforeConnect(const AValue: TNotifyEvent);
     procedure SetBeforeDisconnect(const AValue: TNotifyEvent);
   protected
+    procedure DoLoginPrompt; virtual;
     procedure DoConnect; virtual;
     procedure DoDisconnect; virtual;
     function GetConnected : boolean; virtual;
     Function GetDataset(Index : longint) : TDataset; virtual;
     Function GetDataSetCount : Longint; virtual;
+    procedure GetLoginParams(out ADatabaseName, AUserName, APassword: string); virtual;
     procedure InternalHandleException; virtual;
     procedure Loaded; override;
     procedure SetConnected (Value : boolean); virtual;
+    procedure SetLoginParams(const ADatabaseName, AUserName, APassword: string); virtual;
     property ForcedClose : Boolean read FForcedClose write FForcedClose;
-    property Streamedconnected: Boolean read FStreamedConnected write FStreamedConnected;
+    property StreamedConnected: Boolean read FStreamedConnected write FStreamedConnected;
   public
     procedure Close(ForceClose: Boolean=False);
     destructor Destroy; override;
@@ -2166,12 +2185,16 @@ const
   ftBlobTypes = [ftBlob, ftMemo, ftGraphic, ftFmtMemo, ftParadoxOle,
     ftDBaseOle, ftTypedBinary, ftOraBlob, ftOraClob, ftWideMemo];
 
+var
+  LoginDialogExProc: function(const ADatabaseName: string; var AUserName, APassword: string; UserNameReadOnly: Boolean): Boolean = nil;
+
+
 { Auxiliary functions }
 
 Procedure DatabaseError (Const Msg : String); overload;
 Procedure DatabaseError (Const Msg : String; Comp : TComponent); overload;
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const); overload;
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const; Comp : TComponent); overload;
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const); overload;
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const; Comp : TComponent); overload;
 Function ExtractFieldName(Const Fields: String; var Pos: Integer): String;
 Function DateTimeRecToDateTime(DT: TFieldType; Data: TDateTimeRec): TDateTime;
 Function DateTimeToDateTimeRec(DT: TFieldType; Data: TDateTime): TDateTimeRec;
@@ -2181,6 +2204,8 @@ function BuffersEqual(Buf1, Buf2: Pointer; Size: Integer): Boolean;
 
 function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : boolean;
 
+operator Enumerator(ADataSet: TDataSet): TDataSetEnumerator;
+ 
 implementation
 
 uses dbconst,typinfo;
@@ -2204,13 +2229,13 @@ begin
     DatabaseError(Msg);
 end;
 
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const);
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const);
 
 begin
   Raise EDatabaseError.CreateFmt(Fmt,Args);
 end;
 
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const;
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const;
                             Comp : TComponent);
 begin
   if assigned(comp) then

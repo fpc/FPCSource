@@ -2,6 +2,6 @@
 # Here we set processor dependent include file names.
 #
 
-CPUNAMES=i386 math set setjump setjumph
+CPUNAMES=fastmove i386 int64p math set setjump setjumph
 CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))
 

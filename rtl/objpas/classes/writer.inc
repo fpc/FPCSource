@@ -118,16 +118,17 @@ begin
   WriteValue(vaCollection);
 end;
 
+procedure TBinaryObjectWriter.WriteSignature;
+
+begin
+  Write(FilerSignature, SizeOf(FilerSignature));
+end;
+
 procedure TBinaryObjectWriter.BeginComponent(Component: TComponent;
   Flags: TFilerFlags; ChildPos: Integer);
 var
   Prefix: Byte;
 begin
-  if not FSignatureWritten then
-  begin
-    Write(FilerSignature, SizeOf(FilerSignature));
-    FSignatureWritten := True;
-  end;
 
   { Only write the flags if they are needed! }
   if Flags <> [] then
@@ -567,6 +568,12 @@ begin
   FLookupRoot := ARoot;
 end;
 
+procedure TWriter.WriteSignature;
+
+begin
+  FDriver.WriteSignature;
+end;
+
 procedure TWriter.WriteBinary(AWriteData: TStreamProc);
 var
   MemBuffer: TMemoryStream;
@@ -762,7 +769,7 @@ begin
   FAncestor := AAncestor;
   FRootAncestor := AAncestor;
   FLookupRoot := ARoot;
-
+  WriteSignature;
   WriteComponent(ARoot);
 end;
 

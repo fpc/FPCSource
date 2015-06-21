@@ -107,8 +107,11 @@ var
   Flags: cardinal;
 begin
   AddThread;
-  Flags := dtStack_Commited;
+  { Always start in suspended state, will be resumed in AfterConstruction if necessary
+    See Mantis #16884 }
+  Flags := dtStack_Commited or dtSuspended;
   FSuspended := CreateSuspended;
+  FInitialSuspended := CreateSuspended;
   if FSuspended then Flags := Flags or dtSuspended;
   FHandle := BeginThread (nil, StackSize, @ThreadProc, pointer (Self),
                                                              Flags, FThreadID);

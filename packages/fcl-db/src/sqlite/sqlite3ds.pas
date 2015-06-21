@@ -141,7 +141,7 @@ begin
   sqlite3_open(PAnsiChar(FFileName), @Result);
   //sqlite3_open returns SQLITE_OK even for invalid files
   //do additional check here
-  FReturnCode := sqlite3_prepare(Result, CheckFileSql, -1, @vm, nil);
+  FReturnCode := sqlite3_prepare_v2(Result, CheckFileSql, -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
   begin
     ErrorStr := SqliteCode2Str(FReturnCode) + ' - ' + sqlite3_errmsg(Result);
@@ -163,7 +163,7 @@ begin
   {$endif}
   FAutoIncFieldNo := -1;
   FieldDefs.Clear;
-  FReturnCode := sqlite3_prepare(FSqliteHandle, PAnsiChar(FEffectiveSQL), -1, @vm, nil);
+  FReturnCode := sqlite3_prepare_v2(FSqliteHandle, PAnsiChar(FEffectiveSQL), -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
   sqlite3_step(vm);
@@ -263,7 +263,7 @@ procedure TSqlite3Dataset.ExecuteDirect(const ASQL: String);
 var
   vm: Pointer;
 begin
-  FReturnCode := sqlite3_prepare(FSqliteHandle, PAnsiChar(ASQL), -1, @vm, nil);
+  FReturnCode := sqlite3_prepare_v2(FSqliteHandle, PAnsiChar(ASQL), -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
   FReturnCode := sqlite3_step(vm);
@@ -281,7 +281,7 @@ begin
     sqlite3_exec(FSqliteHandle, PAnsiChar('Select Max(' + FieldDefs[FAutoIncFieldNo].Name +
       ') from ' + FTableName), @GetAutoIncValue, @FNextAutoInc, nil);
 
-  FReturnCode := sqlite3_prepare(FSqliteHandle, PAnsiChar(FEffectiveSQL), -1, @vm, nil);
+  FReturnCode := sqlite3_prepare_v2(FSqliteHandle, PAnsiChar(FEffectiveSQL), -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
 
@@ -367,7 +367,7 @@ begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
   Result := '';
-  FReturnCode := sqlite3_prepare(FSqliteHandle,PAnsiChar(ASQL), -1, @vm, nil);
+  FReturnCode := sqlite3_prepare_v2(FSqliteHandle,PAnsiChar(ASQL), -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
     

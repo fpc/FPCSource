@@ -28,13 +28,12 @@ unit AMsgBox;
 interface
 
 
-
-FUNCTION MessageBox(tit,txt,gad:string) : LONGint;
-function MessageBox(tit,txt,gad:pchar):longint;
+FUNCTION MessageBox(const tit,txt,gad:RawByteString): LongInt;
+FUNCTION MessageBox(const tit,txt,gad:string): LongInt;
+function MessageBox(const tit,txt,gad:pchar): LongInt;
 
 implementation
 
-uses pastoc;
 type
  pEasyStruct = ^tEasyStruct;
    tEasyStruct = record
@@ -48,21 +47,26 @@ type
 
 FUNCTION EasyRequestArgs(window : pointer location 'a0'; easyStruct : pEasyStruct location 'a1'; idcmpPtr : longint location 'a2'; args : POINTER location 'a3') : LONGINT; syscall _IntuitionBase 588;
 
-FUNCTION MessageBox(tit,txt,gad:string) : LONGint;
+FUNCTION MessageBox(const tit,txt,gad:RawByteString): LongInt;
 begin
-    MessageBox := MessageBox(pas2c(tit),pas2c(txt),pas2c(gad));
+  MessageBox:=MessageBox(PChar(tit),PChar(txt),PChar(gad));
 end;
 
-FUNCTION MessageBox(tit,txt,gad:pchar) : LONGint;
+FUNCTION MessageBox(const tit,txt,gad:string) : LONGint;
+begin
+  MessageBox := MessageBox(PChar(RawByteString(tit)),PChar(RawByteString(txt)),PChar(RawByteString(gad)));
+end;
+
+FUNCTION MessageBox(const tit,txt,gad:pchar) : LONGint;
 VAR
   MyStruct : tEasyStruct;
 BEGIN
- MyStruct.es_StructSize:=SizeOf(tEasyStruct);
- MyStruct.es_Flags:=0;
- MyStruct.es_Title:=(tit);
- MyStruct.es_TextFormat:=(txt);
- MyStruct.es_GadgetFormat:=(gad);
- MessageBox := EasyRequestArgs(nil,@MyStruct,0,NIL);
+  MyStruct.es_StructSize:=SizeOf(tEasyStruct);
+  MyStruct.es_Flags:=0;
+  MyStruct.es_Title:=(tit);
+  MyStruct.es_TextFormat:=(txt);
+  MyStruct.es_GadgetFormat:=(gad);
+  MessageBox := EasyRequestArgs(nil,@MyStruct,0,NIL);
 END;
 
 end.

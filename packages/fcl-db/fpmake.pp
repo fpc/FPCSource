@@ -92,6 +92,13 @@ begin
           AddUnit('dbconst');
         end;
 
+    T:=P.Targets.AddUnit('csvdataset.pp');
+      with T.Dependencies do
+        begin
+        AddUnit('db');
+        AddUnit('bufdataset');
+        end;
+
     T:=P.Targets.AddUnit('bufdataset_parser.pp');
       with T.Dependencies do
         begin

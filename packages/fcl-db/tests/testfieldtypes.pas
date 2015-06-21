@@ -211,7 +211,7 @@ begin
     SQL.Add('select * from FPDEV2');
     Open;
     AssertEquals(1,FieldCount);
-    AssertTrue(CompareText('FT',fields[0].FieldName)=0);
+    AssertTrue(SameText('FT',Fields[0].FieldName));
     AssertEquals('DataSize', ADataSize, Fields[0].DataSize);
     AssertEquals('DataType', ord(ADatatype), ord(Fields[0].DataType));
     Close;
@@ -449,9 +449,10 @@ begin
     for i := 0 to testValuesCount-1 do
       begin
       AssertEquals(testValues[i], Fields[0].AsString);
+      AssertEquals('IsNull', False, Fields[0].IsNull); // '' is not NULL
       Next;
       end;
-    close;
+    Close;
     end;
 end;
 
@@ -1665,6 +1666,7 @@ begin
       else
         AssertTrue('no test for paramtype available',False);
       end;
+      AssertEquals('IsNull', False, FieldByName('FIELD1').IsNull);
       Next;
       end;
     AssertTrue('Expected IsNull', FieldByName('FIELD1').IsNull);

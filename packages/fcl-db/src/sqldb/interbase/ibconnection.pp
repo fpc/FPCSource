@@ -103,13 +103,14 @@ type
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
-    function StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
+    function StartDBTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
-    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
+    function GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string; override;
   public
     constructor Create(AOwner : TComponent); override;
     function GetConnectionInfo(InfoType:TConnInfoType): string; override;
@@ -179,7 +180,7 @@ constructor TIBConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
+  FConnOptions := FConnOptions + [sqSupportParams, sqEscapeRepeat, sqSupportReturning];
   FBlobSegmentSize := 65535; //Shows we're using the maximum segment size
   FDialect := INVALID_DATA;
   ResetDatabaseInfo;
@@ -208,7 +209,8 @@ begin
   else result := true;
 end;
 
-function TIBConnection.StartDBTransaction(trans : TSQLHandle;AParams : String) : boolean;
+function TIBConnection.StartDBTransaction(trans: TSQLHandle; AParams: string
+  ): boolean;
 var
   DBHandle : pointer;
   tr       : TIBTrans;
@@ -641,7 +643,7 @@ begin
   end;
 end;
 
-Function TIBConnection.AllocateCursorHandle : TSQLCursor;
+function TIBConnection.AllocateCursorHandle: TSQLCursor;
 
 var curs : TIBCursor;
 
@@ -665,7 +667,7 @@ begin
   FreeAndNil(cursor);
 end;
 
-Function TIBConnection.AllocateTransactionHandle : TSQLHandle;
+function TIBConnection.AllocateTransactionHandle: TSQLHandle;
 
 begin
   result := TIBTrans.create;
@@ -729,7 +731,7 @@ begin
     BlockSize:=isc_vax_integer(@resbuf[1],2);
     IBStatementType:=isc_vax_integer(@resbuf[3],blockSize);
     assert(resbuf[3+blockSize]=isc_info_end);
-    // If the statementtype is isc_info_sql_stmt_exec_procedure then
+    // If the StatementType is isc_info_sql_stmt_exec_procedure then
     // override the statement type derived by parsing the query.
     // This to recognize statements like 'insert into .. returning' correctly
     case IBStatementType of
@@ -751,6 +753,7 @@ begin
         if isc_dsql_describe(@Status[0], @Statement, 1, SQLDA) <> 0 then
           CheckError('PrepareSelect', Status);
         end;
+      FSelectable := SQLDA^.SQLD > 0;
       {$push}
       {$R-}
       for x := 0 to SQLDA^.SQLD - 1 do with SQLDA^.SQLVar[x] do
@@ -1388,12 +1391,27 @@ begin
                           '(r.rdb$system_flag = 0 or r.rdb$system_flag is null) and (rdb$relation_name = ''' + Uppercase(SchemaObjectName) + ''') ' +
                         'ORDER BY '+
                           'r.rdb$field_name';
+    stSequences  : s := 'SELECT ' +
+                          'rdb$generator_id         as recno,' +
+                          '''' + DatabaseName + ''' as sequence_catalog,' +
+                          '''''                     as sequence_schema,' +
+                          'rdb$generator_name       as sequence_name ' +
+                        'FROM ' +
+                          'rdb$generators ' +
+                        'WHERE ' +
+                          'rdb$system_flag = 0 or rdb$system_flag is null ' +
+                        'ORDER BY ' +
+                          'rdb$generator_name';
   else
     DatabaseError(SMetadataUnavailable)
   end; {case}
   result := s;
 end;
 
+function TIBConnection.GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string;
+begin
+  Result := Format('SELECT gen_id(%s, %d) FROM RDB$DATABASE', [SequenceName, IncrementBy]);
+end;
 
 procedure TIBConnection.UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string);
 
@@ -1480,7 +1498,7 @@ begin
   end;
 end;
 
-procedure TIBConnection.GetFloat(CurrBuff, Buffer : pointer; Size : byte);
+procedure TIBConnection.GetFloat(CurrBuff, Buffer: pointer; Size: Byte);
 var
   Ext : extended;
   Dbl : double;

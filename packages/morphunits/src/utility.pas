@@ -188,8 +188,8 @@ type
   PHook = ^THook;
   THook = packed record
     h_MinNode : TMinNode;
-    h_Entry   : Cardinal;
-    h_SubEntry: Cardinal;
+    h_Entry   : Pointer;
+    h_SubEntry: Pointer;
     h_Data    : Pointer;
   end;
 

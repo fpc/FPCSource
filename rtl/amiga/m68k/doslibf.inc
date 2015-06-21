@@ -111,7 +111,7 @@ SysCall AOS_DOSBase 186;
 function DateStamp(date: PDateStamp location 'd1'): PDateStamp;
 SysCall AOS_DOSBase 192;
 
-procedure Delay(timeout: LongInt location 'd1');
+procedure DOSDelay(timeout: LongInt location 'd1');
 SysCall AOS_DOSBase 198;
 
 function WaitForChar(file1  : LongInt location 'd1';

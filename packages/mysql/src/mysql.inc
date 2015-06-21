@@ -779,8 +779,8 @@ uses
     type
 {$if defined(NO_CLIENT_LONG_LONG)}
        my_ulonglong = culong;
-{$elseif defined(mswindows)}
-       my_ulonglong = cint64;
+{$elseif defined(WINDOWS)}
+       my_ulonglong = cuint64;
 {$else}
        my_ulonglong = culonglong;
 {$endif}

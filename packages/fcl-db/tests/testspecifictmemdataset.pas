@@ -10,7 +10,7 @@ interface
 
 uses
   Classes, SysUtils,
-  fpcunit, testregistry,
+  testregistry,
   ToolsUnit;
 
 type
