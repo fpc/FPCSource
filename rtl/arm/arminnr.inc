@@ -1,3 +1,8 @@
+{
+     Do not edit file manually!
+     File is created automatically from armintr.dat by mkarminl.
+}
+
 const
   in_arm_first = in_arm_base;
   in_arm_nop = in_arm_base+0;

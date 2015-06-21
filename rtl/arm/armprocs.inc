@@ -1,3 +1,8 @@
+{
+     Do not edit file manually!
+     File is created automatically from armintr.dat by mkarminl.
+}
+
 procedure arm_nop(); [INTERNPROC: in_arm_nop];
 procedure arm_yield(); [INTERNPROC: in_arm_yield];
 procedure arm_wfi(); [INTERNPROC: in_arm_wfi];

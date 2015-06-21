@@ -1,3 +1,8 @@
+{
+     Do not edit file manually!
+     File is created automatically from armintr.dat by mkarminl.
+}
+
 in_arm_nop
 ,in_arm_yield
 ,in_arm_wfi

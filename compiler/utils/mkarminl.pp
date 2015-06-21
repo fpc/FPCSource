@@ -262,14 +262,21 @@ procedure ParseList(const APrefix, AFilename: string);
           end;
     end;
 
+
+  const
+    headercomment = '{'+LineEnding+
+                    '     Do not edit file manually!'+LineEnding+
+                    '     File is created automatically from %s by mkarminl.'+LineEnding+
+                    '}'+LineEnding;
+
   begin
     intrnum:=0;
 
     assignfile(f, AFilename);
     reset(f);
 
-    assignfile(fprocs, APrefix+'procs.inc'); rewrite(fprocs);
-    assignfile(finnr, APrefix+'innr.inc'); rewrite(finnr);
+    assignfile(fprocs, APrefix+'procs.inc'); rewrite(fprocs); writeln(fprocs,format(headercomment,[AFilename]));
+    assignfile(finnr, APrefix+'innr.inc'); rewrite(finnr); writeln(finnr,format(headercomment,[AFilename]));
 
     writeln(finnr,'const');
 
@@ -523,8 +530,13 @@ procedure ParseList(const APrefix, AFilename: string);
 
     writeln(finnr, '  in_', APrefix,'_last = in_',APrefix,'_base+',intrnum-1,';');
 
+    ftypechk.Insert(0,format(headercomment,[AFilename]));
     ftypechk.SaveToFile(APrefix+'type.inc');
+
+    ffirst.Insert(0,format(headercomment,[AFilename]));
     ffirst.SaveToFile(APrefix+'first.inc');
+
+    fsecond.Insert(0,format(headercomment,[AFilename]));
     fsecond.SaveToFile(APrefix+'second.inc');
 
     ftypechk.Free;
