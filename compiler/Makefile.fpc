@@ -527,6 +527,12 @@ regdataarch64 : aarch64/a64reg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mka64reg.pp
         cd aarch64 && ..$(PATHSEP)utils$(PATHSEP)mka64reg$(SRCEXEEXT)
 
+inldatarm : $(COMPILER_UNITTARGETDIR) arm/armintr.dat
+        $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarminl.pp
+        cd arm && ..$(PATHSEP)utils$(PATHSEP)mkarminl$(SRCEXEEXT)
+        cp -a arm$(PATHSEP)arminnr.inc ..$(PATHSEP)rtl$(PATHSEP)arm
+        mv -f arm$(PATHSEP)armprocs.inc ..$(PATHSEP)rtl$(PATHSEP)arm
+
 # revision.inc rule
 revision.inc :
 ifneq ($(REVSTR),)
