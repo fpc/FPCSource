@@ -991,6 +991,7 @@ implementation
             exit;
           end;
         OverlayName:=LNames[SegDefRec.OverlayNameIndex];
+        SecAlign:=1; // otherwise warning prohibits compilation
         case SegDefRec.Alignment of
           saRelocatableByteAligned:
             SecAlign:=1;
