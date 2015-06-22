@@ -383,7 +383,7 @@ implementation
                           if (left.location.reference.index<>NR_NO) or
                              (left.location.reference.offset<>0) then
                             internalerror(200410107);
-                          hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,getpointerdef(left.resultdef),left.location.reference.base,tempcgpara)
+                          hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef),left.location.reference.base,tempcgpara)
                         end
                       else
                         begin
@@ -476,7 +476,7 @@ implementation
         literaldef: trecorddef;
       begin
         literaldef:=get_block_literal_type_for_proc(tabstractprocdef(right.resultdef));
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,getpointerdef(literaldef),true);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cpointerdef.getreusable(literaldef),true);
         { load the invoke pointer }
         hlcg.reference_reset_base(href,right.resultdef,right.location.register,0,right.resultdef.alignment);
         if not searchsym_in_record(literaldef,'INVOKE',srsym,srsymtable) or
@@ -838,7 +838,7 @@ implementation
          else
            begin
              hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,procdefinition);
-             hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(procdefinition),getpointerdef(codeprocdef),right.location.reference);
+             hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(procdefinition),cpointerdef.getreusable(codeprocdef),right.location.reference);
              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,codeprocdef,codeprocdef,right.location.reference,result);
            end;
        end;

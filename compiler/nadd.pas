@@ -2037,7 +2037,7 @@ implementation
           begin
             if is_zero_based_array(rd) then
               begin
-                resultdef:=getpointerdef(tarraydef(rd).elementdef);
+                resultdef:=cpointerdef.getreusable(tarraydef(rd).elementdef);
                 inserttypeconv(right,resultdef);
               end
             else
@@ -2069,7 +2069,7 @@ implementation
            begin
              if is_zero_based_array(ld) then
                begin
-                  resultdef:=getpointerdef(tarraydef(ld).elementdef);
+                  resultdef:=cpointerdef.getreusable(tarraydef(ld).elementdef);
                   inserttypeconv(left,resultdef);
                end
              else

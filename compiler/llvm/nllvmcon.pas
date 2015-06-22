@@ -83,7 +83,7 @@ implementation
                 internalerror(2014071203);
             end;
             { get address of array as pchar }
-            resptrdef:=getpointerdef(resultdef);
+            resptrdef:=cpointerdef.getreusable(resultdef);
             hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resptrdef);
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,datadef,resptrdef,location.reference,hreg);
             hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.alignment);
@@ -126,7 +126,7 @@ implementation
         if llvmfield.fieldoffset<>field.fieldoffset then
           internalerror(2015061001);
         { pointerdef to the string data array }
-        dataptrdef:=getpointerdef(field.vardef);
+        dataptrdef:=cpointerdef.getreusable(field.vardef);
         { load the address of the string data }
         reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,dataptrdef);
         reference_reset_symbol(href, lab_str, 0, const_align(strpointerdef.size));

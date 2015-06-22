@@ -318,7 +318,7 @@ unit cpupara;
                 hp.paraloc[side].size:=OS_ADDR;
                 hp.paraloc[side].alignment:=voidpointertype.alignment;
                 hp.paraloc[side].intsize:=voidpointertype.size;
-                hp.paraloc[side].def:=getpointerdef(hp.vardef);
+                hp.paraloc[side].def:=cpointerdef.getreusable(hp.vardef);
                 with hp.paraloc[side].add_location^ do
                   begin
                     size:=OS_ADDR;
@@ -397,7 +397,7 @@ unit cpupara;
 
         if push_addr_param(varspez,paradef,p.proccalloption) then
           begin
-            paradef:=getpointerdef(paradef);
+            paradef:=cpointerdef.getreusable(paradef);
             loc:=LOC_REGISTER;
             paracgsize:=OS_ADDR;
             paralen:=tcgsize2size[OS_ADDR];

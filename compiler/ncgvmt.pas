@@ -259,7 +259,7 @@ implementation
 
          { write name label }
          tcb.maybe_begin_aggregate(entrydef);
-         tcb.emit_tai(Tai_const.Create_sym(p^.nl),getpointerdef(getarraydef(cansichartype,length(p^.data.messageinf.str^)+1)));
+         tcb.emit_tai(Tai_const.Create_sym(p^.nl),cpointerdef.getreusable(getarraydef(cansichartype,length(p^.data.messageinf.str^)+1)));
          tcb.queue_init(voidcodepointertype);
          tcb.queue_emit_proc(p^.data);
          tcb.maybe_end_aggregate(entrydef);
@@ -543,7 +543,7 @@ implementation
                      addr : codepointer;
                   end;
               }
-              lists.methodnamerec:=getrecorddef('fpc_intern_tmethodnamerec',[getpointerdef(cshortstringtype),voidcodepointertype],1);
+              lists.methodnamerec:=getrecorddef('fpc_intern_tmethodnamerec',[cpointerdef.getreusable(cshortstringtype),voidcodepointertype],1);
               { from objpas.inc:
                   tmethodnametable = packed record
                     count : dword;
@@ -655,7 +655,7 @@ implementation
               targetinfos[target_info.system]^.alignment.recordalignmin,
               targetinfos[target_info.system]^.alignment.maxCrecordalign);
             datatcb.emit_tai(Tai_const.Create_16bit(fieldcount),u16inttype);
-            datatcb.emit_tai(Tai_const.Create_sym(classtable),getpointerdef(classtabledef));
+            datatcb.emit_tai(Tai_const.Create_sym(classtable),cpointerdef.getreusable(classtabledef));
             for i:=0 to _class.symtable.SymList.Count-1 do
               begin
                 sym:=tsym(_class.symtable.SymList[i]);
@@ -741,9 +741,9 @@ implementation
         { GUID (or nil for Corba interfaces) }
         if AImplIntf.IntfDef.objecttype in [odt_interfacecom] then
           tcb.emit_tai(Tai_const.CreateName(
-            make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0),getpointerdef(rec_tguid))
+            make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0),cpointerdef.getreusable(rec_tguid))
         else
-          tcb.emit_tai(Tai_const.Create_nil_dataptr,getpointerdef(rec_tguid));
+          tcb.emit_tai(Tai_const.Create_nil_dataptr,cpointerdef.getreusable(rec_tguid));
 
         { VTable }
         tcb.queue_init(voidpointertype);
@@ -769,12 +769,12 @@ implementation
         end;
 
         { IIDStr }
-        tcb.queue_init(getpointerdef(cshortstringtype));
+        tcb.queue_init(cpointerdef.getreusable(cshortstringtype));
         tcb.queue_emit_asmsym(
           current_asmdata.RefAsmSymbol(
             make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),
             AT_DATA),
-          getpointerdef(getarraydef(cansichartype,length(AImplIntf.IntfDef.iidstr^)+1)));
+          cpointerdef.getreusable(getarraydef(cansichartype,length(AImplIntf.IntfDef.iidstr^)+1)));
         { IType }
         tcb.emit_ord_const(aint(AImplIntf.VtblImplIntf.IType),interfaceentrytypedef);
         tcb.maybe_end_aggregate(interfaceentrydef);
@@ -1117,7 +1117,7 @@ implementation
          { it's not used yet, but the delphi-operators as and is need it (FK) }
          { it is not written for parents that don't have any vmt !! }
          if is_class(_class) then
-           parentvmtdef:=getpointerdef(search_system_type('TVMT').typedef)
+           parentvmtdef:=cpointerdef.getreusable(search_system_type('TVMT').typedef)
          else
            parentvmtdef:=voidpointertype;
          if assigned(_class.childof) and
@@ -1135,13 +1135,13 @@ implementation
          if is_class(_class) then
           begin
             { pointer to class name string }
-            tcb.queue_init(getpointerdef(cshortstringtype));
+            tcb.queue_init(cpointerdef.getreusable(cshortstringtype));
             tcb.queue_emit_asmsym(classnamelabel,classnamedef);
             { pointer to dynamic table or nil }
             if (oo_has_msgint in _class.objectoptions) then
               begin
                 tcb.queue_init(voidpointertype);
-                tcb.queue_emit_asmsym(intmessagetable,getpointerdef(intmessagetabledef));
+                tcb.queue_emit_asmsym(intmessagetable,cpointerdef.getreusable(intmessagetabledef));
               end
             else
               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
@@ -1149,7 +1149,7 @@ implementation
             if assigned(methodnametable) then
               begin
                 tcb.queue_init(voidpointertype);
-                tcb.queue_emit_asmsym(methodnametable,getpointerdef(methodnametabledef))
+                tcb.queue_emit_asmsym(methodnametable,cpointerdef.getreusable(methodnametabledef))
               end
             else
               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);

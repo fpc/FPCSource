@@ -1442,9 +1442,9 @@ implementation
 
    procedure ttai_typedconstbuilder.queue_emit_staticvar(vs: tstaticvarsym);
      begin
-       { getpointerdef because we are emitting a pointer to the staticvarsym
+       { pointerdef because we are emitting a pointer to the staticvarsym
          data, not the data itself }
-       emit_tai(Tai_const.Createname(vs.mangledname,fqueue_offset),getpointerdef(vs.vardef));
+       emit_tai(Tai_const.Createname(vs.mangledname,fqueue_offset),cpointerdef.getreusable(vs.vardef));
        fqueue_offset:=low(fqueue_offset);
      end;
 
@@ -1470,9 +1470,9 @@ implementation
 
    procedure ttai_typedconstbuilder.queue_emit_asmsym(sym: tasmsymbol; def: tdef);
      begin
-       { getpointerdef, because "sym" represents the address of whatever the
+       { pointerdef, because "sym" represents the address of whatever the
          data is }
-       def:=getpointerdef(def);
+       def:=cpointerdef.getreusable(def);
        emit_tai(Tai_const.Create_sym_offset(sym,fqueue_offset),def);
        fqueue_offset:=low(fqueue_offset);
      end;

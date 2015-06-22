@@ -217,6 +217,9 @@ interface
        tpointerdef = class(tabstractpointerdef)
           has_pointer_math : boolean;
           constructor create(def:tdef);virtual;
+          { returns a pointerdef for def, reusing an existing one in case it
+            exists in the current module }
+          class function getreusable(def: tdef): tpointerdef; virtual;
           function size:asizeint;override;
           function getcopy:tstoreddef;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -1122,9 +1125,6 @@ interface
 
     function use_vectorfpu(def : tdef) : boolean;
 
-    { returns a pointerdef for def, reusing an existing one in case it exists
-      in the current module }
-    function getpointerdef(def: tdef): tpointerdef;
     { returns an arraydef for an array containing a single array of def, resuing
       an existing one in case it exists in the current module }
     function getsingletonarraydef(def: tdef): tarraydef;
@@ -3120,6 +3120,33 @@ implementation
       end;
 
 
+    class function tpointerdef.getreusable(def: tdef): tpointerdef;
+      var
+        res: PHashSetItem;
+        oldsymtablestack: tsymtablestack;
+      begin
+        if not assigned(current_module) then
+          internalerror(2011071101);
+        res:=current_module.ptrdefs.FindOrAdd(@def,sizeof(def));
+        if not assigned(res^.Data) then
+          begin
+            { since these pointerdefs can be reused anywhere in the current
+              unit, add them to the global/staticsymtable }
+            oldsymtablestack:=symtablestack;
+            { do not simply push/pop current_module.localsymtable, because
+              that can have side-effects (e.g., it removes helpers) }
+            symtablestack:=nil;
+            res^.Data:=cpointerdef.create(def);
+            if assigned(current_module.localsymtable) then
+              current_module.localsymtable.insertdef(tdef(res^.Data))
+            else
+              current_module.globalsymtable.insertdef(tdef(res^.Data));
+            symtablestack:=oldsymtablestack;
+          end;
+        result:=tpointerdef(res^.Data);
+      end;
+
+
     function tpointerdef.size: asizeint;
       begin
         result:=sizeof(pint);
@@ -4722,7 +4749,7 @@ implementation
                 tabstractprocdef(result).returndef:=tdef(owner.defowner);
                 if not(is_implicit_pointer_object_type(returndef) or
                    (returndef.typ<>objectdef)) then
-                  tabstractprocdef(result).returndef:=getpointerdef(tabstractprocdef(result).returndef);
+                  tabstractprocdef(result).returndef:=cpointerdef.getreusable(tabstractprocdef(result).returndef);
                 tabstractprocdef(result).proctypeoption:=potype_function;
               end
             else if is_void(returndef) then
@@ -7601,33 +7628,6 @@ implementation
 {$ifndef use_vectorfpuimplemented}
         use_vectorfpu:=false;
 {$endif}
-      end;
-
-
-    function getpointerdef(def: tdef): tpointerdef;
-      var
-        res: PHashSetItem;
-        oldsymtablestack: tsymtablestack;
-      begin
-        if not assigned(current_module) then
-          internalerror(2011071101);
-        res:=current_module.ptrdefs.FindOrAdd(@def,sizeof(def));
-        if not assigned(res^.Data) then
-          begin
-            { since these pointerdefs can be reused anywhere in the current
-              unit, add them to the global/staticsymtable }
-            oldsymtablestack:=symtablestack;
-            { do not simply push/pop current_module.localsymtable, because
-              that can have side-effects (e.g., it removes helpers) }
-            symtablestack:=nil;
-            res^.Data:=cpointerdef.create(def);
-            if assigned(current_module.localsymtable) then
-              current_module.localsymtable.insertdef(tdef(res^.Data))
-            else
-              current_module.globalsymtable.insertdef(tdef(res^.Data));
-            symtablestack:=oldsymtablestack;
-          end;
-        result:=tpointerdef(res^.Data);
       end;
 
 

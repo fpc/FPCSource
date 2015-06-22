@@ -324,7 +324,7 @@ interface
           evaluation }
         if not is_boolean(resultdef) then
           begin
-            inserttypeconv_explicit(result,getpointerdef(resultdef));
+            inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef));
             result:=cderefnode.create(result);
           end;
         { left and right are reused as parameters }

@@ -408,8 +408,8 @@ interface
                tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,location.reference);
                tmpref:=location.reference;
                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
-                 getpointerdef(cshortstringtype),
-                 getpointerdef(left.resultdef),tmpref);
+                 cpointerdef.getreusable(cshortstringtype),
+                 cpointerdef.getreusable(left.resultdef),tmpref);
                hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                  tmpref);
                location_freetemp(current_asmdata.CurrAsmList,left.location);

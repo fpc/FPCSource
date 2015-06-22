@@ -207,9 +207,9 @@ implementation
               { llvmparadef is a record in this case, with every field corresponding
                 to a single paraloc }
               paraloctoloc(location,hloc);
-              tmpreg:=getaddressregister(list,getpointerdef(location^.def));
-              list.concat(taillvm.getelementptr_reg_size_ref_size_const(tmpreg,getpointerdef(size),initialref,s32inttype,paralocidx,true));
-              reference_reset_base(tmpref,getpointerdef(location^.def),tmpreg,0,newalignment(initialref.alignment,totaloffset));
+              tmpreg:=getaddressregister(list,cpointerdef.getreusable(location^.def));
+              list.concat(taillvm.getelementptr_reg_size_ref_size_const(tmpreg,cpointerdef.getreusable(size),initialref,s32inttype,paralocidx,true));
+              reference_reset_base(tmpref,cpointerdef.getreusable(location^.def),tmpreg,0,newalignment(initialref.alignment,totaloffset));
             end
           else
             tmpref:=initialref;
@@ -238,7 +238,7 @@ implementation
               begin
                  if assigned(location^.next) then
                    internalerror(2010052906);
-                 reference_reset_base(ref,getpointerdef(size),location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
+                 reference_reset_base(ref,cpointerdef.getreusable(size),location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
                  if (def_cgsize(size)<>OS_NO) and
                     (size.size=sizeleft) and
                     (sizeleft<=sizeof(aint)) then
@@ -281,9 +281,9 @@ implementation
       newrefsize:=llvmgetcgparadef(para,true);
       if refsize<>newrefsize then
         begin
-          reg:=getaddressregister(list,getpointerdef(newrefsize));
-          a_loadaddr_ref_reg(list,refsize,getpointerdef(newrefsize),initialref,reg);
-          reference_reset_base(newref,getpointerdef(newrefsize),reg,0,initialref.alignment);
+          reg:=getaddressregister(list,cpointerdef.getreusable(newrefsize));
+          a_loadaddr_ref_reg(list,refsize,cpointerdef.getreusable(newrefsize),initialref,reg);
+          reference_reset_base(newref,cpointerdef.getreusable(newrefsize),reg,0,initialref.alignment);
           refsize:=newrefsize;
         end
       else
@@ -375,7 +375,7 @@ implementation
                     internalerror(2014012307)
                   else
                     begin
-                      reference_reset_base(href, getpointerdef(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, paraloc^.def.alignment);
+                      reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, paraloc^.def.alignment);
                       res:=getregisterfordef(list, paraloc^.def);
                       load_ref_anyreg(callpara^.def, href, res, callpara);
                     end;
@@ -488,7 +488,7 @@ implementation
          is_64bit(tosize) then
         begin
           sref:=make_simple_ref(list,ref,tosize);
-          list.concat(taillvm.op_size_const_size_ref(la_store,tosize,a,getpointerdef(tosize),sref))
+          list.concat(taillvm.op_size_const_size_ref(la_store,tosize,a,cpointerdef.getreusable(tosize),sref))
         end
       else
         inherited;
@@ -538,9 +538,9 @@ implementation
                   tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
                   a_load_reg_ref(list,fromsize,fromsize,register,tmpref);
                   { typecast pointer to memory into pointer to integer type }
-                  hreg:=getaddressregister(list,getpointerdef(tmpsize));
-                  a_loadaddr_ref_reg(list,fromsize,getpointerdef(tmpsize),tmpref,hreg);
-                  reference_reset_base(sref,getpointerdef(tmpsize),hreg,0,tmpref.alignment);
+                  hreg:=getaddressregister(list,cpointerdef.getreusable(tmpsize));
+                  a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tmpsize),tmpref,hreg);
+                  reference_reset_base(sref,cpointerdef.getreusable(tmpsize),hreg,0,tmpref.alignment);
                   { load the integer from the temp into the destination }
                   a_load_ref_ref(list,tmpsize,tosize,tmpref,sref);
                   tg.ungettemp(list,tmpref);
@@ -560,9 +560,9 @@ implementation
             end
           else
             begin
-              hreg2:=getaddressregister(list,getpointerdef(fromsize));
-              a_loadaddr_ref_reg(list,tosize,getpointerdef(fromsize),sref,hreg2);
-              reference_reset_base(sref,getpointerdef(fromsize),hreg2,0,sref.alignment);
+              hreg2:=getaddressregister(list,cpointerdef.getreusable(fromsize));
+              a_loadaddr_ref_reg(list,tosize,cpointerdef.getreusable(fromsize),sref,hreg2);
+              reference_reset_base(sref,cpointerdef.getreusable(fromsize),hreg2,0,sref.alignment);
               tosize:=fromsize;
             end;
         end
@@ -571,7 +571,7 @@ implementation
           hreg:=getregisterfordef(list,tosize);
           a_load_reg_reg(list,fromsize,tosize,register,hreg);
         end;
-      list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,hreg,getpointerdef(tosize),sref));
+      list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,hreg,cpointerdef.getreusable(tosize),sref));
     end;
 
 
@@ -628,7 +628,7 @@ implementation
              (fromsize<>tosize) then
             begin
               tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
-              list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,getpointerdef(fromsize),tmpref));
+              list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,cpointerdef.getreusable(fromsize),tmpref));
               a_load_ref_reg(list,fromsize,tosize,tmpref,register);
               tg.ungettemp(list,tmpref);
             end
@@ -651,9 +651,9 @@ implementation
                       { typecast the pointer to the struct into a pointer to an
                         integer of equal size }
                       tmpsize:=def2intdef(fromsize,tosize);
-                      hreg:=getaddressregister(list,getpointerdef(tmpsize));
-                      a_loadaddr_ref_reg(list,fromsize,getpointerdef(tmpsize),sref,hreg);
-                      reference_reset_base(sref,getpointerdef(tmpsize),hreg,0,sref.alignment);
+                      hreg:=getaddressregister(list,cpointerdef.getreusable(tmpsize));
+                      a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tmpsize),sref,hreg);
+                      reference_reset_base(sref,cpointerdef.getreusable(tmpsize),hreg,0,sref.alignment);
                       { load that integer }
                       a_load_ref_reg(list,tmpsize,tosize,sref,register);
                     end
@@ -681,16 +681,16 @@ implementation
                      itself if they have the same size but are of different
                      kinds, because we can't e.g. typecast a loaded <{i32, i32}>
                      to an i64 *)
-                  hreg:=getaddressregister(list,getpointerdef(tosize));
-                  a_loadaddr_ref_reg(list,fromsize,getpointerdef(tosize),sref,hreg);
-                  reference_reset_base(sref,getpointerdef(tosize),hreg,0,sref.alignment);
+                  hreg:=getaddressregister(list,cpointerdef.getreusable(tosize));
+                  a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tosize),sref,hreg);
+                  reference_reset_base(sref,cpointerdef.getreusable(tosize),hreg,0,sref.alignment);
                   fromsize:=tosize;
                 end;
             end;
           hreg:=register;
           if fromsize<>tosize then
             hreg:=getregisterfordef(list,fromsize);
-          list.concat(taillvm.op_reg_size_ref(la_load,hreg,getpointerdef(fromsize),sref));
+          list.concat(taillvm.op_reg_size_ref(la_load,hreg,cpointerdef.getreusable(fromsize),sref));
           if hreg<>register then
             a_load_reg_reg(list,fromsize,tosize,hreg,register);
         end;
@@ -705,7 +705,7 @@ implementation
          (sref.refaddr=addr_full) then
         begin
           sdref:=make_simple_ref(list,dref,tosize);
-          list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,getpointerdef(tosize),sdref));
+          list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,cpointerdef.getreusable(tosize),sdref));
         end
       else
         inherited
@@ -720,7 +720,7 @@ implementation
       if ref.refaddr=addr_full then
         internalerror(2013102306);
       sref:=make_simple_ref(list,ref,fromsize);
-      list.concat(taillvm.op_reg_size_ref_size(la_bitcast,r,getpointerdef(fromsize),sref,tosize));
+      list.concat(taillvm.op_reg_size_ref_size(la_bitcast,r,cpointerdef.getreusable(fromsize),sref,tosize));
     end;
 
 
@@ -952,7 +952,7 @@ implementation
        else
          tmpreg:=reg;
        { %tmpreg = load size* %ref }
-       list.concat(taillvm.op_reg_size_ref(la_load,tmpreg,getpointerdef(fromsize),href));
+       list.concat(taillvm.op_reg_size_ref(la_load,tmpreg,cpointerdef.getreusable(fromsize),href));
        if tmpreg<>reg then
          if fromcompcurr then
            { treat as extended as long as it's in a register }
@@ -989,7 +989,7 @@ implementation
        else
          tmpreg:=reg;
        { store tosize tmpreg, tosize* href }
-       list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,tmpreg,getpointerdef(tosize),href));
+       list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,tmpreg,cpointerdef.getreusable(tosize),href));
      end;
 
 
@@ -1201,7 +1201,7 @@ implementation
             internalerror(2013060220);
           href:=make_simple_ref(list,ref,fromsize);
           { %reg = load size* %ref }
-          list.concat(taillvm.op_reg_size_ref(la_load,reg,getpointerdef(fromsize),href));
+          list.concat(taillvm.op_reg_size_ref(la_load,reg,cpointerdef.getreusable(fromsize),href));
         end;
     end;
 
@@ -1219,7 +1219,7 @@ implementation
             internalerror(2013060220);
           href:=make_simple_ref(list,ref,tosize);
           { store tosize reg, tosize* href }
-          list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,reg,getpointerdef(tosize),href))
+          list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,reg,cpointerdef.getreusable(tosize),href))
         end;
     end;
 
@@ -1365,18 +1365,18 @@ implementation
             tg.gethltemp(list,llvmparadef,llvmparadef.size,tt_normal,href)
           else
             begin
-              hreg:=getaddressregister(list,getpointerdef(llvmparadef));
-              a_loadaddr_ref_reg(list,vardef,getpointerdef(llvmparadef),destloc.reference,hreg);
-              reference_reset_base(href,getpointerdef(llvmparadef),hreg,0,destloc.reference.alignment);
+              hreg:=getaddressregister(list,cpointerdef.getreusable(llvmparadef));
+              a_loadaddr_ref_reg(list,vardef,cpointerdef.getreusable(llvmparadef),destloc.reference,hreg);
+              reference_reset_base(href,cpointerdef.getreusable(llvmparadef),hreg,0,destloc.reference.alignment);
             end;
           index:=0;
           offset:=0;
           ploc:=para.location;
           repeat
             paraloctoloc(ploc,hloc);
-            hreg:=getaddressregister(list,getpointerdef(ploc^.def));
-            list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,getpointerdef(llvmparadef),href,s32inttype,index,true));
-            reference_reset_base(href2,getpointerdef(ploc^.def),hreg,0,newalignment(href.alignment,offset));
+            hreg:=getaddressregister(list,cpointerdef.getreusable(ploc^.def));
+            list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,cpointerdef.getreusable(llvmparadef),href,s32inttype,index,true));
+            reference_reset_base(href2,cpointerdef.getreusable(ploc^.def),hreg,0,newalignment(href.alignment,offset));
             a_load_loc_ref(list,ploc^.def,ploc^.def,hloc,href2);
             inc(offset,ploc^.def.size);
             inc(index);
@@ -1490,7 +1490,7 @@ implementation
           exit;
         end;
 
-      hreg2:=getaddressregister(list,getpointerdef(def));
+      hreg2:=getaddressregister(list,cpointerdef.getreusable(def));
       defsize:=def.size;
       { for voiddef/formaldef }
       if defsize=0 then
@@ -1504,9 +1504,9 @@ implementation
           if assigned(ref.symbol) then
             reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment)
           else
-            reference_reset_base(tmpref,getpointerdef(def),ref.base,0,ref.alignment);
-          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg2,getpointerdef(def),tmpref,ptruinttype,ptrindex,assigned(ref.symbol)));
-          reference_reset_base(result,getpointerdef(def),hreg2,0,ref.alignment);
+            reference_reset_base(tmpref,cpointerdef.getreusable(def),ref.base,0,ref.alignment);
+          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg2,cpointerdef.getreusable(def),tmpref,ptruinttype,ptrindex,assigned(ref.symbol)));
+          reference_reset_base(result,cpointerdef.getreusable(def),hreg2,0,ref.alignment);
           exit;
         end;
       { for now, perform all calculations using plain pointer arithmetic. Later
@@ -1522,11 +1522,11 @@ implementation
           if ref.base<>NR_NO then
             internalerror(2012111301);
           reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
-          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg1,getpointerdef(def),tmpref,ptruinttype,0,true));
+          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg1,cpointerdef.getreusable(def),tmpref,ptruinttype,0,true));
         end
       else if ref.base<>NR_NO then
         begin
-          a_load_reg_reg(list,getpointerdef(def),ptruinttype,ref.base,hreg1);
+          a_load_reg_reg(list,cpointerdef.getreusable(def),ptruinttype,ref.base,hreg1);
         end
       else
         { todo: support for absolute addresses on embedded platforms }
@@ -1544,9 +1544,9 @@ implementation
           a_op_const_reg_reg(list,OP_ADD,ptruinttype,ref.offset,hreg1,hreg2);
           hreg1:=hreg2;
         end;
-      hreg2:=getaddressregister(list,getpointerdef(def));
-      a_load_reg_reg(list,ptruinttype,getpointerdef(def),hreg1,hreg2);
-      reference_reset_base(result,getpointerdef(def),hreg2,0,ref.alignment);
+      hreg2:=getaddressregister(list,cpointerdef.getreusable(def));
+      a_load_reg_reg(list,ptruinttype,cpointerdef.getreusable(def),hreg1,hreg2);
+      reference_reset_base(result,cpointerdef.getreusable(def),hreg2,0,ref.alignment);
     end;
 
 

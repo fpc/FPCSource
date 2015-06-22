@@ -632,7 +632,7 @@ implementation
                 hp:=tunarynode(hp).left;
               end;
             if nf_typedaddr in flags then
-              res:=cpointerconstnode.create(offset,getpointerdef(left.resultdef))
+              res:=cpointerconstnode.create(offset,cpointerdef.getreusable(left.resultdef))
             else
               res:=cpointerconstnode.create(offset,voidpointertype);
             result:=true;
@@ -643,7 +643,7 @@ implementation
             if not(nf_typedaddr in flags) then
               resultdef:=voidpointertype
             else
-              resultdef:=getpointerdef(left.resultdef);
+              resultdef:=cpointerdef.getreusable(left.resultdef);
             result:=true;
           end
       end;

@@ -100,9 +100,9 @@ procedure tllvmtypeconvnode.second_int_to_int;
     else if left.resultdef<>resultdef then
       begin
         { just typecast the pointer type }
-        hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
-        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,getpointerdef(resultdef),left.location.reference,hreg);
-        hlcg.reference_reset_base(location.reference,getpointerdef(resultdef),hreg,0,location.reference.alignment);
+        hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
+        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),left.location.reference,hreg);
+        hlcg.reference_reset_base(location.reference,cpointerdef.getreusable(resultdef),hreg,0,location.reference.alignment);
       end;
   end;
 
@@ -113,8 +113,8 @@ procedure tllvmtypeconvnode.second_pointer_to_array;
   begin
     inherited;
     { insert type conversion }
-    hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
-    hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tpointerdef(left.resultdef).pointeddef,getpointerdef(resultdef),location.reference,hreg);
+    hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
+    hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tpointerdef(left.resultdef).pointeddef,cpointerdef.getreusable(resultdef),location.reference,hreg);
     reference_reset_base(location.reference,hreg,0,location.reference.alignment);
   end;
 
@@ -152,7 +152,7 @@ procedure tllvmtypeconvnode.second_bool_to_int;
       case location.loc of
         LOC_REFERENCE,LOC_CREFERENCE:
           begin
-            pdef:=getpointerdef(resultdef);
+            pdef:=cpointerdef.getreusable(resultdef);
             hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pdef);
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,pdef,location.reference,hreg);
             hlcg.reference_reset_base(location.reference,pdef,hreg,0,location.reference.alignment);
@@ -221,8 +221,8 @@ procedure tllvmtypeconvnode.second_nothing;
           (left.resultdef.size<>resultdef.size) then
           internalerror(2014012216);
         hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
-        hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
-        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,getpointerdef(resultdef),left.location.reference,hreg);
+        hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
+        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),left.location.reference,hreg);
         location_reset_ref(location,left.location.loc,left.location.size,left.location.reference.alignment);
         reference_reset_base(location.reference,hreg,0,location.reference.alignment);
       end

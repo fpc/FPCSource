@@ -448,7 +448,7 @@ implementation
                       hregister:=location.register
                     else
                       begin
-                        vd:=getpointerdef(resultdef);
+                        vd:=cpointerdef.getreusable(resultdef);
                         hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vd);
                         { we need to load only an address }
                         location.size:=int_cgsize(vd.size);
@@ -675,7 +675,7 @@ implementation
             else if (right.nodetype=stringconstn) and
                (tstringconstnode(right).len=0) then
               begin
-                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(left.resultdef),tpointerdef(charpointertype),left.location.reference);
+                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef),tpointerdef(charpointertype),left.location.reference);
                 hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cansichartype,0,left.location.reference);
               end
             { char loading }
@@ -683,7 +683,7 @@ implementation
               begin
                 if right.nodetype=ordconstn then
                   begin
-                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(left.resultdef),getpointerdef(u16inttype),left.location.reference);
+                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef),cpointerdef.getreusable(u16inttype),left.location.reference);
                     if (target_info.endian = endian_little) then
                       hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u16inttype,(tordconstnode(right).value.svalue shl 8) or 1,
                           setalignment(left.location.reference,1))
@@ -694,7 +694,7 @@ implementation
                 else
                   begin
                     href:=left.location.reference;
-                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(left.resultdef),tpointerdef(charpointertype),href);
+                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef),tpointerdef(charpointertype),href);
                     hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cansichartype,1,href);
                     inc(href.offset,1);
                     case right.location.loc of

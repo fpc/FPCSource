@@ -341,7 +341,7 @@ implementation
                  begin
                    if (is_object(resultdef) or is_record(resultdef)) and
                       (loadnf_load_self_pointer in loadnodeflags) then
-                     resultdef:=getpointerdef(resultdef)
+                     resultdef:=cpointerdef.getreusable(resultdef)
                    else if (resultdef=objc_idtype) and
                       (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
                      resultdef:=cclassrefdef.create(tprocdef(symtableentry.owner.defowner).struct)

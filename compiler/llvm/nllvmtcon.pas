@@ -272,7 +272,7 @@ implementation
           { field corresponding to this offset }
           field:=trecordsymtable(strrecdef.symtable).findfieldbyoffset(offset);
           { pointerdef to the string data array }
-          dataptrdef:=getpointerdef(field.vardef);
+          dataptrdef:=cpointerdef.getreusable(field.vardef);
           queue_init(charptrdef);
           queue_addrn(dataptrdef,charptrdef);
           queue_subscriptn(strrecdef,field);
@@ -379,8 +379,8 @@ implementation
         else
           internalerror(2014062203);
       end;
-      aityped:=wrap_with_type(ai,getpointerdef(eledef));
-      update_queued_tai(getpointerdef(eledef),aityped,ai,1);
+      aityped:=wrap_with_type(ai,cpointerdef.getreusable(eledef));
+      update_queued_tai(cpointerdef.getreusable(eledef),aityped,ai,1);
     end;
 
 
@@ -399,7 +399,7 @@ implementation
       getllvmfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,s32inttype,vs.llvmfieldnr,true);
       { getelementptr doesn't contain its own resultdef, so encode it via a
         tai_simpletypedconst tai }
-      getllvmfieldaddrtyped:=wrap_with_type(getllvmfieldaddr,getpointerdef(llvmfielddef));
+      getllvmfieldaddrtyped:=wrap_with_type(getllvmfieldaddr,cpointerdef.getreusable(llvmfielddef));
       { if it doesn't match the requested field exactly (variant record),
         fixup the result }
       getpascalfieldaddr:=getllvmfieldaddrtyped;
@@ -419,14 +419,14 @@ implementation
               { add the offset }
               getpascalfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,getpascalfieldaddr,ptrsinttype,vs.offsetfromllvmfield,true);
               { ... and set the result type of the getelementptr }
-              getpascalfieldaddr:=wrap_with_type(getpascalfieldaddr,getpointerdef(u8inttype));
+              getpascalfieldaddr:=wrap_with_type(getpascalfieldaddr,cpointerdef.getreusable(u8inttype));
               llvmfielddef:=u8inttype;
             end;
           { bitcast the data at the final offset to the right type }
           if llvmfielddef<>vs.vardef then
-            getpascalfieldaddr:=wrap_with_type(taillvm.op_reg_tai_size(la_bitcast,NR_NO,getpascalfieldaddr,getpointerdef(vs.vardef)),getpointerdef(vs.vardef));
+            getpascalfieldaddr:=wrap_with_type(taillvm.op_reg_tai_size(la_bitcast,NR_NO,getpascalfieldaddr,cpointerdef.getreusable(vs.vardef)),cpointerdef.getreusable(vs.vardef));
         end;
-      update_queued_tai(getpointerdef(vs.vardef),getpascalfieldaddr,getllvmfieldaddr,1);
+      update_queued_tai(cpointerdef.getreusable(vs.vardef),getpascalfieldaddr,getllvmfieldaddr,1);
     end;
 
 

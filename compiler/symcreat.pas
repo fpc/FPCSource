@@ -1132,7 +1132,7 @@ implementation
 {$endif}
       symtablestack.free;
       symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
-      pnestedvarsdef:=getpointerdef(nestedvarsdef);
+      pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef);
       nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[]);
       pd.localst.insert(nestedvars);
       pd.parentfpstruct:=nestedvars;
@@ -1163,7 +1163,7 @@ implementation
           nestedvarsst:=trecorddef(nestedvarsdef).symtable;
           { indicate whether or not this is a var/out/constref/... parameter }
           if addrparam then
-            fieldvardef:=getpointerdef(vardef)
+            fieldvardef:=cpointerdef.getreusable(vardef)
           else
             fieldvardef:=vardef;
           result:=cfieldvarsym.create(sym.realname,vs_value,fieldvardef,[]);

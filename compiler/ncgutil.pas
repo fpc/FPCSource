@@ -1567,7 +1567,7 @@ implementation
                             begin
                               if isaddr then
                                 begin
-                                  ptrdef:=getpointerdef(vs.vardef);
+                                  ptrdef:=cpointerdef.getreusable(vs.vardef);
                                   tg.GetLocal(list,ptrdef.size,ptrdef,vs.initialloc.reference)
                                 end
                               else

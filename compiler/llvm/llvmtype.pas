@@ -263,11 +263,11 @@ implementation
                   begin
                     if symdef.typ=procdef then
                       { ugly, but can't use getcopyas(procvardef) due to the
-                        symtablestack not being available here (getpointerdef
+                        symtablestack not being available here (cpointerdef.getreusable
                         is hardcoded to put things in the current module's
                         symtable) and "pointer to procedure" results in the
                         correct llvm type }
-                      symdef:=getpointerdef(tprocdef(symdef));
+                      symdef:=cpointerdef.getreusable(tprocdef(symdef));
                     cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,symdef,p.oper[3]^.ref^.symbol,p.oper[0]^.def);
                     p.loadtai(3,cnv);
                   end;
@@ -317,7 +317,7 @@ implementation
                         refer to the data itself, just like you can't initialise
                         a Pascal (typed) constant with the contents of another
                         typed constant) }
-                      symdef:=getpointerdef(symdef);
+                      symdef:=cpointerdef.getreusable(symdef);
                       if not equal_llvm_defs(symdef,p.def) then
                         begin
                           cnv:=taillvm.op_reg_tai_size(la_bitcast,NR_NO,tai_simpletypedconst.create(tck_simple,symdef,tai_simpletypedconst(p).val),p.def);

@@ -57,7 +57,7 @@ procedure tllvmarrayconstructornode.makearrayref(var ref: treference; eledef: td
   begin
     { the array elements are addressed as pointer to the individual elements ->
       convert }
-    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(resultdef),getpointerdef(eledef),ref);
+    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(eledef),ref);
   end;
 
 

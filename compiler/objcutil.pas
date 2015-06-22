@@ -124,7 +124,7 @@ end;
           result:=ctypeconvnode.create_internal(
             cderefnode.create(
               ctypeconvnode.create_internal(n,
-                getpointerdef(getpointerdef(voidpointertype))
+                cpointerdef.getreusable(cpointerdef.getreusable(voidpointertype))
               )
             ),tfieldvarsym(vs).vardef
           )

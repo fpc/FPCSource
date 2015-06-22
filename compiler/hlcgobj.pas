@@ -1601,7 +1601,7 @@ implementation
       href: treference;
     begin
       href:=ref;
-      g_ptrtypecast_ref(list,getpointerdef(fromsize),getpointerdef(u8inttype),href);
+      g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize),cpointerdef.getreusable(u8inttype),href);
       a_load_subsetref_reg(list,u8inttype,destsize,get_bit_const_ref_sref(bitnumber,fromsize,href),destreg);
     end;
 
@@ -1630,7 +1630,7 @@ implementation
       href: treference;
     begin
       href:=ref;
-      g_ptrtypecast_ref(list,getpointerdef(refsize),getpointerdef(u8inttype),href);
+      g_ptrtypecast_ref(list,cpointerdef.getreusable(refsize),cpointerdef.getreusable(u8inttype),href);
       a_load_subsetref_reg(list,u8inttype,destsize,get_bit_reg_ref_sref(list,bitnumbersize,refsize,bitnumber,href),destreg);
     end;
 
@@ -1718,13 +1718,13 @@ implementation
       href: treference;
     begin
       href:=ref;
-      g_ptrtypecast_ref(list,getpointerdef(destsize),getpointerdef(u8inttype),href);
+      g_ptrtypecast_ref(list,cpointerdef.getreusable(destsize),cpointerdef.getreusable(u8inttype),href);
       a_load_const_subsetref(list,u8inttype,ord(doset),get_bit_const_ref_sref(bitnumber,destsize,href));
     end;
 
   procedure thlcgobj.a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister);
     begin
-      g_ptrtypecast_reg(list,getpointerdef(destsize),getpointerdef(u8inttype),destreg);
+      g_ptrtypecast_reg(list,cpointerdef.getreusable(destsize),cpointerdef.getreusable(u8inttype),destreg);
       a_load_const_subsetreg(list,u8inttype,ord(doset),get_bit_const_reg_sreg(destsize,bitnumber,destreg));
     end;
 
@@ -1748,7 +1748,7 @@ implementation
       href: treference;
     begin
       href:=ref;
-      g_ptrtypecast_ref(list,getpointerdef(tosize),getpointerdef(u8inttype),href);
+      g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize),cpointerdef.getreusable(u8inttype),href);
       a_load_const_subsetref(list,u8inttype,ord(doset),get_bit_reg_ref_sref(list,fromsize,tosize,bitnumber,ref));
     end;
 
@@ -2419,7 +2419,7 @@ implementation
       if result.ref.index<>NR_NO then
         begin
           { don't just add to ref.index, as it may be scaled }
-          refptrdef:=getpointerdef(refsize);
+          refptrdef:=cpointerdef.getreusable(refsize);
           newbase:=getaddressregister(list,refptrdef);
           a_loadaddr_ref_reg(list,refsize,refptrdef,ref,newbase);
           reference_reset_base(result.ref,refptrdef,newbase,0,result.ref.alignment);
@@ -2546,7 +2546,7 @@ implementation
               internalerror(2014080603);
             { convert the reference from a floating point location to an
               integer location, and load that }
-            intptrdef:=getpointerdef(cgpara.location^.def);
+            intptrdef:=cpointerdef.getreusable(cgpara.location^.def);
             hreg:=getaddressregister(list,intptrdef);
             a_loadaddr_ref_reg(list,fromsize,intptrdef,ref,hreg);
             reference_reset_base(href,intptrdef,hreg,0,ref.alignment);
@@ -3677,7 +3677,7 @@ implementation
       a_op_const_reg_reg(list,OP_ADD,sinttype,1,lenreg,sizereg);
       a_op_const_reg(list,OP_IMUL,sinttype,arrdef.elesize,sizereg);
       { load source }
-      ptrarrdef:=getpointerdef(arrdef);
+      ptrarrdef:=cpointerdef.getreusable(arrdef);
       sourcereg:=getaddressregister(list,ptrarrdef);
       a_loadaddr_ref_reg(list,arrdef,ptrarrdef,ref,sourcereg);
 
@@ -3740,7 +3740,7 @@ implementation
       cgpara1.init;
       paramanager.getintparaloc(list,pd,1,cgpara1);
       { load source }
-      a_load_loc_cgpara(list,getpointerdef(arrdef),l,cgpara1);
+      a_load_loc_cgpara(list,cpointerdef.getreusable(arrdef),l,cgpara1);
       paramanager.freecgpara(list,cgpara1);
       g_call_system_proc(list,pd,[@cgpara1],nil);
       cgpara1.done;
@@ -4015,14 +4015,14 @@ implementation
             begin
               if not loadref then
                 internalerror(200410231);
-              reference_reset_base(ref,getpointerdef(def),l.register,0,alignment);
+              reference_reset_base(ref,cpointerdef.getreusable(def),l.register,0,alignment);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
               if loadref then
                 begin
-                  pdef:=getpointerdef(def);
+                  pdef:=cpointerdef.getreusable(def);
                   reference_reset_base(ref,pdef,getaddressregister(list,voidpointertype),0,alignment);
                   { it's a pointer to def }
                   a_load_ref_reg(list,pdef,pdef,l.reference,ref.base);
@@ -5180,7 +5180,7 @@ implementation
           retdef:=ressym.vardef;
           { and TP-style constructors return a pointer to self }
           if is_object(ressym.vardef) then
-            retdef:=getpointerdef(retdef);
+            retdef:=cpointerdef.getreusable(retdef);
         end
       else
         begin

@@ -225,7 +225,7 @@ implementation
         if parasym.vardef.typ=formaldef then
           arreledef:=java_jlobject
         else if implicitptrpara then
-          arreledef:=getpointerdef(orgparadef)
+          arreledef:=cpointerdef.getreusable(orgparadef)
         else
           arreledef:=parasym.vardef;
         arrdef:=getarraydef(arreledef,1+ord(cs_check_var_copyout in current_settings.localswitches));
@@ -309,7 +309,7 @@ implementation
                   tempn:=cinlinenode.create(in_unbox_x_y,false,ccallparanode.create(
                     ctypenode.create(orgparadef),ccallparanode.create(tempn,nil)))
                 else if implicitptrpara then
-                  tempn:=ctypeconvnode.create_explicit(tempn,getpointerdef(orgparadef))
+                  tempn:=ctypeconvnode.create_explicit(tempn,cpointerdef.getreusable(orgparadef))
               end;
             if implicitptrpara then
               tempn:=cderefnode.create(tempn)

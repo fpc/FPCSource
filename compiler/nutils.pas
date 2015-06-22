@@ -636,12 +636,12 @@ implementation
           result:=cderefnode.create(
             ctypeconvnode.create_explicit(
               self_node,
-              getpointerdef(voidpointertype)
+              cpointerdef.getreusable(voidpointertype)
             )
           );
         result:=ctypeconvnode.create_explicit(
           result,
-          getpointerdef(obj_def.vmt_def));
+          cpointerdef.getreusable(obj_def.vmt_def));
         typecheckpass(result);
         if docheck then
           begin

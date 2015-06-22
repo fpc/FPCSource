@@ -458,14 +458,6 @@ interface
           function GetCopy:tmacro;
        end;
 
-       { tPtrDefHashSet }
-
-       tPtrDefHashSet = class(THashSet)
-       public
-         constructor Create;virtual;
-       end;
-       tPtrDefHashSetClass = class of tPtrDefHashSet;
-
     var
        generrorsym : tsym;
 
@@ -484,7 +476,6 @@ interface
        cconstsym: tconstsymclass;
        cenumsym: tenumsymclass;
        csyssym: tsyssymclass;
-       cPtrDefHashSet : tPtrDefHashSetClass = tPtrDefHashSet;
 
     { generate internal static field name based on regular field name }
     function internal_static_field_name(const fieldname: TSymStr): TSymStr;
@@ -2741,14 +2732,5 @@ implementation
         Result:=p;
       end;
 
-
-{****************************************************************************
-                             tPtrDefHashSet
- ****************************************************************************}
-
-    constructor tPtrDefHashSet.Create;
-      begin
-        inherited Create(64,true,false);
-      end;
 
 end.

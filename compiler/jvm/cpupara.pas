@@ -160,7 +160,7 @@ implementation
         else if jvmimplicitpointertype(result.def) then
           begin
             retcgsize:=OS_ADDR;
-            result.def:=getpointerdef(result.def);
+            result.def:=cpointerdef.getreusable(result.def);
           end
         else
           begin
@@ -237,7 +237,7 @@ implementation
             else if jvmimplicitpointertype(hp.vardef) then
               begin
                 paracgsize:=OS_ADDR;
-                paradef:=getpointerdef(hp.vardef);
+                paradef:=cpointerdef.getreusable(hp.vardef);
               end
             else
               begin

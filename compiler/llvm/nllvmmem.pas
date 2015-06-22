@@ -78,8 +78,8 @@ implementation
           begin
             { typecast the result to the expected type, but don't actually index
               (that still has to be done by the generic code, so return false) }
-            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,getpointerdef(resultdef),location.reference,newbase);
+            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),location.reference,newbase);
             reference_reset_base(location.reference,newbase,0,location.reference.alignment);
             result:=false;
           end
@@ -100,12 +100,12 @@ implementation
                 if implicitpointer then
                   newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,parentdef)
                 else
-                  newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(parentdef));
+                  newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(parentdef));
                 location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
                 if implicitpointer then
                   subscriptdef:=currentstructdef
                 else
-                  subscriptdef:=getpointerdef(currentstructdef);
+                  subscriptdef:=cpointerdef.getreusable(currentstructdef);
                 { recurse into the first field }
                 current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,location.reference,s32inttype,0,true));
                 reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset));
@@ -118,9 +118,9 @@ implementation
             if implicitpointer then
               subscriptdef:=currentstructdef
             else
-              subscriptdef:=getpointerdef(currentstructdef);
+              subscriptdef:=cpointerdef.getreusable(currentstructdef);
             { load the address of that shadow field }
-            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef));
+            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(llvmfielddef));
             location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
             current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,location.reference,s32inttype,vs.llvmfieldnr,true));
             reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset));
@@ -129,12 +129,12 @@ implementation
               size for extended, which is usually larger) into an extended }
             if (llvmfielddef.typ=floatdef) and
                (tfloatdef(llvmfielddef).floattype=s80real) then
-              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(getarraydef(u8inttype,10)),getpointerdef(s80floattype),location.reference);
+              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(getarraydef(u8inttype,10)),cpointerdef.getreusable(s80floattype),location.reference);
             { if it doesn't match the requested field exactly (variant record),
               adjust the type of the pointer }
             if (vs.offsetfromllvmfield<>0) or
                (llvmfielddef<>resultdef) then
-              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef),getpointerdef(resultdef),location.reference);
+              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(llvmfielddef),cpointerdef.getreusable(resultdef),location.reference);
             location.size:=def_cgsize(resultdef);
             result:=true;
           end;
@@ -168,9 +168,9 @@ implementation
           10 bytes) }
         if (resultdef.typ=floatdef) and
            (tfloatdef(resultdef).floattype=s80real) then
-          arrptrelementdef:=getpointerdef(getarraydef(u8inttype,10))
+          arrptrelementdef:=cpointerdef.getreusable(getarraydef(u8inttype,10))
         else
-          arrptrelementdef:=getpointerdef(resultdef);
+          arrptrelementdef:=cpointerdef.getreusable(resultdef);
       end;
 
     begin
@@ -187,7 +187,7 @@ implementation
           getarrelementptrdef;
           hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,arrptrelementdef);
           locref^:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
-          current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,getpointerdef(left.resultdef),
+          current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,cpointerdef.getreusable(left.resultdef),
             locref^,ptruinttype,constarrayoffset,true));
           reference_reset_base(locref^,hreg,0,locref^.alignment);
         end;
@@ -198,8 +198,8 @@ implementation
        begin
          if not assigned(locref) then
            getarrelementptrdef;
-         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
-         hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,arrptrelementdef,getpointerdef(resultdef),locref^.base,hreg);
+         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
+         hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,arrptrelementdef,cpointerdef.getreusable(resultdef),locref^.base,hreg);
          locref^.base:=hreg;
        end;
     end;
@@ -217,14 +217,14 @@ implementation
           hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,ptruinttype,constarrayoffset,maybe_const_reg,hreg);
           maybe_const_reg:=hreg;
         end;
-      hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
+      hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
       location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
       if not is_dynamicstring(left.resultdef) and
          not is_dynamic_array(left.resultdef) then
         begin
           { get address of indexed array element and convert pointer to array into
             pointer to the elementdef in the process }
-          current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,getpointerdef(left.resultdef),
+          current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,cpointerdef.getreusable(left.resultdef),
             location.reference,ptruinttype,maybe_const_reg,true));
           arraytopointerconverted:=true;
         end
@@ -282,8 +282,8 @@ implementation
       offsetreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
       hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,ptruinttype,3+alignpower,hreg,offsetreg);
       { index the array using this chunk index }
-      basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(defloadsize));
-      current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(basereg,getpointerdef(left.resultdef),
+      basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(defloadsize));
+      current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(basereg,cpointerdef.getreusable(left.resultdef),
         sref.ref,ptruinttype,offsetreg,true));
       arraytopointerconverted:=true;
       reference_reset_base(sref.ref,basereg,0,sref.ref.alignment);

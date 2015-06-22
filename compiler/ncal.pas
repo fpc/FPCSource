@@ -1875,7 +1875,7 @@ implementation
                       is_object(p.resultdef);
 
             if usederef then
-              hdef:=getpointerdef(p.resultdef)
+              hdef:=cpointerdef.getreusable(p.resultdef)
             else
               hdef:=p.resultdef;
 
@@ -4458,7 +4458,7 @@ implementation
         tempnode: ttempcreatenode;
         paraaddr: taddrnode;
       begin
-        ptrtype:=getpointerdef(para.left.resultdef);
+        ptrtype:=cpointerdef.getreusable(para.left.resultdef);
         tempnode:=ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,true);
         addstatement(inlineinitstatement,tempnode);
         addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));

@@ -1102,7 +1102,7 @@ unit cpupara;
                 loc[2].typ:=X86_64_NO_CLASS;
                 paracgsize:=OS_ADDR;
                 paralen:=sizeof(pint);
-                paradef:=getpointerdef(paradef);
+                paradef:=cpointerdef.getreusable(paradef);
                 loc[1].def:=paradef;
               end
             else

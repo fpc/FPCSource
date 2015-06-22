@@ -184,7 +184,7 @@ implementation
             { generate the first hidden parameter, which is a so-called "block
               literal" describing the block and containing its invocation
               procedure  }
-            hdef:=getpointerdef(get_block_literal_type_for_proc(pd));
+            hdef:=cpointerdef.getreusable(get_block_literal_type_for_proc(pd));
             { mark as vo_is_parentfp so that proc2procvar comparisons will
               succeed when assigning arbitrary routines to the block }
             vs:=cparavarsym.create('$_block_literal',paranr_blockselfpara,vs_value,

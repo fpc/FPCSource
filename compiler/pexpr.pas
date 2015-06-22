@@ -239,7 +239,7 @@ implementation
            begin
              typecheckpass(p1);
              result:=internalstatements(newstatement);
-             hdef:=getpointerdef(p1.resultdef);
+             hdef:=cpointerdef.getreusable(p1.resultdef);
              temp:=ctempcreatenode.create(hdef,sizeof(pint),tt_persistent,false);
              addstatement(newstatement,temp);
              addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),caddrnode.create_internal(p1)));
@@ -1896,7 +1896,7 @@ implementation
                      ft_typed:
                        begin
                          p1:=cderefnode.create(ctypeconvnode.create_internal(ccallnode.createintern('fpc_getbuf_typedfile',ccallparanode.create(p1,nil)),
-                           getpointerdef(tfiledef(p1.resultdef).typedfiledef)));
+                           cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef)));
                          typecheckpass(p1);
                        end;
                    end;

@@ -236,7 +236,7 @@ unit cpupara;
         psym:=tparavarsym(pd.paras[nr-1]);
         pdef:=psym.vardef;
         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=getpointerdef(pdef);
+          pdef:=cpointerdef.getreusable(pdef);
         cgpara.reset;
         cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
@@ -442,7 +442,7 @@ unit cpupara;
               begin
                 paralen:=voidpointertype.size;
                 paracgsize:=int_cgsize(voidpointertype.size);
-                paradef:=getpointerdef(paradef);
+                paradef:=cpointerdef.getreusable(paradef);
               end
             else
               begin
@@ -602,7 +602,7 @@ unit cpupara;
                       begin
                         paralen:=voidpointertype.size;
                         paracgsize:=int_cgsize(voidpointertype.size);
-                        paradef:=getpointerdef(paradef);
+                        paradef:=cpointerdef.getreusable(paradef);
                       end
                     else
                       begin
