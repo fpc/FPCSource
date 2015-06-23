@@ -552,7 +552,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   fillchar(ca[strlength],def.size-strlength-1,' ');
                   ca[strlength]:=#0;
                   ca[def.size-1]:=#0;
-                  ftcb.emit_tai(Tai_string.Create_pchar(ca,def.size-1),getarraydef(cansichartype,def.size-1));
+                  ftcb.emit_tai(Tai_string.Create_pchar(ca,def.size-1),carraydef.getreusable(cansichartype,def.size-1));
                   ftcb.maybe_end_aggregate(def);
                 end;
               st_ansistring:
@@ -830,14 +830,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    len:=255;
                   getmem(ca,len+1);
                   move(tstringconstnode(node).value_str^,ca^,len+1);
-                  datadef:=getarraydef(cansichartype,len+1);
+                  datadef:=carraydef.getreusable(cansichartype,len+1);
                   datatcb.maybe_begin_aggregate(datadef);
                   datatcb.emit_tai(Tai_string.Create_pchar(ca,len+1),datadef);
                   datatcb.maybe_end_aggregate(datadef);
                 end
               else if is_constcharnode(node) then
                 begin
-                  datadef:=getarraydef(cansichartype,2);
+                  datadef:=carraydef.getreusable(cansichartype,2);
                   datatcb.maybe_begin_aggregate(datadef);
                   datatcb.emit_tai(Tai_string.Create(char(byte(tordconstnode(node).value.svalue))+#0),datadef);
                   datatcb.maybe_end_aggregate(datadef);
@@ -845,7 +845,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               else
                 begin
                   IncompatibleTypes(node.resultdef, def);
-                  datadef:=getarraydef(cansichartype,1);
+                  datadef:=carraydef.getreusable(cansichartype,1);
                 end;
               ftcb.finish_internal_data_builder(datatcb,ll,datadef,varalign);
               { we now emit the address of the first element of the array
@@ -876,7 +876,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
                      pw:=pcompilerwidestring(tstringconstnode(node).value_str);
                      { include terminating #0 }
-                     datadef:=getarraydef(cwidechartype,tstringconstnode(node).len+1);
+                     datadef:=carraydef.getreusable(cwidechartype,tstringconstnode(node).len+1);
                      datatcb.maybe_begin_aggregate(datadef);
                      for i:=0 to tstringconstnode(node).len-1 do
                        datatcb.emit_tai(Tai_const.Create_16bit(pw^.data[i]),cwidechartype);

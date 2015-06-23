@@ -72,13 +72,13 @@ implementation
                   constants (-> excludes terminating #0) and pchars (-> includes
                   terminating #0). The resultdef excludes the #0 while the data
                   includes it -> insert typecast from datadef to resultdef }
-                datadef:=getarraydef(cansichartype,len+1);
+                datadef:=carraydef.getreusable(cansichartype,len+1);
               cst_shortstring:
                 { the resultdef of the string constant is the type of the
                   string to which it is assigned, which can be longer or shorter
                   than the length of the string itself -> typecast it to the
                   correct string type }
-                datadef:=getarraydef(cansichartype,min(len,255)+1);
+                datadef:=carraydef.getreusable(cansichartype,min(len,255)+1);
               else
                 internalerror(2014071203);
             end;

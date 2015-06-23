@@ -778,7 +778,7 @@ implementation
                 { don't increase/decrease the reference count here, will be done by
                   the callee (see (*) above) -> typecast to array of byte
                   for the assignment to the temp }
-                temparraydef:=getarraydef(u8inttype,left.resultdef.size);
+                temparraydef:=carraydef.getreusable(u8inttype,left.resultdef.size);
                 paratemp:=ctempcreatenode.create(temparraydef,temparraydef.size,tt_persistent,false);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,

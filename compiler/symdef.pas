@@ -490,6 +490,7 @@ interface
           function elecount : asizeuint;
           constructor create_from_pointer(def:tpointerdef);virtual;
           constructor create(l,h:asizeint;def:tdef);virtual;
+          class function getreusable(def: tdef; elems: asizeint): tarraydef; virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy; override;
           function getcopy : tstoreddef;override;
@@ -1125,10 +1126,6 @@ interface
 
     function use_vectorfpu(def : tdef) : boolean;
 
-    { returns an arraydef for an array containing a single array of def, resuing
-      an existing one in case it exists in the current module }
-    function getsingletonarraydef(def: tdef): tarraydef;
-    function getarraydef(def: tdef; elecount: asizeint): tarraydef;
     { returns a procvardef that represents the address of a procdef }
     function getprocaddressprocvar(def: tabstractprocdef): tprocvardef;
 
@@ -3422,6 +3419,39 @@ implementation
          arrayoptions:=[];
          symtable:=tarraysymtable.create(self);
       end;
+
+
+    class function tarraydef.getreusable(def: tdef; elems: asizeint): tarraydef;
+      var
+        res: PHashSetItem;
+        oldsymtablestack: tsymtablestack;
+        arrdesc: packed record
+          def: tdef;
+          elecount: asizeint;
+        end;
+      begin
+        if not assigned(current_module) then
+          internalerror(2011081301);
+        arrdesc.def:=def;
+        arrdesc.elecount:=elems;
+        res:=current_module.arraydefs.FindOrAdd(@arrdesc,sizeof(arrdesc));
+        if not assigned(res^.Data) then
+          begin
+            { since these arraydef can be reused anywhere in the current
+              unit, add them to the global/staticsymtable }
+            oldsymtablestack:=symtablestack;
+            symtablestack:=nil;
+            res^.Data:=carraydef.create(0,elems-1,ptrsinttype);
+            tarraydef(res^.Data).elementdef:=def;
+            if assigned(current_module.localsymtable) then
+              current_module.localsymtable.insertdef(tdef(res^.Data))
+            else
+              current_module.globalsymtable.insertdef(tdef(res^.Data));
+            symtablestack:=oldsymtablestack;
+          end;
+        result:=tarraydef(res^.Data);
+      end;
+
 
     destructor tarraydef.destroy;
       begin
@@ -7628,44 +7658,6 @@ implementation
 {$ifndef use_vectorfpuimplemented}
         use_vectorfpu:=false;
 {$endif}
-      end;
-
-
-    function getsingletonarraydef(def: tdef): tarraydef;
-      begin
-        result:=getarraydef(def,1);
-      end;
-
-
-    function getarraydef(def: tdef; elecount: asizeint): tarraydef;
-      var
-        res: PHashSetItem;
-        oldsymtablestack: tsymtablestack;
-        arrdesc: packed record
-          def: tdef;
-          elecount: asizeint;
-        end;
-      begin
-        if not assigned(current_module) then
-          internalerror(2011081301);
-        arrdesc.def:=def;
-        arrdesc.elecount:=elecount;
-        res:=current_module.arraydefs.FindOrAdd(@arrdesc,sizeof(arrdesc));
-        if not assigned(res^.Data) then
-          begin
-            { since these arraydef can be reused anywhere in the current
-              unit, add them to the global/staticsymtable }
-            oldsymtablestack:=symtablestack;
-            symtablestack:=nil;
-            res^.Data:=carraydef.create(0,elecount-1,ptrsinttype);
-            tarraydef(res^.Data).elementdef:=def;
-            if assigned(current_module.localsymtable) then
-              current_module.localsymtable.insertdef(tdef(res^.Data))
-            else
-              current_module.globalsymtable.insertdef(tdef(res^.Data));
-            symtablestack:=oldsymtablestack;
-          end;
-        result:=tarraydef(res^.Data);
       end;
 
 

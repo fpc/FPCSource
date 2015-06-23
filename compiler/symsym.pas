@@ -2360,7 +2360,7 @@ implementation
          if assigned(def) then
            constdef:=def
          else
-           constdef:=getarraydef(cansichartype,l);
+           constdef:=carraydef.getreusable(cansichartype,l);
          value.len:=l;
       end;
 
@@ -2371,7 +2371,7 @@ implementation
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          pcompilerwidestring(value.valueptr):=pw;
-         constdef:=getarraydef(cwidechartype,getlengthwidestring(pw));
+         constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(pw));
          value.len:=getlengthwidestring(pw);
       end;
 

@@ -240,14 +240,14 @@ implementation
            writenames(tcb,p^.l);
          tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata_norel,'',datatcb,p^.nl);
          len:=length(p^.data.messageinf.str^);
-         datatcb.maybe_begin_aggregate(getarraydef(cansichartype,len+1));
+         datatcb.maybe_begin_aggregate(carraydef.getreusable(cansichartype,len+1));
          datatcb.emit_tai(tai_const.create_8bit(len),cansichartype);
          getmem(ca,len+1);
          move(p^.data.messageinf.str^[1],ca^,len);
          ca[len]:=#0;
-         datatcb.emit_tai(Tai_string.Create_pchar(ca,len),getarraydef(cansichartype,len));
-         datatcb.maybe_end_aggregate(getarraydef(cansichartype,len+1));
-         tcb.finish_internal_data_builder(datatcb,p^.nl,getarraydef(cansichartype,len+1),sizeof(pint));
+         datatcb.emit_tai(Tai_string.Create_pchar(ca,len),carraydef.getreusable(cansichartype,len));
+         datatcb.maybe_end_aggregate(carraydef.getreusable(cansichartype,len+1));
+         tcb.finish_internal_data_builder(datatcb,p^.nl,carraydef.getreusable(cansichartype,len+1),sizeof(pint));
          if assigned(p^.r) then
            writenames(tcb,p^.r);
       end;
@@ -259,7 +259,7 @@ implementation
 
          { write name label }
          tcb.maybe_begin_aggregate(entrydef);
-         tcb.emit_tai(Tai_const.Create_sym(p^.nl),cpointerdef.getreusable(getarraydef(cansichartype,length(p^.data.messageinf.str^)+1)));
+         tcb.emit_tai(Tai_const.Create_sym(p^.nl),cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(p^.data.messageinf.str^)+1)));
          tcb.queue_init(voidcodepointertype);
          tcb.queue_emit_proc(p^.data);
          tcb.maybe_end_aggregate(entrydef);
@@ -774,7 +774,7 @@ implementation
           current_asmdata.RefAsmSymbol(
             make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),
             AT_DATA),
-          cpointerdef.getreusable(getarraydef(cansichartype,length(AImplIntf.IntfDef.iidstr^)+1)));
+          cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(AImplIntf.IntfDef.iidstr^)+1)));
         { IType }
         tcb.emit_ord_const(aint(AImplIntf.VtblImplIntf.IType),interfaceentrytypedef);
         tcb.maybe_end_aggregate(interfaceentrydef);
@@ -815,7 +815,7 @@ implementation
         datatcb.emit_tai(Tai_const.Create_pint(_class.ImplementedInterfaces.count),search_system_type('SIZEUINT').typedef);
         interfaceentrydef:=search_system_type('TINTERFACEENTRY').typedef;
         interfaceentrytypedef:=search_system_type('TINTERFACEENTRYTYPE').typedef;
-        interfacearray:=getarraydef(interfaceentrydef,_class.ImplementedInterfaces.count);
+        interfacearray:=carraydef.getreusable(interfaceentrydef,_class.ImplementedInterfaces.count);
         datatcb.maybe_begin_aggregate(interfacearray);
         { Write vtbl references }
         for i:=0 to _class.ImplementedInterfaces.count-1 do

@@ -377,7 +377,7 @@ implementation
                           move(value_str^,pc[1],l);
                           pc[0]:=chr(l);
                           pc[l+1]:=#0;
-                          datadef:=getarraydef(cansichartype,l+1);
+                          datadef:=carraydef.getreusable(cansichartype,l+1);
                           datatcb.maybe_begin_aggregate(datadef);
                           datatcb.emit_tai(Tai_string.Create_pchar(pc,l+1),datadef);
                           datatcb.maybe_end_aggregate(datadef);
@@ -397,7 +397,7 @@ implementation
                             string can be used for pchar assignments (but it's
                             also used for array-of-char assignments, in which
                             case the terminating #0 is not part of the data) }
-                          datadef:=getarraydef(cansichartype,len+1);
+                          datadef:=carraydef.getreusable(cansichartype,len+1);
                           datatcb.maybe_begin_aggregate(datadef);
                           datatcb.emit_tai(Tai_string.Create_pchar(pc,len+1),datadef);
                           datatcb.maybe_end_aggregate(datadef);

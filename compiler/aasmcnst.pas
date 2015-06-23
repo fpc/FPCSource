@@ -661,7 +661,7 @@ implementation
            if fvalues.count<>1 then
              internalerror(2014070105);
            tai_simpletypedconst(fvalues[0]).fdef:=
-             getarraydef(cansichartype,
+             carraydef.getreusable(cansichartype,
                tai_string(tai_simpletypedconst(fvalues[0]).val).len);
          end;
      end;
@@ -1165,7 +1165,7 @@ implementation
        move(data^,s^,len);
        s[len]:=#0;
        { terminating zero included }
-       datadef:=getarraydef(cansichartype,len+1);
+       datadef:=carraydef.getreusable(cansichartype,len+1);
        datatcb.maybe_begin_aggregate(datadef);
        datatcb.emit_tai(tai_string.create_pchar(s,len+1),datadef);
        datatcb.maybe_end_aggregate(datadef);
@@ -1214,7 +1214,7 @@ implementation
          end;
        if cwidechartype.size = 2 then
          begin
-           datadef:=getarraydef(cwidechartype,strlength+1);
+           datadef:=carraydef.getreusable(cwidechartype,strlength+1);
            datatcb.maybe_begin_aggregate(datadef);
            for i:=0 to strlength-1 do
              datatcb.emit_tai(Tai_const.Create_16bit(pcompilerwidestring(data)^.data[i]),cwidechartype);
@@ -1242,11 +1242,11 @@ implementation
          functionality in place yet to reuse shortstringdefs of the same length
          and neither the lowlevel nor the llvm typedconst builder cares about
          this difference }
-       result:=getarraydef(cansichartype,length(str)+1);
+       result:=carraydef.getreusable(cansichartype,length(str)+1);
        maybe_begin_aggregate(result);
        emit_tai(Tai_const.Create_8bit(length(str)),u8inttype);
        if str<>'' then
-         emit_tai(Tai_string.Create(str),getarraydef(cansichartype,length(str)));
+         emit_tai(Tai_string.Create(str),carraydef.getreusable(cansichartype,length(str)));
        maybe_end_aggregate(result);
      end;
 

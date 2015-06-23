@@ -129,7 +129,7 @@ implementation
               size for extended, which is usually larger) into an extended }
             if (llvmfielddef.typ=floatdef) and
                (tfloatdef(llvmfielddef).floattype=s80real) then
-              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(getarraydef(u8inttype,10)),cpointerdef.getreusable(s80floattype),location.reference);
+              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(carraydef.getreusable(u8inttype,10)),cpointerdef.getreusable(s80floattype),location.reference);
             { if it doesn't match the requested field exactly (variant record),
               adjust the type of the pointer }
             if (vs.offsetfromllvmfield<>0) or
@@ -168,7 +168,7 @@ implementation
           10 bytes) }
         if (resultdef.typ=floatdef) and
            (tfloatdef(resultdef).floattype=s80real) then
-          arrptrelementdef:=cpointerdef.getreusable(getarraydef(u8inttype,10))
+          arrptrelementdef:=cpointerdef.getreusable(carraydef.getreusable(u8inttype,10))
         else
           arrptrelementdef:=cpointerdef.getreusable(resultdef);
       end;
