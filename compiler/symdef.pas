@@ -608,6 +608,8 @@ interface
 
        tprocvardef = class(tabstractprocdef)
           constructor create(level:byte);virtual;
+          { returns a procvardef that represents the address of a proc(var)def }
+          class function getreusableprocaddr(def: tabstractprocdef): tprocvardef; virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -1125,9 +1127,6 @@ interface
     procedure maybeloadcocoatypes;
 
     function use_vectorfpu(def : tdef) : boolean;
-
-    { returns a procvardef that represents the address of a procdef }
-    function getprocaddressprocvar(def: tabstractprocdef): tprocvardef;
 
     function getansistringcodepage:tstringencoding; inline;
     function getansistringdef:tstringdef;
@@ -5900,6 +5899,33 @@ implementation
       end;
 
 
+    class function tprocvardef.getreusableprocaddr(def: tabstractprocdef): tprocvardef;
+      var
+        res: PHashSetItem;
+        oldsymtablestack: tsymtablestack;
+      begin
+        if not assigned(current_module) then
+          internalerror(2011081301);
+        res:=current_module.procaddrdefs.FindOrAdd(@def,sizeof(def));
+        if not assigned(res^.Data) then
+          begin
+            { since these pointerdefs can be reused anywhere in the current
+              unit, add them to the global/staticsymtable }
+            oldsymtablestack:=symtablestack;
+            { do not simply push/pop current_module.localsymtable, because
+              that can have side-effects (e.g., it removes helpers) }
+            symtablestack:=nil;
+            res^.Data:=def.getcopyas(procvardef,pc_address_only);
+            if assigned(current_module.localsymtable) then
+              current_module.localsymtable.insertdef(tdef(res^.Data))
+            else
+              current_module.globalsymtable.insertdef(tdef(res^.Data));
+            symtablestack:=oldsymtablestack;
+          end;
+        result:=tprocvardef(res^.Data);
+      end;
+
+
     constructor tprocvardef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(procvardef,ppufile);
@@ -7660,31 +7686,5 @@ implementation
 {$endif}
       end;
 
-
-    function getprocaddressprocvar(def: tabstractprocdef): tprocvardef;
-      var
-        res: PHashSetItem;
-        oldsymtablestack: tsymtablestack;
-      begin
-        if not assigned(current_module) then
-          internalerror(2011081301);
-        res:=current_module.procaddrdefs.FindOrAdd(@def,sizeof(def));
-        if not assigned(res^.Data) then
-          begin
-            { since these pointerdefs can be reused anywhere in the current
-              unit, add them to the global/staticsymtable }
-            oldsymtablestack:=symtablestack;
-            { do not simply push/pop current_module.localsymtable, because
-              that can have side-effects (e.g., it removes helpers) }
-            symtablestack:=nil;
-            res^.Data:=def.getcopyas(procvardef,pc_address_only);
-            if assigned(current_module.localsymtable) then
-              current_module.localsymtable.insertdef(tdef(res^.Data))
-            else
-              current_module.globalsymtable.insertdef(tdef(res^.Data));
-            symtablestack:=oldsymtablestack;
-          end;
-        result:=tprocvardef(res^.Data);
-      end;
 
 end.

@@ -319,7 +319,7 @@ implementation
     begin
       if (pd.typ=procdef) or
          not pd.is_addressonly then
-        result:=getprocaddressprocvar(pd)
+        result:=cprocvardef.getreusableprocaddr(pd)
       else
         result:=pd
     end;
@@ -420,7 +420,7 @@ implementation
     { if this is a complex procvar, get the non-tmethod-like equivalent }
     if (pd.typ=procvardef) and
        not pd.is_addressonly then
-      pd:=tprocvardef(getprocaddressprocvar(pd));
+      pd:=tprocvardef(cprocvardef.getreusableprocaddr(pd));
     { if the function returns a function pointer type or is varargs, we
       must specify the full function signature, otherwise we can only
       specify the return type }

@@ -722,7 +722,7 @@ implementation
                 hs:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+AImplIntf.IntfDef.objname^+'_$_'+
                                      tostr(i)+'_$_'+pd.mangledname);
                 { create reference }
-                datatcb.emit_tai(Tai_const.Createname(hs,AT_FUNCTION,0),getprocaddressprocvar(pd));
+                datatcb.emit_tai(Tai_const.Createname(hs,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd));
               end;
            end
         else
@@ -1015,7 +1015,7 @@ implementation
              procname:='FPC_EMPTYMETHOD'
            else if not wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
              procname:=vmtpd.mangledname;
-           tcb.emit_tai(Tai_const.Createname(procname,AT_FUNCTION,0),getprocaddressprocvar(vmtpd));
+           tcb.emit_tai(Tai_const.Createname(procname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(vmtpd));
 {$ifdef vtentry}
            hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(pint));
            current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
