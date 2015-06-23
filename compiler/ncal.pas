@@ -84,6 +84,7 @@ interface
           procedure register_created_object_types;
           function get_expect_loc: tcgloc;
        protected
+          function safe_call_self_node: tnode;
           procedure gen_vmt_entry_load; virtual;
           procedure gen_syscall_para(para: tcallparanode); virtual;
           procedure objc_convert_to_message_send;virtual;
@@ -2102,7 +2103,7 @@ implementation
         { inherited }
         else if (cnf_inherited in callnodeflags) then
           begin
-            selftree:=call_self_node.getcopy;
+            selftree:=safe_call_self_node.getcopy;
            { we can call an inherited class static/method from a regular method
              -> self node must change from instance pointer to vmt pointer)
            }
@@ -2158,7 +2159,7 @@ implementation
                           end;
                       end
                     else
-                      selftree:=call_self_node.getcopy
+                      selftree:=safe_call_self_node.getcopy
                   else
                     selftree:=methodpointer.getcopy;
                 end;
@@ -2195,7 +2196,7 @@ implementation
         else
           begin
             if methodpointer.nodetype=typen then
-              selftree:=call_self_node.getcopy
+              selftree:=safe_call_self_node.getcopy
             else
               selftree:=methodpointer.getcopy;
           end;
@@ -2330,6 +2331,17 @@ implementation
             result:=LOC_FPUREGISTER
         else
           result:=LOC_REFERENCE
+      end;
+
+
+    function tcallnode.safe_call_self_node: tnode;
+      begin
+        if not assigned(call_self_node) then
+          begin
+            CGMessage(parser_e_illegal_expression);
+            call_self_node:=cerrornode.create;
+          end;
+        result:=call_self_node;
       end;
 
 
@@ -2468,7 +2480,7 @@ implementation
              temp:=ctempcreatenode.create(objcsupertype,objcsupertype.size,tt_persistent,false);
              addstatement(statements,temp);
              { initialize objc_super record }
-             selftree:=call_self_node.getcopy;
+             selftree:=safe_call_self_node.getcopy;
 
              { we can call an inherited class static/method from a regular method
                -> self node must change from instance pointer to vmt pointer)
