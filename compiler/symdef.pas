@@ -3120,6 +3120,7 @@ implementation
       var
         res: PHashSetItem;
         oldsymtablestack: tsymtablestack;
+        savesymtab: tsymtable;
       begin
         if not assigned(current_module) then
           internalerror(2011071101);
@@ -3127,16 +3128,16 @@ implementation
         if not assigned(res^.Data) then
           begin
             { since these pointerdefs can be reused anywhere in the current
-              unit, add them to the global/staticsymtable }
+              unit, add them to the global/staticsymtable (or local symtable
+              if they're a local def, because otherwise they'll be saved
+              to the ppu referencing a local symtable entry that doesn't
+              exist in the ppu) }
             oldsymtablestack:=symtablestack;
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
             res^.Data:=cpointerdef.create(def);
-            if assigned(current_module.localsymtable) then
-              current_module.localsymtable.insertdef(tdef(res^.Data))
-            else
-              current_module.globalsymtable.insertdef(tdef(res^.Data));
+            def.getreusablesymtab.insertdef(tdef(res^.Data));
             symtablestack:=oldsymtablestack;
           end;
         result:=tpointerdef(res^.Data);
@@ -3436,16 +3437,18 @@ implementation
         res:=current_module.arraydefs.FindOrAdd(@arrdesc,sizeof(arrdesc));
         if not assigned(res^.Data) then
           begin
-            { since these arraydef can be reused anywhere in the current
-              unit, add them to the global/staticsymtable }
+            { since these pointerdefs can be reused anywhere in the current
+              unit, add them to the global/staticsymtable (or local symtable
+              if they're a local def, because otherwise they'll be saved
+              to the ppu referencing a local symtable entry that doesn't
+              exist in the ppu) }
             oldsymtablestack:=symtablestack;
+            { do not simply push/pop current_module.localsymtable, because
+              that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
             res^.Data:=carraydef.create(0,elems-1,ptrsinttype);
             tarraydef(res^.Data).elementdef:=def;
-            if assigned(current_module.localsymtable) then
-              current_module.localsymtable.insertdef(tdef(res^.Data))
-            else
-              current_module.globalsymtable.insertdef(tdef(res^.Data));
+            def.getreusablesymtab.insertdef(tdef(res^.Data));
             symtablestack:=oldsymtablestack;
           end;
         result:=tarraydef(res^.Data);
@@ -5910,16 +5913,16 @@ implementation
         if not assigned(res^.Data) then
           begin
             { since these pointerdefs can be reused anywhere in the current
-              unit, add them to the global/staticsymtable }
+              unit, add them to the global/staticsymtable (or local symtable
+              if they're a local def, because otherwise they'll be saved
+              to the ppu referencing a local symtable entry that doesn't
+              exist in the ppu) }
             oldsymtablestack:=symtablestack;
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
             res^.Data:=def.getcopyas(procvardef,pc_address_only);
-            if assigned(current_module.localsymtable) then
-              current_module.localsymtable.insertdef(tdef(res^.Data))
-            else
-              current_module.globalsymtable.insertdef(tdef(res^.Data));
+            def.getreusablesymtab.insertdef(tdef(res^.Data));
             symtablestack:=oldsymtablestack;
           end;
         result:=tprocvardef(res^.Data);

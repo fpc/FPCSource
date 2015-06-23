@@ -103,16 +103,16 @@ implementation
       if not assigned(res^.Data) then
         begin
           { since these pointerdefs can be reused anywhere in the current
-            unit, add them to the global/staticsymtable }
+            unit, add them to the global/staticsymtable (or local symtable
+            if they're a local def, because otherwise they'll be saved
+            to the ppu referencing a local symtable entry that doesn't
+            exist in the ppu) }
           oldsymtablestack:=symtablestack;
           { do not simply push/pop current_module.localsymtable, because
             that can have side-effects (e.g., it removes helpers) }
           symtablestack:=nil;
           res^.Data:=tx86pointerdefclass(cpointerdef).createx86(def,x86typ);
-          if assigned(current_module.localsymtable) then
-            current_module.localsymtable.insertdef(tdef(res^.Data))
-          else
-            current_module.globalsymtable.insertdef(tdef(res^.Data));
+          def.getreusablesymtab.insertdef(tdef(res^.Data));
           symtablestack:=oldsymtablestack;
         end;
       result:=tpointerdef(res^.Data);

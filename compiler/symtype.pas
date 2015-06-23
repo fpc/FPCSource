@@ -88,6 +88,7 @@ interface
          function  needs_inittable:boolean;virtual;abstract;
          function  needs_separate_initrtti:boolean;virtual;abstract;
          procedure ChangeOwner(st:TSymtable);
+         function getreusablesymtab: tsymtable;
          procedure register_created_object_type;virtual;
          function  get_top_level_symtable: tsymtable;
       end;
@@ -350,6 +351,26 @@ implementation
 //          Owner.DefList.List[i]:=nil;
         Owner:=st;
         Owner.DefList.Add(self);
+      end;
+
+
+    function tdef.getreusablesymtab: tsymtable;
+      var
+        origowner: TSymtable;
+      begin
+        { if the original def was in a localsymtable, don't create a
+          reusable copy in the unit's staticsymtable since the localsymtable
+          won't be saved to the ppu and as a result we can get unreachable
+          defs when reloading the derived ones from the ppu }
+        origowner:=owner;
+        while not(origowner.symtabletype in [localsymtable,staticsymtable,globalsymtable]) do
+          origowner:=origowner.defowner.owner;
+        if origowner.symtabletype=localsymtable then
+          result:=origowner
+        else if assigned(current_module.localsymtable) then
+          result:=current_module.localsymtable
+        else
+          result:=current_module.globalsymtable;
       end;
 
 
