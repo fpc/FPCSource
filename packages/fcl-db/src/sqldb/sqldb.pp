@@ -159,7 +159,6 @@ type
     FStatements          : TFPList;
     FLogEvents: TDBEventTypes;
     FOnLog: TDBLogNotifyEvent;
-    FInternalTransaction : TSQLTransaction;
     function GetPort: cardinal;
     procedure SetOptions(AValue: TSQLConnectionOptions);
     procedure SetPort(const AValue: cardinal);
@@ -2842,7 +2841,7 @@ end;
 procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind: TUpdateKind);
 
 Var
-  DoRefresh, RecordRefreshed : Boolean;
+  DoRefresh : Boolean;
   LastIDField : TField;
   S : TDataSetState;
 
@@ -2862,17 +2861,13 @@ begin
     //   TDataSet buffers are resynchronized at end of ApplyUpdates process
     S:=SetTempState(dsRefreshFields);
     try
-      RecordRefreshed:=False;
       if assigned(LastIDField) then
-        RecordRefreshed:=RefreshLastInsertID(LastIDField);
+        RefreshLastInsertID(LastIDField);
       if DoRefresh then
-        RecordRefreshed:=RefreshRecord(UpdateKind) or RecordRefreshed;
+        RefreshRecord(UpdateKind);
     finally
       RestoreState(S);
     end;
-    if RecordRefreshed then
-      // Active buffer is updated, move to record.
-      //ActiveBufferToRecord;
     end;
 end;
 
