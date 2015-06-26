@@ -73,7 +73,7 @@ begin
       PT:=ExtractWord(1,S,[':']);
       V:=ExtractWord(2,S,[':']);
       Case lowercase(PT) of
-        '','s' : P.AsString:=V;
+        's' : P.AsString:=V;
         'i'    : P.AsInteger:=StrToInt(V);
         'i64'  : P.AsLargeInt:=StrToInt64(V);
         'dt'   : P.AsDateTime:=StrToDateTime(V);
