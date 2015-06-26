@@ -532,7 +532,7 @@ begin
   checkerror(sqlite3_reset(sc.fstatement));
   If (AParams<>Nil) and (AParams.count > 0) then
     SC.BindParams(AParams);
-  If LogEvent(detParamValues) then
+  If LogEvent(detParamValue) then
     LogParams(AParams);
   SC.Execute;
 end;

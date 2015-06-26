@@ -611,7 +611,7 @@ var c: TDBLibCursor;
 begin
   c:=cursor as TDBLibCursor;
 
-  if LogEvent(detParamValues) then
+  if LogEvent(detParamValue) then
     LogParams(AParams);
   cmd := c.ReplaceParams(AParams);
   if LogEvent(detActualSQL) then
