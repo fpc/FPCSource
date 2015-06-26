@@ -233,6 +233,8 @@ Procedure TSQLite3Cursor.Prepare(Buf : String; AParams : TParams);
 begin
   if assigned(AParams) and (AParams.Count > 0) then
     Buf := AParams.ParseSQL(Buf,false,false,false,psInterbase,fparambinding);
+  if (detActualSQL in fconnection.LogEvents) then
+    fconnection.Log(detActualSQL,Buf);
   checkerror(sqlite3_prepare(fhandle,pchar(Buf),length(Buf),@fstatement,@ftail));
   FPrepared:=True;
 end;
@@ -530,7 +532,9 @@ begin
   checkerror(sqlite3_reset(sc.fstatement));
   If (AParams<>Nil) and (AParams.count > 0) then
     SC.BindParams(AParams);
-  SC.Execute;    
+  If LogEvent(detParamValues) then
+    LogParams(AParams);
+  SC.Execute;
 end;
 
 Function NextWord(Var S : ShortString; Sep : Char) : String;
