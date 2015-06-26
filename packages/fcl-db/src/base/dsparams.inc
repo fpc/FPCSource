@@ -235,9 +235,9 @@ begin
   case p^ of
     '''', '"', '`':
       begin
+        Result := True;
         // single quote, double quote or backtick delimited string
         SkipQuotesString(p, p^, EscapeSlash, EscapeRepeat);
-        Result := True;
       end;
     '-': // possible start of -- comment
       begin
@@ -315,7 +315,7 @@ begin
   p:=PChar(SQL);
   BufStart:=p; // used to calculate ParamPart.Start values
   repeat
-    SkipComments(p,EscapeSlash,EscapeRepeat);
+    while SkipComments(p,EscapeSlash,EscapeRepeat) do ;
     case p^ of
       ':','?': // parameter
         begin
@@ -403,7 +403,7 @@ begin
             Dec(NewQueryLength,p-ParamNameStart);
           end;
         end;
-      #0:Break;
+      #0:Break; // end of SQL
     else
       Inc(p);
     end;
