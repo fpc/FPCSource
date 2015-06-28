@@ -49,6 +49,10 @@ implementation
     {$ifndef NOTARGETSUNOS}
       ,t_sunos
     {$endif}
+    {$ifndef NOTARGETAROS}
+      ,t_aros
+    {$endif}
+
 
 {**************************************
              Assemblers

@@ -1802,13 +1802,13 @@ end;
 
 
 procedure pd_syscall(pd:tabstractprocdef);
-{$if defined(powerpc) or defined(m68k) or defined(i386)}
+{$if defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
 var
   vs  : tparavarsym;
   sym : tsym;
   symtable : TSymtable;
   v: Tconstexprint;
-{$endif defined(powerpc) or defined(m68k) or defined(i386)}
+{$endif defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
 begin
   if (pd.typ<>procdef) and (target_info.system <> system_powerpc_amiga) then
     internalerror(2003042614);
@@ -1973,8 +1973,8 @@ begin
         Tprocdef(pd).extnumber:=v.uvalue;
     end;
 {$endif powerpc}
-{$ifdef i386}
-   if target_info.system = system_i386_aros then
+{$if defined(i386) or defined(x86_64)}
+   if target_info.system in [system_i386_aros,system_x86_64_aros] then
     begin
       include(pd.procoptions,po_syscall_sysvbase);
 
@@ -2002,7 +2002,7 @@ begin
       if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
         message(parser_e_range_check_error)
       else
-        Tprocdef(pd).extnumber:=v.uvalue * 4; { sizeof Pointer for the target }
+        Tprocdef(pd).extnumber:=v.uvalue * sizeof(pint);
     end;
 {$endif}
 end;
