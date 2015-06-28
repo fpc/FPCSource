@@ -52,7 +52,7 @@ type
     WorkBuffer: STRPTR;                // must be as large as StringInfo.Buffer
     Reserved: array[0..3] of LongWord; // set to 0
   end;
-  
+
 { Data type Border, used for drawing a series of lines which is intended for use as a border drawing, but which may, in fact, be used to render any
   arbitrary vector shape. The routine DrawBorder sets up the RastPort with the appropriate variables, then does a Move to the first coordinate, then does Draws
   to the subsequent coordinates. After all the Draws are done, if NextBorder is non-zero we call DrawBorder recursively}
@@ -115,7 +115,7 @@ const
   If COMMSEQ, likewise I'll use this generic stuff}
   CHECKWIDTH    = 19;
   LOWCHECKWIDTH = 13;
-  COMMWIDTH     = 27; 
+  COMMWIDTH     = 27;
   LOWCOMMWIDTH  = 16;
 
 type
@@ -127,8 +127,8 @@ type
     Width,
     Height: SmallInt;     // dimensions of the select box
     Flags: Word;          // see flag definitions below (MENUENABLED, MIDRAWN)
-    MenuName: PChar;      // text for this Menu Header 
-    FirstItem: PMenuItem; // pointer to first in chain 
+    MenuName: PChar;      // text for this Menu Header
+    FirstItem: PMenuItem; // pointer to first in chain
     JazzX,                // these mysteriously-named variables are for internal use only
     JazzY,
     BeatX,
@@ -161,7 +161,7 @@ type
     GadgetText: PIntuiText; // text for this gadget
 
     MutualExclude: IPTR;    // obsolete
-    
+
     SpecialInfo: APTR;      // pointer to a structure of special data required by Proportional, String and LongInt Gadgets
     GadgetID: Word;         // user-definable ID field
     UserData: APTR;         // ptr to general purpose User data (ignored by In)
@@ -171,7 +171,7 @@ type
   TExtGadget = record
     // The first fields match struct Gadget exactly
     NextGadget: PExtGadget;  // Matches struct Gadget
-    LeftEdge, TopEdge,       // Matches struct Gadget 
+    LeftEdge, TopEdge,       // Matches struct Gadget
     Width, Height: SmallInt; // Matches struct Gadget
     Flags,                   // Matches struct Gadget
     Activation,              // Matches struct Gadget
@@ -194,7 +194,7 @@ type
 const
 // Gadget.Flags values
   // combinations in these bits describe the highlight technique to be used
-  
+
   GFLG_GADGHCOMP    = $0000;    // Complement the select box
   GFLG_GADGHBOX     = 1 shl 0;  // Draw a box around the image
   GFLG_GADGHIMAGE   = 1 shl 1;  // Blast in this alternate image
@@ -219,39 +219,39 @@ const
   GFLG_LABELMASK    = $3000;
   GFLG_RELSPECIAL   = 1 shl 14; // custom gadget has special relativity. Gadget box values are absolutes, but can be changed via the GM_LAYOUT method.
   GFLG_EXTENDED     = 1 shl 15; // Gadget is extended
-  
+
 {GFLG_RELSPECIAL allows custom gadget implementors to
   make gadgets whose position and size depend in an arbitrary way
   on their window's dimensions.  The GM_LAYOUT method will be invoked
   for such a gadget (or any other GREL_xxx gadget) at suitable times,
   such as when the window opens or the window's size changes.
-  
+
  GFLG_STRINGEXTEND.  We discovered that V34 doesn't properly
   ignore the value we had chosen for the Gadget->Activation flag
   GACT_STRINGEXTEND.  NEVER SET THAT FLAG WHEN RUNNING UNDER V34.
   The Gadget->Flags bit GFLG_STRINGEXTEND is provided as a synonym which is
   safe under V34, and equivalent to GACT_STRINGEXTEND under V37.
   (Note that the two flags are not numerically equal)
-  
+
  GFLG_IMAGEDISABLE.  This flag is automatically set if
   the custom image of this gadget knows how to do disabled rendering
   (more specifically, if its IA_SupportsDisable attribute is TRUE).
   Intuition uses this to defer the ghosting to the image-class,
   instead of doing it itself (the old compatible way).
   Do not set this flag yourself - Intuition will do it for you.
-  
+
  GFLG_EXTENDED. If set, this bit means that the Gadget is actually
   a struct ExtGadget, with new fields and flags.  All V39 boopsi
   gadgets are ExtGadgets.  Never ever attempt to read the extended
-  fields of a gadget if this flag is not set.  
-  
+  fields of a gadget if this flag is not set.
+
  GACT_FOLLOWMOUSE flag, when set, specifies that you want to receive
   reports on mouse movements while this gadget is active.
   You probably want to set the GACT_IMMEDIATE flag when using
   GACT_FOLLOWMOUSE, since that's the only reasonable way you have of
   learning why Intuition is suddenly sending you a stream of mouse
   movement events.  If you don't set GACT_RELVERIFY, you'll get at
-  least one Mouse Position event. 
+  least one Mouse Position event.
   }
 
 // Gadget.Activation flag values
@@ -265,13 +265,13 @@ const
   GACT_TOPBORDER    = 1 shl 6;
   GACT_BOTTOMBORDER = 1 shl 7;
   GACT_TOGGLESELECT = 1 shl 8; // this bit for toggle-select mode
-  // should properly be in StringInfo, but aren't 
+  // should properly be in StringInfo, but aren't
   GACT_STRINGLEFT   = $0000;   // NOTE WELL: that this has value zero
   GACT_STRINGCENTER = 1 shl 9;
   GACT_STRINGRIGHT  = 1 shl 10;
   GACT_LONGINT      = 1 shl 11;  // this String Gadget is for Long Ints
   GACT_ALTKEYMAP    = 1 shl 12;  // this String has an alternate keymap
-  GACT_STRINGEXTEND = 1 shl 13;  // this String Gadget has StringExtend NOTE: NEVER SET GACT_STRINGEXTEND IF YOU ARE RUNNING ON LESS THAN V36! SEE GFLG_STRINGEXTEND (ABOVE) INSTEAD  
+  GACT_STRINGEXTEND = 1 shl 13;  // this String Gadget has StringExtend NOTE: NEVER SET GACT_STRINGEXTEND IF YOU ARE RUNNING ON LESS THAN V36! SEE GFLG_STRINGEXTEND (ABOVE) INSTEAD
   GACT_BOOLEXTEND   = 1 shl 13;  // this Boolean Gadget has a BoolInfo
   GACT_ACTIVEGADGET = 1 shl 14;  // this gadget is "active".  This flag is maintained by Intuition, and you cannot count on its value persisting
                                  // while you do something on your program's task.  It can only be trusted by people implementing custom gadgets
@@ -282,7 +282,7 @@ const
   gadget number type MUST start from one.  NO TYPES OF ZERO ALLOWED.
   first comes the mask for Gadget flags reserved for Gadget typing}
   GTYP_GADGETTYPE  = $FC00;  // all Gadget Global type flags (padded)
-  GTYP_SYSTYPEMASK = $00F0;  
+  GTYP_SYSTYPEMASK = $00F0;
   // system gadgets
   GTYP_SIZING      = $0010;
   GTYP_WDRAGGING   = $0020;
@@ -323,7 +323,7 @@ type
     Flags: Word;        // defined below (BOOLMASK)
     Mask: PWord;        // bit mask for highlighting and selecting mask must follow the same rules as an Image
                         // plane.  It's width and height are determined by the width and height of the gadget's select box. (i.e. Gadget.Width and .Height).
-    Reserved: LongWord; // set to 0 
+    Reserved: LongWord; // set to 0
   end;
 const
 // set BoolInfo.Flags to this flag bit. in the future, additional bits might mean more stuff hanging  off of BoolInfo.Reserved.
@@ -419,7 +419,7 @@ type
   PImage = ^TImage;
   PWindow = ^TWindow;
   PScreen = ^TScreen;
-// Requesters The following struct is used for standard intuition requesters (not to be mixed up with asl or easy requesters). See intuition.library/Request() for more information. 
+// Requesters The following struct is used for standard intuition requesters (not to be mixed up with asl or easy requesters). See intuition.library/Request() for more information.
   PRequester = ^TRequester;
   TRequester = record
     // the ClipRect and BitMap and used for rendering the requester
@@ -434,8 +434,8 @@ type
     ReqGadget: PGadget;       // First gadget of the requester
     ReqBorder: PBorder;       // First border of the requester
     ReqText: PIntuiText;      // First intuitext of the requester
-    
-    Flags: Word;              // see definitions below 
+
+    Flags: Word;              // see definitions below
     BackFill: Byte;           // pen number for back-plane fill before draws
 
     ReqLayer: PLayer;         // Layer in place of clip rect
@@ -452,7 +452,7 @@ type
     ReqImage: PImage;      // corresponds to USEREQIMAGE (see below)
     ReqPad2: array[0..31] of ShortInt; // PRIVATE
   end;
-  
+
 { The Timage.PlanePick and PlaneOnOff variables work much the same way as the equivalent GELS Bob variables.  It's a space-saving
   mechanism for image data.  Rather than defining the image data for every plane of the RastPort, you need define data only
   for the planes that are not entirely zero or one.  As you define your Imagery, you will often find that most of the planes
@@ -487,7 +487,7 @@ type
   PTabletData = ^TTabletData;
   TTabletData = record
     td_XFraction,         // Sub-pixel position of tablet, in screen coordinates, scaled to fill a Word fraction:
-    td_YFraction: Word; 
+    td_YFraction: Word;
     td_TabletX,
     td_TabletY: LongWord; // Current tablet coordinates along each axis
     td_RangeX,
@@ -502,7 +502,7 @@ type
   result in ient_ScaledX, ient_ScaledY, ient_ScaledXFraction, and ient_ScaledYFraction.
   The tablet hook must currently return NULL.  This is the only acceptable return-value.}
   PTabletHookData = ^TTabletHookData;
-  TTabletHookData = record  
+  TTabletHookData = record
     thd_Screen: PScreen;        // Pointer to the active screen: Note: if there are no open screens, thd_Screen will be nil.
     thd_Width,                  // thd_Width and thd_Height will then describe an NTSC 64$400 screen.  Please scale accordingly.
     thd_Height: LongWord;       // The width and height (measured in pixels of the active screen)that your are to scale to:
@@ -517,7 +517,7 @@ type
     Qualifier: Word;       // the Qualifier field is a copy of the current InputEvent's Qualifier
     IAddress: APTR;        // IAddress contains particular addresses for Intuition functions, like the pointer to the Gadget or the Screen
 
-    MouseX,            // when getting mouse movement reports, any event you get will have the the mouse coordinates in these variables. 
+    MouseX,            // when getting mouse movement reports, any event you get will have the the mouse coordinates in these variables.
     MouseY: SmallInt;  // the coordinates are relative to the upper-left corner of your Window (GIMMEZEROZERO notwithstanding)
     Seconds,           // the time values are copies of the current system clock time.
     Micros: LongWord;  // Micros are in units of microseconds, Seconds in seconds.
@@ -556,7 +556,7 @@ type
 // Window
   TWindow = record
     NextWindow: PWindow;   // for the linked list in a screen
-    
+
     LeftEdge,
     TopEdge: SmallInt;     // screen dimensions of window
     Width,
@@ -633,15 +633,15 @@ type
 
     ExtData: PByte;
     UserData: PSmallInt; // general-purpose pointer to User data extension
-    
+
     WLayer: PLayer;
     IFont: PTextFont;
 
     MoreFlags: LongWord;
 
-    RelLeftEdge: SmallInt; // relative coordinates of the window to its parent window. If it is 
+    RelLeftEdge: SmallInt; // relative coordinates of the window to its parent window. If it is
     RelTopEdge: SmallInt;  // a window on the screen then these are the same as LeftEdge and TopEdge.
-    
+
     FirstChild: PWindow;   // pointer to first child
     PrevChild: PWindow;    // if window is a child of a window
     NextChild: PWindow;    // then they are concatenated here.
@@ -657,7 +657,7 @@ type
     TopEdge: SmallInt;    // parameters of the screen
     Width,
     Height: SmallInt;     // parameters of the screen
-    
+
 {$ifdef AROS_FLAVOUR_BINCOMPAT}
     MouseY,
     MouseX: SmallInt;     // position relative to upper-left
@@ -700,10 +700,10 @@ type
     BarLayer: PLayer;       // This layer is for the Screen and Menu bars
     ExtData: Pointer;
     UserData: Pointer;
-  { general-purpose pointer to User data extension 
+  { general-purpose pointer to User data extension
     **** Data below this point are SYSTEM PRIVATE ****}
   end;
-  
+
 const
 // IDCMP Classes
   // Please refer to the Autodoc for OpenWindow() and to the Rom Kernel  Manual for full details on the IDCMP classes.
@@ -733,7 +733,7 @@ const
   IDCMP_IDCMPUPDATE    = 1 shl 23;  // for notifications from "boopsi" gadgets
   IDCMP_MENUHELP       = 1 shl 24;  // for getting help key report during menu session
   IDCMP_CHANGEWINDOW   = 1 shl 25;  // for notification of any move/size/zoom/change window
-  IDCMP_GADGETHELP     = 1 shl 26;  
+  IDCMP_GADGETHELP     = 1 shl 26;
   IDCMP_LONELYMESSAGE  = 1 shl 31; { the IDCMP Flags do not use this special bit, which is cleared when
     Intuition sends its special message to the Task, and set when Intuition
     gets its Message back from the Task.  Therefore, I can check here to
@@ -762,9 +762,9 @@ type
     TopEdge: SmallInt;        // screen dimensions of window
     Width,
     Height: SmallInt;         // screen dimensions of window
-    
+
     DetailPen,
-    BlockPen: Byte;           // for bar/border/gadget rendering 
+    BlockPen: Byte;           // for bar/border/gadget rendering
 
     IDCMPFlags: LongWord;     // User-selected IDCMP flags
     Flags: LongWord;          // see Window struct for defines
@@ -823,10 +823,10 @@ type
 
     DetailPen,
     BlockPen: Byte;
-    
+
     IDCMPFlags: LongWord;
     Flags: LongWord;
-    
+
     FirstGadget: PGadget;
     CheckMark: PImage;
     Title: PChar;
@@ -855,7 +855,7 @@ type
     Extension: PTagItem;
   end;
 
-const  
+const
   TAG_DONE = 0; { terminates array of TagItems. ti_Data unused }
   TAG_END = TAG_DONE;
 
@@ -913,7 +913,7 @@ const
   WA_RMBTrap       = WA_Dummy + 39;
   WA_WBenchWindow  = WA_Dummy + 40; // PRIVATE!!
   WA_SimpleRefresh = WA_Dummy + 41; // only specify if True
-  WA_SmartRefresh  = WA_Dummy + 42; // only specify if True 
+  WA_SmartRefresh  = WA_Dummy + 42; // only specify if True
   WA_SizeBRight    = WA_Dummy + 43;
   WA_SizeBBottom   = WA_Dummy + 44;
   WA_AutoAdjust    = WA_Dummy + 45; // shift or squeeze the window's position and dimensions to fit it on screen.
@@ -941,15 +941,15 @@ const
   WA_ToolBox       = WA_Dummy + 58; // (LongBool) Make this window a Toolbox window
 
   // AROS specific tags
-  WA_Priority 	    = WA_Dummy + 100;
-  WA_Parent   	    = WA_Dummy + 101; // (PWindow) Make the window a child of the parent Window
-  WA_InFrontOf	    = WA_Dummy + 102;
-  WA_Behind   	    = WA_Dummy + 103;
-  WA_Visible  	    = WA_Dummy + 104; // (LongBool) Make window visible. default True
-  WA_Shape    	    = WA_Dummy + 105; // (PRegion)
-  WA_ShapeHook	    = WA_Dummy + 106; // (PHook)
+  WA_Priority       = WA_Dummy + 100;
+  WA_Parent         = WA_Dummy + 101; // (PWindow) Make the window a child of the parent Window
+  WA_InFrontOf      = WA_Dummy + 102;
+  WA_Behind         = WA_Dummy + 103;
+  WA_Visible        = WA_Dummy + 104; // (LongBool) Make window visible. default True
+  WA_Shape          = WA_Dummy + 105; // (PRegion)
+  WA_ShapeHook      = WA_Dummy + 106; // (PHook)
 
-// --- Flags requested at OpenWindow() time by the application 
+// --- Flags requested at OpenWindow() time by the application
   WFLG_SIZEGADGET  = 1 shl 0; // include sizing system-gadget
   WFLG_DRAGBAR     = 1 shl 1; // include dragging system-gadget
   WFLG_DEPTHGADGET = 1 shl 2; // include depth arrangement gadget
@@ -962,7 +962,7 @@ const
   WFLG_SUPER_BITMAP   = 1 shl 7;
   WFLG_OTHER_REFRESH  = (1 shl 6) or (1 shl 7);
   WFLG_REFRESHBITS    = WFLG_OTHER_REFRESH;
-  
+
   WFLG_BACKDROP      = 1 shl 8;  // this is a backdrop window
   WFLG_REPORTMOUSE   = 1 shl 9;  // to hear about every mouse move
   WFLG_GIMMEZEROZERO = 1 shl 10; // a GimmeZeroZero window
@@ -976,7 +976,7 @@ const
   WFLG_RMBTRAP       = 1 shl 16; // Catch RMB events for your own
   WFLG_NOCAREREFRESH = 1 shl 17; // not to be bothered with REFRESH
   WFLG_NW_EXTENDED   = 1 shl 18; // extension data provided see struct ExtNewWindow
-  
+
   WFLG_NEWLOOKMENUS  = 1 shl 21; // window has NewLook menus
 
   // These flags are set only by Intuition.  YOU MAY NOT SET THEM YOURSELF!
@@ -986,11 +986,11 @@ const
   WFLG_VISITOR       = 1 shl 27; // visitor window
   WFLG_ZOOMED        = 1 shl 28; // identifies "zoom state"
   WFLG_HASZOOM       = 1 shl 29; // windowhas a zoom gadget
-  WFLG_TOOLBOX       = 1 shl 30; 
+  WFLG_TOOLBOX       = 1 shl 30;
   // Other Window Values
   DEFAULTMOUSEQUEUE = 5; // no more mouse messages
   // see struct IntuiMessage for the IDCMP Flag definitions
-  
+
   // HelpControl() flags: HC_GADGETHELP - Set this flag to enable Gadget-Help for one or more windows.
   HC_GADGETHELP = 1;
 
@@ -1072,7 +1072,7 @@ type
     es_Flags: LongWord;      // should be 0 for now
     es_Title: PChar;         // title of requester window
     es_TextFormat: PChar;    // 'printf' style formatting string
-    es_GadgetFormat: PChar;  // Text of the gadgets, separated by |'s 
+    es_GadgetFormat: PChar;  // Text of the gadgets, separated by |'s
   end;
 
 const
@@ -1080,7 +1080,7 @@ const
   ALERT_TYPE     = $80000000;
   RECOVERY_ALERT = $00000000;   // the system can recover from this
   DEADEND_ALERT  = $80000000;   // no recovery possible, this is it
-  
+
 { When you're defining IntuiText for the Positive and Negative Gadgets created by a call to AutoRequest(), these defines will get you
   reasonable-looking text.  The only field without a define is the IText field; you decide what text goes with the Gadget}
   AUTOFRONTPEN  = 0;
@@ -1108,7 +1108,7 @@ const
   CURSORDOWN      = $4D;
   CURSORRIGHT     = $4E;
   CURSORLEFT      = $4F;
-  
+
   KEYCODE_Q       = $10;
   KEYCODE_Z       = $31;
   KEYCODE_X       = $32;
@@ -1127,7 +1127,7 @@ const
   // these are the system Gadget defines
   HIRESGADGET  = 0;
   LOWRESGADGET = 1;
-  RESCOUNT     = 2;  
+  RESCOUNT     = 2;
 
   UPFRONTGADGET   = 0;
   DOWNBACKGADGET  = 1;
@@ -1138,7 +1138,7 @@ const
   SDOWNBACKGADGET = 6;
   SDRAGGADGET     = 7;
   GADGETCOUNT     = 8;
-  
+
   EVENTMAX = 10;  // size of event array
 
 type
@@ -1151,13 +1151,13 @@ type
     dri_Font: PTextFont; // screen default font
     dri_Depth: Word;     // (initial) depth of screen bitmap
 
-    dri_Resolution: record      
+    dri_Resolution: record
       x: Word;           // from DisplayInfo database for initial display mode
       y: Word;
     end;
 
     dri_Flags: LongWord; // defined below (DIRF_*)
-    
+
     dri_CheckMark: PImage; // pointer to scaled checkmark image Will be nil if DRI_VERSION < 2
     dri_AmigaKey: PImage;  // pointer to scaled Amiga-key image Will be NULL if DRI_VERSION < 2
 
@@ -1165,7 +1165,7 @@ type
   end;
 
 const
-  
+
   // If you find dri_Version >= DRI_VERSION, you know this structure has at least the fields defined in this version of the include file
   DRI_VERSION = 2;
   // dri_Flags
@@ -1192,11 +1192,11 @@ const
   PEN_C2 = $FEFD; // Complement of color 2
   PEN_C1 = $FEFE; // Complement of color 1
   PEN_C0 = $FEFF; // Complement of color 0
-  
+
 // values for ChangeDecoration ID param
   DECORATION_SET     = $8001;
   DECORATION_DEFAULT = $8000;
-  
+
 // OpenScreen error codes, which are returned in the (optional) LongIng pointed to by ti_Data for the SA_ErrorCode tag item
   OSERR_NOMONITOR    = 1; // named monitor spec not available
   OSERR_NOCHIPS      = 2; // you need newer custom chips
@@ -1207,7 +1207,7 @@ const
   OSERR_TOODEEP      = 7;
   OSERR_ATTACHFAIL   = 8;
   OSERR_NOTAVAILABLE = 9;
-  
+
 // The SCREENTYPE bits are reserved for describing various Screen types available under Intuition.
   // The screen flags have the suffix "_f" added to avoid conflicts with routine names.
   // Screen^.Flags and (Ext)NewScreen^.Type
@@ -1215,7 +1215,7 @@ const
   PUBLICSCREEN_f = 1 shl 1;
   CUSTOMSCREEN_f = $000F;     // for that special look
   SCREENTYPE_f   = $000F;     // all the screens types available
-  // Screen^.Flags 
+  // Screen^.Flags
   SHOWTITLE_f    = 1 shl 4;   // this gets set by a call to ShowTitle()
   BEEPING_f      = 1 shl 5;   // set when Screen is beeping
   CUSTOMBITMAP_f = 1 shl 6;   // if you are supplying your own BitMap
@@ -1250,7 +1250,7 @@ const
   SA_PubName     = SA_Dummy + 15; // presence of this tag means that the screen is to be a public screen. Please specify BEFORE the two tags below
   SA_PubSig      = SA_Dummy + 16;
   SA_PubTask     = SA_Dummy + 17; // Task ID and signal for being notified that the last window has closed on a public screen.
-  SA_DisplayID   = SA_Dummy + 18; // ti_Data is new extended display ID 
+  SA_DisplayID   = SA_Dummy + 18; // ti_Data is new extended display ID
   SA_DClip       = SA_Dummy + 19; // ti_Data points to a rectangle which defines screen display clip region
   SA_Overscan    = SA_Dummy + 20; { was S_STDDCLIP.  Set to one of the OSCAN_* specifiers below to get a system standard
                                        overscan region for your display clip, screen dimensions (unless otherwise specified),
@@ -1314,7 +1314,7 @@ type
 
     ViewModes: Word;        // the Modes for the ViewPort (and View)
     SType: Word;            // the Screen type (see defines above) (Type in C-Include)
-    
+
     Font: PTextAttr;        // this Screen's default text attributes
     DefaultTitle: PChar;    // the default title for this Screen
     Gadgets: PGadget;       // your own Gadgets for this Screen
@@ -1344,7 +1344,7 @@ type
     CustomBitMap: PBitMap;
     Extension: PTagItem; // ExtNewScreen specific extension SA_*
   end;
-  
+
 // Public Shared Screen Node
 { This is the representative of a public shared screen.
   This is an internal data structure, but some functions may
@@ -1401,7 +1401,7 @@ const
   open a screen should never use that flag.
  }
 
-  SPOS_RELATIVE    = 0;       // The x1 and y1 parameters to ScreenPosition() describe the offset in coordinates you wish to move the screen by. Coordinates are relative 
+  SPOS_RELATIVE    = 0;       // The x1 and y1 parameters to ScreenPosition() describe the offset in coordinates you wish to move the screen by. Coordinates are relative
   SPOS_ABSOLUTE    = 1 shl 0; // The x1 and y1 parameters to ScreenPosition() describe the absolute coordinates you wish to move the screen to. Coordinates are expressed as absolutes, not relatives.
   SPOS_MAKEVISIBLE = 1 shl 1; // Coordinates describe a box on the screen you wish to be made visible by autoscrolling
                               // (x1,y1)-(x2,y2) describes a rectangle on the screen which you would like autoscrolled into view.
@@ -1429,7 +1429,7 @@ const
   FILENAME_SIZE = 30; // Filename size
   DEVNAME_SIZE  = 16;
   POINTERSIZE = (1 + 16 + 1) * 2; // Size of Pointer data buffer
-  
+
 { These defines are for the default font size.   These actually describe the
   height of the defaults fonts.  The default font type is the topaz
   font, which is a fixed width font that can be used in either
@@ -1443,16 +1443,16 @@ const
 type
   PPreferences = ^TPreferences;
   TPreferences = record
-    FontHeight: ShortInt;      // height for system default font  
-    PrinterPort: Byte;         // printer port connection constant describing what's hooked up to the port 
+    FontHeight: ShortInt;      // height for system default font
+    PrinterPort: Byte;         // printer port connection constant describing what's hooked up to the port
     BaudRate: Word;            // baud rate for the serial port
-    
+
   // various timing rates
     KeyRptSpeed: Ttimeval;     // repeat speed for keyboard
     KeyRptDelay: Ttimeval;     // Delay before keys repeat
     DoubleClick: Ttimeval;     // Interval allowed between clicks
-    
-  // Intuition Mouse-Pointer data  
+
+  // Intuition Mouse-Pointer data
     PointerMatrix: array[0..POINTERSIZE - 1] of Word; // Definition of pointer sprite
     XOffset: ShortInt;   // X-Offset for active 'bit'
     YOffset: ShortInt;   // Y-Offset for active 'bit'
@@ -1477,7 +1477,7 @@ type
 
   // printer configurations
     PrinterType: Word;     // printer type
-    PrinterFilename: array[0..FILENAME_SIZE - 1] of char; // file for printer 
+    PrinterFilename: array[0..FILENAME_SIZE - 1] of char; // file for printer
 
   // print format and quality configurations
     PrintPitch: Word;         // print pitch
@@ -1499,12 +1499,12 @@ type
     SerRWBits: Byte;  // upper nibble = (8-number of read bits), lower nibble = (8-number of write bits)
     SerStopBuf: Byte; // upper nibble = (number of stop bits - 1), lower nibble = (table value for BufSize)
     SerParShk: Byte;  // upper nibble = (value for Parity setting), lower nibble = (value for Handshake mode)
-    LaceWB: Byte;     // if workbench is to be interlaced 
+    LaceWB: Byte;     // if workbench is to be interlaced
 
   // temp file for printer
     Pad: array[0..11] of Byte;
     PrtDevName: array [0..DEVNAME_SIZE - 1] of char; // Device used by printer.device (leave out the ".device")
-  
+
     DefaultPrtUnit: Byte; // Default unit opened by printer.device
     DefaultSerUnit: Byte; // Default serial unit
 
@@ -1718,7 +1718,7 @@ type
 type
   Object_ = LongWord;
   PObject_ = ^Object_;
-  PPObject_ = ^PObject_; 
+  PPObject_ = ^PObject_;
   ClassID = STRPTR;
 
 { you can use this type to point to a 'generic' message,
@@ -1736,8 +1736,8 @@ type
   over the lowercase strings, but this makes a good place
   to list the names of the built-in classes.}
 const
-  ROOTCLASS: ClassID     = 'rootclass';          // classusr.h   
-  IMAGECLASS: ClassID    = 'imageclass';        // imageclass.h 
+  ROOTCLASS: ClassID     = 'rootclass';          // classusr.h
+  IMAGECLASS: ClassID    = 'imageclass';        // imageclass.h
   FRAMEICLASS: ClassID   = 'frameiclass';
   SYSICLASS: ClassID     = 'sysiclass';
   FILLRECTCLASS: ClassID = 'fillrectclass';
@@ -1783,7 +1783,7 @@ type
     ops_AttrList: PTagItem; // new attributes
     ops_GInfo: PGadgetInfo; // always there for gadgets, when SetGadgetAttrs() is used, but will be nil for OM_NEW
   end;
-  
+
   // OM_GET
   PopGet = ^TopGet;
   TopGet = record
@@ -1791,7 +1791,7 @@ type
     opg_AttrID: LongWord;
     opg_Storage: Pointer;   // may be other types, but 'int' types are all LongWord
   end;
-  
+
   // OM_ADDTAIL
 
   PopAddTail = ^TopAddTail;
@@ -1808,7 +1808,7 @@ type
   end;
   TopAddMember = TopMember;
   PopAddMember = ^TopAddMember;
-  
+
   // OM_NOTIFY, and OM_UPDATE
   PopUpdate = ^TopUpdate;
   TopUpdate = record
@@ -1892,11 +1892,11 @@ const
   GA_RelWidth  = (GA_Dummy + $0006); // [ISG] (LONG) Width of gadget, depending on window width: Width=Win^.Width-this
   GA_Height    = (GA_Dummy + $0007); // [ISG] (LONG) Height of gadget.
   GA_RelHeight = (GA_Dummy + $0008); // [ISG] (LONG) Height of gadget, depending on window height: Height=Win^.Height-this
-  
+
 // Gadget rendering
   GA_Text         = (GA_Dummy + $0009); // [IS.] (PChar) Label text. This is mutually exclusive with GA_IntuiText and GA_LabelImage.
   // The next two attributes are mutually exclusive.
-  GA_Image        = (GA_Dummy + $000A); // (PImage) Gadget imagry is an image 
+  GA_Image        = (GA_Dummy + $000A); // (PImage) Gadget imagry is an image
   GA_Border       = (GA_Dummy + $000B); // (PBorder) Gadget imagry is a border
   GA_SelectRender = (GA_Dummy + $000C); { [IS.] (PImage) Gadgets' image in selected state. Note that if
      this is nil and GA_Image is in fact an image object, GA_Image may be
@@ -1905,7 +1905,7 @@ const
      object that supports the selected state.}
   GA_Highlight    = (GA_Dummy + $000D); // [IS.] (LongWord) Takes GFLG_GADGH* flags as argument. Used to specify the highlighting technique.
   GA_Disabled     = (GA_Dummy + $000E); // [ISG] (LongBool) If this is set to true, the gadget is not selectable. Often this is visually represented by using a special disabled pattern.
-  
+
 // Additional information.
   GA_GZZGadget   = (GA_Dummy + $000F); // [IS.] (LongBool) The Gadget is a GimmeZeroZero gadget. Default = False
   GA_ID          = (GA_Dummy + $0010); // (LongInt) Gadget ID assigned by the application (prevent double numbers)
@@ -1913,7 +1913,7 @@ const
   GA_SpecialInfo = (GA_Dummy + $0012); { [IS.] (APTR) Pointer to additional information, needed by some gadgets
      (like string or integer gadgets). This field should generally only be set
      by subclasses of GadgetClass. Applications should keep their hands off it.}
-     
+
 // Gadget activation.
   GA_Selected     = (GA_Dummy + $0013); // [ISG] (LongBool) Indicate whether the gadget is selected or not. Default = False
   GA_EndGadget    = (GA_Dummy + $0014); // [IS.] (LongBool) Only used for requester gadgets. This tells intuition that the requester is to be closed, when the gadget is released. Default = False
@@ -1924,7 +1924,7 @@ const
   GA_LeftBorder   = (GA_Dummy + $0019); // [IS.] (LongBool) Indicate whether the gadget is in the left border or not. Default = False.
   GA_TopBorder    = (GA_Dummy + $001A); // [IS.] (LongBool) Indicate whether the gadget is in the top border or not. Default = False.
   GA_BottomBorder = (GA_Dummy + $001B); // [IS.] (LongBool) Indicate whether the gadget is in the bottom border or not. Default = False.
-  GA_ToggleSelect = (GA_Dummy + $001C); // [IS.] (LongBool) Indicate whether the gadget is toggle-selected or not.  Default = False. 
+  GA_ToggleSelect = (GA_Dummy + $001C); // [IS.] (LongBool) Indicate whether the gadget is toggle-selected or not.  Default = False.
   // The following two attributes are PRIVATE!
   GA_SysGadget    = (GA_Dummy + $001D); // [IS.] (LongBool) Set, if gadget is a system-gadget e.g. a standard window border gadget. Default = False.
   GA_SysGType     = (GA_Dummy + $001E); // [IS.] (LongWord) Reserved for system use to indicate the gadget type.
@@ -1938,9 +1938,9 @@ const
      to be able to perform correct rendering. Read the documentation of the
      subclasses to learn, which need this attribute. To be on the safe side,
      you can always supply it.}
-  // You should use at most ONE of GA_Text, GA_IntuiText, and GA_LabelImage 
+  // You should use at most ONE of GA_Text, GA_IntuiText, and GA_LabelImage
   GA_IntuiText = (GA_Dummy + $0022); // [IS.] (PIntuiText) Label is an IntuiText.
-  GA_LabelImage = (GA_Dummy + $0023); // [IS.] (PObject_) Label is an image object. 
+  GA_LabelImage = (GA_Dummy + $0023); // [IS.] (PObject_) Label is an image object.
   GA_TabCycle = (GA_Dummy + $0024);  // [IS.] (LongBool) If set to true that gadget participates in TAB handling, i.e. if tab is pressed, the next gadget is activated.
   GA_GadgetHelp = (GA_Dummy + $0025); // [..G] (LongBool) If this is set by the gadget, the sends GADGETHELP messages.
   GA_Bounds = (GA_Dummy + $0026); // [IS.] (PIBox) Bounds to be copied into the ExtGadget structure.
@@ -1959,7 +1959,7 @@ const
 // Aros Specifics
   GA_LabelPlace = GA_Dummy + 100; { [I..] (LongInt) Choose the placing of the label. GadgetClass does not support
      this directly. Its subclasses have to take care of that. For possible values see GV_* .}
-     
+
 // Placetext values for GA_LabelPlace.
   GV_LabelPlace_In    = 1;
   GV_LabelPlace_Left  = 2;
@@ -1972,7 +1972,7 @@ const
   PGA_Dummy       = TAG_USER + $31000;
   PGA_Freedom     = PGA_Dummy + 1;  // [IS.] (LongWord) Define in which the direction gadget should stretch. Possible values are FREEVERT and FREEHORIZ
   PGA_Borderless  = PGA_Dummy + 2;  // [IS.] (LongBool) If set, no border will be rendered.
-  // The following four attributes should not be used with PGA_Total, PGA_Visible and PGA_Top. 
+  // The following four attributes should not be used with PGA_Total, PGA_Visible and PGA_Top.
   PGA_HorizPot    = PGA_Dummy + 3;  // [ISG] (Word)
   PGA_HorizBody   = PGA_Dummy + 4;  // [ISG] (Word)
   PGA_VertPot     = PGA_Dummy + 5;  // [ISG] (Word)
@@ -2004,7 +2004,7 @@ const
   STRINGA_AltKeyMap      = STRINGA_Dummy + 7;  // [IS.] (PKeyMap) KeyMap to use
   STRINGA_Font           = STRINGA_Dummy + 8;  // [IS.] (PTextFont) Font to use for displaying the string
   STRINGA_Pens           = STRINGA_Dummy + 9;  // [IS.] (LongInt) The lower 16 bits specify the background-pen, the upper 16 bits the foreground-pen. The gadget is rendered, using these pens, if the gadget is inactive
-  STRINGA_ActivePens     = STRINGA_Dummy + 10; // [IS.] (LongInt) Like STRINGA_Pens. These pens are used, if the gadget is active. 
+  STRINGA_ActivePens     = STRINGA_Dummy + 10; // [IS.] (LongInt) Like STRINGA_Pens. These pens are used, if the gadget is active.
   STRINGA_EditHook       = STRINGA_Dummy + 11; // [I..] (PHook) FIXME
   STRINGA_EditModes      = STRINGA_Dummy + 12; // [IS.] (LongWord) FIXME
   STRINGA_ReplaceMode    = STRINGA_Dummy + 13; // [IS.] (BOOL) If this is TRUE, the current character is overwritten, if the use presses a key. Otherwise, the new character is inserted.
@@ -2024,7 +2024,7 @@ const
   LAYOUTA_Orientation    = LAYOUTA_Dummy + 3; // Orientation LORIENT_*
   LAYOUTA_ChildMaxWidth  = LAYOUTA_Dummy + 4; // (BOOL) Child objects are of equal width. Should default to True for gadgets with a horizontal orientation.
   LAYOUTA_ChildMaxHeight = LAYOUTA_Dummy + 5; // (BOOL) Child objects are of equal height. Should default to True for gadgets with a vertical orientation.
-  // orientation values for LAYOUTA_Orientation 
+  // orientation values for LAYOUTA_Orientation
   LORIENT_NONE  = 0;
   LORIENT_HORIZ = 1;
   LORIENT_VERT  = 2;
@@ -2038,8 +2038,8 @@ const
   GM_GOINACTIVE  = 4;  // whether or not by choice, you are done
   GM_HELPTEST    = 5;  // Will you send gadget help if the mouse is at the specified coordinates?  See below for possible GMR_ values.                              }
   GM_LAYOUT      = 6;  // re-evaluate your size based on the GadgetInfo Domain.  Do NOT re-render yourself yet, you will be called when it is time...
-  GM_DOMAIN      = 7;  // This method is invoked to learn about the sizing requirements of your class, before an object is created. 
-  
+  GM_DOMAIN      = 7;  // This method is invoked to learn about the sizing requirements of your class, before an object is created.
+
 // Parameter "Messages" passed to gadget class methods
 type
   // GM_HITTEST
@@ -2074,7 +2074,7 @@ const
   // gpr_Redraw. Not all of these values make sense for all gadgets.
   GREDRAW_UPDATE = 2; // incremental update. Some data (e.g. the level of a slider) was updated. Just redraw the necessary parts.
   GREDRAW_REDRAW = 1; // redraw the whole gadget
-  GREDRAW_TOGGLE = 0; // toggle highlight, IF applicable 
+  GREDRAW_TOGGLE = 0; // toggle highlight, IF applicable
 
 type
   // GM_GOACTIVE, GM_HANDLEINPUT
@@ -2110,7 +2110,7 @@ const
     set is to be activated.}
   GMR_NEXTACTIVE = 1 shl 4; // Activate next gadget.
   GMR_PREVACTIVE = 1 shl 5; // Activate previous gadget.
-  
+
 type
   // GM_GOINACTIVE see GM_GOACTIVE for explanation
   PgpGoInactive = ^TgpGoInactive;
@@ -2150,11 +2150,11 @@ type
     gpd_Attrs: PTagItem;     // Additional attributes. None defines yet
   end;
 const
-  // gpd_Which 
+  // gpd_Which
   GDOMAIN_MINIMUM = 0; // Calculate minimum size.
   GDOMAIN_NOMINAL = 1; // Calculate nominal size.
   GDOMAIN_MAXIMUM = 2; // Calculate maximum size.
-  
+
 const
   ICM_Dummy     = $0401;          // used for nothing
   // no parameters for ICM_SETLOOP, ICM_CLEARLOOP, ICM_CHECKLOOP
@@ -2182,7 +2182,7 @@ const
 const
   // if image.Depth is this, it's a new Image class object
   CUSTOMIMAGEDEPTH = -1;
-  
+
   // Attributes for IMAGECLASS
   IA_Dummy        = TAG_USER + $20000;
   IA_Left         = IA_Dummy + $01;
@@ -2207,7 +2207,7 @@ const
   // SYSICLASS attributes
   SYSIA_Size          = IA_Dummy + $0B; // see below SYSISIZE_*
   SYSIA_Depth         = IA_Dummy + $0C;
-  SYSIA_Which         = IA_Dummy + $0D; // see below 
+  SYSIA_Which         = IA_Dummy + $0D; // see below
   SYSIA_UserBuffer    = IA_Dummy + $20; // Only for system Images
   SYSIA_DrawInfo      = IA_Dummy + $18; // Must be specified
   SYSIA_ReferenceFont = IA_Dummy + $19; // Font to use as reference for scaling certain sysiclass images
@@ -2215,10 +2215,10 @@ const
   IA_FrameType        = IA_Dummy + $1b; // Starting with V39, FrameIClass recognizes several standard types of frame.  Use one of the FRAME_* specifiers below.  Default = FRAME_DEFAULT.
   // Private AROS sysiclass tags and defines
   SYSIA_WithBorder    = IA_FGPen; // default: True
-  SYSIA_Style         = IA_BGPen;	// default: SYSISTYLE_NORMAL
-  
+  SYSIA_Style         = IA_BGPen; // default: SYSISTYLE_NORMAL
+
   SYSISTYLE_NORMAL   = 0;
-  SYSISTYLE_GADTOOLS = 1;	// to get arrow images in gadtools look
+  SYSISTYLE_GADTOOLS = 1; // to get arrow images in gadtools look
 
   // data values for SYSIA_Size
   SYSISIZE_MEDRES = 0;
@@ -2266,7 +2266,7 @@ const
   IDS_INACTIVESELECTED = 6; // selected, in inactive border
   IDS_INACTIVEDISABLED = 7; // disabled, in inactive border
   IDS_SELECTEDDISABLED = 8; // disabled and selected
-  
+
 type
   // IM_FRAMEBOX
   PimpFrameBox = ^TimpFrameBox;
@@ -2345,13 +2345,13 @@ const
 
 { These are the choices for the POINTERA_YResolution attribute which
   will determine what vertical resolution is used for this pointer.
- 
+
   POINTERYRESN_DEFAULT
        = In 15 kHz modes, the pointer resolution will be the same
          as a non-interlaced screen.  In 31 kHz modes, the pointer
          will be doubled vertically.  This means there will be about
          200-256 pointer lines per screen.
- 
+
   POINTERYRESN_HIGH
   POINTERYRESN_HIGHASPECT
        = Where the hardware/software supports it, the pointer resolution
@@ -2360,7 +2360,7 @@ const
          when the pointer comes out double-height due to hardware/software
          restrictions, its width would be doubled as well, if possible
          (to preserve aspect).
- 
+
   POINTERYRESN_SCREENRES
   POINTERYRESN_SCREENRESASPECT
        = Will attempt to match the vertical resolution of the pointer
@@ -2432,7 +2432,7 @@ const
   SGA_PREVACTIVE = $40; // Make previous possible gadget active.
   // function id for only existing custom string gadget edit hook
   SGH_KEY   = 1; // process editing keystroke
-  SGH_CLICK = 2; // process mouse click cursor position 
+  SGH_CLICK = 2; // process mouse click cursor position
 
 { Here's a brief summary of how the custom string gadget edit hook works:
     You provide a hook in StringInfo.Extension.EditHook. The hook is called in the standard way with the 'object' a pointer to SGWork,
@@ -2442,21 +2442,21 @@ const
        There are no parameters following the command LongWord. Intuition will put its idea of proper values in the SGWork
        before calling you, and if you leave SGA_USE set in the SGWork.Actions field, Intuition will use the values
        found in SGWork fields WorkBuffer, NumChars, BufferPos, and LongInt, copying the WorkBuffer back to the StringInfo
-       Buffer. 
-       
+       Buffer.
+
        NOTE WELL: You may NOT change other SGWork fields.
        If you clear SGA_USE, the string gadget will be unchanged.
-       
+
        If you set SGA_END, Intuition will terminate the activation of the string gadget.  If you also set SGA_REUSE, Intuition
        will reuse the input event after it deactivates your gadget. In this case, Intuition will put the value found in SGWork.Code
        into the IntuiMessage.Code field of the IDCMP_GADGETUP message it sends to the application.
 
        If you set SGA_BEEP, Intuition will call DisplayBeep(); use this if the user has typed in error, or buffer is full.
- 
+
        Set SGA_REDISPLAY if the changes to the gadget warrant a gadget redisplay.  Note: cursor movement requires a redisplay.
        Starting in V37, you may set SGA_PREVACTIVE or SGA_NEXTACTIVE when you set SGA_END.  This tells Intuition that you want
        the next or previous gadget with GFLG_TABCYCLE to be activated.
- 
+
     SGH_CLICK:
        This hook command is called when Intuition wants to position the cursor in response to a mouse click in the string gadget.
        Again, here are no parameters following the command LongWord. This time, Intuition has already calculated the mouse position
@@ -2464,7 +2464,7 @@ const
 
        Intuition will again use the SGWork fields listed above for SGH_KEY.  One restriction is that you are NOT allowed to set
        SGA_END or SGA_REUSE for this command.  Intuition will not stand for a gadget which goes inactive when you click in it.
- 
+
        You should always leave the SGA_REDISPLAY flag set, since Intuition uses this processing when activating a string gadget.}
 type
 { NewDecorator structure used by ChangeDecoration the three Objects (nd_Window, nd_Screen and nd_Menu must be installed and point to decorator objects
@@ -2480,7 +2480,7 @@ type
     nd_Screen: PObject_;
     nd_Menu: PObject_;
   end;
-  
+
   PDecoratorMessage = ^TDecoratorMessage;
   TDecoratorMessage = record
     dm_Message: TMagicMessage;
@@ -2489,22 +2489,22 @@ type
     dm_Flags: LongWord;
     dm_Object: IPTR;
   end;
-  
+
   PScreenNotifyMessage = ^TScreenNotifyMessage;
   TScreenNotifyMessage = record
     snm_Message: PMagicMessage;
     snm_Class: LongWord;  // Notification Class ID same as SNA_Notify
     snm_Code: LongWord;   // Code only supported for ScreenDepth() and will put the Flags in
-    snm_Object: IPTR;     // Pointer to the Object that caused this message      
+    snm_Object: IPTR;     // Pointer to the Object that caused this message
     snm_UserData: IPTR;   // will be filled with SNA_UserData
   end;
-  
+
 const
   DECORATOR_VERSION    = 0;
   SCREENNOTIFY_VERSION = 0;
 { there is only one Message in the initial decoration system it will be sent to the decorator port to signal that it´ll not be used any longer
   and may be destroyed, in that case the dm_Object contains the NewDecorator struct Intuition does not touch anything, the decorator have to
-  destroy all objects as well as the NewDecorator struct.} 
+  destroy all objects as well as the NewDecorator struct.}
   DM_CLASS_DESTROYDECORATOR = $8001;
   // Tags for Screen notify message
   SNA_PubName  = TAG_USER + $01; // public screen name of nil for all screens
@@ -2526,7 +2526,7 @@ const
   SNOTIFY_PUBSCREENSTATE         = 1 shl 6;  // PubScreenState()
   SNOTIFY_LOCKPUBSCREEN          = 1 shl 7;  // LockPubScreen()
   SNOTIFY_SCREENDEPTH            = 1 shl 8;  // ScreenDepth()
-  SNOTIFY_AFTER_CLOSESCREEN      = 1 shl 9;	 // notify after CloseScreen()
+  SNOTIFY_AFTER_CLOSESCREEN      = 1 shl 9;  // notify after CloseScreen()
   SNOTIFY_AFTER_CLOSEWINDOW      = 1 shl 10; // dto. CloseWindow()
   SNOTIFY_BEFORE_OPENSCREEN      = 1 shl 11; // notify before OpenScreen()
   SNOTIFY_BEFORE_OPENWINDOW      = 1 shl 12; // dto. OpenWindow()
@@ -2536,7 +2536,7 @@ const
   SNOTIFY_UNLOCKPUBSCREEN        = 1 shl 16; // UnlockPubScreen()
   SNOTIFY_BEFORE_UPDATEINTUITION = 1 shl 17; // Intuition is going to be updated
   SNOTIFY_AFTER_UPDATEINTUITION  = 1 shl 18; // Intuition is updated
-  
+
   // Attributes for MENUDECORCLASS
   MDA_Dummy         = TAG_USER + $22000;
   MDA_DrawInfo      = MDA_Dummy + 1; // [I.G]
@@ -2559,7 +2559,7 @@ type
     mdp_TrueColor: ShortInt;
     mdp_Dri: PDrawInfo;
     mdp_ReferenceFont: PTextFont; // In:
-    mdp_Which: LongWord;          // In: One of CLOSEIMAGE, SIZEIMAGE, ... 
+    mdp_Which: LongWord;          // In: One of CLOSEIMAGE, SIZEIMAGE, ...
     mdp_SysiSize: LongWord;       // In: lowres/medres/highres
     mdp_Width: PLongWord;         // Out
     mdp_Height: PLongWord;        // Out
@@ -2647,26 +2647,26 @@ const
   MDP_MDF_ITEM             = 1 shl 1;
   MDP_MDF_SUBITEM          = 1 shl 2;
   MDP_MDF_MENUS_UNDERMOUSE = 1 shl 7;
-  
+
   // Length of array returned by MA_PixelFormats
   MONITOR_MAXPIXELFORMATS = 14;
 
   // Attributes
   MA_Dummy               = TAG_USER;
-  MA_MonitorName         = MA_Dummy + 1;	// [..G] STRPTR Monitor name
-  MA_Manufacturer        = MA_Dummy + 2;	// [..G] STRPTR Hardware manufacturer string
-  MA_ManufacturerID      = MA_Dummy + 3;	// [..G] LongWord
-  MA_ProductID           = MA_Dummy + 4;	// [..G] LongWord
-  MA_MemorySize          = MA_Dummy + 5;	// [..G] LongWord Video card memory size
+  MA_MonitorName         = MA_Dummy + 1;  // [..G] STRPTR Monitor name
+  MA_Manufacturer        = MA_Dummy + 2;  // [..G] STRPTR Hardware manufacturer string
+  MA_ManufacturerID      = MA_Dummy + 3;  // [..G] LongWord
+  MA_ProductID           = MA_Dummy + 4;  // [..G] LongWord
+  MA_MemorySize          = MA_Dummy + 5;  // [..G] LongWord Video card memory size
   MA_PixelFormats        = MA_Dummy + 6;  // [..G] PLongWord Pixelformat support flags
-  MA_TopLeftMonitor      = MA_Dummy + 7;	// [.SG] PObject_  Monitor placed in a position relative to the current one
+  MA_TopLeftMonitor      = MA_Dummy + 7;  // [.SG] PObject_  Monitor placed in a position relative to the current one
   MA_TopMiddleMonitor    = MA_Dummy + 8;  // [.SG] PObject_
   MA_TopRightMonitor     = MA_Dummy + 9;  // [.SG] PObject_
   MA_MiddleLeftMonitor   = MA_Dummy + 10; // [.SG] PObject_
   MA_MiddleRightMonitor  = MA_Dummy + 11; // [.SG] PObject_
   MA_BottomLeftMonitor   = MA_Dummy + 12; // [.SG] PObject_
   MA_BottomMiddleMonitor = MA_Dummy + 13; // [.SG] PObject_
-  MA_BottomRightMonitor  = MA_Dummy + 14; // [.SG] PObject_ 
+  MA_BottomRightMonitor  = MA_Dummy + 14; // [.SG] PObject_
   MA_GammaControl        = MA_Dummy + 15; // [..G] LongBool Whether gamma control is supported
   MA_PointerType         = MA_Dummy + 16; // [..G] LongWord Supported pointer types
   MA_DriverName          = MA_Dummy + 17; // [..G] STRPTR Driver name
@@ -2678,7 +2678,7 @@ const
   PointerType_ARGB   = $0004; // Direct color alpha-blended bitmap pointer
 
   // Methods
-  MM_GetRootBitMap	       = $401; // Reserved
+  MM_GetRootBitMap         = $401; // Reserved
   MM_Query3DSupport        = $402; // Ask for 3D acceleration support for given pixelformat
   MM_GetDefaultGammaTables = $403; // Get default gamma correction table
   MM_GetDefaultPixelFormat = $404; // Ask for preferred pixelformat for given depth (-1 = unsupported depth)
@@ -2689,7 +2689,7 @@ const
 
   // AROS-specific attributes
   MA_AROS      = TAG_USER + $00010000;
-  MA_Windowed  = MA_AROS + 1; // [G..] BOOL A display is a window on hosted OS 
+  MA_Windowed  = MA_AROS + 1; // [G..] BOOL A display is a window on hosted OS
   // AROS-specific methods
   MM_SetDefaultGammaTables = $1401; // Set default gamma correction table
 
@@ -2716,7 +2716,7 @@ type
   PmsGetDefaultGammaTables = ^TmsGetDefaultGammaTables;
   TmsGetDefaultGammaTables = record
     MethodID: LongWord;
-    Red: PByte;		      // Optional pointers to 256-byte arrays to fill in
+    Red: PByte;         // Optional pointers to 256-byte arrays to fill in
     Green: PByte;
     Blue: PByte;
   end;
@@ -2743,7 +2743,7 @@ const
   SDA_Dummy = TAG_USER + $22100;
   SDA_DrawInfo      = SDA_Dummy + 1; // [I.G]
   SDA_Screen        = SDA_Dummy + 2; // [I.G]
-  SDA_TrueColorOnly	= SDA_Dummy + 3; // [..G]
+  SDA_TrueColorOnly = SDA_Dummy + 3; // [..G]
   SDA_UserBuffer    = SDA_Dummy + 4; // [I.G]
   // Methods for SCRDECORCLASS */
   SDM_Dummy                = SDA_Dummy + 500;
@@ -2762,14 +2762,14 @@ type
     sdp_TrueColor: ShortInt;
     sdp_Dri: PDrawInfo;
     sdp_ReferenceFont: PTextFont; // In:
-    sdp_Which: LongWord;  	      // In: SDEPTHIMAGE
-    sdp_SysiSize: LongWord;	      // In: lowres/medres/highres
-    sdp_Width: PLongWord;  	      // Out
-    sdp_Height: PLongWord; 	      // Out
+    sdp_Which: LongWord;          // In: SDEPTHIMAGE
+    sdp_SysiSize: LongWord;       // In: lowres/medres/highres
+    sdp_Width: PLongWord;         // Out
+    sdp_Height: PLongWord;        // Out
     sdp_Flags: LongWord;
     sdp_UserBuffer: LongWord;
   end;
-  
+
   PsdpDrawSysImage = ^TsdpDrawSysImage;
   TsdpDrawSysImage = record
     MethodID: LongInt;
@@ -2842,11 +2842,11 @@ const
   SDF_LSG_INGADLIST    = 4; // Gadget is already in screen gadget list
   SDF_LSG_MULTIPLE     = 8; // There may be multiple gadgets (linked together through NextGadget. Follow it)
 
-// Attributes for WINDECORCLASS 
+// Attributes for WINDECORCLASS
   WDA_Dummy         = TAG_USER + $22000;
-  WDA_DrawInfo      = WDA_Dummy + 1; 	// [I.G]
-  WDA_Screen        = WDA_Dummy + 2; 	// [I.G]
-  WDA_TrueColorOnly = WDA_Dummy + 3; 	// [..G]
+  WDA_DrawInfo      = WDA_Dummy + 1;  // [I.G]
+  WDA_Screen        = WDA_Dummy + 2;  // [I.G]
+  WDA_TrueColorOnly = WDA_Dummy + 3;  // [..G]
   WDA_UserBuffer    = WDA_Dummy + 4;  // [I.G]
 
 // Methods for WINDECORCLASS
@@ -2974,7 +2974,7 @@ type
 const
 // WinDecor DrawWindowBorder Flags
    WDF_DWB_TOP_ONLY = 1;   // Draw top border only
-// WinDecor DrawWinTitle Title Align 
+// WinDecor DrawWinTitle Title Align
   WD_DWTA_LEFT    = 0;
   WD_DWTA_RIGHT   = 1;
   WD_DWTA_CENTER  = 2;
@@ -2999,7 +2999,7 @@ const
   JUMPIMAGE       = $17;
   MENUTOGGLEIMAGE = $19;
   SUBMENUIMAGE    = $1A;
-  
+
 // Window attributes
   WA_ExtraTitlebarGadgets = WA_Dummy + 151;
   WA_ExtraGadgetsStartID  = WA_Dummy + 152;
@@ -3011,7 +3011,7 @@ const
   WA_ExtraGadget_Jump     = WA_Dummy + 158;
 
 // WA_ExtraTitlebarGadgets
-  // Flags 
+  // Flags
   ETG_ICONIFY  = $01;
   ETG_LOCK     = $02;
   ETG_MUI      = $04;
@@ -3155,7 +3155,7 @@ const
   WINDOWDEPTH   = WFLG_DEPTHGADGET;
   WINDOWDRAG    = WFLG_DRAGBAR;
   WINDOWSIZING  = WFLG_SIZEGADGET;
-// IDCMP class names: 
+// IDCMP class names:
   LONELYMESSAGE  = IDCMP_LONELYMESSAGE;
   CHANGEWINDOW   = IDCMP_CHANGEWINDOW;
   MENUHELP       = IDCMP_MENUHELP;
@@ -3242,10 +3242,11 @@ procedure FreeScreenBuffer(Screen: PScreen; ScreenBuffer: PScreenBuffer); syscal
 procedure FreeScreenDrawInfo(Screen: PScreen; DrawInfo: PDrawInfo); syscall IntuitionBase 116;
 procedure FreeSysRequest(Window: PWindow); syscall IntuitionBase 62;
 procedure GadgetMouse(Gadget: PGadget; GInfo: PGadgetInfo; var MousePoint: SmallInt); syscall IntuitionBase 95;
-function GetAttr(AttrID: LongWord; Object_: PObject_; StoragePtr: PIPTR): LongWord; syscall IntuitionBase 109;
+function GetAttr(AttrID: LongWord; Object_: PObject_; StoragePtr: PIPTR): LongWord; overload syscall IntuitionBase 109;
+function GetAttr(AttrID: LongWord; Object_: PObject_; var Storage: IPTR): LongWord; overload syscall IntuitionBase 109;
 function GetDefaultPubScreen(NameBuffer: PChar): PScreen; syscall IntuitionBase 97;
 function GetDefPrefs(Preferences: PPreferences; Size: SmallInt): PPreferences; syscall IntuitionBase 21;
-function GetMonitorList(Tags: PTagItem): PPObject_; syscall IntuitionBase 163; 
+function GetMonitorList(Tags: PTagItem): PPObject_; syscall IntuitionBase 163;
 function GetPrefs(Preferences: PPreferences; Size: SmallInt): PPreferences; syscall IntuitionBase 22;
 function GetScreenData(Buffer: APTR; Size: LongWord; Type_: LongWord; Screen: PScreen): LongInt; syscall IntuitionBase 71;
 function GetScreenDrawInfo(Screen: PScreen): PDrawInfo; syscall IntuitionBase 115;
@@ -3342,7 +3343,7 @@ function SetAttrs(Obj: APTR; const Tags: array of const): LongWord;
 function NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of const): APTR;
 function BuildEasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP: LongWord; const Args: array of const): PWindow;
 function DoGadgetMethod(Gad: PGadget; Win: PWindow; Req: PRequester; const Args: array of const): IPTR;
-function EasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP_Ptr: PLongWord; const Args: array of const): LongInt; 
+function EasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP_Ptr: PLongWord; const Args: array of const): LongInt;
 function OpenScreenTags(NewScreen: PNewScreen; const Tags: array of const): PScreen;
 function OpenWindowTags(NewWindow: PNewWindow; const Tags: array of const): PWindow;
 function SetGadgetAttrs(Gadget: PGadget; Window: PWindow; Requester: PRequester; const Tags: array of const): IPTR;
@@ -3392,7 +3393,7 @@ implementation
 
 uses
   tagsarray, longarray;
-  
+
 function SetAttrs(Obj: APTR; const Tags: array of const): LongWord;
 var
   TagList: TTagsList;
@@ -3430,7 +3431,7 @@ var
   ArgList: TArgList;
 begin
   AddArguments(ArgList, Args);
-  Result := EasyRequestArgs(Window, EasyStruct, IDCMP_Ptr, @(ArgList[0])); 
+  Result := EasyRequestArgs(Window, EasyStruct, IDCMP_Ptr, @(ArgList[0]));
 end;
 
 function OpenScreenTags(NewScreen: PNewScreen; const Tags: array of const): PScreen;
@@ -3482,8 +3483,8 @@ begin
   Result := 0;
   if obj = nil then
     Exit;
-  AddArguments(ArgList, [MethodID]);  
-  AddArguments(ArgList, Args);  
+  AddArguments(ArgList, [MethodID]);
+  AddArguments(ArgList, Args);
   Result := CALLHOOKPKT_(PHook(OCLASS(Obj)), Obj, @(ArgList[0]));
 end;
 
@@ -3502,7 +3503,7 @@ begin
   Result := 0;
   if (cl = nil) or (obj = nil) then
     Exit;
-  AddArguments(ArgList, Args);  
+  AddArguments(ArgList, Args);
   Result := CALLHOOKPKT_(PHook(cl^.cl_Super), Obj, @(ArgList[0]));
 end;
 
@@ -3520,7 +3521,7 @@ var
 begin
   AddArguments(ArgList,[MethodID]);
   AddArguments(ArgList, Args);
-  Result := CoerceMethodA(cl, Obj, @(ArgList[0])); 
+  Result := CoerceMethodA(cl, Obj, @(ArgList[0]));
 end;
 
 

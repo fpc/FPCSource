@@ -24,17 +24,11 @@ uses
 
 type
   TTagsList = array of ttagitem;
-  PMyTags = ^TTagsList;
 
-
-function ReadInTags(const Args: array of const): PTagItem;
 procedure AddTags(var Taglist: TTagsList; const Args: array of const);
 function GetTagPtr(var TagList: TTagsList): PTagItem;
 
 implementation
-
-var
-  MyTags: PMyTags;
 
 procedure AddTags(var Taglist: TTagsList; const Args: array of const);
 var
@@ -69,43 +63,6 @@ begin
   GetTagPtr := @(TagList[0]);
 end;
 
-function ReadInTags(const Args: array of const): PTagItem;
-var
-  i: IPTR;
-  ii: IPTR;
-begin
-  ii := 0;
-  SetLength(MyTags^, (Length(Args) div 2) + 4); // some more at the end
-  for i := 0 to High(Args) do
-  begin
-    if not Odd(i) then
-    begin
-      mytags^[ii].ti_tag := IPTR(Args[i].vinteger);
-    end else
-    begin
-      case Args[i].vtype of
-        vtinteger: mytags^[ii].ti_data := IPTR(Args[i].vinteger);
-        vtboolean: mytags^[ii].ti_data := IPTR(Byte(Args[i].vboolean));
-        vtpchar: mytags^[ii].ti_data := IPTR(Args[i].vpchar);
-        vtchar: mytags^[ii].ti_data := IPTR(Args[i].vchar);
-        vtstring: mytags^[ii].ti_data := IPTR(PChar(string(Args[i].vstring^)));
-        vtpointer: mytags^[ii].ti_data := IPTR(Args[i].vpointer);
-      end;
-      Inc(ii);
-    end;
-  end;
-  Inc(ii);
-  // Add additional TAG_DONE (if user forget)
-  mytags^[ii].ti_tag := TAG_DONE;
-  mytags^[ii].ti_data := 0;
-  // return the pointer
-  ReadInTags := @(MyTags^[0]);
-end;
-
 initialization
-  New(MyTags);
-  SetLength(MyTags^, 200);
 finalization
-  SetLength(MyTags^, 0);
-  Dispose(MyTags);
 end.

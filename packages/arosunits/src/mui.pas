@@ -3859,28 +3859,43 @@ end;
  Functions and procedures with array of const go here
 }
 function MUI_AllocAslRequestTags(_type : longword; const tags : Array Of Const) : Pointer;
+var
+  TagList: TTagsList;
 begin
-    MUI_AllocAslRequestTags := MUI_AllocAslRequest(_type , readintags(tags));
+  AddTags(TagList, Tags);
+  MUI_AllocAslRequestTags := MUI_AllocAslRequest(_type, GetTagPtr(TagList));
 end;
 
 function MUI_AslRequestTags(req : Pointer; const tags : Array Of Const) : LongBool;
+var
+  TagList: TTagsList;
 begin
-    MUI_AslRequestTags := MUI_AslRequest(req , readintags(tags));
+  AddTags(TagList, Tags);
+  MUI_AslRequestTags := MUI_AslRequest(req, GetTagPtr(TagList));
 end;
 
 function MUI_MakeObject(_type : LongInt; const params : Array Of Const) : pLongWord;
+var
+  Args: TArgList;
 begin
-    MUI_MakeObject := MUI_MakeObjectA(_type , readinlongs(params));
+  AddArguments(Args, params);
+  MUI_MakeObject := MUI_MakeObjectA(_type, GetArgPtr(Args));
 end;
 
 function MUI_NewObject(a0arg : pCHAR; const tags : Array Of Const) : pLongWord;
+var
+  TagList: TTagsList;
 begin
-    MUI_NewObject := MUI_NewObjectA(a0arg , readintags(tags));
+  AddTags(TagList, Tags);
+  MUI_NewObject := MUI_NewObjectA(a0arg , GetTagPtr(TagList));
 end;
 
 function MUI_Request(app : Pointer; win : Pointer; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : Array Of Const) : LongInt;
+var
+  Args: TArgList;
 begin
-    MUI_Request := MUI_RequestA(app , win , flags , title , gadgets , format , readintags(params));
+  AddArguments(Args, params);
+  MUI_Request := MUI_RequestA(app , win , flags , title , gadgets , format , GetArgPtr(Args));
 end;
 
 const

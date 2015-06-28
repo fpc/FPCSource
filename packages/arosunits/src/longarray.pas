@@ -36,19 +36,11 @@ uses
 type
   PArgList = ^TArgList;
   TArgList = array of IPTR;
-  
-function readinlongs(const Args: array of const): Pointer;
+
 procedure AddArguments(var ArgList: TArgList; const Args: array of const);
 function GetArgPtr(var ArgList: TArgList): Pointer;
 
 implementation
-
-type
-  TMyArgs = array of IPTR;
-  PMyArgs = ^TMyArgs;
-
-var
-  ArgArray : PMyArgs;
 
 procedure AddArguments(var ArgList: TArgList; const Args: array of const);
 var
@@ -80,32 +72,5 @@ begin
   Result := @(ArgList[0]);
 end;
 
-
-function ReadInLongs(const Args: array of const): Pointer;
-var
-  i: Integer;
-begin
-  for i := 0 to High(Args) do begin
-    case args[i].vtype of
-      vtinteger: ArgArray^[i] := IPTR(Args[i].vinteger);
-      vtpchar: ArgArray^[i] := IPTR(Args[i].vpchar);
-      vtchar: ArgArray^[i] := IPTR(Args[i].vchar);
-      vtpointer: ArgArray^[i] := IPTR(Args[i].vpointer);
-      vtstring: ArgArray^[i] := IPTR(PChar(string(Args[i].vstring^)));
-      vtboolean: ArgArray^[i] := IPTR(byte(Args[i].vboolean));
-    end;
-  end;
-  readinlongs := @(argarray^[0]);
-end;
-
-
-
-
-initialization
-  New(argarray);
-  SetLength(argarray^, 200);
-finalization
-  SetLength(argarray^, 0);
-  Dispose(argarray);
 end.
 

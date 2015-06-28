@@ -605,50 +605,73 @@ uses
 
 // varargs versions:
 function AddAppIcon(ID: LongWord; UserData: LongWord; Text_: PChar; MsgPort: PMsgPort; Lock: BPTR; DiskObj: PDiskObject; const Tags: array of const): PAppIcon;
+var
+  TagList: TTagsList;
 begin
-  AddAppIcon := AddAppIconA(ID, UserData, Text_, MsgPort, Lock, DiskObj, ReadInTags(Tags));
+  AddTags(TagList, Tags);
+  AddAppIcon := AddAppIconA(ID, UserData, Text_, MsgPort, Lock, DiskObj, GetTagPtr(TagList));
 end;
 
 
 function AddAppMenuItem(ID: LongWord; UserData: LongWord; Text_: APTR; MsgPort: PMsgPort;  const Tags: array of const): PAppMenuItem;
+var
+  TagList: TTagsList;
 begin
-  AddAppMenuItem := AddAppMenuItemA(ID, UserData, Text_, MsgPort, ReadInTags(Tags));
+  AddAppMenuItem := AddAppMenuItemA(ID, UserData, Text_, MsgPort, GetTagPtr(TagList));
 end;
 
 
 function AddAppWindow(ID: LongWord; UserData: LongWord; Window: PWindow; MsgPort: PMsgPort;  const Tags: array of const): PAppWindow;
+var
+  TagList: TTagsList;
 begin
-  AddAppWindow := AddAppWindowA(ID, UserData, Window, MsgPort, ReadInTags(Tags));
+  AddTags(TagList, Tags);
+  AddAppWindow := AddAppWindowA(ID, UserData, Window, MsgPort, GetTagPtr(TagList));
 end;
 
 
 function AddAppWindowDropZone(Aw: PAppWindow; ID: LongWord; UserData: LongWord;  const Tags: array of const): PAppWindowDropZone;
+var
+  TagList: TTagsList;
 begin
-  AddAppWindowDropZone := AddAppWindowDropZoneA(Aw, ID, UserData, ReadInTags(Tags));
+  AddTags(TagList, Tags);
+  AddAppWindowDropZone := AddAppWindowDropZoneA(Aw, ID, UserData, GetTagPtr(TagList));
 end;
 
 
 function CloseWorkbenchObject(Name: STRPTR;  const Tags: array of const): LongBool;
+var
+  TagList: TTagsList;
 begin
-  CloseWorkbenchObject := CloseWorkbenchObjectA(Name, ReadInTags(Tags));
+  AddTags(TagList, Tags);
+  CloseWorkbenchObject := CloseWorkbenchObjectA(Name, GetTagPtr(TagList));
 end;
 
 
 function MakeWorkbenchObjectVisible(Name: STRPTR;  const Tags: array of const): LongBool;
+var
+  TagList: TTagsList;
 begin
-  MakeWorkbenchObjectVisible := MakeWorkbenchObjectVisibleA(Name, ReadInTags(Tags));
+  AddTags(TagList, Tags);
+  MakeWorkbenchObjectVisible := MakeWorkbenchObjectVisibleA(Name, GetTagPtr(TagList));
 end;
 
 
 function OpenWorkbenchObject(Name: STRPTR;  const Tags: array of const): LongBool;
+var
+  TagList: TTagsList;
 begin
-  OpenWorkbenchObject := OpenWorkbenchObjectA(Name, ReadInTags(Tags));
+  AddTags(TagList, Tags);
+  OpenWorkbenchObject := OpenWorkbenchObjectA(Name, GetTagPtr(TagList));
 end;
 
 
 function WorkbenchControl(Name: STRPTR;  const Tags: array of const): LongBool;
+var
+  TagList: TTagsList;
 begin
-  WorkbenchControl := WorkbenchControlA(Name, ReadInTags(Tags));
+  AddTags(TagList, Tags);
+  WorkbenchControl := WorkbenchControlA(Name, GetTagPtr(TagList));
 end;
 
 

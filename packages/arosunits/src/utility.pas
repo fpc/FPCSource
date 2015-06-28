@@ -33,18 +33,18 @@ type
     Year: Word;
     WDay: Word;
   end;
-  
+
 // Use CALLHOOKPKT to call a hook
   PHook = ^THook;
   THookFunctionProc = function(Hook: PHook; Object_: APTR; Message: APTR): IPTR; cdecl;
-  
+
   THook = record
     h_MinNode: TMinNode;
     h_Entry: IPTR;    // Main Entry point THookFunctionProc
     h_SubEntry: IPTR; // Secondary entry point
     h_Data: Pointer;     // owner specific
   end;
-  
+
 // The named object structure
   PNamedObject = ^TNamedObject;
   TNamedObject = record
@@ -66,16 +66,16 @@ const
 
 //   Control attributes for Pack/UnpackStructureTags()
 { PackTable definition:
- 
+
   The PackTable is a simple array of LONGWORDS that are evaluated by
   PackStructureTags() and UnpackStructureTags().
- 
+
   The table contains compressed information such as the tag offset from
   the base tag. The tag offset has a limited range so the base tag is
   defined in the first longword.
- 
+
   After the first longword, the fields look as follows:
- 
+
        +--------- 1 = signed, 0 = unsigned (for bits, 1=inverted boolean)
        |
        |  +------ 00 = Pack/Unpack, 10 = Pack, 01 = Unpack, 11 = special
@@ -91,11 +91,11 @@ const
        Bit offset (for bit operations) ----/ |               |
                                              \                       |
        Offset into data structure -----------------------------------/
- 
+
   A -1 longword signifies that the next longword will be a new base tag
- 
+
   A 0 longword signifies that it is the end of the pack table.
- 
+
   What this implies is that there are only 13-bits of address offset
   and 10 bits for tag offsets from the base tag.  For most uses this
   should be enough, but when this is not, either multiple pack tables
@@ -108,7 +108,7 @@ const
   PSTB_PACK   = 29;       // Note that these are active low...
   PSTF_PACK   = 1 shl 29;
   PSTB_UNPACK = 30;       // Note that these are active low...
-  PSTF_UNPACK = 1 shl 30;  
+  PSTF_UNPACK = 1 shl 30;
   PSTB_SIGNED = 31;
   PSTF_SIGNED = 1 shl 31;
 
@@ -199,7 +199,7 @@ const
   MAP_REMOVE_NOT_FOUND = 0; // remove tags that aren't in mapList
   MAP_KEEP_NOT_FOUND   = 1; // keep tags that aren't in mapList
 
-  UTILITYNAME	= 'utility.library';
+  UTILITYNAME = 'utility.library';
 
 type
   PUtilityBase = ^TUtilityBase;
@@ -250,7 +250,6 @@ function UnpackStructureTags(Pack: APTR; PackTable: PLongWord; TagList: PTagItem
 
 // Macros
 function CALLHOOKPKT_(Hook: PHook; Object_: APTR; Message: APTR): IPTR; inline;
-function TAGLIST(var Args: array of const): PTagItem; // NOT threadsafe! Better use AddTags/GetTagPtr
 
 // VarArgs Versions
 function AllocNamedObject(const Name: STRPTR; const Tags: array of const): PNamedObject;
@@ -268,20 +267,18 @@ begin
   AddTags(TagList, Tags);
   Result := AllocNamedObjectA(Name, GetTagPtr(TagList));
 end;
-  
-function TAGLIST(var Args: array of const): PTagItem;
-begin
-  Result := ReadInTags(Args);
-end;
 
 function CallHook(Hook: PHook; Object_: APTR; const Params: array of const): IPTR;
+var
+  Args: TArgList;
 begin
-  CallHook := CallHookPkt(Hook, Object_ , ReadInLongs(Params));
+  AddArguments(Args, params);
+  CallHook := CallHookPkt(Hook, Object_ , GetArgPtr(Args));
 end;
 
 function CALLHOOKPKT_(Hook: PHook; Object_: APTR; Message: APTR): IPTR;
 var
-  FuncPtr: THookFunctionProc; 
+  FuncPtr: THookFunctionProc;
 begin
   Result := 0;
   if (Hook = nil) or (Object_ = nil) or (Message = nil) then
