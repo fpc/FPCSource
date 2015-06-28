@@ -109,7 +109,7 @@ begin
   dosLock:=Lock(buffer,accessmode);
 end;
 
-function BADDR(bval: LongInt): Pointer; Inline;
+function BADDR(bval: PtrInt): Pointer; Inline;
 begin
   {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
   BADDR := Pointer(bval);
@@ -127,7 +127,7 @@ begin
   {$endif}
 end;
 
-function BSTR2STRING(s : LongInt): PChar; Inline;
+function BSTR2STRING(s : PtrInt): PChar; Inline;
 begin
   {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
   BSTR2STRING:=PChar(s);
@@ -670,7 +670,7 @@ end;
 function DiskSize(Drive: Byte): Int64;
 begin
   DiskSize := -1;
-  if (Drive < 0) or (Drive >= NumDevices) then
+  if (Drive >= NumDevices) then
     Exit;
   DiskSize := DiskSize(DeviceList[Drive]);
 end;
@@ -700,7 +700,7 @@ end;
 function DiskFree(Drive: Byte): Int64;
 begin
   DiskFree := -1;
-  if (Drive < 0) or (Drive >= NumDevices) then
+  if (Drive >= NumDevices) then
     Exit;
   DiskFree := DiskFree(DeviceList[Drive]);
 end;
