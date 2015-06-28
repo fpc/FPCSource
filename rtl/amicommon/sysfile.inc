@@ -299,7 +299,7 @@ end;
   using the same method on all Amiga flavors, but if anyone has
   a problem with it, disable this define to revert to the old
   method and report the issue. (KB) } 
-function do_filesize(handle : longint) : longint;
+function do_filesize(handle : THandle) : longint;
 var
 {$IFDEF ASYS_FILESIZE_NO_DOUBLE_SEEK}
   fib: PFileInfoBlock;
@@ -413,7 +413,7 @@ begin
   end;
 end;
 
-function do_isdevice(handle: longint): boolean;
+function do_isdevice(handle: thandle): boolean;
 begin
   if (handle=StdOutputHandle) or (handle=StdInputHandle) or
      (handle=StdErrorHandle) then
