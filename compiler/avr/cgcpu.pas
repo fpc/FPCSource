@@ -732,7 +732,7 @@ unit cgcpu;
        var
          mask : qword;
          shift : byte;
-         i : byte;
+         i,j : byte;
          tmpreg : tregister;
          tmpreg64 : tregister64;
 
@@ -799,6 +799,71 @@ unit cgcpu;
                        else
                          list.concat(taicpu.op_reg_const(A_SBCI,reg,curvalue));
                      end;
+                 end;
+             end;
+           OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
+             begin
+               if a*tcgsize2size[size]<=8 then
+                 begin
+                   for j:=1 to a do
+                     begin
+                       case op of
+                         OP_SHR:
+                           list.concat(taicpu.op_reg(A_LSR,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1)));
+                         OP_SHL:
+                           list.concat(taicpu.op_reg(A_LSL,reg));
+                         OP_SAR:
+                           list.concat(taicpu.op_reg(A_ASR,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1)));
+                         OP_ROR:
+                           begin
+                             { load carry? }
+                             if not(size in [OS_8,OS_S8]) then
+                               begin
+                                 list.concat(taicpu.op_none(A_CLC));
+                                 list.concat(taicpu.op_reg_const(A_SBRC,reg,0));
+                                 list.concat(taicpu.op_none(A_SEC));
+                               end;
+                             list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1)));
+                           end;
+                         OP_ROL:
+                           begin
+                             { load carry? }
+                             if not(size in [OS_8,OS_S8]) then
+                               begin
+                                 list.concat(taicpu.op_none(A_CLC));
+                                 list.concat(taicpu.op_reg_const(A_SBRC,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1),7));
+                                 list.concat(taicpu.op_none(A_SEC));
+                               end;
+                             list.concat(taicpu.op_reg(A_ROL,reg))
+                           end;
+                         else
+                           internalerror(2011030901);
+                       end;
+                       if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+                         begin
+                           for i:=2 to tcgsize2size[size] do
+                             begin
+                               case op of
+                                 OP_ROR,
+                                 OP_SHR:
+                                   list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(reg,reghi,tcgsize2size[size]-i)));
+                                 OP_ROL,
+                                 OP_SHL:
+                                   list.concat(taicpu.op_reg(A_ROL,GetOffsetReg64(reg,reghi,i-1)));
+                                 OP_SAR:
+                                   list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(reg,reghi,tcgsize2size[size]-i)));
+                                 else
+                                   internalerror(2011030902);
+                               end;
+                           end;
+                         end;
+                   end;
+                 end
+               else
+                 begin
+                   tmpreg:=getintregister(list,size);
+                   a_load_const_reg(list,size,a,tmpreg);
+                   a_op_reg_reg(list,op,size,tmpreg,reg);
                  end;
              end;
            OP_ADD:
