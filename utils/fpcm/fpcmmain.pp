@@ -149,7 +149,7 @@ interface
         { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   true,  false, false),
         { android } ( true,  false, false, false, false, true,  false, false, false, false, false, true,  false, false,   true,  false, false),
         { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true , false),
-        { aros }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false),
+        { aros }    ( true,  false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false),
         {dragonfly} ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false)
       );
 
