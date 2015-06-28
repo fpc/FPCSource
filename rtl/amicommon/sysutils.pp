@@ -159,7 +159,7 @@ end;
 
 (****** non portable routines ******)
 
-function FileOpen(const FileName: rawbytestring; Mode: Integer): LongInt;
+function FileOpen(const FileName: rawbytestring; Mode: Integer): THandle;
 var
   SystemFileName: RawByteString;
   dosResult: LongInt;
@@ -176,7 +176,7 @@ begin
 end;
 
 
-function FileGetDate(Handle: LongInt) : LongInt;
+function FileGetDate(Handle: THandle) : LongInt;
 var
   tmpFIB : PFileInfoBlock;
   tmpDateTime: TDateTime;
@@ -199,7 +199,7 @@ begin
 end;
 
 
-function FileSetDate(Handle, Age: LongInt) : LongInt;
+function FileSetDate(Handle: THandle; Age: LongInt) : LongInt;
 var
   tmpDateStamp: TDateStamp;
   tmpName: array[0..255] of char;
@@ -232,7 +232,7 @@ begin
 end;
 
 
-function FileCreate(const FileName: RawByteString) : LongInt;
+function FileCreate(const FileName: RawByteString) : THandle;
 var
   SystemFileName: RawByteString;
   dosResult: LongInt;
@@ -256,20 +256,20 @@ begin
   FileCreate:=dosResult;
 end;
 
-function FileCreate(const FileName: RawByteString; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; Rights: integer): THandle;
 begin
   {$WARNING FIX ME! To do: FileCreate Access Modes}
   FileCreate:=FileCreate(FileName);
 end;
 
-function FileCreate(const FileName: RawByteString; ShareMode: integer; Rights : integer): LongInt;
+function FileCreate(const FileName: RawByteString; ShareMode: integer; Rights : integer): THandle;
 begin
   {$WARNING FIX ME! To do: FileCreate Access Modes}
   FileCreate:=FileCreate(FileName);
 end;
 
 
-function FileRead(Handle: LongInt; out Buffer; Count: LongInt): LongInt;
+function FileRead(Handle: THandle; out Buffer; Count: LongInt): LongInt;
 begin
   FileRead:=-1;
   if (Count<=0) or (Handle=0) or (Handle=-1) then exit;
@@ -278,7 +278,7 @@ begin
 end;
 
 
-function FileWrite(Handle: LongInt; const Buffer; Count: LongInt): LongInt;
+function FileWrite(Handle: THandle; const Buffer; Count: LongInt): LongInt;
 begin
   FileWrite:=-1;
   if (Count<=0) or (Handle=0) or (Handle=-1) then exit;
@@ -287,7 +287,7 @@ begin
 end;
 
 
-function FileSeek(Handle, FOffset, Origin: LongInt) : LongInt;
+function FileSeek(Handle: THandle; FOffset, Origin: LongInt) : LongInt;
 var
   seekMode: LongInt;
 begin
@@ -306,14 +306,14 @@ begin
   FileSeek:=dosSeek(Handle, 0, OFFSET_CURRENT);
 end;
 
-function FileSeek(Handle: LongInt; FOffset: Int64; Origin: Longint): Int64;
+function FileSeek(Handle: THandle; FOffset: Int64; Origin: Longint): Int64;
 begin
   {$WARNING Need to add 64bit call }
   FileSeek:=FileSeek(Handle,LongInt(FOffset),LongInt(Origin));
 end;
 
 
-procedure FileClose(Handle: LongInt);
+procedure FileClose(Handle: THandle);
 begin
   if (Handle=0) or (Handle=-1) then exit;
 
