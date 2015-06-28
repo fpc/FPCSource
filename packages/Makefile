@@ -328,6 +328,9 @@ endif
 ifdef INSTALL_UNITDIR
 FPMAKE_INSTALL_OPT+=--unitinstalldir=$(INSTALL_UNITDIR)
 endif
+ifdef INSTALL_BINDIR
+FPMAKE_INSTALL_OPT+=--bininstalldir=$(INSTALL_BINDIR)
+endif
 ifdef OS_TARGET
 FPC_TARGETOPT+=--os=$(OS_TARGET)
 endif
