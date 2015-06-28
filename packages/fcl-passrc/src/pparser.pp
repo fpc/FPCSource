@@ -307,7 +307,7 @@ Function IsCallingConvention(S : String; out CC : TCallingConvention) : Boolean;
 
 Var
   CCNames : Array[TCallingConvention] of String
-         = ('','register','pascal','cdecl','stdcall','oldfpccall','safecall');
+         = ('','register','pascal','cdecl','stdcall','oldfpccall','safecall','syscall');
 Var
   C : TCallingConvention;
 
@@ -443,7 +443,13 @@ begin
     else if s = 'BEOS' then
       Scanner.AddDefine('UNIX')
     else if s = 'QNX' then
-      Scanner.AddDefine('UNIX');
+      Scanner.AddDefine('UNIX')
+    else if s = 'AROS' then
+      Scanner.AddDefine('HASAMIGA')
+    else if s = 'MORPHOS' then
+      Scanner.AddDefine('HASAMIGA')
+    else if s = 'AMIGA' then
+      Scanner.AddDefine('HASAMIGA');
 
     // TargetCPU
     s := UpperCase(CPUTarget);
@@ -2676,6 +2682,11 @@ begin
       end;
 
       NextToken;
+      if (CurToken = tkIdentifier) and (LowerCase(CurTokenString) = 'location') then
+        begin
+          NextToken; // remove 'location'
+          NextToken; // remove register
+        end;
       if CurToken = EndToken then
         break;
     end;
@@ -2905,6 +2916,15 @@ begin
       begin
       if Assigned(Element) then        // !!!
         Element.CallingConvention:=Cc;
+      if cc = ccSysCall then
+      begin
+        // remove LibBase
+        NextToken;
+        // remove legacy or basesysv on MorphOS syscalls
+        if CurTokenIsIdentifier('legacy') or CurTokenIsIdentifier('BaseSysV') then
+          NextToken;
+        NextToken; // remove offset
+      end;
       ExpectToken(tkSemicolon);
       end
     else if TokenIsProcedureModifier(Parent,CurTokenString,pm) then
