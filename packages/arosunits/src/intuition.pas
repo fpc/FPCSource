@@ -3423,7 +3423,11 @@ var
   ArgList: TArgList;
 begin
   AddArguments(ArgList, Args);
+{$ifdef i386}
   Result := DoGadgetMethodA(Gad, Win, Req, TMsg(ArgList));
+{$else}
+{$warning fix me!}
+{$endif}
 end;
 
 function EasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP_Ptr: PLongWord; const Args: array of const): LongInt;
