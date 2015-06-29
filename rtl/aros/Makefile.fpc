@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for Free Pascal Amiga RTL
+#   Makefile.fpc for Free Pascal AROS RTL
 #
 
 [package]
@@ -36,7 +36,7 @@ target=aros
 cpu=i386
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(CPU_TARGET) $(AMIINC)
+includedir=$(INC) $(PROCINC) $(CPU_TARGET) $(AMIINC) i386
 sourcedir=$(INC) $(PROCINC) $(CPU_TARGET) $(AMIINC) $(COMMON)
 
 [prerules]

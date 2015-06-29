@@ -25,7 +25,7 @@ begin
     P.Description := 'A set of units for AROS. Currently i386 only';
     P.NeedLibC:= false;
 
-    P.CPUs:=[i386];
+    P.CPUs:=[i386,x86_64];
     P.OSes:=[aros];
 
     P.SourcePath.Add('src');
