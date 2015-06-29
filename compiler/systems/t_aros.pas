@@ -2,7 +2,7 @@
     Copyright (c) 2004-2006 by Free Pascal Development Team
 
     This unit implements support import, export, link routines
-    for the aros targets (arosOS/i386, arosOS/x86_64)
+    for the AROS targets (AROS/i386, AROS/x86_64)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,16 +35,13 @@ type
   timportlibaros=class(timportlib)
     procedure generatelib; override;
   end;
-  
-  
+
+
   PLinkeraros = ^TLinkeraros;
   TLinkeraros = class(texternallinker)
     private
       function WriteResponseFile(isdll: boolean): boolean;
-      procedure Setaros386Info;
-      procedure Setarosx86_64Info;
-      function Makearos386Exe: boolean;
-      function Makearosx86_64Exe: boolean;
+      function MakeAROSExe: boolean;
     public
       constructor Create; override;
       procedure SetDefaultInfo; override;
@@ -86,7 +83,8 @@ begin
   StaticLibFiles.doubles:=true;
 end;
 
-procedure TLinkeraros.Setaros386Info;
+
+procedure TLinkeraros.SetDefaultInfo;
 begin
   with Info do begin
     { Note: collect-aros seems to be buggy, and doesn't forward options }
@@ -95,21 +93,6 @@ begin
     { So for example no Ram Disk: usage for anything which must be linked. (KB) }
     ExeCmd[1]:='collect-aros $OPT $STRIP -d -n -o $EXE $RES';
     //ExeCmd[1]:='ld $OPT -d -n -o $EXE $RES';
-  end;
-end;
-
-procedure TLinkeraros.Setarosx86_64Info;
-begin
-  with Info do begin
-    ExeCmd[1]:='ld $OPT -defsym=__AROS__=1 -d -q -n -o $EXE $RES';
-  end;
-end;
-
-procedure TLinkeraros.SetDefaultInfo;
-begin
-  case (target_info.system) of
-    system_i386_aros:      Setaros386Info;
-    system_x86_64_aros:   Setarosx86_64Info;
   end;
 end;
 
@@ -220,7 +203,7 @@ begin
 end;
 
 
-function TLinkeraros.Makearos386Exe: boolean;
+function TLinkeraros.MakeAROSExe: boolean;
 var
   BinStr,
   CmdStr  : TCmdStr;
@@ -239,27 +222,7 @@ begin
   { Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
     Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));}
 
-  Makearos386Exe:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
-end;
-
-
-function TLinkeraros.Makearosx86_64Exe: boolean;
-var
-  BinStr,
-  CmdStr  : TCmdStr;
-  StripStr: string[40];
-begin
-  StripStr:='';
-  if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
-
-  { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
-  binstr:=FindUtil(utilsprefix+BinStr);
-  Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
-  Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
-  Replace(cmdstr,'$STRIP',StripStr);
-  Makearosx86_64Exe:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+  MakeAROSExe:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
 end;
 
 
@@ -274,10 +237,7 @@ begin
   { Write used files and libraries }
   WriteResponseFile(false);
 
-  case (target_info.system) of
-    system_i386_aros:      success:=Makearos386Exe;
-    system_x86_64_aros:   success:=Makearosx86_64Exe;
-  end;
+  success:=MakeAROSExe;
 
   { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
