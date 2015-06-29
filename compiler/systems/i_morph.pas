@@ -36,7 +36,7 @@ unit i_morph;
             shortname    : 'MorphOS';
             flags        : [tf_files_case_aware,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_powerpc;
-            unit_env     : '';
+            unit_env     : 'MORPHOSUNITS';
             extradefines : 'HASAMIGA';
             exeext       : '';
             defext       : '.def';
