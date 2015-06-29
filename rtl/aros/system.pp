@@ -401,7 +401,7 @@ var
   self: PProcess;
 begin
   self := PProcess(FindTask(nil));
-  if self^.pr_CLI = NIL then begin
+  if self^.pr_CLI = 0 then begin
     { if we're running from Ambient/Workbench, we catch its message }
     WaitPort(@self^.pr_MsgPort);
     AOS_wbMsg:=GetMsg(@self^.pr_MsgPort);
