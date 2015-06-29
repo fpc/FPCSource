@@ -97,7 +97,7 @@ unit i_aros;
             system       : system_x86_64_aros;
             name         : 'AROS for x86_64';
             shortname    : 'aros';
-            flags        : [tf_files_case_aware];
+            flags        : [tf_files_case_aware, tf_smartlink_library, tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : '';
             extradefines : 'HASAMIGA';
@@ -129,7 +129,7 @@ unit i_aros;
             link         : ld_none;
             linkextern   : ld_aros;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_amiga;
             endian       : endian_little;
@@ -149,7 +149,7 @@ unit i_aros;
                 maxCrecordalign : 16
               );
             first_parm_offset : 16;
-            stacksize    : 8*1024*1024;
+            stacksize    : 1*1024*1024;
             stackalign   : 16; { fix me: this is a wild guess for now (KB) }
             abi : abi_default;
             llvmdatalayout : 'todo';
