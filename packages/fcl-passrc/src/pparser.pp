@@ -2510,6 +2510,7 @@ begin
     SaveComments(D);
     for i := 0 to VarNames.Count - 1 do
       begin
+      // Writeln(VarNames[i], AVisibility);
       VarEl:=TPasVariable(CreateElement(TPasVariable,VarNames[i],Parent,AVisibility));
       VarEl.VarType := VarType;
       // Procedure declaration eats the hints.
@@ -3756,7 +3757,7 @@ Var
   Prop : TPasProperty;
 
 begin
-  v:=visPublic;
+  v:=visDefault;
   while CurToken<>AEndToken do
     begin
     SaveComments;
@@ -3783,7 +3784,6 @@ begin
         end;
       tkIdentifier :
         begin
-        v:=visDefault;
 //        If (po_delphi in Scanner.Options) then
           if CheckVisibility(CurtokenString,v) then
             begin

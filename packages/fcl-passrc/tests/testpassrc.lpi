@@ -30,7 +30,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestStatementParser.TestCallComment"/>
+        <CommandLineParams Value="--suite=TTestStatementParser.TestAsm"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">
@@ -74,11 +74,11 @@
       <Unit7>
         <Filename Value="tcvarparser.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="tcvarparser"/>
       </Unit7>
       <Unit8>
         <Filename Value="tcclasstype.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcclasstype"/>
       </Unit8>
       <Unit9>
         <Filename Value="tcexprparser.pas"/>
@@ -88,17 +88,18 @@
       <Unit10>
         <Filename Value="tcprocfunc.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcprocfunc"/>
       </Unit10>
       <Unit11>
         <Filename Value="tcpassrcutil.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcpassrcutil"/>
       </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="testpassrc"/>
+    </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
       <OtherUnitFiles Value="../src"/>
