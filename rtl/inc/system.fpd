@@ -80,6 +80,8 @@ Procedure UnPack(Const Z : PackedArrayType; Out A : UnpackedArrayType; StartInde
 Function Slice(Const A : ArrayType; ACount : Integer) : ArrayType2;
 Function Default(Const T : AnyType) : AnyType;
 Function TypeInfo(Const T : AnyType) : Pointer;
+Procedure Fail;
+Function TypeOf(T : TObjectType) : Pointer;
  
 {$IFNDEF GO32V2}
 Var
