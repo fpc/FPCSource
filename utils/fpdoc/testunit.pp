@@ -1,5 +1,7 @@
 {$mode objfpc}
 {$h+}
+{$modeswitch advancedrecords} 
+
 unit testunit;
 
 interface
@@ -41,6 +43,19 @@ Type
                           end; 
                           
   TADeprecatedType = Integer deprecated;
+
+  TMethodRecord = Record
+  Private
+    X22 : Integer;
+    Procedure SetX(AValue : Integer);
+    Function GetX : Integer;
+  Public  
+    Procedure MyMethod;
+    Property MyX : Integer Read GetX Write SetX;
+  Case Integer of
+    1 : (X2,Y2 : Integer);
+    2 : (phi,Omega : Real);
+  end;
                         
 Var
   ASimpleVar : Integer;  
@@ -274,6 +289,20 @@ end;
 procedure TMyParentClass.SomePublishedMethod;
 begin
 
+end;
+
+Procedure TMethodRecord.SetX(AValue : Integer);
+
+begin
+end;
+
+Function TMEthodRecord.GetX : Integer;
+
+begin
+end;
+
+Procedure TMEthodRecord.MyMethod;
+begin
 end;
 
 end.
