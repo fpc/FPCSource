@@ -30,6 +30,9 @@ interface
 
     type
        tx86inlinenode = class(tcginlinenode)
+         protected
+          procedure maybe_remove_round_trunc_typeconv; virtual;
+         public
           { first pass override
             so that the code generator will actually generate
             these nodes.
@@ -90,6 +93,12 @@ implementation
 {*****************************************************************************
                               TX86INLINENODE
 *****************************************************************************}
+
+     procedure tx86inlinenode.maybe_remove_round_trunc_typeconv;
+       begin
+         { only makes a difference for x86_64 }
+       end;
+
 
      function tx86inlinenode.first_pi : tnode;
       begin
@@ -202,6 +211,7 @@ implementation
 
      function tx86inlinenode.first_round_real : tnode;
       begin
+        maybe_remove_round_trunc_typeconv;
 {$ifdef x86_64}
         if use_vectorfpu(left.resultdef) then
           expectloc:=LOC_REGISTER
@@ -214,6 +224,7 @@ implementation
 
      function tx86inlinenode.first_trunc_real: tnode;
        begin
+         maybe_remove_round_trunc_typeconv;
          if (cs_opt_size in current_settings.optimizerswitches)
 {$ifdef x86_64}
            and not(use_vectorfpu(left.resultdef))
