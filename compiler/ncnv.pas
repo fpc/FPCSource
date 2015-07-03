@@ -2168,7 +2168,8 @@ implementation
             cdoptions:=[cdo_allow_variant,cdo_warn_incompatible_univ];
             { overloaded operators require calls, which is not possible inside
               a constant declaration }
-            if block_type<>bt_const then
+            if (block_type<>bt_const) and
+               not(nf_internal in flags) then
               include(cdoptions,cdo_check_operator);
             if nf_explicit in flags then
               include(cdoptions,cdo_explicit);
