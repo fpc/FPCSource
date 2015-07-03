@@ -656,6 +656,19 @@ implementation
       end;
 
 
+    type
+      TLinkedListCaseLabelItem = class(TLinkedListItem)
+        casenode: pcaselabel;
+        constructor create(c: pcaselabel);
+      end;
+
+    constructor TLinkedListCaseLabelItem.create(c: pcaselabel);
+      begin
+        inherited create;
+        casenode:=c;
+      end;
+
+
     function tcasenode.pass_1 : tnode;
       var
          i: integer;
@@ -664,33 +677,66 @@ implementation
          if_block, init_block: tblocknode;
          stmt: tstatementnode;
 
-      function makeifblock(const labtree : pcaselabel; prevconditblock : tnode): tnode;
-        var
-          condit: tnode;
+      procedure add_label_to_blockid_list(list: tfpobjectlist; lab: pcaselabel);
         begin
-          if assigned(labtree^.less) then
-            result := makeifblock(labtree^.less, prevconditblock)
-          else
-            result := prevconditblock;
+          if not assigned(lab) then
+            exit;
+          if not assigned(list[lab^.blockid]) then
+            list[lab^.blockid]:=tfpobjectlist.create(true);
+          tfpobjectlist(list[lab^.blockid]).add(TLinkedListCaseLabelItem.create(lab));
+          add_label_to_blockid_list(list,lab^.less);
+          add_label_to_blockid_list(list,lab^.greater);
+        end;
 
-          condit := caddnode.create(equaln, left.getcopy, labtree^._low_str.getcopy);
+      function order_labels_by_blockid: tfpobjectlist;
+        begin
+          result:=tfpobjectlist.create(true);
+          result.count:=blocks.count;
+          add_label_to_blockid_list(result,labels);
+        end;
 
-          if (labtree^._low_str.fullcompare(labtree^._high_str)<>0) then
+      function makeifblock(const labtree : pcaselabel; elseblock : tnode): tnode;
+        var
+          i, j: longint;
+          check: taddnode;
+          newcheck: ^taddnode;
+          blocklist, lablist: tfpobjectlist;
+          labitem: pcaselabel;
+        begin
+          result:=elseblock;
+          blocklist:=order_labels_by_blockid;
+          { in reverse order so that the case options at the start of the case
+            statement are evaluated first, as they presumably are the most
+            common }
+          for i:=blocklist.count-1 downto 0 do
             begin
-              condit.nodetype := gten;
-              condit := caddnode.create(
-                andn, condit, caddnode.create(
-                  lten, left.getcopy, labtree^._high_str.getcopy));
+              lablist:=tfpobjectlist(blocklist[i]);
+              check:=nil;
+              for j:=0 to lablist.count-1 do
+                begin
+                  if assigned(check) then
+                    begin
+                      check:=caddnode.create(orn,check,nil);
+                      newcheck:=@check.right
+                    end
+                  else
+                    newcheck:=@check;
+                  labitem:=TLinkedListCaseLabelItem(lablist[j]).casenode;
+                  newcheck^:=caddnode.create(equaln,left.getcopy,labitem^._low_str.getcopy);
+                  if (labtree^._low_str.fullcompare(labtree^._high_str)<>0) then
+                    begin
+                      newcheck^.nodetype:=gten;
+                      newcheck^:=caddnode.create(
+                        andn,newcheck^,caddnode.create(
+                          lten,left.getcopy,labitem^._high_str.getcopy));
+                    end;
+                end;
+              result:=cifnode.create(check,
+                pcaseblock(blocks[i])^.statement,result);
+              pcaseblock(blocks[i])^.statement:=nil;
             end;
-
-          result :=
-            cifnode.create(
-              condit, pcaseblock(blocks[labtree^.blockid])^.statement, result);
-          pcaseblock(blocks[labtree^.blockid])^.statement:=nil;
-
-          if assigned(labtree^.greater) then
-            result := makeifblock(labtree^.greater, result);
-
+          { will free its elements too because of create(true) }
+          blocklist.free;
           typecheckpass(result);
         end;
 
