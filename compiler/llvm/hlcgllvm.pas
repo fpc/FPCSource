@@ -534,15 +534,14 @@ implementation
               if fromsize.typ in [arraydef,recorddef] then
                 begin
                   { store struct/array-in-register to memory }
-                  tmpsize:=def2intdef(fromsize,tosize);
                   tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
                   a_load_reg_ref(list,fromsize,fromsize,register,tmpref);
                   { typecast pointer to memory into pointer to integer type }
-                  hreg:=getaddressregister(list,cpointerdef.getreusable(tmpsize));
-                  a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tmpsize),tmpref,hreg);
-                  reference_reset_base(sref,cpointerdef.getreusable(tmpsize),hreg,0,tmpref.alignment);
+                  hreg:=getaddressregister(list,cpointerdef.getreusable(tosize));
+                  a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tosize),tmpref,hreg);
+                  reference_reset_base(sref,cpointerdef.getreusable(tosize),hreg,0,tmpref.alignment);
                   { load the integer from the temp into the destination }
-                  a_load_ref_ref(list,tmpsize,tosize,tmpref,sref);
+                  a_load_ref_ref(list,tosize,tosize,sref,ref);
                   tg.ungettemp(list,tmpref);
                 end
               else
