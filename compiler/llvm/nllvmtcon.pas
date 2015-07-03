@@ -73,6 +73,7 @@ interface
       function get_internal_data_section_internal_label: tasmlabel; override;
      public
       destructor destroy; override;
+      procedure emit_tai(p: tai; def: tdef); override;
       procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); override;
       procedure emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef); override;
       procedure queue_init(todef: tdef); override;
@@ -90,9 +91,9 @@ interface
 implementation
 
   uses
-    verbose,
+    verbose,systems,
     aasmdata,
-    cpubase,llvmbase,
+    cpubase,cpuinfo,llvmbase,
     symbase,symtable,llvmdef,defutil;
 
   { tllvmaggregateinformation }
@@ -164,6 +165,22 @@ implementation
   destructor tllvmtai_typedconstbuilder.destroy;
     begin
       inherited destroy;
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.emit_tai(p: tai; def: tdef);
+    var
+      arrdef: tdef;
+    begin
+      { inside an aggregate, an 80 bit floating point number must be
+        emitted as an array of 10 bytes to prevent ABI alignment and
+        padding to 16 bytes }
+      if (def.typ=floatdef) and
+         (tfloatdef(def).floattype=s80real) and
+         assigned(curagginfo) then
+        do_emit_extended_in_aggregate(p)
+      else
+        inherited;
     end;
 
 
@@ -339,6 +356,38 @@ implementation
   function tllvmtai_typedconstbuilder.get_internal_data_section_internal_label: tasmlabel;
     begin
       current_asmdata.getlocaldatalabel(result);
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.do_emit_extended_in_aggregate(p: tai);
+    type
+      p80realval =^t80realval;
+      t80realval = packed record
+        case byte of
+          0: (v: ts80real);
+          1: (a: array[0..9] of byte);
+      end;
+
+    var
+      arrdef: tdef;
+      i: longint;
+      realval: p80realval;
+    begin
+      { emit as an array of 10 bytes }
+      arrdef:=carraydef.getreusable(u8inttype,10);
+      maybe_begin_aggregate(arrdef);
+      if (p.typ<>ait_realconst) then
+        internalerror(2015062401);
+      realval:=p80realval(@tai_realconst(p).value.s80val);
+      if target_info.endian=source_info.endian then
+        for i:=0 to 9 do
+          emit_tai(tai_const.Create_8bit(realval^.a[i]),u8inttype)
+      else
+        for i:=9 downto 0 do
+          emit_tai(tai_const.Create_8bit(realval^.a[i]),u8inttype);
+      maybe_end_aggregate(arrdef);
+      { free the original constant, since we didn't emit it }
+      p.free;
     end;
 
 
