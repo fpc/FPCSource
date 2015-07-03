@@ -81,7 +81,7 @@ implementation
       SysUtils,
       cutils,cfileutl,systems,
       fmodule,verbose,
-      aasmcnst,symconst,symdef,
+      aasmcnst,symconst,symdef,symtable,
       llvmbase,aasmllvm,itllvm,llvmdef,
       cgbase,cgutils,cpubase;
 
@@ -685,7 +685,10 @@ implementation
               begin
                 AsmWrite(defstr);
                 AsmWrite(' ');
-                AsmWrite('<{');
+                if tabstractrecordsymtable(tabstractrecorddef(hp.def).symtable).usefieldalignment<>C_alignment then
+                  AsmWrite('<{')
+                else
+                  AsmWrite('{');
                 first:=true;
                 for p in tai_aggregatetypedconst(hp) do
                   begin
@@ -695,7 +698,10 @@ implementation
                       first:=false;
                     WriteTypedConstData(p);
                   end;
-                AsmWrite('}>');
+                if tabstractrecordsymtable(tabstractrecorddef(hp.def).symtable).usefieldalignment<>C_alignment then
+                  AsmWrite('}>')
+                else
+                  AsmWrite('}');
               end;
             tck_array:
               begin

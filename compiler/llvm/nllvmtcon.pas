@@ -39,6 +39,8 @@ interface
      public
       constructor create(_def: tdef; _typ: ttypedconstkind); override;
 
+      function prepare_next_field(nextfielddef: tdef): asizeint; override;
+
       property aggai: tai_aggregatetypedconst read faggai write faggai;
       property anonrecalignpos: longint read fanonrecalignpos write fanonrecalignpos;
     end;
@@ -66,11 +68,14 @@ interface
       procedure do_emit_tai(p: tai; def: tdef); override;
       procedure mark_anon_aggregate_alignment; override;
       procedure insert_marked_aggregate_alignment(def: tdef); override;
+      procedure maybe_emit_tail_padding(def: tdef); override;
       procedure begin_aggregate_internal(def: tdef; anonymous: boolean); override;
       procedure end_aggregate_internal(def: tdef; anonymous: boolean); override;
 
       function get_internal_data_section_start_label: tasmlabel; override;
       function get_internal_data_section_internal_label: tasmlabel; override;
+
+      procedure do_emit_extended_in_aggregate(p: tai);
      public
       destructor destroy; override;
       procedure emit_tai(p: tai; def: tdef); override;
@@ -103,6 +108,14 @@ implementation
        inherited;
        fanonrecalignpos:=-1;
      end;
+
+   function tllvmaggregateinformation.prepare_next_field(nextfielddef: tdef): asizeint;
+    begin
+      result:=inherited;
+      { in case of C/ABI alignment, the padding gets added by LLVM }
+      if tabstractrecordsymtable(tabstractrecorddef(def).symtable).usefieldalignment=C_alignment then
+        result:=0;
+    end;
 
 
   class constructor tllvmtai_typedconstbuilder.classcreate;
@@ -247,6 +260,16 @@ implementation
           info.aggai.insertvaluebeforepos(tai_simpletypedconst.create(tck_simple,u8inttype,tai_const.create_8bit(0)),info.anonrecalignpos);
           dec(fillbytes);
         end;
+    end;
+
+  procedure tllvmtai_typedconstbuilder.maybe_emit_tail_padding(def: tdef);
+    begin
+      { in case of C/ABI alignment, the padding gets added by LLVM }
+      if (is_record(def) or
+          is_object(def)) and
+         (tabstractrecordsymtable(tabstractrecorddef(def).symtable).usefieldalignment=C_alignment) then
+        exit;
+      inherited;
     end;
 
 

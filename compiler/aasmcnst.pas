@@ -153,7 +153,7 @@ type
      constructor create(_def: tdef; _typ: ttypedconstkind); virtual;
      { calculated padding bytes for alignment if needed, and add the def of the
        next field in case we are constructing an anonymous record }
-     function prepare_next_field(nextfielddef: tdef): asizeint;
+     function prepare_next_field(nextfielddef: tdef): asizeint; virtual;
 
      property def: tdef read fdef;
      property typ: ttypedconstkind read ftyp;
@@ -269,6 +269,7 @@ type
      procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); virtual;
 
     protected
+     procedure maybe_emit_tail_padding(def: tdef); virtual;
      function emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; var startlab: tasmlabel):tasmlabofs;
      procedure begin_aggregate_internal(def: tdef; anonymous: boolean); virtual;
      procedure end_aggregate_internal(def: tdef; anonymous: boolean); virtual;
@@ -1009,6 +1010,30 @@ implementation
      end;
 
 
+   procedure ttai_typedconstbuilder.maybe_emit_tail_padding(def: tdef);
+     var
+       info: taggregateinformation;
+       fillbytes: asizeint;
+     begin
+       info:=curagginfo;
+       if not assigned(info) then
+         internalerror(2014091002);
+       if def<>info.def then
+         internalerror(2014091205);
+       if (is_record(def) or
+           is_object(def)) and
+          not is_packed_record_or_object(def) then
+         begin
+           fillbytes:=def.size-info.curoffset;
+           while fillbytes>0 do
+             begin
+               do_emit_tai(Tai_const.Create_8bit(0),u8inttype);
+               dec(fillbytes)
+             end;
+         end;
+     end;
+
+
    function ttai_typedconstbuilder.emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; var startlab: tasmlabel): tasmlabofs;
      var
        string_symofs: asizeint;
@@ -1102,30 +1127,15 @@ implementation
    procedure ttai_typedconstbuilder.end_aggregate_internal(def: tdef; anonymous: boolean);
      var
        info: taggregateinformation;
-       fillbytes: asizeint;
        tck: ttypedconstkind;
      begin
        tck:=aggregate_kind(def);
        if tck=tck_simple then
          exit;
-       info:=curagginfo;
-       if not assigned(info) then
-         internalerror(2014091002);
-       if def<>info.def then
-         internalerror(2014091205);
        { add tail padding if necessary }
-       if (is_record(def) or
-           is_object(def)) and
-          not is_packed_record_or_object(def) then
-         begin
-           fillbytes:=def.size-info.curoffset;
-           while fillbytes>0 do
-             begin
-               do_emit_tai(Tai_const.Create_8bit(0),u8inttype);
-               dec(fillbytes)
-             end;
-         end;
+       maybe_emit_tail_padding(def);
        { pop and free the information }
+       info:=curagginfo;
        faggregateinformation.count:=faggregateinformation.count-1;
        info.free;
      end;
