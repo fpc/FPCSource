@@ -143,9 +143,16 @@ unit optcse;
         { don't add the tree below an untyped const parameter: there is
           no information available that this kind of tree actually needs
           to be addresable, this could be improved }
-        if ((n.nodetype=callparan) and
-          (tcallparanode(n).left.resultdef.typ=formaldef) and
-          (tcallparanode(n).parasym.varspez=vs_const)) then
+        { the nodes below a type conversion node created for an absolute
+          reference cannot be handled separately, because the absolute reference
+          may have special requirements (no regability, must be in memory, ...)
+        }
+        if (((n.nodetype=callparan) and
+             (tcallparanode(n).left.resultdef.typ=formaldef) and
+             (tcallparanode(n).parasym.varspez=vs_const)) or
+            ((n.nodetype=typeconvn) and
+             (nf_absolute in n.flags))
+           ) then
           begin
             result:=fen_norecurse_false;
             exit;
