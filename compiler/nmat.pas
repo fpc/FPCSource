@@ -393,7 +393,7 @@ implementation
 
 
     function tmoddivnode.first_moddivint: tnode;
-{$ifdef cpuneedsdiv32helper}
+{$ifdef cpuneedsdivhelper}
       var
         procname: string[31];
       begin
@@ -404,12 +404,25 @@ implementation
           procname := 'fpc_div_'
         else
           procname := 'fpc_mod_';
+
         { only qword needs the unsigned code, the
           signed code is also used for currency }
-        if is_signed(resultdef) then
-          procname := procname + 'longint'
-        else
-          procname := procname + 'dword';
+        case torddef(resultdef).ordtype of
+          u8bit:
+            procname := procname + 'byte';
+          s8bit:
+            procname := procname + 'shortint';
+          u16bit:
+            procname := procname + 'word';
+          s16bit:
+            procname := procname + 'smallint';
+          u32bit:
+            procname := procname + 'dword';
+          s32bit:
+            procname := procname + 'longint'
+          else
+            internalerror(2015070501);
+        end;
 
         result := ccallnode.createintern(procname,ccallparanode.create(left,
           ccallparanode.create(right,nil)));
@@ -424,7 +437,7 @@ implementation
         if torddef(result.resultdef).ordtype <> torddef(resultdef).ordtype then
           inserttypeconv(result,resultdef);
       end;
-{$else cpuneedsdiv32helper}
+{$else cpuneedsdivhelper}
       begin
         result:=nil;
       end;

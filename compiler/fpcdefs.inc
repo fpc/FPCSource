@@ -56,7 +56,7 @@
   {$define SUPPORT_SAFECALL}
   {$define cpuneedsmulhelper}
   { TODO: add another define in order to disable the div helper for 16-bit divs? }
-  {$define cpuneedsdiv32helper}
+  {$define cpuneedsdivhelper}
   {$define VOLATILE_ES}
   {$define SUPPORT_GET_FRAME}
 {$endif i8086}
@@ -145,7 +145,7 @@
   {$define cpu32bitalu}
   {$define cpuflags}
   {$define cpufpemu}
-  {$define cpuneedsdiv32helper}
+  {$define cpuneedsdivhelper}
   {$define cpurox}
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
@@ -178,7 +178,7 @@
   {$define cpufpemu}
   {$define cpurefshaveindexreg}
   {$define cpucapabilities}
-  {$define cpuneedsdiv32helper}
+  {$define cpuneedsdivhelper}
 {$endif m68k}
 
 {$ifdef avr}
@@ -188,7 +188,7 @@
   {$define cpuflags}
   {$define cpunofpu}
   {$define cpunodefaultint}
-  {$define cpuneedsdiv32helper}
+  {$define cpuneedsdivhelper}
   {$define cpuneedsmulhelper}
   {$define cpurefshaveindexreg}
   {$define cpucapabilities}

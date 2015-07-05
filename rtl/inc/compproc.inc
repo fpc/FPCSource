@@ -568,6 +568,14 @@ function fpc_div_dword(n,z : dword) : dword; compilerproc;
 function fpc_mod_dword(n,z : dword) : dword; compilerproc;
 function fpc_div_longint(n,z : longint) : longint; compilerproc;
 function fpc_mod_longint(n,z : longint) : longint; compilerproc;
+function fpc_div_word(n,z : word) : word; compilerproc;
+function fpc_mod_word(n,z : word) : word; compilerproc;
+function fpc_div_smallint(n,z : smallint) : smallint; compilerproc;
+function fpc_mod_smallint(n,z : smallint) : smallint; compilerproc;
+function fpc_div_byte(n,z : byte) : byte; compilerproc;
+function fpc_mod_byte(n,z : byte) : byte; compilerproc;
+function fpc_div_shortint(n,z : shortint) : shortint; compilerproc;
+function fpc_mod_shortint(n,z : shortint) : shortint; compilerproc;
 {$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_MUL}
