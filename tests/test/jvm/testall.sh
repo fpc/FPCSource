@@ -184,3 +184,4 @@ $PPC -O2 -g -B -Sa tprop6a -CTautosetterprefix=Set -CTautogetterprefix=Get
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tprop6a
 $PPC -O2 -g -B -Sa tsetstring
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tsetstring
+$PPC -O2 -g -B -Sa tnestcallpass1

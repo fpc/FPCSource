@@ -52,7 +52,9 @@ interface
          cnf_objc_processed,     { the procedure name has been set to the appropriate objc_msgSend* variant -> don't process again }
          cnf_objc_id_call,       { the procedure is a member call via id -> any ObjC method of any ObjC type in scope is fair game }
          cnf_unit_specified,     { the unit in which the procedure has to be searched has been specified }
-         cnf_call_never_returns  { information for the dfa that a subroutine never returns }
+         cnf_call_never_returns, { information for the dfa that a subroutine never returns }
+         cnf_call_self_node_done { the call_self_node has been generated if necessary
+                                   (to prevent it from potentially happening again in a wrong context in case of constant propagation or so) }
        );
        tcallnodeflags = set of tcallnodeflag;
 
@@ -69,6 +71,8 @@ interface
           function  gen_procvar_context_tree_self:tnode;
           function  gen_procvar_context_tree_parentfp:tnode;
           function  gen_self_tree:tnode;
+          function  use_caller_self(check_for_callee_self: boolean): boolean;
+          procedure maybe_gen_call_self_node;
           function  gen_vmt_tree:tnode;
           function gen_block_context:tnode;
           procedure gen_hidden_parameters;
@@ -1363,11 +1367,6 @@ implementation
          if assigned(current_structdef) and
             assigned(mp) then
            begin
-             { can't determine now yet if it will be necessary or not, so
-               always create it if there is a 'self' symbol in the current
-               context }
-             if get_local_or_para_sym('self')<>nil then
-               call_self_node:=load_self_node;
             { only needed when calling a destructor from an exception block in a
               contructor of a TP-style object }
             if is_object(current_structdef) and
@@ -2201,6 +2200,67 @@ implementation
               selftree:=methodpointer.getcopy;
           end;
         result:=selftree;
+      end;
+
+    function tcallnode.use_caller_self(check_for_callee_self: boolean): boolean;
+      var
+        i: longint;
+        ps: tparavarsym;
+      begin
+        result:=false;
+        { is there a self parameter? }
+        if check_for_callee_self then
+          begin
+            ps:=nil;
+            for i:=0 to procdefinition.paras.count-1 do
+              begin
+                ps:=tparavarsym(procdefinition.paras[i]);
+                if vo_is_self in ps.varoptions then
+                  break;
+                ps:=nil;
+              end;
+
+            if not assigned(ps) then
+              exit;
+          end;
+
+        { we need to load the'self' parameter of the current routine as the
+          'self' parameter of the called routine if
+            1) we're calling an inherited routine
+            2) we're calling a constructor via type.constructorname and
+               type is not a classrefdef (i.e., we're calling a constructor like
+               a regular method)
+            3) we're calling any regular (non-class/non-static) method via
+               a typenode (the methodpointer is then that typenode, but the
+               passed self node must become the current self node)
+
+          In other cases, we either don't have to pass the 'self' parameter of
+          the current routine to the called one, or methodpointer will already
+          contain it (e.g. because a method was called via "method", in which
+          case the parser already passed 'self' as the method pointer, or via
+          "self.method") }
+        if (cnf_inherited in callnodeflags) or
+           ((procdefinition.proctypeoption=potype_constructor) and
+            not((methodpointer.resultdef.typ=classrefdef) or
+                (cnf_new_call in callnodeflags)) and
+               (methodpointer.nodetype=typen) and
+               (methodpointer.resultdef.typ=objectdef)) or
+           (assigned(methodpointer) and
+            (procdefinition.proctypeoption<>potype_constructor) and
+            not(po_classmethod in procdefinition.procoptions) and
+            not(po_staticmethod in procdefinition.procoptions) and
+            (methodpointer.nodetype=typen)) then
+          result:=true;
+      end;
+
+
+    procedure tcallnode.maybe_gen_call_self_node;
+      begin
+        if cnf_call_self_node_done in callnodeflags then
+          exit;
+        include(callnodeflags,cnf_call_self_node_done);
+        if use_caller_self(true) then
+          call_self_node:=load_self_node;
       end;
 
 
@@ -3673,6 +3733,8 @@ implementation
                methodpointer:=nil;
                parameters:=nil;
              end;
+
+         maybe_gen_call_self_node;
 
          if assigned(call_self_node) then
            typecheckpass(call_self_node);
