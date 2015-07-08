@@ -16,7 +16,7 @@ unit odbcconn;
 interface
 
 uses
-  Classes, SysUtils, sqldb, db, odbcsqldyn, BufDataset;
+  Classes, SysUtils, db, sqldb, BufDataset, odbcsqldyn;
 
 type
 
@@ -152,7 +152,7 @@ const
 
 { Generic ODBC helper functions }
 
-function ODBCSucces(const Res:SQLRETURN):boolean;
+function ODBCSuccess(const Res:SQLRETURN):boolean;
 begin
   Result:=(Res=SQL_SUCCESS) or (Res=SQL_SUCCESS_WITH_INFO);
 end;
@@ -195,7 +195,7 @@ var
   RecNumber:SQLSMALLINT;
 begin
   // check result
-  if ODBCSucces(LastReturnCode) then
+  if ODBCSuccess(LastReturnCode) then
     Exit; // no error; all is ok
 
   //WriteLn('LastResultCode: ',ODBCResultToStr(LastReturnCode));
@@ -694,6 +694,7 @@ begin
       else
         begin
         FDBMSInfo.GetLastInsertIDSQL := '';
+        Exclude(FConnOptions, sqLastInsertID);
         end;
     end;
 
@@ -859,7 +860,7 @@ begin
 
     if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
 
-    if ODBCSucces(SQLNumResultCols(ODBCCursor.FSTMTHandle, ColumnCount)) then
+    if ODBCSuccess(SQLNumResultCols(ODBCCursor.FSTMTHandle, ColumnCount)) then
       ODBCCursor.FSelectable:=ColumnCount>0
     else
       ODBCCursor.FSelectable:=False;
@@ -875,7 +876,7 @@ var
   RowCount: SQLLEN;
 begin
   if assigned(cursor) then
-    if ODBCSucces( SQLRowCount((cursor as TODBCCursor).FSTMTHandle, RowCount) ) then
+    if ODBCSuccess( SQLRowCount((cursor as TODBCCursor).FSTMTHandle, RowCount) ) then
        Result:=RowCount
     else
        Result:=-1
@@ -889,6 +890,7 @@ var
   StrLenOrInd: SQLLEN;
   LastInsertID: LargeInt;
 begin
+  Result := false;
   if SQLAllocHandle(SQL_HANDLE_STMT, FDBCHandle, STMTHandle) = SQL_SUCCESS then
     begin
     if SQLExecDirect(STMTHandle, PChar(FDBMSInfo.GetLastInsertIDSQL), Length(FDBMSInfo.GetLastInsertIDSQL)) = SQL_SUCCESS then
@@ -968,6 +970,7 @@ begin
       SQL_LONGVARCHAR:   begin FieldType:=ftMemo;       FieldSize:=BLOB_BUF_SIZE; end; // is a blob
       SQL_WCHAR:         begin FieldType:=ftFixedWideChar; FieldSize:=ColumnSize*sizeof(Widechar); end;
       SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=ColumnSize*sizeof(Widechar); end;
+      SQL_SS_XML,
       SQL_WLONGVARCHAR:  begin FieldType:=ftWideMemo;   FieldSize:=BLOB_BUF_SIZE; end; // is a blob
       SQL_DECIMAL:       begin FieldType:=ftFloat;      FieldSize:=0; end;
       SQL_NUMERIC:       begin FieldType:=ftFloat;      FieldSize:=0; end;
@@ -1002,6 +1005,7 @@ begin
 {      SQL_INTERVAL_HOUR_TO_SECOND:  FieldType:=ftUnknown;}
 {      SQL_INTERVAL_MINUTE_TO_SECOND:FieldType:=ftUnknown;}
       SQL_GUID:          begin FieldType:=ftGuid;       FieldSize:=38; end; //SQL_GUID defines 36, but TGuidField requires 38
+      SQL_SS_VARIANT:    begin FieldType:=ftVariant;    FieldSize:=0; end;
     else
       begin FieldType:=ftUnknown; FieldSize:=ColumnSize; end
     end;
@@ -1142,9 +1146,11 @@ const
   DEFAULT_BLOB_BUFFER_SIZE = 1024;
 
 function TODBCConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; buffer: pointer; out CreateBlob : boolean): boolean;
+const
+  SQL_CA_SS_VARIANT_TYPE = 1215;
 var
   ODBCCursor:TODBCCursor;
-  StrLenOrInd:SQLLEN;
+  StrLenOrInd,VariantCType:SQLLEN;
   ODBCDateStruct:SQL_DATE_STRUCT;
   ODBCTimeStruct:SQL_TIME_STRUCT;
   ODBCTimeStampStruct:SQL_TIMESTAMP_STRUCT;
@@ -1214,15 +1220,42 @@ begin
       else
         PWord(buffer)^ := StrLenOrInd;
     end;
+    ftVariant:
+    begin
+      // Try to read sql_variant header
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer, 0, @StrLenOrInd);
+      if ODBCSuccess(Res) then
+      begin
+        Res := SQLColAttribute(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_CA_SS_VARIANT_TYPE, nil, 0, nil, @VariantCType);
+        // map only types, which holds values directly in TVarData record
+        case VariantCType of
+          SQL_C_SSHORT, SQL_C_USHORT, SQL_C_SLONG, SQL_C_ULONG, SQL_C_SBIGINT:
+            begin
+            VariantCType := SQL_C_SBIGINT;
+            PVarData(buffer)^.vtype := varInt64;
+            buffer := @PVarData(buffer)^.vint64;
+            end;
+          SQL_C_FLOAT, SQL_C_DOUBLE:
+            begin
+            VariantCType := SQL_C_DOUBLE;
+            PVarData(buffer)^.vtype := varDouble;
+            buffer := @PVarData(buffer)^.vdouble;
+            end
+          else
+            StrLenOrInd := SQL_NULL_DATA;
+        end;
+        if StrLenOrInd<>SQL_NULL_DATA then
+          Res := SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, VariantCType, buffer, 8, @StrLenOrInd);
+      end;
+    end;
     ftWideMemo,
     ftBlob, ftMemo:       // BLOBs
     begin
       //Writeln('BLOB');
       // Try to discover BLOB data length
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer, 0, @StrLenOrInd);
-      ODBCCheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get field data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
       // Read the data if not NULL
-      if StrLenOrInd<>SQL_NULL_DATA then
+      if ODBCSuccess(Res) and (StrLenOrInd<>SQL_NULL_DATA) then
       begin
         CreateBlob:=true; // defer actual loading of blob data to LoadBlobIntoBuffer method
         //WriteLn('Deferring loading of blob of length ',StrLenOrInd);
@@ -1395,7 +1428,7 @@ begin
         if Res=SQL_NO_DATA then
           Break;
         // handle data
-        if ODBCSucces(Res) then begin
+        if ODBCSuccess(Res) then begin
           if OrdinalPos=1 then begin
             // create new IndexDef if OrdinalPos=1
             IndexDef:=IndexDefs.AddIndexDef;
@@ -1452,7 +1485,7 @@ begin
         if Res=SQL_NO_DATA then
           Break;
         // handle data
-        if ODBCSucces(Res) then begin
+        if ODBCSuccess(Res) then begin
           // note: SQLStatistics not only returns index info, but also statistics; we skip the latter
           if _Type<>SQL_TABLE_STAT then begin
             if PChar(@IndexName[1])=KeyName then begin
