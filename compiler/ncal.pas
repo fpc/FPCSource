@@ -3768,11 +3768,12 @@ implementation
             hpnext:=tcallparanode(hpcurr.right);
             { pull in at the correct place.
               Used order:
-                1. LOC_REFERENCE with smallest offset (i386 only)
-                2. LOC_REFERENCE with least complexity (non-i386 only)
-                3. LOC_REFERENCE with most complexity (non-i386 only)
-                4. LOC_REGISTER with most complexity
-                5. LOC_REGISTER with least complexity
+                1. vs_out for a reference-counted type
+                2. LOC_REFERENCE with smallest offset (i386 only)
+                3. LOC_REFERENCE with least complexity (non-i386 only)
+                4. LOC_REFERENCE with most complexity (non-i386 only)
+                5. LOC_REGISTER with most complexity
+                6. LOC_REGISTER with least complexity
               For the moment we only look at the first parameter field. Combining it
               with multiple parameter fields will make things a lot complexer (PFV)
 
@@ -3802,8 +3803,18 @@ implementation
               them from keeping on chasing eachother's tail }
             while assigned(hp) do
               begin
+                { ensure that out parameters are finalised before other
+                  parameters are processed, so that in case it has a reference
+                  count of one and is also passed as a value parameter, the
+                  value parameter does not get passed a pointer to a freed
+                  memory block }
+                if (hpcurr.parasym.varspez=vs_out) and
+                   is_managed_type(hpcurr.parasym.vardef) then
+                  break;
                 if paramanager.use_fixed_stack and
-                   hpcurr.contains_stack_tainting_call_cached then
+                   hpcurr.contains_stack_tainting_call_cached and
+                   not((hp.parasym.varspez=vs_out) and
+                       is_managed_type(hp.parasym.vardef)) then
                   break;
                 case currloc of
                   LOC_REFERENCE :
