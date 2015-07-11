@@ -4693,6 +4693,8 @@ begin
 {$endif NO_THREADING}
     else if CheckOption(I,'B','baseinstalldir') then
       Defaults.BaseInstallDir:=OptionArg(I)
+    else if CheckOption(I,'B','bininstalldir') then
+      Defaults.BinInstallDir:=OptionArg(I)
     else if CheckOption(I,'U','unitinstalldir') then
       Defaults.UnitInstallDir:=OptionArg(I)
     else if CheckOption(I,'UL','localunitdir') then
