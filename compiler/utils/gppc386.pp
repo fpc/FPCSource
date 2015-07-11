@@ -22,6 +22,9 @@
 
  ****************************************************************************}
 
+{$mode objfpc}
+{ Use ansitrings for long PATH variables }
+{$H+}
 program fpc_with_gdb;
 
 {
@@ -39,6 +42,7 @@ program fpc_with_gdb;
 }
 
 uses
+  sysutils,
   dos;
 
 const
@@ -77,7 +81,8 @@ end;
 
 var
    fpcgdbini : text;
-   CompilerName,Dir,Name,Ext : String;
+   CompilerName : String;
+   Dir,Name,Ext : ShortString;
    GDBError,GDBExitCode,i : longint;
 
 begin
@@ -88,7 +93,7 @@ begin
   else
     CompilerName:=DefaultCompilerName;
 
-  CompilerName:=fsearch(CompilerName,Dir+PathSep+GetEnv('PATH'));
+  CompilerName:=filesearch(CompilerName,Dir+PathSep+GetEnvironmentVariable('PATH'));
 
   { support for info functions directly : used in makefiles }
   if (paramcount=1) and (pos('-i',Paramstr(1))=1) then
@@ -157,9 +162,9 @@ begin
   flush(stderr);
   {$endif}
 
-  GDBExeName:=fsearch(GDBExeName,Dir+PathSep+GetEnv('PATH'));
+  GDBExeName:=filesearch(GDBExeName,Dir+PathSep+GetEnvironmentVariable('PATH'));
   if GDBExeName='' then
-    GDBExeName:=fsearch(GDBAltExeName,Dir+PathSep+GetEnv('PATH'));
+    GDBExeName:=filesearch(GDBAltExeName,Dir+PathSep+GetEnvironmentVariable('PATH'));
 
   AdaptToGDB(CompilerName);
   AdaptToGDB(GDBIniTempName);
