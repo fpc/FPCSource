@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -31,8 +31,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--package=me --output=me --input=ct.pp --format=html"/>
-        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <CommandLineParams Value="--package=fpdoc --input=testunit.pp --output=testunit --format=html --descr=testunit.xml"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">
@@ -64,7 +63,6 @@
       <Unit4>
         <Filename Value="dw_ipflin.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_ipflin"/>
       </Unit4>
       <Unit5>
         <Filename Value="dw_latex.pp"/>
@@ -74,7 +72,6 @@
       <Unit6>
         <Filename Value="dwlinear.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dwlinear"/>
       </Unit6>
       <Unit7>
         <Filename Value="dw_linrtf.pp"/>
@@ -84,7 +81,6 @@
       <Unit8>
         <Filename Value="dw_man.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_man"/>
       </Unit8>
       <Unit9>
         <Filename Value="dwriter.pp"/>
@@ -94,7 +90,6 @@
       <Unit10>
         <Filename Value="dw_txt.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_txt"/>
       </Unit10>
       <Unit11>
         <Filename Value="dw_xml.pp"/>
@@ -104,22 +99,18 @@
       <Unit12>
         <Filename Value="fpdocproj.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpdocproj"/>
       </Unit12>
       <Unit13>
         <Filename Value="fpdocxmlopts.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpdocxmlopts"/>
       </Unit13>
       <Unit14>
         <Filename Value="mkfpdoc.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="mkfpdoc"/>
       </Unit14>
       <Unit15>
         <Filename Value="fpdocclasstree.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpdocclasstree"/>
       </Unit15>
     </Units>
   </ProjectOptions>
@@ -132,12 +123,6 @@
       <IncludeFiles Value="$(ProjOutDir)"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Other>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

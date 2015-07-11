@@ -70,6 +70,7 @@ resourcestring
   SDocMethodOverview         = 'Method overview';
   SDocPropertyOverview       = 'Property overview';
   SDocInterfacesOverview     = 'Interfaces overview';
+  SDocInterface              = 'Interfaces';
   SDocPage                   = 'Page';
   SDocMethod                 = 'Method';
   SDocProperty               = 'Property';

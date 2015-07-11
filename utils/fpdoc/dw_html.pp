@@ -89,8 +89,6 @@ type
     FOnTest: TNotifyEvent;
     FPackage: TPasPackage;
     FCharSet : String;
-    procedure AddElementsFromList(L: TStrings; List: TFPList; UsePathName : Boolean = False);
-    procedure AppendTypeDecl(AType: TPasType; TableEl, CodeEl: TDomElement);
     procedure CreateMinusImage;
     procedure CreatePlusImage;
     function GetPageCount: Integer;
@@ -218,12 +216,10 @@ type
     function AppendProcType(CodeEl, TableEl: TDOMElement;
       Element: TPasProcedureType; Indent: Integer): TDOMElement;
     procedure AppendProcExt(CodeEl: TDOMElement; Element: TPasProcedure);
-    procedure AppendProcDecl(CodeEl, TableEl: TDOMElement;
-      Element: TPasProcedureBase);
-    procedure AppendProcArgsSection(Parent: TDOMNode;
-      Element: TPasProcedureType; SkipResult : Boolean = False);
-    function AppendRecordType(CodeEl, TableEl: TDOMElement;
-      Element: TPasRecordType; NestingLevel: Integer): TDOMElement;
+    procedure AppendProcDecl(CodeEl, TableEl: TDOMElement; Element: TPasProcedureBase);
+    procedure AppendProcArgsSection(Parent: TDOMNode; Element: TPasProcedureType; SkipResult : Boolean = False);
+    function AppendRecordType(CodeEl, TableEl: TDOMElement; Element: TPasRecordType; NestingLevel: Integer): TDOMElement;
+    procedure CreateMemberDeclarations(AParent: TPasElement; Members: TFPList; TableEl : TDOmelement);
 
     procedure AppendTitle(const AText: DOMString; Hints : TPasMemberHints = []);
     procedure AppendMenuBar(ASubpageIndex: Integer);
@@ -250,15 +246,15 @@ type
     procedure CreateVarPageBody(AVar: TPasVariable);
     procedure CreateProcPageBody(AProc: TPasProcedureBase);
     Procedure CreateTopicLinks(Node : TDocNode; PasElement : TPasElement);
+    procedure AddElementsFromList(L: TStrings; List: TFPList; UsePathName : Boolean = False);
+    procedure AppendTypeDecl(AType: TPasType; TableEl, CodeEl: TDomElement);
   public
     constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
     destructor Destroy; override;
 
     // Single-page generation
-    function CreateHTMLPage(AElement: TPasElement;
-      ASubpageIndex: Integer): TXMLDocument;
-    function CreateXHTMLPage(AElement: TPasElement;
-      ASubpageIndex: Integer): TXMLDocument;
+    function CreateHTMLPage(AElement: TPasElement; ASubpageIndex: Integer): TXMLDocument;
+    function CreateXHTMLPage(AElement: TPasElement; ASubpageIndex: Integer): TXMLDocument;
 
     // For producing complete package documentation
     procedure WriteHTMLPages; virtual;
@@ -523,18 +519,6 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
       end;
   end;
 
-  procedure AddPages(AElement: TPasElement; ASubpageIndex: Integer;
-    AList: TFPList);
-  var
-    i: Integer;
-  begin
-    if AList.Count > 0 then
-    begin
-      AddPage(AElement, ASubpageIndex);
-      for i := 0 to AList.Count - 1 do
-        AddPage(TPasElement(AList[i]), 0);
-    end;
-  end;
 
   Function HaveClasses(AModule: TPasModule) : Boolean;
 
@@ -545,7 +529,40 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
            and (AModule.InterfaceSection.Classes.Count>0);
   end;
 
-  procedure ScanModule(AModule: TPasModule; LinkList : TObjectList);
+  procedure AddPages(AElement: TPasElement; ASubpageIndex: Integer;
+    AList: TFPList);
+  var
+    i,j: Integer;
+    R : TPasRecordtype;
+    FPEl : TPasElement;
+    DocNode: TDocNode;
+  begin
+    if AList.Count > 0 then
+      begin
+      AddPage(AElement, ASubpageIndex);
+      for i := 0 to AList.Count - 1 do
+        begin
+        AddPage(TPasElement(AList[i]), 0);
+        if (TObject(AList[i]) is TPasRecordType) then
+          begin
+          R:=TObject(AList[I]) as TPasRecordType;
+          For J:=0 to R.Members.Count-1 do
+            begin
+            FPEl:=TPasElement(R.Members[J]);
+            if ((FPEL is TPasProperty) or (FPEL is TPasProcedureBase))
+               and Engine.ShowElement(FPEl) then
+                 begin
+                 DocNode := Engine.FindDocNode(FPEl);
+                 if Assigned(DocNode) then
+                   AddPage(FPEl, 0);
+                 end;
+            end;
+          end;
+        end;
+      end;
+  end;
+
+  Procedure AddClassMemberPages(AModule: TPasModule; LinkList : TObjectList);
   var
     i, j, k: Integer;
     s: String;
@@ -554,6 +571,71 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     DocNode: TDocNode;
     ALink : DOMString;
     DidAutolink: Boolean;
+
+  begin
+  for i := 0 to AModule.InterfaceSection.Classes.Count - 1 do
+    begin
+    ClassEl := TPasClassType(AModule.InterfaceSection.Classes[i]);
+    AddPage(ClassEl, 0);
+    // !!!: Only add when there are items
+    AddPage(ClassEl, PropertiesByInheritanceSubindex);
+    AddPage(ClassEl, PropertiesByNameSubindex);
+    AddPage(ClassEl, MethodsByInheritanceSubindex);
+    AddPage(ClassEl, MethodsByNameSubindex);
+    AddPage(ClassEl, EventsByInheritanceSubindex);
+    AddPage(ClassEl, EventsByNameSubindex);
+    for j := 0 to ClassEl.Members.Count - 1 do
+      begin
+      FPEl := TPasElement(ClassEl.Members[j]);
+      if Not Engine.ShowElement(FPEl) then
+        continue;
+      DocNode := Engine.FindDocNode(FPEl);
+      if Assigned(DocNode) then
+        begin
+        if Assigned(DocNode.Node) then
+          ALink:=DocNode.Node['link']
+        else
+          ALink:='';
+        If (ALink<>'') then
+          LinkList.Add(TLinkData.Create(FPEl.PathName,ALink,AModule.name))
+        else
+          AddPage(FPEl, 0);
+        end
+      else
+        begin
+        DidAutolink := False;
+        if Assigned(ClassEl.AncestorType) and
+          (ClassEl.AncestorType.ClassType.inheritsfrom(TPasClassType)) then
+          begin
+          for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
+            begin
+            AncestorMemberEl :=
+              TPasElement(TPasClassType(ClassEl.AncestorType).Members[k]);
+            if AncestorMemberEl.Name = FPEl.Name then
+              begin
+              DocNode := Engine.FindDocNode(AncestorMemberEl);
+              if Assigned(DocNode) then
+                begin
+                DidAutolink := True;
+                Engine.AddLink(FPEl.PathName,
+                  Engine.FindAbsoluteLink(AncestorMemberEl.PathName));
+                break;
+                end;
+              end;
+            end;
+          end;
+        if not DidAutolink then
+          AddPage(FPEl, 0);
+        end;
+      end;
+    end;
+    end;
+
+  procedure ScanModule(AModule: TPasModule; LinkList : TObjectList);
+  var
+    i: Integer;
+    s: String;
+
   begin
     if not assigned(Amodule.Interfacesection) then
       exit; 
@@ -575,65 +657,9 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
       if InterfaceSection.Classes.Count > 0 then
         begin
         AddPage(AModule, ClassesSubindex);
-        for i := 0 to InterfaceSection.Classes.Count - 1 do
-          begin
-          ClassEl := TPasClassType(InterfaceSection.Classes[i]);
-          AddPage(ClassEl, 0);
-          // !!!: Only add when there are items
-          AddPage(ClassEl, PropertiesByInheritanceSubindex);
-          AddPage(ClassEl, PropertiesByNameSubindex);
-          AddPage(ClassEl, MethodsByInheritanceSubindex);
-          AddPage(ClassEl, MethodsByNameSubindex);
-          AddPage(ClassEl, EventsByInheritanceSubindex);
-          AddPage(ClassEl, EventsByNameSubindex);
-
-          for j := 0 to ClassEl.Members.Count - 1 do
-            begin
-            FPEl := TPasElement(ClassEl.Members[j]);
-            if Not Engine.ShowElement(FPEl) then
-              continue;
-
-            DocNode := Engine.FindDocNode(FPEl);
-            if Assigned(DocNode) then
-              begin
-              if Assigned(DocNode.Node) then
-                ALink:=DocNode.Node['link']
-              else
-                ALink:='';
-              If (ALink<>'') then
-                LinkList.Add(TLinkData.Create(FPEl.PathName,ALink,AModule.name))
-              else
-                AddPage(FPEl, 0);
-              end
-            else
-              begin
-              DidAutolink := False;
-              if Assigned(ClassEl.AncestorType) and
-                (ClassEl.AncestorType.ClassType.inheritsfrom(TPasClassType)) then
-                begin
-                for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
-                  begin
-                  AncestorMemberEl :=
-                    TPasElement(TPasClassType(ClassEl.AncestorType).Members[k]);
-                  if AncestorMemberEl.Name = FPEl.Name then
-                    begin
-                    DocNode := Engine.FindDocNode(AncestorMemberEl);
-                    if Assigned(DocNode) then
-                      begin
-                      DidAutolink := True;
-                      Engine.AddLink(FPEl.PathName,
-                        Engine.FindAbsoluteLink(AncestorMemberEl.PathName));
-                      break;
-                      end;
-                    end;
-                  end;
-                end;
-              if not DidAutolink then
-                AddPage(FPEl, 0);
-              end;
-            end;
-          end;
+        AddClassMemberPages(AModule,LinkList);
         end;
+
       AddPages(AModule, ProcsSubindex, InterfaceSection.Functions);
       AddPages(AModule, VarsSubindex, InterfaceSection.Variables);
       end;
@@ -1822,7 +1848,7 @@ procedure THTMLWriter.AppendProcDecl(CodeEl, TableEl: TDOMElement;
     AppendProcArgsSection(TableEl.ParentNode, AProc.ProcType, SkipResult);
 
     AppendKw(CodeEl, AProc.TypeName);
-    if Element.Parent.ClassType = TPasClassType then
+    if (Element.Parent.ClassType = TPasClassType) or (Element.Parent.ClassType = TPasRecordType) then
     begin
       AppendText(CodeEl, ' ');
       AppendHyperlink(CodeEl, Element.Parent);
@@ -1908,6 +1934,8 @@ var
   Variable: TPasVariable;
   TREl, TDEl: TDOMElement;
   CurVariant: TPasVariant;
+  isExtended : Boolean;
+
 begin
   if not (Element.Parent is TPasVariant) then
     if Element.IsPacked then
@@ -1918,18 +1946,28 @@ begin
     else
       AppendKw(CodeEl, 'record');
 
-  for i := 0 to Element.Members.Count - 1 do
-  begin
-    Variable := TPasVariable(Element.Members[i]);
-    TREl := CreateTR(TableEl);
-    CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
-    AppendShortDescrCell(TREl, Variable);
-    AppendNbSp(CodeEl, NestingLevel * 2 + 2);
-    AppendText(CodeEl, Variable.Name);
-    AppendSym(CodeEl, ': ');
-    CodeEl := AppendType(CodeEl, TableEl, Variable.VarType, False, NestingLevel + 1);
-    AppendSym(CodeEl, ';');
-  end;
+  isExtended:=False;
+  I:=0;
+  while (not isExtended) and (I<Element.Members.Count) do
+    begin
+    isExtended:=Not (TObject(Element.Members[i]) is TPasVariable);
+    Inc(i);
+    end;
+  if isExtended then
+    CreateMemberDeclarations(Element,Element.Members,TableEl)
+  else
+    for i := 0 to Element.Members.Count - 1 do
+      begin
+      Variable := TPasVariable(Element.Members[i]);
+      TREl := CreateTR(TableEl);
+      CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
+      AppendShortDescrCell(TREl, Variable);
+      AppendNbSp(CodeEl, NestingLevel * 2 + 2);
+      AppendText(CodeEl, Variable.Name);
+      AppendSym(CodeEl, ': ');
+      CodeEl := AppendType(CodeEl, TableEl, Variable.VarType, False, NestingLevel + 1);
+      AppendSym(CodeEl, ';');
+    end;
 
   if Assigned(Element.VariantType) then
   begin
@@ -3106,6 +3144,143 @@ begin
     (Copy(AMember.Name, 1, 2) = 'On');
 end;
 
+procedure THTMLWriter.CreateMemberDeclarations(AParent : TPasElement; Members : TFPList; TableEl : TDOmelement);
+
+var
+  TREl, TDEl, CodeEl: TDOMElement;
+  DocNode: TDocNode;
+  Member: TPasElement;
+  MVisibility,
+  CurVisibility: TPasMemberVisibility;
+  i: Integer;
+  s: String;
+  t : TPasType;
+  ah,ol,wt,ct,wc,cc  : boolean;
+  isRecord : Boolean;
+
+begin
+  isRecord:=AParent is TPasRecordType;
+  if Members.Count > 0 then
+    begin
+    wt:=False;
+    wc:=False;
+    CurVisibility := visDefault;
+    for i := 0 to Members.Count - 1 do
+      begin
+      Member := TPasElement(Members[i]);
+      MVisibility:=Member.Visibility;
+      ol:=(Member is TPasOverloadedProc);
+      ah:=ol or ((Member is TPasProcedure) and (TPasProcedure(Member).ProcType.Args.Count > 0));
+      if ol then
+        Member:=TPasElement((Member as TPasOverloadedProc).Overloads[0]);
+      if Not Engine.ShowElement(Member) then
+        continue;
+      if (CurVisibility <> MVisibility) then
+        begin
+        CurVisibility := MVisibility;
+        s:=VisibilityNames[MVisibility];
+        AppendKw(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), s);
+        end;
+      ct:=(Member is TPasType);
+      if ct and (not wt) then
+        begin
+        AppendKw(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), 'Type');
+        end;
+      wt:=ct;
+      cc:=(Member is TPasConst);
+      if cc and (not wc) then
+        begin
+        AppendKw(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), 'Const');
+        end;
+      wc:=cc;
+      TREl := CreateTR(TableEl);
+      CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
+      AppendNbSp(CodeEl, 2);
+      AppendShortDescrCell(TREl, Member);
+
+      if (Member is TPasProcedureBase) then
+        begin
+        AppendKw(CodeEl, TPasProcedureBase(Member).TypeName + ' ');
+        AppendHyperlink(CodeEl, Member);
+        if ah then
+          AppendSym(CodeEl, '();')
+        else
+          AppendSym(CodeEl, ';');
+        if Not OL then
+          AppendProcExt(CodeEl, TPasProcedure(Member));
+        end
+      else if (Member is TPasConst) then
+        begin
+        AppendHyperlink(CodeEl, Member);
+        If Assigned(TPasConst(Member).VarType) then
+          begin
+          AppendSym(CodeEl, ' = ');
+          AppendTypeDecl(TPasType(Member),TableEl,CodeEl);
+          end;
+        AppendSym(CodeEl, ' = ');
+        AppendText(CodeEl,TPasConst(Member).Expr.GetDeclaration(True));
+        end
+      else if (Member is TPasType) then
+        begin
+        AppendHyperlink(CodeEl, Member);
+        AppendSym(CodeEl, ' = ');
+        AppendTypeDecl(TPasType(Member),TableEl,CodeEl);
+        end
+      else if (Member is TPasProperty) then
+        begin
+        AppendKw(CodeEl, 'property ');
+        AppendHyperlink(CodeEl, Member);
+        t:=TPasProperty(Member).ResolvedType;
+        if Assigned(T) then
+        begin
+          AppendSym(CodeEl, ': ');
+          AppendHyperlink(CodeEl, T);
+        end;
+        AppendSym(CodeEl, ';');
+        if TPasProperty(Member).IsDefault then
+        begin
+          AppendKw(CodeEl, ' default');
+          AppendSym(CodeEl, ';');
+        end;
+        if (TPasProperty(Member).ImplementsName<>'') then
+        begin
+          AppendKw(CodeEl, ' implements');
+          AppendText(CodeEl, ' '+TPasProperty(Member).ImplementsName);
+          AppendSym(CodeEl, ';');
+        end;
+        SetLength(s, 0);
+        if Length(TPasProperty(Member).ReadAccessorName) > 0 then
+          s := s + 'r';
+        if Length(TPasProperty(Member).WriteAccessorName) > 0 then
+          s := s + 'w';
+        if Length(TPasProperty(Member).StoredAccessorName) > 0 then
+          s := s + 's';
+        if Length(s) > 0 then
+          AppendText(CodeEl, '  [' + s + ']');
+        end
+      else if (Member is TPasVariable) then
+        begin
+        if not isRecord then
+          AppendHyperlink(CodeEl, Member)
+        else
+          AppendText(CodeEl, Member.Name);
+        AppendSym(CodeEl, ': ');
+        AppendHyperlink(CodeEl, TPasVariable(Member).VarType);
+        AppendSym(CodeEl, ';');
+        end
+      else
+        AppendText(CreateWarning(CodeEl), '<' + Member.ClassName + '>');
+      if (Member.Hints<>[]) then
+        begin
+        AppendKW(CodeEl,' '+Engine.HintsToStr(Member.Hints));
+        AppendText(CodeEl, ' ');
+        AppendSym(CodeEl, ';');
+        end;
+    end;
+    CodeEl := CreateCode(CreatePara(CreateTD(CreateTR(TableEl))));
+  end;
+end;
+
 procedure THTMLWriter.CreateClassPageBody(AClass: TPasClassType;
   ASubpageIndex: Integer);
 type
@@ -3159,14 +3334,7 @@ var
   procedure CreateMainPage;
   var
     TableEl, TREl, TDEl, CodeEl: TDOMElement;
-    DocNode: TDocNode;
-    Member: TPasElement;
-    MVisibility,
-    CurVisibility: TPasMemberVisibility;
     i: Integer;
-    s: String;
-    t : TPasType;
-    ah,ol,wt,ct,wc,cc  : boolean;
     ThisInterface,
     ThisClass: TPasClassType;
     HaveSeenTObject: Boolean;
@@ -3225,123 +3393,7 @@ var
         AppendSym(CodeEl, ')');
         end;
     end;
-    if AClass.Members.Count > 0 then
-      begin
-      wt:=False;
-      wc:=False;
-      CurVisibility := visDefault;
-      for i := 0 to AClass.Members.Count - 1 do
-        begin
-        Member := TPasElement(AClass.Members[i]);
-        MVisibility:=Member.Visibility;
-        ol:=(Member is TPasOverloadedProc);
-        ah:=ol or ((Member is TPasProcedure) and (TPasProcedure(Member).ProcType.Args.Count > 0));
-        if ol then
-          Member:=TPasElement((Member as TPasOverloadedProc).Overloads[0]);
-        if Not Engine.ShowElement(Member) then
-          continue;
-        if (CurVisibility <> MVisibility) then
-          begin
-          CurVisibility := MVisibility;
-          s:=VisibilityNames[MVisibility];
-          AppendKw(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), s);
-          end;
-        ct:=(Member is TPasType);
-        if ct and (not wt) then
-          begin
-          AppendKw(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), 'Type');
-          end;
-        wt:=ct;
-        cc:=(Member is TPasConst);
-        if cc and (not wc) then
-          begin
-          AppendKw(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), 'Const');
-          end;
-        wc:=cc;
-        TREl := CreateTR(TableEl);
-        CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
-        AppendNbSp(CodeEl, 2);
-        AppendShortDescrCell(TREl, Member);
-
-        if (Member is TPasProcedureBase) then
-          begin
-          AppendKw(CodeEl, TPasProcedureBase(Member).TypeName + ' ');
-          AppendHyperlink(CodeEl, Member);
-          if ah then
-            AppendSym(CodeEl, '();')
-          else
-            AppendSym(CodeEl, ';');
-          if Not OL then
-            AppendProcExt(CodeEl, TPasProcedure(Member));
-          end
-        else if (Member is TPasConst) then
-          begin
-          AppendHyperlink(CodeEl, Member);
-          If Assigned(TPasConst(Member).VarType) then
-            begin
-            AppendSym(CodeEl, ' = ');
-            AppendTypeDecl(TPasType(Member),TableEl,CodeEl);
-            end;
-          AppendSym(CodeEl, ' = ');
-          AppendText(CodeEl,TPasConst(Member).Expr.GetDeclaration(True));
-          end
-        else if (Member is TPasType) then
-          begin
-          AppendHyperlink(CodeEl, Member);
-          AppendSym(CodeEl, ' = ');
-          AppendTypeDecl(TPasType(Member),TableEl,CodeEl);
-          end
-        else if (Member is TPasProperty) then
-          begin
-          AppendKw(CodeEl, 'property ');
-          AppendHyperlink(CodeEl, Member);
-          t:=TPasProperty(Member).ResolvedType;
-          if Assigned(T) then
-          begin
-            AppendSym(CodeEl, ': ');
-            AppendHyperlink(CodeEl, T);
-          end;
-          AppendSym(CodeEl, ';');
-          if TPasProperty(Member).IsDefault then
-          begin
-            AppendKw(CodeEl, ' default');
-            AppendSym(CodeEl, ';');
-          end;
-          if (TPasProperty(Member).ImplementsName<>'') then
-          begin
-            AppendKw(CodeEl, ' implements');
-            AppendText(CodeEl, ' '+TPasProperty(Member).ImplementsName);
-            AppendSym(CodeEl, ';');
-          end;
-          SetLength(s, 0);
-          if Length(TPasProperty(Member).ReadAccessorName) > 0 then
-            s := s + 'r';
-          if Length(TPasProperty(Member).WriteAccessorName) > 0 then
-            s := s + 'w';
-          if Length(TPasProperty(Member).StoredAccessorName) > 0 then
-            s := s + 's';
-          if Length(s) > 0 then
-            AppendText(CodeEl, '  [' + s + ']');
-          end
-        else if (Member is TPasVariable) then
-          begin
-          AppendHyperlink(CodeEl, Member);
-          AppendSym(CodeEl, ': ');
-          AppendHyperlink(CodeEl, TPasVariable(Member).VarType);
-          AppendSym(CodeEl, ';');
-          end
-        else
-          AppendText(CreateWarning(CodeEl), '<' + Member.ClassName + '>');
-        if (Member.Hints<>[]) then
-          begin
-          AppendKW(CodeEl,' '+Engine.HintsToStr(Member.Hints));
-          AppendText(CodeEl, ' ');
-          AppendSym(CodeEl, ';');
-          end;
-      end;
-
-      CodeEl := CreateCode(CreatePara(CreateTD(CreateTR(TableEl))));
-    end;
+    CreateMemberDeclarations(AClass, AClass.Members,TableEl);
 
     AppendText(CodeEl, ' '); // !!!: Dirty trick, necessary for current XML writer
     if not AClass.IsShortDefinition then

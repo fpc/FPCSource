@@ -9,8 +9,9 @@
 -->
 
 <module name="testunit">
-<short></short>
+<short>This cannot be</short>
 <descr>
+We have here a description
 </descr>
 <notes>
   <note>Unit note</note>
@@ -18,7 +19,7 @@
 
 <!-- constant Visibility: default -->
 <element name="AnIntegerConst">
-<short></short>
+<short>Aha this is not me</short>
 <descr>
 </descr>
 <version>
@@ -206,7 +207,7 @@ Appears in 2.0
 
 <!-- record type Visibility: default -->
 <element name="TAVariantRecordType">
-<short></short>
+<short>Some record with variants</short>
 <descr>
 </descr>
 <seealso>
@@ -215,7 +216,7 @@ Appears in 2.0
 
 <!-- variable Visibility: default -->
 <element name="TAVariantRecordType.A">
-<short></short>
+<short>A short description for A </short>
 <descr>
 </descr>
 <seealso>
@@ -224,7 +225,7 @@ Appears in 2.0
 
 <!-- variable Visibility: default -->
 <element name="TAVariantRecordType.X">
-<short></short>
+<short>A short description for X</short>
 <descr>
 </descr>
 <seealso>
@@ -233,7 +234,53 @@ Appears in 2.0
 
 <!-- variable Visibility: default -->
 <element name="TAVariantRecordType.Y">
-<short></short>
+<short>A short description for Y</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TMethodRecord">
+<short>Some record with variants</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+
+<!-- variable Visibility: default -->
+<element name="TMethodRecord.MyMethod">
+<short>A short description for MyMethod</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TMethodRecord.A">
+<short>A short description for A </short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TMethodRecord.X">
+<short>A short description for X</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TMethodRecord.Y">
+<short>A short description for Y</short>
 <descr>
 </descr>
 <seealso>

@@ -960,8 +960,6 @@ procedure TManWriter.WriteDoc;
 var
   i : Integer;
   L : TstringList;
-  DocNode : TDocNode;
-
 begin
   PackageName := LowerCase(Copy(Package.Name, 2, 255));
   If (Engine.Output<>'') then

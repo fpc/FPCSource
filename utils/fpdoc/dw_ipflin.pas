@@ -29,6 +29,9 @@ const
   TIPFExtension = '.ipf';
 
 type
+
+  { TIPFNewWriter }
+
   TIPFNewWriter = class(TLinearWriter)
   private
     InPackageOverview: Boolean;
@@ -85,7 +88,7 @@ type
     procedure StartSubSection(SubSectionName : String);override;
     procedure StartSubSubSection(SubSubSectionName : String);override;
     procedure StartChapter(ChapterName : String); override;
-    procedure StartOverview(WithAccess : Boolean); override;
+    procedure StartOverview(Const What : String;WithAccess : Boolean); override;
     procedure EndOverview; override;
     procedure WriteOverviewMember(const ALabel,AName,Access,ADescr : String); override;
     procedure WriteOverviewMember(const ALabel,AName,ADescr : String); override;
@@ -613,7 +616,7 @@ end;
 
 { TLinearWriter overrides}
 
-class function TIPFNewWriter.FileNameExtension: String;
+class function TIPFNewWriter.FileNameExtension: string;
 begin
   Result := TIPFExtension;
 end;
@@ -641,7 +644,7 @@ begin
   Result := StringReplace(Result, ' ', '_', [rfReplaceAll]);
 end;
 
-Function TIPFNewWriter.EscapeText(S : String) : String;
+function TIPFNewWriter.EscapeText(S: String): String;
 var
   i: Integer;
 begin
@@ -697,7 +700,7 @@ begin
     end;
 end;
 
-Function TIPFNewWriter.StripText(S : String) : String;
+function TIPFNewWriter.StripText(S: String): String;
 var
   I: Integer;
 begin
@@ -740,7 +743,7 @@ begin
   writeln('');
 end;
 
-procedure TIPFNewWriter.WriteLabel(const s: String);
+procedure TIPFNewWriter.WriteLabel(const S: String);
 var
   x: String;
 begin
@@ -762,7 +765,7 @@ begin
   end;
 end;
 
-procedure TIPFNewWriter.WriteIndex(const s : String);
+procedure TIPFNewWriter.WriteIndex(const S: String);
 begin
 //  writeln(':i1 id=' + s + '.');
 end;
@@ -878,19 +881,19 @@ begin
   //Writeln(':h5.' + SubSubSectionName);
 end;
 
-Procedure TIPFNewWriter.StartProcedure;
+procedure TIPFNewWriter.StartProcedure;
 begin
   //writeln('');
   //writeln(':ul.');
 end;
 
-Procedure TIPFNewWriter.EndProcedure;
+procedure TIPFNewWriter.EndProcedure;
 begin
   //writeln('');
   //writeln(':eul.');
 end;
 
-Procedure TIPFNewWriter.StartSynopsis;
+procedure TIPFNewWriter.StartSynopsis;
 begin
   writeln('');
   writeln(':p.');
@@ -900,7 +903,7 @@ begin
   writeln(':lm margin=3.');
 end;
 
-Procedure TIPFNewWriter.StartDeclaration;
+procedure TIPFNewWriter.StartDeclaration;
 begin
   writeln('');
   writeln(':p.');
@@ -909,7 +912,7 @@ begin
   writeln(':lm margin=3.');
 end;
 
-Procedure TIPFNewWriter.StartVisibility;
+procedure TIPFNewWriter.StartVisibility;
 begin
   writeln('');
   writeln(':p.');
@@ -919,7 +922,7 @@ begin
   writeln('.br');
 end;
 
-Procedure TIPFNewWriter.StartDescription;
+procedure TIPFNewWriter.StartDescription;
 begin
   writeln('');
   writeln(':p.');
@@ -929,7 +932,7 @@ begin
   writeln('.br');
 end;
 
-Procedure TIPFNewWriter.StartErrors;
+procedure TIPFNewWriter.StartErrors;
 begin
   writeln('');
   writeln(':p.');
@@ -949,7 +952,7 @@ begin
   writeln('.br');
 end;
 
-Procedure TIPFNewWriter.StartAccess;
+procedure TIPFNewWriter.StartAccess;
 begin
   writeln('');
   writeln(':p.');
@@ -959,14 +962,14 @@ begin
   writeln('.br');
 end;
 
-Procedure TIPFNewWriter.StartProperty;
+procedure TIPFNewWriter.StartProperty;
 begin
   //writeln('');
   //Writeln('.* here I am');
   //writeln(':ul.');
 end;
 
-Procedure TIPFNewWriter.EndProperty;
+procedure TIPFNewWriter.EndProperty;
 begin
   //writeln('');
   //writeln(':eul.');
@@ -1003,7 +1006,7 @@ begin
   end;
 end;
 
-procedure TIPFNewWriter.StartOverview(WithAccess : Boolean);
+procedure TIPFNewWriter.StartOverview(const What: String; WithAccess: Boolean);
 begin
 {
   If With access then it is a property overview.
@@ -1065,7 +1068,7 @@ begin
   WriteLn(Format(':pd. %s', [ADescr]));
 end;
 
-Procedure TIPFNewWriter.StartSeeAlso;
+procedure TIPFNewWriter.StartSeealso;
 begin
   writeln('');
   writeln(':p.');
