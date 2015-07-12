@@ -243,6 +243,8 @@ type
     Procedure TestTwoDeprecatedFieldsCombinedPlatform;
     Procedure TestFieldAndMethod;
     Procedure TestFieldAnd2Methods;
+    Procedure TestFieldAndProperty;
+    Procedure TestFieldAndClassMethod;
     Procedure TestNested;
     Procedure TestNestedDeprecated;
     Procedure TestNestedPlatform;
@@ -1101,7 +1103,7 @@ end;
 
 { TTestRecordTypeParser }
 
-Function TTestRecordTypeParser.GetField(AIndex: Integer; R: TPasRecordType
+function TTestRecordTypeParser.GetField(AIndex: Integer; R: TPasRecordType
   ): TPasVariable;
 begin
   AssertNotNull(R);
@@ -1111,7 +1113,7 @@ begin
   Result:=TPasVariable(R.Members[AIndex]);
 end;
 
-Function TTestRecordTypeParser.GetField(AIndex: Integer; R: TPasVariant
+function TTestRecordTypeParser.GetField(AIndex: Integer; R: TPasVariant
   ): TPasVariable;
 begin
   AssertNotNull(R);
@@ -1132,7 +1134,7 @@ begin
   Result:=TheType as TPasRecordType;
 end;
 
-Function TTestRecordTypeParser.GetVariant(AIndex: Integer; R: TPasRecordType
+function TTestRecordTypeParser.GetVariant(AIndex: Integer; R: TPasRecordType
   ): TPasVariant;
 begin
   AssertNotNull(R);
@@ -1147,7 +1149,7 @@ begin
   Result:=GetVariant(AIndex,GetR);
 end;
 
-Procedure TTestRecordTypeParser.TestFields(Const Fields: Array of string;
+procedure TTestRecordTypeParser.TestFields(const Fields: array of string;
   AHint: String; HaveVariant: Boolean);
 
 Var
@@ -1193,7 +1195,7 @@ begin
 end;
 
 
-Procedure TTestRecordTypeParser.DoTestEmpty(Const AHint: String);
+procedure TTestRecordTypeParser.DoTestEmpty(const AHint: String);
 begin
   TestFields([],AHint);
   AssertNotNull('Have members array',TheRecord.Members);
@@ -1207,7 +1209,7 @@ end;
 
 
 procedure TTestRecordTypeParser.AssertVariant1(Hints: TPasMemberHints;
-  VariantLabels: Array of string);
+  VariantLabels: array of string);
 
 Var
   I : Integer;
@@ -1248,7 +1250,7 @@ begin
 end;
 
 procedure TTestRecordTypeParser.AssertVariant2(Hints: TPasMemberHints;
-  VariantLabels: Array of string);
+  VariantLabels: array of string);
 
 Var
   I : Integer;
@@ -1283,7 +1285,7 @@ begin
   AssertTrue('Field 1 hints match',TPasVariable(Variant2.Members.Members[0]).Hints=Hints)
 end;
 
-procedure TTestRecordTypeParser.DoTestVariantNoStorage(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestVariantNoStorage(const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0 : (y : integer;)'],AHint,True);
   AssertField1([]);
@@ -1292,7 +1294,7 @@ begin
 end;
 
 procedure TTestRecordTypeParser.DoTestDeprecatedVariantNoStorage(
-  Const AHint: string);
+  const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0 : (y : integer deprecated;)'],AHint,True);
   AssertField1([]);
@@ -1301,7 +1303,7 @@ begin
 end;
 
 procedure TTestRecordTypeParser.DoTestDeprecatedVariantStorage(
-  Const AHint: string);
+  const AHint: string);
 begin
   TestFields(['x : integer;','case s : integer of','0 : (y : integer deprecated;)'],AHint,True);
   AssertField1([]);
@@ -1309,7 +1311,7 @@ begin
   AssertVariant1([hDeprecated]);
 end;
 
-procedure TTestRecordTypeParser.DoTestVariantStorage(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestVariantStorage(const AHint: string);
 begin
   TestFields(['x : integer;','case s : integer of','0 : (y : integer;)'],AHint,True);
   AssertField1([]);
@@ -1317,7 +1319,7 @@ begin
   AssertVariant1([]);
 end;
 
-procedure TTestRecordTypeParser.DoTestTwoVariantsNoStorage(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestTwoVariantsNoStorage(const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0 : (y : integer;);','1 : (z : integer;)'],AHint,True);
   AssertField1([]);
@@ -1326,7 +1328,7 @@ begin
   AssertVariant2([]);
 end;
 
-procedure TTestRecordTypeParser.DoTestTwoVariantsStorage(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestTwoVariantsStorage(const AHint: string);
 begin
   TestFields(['x : integer;','case s : integer of','0 : (y : integer;);','1 : (z : integer;)'],AHint,True);
   AssertField1([]);
@@ -1336,7 +1338,7 @@ begin
 end;
 
 procedure TTestRecordTypeParser.DoTestTwoVariantsFirstDeprecatedStorage(
-  Const AHint: string);
+  const AHint: string);
 begin
   TestFields(['x : integer;','case s : integer of','0 : (y : integer deprecated;);','1 : (z : integer;)'],AHint,True);
   AssertField1([]);
@@ -1346,7 +1348,7 @@ begin
 end;
 
 procedure TTestRecordTypeParser.DoTestTwoVariantsSecondDeprecatedStorage(
-  Const AHint: string);
+  const AHint: string);
 begin
   TestFields(['x : integer;','case s : integer of','0 : (y : integer ;);','1 : (z : integer deprecated;)'],AHint,True);
   AssertField1([]);
@@ -1355,7 +1357,7 @@ begin
   AssertVariant2([hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.DoTestVariantTwoLabels(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestVariantTwoLabels(const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0,1 : (y : integer)'],AHint,True);
   AssertField1([]);
@@ -1363,7 +1365,7 @@ begin
   AssertVariant1([],['0','1']);
 end;
 
-Procedure TTestRecordTypeParser.DoTestTwoVariantsTwoLabels(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestTwoVariantsTwoLabels(const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0,1 : (y : integer);','2,3 : (z : integer);'],AHint,True);
   AssertField1([]);
@@ -1372,7 +1374,7 @@ begin
   AssertVariant2([],['2','3']);
 end;
 
-procedure TTestRecordTypeParser.DoTestVariantNestedRecord(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestVariantNestedRecord(const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0 : ( y : record','  z : integer;','end)'],AHint,True);
   AssertField1([]);
@@ -1380,7 +1382,7 @@ begin
   AssertRecordVariant(0,[],['0']);
 end;
 
-procedure TTestRecordTypeParser.DoTestVariantNestedVariant(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestVariantNestedVariant(const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0 : ( y : record','  z : integer;','  case byte of ','    1 : (i : integer);','    2 : ( j :  byte)', 'end)'],AHint,True);
   AssertField1([]);
@@ -1391,7 +1393,7 @@ begin
 end;
 
 procedure TTestRecordTypeParser.DoTestVariantNestedVariantFirstDeprecated(
-  Const AHint: string);
+  const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0 : ( y : record','  z : integer;','  case byte of ','    1 : (i : integer deprecated);','    2 : ( j :  byte)', 'end)'],AHint,True);
   AssertField1([]);
@@ -1423,23 +1425,23 @@ begin
   AssertRecordVariantVariant(1,'j','Byte',[hDeprecated],['2'])
 end;
 
-Procedure TTestRecordTypeParser.TestEmpty;
+procedure TTestRecordTypeParser.TestEmpty;
 begin
   DoTestEmpty('')
 end;
 
-Procedure TTestRecordTypeParser.TestEmptyComment;
+procedure TTestRecordTypeParser.TestEmptyComment;
 begin
   AddComment:=True;
   TestEmpty;
 end;
 
-Procedure TTestRecordTypeParser.TestEmptyDeprecated;
+procedure TTestRecordTypeParser.TestEmptyDeprecated;
 begin
   DoTestEmpty('Deprecated')
 end;
 
-Procedure TTestRecordTypeParser.TestEmptyPlatform;
+procedure TTestRecordTypeParser.TestEmptyPlatform;
 begin
   DoTestEmpty('Platform')
 end;
@@ -1524,7 +1526,7 @@ begin
 end;
 
 procedure TTestRecordTypeParser.AssertRecordVariant(AIndex: Integer;
-  Hints: TPasMemberHints; VariantLabels: Array of string);
+  Hints: TPasMemberHints; VariantLabels: array of string);
 
 Var
   F : TPasVariant;
@@ -1556,9 +1558,9 @@ begin
 
 end;
 
-Procedure TTestRecordTypeParser.AssertRecordVariantVariant(AIndex: Integer;
-  Const AFieldName, ATypeName: string; Hints: TPasMemberHints;
-  VariantLabels: Array of string);
+procedure TTestRecordTypeParser.AssertRecordVariantVariant(AIndex: Integer;
+  const AFieldName, ATypeName: string; Hints: TPasMemberHints;
+  VariantLabels: array of string);
 
 Var
   F : TPasVariant;
@@ -1598,13 +1600,13 @@ begin
   AssertTrue(MN+'hints match',V.Hints=Hints);
 end;
 
-Procedure TTestRecordTypeParser.TestOneField;
+procedure TTestRecordTypeParser.TestOneField;
 begin
   TestFields(['x : integer'],'',False);
   AssertOneIntegerField([]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneFieldComment;
+procedure TTestRecordTypeParser.TestOneFieldComment;
 begin
   AddComment:=True;
   TestFields(['{a} x : integer'],'',False);
@@ -1612,74 +1614,74 @@ begin
   AssertEquals('Member 1 comment','a'+sLineBreak,TPAsElement(TheRecord.Members[0]).DocComment);
 end;
 
-Procedure TTestRecordTypeParser.TestOneFieldDeprecated;
+procedure TTestRecordTypeParser.TestOneFieldDeprecated;
 begin
   TestFields(['x : integer'],'deprecated',False);
   AssertOneIntegerField([]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneFieldPlatform;
+procedure TTestRecordTypeParser.TestOneFieldPlatform;
 begin
   TestFields(['x : integer'],'platform',False);
   AssertOneIntegerField([]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneFieldSemicolon;
+procedure TTestRecordTypeParser.TestOneFieldSemicolon;
 begin
   TestFields(['x : integer;'],'',False);
   AssertOneIntegerField([]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneFieldSemicolonDeprecated;
+procedure TTestRecordTypeParser.TestOneFieldSemicolonDeprecated;
 begin
   TestFields(['x : integer;'],'deprecated',False);
   AssertOneIntegerField([]);
 
 end;
 
-Procedure TTestRecordTypeParser.TestOneFieldSemicolonPlatform;
+procedure TTestRecordTypeParser.TestOneFieldSemicolonPlatform;
 begin
   TestFields(['x : integer;'],'platform',False);
   AssertOneIntegerField([]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneDeprecatedField;
+procedure TTestRecordTypeParser.TestOneDeprecatedField;
 begin
   TestFields(['x : integer deprecated;'],'',False);
   AssertOneIntegerField([hDeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneDeprecatedFieldDeprecated;
+procedure TTestRecordTypeParser.TestOneDeprecatedFieldDeprecated;
 begin
   TestFields(['x : integer deprecated;'],'deprecated',False);
   AssertOneIntegerField([hDeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneDeprecatedFieldPlatform;
+procedure TTestRecordTypeParser.TestOneDeprecatedFieldPlatform;
 begin
   TestFields(['x : integer deprecated;'],'platform',False);
   AssertOneIntegerField([hDeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestOnePlatformField;
+procedure TTestRecordTypeParser.TestOnePlatformField;
 begin
   TestFields(['x : integer platform;'],'',False);
   AssertOneIntegerField([hplatform]);
 end;
 
-Procedure TTestRecordTypeParser.TestOnePlatformFieldDeprecated;
+procedure TTestRecordTypeParser.TestOnePlatformFieldDeprecated;
 begin
   TestFields(['x : integer platform;'],'Deprecated',False);
   AssertOneIntegerField([hplatform]);
 end;
 
-Procedure TTestRecordTypeParser.TestOnePlatformFieldPlatform;
+procedure TTestRecordTypeParser.TestOnePlatformFieldPlatform;
 begin
   TestFields(['x : integer platform;'],'Platform',False);
   AssertOneIntegerField([hplatform]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFields;
+procedure TTestRecordTypeParser.TestTwoFields;
 begin
   TestFields(['x : integer;','y : integer'],'',False);
   AssertTwoIntegerFields([],[]);
@@ -1687,17 +1689,18 @@ end;
 
 procedure TTestRecordTypeParser.TestTwoFieldPrivateNoDelphi;
 Var
-  B : Boolean;
+  EC : TClass;
 begin
   try
     TestFields(['private','x : integer'],'',False);
-    Fail('Need poDelphi for visibility specifier')
+    Fail('Need po_Delphi for visibility specifier');
   except
+    on EA : EAssertionFailedError do
+      Raise;
     on E : Exception do
-      B:=E is EParserError;
+      EC:=E.ClassType;
   end;
-  If not B then
-    Fail('Wrong exception class.');
+  AssertEquals('Exception class',EParserError,EC);
 end;
 
 procedure TTestRecordTypeParser.TestTwoFieldProtected;
@@ -1715,7 +1718,7 @@ begin
     Fail('Wrong exception class.');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldPrivate;
+procedure TTestRecordTypeParser.TestTwoFieldPrivate;
 begin
   Scanner.Options:=[po_Delphi];
   TestFields(['private','x,y : integer'],'',False);
@@ -1729,119 +1732,121 @@ begin
   AssertTwoIntegerFields([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldDeprecated;
 begin
   TestFields(['x : integer;','y : integer'],'deprecated',False);
   AssertTwoIntegerFields([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldPlatform;
+procedure TTestRecordTypeParser.TestTwoFieldPlatform;
 begin
   TestFields(['x : integer;','y : integer'],'platform',False);
   AssertTwoIntegerFields([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsFirstDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsFirstDeprecated;
 begin
   TestFields(['x : integer deprecated;','y : integer'],'',False);
   AssertTwoIntegerFields([hdeprecated],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsFirstDeprecatedDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsFirstDeprecatedDeprecated;
 begin
   TestFields(['x : integer deprecated;','y : integer'],'deprecated',False);
   AssertTwoIntegerFields([hdeprecated],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsFirstDeprecatedPlatform;
+procedure TTestRecordTypeParser.TestTwoFieldsFirstDeprecatedPlatform;
 begin
   TestFields(['x : integer deprecated;','y : integer'],'platform',False);
   AssertTwoIntegerFields([hdeprecated],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsSecondDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsSecondDeprecated;
 begin
   TestFields(['x : integer;','y : integer deprecated;'],'',False);
   AssertTwoIntegerFields([],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsSecondDeprecatedDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsSecondDeprecatedDeprecated;
 begin
   TestFields(['x : integer;','y : integer deprecated;'],'deprecated',False);
   AssertTwoIntegerFields([],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsSecondDeprecatedPlatform;
+procedure TTestRecordTypeParser.TestTwoFieldsSecondDeprecatedPlatform;
 begin
   TestFields(['x : integer;','y : integer deprecated;'],'platform',False);
   AssertTwoIntegerFields([],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsBothDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsBothDeprecated;
 begin
   TestFields(['x : integer deprecated;','y : integer deprecated;'],'',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsBothDeprecatedDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsBothDeprecatedDeprecated;
 begin
   TestFields(['x : integer deprecated;','y : integer deprecated;'],'deprecated',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsBothDeprecatedPlatform;
+procedure TTestRecordTypeParser.TestTwoFieldsBothDeprecatedPlatform;
 begin
   TestFields(['x : integer deprecated;','y : integer deprecated;'],'platform',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsCombined;
+procedure TTestRecordTypeParser.TestTwoFieldsCombined;
 begin
   TestFields(['x,y : integer;'],'',False);
   AssertTwoIntegerFields([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsCombinedDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsCombinedDeprecated;
 begin
   TestFields(['x,y : integer;'],'deprecated',False);
   AssertTwoIntegerFields([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsCombinedPlatform;
+procedure TTestRecordTypeParser.TestTwoFieldsCombinedPlatform;
 begin
   TestFields(['x,y : integer;'],'platform',False);
   AssertTwoIntegerFields([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombined;
+procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombined;
 begin
   TestFields(['x,y : integer deprecated;'],'',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombinedDeprecated;
+procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombinedDeprecated;
 begin
   TestFields(['x,y : integer deprecated;'],'deprecated',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombinedPlatform;
+procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombinedPlatform;
 begin
   TestFields(['x,y : integer deprecated;'],'platform',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestFieldAndMethod;
+procedure TTestRecordTypeParser.TestFieldAndMethod;
 begin
+  Parser.Options:=[po_delphi];
   TestFields(['x : integer;','procedure dosomething2;'],'',False);
   AssertIntegerFieldAndMethod([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestFieldAnd2Methods;
+procedure TTestRecordTypeParser.TestFieldAnd2Methods;
 Var
   P : TPasFunction;
 
 begin
+  Parser.Options:=[po_delphi];
   TestFields(['x : integer;','procedure dosomething2;','function dosomething3 : Integer;'],'',False);
   AssertEquals('Member count',3,TheRecord.Members.Count);
   AssertField1([]);
@@ -1854,7 +1859,44 @@ begin
   AssertEquals('Method 2 result type','Integer', P.FuncType.ResultEl.ResultType.Name);
 end;
 
-Procedure TTestRecordTypeParser.TestNested;
+procedure TTestRecordTypeParser.TestFieldAndProperty;
+
+Var
+  P : TPasProperty;
+begin
+  Parser.Options:=[po_delphi];
+  TestFields(['private','x : integer;','public','property MyX : Integer read X write X'],'',False);
+  AssertEquals('Member count',2,TheRecord.Members.Count);
+  AssertField1([]);
+  AssertEquals('Member 2 type',TPasProperty,TObject(TheRecord.Members[1]).ClassType);
+  P:=TPasProperty(TheRecord.Members[1]);
+  AssertEquals('Property name','MyX',P.Name);
+  AssertNotNull('Method 2 type',P.ResolvedType);
+  AssertEquals('Method 2 type','Integer',P.ResolvedType.Name);
+  AssertEquals('Method 2 read','X', P.ReadAccessorName);
+  AssertEquals('Method 2 Write','X', P.WriteAccessorName);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAndClassMethod;
+
+Var
+  P : TPasFunction;
+
+begin
+  TestFields(['x : integer;','class procedure dosomething2;','function dosomething3 : Integer;'],'',False);
+  AssertEquals('Member count',3,TheRecord.Members.Count);
+  AssertField1([]);
+  AssertMethod2([]);
+  AssertEquals('Class procedure',TPasProcedure,TObject(TheRecord.Members[1]).ClassType);
+  AssertEquals('Member 3 type',TPasFunction,TObject(TheRecord.Members[2]).ClassType);
+  P:=TPasFunction(TheRecord.Members[2]);
+  AssertEquals('Method 2 name','dosomething3',P.Name);
+  AssertTrue('Method 2 hints match',[]=P.Hints);
+  // Standard type
+  AssertEquals('Method 2 result type','Integer', P.FuncType.ResultEl.ResultType.Name);
+end;
+
+procedure TTestRecordTypeParser.TestNested;
 begin
   TestFields(['x : integer;','y : record','  z : integer;','end'],'',False);
   AssertField1([]);
@@ -1882,14 +1924,14 @@ begin
   AssertRecordField(1,[])
 end;
 
-Procedure TTestRecordTypeParser.TestNestedDeprecated;
+procedure TTestRecordTypeParser.TestNestedDeprecated;
 begin
   TestFields(['x : integer;','y : record','  z : integer;','end'],'deprecated',False);
   AssertField1([]);
   AssertRecordField(1,[])
 end;
 
-Procedure TTestRecordTypeParser.TestNestedPlatform;
+procedure TTestRecordTypeParser.TestNestedPlatform;
 begin
   TestFields(['x : integer;','y : record','  z : integer;','end'],'platform',False);
   AssertField1([]);
@@ -1917,21 +1959,21 @@ begin
   AssertRecordField(0,[])
 end;
 
-Procedure TTestRecordTypeParser.TestDeprecatedNested;
+procedure TTestRecordTypeParser.TestDeprecatedNested;
 begin
   TestFields(['x : integer;','y : record','  z : integer;','end deprecated;'],'',False);
   AssertField1([]);
   AssertRecordField(1,[hdeprecated])
 end;
 
-Procedure TTestRecordTypeParser.TestDeprecatedNestedDeprecated;
+procedure TTestRecordTypeParser.TestDeprecatedNestedDeprecated;
 begin
   TestFields(['x : integer;','y : record','  z : integer;','end deprecated;'],'deprecated',False);
   AssertField1([]);
   AssertRecordField(1,[hdeprecated])
 end;
 
-Procedure TTestRecordTypeParser.TestDeprecatedNestedPlatform;
+procedure TTestRecordTypeParser.TestDeprecatedNestedPlatform;
 begin
   TestFields(['x : integer;','y : record','  z : integer;','end deprecated;'],'platform',False);
   AssertField1([]);
@@ -1959,7 +2001,7 @@ begin
   AssertRecordField(0,[hdeprecated])
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNoStorage;
+procedure TTestRecordTypeParser.TestVariantNoStorage;
 begin
   DoTestVariantNoStorage('');
 end;
@@ -1976,7 +2018,7 @@ begin
   DoTestVariantNoStorage('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantStorage;
+procedure TTestRecordTypeParser.TestVariantStorage;
 begin
   DoTestVariantStorage('');
 end;
@@ -1992,7 +2034,7 @@ begin
   DoTestVariantStorage('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestDeprecatedVariantNoStorage;
+procedure TTestRecordTypeParser.TestDeprecatedVariantNoStorage;
 begin
   DoTestDeprecatedVariantNoStorage('');
 end;
@@ -2007,7 +2049,7 @@ begin
   DoTestDeprecatedVariantNoStorage('Platform');
 end;
 
-Procedure TTestRecordTypeParser.TestDeprecatedVariantStorage;
+procedure TTestRecordTypeParser.TestDeprecatedVariantStorage;
 begin
   DoTestDeprecatedVariantStorage('');
 end;
@@ -2022,7 +2064,7 @@ begin
   DoTestDeprecatedVariantStorage('Platform');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsNoStorage;
+procedure TTestRecordTypeParser.TestTwoVariantsNoStorage;
 begin
   DoTestTwoVariantsNoStorage('');
 end;
@@ -2037,7 +2079,7 @@ begin
   DoTestTwoVariantsNoStorage('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsStorage;
+procedure TTestRecordTypeParser.TestTwoVariantsStorage;
 begin
   DoTestTwoVariantsStorage('');
 end;
@@ -2052,7 +2094,7 @@ begin
   DoTestTwoVariantsStorage('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsFirstDeprecatedStorage;
+procedure TTestRecordTypeParser.TestTwoVariantsFirstDeprecatedStorage;
 begin
   DoTestTwoVariantsFirstDeprecatedStorage('');
 end;
@@ -2067,7 +2109,7 @@ begin
   DoTestTwoVariantsFirstDeprecatedStorage('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsSecondDeprecatedStorage;
+procedure TTestRecordTypeParser.TestTwoVariantsSecondDeprecatedStorage;
 begin
   DoTestTwoVariantsSecondDeprecatedStorage('');
 end;
@@ -2082,107 +2124,107 @@ begin
   DoTestTwoVariantsSecondDeprecatedStorage('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantTwoLabels;
+procedure TTestRecordTypeParser.TestVariantTwoLabels;
 begin
   DoTestVariantTwoLabels('');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantTwoLabelsDeprecated;
+procedure TTestRecordTypeParser.TestVariantTwoLabelsDeprecated;
 begin
   DoTestVariantTwoLabels('Deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantTwoLabelsPlatform;
+procedure TTestRecordTypeParser.TestVariantTwoLabelsPlatform;
 begin
   DoTestVariantTwoLabels('Platform');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsTwoLabels;
+procedure TTestRecordTypeParser.TestTwoVariantsTwoLabels;
 begin
   DoTestTwoVariantsTwoLabels('');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsTwoLabelsDeprecated;
+procedure TTestRecordTypeParser.TestTwoVariantsTwoLabelsDeprecated;
 begin
   DoTestTwoVariantsTwoLabels('Deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsTwoLabelsPlatform;
+procedure TTestRecordTypeParser.TestTwoVariantsTwoLabelsPlatform;
 begin
   DoTestTwoVariantsTwoLabels('Platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedRecord;
+procedure TTestRecordTypeParser.TestVariantNestedRecord;
 begin
   DoTestVariantNestedRecord('');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedRecordDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedRecordDeprecated;
 begin
   DoTestVariantNestedRecord('Deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedRecordPlatform;
+procedure TTestRecordTypeParser.TestVariantNestedRecordPlatform;
 begin
   DoTestVariantNestedRecord('Platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariant;
+procedure TTestRecordTypeParser.TestVariantNestedVariant;
 begin
   DoTestVariantNestedVariant('');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantDeprecated;
 begin
   DoTestVariantNestedVariant('deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantPlatForm;
+procedure TTestRecordTypeParser.TestVariantNestedVariantPlatForm;
 begin
   DoTestVariantNestedVariant('Platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantFirstDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantFirstDeprecated;
 begin
   DoTestVariantNestedVariantFirstDeprecated('');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantFirstDeprecatedDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantFirstDeprecatedDeprecated;
 begin
   DoTestVariantNestedVariantFirstDeprecated('deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantFirstDeprecatedPlatform;
+procedure TTestRecordTypeParser.TestVariantNestedVariantFirstDeprecatedPlatform;
 begin
   DoTestVariantNestedVariantFirstDeprecated('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantSecondDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantSecondDeprecated;
 begin
   DoTestVariantNestedVariantSecondDeprecated('');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantSecondDeprecatedDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantSecondDeprecatedDeprecated;
 begin
   DoTestVariantNestedVariantSecondDeprecated('deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantSecondDeprecatedPlatform;
+procedure TTestRecordTypeParser.TestVariantNestedVariantSecondDeprecatedPlatform;
 begin
   DoTestVariantNestedVariantSecondDeprecated('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecated;
 begin
   DoTestVariantNestedVariantBothDeprecated('');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecatedDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecatedDeprecated;
 begin
   DoTestVariantNestedVariantBothDeprecated('deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecatedPlatform;
+procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecatedPlatform;
 begin
   DoTestVariantNestedVariantBothDeprecated('platform');
 end;
