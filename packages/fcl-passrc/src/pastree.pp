@@ -683,7 +683,7 @@ type
     Args: TFPList;        // List of TPasArgument objects
     ReadAccessorName, WriteAccessorName,ImplementsName,
       StoredAccessorName: string;
-    IsDefault, IsNodefault: Boolean;
+    IsClass, IsDefault, IsNodefault: Boolean;
     Function ResolvedType : TPasType;
     Function IndexValue : String;
     Function DefaultValue : string;

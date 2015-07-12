@@ -64,6 +64,9 @@ resourcestring
   SParserNoFieldsAllowed = 'Fields are not allowed in Interfaces';
   SParserInvalidRecordVisibility = 'Records can only have public and (strict) private as visibility specifiers';
   SErrRecordMethodsNotAllowed = 'Record methods not allowed at this location.';
+  SErrRecordPropertiesNotAllowed = 'Record properties not allowed at this location.';
+  SErrRecordVisibilityNotAllowed = 'Record visibilities not allowed at this location.';
+
 type
   TPasParserLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
   TPParserLogEvent = (pleInterface,pleImplementation);
@@ -154,6 +157,7 @@ type
     procedure ParseClassLocalConsts(AType: TPasClassType; AVisibility: TPasMemberVisibility);
     procedure ParseClassLocalTypes(AType: TPasClassType; AVisibility: TPasMemberVisibility);
     procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full: Boolean);
+    procedure SetOptions(AValue: TPOptions);
   protected
     Function SaveComments : String;
     Function SaveComments(Const AValue : String) : String;
@@ -257,7 +261,7 @@ type
     property Engine: TPasTreeContainer read FEngine;
     property CurToken: TToken read FCurToken;
     property CurTokenString: String read FCurTokenString;
-    Property Options : TPOptions Read FOptions Write FOptions;
+    Property Options : TPOptions Read FOptions Write SetOptions;
     Property CurModule : TPasModule Read FCurModule;
     Property LogEvents : TPParserLogEvents Read FLogEvents Write FLogEvents;
     Property OnLog : TPasParserLogHandler Read FOnLog Write FOnLog;
@@ -563,7 +567,7 @@ begin
     end;
 end;
 
-Destructor TPasParser.Destroy;
+destructor TPasParser.Destroy;
 begin
   FreeAndNil(FCommentsBuffer[0]);
   FreeAndNil(FCommentsBuffer[1]);
@@ -590,12 +594,12 @@ begin
   end;
 end;
 
-Function TPasParser.CurComments: TStrings;
+function TPasParser.CurComments: TStrings;
 begin
   Result:=FCurComments;
 end;
 
-Function TPasParser.SavedComments: String;
+function TPasParser.SavedComments: String;
 begin
   Result:=FSavedComments;
 end;
@@ -690,13 +694,13 @@ begin
   Result := CurTokenString;
 end;
 
-Function TPasParser.CurTokenIsIdentifier(Const S: String): Boolean;
+function TPasParser.CurTokenIsIdentifier(const S: String): Boolean;
 begin
   Result:=(Curtoken=tkidentifier) and (CompareText(S,CurtokenText)=0);
 end;
 
 
-Function TPasParser.IsCurTokenHint(out AHint : TPasMemberHint) : Boolean;
+function TPasParser.IsCurTokenHint(out AHint: TPasMemberHint): Boolean;
 begin
   Result:=CurToken=tklibrary;
   if Result then
@@ -705,21 +709,21 @@ begin
     Result:=IsHintToken(CurTokenString,ahint);
 end;
 
-Function TPasParser.IsCurTokenHint: Boolean;
+function TPasParser.IsCurTokenHint: Boolean;
 var
   dummy : TPasMemberHint;
 begin
   Result:=IsCurTokenHint(dummy);
 end;
 
-Function TPasParser.TokenIsCallingConvention(S: String; out
+function TPasParser.TokenIsCallingConvention(S: String; out
   CC: TCallingConvention): Boolean;
 begin
   Result:=IsCallingConvention(S,CC);
 end;
 
-Function TPasParser.TokenIsProcedureModifier(Parent: TPasElement; S: String;
-  Out Pm: TProcedureModifier): Boolean;
+function TPasParser.TokenIsProcedureModifier(Parent: TPasElement; S: String;
+  out Pm: TProcedureModifier): Boolean;
 begin
   Result:=IsModifier(S,PM);
   if result and (pm in [pmPublic,pmForward]) then
@@ -731,7 +735,8 @@ begin
 end;
 
 
-Function TPasParser.CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
+function TPasParser.CheckHint(Element: TPasElement; ExpectSemiColon: Boolean
+  ): TPasMemberHints;
 
 Var
   Found : Boolean;
@@ -837,7 +842,8 @@ begin
   end;
 end;
 
-function TPasParser.ParseSimpleType(Parent: TPasElement; Const TypeName : String; IsFull : Boolean = False): TPasType;
+function TPasParser.ParseSimpleType(Parent: TPasElement;
+  const TypeName: String; IsFull: Boolean): TPasType;
 
 Type
   TSimpleTypeKind = (stkAlias,stkString,stkRange);
@@ -911,7 +917,8 @@ begin
 end;
 
 // On entry, we're on the TYPE token
-function TPasParser.ParseAliasType(Parent: TPasElement; Const TypeName: String): TPasTypeAliasType;
+function TPasParser.ParseAliasType(Parent: TPasElement; const TypeName: String
+  ): TPasTypeAliasType;
 begin
   Result := TPasTypeAliasType(CreateElement(TPasTypeAliasType, TypeName, Parent));
   try
@@ -922,7 +929,8 @@ begin
   end;
 end;
 
-function TPasParser.ParsePointerType(Parent : TPasElement; Const TypeName : String) : TPasPointerType;
+function TPasParser.ParsePointerType(Parent: TPasElement; const TypeName: String
+  ): TPasPointerType;
 
 begin
   Result := TPasPointerType(CreateElement(TPasPointerType, TypeName, Parent));
@@ -985,7 +993,8 @@ begin
   end;
 end;
 
-function TPasParser.ParseType(Parent: TPasElement; Const TypeName : String = ''; Full : Boolean =  False): TPasType;
+function TPasParser.ParseType(Parent: TPasElement; const TypeName: String;
+  Full: Boolean): TPasType;
 
 Const
   // These types are allowed only when full type declarations
@@ -1073,7 +1082,8 @@ begin
   end;
 end;
 
-Function TPasParser.ParseArrayType(Parent : TPasElement; Const TypeName : String; PackMode : TPackMode) : TPasArrayType;
+function TPasParser.ParseArrayType(Parent: TPasElement; const TypeName: String;
+  PackMode: TPackMode): TPasArrayType;
 
 Var
   S : String;
@@ -1115,7 +1125,8 @@ begin
   end;
 end;
 
-Function TPasParser.ParseFileType(Parent : TPasElement; Const TypeName  : String) : TPasFileType;
+function TPasParser.ParseFileType(Parent: TPasElement; const TypeName: String
+  ): TPasFileType;
 
 
 begin
@@ -1181,7 +1192,7 @@ begin
   end;
 end;
 
-Function TPasParser.TokenToExprOp (AToken : TToken) : TExprOpCode;
+function TPasParser.TokenToExprOp(AToken: TToken): TExprOpCode;
 
 begin
   Case AToken of
@@ -2276,7 +2287,7 @@ end;
 
 // Starts after the type name
 function TPasParser.ParseRangeType(AParent: TPasElement;
-  Const TypeName: String; Full: Boolean): TPasRangeType;
+  const TypeName: String; Full: Boolean): TPasRangeType;
 
 Var
   PE : TPasExpr;
@@ -2331,7 +2342,7 @@ begin
 end;
 
 function TPasParser.ParseSpecializeType(Parent: TPasElement;
-  Const TypeName: String): TPasClassType;
+  const TypeName: String): TPasClassType;
 
 begin
   Result := TPasClassType(Engine.CreateElement(TPasClassType, TypeName, Parent, Scanner.CurFilename, Scanner.CurRow));
@@ -2372,8 +2383,8 @@ begin
   Result:=ParseType(Parent,TypeName,True);
 end;
 
-function TPasParser.GetVariableValueAndLocation(Parent: TPasElement; Out
-  Value: TPasExpr; Out Location: String): Boolean;
+function TPasParser.GetVariableValueAndLocation(Parent: TPasElement; out
+  Value: TPasExpr; out Location: String): Boolean;
 
 begin
   Value:=Nil;
@@ -2403,7 +2414,7 @@ begin
     UngetToken;
 end;
 
-function TPasParser.GetVariableModifiers(Out VarMods: TVariableModifiers; Out
+function TPasParser.GetVariableModifiers(out VarMods: TVariableModifiers; out
   Libname, ExportName: string): string;
 
 Var
@@ -2528,14 +2539,22 @@ begin
   end;
 end;
 
-Function TPasParser.SaveComments: String;
+procedure TPasParser.SetOptions(AValue: TPOptions);
+begin
+  if FOptions=AValue then Exit;
+  FOptions:=AValue;
+  If Assigned(FScanner) then
+    FScanner.Options:=AValue;
+end;
+
+function TPasParser.SaveComments: String;
 begin
   if Engine.NeedComments then
     FSavedComments:=CurComments.Text; // Expensive, so don't do unless needed.
   Result:=FSavedComments;
 end;
 
-Function TPasParser.SaveComments(Const AValue: String): String;
+function TPasParser.SaveComments(const AValue: String): String;
 begin
   FSavedComments:=AValue;
   Result:=FSavedComments;
@@ -2546,7 +2565,7 @@ begin
   Result:=E in FLogEvents;
 end;
 
-Procedure TPasParser.DoLog(Const Msg: String; SkipSourceInfo: Boolean);
+procedure TPasParser.DoLog(const Msg: String; SkipSourceInfo: Boolean);
 begin
   If Assigned(FOnLog) then
     if SkipSourceInfo or not assigned(scanner) then
@@ -2555,7 +2574,7 @@ begin
       FOnLog(Self,Format('%s(%d) : %s',[Scanner.CurFilename,SCanner.CurRow,Msg]));
 end;
 
-Procedure TPasParser.DoLog(Const Fmt: String; Args: Array of const;
+procedure TPasParser.DoLog(const Fmt: String; Args: array of const;
   SkipSourceInfo: Boolean);
 begin
   DoLog(Format(Fmt,Args),SkipSourceInfo);
@@ -2980,7 +2999,8 @@ begin
 end;
 
 
-Function TPasParser.ParseProperty(Parent : TPasElement; Const AName : String; AVisibility : TPasMemberVisibility) : TPasProperty;
+function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
+  AVisibility: TPasMemberVisibility): TPasProperty;
 
   procedure MaybeReadFullyQualifiedIdentifier(Var r : String);
 
@@ -3715,7 +3735,8 @@ begin
   Until Done;
 end;
 
-procedure TPasParser.DumpCurToken(Const Msg : String; IndentAction : TIndentAction = iaNone);
+procedure TPasParser.DumpCurToken(const Msg: String; IndentAction: TIndentAction
+  );
 begin
   if IndentAction=iaUndent then
     FDumpIndent:=copy(FDumpIndent,1,Length(FDumpIndent)-2);
@@ -3735,19 +3756,30 @@ Var
   Proc: TPasProcedure;
   ProcType: TProcType;
   Prop : TPasProperty;
+  isClass : Boolean;
 
 begin
   v:=visDefault;
+  isClass:=False;
   while CurToken<>AEndToken do
     begin
     SaveComments;
     Case CurToken of
-      tkProperty:
+      tkClass:
         begin
         if Not AllowMethods then
           ParseExc(SErrRecordMethodsNotAllowed);
+        if isClass then
+          ParseExc(SParserTypeSyntaxError);
+        isClass:=True;
+        end;
+      tkProperty:
+        begin
+        if Not AllowMethods then
+          ParseExc(SErrRecordPropertiesNotAllowed);
         ExpectToken(tkIdentifier);
         Prop:=ParseProperty(ARec,CurtokenString,v);
+        Prop.isClass:=isClass;
         Arec.Members.Add(Prop);
         end;
       tkProcedure,
@@ -3755,7 +3787,7 @@ begin
         begin
         if Not AllowMethods then
           ParseExc(SErrRecordMethodsNotAllowed);
-        ProcType:=GetProcTypeFromtoken(CurToken,False);
+        ProcType:=GetProcTypeFromtoken(CurToken,isClass);
         Proc:=ParseProcedureOrFunctionDecl(ARec,ProcType,v);
         if Proc.Parent is TPasOverloadedProc then
           TPasOverloadedProc(Proc.Parent).Overloads.Add(Proc)
@@ -3767,6 +3799,8 @@ begin
 //        If (po_delphi in Scanner.Options) then
           if CheckVisibility(CurtokenString,v) then
             begin
+            If not (po_delphi in Scanner.Options) then
+              ParseExc(SErrRecordVisibilityNotAllowed);
             if not (v in [visPrivate,visPublic,visStrictPrivate]) then
               ParseExc(SParserInvalidRecordVisibility);
             NextToken;
@@ -3796,11 +3830,14 @@ begin
     end;
     if CurToken<>AEndToken then
       NextToken;
+    If CurToken<>tkClass then
+      isClass:=False;
     end;
 end;
 
 // Starts after the "record" token
-Function TPasParser.ParseRecordDecl(Parent: TPasElement; Const TypeName : string; const Packmode : TPackMode = pmNone) : TPasRecordType;
+function TPasParser.ParseRecordDecl(Parent: TPasElement;
+  const TypeName: string; const Packmode: TPackMode): TPasRecordType;
 
 begin
     Result := TPasRecordType(CreateElement(TPasRecordType, TypeName, Parent));
@@ -4070,7 +4107,7 @@ begin
     end;
 end;
 
-Function TPasParser.ParseClassDecl(Parent: TPasElement;
+function TPasParser.ParseClassDecl(Parent: TPasElement;
   const AClassName: String; AObjKind: TPasObjKind; PackMode: TPackMode
   ): TPasType;
 
