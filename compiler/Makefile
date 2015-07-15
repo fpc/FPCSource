@@ -441,6 +441,7 @@ CPUSUF=386
 endif
 ifeq ($(CPC_TARGET),m68k)
 CPUSUF=68k
+ALLOW_WARNINGS=1
 endif
 ifeq ($(CPC_TARGET),powerpc)
 CPUSUF=ppc
@@ -465,6 +466,7 @@ CPUSUF=mipsel
 endif
 ifeq ($(CPC_TARGET),avr)
 CPUSUF=avr
+ALLOW_WARNINGS=1
 endif
 ifeq ($(CPC_TARGET),jvm)
 CPUSUF=jvm
