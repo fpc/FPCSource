@@ -781,8 +781,7 @@ begin
   Inherited;
   if DatabaseName = '' then
     DatabaseError(SErrNoDatabaseName,self);
-  if SQLiteLoadedLibrary = '' then
-    InitializeSqlite(SQLiteDefaultLibrary);
+  InitializeSQLite;
   filename := DatabaseName;
   checkerror(sqlite3_open(PAnsiChar(filename),@fhandle));
   if (Length(Password)>0) and assigned(sqlite3_key) then
@@ -799,7 +798,7 @@ begin
     begin
     checkerror(sqlite3_close(fhandle));
     fhandle:= nil;
-    releasesqlite;
+    ReleaseSQLite;
     end; 
 end;
 
@@ -976,7 +975,7 @@ function TSQLite3Connection.GetConnectionInfo(InfoType: TConnInfoType): string;
 begin
   Result:='';
   try
-    InitializeSqlite;
+    InitializeSQLite;
     case InfoType of
       citServerType:
         Result:=TSQLite3ConnectionDef.TypeName;
@@ -1000,7 +999,7 @@ var filename: ansistring;
 begin
   CheckDisConnected;
   try
-    InitializeSqlite;
+    InitializeSQLite;
     try
       filename := DatabaseName;
       checkerror(sqlite3_open(PAnsiChar(filename),@fhandle));
@@ -1094,7 +1093,7 @@ end;
 
 class function TSQLite3ConnectionDef.LoadFunction: TLibraryLoadFunction;
 begin
-  Result:=@InitializeSqliteANSI; //the function taking the filename argument
+  Result:=@InitializeSQLiteANSI; //the function taking the filename argument
 end;
 
 class function TSQLite3ConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
