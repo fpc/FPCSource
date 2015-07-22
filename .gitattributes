@@ -5819,6 +5819,7 @@ packages/mysql/src/mysql51emb.pp svneol=native#text/plain
 packages/mysql/src/mysql55.pp svneol=native#text/plain
 packages/mysql/src/mysql55dyn.pp svneol=native#text/plain
 packages/mysql/src/mysql56dyn.pp svneol=native#text/plain
+packages/mysql/src/mysql57dyn.pp svneol=native#text/plain
 packages/ncurses/Makefile svneol=native#text/plain
 packages/ncurses/Makefile.fpc svneol=native#text/plain
 packages/ncurses/Makefile.fpc.fpcmake svneol=native#text/plain
