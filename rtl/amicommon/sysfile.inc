@@ -287,7 +287,7 @@ begin
   end;
 end;
 
-{$DEFINE ASYS_FILESIZE_NO_DOUBLE_SEEK}
+{$DEFINE ASYS_FILESIZE_USE_EXAMINEFH}
 { I changed the double-Seek filesize method which we
   were using for 10+ years to the new ExamineFH() method.
   It should be available AmigaOS 2.0+, and much faster.
@@ -298,10 +298,14 @@ end;
   It should be safe since there are several libc implementations
   using the same method on all Amiga flavors, but if anyone has
   a problem with it, disable this define to revert to the old
-  method and report the issue. (KB) } 
+  method and report the issue. (KB)
+
+  Actually, as some file systems (FTPMount, probably more) do
+  not support the ExamineFH action, lets fall back to double
+  seek silently in that case (KB) }
 function do_filesize(handle : THandle) : longint;
 var
-{$IFDEF ASYS_FILESIZE_NO_DOUBLE_SEEK}
+{$IFDEF ASYS_FILESIZE_USE_EXAMINEFH}
   fib: PFileInfoBlock;
 {$ENDIF}
   currfilepos: longint;
@@ -310,18 +314,20 @@ begin
   do_filesize:=-1;
   if CheckInList(ASYS_fileList,handle)<>nil then begin
 
-{$IFDEF ASYS_FILESIZE_NO_DOUBLE_SEEK}
+{$IFDEF ASYS_FILESIZE_USE_EXAMINEFH}
     fib:=AllocDosObject(DOS_FIB,nil);
     if fib <> nil then begin
       if ExamineFH(BPTR(handle), fib) then
         do_filesize:=fib^.fib_Size;
       FreeDosObject(DOS_FIB,fib);
     end;
-{$ELSE}
-    currfilepos:=do_filepos(handle);
-    do_filesize:=do_seekend(handle);
-    do_seek(handle,currfilepos);
 {$ENDIF}
+    if do_filesize = -1 then
+    begin
+      currfilepos:=do_filepos(handle);
+      do_filesize:=do_seekend(handle);
+      do_seek(handle,currfilepos);
+    end;
   end;
 end;
 
