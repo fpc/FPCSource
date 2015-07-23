@@ -1,3 +1,6 @@
+{$IFDEF MYSQL57_UP}
+  {$DEFINE MYSQL56_UP}
+{$ENDIF}
 {$IFDEF MYSQL56_UP}
   {$DEFINE MYSQL55_UP}
 {$ENDIF}
@@ -14,6 +17,9 @@ interface
 
 uses
   Classes, SysUtils,bufdataset,sqldb,db,ctypes,
+{$IFDEF mysql57}
+  mysql57dyn;
+{$ELSE}
 {$IFDEF mysql56}
   mysql56dyn;
 {$ELSE}
@@ -35,9 +41,13 @@ uses
 {$endif}
 {$endif}
 {$ENDIF}
+{$ENDIF}
 
 Const
   MySQLVersion =
+{$IFDEF mysql57}
+    '5.7';
+{$ELSE}
 {$IFDEF mysql56}
     '5.6';
 {$ELSE}
@@ -59,11 +69,17 @@ Const
 {$endif}
 {$endif}
 {$ENDIF}
+{$ENDIF}
+
   MariaDBVersion =
+{$IFDEF mysql57}
+    '10.1';
+{$ELSE}
 {$IFDEF mysql56}   // MariaDB 10.0 is compatible with MySQL 5.6
     '10.0';
 {$ELSE} // MariaDB 5.1..5.5 presumably report the same version number as MySQL
-     MySQLVersion;
+    MySQLVersion;
+{$ENDIF}
 {$ENDIF}
 
 Type
@@ -170,6 +186,12 @@ Type
   end;
 
 
+  {$IFDEF mysql57}
+    TMySQL57Connection = Class(TConnectionName);
+    TMySQL57ConnectionDef = Class(TMySQLConnectionDef);
+    TMySQL57Transaction = Class(TTransactionName);
+    TMySQL57Cursor = Class(TCursorName);
+  {$ELSE}
   {$IFDEF mysql56}
     TMySQL56Connection = Class(TConnectionName);
     TMySQL56ConnectionDef = Class(TMySQLConnectionDef);
@@ -209,6 +231,7 @@ Type
     {$EndIf}
   {$ENDIF}
   {$ENDIF}
+  {$ENDIF}
 
 implementation
 
@@ -242,6 +265,9 @@ const
      ,'MYSQL_SERVER_PUBLIC_KEY'
      ,'MYSQL_ENABLE_CLEARTEXT_PLUGIN'
      ,'MYSQL_OPT_CAN_HANDLE_EXPIRED_PASSWORDS'
+{$IFDEF MYSQL57_UP}
+     ,'MYSQL_OPT_SSL_ENFORCE'
+{$ENDIF}
 {$ENDIF}
 {$ENDIF}
 {$ENDIF}
@@ -470,12 +496,12 @@ var
   FullVersion: string;
 begin
   InitialiseMysql;
-  Fullversion:=strpas(mysql_get_client_info());
+  FullVersion:=strpas(mysql_get_client_info());
   // Version string should start with version number:
   // Note: in case of MariaDB version mismatch: tough luck, we report MySQL
   // version only.
-  if (pos(MySQLVersion, Fullversion) <> 1) and
-    (pos(MariaDBVersion, Fullversion) <> 1) then
+  if (pos(MySQLVersion, FullVersion) <> 1) and
+     (pos(MariaDBVersion, FullVersion) <> 1) then
     Raise EInOutError.CreateFmt(SErrVersionMisMatch,[ClassName,MySQLVersion,FullVersion]);
   inherited DoInternalConnect;
   ConnectToServer;
@@ -497,6 +523,9 @@ end;
 
 Function TConnectionName.AllocateCursorHandle: TSQLCursor;
 begin
+  {$IFDEF mysql57}
+    Result:=TMySQL57Cursor.Create;
+  {$ELSE}
   {$IFDEF mysql56}
     Result:=TMySQL56Cursor.Create;
   {$ELSE}
@@ -517,6 +546,7 @@ begin
       {$EndIf}
     {$EndIf}
   {$EndIf}
+  {$ENDIF}
   {$ENDIF}
 end;
 
@@ -599,12 +629,14 @@ begin
       // paramreplacestring kan een probleem geven bij postgres als hij niet meer gewoon $ is?
       C.FStatement := stringsreplace(C.FStatement,ParamNames,ParamValues,[rfReplaceAll]);
       end;
+
     if LogEvent(detParamValue) then
       LogParams(AParams);
     if LogEvent(detExecute) then
       Log(detExecute, C.FStatement);
     if LogEvent(detActualSQL) then
       Log(detActualSQL,C.FStatement);
+
     if mysql_query(FMySQL,Pchar(C.FStatement))<>0 then
       begin
       if not ForcedClose then
@@ -1274,6 +1306,9 @@ end;
 
 class function TMySQLConnectionDef.ConnectionClass: TSQLConnectionClass;
 begin
+  {$IFDEF mysql57}
+    Result:=TMySQL57Connection;
+  {$ELSE}
   {$IFDEF mysql56}
     Result:=TMySQL56Connection;
   {$ELSE}
@@ -1295,11 +1330,12 @@ begin
     {$endif}
   {$endif}
   {$ENDIF}
+  {$ENDIF}
 end;
 
 class function TMySQLConnectionDef.Description: String;
 begin
-  Result:='Connect to a MySQL '+MySQLVersion+'database directly via the client library';
+  Result:='Connect to a MySQL '+MySQLVersion+' database directly via the client library';
 end;
 
 class function TMySQLConnectionDef.DefaultLibraryName: String;
@@ -1322,6 +1358,12 @@ begin
   Result:=MysqlLoadedLibrary;
 end;
 
+{$IFDEF mysql57}
+  initialization
+    RegisterConnection(TMySQL57ConnectionDef);
+  finalization
+    UnRegisterConnection(TMySQL57ConnectionDef);
+{$ELSE}
 {$IFDEF mysql56}
   initialization
     RegisterConnection(TMySQL56ConnectionDef);
@@ -1360,6 +1402,7 @@ end;
     {$EndIf}
   {$ENDIF}
 {$endif}
+{$ENDIF}
 {$ENDIF}
 
 end.
