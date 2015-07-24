@@ -43,6 +43,8 @@ Type
     FUseImplementation: Boolean;
     function GetPL: TPasLibrary;
     function GetPP: TPasProgram;
+    procedure CleanupParser;
+    procedure SetupParser;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -56,6 +58,7 @@ Type
     Procedure StartParsing;
     Procedure ParseDeclarations;
     Procedure ParseModule;
+    procedure ResetParser;
     Procedure CheckHint(AHint : TPasMemberHint);
     Function AssertExpression(Const Msg: String; AExpr : TPasExpr; aKind : TPasExprKind; AClass : TClass) : TPasExpr;
     Function AssertExpression(Const Msg: String; AExpr : TPasExpr; aKind : TPasExprKind; AValue : String) : TPrimitiveExpr;
@@ -74,6 +77,7 @@ Type
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureModifiers); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TAssignKind); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureMessageType); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TOperatorType); overload;
     Procedure HaveHint(AHint : TPasMemberHint; AHints : TPasMemberHints);
     Property Resolver : TStreamResolver Read FResolver;
     Property Scanner : TPascalScanner Read FScanner;
@@ -148,7 +152,8 @@ begin
   Result:=Module as TPasLibrary;
 end;
 
-procedure TTestParser.SetUp;
+procedure TTestParser.SetupParser;
+
 begin
   FResolver:=TStreamResolver.Create;
   FResolver.OwnsStreams:=True;
@@ -163,7 +168,8 @@ begin
   FIsUnit:=False;
 end;
 
-procedure TTestParser.TearDown;
+procedure TTestParser.CleanupParser;
+
 begin
   if Not Assigned(FModule) then
     FreeAndNil(FDeclarations)
@@ -179,6 +185,25 @@ begin
   FreeAndNil(FEngine);
   FreeAndNil(FScanner);
   FreeAndNil(FResolver);
+end;
+
+procedure TTestParser.ResetParser;
+
+begin
+  CleanupParser;
+  SetupParser;
+end;
+
+procedure TTestParser.SetUp;
+begin
+  Inherited;
+  SetupParser;
+end;
+
+procedure TTestParser.TearDown;
+begin
+  CleanupParser;
+  Inherited;
 end;
 
 procedure TTestParser.StartUnit(AUnitName: String);
@@ -490,6 +515,13 @@ procedure TTestParser.AssertEquals(const Msg: String; AExpected,
 begin
   AssertEquals(Msg,GetEnumName(TypeInfo(TProcedureMessageType),Ord(AExpected)),
                    GetEnumName(TypeInfo(TProcedureMessageType),Ord(AActual)));
+end;
+
+procedure TTestParser.AssertEquals(const Msg: String; AExpected,
+  AActual: TOperatorType);
+begin
+  AssertEquals(Msg,GetEnumName(TypeInfo(TOperatorType),Ord(AExpected)),
+                   GetEnumName(TypeInfo(TOperatorType),Ord(AExpected)));
 end;
 
 procedure TTestParser.HaveHint(AHint: TPasMemberHint; AHints: TPasMemberHints);
