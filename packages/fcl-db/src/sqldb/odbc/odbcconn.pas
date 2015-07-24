@@ -757,7 +757,7 @@ begin
 
   // prepare statement
   ODBCCursor.FQuery:=Buf;
-  if not (ODBCCursor.FSchemaType in [stTables, stSysTables, stColumns, stProcedures]) then
+  if not (ODBCCursor.FSchemaType in [stTables, stSysTables, stColumns, stProcedures, stIndexes]) then
     begin
       ODBCCheckResult(
         SQLPrepare(ODBCCursor.FSTMTHandle, PChar(buf), Length(buf)),
@@ -855,6 +855,7 @@ begin
       stSysTables : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_SYSTEM, length(TABLE_TYPE_SYSTEM) );
       stColumns   : Res:=SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 );
       stProcedures: Res:=SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 );
+      stIndexes   : Res:=SQLStatistics(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), SQL_INDEX_ALL, SQL_QUICK);
       else          Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
     end; {case}
 
@@ -1531,7 +1532,7 @@ end;
 
 function TODBCConnection.GetSchemaInfoSQL(SchemaType: TSchemaType; SchemaObjectName, SchemaObjectPattern: string): string;
 begin
-  if SchemaType in [stTables, stSysTables, stColumns, stProcedures] then
+  if SchemaType in [stTables, stSysTables, stColumns, stProcedures, stIndexes] then
   begin
     if SchemaObjectName<>'' then
       Result := SchemaObjectName
