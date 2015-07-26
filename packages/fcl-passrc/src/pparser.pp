@@ -64,6 +64,7 @@ resourcestring
   SParserNoConstructorAllowed = 'Constructors or Destructors are not allowed in Interfaces or Record helpers';
   SParserNoFieldsAllowed = 'Fields are not allowed in Interfaces';
   SParserInvalidRecordVisibility = 'Records can only have public and (strict) private as visibility specifiers';
+  SErrRecordConstantsNotAllowed = 'Record constants not allowed at this location.';
   SErrRecordMethodsNotAllowed = 'Record methods not allowed at this location.';
   SErrRecordPropertiesNotAllowed = 'Record properties not allowed at this location.';
   SErrRecordVisibilityNotAllowed = 'Record visibilities not allowed at this location.';
@@ -3804,6 +3805,7 @@ Var
   Proc: TPasProcedure;
   ProcType: TProcType;
   Prop : TPasProperty;
+  Cons : TPasConst;
   isClass : Boolean;
 
 begin
@@ -3813,6 +3815,14 @@ begin
     begin
     SaveComments;
     Case CurToken of
+      tkConst:
+        begin
+        if Not AllowMethods then
+          ParseExc(SErrRecordConstantsNotAllowed);
+        ExpectToken(tkIdentifier);
+        Cons:=ParseConstDecl(ARec);
+        ARec.members.Add(Cons);
+        end;
       tkClass:
         begin
         if Not AllowMethods then
