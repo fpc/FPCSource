@@ -1855,7 +1855,10 @@ procedure THTMLWriter.AppendProcDecl(CodeEl, TableEl: TDOMElement;
       AppendSym(CodeEl, '.');
       AppendText(CodeEl, AProc.Name);
     end else
-      AppendText(CodeEl, ' ' + AProc.FullName);
+      if (Element is TPasOperator) then
+        AppendText(CodeEl, ' ' + TPasOperator(AProc).GetOperatorDeclaration(True))
+      else
+        AppendText(CodeEl, ' ' + AProc.FullName);
     CodeEl := AppendProcType(CodeEl, TableEl, AProc.ProcType, 0);
     AppendSym(CodeEl, ';');
     AppendProcExt(CodeEl, AProc);
@@ -2571,6 +2574,8 @@ begin
       CreateProcPageBody(TPasProcedureBase(AElement))
     else if AElement.ClassType = TTopicELement then
       CreateTopicPageBody(TTopicElement(AElement))
+    else if AElement.ClassType = TPasProperty then
+      CreateClassMemberPageBody(TPasProperty(AElement))
     else
       writeln('Unknown classtype: ',AElement.classtype.classname);
   end;
