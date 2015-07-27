@@ -87,8 +87,11 @@ ifeq ($(ARCH),avr)
 ifeq ($(SUBARCH),avr25)
 CPU_UNITS=attinyx4 attiny2313
 endif
-ifeq ($(SUBARCH),avr35)
-CPU_UNITS=atmega128 atmega8 atmega16 avrsim atmega48fam atmega168fam
+ifeq ($(SUBARCH),avr4)
+CPU_UNITS=atmega8
+endif
+ifeq ($(SUBARCH),avr5)
+CPU_UNITS=atmega128 atmega16 avrsim atmega48fam atmega168fam
 endif
 endif
 
