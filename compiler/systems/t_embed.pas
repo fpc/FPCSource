@@ -632,7 +632,30 @@ begin
       { linker script from ld 2.19 }
       Add('ENTRY(_START)');
       Add('OUTPUT_FORMAT("elf32-avr","elf32-avr","elf32-avr")');
-      Add('OUTPUT_ARCH(avr:2)');
+      case current_settings.cputype of
+       cpu_avr1:
+         Add('OUTPUT_ARCH(avr:1)');
+       cpu_avr2:
+         Add('OUTPUT_ARCH(avr:2)');
+       cpu_avr25:
+         Add('OUTPUT_ARCH(avr:25)');
+       cpu_avr3:
+         Add('OUTPUT_ARCH(avr:3)');
+       cpu_avr31:
+         Add('OUTPUT_ARCH(avr:31)');
+       cpu_avr35:
+         Add('OUTPUT_ARCH(avr:35)');
+       cpu_avr4:
+         Add('OUTPUT_ARCH(avr:4)');
+       cpu_avr5:
+         Add('OUTPUT_ARCH(avr:5)');
+       cpu_avr51:
+         Add('OUTPUT_ARCH(avr:51)');
+       cpu_avr6:
+         Add('OUTPUT_ARCH(avr:6)');
+       else
+         Internalerror(2015072701);
+      end;
       Add('MEMORY');
       with embedded_controllers[current_settings.controllertype] do
         begin
