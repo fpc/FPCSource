@@ -198,7 +198,7 @@ interface
             swapleftright;
             { if we have to swap back and left is a constant, force it to a register because we cannot generate
               the needed code using a constant }
-            if left.location.loc=LOC_CONSTANT then
+            if (left.location.loc=LOC_CONSTANT) and (left.location.value<>0) then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
           end;
 
@@ -210,8 +210,12 @@ interface
             else
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CPI,left.location.register,right.location.value and $ff))
           end
+        { on the left side, we allow only a constant if it is 0 }
+        else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,NR_R1,right.location.register))
         else
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
+
         tmpreg1:=left.location.register;
         tmpreg2:=right.location.register;
 
@@ -219,13 +223,15 @@ interface
           begin
             if i=5 then
               begin
-                tmpreg1:=left.location.registerhi;
+                if left.location.loc<>LOC_CONSTANT then
+                  tmpreg1:=left.location.registerhi;
                 if right.location.loc<>LOC_CONSTANT then
                   tmpreg2:=right.location.registerhi;
               end
             else
               begin
-                tmpreg1:=GetNextReg(tmpreg1);
+                if left.location.loc<>LOC_CONSTANT then
+                  tmpreg1:=GetNextReg(tmpreg1);
                 if right.location.loc<>LOC_CONSTANT then
                   tmpreg2:=GetNextReg(tmpreg2);
               end;
@@ -235,10 +241,11 @@ interface
                 cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_8,(right.location.value64 shr ((i-1)*8)) and $ff,tmpreg2);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
               end
+            { above it is checked, if left=0, then a constant is allowed }
+            else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,NR_R1,tmpreg2))
             else
-              begin
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
-              end;
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
           end;
 
         location_reset(location,LOC_FLAGS,OS_NO);
