@@ -1534,7 +1534,8 @@ parser_e_global_generic_references_static=03339_E_Global Generic template refere
 parser_u_already_compiled=03340_UL_Unit $1 has been already compiled meanwhile.
 % This tells you that the recursive reading of the uses clauses triggered already
 % a compilation of the current unit, so the current compilation can be aborted.
-%
+parser_e_explicit_method_implementation_for_specializations_not_allowed=03341_E_Explicit implementation of methods for specializations of generics is not allowed
+% Methods introduced in a generic must be implemented for the generic. It is not possible to implement them only for specializations.
 %
 %
 % \end{description}

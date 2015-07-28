@@ -996,45 +996,50 @@ implementation
               end;
             if (df_specialization in pd.struct.defoptions) then
               begin
-                include(pd.defoptions,df_specialization);
-                { Find corresponding genericdef, we need it later to
-                  replay the tokens to generate the body }
-                if not assigned(pd.struct.genericdef) then
-                  internalerror(200512113);
-                genericst:=pd.struct.genericdef.GetSymtable(gs_record);
-                if not assigned(genericst) then
-                  internalerror(200512114);
-
-                { when searching for the correct procdef to use as genericdef we need to ignore
-                  everything except procdefs so that we can find the correct indices }
-                index:=0;
-                found:=false;
-                for i:=0 to pd.owner.deflist.count-1 do
+                if assigned(current_specializedef) then
                   begin
-                    if tdef(pd.owner.deflist[i]).typ<>procdef then
-                      continue;
-                    if pd.owner.deflist[i]=pd then
+                    include(pd.defoptions,df_specialization);
+                    { Find corresponding genericdef, we need it later to
+                      replay the tokens to generate the body }
+                    if not assigned(pd.struct.genericdef) then
+                      internalerror(200512113);
+                    genericst:=pd.struct.genericdef.GetSymtable(gs_record);
+                    if not assigned(genericst) then
+                      internalerror(200512114);
+
+                    { when searching for the correct procdef to use as genericdef we need to ignore
+                      everything except procdefs so that we can find the correct indices }
+                    index:=0;
+                    found:=false;
+                    for i:=0 to pd.owner.deflist.count-1 do
                       begin
-                        found:=true;
-                        break;
+                        if tdef(pd.owner.deflist[i]).typ<>procdef then
+                          continue;
+                        if pd.owner.deflist[i]=pd then
+                          begin
+                            found:=true;
+                            break;
+                          end;
+                        inc(index);
                       end;
-                    inc(index);
-                  end;
-                if not found then
-                  internalerror(2014052301);
+                    if not found then
+                      internalerror(2014052301);
 
-                for i:=0 to genericst.deflist.count-1 do
-                  begin
-                    if tdef(genericst.deflist[i]).typ<>procdef then
-                      continue;
-                    if index=0 then
-                      pd.genericdef:=tstoreddef(genericst.deflist[i]);
-                    dec(index);
-                  end;
+                    for i:=0 to genericst.deflist.count-1 do
+                      begin
+                        if tdef(genericst.deflist[i]).typ<>procdef then
+                          continue;
+                        if index=0 then
+                          pd.genericdef:=tstoreddef(genericst.deflist[i]);
+                        dec(index);
+                      end;
 
-                if not assigned(pd.genericdef) or
-                   (pd.genericdef.typ<>procdef) then
-                  internalerror(200512115);
+                    if not assigned(pd.genericdef) or
+                       (pd.genericdef.typ<>procdef) then
+                      internalerror(200512115);
+                  end
+                else
+                  Message(parser_e_explicit_method_implementation_for_specializations_not_allowed);
               end;
           end;
 
