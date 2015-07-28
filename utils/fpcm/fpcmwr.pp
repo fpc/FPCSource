@@ -25,7 +25,8 @@ interface
         sec_units,sec_exes,sec_loaders,sec_examples,sec_rsts,
         sec_compile,sec_install,
         sec_distinstall,sec_zipinstall,sec_clean,sec_shared,
-        sec_command,sec_exts,sec_dirs,sec_tools,sec_info,sec_makefile
+        sec_command,sec_exts,sec_dirs,sec_tools,sec_info,sec_makefile,
+        sec_fpmake
       );
 
       trules=(
@@ -63,6 +64,9 @@ interface
 
 
     type
+
+      { TMakefileWriter }
+
       TMakefileWriter=class
       private
         FFileName : string;
@@ -693,9 +697,14 @@ implementation
            inc(SkippedSecs);
            FHasSection[sec_loaders]:=false;
          end;
-        { if all 4 sections are not available we can skip also the
+        if (not FInput.HasTargetVariable('target_fpmake')) then
+         begin
+           inc(SkippedSecs);
+           FHasSection[sec_fpmake]:=false;
+         end;
+        { if all 5 sections are not available we can skip also the
           generic compile rules }
-        if SkippedSecs=4 then
+        if SkippedSecs=5 then
          begin
            FHasSection[sec_shared]:=false;
            FHasSection[sec_compile]:=false;
@@ -769,6 +778,8 @@ implementation
            { prerules section }
            if assigned(FInput['prerules']) then
             AddStrings(TFPCMakeSection(FInput['prerules']).List);
+           if FHasSection[sec_fpmake] then
+            AddIniSection('fpmakeprerules');
            { Default }
            AddVariable('default_dir');
            { Targets }
@@ -780,6 +791,7 @@ implementation
            AddTargetVariable('target_rsts');
            AddTargetVariable('target_examples');
            AddTargetVariable('target_exampledirs');
+           AddTargetVariable('target_fpmake');
            { Clean }
            AddTargetVariable('clean_units');
            AddTargetVariable('clean_files');
@@ -830,6 +842,8 @@ implementation
             AddIniSection('command_libc');
            AddIniSection('command_end');
            { compile }
+           if FHasSection[sec_fpmake] then
+            AddIniSection('fpmakerules');
            if FHasSection[sec_loaders] then
             AddIniSection('loaderrules');
            if FHasSection[sec_units] then

@@ -1130,6 +1130,9 @@ implementation
       begin
         ReqList:=TStringList.Create;
         ReqSec:=TFPCMakeSection(FSections['require']);
+        { Building fpmake itself always requires the rtl }
+        if HasTargetVariable('target_fpmake') then
+         ReqList.Add('rtl');
         if assigned(ReqSec) then
          AddReqSec(c,t,ReqSec);
         GetTargetRequires:=ReqList;
