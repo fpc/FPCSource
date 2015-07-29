@@ -4,13 +4,21 @@
       asm
         cli
       .Lhalt:
+{$ifdef RELBRANCHES}
         rjmp .Lhalt
+{$else RELBRANCHES}
+        jmp .Lhalt
+{$endif RELBRANCHES}
       end;
 
     procedure Default_IRQ_handler; assembler; nostackframe; public name '_Default_IRQ_handler';noreturn;
       asm
       .Lloop:
+{$ifdef RELBRANCHES}
         rjmp .Lloop
+{$else RELBRANCHES}
+        jmp .Lloop
+{$endif RELBRANCHES}
       end;
 
     var

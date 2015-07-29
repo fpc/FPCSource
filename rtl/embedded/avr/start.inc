@@ -29,7 +29,11 @@
         ldi XH,hi8(_bss_start)
         ldi YH,hi8(_bss_end)
 
+{$ifdef RELBRANCHES}
         rjmp .LZeroBssLoopEntry
+{$else RELBRANCHES}
+        jmp .LZeroBssLoopEntry
+{$endif RELBRANCHES}
 .LZeroBssLoop:
         st X+, r1
 

@@ -660,9 +660,9 @@ begin
       with embedded_controllers[current_settings.controllertype] do
         begin
           Add('{');
-          Add('  text      (rx)   : ORIGIN = 0, LENGTH = 0x'+IntToHex(flashsize,8));
-          Add('  data      (rw!x) : ORIGIN = 0x800060, LENGTH = 0x'+IntToHex(sramsize,8));
-          Add('  eeprom    (rw!x) : ORIGIN = 0x810000, LENGTH = 0x'+IntToHex(eepromsize,8));
+          Add('  text      (rx)   : ORIGIN = 0, LENGTH = 0x'+IntToHex(flashsize,6));
+          Add('  data      (rw!x) : ORIGIN = 0x'+IntToHex($800000+srambase,6)+', LENGTH = 0x'+IntToHex(sramsize,6));
+          Add('  eeprom    (rw!x) : ORIGIN = 0x810000, LENGTH = 0x'+IntToHex(eepromsize,6));
           Add('  fuse      (rw!x) : ORIGIN = 0x820000, LENGTH = 1K');
           Add('  lock      (rw!x) : ORIGIN = 0x830000, LENGTH = 1K');
           Add('  signature (rw!x) : ORIGIN = 0x840000, LENGTH = 1K');

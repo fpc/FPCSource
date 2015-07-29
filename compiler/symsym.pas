@@ -322,7 +322,7 @@ interface
       public
          abstyp  : absolutetyp;
          asmname : pshortstring;
-         addroffset : aword;
+         addroffset : PUint;
          ref     : tpropaccesslist;
          constructor create(const n : string;def:tdef);virtual;
          constructor create_ref(const n : string;def:tdef;_ref:tpropaccesslist);virtual;
