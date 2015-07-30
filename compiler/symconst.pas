@@ -632,6 +632,7 @@ type
   { prefixes for internally generated type names (centralised to avoid
     accidental collisions) }
   tinternaltypeprefix = (
+    itp_1byte,
     itp_llvmstruct,
     itp_vmtdef,
     itp_vmt_tstringmesssagetable,
@@ -639,7 +640,17 @@ type
     itp_vmt_tmethod_name_table,
     itp_vmt_intern_msgint_table,
     itp_vmt_intern_tmethodnamerec,
-    itp_vmt_intern_tmethodnametable
+    itp_vmt_intern_tmethodnametable,
+    itp_rttidef,
+    itp_rtti_header,
+    itp_rtti_prop,
+    itp_rtti_ansistr,
+    itp_rtti_ord_outer,
+    itp_rtti_ord_inner,
+    itp_rtti_ord_64bit,
+    itp_rtti_normal_array,
+    itp_rtti_dyn_array,
+    itp_rtti_proc_param
   );
 
   { The order is from low priority to high priority,
@@ -742,6 +753,7 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
      );
 
      internaltypeprefixName : array[tinternaltypeprefix] of TSymStr = (
+       '$1byte$',
        '$llvmstruct$',
        '$vmtdef$',
        '$vmt_TStringMesssageTable$',
@@ -749,7 +761,17 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$vmt_tmethod_name_table$',
        '$vmt_intern_msgint_table$',
        '$vmt_intern_tmethodnamerec$',
-       '$vmt_intern_tmethodnametable$'
+       '$vmt_intern_tmethodnametable$',
+       '$rttidef$',
+       '$rtti_header$',
+       '$rtti_prop$',
+       '$rtti_ansistr$',
+       '$rtti_ord_outer$',
+       '$rtti_ord_inner$',
+       '$rtti_ord_64bit$',
+       '$rtti_normal_array$',
+       '$rtti_dyn_array$',
+       '$rtti_proc_param$'
      );
 
 
