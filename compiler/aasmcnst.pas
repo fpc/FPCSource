@@ -814,6 +814,11 @@ implementation
      var
        prelist: tasmlist;
      begin
+       { have we finished all aggregates? }
+       if (getcurragginfo<>nil) and
+          { in case of syntax errors, the aggregate may not have been finished }
+          (ErrorCount=0) then
+         internalerror(2015072301);
        prelist:=tasmlist.create;
        { only now add items based on the symbolname, because it may be
          modified by the "section" specifier in case of a typed constant }
