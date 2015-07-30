@@ -1206,6 +1206,8 @@ implementation
          writevirtualmethods(tcb);
          tcb.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
 
+         tcb.maybe_end_aggregate(vmtdef);
+
          { concatenate the VMT to the asmlist }
          current_asmdata.asmlists[al_globals].concatlist(
            tcb.get_final_asmlist(
