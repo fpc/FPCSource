@@ -338,6 +338,9 @@ type
      procedure queue_vecn(def: tdef; const index: tconstexprint); virtual;
      { queue a subscripting operation }
      procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); virtual;
+     { queue indexing a record recursively via several field names. The fields
+       are specified in the inner to outer order (i.e., def.field1.field2) }
+     function queue_subscriptn_multiple_by_name(def: tabstractrecorddef; const fields: array of TIDString): tdef;
      { queue a type conversion operation }
      procedure queue_typeconvn(fromdef, todef: tdef); virtual;
      { queue an address taking operation }
@@ -446,7 +449,7 @@ implementation
 
     procedure taggregateinformation.setnextfieldname(AValue: TIDString);
       begin
-        if assigned(fnextfieldname) or
+        if (fnextfieldname<>'') or
            not anonrecord then
           internalerror(2015071503);
         fnextfieldname:=AValue;
@@ -1487,6 +1490,42 @@ implementation
    procedure ttai_typedconstbuilder.queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym);
      begin
        inc(fqueue_offset,vs.fieldoffset);
+     end;
+
+
+   function ttai_typedconstbuilder.queue_subscriptn_multiple_by_name(def: tabstractrecorddef; const fields: array of TIDString): tdef;
+     var
+       syms,
+       parentdefs: tfplist;
+       sym: tsym;
+       curdef: tdef;
+       i: longint;
+     begin
+       result:=nil;
+       if length(fields)=0 then
+         internalerror(2015071601);
+       syms:=tfplist.Create;
+       syms.count:=length(fields);
+       parentdefs:=tfplist.create;
+       parentdefs.Count:=length(fields);
+       curdef:=def;
+       for i:=low(fields) to high(fields) do
+         begin
+           sym:=search_struct_member_no_helper(tabstractrecorddef(curdef),fields[i]);
+           if not assigned(sym) or
+              (sym.typ<>fieldvarsym) or
+              ((i<>high(fields)) and
+               not(tfieldvarsym(sym).vardef.typ in [objectdef,recorddef])) then
+             internalerror(2015071505);
+           syms[i]:=sym;
+           parentdefs[i]:=curdef;
+           curdef:=tfieldvarsym(sym).vardef;
+           result:=curdef;
+         end;
+       for i:=high(fields) downto low(fields) do
+         queue_subscriptn(tabstractrecorddef(parentdefs[i]),tfieldvarsym(syms[i]));
+       syms.free;
+       parentdefs.free;
      end;
 
 
