@@ -318,6 +318,7 @@ interface
     function  searchsym_in_helper(classh,contextclassh:tobjectdef;const s: TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
     function  try_search_system_type(const s: TIDString): ttypesym;
+    function  try_search_current_module_type(const s: TIDString): ttypesym;
     function  search_system_proc(const s: TIDString): tprocdef;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
@@ -3596,6 +3597,27 @@ implementation
               message1(cg_f_unknown_system_type,s);
             result:=ttypesym(sym);
           end;
+      end;
+
+
+    function try_search_current_module_type(const s: TIDString): ttypesym;
+      var
+        found: boolean;
+        srsymtable: tsymtable;
+        srsym: tsym;
+      begin
+        if s[1]='$' then
+          found:=searchsym_in_module(current_module,copy(s,2,length(s)),srsym,srsymtable)
+        else
+          found:=searchsym_in_module(current_module,s,srsym,srsymtable);
+        if found then
+          begin
+            if (srsym.typ<>typesym) then
+              internalerror(2014091207);
+            result:=ttypesym(srsym);
+          end
+        else
+          result:=nil;
       end;
 
 

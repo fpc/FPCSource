@@ -1328,25 +1328,19 @@ implementation
    function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef;
      var
        anonrecorddef: trecorddef;
-       srsym: tsym;
-       srsymtable: tsymtable;
-       found: boolean;
+       typesym: ttypesym;
      begin
        { if the name is specified, we create a typesym with that name in order
          to ensure we can find it again later with that name -> reuse here as
          well if possible (and that also avoids duplicate type name issues) }
        if optionalname<>'' then
          begin
-           if optionalname[1]='$' then
-             found:=searchsym_in_module(current_module,copy(optionalname,2,length(optionalname)),srsym,srsymtable)
-           else
-             found:=searchsym_in_module(current_module,optionalname,srsym,srsymtable);
-           if found then
+           typesym:=try_search_current_module_type(optionalname);
+           if assigned(typesym) then
              begin
-               if (srsym.typ<>typesym) or
-                  (ttypesym(srsym).typedef.typ<>recorddef) then
-                 internalerror(2014091207);
-               result:=trecorddef(ttypesym(srsym).typedef);
+               if typesym.typedef.typ<>recorddef then
+                 internalerror(2015071401);
+               result:=trecorddef(typesym.typedef);
                maybe_begin_aggregate(result);
                exit;
              end;
