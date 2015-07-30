@@ -100,7 +100,7 @@ interface
           function  alignment:shortint;override;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
-          function  rtti_mangledname(rt:trttitype):string;override;
+          function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  OwnerHierarchyName: string; override;
           function  fullownerhierarchyname:string;override;
           function  needs_separate_initrtti:boolean;override;
@@ -431,7 +431,7 @@ interface
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
           function  needs_separate_initrtti : boolean;override;
-          function  rtti_mangledname(rt:trttitype):string;override;
+          function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  vmt_mangledname : TSymStr;
           function  vmt_def: trecorddef;
           procedure check_forwards; override;
@@ -468,7 +468,7 @@ interface
           function getcopy:tstoreddef;override;
           function GetTypeName:string;override;
           function is_publishable : boolean;override;
-          function rtti_mangledname(rt:trttitype):string;override;
+          function rtti_mangledname(rt:trttitype):TSymStr;override;
           procedure register_created_object_type;override;
        end;
        tclassrefdefclass = class of tclassrefdef;
@@ -1748,7 +1748,7 @@ implementation
       end;
 
 
-    function tstoreddef.rtti_mangledname(rt : trttitype) : string;
+    function tstoreddef.rtti_mangledname(rt : trttitype) : TSymStr;
       var
         prefix : string[4];
       begin
@@ -3252,7 +3252,7 @@ implementation
       end;
 
 
-    function tclassrefdef.rtti_mangledname(rt: trttitype): string;
+    function tclassrefdef.rtti_mangledname(rt: trttitype): TSymStr;
       begin
         if (tobjectdef(pointeddef).objecttype<>odt_objcclass) then
           result:=inherited rtti_mangledname(rt)
@@ -6790,7 +6790,7 @@ implementation
         result:=not (objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]);
       end;
 
-    function tobjectdef.rtti_mangledname(rt: trttitype): string;
+    function tobjectdef.rtti_mangledname(rt: trttitype): TSymStr;
       begin
         if not(objecttype in [odt_objcclass,odt_objcprotocol]) then
           result:=inherited rtti_mangledname(rt)
