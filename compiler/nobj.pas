@@ -842,7 +842,7 @@ implementation
                   sym:=tsym(trecorddef(systemvmt).symtable.SymList[i]);
                   if sym.typ<>fieldvarsym then
                     internalerror(2015052602);
-                  vmtdef.add_field_by_def(tfieldvarsym(sym).vardef);
+                  vmtdef.add_field_by_def('',tfieldvarsym(sym).vardef);
                 end;
             end;
            odt_interfacecom,odt_interfacecorba,odt_dispinterface:
@@ -851,11 +851,11 @@ implementation
           odt_object:
             begin
               { size, -size, parent vmt [, dmt ] }
-              vmtdef.add_field_by_def(ptrsinttype);
-              vmtdef.add_field_by_def(ptrsinttype);
-              vmtdef.add_field_by_def(voidpointertype);
+              vmtdef.add_field_by_def('',ptrsinttype);
+              vmtdef.add_field_by_def('',ptrsinttype);
+              vmtdef.add_field_by_def('',voidpointertype);
 {$ifdef WITHDMT}
-              vmtdef.add_field_by_def(voidpointertype);
+              vmtdef.add_field_by_def('',voidpointertype);
 {$endif WITHDMT}
             end;
           else
@@ -864,11 +864,11 @@ implementation
 
         { now add the methods }
         for i:=0 to _class.vmtentries.count-1 do
-          vmtdef.add_field_by_def(
+          vmtdef.add_field_by_def('',
             cprocvardef.getreusableprocaddr(pvmtentry(_class.vmtentries[i])^.procdef)
           );
         { the VMT ends with a nil pointer }
-        vmtdef.add_field_by_def(voidcodepointertype);
+        vmtdef.add_field_by_def('',voidcodepointertype);
       end;
 
 

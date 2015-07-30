@@ -120,8 +120,10 @@ type
    { information about aggregates we are parsing }
    taggregateinformation = class
     private
+     fnextfieldname: TIDString;
      function getcuroffset: asizeint;
      function getfieldoffset(l: longint): asizeint;
+     procedure setnextfieldname(AValue: TIDString);
     protected
      { type of the aggregate }
      fdef: tdef;
@@ -159,6 +161,7 @@ type
      property typ: ttypedconstkind read ftyp;
      property curfield: tfieldvarsym read fcurfield write fcurfield;
      property nextfield: tfieldvarsym read fnextfield write fnextfield;
+     property nextfieldname: TIDString write setnextfieldname;
      property fieldoffset[l: longint]: asizeint read getfieldoffset;
      property curoffset: asizeint read getcuroffset;
      property anonrecord: boolean read fanonrecord write fanonrecord;
@@ -174,6 +177,7 @@ type
     private
      function getcurragginfo: taggregateinformation;
      procedure set_next_field(AValue: tfieldvarsym);
+     procedure set_next_field_name(AValue: TIDString);
     protected
      { temporary list in which all data is collected }
      fasmlist: tasmlist;
@@ -366,6 +370,9 @@ type
        initialised. Also in case of objects, because the fieldvarsyms are spread
        over the symtables of the entire inheritance tree }
      property next_field: tfieldvarsym write set_next_field;
+     { set the name of the next field that will be emitted for an anonymous
+       record (or the next of the next started anonymous record) }
+     property next_field_name: TIDString write set_next_field_name;
     protected
      { this one always return the actual offset, called by the above (and
        overridden versions) }
@@ -428,6 +435,15 @@ implementation
       end;
 
 
+    procedure taggregateinformation.setnextfieldname(AValue: TIDString);
+      begin
+        if assigned(fnextfieldname) or
+           not anonrecord then
+          internalerror(2015071503);
+        fnextfieldname:=AValue;
+      end;
+
+
     constructor taggregateinformation.create(_def: tdef; _typ: ttypedconstkind);
       begin
         fdef:=_def;
@@ -461,7 +477,12 @@ implementation
             { if we are constructing this record as data gets emitted, add a field
               for this data }
             if anonrecord then
-              trecorddef(def).add_field_by_def(nextfielddef);
+              begin
+                trecorddef(def).add_field_by_def(fnextfieldname,nextfielddef);
+                fnextfieldname:='';
+              end
+            else if fnextfieldname<>'' then
+              internalerror(2015071501);
             { find next field }
             i:=curindex;
             repeat
@@ -699,6 +720,17 @@ implementation
          internalerror(2014091206);
        info.nextfield:=AValue;
      end;
+
+
+    procedure ttai_typedconstbuilder.set_next_field_name(AValue: TIDString);
+      var
+        info: taggregateinformation;
+      begin
+        info:=curagginfo;
+        if not assigned(info) then
+          internalerror(2015071502);
+        info.nextfieldname:='$'+AValue;
+      end;
 
 
    procedure ttai_typedconstbuilder.pad_next_field(nextfielddef: tdef);
