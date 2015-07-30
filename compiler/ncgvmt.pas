@@ -616,7 +616,7 @@ implementation
             { generate the class table }
             tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,classtable);
             datatcb.begin_anonymous_record('$fpc_intern_classtable_'+tostr(classtablelist.Count-1),
-              packrecords,
+              packrecords,1,
               targetinfos[target_info.system]^.alignment.recordalignmin,
               targetinfos[target_info.system]^.alignment.maxCrecordalign);
             datatcb.emit_tai(Tai_const.Create_16bit(classtablelist.count),u16inttype);
@@ -651,7 +651,7 @@ implementation
               lengths and their order would have to incorporated in the name,
               plus there would be very little chance that it could actually be
               reused }
-            datatcb.begin_anonymous_record('',packrecords,
+            datatcb.begin_anonymous_record('',packrecords,1,
               targetinfos[target_info.system]^.alignment.recordalignmin,
               targetinfos[target_info.system]^.alignment.maxCrecordalign);
             datatcb.emit_tai(Tai_const.Create_16bit(fieldcount),u16inttype);
@@ -674,7 +674,7 @@ implementation
                         Name: ShortString;
                       end;
                     }
-                    datatcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords,
+                    datatcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords,1,
                       targetinfos[target_info.system]^.alignment.recordalignmin,
                       targetinfos[target_info.system]^.alignment.maxCrecordalign);
                     datatcb.emit_tai(Tai_const.Create_pint(tfieldvarsym(sym).fieldoffset),ptruinttype);
@@ -711,7 +711,7 @@ implementation
         i  : longint;
       begin
         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,fintfvtablelabels[intfindex]);
-        datatcb.begin_anonymous_record('',0,
+        datatcb.begin_anonymous_record('',0,1,
           targetinfos[target_info.system]^.alignment.recordalignmin,
           targetinfos[target_info.system]^.alignment.maxCrecordalign);
         if assigned(AImplIntf.procdefs) then
@@ -809,7 +809,7 @@ implementation
           end;
 
         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,lab);
-        datatcb.begin_anonymous_record('',default_settings.packrecords,
+        datatcb.begin_anonymous_record('',default_settings.packrecords,1,
           targetinfos[target_info.system]^.alignment.recordalignmin,
           targetinfos[target_info.system]^.alignment.maxCrecordalign);
         datatcb.emit_tai(Tai_const.Create_pint(_class.ImplementedInterfaces.count),search_system_type('SIZEUINT').typedef);

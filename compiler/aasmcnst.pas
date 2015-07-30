@@ -314,8 +314,17 @@ type
         a) it's definitely a record
         b) the def of the record should be automatically constructed based on
            the types of the emitted fields
+
+        packrecords: same as "pacrecords x"
+        recordalign: specify the (minimum) alignment of the start of the record
+          (no equivalent in source code), used as an alternative for explicit
+          align statements. Use "1" if it should be calculated based on the
+          fields
+        recordalignmin: same as "codealign recordmin=x"
+        maxcrecordalign: specify maximum C record alignment (no equivalent in
+          source code)
      }
-     function begin_anonymous_record(const optionalname: string; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef; virtual;
+     function begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin, maxcrecordalign: shortint): trecorddef; virtual;
      function end_anonymous_record: trecorddef; virtual;
 
      { The next group of routines are for constructing complex expressions.
@@ -1079,7 +1088,7 @@ implementation
        result.ofs:=0;
        { pack the data, so that we don't add unnecessary null bytes after the
          constant string }
-       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1,1,1);
+       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1,sizeof(TConstPtrUInt),1,1);
        string_symofs:=get_string_symofs(stringtype,false);
        { encoding }
        emit_tai(tai_const.create_16bit(encoding),u16inttype);
@@ -1239,7 +1248,7 @@ implementation
          begin
            result.lab:=startlab;
            datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),
-             4,
+             4,4,
              targetinfos[target_info.system]^.alignment.recordalignmin,
              targetinfos[target_info.system]^.alignment.maxCrecordalign);
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
@@ -1357,7 +1366,7 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef;
+   function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin, maxcrecordalign: shortint): trecorddef;
      var
        anonrecorddef: trecorddef;
        typesym: ttypesym;
@@ -1379,6 +1388,7 @@ implementation
          end;
        { create skeleton def }
        anonrecorddef:=crecorddef.create_global_internal(optionalname,packrecords,recordalignmin,maxcrecordalign);
+       trecordsymtable(anonrecorddef.symtable).recordalignment:=recordalign;
        { generic aggregate housekeeping }
        begin_aggregate_internal(anonrecorddef,true);
        { mark as anonymous record }
