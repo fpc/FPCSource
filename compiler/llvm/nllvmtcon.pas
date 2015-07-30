@@ -51,7 +51,6 @@ interface
        { set the default value for caggregateinformation (= tllvmaggregateinformation) }
        class constructor classcreate;
      protected
-      fqueued_def: tdef;
       fqueued_tai,
       flast_added_tai: tai;
       fqueued_tai_opidx: longint;
@@ -420,7 +419,6 @@ implementation
       fqueued_tai:=nil;
       flast_added_tai:=nil;
       fqueued_tai_opidx:=-1;
-      fqueued_def:=todef;
     end;
 
 

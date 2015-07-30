@@ -183,6 +183,7 @@ type
      { while queueing elements of a compound expression, this is the current
        offset in the top-level array/record }
      fqueue_offset: asizeint;
+     fqueued_def: tdef;
 
      { array of caggregateinformation instances }
      faggregateinformation: tfpobjectlist;
@@ -992,8 +993,10 @@ implementation
          an anonymous record also add the next field }
        if assigned(info) then
          begin
-           if ((info.def.typ=recorddef) or
-               is_object(info.def)) and
+           { queue_init already adds padding }
+           if not queue_is_active and
+               (is_record(info.def) or
+                is_object(info.def)) and
               { may add support for these later }
               not is_packed_record_or_object(info.def) then
              pad_next_field(def);
@@ -1109,9 +1112,14 @@ implementation
          begin
            { add padding if necessary, and update the current field/offset }
            info:=curagginfo;
-           if is_record(curagginfo.def) or
-              is_object(curagginfo.def) then
-             pad_next_field(def);
+           if (is_record(curagginfo.def) or
+               is_object(curagginfo.def)) and
+              not is_packed_record_or_object(curagginfo.def) then
+             begin
+               if queue_is_active then
+                 internalerror(2015073001);
+               pad_next_field(def);
+             end;
          end
        { if this is the outer record, no padding is required; the alignment
          has to be specified explicitly in that case via get_final_asmlist() }
@@ -1381,11 +1389,27 @@ implementation
 
 
    procedure ttai_typedconstbuilder.queue_init(todef: tdef);
+     var
+       info: taggregateinformation;
      begin
        { nested call to init? }
        if fqueue_offset<>low(fqueue_offset) then
          internalerror(2014062101);
+
+       { insert padding bytes before starting the queue, so that the first
+         padding byte won't be interpreted as the emitted value for this queue }
+       info:=curagginfo;
+       if assigned(info) then
+         begin
+           if ((info.def.typ=recorddef) or
+               is_object(info.def)) and
+              { may add support for these later }
+              not is_packed_record_or_object(info.def) then
+             pad_next_field(todef);
+         end;
+
        fqueue_offset:=0;
+       fqueued_def:=todef;
      end;
 
 
