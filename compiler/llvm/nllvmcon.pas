@@ -129,10 +129,10 @@ implementation
         dataptrdef:=cpointerdef.getreusable(field.vardef);
         { load the address of the string data }
         reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,dataptrdef);
-        reference_reset_symbol(href, lab_str, 0, const_align(strpointerdef.size));
+        reference_reset_symbol(href,lab_str,0,const_align(strpointerdef.size));
         current_asmdata.CurrAsmList.concat(
-          taillvm.getelementptr_reg_size_ref_size_const(reg,dataptrdef,href,
-          s32inttype,field.llvmfieldnr,false));
+          taillvm.getelementptr_reg_size_ref_size_const(reg,cpointerdef.getreusable(strrecdef),href,
+          s32inttype,field.llvmfieldnr,true));
         { convert into a pointer to the individual elements }
         hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dataptrdef,strpointerdef,reg,location.register);
       end;
