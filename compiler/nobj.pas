@@ -793,7 +793,7 @@ implementation
         vmtdef: trecorddef;
         systemvmt: tdef;
         sym: tsym;
-        symtab: tsymtable;
+        vmtdefname: TIDString;
       begin
         { these types don't have an actual VMT, we only use the other methods
           in TVMTBuilder to determine duplicates/overrides }
@@ -813,11 +813,12 @@ implementation
           exit;
 
         { the VMT definition may already exist in case of generics }
-        if searchsym_in_module(current_module,'vmtdef$'+_class.mangledparaname,sym,symtab) then
+        vmtdefname:=internaltypeprefixName[itp_vmtdef]+_class.mangledparaname;
+        if assigned(try_search_current_module_type(vmtdefname)) then
           exit;
         { create VMT type definition }
         vmtdef:=crecorddef.create_global_internal(
-          '$vmtdef$'+_class.mangledparaname,
+          vmtdefname,
           0,
           target_info.alignment.recordalignmin,
           target_info.alignment.maxCrecordalign);

@@ -629,6 +629,19 @@ type
     objcclassrtti,objcclassrortti
   );
 
+  { prefixes for internally generated type names (centralised to avoid
+    accidental collisions) }
+  tinternaltypeprefix = (
+    itp_llvmstruct,
+    itp_vmtdef,
+    itp_vmt_tstringmesssagetable,
+    itp_vmt_msgint_table_entries,
+    itp_vmt_tmethod_name_table,
+    itp_vmt_intern_msgint_table,
+    itp_vmt_intern_tmethodnamerec,
+    itp_vmt_intern_tmethodnametable
+  );
+
   { The order is from low priority to high priority,
     Note: the operators > and < are used on this list }
   tequaltype = (
@@ -726,6 +739,17 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
      visibilityName : array[tvisibility] of string[16] = (
        'hidden','strict private','private','strict protected','protected',
        'public','published',''
+     );
+
+     internaltypeprefixName : array[tinternaltypeprefix] of TSymStr = (
+       '$llvmstruct$',
+       '$vmtdef$',
+       '$vmt_TStringMesssageTable$',
+       '$vmt_msgint_table_entries$',
+       '$vmt_tmethod_name_table$',
+       '$vmt_intern_msgint_table$',
+       '$vmt_intern_tmethodnamerec$',
+       '$vmt_intern_tmethodnametable$'
      );
 
 

@@ -699,7 +699,7 @@ implementation
         sym: tfieldvarsym;
         typename: string;
       begin
-        typename:='$llvmstruct_';
+        typename:=internaltypeprefixName[itp_llvmstruct];
         for i:=0 to fieldtypes.count-1 do
           begin
             hdef:=tdef(fieldtypes[i]);

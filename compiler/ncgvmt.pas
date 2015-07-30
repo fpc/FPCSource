@@ -27,7 +27,7 @@ interface
 
     uses
       aasmdata,aasmbase,aasmcnst,
-      symbase,symtype,symdef;
+      symbase,symconst,symtype,symdef;
 
     type
       pprocdeftree = ^tprocdeftree;
@@ -76,8 +76,8 @@ interface
             end;
           Returns both the outer record and the inner arraydef
         }
-        procedure gettabledef(const basename: string; countdef, elementdef: tdef; count: longint; packrecords: shortint; out recdef: trecorddef; out arrdef: tarraydef);
-        function getrecorddef(const name: string; const fields: array of tdef; packrecords: shortint): trecorddef;
+        procedure gettabledef(prefix: tinternaltypeprefix; countdef, elementdef: tdef; count: longint; packrecords: shortint; out recdef: trecorddef; out arrdef: tarraydef);
+        function getrecorddef(prefix: tinternaltypeprefix; const fields: array of tdef; packrecords: shortint): trecorddef;
         { generates the message tables for a class }
         procedure genstrmsgtab(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out msgstrtabledef: trecorddef);
         procedure genintmsgtab(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out msginttabledef: trecorddef);
@@ -110,7 +110,7 @@ implementation
       cutils,cclasses,
       globtype,globals,verbose,constexp,
       systems,fmodule,
-      symconst,symsym,symtable,defutil,
+      symsym,symtable,defutil,
       aasmtai,
       wpobase,
       nobj,
@@ -296,7 +296,7 @@ implementation
            Instead of 0 as the upper bound, use the actual upper bound
          }
          msgstrentry:=search_system_type('TMSGSTRTABLE').typedef;
-         gettabledef('fpc_intern_TStringMessageTable_',s32inttype,msgstrentry,count,0,msgstrtabledef,msgarraydef);
+         gettabledef(itp_vmt_tstringmesssagetable,s32inttype,msgstrentry,count,0,msgstrtabledef,msgarraydef);
          { outer record (TStringMessageTable) }
          datatcb.maybe_begin_aggregate(msgstrtabledef);
          datatcb.emit_tai(Tai_const.Create_32bit(count),s32inttype);
@@ -350,7 +350,7 @@ implementation
                 method : codepointer;
              end;
          }
-         msginttabledef:=getrecorddef('fpc_intern_msgint_table',[u32inttype,voidcodepointertype],0);
+         msginttabledef:=getrecorddef(itp_vmt_intern_msgint_table,[u32inttype,voidcodepointertype],0);
          { from objpas.inc:
              TMsgInt = record
                 count : longint;
@@ -358,7 +358,7 @@ implementation
              end;
          }
          tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,lab);
-         gettabledef('fpc_msgint_table_entries_',s32inttype,msginttabledef,count,0,msgintdef,msgintarrdef);
+         gettabledef(itp_vmt_msgint_table_entries,s32inttype,msginttabledef,count,0,msgintdef,msgintarrdef);
          datatcb.maybe_begin_aggregate(msgintdef);
          datatcb.emit_tai(Tai_const.Create_32bit(count),s32inttype);
          if assigned(root) then
@@ -543,7 +543,7 @@ implementation
                      addr : codepointer;
                   end;
               }
-              lists.methodnamerec:=getrecorddef('fpc_intern_tmethodnamerec',[cpointerdef.getreusable(cshortstringtype),voidcodepointertype],1);
+              lists.methodnamerec:=getrecorddef(itp_vmt_intern_tmethodnamerec,[cpointerdef.getreusable(cshortstringtype),voidcodepointertype],1);
               { from objpas.inc:
                   tmethodnametable = packed record
                     count : dword;
@@ -551,7 +551,7 @@ implementation
                   end;
                }
               tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',lists.pubmethodstcb,lab);
-              gettabledef('fpc_intern_tmethodnametable_',u32inttype,lists.methodnamerec,count,1,pubmethodsdef,pubmethodsarraydef);
+              gettabledef(itp_vmt_intern_tmethodnametable,u32inttype,lists.methodnamerec,count,1,pubmethodsdef,pubmethodsarraydef);
               { begin tmethodnametable }
               lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsdef);
               { emit count field }
@@ -830,7 +830,7 @@ implementation
       end;
 
 
-    procedure TVMTWriter.gettabledef(const basename: string; countdef, elementdef: tdef; count: longint; packrecords: shortint; out recdef: trecorddef; out arrdef: tarraydef);
+    procedure TVMTWriter.gettabledef(prefix: tinternaltypeprefix; countdef, elementdef: tdef; count: longint; packrecords: shortint; out recdef: trecorddef; out arrdef: tarraydef);
       var
         fields: tfplist;
         name: TIDString;
@@ -839,14 +839,14 @@ implementation
       begin
         { already created a message string table with this number of elements
           in this unit -> reuse the def }
-        name:=basename+tostr(count);
-        if searchsym_type(name,srsym,srsymtable) then
+        name:=internaltypeprefixName[prefix]+tostr(count);
+        if searchsym_type(copy(name,2,length(name)),srsym,srsymtable) then
           begin
             recdef:=trecorddef(ttypesym(srsym).typedef);
             arrdef:=tarraydef(trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size).vardef);
             exit
           end;
-        recdef:=crecorddef.create_global_internal('$'+basename+tostr(count),packrecords,
+        recdef:=crecorddef.create_global_internal(name,packrecords,
           targetinfos[target_info.system]^.alignment.recordalignmin,
           targetinfos[target_info.system]^.alignment.maxCrecordalign);
         fields:=tfplist.create;
@@ -864,14 +864,16 @@ implementation
       end;
 
 
-    function TVMTWriter.getrecorddef(const name: string; const fields: array of tdef; packrecords: shortint): trecorddef;
+    function TVMTWriter.getrecorddef(prefix: tinternaltypeprefix; const fields: array of tdef; packrecords: shortint): trecorddef;
       var
         fieldlist: tfplist;
         srsym: tsym;
         srsymtable: tsymtable;
         i: longint;
+        name: TIDString;
       begin
-        if searchsym_type(name,srsym,srsymtable) then
+        name:=internaltypeprefixName[prefix];
+        if searchsym_type(copy(internaltypeprefixName[prefix],2,length(internaltypeprefixName[prefix])),srsym,srsymtable) then
           begin
             result:=trecorddef(ttypesym(srsym).typedef);
             exit
@@ -879,7 +881,7 @@ implementation
         fieldlist:=tfplist.create;
         for i:=low(fields) to high(fields) do
           fieldlist.add(fields[i]);
-        result:=crecorddef.create_global_internal('$'+name,packrecords,
+        result:=crecorddef.create_global_internal(internaltypeprefixName[prefix],packrecords,
           targetinfos[target_info.system]^.alignment.recordalignmin,
           targetinfos[target_info.system]^.alignment.maxCrecordalign);
         result.add_fields_from_deflist(fieldlist);
@@ -1044,6 +1046,8 @@ implementation
          parentvmtdef: tdef;
          pinterfacetabledef,
          pstringmessagetabledef: tdef;
+         vmttypesym: ttypesym;
+         vmtdef: tdef;
       begin
 {$ifdef WITHDMT}
          dmtlabel:=gendmt;
@@ -1095,9 +1099,13 @@ implementation
 
          { reuse the type created in nobj, so we get internal consistency
            checking for free }
-         tcb.begin_anonymous_record('$vmtdef$'+_class.mangledparaname,voidpointertype.alignment,
-           targetinfos[target_info.system]^.alignment.recordalignmin,
-           targetinfos[target_info.system]^.alignment.maxCrecordalign);
+         vmttypesym:=try_search_current_module_type(internaltypeprefixName[itp_vmtdef]+_class.mangledparaname);
+         if not assigned(vmttypesym) or
+            (vmttypesym.typedef.typ<>recorddef) then
+           internalerror(2015071403);
+         vmtdef:=trecorddef(vmttypesym.typedef);
+
+         tcb.maybe_begin_aggregate(vmtdef);
 
          { determine the size with symtable.datasize, because }
          { size gives back 4 for classes                    }
@@ -1202,7 +1210,7 @@ implementation
          current_asmdata.asmlists[al_globals].concatlist(
            tcb.get_final_asmlist(
              current_asmdata.DefineAsmSymbol(_class.vmt_mangledname,AB_GLOBAL,AT_DATA),
-             tcb.end_anonymous_record,sec_rodata,_class.vmt_mangledname,const_align(sizeof(pint))
+             vmtdef,sec_rodata,_class.vmt_mangledname,const_align(sizeof(pint))
            )
          );
          tcb.free;
