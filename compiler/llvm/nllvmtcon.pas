@@ -313,7 +313,6 @@ implementation
           { pointerdef to the string data array }
           dataptrdef:=cpointerdef.getreusable(field.vardef);
           queue_init(charptrdef);
-          queue_addrn(dataptrdef,charptrdef);
           queue_subscriptn(strrecdef,field);
           queue_emit_asmsym(ll.lab,strrecdef);
         end

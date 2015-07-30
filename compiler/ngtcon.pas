@@ -851,9 +851,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               { we now emit the address of the first element of the array
                 containing the string data }
               ftcb.queue_init(def);
-              { address of ... }
-              ftcb.queue_addrn(def.pointeddef,def);
-              { ... the first element ... }
+              { the first element ... }
               ftcb.queue_vecn(datadef,0);
               { ... of the string array }
               ftcb.queue_emit_asmsym(ll,datadef);
@@ -888,9 +886,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      { we now emit the address of the first element of the array
                        containing the string data }
                      ftcb.queue_init(def);
-                     { address of ... }
-                     ftcb.queue_addrn(def.pointeddef,def);
-                     { ... the first element ... }
+                     { the first element ... }
                      ftcb.queue_vecn(datadef,0);
                      { ... of the string array }
                      ftcb.queue_emit_asmsym(ll,datadef);
@@ -932,7 +928,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                                ftcb.queue_typeconvn(ttypeconvnode(hp).left.resultdef,hp.resultdef);
                            end;
                          addrn :
-                           ftcb.queue_addrn(taddrnode(hp).left.resultdef,hp.resultdef);
+                           { nothing, is implicit };
                          else
                            Message(parser_e_illegal_expression);
                        end;
@@ -1357,7 +1353,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { remove addrn which we also don't need here }
         if n.nodetype=addrn then
           begin
-            ftcb.queue_addrn(taddrnode(n).left.resultdef,n.resultdef);
             tmpn:=taddrnode(n).left;
             taddrnode(n).left:=nil;
             n.free;

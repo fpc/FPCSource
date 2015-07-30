@@ -343,8 +343,6 @@ type
      function queue_subscriptn_multiple_by_name(def: tabstractrecorddef; const fields: array of TIDString): tdef;
      { queue a type conversion operation }
      procedure queue_typeconvn(fromdef, todef: tdef); virtual;
-     { queue an address taking operation }
-     procedure queue_addrn(fromdef, todef: tdef); virtual;
      { finalise the queue (so a new one can be created) and flush the
         previously queued operations, applying them in reverse order on a...}
      { ... procdef }
@@ -1530,11 +1528,6 @@ implementation
 
 
    procedure ttai_typedconstbuilder.queue_typeconvn(fromdef, todef: tdef);
-     begin
-       { do nothing }
-     end;
-
-   procedure ttai_typedconstbuilder.queue_addrn(fromdef, todef: tdef);
      begin
        { do nothing }
      end;
