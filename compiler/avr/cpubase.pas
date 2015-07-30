@@ -68,6 +68,7 @@ unit cpubase;
       { call/reg instructions (A_RCALL,A_ICALL,A_CALL,A_RET,A_RETI) are not considered as jmp instructions for the usage cases of
         this set }
       jmp_instructions = [A_BRxx,A_SBIC,A_SBIS,A_JMP,A_EIJMP,A_RJMP,A_CPSE,A_IJMP];
+      call_jmp_instructions = [A_ICALL,A_RCALL,A_CALL,A_RET,A_RETI]+jmp_instructions;
 
 {*****************************************************************************
                                   Registers
@@ -487,7 +488,7 @@ unit cpubase;
 
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
-        is_calljmp:= o in jmp_instructions;
+        is_calljmp:= o in call_jmp_instructions;
       end;
 
 
