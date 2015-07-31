@@ -8283,6 +8283,7 @@ rtl/embedded/arm/cortexm3.pp svneol=native#text/pascal
 rtl/embedded/arm/cortexm3_start.inc svneol=native#text/pascal
 rtl/embedded/arm/cortexm4.pp svneol=native#text/pascal
 rtl/embedded/arm/cortexm4f_start.inc svneol=native#text/pascal
+rtl/embedded/arm/cortexm7.pp svneol=native#text/plain
 rtl/embedded/arm/lm3fury.pp svneol=native#text/pascal
 rtl/embedded/arm/lm3tempest.pp svneol=native#text/pascal
 rtl/embedded/arm/lm4f120.pp svneol=native#text/pascal
