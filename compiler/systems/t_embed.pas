@@ -406,6 +406,13 @@ begin
       ct_stm32f429xg,
       ct_stm32f429xi,
 
+      ct_stm32f745xe,
+      ct_stm32f745xg,
+      ct_stm32f746xe,
+      ct_stm32f746xg,
+      ct_stm32f756xe,
+      ct_stm32f756xg,
+
       { TI - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,
       ct_lm3s1133,

@@ -255,6 +255,13 @@ Type
       ct_stm32f429xg, // 1M flash
       ct_stm32f429xi, // 2M flash
 
+      ct_stm32f745xe,
+      ct_stm32f745xg,
+      ct_stm32f746xe,
+      ct_stm32f746xg,
+      ct_stm32f756xe,
+      ct_stm32f756xg,
+
       { TI - Fury Class - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,
       ct_lm3s1133,
@@ -634,6 +641,13 @@ Const
       (controllertypestr:'STM32F429XE';     controllerunitstr:'STM32F429';        flashbase:$08000000; flashsize:$00080000; srambase:$20000000; sramsize:$00030000),
       (controllertypestr:'STM32F429XG';     controllerunitstr:'STM32F429';        flashbase:$08000000; flashsize:$00100000; srambase:$20000000; sramsize:$00030000),
       (controllertypestr:'STM32F429XI';     controllerunitstr:'STM32F429';        flashbase:$08000000; flashsize:$00200000; srambase:$20000000; sramsize:$00030000),
+
+      (controllertypestr:'STM32F745XE';     controllerunitstr:'STM32F745';        flashbase:$08000000; flashsize:$00080000; srambase:$20010000; sramsize:$00040000),
+      (controllertypestr:'STM32F745XG';     controllerunitstr:'STM32F745';        flashbase:$08000000; flashsize:$00100000; srambase:$20010000; sramsize:$00040000),
+      (controllertypestr:'STM32F746XE';     controllerunitstr:'STM32F746';        flashbase:$08000000; flashsize:$00080000; srambase:$20010000; sramsize:$00040000),
+      (controllertypestr:'STM32F746XG';     controllerunitstr:'STM32F746';        flashbase:$08000000; flashsize:$00100000; srambase:$20010000; sramsize:$00040000),
+      (controllertypestr:'STM32F756XE';     controllerunitstr:'STM32F756';        flashbase:$08000000; flashsize:$00080000; srambase:$20010000; sramsize:$00040000),
+      (controllertypestr:'STM32F756XG';     controllerunitstr:'STM32F756';        flashbase:$08000000; flashsize:$00100000; srambase:$20010000; sramsize:$00040000),
 
       (controllertypestr:'LM3S1110';	controllerunitstr:'LM3FURY';	flashbase:$00000000;	flashsize:$00010000;	srambase:$20000000;	sramsize:$00004000),
       (controllertypestr:'LM3S1133';	controllerunitstr:'LM3FURY';	flashbase:$00000000;	flashsize:$00010000;	srambase:$20000000;	sramsize:$00004000),
