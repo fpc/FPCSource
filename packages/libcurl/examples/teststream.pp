@@ -21,7 +21,7 @@
 {$H+}
 program teststream;
 
-uses classes,libcurl,unixtype;
+uses classes,libcurl,{$ifdef windows}ctypes{$else}unixtype{$endif};
 
 Function DoWrite(Ptr : Pointer; Size : size_t; nmemb: size_t; Data : Pointer) : size_t;cdecl;
 
