@@ -1855,7 +1855,9 @@ implementation
              entrypos:=code.fileinfo;
 
              { Finish type checking pass }
-             do_typecheckpass(code);
+             { type checking makes no sense in a generic definition }
+             if not(df_generic in current_procinfo.procdef.defoptions) then
+               do_typecheckpass(code);
 
              if assigned(procdef.parentfpinitblock) then
                begin

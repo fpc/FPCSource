@@ -1284,53 +1284,59 @@ implementation
              if p.nodetype in [vecn,derefn,typeconvn,subscriptn,loadn] then
                maybe_call_procvar(p,false);
 
-             { blockn support because a read/write is changed into a blocknode
-               with a separate statement for each read/write operation (JM)
-               the same is true for val() if the third parameter is not 32 bit
-
-               goto nodes are created by the compiler for non local exit statements, so
-               include them as well
-             }
-             if not(p.nodetype in [nothingn,errorn,calln,ifn,assignn,breakn,inlinen,
-                                   continuen,labeln,blockn,exitn,goton]) or
-                ((p.nodetype=inlinen) and
-                 not is_void(p.resultdef)) or
-                ((p.nodetype=calln) and
-                 (assigned(tcallnode(p).procdefinition)) and
-                 (tcallnode(p).procdefinition.proctypeoption=potype_operator)) then
-               Message(parser_e_illegal_expression);
-
-             if not assigned(p.resultdef) then
-               do_typecheckpass(p);
-
-             { Specify that we don't use the value returned by the call.
-               This is used for :
-                - dispose of temp stack space
-                - dispose on FPU stack
-                - extended syntax checking }
-             if (p.nodetype=calln) then
+             { additional checks make no sense in a generic definition }
+             if not(df_generic in current_procinfo.procdef.defoptions) then
                begin
-                 exclude(tcallnode(p).callnodeflags,cnf_return_value_used);
+                 { blockn support because a read/write is changed into a blocknode
+                   with a separate statement for each read/write operation (JM)
+                   the same is true for val() if the third parameter is not 32 bit
 
-                 { in $x- state, the function result must not be ignored }
-                 if not(cs_extsyntax in current_settings.moduleswitches) and
-                    not(is_void(p.resultdef)) and
-                    { can be nil in case there was an error in the expression }
-                    assigned(tcallnode(p).procdefinition) and
-                    { allow constructor calls to drop the result if they are
-                      called as instance methods instead of class methods }
-                    not(
-                      (tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
-                      is_class_or_object(tprocdef(tcallnode(p).procdefinition).struct) and
-                      assigned(tcallnode(p).methodpointer) and
-                      (tnode(tcallnode(p).methodpointer).resultdef.typ=objectdef)
-                    ) then
+                   goto nodes are created by the compiler for non local exit statements, so
+                   include them as well
+                 }
+                 if not(p.nodetype in [nothingn,errorn,calln,ifn,assignn,breakn,inlinen,
+                                       continuen,labeln,blockn,exitn,goton]) or
+                    ((p.nodetype=inlinen) and
+                     not is_void(p.resultdef)) or
+                    ((p.nodetype=calln) and
+                     (assigned(tcallnode(p).procdefinition)) and
+                     (tcallnode(p).procdefinition.proctypeoption=potype_operator)) then
                    Message(parser_e_illegal_expression);
+
+                 if not assigned(p.resultdef) then
+                   do_typecheckpass(p);
+
+                 { Specify that we don't use the value returned by the call.
+                   This is used for :
+                    - dispose of temp stack space
+                    - dispose on FPU stack
+                    - extended syntax checking }
+                 if (p.nodetype=calln) then
+                   begin
+                     exclude(tcallnode(p).callnodeflags,cnf_return_value_used);
+
+                     { in $x- state, the function result must not be ignored }
+                     if not(cs_extsyntax in current_settings.moduleswitches) and
+                        not(is_void(p.resultdef)) and
+                        { can be nil in case there was an error in the expression }
+                        assigned(tcallnode(p).procdefinition) and
+                        { allow constructor calls to drop the result if they are
+                          called as instance methods instead of class methods }
+                        not(
+                          (tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
+                          is_class_or_object(tprocdef(tcallnode(p).procdefinition).struct) and
+                          assigned(tcallnode(p).methodpointer) and
+                          (tnode(tcallnode(p).methodpointer).resultdef.typ=objectdef)
+                        ) then
+                       Message(parser_e_illegal_expression);
+                   end;
                end;
              code:=p;
            end;
          end;
-         if assigned(code) then
+         if assigned(code) and
+           { type checking makes no sense in a generic definition }
+           not(df_generic in current_procinfo.procdef.defoptions) then
            begin
              typecheckpass(code);
              code.fileinfo:=filepos;
