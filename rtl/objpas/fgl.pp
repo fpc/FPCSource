@@ -667,18 +667,18 @@ var
   i : integer;
   pdest,
   psrc : Pointer;
-  localnul : array[0..LocalThreshold-1] of byte;  
+  localnul : array[0..LocalThreshold-1] of byte;
   pnul : pointer;
 begin
   LItemSize:=FItemSize;
   pnul:=@localnul;
   if LItemSize>Localthreshold then
     getmem(pnul,LItemSize);
-  fillchar(pnul^,LItemSize,#0);    
+  fillchar(pnul^,LItemSize,#0);
   NewCount:=0;
   psrc:=First;
   pdest:=psrc;
-  
+
   For I:=0 To FCount-1 Do
     begin
         if not CompareMem(psrc,pnul,LItemSize) then
@@ -707,7 +707,9 @@ begin
   repeat
     I := L;
     J := R;
-    P := (L + R) div 2;
+    { cast to dword to avoid overflow to a negative number during addition which
+      would result again in a negative number when being divided }
+    P := (dword(L) + dword(R)) div 2;
     repeat
       PivotItem := InternalItems[P];
       while Compare(PivotItem, InternalItems[I]) > 0 do
