@@ -57,6 +57,9 @@ type
   TJSONConfig = class(TComponent)
   private
     FFilename: String;
+    FFormatIndentSize: Integer;
+    FFormatoptions: TFormatOptions;
+    FFormatted: Boolean;
     FKey: TJSONObject;
     procedure DoSetFilename(const AFilename: String; ForceReload: Boolean);
     procedure SetFilename(const AFilename: String);
@@ -102,7 +105,10 @@ type
     procedure DeleteValue(const APath: WideString);
     property Modified: Boolean read FModified;
   published
-    property Filename: String read FFilename write SetFilename;
+    Property Filename: String read FFilename write SetFilename;
+    Property Formatted : Boolean Read FFormatted Write FFormatted;
+    Property FormatOptions : TFormatOptions Read FFormatoptions Write FFormatOptions Default DefaultFormat;
+    Property FormatIndentsize : Integer Read FFormatIndentSize Write FFormatIndentSize Default DefaultIndentSize;
   end;
 
 
@@ -119,6 +125,8 @@ begin
   inherited Create(AOwner);
   FJSON:=TJSONObject.Create;
   FKey:=FJSON;
+  FFormatOptions:=DefaultFormat;
+  FFormatIndentsize:=DefaultIndentSize;
 end;
 
 destructor TJSONConfig.Destroy;
@@ -148,7 +156,10 @@ begin
     AssignFile(F,FileName);
     Rewrite(F);
     Try
-      Writeln(F,FJSON.AsJSON);
+      if Formatted then
+        Writeln(F,FJSON.FormatJSON(Formatoptions,DefaultIndentSize))
+      else
+        Writeln(F,FJSON.AsJSON);
     Finally
       CloseFile(F);
     end;
@@ -157,7 +168,8 @@ begin
 end;
 
 
-function TJSONConfig.FindObject(Const APath: WideString; AllowCreate : Boolean) : TJSONObject;
+function TJSONConfig.FindObject(const APath: WideString; AllowCreate: Boolean
+  ): TJSONObject;
 
 Var
   Dummy : WideString;
@@ -166,7 +178,8 @@ begin
   Result:=FindObject(APath,AllowCreate,Dummy);
 end;
 
-function TJSONConfig.FindObject(Const APath: WideString; AllowCreate : Boolean;Var ElName : WideString) : TJSONObject;
+function TJSONConfig.FindObject(const APath: WideString; AllowCreate: Boolean;
+  var ElName: WideString): TJSONObject;
 
 Var
   S,El : WideString;
@@ -232,7 +245,8 @@ begin
   ElName:=S;
 end;
 
-function TJSONConfig.FindElement(Const APath: WideString; CreateParent : Boolean) : TJSONData;
+function TJSONConfig.FindElement(const APath: WideString; CreateParent: Boolean
+  ): TJSONData;
 
 Var
   O : TJSONObject;
@@ -242,7 +256,9 @@ begin
   Result:=FindElement(APath,CreateParent,O,ElName);
 end;
 
-function TJSONConfig.FindElement(Const APath: WideString; CreateParent : Boolean; Var AParent : TJSONObject; Var ElName : WideString) : TJSONData;
+function TJSONConfig.FindElement(const APath: WideString;
+  CreateParent: Boolean; var AParent: TJSONObject; var ElName: WideString
+  ): TJSONData;
 
 Var
   I : Integer;
@@ -529,7 +545,7 @@ begin
   DeletePath(APath);
 end;
 
-Procedure TJSONConfig.Reload;
+procedure TJSONConfig.Reload;
 
 begin
   if Length(Filename) > 0 then
