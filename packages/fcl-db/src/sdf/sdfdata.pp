@@ -13,6 +13,9 @@ unit SdfData;
 ---------------
 Modifications
 ---------------
+30/Jul/15 LacaK:
+      Added TSDFStringList to support reading of CSV files, which have embedded
+      CRLF between double-quotes.
 7/Jun/12 BigChimp:
       Quote fields with delimiters or quotes to match Delphi SDF definition
       (see e.g. help on TStrings.CommaText)
@@ -50,7 +53,7 @@ Modifications
            characters.
            Altered buffer method to create on constructor and cleared when opened.
       New Resource File. Nice Icons
-      SavetoStream method included
+      SaveToStream method included
       LoadFromStream method included
                 ****** THANKS LESLIE *****
 14/Ago/01  Version 2.00 (Orlando Arrocha)
@@ -141,10 +144,18 @@ type
     BookmarkFlag: TBookmarkFlag;
   end;
 //-----------------------------------------------------------------------------
-// TBaseTextDataSet
 
-  { TFixedFormatDataSet }
+  { TSDFStringList }
 
+  TSDFStringList = class(TStringList)
+    protected
+      FMultiLine: boolean;
+      procedure SetTextStr(const Value: string); override;
+  end;
+
+//-----------------------------------------------------------------------------
+// TFixedFormatDataSet
+//-----------------------------------------------------------------------------
   TFixedFormatDataSet = class(TDataSet)
   private
     FSchema             :TStringList;
@@ -152,7 +163,7 @@ type
     FFilterBuffer       :TRecordBuffer;
     FFileMustExist      :Boolean;
     FReadOnly           :Boolean;
-    FLoadfromStream     :Boolean;
+    FLoadFromStream     :Boolean;
     FTrimSpace          :Boolean;
     procedure SetSchema(const Value: TStringList);
     procedure SetFileName(Value : TFileName);
@@ -164,7 +175,7 @@ type
     function GetActiveRecBuf(out RecBuf: TRecordBuffer): Boolean;
     procedure SetFieldOfs(var Buffer : TRecordBuffer; FieldNo : Integer);
   protected
-    FData               :TStringlist;
+    FData               :TSDFStringList;
     FDataOffset         :Integer;
     FCurRec             :Integer;
     FRecordSize         :Integer;
@@ -217,7 +228,7 @@ type
     procedure SaveFileAs(strFileName : String); dynamic;
     property  CanModify;
     procedure LoadFromStream(Stream :TStream);
-    procedure SavetoStream(Stream :TStream);
+    procedure SaveToStream(Stream :TStream);
   published
     property FileMustExist: Boolean read FFileMustExist write SetFileMustExist;
     property ReadOnly: Boolean read FReadOnly write SetReadOnly;
@@ -256,6 +267,7 @@ type
 
 //-----------------------------------------------------------------------------
 // TSdfDataSet
+//-----------------------------------------------------------------------------
   TSdfDataSet = class(TFixedFormatDataSet)
   private
     FDelimiter : Char;
@@ -285,6 +297,7 @@ type
 procedure Register;
 
 implementation
+
 //{$R *.Res}
 
 //-----------------------------------------------------------------------------
@@ -294,11 +307,11 @@ constructor TFixedFormatDataSet.Create(AOwner : TComponent);
 begin
   FDefaultRecordLength := 250;
   FFileMustExist  := TRUE;
-  FLoadfromStream := False;
+  FLoadFromStream := False;
   FRecordSize   := 0;
   FTrimSpace    := TRUE;
   FSchema       := TStringList.Create;
-  FData         := TStringList.Create;  // Load the textfile into a StringList
+  FData         := TSDFStringList.Create;  // Load the textfile into a StringList
   inherited Create(AOwner);
 end;
 
@@ -344,8 +357,7 @@ var
   i, Len, MaxLen :Integer;
   LstFields      :TStrings;
 begin
-  if not Assigned(FData) then
-    exit;
+  if not Assigned(FData) then Exit;
 
   MaxLen := 0;
   FieldDefs.Clear;
@@ -382,15 +394,15 @@ procedure TFixedFormatDataSet.InternalOpen;
 var
   Stream : TStream;
 begin
+  if not Assigned(FData) then Exit;
+
   FSaveChanges := FALSE;
-  if not Assigned(FData) then
-    FData := TStringList.Create;
   if (not FileMustExist) and (not FileExists(FileName)) then
   begin
     Stream := TFileStream.Create(FileName, fmCreate);
     Stream.Free;
   end;
-  if not FLoadfromStream then
+  if not FLoadFromStream then
     FData.LoadFromFile(FileName);
   FRecordSize := FDefaultRecordLength;
   InternalInitFieldDefs;
@@ -413,7 +425,7 @@ procedure TFixedFormatDataSet.InternalClose;
 begin
   if (not FReadOnly) and (FSaveChanges) then  // Write any edits to disk
     FData.SaveToFile(FileName);
-  FLoadfromStream := False;
+  FLoadFromStream := False;
   FData.Clear;          // Clear data
   BindFields(FALSE);
   if DefaultFields then // Destroy the TField
@@ -444,9 +456,9 @@ begin
   begin
     Active          := False; //Make sure the Dataset is Closed.
     Stream.Position := 0;     //Make sure you are at the top of the Stream.
-    FLoadfromStream := True;
+    FLoadFromStream := True;
     if not Assigned(FData) then
-     raise Exception.Create('Data buffer unassigned');
+      raise Exception.Create('Data buffer unassigned');
     FData.LoadFromStream(Stream);
     Active := True;
   end
@@ -455,7 +467,7 @@ begin
 end;
 
 // Saves Data as text to a stream.
-procedure TFixedFormatDataSet.SavetoStream(Stream: TStream);
+procedure TFixedFormatDataSet.SaveToStream(Stream: TStream);
 begin
   if assigned(stream) then
     FData.SaveToStream(Stream)
@@ -886,6 +898,62 @@ begin
   end;
 end;
 
+
+//-----------------------------------------------------------------------------
+// TSDFStringList
+//-----------------------------------------------------------------------------
+
+procedure TSDFStringList.SetTextStr(const Value: string);
+var
+  S: string;
+  P: integer;
+
+  function GetNextLine(const Value: string; out S: string; var P: Integer): Boolean;
+  const
+    CR: char = #13;
+    LF: char = #10;
+    DQ: char = '"';
+  var
+    L, P1: integer;
+    InDQ: boolean;
+  begin
+    // RFC 4180:
+    //  Each record is located on a separate line, delimited by a line break (CRLF)
+    //  Fields containing line breaks (CRLF), double quotes, and commas should be enclosed in double-quotes.
+    Result := False;
+    L := Length(Value);
+    if P > L then Exit;
+    P1 := P;
+    InDQ := False;
+    while (P <= L) and (not(Value[P] in [CR,LF]) or InDQ) do
+    begin
+      if Value[P] = DQ then InDQ := not InDQ;
+      inc(P);
+    end;
+    S := Copy(Value, P1, P-P1);
+    if (P <= L) and (Value[P] = CR) then
+      inc(P);
+    if (P <= L) and (Value[P] = LF) then
+      inc(P);
+    Result := True;
+  end;
+
+begin
+  if FMultiLine then // CRLF can be enclosed between double-quotes
+    try
+      BeginUpdate;
+      Clear;
+      P:=1;
+      while GetNextLine(Value,S,P) do
+        Add(S);
+    finally
+      EndUpdate;
+    end
+  else
+    inherited;
+end;
+
+
 //-----------------------------------------------------------------------------
 // TSdfDataSet
 //-----------------------------------------------------------------------------
@@ -919,7 +987,7 @@ begin
   if (S[Pos] = DQ) then
     // quoted field
     begin
-    // skip leading quote
+    // skip leading double-quote
     Inc(Pos);
     // allocate output buffer
     SetLength(Result, Len-P1+1);
@@ -931,7 +999,7 @@ begin
         begin
         if (pSrc[1] = DQ) then // doubled DQ
           begin
-          Inc(pSrc);
+          Inc(pSrc);           // dequote double-quote
           Inc(Pos);
           end
         else if (pSrc[1] in [Delimiter,' ',CR,LF,#0]) then // DQ followed by delimiter or end of record
@@ -950,7 +1018,7 @@ begin
       Inc(Pos);
     end
   else
-    // unquoted field name
+    // unquoted field
     begin
     while (Pos <= Len) and not(S[Pos] in [Delimiter,CR,LF,#0]) do
       Inc(Pos);
@@ -1118,6 +1186,7 @@ end;
 procedure TSdfDataSet.SetMultiLine(const Value: Boolean);
 begin
   FMultiLine:=Value;
+  FData.FMultiLine:=Value;
 end;
 
 

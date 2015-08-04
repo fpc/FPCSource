@@ -1743,23 +1743,19 @@ begin
 end;
 
 function TPasElement.GetModule: TPasModule;
+
+Var
+  p : TPaselement;
 begin
   if self is  TPasPackage then
     Result := nil
   else
-  begin
-    if self is TPasModule then
-      begin
-        Result := TPasModule(Self);
-        while Assigned(Result) and not (Result is TPasModule) do
-        Result := TPasModule(Result.Parent);
-      end
-    else
-     begin
-       // typical case that this happens: symbol was loaded from .XCT
-       result:=nil;
-     end;
-  end;
+    begin
+    P:=Self;
+    While (P<>Nil) and Not (P is TPasModule) do
+      P:=P.Parent;
+    Result:=TPasModule(P);
+    end;
 end;
 
 function TPasElement.GetDeclaration(full: Boolean): string;

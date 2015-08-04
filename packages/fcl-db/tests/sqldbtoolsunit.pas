@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, toolsunit
   ,db, sqldb
-  ,mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn, mysql56conn
+  ,mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn, mysql56conn, mysql57conn
   ,ibconnection
   ,pqconnection
   ,odbcconn
@@ -20,13 +20,13 @@ uses
   ;
 
 type
-  TSQLConnType = (mysql40,mysql41,mysql50,mysql51,mysql55,mysql56,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
+  TSQLConnType = (mysql40,mysql41,mysql50,mysql51,mysql55,mysql56,mysql57,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
   TSQLServerType = (ssFirebird, ssInterbase, ssMSSQL, ssMySQL, ssOracle, ssPostgreSQL, ssSQLite, ssSybase, ssUnknown);
 
 const
-  MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55,mysql56];
+  MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55,mysql56,mysql57];
   SQLConnTypesNames : Array [TSQLConnType] of String[19] =
-        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','MYSQL56','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
+        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','MYSQL56','MYSQL57','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
              
   STestNotApplicable = 'This test does not apply to this sqldb connection type';
 
@@ -142,7 +142,7 @@ const
 
   // fall back mapping (e.g. in case GetConnectionInfo(citServerType) is not implemented)
   SQLConnTypeToServerTypeMap : array[TSQLConnType] of TSQLServerType =
-    (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssFirebird,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
+    (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssFirebird,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
 
 
 function IdentifierCase(const s: string): string;
@@ -167,21 +167,24 @@ begin
   for t := low(SQLConnTypesNames) to high(SQLConnTypesNames) do
     if UpperCase(dbconnectorparams) = SQLConnTypesNames[t] then SQLConnType := t;
 
-  if SQLConnType = MYSQL40 then Fconnection := TMySQL40Connection.Create(nil);
-  if SQLConnType = MYSQL41 then Fconnection := TMySQL41Connection.Create(nil);
-  if SQLConnType = MYSQL50 then Fconnection := TMySQL50Connection.Create(nil);
-  if SQLConnType = MYSQL51 then Fconnection := TMySQL51Connection.Create(nil);
-  if SQLConnType = MYSQL55 then Fconnection := TMySQL55Connection.Create(nil);
-  if SQLConnType = MYSQL56 then Fconnection := TMySQL56Connection.Create(nil);
-  if SQLConnType = SQLITE3 then Fconnection := TSQLite3Connection.Create(nil);
-  if SQLConnType = POSTGRESQL then Fconnection := TPQConnection.Create(nil);
-  if SQLConnType = INTERBASE then Fconnection := TIBConnection.Create(nil);
-  if SQLConnType = ODBC then Fconnection := TODBCConnection.Create(nil);
+  case SQLConnType of
+    MYSQL40:    Fconnection := TMySQL40Connection.Create(nil);
+    MYSQL41:    Fconnection := TMySQL41Connection.Create(nil);
+    MYSQL50:    Fconnection := TMySQL50Connection.Create(nil);
+    MYSQL51:    Fconnection := TMySQL51Connection.Create(nil);
+    MYSQL55:    Fconnection := TMySQL55Connection.Create(nil);
+    MYSQL56:    Fconnection := TMySQL56Connection.Create(nil);
+    MYSQL57:    Fconnection := TMySQL57Connection.Create(nil);
+    SQLITE3:    Fconnection := TSQLite3Connection.Create(nil);
+    POSTGRESQL: Fconnection := TPQConnection.Create(nil);
+    INTERBASE : Fconnection := TIBConnection.Create(nil);
+    ODBC:       Fconnection := TODBCConnection.Create(nil);
   {$IFNDEF Win64}
-  if SQLConnType = ORACLE then Fconnection := TOracleConnection.Create(nil);
+    ORACLE:     Fconnection := TOracleConnection.Create(nil);
   {$ENDIF Win64}
-  if SQLConnType = MSSQL then Fconnection := TMSSQLConnection.Create(nil);
-  if SQLConnType = SYBASE then Fconnection := TSybaseConnection.Create(nil);
+    MSSQL:      Fconnection := TMSSQLConnection.Create(nil);
+    SYBASE:     Fconnection := TSybaseConnection.Create(nil);
+  end;
 
   if not assigned(Fconnection) then writeln('Invalid database type, check if a valid database type for your achitecture was provided in the file ''database.ini''');
 
