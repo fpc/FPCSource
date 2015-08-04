@@ -149,7 +149,8 @@ procedure TJSONConfig.Flush;
 
 Var
   F : Text;
-
+  S : TJSONStringType;
+  
 begin
   if Modified then
     begin
@@ -157,9 +158,10 @@ begin
     Rewrite(F);
     Try
       if Formatted then
-        Writeln(F,FJSON.FormatJSON(Formatoptions,DefaultIndentSize))
+        S:=FJSON.FormatJSON(Formatoptions,FormatIndentSize)
       else
-        Writeln(F,FJSON.AsJSON);
+        S:=FJSON.AsJSON;
+      Writeln(F,S);  
     Finally
       CloseFile(F);
     end;
