@@ -82,8 +82,8 @@ type
     procedure OpenKey(const aPath: UnicodeString; AllowCreate : Boolean);
     procedure CloseKey;
     procedure ResetKey;
-    Procedure EnumSubKeys(Const APath : String; List : TStrings);
-    Procedure EnumValues(Const APath : String; List : TStrings);
+    Procedure EnumSubKeys(Const APath : UnicodeString; List : TStrings);
+    Procedure EnumValues(Const APath : UnicodeString; List : TStrings);
 
     function  GetValue(const APath: UnicodeString; const ADefault: UnicodeString): UnicodeString; overload;
     function  GetValue(const APath: UnicodeString; ADefault: Integer): Integer; overload;
@@ -666,7 +666,7 @@ begin
   FKey:=FJSON;
 end;
 
-procedure TJSONConfig.EnumSubKeys(const APath: String; List: TStrings);
+procedure TJSONConfig.EnumSubKeys(const APath: UnicodeString; List: TStrings);
 
 Var
   AKey : TJSONObject;
@@ -682,7 +682,7 @@ begin
     end;
 end;
 
-procedure TJSONConfig.EnumValues(const APath: String; List: TStrings);
+procedure TJSONConfig.EnumValues(const APath: UnicodeString; List: TStrings);
 
 Var
   AKey : TJSONObject;
