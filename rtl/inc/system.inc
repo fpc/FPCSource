@@ -982,7 +982,10 @@ Begin
     redirection to seriell i/o }
 {$ifndef EMBEDDED}
   { Show runtime error and exit }
-  pstdout:=@stdout;
+  if WriteErrorsToStdErr then
+    pstdout:=@stderr
+  else  
+    pstdout:=@stdout;
   If erroraddr<>nil Then
    Begin
      Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(erroraddr));

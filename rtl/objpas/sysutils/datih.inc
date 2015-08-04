@@ -133,8 +133,8 @@ function DateToStr(Date: TDateTime): string;
 function DateToStr(Date: TDateTime; const FormatSettings: TFormatSettings): string;
 function TimeToStr(Time: TDateTime): string;
 function TimeToStr(Time: TDateTime; const FormatSettings: TFormatSettings): string;
-function DateTimeToStr(DateTime: TDateTime): string;
-function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
+function DateTimeToStr(DateTime: TDateTime; ForceTimeIfZero : Boolean = False): string;
+function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings; ForceTimeIfZero : Boolean = False): string;
 function StrToDate(const S: ShortString): TDateTime;                  {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDate(const S: Ansistring): TDateTime;                   {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDate(const S: ShortString; separator : char): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}

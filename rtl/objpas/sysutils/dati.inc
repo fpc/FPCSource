@@ -165,7 +165,8 @@ begin
     else  
       Date:=Date-1/(msecsperday*2);
     if Date>MaxDateTime then
-       Raise EConvertError.CreateFmt('%f is not a valid TDatetime encoding, maximum value is %f.',[Date,MaxDateTime]);
+      Date:=MaxDateTime;
+//       Raise EConvertError.CreateFmt('%f is not a valid TDatetime encoding, maximum value is %f.',[Date,MaxDateTime]);
     j := pred((Trunc(System.Int(Date)) + 693900) SHL 2);
     ly:= j DIV 146097;
     j:= j - 146097 * cardinal(ly);
@@ -338,14 +339,17 @@ end;
 
 {   DateTimeToStr returns a string representation of DateTime using LongDateTimeFormat   }
 
-function DateTimeToStr(DateTime: TDateTime): string;
+Const
+  DateTimeToStrFormat : Array[Boolean] of string = ('c','f');
+  
+function DateTimeToStr(DateTime: TDateTime; ForceTimeIfZero : Boolean = False): string;
 begin
-  DateTimeToString(Result, 'c', DateTime);
+  DateTimeToString(Result, DateTimeToStrFormat[ForceTimeIfZero], DateTime)
 end ;
 
-function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
+function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings; ForceTimeIfZero : Boolean = False): string;
 begin
-  DateTimeToString(Result, 'c', DateTime ,FormatSettings);
+  DateTimeToString(Result,  DateTimeToStrFormat[ForceTimeIfZero], DateTime ,FormatSettings);
 end;
 
 {   StrToDate converts the string S to a TDateTime value
