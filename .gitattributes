@@ -11737,6 +11737,7 @@ tests/test/tgeneric94.pp svneol=native#text/pascal
 tests/test/tgeneric95.pp svneol=native#text/pascal
 tests/test/tgeneric96.pp svneol=native#text/pascal
 tests/test/tgeneric97.pp svneol=native#text/pascal
+tests/test/tgeneric98.pp svneol=native#text/pascal
 tests/test/tgoto.pp svneol=native#text/plain
 tests/test/theap.pp svneol=native#text/plain
 tests/test/theapthread.pp svneol=native#text/plain
