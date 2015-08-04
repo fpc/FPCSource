@@ -169,7 +169,8 @@ type
     procedure AssertVariantSelector(AName, AType: string);
     procedure AssertField1(Hints: TPasMemberHints);
     procedure AssertField2(Hints: TPasMemberHints);
-    procedure AssertMethod2(Hints: TPasMemberHints);
+    procedure AssertMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
+    procedure AssertOperatorMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
     procedure AssertVariant1(Hints: TPasMemberHints);
     procedure AssertVariant1(Hints: TPasMemberHints; VariantLabels : Array of string);
     procedure AssertVariant2(Hints: TPasMemberHints);
@@ -245,6 +246,7 @@ type
     Procedure TestFieldAnd2Methods;
     Procedure TestFieldAndProperty;
     Procedure TestFieldAndClassMethod;
+    Procedure TestFieldAndClassOperator;
     Procedure TestNested;
     Procedure TestNestedDeprecated;
     Procedure TestNestedPlatform;
@@ -731,15 +733,20 @@ end;
 Function TTestProcedureTypeParser.ParseType(ASource: String;
   CC: TCallingConvention; ATypeClass: TClass; Const AHint: String
   ): TPasProcedureType;
+
+Var
+  CCS : String;
+
 begin
   if CC=ccdefault then
     Result:=TPasProcedureType(ParseType(ASource,ATypeClass,AHint))
   else
     begin
+    CCS:=cCallingConventions[CC];
     if (AHint<>'') then
-      Result:=TPasProcedureType(ParseType(ASource+';' +cCallingConventions[CC]+';',ATypeClass,AHint))
+      Result:=TPasProcedureType(ParseType(ASource+';' +CCS+';',ATypeClass,AHint))
     else
-      Result:=TPasProcedureType(ParseType(ASource+';' +cCallingConventions[CC],ATypeClass,AHint));
+      Result:=TPasProcedureType(ParseType(ASource+';' +CCS,ATypeClass,AHint));
     end;
   FProc:=Result;
   AssertEquals('Correct calling convention for procedural type',cc,Result.CallingConvention);
@@ -1468,15 +1475,34 @@ begin
   AssertTrue('Field 2 hints match',Field2.Hints=Hints)
 end;
 
-procedure TTestRecordTypeParser.AssertMethod2(Hints: TPasMemberHints);
+procedure TTestRecordTypeParser.AssertMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
 
 Var
   P : TPasProcedure;
 
 begin
-  AssertEquals('Member 2 type',TPasProcedure,TObject(TheRecord.Members[1]).ClassType);
+  if IsClass then
+    AssertEquals('Member 2 type',TPasClassProcedure,TObject(TheRecord.Members[1]).ClassType)
+  else
+    AssertEquals('Member 2 type',TPasProcedure,TObject(TheRecord.Members[1]).ClassType);
   P:=TPasProcedure(TheRecord.Members[1]);
   AssertEquals('Method name','dosomething2',P.Name);
+  AssertTrue('Method hints match',P.Hints=Hints)
+end;
+
+procedure TTestRecordTypeParser.AssertOperatorMethod2(Hints: TPasMemberHints;
+  isClass: Boolean);
+Var
+  P : TPasOperator;
+
+begin
+  if IsClass then
+    AssertEquals('Member 2 type',TPasClassOperator,TObject(TheRecord.Members[1]).ClassType)
+  else
+    AssertEquals('Member 2 type',TPasOperator,TObject(TheRecord.Members[1]).ClassType);
+  P:=TPasOperator(TheRecord.Members[1]);
+  AssertEquals('Method name','assign(ta,Cardinal):Boolean',P.Name);
+
   AssertTrue('Method hints match',P.Hints=Hints)
 end;
 
@@ -1883,11 +1909,30 @@ Var
   P : TPasFunction;
 
 begin
+  Parser.Options:=[po_delphi];
   TestFields(['x : integer;','class procedure dosomething2;','function dosomething3 : Integer;'],'',False);
   AssertEquals('Member count',3,TheRecord.Members.Count);
   AssertField1([]);
-  AssertMethod2([]);
-  AssertEquals('Class procedure',TPasProcedure,TObject(TheRecord.Members[1]).ClassType);
+  AssertMethod2([],True);
+  AssertEquals('Class procedure',TPasClassProcedure,TObject(TheRecord.Members[1]).ClassType);
+  AssertEquals('Member 3 type',TPasFunction,TObject(TheRecord.Members[2]).ClassType);
+  P:=TPasFunction(TheRecord.Members[2]);
+  AssertEquals('Method 2 name','dosomething3',P.Name);
+  AssertTrue('Method 2 hints match',[]=P.Hints);
+  // Standard type
+  AssertEquals('Method 2 result type','Integer', P.FuncType.ResultEl.ResultType.Name);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAndClassOperator;
+
+Var
+  P : TPasFunction;
+
+begin
+  TestFields(['x : integer;','class operator assign(a : ta; b : Cardinal) : boolean;','function dosomething3 : Integer;'],'',False);
+  AssertEquals('Member count',3,TheRecord.Members.Count);
+  AssertField1([]);
+  AssertOperatorMethod2([],True);
   AssertEquals('Member 3 type',TPasFunction,TObject(TheRecord.Members[2]).ClassType);
   P:=TPasFunction(TheRecord.Members[2]);
   AssertEquals('Method 2 name','dosomething3',P.Name);

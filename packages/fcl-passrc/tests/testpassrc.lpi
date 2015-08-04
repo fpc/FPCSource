@@ -30,7 +30,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestStatementParser.TestAsm"/>
+        <CommandLineParams Value="--suite=TTestProcedureFunction.TestOperatorTokens"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">
@@ -46,22 +46,18 @@
       <Unit1>
         <Filename Value="tcscanner.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcscanner"/>
       </Unit1>
       <Unit2>
         <Filename Value="tctypeparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tctypeparser"/>
       </Unit2>
       <Unit3>
         <Filename Value="tcstatements.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcstatements"/>
       </Unit3>
       <Unit4>
         <Filename Value="tcbaseparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcbaseparser"/>
       </Unit4>
       <Unit5>
         <Filename Value="tcmoduleparser.pas"/>
@@ -74,7 +70,6 @@
       <Unit7>
         <Filename Value="tcvarparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcvarparser"/>
       </Unit7>
       <Unit8>
         <Filename Value="tcclasstype.pas"/>
@@ -83,7 +78,6 @@
       <Unit9>
         <Filename Value="tcexprparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcexprparser"/>
       </Unit9>
       <Unit10>
         <Filename Value="tcprocfunc.pas"/>

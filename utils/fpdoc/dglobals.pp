@@ -1514,7 +1514,11 @@ begin
     if AElement.InheritsFrom(TPasUnresolvedTypeRef) then
       Result := FindDocNode(AElement.GetModule, AElement.Name)
     else
+      begin
       Result := RootDocNode.FindChild(AElement.PathName);
+      if (Result=Nil) and (AElement is TPasoperator) then
+        Result:=RootDocNode.FindChild(TPasOperator(AElement).OldName(True));
+      end;
     if (Result=Nil) and
        WarnNoNode and
        (Length(AElement.PathName)>0) and

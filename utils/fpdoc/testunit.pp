@@ -45,7 +45,9 @@ Type
   TADeprecatedType = Integer deprecated;
 
   TMethodRecord = Record
+  
   Private
+    Const aconst = 123;
     X22 : Integer;
     Procedure SetX(AValue : Integer);
     Function GetX : Integer;
@@ -55,6 +57,10 @@ Type
   Case Integer of
     1 : (X2,Y2 : Integer);
     2 : (phi,Omega : Real);
+  end;
+  TAExtRecordType        = Record
+    Const X = 100;
+    operator assign(Y : Integer) : TAExtRecordType;
   end;
                         
 Var
@@ -138,6 +144,9 @@ Type
   Published
     Property AProtectedProp;
   end;
+
+Operator + (A,B : TAnArrayType) : TAnArrayType;
+Operator multiply (A,B : TAnArrayType) : TAnArrayType;
   
 Implementation
 
@@ -302,6 +311,16 @@ begin
 end;
 
 Procedure TMEthodRecord.MyMethod;
+begin
+end;
+
+Operator + (A,B : TAnArrayType) : TAnArrayType;
+
+begin
+end;
+
+Operator subtract (A,B : TAnArrayType) : TAnArrayType;
+
 begin
 end;
 

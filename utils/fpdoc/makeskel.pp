@@ -1,5 +1,4 @@
 {
-
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
@@ -18,9 +17,6 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-
-
-{%RunCommand $MakeExe($(EdFile)) --package=fpvectorial --input=/home/felipe/Programas/fpctrunk/packages/fpvectorial/src/fpvectorial.pas}
 program MakeSkel;
 
 {$mode objfpc}
@@ -350,11 +346,33 @@ end;
 
 Procedure TSkelEngine.DocumentFile(Var F : Text; Const AFileName,ATarget,ACPU : String);
 
+  Procedure ResolveOperators;
+
+  Var
+    E : TPasElement;
+    P : TNodePair;
+    N : TDocNode;
+    I : integer;
+
+  begin
+    For I:=0 to FNodeList.Count-1 do
+      begin
+      P:=TNodePair(FNodeList.Objects[i]);
+      if P.Element.InheritsFrom(TPasOperator) then
+        begin
+        N:=FindDocNode(P.Element);
+        If Assigned(N) then
+          N.IncRefCount;
+        P.FNode:=N;
+        end;
+      end;
+  end;
+
 Var
   Module : TPasModule;
   I : Integer;
   N : TDocNode;
-     
+
 begin
 // wrong because afilename is a cmdline with other options. Straight testing filename is therefore wrong.
 //  if not(FileExists(AFileName)) then
@@ -370,7 +388,8 @@ begin
         N:=FindDocNode(Module);
         If Assigned(N) then
            N.IncRefCount;
-         end;
+        ResolveOperators;
+        end;
       If SortNodes then  
         FNodelist.Sorted:=True;   
       WriteNodes(F,Module,FNodeList);  

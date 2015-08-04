@@ -15179,6 +15179,7 @@ utils/fpdoc/fpdocstripper.lpi svneol=native#text/plain
 utils/fpdoc/fpdocstripper.pp svneol=native#text/plain
 utils/fpdoc/fpdocxmlopts.pas svneol=native#text/plain
 utils/fpdoc/fpmake.pp svneol=native#text/plain
+utils/fpdoc/gentest.sh svneol=native#text/plain
 utils/fpdoc/images/minus.png -text svneol=unset#image/png
 utils/fpdoc/images/plus.png -text svneol=unset#image/png
 utils/fpdoc/intl/Makefile svneol=native#text/plain

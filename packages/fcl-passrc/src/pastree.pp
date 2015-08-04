@@ -65,6 +65,8 @@ resourcestring
   SPasTreeOverloadedProcedure = 'overloaded procedure';
   SPasTreeProcedure = 'procedure';
   SPasTreeFunction = 'function';
+  SPasTreeOperator = 'operator';
+  SPasTreeClassOperator = 'class operator';
   SPasTreeClassProcedure = 'class procedure';
   SPasTreeClassFunction = 'class function';
   SPasTreeClassConstructor = 'class constructor';
@@ -91,7 +93,7 @@ type
     visPublished, visAutomated,
     visStrictPrivate, visStrictProtected);
 
-  TCallingConvention = (ccDefault,ccRegister,ccPascal,ccCDecl,ccStdCall,ccOldFPCCall,ccSafeCall);
+  TCallingConvention = (ccDefault,ccRegister,ccPascal,ccCDecl,ccStdCall,ccOldFPCCall,ccSafeCall,ccSysCall);
   TPackMode = (pmNone,pmPacked,pmBitPacked);
 
   TPasMemberVisibilities = set of TPasMemberVisibility;
@@ -121,8 +123,10 @@ type
     constructor Create(const AName: string; AParent: TPasElement); virtual;
     procedure AddRef;
     procedure Release;
-    function FullName: string;          // Name including parent's names
-    function PathName: string;          // = Module.Name + FullName
+    function FullPath: string;
+    function ParentPath: string;
+    function FullName: string; virtual;         // Name including parent's names
+    function PathName: string; virtual;         // = Module.Name + FullName
     function GetModule: TPasModule;
     function ElementTypeName: string; virtual;
     Function HintsString : String;
@@ -765,13 +769,42 @@ type
   end;
 
   { TPasOperator }
+  TOperatorType = (otUnknown,otImplicit,otExplicit,otMul,otPlus, otMinus, otDivision,otLessThan, otEqual,
+                   otGreaterThan, otAssign,otNotEqual,otLessEqualThan,otGreaterEqualThan,otPower,
+                   otSymmetricalDifference, otInc, otDec, otMod, otNegative, otPositive, otBitWiseOr, otDiv,
+                   otLeftShift, otLogicalOr, otBitwiseAnd, otbitwiseXor,otLogicalAnd,otLogicalNot,otLogicalXor,
+                   otRightShift);
+  TOperatorTypes = set of TOperatorType;
 
-  TPasOperator = class(TPasProcedure)
+  TPasOperator = class(TPasFunction)
+  private
+    FOperatorType: TOperatorType;
+    FTokenBased: Boolean;
+    function NameSuffix: String;
   public
+    Class Function OperatorTypeToToken(T : TOperatorType) : String;
+    Class Function OperatorTypeToOperatorName(T: TOperatorType) : String;
+    Class Function TokenToOperatorType(S : String) : TOperatorType;
+    Class Function NameToOperatorType(S : String) : TOperatorType;
+    Procedure CorrectName;
+    // For backwards compatibility the old name can still be used to search on.
+    function GetOperatorDeclaration(Full: Boolean): string;
+    Function OldName(WithPath : Boolean) : String;
     function ElementTypeName: string; override;
     function TypeName: string; override;
     function GetDeclaration (full : boolean) : string; override;
+    Property OperatorType : TOperatorType Read FOperatorType Write FOperatorType;
+    // True if the declaration was using a token instead of a
+    Property TokenBased : Boolean Read FTokenBased Write FTokenBased;
   end;
+
+Type
+  { TPasClassOperator }
+
+  TPasClassOperator = class(TPasOperator)
+    function TypeName: string; override;
+  end;
+
 
   { TPasConstructor }
 
@@ -1184,10 +1217,26 @@ const
         '@','^',
         '.');
 
+
+  UnaryOperators = [otImplicit,otExplicit,otAssign,otNegative,otPositive];
+
+  OperatorTokens : Array[TOperatorType] of string
+       =  ('','','','*','+','-','/','<','=',
+           '>',':=','<>','<=','>=','**',
+           '><','Inc','Dec','mod','-','+','Or','div',
+           'shl','or','and','xor','and','not','xor',
+           'shr');
+  OperatorNames : Array[TOperatorType] of string
+       =  ('','implicit','explicit','multiply','add','subtract','divide','lessthan','equal',
+           'greaterthan','assign','notequal','lessthanorequal','greaterthanorequal','power',
+           'symmetricaldifference','inc','dec','modulus','negative','positive','bitwiseor','intdivide',
+           'leftshift','logicalor','bitwiseand','bitwisexor','logicaland','logicalnot','logicalxor',
+           'rightshift');
+
   cPasMemberHint : array[TPasMemberHint] of string =
       ( 'deprecated', 'library', 'platform', 'experimental', 'unimplemented' );
   cCallingConventions : array[TCallingConvention] of string =
-      ( '', 'Register','Pascal','CDecl','StdCall','OldFPCCall','SafeCall');
+      ( '', 'Register','Pascal','CDecl','StdCall','OldFPCCall','SafeCall','SysCall');
 
   ModifierNames : Array[TProcedureModifier] of string
                 = ('virtual', 'dynamic','abstract', 'override',
@@ -1198,6 +1247,13 @@ const
 implementation
 
 uses SysUtils;
+
+{ TPasClassOperator }
+
+function TPasClassOperator.TypeName: string;
+begin
+  Result:='class operator';
+end;
 
 { TPasImplAsmStatement }
 
@@ -1412,7 +1468,90 @@ begin
 end;
 
 function TPasClassFunction.ElementTypeName: string; begin Result := SPasTreeClassFunction; end;
-function TPasOperator.ElementTypeName: string; begin Result := SPasTreeFunction end;
+
+class function TPasOperator.OperatorTypeToToken(T: TOperatorType): String;
+begin
+  Result:=OperatorTokens[T];
+end;
+
+class function TPasOperator.OperatorTypeToOperatorName(T: TOperatorType
+  ): String;
+begin
+  Result:=OperatorNames[T];
+end;
+
+class function TPasOperator.TokenToOperatorType(S: String): TOperatorType;
+begin
+  Result:=High(TOperatorType);
+  While (Result>otUnknown) and (CompareText(S,OperatorTokens[Result])<>0) do
+    Result:=Pred(Result);
+end;
+
+class function TPasOperator.NameToOperatorType(S: String): TOperatorType;
+begin
+  Result:=High(TOperatorType);
+  While (Result>otUnknown) and (CompareText(S,OperatorNames[Result])<>0) do
+    Result:=Pred(Result);
+end;
+
+Function TPasOperator.NameSuffix : String;
+
+Var
+  I : Integer;
+
+begin
+  Result:='(';
+  if Assigned(ProcType) and Assigned(ProcType.Args) then
+  for i:=0 to ProcType.Args.Count-1 do
+    begin
+    if i>0 then
+      Result:=Result+',';
+    Result:=Result+TPasArgument(ProcType.Args[i]).ArgType.Name;
+    end;
+  Result:=Result+')';
+  if Assigned(TPasFunctionType(ProcType)) and
+     Assigned(TPasFunctionType(ProcType).ResultEl) and
+     Assigned(TPasFunctionType(ProcType).ResultEl.ResultType) then
+    Result:=Result+':'+TPasFunctionType(ProcType).ResultEl.ResultType.Name;
+end;
+
+procedure TPasOperator.CorrectName;
+
+begin
+  Name:=OperatorNames[OperatorType]+NameSuffix;
+end;
+
+function TPasOperator.OldName(WithPath : Boolean): String;
+
+Var
+  I : Integer;
+  S : String;
+begin
+  Result:=TypeName+' '+OperatorTokens[OperatorType];
+  Result := Result + '(';
+  if Assigned(ProcType) then
+    begin
+    for i := 0 to ProcType.Args.Count - 1 do
+      begin
+      if i > 0 then
+        Result := Result + ', ';
+      Result := Result + TPasArgument(ProcType.Args[i]).ArgType.Name;
+      end;
+    Result := Result + '): ' + TPasFunctionType(ProcType).ResultEl.ResultType.Name;
+    If WithPath then
+      begin
+      S:=Self.ParentPath;
+      if (S<>'') then
+        Result:=S+'.'+Result;
+      end;
+    end;
+end;
+
+function TPasOperator.ElementTypeName: string;
+begin
+  Result := SPasTreeOperator
+end;
+
 function TPasConstructor.ElementTypeName: string; begin Result := SPasTreeConstructor end;
 function TPasDestructor.ElementTypeName: string; begin Result := SPasTreeDestructor end;
 function TPasProcedureImpl.ElementTypeName: string; begin Result := SPasTreeProcedureImpl end;
@@ -1545,11 +1684,13 @@ begin
 {$ifdef debugrefcount}  Writeln('Released : ',Cn); {$endif}
 end;
 
-function TPasElement.FullName: string;
+function TPasElement.FullPath: string;
+
 var
   p: TPasElement;
+
 begin
-  Result := Name;
+  Result := '';
   p := Parent;
   while Assigned(p) and not p.InheritsFrom(TPasDeclarations) do
   begin
@@ -1562,11 +1703,23 @@ begin
   end;
 end;
 
-function TPasElement.PathName: string;
+function TPasElement.FullName: string;
+
+
+begin
+  Result := FullPath;
+  if Result<>'' then
+    Result:=Result+'.'+Name
+  else
+    Result:=Name;
+end;
+
+function TPasElement.ParentPath: string;
+
 var
   p: TPasElement;
 begin
-  Result := Name;
+  Result:='';
   p := Parent;
   while Assigned(p) do
   begin
@@ -1577,6 +1730,16 @@ begin
         Result := p.Name;
     p := p.Parent;
   end;
+end;
+
+function TPasElement.PathName: string;
+
+begin
+  Result := ParentPath;
+  if Result<>'' then
+    Result:=Result+'.'+Name
+  else
+    Result:=Name;
 end;
 
 function TPasElement.GetModule: TPasModule;
@@ -2944,6 +3107,23 @@ begin
   Result:='function';
 end;
 
+function TPasOperator.GetOperatorDeclaration(Full : Boolean) : string;
+
+begin
+  if Full then
+    begin
+    Result:=FullPath;
+    if (Result<>'') then
+      Result:=Result+'.';
+    end
+  else
+    Result:='';
+  if TokenBased then
+    Result:=Result+TypeName+' '+OperatorTypeToToken(OperatorType)
+  else
+    Result:=Result+TypeName+' '+OperatorTypeToOperatorName(OperatorType);
+end;
+
 function TPasOperator.GetDeclaration (full : boolean) : string;
 
 Var
@@ -2954,7 +3134,7 @@ begin
   S:=TStringList.Create;
   try
     If Full then
-      S.Add(TypeName+' '+Name);
+      S.Add(GetOperatorDeclaration(Full));
     ProcType.GetArguments(S);
     If Assigned((Proctype as TPasFunctionType).ResultEl) then
       With TPasFunctionType(ProcType).ResultEl.ResultType do
@@ -2968,6 +3148,7 @@ begin
         end;
     GetModifiers(S);
     Result:=IndentStrings(S,Length(S[0]));
+
   finally
     S.Free;
   end;
