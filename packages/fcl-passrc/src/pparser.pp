@@ -3821,6 +3821,7 @@ begin
           ParseExc(SErrRecordConstantsNotAllowed);
         ExpectToken(tkIdentifier);
         Cons:=ParseConstDecl(ARec);
+        Cons.Visibility:=v;
         ARec.members.Add(Cons);
         end;
       tkClass:

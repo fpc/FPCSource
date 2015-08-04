@@ -158,6 +158,7 @@ type
 
   TTestRecordTypeParser= Class(TBaseTestTypeParser)
   private
+    function GetC(AIndex: Integer): TPasConst;
     Function GetField(AIndex : Integer; R : TPasRecordType) : TPasVariable;
     Function GetField(AIndex : Integer; R : TPasVariant) : TPasVariable;
     function GetF(AIndex: Integer): TPasVariable;
@@ -167,6 +168,7 @@ type
   Protected
     Procedure TestFields(Const Fields : Array of string; AHint : String; HaveVariant : Boolean = False);
     procedure AssertVariantSelector(AName, AType: string);
+    procedure AssertConst1(Hints: TPasMemberHints);
     procedure AssertField1(Hints: TPasMemberHints);
     procedure AssertField2(Hints: TPasMemberHints);
     procedure AssertMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
@@ -198,6 +200,7 @@ type
     procedure DoTestVariantNestedVariantSecondDeprecated(const AHint: string);
     procedure DoTestVariantNestedVariantBothDeprecated(const AHint: string);
     Property TheRecord : TPasRecordType Read GetR;
+    Property Const1 : TPasConst Index 0 Read GetC;
     Property Field1 : TPasVariable Index 0 Read GetF;
     Property Field2 : TPasVariable Index 1 Read GetF;
     Property Variant1 : TPasVariant Index 0 Read GetV;
@@ -220,6 +223,7 @@ type
     Procedure TestOnePlatformField;
     Procedure TestOnePlatformFieldDeprecated;
     Procedure TestOnePlatformFieldPlatform;
+    Procedure TestOneConstOneField;
     Procedure TestTwoFields;
     procedure TestTwoFieldProtected;
     procedure TestTwoFieldStrictPrivate;
@@ -1110,6 +1114,11 @@ end;
 
 { TTestRecordTypeParser }
 
+function TTestRecordTypeParser.GetC(AIndex: Integer): TPasConst;
+begin
+  Result:=TObject(GetR.Members[AIndex]) as TPasConst;
+end;
+
 function TTestRecordTypeParser.GetField(AIndex: Integer; R: TPasRecordType
   ): TPasVariable;
 begin
@@ -1199,6 +1208,13 @@ begin
   AssertNotNull('Have variant selector type',TheRecord.VariantType);
   AssertEquals('Have variant selector type',TPasUnresolvedTypeRef,TheRecord.VariantType.ClassType);
   AssertEquals('Have variant selector type name',AType,TheRecord.VariantType.Name);
+end;
+
+procedure TTestRecordTypeParser.AssertConst1(Hints: TPasMemberHints);
+begin
+  AssertEquals('Member 1 type',TPasConst,TObject(TheRecord.Members[0]).ClassType);
+  AssertEquals('Const 1 name','x',Const1.Name);
+  AssertNotNull('Have 1 const expr',Const1.Expr);
 end;
 
 
@@ -1705,6 +1721,15 @@ procedure TTestRecordTypeParser.TestOnePlatformFieldPlatform;
 begin
   TestFields(['x : integer platform;'],'Platform',False);
   AssertOneIntegerField([hplatform]);
+end;
+
+procedure TTestRecordTypeParser.TestOneConstOneField;
+begin
+  Scanner.Options:=[po_Delphi];
+  TestFields(['public','Const x =123;','y : integer'],'',False);
+  AssertConst1([]);
+  AssertEquals('Correct visibility',visPublic,TPasConst(TheRecord.Members[0]).Visibility);
+  AssertField2([]);
 end;
 
 procedure TTestRecordTypeParser.TestTwoFields;
