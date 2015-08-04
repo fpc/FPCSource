@@ -558,7 +558,6 @@ type
     procedure SetReadOnly(AValue: Boolean); virtual;
     function IsReadFromPacket : Boolean;
     function getnextpacket : integer;
-    procedure ActiveBufferToRecord;
     function GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader; virtual;
     // abstracts, must be overidden by descendents
     function Fetch : boolean; virtual;
@@ -2553,18 +2552,13 @@ begin
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := nil;
       end;
     end;
-  ActiveBufferToRecord;
+
+  Move(ActiveBuffer^, FCurrentIndex.CurrentBuffer^, FRecordSize);
 
   // new data are now in current record so reorder current record if needed
   for i := 1 to FIndexesCount-1 do
     if (i<>1) or (FIndexes[i]=FCurrentIndex) then
       FIndexes[i].OrderCurrentRecord;
-end;
-
-procedure TCustomBufDataset.ActiveBufferToRecord;
-
-begin
-  move(ActiveBuffer^,FCurrentIndex.CurrentBuffer^,FRecordSize);
 end;
 
 procedure TCustomBufDataset.CalcRecordSize;
@@ -2844,23 +2838,19 @@ function TCustomBufDataset.CreateBlobStream(Field: TField; Mode: TBlobStreamMode
 var bufblob : TBufBlobField;
 
 begin
-  result := nil;
-  if Mode = bmRead then
-    begin
-    if not Field.GetData(@bufblob) then
-      exit;
-
-    result := TBufBlobStream.Create(Field as TBlobField, bmRead);
-    end
-  else if Mode = bmWrite then
-    begin
-    if not (State in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
-      DatabaseErrorFmt(SNotEditing, [Name], Self);
-    if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
-      DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);
-
-    result := TBufBlobStream.Create(Field as TBlobField, bmWrite);
-    end;
+  Result := nil;
+  case Mode of
+    bmRead:
+      if not Field.GetData(@bufblob) then Exit;
+    bmWrite:
+      begin
+      if not (State in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
+        DatabaseErrorFmt(SNotEditing, [Name], Self);
+      if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
+        DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);
+      end;
+  end;
+  Result := TBufBlobStream.Create(Field as TBlobField, Mode);
 end;
 
 procedure TCustomBufDataset.SetDatasetPacket(AReader: TDataPacketReader);

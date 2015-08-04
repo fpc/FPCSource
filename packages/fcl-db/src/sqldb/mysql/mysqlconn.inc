@@ -599,7 +599,12 @@ begin
       // paramreplacestring kan een probleem geven bij postgres als hij niet meer gewoon $ is?
       C.FStatement := stringsreplace(C.FStatement,ParamNames,ParamValues,[rfReplaceAll]);
       end;
-    Log(detExecute, C.FStatement);
+    if LogEvent(detParamValue) then
+      LogParams(AParams);
+    if LogEvent(detExecute) then
+      Log(detExecute, C.FStatement);
+    if LogEvent(detActualSQL) then
+      Log(detActualSQL,C.FStatement);
     if mysql_query(FMySQL,Pchar(C.FStatement))<>0 then
       begin
       if not ForcedClose then

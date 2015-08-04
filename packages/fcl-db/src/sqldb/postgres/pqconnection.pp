@@ -931,6 +931,8 @@ begin
       s := s + ' as ' + buf;
       if LogEvent(detPrepare) then
         Log(detPrepare,S);
+      if LogEvent(detActualSQL) then
+        Log(detActualSQL,S);
       res := PQexec(tr.PGConn,pchar(s));
       CheckResultError(res,nil,SErrPrepareFailed);
       // if statement is INSERT, UPDATE, DELETE with RETURNING clause, then
@@ -992,6 +994,8 @@ begin
     PQclear(res);
     if FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
       begin
+      if LogEvent(detParamValue) then
+        LogParams(AParams);
       if Assigned(AParams) and (AParams.Count > 0) then
         begin
         l:=AParams.Count;

@@ -130,7 +130,11 @@ const
   SQL_TYPE_DATE     = 91;
   SQL_TYPE_TIME     = 92;
   SQL_TYPE_TIMESTAMP= 93;
-  // MS SQL Server types
+  // Microsoft has -150 thru -199 reserved for Microsoft SQL Server Native Client driver usage.
+  SQL_SS_VARIANT          = -150;
+  SQL_SS_UDT              = -151;
+  SQL_SS_XML              = -152;
+  SQL_SS_TABLE            = -153;
   SQL_SS_TIME2            = -154;
   SQL_SS_TIMESTAMPOFFSET  = -155;
  {$endif}
@@ -1780,8 +1784,8 @@ begin
     Result.sign:=0;
     c := -c;
   end;
-  n := int64(c);
-  for i:=0 to 15 do begin
+  n := NtoLE(int64(c));
+  for i:=0 to high(Result.val) do begin
     Result.val[i] := n and $ff;
     n := n shr 8;
   end;

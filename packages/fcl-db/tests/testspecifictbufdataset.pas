@@ -13,7 +13,7 @@ interface
 
 uses
 {$IFDEF FPC}
-  fpcunit, testutils, testregistry, testdecorator, BufDataset,
+  fpcunit, testregistry, BufDataset,
 {$ELSE FPC}
   TestFramework,
 {$ENDIF FPC}
@@ -49,7 +49,6 @@ uses
 //
 {$endif fpc}
   variants,
-  strutils,
   FmtBCD;
 
 { TTestSpecificTBufDataset }
