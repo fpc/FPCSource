@@ -25,6 +25,9 @@ Type
    Smallint= -32768 .. 32767;
    Word    = 0 .. 65535;
    WideChar= #$0000..#$FFFF;
+   UnicodeString = UnicodeString;
+   WideString = WideString;
+
 Function Addr (X : TAnytype) : Pointer;
 Procedure Assert(Expr : Boolean); 
 Procedure Assert(Expr : Boolean; const Msg : string);
@@ -80,7 +83,8 @@ Procedure Fail;
 Function TypeOf(T : TObjectType) : Pointer;
 Procedure Initialize(Var T : TAnyType; ACount : Integer = 1);
 Procedure Finalize(Var T : TAnyType; ACount : Integer = 1);
-
+Function Default(Const T : AnyType) : AnyType;
+ 
 {$IFNDEF GO32V2}
 Var
   mem  : array[0..$7fffffff-1] of byte;
