@@ -115,6 +115,10 @@ implementation
       wpobase,
       nobj,
       cgbase,parabase,paramgr,cgobj,cgcpu,hlcgobj,hlcgcpu,
+{$ifdef llvm}
+      { override create_hlcodegen from hlcgcpu }
+      hlcgllvm,
+{$endif}
       ncgrtti;
 
 
