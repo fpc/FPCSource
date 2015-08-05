@@ -746,6 +746,7 @@ implementation
               recordalignmin,maxcrecordalign);
             trecorddef(res^.Data).add_fields_from_deflist(fieldtypes);
           end;
+        trecordsymtable(trecorddef(res^.Data).symtable).addalignmentpadding;
         result:=trecorddef(res^.Data);
       end;
 
