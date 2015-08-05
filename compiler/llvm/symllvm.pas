@@ -76,16 +76,7 @@ type
   tllvmprocvardef = class(tcpuprocvardef)
   end;
 
-  { tllvmprocdef }
-
   tllvmprocdef = class(tcpuprocdef)
-   protected
-    external_decl_mangled_name: TSymStr;
-   public
-    { overried the mangled name of external functions }
-    function mangledname: TSymStr; override;
-    { provide access to the original mangled name of external functions }
-    function external_mangledname: TSymStr;
   end;
 
   tllvmstringdef = class(tcpustringdef)
@@ -148,38 +139,6 @@ implementation
 
 uses
   symconst,symdef,symsym;
-
-{ tllvmprocdef }
-
-function tllvmprocdef.mangledname: TSymStr;
-  begin
-    { External declarations are handled separately for the LLVM target and need
-      a different mangled name than on other targets, because we have to
-      create a declaration based on the declared name that redirects to the
-      external name in order to deal with potential different signatures between
-      the external declaration the symbol that's referred.
-
-      There's no need to store the external_decl_mangled_name in the ppu file,
-      since it can always be regenerated on the fly. }
-    if not(po_external in procoptions) then
-      result:=inherited
-    else
-      begin
-        if external_decl_mangled_name='' then
-          begin
-            result:=defaultmangledname;
-            external_decl_mangled_name:=result;
-          end
-        else
-          result:=external_decl_mangled_name;
-      end;
-  end;
-
-
-function tllvmprocdef.external_mangledname: TSymStr;
-  begin
-    result:=inherited mangledname;
-  end;
 
 begin
   { used tdef classes }

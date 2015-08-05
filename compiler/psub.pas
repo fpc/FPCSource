@@ -2158,13 +2158,28 @@ implementation
                      if tf_has_dllscanner in target_info.flags then
                        current_module.dllscannerinputlist.Add(proc_get_importname(pd),pd);
                    end;
-
-                 create_hlcodegen;
-                 hlcg.handle_external_proc(
-                   current_asmdata.asmlists[al_procedures],
-                   pd,
-                   proc_get_importname(pd));
-                 destroy_hlcodegen;
+{$ifdef cpuhighleveltarget}
+                 { it's hard to factor this out in a virtual method, because the
+                   generic version (the one inside this ifdef) doesn't fit in
+                   hlcgobj but in symcreat or here, while the other version
+                   doesn't fit in symcreat (since it uses the code generator).
+                   Maybe we need another class for this kind of code that could
+                   either be symcreat- or hlcgobj-based
+                 }
+                 if (not pd.forwarddef) and
+                    (pd.hasforward) and
+                    (proc_get_importname(pd)<>'') then
+                   call_through_new_name(pd,proc_get_importname(pd))
+                 else
+{$endif cpuhighleveltarget}
+                   begin
+                     create_hlcodegen;
+                     hlcg.handle_external_proc(
+                       current_asmdata.asmlists[al_procedures],
+                       pd,
+                       proc_get_importname(pd));
+                     destroy_hlcodegen;
+                   end
                end;
            end;
 

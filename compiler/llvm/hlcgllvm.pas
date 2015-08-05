@@ -1060,13 +1060,13 @@ implementation
 
 
   procedure thlcgllvm.handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr);
-    var
-      asmsym: tasmsymbol;
     begin
-      { Windows-style import names are not yet supported -> ignore
-        importname for now }
-      asmsym:=current_asmdata.RefAsmSymbol(tllvmprocdef(pd).external_mangledname,AT_FUNCTION);
-      list.concat(taillvmalias.create(asmsym,pd.mangledname,pd,llv_default,lll_internal));
+      { don't do anything, because at this point we can't know yet for certain
+        whether the aliased routine is internal to the current routine or not.
+        If it's internal, we would have to generate an llvm alias, while if it's
+        external, we would have to generate a declaration. Additionally, aliases
+        cannot refer to declarations, so always creating aliases doesn't work
+        either -> handle in llvmtype }
     end;
 
 

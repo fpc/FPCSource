@@ -114,13 +114,18 @@ interface
     created staticvarsym that is responsible for allocating the global storage }
   function make_field_static(recst: tsymtable; fieldvs: tfieldvarsym): tstaticvarsym;
 
+  { create a new procdef with the signature of orgpd and (mangled) name
+    newname, and change the implementation of orgpd so that it calls through
+    to this new procedure }
+  procedure call_through_new_name(orgpd: tprocdef; const newname: TSymStr);
+
 
 implementation
 
   uses
     cutils,cclasses,globals,verbose,systems,comphook,fmodule,
     symtable,defutil,
-    pbase,pdecobj,pdecsub,psub,ptconst,
+    pbase,pdecobj,pdecsub,psub,ptconst,pparautl,
 {$ifdef jvm}
     pjvm,jvmdef,
 {$endif jvm}
@@ -1322,6 +1327,40 @@ implementation
       tmp:=cabsolutevarsym.create_ref('$'+static_name,fieldvs.vardef,sl);
       recst.insert(tmp);
       result:=hstaticvs;
+    end;
+
+
+  procedure call_through_new_name(orgpd: tprocdef; const newname: TSymStr);
+    var
+      newpd: tprocdef;
+    begin
+      { we have a forward declaration like
+         procedure test; (in the unit interface or "forward")
+        and then an implementation like
+         procedure test; external name 'something';
+
+        To solve this, we create a new external procdef for the
+        implementation, and then generate a procedure body for the original
+        one that calls through to the external procdef. This is necessary
+        because there may already be references to the mangled name for the
+        non-external "test".
+      }
+      newpd:=tprocdef(orgpd.getcopyas(procdef,pc_bareproc));
+      insert_funcret_para(newpd);
+      newpd.procoptions:=newpd.procoptions+orgpd.procoptions*[po_external,po_has_importname,po_has_importdll];
+      newpd.import_name:=orgpd.import_name;
+      orgpd.import_name:=nil;
+      newpd.import_dll:=orgpd.import_dll;
+      newpd.import_dll:=nil;
+      newpd.import_nr:=orgpd.import_nr;
+      orgpd.import_nr:=0;
+      newpd.setmangledname(newname);
+      finish_copied_procdef(newpd,'__FPC_IMPL_EXTERNAL_REDIRECT_'+newname,current_module.localsymtable,nil);
+      newpd.forwarddef:=false;
+      orgpd.skpara:=newpd;
+      orgpd.synthetickind:=tsk_callthrough;
+      orgpd.procoptions:=orgpd.procoptions-[po_external,po_has_importname,po_has_importdll];
+      orgpd.forwarddef:=true;
     end;
 
 end.
