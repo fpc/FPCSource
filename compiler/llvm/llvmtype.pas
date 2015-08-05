@@ -82,10 +82,11 @@ interface
         procedure collect_tai_info(deftypelist: tasmlist; p: tai);
         procedure collect_asmlist_info(deftypelist, asmlist: tasmlist);
 
-        procedure insert_llvmins_typeconversions(p: taillvm);
-        procedure insert_typedconst_typeconversion(p: tai_abstracttypedconst);
-        procedure insert_tai_typeconversions(p: tai);
-        procedure insert_asmlist_typeconversions(list: tasmlist);
+        procedure insert_llvmins_typeconversions(toplevellist: tasmlist; p: taillvm);
+        procedure insert_typedconst_typeconversion(toplevellist: tasmlist; p: tai_abstracttypedconst);
+        procedure insert_tai_typeconversions(toplevellist: tasmlist; p: tai);
+        procedure insert_asmlist_typeconversions(toplevellist, list: tasmlist);
+        procedure maybe_insert_extern_sym_decl(toplevellist: tasmlist; sym: tasmsymbol; def: tdef);
         procedure update_asmlist_alias_types(list: tasmlist);
 
       public
@@ -169,6 +170,7 @@ implementation
         end;
       end;
 
+
     procedure TLLVMTypeInfo.collect_llvmins_info(deftypelist: tasmlist; p: taillvm);
       var
         opidx, paraidx: longint;
@@ -180,6 +182,20 @@ implementation
               appenddef(deftypelist,p.oper[opidx]^.def);
             top_tai:
               collect_tai_info(deftypelist,p.oper[opidx]^.ai);
+            top_ref:
+              begin
+                if (p.llvmopcode<>la_br) and
+                   assigned(p.oper[opidx]^.ref^.symbol) and
+                   (p.oper[opidx]^.ref^.symbol.bind<>AB_TEMP) then
+                  begin
+                    if (opidx=3) and
+                       (p.llvmopcode=la_call) then
+                      record_asmsym_def(p.oper[opidx]^.ref^.symbol,tpointerdef(p.oper[0]^.def).pointeddef,false)
+                    { not a named register }
+                    else if (p.oper[opidx]^.ref^.refaddr<>addr_full) then
+                      record_asmsym_def(p.oper[opidx]^.ref^.symbol,p.spilling_get_reg_type(opidx),false);
+                  end;
+              end;
             top_para:
               for paraidx:=0 to p.oper[opidx]^.paras.count-1 do
                 begin
@@ -245,10 +261,11 @@ implementation
       end;
 
 
-    procedure TLLVMTypeInfo.insert_llvmins_typeconversions(p: taillvm);
+    procedure TLLVMTypeInfo.insert_llvmins_typeconversions(toplevellist: tasmlist; p: taillvm);
       var
         symdef,
-        opdef: tdef;
+        opdef,
+        opcmpdef: tdef;
         cnv: taillvm;
         i: longint;
       begin
@@ -256,6 +273,7 @@ implementation
           la_call:
             if p.oper[3]^.typ=top_ref then
               begin
+                maybe_insert_extern_sym_decl(toplevellist,p.oper[3]^.ref^.symbol,tpointerdef(p.oper[0]^.def).pointeddef);
                 symdef:=get_asmsym_def(p.oper[3]^.ref^.symbol);
                 { the type used in the call is different from the type used to
                   declare the symbol -> insert a typecast }
@@ -278,26 +296,39 @@ implementation
               for i:=0 to p.ops-1 do
                 case p.oper[i]^.typ of
                   top_ref:
-                    if (p.oper[i]^.ref^.refaddr=addr_full) and
+                    if (p.oper[i]^.ref^.refaddr<>addr_full) and
+                       assigned(p.oper[i]^.ref^.symbol) and
                        (p.oper[i]^.ref^.symbol.bind<>AB_TEMP) then
                       begin
-                        symdef:=get_asmsym_def(p.oper[i]^.ref^.symbol);
                         opdef:=p.spilling_get_reg_type(i);
-                        if not equal_llvm_defs(symdef,opdef) then
+                        case opdef.typ of
+                          pointerdef:
+                            opcmpdef:=tpointerdef(opdef).pointeddef;
+                          procvardef,
+                          procdef:
+                            opcmpdef:=opdef;
+                          else
+                            internalerror(2015073101);
+                        end;
+                        maybe_insert_extern_sym_decl(toplevellist,p.oper[i]^.ref^.symbol,opcmpdef);
+                        symdef:=get_asmsym_def(p.oper[i]^.ref^.symbol);
+                        if not equal_llvm_defs(symdef,opcmpdef) then
                           begin
-                            cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,symdef,p.oper[i]^.ref^.symbol,opdef);
+                            if symdef.typ=procdef then
+                              symdef:=cpointerdef.getreusable(symdef);
+                            cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,cpointerdef.getreusable(symdef),p.oper[i]^.ref^.symbol,opdef);
                             p.loadtai(i,cnv);
                           end;
                       end;
                   top_tai:
-                    insert_tai_typeconversions(p.oper[i]^.ai);
+                    insert_tai_typeconversions(toplevellist,p.oper[i]^.ai);
                 end;
             end;
         end;
       end;
 
 
-    procedure TLLVMTypeInfo.insert_typedconst_typeconversion(p: tai_abstracttypedconst);
+    procedure TLLVMTypeInfo.insert_typedconst_typeconversion(toplevellist: tasmlist; p: tai_abstracttypedconst);
       var
         symdef: tdef;
         cnv: taillvm;
@@ -311,6 +342,7 @@ implementation
                   if assigned(tai_const(tai_simpletypedconst(p).val).sym) and
                      not assigned(tai_const(tai_simpletypedconst(p).val).endsym) then
                     begin
+                      maybe_insert_extern_sym_decl(toplevellist,tai_const(tai_simpletypedconst(p).val).sym,p.def);
                       symdef:=get_asmsym_def(tai_const(tai_simpletypedconst(p).val).sym);
                       { all references to symbols in typed constants are
                         references to the address of a global symbol (you can't
@@ -325,36 +357,36 @@ implementation
                         end;
                     end;
                 else
-                  insert_tai_typeconversions(tai_simpletypedconst(p).val);
+                  insert_tai_typeconversions(toplevellist,tai_simpletypedconst(p).val);
               end;
             end;
           tck_array,
           tck_record:
             begin
               for elementp in tai_aggregatetypedconst(p) do
-                insert_typedconst_typeconversion(elementp);
+                insert_typedconst_typeconversion(toplevellist,elementp);
             end;
         end;
       end;
 
 
-    procedure TLLVMTypeInfo.insert_tai_typeconversions(p: tai);
+    procedure TLLVMTypeInfo.insert_tai_typeconversions(toplevellist: tasmlist; p: tai);
       begin
         case p.typ of
           ait_llvmins:
-            insert_llvmins_typeconversions(taillvm(p));
+            insert_llvmins_typeconversions(toplevellist,taillvm(p));
           { can also be necessary in case someone initialises a typed const with
             the address of an external symbol aliasing one declared with a
             different type in the same mmodule. }
           ait_typedconst:
-            insert_typedconst_typeconversion(tai_abstracttypedconst(p));
+            insert_typedconst_typeconversion(toplevellist,tai_abstracttypedconst(p));
           ait_llvmdecl:
-            insert_asmlist_typeconversions(taillvmdecl(p).initdata);
+            insert_asmlist_typeconversions(toplevellist,taillvmdecl(p).initdata);
         end;
       end;
 
 
-    procedure TLLVMTypeInfo.insert_asmlist_typeconversions(list: tasmlist);
+    procedure TLLVMTypeInfo.insert_asmlist_typeconversions(toplevellist, list: tasmlist);
       var
         hp: tai;
       begin
@@ -363,10 +395,35 @@ implementation
         hp:=tai(list.first);
         while assigned(hp) do
           begin
-            insert_tai_typeconversions(hp);
+            insert_tai_typeconversions(toplevellist,hp);
             hp:=tai(hp.next);
           end;
       end;
+
+
+    procedure TLLVMTypeInfo.maybe_insert_extern_sym_decl(toplevellist: tasmlist; sym: tasmsymbol; def: tdef);
+      var
+        sec: tasmsectiontype;
+      begin
+        { Necessery for "external" declarations for symbols not declared in the
+          current unit. We can't create these declarations when the alias is
+          initially generated, because the symbol may still be defined later at
+          that point.
+
+          We also do it for all other external symbol references (e.g.
+          references to symbols declared in other units), because then this
+          handling is centralised in one place. }
+        if not(sym.declared) then
+          begin
+            if def.typ=procdef then
+              sec:=sec_code
+            else
+              sec:=sec_data;
+            toplevellist.Concat(taillvmdecl.create(sym,def,nil,sec,def.alignment));
+            record_asmsym_def(sym,def,true);
+          end;
+      end;
+
 
     procedure TLLVMTypeInfo.update_asmlist_alias_types(list: tasmlist);
       var
@@ -580,7 +637,9 @@ implementation
         { and insert the necessary type conversions }
         for hal:=low(TasmlistType) to high(TasmlistType) do
           if hal<>al_start then
-            insert_asmlist_typeconversions(current_asmdata.asmlists[hal]);
+            insert_asmlist_typeconversions(
+              current_asmdata.asmlists[hal],
+              current_asmdata.asmlists[hal]);
 
         { write all used defs }
         write_defs_to_write;

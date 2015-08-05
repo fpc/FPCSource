@@ -319,7 +319,14 @@ implementation
     begin
       if (pd.typ=procdef) or
          not pd.is_addressonly then
-        result:=cprocvardef.getreusableprocaddr(pd)
+        { we get a pointerdef rather than a procvardef so that if we have to
+          insert an external declaration for this procdef in llvmtype, we don't
+          have to create another procdef from the procvardef we've just created.
+          With a pointerdef, we can just get the pointeddef again. A pointerdef
+          is also much cheaper to create, and in llvm a provardef is a "function
+          pointer", so a pointer to a procdef is the same as a procvar as far
+          as llvm is concerned }
+        result:=cpointerdef.getreusable(pd)
       else
         result:=pd
     end;
@@ -437,19 +444,11 @@ implementation
   function thlcgllvm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     var
       callparas: tfplist;
-      asmsym: tasmsymbol;
       llvmretdef,
       hlretdef,
       calldef: tdef;
       res: tregister;
     begin
-      if not pd.owner.iscurrentunit then
-        begin
-          asmsym:=current_asmdata.RefAsmSymbol(tprocdef(pd).mangledname);
-          if (not asmsym.declared) and
-             (asmsym.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
-            current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.create(asmsym,pd,nil,sec_code,pd.alignment));
-        end;
       a_call_common(list,pd,paras,forceresdef,res,calldef,hlretdef,llvmretdef,callparas);
       list.concat(taillvm.call_size_name_paras(get_call_pd(pd),res,calldef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
       result:=get_call_result_cgpara(pd,forceresdef);
