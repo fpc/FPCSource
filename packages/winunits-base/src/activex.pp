@@ -29,10 +29,10 @@ type
    POleStr = Types.POleStr;
    PPOleStr = Types.PPOleStr;
    TBStr = POleStr;
-   TBStrList = array[0..(high(integer) div sizeof(TBSTR))-1] of TBstr;
+   TBStrList = array[0..65535] of TBstr;
    PBStrList = ^TBStrList;
    POleStrList = ^TOleStrList;
-   TOleStrList = array[0..(high(integer) div sizeof(POleStr))-1] of POleStr;
+   TOleStrList = array[0..65535] of POleStr;
 
    PBStr = ^TBStr;
    TOleEnum = type LongWord;
