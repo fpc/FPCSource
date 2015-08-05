@@ -946,9 +946,7 @@ implementation
                   str(taillvmalias(hp).linkage, s);
                   asmwrite(copy(s, length('lll_')+1, 255));
                   asmwrite(' ');
-                end
-              else
-                asmwrite('external ');
+                end;
               if taillvmalias(hp).vis<>llv_default then
                 begin
                   str(taillvmalias(hp).vis, s);
