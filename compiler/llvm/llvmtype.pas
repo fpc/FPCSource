@@ -196,7 +196,7 @@ implementation
           ait_llvmalias:
             begin
               appenddef(deftypelist,taillvmalias(p).def);
-              record_asmsym_def(taillvmalias(p).newsym,taillvmalias(p).def,false);
+              record_asmsym_def(taillvmalias(p).newsym,taillvmalias(p).def,true);
             end;
           ait_llvmdecl:
             begin
