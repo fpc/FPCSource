@@ -287,7 +287,7 @@ var
 begin
   El:=FindElement(StripSlash(APath),False);
   If Assigned(El) then
-    Result:=El.AsString
+    Result:=UTF8Decode(El.AsString)
   else
     Result:=ADefault;
 end;
@@ -369,11 +369,11 @@ begin
     end;
   If Not Assigned(el) then
     begin
-    El:=TJSONString.Create(AValue);
+    El:=TJSONString.Create(UTF8encode(AValue));
     O.Add(ElName,El);
     end
   else
-    El.AsString:=AVAlue;
+    El.AsString:=UTF8Encode(AValue);
   FModified:=True;
 end;
 
