@@ -1156,6 +1156,36 @@ implementation
         end;
       end;
 
+
+    function enumsym_compare_name(item1, item2: pointer): Integer;
+      var
+        enum1: tenumsym absolute item1;
+        enum2: tenumsym absolute item2;
+      begin
+        if enum1=enum2 then
+          result:=0
+        else if enum1.name>enum2.name then
+          result:=1
+        else
+          { there can't be equal names, identifiers are unique }
+          result:=-1;
+      end;
+
+
+    function enumsym_compare_value(item1, item2: pointer): Integer;
+      var
+        enum1: tenumsym absolute item1;
+        enum2: tenumsym absolute item2;
+      begin
+        if enum1.value>enum2.value then
+          result:=1
+        else if enum1.value<enum2.value then
+          result:=-1
+        else
+          result:=0;
+      end;
+
+
     procedure TRTTIWriter.write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
 
         type Penumsym = ^Tenumsym;
@@ -1163,22 +1193,24 @@ implementation
         { Writes a helper table for accelerated conversion of ordinal enum values to strings.
           If you change something in this method, make sure to adapt the corresponding code
           in sstrings.inc. }
-        procedure enumdef_rtti_ord2stringindex(rttidef: trecorddef; const sym_count:longint; {const offsets:plongint;} const syms:Penumsym{; const st:longint});
+        procedure enumdef_rtti_ord2stringindex(rttidef: trecorddef; const syms: tfplist);
 
         var rttilab:Tasmsymbol;
             h,i,o,prev_value:longint;
             mode:(lookup,search); {Modify with care, ordinal value of enum is written.}
             r:single;             {Must be real type because of integer overflow risk.}
             tcb: ttai_typedconstbuilder;
+            sym_count: integer;
         begin
 
           {Decide wether a lookup array is size efficient.}
           mode:=lookup;
+          sym_count:=syms.count;
           if sym_count>0 then
             begin
               i:=1;
               r:=0;
-              h:=syms[0].value; {Next expected enum value is min.}
+              h:=tenumsym(syms[0]).value; {Next expected enum value is min.}
               { set prev_value for the first iteration to a value that is
                 different from the first one without risking overflow (it's used
                 to detect whether two enum values are the same) }
@@ -1195,9 +1227,9 @@ implementation
                       break;
                     end;
                   {Calculate size of hole between values. Avoid integer overflows.}
-                  r:=r+(single(syms[i].value)-single(h))-1;
+                  r:=r+(single(tenumsym(syms[i]).value)-single(h))-1;
                   prev_value:=h;
-                  h:=syms[i].value;
+                  h:=tenumsym(syms[i]).value;
                   inc(i);
                 end;
               if r>sym_count then
@@ -1219,10 +1251,10 @@ implementation
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
           if mode=lookup then
             begin
-              o:=syms[0].value;  {Start with min value.}
+              o:=tenumsym(syms[0]).value;  {Start with min value.}
               for i:=0 to sym_count-1 do
                 begin
-                  while o<syms[i].value do
+                  while o<tenumsym(syms[i]).value do
                     begin
                       tcb.emit_tai(Tai_const.create_pint(0),ptruinttype);
                       inc(o);
@@ -1233,7 +1265,7 @@ implementation
                     ['size_start_rec',
                       'min_max_rec',
                       'basetype_array_rec',
-                      'enumname'+tostr(syms[i].symid)]
+                      'enumname'+tostr(tenumsym(syms[i]).symid)]
                   );
                   tcb.queue_emit_asmsym(mainrtti,rttidef);
                 end;
@@ -1246,13 +1278,13 @@ implementation
                 targetinfos[target_info.system]^.alignment.maxCrecordalign);
               for i:=0 to sym_count-1 do
                 begin
-                  tcb.emit_ord_const(syms[i].value,s32inttype);
+                  tcb.emit_ord_const(tenumsym(syms[i]).value,s32inttype);
                   tcb.queue_init(voidpointertype);
                   tcb.queue_subscriptn_multiple_by_name(rttidef,
                     ['size_start_rec',
                       'min_max_rec',
                       'basetype_array_rec',
-                      'enumname'+tostr(syms[i].symid)]
+                      'enumname'+tostr(tenumsym(syms[i]).symid)]
                   );
                   tcb.queue_emit_asmsym(mainrtti,rttidef);
                 end;
@@ -1266,10 +1298,11 @@ implementation
             tcb.free;
         end;
 
+
         { Writes a helper table for accelerated conversion of string to ordinal enum values.
           If you change something in this method, make sure to adapt the corresponding code
           in sstrings.inc. }
-        procedure enumdef_rtti_string2ordindex(rttidef: trecorddef; const sym_count:longint; {const offsets:plongint; } const syms:Penumsym {; const st:longint});
+        procedure enumdef_rtti_string2ordindex(rttidef: trecorddef; const syms: tfplist);
 
         var
           tcb: ttai_typedconstbuilder;
@@ -1283,21 +1316,21 @@ implementation
           tcb.begin_anonymous_record('',defaultpacking,reqalign,
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
-          tcb.emit_ord_const(sym_count,s32inttype);
+          tcb.emit_ord_const(syms.count,s32inttype);
           { begin of "data" array in Tstring_to_ord }
           tcb.begin_anonymous_record('',defaultpacking,reqalign,
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
-          for i:=0 to sym_count-1 do
+          for i:=0 to syms.count-1 do
             begin
-              tcb.emit_ord_const(syms[i].value,s32inttype);
+              tcb.emit_ord_const(tenumsym(syms[i]).value,s32inttype);
               { alignment of pointer value handled by enclosing record already }
               tcb.queue_init(voidpointertype);
               tcb.queue_subscriptn_multiple_by_name(rttidef,
                 ['size_start_rec',
                   'min_max_rec',
                   'basetype_array_rec',
-                  'enumname'+tostr(syms[i].SymId)]
+                  'enumname'+tostr(tenumsym(syms[i]).SymId)]
               );
               tcb.queue_emit_asmsym(mainrtti,rttidef);
             end;
@@ -1311,16 +1344,14 @@ implementation
         procedure enumdef_rtti_extrasyms(def:Tenumdef);
         var
           t:Tenumsym;
-          syms:Penumsym;
-          sym_count,sym_alloc:sizeuint;
+          syms:tfplist;
           h,i,p:longint;
           rttitypesym: ttypesym;
           rttidef: trecorddef;
         begin
-          {Random access needed, put in array.}
-          getmem(syms,64*sizeof(Tenumsym));
-          sym_count:=0;
-          sym_alloc:=64;
+          { collect enumsyms belonging to this enum type (could be a subsection
+            in case of a subrange type) }
+          syms:=tfplist.create;
           for i := 0 to def.symtable.SymList.Count - 1 do
             begin
               t:=tenumsym(def.symtable.SymList[i]);
@@ -1329,68 +1360,20 @@ implementation
               else
               if t.value>def.maxval then
                 break;
-              if sym_count>=sym_alloc then
-                begin
-                  reallocmem(syms,2*sym_alloc*sizeof(Tenumsym));
-                  sym_alloc:=sym_alloc*2;
-                end;
-              syms[sym_count]:=t;
-              inc(sym_count);
+              syms.add(t);
             end;
-          {Sort the syms by enum name}
-          if sym_count>=2 then
-            begin
-              p:=1;
-              while 2*p<sym_count do
-                p:=2*p;
-              while p<>0 do
-                begin
-                  for h:=p to sym_count-1 do
-                    begin
-                      i:=h;
-                      t:=syms[i];
-                      repeat
-                        if syms[i-p].name<=t.name then
-                          break;
-                        syms[i]:=syms[i-p];
-                        dec(i,p);
-                      until i<p;
-                      syms[i]:=t;
-                    end;
-                  p:=p shr 1;
-                end;
-            end;
+          { sort the syms by enum name }
+          syms.sort(@enumsym_compare_name);
           rttitypesym:=try_search_current_module_type(internaltypeprefixName[itp_rttidef]+def.rtti_mangledname(fullrtti));
           if not assigned(rttitypesym) or
              (ttypesym(rttitypesym).typedef.typ<>recorddef) then
             internalerror(2015071402);
           rttidef:=trecorddef(ttypesym(rttitypesym).typedef);
-          enumdef_rtti_string2ordindex(rttidef,sym_count,syms);
-          { Sort the syms by enum value }
-          if sym_count>=2 then
-            begin
-              p:=1;
-              while 2*p<sym_count do
-                p:=2*p;
-              while p<>0 do
-                begin
-                  for h:=p to sym_count-1 do
-                    begin
-                      i:=h;
-                      t:=syms[i];
-                      repeat
-                        if syms[i-p].value<=t.value then
-                          break;
-                        syms[i]:=syms[i-p];
-                        dec(i,p);
-                      until i<p;
-                      syms[i]:=t;
-                    end;
-                  p:=p shr 1;
-                end;
-            end;
-          enumdef_rtti_ord2stringindex(rttidef,sym_count,syms);
-          freemem(syms);
+          enumdef_rtti_string2ordindex(rttidef,syms);
+          { sort the syms by enum value }
+          syms.sort(@enumsym_compare_value);
+          enumdef_rtti_ord2stringindex(rttidef,syms);
+          syms.free;
         end;
 
 
