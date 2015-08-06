@@ -28,7 +28,7 @@ unit jsonConf;
 interface
 
 uses
-  SysUtils, Classes, fpjson, jsonparser;
+  SysUtils, Classes, fpjson, jsonscanner,jsonparser;
 
 resourcestring
   SWrongRootName = 'XML file has wrong root element name';
@@ -596,7 +596,7 @@ begin
     begin
     F:=TFileStream.Create(AFileName,fmopenRead);
     try
-      P:=TJSONParser.Create(F);
+      P:=TJSONParser.Create(F,[joUTF8,joComments]);
       try
         J:=P.Parse;
         If (J is TJSONObject) then
