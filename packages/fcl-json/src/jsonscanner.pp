@@ -23,6 +23,7 @@ uses SysUtils, Classes;
 
 resourcestring
   SErrInvalidCharacter = 'Invalid character at line %d, pos %d: ''%s''';
+  SUnterminatedComment = 'Unterminated comment at line %d, pos %d: ''%s''';
   SErrOpenString = 'string exceeds end of line';
 
 type
@@ -43,32 +44,44 @@ type
     tkSquaredBraceOpen,       // '['
     tkSquaredBraceClose,      // ']'
     tkIdentifier,            // Any Javascript identifier
+    tkComment,
     tkUnknown
     );
 
   EScannerError       = class(EParserError);
 
+  TJSONOption = (joUTF8,joStrict,joComments);
+  TJSONOptions = set of TJSONOption;
+
+Const
+  DefaultOptions = [joUTF8];
+
+Type
 
   { TJSONScanner }
 
   TJSONScanner = class
   private
+    FAllowComments: Boolean;
     FSource : TStringList;
     FCurRow: Integer;
     FCurToken: TJSONToken;
     FCurTokenString: string;
     FCurLine: string;
-    FStrict: Boolean;
-    FUseUTF8 : Boolean;
     TokenStr: PChar;
+    FOptions : TJSONOptions;
     function GetCurColumn: Integer;
+    function GetO(AIndex: TJSONOption): Boolean;
+    procedure SetO(AIndex: TJSONOption; AValue: Boolean);
   protected
     procedure Error(const Msg: string);overload;
     procedure Error(const Msg: string; Const Args: array of Const);overload;
     function DoFetchToken: TJSONToken;
   public
-    constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload;
-    constructor Create(const Source : String; AUseUTF8 : Boolean = True); overload;
+    constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload; deprecated 'use options form instead';
+    constructor Create(const Source : String; AUseUTF8 : Boolean = True); overload; deprecated  'use options form instead';
+    constructor Create(Source: TStream; AOptions: TJSONOptions); overload;
+    constructor Create(const Source: String; AOptions: TJSONOptions); overload;
     destructor Destroy; override;
     function FetchToken: TJSONToken;
 
@@ -80,9 +93,11 @@ type
     property CurToken: TJSONToken read FCurToken;
     property CurTokenString: string read FCurTokenString;
     // Use strict JSON: " for strings, object members are strings, not identifiers
-    Property Strict : Boolean Read FStrict Write FStrict;
+    Property Strict : Boolean Index joStrict Read GetO Write SetO ; deprecated 'use options instead';
     // if set to TRUE, then strings will be converted to UTF8 ansistrings, not system codepage ansistrings.
-    Property UseUTF8 : Boolean Read FUseUTF8 Write FUseUTF8;
+    Property UseUTF8 : Boolean index joUTF8 Read GetO Write SetO; deprecated 'Use options instead';
+    // Parsing options
+    Property Options : TJSONOptions Read FOptions Write FOptions;
   end;
 
 const
@@ -101,6 +116,7 @@ const
     '[',
     ']',
     'identifier',
+    'comment',
     ''
   );
 
@@ -109,17 +125,43 @@ implementation
 
 constructor TJSONScanner.Create(Source : TStream; AUseUTF8 : Boolean = True);
 
+Var
+  O : TJSONOptions;
+
 begin
-  FSource:=TStringList.Create;
-  FSource.LoadFromStream(Source);
-  FUseUTF8:=AUseUTF8;
+  O:=DefaultOptions;
+  if AUseUTF8 then
+    Include(O,joUTF8)
+  else
+    Exclude(O,joUTF8);
+  Create(Source,O);
 end;
 
 constructor TJSONScanner.Create(const Source : String; AUseUTF8 : Boolean = True);
+Var
+  O : TJSONOptions;
+
+begin
+  O:=DefaultOptions;
+  if AUseUTF8 then
+    Include(O,joUTF8)
+  else
+    Exclude(O,joUTF8);
+  Create(Source,O);
+end;
+
+constructor TJSONScanner.Create(Source: TStream; AOptions: TJSONOptions);
+begin
+  FSource:=TStringList.Create;
+  FSource.LoadFromStream(Source);
+  FOptions:=AOptions;
+end;
+
+constructor TJSONScanner.Create(const Source: String; AOptions: TJSONOptions);
 begin
   FSource:=TStringList.Create;
   FSource.Text:=Source;
-  FUseUTF8:=AUseUTF8;
+  FOptions:=AOptions;
 end;
 
 destructor TJSONScanner.Destroy;
@@ -140,7 +182,7 @@ begin
   raise EScannerError.Create(Msg);
 end;
 
-procedure TJSONScanner.Error(const Msg: string; const Args: array of Const);
+procedure TJSONScanner.Error(const Msg: string; const Args: array of const);
 begin
   raise EScannerError.CreateFmt(Msg, Args);
 end;
@@ -170,7 +212,8 @@ var
   OldLength, SectionLength, Index: Integer;
   C : char;
   S : String;
-  
+  IsStar,EOC: Boolean;
+
 begin
   if TokenStr = nil then
     if not FetchLine then
@@ -342,6 +385,55 @@ begin
         Inc(TokenStr);
         Result := tkSquaredBraceClose;
       end;
+    '/' :
+      begin
+      if Not (joComments in Options) then
+        Error(SErrInvalidCharacter, [CurRow,CurCOlumn,TokenStr[0]]);
+      Inc(TokenStr);
+      Case Tokenstr[0] of
+        '/' : begin
+              SectionLength := Length(FCurLine)- (TokenStr - PChar(FCurLine));
+              SetLength(FCurTokenString,SectionLength);
+              if SectionLength > 0 then
+                Move(TokenStart^, FCurTokenString[1], SectionLength);
+              Fetchline;
+              end;
+        '*' :
+          begin
+          IsStar:=False;
+          Inc(TokenStr);
+          TokenStart:=TokenStr;
+          Repeat
+            if (TokenStr[0]=#0) then
+              begin
+              SectionLength := (TokenStr - TokenStart);
+              SetLength(S,SectionLength);
+              if SectionLength > 0 then
+                Move(TokenStart^, S[1], SectionLength);
+              FCurtokenString:=FCurtokenString+S;
+              if not fetchLine then
+                Error(SUnterminatedComment, [CurRow,CurCOlumn,TokenStr[0]]);
+              TokenStart:=TokenStr;
+              end;
+            IsStar:=TokenStr[0]='*';
+            Inc(TokenStr);
+            EOC:=(isStar and (TokenStr[0]='/'));
+          Until EOC;
+          if EOC then
+            begin
+            SectionLength := (TokenStr - TokenStart-1);
+            SetLength(S,SectionLength);
+            if SectionLength > 0 then
+              Move(TokenStart^, S[1], SectionLength);
+            FCurtokenString:=FCurtokenString+S;
+            Inc(TokenStr);
+            end;
+          end;
+      else
+        Error(SErrInvalidCharacter, [CurRow,CurCOlumn,TokenStr[0]]);
+      end;
+      Result:=tkComment;
+      end;
     'a'..'z','A'..'Z','_':
       begin
         TokenStart := TokenStr;
@@ -374,6 +466,19 @@ end;
 function TJSONScanner.GetCurColumn: Integer;
 begin
   Result := TokenStr - PChar(CurLine);
+end;
+
+function TJSONScanner.GetO(AIndex: TJSONOption): Boolean;
+begin
+  Result:=AIndex in FOptions;
+end;
+
+procedure TJSONScanner.SetO(AIndex: TJSONOption; AValue: Boolean);
+begin
+  If AValue then
+    Include(Foptions,AIndex)
+  else
+    Exclude(Foptions,AIndex)
 end;
 
 end.

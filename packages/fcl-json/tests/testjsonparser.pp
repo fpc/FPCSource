@@ -20,7 +20,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,fpjson,
-  jsonParser,testjsondata;
+  jsonscanner,jsonParser,testjsondata;
 
 type
 
@@ -34,7 +34,7 @@ type
     procedure DoTestFloat(F: TJSONFloat; S: String); overload;
     procedure DoTestObject(S: String; const ElNames: array of String; DoJSONTest : Boolean = True);
     procedure DoTestString(S : String);
-    procedure DoTestArray(S: String; ACount: Integer);
+    procedure DoTestArray(S: String; ACount: Integer; HaveComments : Boolean=False);
     Procedure DoTestClass(S : String; AClass : TJSONDataClass);
     procedure CallNoHandler;
   published
@@ -49,6 +49,7 @@ type
     procedure TestArray;
     procedure TestObject;
     procedure TestMixed;
+    Procedure TestComment;
     procedure TestErrors;
     Procedure TestClasses;
     Procedure TestHandler;
@@ -263,6 +264,24 @@ begin
   DoTestObject(SAddr,['addressbook'],False);
 end;
 
+procedure TTestParser.TestComment;
+begin
+  DoTestArray('/* */ [1, {}]',2,True);
+  DoTestArray('//'+sLineBreak+'[1, { "a" : 1 }]',2,True);
+  DoTestArray('/* '+sLineBreak+' */ [1, {}]',2,True);
+  DoTestArray('/*'+sLineBreak+'*/ [1, {}]',2,True);
+  DoTestArray('/*'+sLineBreak+'*/ [1, {}]',2,True);
+  DoTestArray('/*'+sLineBreak+'*'+sLineBreak+'*/ [1, {}]',2,True);
+  DoTestArray('/**'+sLineBreak+'**'+sLineBreak+'**/ [1, {}]',2,True);
+  DoTestArray('/* */ [1, {}]',2,True);
+  DoTestArray('[1, { "a" : 1 }]//'+sLineBreak,2,True);
+  DoTestArray('[1, {}]/* '+sLineBreak+' */ ',2,True);
+  DoTestArray('[1, {}]/*'+sLineBreak+'*/ ',2,True);
+  DoTestArray('[1, {}]/*'+sLineBreak+'*/ ',2,True);
+  DoTestArray('[1, {}]/*'+sLineBreak+'*'+sLineBreak+'*/ ',2,True);
+  DoTestArray(' [1, {}]/**'+sLineBreak+'**'+sLineBreak+'**/',2,True);
+end;
+
 procedure TTestParser.TestObject;
 begin
   DoTestObject('{}',[]);
@@ -303,21 +322,22 @@ begin
 end;
 
 
-procedure TTestParser.DoTestArray(S : String; ACount : Integer);
+procedure TTestParser.DoTestArray(S : String; ACount : Integer; HaveComments : Boolean = False);
 
 Var
   P : TJSONParser;
   J : TJSONData;
 
 begin
-  P:=TJSONParser.Create(S);
+  P:=TJSONParser.Create(S,[joComments]);
   Try
     J:=P.Parse;
     If (J=Nil) then
       Fail('Parse of array "'+S+'" fails');
     TestJSONType(J,jtArray);
     TestItemCount(J,ACount);
-    TestJSON(J,S);
+    if not HaveComments then
+      TestJSON(J,S);
   Finally
     FreeAndNil(J);
     FreeAndNil(P);
