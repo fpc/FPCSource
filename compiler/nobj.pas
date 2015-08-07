@@ -808,6 +808,12 @@ implementation
            odt_interfacejava] then
          exit;
 
+        { don't generate VMT for generics (only use duplicates/overrides detection) }
+        { Note: don't use is_generic here as we also need to check nested non-
+                generic classes }
+        if df_generic in _class.defoptions then
+          exit;
+
         { todo in the future }
         if _class.objecttype = odt_cppclass then
           exit;
