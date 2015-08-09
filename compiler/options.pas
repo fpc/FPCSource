@@ -3741,14 +3741,15 @@ begin
   case target_info.system of
     system_arm_darwin:
       begin
-        { set default cpu type to ARMv6 for Darwin unless specified otherwise, and fpu
-          to VFPv2 }
+        { set default cpu type to ARMv7 for Darwin unless specified otherwise, and fpu
+          to VFPv3 (that's what all 32 bit ARM iOS devices use nowadays)
+        }
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_armv6;
+          init_settings.cputype:=cpu_armv7;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_armv6;
+          init_settings.optimizecputype:=cpu_armv7;
         if not option.FPUSetExplicitly then
-          init_settings.fputype:=fpu_vfpv2;
+          init_settings.fputype:=fpu_vfpv3;
       end;
     system_arm_android:
       begin
