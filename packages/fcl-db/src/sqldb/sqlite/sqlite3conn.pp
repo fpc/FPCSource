@@ -233,6 +233,8 @@ Procedure TSQLite3Cursor.Prepare(Buf : String; AParams : TParams);
 begin
   if assigned(AParams) and (AParams.Count > 0) then
     Buf := AParams.ParseSQL(Buf,false,false,false,psInterbase,fparambinding);
+  if (detActualSQL in fconnection.LogEvents) then
+    fconnection.Log(detActualSQL,Buf);
   checkerror(sqlite3_prepare(fhandle,pchar(Buf),length(Buf),@fstatement,@ftail));
   FPrepared:=True;
 end;
@@ -530,7 +532,9 @@ begin
   checkerror(sqlite3_reset(sc.fstatement));
   If (AParams<>Nil) and (AParams.count > 0) then
     SC.BindParams(AParams);
-  SC.Execute;    
+  If LogEvent(detParamValue) then
+    LogParams(AParams);
+  SC.Execute;
 end;
 
 Function NextWord(Var S : ShortString; Sep : Char) : String;
@@ -777,8 +781,7 @@ begin
   Inherited;
   if DatabaseName = '' then
     DatabaseError(SErrNoDatabaseName,self);
-  if SQLiteLoadedLibrary = '' then
-    InitializeSqlite(SQLiteDefaultLibrary);
+  InitializeSQLite;
   filename := DatabaseName;
   checkerror(sqlite3_open(PAnsiChar(filename),@fhandle));
   if (Length(Password)>0) and assigned(sqlite3_key) then
@@ -795,7 +798,7 @@ begin
     begin
     checkerror(sqlite3_close(fhandle));
     fhandle:= nil;
-    releasesqlite;
+    ReleaseSQLite;
     end; 
 end;
 
@@ -972,7 +975,7 @@ function TSQLite3Connection.GetConnectionInfo(InfoType: TConnInfoType): string;
 begin
   Result:='';
   try
-    InitializeSqlite;
+    InitializeSQLite;
     case InfoType of
       citServerType:
         Result:=TSQLite3ConnectionDef.TypeName;
@@ -996,7 +999,7 @@ var filename: ansistring;
 begin
   CheckDisConnected;
   try
-    InitializeSqlite;
+    InitializeSQLite;
     try
       filename := DatabaseName;
       checkerror(sqlite3_open(PAnsiChar(filename),@fhandle));
@@ -1090,7 +1093,7 @@ end;
 
 class function TSQLite3ConnectionDef.LoadFunction: TLibraryLoadFunction;
 begin
-  Result:=@InitializeSqliteANSI; //the function taking the filename argument
+  Result:=@InitializeSQLiteANSI; //the function taking the filename argument
 end;
 
 class function TSQLite3ConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;

@@ -692,8 +692,11 @@ begin
     tr := aTransaction.Handle;
     
     if assigned(AParams) and (AParams.count > 0) then
+      begin
       buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase,paramBinding);
-
+      if LogEvent(detActualSQL) then
+        Log(detActualSQL,Buf);
+      end;
     if isc_dsql_prepare(@Status[0], @tr, @Statement, 0, @Buf[1], Dialect, nil) <> 0 then
       CheckError('PrepareStatement', Status);
     if assigned(AParams) and (AParams.count > 0) then
@@ -836,6 +839,8 @@ var tr : pointer;
 begin
   tr := aTransaction.Handle;
   if Assigned(APArams) and (AParams.count > 0) then SetParameters(cursor, atransaction, AParams);
+  if LogEvent(detParamValue) then
+    LogParams(AParams);
   with cursor as TIBCursor do
   begin
     if FStatementType = stExecProcedure then

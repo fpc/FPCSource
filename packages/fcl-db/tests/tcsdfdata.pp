@@ -228,9 +228,7 @@ end;
 
 procedure Ttestsdfspecific.TestDelimitedTextOutput;
 // Test if saving and loading data keeps the original values.
-
-// Mainly check if writing & reading quotes works.
-// to do: more fully test RFC4180
+// Mainly check if writing & reading embedded quotes and CRLF works.
 const
   Value1='Delimiter,"and";quote';
   Value2='J"T"';
@@ -241,6 +239,7 @@ const
   Value7='Some "random" quotes';
 Var
   F : Text;
+  i : integer;
 begin
   // with Schema, with Header line
   TestDataset.Close;
@@ -250,21 +249,28 @@ begin
   Assign(F, TestDataset.FileName);
   Rewrite(F);
   Writeln(F,'Field1,Field2,Field3,Field4,Field5,Field6,Field7');
-  Writeln(F,'"Delimiter,""and"";quote","J""T""",Just a long line,"Just a quoted long line","multi');
-  Writeln(F,'line","Delimiter,and;done","Some ""random"" quotes"');
+  for i:=1 to 3 do
+  begin
+    Writeln(F,'"Delimiter,""and"";quote","J""T""",Just a long line,"Just a quoted long line","multi');
+    Writeln(F,'line","Delimiter,and;done","Some ""random"" quotes"');
+  end;
   Close(F);
   // Load our dataset
   TestDataset.Open;
-//  AssertEquals('Field count',7,TestDataset.FieldDefs.Count);
-//  AssertEquals('Record count',1,TestDataset.RecordCount);
+  AssertEquals('FieldDefs.Count', 7, TestDataset.FieldDefs.Count);
+  AssertEquals('RecordCount', 3, TestDataset.RecordCount);
   TestDataset.First;
-  AssertEquals('Field1', Value1, TestDataSet.Fields[0].AsString);
-  AssertEquals('Field2', Value2, TestDataSet.Fields[1].AsString);
-  AssertEquals('Field3', Value3, TestDataSet.Fields[2].AsString);
-  AssertEquals('Field4', Value4, TestDataSet.Fields[3].AsString);
-  AssertEquals('Field5', Value5, TestDataSet.Fields[4].AsString);
-  AssertEquals('Field6', Value6, TestDataSet.Fields[5].AsString);
-  AssertEquals('Field7' ,Value7, TestDataSet.Fields[6].AsString);
+  for i:=1 to 3 do
+  begin
+    AssertEquals('Field1', Value1, TestDataSet.Fields[0].AsString);
+    AssertEquals('Field2', Value2, TestDataSet.Fields[1].AsString);
+    AssertEquals('Field3', Value3, TestDataSet.Fields[2].AsString);
+    AssertEquals('Field4', Value4, TestDataSet.Fields[3].AsString);
+    AssertEquals('Field5', Value5, TestDataSet.Fields[4].AsString);
+    AssertEquals('Field6', Value6, TestDataSet.Fields[5].AsString);
+    AssertEquals('Field7' ,Value7, TestDataSet.Fields[6].AsString);
+    TestDataSet.Next;
+  end;
 end;
 
 procedure Ttestsdfspecific.TestEmptyFieldContents;

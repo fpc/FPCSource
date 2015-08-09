@@ -506,7 +506,7 @@ type  // Checked OK 05.08.2011 ALB
   TMemEntry = record
     me_Un: record
     case Byte of
-      0 : (meu_Regs: DWord);
+      0 : (meu_Reqs: DWord);
       1 : (meu_Addr: Pointer)
     end;
     me_Length: DWord;
@@ -517,7 +517,7 @@ type  // Checked OK 05.08.2011 ALB
   TMemList = record
     ml_Node      : TNode;
     ml_NumEntries: Word;
-    ml_ME        : PMemEntry;
+    ml_ME        : array [0..0] of TMemEntry;
   end;
 
 

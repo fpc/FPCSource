@@ -728,6 +728,9 @@ Var
   { Stack checking }
   StackBottom : Pointer;
   StackLength : SizeUInt;
+  
+Var
+  WriteErrorsToStdErr : Boolean = True;
 
 function StackTop: Pointer;
 

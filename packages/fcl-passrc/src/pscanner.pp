@@ -1647,7 +1647,7 @@ begin
                 else if Param[1]='%' then
                   begin
                   fcurtokenstring:='{$i '+param+'}';
-                  fcurtoken:=tkstring;  
+                  fcurtoken:=tkstring;
                   result:=fcurtoken;
                   exit;
                   end

@@ -9,8 +9,9 @@
 -->
 
 <module name="testunit">
-<short></short>
+<short>This cannot be</short>
 <descr>
+We have here a description
 </descr>
 <notes>
   <note>Unit note</note>
@@ -18,7 +19,7 @@
 
 <!-- constant Visibility: default -->
 <element name="AnIntegerConst">
-<short></short>
+<short>Aha this is not me</short>
 <descr>
 </descr>
 <version>
@@ -206,7 +207,7 @@ Appears in 2.0
 
 <!-- record type Visibility: default -->
 <element name="TAVariantRecordType">
-<short></short>
+<short>Some record with variants</short>
 <descr>
 </descr>
 <seealso>
@@ -215,7 +216,7 @@ Appears in 2.0
 
 <!-- variable Visibility: default -->
 <element name="TAVariantRecordType.A">
-<short></short>
+<short>A short description for A </short>
 <descr>
 </descr>
 <seealso>
@@ -224,7 +225,7 @@ Appears in 2.0
 
 <!-- variable Visibility: default -->
 <element name="TAVariantRecordType.X">
-<short></short>
+<short>A short description for X</short>
 <descr>
 </descr>
 <seealso>
@@ -233,7 +234,53 @@ Appears in 2.0
 
 <!-- variable Visibility: default -->
 <element name="TAVariantRecordType.Y">
-<short></short>
+<short>A short description for Y</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TMethodRecord">
+<short>Some record with variants</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+
+<!-- variable Visibility: default -->
+<element name="TMethodRecord.MyMethod">
+<short>A short description for MyMethod</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TMethodRecord.A">
+<short>A short description for A </short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TMethodRecord.X">
+<short>A short description for X</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TMethodRecord.Y">
+<short>A short description for Y</short>
 <descr>
 </descr>
 <seealso>
@@ -1065,6 +1112,188 @@ Appears in 2.0
 <note> this is prop note 1</note>
 <note> this is prop note 2</note>
 </notes>
+</element>
+
+<element name="add(TAnArrayType,TAnArrayType):TAnArrayType">
+<short>Something short about operator add</short>
+<descr>
+Something long about operator add
+</descr>
+</element>
+
+<element name="operator *(TAnArrayType, TAnArrayType): TAnArrayType">
+<short>Something short about operator -</short>
+<descr>
+Something long about operator -
+</descr>
+</element>
+
+<element name="TAExtRecordType.assign(Integer):TAExtRecordType">
+<short>An operator</short>
+</element>
+
+<element name="TMethodRecord.MyX"/>
+
+<!-- alias type Visibility: default -->
+<element name="TADeprecatedType">
+<short></short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="TMethodRecord.aconst">
+<short></short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- variable Visibility: private -->
+<element name="TMethodRecord.X22">
+<short></short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: private -->
+<element name="TMethodRecord.SetX">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- argument Visibility: private -->
+<element name="TMethodRecord.SetX.AValue">
+<short></short>
+</element>
+
+<!-- function Visibility: private -->
+<element name="TMethodRecord.GetX">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function result Visibility: private -->
+<element name="TMethodRecord.GetX.Result">
+<short></short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TMethodRecord.X2">
+<short></short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TMethodRecord.Y2">
+<short></short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TMethodRecord.phi">
+<short></short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TMethodRecord.Omega">
+<short></short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="TAExtRecordType.X">
+<short></short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAExtRecordType.assign(Integer):TAExtRecordType.Result">
+<short></short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAExtRecordType.assign(Integer):TAExtRecordType.Y">
+<short></short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="A">
+<short></short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="B">
+<short></short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="add(TAnArrayType,TAnArrayType):TAnArrayType.Result">
+<short></short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="add(TAnArrayType,TAnArrayType):TAnArrayType.A">
+<short></short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="add(TAnArrayType,TAnArrayType):TAnArrayType.B">
+<short></short>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="multiply(TAnArrayType,TAnArrayType):TAnArrayType.Result">
+<short></short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="multiply(TAnArrayType,TAnArrayType):TAnArrayType.A">
+<short></short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="multiply(TAnArrayType,TAnArrayType):TAnArrayType.B">
+<short></short>
 </element>
 
 </module> <!-- testunit -->

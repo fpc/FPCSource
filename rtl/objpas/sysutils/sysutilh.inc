@@ -254,7 +254,7 @@ type
 
 Var
    OnShowException : Procedure (Msg : ShortString);
-
+   
 Const
    HexDisplayPrefix : string = '$';
 

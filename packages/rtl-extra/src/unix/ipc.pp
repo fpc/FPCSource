@@ -46,7 +46,7 @@ Type
 Const
   { IPC flags for get calls }
 
-{$if defined(FreeBSD) or defined(NetBSD) or defined(OpenBSD)}  // BSD_VISIBLE
+{$if defined(FreeBSD) or defined(NetBSD) or defined(OpenBSD) or defined(dragonfly)}  // BSD_VISIBLE
   IPC_R      =  4 shl 6;
   IPC_W      =  2 shl 6;
   IPC_M      =  2 shl 12;
@@ -76,7 +76,7 @@ Const
   IPC_EXCL   =  2 shl 9;  { fail if key exists }
   IPC_NOWAIT =  4 shl 9;  { return error on wait }
 
-{$if defined(FreeBSD) or defined(Darwin) or defined(Solaris) or defined(Linux) or defined(OpenBSD)}
+{$if defined(FreeBSD) or defined(Darwin) or defined(Solaris) or defined(Linux) or defined(OpenBSD) or defined (dragonfly)}
   IPC_PRIVATE = TKey(0);
 {$elseif defined(aix)}
   IPC_PRIVATE = TKey(-1)
@@ -130,7 +130,7 @@ type
         key   : key_t;    { user specified msg/sem/shm key }
   End;
 {$packrecords c}
-{$elseif defined(NetBSD) or defined(OpenBSD) or defined(FreeBSD) }
+{$elseif defined(NetBSD) or defined(OpenBSD) or defined(FreeBSD) or defined(dragonfly)}
   TIPC_Perm = record
         cuid  : uid_t;  { creator user id }
         cgid  : gid_t;  { creator group id }
@@ -202,7 +202,7 @@ Function ftok (Path : pchar;  ID : cint) : TKey; {$ifdef FPC_USE_LIBC} cdecl; ex
 Type
   PShmid_DS = ^TShmid_ds;
 
-{$if defined(FreeBSD) or defined(OpenBSD) or defined (NetBSD) }
+{$if defined(FreeBSD) or defined(OpenBSD) or defined (NetBSD) or defined(dragonfly)}
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
     shm_segsz : cint;

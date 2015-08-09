@@ -1,5 +1,7 @@
 {$mode objfpc}
 {$h+}
+{$modeswitch advancedrecords} 
+
 unit testunit;
 
 interface
@@ -41,6 +43,25 @@ Type
                           end; 
                           
   TADeprecatedType = Integer deprecated;
+
+  TMethodRecord = Record
+  
+  Private
+    Const aconst = 123;
+    X22 : Integer;
+    Procedure SetX(AValue : Integer);
+    Function GetX : Integer;
+  Public  
+    Procedure MyMethod;
+    Property MyX : Integer Read GetX Write SetX;
+  Case Integer of
+    1 : (X2,Y2 : Integer);
+    2 : (phi,Omega : Real);
+  end;
+  TAExtRecordType        = Record
+    Const X = 100;
+    operator assign(Y : Integer) : TAExtRecordType;
+  end;
                         
 Var
   ASimpleVar : Integer;  
@@ -123,6 +144,9 @@ Type
   Published
     Property AProtectedProp;
   end;
+
+Operator + (A,B : TAnArrayType) : TAnArrayType;
+Operator multiply (A,B : TAnArrayType) : TAnArrayType;
   
 Implementation
 
@@ -274,6 +298,30 @@ end;
 procedure TMyParentClass.SomePublishedMethod;
 begin
 
+end;
+
+Procedure TMethodRecord.SetX(AValue : Integer);
+
+begin
+end;
+
+Function TMEthodRecord.GetX : Integer;
+
+begin
+end;
+
+Procedure TMEthodRecord.MyMethod;
+begin
+end;
+
+Operator + (A,B : TAnArrayType) : TAnArrayType;
+
+begin
+end;
+
+Operator subtract (A,B : TAnArrayType) : TAnArrayType;
+
+begin
 end;
 
 end.

@@ -599,6 +599,8 @@ var i        : integer;
 begin
   with cursor as TOracleCursor do
     begin
+    if LogEvent(detActualSQL) then
+      Log(detActualSQL,Buf);
     if OCIStmtPrepare2(TOracleTrans(ATransaction.Handle).FOciSvcCtx,FOciStmt,FOciError,@buf[1],length(buf),nil,0,OCI_NTV_SYNTAX,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
     // Get statement type
@@ -830,6 +832,8 @@ procedure TOracleConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransa
   end;
 begin
   if Assigned(AParams) and (AParams.Count > 0) then SetParameters(cursor, ATransaction, AParams);
+  if LogEvent(detParamValue) then
+    LogParams(AParams);
   if cursor.FStatementType = stSelect then
     begin
     if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,0,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then

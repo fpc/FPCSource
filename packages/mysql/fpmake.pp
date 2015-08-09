@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.1';
+    P.Version:='3.0.0rc1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
@@ -135,6 +135,13 @@ begin
     T.ResourceStrings := True;
 
     T:=P.Targets.AddUnit('mysql56dyn.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('mysql.inc');
+        end;
+    T.ResourceStrings := True;
+
+    T:=P.Targets.AddUnit('mysql57dyn.pp');
       with T.Dependencies do
         begin
           AddInclude('mysql.inc');

@@ -49,7 +49,7 @@ type
   TSQLScript = class;
 
 
-  TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack);
+  TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue, detActualSQL);
   TDBEventTypes = set of TDBEventType;
   TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
 
@@ -116,7 +116,8 @@ type
 const
   SingleQuotes : TQuoteChars = ('''','''');
   DoubleQuotes : TQuoteChars = ('"','"');
-  LogAllEvents = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack];
+  LogAllEvents      = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack];
+  LogAllEventsExtra = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue,detActualSQL];
   StatementTokens : Array[TStatementType] of string = ('(unknown)', 'select',
                   'insert', 'update', 'delete',
                   'create', 'get', 'put', 'execute',
@@ -159,7 +160,6 @@ type
     FStatements          : TFPList;
     FLogEvents: TDBEventTypes;
     FOnLog: TDBLogNotifyEvent;
-    FInternalTransaction : TSQLTransaction;
     function GetPort: cardinal;
     procedure SetOptions(AValue: TSQLConnectionOptions);
     procedure SetPort(const AValue: cardinal);
@@ -191,6 +191,7 @@ type
     function GetAsSQLText(Param : TParam) : string; overload; virtual;
     function GetHandle : pointer; virtual;
     Function LogEvent(EventType : TDBEventType) : Boolean;
+    Procedure LogParams(Const AParams : TParams); virtual;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
     Procedure RegisterStatement(S : TCustomSQLStatement);
     Procedure UnRegisterStatement(S : TCustomSQLStatement);
@@ -1580,6 +1581,27 @@ begin
   Result:=(Assigned(FOnLog) or Assigned(GlobalDBLogHook)) and (EventType in LogEvents);
 end;
 
+procedure TSQLConnection.LogParams(const AParams: TParams);
+
+Var
+  S : String;
+  P : TParam;
+
+begin
+  if not LogEvent(detParamValue) then
+    Exit;
+  For P in AParams do
+    begin
+    if P.IsNull then
+      S:='<NULL>'
+    else if (P.DataType in ftBlobTypes) and  not (P.DataType in [ftMemo, ftFmtMemo,ftWideMemo]) then
+      S:='<BLOB>'
+    else
+      S:=P.AsString;
+    Log(detParamValue,Format(SLogParamValue,[P.Name,S]));
+    end;
+end;
+
 procedure TSQLConnection.Log(EventType: TDBEventType; const Msg: String);
 
 Var
@@ -2842,7 +2864,7 @@ end;
 procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind: TUpdateKind);
 
 Var
-  DoRefresh, RecordRefreshed : Boolean;
+  DoRefresh : Boolean;
   LastIDField : TField;
   S : TDataSetState;
 
@@ -2862,17 +2884,13 @@ begin
     //   TDataSet buffers are resynchronized at end of ApplyUpdates process
     S:=SetTempState(dsRefreshFields);
     try
-      RecordRefreshed:=False;
       if assigned(LastIDField) then
-        RecordRefreshed:=RefreshLastInsertID(LastIDField);
+        RefreshLastInsertID(LastIDField);
       if DoRefresh then
-        RecordRefreshed:=RefreshRecord(UpdateKind) or RecordRefreshed;
+        RefreshRecord(UpdateKind);
     finally
       RestoreState(S);
     end;
-    if RecordRefreshed then
-      // Active buffer is updated, move to record.
-      //ActiveBufferToRecord;
     end;
 end;
 
@@ -3278,6 +3296,9 @@ begin
   FProxy.Role:=Self.Role;
   FProxy.UserName:=Self.UserName;
   FProxy.FTransaction:=Self.Transaction;
+  FProxy.LogEvents:=Self.LogEvents;
+  FProxy.OnLog:=Self.OnLog;
+  FProxy.Options:=Self.Options;
   D:=GetConnectionDef(ConnectorType);
   D.ApplyParams(Params,FProxy);
   FProxy.Connected:=True;
