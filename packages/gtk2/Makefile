@@ -326,7 +326,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=gtk2
-override PACKAGE_VERSION=3.0.0rc1
+override PACKAGE_VERSION=3.0.1
 FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 ifdef OS_TARGET
 FPC_TARGETOPT+=--os=$(OS_TARGET)

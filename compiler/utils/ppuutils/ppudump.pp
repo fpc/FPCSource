@@ -43,7 +43,7 @@ uses
 
 const
   Title     = 'PPU-Analyser';
-  Copyright = 'Copyright (c) 1998-2015 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2013 by the Free Pascal Development Team';
 
 { verbosity }
   v_none           = $0;

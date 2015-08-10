@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fuse';
 {$endif ALLPACKAGES}
-    P.Version:='3.0.0rc1';
+    P.Version:='2.4.0-0';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

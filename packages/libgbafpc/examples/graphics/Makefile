@@ -326,7 +326,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=libgbafpc-graphics-examples
-override PACKAGE_VERSION=3.0.0rc1
+override PACKAGE_VERSION=3.0.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_DIRS+=ansi_console PCXView SimpleBGScroll
 endif
