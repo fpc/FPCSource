@@ -1098,6 +1098,7 @@ implementation
             objsym.offset:=0;
             objsym.size:=0;
           end;
+        ExtDefRec.Free;
         Result:=True;
       end;
 
