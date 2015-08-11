@@ -683,7 +683,7 @@ implementation
 *****************************************************************************}
 
     constructor TObjSymbol.create(AList:TFPHashObjectList;const AName:string);
-      begin;
+      begin
         inherited create(AList,AName);
         bind:=AB_EXTERNAL;
         typ:=AT_NONE;
