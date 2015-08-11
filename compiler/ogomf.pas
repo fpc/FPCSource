@@ -1106,6 +1106,7 @@ implementation
         PubDefRec: TOmfRecord_PUBDEF;
         PubDefElem: TOmfPublicNameElement;
         OldCount,NewCount,i: Integer;
+        basegroup: TObjSectionGroup;
         objsym: TObjSymbol;
         objsec: TOmfObjSection;
       begin
@@ -1121,6 +1122,10 @@ implementation
             PubDefRec.Free;
             exit;
           end;
+        if PubDefRec.BaseGroupIndex<>0 then
+          basegroup:=TObjSectionGroup(objdata.GroupsList[PubDefRec.BaseGroupIndex-1])
+        else
+          basegroup:=nil;
         if (PubDefRec.BaseSegmentIndex<0) or (PubDefRec.BaseSegmentIndex>objdata.ObjSectionList.Count) then
           begin
             InputError('Public symbol''s segment name index out of range');
@@ -1140,6 +1145,7 @@ implementation
             objsym:=objdata.CreateSymbol(PubDefElem.Name);
             objsym.bind:=AB_GLOBAL;
             objsym.typ:=AT_FUNCTION;
+            objsym.group:=basegroup;
             objsym.objsection:=objsec;
             objsym.offset:=PubDefElem.PublicOffset;
             objsym.size:=0;

@@ -162,6 +162,8 @@ interface
 
      TObjSectionOptions = set of TObjSectionOption;
 
+     TObjSectionGroup = class;
+
      TObjSymbol = class(TFPHashObject)
      public
        bind       : TAsmsymbind;
@@ -180,6 +182,8 @@ interface
        { Darwin asm is using indirect symbols resolving }
        indsymbol  : TObjSymbol;
 
+       { Used by the OMF object format and its complicated relocation records }
+       group: TObjSectionGroup;
 {$ifdef ARM}
        ThumbFunc : boolean;
 {$endif ARM}
@@ -219,8 +223,6 @@ interface
         function TargetName:TSymStr;
         property typ: TObjRelocationType read GetType write SetType;
      end;
-
-     TObjSectionGroup = class;
 
      TObjSection = class(TFPHashObject)
      private
