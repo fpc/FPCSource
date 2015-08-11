@@ -123,16 +123,19 @@ interface
       private
         FLNames: TOmfOrderedNameCollection;
         FExtDefs: TFPHashObjectList;
+        FPubDefs: TFPHashObjectList;
         FRawRecord: TOmfRawRecord;
 
         function ReadLNames(RawRec: TOmfRawRecord): Boolean;
         function ReadSegDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadGrpDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadExtDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
+        function ReadPubDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadLEDataAndFixups(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
 
         property LNames: TOmfOrderedNameCollection read FLNames;
         property ExtDefs: TFPHashObjectList read FExtDefs;
+        property PubDefs: TFPHashObjectList read FPubDefs;
       public
         constructor create;override;
         destructor destroy;override;
@@ -1098,6 +1101,53 @@ implementation
         Result:=True;
       end;
 
+    function TOmfObjInput.ReadPubDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
+      var
+        PubDefRec: TOmfRecord_PUBDEF;
+        PubDefElem: TOmfPublicNameElement;
+        OldCount,NewCount,i: Integer;
+        objsym: TObjSymbol;
+        objsec: TOmfObjSection;
+      begin
+        Result:=False;
+        PubDefRec:=TOmfRecord_PUBDEF.Create;
+        PubDefRec.PublicNames:=PubDefs;
+        OldCount:=PubDefs.Count;
+        PubDefRec.DecodeFrom(RawRec);
+        NewCount:=PubDefs.Count;
+        if (PubDefRec.BaseGroupIndex<0) or (PubDefRec.BaseGroupIndex>objdata.GroupsList.Count) then
+          begin
+            InputError('Public symbol''s group name index out of range');
+            PubDefRec.Free;
+            exit;
+          end;
+        if (PubDefRec.BaseSegmentIndex<0) or (PubDefRec.BaseSegmentIndex>objdata.ObjSectionList.Count) then
+          begin
+            InputError('Public symbol''s segment name index out of range');
+            PubDefRec.Free;
+            exit;
+          end;
+        if PubDefRec.BaseSegmentIndex=0 then
+          begin
+            InputError('Public symbol uses absolute addressing, which is not supported by this linker');
+            PubDefRec.Free;
+            exit;
+          end;
+        objsec:=TOmfObjSection(objdata.ObjSectionList[PubDefRec.BaseSegmentIndex-1]);
+        for i:=OldCount to NewCount-1 do
+          begin
+            PubDefElem:=TOmfPublicNameElement(PubDefs[i]);
+            objsym:=objdata.CreateSymbol(PubDefElem.Name);
+            objsym.bind:=AB_GLOBAL;
+            objsym.typ:=AT_FUNCTION;
+            objsym.objsection:=objsec;
+            objsym.offset:=PubDefElem.PublicOffset;
+            objsym.size:=0;
+          end;
+        PubDefRec.Free;
+        Result:=True;
+      end;
+
     function TOmfObjInput.ReadLEDataAndFixups(RawRec: TOmfRawRecord; objdata: TObjData): Boolean;
       var
         Is32Bit: Boolean;
@@ -1168,12 +1218,14 @@ implementation
         cobjdata:=TOmfObjData;
         FLNames:=TOmfOrderedNameCollection.Create;
         FExtDefs:=TFPHashObjectList.Create;
+        FPubDefs:=TFPHashObjectList.Create;
         FRawRecord:=TOmfRawRecord.Create;
       end;
 
     destructor TOmfObjInput.destroy;
       begin
         FRawRecord.Free;
+        FPubDefs.Free;
         FExtDefs.Free;
         FLNames.Free;
         inherited destroy;
@@ -1237,9 +1289,8 @@ implementation
               if not ReadExtDef(FRawRecord,objdata) then
                 exit;
             RT_PUBDEF,RT_PUBDEF32:
-              begin
-                {todo}
-              end;
+              if not ReadPubDef(FRawRecord,objdata) then
+                exit;
             RT_LEDATA,RT_LEDATA32:
               if not ReadLEDataAndFixups(FRawRecord,objdata) then
                 exit;
