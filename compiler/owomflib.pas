@@ -81,6 +81,8 @@ type
     FPageSize: Integer;
     procedure ReadLibrary;
     procedure ReadDictionary(DictionaryOffset: DWord; DictionarySizeInBlocks: Word);
+  protected
+    function GetPos: longint;override;
   public
     constructor create(const Aarfn:string;allow_nonar:boolean=false);
     destructor  destroy;override;
@@ -397,6 +399,11 @@ implementation
                 TOmfLibDictionaryEntry.create(LibSymbols,name,PageNum);
               end;
         end;
+    end;
+
+  function TOmfLibObjectReader.GetPos: longint;
+    begin
+      result:=inherited GetPos-CurrMemberPos;
     end;
 
   constructor TOmfLibObjectReader.create(const Aarfn: string; allow_nonar: boolean);

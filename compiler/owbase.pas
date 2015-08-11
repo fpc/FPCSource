@@ -66,6 +66,7 @@ type
     function readbuf:boolean;
   protected
     function getfilename : string;virtual;
+    function GetPos: longint;virtual;
   public
     constructor create;
     destructor  destroy;override;
@@ -76,6 +77,7 @@ type
     function  readarray(a:TDynamicArray;len:longint):boolean;
     property filename : string read getfilename;
     property size:longint read bufmax;
+    property Pos:longint read GetPos;
   end;
 
 implementation
@@ -308,6 +310,11 @@ end;
 function tobjectreader.getfilename : string;
   begin
     result:=ffilename;
+  end;
+
+function tobjectreader.GetPos: longint;
+  begin
+    Result:=bufidx;
   end;
 
 end.

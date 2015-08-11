@@ -75,6 +75,7 @@ type
     procedure ReadArchive;
   protected
     function getfilename:string;override;
+    function GetPos: longint;override;
   public
     constructor create(const Aarfn:string;allow_nonar:boolean=false);
     destructor  destroy;override;
@@ -354,6 +355,12 @@ implementation
         result:=inherited getfilename;
         if CurrMemberName<>'' then
           result:=result+'('+CurrMemberName+')';
+      end;
+
+
+    function tarobjectreader.GetPos: longint;
+      begin
+        result:=inherited GetPos-CurrMemberPos;
       end;
 
 
