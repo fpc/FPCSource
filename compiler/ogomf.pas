@@ -126,6 +126,8 @@ interface
         FPubDefs: TFPHashObjectList;
         FRawRecord: TOmfRawRecord;
 
+        function PeekNextRecordType: Byte;
+
         function ReadLNames(RawRec: TOmfRawRecord): Boolean;
         function ReadSegDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadGrpDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
@@ -950,6 +952,20 @@ implementation
                                TOmfObjInput
 ****************************************************************************}
 
+    function TOmfObjInput.PeekNextRecordType: Byte;
+      var
+        OldPos: LongInt;
+      begin
+        OldPos:=FReader.Pos;
+        if not FReader.read(Result, 1) then
+          begin
+            InputError('Unexpected end of file');
+            Result:=0;
+            exit;
+          end;
+        FReader.seek(OldPos);
+      end;
+
     function TOmfObjInput.ReadLNames(RawRec: TOmfRawRecord): Boolean;
       var
         LNamesRec: TOmfRecord_LNAMES;
@@ -1163,6 +1179,8 @@ implementation
         EnumeratedDataOffset: DWord;
         BlockLength: Integer;
         objsec: TOmfObjSection;
+        FixupRawRec: TOmfRawRecord;
+        Fixup: TOmfSubRecord_FIXUP;
       begin
         Result:=False;
         if not (RawRec.RecordType in [RT_LEDATA,RT_LEDATA32]) then
@@ -1215,7 +1233,36 @@ implementation
             exit;
           end;
         objsec.Data.write(RawRec.RawData[NextOfs],BlockLength);
-        {todo: read also the FIXUPP record that may follow}
+
+        { also read all the FIXUPP records that may follow }
+        while PeekNextRecordType in [RT_FIXUPP,RT_FIXUPP32] do
+          begin
+            FixupRawRec:=TOmfRawRecord.Create;
+            FixupRawRec.ReadFrom(FReader);
+            if not FRawRecord.VerifyChecksumByte then
+              begin
+                InputError('Invalid checksum in OMF record');
+                FixupRawRec.Free;
+                exit;
+              end;
+            NextOfs:=0;
+            Fixup:=TOmfSubRecord_FIXUP.Create;
+            Fixup.Is32Bit:=FixupRawRec.RecordType=RT_FIXUPP32;
+            while NextOfs<(FixupRawRec.RecordLength-1) do
+              begin
+                NextOfs:=Fixup.ReadAt(FixupRawRec,NextOfs);
+                if Fixup.FrameDeterminedByThread or Fixup.TargetDeterminedByThread then
+                  begin
+                    InputError('Fixups determined by thread not supported');
+                    Fixup.Free;
+                    FixupRawRec.Free;
+                    exit;
+                  end;
+                {todo: convert the fixup to a TOmfRelocation }
+              end;
+            Fixup.Free;
+            FixupRawRec.Free;
+          end;
         Result:=True;
       end;
 
@@ -1301,9 +1348,15 @@ implementation
             RT_LEDATA,RT_LEDATA32:
               if not ReadLEDataAndFixups(FRawRecord,objdata) then
                 exit;
+            RT_LIDATA,RT_LIDATA32:
+              begin
+                InputError('LIDATA records are not supported');
+                exit;
+              end;
             RT_FIXUPP,RT_FIXUPP32:
               begin
-                {todo}
+                InputError('FIXUPP record is invalid, because it does not follow a LEDATA or LIDATA record');
+                exit;
               end;
             RT_MODEND,RT_MODEND32:
               begin
