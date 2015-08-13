@@ -122,6 +122,9 @@ interface
          procedure DefaultLinkScript;virtual;abstract;
          procedure ScriptAddGenericSections(secnames:string);
          procedure ScriptAddSourceStatements(AddSharedAsStatic:boolean);virtual;
+         function GetCodeSize(aExeOutput: TExeOutput): QWord;virtual;
+         function GetDataSize(aExeOutput: TExeOutput): QWord;virtual;
+         function GetBssSize(aExeOutput: TExeOutput): QWord;virtual;
       public
          IsSharedLibrary : boolean;
          UseStabs : boolean;
@@ -983,6 +986,30 @@ Implementation
       end;
 
 
+    function TInternalLinker.GetCodeSize(aExeOutput: TExeOutput): QWord;
+      begin
+        Result:=aExeOutput.findexesection('.text').size;
+      end;
+
+
+    function TInternalLinker.GetDataSize(aExeOutput: TExeOutput): QWord;
+      begin
+        Result:=aExeOutput.findexesection('.data').size;
+      end;
+
+
+    function TInternalLinker.GetBssSize(aExeOutput: TExeOutput): QWord;
+      var
+        bsssec: TExeSection;
+      begin
+        bsssec:=aExeOutput.findexesection('.bss');
+        if assigned(bsssec) then
+          Result:=bsssec.size
+        else
+          Result:=0;
+      end;
+
+
     procedure TInternalLinker.ParseLdScript(src:TScriptLexer);
       var
         asneeded: boolean;
@@ -1420,7 +1447,6 @@ Implementation
         myexit;
       var
         bsssize : aword;
-        bsssec  : TExeSection;
         dbgname : TCmdStr;
       begin
         result:=false;
@@ -1500,14 +1526,9 @@ Implementation
         { Post check that everything was handled }
         ParseScript_PostCheck;
 
-{ TODO: fixed section names}
-        status.codesize:=exeoutput.findexesection('.text').size;
-        status.datasize:=exeoutput.findexesection('.data').size;
-        bsssec:=exeoutput.findexesection('.bss');
-        if assigned(bsssec) then
-          bsssize:=bsssec.size
-        else
-          bsssize:=0;
+        status.codesize:=GetCodeSize(exeoutput);
+        status.datasize:=GetDataSize(exeoutput);
+        bsssize:=GetBssSize(exeoutput);
 
         { Executable info }
         Message1(execinfo_x_codesize,tostr(status.codesize));
