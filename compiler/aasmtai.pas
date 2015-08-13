@@ -576,7 +576,7 @@ interface
           is_global : boolean;
           sym       : tasmsymbol;
           size      : asizeint;
-          constructor Create(const _name : string;_size : aint);
+          constructor Create(const _name : string;_size : asizeint);
           constructor Create_global(const _name : string;_size : asizeint);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1248,7 +1248,7 @@ implementation
                              TAI_DATABLOCK
  ****************************************************************************}
 
-    constructor tai_datablock.Create(const _name : string;_size : aint);
+    constructor tai_datablock.Create(const _name : string;_size : asizeint);
 
       begin
          inherited Create;
