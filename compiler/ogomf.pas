@@ -133,6 +133,7 @@ interface
         function ReadGrpDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadExtDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadPubDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
+        function ReadModEnd(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadLEDataAndFixups(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
 
         property LNames: TOmfOrderedNameCollection read FLNames;
@@ -1171,6 +1172,49 @@ implementation
         Result:=True;
       end;
 
+    function TOmfObjInput.ReadModEnd(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
+      var
+        ModEndRec: TOmfRecord_MODEND;
+        objsym: TObjSymbol;
+        objsec: TOmfObjSection;
+      begin
+        Result:=False;
+        ModEndRec:=TOmfRecord_MODEND.Create;
+        ModEndRec.DecodeFrom(RawRec);
+        if ModEndRec.HasStartAddress then
+          begin
+            if not ModEndRec.LogicalStartAddress then
+              begin
+                InputError('Physical start address not supported');
+                ModEndRec.Free;
+                exit;
+              end;
+            if not (ModEndRec.TargetMethod in [ftmSegmentIndex,ftmSegmentIndexNoDisp]) then
+              begin
+                InputError('Target method for start address other than "Segment Index" is not supported');
+                ModEndRec.Free;
+                exit;
+              end;
+            if (ModEndRec.TargetDatum<1) or (ModEndRec.TargetDatum>objdata.ObjSectionList.Count) then
+              begin
+                InputError('Segment name index for start address out of range');
+                ModEndRec.Free;
+                exit;
+              end;
+            objsec:=TOmfObjSection(objdata.ObjSectionList[ModEndRec.TargetDatum-1]);
+
+            objsym:=objdata.CreateSymbol('..start');
+            objsym.bind:=AB_GLOBAL;
+            objsym.typ:=AT_FUNCTION;
+            //objsym.group:=basegroup;
+            objsym.objsection:=objsec;
+            objsym.offset:=ModEndRec.TargetDisplacement;
+            objsym.size:=0;
+          end;
+        ModEndRec.Free;
+        Result:=True;
+      end;
+
     function TOmfObjInput.ReadLEDataAndFixups(RawRec: TOmfRawRecord; objdata: TObjData): Boolean;
       var
         Is32Bit: Boolean;
@@ -1359,9 +1403,8 @@ implementation
                 exit;
               end;
             RT_MODEND,RT_MODEND32:
-              begin
-                {todo}
-              end;
+              if not ReadModEnd(FRawRecord,objdata) then
+                exit;
             else
               begin
                 InputError('Unsupported OMF record type $'+HexStr(FRawRecord.RecordType,2));

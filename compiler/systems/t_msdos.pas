@@ -440,6 +440,7 @@ begin
     if s<>'' then
       LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
   end;
+  LinkScript.Concat('ENTRYNAME ..start');
 end;
 
 constructor TInternalLinkerMsDos.create;
