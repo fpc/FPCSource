@@ -76,13 +76,13 @@ type
   protected
     function getfilename:string;override;
     function GetPos: longint;override;
+    function GetIsArchive: boolean; override;
   public
-    constructor create(const Aarfn:string;allow_nonar:boolean=false);
+    constructor createAr(const Aarfn:string;allow_nonar:boolean=false);override;
     destructor  destroy;override;
     function  openfile(const fn:string):boolean;override;
     procedure closefile;override;
     procedure seek(len:longint);override;
-    property isarchive: boolean read isar;
   end;
 
 
@@ -318,7 +318,7 @@ implementation
 *****************************************************************************}
 
 
-    constructor tarobjectreader.create(const Aarfn:string;allow_nonar:boolean);
+    constructor tarobjectreader.createAr(const Aarfn:string;allow_nonar:boolean);
       var
         magic:array[0..sizeof(armagic)-1] of char;
       begin
@@ -361,6 +361,12 @@ implementation
     function tarobjectreader.GetPos: longint;
       begin
         result:=inherited GetPos-CurrMemberPos;
+      end;
+
+
+    function tarobjectreader.GetIsArchive: boolean;
+      begin
+        Result:=isar;
       end;
 
 

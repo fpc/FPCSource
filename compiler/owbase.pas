@@ -67,8 +67,10 @@ type
   protected
     function getfilename : string;virtual;
     function GetPos: longint;virtual;
+    function GetIsArchive: boolean;virtual;
   public
     constructor create;
+    constructor createAr(const Aarfn:string;allow_nonar:boolean=false);virtual;
     destructor  destroy;override;
     function  openfile(const fn:string):boolean;virtual;
     procedure closefile;virtual;
@@ -78,7 +80,10 @@ type
     property filename : string read getfilename;
     property size:longint read bufmax;
     property Pos:longint read GetPos;
+    property IsArchive: boolean read GetIsArchive;
   end;
+
+  tobjectreaderclass = class of tobjectreader;
 
 implementation
 
@@ -241,6 +246,12 @@ begin
 end;
 
 
+constructor tobjectreader.createAr(const Aarfn:string;allow_nonar:boolean=false);
+begin
+  InternalError(2015081401);
+end;
+
+
 function tobjectreader.openfile(const fn:string):boolean;
 begin
   openfile:=false;
@@ -315,6 +326,12 @@ function tobjectreader.getfilename : string;
 function tobjectreader.GetPos: longint;
   begin
     Result:=bufidx;
+  end;
+
+
+function tobjectreader.GetIsArchive: boolean;
+  begin
+    Result:=false;
   end;
 
 end.

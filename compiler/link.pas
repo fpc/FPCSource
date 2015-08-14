@@ -33,7 +33,8 @@ interface
       fmodule,
       globtype,
       ldscript,
-      ogbase;
+      ogbase,
+      owbase;
 
     Type
       TLinkerInfo=record
@@ -93,6 +94,7 @@ interface
       private
          FCExeOutput : TExeOutputClass;
          FCObjInput  : TObjInputClass;
+         FCArObjectReader : TObjectReaderClass;
          { Libraries }
          FStaticLibraryList : TFPObjectList;
          FImportLibraryList : TFPHashObjectList;
@@ -115,6 +117,7 @@ interface
          linkscript : TCmdStrList;
          ScriptCount : longint;
          IsHandled : PBooleanArray;
+         property CArObjectReader:TObjectReaderClass read FCArObjectReader write FCArObjectReader;
          property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
          property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
          property StaticLibraryList:TFPObjectList read FStaticLibraryList;
@@ -159,7 +162,7 @@ Implementation
 {$endif hasUnix}
       script,globals,verbose,comphook,ppu,fpccrc,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      owbase,owar,ogmap;
+      ogmap;
 
     var
       CLinker : array[tlink] of TLinkerClass;
@@ -1094,7 +1097,7 @@ Implementation
 
     procedure TInternalLinker.Load_ReadStaticLibrary(const para:TCmdStr;asneededflag:boolean);
       var
-        objreader : TArObjectReader;
+        objreader : TObjectReader;
         objinput: TObjInput;
         objdata: TObjData;
         ScriptLexer: TScriptLexer;
@@ -1105,7 +1108,7 @@ Implementation
         if copy(ExtractFileName(para),1,6)='libimp' then
           exit;
         Comment(V_Tried,'Opening library '+para);
-        objreader:=TArObjectreader.create(para,true);
+        objreader:=CArObjectreader.createAr(para,true);
         if ErrorCount>0 then
           exit;
         if objreader.isarchive then

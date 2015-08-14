@@ -37,7 +37,7 @@ implementation
        globtype,globals,systems,verbose,script,
        fmodule,i_msdos,
        link,aasmbase,cpuinfo,
-       omfbase,ogomf;
+       omfbase,ogomf,owomflib;
 
     type
       { Borland TLINK support }
@@ -424,6 +424,7 @@ end;
 constructor TInternalLinkerMsDos.create;
 begin
   inherited create;
+  CArObjectReader:=TOmfLibObjectReader;
   CExeOutput:=TMZExeOutput;
   CObjInput:=TOmfObjInput;
 end;

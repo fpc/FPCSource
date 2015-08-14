@@ -933,6 +933,7 @@ implementation
     constructor TInternalLinkerWin.Create;
       begin
         inherited Create;
+        CArObjectReader:=TArObjectReader;
         CExeoutput:=TPECoffexeoutput;
         CObjInput:=TPECoffObjInput;
       end;

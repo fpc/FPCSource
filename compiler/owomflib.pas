@@ -83,13 +83,13 @@ type
     procedure ReadDictionary(DictionaryOffset: DWord; DictionarySizeInBlocks: Word);
   protected
     function GetPos: longint;override;
+    function GetIsArchive: boolean;override;
   public
-    constructor create(const Aarfn:string;allow_nonar:boolean=false);
+    constructor createAr(const Aarfn:string;allow_nonar:boolean=false);override;
     destructor  destroy;override;
     function  openfile(const fn:string):boolean;override;
     procedure closefile;override;
     procedure seek(len:longint);override;
-    property isarchive: boolean read islib;
   end;
 
 implementation
@@ -406,7 +406,12 @@ implementation
       result:=inherited GetPos-CurrMemberPos;
     end;
 
-  constructor TOmfLibObjectReader.create(const Aarfn: string; allow_nonar: boolean);
+  function TOmfLibObjectReader.GetIsArchive: boolean;
+    begin
+      result:=islib;
+    end;
+
+  constructor TOmfLibObjectReader.createAr(const Aarfn: string; allow_nonar: boolean);
     var
       RecType: Byte;
     begin

@@ -82,7 +82,7 @@ implementation
     aasmbase,aasmtai,aasmcpu,cpubase,
     cgbase,cgobj,cgutils,ogbase,ncgutil,
     comprsrc,
-    ogelf,
+    ogelf,owar,
     rescmn, i_linux
     ;
 
@@ -1435,6 +1435,7 @@ begin
   SetupLibrarySearchPath;
   SetupDynlinker(dynlinker,libctype);
 
+  CArObjectReader:=TArObjectReader;
   CExeOutput:=ElfExeOutputClass;
   CObjInput:=TElfObjInput;
 
