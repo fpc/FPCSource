@@ -37,7 +37,7 @@ implementation
        globtype,globals,systems,verbose,script,
        fmodule,i_msdos,
        link,aasmbase,cpuinfo,
-       omfbase,ogomf,owomflib;
+       omfbase,ogbase,ogomf,owomflib;
 
     type
       { Borland TLINK support }
@@ -75,6 +75,9 @@ implementation
 
       TInternalLinkerMsDos=class(tinternallinker)
       protected
+        function GetCodeSize(aExeOutput: TExeOutput): QWord;override;
+        function GetDataSize(aExeOutput: TExeOutput): QWord;override;
+        function GetBssSize(aExeOutput: TExeOutput): QWord;override;
         procedure DefaultLinkScript;override;
       public
         constructor create;override;
@@ -393,6 +396,24 @@ end;
 {****************************************************************************
                                TInternalLinkerMsDos
 ****************************************************************************}
+
+function TInternalLinkerMsDos.GetCodeSize(aExeOutput: TExeOutput): QWord;
+begin
+  { TODO: implement }
+  Result:=0;
+end;
+
+function TInternalLinkerMsDos.GetDataSize(aExeOutput: TExeOutput): QWord;
+begin
+  { TODO: implement }
+  Result:=0;
+end;
+
+function TInternalLinkerMsDos.GetBssSize(aExeOutput: TExeOutput): QWord;
+begin
+  { TODO: implement }
+  Result:=0;
+end;
 
 procedure TInternalLinkerMsDos.DefaultLinkScript;
 var
