@@ -222,9 +222,9 @@ const
   DWT_BASE       = $E0001000;         (*!< DWT Base Address                    *)
   TPI_BASE       = $E0040000;         (*!< TPI Base Address                    *)
   CoreDebug_BASE = $E000EDF0;         (*!< Core Debug Base Address             *)
-  SysTick_BASE   = SCS_BASE + $001;   (*!< SysTick Base Address                *)
-  NVIC_BASE      = SCS_BASE + $010;   (*!< NVIC Base Address                   *)
-  SCB_BASE       = SCS_BASE + $0D0;   (*!< System Control Block Base Address   *)
+  SysTick_BASE   = SCS_BASE + $0010;  (*!< SysTick Base Address                *)
+  NVIC_BASE      = SCS_BASE + $0100;  (*!< NVIC Base Address                   *)
+  SCB_BASE       = SCS_BASE + $0D00;  (*!< System Control Block Base Address   *)
 
 var
   SCnSCB:    SCnSCB_Type absolute SCS_BASE;       (*!< System control Register not in SCB  *)
