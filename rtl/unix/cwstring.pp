@@ -122,11 +122,12 @@ const
   CODESET=49;
   LC_ALL = 6;
 {$elseif defined(beos)}
-  {$warning check correct value for BeOS}
-  CODESET=49;
   {$ifdef haiku}
+  CODESET= 0; // Checked for Haiku
   LC_ALL = 0; // Checked for Haiku
   {$else}
+  {$warning check correct value for BeOS}
+  CODESET=49;
   LC_ALL = 6; // Checked for BeOS
   {$endif}
   ESysEILSEQ = EILSEQ;
