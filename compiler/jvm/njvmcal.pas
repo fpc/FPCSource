@@ -171,6 +171,9 @@ implementation
         implicitptrpara,
         verifyout: boolean;
       begin
+        { the original version doesn't do anything for garbage collected
+          platforms, but who knows in the future }
+        inherited;
         { implicit pointer types are already pointers -> no need to stuff them
           in an array to pass them by reference (except in case of a formal
           parameter, in which case everything is passed in an array since the

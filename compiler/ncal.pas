@@ -216,7 +216,7 @@ interface
             finalization code }
           fparainit,
           fparacopyback: tnode;
-          procedure handlemanagedbyrefpara(orgparadef: tdef);virtual;abstract;
+          procedure handlemanagedbyrefpara(orgparadef: tdef);virtual;
           { on some targets, value parameters that are passed by reference must
             be copied to a temp location by the caller (and then a reference to
             this temp location must be passed) }
@@ -612,6 +612,61 @@ implementation
                              TCALLPARANODE
  ****************************************************************************}
 
+    procedure tcallparanode.handlemanagedbyrefpara(orgparadef: tdef);
+      var
+        temp: ttempcreatenode;
+        npara: tcallparanode;
+        paraaddrtype: tdef;
+      begin
+        { release memory for reference counted out parameters }
+        if (parasym.varspez=vs_out) and
+           is_managed_type(orgparadef) and
+           (not is_open_array(resultdef) or
+            is_managed_type(orgparadef)) and
+           not(target_info.system in systems_garbage_collected_managed_types) then
+          begin
+            paraaddrtype:=cpointerdef.getreusable(orgparadef);
+            { create temp with address of the parameter }
+            temp:=ctempcreatenode.create(
+              paraaddrtype,paraaddrtype.size,tt_persistent,true);
+            { put this code in the init/done statement of the call node, because
+              we should finalize all out parameters before other parameters
+              are evaluated (in case e.g. a managed out parameter is also
+              passed by value, we must not pass the pointer to the now possibly
+              freed data as the value parameter, but the finalized/nil value }
+            aktcallnode.add_init_statement(temp);
+            aktcallnode.add_init_statement(
+              cassignmentnode.create(
+                ctemprefnode.create(temp),
+                caddrnode.create(left)));
+            if not is_open_array(resultdef) or
+               not is_managed_type(tarraydef(resultdef).elementdef) then
+              { finalize the entire parameter }
+              aktcallnode.add_init_statement(
+                cnodeutils.finalize_data_node(
+                  cderefnode.create(ctemprefnode.create(temp))))
+            else
+              begin
+                { passing a (part of, in case of slice) dynamic array as an
+                  open array -> finalize the dynamic array contents, not the
+                  dynamic array itself }
+                npara:=ccallparanode.create(
+                         { array length = high + 1 }
+                         caddnode.create(addn,third.getcopy,genintconstnode(1)),
+                       ccallparanode.create(caddrnode.create_internal
+                          (crttinode.create(tstoreddef(tarraydef(resultdef).elementdef),initrtti,rdt_normal)),
+                       ccallparanode.create(caddrnode.create_internal(
+                          cderefnode.create(ctemprefnode.create(temp))),nil)));
+                aktcallnode.add_init_statement(
+                  ccallnode.createintern('fpc_finalize_array',npara));
+              end;
+            left:=cderefnode.create(ctemprefnode.create(temp));
+            firstpass(left);
+            aktcallnode.add_done_statement(ctempdeletenode.create(temp));
+          end;
+      end;
+
+
     procedure tcallparanode.copy_value_by_ref_para;
       var
         initstat,
@@ -945,7 +1000,6 @@ implementation
           get_paratype;
 
         if assigned(parasym) and
-           (target_info.system in systems_managed_vm) and
            (parasym.varspez in [vs_var,vs_out,vs_constref]) and
            (parasym.vardef.typ<>formaldef) and
            { for record constructors }
@@ -3803,18 +3857,8 @@ implementation
               them from keeping on chasing eachother's tail }
             while assigned(hp) do
               begin
-                { ensure that out parameters are finalised before other
-                  parameters are processed, so that in case it has a reference
-                  count of one and is also passed as a value parameter, the
-                  value parameter does not get passed a pointer to a freed
-                  memory block }
-                if (hpcurr.parasym.varspez=vs_out) and
-                   is_managed_type(hpcurr.parasym.vardef) then
-                  break;
                 if paramanager.use_fixed_stack and
-                   hpcurr.contains_stack_tainting_call_cached and
-                   not((hp.parasym.varspez=vs_out) and
-                       is_managed_type(hp.parasym.vardef)) then
+                   hpcurr.contains_stack_tainting_call_cached then
                   break;
                 case currloc of
                   LOC_REFERENCE :

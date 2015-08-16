@@ -1,4 +1,4 @@
- {
+{
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for call nodes
@@ -282,29 +282,6 @@ implementation
              secondpass(left);
 
              hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
-
-             { release memory for refcnt out parameters }
-             if (parasym.varspez=vs_out) and
-                is_managed_type(left.resultdef) and
-                not(target_info.system in systems_garbage_collected_managed_types) then
-               begin
-                 hlcg.location_get_data_ref(current_asmdata.CurrAsmList,left.resultdef,left.location,href,false,sizeof(pint));
-                 if is_open_array(resultdef) then
-                   begin
-                     { if elementdef is not managed, omit fpc_decref_array
-                       because it won't do anything anyway }
-                     if is_managed_type(tarraydef(resultdef).elementdef) then
-                       begin
-                         if third=nil then
-                           InternalError(201103063);
-                         secondpass(third);
-                         hlcg.g_array_rtti_helper(current_asmdata.CurrAsmList,tarraydef(resultdef).elementdef,
-                           href,third.location,'fpc_finalize_array');
-                       end;
-                   end
-                 else
-                   hlcg.g_finalize(current_asmdata.CurrAsmList,left.resultdef,href)
-               end;
 
              paramanager.createtempparaloc(current_asmdata.CurrAsmList,aktcallnode.procdefinition.proccalloption,parasym,not followed_by_stack_tainting_call_cached,tempcgpara);
 
