@@ -1758,7 +1758,7 @@ implementation
         { pass_1, while the the typeinfo is already required after the          }
         { typecheck pass for simplify purposes (not yet perfect, because the    }
         { statementnodes themselves are not typechecked this way)               }
-        typecheckpass(n);
+        firstpass(n);
         addstatement(lastinitstatement,n);
       end;
 
@@ -1772,7 +1772,7 @@ implementation
         else
           lastdonestatement:=laststatement(callcleanupblock);
         { see comments in add_init_statement }
-        typecheckpass(n);
+        firstpass(n);
         addstatement(lastdonestatement,n);
       end;
 
