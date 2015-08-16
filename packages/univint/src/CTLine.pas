@@ -7,6 +7,7 @@
  }
 {  Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -575,13 +576,12 @@ function CTLineGetTrailingWhitespaceWidth( line: CTLineRef ): Float64; external 
                 The line that you want to calculate the image bounds for.
 
     @param      context
-                The context which the image bounds will be calculated for. This
-                is required because the context could have settings in it that
-                can cause changes in the image bounds.
+                The context which the image bounds will be calculated for or NULL,
+                in which case the bounds are relative to CGPointZero.
 
     @result     A rectangle that tightly encloses the paths of the line's glyphs,
                 which will be translated by the supplied context's text position.
-                If the line or context is invalid, CGRectNull will be returned.
+                If the line is invalid, CGRectNull will be returned.
 
     @seealso    CTLineGetTypographicBounds
     @seealso    CTLineGetBoundsWithOptions

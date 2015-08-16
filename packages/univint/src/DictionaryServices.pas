@@ -4,7 +4,6 @@
      
 	Copyright (c) 2007 Apple Inc. All rights reserved.
 }
-{	 Pascal Translation : Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308

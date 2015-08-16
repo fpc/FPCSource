@@ -6,8 +6,6 @@
  
      Copyright:  © 1985-2011 by Apple Inc., all rights reserved.
 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -209,6 +207,7 @@ uses MacTypes,MixedMode,TextCommon,Script;
 {$ifc TARGET_OS_MAC}
 
 {$ALIGN POWER}
+
 
 {
 

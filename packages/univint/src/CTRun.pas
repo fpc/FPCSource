@@ -7,6 +7,7 @@
  }
 {  Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -579,9 +580,8 @@ function CTRunGetTypographicBounds( run: CTRunRef; range: CFRange; ascent: CGFlo
 				The run that you want to calculate the image bounds for.
 
 	@param		context
-				The context which the image bounds will be calculated for. This
-				is required because the context could have settings in it that
-				can cause changes in the image bounds.
+				The context which the image bounds will be calculated for or NULL,
+                in which case the bounds are relative to CGPointZero.
 
 	@param		range
 				The portion of the run which to measure. If the length of the
@@ -591,8 +591,8 @@ function CTRunGetTypographicBounds( run: CTRunRef; range: CFRange; ascent: CGFlo
 	@result		A rect that tightly encloses the paths of the run's glyphs. The
 				rect origin will match the drawn position of the requested range;
 				that is, it will be translated by the supplied context's text
-				position and the positions of the individual glyphs. If the run,
-				context, or range is invalid, CGRectNull will be returned.
+				position and the positions of the individual glyphs. If the run
+                or range is invalid, CGRectNull will be returned.
 
 	@seealso	CTRunGetTypographicBounds
 }

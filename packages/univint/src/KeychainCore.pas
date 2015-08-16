@@ -11,8 +11,6 @@
                      http://bugs.freepascal.org
  
 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{       Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -472,6 +470,7 @@ const
  *    Non-Carbon CFM:   in KeychainLib 1.0 and later
  }
 function KCGetKeychainManagerVersion( var returnVers: UInt32 ): OSStatus; external name '_KCGetKeychainManagerVersion';
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_6,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$ifc TARGET_RT_MAC_CFM}

@@ -7,7 +7,6 @@
  
      Copyright:  © 1987-2011 by Apple Inc. All rights reserved.
 }
-{      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -2049,7 +2048,6 @@ procedure ldtox80((*const*) var x: LongDouble; var x80: extended80); external na
 
 {$endc}
 
-{$ALIGN MAC68K}
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 

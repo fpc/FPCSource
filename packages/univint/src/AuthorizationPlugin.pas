@@ -22,6 +22,7 @@
  }
 {  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, August 2015 }
 
 {
     Modified for use with Free Pascal
@@ -375,7 +376,10 @@ const
     The value is matched to the definition in this file.
 }
 const
-	kAuthorizationPluginInterfaceVersion = 0;
+	kAuthorizationPluginInterfaceVersion0 = 0;
+	kAuthorizationPluginInterfaceVersion1 = 1; { new in OS X 10.9 }
+
+	kAuthorizationPluginInterfaceVersion = kAuthorizationPluginInterfaceVersion1;
 
 {!
     @enum
@@ -403,7 +407,7 @@ const
     @field GetSessionId     Read SessionId.
 }
 type
-	AuthorizationCallbacks = record
+	AuthorizationCallbacks0 = record
 { Engine callback version. }
 		version: UInt32;
 
@@ -450,6 +454,66 @@ type
       						   var outSessionId : AuthorizationSessionId) : OSStatus;
 	end;
 
+	AuthorizationCallbacks1 = record
+{ Engine callback version. }
+		version: UInt32;
+
+    { Set a result after a call to AuthorizationSessionInvoke. }
+{    OSStatus (*SetResult)(AuthorizationEngineRef inEngine, AuthorizationResult inResult); }
+	 SetResult : function (inEngine : AuthorizationEngineRef; inResult : AuthorizationResult) : OSStatus;
+
+    { Request authorization engine to interrupt all mechamisms invoked after 
+        this mechamism has called SessionSetResult and then call 
+        AuthorizationSessionInvoke again. }
+     RequestInterrupt : function (inEngine : AuthorizationEngineRef) : OSStatus;
+     
+    { Respond to the Deactivate request. }
+	 DidDeactivate : function (inEngine : AuthorizationEngineRef) : OSStatus;
+
+    { Read value from context.  AuthorizationValue does not own data. }
+        GetContextValue : function (inEngine			: AuthorizationEngineRef;
+        							inKey				: AuthorizationString;
+        							var outContextFlags : AuthorizationContextFlags;
+        							var outValue		: AuthorizationValuePtr) : OSStatus;
+
+    { Write value to context.  AuthorizationValue and data are copied. }
+	 SetContextValue : function (inEngine 	: AuthorizationEngineRef;
+	 							 inKey		: AuthorizationString;
+	 							 inContextFlags	: AuthorizationContextFlags;
+	 							 inValue		: AuthorizationValuePtr) : OSStatus;
+
+    { Read value from hints. AuthorizationValue does not own data. }
+	GetHintValue : function (inEngine		: AuthorizationEngineRef;
+							 inKey			: AuthorizationString;
+							 var outValue	: AuthorizationValuePtr) : OSStatus;
+							 
+    { Write value to hints.  AuthorizationValue and data are copied. }
+	SetHintValue : function (inEngine	: AuthorizationEngineRef;
+							 inKey		: AuthorizationString;
+							 inValue	: AuthorizationValuePtr) : OSStatus;
+							 
+    { Read arguments passed.  AuthorizationValueVector does not own data. }
+	GetArguments : function (inEngine	 		: AuthorizationEngineRef;
+							 var outArguments	: AuthorizationValueVectorPtr) : OSStatus;
+							 
+    { Read SessionId. }
+      GetSessionId : function (inEngine			: AuthorizationEngineRef;
+      						   var outSessionId : AuthorizationSessionId) : OSStatus;
+
+    { Read value from hints. AuthorizationValue does not own data. }
+  GetImmutableHintValue: function (inEngine: AuthorizationEngineRef;
+                     inKey: AuthorizationString;
+                     var outValue: AuthorizationValuePtr): OSStatus; 
+
+	end;
+	
+	{ support both interface version 0 and 1 }
+	AuthorizationCallbacks = record
+	  case byte of
+	    0: (version0: AuthorizationCallbacks0);
+	    1: (version1: AuthorizationCallbacks1);
+	end;
+	
 	AuthorizationCallbacksPtr = ^AuthorizationCallbacks;
 
 {!

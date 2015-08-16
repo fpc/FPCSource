@@ -2,11 +2,10 @@
      File:       CarbonCore/HFSVolumes.h
  
      Contains:   On-disk data structures for HFS and HFS Plus volumes.
+                 The contents of this header file are deprecated.
  
      Copyright:  © 1984-2011 by Apple Inc. All rights reserved.
 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308

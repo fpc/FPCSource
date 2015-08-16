@@ -7,6 +7,7 @@
  }
 {  Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -334,7 +335,7 @@ function CTTypesetterCreateWithAttributedStringAndOptions( strng: CFAttributedSt
 				portion of range is set to 0, then the typesetter will continue
 				to add glyphs to the line until it runs out of characters in the
 				string. The location and length of the range must be within the
-				bounds of the string, othewise the call will fail.
+				bounds of the string, otherwise the call will fail.
 
 	@param		offset
 				The line position offset.

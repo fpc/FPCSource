@@ -3,15 +3,13 @@
  
      Contains:   Public interfaces for LaunchServices.framework
  
-     Copyright:  Copyright 2003-2009 by Apple Inc., all rights reserved.
+     Copyright:  (c) 2003-2012 by Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
  
                      http://bugs.freepascal.org
 }
-{	 Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
-{	 Updated Pascal Translation: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 
 
 {
@@ -294,7 +292,7 @@ type
  *      launch the document. Can be NULL.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -331,7 +329,7 @@ function LSOpenFSRef( const (*var*) inRef: FSRef; outLaunchedRef: FSRefPtr { can
  *      CALLER MUST EVENTUALLY RELEASE THE RETURNED URL REFERENCE.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -362,7 +360,7 @@ function LSOpenCFURLRef( inURL: CFURLRef; outLaunchedURL: CFURLRefPtr { can be N
  *      launch the document. Can be NULL.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -395,7 +393,7 @@ function LSOpenFromRefSpec( const (*var*) inLaunchSpec: LSLaunchFSRefSpec; outLa
  *      CALLER MUST EVENTUALLY RELEASE THE RETURNED URL REFERENCE.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -455,7 +453,7 @@ type
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -497,7 +495,7 @@ function LSOpenApplication( const (*var*) appParams: LSApplicationParameters; ou
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -542,7 +540,7 @@ function LSOpenItemsWithRole( const (*var*) inItems: FSRef; inItemCount: CFIndex
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }

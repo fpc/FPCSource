@@ -1,10 +1,6 @@
 {	CFPlugIn.h
-	Copyright (c) 1999-2012, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2013, Apple Inc.  All rights reserved.
 }
-{   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
-{   Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca, October 2009 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -294,9 +290,14 @@ type
 	CFPlugInInstanceDeallocateInstanceDataFunction = procedure( instanceData: UnivPtr );
 
 function CFPlugInInstanceGetInterfaceFunctionTable( instance: CFPlugInInstanceRef; interfaceName: CFStringRef; var ftbl: UnivPtr ): Boolean; external name '_CFPlugInInstanceGetInterfaceFunctionTable';
-function CFPlugInInstanceGetFactoryName( instance: CFPlugInInstanceRef ): CFStringRef; external name '_CFPlugInInstanceGetFactoryName';
+
+{ This function returns a retained object on 10.8 or later. }
+function CFPlugInInstanceGetFactoryName( instance: CFPlugInInstanceRef ): CFStringRef; external name '_CFPlugInInstanceGetFactoryName'; {CF_RETURNS_RETAINED; }
+
 function CFPlugInInstanceGetInstanceData( instance: CFPlugInInstanceRef ): UnivPtr; external name '_CFPlugInInstanceGetInstanceData';
+
 function CFPlugInInstanceGetTypeID: CFTypeID; external name '_CFPlugInInstanceGetTypeID';
+
 function CFPlugInInstanceCreateWithInstanceDataSize( allocator: CFAllocatorRef; instanceDataSize: CFIndex; deallocateInstanceFunction: CFPlugInInstanceDeallocateInstanceDataFunction; factoryName: CFStringRef; getInterfaceFunction: CFPlugInInstanceGetInterfaceFunction ): CFPlugInInstanceRef; external name '_CFPlugInInstanceCreateWithInstanceDataSize';
 
 

@@ -1,15 +1,15 @@
 {
- * Copyright (c) 2000-2004 Apple Computer, Inc. All Rights Reserved.
- * 
+ * Copyright (c) 2000-2013 Apple Inc. All Rights Reserved.
+ *
  * @APPLE_LICENSE_HEADER_START@
- * 
+ *
  * This file contains Original Code and/or Modifications of Original Code
  * as defined in and that are subject to the Apple Public Source License
  * Version 2.0 (the 'License'). You may not use this file except in
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -17,13 +17,14 @@
  * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
  * Please see the License for the specific language governing rights and
  * limitations under the License.
- * 
+ *
  * @APPLE_LICENSE_HEADER_END@
  *
  * cssmapple.h -- CSSM features specific to Apple's Implementation
  }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, August 2015 }
 
 {
     Modified for use with Free Pascal
@@ -305,7 +306,7 @@ const
 const
 	CSSM_ACL_AUTHORIZATION_CHANGE_ACL = CSSM_ACL_AUTHORIZATION_TAG_VENDOR_DEFINED_START;
 	CSSM_ACL_AUTHORIZATION_CHANGE_OWNER = CSSM_ACL_AUTHORIZATION_TAG_VENDOR_DEFINED_START + 1;
-	
+
 	// the "pre-auth" tags form a contiguous range of (up to) 64K pre-authorizations
 	CSSM_ACL_AUTHORIZATION_PREAUTH_BASE = CSSM_ACL_AUTHORIZATION_TAG_VENDOR_DEFINED_START + $1000000;
 	CSSM_ACL_AUTHORIZATION_PREAUTH_END = CSSM_ACL_AUTHORIZATION_PREAUTH_BASE + $10000;
@@ -388,7 +389,7 @@ const
 	CSSM_ACL_PREAUTH_TRACKING_COUNT_MASK = $ff;		{ mask for count status }
 	CSSM_ACL_PREAUTH_TRACKING_BLOCKED = 0;		{ retries exhausted; the slot is blocked }
 	{ 0 .. 255 is a count of (re)tries remaining }
-	
+
 	{ bits or'ed into any count given }
 	CSSM_ACL_PREAUTH_TRACKING_UNKNOWN = $40000000; { status of slot is unknown (ignore count) }
 	CSSM_ACL_PREAUTH_TRACKING_AUTHORIZED = $80000000; { the slot is currently authorized (or'ed in) }
@@ -403,7 +404,7 @@ const
 const
 	CSSM_ALGID_APPLE_YARROW = CSSM_ALGID_VENDOR_DEFINED;
 	CSSM_ALGID_AES = CSSM_ALGID_VENDOR_DEFINED + 1;				{ RijnDael }
-	CSSM_ALGID_FEE = CSSM_ALGID_VENDOR_DEFINED + 2;				{ FEE Key Generation } 
+	CSSM_ALGID_FEE = CSSM_ALGID_VENDOR_DEFINED + 2;				{ FEE Key Generation }
 	CSSM_ALGID_FEE_MD5 = CSSM_ALGID_VENDOR_DEFINED + 3;			{ FEE/ElGamal signature w/ MD5 hash }
 	CSSM_ALGID_FEE_SHA1 = CSSM_ALGID_VENDOR_DEFINED + 4;		{ FEE/ElGamal signature w/ SHA1 hash }
 	CSSM_ALGID_FEED = CSSM_ALGID_VENDOR_DEFINED + 5;			{ 1:1 FEE asymmetric encryption }
@@ -446,7 +447,7 @@ const
 { X509 SubjectPublicKeyInfo }
 	CSSM_KEYBLOB_RAW_FORMAT_X509 = CSSM_KEYBLOB_RAW_FORMAT_VENDOR_DEFINED;
 	{ OpenSSH v1 }
-	CSSM_KEYBLOB_RAW_FORMAT_OPENSSH = CSSM_KEYBLOB_RAW_FORMAT_VENDOR_DEFINED + 1;		
+	CSSM_KEYBLOB_RAW_FORMAT_OPENSSH = CSSM_KEYBLOB_RAW_FORMAT_VENDOR_DEFINED + 1;
 	{ openssl-style DSA private key }
 	CSSM_KEYBLOB_RAW_FORMAT_OPENSSL = CSSM_KEYBLOB_RAW_FORMAT_VENDOR_DEFINED + 2;
 	{ OpenSSH v2 }
@@ -511,18 +512,18 @@ const
 const
 	CSSMERR_CSP_APPLE_ADD_APPLICATION_ACL_SUBJECT = CSSM_CSP_PRIVATE_ERROR + 0;
 	{
-	 * An attempt was made to use a public key which is incomplete due to 
+	 * An attempt was made to use a public key which is incomplete due to
 	 * the lack of algorithm-specific parameters.
 	 }
 	CSSMERR_CSP_APPLE_PUBLIC_KEY_INCOMPLETE = CSSM_CSP_PRIVATE_ERROR + 1;
-	
+
 	{ a code signature match failed }
 	CSSMERR_CSP_APPLE_SIGNATURE_MISMATCH = CSSM_CSP_PRIVATE_ERROR + 2;
-	
+
 	{ Key StartDate/EndDate invalid }
 	CSSMERR_CSP_APPLE_INVALID_KEY_START_DATE = CSSM_CSP_PRIVATE_ERROR + 3;
 	CSSMERR_CSP_APPLE_INVALID_KEY_END_DATE = CSSM_CSP_PRIVATE_ERROR + 4;
-	
+
 	{ Keychain Syncing error codes }
 	CSSMERR_CSPDL_APPLE_DL_CONVERSION_ERROR = CSSM_CSP_PRIVATE_ERROR + 5;
 
@@ -548,10 +549,10 @@ const
 	// The input parameter is a CSSM_BOOL, where TRUE turns autocommit on
 	// and FALSE turns it off.
 	CSSM_APPLEFILEDL_TOGGLE_AUTOCOMMIT = 0;
-	
+
 	// Commit any pending changes to the database.
 	CSSM_APPLEFILEDL_COMMIT = 1;
-	
+
 	// Rollback and discard any pending changes to the database.
 	CSSM_APPLEFILEDL_ROLLBACK = 2;
 
@@ -566,20 +567,20 @@ const
 	   was neither NULL nor a pointer to a valid CSSM_APPLEDL_OPEN_PARAMETERS
 	   structure. }
 	CSSMERR_APPLEDL_INVALID_OPEN_PARAMETERS = CSSM_DL_PRIVATE_ERROR + 0;
-	
+
 	{ an operation failed because the disk was full }
 	CSSMERR_APPLEDL_DISK_FULL = CSSM_DL_PRIVATE_ERROR + 1;
-	
+
 	{ an operation failed because a disk quota was exceeded }
 	CSSMERR_APPLEDL_QUOTA_EXCEEDED = CSSM_DL_PRIVATE_ERROR + 2;
-	
+
 	{ an operation failed because a file was too large }
 	CSSMERR_APPLEDL_FILE_TOO_BIG = CSSM_DL_PRIVATE_ERROR + 3;
-    
+
     { a keychain database's internal information ("blob") is invalid }
 	CSSMERR_APPLEDL_INVALID_DATABASE_BLOB = CSSM_DL_PRIVATE_ERROR + 4;
 	CSSMERR_APPLEDL_INVALID_KEY_BLOB = CSSM_DL_PRIVATE_ERROR + 5;
-    
+
     { the internal data format version for a database's internal information ("blob") is invalid }
 	CSSMERR_APPLEDL_INCOMPATIBLE_DATABASE_BLOB = CSSM_DL_PRIVATE_ERROR + 6;
 	CSSMERR_APPLEDL_INCOMPATIBLE_KEY_BLOB = CSSM_DL_PRIVATE_ERROR + 7;
@@ -643,7 +644,7 @@ const
 	{ S/MIME, leaf with empty subject name and no email addrs
 	 * in SubjectAltName }
 	CSSMERR_APPLETP_SMIME_NO_EMAIL_ADDRS = CSSM_TP_PRIVATE_ERROR + 28;
-	{ S/MIME, leaf with empty subject name, SubjectAltName 
+	{ S/MIME, leaf with empty subject name, SubjectAltName
 	 * not critical }
 	CSSMERR_APPLETP_SMIME_SUBJ_ALT_NAME_NOT_CRIT = CSSM_TP_PRIVATE_ERROR + 29;
 	{ Appropriate SSL ExtendedKeyUsage not found }
@@ -692,18 +693,20 @@ const
 	CSSMERR_APPLETP_CODE_SIGN_DEVELOPMENT = CSSM_TP_PRIVATE_ERROR + 51;
 	{ Illegal cert chain length for Resource Signing  }
 	CSSMERR_APPLETP_RS_BAD_CERT_CHAIN_LENGTH = CSSM_TP_PRIVATE_ERROR + 52;
-	{ bad extended key usage for Resource Signing }
+	{ Bad extended key usage for Resource Signing }
 	CSSMERR_APPLETP_RS_BAD_EXTENDED_KEY_USAGE = CSSM_TP_PRIVATE_ERROR + 53;
 	{ Trust Setting: deny }
 	CSSMERR_APPLETP_TRUST_SETTING_DENY = CSSM_TP_PRIVATE_ERROR + 54;
-	{ invalid empty SubjectName }
+	{ Invalid empty SubjectName }
 	CSSMERR_APPLETP_INVALID_EMPTY_SUBJECT = CSSM_TP_PRIVATE_ERROR + 55;
-	{ unknown critical Qualified Cert Statement ID }
+	{ Unknown critical Qualified Cert Statement ID }
 	CSSMERR_APPLETP_UNKNOWN_QUAL_CERT_STATEMENT = CSSM_TP_PRIVATE_ERROR + 56;
 	{ Missing required extension }
 	CSSMERR_APPLETP_MISSING_REQUIRED_EXTENSION = CSSM_TP_PRIVATE_ERROR + 57;
 	{ Extended key usage not marked critical }
 	CSSMERR_APPLETP_EXT_KEYUSAGE_NOT_CRITICAL = CSSM_TP_PRIVATE_ERROR + 58;
+	{ Required name or identifier not present }
+	CSSMERR_APPLETP_IDENTIFIER_MISSING = CSSM_TP_PRIVATE_ERROR + 59;
 
 { Apple .mac TP private error codes. }
 const
@@ -830,10 +833,10 @@ const
 	   The OutputParams argument is ignored.
 	   The SecurityServer might put up UI (though the SecurityAgent) when this function is called.  }
 	CSSM_APPLECSPDL_DB_CHANGE_PASSWORD = 5;
-	
+
 	{ Return the SecurityServer database handle for the database specified by the DLDBHandle }
 	CSSM_APPLECSPDL_DB_GET_HANDLE = 6;
-	
+
 	{ Given a CSSM_KEY for the CSPDL, return the SecurityServer key handle }
 	CSSM_APPLESCPDL_CSP_GET_KEYHANDLE = 7;
 	CSSM_APPLE_PRIVATE_CSPDL_CODE_8 = 8;
@@ -845,9 +848,11 @@ const
 	CSSM_APPLE_PRIVATE_CSPDL_CODE_14 = 14;
 	CSSM_APPLE_PRIVATE_CSPDL_CODE_15 = 15;
 	CSSM_APPLE_PRIVATE_CSPDL_CODE_16 = 16;
-	
-	{ Given a CSSM_KEY_PTR in any format, obtain the SHA-1 hash of the 
-	 * associated key blob. 
+	CSSM_APPLE_PRIVATE_CSPDL_CODE_17 = 17;
+	CSSM_APPLE_PRIVATE_CSPDL_CODE_18 = 18;
+
+	{ Given a CSSM_KEY_PTR in any format, obtain the SHA-1 hash of the
+	 * associated key blob.
 	 * Key is specified in CSSM_CSP_CreatePassThroughContext.
 	 * Hash is allocated bythe CSP, in the App's memory, and returned
 	 * in *outData. }
@@ -882,7 +887,7 @@ type
 { Custom wrapped key formats }
 const
 	CSSM_KEYBLOB_WRAPPED_FORMAT_APPLE_CUSTOM = 100;
-	CSSM_KEYBLOB_WRAPPED_FORMAT_OPENSSL = 101;			// traditional openssl 
+	CSSM_KEYBLOB_WRAPPED_FORMAT_OPENSSL = 101;			// traditional openssl
 	CSSM_KEYBLOB_WRAPPED_FORMAT_OPENSSH1 = 102;			// OpenSSH v1
 
 {
@@ -892,35 +897,35 @@ const
 	CSSM_ATTRIBUTE_VENDOR_DEFINED = $800000;
 
 const
-{ 
+{
 	 * Public Key attribute for use with CSSM_ALGID_FEED.
 	 }
 	CSSM_ATTRIBUTE_PUBLIC_KEY = (CSSM_ATTRIBUTE_DATA_KEY or (CSSM_ATTRIBUTE_VENDOR_DEFINED + 0));
-			
+
 	{
 	 * FEE key attributes.
 	 * See CSSM_FEE_PRIME_TYPE_xxx, CSSM_FEE_CURVE_TYPE_xxx enums, below.
 	 }
 	CSSM_ATTRIBUTE_FEE_PRIME_TYPE = (CSSM_ATTRIBUTE_DATA_UINT32 or (CSSM_ATTRIBUTE_VENDOR_DEFINED + 1));
 	CSSM_ATTRIBUTE_FEE_CURVE_TYPE = (CSSM_ATTRIBUTE_DATA_UINT32 or (CSSM_ATTRIBUTE_VENDOR_DEFINED + 2));
-			
+
 	{
 	 * Apple Secure Compression (ComCryption) optimization.
 	 * See CSSM_ASC_OPTIMIZE_xxx, enums, below.
 	 }
 	CSSM_ATTRIBUTE_ASC_OPTIMIZATION = (CSSM_ATTRIBUTE_DATA_UINT32 or (CSSM_ATTRIBUTE_VENDOR_DEFINED + 3));
-			
+
 	{
 	 * RSA blinding. Value is integer, nonzero (blinding on) or zero.
 	 }
 	CSSM_ATTRIBUTE_RSA_BLINDING = (CSSM_ATTRIBUTE_DATA_UINT32 or (CSSM_ATTRIBUTE_VENDOR_DEFINED + 4));
-			
+
 	{
 	 * Additional public key from which to obtain algorithm-specific
 	 * parameters.
 	 }
 	CSSM_ATTRIBUTE_PARAM_KEY = (CSSM_ATTRIBUTE_DATA_KEY or (CSSM_ATTRIBUTE_VENDOR_DEFINED + 5));
-			
+
 	{
 	 * Prompt string for CSSM_ALGID_SECURE_PASSPHRASE key acquisition.
 	 * Data is a UTF8-encoded external representation of a CFString. 
@@ -945,7 +950,7 @@ const
  }
 const
 	CSSM_FEE_PRIME_TYPE_DEFAULT = 0;	{ default per key size }
-	CSSM_FEE_PRIME_TYPE_MERSENNE = 1;		{ (2 ** q) - 1Ê}
+	CSSM_FEE_PRIME_TYPE_MERSENNE = 1;		{ (2 ** q) - 1 }
 	CSSM_FEE_PRIME_TYPE_FEE = 2;			{ (2 ** q) - k }
 	CSSM_FEE_PRIME_TYPE_GENERAL = 3;			{ random prime }
 
@@ -980,7 +985,7 @@ const
 	 * still valid) due to the lack of algorithm-specific parameters.
 	 }
 	CSSM_KEYATTR_PARTIAL = $00010000;
-	
+
 	{
 	 * When set, public keys are stored encrypted. Default is to store
 	 * public keys in the clear. AppleCSPDL only.
@@ -997,11 +1002,11 @@ type
 		oid: {const} CSSM_OIDPtr;
 	end;
 
-{ 
+{
  * Certificate request passed to CSSM_TP_SubmitCredRequest() in the
  * CSSM_TP_AUTHORITY_REQUEST_TYPE.Requests field. Used for requesting
  * both locally-generated certs (CSSMOID_APPLE_TP_LOCAL_CERT_GEN) and
- * cert signing requests (CSSMOID_APPLE_TP_CSR_GEN). 
+ * cert signing requests (CSSMOID_APPLE_TP_CSR_GEN).
  }
 type
 	CSSM_APPLE_TP_CERT_REQUESTPtr = ^CSSM_APPLE_TP_CERT_REQUEST;
@@ -1010,21 +1015,21 @@ type
 		clHand: CSSM_CL_HANDLE;			// and this CL
 		serialNumber: UInt32;
 		numSubjectNames: UInt32;// size subjectNames[]
-		subjectNames: CSSM_APPLE_TP_NAME_OIDPtr;	
-	
+		subjectNames: CSSM_APPLE_TP_NAME_OIDPtr;
+
 	{
 	 * Issuer name can be expressed in the simplified CSSM_APPLE_TP_NAME_OID
-	 * array, as is the subject name, or as an CSSM_X509_NAME, which is 
-	 * typically obtained from a signing cert. 
-	 * Exactly one of (issuerNames, issuerNameX509) must be non-NULL. 
+	 * array, as is the subject name, or as an CSSM_X509_NAME, which is
+	 * typically obtained from a signing cert.
+	 * Exactly one of (issuerNames, issuerNameX509) must be non-NULL.
 	 }
 		numIssuerNames: UInt32;	// size issuerNames[]
-		issuerNames: CSSM_APPLE_TP_NAME_OIDPtr;   // optional; NULL implies root 
+		issuerNames: CSSM_APPLE_TP_NAME_OIDPtr;   // optional; NULL implies root
 											//    (signer == subject)
-		issuerNameX509: CSSM_X509_NAME_PTR;		
+		issuerNameX509: CSSM_X509_NAME_PTR;
 		certPublicKey: {const} CSSM_KEYPtr;
 		issuerPrivateKey: {const} CSSM_KEYPtr;
-	
+
 	{ Unfortunately there is no practical way to map any algorithm
 	 * to its appropriate OID, and we need both.... }
 		signatureAlg: CSSM_ALGORITHMS;   // e.g., CSSM_ALGID_SHA1WithRSA
@@ -1033,16 +1038,16 @@ type
 		notAfter: UInt32;
 		numExtensions: UInt32;
 		extensions: CE_DataAndTypePtr;	// optional
-	
-	{ 
+
+	{
 	 * Optional challenge string for CSSMOID_APPLE_TP_CSR_GEN.
 	 }
 		challengeString: {const} CStringPtr;
 	end;
 
-{ 
- * Options for X509TP's CSSM_TP_CertGroupVerify for policy CSSMOID_APPLE_TP_SSL. 
- * A pointer to, and length of, one of these is optionally placed in 
+{
+ * Options for X509TP's CSSM_TP_CertGroupVerify for policy CSSMOID_APPLE_TP_SSL.
+ * A pointer to, and length of, one of these is optionally placed in
  * CSSM_TP_VERIFY_CONTEXT.Cred->Policy.PolicyIds[n].FieldValue.
  }
 const
@@ -1061,23 +1066,23 @@ type
 	CSSM_APPLE_TP_SSL_OPTIONS = record
 		Version: UInt32;        // CSSM_APPLE_TP_SSL_OPTS_VERSION
 
-	{ 
-	 * The domain name of the server (e.g., "store.apple.com".) In the 
-	 * SSL and TLS protocols, this must match the common name of the 
+	{
+	 * The domain name of the server (e.g., "store.apple.com".) In the
+	 * SSL and TLS protocols, this must match the common name of the
 	 * subject cert. Expressed as a C string, optionally NULL terminated
 	 * if it is NULL terminated, the length field should include the NULL).
 	 }
 		ServerNameLen: UInt32;
 		ServerName: {const} CStringPtr;    // optional
-	
+
 	{ new fields for struct version 1 }
 		Flags: UInt32;
 	end;
 
-{ 
- * Options for X509TP's CSSM_TP_CertGroupVerify for policy 
- * CSSMOID_APPLE_TP_REVOCATION_CRL. A pointer to, and length of, one 
- * of these is optionally placed in 
+{
+ * Options for X509TP's CSSM_TP_CertGroupVerify for policy
+ * CSSMOID_APPLE_TP_REVOCATION_CRL. A pointer to, and length of, one
+ * of these is optionally placed in
  * CSSM_TP_VERIFY_CONTEXT.Cred->Policy.PolicyIds[n].FieldValue.
  }
 const
@@ -1087,7 +1092,7 @@ type
 	CSSM_APPLE_TP_CRL_OPT_FLAGS = UInt32;
 const
 // require CRL verification for each cert; default is "try"
-	CSSM_TP_ACTION_REQUIRE_CRL_PER_CERT = $00000001;	
+	CSSM_TP_ACTION_REQUIRE_CRL_PER_CERT = $00000001;
 	// enable fetch from network
 	CSSM_TP_ACTION_FETCH_CRL_FROM_NET = $00000002;
 	// if set and positive OCSP verify for given cert, no further revocation
@@ -1101,20 +1106,20 @@ type
 	CSSM_APPLE_TP_CRL_OPTIONS = record
 		Version: UInt32;        // CSSM_APPLE_TP_CRL_OPTS_VERSION
 		CrlFlags: CSSM_APPLE_TP_CRL_OPT_FLAGS;
-	
+
 	{
 	 * When non-NULL, store CRLs fetched from net here.
-	 * This is most likely a pointer to one of the  
+	 * This is most likely a pointer to one of the
 	 * CSSM_TP_CALLERAUTH_CONTEXT.DBList entries but that
 	 * is not a strict requirement.
 	 }
 		crlStore: CSSM_DL_DB_HANDLE_PTR;
 	end;
 
-{ 
- * Options for X509TP's CSSM_TP_CertGroupVerify for policy 
- * CSSMOID_APPLE_TP_SMIME. A pointer to, and length of, one 
- * of these is optionally placed in 
+{
+ * Options for X509TP's CSSM_TP_CertGroupVerify for policy
+ * CSSMOID_APPLE_TP_SMIME. A pointer to, and length of, one
+ * of these is optionally placed in
  * CSSM_TP_VERIFY_CONTEXT.Cred->Policy.PolicyIds[n].FieldValue.
  }
 const
@@ -1124,13 +1129,13 @@ type
 	CSSM_APPLE_TP_SMIME_OPTIONS = record
 		Version: UInt32;        // CSSM_APPLE_TP_SMIME_OPTS_VERSION
 
-	{ 
+	{
 	 * Intended usage of the leaf cert. The cert's KeyUsage extension,
 	 * if present, must be a superset of this.
 	 }
 		IntendedUsage: CE_KeyUsage;
-	
-	{ 
+
+	{
 	 * The email address of the sender. If there is an email address
 	 * in the sender's cert, that email address must match this one.
 	 * Both (email address in the cert, and this one) are optional.
@@ -1144,19 +1149,19 @@ type
 
 {
  * Optional ActionData for all X509TP CertGroupVerify policies.
- * A pointer to, and length of, one of these is optionally placed in 
+ * A pointer to, and length of, one of these is optionally placed in
  * CSSM_TP_VERIFY_CONTEXT.ActionData.
  }
 type
 	CSSM_APPLE_TP_ACTION_FLAGS = UInt32;
 const
 	CSSM_TP_ACTION_ALLOW_EXPIRED = $00000001;	// allow expired certs
-	CSSM_TP_ACTION_LEAF_IS_CA = $00000002;	// first cert is a CA 
+	CSSM_TP_ACTION_LEAF_IS_CA = $00000002;	// first cert is a CA
 	CSSM_TP_ACTION_FETCH_CERT_FROM_NET = $00000004;	// enable net fetch of CA cert
 	CSSM_TP_ACTION_ALLOW_EXPIRED_ROOT = $00000008; 	// allow expired roots
 	CSSM_TP_ACTION_REQUIRE_REV_PER_CERT = $00000010; 	// require positive revocation
 														//   check per cert
-	CSSM_TP_ACTION_TRUST_SETTINGS = $00000020;	// use TrustSettings instead of 
+	CSSM_TP_ACTION_TRUST_SETTINGS = $00000020;	// use TrustSettings instead of
 														//   anchors
 	CSSM_TP_ACTION_IMPLICIT_ANCHORS = $00000040;	// properly self-signed certs are
 														//   treated as anchors implicitly
@@ -1172,10 +1177,10 @@ type
 
 {
  * Per-cert evidence returned from CSSM_TP_CertGroupVerify.
- * An array of these is presented in CSSM_TP_VERIFY_CONTEXT_RESULT.Evidence[2]. 
+ * An array of these is presented in CSSM_TP_VERIFY_CONTEXT_RESULT.Evidence[2].
  * Same number of these as in the cert group in Evidence[1].
  }
- 
+
 { First, an array of bits indicating various status of the cert. }
 type
 	CSSM_TP_APPLE_CERT_STATUS = UInt32;
@@ -1206,17 +1211,17 @@ type
 		StatusBits: CSSM_TP_APPLE_CERT_STATUS;
 		NumStatusCodes: UInt32;
 		StatusCodes: CSSM_RETURNPtr;
-	
+
 	{ index into raw cert group or AnchorCerts depending on IS_IN_ANCHORS }
-		Index: UInt32;   
-	
+		Index: UInt32;
+
 	{ nonzero if cert came from a DLDB }
 		DlDbHandle: CSSM_DL_DB_HANDLE;
 		UniqueRecord: CSSM_DB_UNIQUE_RECORD_PTR;
 	end;
 
 {
- * CSSM_TP_VERIFY_CONTEXT_RESULT.Evidence[0], basically defines which version/flavor 
+ * CSSM_TP_VERIFY_CONTEXT_RESULT.Evidence[0], basically defines which version/flavor
  * of remaining evidence is.
  }
 const
@@ -1250,13 +1255,13 @@ const
 
 { AppleX509CL extensions: passthrough ids }
 const
-{ 
+{
 	 * Obtain a signed Certificate Signing Request.
 	 * Input = CSSM_APPLE_CL_CSR_REQUEST
 	 * Output = allocated CSSM_DATA which points to a DER-encoded CSR.
 	 }
 	CSSM_APPLEX509CL_OBTAIN_CSR = 0;
-	
+
 	{
 	 * Perform signature verify of a CSR.
 	 * Input:  CSSM_DATA referring to a DER-encoded CSR.
@@ -1266,15 +1271,15 @@ const
 	CSSM_APPLEX509CL_VERIFY_CSR = 1;
 
 {
- * Used in CL's CSSM_APPLEX509_OBTAIN_CSR Passthrough. This is the 
- * input; the output is a CSSM_DATA * containing the signed and 
+ * Used in CL's CSSM_APPLEX509_OBTAIN_CSR Passthrough. This is the
+ * input; the output is a CSSM_DATA * containing the signed and
  * DER-encoded CSR.
  }
 type
 	CSSM_APPLE_CL_CSR_REQUESTPtr = ^CSSM_APPLE_CL_CSR_REQUEST;
 	CSSM_APPLE_CL_CSR_REQUEST = record
-		subjectNameX509: CSSM_X509_NAME_PTR;		
-	
+		subjectNameX509: CSSM_X509_NAME_PTR;
+
 	{ Unfortunately there is no practical way to map any algorithm
 	 * to its appropriate OID, and we need both.... }
 		signatureAlg: CSSM_ALGORITHMS;   // e.g., CSSM_ALGID_SHA1WithRSA
@@ -1283,15 +1288,15 @@ type
 		cspHand: CSSM_CSP_HANDLE;		// sign with this CSP
 		subjectPublicKey: {const} CSSM_KEYPtr;
 		subjectPrivateKey: {const} CSSM_KEYPtr;
-	
-	{ 
+
+	{
 	 * Optional challenge string.
 	 }
 		challengeString: {const} CStringPtr;
 	end;
 
 {
- * When a CRL with no NextUpdate field is encountered, we use this time 
+ * When a CRL with no NextUpdate field is encountered, we use this time
  * as the NextUpdate attribute when storing in a DB. It represents the
  * virtual end of time in CSSM_TIMESTRING form.
  }

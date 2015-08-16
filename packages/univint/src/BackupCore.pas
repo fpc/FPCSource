@@ -11,8 +11,6 @@
                      http://bugs.freepascal.org
  
 }
-{   Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -248,7 +246,7 @@ uses MacTypes,CFBase;
  *    Non-Carbon CFM:   not available
  }
 function CSBackupSetItemExcluded( item: CFURLRef; exclude: Boolean; excludeByPath: Boolean ): OSStatus; external name '_CSBackupSetItemExcluded';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -280,7 +278,7 @@ function CSBackupSetItemExcluded( item: CFURLRef; exclude: Boolean; excludeByPat
  *    Non-Carbon CFM:   not available
  }
 function CSBackupIsItemExcluded( item: CFURLRef; var excludeByPath: Boolean ): Boolean; external name '_CSBackupIsItemExcluded';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

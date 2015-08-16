@@ -2,11 +2,10 @@
      File:       CarbonCore/MultiprocessingInfo.h
  
      Contains:   Multiprocessing Information interfaces
+                 The contents of this header file are deprecated.
  
      Copyright:  © 1995-2011 DayStar Digital, Inc.
 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308

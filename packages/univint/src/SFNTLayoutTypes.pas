@@ -16,6 +16,7 @@
 
 {  Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 
 {
     Modified for use with Free Pascal
@@ -1066,7 +1067,7 @@ type
 type
 	JustPCConditionalAddActionPtr = ^JustPCConditionalAddAction;
 	JustPCConditionalAddAction = record
-		substThreshhold: Fixed;        { threshhold of growth factor at which subst occurs }
+		substThreshold: Fixed;        { threshold of growth factor at which subst occurs }
 		addGlyph: UInt16;
 		substGlyph: UInt16;
 	end;

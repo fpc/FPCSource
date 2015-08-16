@@ -1,9 +1,6 @@
 {	CFURL.h
-	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2013, Apple Inc. All rights reserved.
 }
-{	  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
-{	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{	  Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -231,6 +228,11 @@ function CFURLGetTypeID: CFTypeID; external name '_CFURLGetTypeID';
 
 { encoding will be used both to interpret the bytes of URLBytes, and to }
 { interpret any percent-escapes within the bytes. }
+{ Using a string encoding which isn't a superset of ASCII encoding is not }
+{ supported because CFURLGetBytes and CFURLGetByteRangeForComponent require }
+{ 7-bit ASCII characters to be stored in a single 8-bit byte. }
+{ CFStringEncodings which are a superset of ASCII encoding include MacRoman, }
+{ WindowsLatin1, ISOLatin1, NextStepLatin, ASCII, and UTF8. }
 function CFURLCreateWithBytes( allocator: CFAllocatorRef; URLBytes: UInt8Ptr; length: CFIndex; encoding: CFStringEncoding; baseURL: CFURLRef ): CFURLRef; external name '_CFURLCreateWithBytes';
 
 { Escapes any character that is not 7-bit ASCII with the byte-code }
@@ -254,7 +256,12 @@ function CFURLCreateWithString( allocator: CFAllocatorRef; URLString: CFStringRe
 { in relative portion, leading "../" components are removed from the }
 { final URL's path, and if the relative portion contains only }
 { resource specifier pieces (query, parameters, and fragment), then }
-{ the last path component of the base URL will not be deleted  }
+{ the last path component of the base URL will not be deleted.  }
+{ Using a string encoding which isn't a superset of ASCII encoding is not }
+{ supported because CFURLGetBytes and CFURLGetByteRangeForComponent require }
+{ 7-bit ASCII characters to be stored in a single 8-bit byte. }
+{ CFStringEncodings which are a superset of ASCII encoding include MacRoman, }
+{ WindowsLatin1, ISOLatin1, NextStepLatin, ASCII, and UTF8. }
 function CFURLCreateAbsoluteURLWithBytes( alloc: CFAllocatorRef; relativeURLBytes: UInt8Ptr; length: CFIndex; encoding: CFStringEncoding; baseURL: CFURLRef; useCompatibilityMode: Boolean ): CFURLRef; external name '_CFURLCreateAbsoluteURLWithBytes';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {#endif}
@@ -554,6 +561,18 @@ function CFURLCreateStringByAddingPercentEscapes( allocator: CFAllocatorRef; ori
 { CF_IMPLICIT_BRIDGING_DISABLED }
 
 {
+    CFURLIsFileReferenceURL
+
+    Returns whether the URL is a file reference URL.
+
+    Parameters
+        url
+            The URL specifying the resource.
+ }
+function CFURLIsFileReferenceURL( url: CFURLRef ): Boolean; external name '_CFURLIsFileReferenceURL';
+(* CF_AVAILABLE_STARTING(10_9, 7_0) *)
+
+{
     CFURLCreateFileReferenceURL
     
     Returns a new file reference URL that refers to the same resource as a specified URL.
@@ -600,13 +619,17 @@ function CFURLCreateFileReferenceURL( allocator: CFAllocatorRef; url: CFURLRef; 
 function CFURLCreateFilePathURL( allocator: CFAllocatorRef; url: CFURLRef; var error: CFErrorRef ): CFURLRef; external name '_CFURLCreateFilePathURL';
 (* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 
+{ CF_IMPLICIT_BRIDGING_ENABLED }
 {#ifndef CF_OPEN_SOURCE}
 
+// Note: CFURLCreateFromFSRef and CFURLGetFSRef have never been functional on iOS because the Carbon File Manager is not on iOS.
 {$ifc TARGET_OS_MAC}
 
 function CFURLCreateFromFSRef( allocator: CFAllocatorRef; const (*var*) fsRef_: FSRef ): CFURLRef; external name '_CFURLCreateFromFSRef';
+(* CF_DEPRECATED(10_0, 10_9, 2_0, 7_0) *)
 
 function CFURLGetFSRef( url: CFURLRef; var fsRef_: FSRef ): Boolean; external name '_CFURLGetFSRef';
+(* CF_DEPRECATED(10_0, 10_9, 2_0, 7_0) *)
 
 {$endc} {TARGET_OS_MAC}
 
@@ -942,6 +965,10 @@ var kCFURLIsExcludedFromBackupKey: CFStringRef; external name '_kCFURLIsExcluded
 (* CF_AVAILABLE_STARTING(10_8, 5_1) *)
     { true if resource should be excluded from backups, false otherwise (Read-write, value type CFBoolean). This property is only useful for excluding cache and other application support files which are not needed in a backup. Some operations commonly made to user documents will cause this property to be reset to false and so this property should not be used on user documents. }
 
+var kCFURLTagNamesKey: CFStringRef; external name '_kCFURLTagNamesKey'; (* attribute const *)
+(* CF_AVAILABLE_STARTING(10_9, NA) *)
+    { The array of Tag names (Read-write, value type CFArray of CFString) }
+    
 var kCFURLPathKey: CFStringRef; external name '_kCFURLPathKey'; (* attribute const *)
 (* CF_AVAILABLE_STARTING(10_8, 6_0) *)
     { the URL's path as a file system path (Read-only, value type CFString) }
@@ -1134,8 +1161,8 @@ var kCFURLUbiquitousItemHasUnresolvedConflictsKey: CFStringRef; external name '_
     { true if this item has conflicts outstanding. (Read-only, value type CFBoolean) }
 
 var kCFURLUbiquitousItemIsDownloadedKey: CFStringRef; external name '_kCFURLUbiquitousItemIsDownloadedKey'; (* attribute const *)
-(* CF_AVAILABLE_STARTING(10_7, 5_0) *)
-    { true if there is local data present for this item. (Read-only, value type CFBoolean) }
+(* CF_DEPRECATED(10_7, 10_9, 5_0, 7_0, "Use kCFURLUbiquitousItemDownloadingStatusKey instead") *)
+    { Equivalent to NSURLUbiquitousItemDownloadingStatusKey == NSURLUbiquitousItemDownloadingStatusCurrent. Has never behaved as documented in earlier releases, hence deprecated. (Read-only, value type CFBoolean) }
 
 var kCFURLUbiquitousItemIsDownloadingKey: CFStringRef; external name '_kCFURLUbiquitousItemIsDownloadingKey'; (* attribute const *)
 (* CF_AVAILABLE_STARTING(10_7, 5_0) *)
@@ -1150,14 +1177,39 @@ var kCFURLUbiquitousItemIsUploadingKey: CFStringRef; external name '_kCFURLUbiqu
     { true if data is being uploaded for this item. (Read-only, value type CFBoolean) }
 
 var kCFURLUbiquitousItemPercentDownloadedKey: CFStringRef; external name '_kCFURLUbiquitousItemPercentDownloadedKey'; (* attribute const *)
-(* CF_AVAILABLE_STARTING_BUT_DEPRECATED(10_7, 10_8, 5_0, 6_0) *)
+(* CF_DEPRECATED(10_7, 10_8, 5_0, 6_0, "Use NSMetadataQuery and NSMetadataUbiquitousItemPercentDownloadedKey on NSMetadataItem instead") *)
     { Use NSMetadataQuery and NSMetadataUbiquitousItemPercentDownloadedKey on NSMetadataItem instead }
 
 var kCFURLUbiquitousItemPercentUploadedKey: CFStringRef; external name '_kCFURLUbiquitousItemPercentUploadedKey'; (* attribute const *)
-(* CF_AVAILABLE_STARTING_BUT_DEPRECATED(10_7, 10_8, 5_0, 6_0) *)
+(* CF_DEPRECATED(10_7, 10_8, 5_0, 6_0, "Use NSMetadataQuery and NSMetadataUbiquitousItemPercentUploadedKey on NSMetadataItem instead") *)
 
     { Use NSMetadataQuery and NSMetadataUbiquitousItemPercentUploadedKey on NSMetadataItem instead }
 
+var kCFURLUbiquitousItemDownloadingStatusKey: CFStringRef; external name '_kCFURLUbiquitousItemDownloadingStatusKey'; (* attribute const *)
+(* CF_AVAILABLE_STARTING(10_9, 7_0) *)
+    { Returns the download status of this item. (Read-only, value type CFString). Possible values below. }
+
+var kCFURLUbiquitousItemDownloadingErrorKey: CFStringRef; external name '_kCFURLUbiquitousItemDownloadingErrorKey'; (* attribute const *)
+(* CF_AVAILABLE_STARTING(10_9, 7_0) *)
+    { returns the error when downloading the item from iCloud failed. See the NSUbiquitousFile section in FoundationErrors.h. }
+
+var kCFURLUbiquitousItemUploadingErrorKey: CFStringRef; external name '_kCFURLUbiquitousItemUploadingErrorKey'; (* attribute const *)
+(* CF_AVAILABLE_STARTING(10_9, 7_0) *)
+    { returns the error when uploading the item to iCloud failed. See the NSUbiquitousFile section in FoundationErrors.h. }
+
+{ The values returned for kCFURLUbiquitousItemDownloadingStatusKey
+ }
+var kCFURLUbiquitousItemDownloadingStatusNotDownloaded: CFStringRef; external name '_kCFURLUbiquitousItemDownloadingStatusNotDownloaded'; (* attribute const *)
+(* CF_AVAILABLE_STARTING(10_9, 7_0) *)
+    { this item has not been downloaded yet. Use NSFileManager's startDownloadingUbiquitousItemAtURL:error: to download it }
+
+var kCFURLUbiquitousItemDownloadingStatusDownloaded: CFStringRef; external name '_kCFURLUbiquitousItemDownloadingStatusDownloaded'; (* attribute const *)
+(* CF_AVAILABLE_STARTING(10_9, 7_0) *)
+    { there is a local version of this item available. The most current version will get downloaded as soon as possible. }
+
+var kCFURLUbiquitousItemDownloadingStatusCurrent: CFStringRef; external name '_kCFURLUbiquitousItemDownloadingStatusCurrent'; (* attribute const *)
+(* CF_AVAILABLE_STARTING(10_9, 7_0) *)
+    { there is a local version of this item and it is the most up-to-date version known to this device. }
 
 type
 	CFURLBookmarkCreationOptions = CFOptionFlags;
@@ -1176,7 +1228,7 @@ const
 
 {$ifc TARGET_OS_MAC}
 const
-	kCFURLBookmarkResolutionWithSecurityScope =  1 shl 10 ; (* CF_AVAILABLE_STARTING(10_7,NA) *) { Mac OS X 10.7.3 and later, extract the security scope included at creation time to provide the ability to access the resource. }
+	kCFURLBookmarkResolutionWithSecurityScope =  1 shl 10 ; (* CF_ENUM_AVAILABLE(10_7,NA) *) { Mac OS X 10.7.3 and later, extract the security scope included at creation time to provide the ability to access the resource. }
 {$endc}
 
 type

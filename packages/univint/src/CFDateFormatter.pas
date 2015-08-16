@@ -1,11 +1,6 @@
 {	CFDateFormatter.h
-	Copyright (c) 2003-2012, Apple Inc. All rights reserved.
+	Copyright (c) 2003-2013, Apple Inc. All rights reserved.
 }
-{	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-{	  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
-{	  Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
-{	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{	  Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -371,7 +366,7 @@ var kCFDateFormatterDoesRelativeDateFormattingKey: CFStringRef; external name '_
 //	const CFStringRef kCFRepublicOfChinaCalendar;
 //	const CFStringRef kCFPersianCalendar;
 //	const CFStringRef kCFIndianCalendar;
-//	const CFStringRef kCFISO8601Calendar;   not yet implemented
+//	const CFStringRef kCFISO8601Calendar;   implemented as of 10.9
 
 {#endif}
 

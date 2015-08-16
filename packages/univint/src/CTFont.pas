@@ -7,6 +7,7 @@
  }
 {  Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -1429,6 +1430,7 @@ const
 	kCTFontTableKern = FourCharCode('kern');   // Kerning
 	kCTFontTableKerx = FourCharCode('kerx');   // Extended kerning
 	kCTFontTableLcar = FourCharCode('lcar');   // Ligature caret
+	kCTFontTableLtag = FourCharCode('ltag');   // Language tags
 	kCTFontTableLoca = FourCharCode('loca');   // Index to location
 	kCTFontTableMaxp = FourCharCode('maxp');   // Maximum profile
 	kCTFontTableMort = FourCharCode('mort');   // Morph
@@ -1622,6 +1624,22 @@ var kCTBaselineReferenceFont: CFStringRef; external name '_kCTBaselineReferenceF
 }
 var kCTBaselineOriginalFont: CFStringRef; external name '_kCTBaselineOriginalFont'; (* attribute const *)
 (* CT_AVAILABLE_STARTING( __MAC_10_8, __IPHONE_6_0) *)
+
+{!
+    @function   CTFontCopyDefaultCascadeListForLanguages
+    @abstract   Return an ordered list of CTFontDescriptorRef's for font fallback derived from the system default fallback region according to the given language preferences. The style of the given is also matched as well as the weight and width of the font is not one of the system UI font, otherwise the UI font fallback is applied.
+
+    @param      font
+                The font reference.
+ 
+    @param      languagePrefList
+                The language preference list - ordered array of CFStringRef's of ISO language codes.
+
+    @result     The ordered list of fallback fonts - ordered array of CTFontDescriptors.
+}
+function CTFontCopyDefaultCascadeListForLanguages( font: CTFontRef; languagePrefList: CFArrayRef ): CFArrayRef; external name '_CTFontCopyDefaultCascadeListForLanguages';
+(* CT_AVAILABLE_STARTING( __MAC_10_8, __IPHONE_6_0) *)
+
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

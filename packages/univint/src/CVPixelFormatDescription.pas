@@ -8,6 +8,7 @@
 {  Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
 {  Pascal Translation Update:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, August 2015 }
  
 {
     Modified for use with Free Pascal
@@ -328,7 +329,7 @@ var kCVPixelFormatFillExtendedPixelsCallback: CFStringRef; external name '_kCVPi
 function CVPixelFormatDescriptionCreateWithPixelFormatType( allocator: CFAllocatorRef; pixelFormat: OSType ): CFDictionaryRef; external name '_CVPixelFormatDescriptionCreateWithPixelFormatType';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
-{ Get an array containing all known pixel format description dictionaries }
+{ Get a CFArray of CFNumbers containing all known pixel formats as OSTypes }
 function CVPixelFormatDescriptionArrayCreateWithAllPixelFormatTypes( allocator: CFAllocatorRef ): CFArrayRef; external name '_CVPixelFormatDescriptionArrayCreateWithAllPixelFormatTypes';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 

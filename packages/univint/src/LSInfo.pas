@@ -3,15 +3,13 @@
  
      Contains:   Public interfaces for LaunchServices.framework
  
-     Copyright:  Copyright 2001-2009 by Apple Inc., all rights reserved.
+     Copyright:  (c) 2001-2012 by Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
  
                      http://bugs.freepascal.org
 }
-{	 Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
-{	 Updated Pascal Translation: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 
 {
     Modified for use with Free Pascal
@@ -341,7 +339,7 @@ const
  *    LSInit is deprecated. Do not use.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.3
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.3
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -356,7 +354,7 @@ function LSInit( inFlags: LSInitializeFlags ): OSStatus; external name '_LSInit'
  *    LSTerm is deprecated. It does nothing.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.3
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.3
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -389,7 +387,7 @@ function LSTerm: OSStatus; external name '_LSTerm';
  *      Information is returned in this structure. Must not be NULL
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -421,7 +419,7 @@ function LSCopyItemInfoForRef( const (*var*) inItemRef: FSRef; inWhichInfo: LSRe
  *      Information is returned in this structure. Must not be NULL
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -457,7 +455,7 @@ function LSCopyItemInfoForURL( inURL: CFURLRef; inWhichInfo: LSRequestedInfo; va
  *      inNameBuffer does not contain a valid extension.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -488,7 +486,7 @@ function LSGetExtensionInfo( inNameLen: UniCharCount; {const} inNameBuffer: {var
  *      copied. Callers must dispose of the resulting CFString.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -519,7 +517,7 @@ function LSCopyDisplayNameForRef( const (*var*) inRef: FSRef; var outDisplayName
  *      copied. Callers must dispose of the resulting CFString.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -551,7 +549,7 @@ function LSCopyDisplayNameForURL( inURL: CFURLRef; var outDisplayName: CFStringR
  *      True to hide inRef's extension, false to show it.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -583,7 +581,7 @@ function LSSetExtensionHiddenForRef( const (*var*) inRef: FSRef; inHide: Boolean
  *      True to hide inURL's extension, false to show it.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -614,7 +612,7 @@ function LSSetExtensionHiddenForURL( inURL: CFURLRef; inHide: Boolean ): OSStatu
  *      CFStringRef must be released eventually.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -645,7 +643,7 @@ function LSCopyKindStringForRef( const (*var*) inFSRef: FSRef; var outKindString
  *      CFStringRef must be released eventually.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -693,7 +691,7 @@ function LSCopyKindStringForURL( inURL: CFURLRef; var outKindString: CFStringRef
  *      CFStringRef must be released eventually.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -724,7 +722,7 @@ function LSCopyKindStringForTypeInfo( inType: OSType; inCreator: OSType; inExten
  *      CFStringRef must be released eventually.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -768,7 +766,7 @@ function LSCopyKindStringForMIMEType( inMIMEType: CFStringRef; var outKindString
  *      RETURNED URL REFERENCE.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -820,7 +818,7 @@ function LSGetApplicationForItem( const (*var*) inItemRef: FSRef; inRoleMask: LS
  *      RETURNED URL REFERENCE.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -859,7 +857,7 @@ function LSGetApplicationForInfo( inType: OSType; inCreator: OSType; inExtension
  *      caller.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -903,7 +901,7 @@ function LSCopyApplicationForMIMEType( inMIMEType: CFStringRef; inRoleMask: LSRo
  *      RETURNED URL REFERENCE.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -949,7 +947,7 @@ function LSGetApplicationForURL( inURL: CFURLRef; inRoleMask: LSRolesMask; outAp
  *      RETURNED URL REFERENCE.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -991,7 +989,7 @@ function LSFindApplicationForInfo( inCreator: OSType; inBundleID: CFStringRef { 
  *      Filled in with result. Must not be NULL.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -1033,7 +1031,7 @@ function LSCanRefAcceptItem( const (*var*) inItemFSRef: FSRef; const (*var*) inT
  *      Filled in with result. Must not be NULL.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -1070,7 +1068,7 @@ function LSCanURLAcceptURL( inItemURL: CFURLRef; inTargetURL: CFURLRef; inRoleMa
  *    The item's property list info is malformed.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -1107,7 +1105,7 @@ function LSRegisterURL( inURL: CFURLRef; inUpdate: Boolean ): OSStatus; external
  *    The item's property list info is malformed.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -1147,7 +1145,7 @@ function LSRegisterFSRef( const (*var*) inRef: FSRef; inUpdate: Boolean ): OSSta
  *    must eventually release it.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -1229,7 +1227,7 @@ function LSCopyApplicationURLsForURL( inURL: CFURLRef; inRoleMask: LSRolesMask )
  *  kLSItemContentType
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1239,7 +1237,7 @@ var kLSItemContentType: CFStringRef; external name '_kLSItemContentType'; (* att
  *  kLSItemFileType
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1249,7 +1247,7 @@ var kLSItemFileType: CFStringRef; external name '_kLSItemFileType'; (* attribute
  *  kLSItemFileCreator
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1259,7 +1257,7 @@ var kLSItemFileCreator: CFStringRef; external name '_kLSItemFileCreator'; (* att
  *  kLSItemExtension
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1269,7 +1267,7 @@ var kLSItemExtension: CFStringRef; external name '_kLSItemExtension'; (* attribu
  *  kLSItemDisplayName
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1279,7 +1277,7 @@ var kLSItemDisplayName: CFStringRef; external name '_kLSItemDisplayName'; (* att
  *  kLSItemDisplayKind
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1289,7 +1287,7 @@ var kLSItemDisplayKind: CFStringRef; external name '_kLSItemDisplayKind'; (* att
  *  kLSItemRoleHandlerDisplayName
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1299,7 +1297,7 @@ var kLSItemRoleHandlerDisplayName: CFStringRef; external name '_kLSItemRoleHandl
  *  kLSItemIsInvisible
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1309,7 +1307,7 @@ var kLSItemIsInvisible: CFStringRef; external name '_kLSItemIsInvisible'; (* att
  *  kLSItemExtensionIsHidden
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1319,7 +1317,7 @@ var kLSItemExtensionIsHidden: CFStringRef; external name '_kLSItemExtensionIsHid
  *  kLSItemQuarantineProperties
  *  
  *  Availability:
- *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1357,7 +1355,7 @@ var kLSItemQuarantineProperties: CFStringRef; external name '_kLSItemQuarantineP
  *    does not have the requested attribute.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1400,7 +1398,7 @@ function LSCopyItemAttribute( const (*var*) inItem: FSRef; inRoles: LSRolesMask;
  *    an OSStatus value.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1439,7 +1437,7 @@ function LSCopyItemAttributes( const (*var*) inItem: FSRef; inRoles: LSRolesMask
  *    attribute is read-only.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1466,7 +1464,7 @@ function LSSetItemAttribute( const (*var*) inItem: FSRef; inRoles: LSRolesMask; 
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1491,7 +1489,7 @@ function LSCopyDefaultRoleHandlerForContentType( inContentType: CFStringRef; inR
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1514,7 +1512,7 @@ function LSCopyAllRoleHandlersForContentType( inContentType: CFStringRef; inRole
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1552,7 +1550,7 @@ const
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1572,7 +1570,7 @@ function LSGetHandlerOptionsForContentType( inContentType: CFStringRef ): LSHand
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1594,7 +1592,7 @@ function LSSetHandlerOptionsForContentType( inContentType: CFStringRef; inOption
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1618,7 +1616,7 @@ function LSCopyDefaultHandlerForURLScheme( inURLScheme: CFStringRef ): CFStringR
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -1640,7 +1638,7 @@ function LSCopyAllHandlersForURLScheme( inURLScheme: CFStringRef ): CFArrayRef; 
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }

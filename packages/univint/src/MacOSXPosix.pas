@@ -270,10 +270,6 @@ type
 		sockaddr_in_ptr = ^sockaddr_in;
 		socklen_t = UInt32;
 
-  _acl = record
-  end;
-  acl_t = ^_acl;
-	
   dispatch_queue_s = record
   end;
   dispatch_queue_t = ^dispatch_queue_s;

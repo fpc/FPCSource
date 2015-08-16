@@ -11,8 +11,6 @@
                      http://bugs.freepascal.org
  
 }
-{   Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{   Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -440,6 +438,7 @@ const
    * care as it will generate significantly more events than without it.
    }
 	kFSEventStreamCreateFlagFileEvents = $00000010;
+	kFSEventStreamCreateFlagMarkSelf = $00000020;
 
 
 {
@@ -569,6 +568,7 @@ const
 	kFSEventStreamEventFlagItemIsFile = $00010000;
 	kFSEventStreamEventFlagItemIsDir = $00020000;
 	kFSEventStreamEventFlagItemIsSymlink = $00040000;
+	kFSEventStreamEventFlagOwnEvent = $00080000;
 
 
 {
@@ -1391,7 +1391,28 @@ function FSEventStreamCopyDescription( streamRef: ConstFSEventStreamRef ): CFStr
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
+{
+ * FSEventStreamSetExclusionPaths()
+ *
+ * Discussion: 
+ *    Sets directories to be filtered from the EventStream.
+ *    A maximum of 8 directories maybe specified.
+ *
+ * Result:
+ *    True if it succeeds, otherwise False if it fails.
+ *     
+ * Availability:
+ *    Mac OS X:         in version 10.9 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+
+function FSEventStreamSetExclusionPaths( streamRef: FSEventStreamRef; pathsToExclude: CFArrayRef ): Boolean; external name '_FSEventStreamSetExclusionPaths';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_9, __IPHONE_NA) *)
+
+
 {$endc} {TARGET_OS_MAC}
+
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

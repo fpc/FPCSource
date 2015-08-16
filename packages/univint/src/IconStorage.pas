@@ -11,8 +11,6 @@
                      http://bugs.freepascal.org
 
 }
-{       Initial Pascal Translation:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
-{       Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308

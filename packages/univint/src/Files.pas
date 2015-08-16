@@ -7,8 +7,6 @@
  
      Copyright:  © 1985-2011 Apple, Inc. All rights reserved
 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -203,7 +201,7 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,MixedMode,OSUtils,TextCommon,UTCUtils,Finder,MacOSXPosix,DADisk,CFBase,CFDate,CFDictionary,CFRunLoop,CFUUID;
+uses acl,MacTypes,MixedMode,OSUtils,TextCommon,UTCUtils,Finder,MacOSXPosix,DADisk,CFBase,CFDate,CFDictionary,CFRunLoop,CFUUID;
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -228,12 +226,15 @@ type
 	DirIDTypePtr = ^DirIDType;
 	DirIDType = SInt32;
 
+const kFSFileSecurityRemoveACL = acl_t(1);
+
 {
     File Permissions
 
-    Do not mix and match the following two sets of constants
-    see DTS Technote FL 37 "You Want Permission To Do What?!!"
-    <http://developer.apple.com/technotes/fl/fl_37.html>
+    Do not mix and match the following two sets of File Manager permission
+    constants (original model  and AFP model).
+    See the Retired Technote FL 37 "You Want Permission To Do What?!!"
+    <https://developer.apple.com/legacy/mac/library/#technotes/fl/fl_37.html#//apple_ref/doc/uid/DTS10002463>
     for a detailed discussion of the two separate models
     and how they are related.
 }
@@ -1431,7 +1432,7 @@ const
 	kFSCatInfoCreateDate = $00000020;
 	kFSCatInfoContentMod = $00000040;
 	kFSCatInfoAttrMod = $00000080;
-	kFSCatInfoAccessDate = $00000100;
+	kFSCatInfoAccessDate = $00000100; { Note: although included in kFSCatInfoSettableInfo, attempts to set kFSCatInfoAccessDate will do nothing but will not cause an error }
 	kFSCatInfoBackupDate = $00000200;
 	kFSCatInfoPermissions = $00000400;
 	kFSCatInfoFinderInfo = $00000800;
@@ -8799,7 +8800,7 @@ function PBCatSearchAsync( paramBlock: CSParamPtr ): OSErr; external name '_PBCa
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function UnmountVol( volName: ConstStringPtr { can be NULL }; vRefNum: FSVolumeRefNum ): OSErr; external name '_UnmountVol';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { This function is deprecated in Mac OS X 10.4. The routines which use the default volume concept have been deprecated.}

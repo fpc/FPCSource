@@ -24,6 +24,7 @@
  }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -303,6 +304,7 @@ type
 		berEncoded: CSSM_BOOL;
 		name: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
   CE_GeneralNamesPtr = ^CE_GeneralNames;

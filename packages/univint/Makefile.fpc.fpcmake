@@ -98,8 +98,10 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs AEData
   certextensions cssmapple cssmconfig cssmerr cssmkrapi cssmtype \
   fenv fp gliContexts gliDispatch gluContext kern_return macgl macglext \
   macglu mach_error vBLAS vDSP x509defs xattr \
-  AudioHardwareBase.pas AudioHardwareDeprecated.pas CGImageMetadata.pas CSIdentityBase.pas \
-  CVPixelBufferIOSurface.pas CaptiveNetwork.pas DictionaryServices.pas QLThumbnail.pas
+  AudioHardwareBase AudioHardwareDeprecated CGImageMetadata CSIdentityBase \
+  CVPixelBufferIOSurface CaptiveNetwork DictionaryServices QLThumbnail.pas \
+  acl CFFileDescriptor CFFileSecurity CFURLEnumerator SKAnalysis \
+  SKDocument SKIndex SKSearch SKSummary
 exampledirs=examples
 
 [libs]

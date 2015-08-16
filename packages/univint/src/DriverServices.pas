@@ -7,9 +7,6 @@
  
      Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
-{	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
-{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 (no functional changes in 10.6) }
-{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308

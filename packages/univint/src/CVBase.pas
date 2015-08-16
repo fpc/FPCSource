@@ -9,6 +9,7 @@
 {  Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
 {  Pascal Translation Update:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, August 2015 }
 
 {
     Modified for use with Free Pascal
@@ -229,6 +230,10 @@ uses MacTypes, CFBase;
 
 #ifndef __AVAILABILITY_INTERNAL__MAC_10_8
 #define __AVAILABILITY_INTERNAL__MAC_10_8        __AVAILABILITY_INTERNAL_WEAK_IMPORT
+#endif
+
+#ifndef __AVAILABILITY_INTERNAL__MAC_10_9
+#define __AVAILABILITY_INTERNAL__MAC_10_9        __AVAILABILITY_INTERNAL_WEAK_IMPORT
 #endif
 
 

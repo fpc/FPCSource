@@ -4,6 +4,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -321,7 +322,7 @@ function CGDisplayCopyAllDisplayModes( display: CGDirectDisplayID; options: CFDi
 (* CG_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
 var kCGDisplayShowDuplicateLowResolutionModes: CFStringRef; external name '_kCGDisplayShowDuplicateLowResolutionModes'; (* attribute const *)
-(* CG_AVAILABLE_STARTING(__MAC_10_8,__IPHONE_N_A) *)
+(* CG_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
 
 { Return the current mode of the specified display, or NULL if `display'
    is invalid. }
@@ -491,7 +492,7 @@ type
 { Return true if `display' is captured; false otherwise. }
 
 function CGDisplayIsCaptured( display: CGDirectDisplayID ): boolean_t; external name '_CGDisplayIsCaptured';
-(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_9, __IPHONE_NA, __IPHONE_NA) *)
 
 { Capture `display' for exclusive use by an application. }
 

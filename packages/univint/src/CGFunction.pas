@@ -4,6 +4,7 @@
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -218,7 +219,7 @@ type
    creation functions. }
 
 type
-	CGFunctionEvaluateCallback = procedure( info: UnivPtr; inp: {const} CGFloatPtr; out: Float32Ptr );
+	CGFunctionEvaluateCallback = procedure( info: UnivPtr; inp: {const} CGFloatPtr; out: CGFloatPtr );
 
 { When a function is deallocated, this callback releases `info', the info
    parameter passed to the CGFunction creation functions. }
@@ -275,7 +276,7 @@ function CGFunctionGetTypeID: CFTypeID; external name '_CGFunctionGetTypeID';
    The contents of the callbacks structure is copied, so, for example, a
    pointer to a structure on the stack can be passed to this function. }
 
-function CGFunctionCreate( info: UnivPtr; domainDimension: size_t; domain: {const} CGFloatPtr; rangeDimension: size_t; range: {const} Float32Ptr; const (*var*) callbacks: CGFunctionCallbacks ): CGFunctionRef; external name '_CGFunctionCreate';
+function CGFunctionCreate( info: UnivPtr; domainDimension: size_t; domain: {const} CGFloatPtr; rangeDimension: size_t; range: {const} CGFloatPtr; const (*var*) callbacks: CGFunctionCallbacks ): CGFunctionRef; external name '_CGFunctionCreate';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Equivalent to `CFRetain(function)', except it doesn't crash (as CFRetain

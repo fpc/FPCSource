@@ -23,6 +23,7 @@
 {  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {  Pascal Translation Update:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, August 2015 }
 
 {
     Modified for use with Free Pascal
@@ -342,7 +343,7 @@ const
         
     @param attributes (output/optional) Receives the attribute bits for the session.
 
-    @result An OSStatus indicating success (noErr) or an error cause.
+    @result An OSStatus indicating success (errSecSuccess) or an error cause.
     
     errSessionInvalidId -60500 Invalid session id specified
 
@@ -375,7 +376,7 @@ function SessionGetInfo( session: SecuritySessionId; sessionId: SecuritySessionI
     @param attributes The set of attribute bits to set for the new session.
         Not all bits can be set this way.
     
-    @result An OSStatus indicating success (noErr) or an error cause.
+    @result An OSStatus indicating success (errSecSuccess) or an error cause.
     
     errSessionInvalidAttributes -60501 Attempt to set invalid attribute bits	
     errSessionAuthorizationDenied -60502 Attempt to re-initialize a session
