@@ -373,7 +373,7 @@ implementation
       blocks: array of TBlock;
       blocknr: Integer;
       block: PBlock;
-      ofs: Byte;
+      ofs: Integer;
       bucket: Integer;
       length_of_string: Byte;
       name: string;
@@ -384,14 +384,17 @@ implementation
       read(blocks[0],DictionarySizeInBlocks*SizeOf(TBlock));
       for blocknr:=0 to DictionarySizeInBlocks-1 do
         begin
-          block:=@blocks[blocknr];
+          block:=@(blocks[blocknr]);
           for bucket:=0 to nbuckets-1 do
             if block^[bucket]<>0 then
               begin
-                ofs:=block^[bucket];
+                ofs:=2*block^[bucket];
                 length_of_string:=block^[ofs];
                 if (ofs+1+length_of_string+1)>High(TBlock) then
-                  Comment(V_Error,'OMF dictionary entry goes beyond end of block');
+                  begin
+                    Comment(V_Error,'OMF dictionary entry goes beyond end of block');
+                    continue;
+                  end;
                 SetLength(name,length_of_string);
                 Move(block^[ofs+1],name[1],length_of_string);
                 PageNum:=block^[ofs+1+length_of_string]+
