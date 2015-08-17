@@ -1412,6 +1412,7 @@ implementation
               end;
           end;
         until FRawRecord.RecordType in [RT_MODEND,RT_MODEND32];
+        result:=true;
       end;
 
 {****************************************************************************
