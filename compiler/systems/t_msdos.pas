@@ -442,6 +442,33 @@ begin
       LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
   end;
   LinkScript.Concat('ENDGROUP');
+
+  LinkScript.Concat('EXESECTION .MZ_flat_content');
+  if current_settings.x86memorymodel=mm_tiny then
+    begin
+      {LinkRes.Add('order clname CODE clname DATA clname BSS')}
+      LinkScript.Concat('  OBJSECTION *||CODE');
+      LinkScript.Concat('  OBJSECTION *||DATA');
+      LinkScript.Concat('  SYMBOL _edata');
+      LinkScript.Concat('  OBJSECTION *||BSS');
+      LinkScript.Concat('  SYMBOL _end');
+    end
+  else
+    begin
+      {LinkRes.Add('order clname CODE clname BEGDATA segment _NULL segment _AFTERNULL clname DATA clname BSS clname STACK clname HEAP');}
+      LinkScript.Concat('  OBJSECTION *||CODE');
+      LinkScript.Concat('  OBJSECTION *||BEGDATA');
+      LinkScript.Concat('  OBJSECTION _NULL||*');
+      LinkScript.Concat('  OBJSECTION _AFTERNULL||*');
+      LinkScript.Concat('  OBJSECTION *||DATA');
+      LinkScript.Concat('  SYMBOL _edata');
+      LinkScript.Concat('  OBJSECTION *||BSS');
+      LinkScript.Concat('  SYMBOL _end');
+      LinkScript.Concat('  OBJSECTION *||STACK');
+      LinkScript.Concat('  OBJSECTION *||HEAP');
+    end;
+  LinkScript.Concat('ENDEXESECTION');
+
   LinkScript.Concat('ENTRYNAME ..start');
 end;
 
