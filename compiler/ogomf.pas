@@ -1042,7 +1042,7 @@ implementation
             end;
         end;
         secoptions:=[];
-        objsec:=TOmfObjSection(objdata.createsection(SegmentName,SecAlign,secoptions,false));
+        objsec:=TOmfObjSection(objdata.createsection(SegmentName+'||'+SegClassName,SecAlign,secoptions,false));
         objsec.FClassName:=SegClassName;
         objsec.FOverlayName:=OverlayName;
         objsec.FCombination:=SegDefRec.Combination;
