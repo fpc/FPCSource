@@ -1305,6 +1305,7 @@ implementation
             NextOfs:=0;
             Fixup:=TOmfSubRecord_FIXUP.Create;
             Fixup.Is32Bit:=FixupRawRec.RecordType=RT_FIXUPP32;
+            Fixup.DataRecordStartOffset:=EnumeratedDataOffset;
             while NextOfs<(FixupRawRec.RecordLength-1) do
               begin
                 NextOfs:=Fixup.ReadAt(FixupRawRec,NextOfs);
