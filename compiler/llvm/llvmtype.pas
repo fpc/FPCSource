@@ -67,6 +67,7 @@ interface
         procedure appendprocdef(list:TAsmList;def:tprocdef);override;
         procedure appenddef_object(list:TAsmList;def: tobjectdef);override;
         procedure appenddef_variant(list:TAsmList;def: tvariantdef);override;
+        procedure appenddef_file(list:TasmList;def:tfiledef);override;
 
         procedure appendsym_var(list:TAsmList;sym:tabstractnormalvarsym);
         procedure appendsym_staticvar(list:TAsmList;sym:tstaticvarsym);override;
@@ -672,6 +673,18 @@ implementation
     procedure TLLVMTypeInfo.appenddef_variant(list:TAsmList;def: tvariantdef);
       begin
         appenddef(list,tabstractrecorddef(search_system_type('TVARDATA').typedef));
+      end;
+
+
+    procedure TLLVMTypeInfo.appenddef_file(list:TAsmList;def:tfiledef);
+      begin
+        case tfiledef(def).filetyp of
+          ft_text    :
+            appenddef(list,tabstractrecorddef(search_system_type('TEXTREC').typedef));
+          ft_typed,
+          ft_untyped :
+            appenddef(list,tabstractrecorddef(search_system_type('FILEREC').typedef));
+        end;
       end;
 
 end.
