@@ -434,12 +434,14 @@ begin
     if s<>'' then
       LinkScript.Concat('READOBJECT ' + maybequoted(s));
   end;
+  LinkScript.Concat('GROUP');
   while not StaticLibFiles.Empty do
   begin
     s:=StaticLibFiles.GetFirst;
     if s<>'' then
       LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
   end;
+  LinkScript.Concat('ENDGROUP');
   LinkScript.Concat('ENTRYNAME ..start');
 end;
 
