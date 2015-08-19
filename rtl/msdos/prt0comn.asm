@@ -498,7 +498,7 @@ not_enough_mem_msg:
 %endif
         ; add reference to the beginning of the minimal heap, so the object
         ; module, containing the heap segment doesn't get smartlinked away
-        dd ___heap
+        dw ___heap
 
         segment bss class=bss align=2
 
