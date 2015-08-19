@@ -136,6 +136,7 @@ interface
         function ReadPubDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadModEnd(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadLEDataAndFixups(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
+        function ImportOmfFixup(objdata: TObjData; objsec: TOmfObjSection; Fixup: TOmfSubRecord_FIXUP): Boolean;
 
         property LNames: TOmfOrderedNameCollection read FLNames;
         property ExtDefs: TFPHashObjectList read FExtDefs;
@@ -1316,11 +1317,138 @@ implementation
                     FixupRawRec.Free;
                     exit;
                   end;
-                {todo: convert the fixup to a TOmfRelocation }
+                ImportOmfFixup(objdata,objsec,Fixup);
               end;
             Fixup.Free;
             FixupRawRec.Free;
           end;
+        Result:=True;
+      end;
+
+    function TOmfObjInput.ImportOmfFixup(objdata: TObjData; objsec: TOmfObjSection; Fixup: TOmfSubRecord_FIXUP): Boolean;
+      var
+        reloc: TOmfRelocation;
+        sym: TObjSymbol;
+        RelocType: TObjRelocationType;
+      begin
+        Result:=False;
+
+        { range check location }
+        if (Fixup.LocationOffset+Fixup.LocationSize)>objsec.Size then
+          begin
+            InputError('Fixup location exceeds the current segment boundary');
+            exit;
+          end;
+
+        { range check target datum }
+        case Fixup.TargetMethod of
+          ftmSegmentIndex:
+            if (Fixup.TargetDatum<1) or (Fixup.TargetDatum>objdata.ObjSectionList.Count) then
+              begin
+                InputError('Segment name index in SI(<segment name>),<displacement> fixup target is out of range');
+                exit;
+              end;
+          ftmSegmentIndexNoDisp:
+            if (Fixup.TargetDatum<1) or (Fixup.TargetDatum>objdata.ObjSectionList.Count) then
+              begin
+                InputError('Segment name index in SI(<segment name>) fixup target is out of range');
+                exit;
+              end;
+          ftmGroupIndex:
+            if (Fixup.TargetDatum<1) or (Fixup.TargetDatum>objdata.GroupsList.Count) then
+              begin
+                InputError('Group name index in GI(<group name>),<displacement> fixup target is out of range');
+                exit;
+              end;
+          ftmGroupIndexNoDisp:
+            if (Fixup.TargetDatum<1) or (Fixup.TargetDatum>objdata.GroupsList.Count) then
+              begin
+                InputError('Group name index in GI(<group name>) fixup target is out of range');
+                exit;
+              end;
+          ftmExternalIndex:
+            if (Fixup.TargetDatum<1) or (Fixup.TargetDatum>ExtDefs.Count) then
+              begin
+                InputError('External symbol name index in EI(<symbol name>),<displacement> fixup target is out of range');
+                exit;
+              end;
+          ftmExternalIndexNoDisp:
+            if (Fixup.TargetDatum<1) or (Fixup.TargetDatum>ExtDefs.Count) then
+              begin
+                InputError('External symbol name index in EI(<symbol name>) fixup target is out of range');
+                exit;
+              end;
+        end;
+
+        { range check frame datum }
+        case Fixup.FrameMethod of
+          ffmSegmentIndex:
+            if (Fixup.FrameDatum<1) or (Fixup.FrameDatum>objdata.ObjSectionList.Count) then
+              begin
+                InputError('Segment name index in SI(<segment name>) fixup frame is out of range');
+                exit;
+              end;
+          ffmGroupIndex:
+            if (Fixup.FrameDatum<1) or (Fixup.FrameDatum>objdata.GroupsList.Count) then
+              begin
+                InputError('Group name index in GI(<group name>) fixup frame is out of range');
+                exit;
+              end;
+          ffmExternalIndex:
+            if (Fixup.TargetDatum<1) or (Fixup.TargetDatum>ExtDefs.Count) then
+              begin
+                InputError('External symbol name index in EI(<symbol name>) fixup frame is out of range');
+                exit;
+              end;
+        end;
+
+        if Fixup.TargetMethod in [ftmExternalIndex,ftmExternalIndexNoDisp] then
+          begin
+            sym:=objdata.symbolref(TOmfExternalNameElement(ExtDefs[Fixup.TargetDatum-1]).Name);
+            case Fixup.LocationType of
+              fltOffset:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_ABSOLUTE;
+                  fmSelfRelative:
+                    RelocType:=RELOC_RELATIVE;
+                end;
+              fltBase:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_SEG;
+                  fmSelfRelative:
+                    RelocType:=RELOC_SEGREL;
+                end;
+              else
+                begin
+                  InputError('Unsupported fixup location type '+IntToStr(Ord(Fixup.LocationType))+' in external reference to '+sym.Name);
+                  exit;
+                end;
+            end;
+            case Fixup.FrameMethod of
+              ffmTarget:
+                {nothing};
+              ffmGroupIndex:
+                begin
+                  {todo: handle 'wrt dgroup' here}
+                end;
+              else
+                begin
+                  InputError('Unsupported frame method '+IntToStr(Ord(Fixup.FrameMethod))+' in external reference to '+sym.Name);
+                  exit;
+                end;
+            end;
+            if Fixup.TargetDisplacement<>0 then
+              begin
+                InputError('Unsupported nonzero target displacement '+IntToStr(Fixup.TargetDisplacement)+' in external reference to '+sym.Name);
+                exit;
+              end;
+            reloc:=TOmfRelocation.CreateSymbol(Fixup.LocationOffset,sym,RelocType);
+            objsec.ObjRelocations.Add(reloc);
+          end;
+        {todo: convert other fixup types as well }
+
         Result:=True;
       end;
 
