@@ -1289,7 +1289,7 @@ implementation
         objsec:=TOmfObjSection(objdata.ObjSectionList[SegmentIndex-1]);
 
         objsec.SecOptions:=objsec.SecOptions+[oso_Data];
-        if (objsec.Data.Size<>EnumeratedDataOffset) then
+        if (objsec.Data.Size>EnumeratedDataOffset) then
           begin
             InputError('LEDATA enumerated data offset field out of sequence');
             exit;
@@ -1299,6 +1299,7 @@ implementation
             InputError('LEDATA goes beyond the segment size declared in the SEGDEF record');
             exit;
           end;
+        objsec.Data.seek(EnumeratedDataOffset);
         objsec.Data.write(RawRec.RawData[NextOfs],BlockLength);
 
         { also read all the FIXUPP records that may follow }
