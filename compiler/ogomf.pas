@@ -195,6 +195,13 @@ interface
         property OverlayNumber: Word read FOverlayNumber write FOverlayNumber;
       end;
 
+      { TMZExeSection }
+
+      TMZExeSection=class(TExeSection)
+      public
+        procedure AddObjSection(objsec:TObjSection;ignoreprops:boolean=false);override;
+      end;
+
       { TMZExeOutput }
 
       TMZExeOutput = class(TExeOutput)
@@ -1639,6 +1646,17 @@ implementation
       end;
 
 {****************************************************************************
+                               TMZExeSection
+****************************************************************************}
+
+    procedure TMZExeSection.AddObjSection(objsec: TObjSection; ignoreprops: boolean);
+      begin
+        { allow mixing initialized and uninitialized data in the same section
+          => set ignoreprops=true }
+        inherited AddObjSection(objsec,true);
+      end;
+
+{****************************************************************************
                                TMZExeOutput
 ****************************************************************************}
 
@@ -1657,6 +1675,7 @@ implementation
     constructor TMZExeOutput.create;
       begin
         inherited create;
+        CExeSection:=TMZExeSection;
         CObjData:=TOmfObjData;
       end;
 
