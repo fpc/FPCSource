@@ -206,6 +206,7 @@ interface
 
       TMZExeOutput = class(TExeOutput)
       protected
+        procedure DoRelocationFixup(objsec:TObjSection);override;
         function writeData:boolean;override;
       public
         constructor create;override;
@@ -1659,6 +1660,18 @@ implementation
 {****************************************************************************
                                TMZExeOutput
 ****************************************************************************}
+
+    procedure TMZExeOutput.DoRelocationFixup(objsec: TObjSection);
+      var
+        i: Integer;
+        objreloc: TOmfRelocation;
+      begin
+        for i:=0 to objsec.ObjRelocations.Count-1 do
+          begin
+            objreloc:=TOmfRelocation(objsec.ObjRelocations[i]);
+            {todo}
+          end;
+      end;
 
     function TMZExeOutput.writeData: boolean;
       var
