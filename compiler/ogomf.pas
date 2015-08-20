@@ -207,6 +207,7 @@ interface
       TMZExeOutput = class(TExeOutput)
       protected
         procedure DoRelocationFixup(objsec:TObjSection);override;
+        procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
         function writeData:boolean;override;
       public
         constructor create;override;
@@ -1671,6 +1672,21 @@ implementation
             objreloc:=TOmfRelocation(objsec.ObjRelocations[i]);
             {todo}
           end;
+      end;
+
+    function IOmfObjSectionClassNameCompare(Item1, Item2: Pointer): Integer;
+      var
+        I1 : TOmfObjSection absolute Item1;
+        I2 : TOmfObjSection absolute Item2;
+      begin
+        Result:=CompareStr(I1.ClassName,I2.ClassName);
+        if Result=0 then
+          Result:=CompareStr(I1.Name,I2.Name);
+      end;
+
+    procedure TMZExeOutput.Order_ObjSectionList(ObjSectionList: TFPObjectList; const aPattern: string);
+      begin
+        ObjSectionList.Sort(@IOmfObjSectionClassNameCompare);
       end;
 
     function TMZExeOutput.writeData: boolean;
