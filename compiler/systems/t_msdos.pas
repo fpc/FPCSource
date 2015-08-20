@@ -74,6 +74,8 @@ implementation
       { TInternalLinkerMsDos }
 
       TInternalLinkerMsDos=class(tinternallinker)
+      private
+        function GetTotalSizeForSegmentClass(aExeOutput: TExeOutput; const SegClass: string): QWord;
       protected
         function GetCodeSize(aExeOutput: TExeOutput): QWord;override;
         function GetDataSize(aExeOutput: TExeOutput): QWord;override;
@@ -397,22 +399,36 @@ end;
                                TInternalLinkerMsDos
 ****************************************************************************}
 
+function TInternalLinkerMsDos.GetTotalSizeForSegmentClass(
+  aExeOutput: TExeOutput; const SegClass: string): QWord;
+var
+  objseclist: TFPObjectList;
+  objsec: TOmfObjSection;
+  i: Integer;
+begin
+  Result:=0;
+  objseclist:=aExeOutput.FindExeSection('.MZ_flat_content').ObjSectionList;
+  for i:=0 to objseclist.Count-1 do
+    begin
+      objsec:=TOmfObjSection(objseclist[i]);
+      if objsec.ClassName=SegClass then
+        Inc(Result,objsec.Size);
+    end;
+end;
+
 function TInternalLinkerMsDos.GetCodeSize(aExeOutput: TExeOutput): QWord;
 begin
-  { TODO: implement }
-  Result:=0;
+  Result:=GetTotalSizeForSegmentClass(aExeOutput,'CODE');
 end;
 
 function TInternalLinkerMsDos.GetDataSize(aExeOutput: TExeOutput): QWord;
 begin
-  { TODO: implement }
-  Result:=0;
+  Result:=GetTotalSizeForSegmentClass(aExeOutput,'DATA');
 end;
 
 function TInternalLinkerMsDos.GetBssSize(aExeOutput: TExeOutput): QWord;
 begin
-  { TODO: implement }
-  Result:=0;
+  Result:=GetTotalSizeForSegmentClass(aExeOutput,'BSS');
 end;
 
 procedure TInternalLinkerMsDos.DefaultLinkScript;
