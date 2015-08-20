@@ -518,7 +518,7 @@ __nullarea:
         segment data
         ; add reference to the beginning of stack, so the object module,
         ; containing the stack segment doesn't get smartlinked away
-        dd ___stack
+        dw ___stack
     %endif
 %endif
 
