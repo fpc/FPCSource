@@ -1677,6 +1677,8 @@ implementation
         inherited create;
         CExeSection:=TMZExeSection;
         CObjData:=TOmfObjData;
+        { "640K ought to be enough for anybody" :) }
+        MaxMemPos:=$9FFFF;
       end;
 
 {****************************************************************************
