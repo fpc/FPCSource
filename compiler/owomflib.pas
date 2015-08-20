@@ -78,10 +78,12 @@ type
     LibSymbols : TFPHashObjectList;
     islib: boolean;
     CurrMemberPos : longint;
+    CurrMemberName : string;
     FPageSize: Integer;
     procedure ReadLibrary;
     procedure ReadDictionary(DictionaryOffset: DWord; DictionarySizeInBlocks: Word);
   protected
+    function getfilename:string;override;
     function GetPos: longint;override;
     function GetIsArchive: boolean;override;
   public
@@ -404,6 +406,13 @@ implementation
         end;
     end;
 
+  function TOmfLibObjectReader.getfilename: string;
+    begin
+      Result:=inherited getfilename;
+      if CurrMemberName<>'' then
+        result:=result+'('+CurrMemberName+')';
+    end;
+
   function TOmfLibObjectReader.GetPos: longint;
     begin
       result:=inherited GetPos-CurrMemberPos;
@@ -421,6 +430,7 @@ implementation
       inherited Create;
       LibSymbols:=TFPHashObjectList.Create(true);
       CurrMemberPos:=0;
+      CurrMemberName:='';
       if inherited openfile(Aarfn) then
         begin
           Read(RecType,1);
@@ -443,6 +453,8 @@ implementation
   function TOmfLibObjectReader.openfile(const fn: string): boolean;
     var
       libsym: TOmfLibDictionaryEntry;
+      RawRec: TOmfRawRecord;
+      Header: TOmfRecord_THEADR;
     begin
       result:=false;
       libsym:=TOmfLibDictionaryEntry(LibSymbols.Find(ModName2DictEntry(fn)));
@@ -450,12 +462,25 @@ implementation
         exit;
       CurrMemberPos:=libsym.PageNum*FPageSize;
       inherited Seek(CurrMemberPos);
+
+      { read the header, to obtain the module name }
+      RawRec:=TOmfRawRecord.Create;
+      RawRec.ReadFrom(self);
+      Header:=TOmfRecord_THEADR.Create;
+      Header.DecodeFrom(RawRec);
+      CurrMemberName:=Header.ModuleName;
+      Header.Free;
+      RawRec.Free;
+
+      { go back to the beginning of the file }
+      inherited Seek(CurrMemberPos);
       result:=true;
     end;
 
   procedure TOmfLibObjectReader.closefile;
     begin
       CurrMemberPos:=0;
+      CurrMemberName:='';
     end;
 
   procedure TOmfLibObjectReader.seek(len: longint);
