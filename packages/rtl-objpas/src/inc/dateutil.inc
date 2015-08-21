@@ -2532,7 +2532,7 @@ end;
 function UniversalTimeToLocal(UT: TDateTime): TDateTime;
 
 begin
-  Result:=UniversalTimeToLocal(UT,GetLocalTimeOffset);
+  Result:=UniversalTimeToLocal(UT,-GetLocalTimeOffset);
 end;
 
 function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
@@ -2549,7 +2549,7 @@ end;
 Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
 
 begin
-  Result:=LocalTimeToUniversal(LT,GetLocalTimeOffset);
+  Result:=LocalTimeToUniversal(LT,-GetLocalTimeOffset);
 end;
 
 Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;
