@@ -238,8 +238,8 @@ interface
        SecAlign   : shortint;   { alignment of the section }
        { section Data }
        Size,
-       DataPos,
-       MemPos     : aword;
+       DataPos    : aword;
+       MemPos     : qword;
        Group      : TObjSectionGroup;
        DataAlignBytes : shortint;
        { Relocations (=references) to other sections }
@@ -443,8 +443,8 @@ interface
         FObjSectionList : TFPObjectList;
       public
         Size,
-        DataPos,
-        MemPos     : aword;
+        DataPos    : aword;
+        MemPos     : qword;
         SecAlign   : shortint;
         Disabled   : boolean;
         SecOptions : TObjSectionOptions;
