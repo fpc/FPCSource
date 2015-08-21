@@ -265,6 +265,8 @@ interface
        procedure addrawReloc(ofs:aword;p:TObjSymbol;RawReloctype:byte);
        procedure ReleaseData;
        function  FullName:string;
+       { string representation for the linker map file }
+       function  MemPosStr(AImageBase: qword): string;virtual;
        property  Data:TDynamicArray read FData;
        property  SecOptions:TObjSectionOptions read FSecOptions write SetSecOptions;
      end;
@@ -999,6 +1001,12 @@ implementation
               FCachedFullName:=stringdup(Name);
           end;
         result:=FCachedFullName^;
+      end;
+
+
+    function  TObjSection.MemPosStr(AImageBase: qword): string;
+      begin
+        result:='0x'+HexStr(mempos+AImageBase,sizeof(pint)*2);
       end;
 
 

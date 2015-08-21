@@ -68,6 +68,7 @@ interface
         function GetOmfAlignment: TOmfSegmentAlignment;
       public
         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
+        function MemPosStr(AImageBase: qword): string;override;
         property ClassName: string read FClassName;
         property OverlayName: string read FOverlayName;
         property OmfAlignment: TOmfSegmentAlignment read GetOmfAlignment;
@@ -417,6 +418,11 @@ implementation
           FPrimaryGroup:='dgroup'
         else
           FPrimaryGroup:='';
+      end;
+
+    function TOmfObjSection.MemPosStr(AImageBase: qword): string;
+      begin
+        Result:=HexStr(MemPos shr 4,4)+':'+HexStr(MemPos and $000f,4);
       end;
 
 {****************************************************************************

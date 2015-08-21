@@ -182,7 +182,7 @@ implementation
              Add(' '+secname);
              secname:='';
            end;
-         Add(' '+PadSpace(secname,14)+PadSpace(' 0x'+HexStr(p.mempos+FImageBase,sizeof(pint)*2),12)+
+         Add(' '+PadSpace(secname,14)+PadSpace(' '+p.MemPosStr(FImageBase),12)+
              ' '+PadSpaceLeft(sizestr(p.size),9)+' '+p.objdata.name);
        end;
 
