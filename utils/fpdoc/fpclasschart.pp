@@ -520,28 +520,29 @@ Var
 
 begin
   Result:='';
+  ACount:=0;
   XML:=TXMLDocument.Create;
   Try
     //XML.
-    XML.AppendChild(XML.CreateElement(ObjKindNames[AObjectKind]));
+    XML.AppendChild(XML.CreateElement('TObject'));
     For I:=0 to MergeFiles.Count-1 do
       begin
       XMl2:=TXMLDocument.Create;
       ReadXMLFile(XML2,MergeFiles[i]);
       try
-        ACount:=MergeTrees(XML,XML2);
+        ACount:=ACount+MergeTrees(XML,XML2);
         WriteLn(StdErr,Format(SMergedFile,[ACount,MergeFiles[i]]));
       Finally
         FreeAndNil(XML2);
       end;
       end;
-    ACount:=0;
     For I:=0 to InputFiles.Count-1 do
       begin
       Engine := TClassTreeEngine.Create(XML,AObjectKind);
       Try
         ParseSource(Engine,InputFiles[I],OSTarget,CPUTarget);
-        ACount:=ACount+Engine.Ftree.BuildTree(Engine.FObjects);
+        Engine.Ftree.BuildTree(Engine.FObjects);
+        ACount:=ACount+MergeTrees(XML,Engine.FTree.ClassTree);
       Finally
         FreeAndNil(Engine);
       end;

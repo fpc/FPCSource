@@ -81,7 +81,7 @@ begin
     S:=N.NodeName;
     if NoPath then
       Begin
-      Result:= (CompareText(S,AElement.Name)=0);
+      Result:=(CompareText(S,AElement.Name)=0);
       end
     else
       begin
@@ -131,10 +131,11 @@ Var
   N : TDomNode;
 
 begin
-  //Writeln('Enter TClassTreeBuilder.AddToClassTree');
+
+//  Writeln('Enter TClassTreeBuilder.AddToClassTree');
   //if Assigned(AElement) then
     //Writeln('Addtoclasstree : ',aElement.Name);
-  Result:=Nil; N:=Nil;PE:=NIL;
+  Result:=Nil; M:=Nil; N:=Nil;PE:=NIL;PC:=Nil;
   If (AElement=Nil) then
     begin
     Result:=FTreeStart;
@@ -144,9 +145,7 @@ begin
     begin
     N:=LookForElement(FTreeStart,AElement,True);
     If (N=Nil) then
-      begin
       PE:=FTreeStart;
-      end
     end
   else If (AElement is TPasClassType) then
     begin
@@ -163,8 +162,6 @@ begin
     end;
   If (N<>Nil) then
     begin
-//    if Assigned(PC) then
-//      Writeln(PC.Name,' already in tree');
     Result:=N as TDomElement
     end
   else
@@ -179,10 +176,8 @@ begin
       end;
     if PE=Nil then
       begin
-      //Writeln('PE = nil detected for ',AElement.PathName);
       PE:=FTreeStart
       end;
-    //Writeln('Appending to ',PE.NodeName);
     // if not assigned, probably needs to be assigned to something else.
     if assigned(PE) then
       PE.AppendChild(Result);
