@@ -243,7 +243,7 @@ implementation
 
     function TOmfRelocation.GetGroupIndex(const groupname: string): Integer;
       begin
-        if groupname='dgroup' then
+        if groupname='DGROUP' then
           Result:=1
         else
           internalerror(2014040703);
@@ -349,7 +349,7 @@ implementation
               internalerror(2015041401);
             FOmfFixup.FrameMethod:=ffmTarget;
             FOmfFixup.TargetMethod:=ftmGroupIndexNoDisp;
-            FOmfFixup.TargetDatum:=GetGroupIndex('dgroup');
+            FOmfFixup.TargetDatum:=GetGroupIndex('DGROUP');
           end
         else
          internalerror(2015040702);
@@ -424,7 +424,7 @@ implementation
             dgroup:=true;
           end;
         if dgroup then
-          FPrimaryGroup:='dgroup'
+          FPrimaryGroup:='DGROUP'
         else
           FPrimaryGroup:='';
       end;
@@ -922,16 +922,16 @@ implementation
             AddSegment(Name,ClassName,OverlayName,OmfAlignment,Combination,Use,Size);
 
 
-        { create group "dgroup" }
+        { create group "DGROUP" }
         SetLength(DGroupSegments,0);
         for i:=0 to Data.ObjSectionList.Count-1 do
           with TOmfObjSection(Data.ObjSectionList[I]) do
-            if PrimaryGroup='dgroup' then
+            if PrimaryGroup='DGROUP' then
               begin
                 SetLength(DGroupSegments,Length(DGroupSegments)+1);
                 DGroupSegments[High(DGroupSegments)]:=index;
               end;
-        AddGroup('dgroup',DGroupSegments);
+        AddGroup('DGROUP',DGroupSegments);
 
         { write LNAMES record(s) }
         LNamesRec:=TOmfRecord_LNAMES.Create;

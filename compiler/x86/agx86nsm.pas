@@ -370,7 +370,7 @@ interface
 {$ifdef i8086}
               else if o.ref^.refaddr=addr_dgroup then
                 begin
-                  AsmWrite('dgroup');
+                  AsmWrite('DGROUP');
                 end
 {$endif i8086}
               else
@@ -1093,11 +1093,11 @@ interface
         AsmWriteLn('SECTION heap class=heap align=16');
       { group these sections in the same segment }
       if current_settings.x86memorymodel=mm_tiny then
-        AsmWriteLn('GROUP dgroup text rodata data fpc bss heap')
+        AsmWriteLn('GROUP DGROUP text rodata data fpc bss heap')
       else if current_settings.x86memorymodel in x86_near_data_models then
-        AsmWriteLn('GROUP dgroup rodata data fpc bss stack heap')
+        AsmWriteLn('GROUP DGROUP rodata data fpc bss stack heap')
       else
-        AsmWriteLn('GROUP dgroup rodata data fpc bss');
+        AsmWriteLn('GROUP DGROUP rodata data fpc bss');
       if paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
         begin
           AsmWriteLn('SECTION .debug_frame  use32 class=DWARF align=4');
