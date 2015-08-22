@@ -91,9 +91,6 @@ type
 
 { TClassTreeBuilder }
 
-
-
-
 { TChartFormatter }
 
 constructor TClassChartFormatter.Create(AXML: TXMLDocument);
@@ -444,7 +441,10 @@ begin
   if AClass.InheritsFrom(TPasModule) then
     CurModule := TPasModule(Result);
   If AClass.InheritsFrom(TPasClassType) then
+    begin
     FObjects.AddObject(AName,Result);
+   // Writeln('Added : ',AName);
+    end;
 end;
 
 Constructor TClassTreeEngine.Create(AClassTree : TXMLDocument; AObjectKind : TPasObjKind);
@@ -459,6 +459,8 @@ end;
 
 destructor TClassTreeEngine.Destroy;
 begin
+  FreeAndNil(FTree);
+  FreeAndNil(FPackage);
   FreeAndNil(FObjects);
   inherited Destroy;
 end;
@@ -545,7 +547,7 @@ begin
         ParseSource(Engine,InputFiles[I],OSTarget,CPUTarget);
         ACount:=ACount+Engine.Ftree.BuildTree(Engine.FObjects);
       Finally
-        Engine.Free;
+        FreeAndNil(Engine);
       end;
       end;
     Case OutputFormat of
