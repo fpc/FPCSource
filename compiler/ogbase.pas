@@ -277,6 +277,7 @@ interface
        members: array of TObjSection;
        iscomdat: boolean;
      end;
+     TObjSectionGroupClass = class of TObjSectionGroup;
 
      TString80 = string[80];
 
@@ -290,6 +291,7 @@ interface
        FCurrObjSec : TObjSection;
        FObjSectionList  : TFPHashObjectList;
        FCObjSection     : TObjSectionClass;
+       FCObjSectionGroup: TObjSectionGroupClass;
        { Symbols that will be defined in this object file }
        FObjSymbolList    : TObjSymbolList;
        FCachedAsmSymbolList : TFPObjectList;
@@ -303,6 +305,7 @@ interface
      protected
        FName       : TString80;
        property CObjSection:TObjSectionClass read FCObjSection write FCObjSection;
+       property CObjSectionGroup: TObjSectionGroupClass read FCObjSectionGroup write FCObjSectionGroup;
      public
        CurrPass  : byte;
        ExecStack : boolean;
@@ -1027,6 +1030,7 @@ implementation
         FCachedAsmSymbolList:=TFPObjectList.Create(false);
         { section class type for creating of new sections }
         FCObjSection:=TObjSection;
+        FCObjSectionGroup:=TObjSectionGroup;
 {$ifdef ARM}
         ThumbFunc:=false;
 {$endif ARM}
@@ -1186,7 +1190,7 @@ implementation
       begin
         if FGroupsList=nil then
           FGroupsList:=TFPHashObjectList.Create(true);
-        result:=TObjSectionGroup.Create(FGroupsList,aname);
+        result:=CObjSectionGroup.Create(FGroupsList,aname);
       end;
 
 
