@@ -30,8 +30,7 @@ implementation
 
 constructor TClassTreeBuilder.Create(APackage : TPasPackage;
   AObjectKind: TPasObjKind);
-Var
-  N : TDomNode;
+
 begin
   FCLassTree:=TXMLDocument.Create;
   FPackage:=APAckage;

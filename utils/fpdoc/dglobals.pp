@@ -709,9 +709,9 @@ var
     end;
   end;
 
-  function ResolvePackageModule(AName:String;var pkg:TPasPackage;var module:TPasModule;createnew:boolean):String;
+  function ResolvePackageModule(AName:String;out pkg:TPasPackage;out module:TPasModule;createnew:boolean):String;
     var
-      DotPos, DotPos2, i,j: Integer;
+      DotPos, DotPos2, i: Integer;
       s: String;
       HPackage: TPasPackage;
 
@@ -807,7 +807,6 @@ var
 
     function CreateClass(const AName: String;InheritanceStr:String): TPasClassType;
     var
-      DotPos, DotPos2, i,j: Integer;
       s: String;
       HPackage: TPasPackage;
       Module: TPasModule;
@@ -1444,9 +1443,7 @@ Var
   end;
 
 var
-  i: Integer;
   Node, Subnode, Subsubnode: TDOMNode;
-  Element: TDOMElement;
   Doc: TXMLDocument;
   PackageDocNode, TopicNode,ModuleDocNode: TDocNode;
 
@@ -1598,9 +1595,6 @@ end;
 
 
 function TFPDocEngine.FindLinkedNode(ANode : TDocNode) : TDocNode;
-
-Var
-  S: String;
 
 begin
   If (ANode.Link='') then
