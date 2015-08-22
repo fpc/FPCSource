@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-loaders=prt0 cprt0 func dllprt
+loaders=prt0 cprt0 dllcprt0 func dllprt
 units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings \
 #      beos \
       errors dos dl \
@@ -98,6 +98,9 @@ prt0$(OEXT) : $(CPU_TARGET)/prt0.as
 
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
         $(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+
+dllcprt0$(OEXT) : $(CPU_TARGET)/dllcprt0.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)dllcprt0$(OEXT) $(CPU_TARGET)/dllcprt0.as
 
 func$(OEXT) : $(CPU_TARGET)/func.as
         $(AS) -o $(UNITTARGETDIRPREFIX)func$(OEXT) $(CPU_TARGET)/func.as
