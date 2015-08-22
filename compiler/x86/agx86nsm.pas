@@ -268,7 +268,7 @@ interface
         if current_settings.x86memorymodel in x86_far_code_models then
           begin
             if cs_huge_code in current_settings.moduleswitches then
-              result:=aname + '_TEXT use16 class=code'
+              result:=aname + '_TEXT use16 class=CODE'
             else
               result:=current_module.modulename^ + '_TEXT';
           end
@@ -533,11 +533,11 @@ interface
         else if (target_info.system=system_i8086_msdos) and
                 (atype=sec_stack) and
                 (current_settings.x86memorymodel in x86_far_data_models) then
-          AsmWrite('stack stack class=stack align=16')
+          AsmWrite('stack stack class=STACK align=16')
         else if (target_info.system=system_i8086_msdos) and
                 (atype=sec_heap) and
                 (current_settings.x86memorymodel in x86_far_data_models) then
-          AsmWrite('heap class=heap align=16')
+          AsmWrite('heap class=HEAP align=16')
 {$endif i8086}
         else
           AsmWrite(secnames[atype]);
@@ -1078,19 +1078,19 @@ interface
       end;
 
       if not (cs_huge_code in current_settings.moduleswitches) then
-        AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^) + ' use16 class=code');
+        AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^) + ' use16 class=CODE');
       { NASM complains if you put a missing section in the GROUP directive, so }
       { we add empty declarations to make sure they exist, even if empty }
-      AsmWriteLn('SECTION .rodata class=data align=2');
-      AsmWriteLn('SECTION .data class=data align=2');
-      AsmWriteLn('SECTION .fpc class=data');
+      AsmWriteLn('SECTION .rodata class=DATA align=2');
+      AsmWriteLn('SECTION .data class=DATA align=2');
+      AsmWriteLn('SECTION .fpc class=DATA');
       { WLINK requires class=bss in order to leave the BSS section out of the executable }
-      AsmWriteLn('SECTION .bss class=bss align=2');
+      AsmWriteLn('SECTION .bss class=BSS align=2');
       if (current_settings.x86memorymodel<>mm_tiny) and
          (current_settings.x86memorymodel in x86_near_data_models) then
-        AsmWriteLn('SECTION stack stack class=stack align=16');
+        AsmWriteLn('SECTION stack stack class=STACK align=16');
       if current_settings.x86memorymodel in x86_near_data_models then
-        AsmWriteLn('SECTION heap class=heap align=16');
+        AsmWriteLn('SECTION heap class=HEAP align=16');
       { group these sections in the same segment }
       if current_settings.x86memorymodel=mm_tiny then
         AsmWriteLn('GROUP DGROUP text rodata data fpc bss heap')

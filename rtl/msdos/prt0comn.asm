@@ -36,7 +36,7 @@
 
         cpu 8086
 
-        segment text use16 class=code
+        segment text use16 class=CODE
 
         extern PASCALMAIN
         extern __fpc_PrefixSeg
@@ -489,7 +489,7 @@ FPC_CHECK_NULLAREA:
     %endif
 %endif
 
-        segment data class=data align=2
+        segment data class=DATA align=2
 %ifdef __NEAR_DATA__
 mem_realloc_err_msg:
         db 'Memory allocation error', 13, 10, '$'
@@ -500,7 +500,7 @@ not_enough_mem_msg:
         ; module, containing the heap segment doesn't get smartlinked away
         dw ___heap
 
-        segment bss class=bss align=2
+        segment bss class=BSS align=2
 
 %ifndef __TINY__
         segment _NULL align=16 class=BEGDATA
@@ -513,7 +513,7 @@ __nullarea:
         dw 0
 
     %ifdef __NEAR_DATA__
-        segment stack stack class=stack
+        segment stack stack class=STACK
     %else
         segment data
         ; add reference to the beginning of stack, so the object module,

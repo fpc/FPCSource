@@ -385,28 +385,28 @@ implementation
         FUse:=suUse16;
         if oso_executable in Aoptions then
           begin
-            FClassName:='code';
+            FClassName:='CODE';
             dgroup:=(current_settings.x86memorymodel=mm_tiny);
           end
         else if Aname='stack' then
           begin
-            FClassName:='stack';
+            FClassName:='STACK';
             FCombination:=scStack;
             dgroup:=current_settings.x86memorymodel in (x86_near_data_models-[mm_tiny]);
           end
         else if Aname='heap' then
           begin
-            FClassName:='heap';
+            FClassName:='HEAP';
             dgroup:=current_settings.x86memorymodel in x86_near_data_models;
           end
         else if Aname='bss' then
           begin
-            FClassName:='bss';
+            FClassName:='BSS';
             dgroup:=true;
           end
         else if Aname='data' then
           begin
-            FClassName:='data';
+            FClassName:='DATA';
             dgroup:=true;
           end
         else if (Aname='debug_frame') or
@@ -420,7 +420,7 @@ implementation
           end
         else
           begin
-            FClassName:='data';
+            FClassName:='DATA';
             dgroup:=true;
           end;
         if dgroup then
