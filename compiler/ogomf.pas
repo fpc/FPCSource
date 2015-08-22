@@ -77,6 +77,15 @@ interface
         property PrimaryGroup: string read FPrimaryGroup;
       end;
 
+      { TOmfObjSectionGroup }
+
+      TOmfObjSectionGroup = class(TObjSectionGroup)
+      public
+        Size,
+        MemPos: qword;
+        procedure CalcMemPos;
+      end;
+
       { TOmfObjData }
 
       TOmfObjData = class(TObjData)
@@ -426,6 +435,32 @@ implementation
       end;
 
 {****************************************************************************
+                             TOmfObjSectionGroup
+****************************************************************************}
+
+    procedure TOmfObjSectionGroup.CalcMemPos;
+      var
+        MinMemPos: qword=high(qword);
+        MaxMemPos: qword=0;
+        objsec: TOmfObjSection;
+        i: Integer;
+      begin
+        if Length(members)=0 then
+          internalerror(2015082201);
+        for i:=low(members) to high(members) do
+          begin
+            objsec:=TOmfObjSection(members[i]);
+            if objsec.MemPos<MinMemPos then
+              MinMemPos:=objsec.MemPos;
+            if (objsec.MemPos+objsec.Size)>MaxMemPos then
+              MaxMemPos:=objsec.MemPos+objsec.Size;
+          end;
+        { align *down* on a paragraph boundary }
+        MemPos:=(MinMemPos shr 4) shl 4;
+        Size:=MaxMemPos-MemPos;
+      end;
+
+{****************************************************************************
                                 TOmfObjData
 ****************************************************************************}
 
@@ -448,6 +483,7 @@ implementation
       begin
         inherited create(n);
         CObjSection:=TOmfObjSection;
+        CObjSectionGroup:=TOmfObjSectionGroup;
       end;
 
     function TOmfObjData.sectiontype2align(atype: TAsmSectiontype): shortint;
