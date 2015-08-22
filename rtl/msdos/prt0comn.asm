@@ -79,18 +79,18 @@
 %ifdef __TINY__
         mov bx, cs
 %else
-        mov bx, dgroup
+        mov bx, DGROUP
     %ifdef __NEAR_DATA__
         ; init the stack
         mov ss, bx
-        mov sp, ___stacktop wrt dgroup
+        mov sp, ___stacktop wrt DGROUP
     %endif
 %endif
 
         ; zero fill the BSS section
         mov es, bx
-        mov di, _edata wrt dgroup
-        mov cx, _end wrt dgroup
+        mov di, _edata wrt DGROUP
+        mov cx, _end wrt DGROUP
         sub cx, di
         xor al, al
         cld
@@ -150,7 +150,7 @@ cpu_detect_done:
 
         ; allocate max heap
         ; first we determine in paragraphs ax:=min(64kb, data+bss+stack+maxheap)
-        mov ax, _end wrt dgroup
+        mov ax, _end wrt DGROUP
         add ax, 15
         mov cl, 4
         shr ax, cl
@@ -165,7 +165,7 @@ data_with_maxheap_less_than_64k:
 %ifdef __TINY__
         mov dx, cs
 %else
-        mov dx, dgroup
+        mov dx, DGROUP
 %endif
         sub dx, cx  ; dx = (ds - psp) in paragraphs
         push dx  ; save (ds - psp)
@@ -203,11 +203,11 @@ skip_mem_realloc:
         and bl, 0FEh
         mov word [__stkbottom], bx
 
-        mov ax, _end wrt dgroup
+        mov ax, _end wrt DGROUP
         cmp bx, ax
         jb not_enough_mem
 
-        ; heap is between [ds:_end wrt dgroup] and [ds:__stkbottom - 1]
+        ; heap is between [ds:_end wrt DGROUP] and [ds:__stkbottom - 1]
         add ax, 3
         and al, 0FCh
         mov word [__nearheap_start], ax
@@ -280,7 +280,7 @@ FPC_INT00_HANDLER:
 %ifdef __TINY__
         mov bp, cs
 %else
-        mov bp, dgroup
+        mov bp, DGROUP
 %endif
         mov ds, bp
 
@@ -523,11 +523,11 @@ __nullarea:
 %endif
 
 %ifdef __TINY__
-        group dgroup text data bss
+        group DGROUP text data bss
 %else
     %ifdef __NEAR_DATA__
-        group dgroup _NULL _AFTERNULL data bss stack
+        group DGROUP _NULL _AFTERNULL data bss stack
     %else
-        group dgroup _NULL _AFTERNULL data bss
+        group DGROUP _NULL _AFTERNULL data bss
     %endif
 %endif
