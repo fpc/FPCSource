@@ -56,6 +56,8 @@ interface
         property OmfFixup: TOmfSubRecord_FIXUP read FOmfFixup;
       end;
 
+      TMZExeUnifiedLogicalSegment=class;
+
       { TOmfObjSection }
 
       TOmfObjSection = class(TObjSection)
@@ -65,6 +67,7 @@ interface
         FCombination: TOmfSegmentCombination;
         FUse: TOmfSegmentUse;
         FPrimaryGroup: string;
+        FMZExeUnifiedLogicalSegment: TMZExeUnifiedLogicalSegment;
         function GetOmfAlignment: TOmfSegmentAlignment;
       public
         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
@@ -75,6 +78,7 @@ interface
         property Combination: TOmfSegmentCombination read FCombination;
         property Use: TOmfSegmentUse read FUse;
         property PrimaryGroup: string read FPrimaryGroup;
+        property MZExeUnifiedLogicalSegment: TMZExeUnifiedLogicalSegment read FMZExeUnifiedLogicalSegment write FMZExeUnifiedLogicalSegment;
       end;
 
       { TOmfObjSectionGroup }
@@ -212,15 +216,68 @@ interface
         procedure AddObjSection(objsec:TObjSection;ignoreprops:boolean=false);override;
       end;
 
+      { TMZExeUnifiedLogicalSegment }
+
+      TMZExeUnifiedLogicalSegment=class(TFPHashObject)
+      private
+        FObjSectionList: TFPObjectList;
+        FSegName: TSymStr;
+        FSegClass: TSymStr;
+        FPrimaryGroup: string;
+      public
+        Size,
+        MemPos,
+        MemBasePos: qword;
+        constructor create(HashObjectList:TFPHashObjectList;const s:TSymStr);
+        destructor destroy;override;
+        procedure AddObjSection(ObjSec: TOmfObjSection);
+        procedure CalcMemPos;
+        function MemPosStr:string;
+        property ObjSectionList: TFPObjectList read FObjSectionList;
+        property SegName: TSymStr read FSegName;
+        property SegClass: TSymStr read FSegClass;
+        property PrimaryGroup: string read FPrimaryGroup write FPrimaryGroup;
+      end;
+
+      { TMZExeUnifiedLogicalGroup }
+
+      TMZExeUnifiedLogicalGroup=class(TFPHashObject)
+      private
+        FSegmentList: TFPHashObjectList;
+      public
+        Size,
+        MemPos: qword;
+        constructor create(HashObjectList:TFPHashObjectList;const s:TSymStr);
+        destructor destroy;override;
+        procedure CalcMemPos;
+        function MemPosStr:string;
+        procedure AddSegment(UniSeg: TMZExeUnifiedLogicalSegment);
+        property SegmentList: TFPHashObjectList read FSegmentList;
+      end;
+
       { TMZExeOutput }
 
       TMZExeOutput = class(TExeOutput)
+      private
+        FMZFlatContentSection: TMZExeSection;
+        FExeUnifiedLogicalSegments: TFPHashObjectList;
+        FExeUnifiedLogicalGroups: TFPHashObjectList;
+        function GetMZFlatContentSection: TMZExeSection;
+        procedure CalcExeUnifiedLogicalSegments;
+        procedure CalcExeGroups;
+        procedure CalcSegments_MemBasePos;
+        procedure WriteMap_SegmentsAndGroups;
+        property ExeUnifiedLogicalSegments: TFPHashObjectList read FExeUnifiedLogicalSegments;
+        property ExeUnifiedLogicalGroups: TFPHashObjectList read FExeUnifiedLogicalGroups;
+        property MZFlatContentSection: TMZExeSection read GetMZFlatContentSection;
       protected
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
+        procedure MemPos_EndExeSection;override;
         function writeData:boolean;override;
       public
         constructor create;override;
+        destructor destroy;override;
       end;
 
       TOmfAssembler = class(tinternalassembler)
@@ -1702,8 +1759,242 @@ implementation
       end;
 
 {****************************************************************************
+                         TMZExeUnifiedLogicalSegment
+****************************************************************************}
+
+    constructor TMZExeUnifiedLogicalSegment.create(HashObjectList: TFPHashObjectList; const s: TSymStr);
+      var
+        Separator: SizeInt;
+      begin
+        inherited create(HashObjectList,s);
+        FObjSectionList:=TFPObjectList.Create(false);
+        { name format is 'SegName||ClassName' }
+        Separator:=Pos('||',s);
+        if Separator>0 then
+          begin
+            FSegName:=Copy(s,1,Separator-1);
+            FSegClass:=Copy(s,Separator+2,Length(s)-Separator-1);
+          end
+        else
+          begin
+            FSegName:=Name;
+            FSegClass:='';
+          end;
+      end;
+
+    destructor TMZExeUnifiedLogicalSegment.destroy;
+      begin
+        FObjSectionList.Free;
+        inherited destroy;
+      end;
+
+    procedure TMZExeUnifiedLogicalSegment.AddObjSection(ObjSec: TOmfObjSection);
+      begin
+        ObjSectionList.Add(ObjSec);
+        ObjSec.MZExeUnifiedLogicalSegment:=self;
+      end;
+
+    procedure TMZExeUnifiedLogicalSegment.CalcMemPos;
+      var
+        MinMemPos: qword=high(qword);
+        MaxMemPos: qword=0;
+        objsec: TOmfObjSection;
+        i: Integer;
+      begin
+        if ObjSectionList.Count=0 then
+          internalerror(2015082201);
+        for i:=0 to ObjSectionList.Count-1 do
+          begin
+            objsec:=TOmfObjSection(ObjSectionList[i]);
+            if objsec.MemPos<MinMemPos then
+              MinMemPos:=objsec.MemPos;
+            if (objsec.MemPos+objsec.Size)>MaxMemPos then
+              MaxMemPos:=objsec.MemPos+objsec.Size;
+          end;
+        { align *down* on a paragraph boundary }
+        MemPos:={(MinMemPos shr 4) shl 4}MinMemPos;
+        Size:=MaxMemPos-MemPos;
+      end;
+
+    function TMZExeUnifiedLogicalSegment.MemPosStr: string;
+      begin
+        Result:=HexStr(MemBasePos shr 4,4)+':'+HexStr((MemPos-MemBasePos),4);
+      end;
+
+{****************************************************************************
+                         TMZExeUnifiedLogicalGroup
+****************************************************************************}
+
+    constructor TMZExeUnifiedLogicalGroup.create(HashObjectList: TFPHashObjectList; const s: TSymStr);
+      begin
+        inherited create(HashObjectList,s);
+        FSegmentList:=TFPHashObjectList.Create(false);
+      end;
+
+    destructor TMZExeUnifiedLogicalGroup.destroy;
+      begin
+        FSegmentList.Free;
+        inherited destroy;
+      end;
+
+    procedure TMZExeUnifiedLogicalGroup.CalcMemPos;
+      var
+        MinMemPos: qword=high(qword);
+        MaxMemPos: qword=0;
+        UniSeg: TMZExeUnifiedLogicalSegment;
+        i: Integer;
+      begin
+        if SegmentList.Count=0 then
+          internalerror(2015082201);
+        for i:=0 to SegmentList.Count-1 do
+          begin
+            UniSeg:=TMZExeUnifiedLogicalSegment(SegmentList[i]);
+            if UniSeg.MemPos<MinMemPos then
+              MinMemPos:=UniSeg.MemPos;
+            if (UniSeg.MemPos+UniSeg.Size)>MaxMemPos then
+              MaxMemPos:=UniSeg.MemPos+UniSeg.Size;
+          end;
+        { align *down* on a paragraph boundary }
+        MemPos:=(MinMemPos shr 4) shl 4;
+        Size:=MaxMemPos-MemPos;
+      end;
+
+    function TMZExeUnifiedLogicalGroup.MemPosStr: string;
+      begin
+        Result:=HexStr(MemPos shr 4,4)+':'+HexStr(MemPos and $f,4);
+      end;
+
+    procedure TMZExeUnifiedLogicalGroup.AddSegment(UniSeg: TMZExeUnifiedLogicalSegment);
+      begin
+        SegmentList.Add(UniSeg.Name,UniSeg);
+        if UniSeg.PrimaryGroup='' then
+          UniSeg.PrimaryGroup:=Name;
+      end;
+
+{****************************************************************************
                                TMZExeOutput
 ****************************************************************************}
+
+    function TMZExeOutput.GetMZFlatContentSection: TMZExeSection;
+      begin
+        if not assigned(FMZFlatContentSection) then
+          FMZFlatContentSection:=TMZExeSection(FindExeSection('.MZ_flat_content'));
+        result:=FMZFlatContentSection;
+      end;
+
+    procedure TMZExeOutput.CalcExeUnifiedLogicalSegments;
+      var
+        ExeSec: TMZExeSection;
+        ObjSec: TOmfObjSection;
+        UniSeg: TMZExeUnifiedLogicalSegment;
+        i: Integer;
+      begin
+        ExeSec:=MZFlatContentSection;
+        for i:=0 to ExeSec.ObjSectionList.Count-1 do
+          begin
+            ObjSec:=TOmfObjSection(ExeSec.ObjSectionList[i]);
+            UniSeg:=TMZExeUnifiedLogicalSegment(ExeUnifiedLogicalSegments.Find(ObjSec.Name));
+            if not assigned(UniSeg) then
+              UniSeg:=TMZExeUnifiedLogicalSegment.Create(ExeUnifiedLogicalSegments,ObjSec.Name);
+            UniSeg.AddObjSection(ObjSec);
+          end;
+        for i:=0 to ExeUnifiedLogicalSegments.Count-1 do
+          begin
+            UniSeg:=TMZExeUnifiedLogicalSegment(ExeUnifiedLogicalSegments[i]);
+            UniSeg.CalcMemPos;
+          end;
+      end;
+
+    procedure TMZExeOutput.CalcExeGroups;
+
+        procedure AddToGroup(UniSeg:TMZExeUnifiedLogicalSegment;GroupName:TSymStr);
+          var
+            Group: TMZExeUnifiedLogicalGroup;
+          begin
+            Group:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(GroupName));
+            if not assigned(Group) then
+              Group:=TMZExeUnifiedLogicalGroup.Create(ExeUnifiedLogicalGroups,GroupName);
+            Group.AddSegment(UniSeg);
+          end;
+
+      var
+        objdataidx,groupidx,secidx: Integer;
+        ObjData: TObjData;
+        ObjGroup: TOmfObjSectionGroup;
+        ObjSec: TOmfObjSection;
+        UniGrp: TMZExeUnifiedLogicalGroup;
+      begin
+        for objdataidx:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TObjData(ObjDataList[objdataidx]);
+            if assigned(ObjData.GroupsList) then
+              for groupidx:=0 to ObjData.GroupsList.Count-1 do
+                begin
+                  ObjGroup:=TOmfObjSectionGroup(ObjData.GroupsList[groupidx]);
+                  for secidx:=low(ObjGroup.members) to high(ObjGroup.members) do
+                    begin
+                      ObjSec:=TOmfObjSection(ObjGroup.members[secidx]);
+                      if assigned(ObjSec.MZExeUnifiedLogicalSegment) then
+                        AddToGroup(ObjSec.MZExeUnifiedLogicalSegment,ObjGroup.Name);
+                    end;
+                end;
+          end;
+        for groupidx:=0 to ExeUnifiedLogicalGroups.Count-1 do
+          begin
+            UniGrp:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups[groupidx]);
+            UniGrp.CalcMemPos;
+          end;
+      end;
+
+    procedure TMZExeOutput.CalcSegments_MemBasePos;
+      var
+        lastbase:qword=0;
+        i: Integer;
+        UniSeg: TMZExeUnifiedLogicalSegment;
+      begin
+        for i:=0 to ExeUnifiedLogicalSegments.Count-1 do
+          begin
+            UniSeg:=TMZExeUnifiedLogicalSegment(ExeUnifiedLogicalSegments[i]);
+            if UniSeg.PrimaryGroup<>'' then
+              lastbase:=(UniSeg.MemPos shr 4) shl 4
+            else
+              begin
+                while ((UniSeg.MemPos+UniSeg.Size-1)-lastbase)>$ffff do
+                  Inc(lastbase,$10000);
+              end;
+            UniSeg.MemBasePos:=lastbase;
+          end;
+      end;
+
+    procedure TMZExeOutput.WriteMap_SegmentsAndGroups;
+      var
+        i: Integer;
+        UniSeg: TMZExeUnifiedLogicalSegment;
+        UniGrp: TMZExeUnifiedLogicalGroup;
+      begin
+        exemap.AddHeader('Groups list');
+        exemap.Add('');
+        exemap.Add(PadSpace('Group',32)+PadSpace('Address',21)+'Size');
+        exemap.Add(PadSpace('=====',32)+PadSpace('=======',21)+'====');
+        exemap.Add('');
+        for i:=0 to ExeUnifiedLogicalGroups.Count-1 do
+          begin
+            UniGrp:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups[i]);
+            exemap.Add(PadSpace(UniGrp.Name,32)+PadSpace(UniGrp.MemPosStr,21)+HexStr(UniGrp.Size,8));
+          end;
+        exemap.Add('');
+        exemap.AddHeader('Segments list');
+        exemap.Add('');
+        exemap.Add(PadSpace('Segment',23)+PadSpace('Class',15)+PadSpace('Group',15)+PadSpace('Address',16)+'Size');
+        exemap.Add(PadSpace('=======',23)+PadSpace('=====',15)+PadSpace('=====',15)+PadSpace('=======',16)+'====');
+        exemap.Add('');
+        for i:=0 to ExeUnifiedLogicalSegments.Count-1 do
+          begin
+            UniSeg:=TMZExeUnifiedLogicalSegment(ExeUnifiedLogicalSegments[i]);
+            exemap.Add(PadSpace(UniSeg.SegName,23)+PadSpace(UniSeg.SegClass,15)+PadSpace(UniSeg.PrimaryGroup,15)+PadSpace(UniSeg.MemPosStr,16)+HexStr(UniSeg.Size,8));
+          end;
+        exemap.Add('');
+      end;
 
     procedure TMZExeOutput.DoRelocationFixup(objsec: TObjSection);
       var
@@ -1732,6 +2023,23 @@ implementation
         ObjSectionList.Sort(@IOmfObjSectionClassNameCompare);
       end;
 
+    procedure TMZExeOutput.MemPos_EndExeSection;
+      var
+        SecName: TSymStr='';
+      begin
+        if assigned(CurrExeSec) then
+          SecName:=CurrExeSec.Name;
+        inherited MemPos_EndExeSection;
+        if SecName='.MZ_flat_content' then
+          begin
+            CalcExeUnifiedLogicalSegments;
+            CalcExeGroups;
+            CalcSegments_MemBasePos;
+            if assigned(exemap) then
+              WriteMap_SegmentsAndGroups;
+          end;
+      end;
+
     function TMZExeOutput.writeData: boolean;
       var
         Header: TMZExeHeader;
@@ -1751,6 +2059,15 @@ implementation
         CObjData:=TOmfObjData;
         { "640K ought to be enough for anybody" :) }
         MaxMemPos:=$9FFFF;
+        FExeUnifiedLogicalSegments:=TFPHashObjectList.Create;
+        FExeUnifiedLogicalGroups:=TFPHashObjectList.Create;
+      end;
+
+    destructor TMZExeOutput.destroy;
+      begin
+        FExeUnifiedLogicalGroups.Free;
+        FExeUnifiedLogicalSegments.Free;
+        inherited destroy;
       end;
 
 {****************************************************************************
