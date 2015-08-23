@@ -267,6 +267,8 @@ interface
         procedure CalcExeGroups;
         procedure CalcSegments_MemBasePos;
         procedure WriteMap_SegmentsAndGroups;
+        function writeExe:boolean;
+        function writeCom:boolean;
         property ExeUnifiedLogicalSegments: TFPHashObjectList read FExeUnifiedLogicalSegments;
         property ExeUnifiedLogicalGroups: TFPHashObjectList read FExeUnifiedLogicalGroups;
         property MZFlatContentSection: TMZExeSection read GetMZFlatContentSection;
@@ -1996,6 +1998,51 @@ implementation
         exemap.Add('');
       end;
 
+    function TMZExeOutput.writeExe: boolean;
+      var
+        Header: TMZExeHeader;
+      begin
+        Result:=False;
+        Header:=TMZExeHeader.Create;
+        {todo: fill header data}
+        Header.WriteTo(FWriter);
+        Header.Free;
+        Result:=True;
+      end;
+
+    function TMZExeOutput.writeCom: boolean;
+      const
+        ComFileOffset=$100;
+      var
+        i: Integer;
+        ExeSec: TMZExeSection;
+        ObjSec: TOmfObjSection;
+        StartDataPos: LongWord;
+        buf: array [0..1023] of byte;
+        bytesread: LongWord;
+      begin
+        ExeSec:=MZFlatContentSection;
+        for i:=0 to ExeSec.ObjSectionList.Count-1 do
+          begin
+            ObjSec:=TOmfObjSection(ExeSec.ObjSectionList[i]);
+            FWriter.WriteZeros(max(0,ObjSec.MemPos-ComFileOffset-FWriter.Size));
+            if assigned(ObjSec.Data) then
+              begin
+                if ObjSec.MemPos<ComFileOffset then
+                  begin
+                    ObjSec.Data.seek(ComFileOffset-ObjSec.MemPos);
+                    repeat
+                      bytesread:=ObjSec.Data.read(buf,sizeof(buf));
+                      if bytesread<>0 then
+                        FWriter.write(buf,bytesread);
+                    until bytesread=0;
+                  end
+                else
+                  FWriter.writearray(ObjSec.Data);
+              end;
+          end;
+      end;
+
     procedure TMZExeOutput.DoRelocationFixup(objsec: TObjSection);
       var
         i: Integer;
@@ -2041,15 +2088,11 @@ implementation
       end;
 
     function TMZExeOutput.writeData: boolean;
-      var
-        Header: TMZExeHeader;
       begin
-        Result:=False;
-        Header:=TMZExeHeader.Create;
-        {todo: fill header data}
-        Header.WriteTo(FWriter);
-        Header.Free;
-        Result:=True;
+        if apptype=app_com then
+          Result:=WriteCom
+        else
+          Result:=WriteExe;
       end;
 
     constructor TMZExeOutput.create;
