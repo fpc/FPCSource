@@ -26,10 +26,14 @@ unit nllvminl;
 interface
 
     uses
+      node,
       ncginl;
 
     type
       tllvminlinenode = class(tcginlinenode)
+       protected
+        function first_get_frame: tnode; override;
+       public
         procedure second_length; override;
       end;
 
@@ -37,12 +41,20 @@ interface
 implementation
 
      uses
-       verbose,globtype,
+       verbose,globtype,constexp,
        aasmbase, aasmdata,
        symtype,symdef,defutil,
-       ninl,
+       ncal,ncon,ninl,
        pass_2,
-       cgbase,cgutils,tgobj,hlcgobj;
+       cgbase,cgutils,tgobj,hlcgobj,
+       cpubase;
+
+
+     function tllvminlinenode.first_get_frame: tnode;
+       begin
+         result:=ccallnode.createintern('llvm_frameaddress',
+           ccallparanode.create(genintconstnode(0),nil));
+       end;
 
 
     procedure tllvminlinenode.second_length;
