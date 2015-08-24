@@ -229,8 +229,12 @@ implementation
 
   function llvmmangledname(const s: TSymStr): TSymStr;
     begin
-      result:='@"\01'+s+'"';
+      if copy(s,1,length('llvm.'))<>'llvm.' then
+        result:='@"\01'+s+'"'
+      else
+        result:='@'+s
     end;
+
 
   function llvmasmsymname(const sym: TAsmSymbol): TSymStr;
     begin
