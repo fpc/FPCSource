@@ -1602,8 +1602,13 @@ implementation
                 InputError('Unsupported nonzero target displacement '+IntToStr(Fixup.TargetDisplacement)+' in external reference to '+sym.Name);
                 exit;
               end;
+          end
+        else
+          begin
+            {todo: convert other fixup types as well }
+            InputError('Unsupported fixup target method '+IntToStr(Ord(Fixup.TargetMethod)));
+            exit;
           end;
-        {todo: convert other fixup types as well }
 
         Result:=True;
       end;
