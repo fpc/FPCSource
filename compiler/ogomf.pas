@@ -266,16 +266,21 @@ interface
         FMZFlatContentSection: TMZExeSection;
         FExeUnifiedLogicalSegments: TFPHashObjectList;
         FExeUnifiedLogicalGroups: TFPHashObjectList;
+        FHeader: TMZExeHeader;
         function GetMZFlatContentSection: TMZExeSection;
         procedure CalcExeUnifiedLogicalSegments;
         procedure CalcExeGroups;
         procedure CalcSegments_MemBasePos;
         procedure WriteMap_SegmentsAndGroups;
+        procedure WriteMap_HeaderData;
+        procedure FillStartAddress;
+        procedure FillHeaderData;
         function writeExe:boolean;
         function writeCom:boolean;
         property ExeUnifiedLogicalSegments: TFPHashObjectList read FExeUnifiedLogicalSegments;
         property ExeUnifiedLogicalGroups: TFPHashObjectList read FExeUnifiedLogicalGroups;
         property MZFlatContentSection: TMZExeSection read GetMZFlatContentSection;
+        property Header: TMZExeHeader read FHeader;
       protected
         procedure Load_Symbol(const aname:string);override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -2037,15 +2042,38 @@ implementation
         exemap.Add('');
       end;
 
-    function TMZExeOutput.writeExe: boolean;
+    procedure TMZExeOutput.WriteMap_HeaderData;
+      begin
+        exemap.AddHeader('Header data');
+        exemap.Add('Entry point address: '+HexStr(Header.InitialCS,4)+':'+HexStr(Header.InitialIP,4));
+      end;
+
+    procedure TMZExeOutput.FillStartAddress;
       var
-        Header: TMZExeHeader;
+        EntryMemPos: qword;
+        EntryMemBasePos: qword;
+      begin
+        EntryMemPos:=EntrySym.address;
+        if assigned(EntrySym.group) then
+          EntryMemBasePos:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(EntrySym.group.Name)).MemPos
+        else
+          EntryMemBasePos:=TOmfObjSection(EntrySym.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
+        Header.InitialIP:=EntryMemPos-EntryMemBasePos;
+        Header.InitialCS:=EntryMemBasePos shr 4;
+      end;
+
+    procedure TMZExeOutput.FillHeaderData;
+      begin
+        FillStartAddress;
+        if assigned(exemap) then
+          WriteMap_HeaderData;
+      end;
+
+    function TMZExeOutput.writeExe: boolean;
       begin
         Result:=False;
-        Header:=TMZExeHeader.Create;
-        {todo: fill header data}
+        FillHeaderData;
         Header.WriteTo(FWriter);
-        Header.Free;
         Result:=True;
       end;
 
@@ -2060,6 +2088,7 @@ implementation
         buf: array [0..1023] of byte;
         bytesread: LongWord;
       begin
+        FillHeaderData;
         ExeSec:=MZFlatContentSection;
         for i:=0 to ExeSec.ObjSectionList.Count-1 do
           begin
@@ -2216,10 +2245,12 @@ implementation
         MaxMemPos:=$9FFFF;
         FExeUnifiedLogicalSegments:=TFPHashObjectList.Create;
         FExeUnifiedLogicalGroups:=TFPHashObjectList.Create;
+        FHeader:=TMZExeHeader.Create;
       end;
 
     destructor TMZExeOutput.destroy;
       begin
+        FHeader.Free;
         FExeUnifiedLogicalGroups.Free;
         FExeUnifiedLogicalSegments.Free;
         inherited destroy;
