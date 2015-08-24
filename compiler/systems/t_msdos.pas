@@ -472,6 +472,7 @@ begin
   else
     begin
       {LinkRes.Add('order clname CODE clname BEGDATA segment _NULL segment _AFTERNULL clname DATA clname BSS clname STACK clname HEAP');}
+      LinkScript.Concat('  OBJSECTION TEXT||CODE');
       LinkScript.Concat('  OBJSECTION *||CODE');
       LinkScript.Concat('  OBJSECTION _NULL||BEGDATA');
       LinkScript.Concat('  OBJSECTION _AFTERNULL||BEGDATA');
