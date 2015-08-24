@@ -277,6 +277,7 @@ interface
         procedure WriteMap_HeaderData;
         function FindStackSegment: TMZExeUnifiedLogicalSegment;
         procedure FillLoadableImageSize;
+        procedure FillMinExtraParagraphs;
         procedure FillStartAddress;
         procedure FillStackAddress;
         procedure FillHeaderData;
@@ -2163,6 +2164,8 @@ implementation
       begin
         exemap.AddHeader('Header data');
         exemap.Add('Loadable image size: '+HexStr(Header.LoadableImageSize,8));
+        exemap.Add('Min extra paragraphs: '+HexStr(Header.MinExtraParagraphs,4));
+        exemap.Add('Max extra paragraphs: '+HexStr(Header.MaxExtraParagraphs,4));
         exemap.Add('Initial stack pointer: '+HexStr(Header.InitialSS,4)+':'+HexStr(Header.InitialSP,4));
         exemap.Add('Entry point address: '+HexStr(Header.InitialCS,4)+':'+HexStr(Header.InitialIP,4));
       end;
@@ -2205,6 +2208,14 @@ implementation
           end;
       end;
 
+    procedure TMZExeOutput.FillMinExtraParagraphs;
+      var
+        ExeSec: TMZExeSection;
+      begin
+        ExeSec:=MZFlatContentSection;
+        Header.MinExtraParagraphs:=(align(ExeSec.Size,16)-align(Header.LoadableImageSize,16)) div 16;
+      end;
+
     procedure TMZExeOutput.FillStartAddress;
       var
         EntryMemPos: qword;
@@ -2240,6 +2251,7 @@ implementation
       begin
         Header.MaxExtraParagraphs:=$FFFF;
         FillLoadableImageSize;
+        FillMinExtraParagraphs;
         FillStartAddress;
         FillStackAddress;
         if assigned(exemap) then
