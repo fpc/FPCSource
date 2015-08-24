@@ -199,6 +199,7 @@ interface
       public
         constructor Create;
         procedure WriteTo(aWriter: TObjectWriter);
+        procedure AddRelocation(aSegment,aOffset: Word);
         property HeaderSizeAlignment: Integer read FHeaderSizeAlignment write SetHeaderSizeAlignment; {default=16, must be multiple of 16}
         property Relocations: TMZExeRelocations read FRelocations write FRelocations;
         property ExtraHeaderData: TMZExeExtraHeaderData read FExtraHeaderData write FExtraHeaderData;
@@ -1883,6 +1884,16 @@ implementation
         aWriter.WriteZeros(HeaderSizeInBytes-aWriter.Size);
       end;
 
+    procedure TMZExeHeader.AddRelocation(aSegment, aOffset: Word);
+      begin
+        SetLength(FRelocations,Length(FRelocations)+1);
+        with FRelocations[High(FRelocations)] do
+          begin
+            segment:=aSegment;
+            offset:=aOffset;
+          end;
+      end;
+
 {****************************************************************************
                                TMZExeSection
 ****************************************************************************}
@@ -2281,6 +2292,7 @@ implementation
         framebase: DWord;
         fixupamount: Integer;
         w: Word;
+        target_group: TMZExeUnifiedLogicalGroup;
       begin
         for i:=0 to objsec.ObjRelocations.Count-1 do
           begin
@@ -2349,8 +2361,41 @@ implementation
                     internalerror(2015082406);
                 end;
               end
+            else if objreloc.typ in [RELOC_DGROUP,RELOC_DGROUPREL] then
+              begin
+                target_group:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find('DGROUP'));
+                target:=target_group.MemPos;
+                if objreloc.FrameGroup<>'' then
+                  framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.FrameGroup)).MemPos
+                else
+                  framebase:=target_group.MemPos;
+                case objreloc.typ of
+                  RELOC_DGROUP:
+                    fixupamount:=target-framebase;
+                  RELOC_DGROUPREL:
+                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
+                  else
+                    internalerror(2015082408);
+                end;
+                case objreloc.typ of
+                  RELOC_DGROUP,
+                  RELOC_DGROUPREL:
+                    begin
+                      omfsec.Data.seek(objreloc.DataOffset);
+                      omfsec.Data.read(w,2);
+                      w:=LEtoN(w);
+                      Inc(w,framebase shr 4);
+                      w:=LEtoN(w);
+                      omfsec.Data.seek(objreloc.DataOffset);
+                      omfsec.Data.write(w,2);
+                      Header.AddRelocation(omfsec.MZExeUnifiedLogicalSegment.MemBasePos shr 4,objreloc.DataOffset-omfsec.MZExeUnifiedLogicalSegment.MemBasePos shr 4);
+                    end;
+                  else
+                    internalerror(2015082406);
+                end;
+              end
             else
-              {todo};
+              internalerror(2015082407);
           end;
       end;
 
