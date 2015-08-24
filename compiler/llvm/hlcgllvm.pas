@@ -915,8 +915,46 @@ implementation
 
 
   procedure thlcgllvm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
+    var
+      pd: tprocdef;
+      sourcepara, destpara, sizepara, alignpara, volatilepara: tcgpara;
+      maxalign: longint;
     begin
-      a_load_ref_ref(list,size,size,source,dest);
+      { perform small copies directly; not larger ones, because then llvm
+        will try to load the entire large datastructure into registers and
+        starts spilling like crazy; too small copies must not be done via
+        llvm.memcpy either, because then you get crashes in llvm }
+      if (size.typ in [orddef,floatdef,enumdef]) or
+         (size.size<=2*sizeof(aint)) then
+        begin
+          a_load_ref_ref(list,size,size,source,dest);
+          exit;
+        end;
+      pd:=search_system_proc('llvm_memcpy64');
+      sourcepara.init;
+      destpara.init;
+      sizepara.init;
+      alignpara.init;
+      volatilepara.init;
+      paramanager.getintparaloc(list,pd,1,sourcepara);
+      paramanager.getintparaloc(list,pd,2,destpara);
+      paramanager.getintparaloc(list,pd,3,sizepara);
+      paramanager.getintparaloc(list,pd,4,alignpara);
+      paramanager.getintparaloc(list,pd,5,volatilepara);
+      a_loadaddr_ref_cgpara(list,size,source,sourcepara);
+      a_loadaddr_ref_cgpara(list,size,dest,destpara);
+      a_load_const_cgpara(list,u64inttype,size.size,sizepara);
+      maxalign:=newalignment(source.alignment,dest.alignment);
+      a_load_const_cgpara(list,u32inttype,maxalign,alignpara);
+      { we don't know anything about volatility here, should become an extra
+        parameter to g_concatcopy }
+      a_load_const_cgpara(list,pasbool8type,0,volatilepara);
+      g_call_system_proc(list,pd,[@sourcepara,@destpara,@sizepara,@alignpara,@volatilepara],nil).resetiftemp;
+      sourcepara.done;
+      destpara.done;
+      sizepara.done;
+      alignpara.done;
+      volatilepara.done;
     end;
 
 
