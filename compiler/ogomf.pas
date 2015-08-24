@@ -494,7 +494,8 @@ implementation
 
     function TOmfObjSection.MemPosStr(AImageBase: qword): string;
       begin
-        Result:=HexStr(MemPos shr 4,4)+':'+HexStr(MemPos and $000f,4);
+        Result:=HexStr(MZExeUnifiedLogicalSegment.MemBasePos shr 4,4)+':'+
+          HexStr(MemPos-MZExeUnifiedLogicalSegment.MemBasePos,4);
       end;
 
 {****************************************************************************
