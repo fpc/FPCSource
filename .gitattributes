@@ -8706,6 +8706,7 @@ rtl/inc/int64.inc svneol=native#text/plain
 rtl/inc/intres.inc svneol=native#text/plain
 rtl/inc/iso7185.pp svneol=native#text/pascal
 rtl/inc/lineinfo.pp svneol=native#text/plain
+rtl/inc/llvmintr.inc svneol=native#text/plain
 rtl/inc/lnfodwrf.pp svneol=native#text/plain
 rtl/inc/lstrings.pp svneol=native#text/plain
 rtl/inc/macpas.pp svneol=native#text/plain

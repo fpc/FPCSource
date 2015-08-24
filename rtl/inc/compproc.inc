@@ -784,3 +784,7 @@ function fpc_hugeptr_cmp_normalized_be(p1, p2: HugePointer): Boolean; compilerpr
 function fpc_hugeptr_cmp_normalized_a(p1, p2: HugePointer): Boolean; compilerproc;
 function fpc_hugeptr_cmp_normalized_ae(p1, p2: HugePointer): Boolean; compilerproc;
 {$endif cpui8086}
+
+{$ifdef cpullvm}
+{$i llvmintr.inc}
+{$endif cpullvm}
