@@ -277,6 +277,7 @@ interface
         property ExeUnifiedLogicalGroups: TFPHashObjectList read FExeUnifiedLogicalGroups;
         property MZFlatContentSection: TMZExeSection read GetMZFlatContentSection;
       protected
+        procedure Load_Symbol(const aname:string);override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
         procedure MemPos_EndExeSection;override;
@@ -2045,6 +2046,33 @@ implementation
               end;
           end;
         Result:=True;
+      end;
+
+    procedure TMZExeOutput.Load_Symbol(const aname: string);
+      var
+        dgroup: TObjSectionGroup;
+        sym: TObjSymbol;
+      begin
+        { special handling for the '_edata' and '_end' symbols, which are
+          internally added by the linker }
+        if (aname='_edata') or (aname='_end') then
+          begin
+            { create an internal segment with the 'BSS' class }
+            internalObjData.createsection('*'+aname+'||BSS',0,[]);
+            { add to group 'DGROUP' }
+            dgroup:=nil;
+            if assigned(internalObjData.GroupsList) then
+              dgroup:=TObjSectionGroup(internalObjData.GroupsList.Find('DGROUP'));
+            if dgroup=nil then
+              dgroup:=internalObjData.createsectiongroup('DGROUP');
+            SetLength(dgroup.members,Length(dgroup.members)+1);
+            dgroup.members[Length(dgroup.members)-1]:=internalObjData.CurrObjSec;
+            { define the symbol itself }
+            sym:=internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_DATA);
+            sym.group:=dgroup;
+          end
+        else
+          inherited;
       end;
 
     procedure TMZExeOutput.DoRelocationFixup(objsec: TObjSection);
