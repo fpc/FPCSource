@@ -190,7 +190,7 @@ implementation
      procedure TExeMap.AddMemoryMapSymbol(p:TObjSymbol);
        begin
          {                 0x00001e30                setup_screens }
-         Add(Space(16)+PadSpace('0x'+HexStr(p.address+Fimagebase,sizeof(pint)*2),25)+' '+p.name);
+         Add(Space(16)+PadSpace(p.AddressStr(FImageBase),25)+' '+p.name);
        end;
 
 end.

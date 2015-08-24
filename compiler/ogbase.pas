@@ -192,6 +192,8 @@ interface
        function  address:aword;
        procedure SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
        function  ObjData: TObjData;
+       { string representation for the linker map file }
+       function  AddressStr(AImageBase: qword): string;
      end;
 
      { Stabs is common for all targets }
@@ -747,6 +749,12 @@ implementation
     function TObjSymbol.ObjData: TObjData;
       begin
         result:=(OwnerList as TObjSymbolList).Owner;
+      end;
+
+
+    function TObjSymbol.AddressStr(AImageBase: qword): string;
+      begin
+        Result:='0x'+HexStr(address+Aimagebase,sizeof(pint)*2);
       end;
 
 {****************************************************************************
