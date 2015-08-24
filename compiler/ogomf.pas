@@ -2324,7 +2324,7 @@ implementation
                 if objreloc.FrameGroup<>'' then
                   framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.FrameGroup)).MemPos
                 else
-                  internalerror(2015082404);
+                  framebase:=TOmfObjSection(objreloc.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
                 case objreloc.typ of
                   RELOC_ABSOLUTE:
                     fixupamount:=target-framebase;
