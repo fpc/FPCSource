@@ -1189,6 +1189,11 @@ implementation
             exit;
           end;
         objsec.Size:=SegDefRec.SegmentLength;
+        if (SegClassName='HEAP') or
+           (SegClassName='STACK') or (SegDefRec.Combination=scStack) or
+           (SegClassName='BEGDATA') or
+           (SegmentName='FPC') then
+          objsec.SecOptions:=objsec.SecOptions+[oso_keep];
         SegDefRec.Free;
         Result:=True;
       end;
