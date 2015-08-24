@@ -513,7 +513,7 @@ __nullarea:
         dw 0
 
     %ifdef __NEAR_DATA__
-        segment stack stack class=STACK
+        segment stack stack class=STACK align=16
     %else
         segment data
         ; add reference to the beginning of stack, so the object module,
