@@ -1307,6 +1307,7 @@ implementation
         ModEndRec: TOmfRecord_MODEND;
         objsym: TObjSymbol;
         objsec: TOmfObjSection;
+        basegroup: TObjSectionGroup;
       begin
         Result:=False;
         ModEndRec:=TOmfRecord_MODEND.Create;
@@ -1331,12 +1332,46 @@ implementation
                 ModEndRec.Free;
                 exit;
               end;
+            case ModEndRec.FrameMethod of
+              ffmSegmentIndex:
+                begin
+                  if (ModEndRec.FrameDatum<1) or (ModEndRec.FrameDatum>objdata.ObjSectionList.Count) then
+                    begin
+                      InputError('Frame segment name index for start address out of range');
+                      ModEndRec.Free;
+                      exit;
+                    end;
+                  if ModEndRec.FrameDatum<>ModEndRec.TargetDatum then
+                    begin
+                      InputError('Frame segment different than target segment is not supported supported for start address');
+                      ModEndRec.Free;
+                      exit;
+                    end;
+                  basegroup:=nil;
+                end;
+              ffmGroupIndex:
+                begin
+                  if (ModEndRec.FrameDatum<1) or (ModEndRec.FrameDatum>objdata.GroupsList.Count) then
+                    begin
+                      InputError('Frame group name index for start address out of range');
+                      ModEndRec.Free;
+                      exit;
+                    end;
+                  basegroup:=TObjSectionGroup(objdata.GroupsList[ModEndRec.FrameDatum-1]);
+                end;
+              else
+                begin
+                  InputError('Frame method for start address other than "Segment Index" or "Group Index" is not supported');
+                  ModEndRec.Free;
+                  exit;
+                end;
+            end;
             objsec:=TOmfObjSection(objdata.ObjSectionList[ModEndRec.TargetDatum-1]);
 
             objsym:=objdata.CreateSymbol('..start');
             objsym.bind:=AB_GLOBAL;
             objsym.typ:=AT_FUNCTION;
-            //objsym.group:=basegroup;
+            objsym.group:=basegroup;
             objsym.objsection:=objsec;
             objsym.offset:=ModEndRec.TargetDisplacement;
             objsym.size:=0;
