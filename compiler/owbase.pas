@@ -203,8 +203,17 @@ var
   empty : array[0..1023] of byte;
 begin
   if l>sizeof(empty) then
-    internalerror(200404081);
-  if l>0 then
+    begin
+      fillchar(empty,sizeof(empty),0);
+      while l>sizeof(empty) do
+        begin
+          Write(empty,sizeof(empty));
+          Dec(l,sizeof(empty));
+        end;
+      if l>0 then
+        Write(empty,l);
+    end
+  else if l>0 then
     begin
       fillchar(empty,l,0);
       Write(empty,l);
