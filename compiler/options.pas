@@ -3845,6 +3845,10 @@ if (target_info.abi = abi_eabihf) then
 
   def_system_macro('FPU'+fputypestr[init_settings.fputype]);
 
+{$ifdef llvm}
+  def_system_macro('CPULLVM');
+{$endif llvm}
+
 {$if defined(cpucapabilities)}
   for cpuflag:=low(cpuflag) to high(cpuflag) do
     begin
