@@ -2227,7 +2227,7 @@ implementation
         if assigned(stackseg) then
           begin
             Header.InitialSS:=stackseg.MemBasePos shr 4;
-            Header.InitialSP:=stackseg.MemPos+stackseg.Size-stackseg.MemBasePos-2;
+            Header.InitialSP:=stackseg.MemPos+stackseg.Size-stackseg.MemBasePos;
           end
         else
           begin
