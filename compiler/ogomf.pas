@@ -2344,8 +2344,36 @@ implementation
         target: DWord;
         framebase: DWord;
         fixupamount: Integer;
-        w: Word;
         target_group: TMZExeUnifiedLogicalGroup;
+
+        procedure FixupOffset;
+          var
+            w: Word;
+          begin
+            omfsec.Data.seek(objreloc.DataOffset);
+            omfsec.Data.read(w,2);
+            w:=LEtoN(w);
+            Inc(w,fixupamount);
+            w:=LEtoN(w);
+            omfsec.Data.seek(objreloc.DataOffset);
+            omfsec.Data.write(w,2);
+          end;
+
+        procedure FixupBase;
+          var
+            w: Word;
+          begin
+            omfsec.Data.seek(objreloc.DataOffset);
+            omfsec.Data.read(w,2);
+            w:=LEtoN(w);
+            Inc(w,framebase shr 4);
+            w:=LEtoN(w);
+            omfsec.Data.seek(objreloc.DataOffset);
+            omfsec.Data.write(w,2);
+            Header.AddRelocation(omfsec.MZExeUnifiedLogicalSegment.MemBasePos shr 4,
+              omfsec.MemPos+objreloc.DataOffset-(omfsec.MZExeUnifiedLogicalSegment.MemBasePos shr 4));
+          end;
+
       begin
         for i:=0 to objsec.ObjRelocations.Count-1 do
           begin
@@ -2360,9 +2388,9 @@ implementation
                 else
                   framebase:=TOmfObjSection(objreloc.symbol.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE:
+                  RELOC_ABSOLUTE,RELOC_SEG:
                     fixupamount:=target-framebase;
-                  RELOC_RELATIVE:
+                  RELOC_RELATIVE,RELOC_SEGREL:
                     fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   else
                     internalerror(2015082402);
@@ -2370,15 +2398,10 @@ implementation
                 case objreloc.typ of
                   RELOC_ABSOLUTE,
                   RELOC_RELATIVE:
-                    begin
-                      omfsec.Data.seek(objreloc.DataOffset);
-                      omfsec.Data.read(w,2);
-                      w:=LEtoN(w);
-                      Inc(w,fixupamount);
-                      w:=LEtoN(w);
-                      omfsec.Data.seek(objreloc.DataOffset);
-                      omfsec.Data.write(w,2);
-                    end;
+                    FixupOffset;
+                  RELOC_SEG,
+                  RELOC_SEGREL:
+                    FixupBase;
                   else
                     internalerror(2015082403);
                 end;
@@ -2401,15 +2424,7 @@ implementation
                 case objreloc.typ of
                   RELOC_ABSOLUTE,
                   RELOC_RELATIVE:
-                    begin
-                      omfsec.Data.seek(objreloc.DataOffset);
-                      omfsec.Data.read(w,2);
-                      w:=LEtoN(w);
-                      Inc(w,fixupamount);
-                      w:=LEtoN(w);
-                      omfsec.Data.seek(objreloc.DataOffset);
-                      omfsec.Data.write(w,2);
-                    end;
+                    FixupOffset;
                   else
                     internalerror(2015082406);
                 end;
@@ -2433,16 +2448,7 @@ implementation
                 case objreloc.typ of
                   RELOC_DGROUP,
                   RELOC_DGROUPREL:
-                    begin
-                      omfsec.Data.seek(objreloc.DataOffset);
-                      omfsec.Data.read(w,2);
-                      w:=LEtoN(w);
-                      Inc(w,framebase shr 4);
-                      w:=LEtoN(w);
-                      omfsec.Data.seek(objreloc.DataOffset);
-                      omfsec.Data.write(w,2);
-                      Header.AddRelocation(omfsec.MZExeUnifiedLogicalSegment.MemBasePos shr 4,objreloc.DataOffset-omfsec.MZExeUnifiedLogicalSegment.MemBasePos shr 4);
-                    end;
+                    FixupBase;
                   else
                     internalerror(2015082406);
                 end;
