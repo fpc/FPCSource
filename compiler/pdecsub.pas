@@ -2813,6 +2813,12 @@ const
       end;
 
 
+    procedure compilerproc_set_symbol_name(pd: tprocdef);
+      begin
+        pd.procsym.realname:='$'+lower(pd.procsym.name);
+      end;
+
+
     procedure proc_set_mangledname(pd:tprocdef);
       var
         s : string;
@@ -2832,7 +2838,12 @@ const
                       begin
                         pd.setmangledname(s);
                       end;
-                  end;
+                    { since this is an external declaration, there won't be an
+                      implementation that needs to match the original symbol
+                      again -> immediately convert here }
+                    if po_compilerproc in pd.procoptions then
+                      compilerproc_set_symbol_name(pd);
+                  end
               end
             else
             { Normal procedures }
@@ -3371,16 +3382,11 @@ const
                      end;
                    fwpd.import_nr:=currpd.import_nr;
                    { for compilerproc defines we need to rename and update the
-                     symbolname to lowercase }
-                   if (po_compilerproc in fwpd.procoptions) then
-                    begin
-                      { rename to lowercase so users can't access it }
-                      fwpd.procsym.realname:='$'+lower(fwpd.procsym.name);
-                      { the mangeled name is already changed by the pd_compilerproc }
-                      { handler. It must be done immediately because if we have a   }
-                      { call to a compilerproc before it's implementation is        }
-                      { encountered, it must already use the new mangled name (JM)  }
-                    end;
+                     symbolname to lowercase so users can' access it (can't do
+                     it immediately, because then the implementation symbol
+                     won't be matched) }
+                   if po_compilerproc in fwpd.procoptions then
+                     compilerproc_set_symbol_name(fwpd);
 
                    { Release current procdef }
                    currpd.owner.deletedef(currpd);
