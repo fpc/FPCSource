@@ -1257,7 +1257,7 @@ begin
   R := FCount-1;
   while L<=R do
   begin
-    I := (L+R) div 2;
+    I := L + (R - L) div 2;
     Dir := FOnKeyPtrCompare(Items[I], AKey);
     if Dir < 0 then
       L := I+1
