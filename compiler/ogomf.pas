@@ -1489,6 +1489,7 @@ implementation
         sym: TObjSymbol;
         RelocType: TObjRelocationType;
         target_section: TOmfObjSection;
+        target_group: TOmfObjSectionGroup;
       begin
         Result:=False;
 
@@ -1644,6 +1645,45 @@ implementation
             if Fixup.TargetDisplacement<>0 then
               begin
                 InputError('Unsupported nonzero target displacement '+IntToStr(Fixup.TargetDisplacement)+' in reference to segment '+target_section.Name);
+                exit;
+              end;
+          end
+        else if Fixup.TargetMethod in [ftmGroupIndex,ftmGroupIndexNoDisp] then
+          begin
+            target_group:=TOmfObjSectionGroup(objdata.GroupsList[Fixup.TargetDatum-1]);
+            if target_group.Name<>'DGROUP' then
+              begin
+                InputError('Fixup target group other than "DGROUP" is not supported');
+                exit;
+              end;
+            case Fixup.LocationType of
+              fltBase:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_DGROUP;
+                  fmSelfRelative:
+                    RelocType:=RELOC_DGROUPREL;
+                end;
+              else
+                begin
+                  InputError('Unsupported fixup location type '+IntToStr(Ord(Fixup.LocationType))+' in reference to group '+target_group.Name);
+                  exit;
+                end;
+            end;
+            reloc:=TOmfRelocation.CreateSection(Fixup.LocationOffset,nil,RelocType);
+            objsec.ObjRelocations.Add(reloc);
+            case Fixup.FrameMethod of
+              ffmTarget:
+                {nothing};
+              else
+                begin
+                  InputError('Unsupported frame method '+IntToStr(Ord(Fixup.FrameMethod))+' in reference to group '+target_group.Name);
+                  exit;
+                end;
+            end;
+            if Fixup.TargetDisplacement<>0 then
+              begin
+                InputError('Unsupported nonzero target displacement '+IntToStr(Fixup.TargetDisplacement)+' in reference to group '+target_group.Name);
                 exit;
               end;
           end
