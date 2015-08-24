@@ -276,6 +276,7 @@ interface
         procedure WriteMap_HeaderData;
         procedure FillLoadableImageSize;
         procedure FillStartAddress;
+        procedure FillStackAddress;
         procedure FillHeaderData;
         function writeExe:boolean;
         function writeCom:boolean;
@@ -2152,6 +2153,7 @@ implementation
       begin
         exemap.AddHeader('Header data');
         exemap.Add('Loadable image size: '+HexStr(Header.LoadableImageSize,8));
+        exemap.Add('Initial stack pointer: '+HexStr(Header.InitialSS,4)+':'+HexStr(Header.InitialSP,4));
         exemap.Add('Entry point address: '+HexStr(Header.InitialCS,4)+':'+HexStr(Header.InitialIP,4));
       end;
 
@@ -2189,11 +2191,29 @@ implementation
         Header.InitialCS:=EntryMemBasePos shr 4;
       end;
 
+    procedure TMZExeOutput.FillStackAddress;
+      var
+        stackseg: TMZExeUnifiedLogicalSegment;
+      begin
+        stackseg:=TMZExeUnifiedLogicalSegment(ExeUnifiedLogicalSegments.Find('STACK||STACK'));
+        if assigned(stackseg) then
+          begin
+            Header.InitialSS:=stackseg.MemBasePos shr 4;
+            Header.InitialSP:=stackseg.MemPos+stackseg.Size-stackseg.MemBasePos-2;
+          end
+        else
+          begin
+            Header.InitialSS:=0;
+            Header.InitialSP:=0;
+          end;
+      end;
+
     procedure TMZExeOutput.FillHeaderData;
       begin
         Header.MaxExtraParagraphs:=$FFFF;
         FillLoadableImageSize;
         FillStartAddress;
+        FillStackAddress;
         if assigned(exemap) then
           WriteMap_HeaderData;
       end;
