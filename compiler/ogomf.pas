@@ -1488,6 +1488,7 @@ implementation
         reloc: TOmfRelocation;
         sym: TObjSymbol;
         RelocType: TObjRelocationType;
+        target_section: TOmfObjSection;
       begin
         Result:=False;
 
@@ -1600,6 +1601,49 @@ implementation
             if Fixup.TargetDisplacement<>0 then
               begin
                 InputError('Unsupported nonzero target displacement '+IntToStr(Fixup.TargetDisplacement)+' in external reference to '+sym.Name);
+                exit;
+              end;
+          end
+        else if Fixup.TargetMethod in [ftmSegmentIndex,ftmSegmentIndexNoDisp] then
+          begin
+            target_section:=TOmfObjSection(objdata.ObjSectionList[Fixup.TargetDatum-1]);
+            case Fixup.LocationType of
+              fltOffset:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_ABSOLUTE;
+                  fmSelfRelative:
+                    RelocType:=RELOC_RELATIVE;
+                end;
+              fltBase:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_SEG;
+                  fmSelfRelative:
+                    RelocType:=RELOC_SEGREL;
+                end;
+              else
+                begin
+                  InputError('Unsupported fixup location type '+IntToStr(Ord(Fixup.LocationType))+' in reference to segment '+target_section.Name);
+                  exit;
+                end;
+            end;
+            reloc:=TOmfRelocation.CreateSection(Fixup.LocationOffset,target_section,RelocType);
+            objsec.ObjRelocations.Add(reloc);
+            case Fixup.FrameMethod of
+              ffmTarget:
+                {nothing};
+              ffmGroupIndex:
+                reloc.FrameGroup:=TObjSectionGroup(objdata.GroupsList[Fixup.FrameDatum-1]).Name;
+              else
+                begin
+                  InputError('Unsupported frame method '+IntToStr(Ord(Fixup.FrameMethod))+' in reference to segment '+target_section.Name);
+                  exit;
+                end;
+            end;
+            if Fixup.TargetDisplacement<>0 then
+              begin
+                InputError('Unsupported nonzero target displacement '+IntToStr(Fixup.TargetDisplacement)+' in reference to segment '+target_section.Name);
                 exit;
               end;
           end
@@ -2232,6 +2276,37 @@ implementation
                     end;
                   else
                     internalerror(2015082403);
+                end;
+              end
+            else if assigned(objreloc.objsection) then
+              begin
+                target:=objreloc.objsection.MemPos;
+                if objreloc.FrameGroup<>'' then
+                  framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.FrameGroup)).MemPos
+                else
+                  internalerror(2015082404);
+                case objreloc.typ of
+                  RELOC_ABSOLUTE:
+                    fixupamount:=target-framebase;
+                  RELOC_RELATIVE:
+                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
+                  else
+                    internalerror(2015082405);
+                end;
+                case objreloc.typ of
+                  RELOC_ABSOLUTE,
+                  RELOC_RELATIVE:
+                    begin
+                      omfsec.Data.seek(objreloc.DataOffset);
+                      omfsec.Data.read(w,2);
+                      w:=LEtoN(w);
+                      Inc(w,fixupamount);
+                      w:=LEtoN(w);
+                      omfsec.Data.seek(objreloc.DataOffset);
+                      omfsec.Data.write(w,2);
+                    end;
+                  else
+                    internalerror(2015082406);
                 end;
               end
             else
