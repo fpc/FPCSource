@@ -233,6 +233,7 @@ interface
         Size,
         MemPos,
         MemBasePos: qword;
+        IsStack: Boolean;
         constructor create(HashObjectList:TFPHashObjectList;const s:TSymStr);
         destructor destroy;override;
         procedure AddObjSection(ObjSec: TOmfObjSection);
@@ -274,6 +275,7 @@ interface
         procedure CalcSegments_MemBasePos;
         procedure WriteMap_SegmentsAndGroups;
         procedure WriteMap_HeaderData;
+        function FindStackSegment: TMZExeUnifiedLogicalSegment;
         procedure FillLoadableImageSize;
         procedure FillStartAddress;
         procedure FillStackAddress;
@@ -1933,6 +1935,9 @@ implementation
             FSegName:=Name;
             FSegClass:='';
           end;
+        { wlink recognizes the stack segment by the class name 'STACK' }
+        { let's be compatible with wlink }
+        IsStack:=FSegClass='STACK';
       end;
 
     destructor TMZExeUnifiedLogicalSegment.destroy;
@@ -1945,6 +1950,11 @@ implementation
       begin
         ObjSectionList.Add(ObjSec);
         ObjSec.MZExeUnifiedLogicalSegment:=self;
+        { tlink (and ms link?) use the scStack segment combination to recognize
+          the stack segment.
+          let's be compatible with tlink as well }
+        if ObjSec.Combination=scStack then
+          IsStack:=True;
       end;
 
     procedure TMZExeUnifiedLogicalSegment.CalcMemPos;
@@ -2157,6 +2167,24 @@ implementation
         exemap.Add('Entry point address: '+HexStr(Header.InitialCS,4)+':'+HexStr(Header.InitialIP,4));
       end;
 
+    function TMZExeOutput.FindStackSegment: TMZExeUnifiedLogicalSegment;
+      var
+        i: Integer;
+        stackseg_wannabe: TMZExeUnifiedLogicalSegment;
+      begin
+        Result:=nil;
+        for i:=0 to ExeUnifiedLogicalSegments.Count-1 do
+          begin
+            stackseg_wannabe:=TMZExeUnifiedLogicalSegment(ExeUnifiedLogicalSegments[i]);
+            { if there are multiple stack segments, choose the largest one.
+              In theory, we're probably supposed to combine them all and put
+              them in a contiguous location in memory, but we don't care }
+            if stackseg_wannabe.IsStack and
+               (not assigned(result) or (Result.Size<stackseg_wannabe.Size)) then
+              Result:=stackseg_wannabe;
+          end;
+      end;
+
     procedure TMZExeOutput.FillLoadableImageSize;
       var
         i: Integer;
@@ -2195,7 +2223,7 @@ implementation
       var
         stackseg: TMZExeUnifiedLogicalSegment;
       begin
-        stackseg:=TMZExeUnifiedLogicalSegment(ExeUnifiedLogicalSegments.Find('STACK||STACK'));
+        stackseg:=FindStackSegment;
         if assigned(stackseg) then
           begin
             Header.InitialSS:=stackseg.MemBasePos shr 4;
