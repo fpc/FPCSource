@@ -273,6 +273,7 @@ interface
         procedure CalcSegments_MemBasePos;
         procedure WriteMap_SegmentsAndGroups;
         procedure WriteMap_HeaderData;
+        procedure FillLoadableImageSize;
         procedure FillStartAddress;
         procedure FillHeaderData;
         function writeExe:boolean;
@@ -2045,7 +2046,28 @@ implementation
     procedure TMZExeOutput.WriteMap_HeaderData;
       begin
         exemap.AddHeader('Header data');
+        exemap.Add('Loadable image size: '+HexStr(Header.LoadableImageSize,8));
         exemap.Add('Entry point address: '+HexStr(Header.InitialCS,4)+':'+HexStr(Header.InitialIP,4));
+      end;
+
+    procedure TMZExeOutput.FillLoadableImageSize;
+      var
+        i: Integer;
+        ExeSec: TMZExeSection;
+        ObjSec: TOmfObjSection;
+        StartDataPos: LongWord;
+        buf: array [0..1023] of byte;
+        bytesread: LongWord;
+      begin
+        Header.LoadableImageSize:=0;
+        ExeSec:=MZFlatContentSection;
+        for i:=0 to ExeSec.ObjSectionList.Count-1 do
+          begin
+            ObjSec:=TOmfObjSection(ExeSec.ObjSectionList[i]);
+            if (ObjSec.Size>0) and assigned(ObjSec.Data) then
+              if (ObjSec.MemPos+ObjSec.Size)>Header.LoadableImageSize then
+                Header.LoadableImageSize:=ObjSec.MemPos+ObjSec.Size;
+          end;
       end;
 
     procedure TMZExeOutput.FillStartAddress;
@@ -2064,6 +2086,7 @@ implementation
 
     procedure TMZExeOutput.FillHeaderData;
       begin
+        FillLoadableImageSize;
         FillStartAddress;
         if assigned(exemap) then
           WriteMap_HeaderData;
@@ -2093,20 +2116,23 @@ implementation
         for i:=0 to ExeSec.ObjSectionList.Count-1 do
           begin
             ObjSec:=TOmfObjSection(ExeSec.ObjSectionList[i]);
-            FWriter.WriteZeros(max(0,ObjSec.MemPos-ComFileOffset-FWriter.Size));
-            if assigned(ObjSec.Data) then
+            if ObjSec.MemPos<Header.LoadableImageSize then
               begin
-                if ObjSec.MemPos<ComFileOffset then
+                FWriter.WriteZeros(max(0,ObjSec.MemPos-ComFileOffset-FWriter.Size));
+                if assigned(ObjSec.Data) then
                   begin
-                    ObjSec.Data.seek(ComFileOffset-ObjSec.MemPos);
-                    repeat
-                      bytesread:=ObjSec.Data.read(buf,sizeof(buf));
-                      if bytesread<>0 then
-                        FWriter.write(buf,bytesread);
-                    until bytesread=0;
-                  end
-                else
-                  FWriter.writearray(ObjSec.Data);
+                    if ObjSec.MemPos<ComFileOffset then
+                      begin
+                        ObjSec.Data.seek(ComFileOffset-ObjSec.MemPos);
+                        repeat
+                          bytesread:=ObjSec.Data.read(buf,sizeof(buf));
+                          if bytesread<>0 then
+                            FWriter.write(buf,bytesread);
+                        until bytesread=0;
+                      end
+                    else
+                      FWriter.writearray(ObjSec.Data);
+                  end;
               end;
           end;
         Result:=True;
