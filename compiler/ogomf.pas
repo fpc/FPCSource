@@ -2086,6 +2086,7 @@ implementation
 
     procedure TMZExeOutput.FillHeaderData;
       begin
+        Header.MaxExtraParagraphs:=$FFFF;
         FillLoadableImageSize;
         FillStartAddress;
         if assigned(exemap) then
@@ -2093,10 +2094,27 @@ implementation
       end;
 
     function TMZExeOutput.writeExe: boolean;
+      var
+        ExeSec: TMZExeSection;
+        i: Integer;
+        ObjSec: TOmfObjSection;
       begin
         Result:=False;
         FillHeaderData;
         Header.WriteTo(FWriter);
+
+        ExeSec:=MZFlatContentSection;
+        ExeSec.DataPos:=FWriter.Size;
+        for i:=0 to ExeSec.ObjSectionList.Count-1 do
+          begin
+            ObjSec:=TOmfObjSection(ExeSec.ObjSectionList[i]);
+            if ObjSec.MemPos<Header.LoadableImageSize then
+              begin
+                FWriter.WriteZeros(max(0,ObjSec.MemPos-FWriter.Size+ExeSec.DataPos));
+                if assigned(ObjSec.Data) then
+                  FWriter.writearray(ObjSec.Data);
+              end;
+          end;
         Result:=True;
       end;
 
