@@ -2383,7 +2383,7 @@ implementation
             omfsec.Data.seek(objreloc.DataOffset);
             omfsec.Data.write(w,2);
             Header.AddRelocation(omfsec.MZExeUnifiedLogicalSegment.MemBasePos shr 4,
-              omfsec.MemPos+objreloc.DataOffset-(omfsec.MZExeUnifiedLogicalSegment.MemBasePos shr 4));
+              omfsec.MemPos+objreloc.DataOffset-omfsec.MZExeUnifiedLogicalSegment.MemBasePos);
           end;
 
       begin
@@ -2426,9 +2426,9 @@ implementation
                 else
                   framebase:=TOmfObjSection(objreloc.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE:
+                  RELOC_ABSOLUTE,RELOC_SEG:
                     fixupamount:=target-framebase;
-                  RELOC_RELATIVE:
+                  RELOC_RELATIVE,RELOC_SEGREL:
                     fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   else
                     internalerror(2015082405);
@@ -2437,6 +2437,9 @@ implementation
                   RELOC_ABSOLUTE,
                   RELOC_RELATIVE:
                     FixupOffset;
+                  RELOC_SEG,
+                  RELOC_SEGREL:
+                    FixupBase;
                   else
                     internalerror(2015082406);
                 end;
