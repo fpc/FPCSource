@@ -3119,9 +3119,12 @@ implementation
               else
                 refobjsec:=objsym.objsection;
             end
-          else
-            if assigned(objreloc.objsection) then
-              refobjsec:=objreloc.objsection
+          else if assigned(objreloc.objsection) then
+            refobjsec:=objreloc.objsection
+{$ifdef i8086}
+          else if objreloc.typ in [RELOC_DGROUP,RELOC_DGROUPREL] then
+            refobjsec:=nil
+{$endif i8086}
           else
             internalerror(200603316);
           if assigned(exemap) then
@@ -3130,10 +3133,17 @@ implementation
               if assigned(objsym) and (objsym.typ<>AT_SECTION) then
                 exemap.Add('  References  '+objsym.name+' in '
                   +refobjsec.fullname)
+              else if assigned(refobjsec) then
+                exemap.Add('  References '+refobjsec.fullname)
+{$ifdef i8086}
+              else if objreloc.typ in [RELOC_DGROUP,RELOC_DGROUPREL] then
+                exemap.Add('  References DGROUP')
+{$endif i8086}
               else
-                exemap.Add('  References '+refobjsec.fullname);
+                internalerror(200603316);
             end;
-          AddToObjSectionWorkList(refobjsec);
+          if assigned(refobjsec) then
+            AddToObjSectionWorkList(refobjsec);
         end;
 
         procedure DoVTableRef(vtable:TExeVTable;VTableIdx:longint);
