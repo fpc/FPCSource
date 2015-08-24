@@ -2779,6 +2779,7 @@ implementation
           objsym.size:=objsym.ExeSymbol.ObjSymbol.size;
           objsym.typ:=objsym.ExeSymbol.ObjSymbol.typ;
           objsym.ObjSection:=objsym.ExeSymbol.ObjSymbol.ObjSection;
+          objsym.group:=objsym.ExeSymbol.ObjSymbol.group;
         end;
 
       var
