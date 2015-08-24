@@ -280,7 +280,6 @@ interface
         function writeCom:boolean;
         property ExeUnifiedLogicalSegments: TFPHashObjectList read FExeUnifiedLogicalSegments;
         property ExeUnifiedLogicalGroups: TFPHashObjectList read FExeUnifiedLogicalGroups;
-        property MZFlatContentSection: TMZExeSection read GetMZFlatContentSection;
         property Header: TMZExeHeader read FHeader;
       protected
         procedure Load_Symbol(const aname:string);override;
@@ -291,6 +290,7 @@ interface
       public
         constructor create;override;
         destructor destroy;override;
+        property MZFlatContentSection: TMZExeSection read GetMZFlatContentSection;
       end;
 
       TOmfAssembler = class(tinternalassembler)

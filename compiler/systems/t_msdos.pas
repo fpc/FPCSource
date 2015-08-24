@@ -407,7 +407,7 @@ var
   i: Integer;
 begin
   Result:=0;
-  objseclist:=aExeOutput.FindExeSection('.MZ_flat_content').ObjSectionList;
+  objseclist:=TMZExeOutput(aExeOutput).MZFlatContentSection.ObjSectionList;
   for i:=0 to objseclist.Count-1 do
     begin
       objsec:=TOmfObjSection(objseclist[i]);
