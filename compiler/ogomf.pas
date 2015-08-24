@@ -67,6 +67,7 @@ interface
         FCombination: TOmfSegmentCombination;
         FUse: TOmfSegmentUse;
         FPrimaryGroup: string;
+        FSortOrder: Integer;
         FMZExeUnifiedLogicalSegment: TMZExeUnifiedLogicalSegment;
         function GetOmfAlignment: TOmfSegmentAlignment;
       public
@@ -78,6 +79,7 @@ interface
         property Combination: TOmfSegmentCombination read FCombination;
         property Use: TOmfSegmentUse read FUse;
         property PrimaryGroup: string read FPrimaryGroup;
+        property SortOrder: Integer read FSortOrder write FSortOrder;
         property MZExeUnifiedLogicalSegment: TMZExeUnifiedLogicalSegment read FMZExeUnifiedLogicalSegment write FMZExeUnifiedLogicalSegment;
       end;
 
@@ -2106,10 +2108,16 @@ implementation
         Result:=CompareStr(I1.ClassName,I2.ClassName);
         if Result=0 then
           Result:=CompareStr(I1.Name,I2.Name);
+        if Result=0 then
+          Result:=I1.SortOrder-I2.SortOrder;
       end;
 
     procedure TMZExeOutput.Order_ObjSectionList(ObjSectionList: TFPObjectList; const aPattern: string);
+      var
+        i: Integer;
       begin
+        for i:=0 to ObjSectionList.Count-1 do
+          TOmfObjSection(ObjSectionList[i]).SortOrder:=i;
         ObjSectionList.Sort(@IOmfObjSectionClassNameCompare);
       end;
 
