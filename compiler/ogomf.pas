@@ -2041,17 +2041,60 @@ implementation
                   FWriter.writearray(ObjSec.Data);
               end;
           end;
+        Result:=True;
       end;
 
     procedure TMZExeOutput.DoRelocationFixup(objsec: TObjSection);
       var
         i: Integer;
+        omfsec: TOmfObjSection absolute objsec;
         objreloc: TOmfRelocation;
+        target: DWord;
+        framebase: DWord;
+        fixupamount: Integer;
+        w: Word;
       begin
         for i:=0 to objsec.ObjRelocations.Count-1 do
           begin
             objreloc:=TOmfRelocation(objsec.ObjRelocations[i]);
-            {todo}
+            if assigned(objreloc.symbol) then
+              begin
+                target:=objreloc.symbol.address;
+                if assigned(objreloc.symbol.group) then
+                  framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.symbol.group.Name)).MemPos
+                else
+                  framebase:=TOmfObjSection(objreloc.symbol.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
+                if framebase<>0 then
+                  begin
+                    framebase:=0;
+                    Writeln(objreloc.symbol.name);
+                  end;
+                case objreloc.typ of
+                  RELOC_ABSOLUTE:
+                    fixupamount:=target-framebase;
+                  RELOC_RELATIVE:
+                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
+                  else
+                    internalerror(2015082402);
+                end;
+                case objreloc.typ of
+                  RELOC_ABSOLUTE,
+                  RELOC_RELATIVE:
+                    begin
+                      omfsec.Data.seek(objreloc.DataOffset);
+                      omfsec.Data.read(w,2);
+                      w:=LEtoN(w);
+                      Inc(w,fixupamount);
+                      w:=LEtoN(w);
+                      omfsec.Data.seek(objreloc.DataOffset);
+                      omfsec.Data.write(w,2);
+                    end;
+                  else
+                    internalerror(2015082403);
+                end;
+              end
+            else
+              {todo};
           end;
       end;
 
