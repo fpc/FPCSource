@@ -45,6 +45,7 @@ interface
 
       TOmfRelocation = class(TObjRelocation)
       private
+        FFrameGroup: string;
         FOmfFixup: TOmfSubRecord_FIXUP;
         function GetGroupIndex(const groupname: string): Integer;
       public
@@ -53,6 +54,7 @@ interface
 
         procedure BuildOmfFixup;
 
+        property FrameGroup: string read FFrameGroup write FFrameGroup;
         property OmfFixup: TOmfSubRecord_FIXUP read FOmfFixup;
       end;
 
@@ -1539,13 +1541,13 @@ implementation
                   exit;
                 end;
             end;
+            reloc:=TOmfRelocation.CreateSymbol(Fixup.LocationOffset,sym,RelocType);
+            objsec.ObjRelocations.Add(reloc);
             case Fixup.FrameMethod of
               ffmTarget:
                 {nothing};
               ffmGroupIndex:
-                begin
-                  {todo: handle 'wrt dgroup' here}
-                end;
+                reloc.FrameGroup:=TObjSectionGroup(objdata.GroupsList[Fixup.FrameDatum-1]).Name;
               else
                 begin
                   InputError('Unsupported frame method '+IntToStr(Ord(Fixup.FrameMethod))+' in external reference to '+sym.Name);
@@ -1557,8 +1559,6 @@ implementation
                 InputError('Unsupported nonzero target displacement '+IntToStr(Fixup.TargetDisplacement)+' in external reference to '+sym.Name);
                 exit;
               end;
-            reloc:=TOmfRelocation.CreateSymbol(Fixup.LocationOffset,sym,RelocType);
-            objsec.ObjRelocations.Add(reloc);
           end;
         {todo: convert other fixup types as well }
 
@@ -2062,15 +2062,12 @@ implementation
             if assigned(objreloc.symbol) then
               begin
                 target:=objreloc.symbol.address;
-                if assigned(objreloc.symbol.group) then
+                if objreloc.FrameGroup<>'' then
+                  framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.FrameGroup)).MemPos
+                else if assigned(objreloc.symbol.group) then
                   framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.symbol.group.Name)).MemPos
                 else
                   framebase:=TOmfObjSection(objreloc.symbol.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
-                if framebase<>0 then
-                  begin
-                    framebase:=0;
-                    Writeln(objreloc.symbol.name);
-                  end;
                 case objreloc.typ of
                   RELOC_ABSOLUTE:
                     fixupamount:=target-framebase;
