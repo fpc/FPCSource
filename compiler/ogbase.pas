@@ -189,7 +189,7 @@ interface
 {$endif ARM}
 
        constructor create(AList:TFPHashObjectList;const AName:string);
-       function  address:aword;
+       function  address:qword;
        procedure SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
        function  ObjData: TObjData;
        { string representation for the linker map file }
@@ -701,7 +701,7 @@ implementation
       end;
 
 
-    function TObjSymbol.address:aword;
+    function TObjSymbol.address:qword;
       begin
         if assigned(objsection) then
           result:=offset+objsection.mempos
