@@ -521,6 +521,7 @@ interface
       TExeOutput = class
       private
         { ExeSectionList }
+        FCObjSymbol       : TObjSymbolClass;
         FCObjData         : TObjDataClass;
         FCExeSection      : TExeSectionClass;
         FCurrExeSec       : TExeSection;
@@ -557,6 +558,7 @@ interface
         function  writeData:boolean;virtual;abstract;
         property CExeSection:TExeSectionClass read FCExeSection write FCExeSection;
         property CObjData:TObjDataClass read FCObjData write FCObjData;
+        property CObjSymbol:TObjSymbolClass read FCObjSymbol write FCObjSymbol;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList; const aPattern:string);virtual;
         procedure WriteExeSectionContent;
         procedure DoRelocationFixup(objsec:TObjSection);virtual;abstract;
@@ -1788,6 +1790,7 @@ implementation
         FixedSectionAlign:=True;
         FCExeSection:=TExeSection;
         FCObjData:=TObjData;
+        FCObjSymbol:=TObjSymbol;
       end;
 
 
