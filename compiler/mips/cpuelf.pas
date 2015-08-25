@@ -274,7 +274,7 @@ implementation
 
   procedure TElfExeOutputMIPS.CreateGOTSection;
     begin
-      nullstub:=TObjSymbol.Create(internalobjdata.ObjSymbolList,'*null_pic_stub*');
+      nullstub:=internalobjdata.CObjSymbol.Create(internalobjdata.ObjSymbolList,'*null_pic_stub*');
       nullstub.bind:=AB_LOCAL;
       nullstub.typ:=AT_FUNCTION;
 

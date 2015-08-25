@@ -195,6 +195,7 @@ interface
        { string representation for the linker map file }
        function  AddressStr(AImageBase: qword): string;
      end;
+     TObjSymbolClass = class of TObjSymbol;
 
      { Stabs is common for all targets }
      TObjStabEntry=packed record
@@ -292,6 +293,7 @@ interface
      private
        FCurrObjSec : TObjSection;
        FObjSectionList  : TFPHashObjectList;
+       FCObjSymbol      : TObjSymbolClass;
        FCObjSection     : TObjSectionClass;
        FCObjSectionGroup: TObjSectionGroupClass;
        { Symbols that will be defined in this object file }
@@ -351,6 +353,7 @@ interface
        property GroupsList:TFPHashObjectList read FGroupsList;
        property StabsSec:TObjSection read FStabsObjSec write FStabsObjSec;
        property StabStrSec:TObjSection read FStabStrObjSec write FStabStrObjSec;
+       property CObjSymbol: TObjSymbolClass read FCObjSymbol write FCObjSymbol;
      end;
      TObjDataClass = class of TObjData;
 
@@ -1033,6 +1036,7 @@ implementation
         FStabsObjSec:=nil;
         FStabStrObjSec:=nil;
         { symbols }
+        FCObjSymbol:=TObjSymbol;
         FObjSymbolList:=TObjSymbolList.Create(true);
         FObjSymbolList.Owner:=Self;
         FCachedAsmSymbolList:=TFPObjectList.Create(false);
@@ -1225,7 +1229,7 @@ implementation
       begin
         result:=TObjSymbol(FObjSymbolList.Find(aname));
         if not assigned(result) then
-          result:=TObjSymbol.Create(FObjSymbolList,aname);
+          result:=CObjSymbol.Create(FObjSymbolList,aname);
 
 {$ifdef ARM}
         result.ThumbFunc:=ThumbFunc;
@@ -1276,7 +1280,7 @@ implementation
                 result:=TObjSymbol(FObjSymbolList.Find(s));
                 if result=nil then
                   begin
-                    result:=TObjSymbol.Create(FObjSymbolList,s);
+                    result:=CObjSymbol.Create(FObjSymbolList,s);
                     if asmsym.bind=AB_WEAK_EXTERNAL then
                       result.bind:=AB_WEAK_EXTERNAL;
                   end;
