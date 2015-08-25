@@ -2104,13 +2104,9 @@ implementation
         for i:=0 to ExeUnifiedLogicalSegments.Count-1 do
           begin
             UniSeg:=TMZExeUnifiedLogicalSegment(ExeUnifiedLogicalSegments[i]);
-            if (UniSeg.PrimaryGroup<>'') or (UniSeg.IsStack) then
-              lastbase:=(UniSeg.MemPos shr 4) shl 4
-            else
-              begin
-                while ((UniSeg.MemPos+UniSeg.Size-1)-lastbase)>$ffff do
-                  Inc(lastbase,$10000);
-              end;
+            if (UniSeg.PrimaryGroup<>'') or (UniSeg.IsStack) or
+               (((UniSeg.MemPos+UniSeg.Size-1)-lastbase)>$ffff) then
+              lastbase:=(UniSeg.MemPos shr 4) shl 4;
             UniSeg.MemBasePos:=lastbase;
           end;
       end;
