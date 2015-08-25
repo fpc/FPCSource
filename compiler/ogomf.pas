@@ -2119,7 +2119,7 @@ implementation
         for i:=0 to ExeUnifiedLogicalSegments.Count-1 do
           begin
             UniSeg:=TMZExeUnifiedLogicalSegment(ExeUnifiedLogicalSegments[i]);
-            if UniSeg.PrimaryGroup<>'' then
+            if (UniSeg.PrimaryGroup<>'') or (UniSeg.IsStack) then
               lastbase:=(UniSeg.MemPos shr 4) shl 4
             else
               begin
