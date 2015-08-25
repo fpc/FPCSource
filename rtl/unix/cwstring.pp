@@ -90,7 +90,7 @@ function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib n
 {$else}
 function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name 'setlocale';
 {$endif}
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
 function mbrtowc(pwc: pwchar_t; const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrtowc';
 function wcrtomb(s: pchar; wc: wchar_t; ps: pmbstate_t): size_t; cdecl; external clib name 'wcrtomb';
 function mbrlen(const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrlen';
@@ -563,7 +563,7 @@ end;
 
 
 { concatenates an utf-32 char to a widestring. S *must* be unique when entering. }
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
 procedure ConcatUTF32ToAnsiStr(const nc: wint_t; var S: AnsiString; var index: SizeInt; var mbstate: mbstate_t);
 {$else not beos}
 procedure ConcatUTF32ToAnsiStr(const nc: wint_t; var S: AnsiString; var index: SizeInt);
@@ -579,7 +579,7 @@ begin
   else
     begin
       EnsureAnsiLen(s,index+MB_CUR_MAX);
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
       mblen:=wcrtomb(p,wchar_t(nc),@mbstate);
 {$else not beos}
       mblen:=wctomb(p,wchar_t(nc));
@@ -601,13 +601,13 @@ function LowerAnsiString(const s : AnsiString) : AnsiString;
     i, slen,
     resindex : SizeInt;
     mblen    : size_t;
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
     ombstate,
     nmbstate : mbstate_t;
 {$endif beos}
     wc       : wchar_t;
   begin
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
     fillchar(ombstate,sizeof(ombstate),0);
     fillchar(nmbstate,sizeof(nmbstate),0);
 {$endif beos}
@@ -623,7 +623,7 @@ function LowerAnsiString(const s : AnsiString) : AnsiString;
             mblen:= 1;
           end
         else
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
           mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
 {$else not beos}
           mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
@@ -650,7 +650,7 @@ function LowerAnsiString(const s : AnsiString) : AnsiString;
               { even if mblen = 1, the lowercase version may have a }
               { different length                                     }
               { We can't do anything special if wchar_t is 16 bit... }
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
               ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex,nmbstate);
 {$else not beos}
               ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex);
@@ -668,13 +668,13 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
     i, slen,
     resindex : SizeInt;
     mblen    : size_t;
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
     ombstate,
     nmbstate : mbstate_t;
 {$endif beos}
     wc       : wchar_t;
   begin
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
     fillchar(ombstate,sizeof(ombstate),0);
     fillchar(nmbstate,sizeof(nmbstate),0);
 {$endif beos}
@@ -690,7 +690,7 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
             mblen:= 1;
           end
         else
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
           mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
 {$else not beos}
           mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
@@ -717,7 +717,7 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
               { even if mblen = 1, the uppercase version may have a }
               { different length                                     }
               { We can't do anything special if wchar_t is 16 bit... }
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
               ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex,nmbstate);
 {$else not beos}
               ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex);
@@ -818,17 +818,17 @@ function CharLengthPChar(const Str: PChar): PtrInt;
   var
     nextlen: ptrint;
     s: pchar;
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
     mbstate: mbstate_t;
 {$endif not beos}
   begin
     result:=0;
     s:=str;
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
     fillchar(mbstate,sizeof(mbstate),0);
 {$endif not beos}
     repeat
-{$ifdef beos}
+{$if defined(beos) and not defined(haiku)}
       nextlen:=ptrint(mblen(s,MB_CUR_MAX));
 {$else beos}
       nextlen:=ptrint(mbrlen(s,MB_CUR_MAX,@mbstate));
@@ -843,12 +843,12 @@ function CharLengthPChar(const Str: PChar): PtrInt;
 
 
 function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
   var
     mbstate: mbstate_t;
 {$endif not beos}
   begin
-{$ifdef beos}
+{$if defined(beos) and not defined(haiku)}
     result:=ptrint(mblen(str,maxlookahead));
 {$else beos}
     fillchar(mbstate,sizeof(mbstate),0);
