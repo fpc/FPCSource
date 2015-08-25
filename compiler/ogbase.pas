@@ -450,7 +450,7 @@ interface
         FObjSectionList : TFPObjectList;
       public
         Size,
-        DataPos    : aword;
+        DataPos,
         MemPos     : qword;
         SecAlign   : shortint;
         Disabled   : boolean;
