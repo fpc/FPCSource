@@ -68,6 +68,7 @@ interface
     procedure checktreenodetypes(n : tnode;typeset : tnodetypeset);
 
     procedure load_procvar_from_calln(var p1:tnode);
+    function get_local_or_para_sym(const aname: string): tsym;
     function maybe_call_procvar(var p1:tnode;tponly:boolean):boolean;
     function load_high_value_node(vs:tparavarsym):tnode;
     function load_self_node:tnode;
@@ -75,6 +76,9 @@ interface
     function load_self_pointer_node:tnode;
     function load_vmt_pointer_node:tnode;
     function is_self_node(p:tnode):boolean;
+    { create a tree that loads the VMT based on a self-node of an object/class/
+      interface }
+    function load_vmt_for_self_node(self_node: tnode): tnode;
 
     function node_complexity(p: tnode): cardinal;
     function node_resources_fpu(p: tnode): cardinal;
@@ -149,7 +153,7 @@ implementation
     uses
       cutils,verbose,globals,
       symconst,symdef,
-      defutil,defcmp,
+      defutil,defcmp,htypechk,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,ninl,
       cpubase,cgbase,procinfo,
       pass_1;
@@ -425,7 +429,7 @@ implementation
       end;
 
 
-    function get_local_or_para_sym(const aname:string):tsym;
+    function get_local_or_para_sym(const aname: string): tsym;
       var
         pd : tprocdef;
       begin
@@ -553,6 +557,123 @@ implementation
       end;
 
 
+    function load_vmt_for_self_node(self_node: tnode): tnode;
+      var
+        self_resultdef: tdef;
+        obj_def: tobjectdef;
+        self_temp,
+        vmt_temp: ttempcreatenode;
+        check_self: tnode;
+        stat: tstatementnode;
+        block: tblocknode;
+        paras: tcallparanode;
+        docheck: boolean;
+      begin
+        self_resultdef:=self_node.resultdef;
+        case self_resultdef.typ of
+          classrefdef:
+            obj_def:=tobjectdef(tclassrefdef(self_resultdef).pointeddef);
+          objectdef:
+            obj_def:=tobjectdef(self_resultdef);
+          else
+            internalerror(2015052701);
+        end;
+        if is_classhelper(obj_def) then
+          obj_def:=tobjectdef(tobjectdef(obj_def).extendeddef);
+        docheck:=
+          not(is_interface(obj_def)) and
+          not(is_cppclass(obj_def)) and
+          not(is_objc_class_or_protocol(obj_def)) and
+          (([cs_check_object,cs_check_range]*current_settings.localswitches)<>[]);
+
+        block:=nil;
+        stat:=nil;
+        if docheck then
+          begin
+            { check for nil self-pointer }
+            block:=internalstatements(stat);
+            self_temp:=ctempcreatenode.create_value(
+              self_resultdef,self_resultdef.size,tt_persistent,true,
+              self_node);
+            addstatement(stat,self_temp);
+
+            { in case of an object, self can only be nil if it's a dereferenced
+              node somehow
+            }
+            if not is_object(self_resultdef) or
+               (actualtargetnode(@self_node)^.nodetype=derefn) then
+              begin
+                check_self:=ctemprefnode.create(self_temp);
+                if is_object(self_resultdef) then
+                  check_self:=caddrnode.create(check_self);
+                addstatement(stat,cifnode.create(
+                  caddnode.create(equaln,
+                    ctypeconvnode.create_explicit(
+                      check_self,
+                      voidpointertype
+                    ),
+                    cnilnode.create),
+                  ccallnode.createintern('fpc_objecterror',nil),
+                  nil)
+                );
+              end;
+            addstatement(stat,ctempdeletenode.create_normal_temp(self_temp));
+            self_node:=ctemprefnode.create(self_temp);
+          end;
+        { get the VMT field in case of a class/object }
+        if (self_resultdef.typ=objectdef) and
+           assigned(tobjectdef(self_resultdef).vmt_field) then
+          result:=csubscriptnode.create(tobjectdef(self_resultdef).vmt_field,self_node)
+        { in case of a classref, the "instance" is a pointer
+          to pointer to a VMT and there is no vmt field }
+        else if self_resultdef.typ=classrefdef then
+          result:=self_node
+        { in case of an interface, the "instance" is a pointer to a pointer
+          to a VMT -> dereference once already }
+        else
+          { in case of an interface/classref, the "instance" is a pointer
+            to pointer to a VMT and there is no vmt field }
+          result:=cderefnode.create(
+            ctypeconvnode.create_explicit(
+              self_node,
+              cpointerdef.getreusable(voidpointertype)
+            )
+          );
+        result:=ctypeconvnode.create_explicit(
+          result,
+          cpointerdef.getreusable(obj_def.vmt_def));
+        typecheckpass(result);
+        if docheck then
+          begin
+            { add a vmt validity check }
+            vmt_temp:=ctempcreatenode.create_value(result.resultdef,result.resultdef.size,tt_persistent,true,result);
+            addstatement(stat,vmt_temp);
+            paras:=ccallparanode.create(ctemprefnode.create(vmt_temp),nil);
+            if cs_check_object in current_settings.localswitches then
+              begin
+                paras:=ccallparanode.create(
+                  cloadvmtaddrnode.create(ctypenode.create(obj_def)),
+                  paras
+                );
+                addstatement(stat,
+                  ccallnode.createintern(
+                    'fpc_check_object_ext',paras
+                  )
+                );
+              end
+            else
+              addstatement(stat,
+                ccallnode.createintern(
+                  'fpc_check_object',paras
+                )
+              );
+            addstatement(stat,ctempdeletenode.create_normal_temp(vmt_temp));
+            addstatement(stat,ctemprefnode.create(vmt_temp));
+            result:=block;
+          end
+      end;
+
+
     { this function must return a very high value ("infinity") for   }
     { trees containing a call, the rest can be balanced more or less }
     { at will, probably best mainly in terms of required memory      }
@@ -616,9 +737,24 @@ implementation
                   p := tunarynode(p).left;
                 end;
               labeln,
-              blockn,
-              callparan:
+              blockn:
                 p := tunarynode(p).left;
+              callparan:
+                begin
+                  { call to decr? }
+                  if is_managed_type(tunarynode(p).left.resultdef) and (tcallparanode(p).parasym.varspez=vs_out) then
+                    begin
+                      result:=NODE_COMPLEXITY_INF;
+                      exit;
+                    end
+                  else
+                    begin
+                      inc(result);
+                      if (result = NODE_COMPLEXITY_INF) then
+                        exit;
+                      p := tunarynode(p).left;
+                    end;
+                end;
               notn,
               derefn :
                 begin

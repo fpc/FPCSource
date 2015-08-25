@@ -49,7 +49,7 @@ type
   TSQLScript = class;
 
 
-  TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack);
+  TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue, detActualSQL);
   TDBEventTypes = set of TDBEventType;
   TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
 
@@ -116,7 +116,8 @@ type
 const
   SingleQuotes : TQuoteChars = ('''','''');
   DoubleQuotes : TQuoteChars = ('"','"');
-  LogAllEvents = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack];
+  LogAllEvents      = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack];
+  LogAllEventsExtra = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue,detActualSQL];
   StatementTokens : Array[TStatementType] of string = ('(unknown)', 'select',
                   'insert', 'update', 'delete',
                   'create', 'get', 'put', 'execute',
@@ -159,10 +160,11 @@ type
     FStatements          : TFPList;
     FLogEvents: TDBEventTypes;
     FOnLog: TDBLogNotifyEvent;
-    FInternalTransaction : TSQLTransaction;
     function GetPort: cardinal;
     procedure SetOptions(AValue: TSQLConnectionOptions);
     procedure SetPort(const AValue: cardinal);
+    function AttemptCommit(trans : TSQLHandle) : boolean; 
+    function AttemptRollBack(trans : TSQLHandle) : boolean; 
   protected
     FConnOptions         : TConnOptions;
     FSQLFormatSettings   : TFormatSettings;
@@ -189,6 +191,7 @@ type
     function GetAsSQLText(Param : TParam) : string; overload; virtual;
     function GetHandle : pointer; virtual;
     Function LogEvent(EventType : TDBEventType) : Boolean;
+    Procedure LogParams(Const AParams : TParams); virtual;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
     Procedure RegisterStatement(S : TCustomSQLStatement);
     Procedure UnRegisterStatement(S : TCustomSQLStatement);
@@ -402,7 +405,7 @@ type
 
   { TCustomSQLQuery }
 
-  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh, sqoPreferRefresh);
+  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh, sqoRefreshUsingSelect);
   TSQLQueryOptions = Set of TSQLQueryOption;
 
   TCustomSQLQuery = class (TCustomBufDataset)
@@ -1222,7 +1225,7 @@ begin
     DatabaseError(SErrTransactionnSet);
 
   if not Connected then Open;
-  if not (ATransaction.Active or (stoUseImplicit in ATransaction.Options)) then
+  if not ATransaction.Active then
     ATransaction.MaybeStartTransaction;
 
   try
@@ -1262,6 +1265,30 @@ begin
     Params.Values['Port']:=IntToStr(AValue)
   else with params do if IndexOfName('Port') > -1 then
     Delete(IndexOfName('Port'));
+end;
+
+function TSQLConnection.AttemptCommit(trans: TSQLHandle): boolean;
+begin
+  try
+    Result:=Commit(trans);
+  except
+    if ForcedClose then
+      Result:=True
+    else
+      Raise;
+  end;
+end;
+
+function TSQLConnection.AttemptRollBack(trans: TSQLHandle): boolean;
+begin
+  try
+    Result:=Rollback(trans);
+  except
+    if ForcedClose then
+      Result:=True
+    else
+      Raise;
+  end;
 end;
 
 procedure TSQLConnection.GetDBInfo(const ASchemaType : TSchemaType; const ASchemaObjectName, AReturnField : string; AList: TStrings);
@@ -1554,6 +1581,27 @@ begin
   Result:=(Assigned(FOnLog) or Assigned(GlobalDBLogHook)) and (EventType in LogEvents);
 end;
 
+procedure TSQLConnection.LogParams(const AParams: TParams);
+
+Var
+  S : String;
+  P : TParam;
+
+begin
+  if not LogEvent(detParamValue) then
+    Exit;
+  For P in AParams do
+    begin
+    if P.IsNull then
+      S:='<NULL>'
+    else if (P.DataType in ftBlobTypes) and  not (P.DataType in [ftMemo, ftFmtMemo,ftWideMemo]) then
+      S:='<BLOB>'
+    else
+      S:=P.AsString;
+    Log(detParamValue,Format(SLogParamValue,[P.Name,S]));
+    end;
+end;
+
 procedure TSQLConnection.Log(EventType: TDBEventType; const Msg: String);
 
 Var
@@ -1624,7 +1672,8 @@ begin
 end;
 
 
-function TSQLConnection.ConstructInsertSQL(Query : TCustomSQLQuery; Var ReturningClause : Boolean) : string;
+function TSQLConnection.ConstructInsertSQL(Query: TCustomSQLQuery;
+  var ReturningClause: Boolean): string;
 
 var x          : integer;
     sql_fields : string;
@@ -1636,7 +1685,7 @@ var x          : integer;
 begin
   sql_fields := '';
   sql_values := '';
-  returning_fields :='';
+  returning_fields := '';
   for x := 0 to Query.Fields.Count -1 do
     begin
     F:=Query.Fields[x];
@@ -1646,7 +1695,7 @@ begin
       sql_values := sql_values + ':"' + F.FieldName + '",';
       end;
     if ReturningClause and (pfRefreshOnInsert in F.ProviderFlags) then
-      returning_fields :=returning_fields+FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
+      returning_fields := returning_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
     end;
   if length(sql_fields) = 0 then
     DatabaseErrorFmt(sNoUpdateFields,['insert'],self);
@@ -1659,13 +1708,14 @@ begin
     if ReturningClause then
       begin
       setlength(returning_fields,length(returning_fields)-1);
-      result:=Result+' returning '+returning_fields;
+      Result := Result + ' returning ' + returning_fields;
       end;
     end;
 end;
 
 
-function TSQLConnection.ConstructUpdateSQL(Query: TCustomSQLQuery; Var ReturningClause : Boolean): string;
+function TSQLConnection.ConstructUpdateSQL(Query: TCustomSQLQuery;
+  var ReturningClause: Boolean): string;
 
 var x : integer;
     F : TField;
@@ -1676,7 +1726,7 @@ var x : integer;
 begin
   sql_set := '';
   sql_where := '';
-  returning_fields :='';
+  returning_fields := '';
   for x := 0 to Query.Fields.Count -1 do
     begin
     F:=Query.Fields[x];
@@ -1684,7 +1734,7 @@ begin
     if (pfInUpdate in F.ProviderFlags) and (not F.ReadOnly) then
       sql_set := sql_set +FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] +'=:"' + F.FieldName + '",';
     if ReturningClause and (pfRefreshOnUpdate in F.ProviderFlags) then
-      returning_fields :=returning_fields+FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
+      returning_fields := returning_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
     end;
   if length(sql_set) = 0 then DatabaseErrorFmt(sNoUpdateFields,['update'],self);
   setlength(sql_set,length(sql_set)-1);
@@ -1696,7 +1746,7 @@ begin
     if ReturningClause then
       begin
       setlength(returning_fields,length(returning_fields)-1);
-      result:=Result+' returning '+returning_fields;
+      Result := Result + ' returning ' + returning_fields;
       end;
     end;
 end;
@@ -1725,10 +1775,10 @@ Var
   Where : String;
 
 begin
-  Where:='';
   Result:=Query.RefreshSQL.Text;
   if (Result='') then
     begin
+    Where:='';
     PF:=RefreshFlags[UpdateKind];
     For F in Query.Fields do
       begin
@@ -1745,7 +1795,7 @@ begin
         begin
         if (Where<>'') then
           Where:=Where+' AND ';
-        Where:=Where+'('+FieldNameQuoteChars[0]+F.FieldName+FieldNameQuoteChars[0]+' = :'+F.FieldName+')';
+        Where:=Where+'('+FieldNameQuoteChars[0]+F.FieldName+FieldNameQuoteChars[1]+' = :'+F.FieldName+')';
         end;
       end;
     if (Where='') then
@@ -1776,31 +1826,37 @@ var
 
 begin
   qry:=Nil;
-  ReturningClause:=(sqSupportReturning in Connoptions) and not (sqoPreferRefresh in Query.Options);
+  ReturningClause:=(sqSupportReturning in ConnOptions) and not (sqoRefreshUsingSelect in Query.Options) and (Query.RefreshSQL.Count=0);
   case UpdateKind of
     ukInsert : begin
-               s := trim(Query.FInsertSQL.Text);
+               s := Trim(Query.FInsertSQL.Text);
                if s = '' then
-                 s := ConstructInsertSQL(Query,ReturningClause);
-               qry := InitialiseUpdateStatement(Query,Query.FInsertQry);
+                 s := ConstructInsertSQL(Query, ReturningClause)
+               else
+                 ReturningClause := False;
+               qry := InitialiseUpdateStatement(Query, Query.FInsertQry);
                end;
     ukModify : begin
-               s := trim(Query.FUpdateSQL.Text);
-               if (s='') and (not assigned(Query.FUpdateQry) or (Query.UpdateMode<>upWhereKeyOnly)) then //first time or dynamic where part
-                 s := ConstructUpdateSQL(Query,ReturningClause);
-               qry := InitialiseUpdateStatement(Query,Query.FUpdateQry);
+               s := Trim(Query.FUpdateSQL.Text);
+               if s = '' then begin
+                 //if not assigned(Query.FUpdateQry) or (Query.UpdateMode<>upWhereKeyOnly) then // first time or dynamic where part
+                   s := ConstructUpdateSQL(Query, ReturningClause);
+               end
+               else
+                 ReturningClause := False;
+               qry := InitialiseUpdateStatement(Query, Query.FUpdateQry);
                end;
     ukDelete : begin
-               s := trim(Query.FDeleteSQL.Text);
+               s := Trim(Query.FDeleteSQL.Text);
                if (s='') and (not assigned(Query.FDeleteQry) or (Query.UpdateMode<>upWhereKeyOnly)) then
                  s := ConstructDeleteSQL(Query);
-               qry := InitialiseUpdateStatement(Query,Query.FDeleteQry);
-               ReturningClause:=False;
+               ReturningClause := False;
+               qry := InitialiseUpdateStatement(Query, Query.FDeleteQry);
                end;
   end;
   if (s<>'') and (qry.SQL.Text<>s) then
     qry.SQL.Text:=s; //assign only when changed, to avoid UnPrepare/Prepare
-  Assert(qry.sql.Text<>'');
+  Assert(qry.SQL.Text<>'');
   for x:=0 to Qry.Params.Count-1 do
     begin
     P:=Qry.Params[x];
@@ -1812,13 +1868,15 @@ begin
     ApplyFieldUpdate(Query.Cursor,P as TSQLDBParam,Fld,B);
     end;
   if ReturningClause then
+    begin
+    Qry.Close;
     Qry.Open
+    end
   else
     Qry.Execute;
   if (scoApplyUpdatesChecksRowsAffected in Options) and (Qry.RowsAffected<>1) then
     begin
-    if ReturningClause then
-      Qry.Close;
+    Qry.Close;
     DatabaseErrorFmt(SErrFailedToUpdateRecord, [Qry.RowsAffected], Query);
     end;
   if ReturningClause then
@@ -1983,7 +2041,7 @@ begin
     CloseDataSets;
     If LogEvent(detCommit) then
       Log(detCommit,SCommitting);
-    if (stoUseImplicit in Options) or SQLConnection.Commit(FTrans) then
+    if (stoUseImplicit in Options) or SQLConnection.AttemptCommit(FTrans) then
       begin
       CloseTrans;
       FreeAndNil(FTrans);
@@ -2010,7 +2068,7 @@ begin
     CloseDataSets;
     If LogEvent(detRollback) then
       Log(detRollback,SRollingBack);
-    if SQLConnection.RollBack(FTrans) then
+    if SQLConnection.AttemptRollBack(FTrans) then
       begin
       CloseTrans;
       FreeAndNil(FTrans);
@@ -2352,7 +2410,7 @@ Var
 
 begin
   Result:=(FRefreshSQL.Count<>0);
-  DoReturning:=(sqSupportReturning in SQLConnection.ConnOptions) and not (sqoPreferRefresh in Options);
+  DoReturning:=(sqSupportReturning in SQLConnection.ConnOptions) and not (sqoRefreshUsingSelect in Options);
   if Not (Result or DoReturning) then
     begin
     PF:=RefreshFlags[UpdateKind];
@@ -2806,7 +2864,7 @@ end;
 procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind: TUpdateKind);
 
 Var
-  DoRefresh, RecordRefreshed : Boolean;
+  DoRefresh : Boolean;
   LastIDField : TField;
   S : TDataSetState;
 
@@ -2826,17 +2884,13 @@ begin
     //   TDataSet buffers are resynchronized at end of ApplyUpdates process
     S:=SetTempState(dsRefreshFields);
     try
-      RecordRefreshed:=False;
       if assigned(LastIDField) then
-        RecordRefreshed:=RefreshLastInsertID(LastIDField);
+        RefreshLastInsertID(LastIDField);
       if DoRefresh then
-        RecordRefreshed:=RefreshRecord(UpdateKind) or RecordRefreshed;
+        RefreshRecord(UpdateKind);
     finally
       RestoreState(S);
     end;
-    if RecordRefreshed then
-      // Active buffer is updated, move to record.
-      //ActiveBufferToRecord;
     end;
 end;
 
@@ -3242,6 +3296,9 @@ begin
   FProxy.Role:=Self.Role;
   FProxy.UserName:=Self.UserName;
   FProxy.FTransaction:=Self.Transaction;
+  FProxy.LogEvents:=Self.LogEvents;
+  FProxy.OnLog:=Self.OnLog;
+  FProxy.Options:=Self.Options;
   D:=GetConnectionDef(ConnectorType);
   D.ApplyParams(Params,FProxy);
   FProxy.Connected:=True;

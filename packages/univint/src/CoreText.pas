@@ -7,6 +7,7 @@
  }
 {  Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -246,6 +247,7 @@ const kCTVersionNumber10_5_5 = $00020003;
 const kCTVersionNumber10_6   = $00030000;
 const kCTVersionNumber10_7   = $00040000;
 const kCTVersionNumber10_8   = $00050000;
+const kCTVersionNumber10_9   = $00060000;
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 

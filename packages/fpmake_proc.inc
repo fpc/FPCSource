@@ -706,9 +706,17 @@ begin
 {$include zlib/fpmake.pp}
 end;
 
+procedure add_libenet(const ADirectory: string);
+begin
+  with Installer do
+{$include libenet/fpmake.pp}
+end;
+
 procedure add_zorba(const ADirectory: string);
 begin
   with Installer do
 {$include zorba/fpmake.pp}
 end;
+
+{$include googleapi/fpmake.pp}
 

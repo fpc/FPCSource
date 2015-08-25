@@ -599,6 +599,8 @@ var i        : integer;
 begin
   with cursor as TOracleCursor do
     begin
+    if LogEvent(detActualSQL) then
+      Log(detActualSQL,Buf);
     if OCIStmtPrepare2(TOracleTrans(ATransaction.Handle).FOciSvcCtx,FOciStmt,FOciError,@buf[1],length(buf),nil,0,OCI_NTV_SYNTAX,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
     // Get statement type
@@ -767,30 +769,27 @@ end;
 
 function TOracleConnection.StartDBTransaction(trans: TSQLHandle; AParams: string): boolean;
 var
-  x_flags : ub4;
+  flags : ub4;
   i : Integer;
   s : string;
   locTrans : TOracleTrans;
 begin
-  locTrans := TOracleTrans(trans);
-  if ( Length(AParams) = 0 ) then begin
-    x_flags := OCI_TRANS_NEW or OCI_TRANS_READWRITE;
-  end else begin
-    x_flags := OCI_DEFAULT;
+  flags := OCI_TRANS_READWRITE;
+  if AParams <> '' then begin
     i := 1;
     s := ExtractSubStr(AParams,i,StdWordDelims);
     while ( s <> '' ) do begin
       if ( s = 'readonly' ) then
-        x_flags := x_flags and OCI_TRANS_READONLY
+        flags := OCI_TRANS_READONLY
       else if ( s = 'serializable' ) then
-        x_flags := x_flags and OCI_TRANS_SERIALIZABLE
+        flags := OCI_TRANS_SERIALIZABLE
       else if ( s = 'readwrite' ) then
-        x_flags := x_flags and OCI_TRANS_READWRITE;
+        flags := OCI_TRANS_READWRITE;
       s := ExtractSubStr(AParams,i,StdWordDelims);
     end;
-    x_flags := x_flags and OCI_TRANS_NEW;
   end;
-  locTrans.FOciFlags := x_flags;
+  locTrans := TOracleTrans(trans);
+  locTrans.FOciFlags := flags or OCI_TRANS_NEW;
   InternalStartDBTransaction(locTrans);
   Result := True;
 end;
@@ -833,6 +832,8 @@ procedure TOracleConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransa
   end;
 begin
   if Assigned(AParams) and (AParams.Count > 0) then SetParameters(cursor, ATransaction, AParams);
+  if LogEvent(detParamValue) then
+    LogParams(AParams);
   if cursor.FStatementType = stSelect then
     begin
     if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,0,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then

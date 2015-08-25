@@ -58,7 +58,7 @@ begin
           (taicpu(hp1).oper[0]^.reg <> reg))) and
         (taicpu(hp1).oper[1]^.typ = top_reg) and
         (taicpu(hp1).oper[1]^.reg = reg);
-    A_INC,A_DEC:
+    A_INC,A_DEC,A_NEG,A_NOT:
       isFoldableArithOp :=
         (taicpu(hp1).oper[0]^.typ = top_reg) and
         (taicpu(hp1).oper[0]^.reg = reg);
@@ -2282,7 +2282,7 @@ begin
   { to       add/sub/or/... reg2/$const, (ref)    }
                         begin
                           case taicpu(hp1).opcode of
-                            A_INC,A_DEC:
+                            A_INC,A_DEC,A_NOT,A_NEG:
                               taicpu(hp1).loadRef(0,taicpu(p).oper[0]^.ref^);
                             A_LEA:
                               begin

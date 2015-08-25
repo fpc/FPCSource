@@ -15,6 +15,7 @@
 {       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{       Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -343,7 +344,23 @@ var kCFHTTPAuthenticationSchemeXMobileMeAuthToken: CFStringRef; external name '_
  *	Non-Carbon CFM:   not available
  }
 var kCFHTTPAuthenticationSchemeKerberos: CFStringRef; external name '_kCFHTTPAuthenticationSchemeKerberos'; (* attribute const *)
-(* __OSX_AVAILABLE_STARTING(__MAC_10_5 { REMINDSMA: 10_7 },__IPHONE_2_0 { REMINDSMA: 4_0 }) *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5,__IPHONE_2_0) *)
+
+{$ifc TARGET_OS_MAC}
+{
+ *  kCFHTTPAuthenticationSchemeOAuth1
+ *
+ *  Discussion:
+ *	HTTP OAuth 1.0 authentication scheme.
+ *
+ *  Availability:
+ *	Mac OS X:		 in version 10.9 and later in CoreServices.framework
+ *	CarbonLib:		not available
+ *	Non-Carbon CFM:   not available
+ }
+var kCFHTTPAuthenticationSchemeOAuth1: CFStringRef; external name '_kCFHTTPAuthenticationSchemeOAuth1'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_9,__IPHONE_NA) *)
+{$endc}
 
 	
 {

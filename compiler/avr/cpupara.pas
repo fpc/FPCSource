@@ -99,7 +99,10 @@ unit cpupara;
             filedef:
               getparaloc:=LOC_REGISTER;
             arraydef:
-              getparaloc:=LOC_REFERENCE;
+              if is_dynamic_array(p) then
+                getparaloc:=LOC_REGISTER
+              else
+                getparaloc:=LOC_REFERENCE;
             setdef:
               if is_smallset(p) then
                 getparaloc:=LOC_REGISTER
@@ -252,7 +255,7 @@ unit cpupara;
 
             if push_addr_param(hp.varspez,paradef,p.proccalloption) then
               begin
-                paradef:=getpointerdef(paradef);
+                paradef:=cpointerdef.getreusable(paradef);
                 loc:=LOC_REGISTER;
                 paracgsize:=OS_ADDR;
                 paralen:=tcgsize2size[OS_ADDR];
@@ -343,13 +346,14 @@ unit cpupara;
                         else
                           { parameters are always passed completely in registers or in memory on avr }
                           internalerror(2015041002);
+                        dec(paralen,tcgsize2size[paraloc^.size]);
                       end;
                     LOC_REFERENCE:
                       begin
                         if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                           begin
                             paraloc^.size:=OS_ADDR;
-                            paraloc^.def:=getpointerdef(paradef);
+                            paraloc^.def:=cpointerdef.getreusable(paradef);
                             assignintreg
                           end
                         else
@@ -360,6 +364,7 @@ unit cpupara;
                              paraloc^.reference.offset:=stack_offset;
                              inc(stack_offset,hp.vardef.size);
                           end;
+                        dec(paralen,hp.vardef.size);
                       end;
                     else
                       internalerror(2002071002);
@@ -372,7 +377,6 @@ unit cpupara;
                          inc(paraloc^.reference.offset,2);
                        end;
                    end;
-                 dec(paralen,tcgsize2size[paraloc^.size]);
                  firstparaloc:=false;
                end;
           end;

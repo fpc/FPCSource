@@ -3,17 +3,13 @@
  
      Contains:   String constants for core uniform type identifiers
  
-     Copyright:  2004-2009 by Apple Inc., all rights reserved.
+     Copyright:  (c) 2004-2012 by Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
  
                      http://bugs.freepascal.org
 }
-
-{	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
-{	 Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
-{	 Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 
 {
     Modified for use with Free Pascal

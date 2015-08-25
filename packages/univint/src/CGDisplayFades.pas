@@ -4,6 +4,7 @@
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -329,7 +330,7 @@ function CGDisplayFade( token: CGDisplayFadeReservationToken; duration: CGDispla
    otherwise. }
 
 function CGDisplayFadeOperationInProgress: boolean_t; external name '_CGDisplayFadeOperationInProgress';
-(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_NA) *)
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_2, __MAC_10_9, __IPHONE_NA, __IPHONE_NA) *)
 
 {$endc}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

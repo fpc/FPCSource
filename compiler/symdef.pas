@@ -100,7 +100,7 @@ interface
           function  alignment:shortint;override;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
-          function  rtti_mangledname(rt:trttitype):string;override;
+          function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  OwnerHierarchyName: string; override;
           function  fullownerhierarchyname:string;override;
           function  needs_separate_initrtti:boolean;override;
@@ -217,6 +217,9 @@ interface
        tpointerdef = class(tabstractpointerdef)
           has_pointer_math : boolean;
           constructor create(def:tdef);virtual;
+          { returns a pointerdef for def, reusing an existing one in case it
+            exists in the current module }
+          class function getreusable(def: tdef): tpointerdef; virtual;
           function size:asizeint;override;
           function getcopy:tstoreddef;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -299,7 +302,7 @@ interface
           isunion       : boolean;
           constructor create(const n:string; p:TSymtable);virtual;
           constructor create_global_internal(n: string; packrecords, recordalignmin, maxCrecordalign: shortint); virtual;
-          procedure add_field_by_def(def: tdef);
+          procedure add_field_by_def(const optionalname: TIDString; def: tdef);
           procedure add_fields_from_deflist(fieldtypes: tfplist);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -428,8 +431,9 @@ interface
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
           function  needs_separate_initrtti : boolean;override;
-          function  rtti_mangledname(rt:trttitype):string;override;
+          function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  vmt_mangledname : TSymStr;
+          function  vmt_def: trecorddef;
           procedure check_forwards; override;
           procedure insertvmt;
           function  vmt_offset: asizeint;
@@ -464,7 +468,7 @@ interface
           function getcopy:tstoreddef;override;
           function GetTypeName:string;override;
           function is_publishable : boolean;override;
-          function rtti_mangledname(rt:trttitype):string;override;
+          function rtti_mangledname(rt:trttitype):TSymStr;override;
           procedure register_created_object_type;override;
        end;
        tclassrefdefclass = class of tclassrefdef;
@@ -486,6 +490,7 @@ interface
           function elecount : asizeuint;
           constructor create_from_pointer(def:tpointerdef);virtual;
           constructor create(l,h:asizeint;def:tdef);virtual;
+          class function getreusable(def: tdef; elems: asizeint): tarraydef; virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy; override;
           function getcopy : tstoreddef;override;
@@ -603,6 +608,8 @@ interface
 
        tprocvardef = class(tabstractprocdef)
           constructor create(level:byte);virtual;
+          { returns a procvardef that represents the address of a proc(var)def }
+          class function getreusableprocaddr(def: tabstractprocdef): tprocvardef; virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -1120,14 +1127,6 @@ interface
     procedure maybeloadcocoatypes;
 
     function use_vectorfpu(def : tdef) : boolean;
-
-    { returns a pointerdef for def, reusing an existing one in case it exists
-      in the current module }
-    function getpointerdef(def: tdef): tpointerdef;
-    { returns an arraydef for an array containing a single array of def, resuing
-      an existing one in case it exists in the current module }
-    function getsingletonarraydef(def: tdef): tarraydef;
-    function getarraydef(def: tdef; elecount: asizeint): tarraydef;
 
     function getansistringcodepage:tstringencoding; inline;
     function getansistringdef:tstringdef;
@@ -1749,7 +1748,7 @@ implementation
       end;
 
 
-    function tstoreddef.rtti_mangledname(rt : trttitype) : string;
+    function tstoreddef.rtti_mangledname(rt : trttitype) : TSymStr;
       var
         prefix : string[4];
       begin
@@ -2290,7 +2289,7 @@ implementation
           st_unicodestring,
           st_widestring,
           st_ansistring:
-            alignment:=size_2_align(size);
+            alignment:=voidpointertype.alignment;
           st_longstring,
           st_shortstring:
               { char to string accesses byte 0 and 1 with one word access }
@@ -3117,6 +3116,34 @@ implementation
       end;
 
 
+    class function tpointerdef.getreusable(def: tdef): tpointerdef;
+      var
+        res: PHashSetItem;
+        oldsymtablestack: tsymtablestack;
+        savesymtab: tsymtable;
+      begin
+        if not assigned(current_module) then
+          internalerror(2011071101);
+        res:=current_module.ptrdefs.FindOrAdd(@def,sizeof(def));
+        if not assigned(res^.Data) then
+          begin
+            { since these pointerdefs can be reused anywhere in the current
+              unit, add them to the global/staticsymtable (or local symtable
+              if they're a local def, because otherwise they'll be saved
+              to the ppu referencing a local symtable entry that doesn't
+              exist in the ppu) }
+            oldsymtablestack:=symtablestack;
+            { do not simply push/pop current_module.localsymtable, because
+              that can have side-effects (e.g., it removes helpers) }
+            symtablestack:=nil;
+            res^.Data:=cpointerdef.create(def);
+            def.getreusablesymtab.insertdef(tdef(res^.Data));
+            symtablestack:=oldsymtablestack;
+          end;
+        result:=tpointerdef(res^.Data);
+      end;
+
+
     function tpointerdef.size: asizeint;
       begin
         result:=sizeof(pint);
@@ -3225,7 +3252,7 @@ implementation
       end;
 
 
-    function tclassrefdef.rtti_mangledname(rt: trttitype): string;
+    function tclassrefdef.rtti_mangledname(rt: trttitype): TSymStr;
       begin
         if (tobjectdef(pointeddef).objecttype<>odt_objcclass) then
           result:=inherited rtti_mangledname(rt)
@@ -3392,6 +3419,41 @@ implementation
          arrayoptions:=[];
          symtable:=tarraysymtable.create(self);
       end;
+
+
+    class function tarraydef.getreusable(def: tdef; elems: asizeint): tarraydef;
+      var
+        res: PHashSetItem;
+        oldsymtablestack: tsymtablestack;
+        arrdesc: packed record
+          def: tdef;
+          elecount: asizeint;
+        end;
+      begin
+        if not assigned(current_module) then
+          internalerror(2011081301);
+        arrdesc.def:=def;
+        arrdesc.elecount:=elems;
+        res:=current_module.arraydefs.FindOrAdd(@arrdesc,sizeof(arrdesc));
+        if not assigned(res^.Data) then
+          begin
+            { since these pointerdefs can be reused anywhere in the current
+              unit, add them to the global/staticsymtable (or local symtable
+              if they're a local def, because otherwise they'll be saved
+              to the ppu referencing a local symtable entry that doesn't
+              exist in the ppu) }
+            oldsymtablestack:=symtablestack;
+            { do not simply push/pop current_module.localsymtable, because
+              that can have side-effects (e.g., it removes helpers) }
+            symtablestack:=nil;
+            res^.Data:=carraydef.create(0,elems-1,ptrsinttype);
+            tarraydef(res^.Data).elementdef:=def;
+            def.getreusablesymtab.insertdef(tdef(res^.Data));
+            symtablestack:=oldsymtablestack;
+          end;
+        result:=tarraydef(res^.Data);
+      end;
+
 
     destructor tarraydef.destroy;
       begin
@@ -3579,7 +3641,7 @@ implementation
       begin
          { alignment of dyn. arrays doesn't depend on the element size }
          if (ado_IsDynamicArray in arrayoptions) then
-           alignment:=size_2_align(voidpointertype.size)
+           alignment:=voidpointertype.alignment
          { alignment is the target alignment for the used load size }
          else if (ado_IsBitPacked in arrayoptions) and
             (elementdef.typ in [enumdef,orddef]) then
@@ -4001,7 +4063,8 @@ implementation
         result:=true;
         for i:=0 to symtable.symlist.count-1 do
           begin
-            if tsym(symtable.symlist[i]).typ<>fieldvarsym then
+            if (tsym(symtable.symlist[i]).typ<>fieldvarsym) or
+               (sp_static in tsym(symtable.symlist[i]).symoptions) then
               continue;
             if assigned(tfieldvarsym(symtable.symlist[i]).vardef) then
               begin
@@ -4074,14 +4137,25 @@ implementation
               current_module.globalsymtable.insert(ts);
           end;
         symtablestack:=oldsymtablestack;
+        { don't create RTTI for internal types, these are not exported }
+        defstates:=defstates+[ds_rtti_table_written,ds_init_table_written];
       end;
 
 
-    procedure trecorddef.add_field_by_def(def: tdef);
+    procedure trecorddef.add_field_by_def(const optionalname: TIDString; def: tdef);
       var
         sym: tfieldvarsym;
+        name: TIDString;
+        pname: ^TIDString;
       begin
-        sym:=cfieldvarsym.create('$f'+tostr(trecordsymtable(symtable).symlist.count),vs_value,def,[]);
+        if optionalname='' then
+          begin
+            name:='$f'+tostr(trecordsymtable(symtable).symlist.count);
+            pname:=@name
+          end
+        else
+          pname:=@optionalname;
+        sym:=cfieldvarsym.create(pname^,vs_value,def,[]);
         symtable.insert(sym);
         trecordsymtable(symtable).addfield(sym,vis_hidden);
       end;
@@ -4092,7 +4166,7 @@ implementation
         i: longint;
       begin
         for i:=0 to fieldtypes.count-1 do
-          add_field_by_def(tdef(fieldtypes[i]));
+          add_field_by_def('',tdef(fieldtypes[i]));
       end;
 
 
@@ -4707,7 +4781,25 @@ implementation
           end;
         tabstractprocdef(result).savesize:=savesize;
 
-        tabstractprocdef(result).proctypeoption:=proctypeoption;
+        if (typ<>procvardef) and
+           (newtyp=procvardef) then
+          begin
+            { procvars can't be (class)constructures/destructors etc }
+            if proctypeoption=potype_constructor then
+              begin
+                tabstractprocdef(result).returndef:=tdef(owner.defowner);
+                if not(is_implicit_pointer_object_type(returndef) or
+                   (returndef.typ<>objectdef)) then
+                  tabstractprocdef(result).returndef:=cpointerdef.getreusable(tabstractprocdef(result).returndef);
+                tabstractprocdef(result).proctypeoption:=potype_function;
+              end
+            else if is_void(returndef) then
+              tabstractprocdef(result).proctypeoption:=potype_procedure
+            else
+              tabstractprocdef(result).proctypeoption:=potype_function;
+          end
+        else
+          tabstractprocdef(result).proctypeoption:=proctypeoption;
         tabstractprocdef(result).proccalloption:=proccalloption;
         tabstractprocdef(result).procoptions:=procoptions;
         if (copytyp=pc_bareproc) then
@@ -5819,6 +5911,33 @@ implementation
       end;
 
 
+    class function tprocvardef.getreusableprocaddr(def: tabstractprocdef): tprocvardef;
+      var
+        res: PHashSetItem;
+        oldsymtablestack: tsymtablestack;
+      begin
+        if not assigned(current_module) then
+          internalerror(2011081301);
+        res:=current_module.procaddrdefs.FindOrAdd(@def,sizeof(def));
+        if not assigned(res^.Data) then
+          begin
+            { since these pointerdefs can be reused anywhere in the current
+              unit, add them to the global/staticsymtable (or local symtable
+              if they're a local def, because otherwise they'll be saved
+              to the ppu referencing a local symtable entry that doesn't
+              exist in the ppu) }
+            oldsymtablestack:=symtablestack;
+            { do not simply push/pop current_module.localsymtable, because
+              that can have side-effects (e.g., it removes helpers) }
+            symtablestack:=nil;
+            res^.Data:=def.getcopyas(procvardef,pc_address_only);
+            def.getreusablesymtab.insertdef(tdef(res^.Data));
+            symtablestack:=oldsymtablestack;
+          end;
+        result:=tprocvardef(res^.Data);
+      end;
+
+
     constructor tprocvardef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(procvardef,ppufile);
@@ -6579,7 +6698,7 @@ implementation
     function tobjectdef.alignment:shortint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava] then
-          alignment:=voidpointertype.size
+          alignment:=voidpointertype.alignment
         else
           alignment:=tObjectSymtable(symtable).recordalignment;
       end;
@@ -6618,6 +6737,19 @@ implementation
         if not(oo_has_vmt in objectoptions) then
           Message1(parser_n_object_has_no_vmt,objrealname^);
         vmt_mangledname:=make_mangledname('VMT',owner,objname^);
+      end;
+
+
+    function tobjectdef.vmt_def: trecorddef;
+      var
+        vmttypesym: tsym;
+      begin
+        vmttypesym:=tsym(get_top_level_symtable.Find('vmtdef$'+mangledparaname));
+        if not assigned(vmttypesym) or
+           (vmttypesym.typ<>symconst.typesym) or
+           (ttypesym(vmttypesym).typedef.typ<>recorddef) then
+          internalerror(2015052501);
+        result:=trecorddef(ttypesym(vmttypesym).typedef);
       end;
 
 
@@ -6667,7 +6799,7 @@ implementation
         result:=not (objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]);
       end;
 
-    function tobjectdef.rtti_mangledname(rt: trttitype): string;
+    function tobjectdef.rtti_mangledname(rt: trttitype): TSymStr;
       begin
         if not(objecttype in [odt_objcclass,odt_objcprotocol]) then
           result:=inherited rtti_mangledname(rt)
@@ -7564,71 +7696,6 @@ implementation
 {$ifndef use_vectorfpuimplemented}
         use_vectorfpu:=false;
 {$endif}
-      end;
-
-
-    function getpointerdef(def: tdef): tpointerdef;
-      var
-        res: PHashSetItem;
-        oldsymtablestack: tsymtablestack;
-      begin
-        if not assigned(current_module) then
-          internalerror(2011071101);
-        res:=current_module.ptrdefs.FindOrAdd(@def,sizeof(def));
-        if not assigned(res^.Data) then
-          begin
-            { since these pointerdefs can be reused anywhere in the current
-              unit, add them to the global/staticsymtable }
-            oldsymtablestack:=symtablestack;
-            { do not simply push/pop current_module.localsymtable, because
-              that can have side-effects (e.g., it removes helpers) }
-            symtablestack:=nil;
-            res^.Data:=cpointerdef.create(def);
-            if assigned(current_module.localsymtable) then
-              current_module.localsymtable.insertdef(tdef(res^.Data))
-            else
-              current_module.globalsymtable.insertdef(tdef(res^.Data));
-            symtablestack:=oldsymtablestack;
-          end;
-        result:=tpointerdef(res^.Data);
-      end;
-
-
-    function getsingletonarraydef(def: tdef): tarraydef;
-      begin
-        result:=getarraydef(def,1);
-      end;
-
-
-    function getarraydef(def: tdef; elecount: asizeint): tarraydef;
-      var
-        res: PHashSetItem;
-        oldsymtablestack: tsymtablestack;
-        arrdesc: packed record
-          def: tdef;
-          elecount: asizeint;
-        end;
-      begin
-        if not assigned(current_module) then
-          internalerror(2011081301);
-        arrdesc.def:=def;
-        arrdesc.elecount:=elecount;
-        res:=current_module.arraydefs.FindOrAdd(@arrdesc,sizeof(arrdesc));
-        if not assigned(res^.Data) then
-          begin
-            { since these arraydef can be reused anywhere in the current
-              unit, add them to the global/staticsymtable }
-            oldsymtablestack:=symtablestack;
-            symtablestack:=nil;
-            res^.Data:=carraydef.create(0,elecount-1,ptrsinttype);
-            tarraydef(res^.Data).elementdef:=def;
-            if assigned(current_module.localsymtable) then
-              current_module.localsymtable.insertdef(tdef(res^.Data))
-            else
-              current_module.globalsymtable.insertdef(tdef(res^.Data));
-            symtablestack:=oldsymtablestack;
-          end;
-        result:=tarraydef(res^.Data);
       end;
 
 

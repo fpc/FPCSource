@@ -36,7 +36,7 @@
 
         cpu 8086
 
-        segment text use16 class=code
+        segment text use16 class=CODE
 
         extern PASCALMAIN
         extern __fpc_PrefixSeg
@@ -79,18 +79,18 @@
 %ifdef __TINY__
         mov bx, cs
 %else
-        mov bx, dgroup
+        mov bx, DGROUP
     %ifdef __NEAR_DATA__
         ; init the stack
         mov ss, bx
-        mov sp, ___stacktop wrt dgroup
+        mov sp, ___stacktop wrt DGROUP
     %endif
 %endif
 
         ; zero fill the BSS section
         mov es, bx
-        mov di, _edata wrt dgroup
-        mov cx, _end wrt dgroup
+        mov di, _edata wrt DGROUP
+        mov cx, _end wrt DGROUP
         sub cx, di
         xor al, al
         cld
@@ -150,7 +150,7 @@ cpu_detect_done:
 
         ; allocate max heap
         ; first we determine in paragraphs ax:=min(64kb, data+bss+stack+maxheap)
-        mov ax, _end wrt dgroup
+        mov ax, _end wrt DGROUP
         add ax, 15
         mov cl, 4
         shr ax, cl
@@ -165,7 +165,7 @@ data_with_maxheap_less_than_64k:
 %ifdef __TINY__
         mov dx, cs
 %else
-        mov dx, dgroup
+        mov dx, DGROUP
 %endif
         sub dx, cx  ; dx = (ds - psp) in paragraphs
         push dx  ; save (ds - psp)
@@ -203,11 +203,11 @@ skip_mem_realloc:
         and bl, 0FEh
         mov word [__stkbottom], bx
 
-        mov ax, _end wrt dgroup
+        mov ax, _end wrt DGROUP
         cmp bx, ax
         jb not_enough_mem
 
-        ; heap is between [ds:_end wrt dgroup] and [ds:__stkbottom - 1]
+        ; heap is between [ds:_end wrt DGROUP] and [ds:__stkbottom - 1]
         add ax, 3
         and al, 0FCh
         mov word [__nearheap_start], ax
@@ -280,7 +280,7 @@ FPC_INT00_HANDLER:
 %ifdef __TINY__
         mov bp, cs
 %else
-        mov bp, dgroup
+        mov bp, DGROUP
 %endif
         mov ds, bp
 
@@ -489,7 +489,7 @@ FPC_CHECK_NULLAREA:
     %endif
 %endif
 
-        segment data class=data
+        segment data class=DATA align=2
 %ifdef __NEAR_DATA__
 mem_realloc_err_msg:
         db 'Memory allocation error', 13, 10, '$'
@@ -498,9 +498,9 @@ not_enough_mem_msg:
 %endif
         ; add reference to the beginning of the minimal heap, so the object
         ; module, containing the heap segment doesn't get smartlinked away
-        dd ___heap
+        dw ___heap
 
-        segment bss class=bss
+        segment bss class=BSS align=2
 
 %ifndef __TINY__
         segment _NULL align=16 class=BEGDATA
@@ -513,21 +513,21 @@ __nullarea:
         dw 0
 
     %ifdef __NEAR_DATA__
-        segment stack stack class=stack
+        segment stack stack class=STACK align=16
     %else
         segment data
         ; add reference to the beginning of stack, so the object module,
         ; containing the stack segment doesn't get smartlinked away
-        dd ___stack
+        dw ___stack
     %endif
 %endif
 
 %ifdef __TINY__
-        group dgroup text data bss
+        group DGROUP text data bss
 %else
     %ifdef __NEAR_DATA__
-        group dgroup _NULL _AFTERNULL data bss stack
+        group DGROUP _NULL _AFTERNULL data bss stack
     %else
-        group dgroup _NULL _AFTERNULL data bss
+        group DGROUP _NULL _AFTERNULL data bss
     %endif
 %endif

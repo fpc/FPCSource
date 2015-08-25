@@ -25,7 +25,6 @@ resourcestring
   STitle = 'fpClassTree - Create class tree from pascal sources';
   SVersion = 'Version %s [%s]';
   SCopyright = '(c) 2008 - Michael Van Canneyt, michael@freepascal.org';
-  SCmdLineHelp = 'See documentation for usage.';
   SCmdLineInvalidOption = 'Ignoring unknown option "%s"';
   SDone = 'Done.';
   SSkipMerge = 'Cannot merge %s into %s tree.';
@@ -90,9 +89,6 @@ type
   end;
 
 { TClassTreeBuilder }
-
-
-
 
 { TChartFormatter }
 
@@ -216,7 +212,6 @@ end;
 procedure TClassChartFormatter.EmitClass(E : TDomElement; HasSiblings: Boolean);
 
 Var
-  DidSub : Boolean;
   N : TDomNode;
   I : Integer;
   L : TFPList;
@@ -238,7 +233,6 @@ begin
       end;
     DoEmitClass(E);
     N:=E.FirstChild;
-    DidSub:=False;
     L:=TFPList.Create;
     try
       While (N<>Nil) do
@@ -435,8 +429,6 @@ function TClassTreeEngine.CreateElement(AClass: TPTreeElement; const AName: Stri
   AParent: TPasElement; AVisibility : TPasMemberVisibility;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 
-Var
-  DN : TDocNode;
 
 begin
   Result := AClass.Create(AName, AParent);
@@ -444,7 +436,10 @@ begin
   if AClass.InheritsFrom(TPasModule) then
     CurModule := TPasModule(Result);
   If AClass.InheritsFrom(TPasClassType) then
+    begin
     FObjects.AddObject(AName,Result);
+   // Writeln('Added : ',AName);
+    end;
 end;
 
 Constructor TClassTreeEngine.Create(AClassTree : TXMLDocument; AObjectKind : TPasObjKind);
@@ -459,6 +454,8 @@ end;
 
 destructor TClassTreeEngine.Destroy;
 begin
+  FreeAndNil(FTree);
+  FreeAndNil(FPackage);
   FreeAndNil(FObjects);
   inherited Destroy;
 end;
@@ -476,6 +473,7 @@ Var
 
 
 begin
+  Result:=0;
   N:=Source.FirstChild;
   While (N<>Nil) do
     begin
@@ -501,7 +499,6 @@ Function MergeTrees (Dest,Source : TXMLDocument) : Integer;
 
 Var
   S,D : TDomElement;
-  Count : Integer;
 
 begin
   Result:=0;
@@ -522,30 +519,32 @@ Var
   Engine: TClassTreeEngine;
 
 begin
+  Result:='';
+  ACount:=0;
   XML:=TXMLDocument.Create;
   Try
     //XML.
-    XML.AppendChild(XML.CreateElement(ObjKindNames[AObjectKind]));
+    XML.AppendChild(XML.CreateElement('TObject'));
     For I:=0 to MergeFiles.Count-1 do
       begin
       XMl2:=TXMLDocument.Create;
       ReadXMLFile(XML2,MergeFiles[i]);
       try
-        ACount:=MergeTrees(XML,XML2);
+        ACount:=ACount+MergeTrees(XML,XML2);
         WriteLn(StdErr,Format(SMergedFile,[ACount,MergeFiles[i]]));
       Finally
         FreeAndNil(XML2);
       end;
       end;
-    ACount:=0;
     For I:=0 to InputFiles.Count-1 do
       begin
       Engine := TClassTreeEngine.Create(XML,AObjectKind);
       Try
         ParseSource(Engine,InputFiles[I],OSTarget,CPUTarget);
-        ACount:=ACount+Engine.Ftree.BuildTree(Engine.FObjects);
+        Engine.Ftree.BuildTree(Engine.FObjects);
+        ACount:=ACount+MergeTrees(XML,Engine.FTree.ClassTree);
       Finally
-        Engine.Free;
+        FreeAndNil(Engine);
       end;
       end;
     Case OutputFormat of
@@ -584,7 +583,6 @@ var
   InputFiles, 
   MergeFiles : TStringList;
   DocLang : String;
-  PackageName, 
   OutputName: String;
 
 procedure InitOptions;

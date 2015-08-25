@@ -95,7 +95,12 @@ begin
   If Assigned(FTransactions) then
     begin
     For I:=FTransactions.Count-1 downto 0 do
-      TDBTransaction(FTransactions[i]).EndTransaction;
+      try
+        TDBTransaction(FTransactions[i]).EndTransaction;
+      except
+        if not ForcedClose then
+          Raise;
+      end;    
     end;
 end;
 

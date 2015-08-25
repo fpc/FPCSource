@@ -279,14 +279,6 @@ Unit aopt;
                 if pass = 0 then
                   PeepHoleOptPass1;
               end;
-            If (cs_opt_asmcse in current_settings.optimizerswitches) Then
-              Begin
-//                DFA:=TAOptDFACpu.Create(AsmL,BlockStart,BlockEnd,LabelInfo);
-                { data flow analyzer }
-//                DFA.DoDFA;
-                { common subexpression elimination }
-      {          CSE;}
-              End;
             { more peephole optimizations }
             if (cs_opt_peephole in current_settings.optimizerswitches) then
               begin

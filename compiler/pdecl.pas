@@ -817,7 +817,8 @@ implementation
                                  end
                                else
                                  { a regular anonymous function type: not yet supported }
-                                 cgmessage(type_e_anonymous_function_unsupported);
+                                 { the }
+                                 Comment(V_Error,'Function references are not yet supported, only C blocks (add "cdecl;" at the end)');
                              end
                          end;
                        handle_calling_convention(tprocvardef(hdef));

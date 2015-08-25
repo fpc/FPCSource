@@ -178,7 +178,7 @@ type
     procedure SetSize(const AValue: Integer);
     procedure SetRequired(const AValue: Boolean);
   public
-    constructor create(ACollection : TCollection); override;
+    constructor Create(ACollection : TCollection); override;
     constructor Create(AOwner: TFieldDefs; const AName: string;
       ADataType: TFieldType; ASize: Integer; ARequired: Boolean; AFieldNo: Longint); overload;
     destructor Destroy; override;
@@ -191,8 +191,8 @@ type
   Published
     property Attributes: TFieldAttributes read FAttributes write SetAttributes default [];
     property DataType: TFieldType read FDataType write SetDataType;
-    property Precision: Longint read FPrecision write SetPrecision;
-    property Size: Integer read FSize write SetSize;
+    property Precision: Longint read FPrecision write SetPrecision default 0;
+    property Size: Integer read FSize write SetSize default 0;
   end;
   TFieldDefClass = Class of TFieldDef;
 
@@ -314,7 +314,7 @@ type
     procedure SetLookup(const AValue: Boolean);
     procedure SetReadOnly(const AValue: Boolean);
     procedure SetVisible(const AValue: Boolean);
-    function IsDisplayStored : Boolean;
+    function IsDisplayLabelStored : Boolean;
     function IsDisplayWidthStored: Boolean;
     function GetLookupList: TLookupList;
     procedure CalcLookupValue;
@@ -429,7 +429,7 @@ type
     property CustomConstraint: string read FCustomConstraint write FCustomConstraint;
     property ConstraintErrorMessage: string read FConstraintErrorMessage write FConstraintErrorMessage;
     property DefaultExpression: string read FDefaultExpression write FDefaultExpression;
-    property DisplayLabel : string read GetDisplayName write SetDisplayLabel stored IsDisplayStored;
+    property DisplayLabel : string read GetDisplayName write SetDisplayLabel stored IsDisplayLabelStored;
     property DisplayWidth: Longint read GetDisplayWidth write SetDisplayWidth stored IsDisplayWidthStored;
     property FieldKind: TFieldKind read FFieldKind write FFieldKind;
     property FieldName: string read FFieldName write FFieldName;
@@ -853,7 +853,7 @@ type
     function CheckRange(AValue : TBCD) : Boolean;
     property Value: TBCD read GetAsBCD write SetAsBCD;
   published
-    property Precision: Longint read FPrecision write FPrecision default 15;
+    property Precision: Longint read FPrecision write FPrecision default 18;
     property Currency: Boolean read FCurrency write FCurrency;
     property MaxValue: string read GetMaxValue write SetMaxValue;
     property MinValue: string read GetMinValue write SetMinValue;
@@ -866,8 +866,7 @@ type
   // This type is needed for compatibility. While it should contain only blob
   // types, it actually does not.
   // Instead of this, please use ftBlobTypes
-  TBlobType = ftBlob..ftWideMemo deprecated
-    'Warning: Does not contain BLOB types. Please use ftBlobTypes.';
+  TBlobType = ftBlob..ftWideMemo deprecated 'Warning: Does not contain BLOB types. Please use ftBlobTypes.';
 
   TBlobField = class(TField)
   private
@@ -876,7 +875,7 @@ type
     Function GetBlobStream (Mode : TBlobStreamMode) : TStream;
     // Wrapper that retrieves FDataType as a TBlobType
     function GetBlobType: TBlobType;
-    // Wrapper that calls SetFieldtype
+    // Wrapper that calls SetFieldType
     procedure SetBlobType(AValue: TBlobType);
   protected
     procedure FreeBuffers; override;
@@ -906,7 +905,7 @@ type
     property Value: string read GetAsString write SetAsString;
     property Transliterate: Boolean read FTransliterate write FTransliterate;
   published
-    property BlobType: TBlobType read GetBlobType write SetBlobType;
+    property BlobType: TBlobType read GetBlobType write SetBlobType default ftBlob;
     property Size default 0;
   end;
 
@@ -2194,8 +2193,8 @@ var
 
 Procedure DatabaseError (Const Msg : String); overload;
 Procedure DatabaseError (Const Msg : String; Comp : TComponent); overload;
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const); overload;
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const; Comp : TComponent); overload;
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const); overload;
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const; Comp : TComponent); overload;
 Function ExtractFieldName(Const Fields: String; var Pos: Integer): String;
 Function DateTimeRecToDateTime(DT: TFieldType; Data: TDateTimeRec): TDateTime;
 Function DateTimeToDateTimeRec(DT: TFieldType; Data: TDateTime): TDateTimeRec;
@@ -2230,13 +2229,13 @@ begin
     DatabaseError(Msg);
 end;
 
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const);
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const);
 
 begin
   Raise EDatabaseError.CreateFmt(Fmt,Args);
 end;
 
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const;
+Procedure DatabaseErrorFmt (Const Fmt : String; Const Args : Array Of Const;
                             Comp : TComponent);
 begin
   if assigned(comp) then

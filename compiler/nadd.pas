@@ -1982,6 +1982,10 @@ implementation
                           ctypeconvnode.create_internal(left,methodpointertype));
                 typecheckpass(left);
               end;
+            if lt=niln then
+              inserttypeconv_explicit(left,right.resultdef)
+            else
+              inserttypeconv_explicit(right,left.resultdef)
           end
 
        { support dynamicarray=nil,dynamicarray<>nil }
@@ -2033,7 +2037,7 @@ implementation
           begin
             if is_zero_based_array(rd) then
               begin
-                resultdef:=getpointerdef(tarraydef(rd).elementdef);
+                resultdef:=cpointerdef.getreusable(tarraydef(rd).elementdef);
                 inserttypeconv(right,resultdef);
               end
             else
@@ -2065,7 +2069,7 @@ implementation
            begin
              if is_zero_based_array(ld) then
                begin
-                  resultdef:=getpointerdef(tarraydef(ld).elementdef);
+                  resultdef:=cpointerdef.getreusable(tarraydef(ld).elementdef);
                   inserttypeconv(left,resultdef);
                end
              else
@@ -3145,7 +3149,8 @@ implementation
              else
                begin
 {$ifdef cpuneedsmulhelper}
-                 if (nodetype=muln) and not(torddef(resultdef).ordtype in [u8bit,s8bit{$ifdef cpu16bitalu},u16bit,s16bit{$endif}]) then
+                 if (nodetype=muln) and not(torddef(resultdef).ordtype in [u8bit,s8bit
+                   {$if defined(cpu16bitalu) or defined(avr)},u16bit,s16bit{$endif}]) then
                    begin
                      result := nil;
 

@@ -778,11 +778,13 @@ begin
                      operands[i].opr.ref.symbol:=s;
                      operands[i].opr.ref.offset:=so;
                    end;
-  {$ifdef x86_64}
+  {$if defined(x86_64)}
                   tx86operand(operands[i]).opsize:=S_Q;
-  {$else x86_64}
+  {$elseif defined(i386)}
                   tx86operand(operands[i]).opsize:=S_L;
-  {$endif x86_64}
+  {$elseif defined(i8086)}
+                  tx86operand(operands[i]).opsize:=S_W;
+  {$endif}
                 end;
             end;
         end;
@@ -803,7 +805,11 @@ begin
             (opcode=A_POP)) and
            (operands[1].opr.typ=OPR_REGISTER) and
            is_segment_reg(operands[1].opr.reg) then
+{$ifdef i8086}
+          opsize:=S_W
+{$else i8086}
           opsize:=S_L
+{$endif i8086}
         else
           opsize:=tx86operand(operands[1]).opsize;
       end;
@@ -1174,7 +1180,13 @@ begin
                      asize:=OT_BITS8;
                    OS_16,OS_S16, OS_M16:
                      asize:=OT_BITS16;
-                   OS_32,OS_S32,OS_F32,OS_M32 :
+                   OS_32,OS_S32 :
+{$ifdef i8086}
+                     asize:=OT_BITS16;
+{$else i8086}
+                     asize:=OT_BITS32;
+{$endif i8086}
+                   OS_F32,OS_M32 :
                      asize:=OT_BITS32;
                    OS_64,OS_S64:
                      begin

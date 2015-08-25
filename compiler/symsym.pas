@@ -89,6 +89,17 @@ interface
        end;
        tunitsymclass = class of tunitsym;
 
+       tprogramparasym = class(Tstoredsym)
+          isoindex : dword;
+          constructor create(const n : string;i : dword);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
+          destructor destroy;override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
+       end;
+       tprogramparasymclass = class of tprogramparasym;
+
        tnamespacesym = class(Tstoredsym)
           unitsym:tsym;
           unitsymderef:tderef;
@@ -311,7 +322,7 @@ interface
       public
          abstyp  : absolutetyp;
          asmname : pshortstring;
-         addroffset : aword;
+         addroffset : PUint;
          ref     : tpropaccesslist;
          constructor create(const n : string;def:tdef);virtual;
          constructor create_ref(const n : string;def:tdef;_ref:tpropaccesslist);virtual;
@@ -447,19 +458,12 @@ interface
           function GetCopy:tmacro;
        end;
 
-       { tPtrDefHashSet }
-
-       tPtrDefHashSet = class(THashSet)
-       public
-         constructor Create;virtual;
-       end;
-       tPtrDefHashSetClass = class of tPtrDefHashSet;
-
     var
        generrorsym : tsym;
 
        clabelsym: tlabelsymclass;
        cunitsym: tunitsymclass;
+       cprogramparasym: tprogramparasymclass;
        cnamespacesym: tnamespacesymclass;
        cprocsym: tprocsymclass;
        ctypesym: ttypesymclass;
@@ -472,7 +476,6 @@ interface
        cconstsym: tconstsymclass;
        cenumsym: tenumsymclass;
        csyssym: tsyssymclass;
-       cPtrDefHashSet : tPtrDefHashSetClass = tPtrDefHashSet;
 
     { generate internal static field name based on regular field name }
     function internal_static_field_name(const fieldname: TSymStr): TSymStr;
@@ -533,7 +536,6 @@ implementation
         if sp_hint_unimplemented in symoptions then
           Message1(sym_w_non_implemented_symbol,srsym.realname);
       end;
-
 
 {****************************************************************************
                           TSYM (base for all symtypes)
@@ -692,6 +694,34 @@ implementation
          inherited ppuwrite(ppufile);
          writeentry(ppufile,ibunitsym);
       end;
+
+{****************************************************************************
+                             TPROGRAMPARASYM
+****************************************************************************}
+
+    constructor tprogramparasym.create(const n : string; i : dword);
+      begin
+         inherited create(programparasym,n);
+         isoindex:=i;
+      end;
+
+    constructor tprogramparasym.ppuload(ppufile : tcompilerppufile);
+      begin
+        { program parameter syms (iso pascal style) might be never written to a ppu }
+        internalerror(2015050102);
+      end;
+
+    destructor tprogramparasym.destroy;
+      begin
+       inherited destroy;
+      end;
+
+    procedure tprogramparasym.ppuwrite(ppufile : tcompilerppufile);
+      begin
+        { program parameter syms (iso pascal style) might be never written to a ppu }
+        internalerror(2015050101);
+      end;
+
 
 {****************************************************************************
                                 TNAMESPACESYM
@@ -2330,7 +2360,7 @@ implementation
          if assigned(def) then
            constdef:=def
          else
-           constdef:=getarraydef(cansichartype,l);
+           constdef:=carraydef.getreusable(cansichartype,l);
          value.len:=l;
       end;
 
@@ -2341,7 +2371,7 @@ implementation
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          pcompilerwidestring(value.valueptr):=pw;
-         constdef:=getarraydef(cwidechartype,getlengthwidestring(pw));
+         constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(pw));
          value.len:=getlengthwidestring(pw);
       end;
 
@@ -2702,14 +2732,5 @@ implementation
         Result:=p;
       end;
 
-
-{****************************************************************************
-                             tPtrDefHashSet
- ****************************************************************************}
-
-    constructor tPtrDefHashSet.Create;
-      begin
-        inherited Create(64,true,false);
-      end;
 
 end.

@@ -22,7 +22,7 @@ Resourcestring
   SActiveDataset           = 'Operation cannot be performed on an active dataset';
   SBadParamFieldType       = 'Bad fieldtype for parameter "%s".';
   SCantSetAutoIncFields    = 'AutoInc Fields are read-only';
-  SConnected               = 'Operation cannot be performed on an connected database';
+  SConnected               = 'Operation cannot be performed on a connected database';
   SDatasetReadOnly         = 'Dataset is read-only.';
   SDatasetRegistered       = 'Dataset already registered : "%s"';
   SDuplicateFieldName      = 'Duplicate fieldname : "%s"';
@@ -101,7 +101,7 @@ Resourcestring
   SIndexFieldMissing       = 'Cannot access index field ''%s''';
   SNoFieldIndexes          = 'No index currently active';
   SNotIndexField           = 'Field ''%s'' is not indexed and cannot be modified';
-  SErrUnknownConnectorType = 'Unknown connector type';
+  SErrUnknownConnectorType = 'Unknown connector type: "%s"';
   SNoIndexFieldNameGiven   = 'There are no fields selected to base the index on';
   SStreamNotRecognised     = 'The data-stream format is not recognized';
   SNoReaderClassRegistered = 'There is no TDatapacketReaderClass registered for this kind of data-stream';
@@ -123,6 +123,7 @@ Resourcestring
   SErrRefreshEmptyResult      = 'Refresh SQL resulted in empty result set.';
   SErrNoKeyFieldForRefreshClause = 'No key field found to construct refresh SQL WHERE clause';
   SErrFailedToFetchReturningResult = 'Failed to fetch returning result';
+  SLogParamValue              = 'Parameter "%s" value : "%s"';
 
 Implementation
 

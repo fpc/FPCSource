@@ -401,6 +401,17 @@ begin
       ct_stm32f107rc,
       ct_stm32f107vb,
       ct_stm32f107vc,
+      
+      ct_stm32f429xe,
+      ct_stm32f429xg,
+      ct_stm32f429xi,
+
+      ct_stm32f745xe,
+      ct_stm32f745xg,
+      ct_stm32f746xe,
+      ct_stm32f746xg,
+      ct_stm32f756xe,
+      ct_stm32f756xg,
 
       { TI - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,
@@ -488,6 +499,10 @@ begin
 
       { Allwinner }
       ct_allwinner_a20,
+
+      ct_mk20dx128xxx7,
+      ct_mk20dx256xxx7,
+      ct_mk20dx64xxx7,
       
       ct_sc32442b,
       ct_thumb2bare:
@@ -533,6 +548,11 @@ begin
       Add('    {');
       Add('    _text_start = .;');
       Add('    KEEP(*(.init, .init.*))');
+      if embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7' then
+        begin
+          Add('    . = 0x400;');
+          Add('    KEEP(*(.flash_config, *.flash_config.*))');
+        end;
       Add('    *(.text, .text.*)');
       Add('    *(.strings)');
       Add('    *(.rodata, .rodata.*)');
@@ -619,19 +639,43 @@ begin
       { linker script from ld 2.19 }
       Add('ENTRY(_START)');
       Add('OUTPUT_FORMAT("elf32-avr","elf32-avr","elf32-avr")');
-      Add('OUTPUT_ARCH(avr:2)');
+      case current_settings.cputype of
+       cpu_avr1:
+         Add('OUTPUT_ARCH(avr:1)');
+       cpu_avr2:
+         Add('OUTPUT_ARCH(avr:2)');
+       cpu_avr25:
+         Add('OUTPUT_ARCH(avr:25)');
+       cpu_avr3:
+         Add('OUTPUT_ARCH(avr:3)');
+       cpu_avr31:
+         Add('OUTPUT_ARCH(avr:31)');
+       cpu_avr35:
+         Add('OUTPUT_ARCH(avr:35)');
+       cpu_avr4:
+         Add('OUTPUT_ARCH(avr:4)');
+       cpu_avr5:
+         Add('OUTPUT_ARCH(avr:5)');
+       cpu_avr51:
+         Add('OUTPUT_ARCH(avr:51)');
+       cpu_avr6:
+         Add('OUTPUT_ARCH(avr:6)');
+       else
+         Internalerror(2015072701);
+      end;
       Add('MEMORY');
-      Add('{');
       with embedded_controllers[current_settings.controllertype] do
         begin
-          Add('  text      (rx)   : ORIGIN = 0, LENGTH = 0x'+IntToHex(flashsize,8));
-          Add('  data      (rw!x) : ORIGIN = 0x800060, LENGTH = 0x'+IntToHex(sramsize,8));
-          Add('  eeprom    (rw!x) : ORIGIN = 0x810000, LENGTH = 0x'+IntToHex(eepromsize,8));
+          Add('{');
+          Add('  text      (rx)   : ORIGIN = 0, LENGTH = 0x'+IntToHex(flashsize,6));
+          Add('  data      (rw!x) : ORIGIN = 0x'+IntToHex($800000+srambase,6)+', LENGTH = 0x'+IntToHex(sramsize,6));
+          Add('  eeprom    (rw!x) : ORIGIN = 0x810000, LENGTH = 0x'+IntToHex(eepromsize,6));
           Add('  fuse      (rw!x) : ORIGIN = 0x820000, LENGTH = 1K');
           Add('  lock      (rw!x) : ORIGIN = 0x830000, LENGTH = 1K');
           Add('  signature (rw!x) : ORIGIN = 0x840000, LENGTH = 1K');
+          Add('}');
+          Add('_stack_top = 0x' + IntToHex(sramsize-1,4) + ';');
         end;
-      Add('}');
       Add('SECTIONS');
       Add('{');
       Add('  /* Read-only sections, merged into text segment: */');
@@ -847,8 +891,6 @@ begin
       Add('  .debug_loc      0 : { *(.debug_loc) }');
       Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
       Add('}');
-      { last address of ram on an atmega128 }
-      Add('_stack_top = 0x0fff;');
     end;
 {$endif AVR}
 

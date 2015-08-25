@@ -344,7 +344,7 @@ implementation
         SysUtils,
         verbose,
         export,expunix,
-        cutils,globals,fmodule;
+        cutils,globals,fmodule,owar;
 
     const
       symbolresize = 200*18;
@@ -1305,6 +1305,7 @@ implementation
       begin
         inherited Create(smart);
         CObjOutput:=TElfObjectOutput;
+        CInternalAr:=tarobjectwriter;
       end;
 
 

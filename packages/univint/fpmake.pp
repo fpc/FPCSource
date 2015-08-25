@@ -101,12 +101,15 @@ begin
     T:=P.Targets.AddImplicitUnit('CFDateFormatter.pas');
     T:=P.Targets.AddImplicitUnit('CFDictionary.pas');
     T:=P.Targets.AddImplicitUnit('CFError.pas');
+    T:=P.Targets.AddImplicitUnit('CFFileDescriptor.pas');
+    T:=P.Targets.AddImplicitUnit('CFFileSecurity.pas');
     T:=P.Targets.AddImplicitUnit('CFFTPStream.pas');
     T:=P.Targets.AddImplicitUnit('CFHTTPAuthentication.pas');
     T:=P.Targets.AddImplicitUnit('CFHTTPMessage.pas');
     T:=P.Targets.AddImplicitUnit('CFHTTPStream.pas');
     T:=P.Targets.AddImplicitUnit('CFHost.pas');
     T:=P.Targets.AddImplicitUnit('CFLocale.pas');
+    T:=P.Targets.AddImplicitUnit('CFURLEnumerator.pas');
     T:=P.Targets.AddImplicitUnit('CFMachPort.pas');
     T:=P.Targets.AddImplicitUnit('CFMessagePort.pas');
     T:=P.Targets.AddImplicitUnit('CFNetDiagnostics.pas');
@@ -426,6 +429,11 @@ begin
     T:=P.Targets.AddImplicitUnit('Script.pas');
     T:=P.Targets.AddImplicitUnit('SecBase.pas');
     T:=P.Targets.AddImplicitUnit('SecTrust.pas');
+    T:=P.Targets.AddImplicitUnit('SKAnalysis.pas');
+    T:=P.Targets.AddImplicitUnit('SKDocument.pas');
+    T:=P.Targets.AddImplicitUnit('SKIndex.pas');
+    T:=P.Targets.AddImplicitUnit('SKSearch.pas');
+    T:=P.Targets.AddImplicitUnit('SKSummary.pas');
     T:=P.Targets.AddImplicitUnit('Sound.pas');
     T:=P.Targets.AddImplicitUnit('SpeechRecognition.pas');
     T:=P.Targets.AddImplicitUnit('SpeechSynthesis.pas');
@@ -456,6 +464,7 @@ begin
     T:=P.Targets.AddImplicitUnit('WSMethodInvocation.pas');
     T:=P.Targets.AddImplicitUnit('WSProtocolHandler.pas');
     T:=P.Targets.AddImplicitUnit('WSTypes.pas');
+    T:=P.Targets.AddImplicitUnit('acl.pas');
     T:=P.Targets.AddImplicitUnit('cblas.pas');
     T:=P.Targets.AddImplicitUnit('certextensions.pas');
     T:=P.Targets.AddImplicitUnit('cssmapple.pas');
@@ -505,6 +514,7 @@ begin
           AddInclude('src/Threads.pas');
           AddInclude('src/UTCUtils.pas');
           AddInclude('src/UnicodeConverter.pas');
+          AddInclude('src/acl.pas');
           AddInclude('src/cblas.pas');
           AddInclude('src/cssmconfig.pas');
           AddInclude('src/cssmerr.pas');
@@ -645,11 +655,14 @@ begin
           AddInclude('src/CFArray.pas');
           AddInclude('src/CFBag.pas');
           AddInclude('src/CFCharacterSet.pas');
+          AddInclude('src/CFFileDescriptor.pas');
+          AddInclude('src/CFFileSecurity.pas');
           AddInclude('src/CFLocale.pas');
           AddInclude('src/CFNumberFormatter.pas');
           AddInclude('src/CFString.pas');
           AddInclude('src/CFStringTokenizer.pas');
           AddInclude('src/CFTimeZone.pas');
+          AddInclude('src/CFURLEnumerator.pas');
           AddInclude('src/CFUUID.pas');
           AddInclude('src/CGAffineTransforms.pas');
           AddInclude('src/CGImageMetadata.pas');
@@ -935,6 +948,11 @@ begin
           AddInclude('src/IBCarbonRuntime.pas');
           AddInclude('src/HIToolbox.pas');
           AddInclude('src/ObjCRuntime.pas');
+          AddInclude('src/SKAnalysis.pas');
+          AddInclude('src/SKDocument.pas');
+          AddInclude('src/SKIndex.pas');
+          AddInclude('src/SKSearch.pas');
+          AddInclude('src/SKSummary.pas');
         end;
 
     P.ExamplePath.Add('examples');

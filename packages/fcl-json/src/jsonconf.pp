@@ -28,7 +28,7 @@ unit jsonConf;
 interface
 
 uses
-  SysUtils, Classes, fpjson, jsonparser;
+  SysUtils, Classes, fpjson, jsonscanner,jsonparser;
 
 resourcestring
   SWrongRootName = 'XML file has wrong root element name';
@@ -57,52 +57,58 @@ type
   TJSONConfig = class(TComponent)
   private
     FFilename: String;
+    FFormatIndentSize: Integer;
+    FFormatoptions: TFormatOptions;
+    FFormatted: Boolean;
     FKey: TJSONObject;
     procedure DoSetFilename(const AFilename: String; ForceReload: Boolean);
     procedure SetFilename(const AFilename: String);
-    Function StripSlash(P : WideString) : WideString;
+    Function StripSlash(Const P : UnicodeString) : UnicodeString;
   protected
     FJSON: TJSONObject;
     FModified: Boolean;
     procedure Loaded; override;
-    function FindPath(Const APath: WideString; AllowCreate : Boolean) : TJSONObject;
-    function FindObject(Const APath: WideString; AllowCreate : Boolean) : TJSONObject;
-    function FindObject(Const APath: WideString; AllowCreate : Boolean;Var ElName : WideString) : TJSONObject;
-    function FindElement(Const APath: WideString; CreateParent : Boolean) : TJSONData;
-    function FindElement(Const APath: WideString; CreateParent : Boolean; Var AParent : TJSONObject; Var ElName : WideString) : TJSONData;
+    function FindPath(Const APath: UnicodeString; AllowCreate : Boolean) : TJSONObject;
+    function FindObject(Const APath: UnicodeString; AllowCreate : Boolean) : TJSONObject;
+    function FindObject(Const APath: UnicodeString; AllowCreate : Boolean;Var ElName : UnicodeString) : TJSONObject;
+    function FindElement(Const APath: UnicodeString; CreateParent : Boolean) : TJSONData;
+    function FindElement(Const APath: UnicodeString; CreateParent : Boolean; Var AParent : TJSONObject; Var ElName : UnicodeString) : TJSONData;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     Procedure Reload;
     procedure Clear;
     procedure Flush;    // Writes the JSON file
-    procedure OpenKey(const aPath: WideString; AllowCreate : Boolean);
+    procedure OpenKey(const aPath: UnicodeString; AllowCreate : Boolean);
     procedure CloseKey;
     procedure ResetKey;
-    Procedure EnumSubKeys(Const APath : String; List : TStrings);
-    Procedure EnumValues(Const APath : String; List : TStrings);
+    Procedure EnumSubKeys(Const APath : UnicodeString; List : TStrings);
+    Procedure EnumValues(Const APath : UnicodeString; List : TStrings);
 
-    function  GetValue(const APath: WideString; const ADefault: WideString): WideString; overload;
-    function  GetValue(const APath: WideString; ADefault: Integer): Integer; overload;
-    function  GetValue(const APath: WideString; ADefault: Int64): Int64; overload;
-    function  GetValue(const APath: WideString; ADefault: Boolean): Boolean; overload;
-    function  GetValue(const APath: WideString; ADefault: Double): Double; overload;
-    procedure SetValue(const APath: WideString; const AValue: WideString); overload;
-    procedure SetValue(const APath: WideString; AValue: Integer); overload;
-    procedure SetValue(const APath: WideString; AValue: Int64); overload;
-    procedure SetValue(const APath: WideString; AValue: Boolean); overload;
-    procedure SetValue(const APath: WideString; AValue: Double); overload;
+    function  GetValue(const APath: UnicodeString; const ADefault: UnicodeString): UnicodeString; overload;
+    function  GetValue(const APath: UnicodeString; ADefault: Integer): Integer; overload;
+    function  GetValue(const APath: UnicodeString; ADefault: Int64): Int64; overload;
+    function  GetValue(const APath: UnicodeString; ADefault: Boolean): Boolean; overload;
+    function  GetValue(const APath: UnicodeString; ADefault: Double): Double; overload;
+    procedure SetValue(const APath: UnicodeString; const AValue: UnicodeString); overload;
+    procedure SetValue(const APath: UnicodeString; AValue: Integer); overload;
+    procedure SetValue(const APath: UnicodeString; AValue: Int64); overload;
+    procedure SetValue(const APath: UnicodeString; AValue: Boolean); overload;
+    procedure SetValue(const APath: UnicodeString; AValue: Double); overload;
 
-    procedure SetDeleteValue(const APath: WideString; const AValue, DefValue: WideString); overload;
-    procedure SetDeleteValue(const APath: WideString; AValue, DefValue: Integer); overload;
-    procedure SetDeleteValue(const APath: WideString; AValue, DefValue: Int64); overload;
-    procedure SetDeleteValue(const APath: WideString; AValue, DefValue: Boolean); overload;
+    procedure SetDeleteValue(const APath: UnicodeString; const AValue, DefValue: UnicodeString); overload;
+    procedure SetDeleteValue(const APath: UnicodeString; AValue, DefValue: Integer); overload;
+    procedure SetDeleteValue(const APath: UnicodeString; AValue, DefValue: Int64); overload;
+    procedure SetDeleteValue(const APath: UnicodeString; AValue, DefValue: Boolean); overload;
 
-    procedure DeletePath(const APath: WideString);
-    procedure DeleteValue(const APath: WideString);
+    procedure DeletePath(const APath: UnicodeString);
+    procedure DeleteValue(const APath: UnicodeString);
     property Modified: Boolean read FModified;
   published
-    property Filename: String read FFilename write SetFilename;
+    Property Filename: String read FFilename write SetFilename;
+    Property Formatted : Boolean Read FFormatted Write FFormatted;
+    Property FormatOptions : TFormatOptions Read FFormatoptions Write FFormatOptions Default DefaultFormat;
+    Property FormatIndentsize : Integer Read FFormatIndentSize Write FFormatIndentSize Default DefaultIndentSize;
   end;
 
 
@@ -119,6 +125,8 @@ begin
   inherited Create(AOwner);
   FJSON:=TJSONObject.Create;
   FKey:=FJSON;
+  FFormatOptions:=DefaultFormat;
+  FFormatIndentsize:=DefaultIndentSize;
 end;
 
 destructor TJSONConfig.Destroy;
@@ -141,14 +149,19 @@ procedure TJSONConfig.Flush;
 
 Var
   F : Text;
-
+  S : TJSONStringType;
+  
 begin
   if Modified then
     begin
     AssignFile(F,FileName);
     Rewrite(F);
     Try
-      Writeln(F,FJSON.AsJSON);
+      if Formatted then
+        S:=FJSON.FormatJSON(Formatoptions,FormatIndentSize)
+      else
+        S:=FJSON.AsJSON;
+      Writeln(F,S);  
     Finally
       CloseFile(F);
     end;
@@ -157,19 +170,21 @@ begin
 end;
 
 
-function TJSONConfig.FindObject(Const APath: WideString; AllowCreate : Boolean) : TJSONObject;
+function TJSONConfig.FindObject(const APath: UnicodeString; AllowCreate: Boolean
+  ): TJSONObject;
 
 Var
-  Dummy : WideString;
+  Dummy : UnicodeString;
 
 begin
   Result:=FindObject(APath,AllowCreate,Dummy);
 end;
 
-function TJSONConfig.FindObject(Const APath: WideString; AllowCreate : Boolean;Var ElName : WideString) : TJSONObject;
+function TJSONConfig.FindObject(const APath: UnicodeString; AllowCreate: Boolean;
+  var ElName: UnicodeString): TJSONObject;
 
 Var
-  S,El : WideString;
+  S,El : UnicodeString;
   P,I : Integer;
   T : TJSonObject;
   
@@ -232,17 +247,20 @@ begin
   ElName:=S;
 end;
 
-function TJSONConfig.FindElement(Const APath: WideString; CreateParent : Boolean) : TJSONData;
+function TJSONConfig.FindElement(const APath: UnicodeString; CreateParent: Boolean
+  ): TJSONData;
 
 Var
   O : TJSONObject;
-  ElName : WideString;
+  ElName : UnicodeString;
   
 begin
   Result:=FindElement(APath,CreateParent,O,ElName);
 end;
 
-function TJSONConfig.FindElement(Const APath: WideString; CreateParent : Boolean; Var AParent : TJSONObject; Var ElName : WideString) : TJSONData;
+function TJSONConfig.FindElement(const APath: UnicodeString;
+  CreateParent: Boolean; var AParent: TJSONObject; var ElName: UnicodeString
+  ): TJSONData;
 
 Var
   I : Integer;
@@ -261,7 +279,7 @@ begin
 end;
 
 
-function TJSONConfig.GetValue(const APath: WideString; const ADefault: WideString): WideString;
+function TJSONConfig.GetValue(const APath: UnicodeString; const ADefault: UnicodeString): UnicodeString;
 
 var
   El : TJSONData;
@@ -269,12 +287,12 @@ var
 begin
   El:=FindElement(StripSlash(APath),False);
   If Assigned(El) then
-    Result:=El.AsString
+    Result:=UTF8Decode(El.AsString)
   else
     Result:=ADefault;
 end;
 
-function TJSONConfig.GetValue(const APath: WideString; ADefault: Integer): Integer;
+function TJSONConfig.GetValue(const APath: UnicodeString; ADefault: Integer): Integer;
 var
   El : TJSONData;
   
@@ -288,7 +306,7 @@ begin
     Result:=StrToIntDef(El.AsString,ADefault);
 end;
 
-function TJSONConfig.GetValue(const APath: WideString; ADefault: Int64): Int64;
+function TJSONConfig.GetValue(const APath: UnicodeString; ADefault: Int64): Int64;
 var
   El : TJSONData;
 
@@ -302,7 +320,7 @@ begin
     Result:=StrToInt64Def(El.AsString,ADefault);
 end;
 
-function TJSONConfig.GetValue(const APath: WideString; ADefault: Boolean): Boolean;
+function TJSONConfig.GetValue(const APath: UnicodeString; ADefault: Boolean): Boolean;
 
 var
   El : TJSONData;
@@ -317,7 +335,7 @@ begin
     Result:=StrToBoolDef(El.AsString,ADefault);
 end;
 
-function TJSONConfig.GetValue(const APath: WideString; ADefault: Double): Double;
+function TJSONConfig.GetValue(const APath: UnicodeString; ADefault: Double): Double;
 
 var
   El : TJSONData;
@@ -333,11 +351,11 @@ begin
 end;
 
 
-procedure TJSONConfig.SetValue(const APath: WideString; const AValue: WideString);
+procedure TJSONConfig.SetValue(const APath: UnicodeString; const AValue: UnicodeString);
 
 var
   El : TJSONData;
-  ElName : WideString;
+  ElName : UnicodeString;
   O : TJSONObject;
   I : integer;
   
@@ -351,15 +369,15 @@ begin
     end;
   If Not Assigned(el) then
     begin
-    El:=TJSONString.Create(AValue);
+    El:=TJSONString.Create(UTF8encode(AValue));
     O.Add(ElName,El);
     end
   else
-    El.AsString:=AVAlue;
+    El.AsString:=UTF8Encode(AValue);
   FModified:=True;
 end;
 
-procedure TJSONConfig.SetDeleteValue(const APath: WideString; const AValue, DefValue: WideString);
+procedure TJSONConfig.SetDeleteValue(const APath: UnicodeString; const AValue, DefValue: UnicodeString);
 begin
   if AValue = DefValue then
     DeleteValue(APath)
@@ -367,11 +385,11 @@ begin
     SetValue(APath, AValue);
 end;
 
-procedure TJSONConfig.SetValue(const APath: WideString; AValue: Integer);
+procedure TJSONConfig.SetValue(const APath: UnicodeString; AValue: Integer);
 
 var
   El : TJSONData;
-  ElName : WideString;
+  ElName : UnicodeString;
   O : TJSONObject;
   I : integer;
 
@@ -394,11 +412,11 @@ begin
   FModified:=True;
 end;
 
-procedure TJSONConfig.SetValue(const APath: WideString; AValue: Int64);
+procedure TJSONConfig.SetValue(const APath: UnicodeString; AValue: Int64);
 
 var
   El : TJSONData;
-  ElName : WideString;
+  ElName : UnicodeString;
   O : TJSONObject;
   I : integer;
 
@@ -421,7 +439,7 @@ begin
   FModified:=True;
 end;
 
-procedure TJSONConfig.SetDeleteValue(const APath: WideString; AValue,
+procedure TJSONConfig.SetDeleteValue(const APath: UnicodeString; AValue,
   DefValue: Integer);
 begin
   if AValue = DefValue then
@@ -430,7 +448,7 @@ begin
     SetValue(APath, AValue);
 end;
 
-procedure TJSONConfig.SetDeleteValue(const APath: WideString; AValue,
+procedure TJSONConfig.SetDeleteValue(const APath: UnicodeString; AValue,
   DefValue: Int64);
 begin
   if AValue = DefValue then
@@ -439,11 +457,11 @@ begin
     SetValue(APath, AValue);
 end;
 
-procedure TJSONConfig.SetValue(const APath: WideString; AValue: Boolean);
+procedure TJSONConfig.SetValue(const APath: UnicodeString; AValue: Boolean);
 
 var
   El : TJSONData;
-  ElName : WideString;
+  ElName : UnicodeString;
   O : TJSONObject;
   I : integer;
 
@@ -465,11 +483,11 @@ begin
   FModified:=True;
 end;
 
-procedure TJSONConfig.SetValue(const APath: WideString; AValue: Double);
+procedure TJSONConfig.SetValue(const APath: UnicodeString; AValue: Double);
 
 var
   El : TJSONData;
-  ElName : WideString;
+  ElName : UnicodeString;
   O : TJSONObject;
   I : integer;
 
@@ -491,7 +509,7 @@ begin
   FModified:=True;
 end;
 
-procedure TJSONConfig.SetDeleteValue(const APath: WideString; AValue,
+procedure TJSONConfig.SetDeleteValue(const APath: UnicodeString; AValue,
   DefValue: Boolean);
 begin
   if AValue = DefValue then
@@ -500,13 +518,13 @@ begin
     SetValue(APath,AValue);
 end;
 
-procedure TJSONConfig.DeletePath(const APath: WideString);
+procedure TJSONConfig.DeletePath(const APath: UnicodeString);
 
 Var
   P : String;
   L : integer;
   Node : TJSONObject;
-  ElName : WideString;
+  ElName : UnicodeString;
   
 begin
   P:=StripSlash(APath);
@@ -523,13 +541,13 @@ begin
     end;
 end;
 
-procedure TJSONConfig.DeleteValue(const APath: WideString);
+procedure TJSONConfig.DeleteValue(const APath: UnicodeString);
 
 begin
   DeletePath(APath);
 end;
 
-Procedure TJSONConfig.Reload;
+procedure TJSONConfig.Reload;
 
 begin
   if Length(Filename) > 0 then
@@ -541,11 +559,11 @@ begin
   Reload;
 end;
 
-function TJSONConfig.FindPath(const APath: WideString; AllowCreate: Boolean
+function TJSONConfig.FindPath(const APath: UnicodeString; AllowCreate: Boolean
   ): TJSONObject;
   
 Var
-  P : WideString;
+  P : UnicodeString;
   L : Integer;
   
 begin
@@ -578,7 +596,7 @@ begin
     begin
     F:=TFileStream.Create(AFileName,fmopenRead);
     try
-      P:=TJSONParser.Create(F);
+      P:=TJSONParser.Create(F,[joUTF8,joComments]);
       try
         J:=P.Parse;
         If (J is TJSONObject) then
@@ -603,7 +621,7 @@ begin
   DoSetFilename(AFilename, False);
 end;
 
-function TJSONConfig.StripSlash(P: WideString): WideString;
+function TJSONConfig.StripSlash(Const P: UnicodeString): UnicodeString;
 
 Var
   L : Integer;
@@ -622,10 +640,10 @@ begin
   ResetKey;
 end;
 
-procedure TJSONConfig.OpenKey(const aPath: WideString; AllowCreate: Boolean);
+procedure TJSONConfig.OpenKey(const aPath: UnicodeString; AllowCreate: Boolean);
 
 Var
-  ElName : WideString;
+  ElName : UnicodeString;
   P : String;
   L : Integer;
 begin
@@ -648,7 +666,7 @@ begin
   FKey:=FJSON;
 end;
 
-procedure TJSONConfig.EnumSubKeys(const APath: String; List: TStrings);
+procedure TJSONConfig.EnumSubKeys(const APath: UnicodeString; List: TStrings);
 
 Var
   AKey : TJSONObject;
@@ -664,7 +682,7 @@ begin
     end;
 end;
 
-procedure TJSONConfig.EnumValues(const APath: String; List: TStrings);
+procedure TJSONConfig.EnumValues(const APath: UnicodeString; List: TStrings);
 
 Var
   AKey : TJSONObject;

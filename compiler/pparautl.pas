@@ -184,7 +184,7 @@ implementation
             { generate the first hidden parameter, which is a so-called "block
               literal" describing the block and containing its invocation
               procedure  }
-            hdef:=getpointerdef(get_block_literal_type_for_proc(pd));
+            hdef:=cpointerdef.getreusable(get_block_literal_type_for_proc(pd));
             { mark as vo_is_parentfp so that proc2procvar comparisons will
               succeed when assigning arbitrary routines to the block }
             vs:=cparavarsym.create('$_block_literal',paranr_blockselfpara,vs_value,
@@ -225,9 +225,7 @@ implementation
                          (tobjectdef(tprocdef(pd).struct).extendeddef.typ<>objectdef)
                        )) then
                  begin
-                   { can't use classrefdef as type because inheriting
-                     will then always file because of a type mismatch }
-                   vs:=cparavarsym.create('$vmt',paranr_vmt,vs_value,voidpointertype,[vo_is_vmt,vo_is_hidden_para]);
+                   vs:=cparavarsym.create('$vmt',paranr_vmt,vs_value,cclassrefdef.create(tprocdef(pd).struct),[vo_is_vmt,vo_is_hidden_para]);
                    pd.parast.insert(vs);
                  end;
 
@@ -235,6 +233,8 @@ implementation
                   type or equal to an instance of it }
                 if is_objectpascal_helper(tprocdef(pd).struct) then
                   selfdef:=tobjectdef(tprocdef(pd).struct).extendeddef
+                else if is_objccategory(tprocdef(pd).struct) then
+                  selfdef:=tobjectdef(tprocdef(pd).struct).childof
                 else
                   selfdef:=tprocdef(pd).struct;
                 { Generate self variable, for classes we need

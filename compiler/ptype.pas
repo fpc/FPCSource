@@ -1663,7 +1663,7 @@ implementation
                     else
                       Message(parser_e_no_generics_as_types);
                   end;
-                { don't use getpointerdef() here, since this is a type
+                { don't use cpointerdef.getreusable() here, since this is a type
                   declaration (-> must create new typedef) }
                 def:=cpointerdef.create(tt2);
                 if tt2.typ=forwarddef then

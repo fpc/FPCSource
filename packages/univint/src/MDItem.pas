@@ -1,10 +1,6 @@
 {      MDItem.h
         Copyright (c) 2003-2010, Apple Inc. All rights reserved.
 }
-
- { Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
- { Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
-
 {
     Modified for use with Free Pascal
     Version 308
@@ -641,7 +637,7 @@ var kMDItemAttributeChangeDate: CFStringRef; external name '_kMDItemAttributeCha
 var kMDItemContentType: CFStringRef; external name '_kMDItemContentType'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)               // CFString
 var kMDItemContentTypeTree: CFStringRef; external name '_kMDItemContentTypeTree'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)   // Array of CFStringRef
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)   // CFArray of CFStringRef
 var kMDItemKeywords: CFStringRef; external name '_kMDItemKeywords'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)                  // CFArray of CFString
 var kMDItemTitle: CFStringRef; external name '_kMDItemTitle'; (* attribute const *)
@@ -719,11 +715,11 @@ var kMDItemEXIFVersion: CFStringRef; external name '_kMDItemEXIFVersion'; (* att
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)               // CFString
 
 var kMDItemCameraOwner: CFStringRef; external name '_kMDItemCameraOwner'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)       // CFString
 var kMDItemFocalLength35mm: CFStringRef; external name '_kMDItemFocalLength35mm'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)   // CFNumber
 var kMDItemLensModel: CFStringRef; external name '_kMDItemLensModel'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)         // CFString
 
 var kMDItemEXIFGPSVersion: CFStringRef; external name '_kMDItemEXIFGPSVersion'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)    // CFString
@@ -745,29 +741,29 @@ var kMDItemNamedLocation: CFStringRef; external name '_kMDItemNamedLocation'; (*
 (* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *) // CFString
 
 var kMDItemGPSStatus: CFStringRef; external name '_kMDItemGPSStatus'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)             // CFString
 var kMDItemGPSMeasureMode: CFStringRef; external name '_kMDItemGPSMeasureMode'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)        // CFString
 var kMDItemGPSDOP: CFStringRef; external name '_kMDItemGPSDOP'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)                // CFNumber
 var kMDItemGPSMapDatum: CFStringRef; external name '_kMDItemGPSMapDatum'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)           // CFString
 var kMDItemGPSDestLatitude: CFStringRef; external name '_kMDItemGPSDestLatitude'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)       // CFNumber
 var kMDItemGPSDestLongitude: CFStringRef; external name '_kMDItemGPSDestLongitude'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)      // CFNumber
 var kMDItemGPSDestBearing: CFStringRef; external name '_kMDItemGPSDestBearing'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)        // CFNumber
 var kMDItemGPSDestDistance: CFStringRef; external name '_kMDItemGPSDestDistance'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)       // CFNumber
 var kMDItemGPSProcessingMethod: CFStringRef; external name '_kMDItemGPSProcessingMethod'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)   // CFString
 var kMDItemGPSAreaInformation: CFStringRef; external name '_kMDItemGPSAreaInformation'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)    // CFString
 var kMDItemGPSDateStamp: CFStringRef; external name '_kMDItemGPSDateStamp'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)          // CFDate
 var kMDItemGPSDifferental: CFStringRef; external name '_kMDItemGPSDifferental'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)        // CFNumber
 
 var kMDItemCodecs: CFStringRef; external name '_kMDItemCodecs'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)                    // CFArray of CFString
@@ -787,7 +783,7 @@ var kMDItemDeliveryType: CFStringRef; external name '_kMDItemDeliveryType'; (* a
 var kMDItemAlbum: CFStringRef; external name '_kMDItemAlbum'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)                     // CFString
 var kMDItemHasAlphaChannel: CFStringRef; external name '_kMDItemHasAlphaChannel'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)		  // CFBoolean
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)		   // CFBoolean
 var kMDItemRedEyeOnOff: CFStringRef; external name '_kMDItemRedEyeOnOff'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)               // CFBoolean
 var kMDItemMeteringMode: CFStringRef; external name '_kMDItemMeteringMode'; (* attribute const *)

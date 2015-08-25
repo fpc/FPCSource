@@ -4,6 +4,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -220,6 +221,18 @@ type
 	CGSize = record
 		width: CGFloat;
 		height: CGFloat;
+	end;
+
+{ Vectors. }
+
+const
+	CGVECTOR_DEFINED = 1;
+
+type
+  CGVectorPtr = ^CGVector;
+	CGVector = record
+		dx: CGFloat;
+		dy: CGFloat;
 	end;
 
 { Rectangles. }
@@ -444,6 +457,9 @@ function CGSizeMake(width: CGFloat; height: CGFloat): CGSize; inline;
 {
   CGSize size; size.width = width; size.height = height; return size;
 }
+// CG_INLINE CGVector
+function CGVectorMake(dx: CGFloat; dy: CGFloat): CGVector; inline;
+
 
 // CG_INLINE CGRect
 // seems not useful to inline to me, is fairly big (unless you can reschedule
@@ -483,6 +499,13 @@ function CGSizeMake(width: CGFloat; height: CGFloat): CGSize; inline;
 begin
   CGSizeMake.width := width;
   CGSizeMake.height := height;
+end;
+
+
+function CGVectorMake(dx: CGFloat; dy: CGFloat): CGVector; inline;
+begin
+  CGVectorMake.dx := dx;
+  CGVectorMake.dy := dy;
 end;
 
 

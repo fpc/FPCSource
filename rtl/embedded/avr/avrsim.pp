@@ -19,7 +19,7 @@ unit avrsim;
   implementation
 
     uses
-      consoleio;
+      consoleio,heapmgr;
 
     procedure PASCALMAIN; external name 'PASCALMAIN';
 

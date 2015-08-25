@@ -21,9 +21,11 @@ const
    RESULT_S16BIT = -12;
    RESULT_S32BIT = -120;
    RESULT_S64BIT = -12000;
+{$ifndef FPUNONE}
    RESULT_FLOAT  = 14.54;
    RESULT_DOUBLE = 15.54;
    RESULT_LONGDOUBLE = 16.54;
+{$endif FPU_NONE}
    RESULT_PCHAR  = 'Hello world';
 
 type
@@ -58,9 +60,11 @@ end;
   smallint_array = array [0..1] of smallint;
   longint_array = array [0..1] of longint;
   int64_array = array [0..1] of int64;
+{$ifndef FPUNONE}
   single_array = array [0..1] of single;
   double_array = array [0..1] of double;
   clongdouble_array = array [0..1] of clongdouble;
+{$endif FPUNONE}
 
 var
   global_u8bit : byte; cvar;
@@ -70,9 +74,11 @@ var
   global_s16bit : smallint; cvar;
   global_s32bit : longint; cvar;
   global_s64bit : int64; cvar;
+{$ifndef FPUNONE}
   global_float : single; cvar;
   global_double : double; cvar;
   global_long_double : clongdouble; cvar;
+{$endif FPUNONE}
 
 { simple parameter passing }
 procedure test_param_u8(x: byte); cdecl; public;
@@ -82,9 +88,11 @@ procedure test_param_u64(x: qword); cdecl; public;
 procedure test_param_s16(x : smallint); cdecl; public;
 procedure test_param_s32(x: longint); cdecl; public;
 procedure test_param_s64(x: int64); cdecl; public;
+{$ifndef FPUNONE}
 procedure test_param_float(x : single); cdecl; public;
 procedure test_param_double(x: double); cdecl; public;
 procedure test_param_longdouble(x: clongdouble); cdecl; public;
+{$endif FPUNONE}
 procedure test_param_var_u8(var x: byte); cdecl; public;
 
 { array parameter passing }
@@ -95,17 +103,21 @@ procedure test_array_param_u64(x: qword_array); cdecl; public;
 procedure test_array_param_s16(x :smallint_array); cdecl; public;
 procedure test_array_param_s32(x: longint_array); cdecl; public;
 procedure test_array_param_s64(x: int64_array); cdecl; public;
+{$ifndef FPUNONE}
 procedure test_array_param_float(x : single_array); cdecl; public;
 procedure test_array_param_double(x: double_array); cdecl; public;
 procedure test_array_param_longdouble(x: clongdouble_array); cdecl; public;
+{$endif FPUNONE}
 
 { mixed parameter passing }
 procedure test_param_mixed_u16(z: byte; x : word; y :byte); cdecl; public;
 procedure test_param_mixed_u32(z: byte; x: cardinal; y: byte); cdecl; public;
 procedure test_param_mixed_s64(z: byte; x: int64; y: byte); cdecl; public;
+{$ifndef FPUNONE}
 procedure test_param_mixed_float(x: single; y: byte); cdecl; public;
 procedure test_param_mixed_double(x: double; y: byte); cdecl; public;
 procedure test_param_mixed_long_double(x: clongdouble; y: byte); cdecl; public;
+{$endif FPUNONE}
 procedure test_param_mixed_var_u8(var x: byte;y:byte); cdecl; public;
 { structure parameter testing }
 procedure test_param_struct_tiny(buffer :   _1BYTE_); cdecl; public;
@@ -128,9 +140,11 @@ function test_function_s16: smallint; cdecl; public;
 function test_function_s32: longint; cdecl; public;
 function test_function_s64: int64; cdecl; public;
 function test_function_pchar: pchar; cdecl; public;
+{$ifndef FPUNONE}
 function test_function_float : single; cdecl; public;
 function test_function_double : double; cdecl; public;
 function test_function_longdouble: clongdouble; cdecl; public;
+{$endif FPUNONE}
 function test_function_tiny_struct : _1byte_; cdecl; public;
 function test_function_small_struct : _3byte_; cdecl; public;
 function test_function_small_struct_s : _3byte_s; cdecl; public;
@@ -176,6 +190,7 @@ procedure test_param_s64(x: int64); cdecl; public;
     global_s64bit:=x;
   end;
 
+{$ifndef FPUNONE}
 procedure test_param_float(x : single); cdecl; public;
   begin
     global_float:=x;
@@ -190,6 +205,7 @@ procedure test_param_longdouble(x: clongdouble); cdecl; public;
   begin
     global_long_double:=x;
   end;
+{$endif FPUNONE}
 
 procedure test_param_var_u8(var x: byte); cdecl; public;
   begin
@@ -233,6 +249,7 @@ procedure test_array_param_s64(x: int64_array); cdecl; public;
    global_s64bit:=x[1];
   end;
 
+{$ifndef FPUNONE}
 procedure test_array_param_float(x : single_array); cdecl; public;
   begin
    global_float:=x[1];
@@ -247,7 +264,7 @@ procedure test_array_param_longdouble(x: clongdouble_array); cdecl; public;
   begin
    global_long_double:=x[1];
   end;
-
+{$endif FPUNONE}
 
 { mixed parameter passing }
 procedure test_param_mixed_u16(z: byte; x : word; y :byte); cdecl; public;
@@ -268,6 +285,7 @@ procedure test_param_mixed_s64(z: byte; x: int64; y: byte); cdecl; public;
     global_u8bit:=y;
   end;
 
+{$ifndef FPUNONE}
 procedure test_param_mixed_float(x: single; y: byte); cdecl; public;
   begin
     global_float:=x;
@@ -285,6 +303,7 @@ procedure test_param_mixed_long_double(x: clongdouble; y: byte); cdecl; public;
     global_long_double:=x;
     global_u8bit:=y;
   end;
+{$endif FPUNONE}
 
 procedure test_param_mixed_var_u8(var x: byte;y:byte); cdecl; public;
   begin
@@ -395,6 +414,7 @@ function test_function_pchar: pchar; cdecl; public;
     test_function_pchar:=RESULT_PCHAR;
   end;
 
+{$ifndef FPUNONE}
 function test_function_float : single; cdecl; public;
   begin
     test_function_float:=RESULT_FLOAT;
@@ -409,6 +429,7 @@ function test_function_longdouble: clongdouble; cdecl; public;
   begin
     test_function_longdouble:=RESULT_LONGDOUBLE;
   end;
+{$endif FPUNONE}
 
 function test_function_tiny_struct : _1byte_; cdecl; public;
   begin

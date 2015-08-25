@@ -411,6 +411,7 @@ implementation
             tl^.def:=def;
 
 {$push}
+{$r-}
 {$warn 6018 off}
 {$warn 4044 off}
             { Extend the temp }

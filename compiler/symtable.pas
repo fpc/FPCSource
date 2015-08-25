@@ -154,7 +154,7 @@ interface
          equivst: tabstractrecordsymtable;
          curroffset: aint;
          recordalignmin: shortint;
-         function get(index: longint): tllvmshadowsymtableentry;
+         function get(f: tfieldvarsym): tllvmshadowsymtableentry;
         public
          symdeflist: TFPObjectList;
 
@@ -169,7 +169,7 @@ interface
          procedure addalignmentpadding(finalsize: aint);
          procedure buildmapping(variantstarts: tfplist);
          procedure buildtable(variantstarts: tfplist);
-         property items[index: longint]: tllvmshadowsymtableentry read get; default;
+         property items[index: tfieldvarsym]: tllvmshadowsymtableentry read get; default;
        end;
 {$endif llvm}
 
@@ -318,6 +318,7 @@ interface
     function  searchsym_in_helper(classh,contextclassh:tobjectdef;const s: TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
     function  try_search_system_type(const s: TIDString): ttypesym;
+    function  try_search_current_module_type(const s: TIDString): ttypesym;
     function  search_system_proc(const s: TIDString): tprocdef;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
@@ -1282,6 +1283,7 @@ implementation
           begin
             sym:=tsym(symlist[i]);
             if (sym.typ=fieldvarsym) and
+               not(sp_static in sym.symoptions) and
                (tfieldvarsym(sym).fieldoffset>=offset) then
               begin
                 result:=tfieldvarsym(sym);
@@ -1362,7 +1364,8 @@ implementation
           { record has one field? }
           for i:=0 to currentsymlist.Count-1 do
             begin
-              if tsym(symlist[i]).typ=fieldvarsym then
+              if (tsym(symlist[i]).typ=fieldvarsym) and
+                 not(sp_static in tsym(symlist[i]).symoptions) then
                 begin
                   if result then
                     begin
@@ -1684,9 +1687,9 @@ implementation
                               TLlvmShadowSymtable
 ****************************************************************************}
 
-   function tllvmshadowsymtable.get(index: longint): tllvmshadowsymtableentry;
+   function tllvmshadowsymtable.get(f: tfieldvarsym): tllvmshadowsymtableentry;
       begin
-        result:=tllvmshadowsymtableentry(symdeflist[index])
+        result:=tllvmshadowsymtableentry(symdeflist[f.llvmfieldnr])
       end;
 
 
@@ -2189,6 +2192,14 @@ implementation
                 HideSym(hsym);
                 if sym.typ=symconst.namespacesym then
                   tnamespacesym(sym).unitsym:=tsym(hsym);
+              end
+            { iso mode program parameters: staticvarsyms might have the same name as a program parameters,
+              in this case, copy the isoindex and make the original symbol invisible }
+            else if (m_iso in current_settings.modeswitches) and (hsym.typ=programparasym) and (sym.typ=staticvarsym)
+              and (tstaticvarsym(hsym).isoindex<>0) then
+              begin
+                HideSym(hsym);
+                tstaticvarsym(sym).isoindex:=tprogramparasym(hsym).isoindex;
               end
             else
               DuplicateSym(hashedid,sym,hsym,false);
@@ -3586,6 +3597,27 @@ implementation
               message1(cg_f_unknown_system_type,s);
             result:=ttypesym(sym);
           end;
+      end;
+
+
+    function try_search_current_module_type(const s: TIDString): ttypesym;
+      var
+        found: boolean;
+        srsymtable: tsymtable;
+        srsym: tsym;
+      begin
+        if s[1]='$' then
+          found:=searchsym_in_module(current_module,copy(s,2,length(s)),srsym,srsymtable)
+        else
+          found:=searchsym_in_module(current_module,s,srsym,srsymtable);
+        if found then
+          begin
+            if (srsym.typ<>typesym) then
+              internalerror(2014091207);
+            result:=ttypesym(srsym);
+          end
+        else
+          result:=nil;
       end;
 
 

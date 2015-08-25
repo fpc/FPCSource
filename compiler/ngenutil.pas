@@ -97,6 +97,11 @@ interface
 
       class procedure InsertMemorySizes; virtual;
 
+      { called right before an object is assembled, can be used to insert
+        global information into the assembler list (used by LLVM to insert type
+        info) }
+      class procedure InsertObjectInfo; virtual;
+
      strict protected
       class procedure add_main_procdef_paras(pd: tdef); virtual;
     end;
@@ -996,6 +1001,12 @@ implementation
       new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_valgrind',const_align(sizeof(pint)));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__fpc_valgrind',AT_DATA,sizeof(boolean)));
       current_asmdata.asmlists[al_globals].concat(Tai_const.create_8bit(byte(cs_gdb_valgrind in current_settings.globalswitches)));
+    end;
+
+
+  class procedure tnodeutils.InsertObjectInfo;
+    begin
+      { don't do anything by default }
     end;
 
 

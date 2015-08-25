@@ -185,7 +185,7 @@ unit cpupara;
                cl.typ:=X86_64_INTEGER_CLASS;
                if not assigned(cl.def) or
                   (cl.def.size<size) or
-                  (not(cl.def.typ in [orddef,floatdef,pointerdef]) and
+                  (not(cl.def.typ in [orddef,floatdef,pointerdef,classrefdef]) and
                    not is_implicit_pointer_object_type(cl.def) and
                    not is_dynamicstring(cl.def) and
                    not is_dynamic_array(cl.def)) then
@@ -289,7 +289,7 @@ unit cpupara;
         else
           result:=class2;
         result.typ:=X86_64_SSE_CLASS;
-        result.def:=getarraydef(s32floattype,2)
+        result.def:=carraydef.getreusable(s32floattype,2)
       end;
 
 
@@ -402,7 +402,7 @@ unit cpupara;
                (classes[i-1].typ<>X86_64_SSEUP_CLASS) then
               begin
                 classes[i].typ:=X86_64_SSE_CLASS;
-                classes[i].def:=getarraydef(s32floattype,2);
+                classes[i].def:=carraydef.getreusable(s32floattype,2);
               end;
 
             (*  If X86_64_X87UP_CLASS isn't preceded by X86_64_X87_CLASS,
@@ -444,7 +444,7 @@ unit cpupara;
               X86_64_SSESF_CLASS:
                 begin
                   classes[0].typ:=X86_64_SSE_CLASS;
-                  classes[0].def:=getarraydef(s32floattype,2);
+                  classes[0].def:=carraydef.getreusable(s32floattype,2);
                 end;
             end;
           { 2) the second part is 32 bit, but the total size is > 12 bytes }
@@ -458,7 +458,7 @@ unit cpupara;
               X86_64_SSESF_CLASS:
                 begin
                   classes[1].typ:=X86_64_SSE_CLASS;
-                  classes[1].def:=getarraydef(s32floattype,2);
+                  classes[1].def:=carraydef.getreusable(s32floattype,2);
                 end;
             end;
 
@@ -614,7 +614,7 @@ unit cpupara;
                         { if we have e.g. a record with two successive "single"
                           fields, we need a 64 bit rather than a 32 bit load }
                         classes[0].typ:=X86_64_SSE_CLASS;
-                        classes[0].def:=getarraydef(s32floattype,2);
+                        classes[0].def:=carraydef.getreusable(s32floattype,2);
                       end;
                     result:=1;
                   end;
@@ -640,9 +640,9 @@ unit cpupara;
                 s128real:
                   begin
                     classes[0].typ:=X86_64_SSE_CLASS;
-                    classes[0].def:=getarraydef(s32floattype,2);
+                    classes[0].def:=carraydef.getreusable(s32floattype,2);
                     classes[1].typ:=X86_64_SSEUP_CLASS;
-                    classes[1].def:=getarraydef(s32floattype,2);
+                    classes[1].def:=carraydef.getreusable(s32floattype,2);
                     result:=2;
                   end;
                 else
@@ -1161,7 +1161,7 @@ unit cpupara;
                 loc[2].typ:=X86_64_NO_CLASS;
                 paracgsize:=OS_ADDR;
                 paralen:=sizeof(pint);
-                paradef:=getpointerdef(paradef);
+                paradef:=cpointerdef.getreusable(paradef);
                 loc[1].def:=paradef;
               end
             else

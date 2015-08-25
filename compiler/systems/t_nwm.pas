@@ -97,7 +97,7 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
-    import,export,link,i_nwm,ogbase, ogcoff, ognlm, cclasses
+    import,export,link,i_nwm,ogbase, ogcoff, ognlm, owar, cclasses
     {$ifdef netware} ,dos {$endif}
     ;
 
@@ -593,6 +593,7 @@ end;
     constructor TInternalLinkerNetware.Create;
       begin
         inherited Create;
+        CArObjectReader:=TArObjectReader;
         CExeoutput:=TNLMexeoutput;
         CObjInput:=TNLMCoffObjInput;
         nlmSpecialSymbols_Segments := TFPHashList.create;

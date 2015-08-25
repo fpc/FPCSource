@@ -242,6 +242,7 @@ implementation
             { do not use BX here to avoid switching into arm mode }
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_MOV, NR_PC, tmpreg));
 
+            current_asmdata.CurrAsmList.Concat(tai_align.Create(4));                
             cg.a_label(current_asmdata.CurrAsmList,tablelabel);
             { generate jump table }
             last:=min_;

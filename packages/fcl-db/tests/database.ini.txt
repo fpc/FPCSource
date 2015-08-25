@@ -229,3 +229,9 @@ connector=bufdataset
 connector=sdfds
 ; subdirectory for the sdf files:
 name=sdftest
+
+[sqlite3dataset]
+; TSqlite3Dataset dataset:
+connector=sqlite3ds
+; datafile
+name=testsqlite3ds.db

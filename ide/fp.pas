@@ -83,6 +83,9 @@ uses
   FPTools,
 {$ifndef NODEBUG}
   FPDebug,FPRegs,
+{$ifdef GDBMI}
+  gdbmiproc,
+{$endif GDBMI}
 {$endif}
   FPTemplt,FPRedir,FPDesk,
   FPCodTmp,FPCodCmp,
@@ -200,6 +203,16 @@ begin
                 Delete(Param,1,1); { eat optional separator }
               IniFileName:=Param;
             end;
+{$ifdef GDBMI}
+          'G' : { custom GDB exec file (GDBMI mode only) }
+           if BeforeINI then
+            begin
+              delete(param,1,1); // delete C
+              if (length(Param)>=1) and (Param[1] in['=',':']) then
+                Delete(Param,1,1); { eat optional separator }
+              GDBProgramName:=Param;
+            end;
+{$endif def GDBMI}
           'R' : { enter the directory last exited from (BP comp.) }
             begin
               Param:=copy(Param,2,255);
@@ -363,6 +376,10 @@ BEGIN
   { Startup info }
   writeln(bullet+' Free Pascal IDE Version '+VersionStr+' ['+{$i %date%}+']');
   writeln(bullet+' Compiler Version '+Full_Version_String);
+
+  { Process params before printing GDB version because of /G option }
+  ProcessParams(true);
+
 {$ifndef NODEBUG}
   writeln(bullet+' GDB Version '+GDBVersion);
  {$ifdef Windows}
@@ -378,8 +395,6 @@ BEGIN
   {$endif}
  {$endif Windows}
 {$endif NODEBUG}
-
-  ProcessParams(true);
 
 {$ifdef DEBUG}
   StartTime:=getrealtime;

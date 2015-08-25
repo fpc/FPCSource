@@ -116,13 +116,11 @@ implementation
 
          { target specific stuff }
          case target_info.system of
-           system_powerpc_amiga:
-             include(supported_calling_conventions,pocall_syscall);
-           system_powerpc_morphos:
-             include(supported_calling_conventions,pocall_syscall);
-           system_m68k_amiga:
-             include(supported_calling_conventions,pocall_syscall);
-           system_i386_aros:
+           system_powerpc_amiga,
+           system_powerpc_morphos,
+           system_m68k_amiga,
+           system_i386_aros,
+           system_x86_64_aros:
              include(supported_calling_conventions,pocall_syscall);
 {$ifdef i8086}
            system_i8086_msdos:

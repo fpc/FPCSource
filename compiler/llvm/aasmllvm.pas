@@ -35,9 +35,6 @@ interface
     type
       { taillvm }
       taillvm = class(tai_cpu_abstract_sym)
-       private
-        procedure maybe_declare(def: tdef; const ref: treference);
-       public
         llvmopcode: tllvmop;
 
         constructor create_llvm(op: tllvmop);
@@ -71,6 +68,9 @@ interface
         { e.g. dst = bitcast fromsize <abstracttaidata> to tosize }
         constructor op_reg_tai_size(op:tllvmop;dst:tregister;src:tai;tosize:tdef);
 
+        { dst = bitcast size undef to size }
+        constructor op_reg_size_undef(op: tllvmop; dst: tregister; size: tdef);
+
         { e.g. dst = bitcast fromsize src to tosize }
         constructor op_reg_size_ref_size(op:tllvmop;dst:tregister;fromsize:tdef;const src:treference;tosize:tdef);
         { e.g. store fromsize src, ptrsize toref}
@@ -102,14 +102,15 @@ interface
         constructor getelementptr_reg_tai_size_const(dst:tregister;const ai:tai;indextype:tdef;index1:ptrint;indirect:boolean);
 
         { e.g. dst = call retsize name (paras) }
-        constructor call_size_name_paras(dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
+        constructor call_size_name_paras(callpd: tdef; dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
         { e.g. dst = call retsize reg (paras) }
-        constructor call_size_reg_paras(dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
+        constructor call_size_reg_paras(callpd: tdef; dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
 
         procedure loadoper(opidx: longint; o: toper); override;
         procedure clearop(opidx: longint); override;
         procedure loadtai(opidx: longint; _ai: tai);
         procedure loaddef(opidx: longint; _def: tdef);
+        procedure loadundef(opidx: longint);
         procedure loadsingle(opidx: longint; _sval: single);
         procedure loaddouble(opidx: longint; _dval: double);
 {$ifdef cpuextended}
@@ -217,6 +218,7 @@ uses
         typ:=ait_llvmalias;
         oldsym:=_oldsym;
         newsym:=current_asmdata.DefineAsmSymbol(newname,AB_GLOBAL,AT_FUNCTION);
+        newsym.declared:=true;
         def:=_def;
         vis:=_vis;
         linkage:=_linkage;
@@ -228,23 +230,6 @@ uses
 {*****************************************************************************
                                  taicpu Constructors
 *****************************************************************************}
-
-    procedure taillvm.maybe_declare(def: tdef; const ref: treference);
-      begin
-        { add llvm declarations for imported symbols }
-        if not assigned(ref.symbol) or
-           (ref.symbol.declared) or
-           not(ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
-          exit;
-        if ref.refaddr<>addr_full then
-          begin
-            if def.typ<>pointerdef then
-              internalerror(2014020701);
-            def:=tpointerdef(def).pointeddef;
-          end;
-        current_asmdata.AsmLists[al_imports].concat(taillvmdecl.create(ref.symbol,def,nil,sec_none,def.alignment));
-      end;
-
 
     constructor taillvm.create_llvm(op: tllvmop);
       begin
@@ -316,6 +301,14 @@ uses
            def:=_def;
            typ:=top_def;
          end;
+      end;
+
+
+    procedure taillvm.loadundef(opidx: longint);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          typ:=top_undef
       end;
 
 
@@ -702,12 +695,22 @@ uses
       end;
 
 
+    constructor taillvm.op_reg_size_undef(op: tllvmop; dst: tregister; size: tdef);
+      begin
+        create_llvm(op);
+        ops:=4;
+        loadreg(0,dst);
+        loaddef(1,size);
+        loadundef(2);
+        loaddef(3,size);
+      end;
+
+
     constructor taillvm.op_reg_size_ref_size(op: tllvmop; dst: tregister; fromsize: tdef; const src: treference; tosize: tdef);
       begin
         create_llvm(op);
         ops:=4;
         loadreg(0,dst);
-        maybe_declare(fromsize,src);
         loaddef(1,fromsize);
         loadref(2,src);
         loaddef(3,tosize);
@@ -721,7 +724,6 @@ uses
         ops:=4;
         loaddef(0,fromsize);
         loadreg(1,src);
-        maybe_declare(ptrsize,toref);
         loaddef(2,ptrsize);
         loadref(3,toref);
       end;
@@ -731,10 +733,8 @@ uses
       begin
         create_llvm(op);
         ops:=4;
-        maybe_declare(fromsize,src);
         loaddef(0,fromsize);
         loadref(1,src);
-        maybe_declare(ptrsize,toref);
         loaddef(2,ptrsize);
         loadref(3,toref);
       end;
@@ -746,7 +746,6 @@ uses
         ops:=4;
         loaddef(0,fromsize);
         loadconst(1,src);
-        maybe_declare(ptrsize,toref);
         loaddef(2,ptrsize);
         loadref(3,toref);
       end;
@@ -757,7 +756,6 @@ uses
         create_llvm(op);
         ops:=3;
         loadreg(0,dst);
-        maybe_declare(fromsize,fromref);
         loaddef(1,fromsize);
         loadref(2,fromref);
       end;
@@ -835,7 +833,6 @@ uses
         else
           ops:=5;
         loadreg(0,dst);
-        maybe_declare(ptrsize,ref);
         loaddef(1,ptrsize);
         loadref(2,ref);
         if indirect then
@@ -861,7 +858,6 @@ uses
         else
           ops:=5;
         loadreg(0,dst);
-        maybe_declare(ptrsize,ref);
         loaddef(1,ptrsize);
         loadref(2,ref);
         if indirect then
@@ -901,25 +897,32 @@ uses
       end;
 
 
-    constructor taillvm.call_size_name_paras(dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
+    constructor taillvm.call_size_name_paras(callpd: tdef; dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
       begin
         create_llvm(la_call);
-        ops:=4;
-        loadreg(0,dst);
-        loaddef(1,retsize);
-        loadsymbol(2,name,0);
-        loadparas(3,paras);
+        ops:=5;
+        { we need this in case the call symbol is an alias for a symbol with a
+          different def in the same module (via "external"), because then we
+          have to insert a type conversion later from the alias def to the
+          call def here; we can't always do that at the point the call itself
+          is generated, because the alias declaration may occur anywhere }
+        loaddef(0,callpd);
+        loadreg(1,dst);
+        loaddef(2,retsize);
+        loadsymbol(3,name,0);
+        loadparas(4,paras);
       end;
 
 
-    constructor taillvm.call_size_reg_paras(dst: tregister; retsize: tdef; reg: tregister; paras: tfplist);
+    constructor taillvm.call_size_reg_paras(callpd: tdef; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist);
       begin
         create_llvm(la_call);
-        ops:=4;
-        loadreg(0,dst);
-        loaddef(1,retsize);
-        loadreg(2,reg);
-        loadparas(3,paras);
+        ops:=5;
+        loaddef(0,callpd);
+        loadreg(1,dst);
+        loaddef(2,retsize);
+        loadreg(3,reg);
+        loadparas(4,paras);
       end;
 
 end.

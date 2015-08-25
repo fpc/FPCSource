@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
+{$modeswitch result}
 Unit heapmgr;
 
   interface
@@ -275,4 +275,3 @@ initialization
 finalization
   //FinalizeHeap;
 end.
-

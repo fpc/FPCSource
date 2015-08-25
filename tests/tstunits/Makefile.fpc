@@ -77,8 +77,10 @@ FPCUNITDIR=../../packages/fcl-fpcunit/src
 
 fpcunit-stamp.$(FULL_TARGET):
 ifneq ($(OS_TARGET),msdos)
+ifneq ($(CPU_TARGET),avr)
  	$(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) $(FPCUNITDIR)/testutils
         $(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) $(FPCUNITDIR)/fpcunit
+endif
 endif
         $(ECHO) Compiled > fpcunit-stamp.$(FULL_TARGET)
 

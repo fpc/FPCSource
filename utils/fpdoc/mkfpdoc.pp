@@ -210,6 +210,7 @@ begin
     Engine.HideProtected:=Options.HideProtected;
     Engine.HidePrivate:=Not Options.ShowPrivate;
     Engine.OnParseUnit:=@HandleOnParseUnit;
+    Engine.WarnNoNode:=Options.WarnNoNode;
     if Length(Options.Language) > 0 then
       TranslateDocStrings(Options.Language);
     for i := 0 to APackage.Inputs.Count - 1 do

@@ -54,7 +54,11 @@ interface
         final_asmnode : tasmnode;
         final_used : boolean;
         dfabuilder : TDFABuilder;
+
         destructor  destroy;override;
+
+        function calc_stackframe_size : longint;override;
+
         procedure printproc(pass:string);
         procedure generate_code;
         procedure generate_code_tree;
@@ -678,6 +682,12 @@ implementation
        end;
 
 
+    function tcgprocinfo.calc_stackframe_size:longint;
+      begin
+        result:=Align(tg.direction*tg.lasttemp,current_settings.alignment.localalignmin);
+      end;
+
+
     procedure tcgprocinfo.printproc(pass:string);
       begin
         assign(printnodefile,treelogfilename);
@@ -1297,7 +1307,12 @@ implementation
         { there's always a call to FPC_INITIALIZEUNITS/FPC_DO_EXIT in the main program }
         if (procdef.localst.symtablelevel=main_program_level) and
            (not current_module.is_unit) then
-          include(flags,pi_do_call);
+          begin
+            include(flags,pi_do_call);
+            { the main program never returns due to the do_exit call }
+            if not(DLLsource) then
+              include(procdef.procoptions,po_noreturn);
+          end;
 
         { set implicit_finally flag when there are locals/paras to be finalized }
         procdef.parast.SymList.ForEachCall(@check_finalize_paras,nil);
@@ -1840,7 +1855,9 @@ implementation
              entrypos:=code.fileinfo;
 
              { Finish type checking pass }
-             do_typecheckpass(code);
+             { type checking makes no sense in a generic definition }
+             if not(df_generic in current_procinfo.procdef.defoptions) then
+               do_typecheckpass(code);
 
              if assigned(procdef.parentfpinitblock) then
                begin
@@ -2141,34 +2158,28 @@ implementation
                      if tf_has_dllscanner in target_info.flags then
                        current_module.dllscannerinputlist.Add(proc_get_importname(pd),pd);
                    end;
-
-                 { External declared in implementation, and there was already a
-                   forward (or interface) declaration then we need to generate
-                   a stub that calls the external routine }
+{$ifdef cpuhighleveltarget}
+                 { it's hard to factor this out in a virtual method, because the
+                   generic version (the one inside this ifdef) doesn't fit in
+                   hlcgobj but in symcreat or here, while the other version
+                   doesn't fit in symcreat (since it uses the code generator).
+                   Maybe we need another class for this kind of code that could
+                   either be symcreat- or hlcgobj-based
+                 }
                  if (not pd.forwarddef) and
-                    (pd.hasforward)
-                    { it is unclear to me what's the use of the following condition,
-                      so commented out, see also issue #18371 (FK)
-                    and
-                    not(
-                        assigned(pd.import_dll) and
-                        (target_info.system in [system_i386_wdosx,
-                                                system_arm_wince,system_i386_wince])
-                       ) } then
+                    (pd.hasforward) and
+                    (proc_get_importname(pd)<>'') then
+                   call_through_new_name(pd,proc_get_importname(pd))
+                 else
+{$endif cpuhighleveltarget}
                    begin
-                     s:=proc_get_importname(pd);
-                     if s<>'' then
-                       gen_external_stub(current_asmdata.asmlists[al_procedures],pd,s);
-                     { remove the external stuff, so that the interface crc
-                       doesn't change. This makes the function calls less
-                       efficient, but it means that the interface doesn't
-                       change if the function is ever redirected to another
-                       function or implemented in the unit. }
-                     pd.procoptions:=pd.procoptions-[po_external,po_has_importname,po_has_importdll];
-                     stringdispose(pd.import_name);
-                     stringdispose(pd.import_dll);
-                     pd.import_nr:=0;
-                   end;
+                     create_hlcodegen;
+                     hlcg.handle_external_proc(
+                       current_asmdata.asmlists[al_procedures],
+                       pd,
+                       proc_get_importname(pd));
+                     destroy_hlcodegen;
+                   end
                end;
            end;
 
@@ -2176,7 +2187,7 @@ implementation
          { treated as references to external symbols, needed for darwin.   }
 
          { make sure we don't change the binding of real external symbols }
-         if not(po_external in pd.procoptions) then
+         if ([po_external,po_weakexternal]*pd.procoptions)=[] then
            begin
              if (po_global in pd.procoptions) or
                 (cs_profile in current_settings.moduleswitches) then

@@ -57,6 +57,7 @@ type
 
   tcpupointerdef = class(tx86pointerdef)
     class function default_x86_data_pointer_type: tx86pointertyp; override;
+    function alignment:shortint;override;
     function pointer_arithmetic_int_type:tdef; override;
     function pointer_subtraction_result_type:tdef; override;
   end;
@@ -75,6 +76,7 @@ type
   tcpuobjectdefclass = class of tcpuobjectdef;
 
   tcpuclassrefdef = class(tclassrefdef)
+    function alignment:shortint;override;
   end;
   tcpuclassrefdefclass = class of tcpuclassrefdef;
 
@@ -150,6 +152,10 @@ type
   tcpuunitsym = class(tunitsym)
   end;
   tcpuunitsymclass = class of tcpuunitsym;
+
+  tcpuprogramparasym = class(tprogramparasym)
+  end;
+  tcpuprogramparasymclass = class(tprogramparasym);
 
   tcpunamespacesym = class(tnamespacesym)
   end;
@@ -252,6 +258,15 @@ implementation
   function is_hugepointer(p : tdef) : boolean;
     begin
       result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_huge);
+    end;
+
+{****************************************************************************
+                               tcpuclassrefdef
+****************************************************************************}
+
+  function tcpuclassrefdef.alignment:shortint;
+    begin
+      Result:=2;
     end;
 
 {****************************************************************************
@@ -408,6 +423,14 @@ implementation
       end;
 
 
+    function tcpupointerdef.alignment:shortint;
+      begin
+        { on i8086, we use 16-bit alignment for all pointer types, even far and
+          huge (which are 4 bytes long) }
+        result:=2;
+      end;
+
+
     function tcpupointerdef.pointer_arithmetic_int_type:tdef;
       begin
         if x86pointertyp=x86pt_huge then
@@ -474,6 +497,7 @@ begin
   { used tsym classes }
   clabelsym:=tcpulabelsym;
   cunitsym:=tcpuunitsym;
+  cprogramparasym:=tcpuprogramparasym;
   cnamespacesym:=tcpunamespacesym;
   cprocsym:=tcpuprocsym;
   ctypesym:=tcputypesym;
@@ -486,7 +510,5 @@ begin
   cconstsym:=tcpuconstsym;
   cenumsym:=tcpuenumsym;
   csyssym:=tcpusyssym;
-
-  cPtrDefHashSet:=tx86PtrDefHashSet;
 end.
 

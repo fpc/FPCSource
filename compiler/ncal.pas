@@ -52,7 +52,9 @@ interface
          cnf_objc_processed,     { the procedure name has been set to the appropriate objc_msgSend* variant -> don't process again }
          cnf_objc_id_call,       { the procedure is a member call via id -> any ObjC method of any ObjC type in scope is fair game }
          cnf_unit_specified,     { the unit in which the procedure has to be searched has been specified }
-         cnf_call_never_returns  { information for the dfa that a subroutine never returns }
+         cnf_call_never_returns, { information for the dfa that a subroutine never returns }
+         cnf_call_self_node_done { the call_self_node has been generated if necessary
+                                   (to prevent it from potentially happening again in a wrong context in case of constant propagation or so) }
        );
        tcallnodeflags = set of tcallnodeflag;
 
@@ -62,12 +64,15 @@ interface
        private
           { number of parameters passed from the source, this does not include the hidden parameters }
           paralength   : smallint;
+          function getforcedprocname: TSymStr;
           function  is_simple_para_load(p:tnode; may_be_in_reg: boolean):boolean;
           procedure maybe_load_in_temp(var p:tnode);
           function  gen_high_tree(var p:tnode;paradef:tdef):tnode;
           function  gen_procvar_context_tree_self:tnode;
           function  gen_procvar_context_tree_parentfp:tnode;
           function  gen_self_tree:tnode;
+          function  use_caller_self(check_for_callee_self: boolean): boolean;
+          procedure maybe_gen_call_self_node;
           function  gen_vmt_tree:tnode;
           function gen_block_context:tnode;
           procedure gen_hidden_parameters;
@@ -83,6 +88,8 @@ interface
           procedure register_created_object_types;
           function get_expect_loc: tcgloc;
        protected
+          function safe_call_self_node: tnode;
+          procedure gen_vmt_entry_load; virtual;
           procedure gen_syscall_para(para: tcallparanode); virtual;
           procedure objc_convert_to_message_send;virtual;
 
@@ -109,6 +116,7 @@ interface
 {$else symansistr}
           fforcedprocname: pshortstring;
 {$endif symansistr}
+          property forcedprocname: TSymStr read getforcedprocname;
        public
           { the symbol containing the definition of the procedure }
           { to call                                               }
@@ -121,6 +129,14 @@ interface
           procdefinitionderef : tderef;
           { tree that contains the pointer to the object for this method }
           methodpointer  : tnode;
+          { tree representing the VMT entry to call (if any) }
+          vmt_entry      : tnode;
+          { tree that contains the self/vmt parameter when this node was created
+            (so it's still valid when this node is processed in an inline
+             context)
+          }
+          call_self_node,
+          call_vmt_node: tnode;
           { initialize/finalization of temps }
           callinitblock,
           callcleanupblock : tblocknode;
@@ -200,7 +216,7 @@ interface
             finalization code }
           fparainit,
           fparacopyback: tnode;
-          procedure handlemanagedbyrefpara(orgparadef: tdef);virtual;abstract;
+          procedure handlemanagedbyrefpara(orgparadef: tdef);virtual;
           { on some targets, value parameters that are passed by reference must
             be copied to a temp location by the caller (and then a reference to
             this temp location must be passed) }
@@ -596,6 +612,61 @@ implementation
                              TCALLPARANODE
  ****************************************************************************}
 
+    procedure tcallparanode.handlemanagedbyrefpara(orgparadef: tdef);
+      var
+        temp: ttempcreatenode;
+        npara: tcallparanode;
+        paraaddrtype: tdef;
+      begin
+        { release memory for reference counted out parameters }
+        if (parasym.varspez=vs_out) and
+           is_managed_type(orgparadef) and
+           (not is_open_array(resultdef) or
+            is_managed_type(orgparadef)) and
+           not(target_info.system in systems_garbage_collected_managed_types) then
+          begin
+            paraaddrtype:=cpointerdef.getreusable(orgparadef);
+            { create temp with address of the parameter }
+            temp:=ctempcreatenode.create(
+              paraaddrtype,paraaddrtype.size,tt_persistent,true);
+            { put this code in the init/done statement of the call node, because
+              we should finalize all out parameters before other parameters
+              are evaluated (in case e.g. a managed out parameter is also
+              passed by value, we must not pass the pointer to the now possibly
+              freed data as the value parameter, but the finalized/nil value }
+            aktcallnode.add_init_statement(temp);
+            aktcallnode.add_init_statement(
+              cassignmentnode.create(
+                ctemprefnode.create(temp),
+                caddrnode.create(left)));
+            if not is_open_array(resultdef) or
+               not is_managed_type(tarraydef(resultdef).elementdef) then
+              { finalize the entire parameter }
+              aktcallnode.add_init_statement(
+                cnodeutils.finalize_data_node(
+                  cderefnode.create(ctemprefnode.create(temp))))
+            else
+              begin
+                { passing a (part of, in case of slice) dynamic array as an
+                  open array -> finalize the dynamic array contents, not the
+                  dynamic array itself }
+                npara:=ccallparanode.create(
+                         { array length = high + 1 }
+                         caddnode.create(addn,third.getcopy,genintconstnode(1)),
+                       ccallparanode.create(caddrnode.create_internal
+                          (crttinode.create(tstoreddef(tarraydef(resultdef).elementdef),initrtti,rdt_normal)),
+                       ccallparanode.create(caddrnode.create_internal(
+                          cderefnode.create(ctemprefnode.create(temp))),nil)));
+                aktcallnode.add_init_statement(
+                  ccallnode.createintern('fpc_finalize_array',npara));
+              end;
+            left:=cderefnode.create(ctemprefnode.create(temp));
+            firstpass(left);
+            aktcallnode.add_done_statement(ctempdeletenode.create(temp));
+          end;
+      end;
+
+
     procedure tcallparanode.copy_value_by_ref_para;
       var
         initstat,
@@ -767,7 +838,7 @@ implementation
                 { don't increase/decrease the reference count here, will be done by
                   the callee (see (*) above) -> typecast to array of byte
                   for the assignment to the temp }
-                temparraydef:=getarraydef(u8inttype,left.resultdef.size);
+                temparraydef:=carraydef.getreusable(u8inttype,left.resultdef.size);
                 paratemp:=ctempcreatenode.create(temparraydef,temparraydef.size,tt_persistent,false);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,
@@ -929,7 +1000,6 @@ implementation
           get_paratype;
 
         if assigned(parasym) and
-           (target_info.system in systems_managed_vm) and
            (parasym.varspez in [vs_var,vs_out,vs_constref]) and
            (parasym.vardef.typ<>formaldef) and
            { for record constructors }
@@ -1348,22 +1418,23 @@ implementation
          funcretnode:=nil;
          paralength:=-1;
          varargsparas:=nil;
+         if assigned(current_structdef) and
+            assigned(mp) then
+           begin
+            { only needed when calling a destructor from an exception block in a
+              contructor of a TP-style object }
+            if is_object(current_structdef) and
+               (current_procinfo.procdef.proctypeoption=potype_constructor) and
+               (cnf_create_failed in callflags) then
+              call_vmt_node:=load_vmt_pointer_node;
+           end;
       end;
 
 
     constructor tcallnode.create_procvar(l,r:tnode);
       begin
-         inherited create(calln,l,r);
-         symtableprocentry:=nil;
-         symtableproc:=nil;
-         methodpointer:=nil;
-         callinitblock:=nil;
-         callcleanupblock:=nil;
-         procdefinition:=nil;
-         callnodeflags:=[cnf_return_value_used];
-         funcretnode:=nil;
-         paralength:=-1;
-         varargsparas:=nil;
+         create(l,nil,nil,nil,[]);
+         right:=r;
       end;
 
 
@@ -1468,6 +1539,9 @@ implementation
          funcretnode.free;
          if assigned(varargsparas) then
            varargsparas.free;
+         call_self_node.free;
+         call_vmt_node.free;
+         vmt_entry.free;
 {$ifndef symansistr}
          stringdispose(fforcedprocname);
 {$endif symansistr}
@@ -1479,6 +1553,8 @@ implementation
       begin
         callinitblock:=tblocknode(ppuloadnode(ppufile));
         methodpointer:=ppuloadnode(ppufile);
+        call_self_node:=ppuloadnode(ppufile);
+        call_vmt_node:=ppuloadnode(ppufile);
         callcleanupblock:=tblocknode(ppuloadnode(ppufile));
         funcretnode:=ppuloadnode(ppufile);
         inherited ppuload(t,ppufile);
@@ -1494,6 +1570,8 @@ implementation
       begin
         ppuwritenode(ppufile,callinitblock);
         ppuwritenode(ppufile,methodpointer);
+        ppuwritenode(ppufile,call_self_node);
+        ppuwritenode(ppufile,call_vmt_node);
         ppuwritenode(ppufile,callcleanupblock);
         ppuwritenode(ppufile,funcretnode);
         inherited ppuwrite(ppufile);
@@ -1510,6 +1588,10 @@ implementation
         procdefinitionderef.build(procdefinition);
         if assigned(methodpointer) then
           methodpointer.buildderefimpl;
+        if assigned(call_self_node) then
+          call_self_node.buildderefimpl;
+        if assigned(call_vmt_node) then
+          call_vmt_node.buildderefimpl;
         if assigned(callinitblock) then
           callinitblock.buildderefimpl;
         if assigned(callcleanupblock) then
@@ -1531,6 +1613,10 @@ implementation
         procdefinition:=tabstractprocdef(procdefinitionderef.resolve);
         if assigned(methodpointer) then
           methodpointer.derefimpl;
+        if assigned(call_self_node) then
+          call_self_node.derefimpl;
+        if assigned(call_vmt_node) then
+          call_vmt_node.derefimpl;
         if assigned(callinitblock) then
           callinitblock.derefimpl;
         if assigned(callcleanupblock) then
@@ -1592,6 +1678,18 @@ implementation
           n.methodpointer:=methodpointer.dogetcopy
         else
           n.methodpointer:=nil;
+        if assigned(call_self_node) then
+          n.call_self_node:=call_self_node.dogetcopy
+        else
+          n.call_self_node:=nil;
+        if assigned(call_vmt_node) then
+          n.call_vmt_node:=call_vmt_node.dogetcopy
+        else
+          n.call_vmt_node:=nil;
+        if assigned(vmt_entry) then
+          n.vmt_entry:=vmt_entry.dogetcopy
+        else
+          n.vmt_entry:=nil;
         { must be copied before the funcretnode, because the callcleanup block
           may contain a ttempdeletenode that sets the tempinfo of the
           corresponding temp to ti_nextref_set_hookoncopy_nil, and this nextref
@@ -1641,6 +1739,8 @@ implementation
           inherited docompare(p) and
           (symtableprocentry = tcallnode(p).symtableprocentry) and
           (procdefinition = tcallnode(p).procdefinition) and
+          { this implicitly also compares the vmt_entry node, as it is
+            deterministically based on the methodpointer }
           (methodpointer.isequal(tcallnode(p).methodpointer)) and
           (((cnf_typedefset in callnodeflags) and (cnf_typedefset in tcallnode(p).callnodeflags) and
             (equal_defs(typedef,tcallnode(p).typedef))) or
@@ -1712,7 +1812,7 @@ implementation
         { pass_1, while the the typeinfo is already required after the          }
         { typecheck pass for simplify purposes (not yet perfect, because the    }
         { statementnodes themselves are not typechecked this way)               }
-        typecheckpass(n);
+        firstpass(n);
         addstatement(lastinitstatement,n);
       end;
 
@@ -1726,7 +1826,7 @@ implementation
         else
           lastdonestatement:=laststatement(callcleanupblock);
         { see comments in add_init_statement }
-        typecheckpass(n);
+        firstpass(n);
         addstatement(lastdonestatement,n);
       end;
 
@@ -1784,6 +1884,20 @@ implementation
           end;
       end;
 
+
+    function tcallnode.getforcedprocname: TSymStr;
+      begin
+{$ifdef symansistr}
+        result:=fforcedprocname;
+{$else}
+        if assigned(fforcedprocname) then
+          result:=fforcedprocname^
+        else
+          result:='';
+{$endif}
+      end;
+
+
     function look_for_call(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         case n.nodetype of
@@ -1815,7 +1929,7 @@ implementation
                       is_object(p.resultdef);
 
             if usederef then
-              hdef:=getpointerdef(p.resultdef)
+              hdef:=cpointerdef.getreusable(p.resultdef)
             else
               hdef:=p.resultdef;
 
@@ -2042,7 +2156,7 @@ implementation
         { inherited }
         else if (cnf_inherited in callnodeflags) then
           begin
-            selftree:=load_self_node;
+            selftree:=safe_call_self_node.getcopy;
            { we can call an inherited class static/method from a regular method
              -> self node must change from instance pointer to vmt pointer)
            }
@@ -2098,7 +2212,7 @@ implementation
                           end;
                       end
                     else
-                      selftree:=load_self_node
+                      selftree:=safe_call_self_node.getcopy
                   else
                     selftree:=methodpointer.getcopy;
                 end;
@@ -2135,11 +2249,72 @@ implementation
         else
           begin
             if methodpointer.nodetype=typen then
-              selftree:=load_self_node
+              selftree:=safe_call_self_node.getcopy
             else
               selftree:=methodpointer.getcopy;
           end;
         result:=selftree;
+      end;
+
+    function tcallnode.use_caller_self(check_for_callee_self: boolean): boolean;
+      var
+        i: longint;
+        ps: tparavarsym;
+      begin
+        result:=false;
+        { is there a self parameter? }
+        if check_for_callee_self then
+          begin
+            ps:=nil;
+            for i:=0 to procdefinition.paras.count-1 do
+              begin
+                ps:=tparavarsym(procdefinition.paras[i]);
+                if vo_is_self in ps.varoptions then
+                  break;
+                ps:=nil;
+              end;
+
+            if not assigned(ps) then
+              exit;
+          end;
+
+        { we need to load the'self' parameter of the current routine as the
+          'self' parameter of the called routine if
+            1) we're calling an inherited routine
+            2) we're calling a constructor via type.constructorname and
+               type is not a classrefdef (i.e., we're calling a constructor like
+               a regular method)
+            3) we're calling any regular (non-class/non-static) method via
+               a typenode (the methodpointer is then that typenode, but the
+               passed self node must become the current self node)
+
+          In other cases, we either don't have to pass the 'self' parameter of
+          the current routine to the called one, or methodpointer will already
+          contain it (e.g. because a method was called via "method", in which
+          case the parser already passed 'self' as the method pointer, or via
+          "self.method") }
+        if (cnf_inherited in callnodeflags) or
+           ((procdefinition.proctypeoption=potype_constructor) and
+            not((methodpointer.resultdef.typ=classrefdef) or
+                (cnf_new_call in callnodeflags)) and
+               (methodpointer.nodetype=typen) and
+               (methodpointer.resultdef.typ=objectdef)) or
+           (assigned(methodpointer) and
+            (procdefinition.proctypeoption<>potype_constructor) and
+            not(po_classmethod in procdefinition.procoptions) and
+            not(po_staticmethod in procdefinition.procoptions) and
+            (methodpointer.nodetype=typen)) then
+          result:=true;
+      end;
+
+
+    procedure tcallnode.maybe_gen_call_self_node;
+      begin
+        if cnf_call_self_node_done in callnodeflags then
+          exit;
+        include(callnodeflags,cnf_call_self_node_done);
+        if use_caller_self(true) then
+          call_self_node:=load_self_node;
       end;
 
 
@@ -2273,6 +2448,47 @@ implementation
       end;
 
 
+    function tcallnode.safe_call_self_node: tnode;
+      begin
+        if not assigned(call_self_node) then
+          begin
+            CGMessage(parser_e_illegal_expression);
+            call_self_node:=cerrornode.create;
+          end;
+        result:=call_self_node;
+      end;
+
+
+    procedure tcallnode.gen_vmt_entry_load;
+      var
+        vmt_def: trecorddef;
+      begin
+        if not assigned(right) and
+           (forcedprocname='') and
+           (po_virtualmethod in procdefinition.procoptions) and
+           not is_objectpascal_helper(tprocdef(procdefinition).struct) and
+           assigned(methodpointer) and
+           (methodpointer.nodetype<>typen) then
+          begin
+            vmt_entry:=load_vmt_for_self_node(methodpointer.getcopy);
+            { get the right entry in the VMT }
+            vmt_entry:=cderefnode.create(vmt_entry);
+            typecheckpass(vmt_entry);
+            vmt_def:=trecorddef(vmt_entry.resultdef);
+            { tobjectdef(tprocdef(procdefinition).struct) can be a parent of the
+              methodpointer's resultdef, but the vmtmethodoffset of the method
+              in that objectdef is obviously the same as in any child class }
+            vmt_entry:=csubscriptnode.create(
+                trecordsymtable(vmt_def.symtable).findfieldbyoffset(
+                  tobjectdef(tprocdef(procdefinition).struct).vmtmethodoffset(tprocdef(procdefinition).extnumber)
+                ),
+               vmt_entry
+              );
+            firstpass(vmt_entry);
+          end;
+      end;
+
+
     procedure tcallnode.gen_syscall_para(para: tcallparanode);
       begin
         { unsupported }
@@ -2378,7 +2594,7 @@ implementation
              temp:=ctempcreatenode.create(objcsupertype,objcsupertype.size,tt_persistent,false);
              addstatement(statements,temp);
              { initialize objc_super record }
-             selftree:=load_self_node;
+             selftree:=safe_call_self_node.getcopy;
 
              { we can call an inherited class static/method from a regular method
                -> self node must change from instance pointer to vmt pointer)
@@ -2548,7 +2764,7 @@ implementation
             else
               { destructor called from exception block in constructor }
               if (cnf_create_failed in callnodeflags) then
-                vmttree:=ctypeconvnode.create_internal(load_vmt_pointer_node,voidpointertype)
+                vmttree:=ctypeconvnode.create_internal(call_vmt_node.getcopy,voidpointertype)
             else
               { inherited call, no create/destroy }
               if (cnf_inherited in callnodeflags) then
@@ -3572,6 +3788,13 @@ implementation
                parameters:=nil;
              end;
 
+         maybe_gen_call_self_node;
+
+         if assigned(call_self_node) then
+           typecheckpass(call_self_node);
+         if assigned(call_vmt_node) then
+           typecheckpass(call_vmt_node);
+
          finally
            aktcallnode:=oldcallnode;
          end;
@@ -3599,11 +3822,12 @@ implementation
             hpnext:=tcallparanode(hpcurr.right);
             { pull in at the correct place.
               Used order:
-                1. LOC_REFERENCE with smallest offset (i386 only)
-                2. LOC_REFERENCE with least complexity (non-i386 only)
-                3. LOC_REFERENCE with most complexity (non-i386 only)
-                4. LOC_REGISTER with most complexity
-                5. LOC_REGISTER with least complexity
+                1. vs_out for a reference-counted type
+                2. LOC_REFERENCE with smallest offset (i386 only)
+                3. LOC_REFERENCE with least complexity (non-i386 only)
+                4. LOC_REFERENCE with most complexity (non-i386 only)
+                5. LOC_REGISTER with most complexity
+                6. LOC_REGISTER with least complexity
               For the moment we only look at the first parameter field. Combining it
               with multiple parameter fields will make things a lot complexer (PFV)
 
@@ -3846,7 +4070,12 @@ implementation
                (methodpointer.nodetype=typen) and
                is_objectpascal_helper(ttypenode(methodpointer).typedef) and
                not ttypenode(methodpointer).helperallowed then
-             Message(parser_e_no_category_as_types);
+             begin
+               CGMessage(parser_e_no_category_as_types);
+               { we get an internal error when trying to insert the hidden
+                 parameters in this case }
+               exit;
+             end;
 
            { can we get rid of the call? }
            if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and
@@ -4033,6 +4262,9 @@ implementation
            end
          else
            expectloc:=LOC_VOID;
+
+         { create tree for VMT entry if required }
+         gen_vmt_entry_load;
       end;
 
 {$ifdef state_tracking}
@@ -4355,7 +4587,7 @@ implementation
         tempnode: ttempcreatenode;
         paraaddr: taddrnode;
       begin
-        ptrtype:=getpointerdef(para.left.resultdef);
+        ptrtype:=cpointerdef.getreusable(para.left.resultdef);
         tempnode:=ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,true);
         addstatement(inlineinitstatement,tempnode);
         addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));

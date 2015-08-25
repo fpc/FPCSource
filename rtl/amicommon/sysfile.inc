@@ -40,6 +40,7 @@ var
   tmpHandle : LongInt;
 begin
   if l=nil then exit;
+  ObtainSemaphore(ASYS_fileSemaphore);
 
   { First, close all tracked files }
   tmpNext:=l^.next;
@@ -58,6 +59,7 @@ begin
     l:=l^.next;
     dispose(tmpNext);
   end;
+  ReleaseSemaphore(ASYS_fileSemaphore);
 end;
 
 { Function to be called to add a file to the opened file list }
@@ -67,6 +69,8 @@ var
   inList: Boolean;
 begin
   inList:=False;
+  ObtainSemaphore(ASYS_fileSemaphore);
+
   if l<>nil then begin
     { if there is a valid filelist, search for the value }
     { in the list to avoid double additions }
@@ -93,6 +97,7 @@ begin
     RawDoFmt('FPC_FILE_DEBUG: Error! Trying add filehandle a filehandle twice: $%lx !'+#10,@h,pointer(1),nil);
 {$ENDIF}
   ;
+  ReleaseSemaphore(ASYS_fileSemaphore);
 end;
 
 { Function to be called to remove a file from the list }
@@ -108,6 +113,7 @@ begin
     exit;
   end;
 
+  ObtainSemaphore(ASYS_fileSemaphore);
   p:=l;
   while (p^.next<>nil) and (not inList) do
     if p^.next^.handle=h then inList:=True
@@ -123,6 +129,7 @@ begin
     RawDoFmt('FPC_FILE_DEBUG: Error! Trying to remove not existing filehandle: $%lx !'+#10,@h,pointer(1),nil);
 {$ENDIF}
   ;
+  ReleaseSemaphore(ASYS_fileSemaphore);
 
   RemoveFromList:=inList;
 end;
@@ -140,6 +147,7 @@ begin
     exit;
   end;
 
+  ObtainSemaphore(ASYS_fileSemaphore);
   p:=l;
   while (p^.next<>nil) and (inList=nil) do
     if p^.next^.handle=h then inList:=p^.next
@@ -150,6 +158,7 @@ begin
     RawDoFmt('FPC_FILE_DEBUG: Warning! Check for not existing filehandle: $%lx !'+#10,@h,pointer(1),nil);
 {$ENDIF}
 
+  ReleaseSemaphore(ASYS_fileSemaphore);
   CheckInList:=inList;
 end;
 
@@ -278,7 +287,7 @@ begin
   end;
 end;
 
-{$DEFINE ASYS_FILESIZE_NO_DOUBLE_SEEK}
+{$DEFINE ASYS_FILESIZE_USE_EXAMINEFH}
 { I changed the double-Seek filesize method which we
   were using for 10+ years to the new ExamineFH() method.
   It should be available AmigaOS 2.0+, and much faster.
@@ -289,10 +298,14 @@ end;
   It should be safe since there are several libc implementations
   using the same method on all Amiga flavors, but if anyone has
   a problem with it, disable this define to revert to the old
-  method and report the issue. (KB) } 
-function do_filesize(handle : longint) : longint;
+  method and report the issue. (KB)
+
+  Actually, as some file systems (FTPMount, probably more) do
+  not support the ExamineFH action, lets fall back to double
+  seek silently in that case (KB) }
+function do_filesize(handle : THandle) : longint;
 var
-{$IFDEF ASYS_FILESIZE_NO_DOUBLE_SEEK}
+{$IFDEF ASYS_FILESIZE_USE_EXAMINEFH}
   fib: PFileInfoBlock;
 {$ENDIF}
   currfilepos: longint;
@@ -301,18 +314,20 @@ begin
   do_filesize:=-1;
   if CheckInList(ASYS_fileList,handle)<>nil then begin
 
-{$IFDEF ASYS_FILESIZE_NO_DOUBLE_SEEK}
+{$IFDEF ASYS_FILESIZE_USE_EXAMINEFH}
     fib:=AllocDosObject(DOS_FIB,nil);
     if fib <> nil then begin
       if ExamineFH(BPTR(handle), fib) then
         do_filesize:=fib^.fib_Size;
       FreeDosObject(DOS_FIB,fib);
     end;
-{$ELSE}
-    currfilepos:=do_filepos(handle);
-    do_filesize:=do_seekend(handle);
-    do_seek(handle,currfilepos);
 {$ENDIF}
+    if do_filesize = -1 then
+    begin
+      currfilepos:=do_filepos(handle);
+      do_filesize:=do_seekend(handle);
+      do_seek(handle,currfilepos);
+    end;
   end;
 end;
 
@@ -404,7 +419,7 @@ begin
   end;
 end;
 
-function do_isdevice(handle: longint): boolean;
+function do_isdevice(handle: thandle): boolean;
 begin
   if (handle=StdOutputHandle) or (handle=StdInputHandle) or
      (handle=StdErrorHandle) then

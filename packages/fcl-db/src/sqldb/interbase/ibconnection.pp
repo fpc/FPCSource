@@ -692,8 +692,11 @@ begin
     tr := aTransaction.Handle;
     
     if assigned(AParams) and (AParams.count > 0) then
+      begin
       buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase,paramBinding);
-
+      if LogEvent(detActualSQL) then
+        Log(detActualSQL,Buf);
+      end;
     if isc_dsql_prepare(@Status[0], @tr, @Statement, 0, @Buf[1], Dialect, nil) <> 0 then
       CheckError('PrepareStatement', Status);
     if assigned(AParams) and (AParams.count > 0) then
@@ -731,7 +734,7 @@ begin
     BlockSize:=isc_vax_integer(@resbuf[1],2);
     IBStatementType:=isc_vax_integer(@resbuf[3],blockSize);
     assert(resbuf[3+blockSize]=isc_info_end);
-    // If the statementtype is isc_info_sql_stmt_exec_procedure then
+    // If the StatementType is isc_info_sql_stmt_exec_procedure then
     // override the statement type derived by parsing the query.
     // This to recognize statements like 'insert into .. returning' correctly
     case IBStatementType of
@@ -753,6 +756,7 @@ begin
         if isc_dsql_describe(@Status[0], @Statement, 1, SQLDA) <> 0 then
           CheckError('PrepareSelect', Status);
         end;
+      FSelectable := SQLDA^.SQLD > 0;
       {$push}
       {$R-}
       for x := 0 to SQLDA^.SQLD - 1 do with SQLDA^.SQLVar[x] do
@@ -835,6 +839,8 @@ var tr : pointer;
 begin
   tr := aTransaction.Handle;
   if Assigned(APArams) and (AParams.count > 0) then SetParameters(cursor, atransaction, AParams);
+  if LogEvent(detParamValue) then
+    LogParams(AParams);
   with cursor as TIBCursor do
   begin
     if FStatementType = stExecProcedure then

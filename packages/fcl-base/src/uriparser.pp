@@ -266,7 +266,7 @@ begin
   // Extract the port number
 
   i := LastDelimiter(':@', Authority);
-  if (i > 0) and (Authority[i] = ':') then
+  if (i > 0) and (i < Length(Authority)) and (Authority[i] = ':') then
   begin
     PortValid := true;
     for j:=i+1 to Length(Authority) do

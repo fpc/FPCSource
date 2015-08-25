@@ -197,6 +197,12 @@
 #undef NEEDCROSSBINUTILS
 #endif
 
+# never need cross-prefix when targeting the i8086
+# (no native compiler, always cross-compiling)
+#ifdef cpujvm
+#undef NEEDCROSSBINUTILS
+#endif
+
 # binutils prefix for cross compiling
 #IFDEF FPC_CROSSCOMPILING
 #IFDEF NEEDCROSSBINUTILS

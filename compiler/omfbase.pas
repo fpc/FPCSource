@@ -71,6 +71,8 @@ interface
     RT_LLNAMES   = $CA;  { Local Logical Names Definition Record }
     RT_VERNUM    = $CC;  { OMF Version Number Record }
     RT_VENDEXT   = $CE;  { Vendor-specific OMF Extension Record }
+    RT_LIBHEAD   = $F0;  { Library Header Record }
+    RT_LIBEND    = $F1;  { Library End Record (marks end of objects and beginning of dictionary) }
 
     { OMF comment class }
     CC_Translator               = $00; { language translator (compiler or assembler) name }
@@ -210,7 +212,9 @@ interface
       property ChecksumByte: Byte read GetChecksumByte write SetChecksumByte;
 
       procedure ReadFrom(aReader: TObjectReader);
+      procedure ReadFrom(aReader: TDynamicArray);
       procedure WriteTo(aWriter: TObjectWriter);
+      procedure WriteTo(aWriter: TDynamicArray);
     end;
 
     { TOmfParsedRecord }
@@ -388,6 +392,15 @@ interface
       FHasStartAddress: Boolean;
       FSegmentBit: Boolean;
       FLogicalStartAddress: Boolean;
+
+      FFrameMethod: TOmfFixupFrameMethod;
+      FFrameDatum: Integer;
+      FTargetMethod: TOmfFixupTargetMethod;
+      FTargetDatum: Integer;
+      FTargetDisplacement: DWord;
+
+      FPhysFrameNumber: Word;
+      FPhysOffset: DWord;
     public
       procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
       procedure EncodeTo(RawRecord: TOmfRawRecord);override;
@@ -397,6 +410,17 @@ interface
       property HasStartAddress: Boolean read FHasStartAddress write FHasStartAddress;
       property SegmentBit: Boolean read FSegmentBit write FSegmentBit;
       property LogicalStartAddress: Boolean read FLogicalStartAddress write FLogicalStartAddress;
+
+      { properties, specifying a logical start address (used when LogicalStartAddress=true) }
+      property FrameMethod: TOmfFixupFrameMethod read FFrameMethod write FFrameMethod;
+      property FrameDatum: Integer read FFrameDatum write FFrameDatum;
+      property TargetMethod: TOmfFixupTargetMethod read FTargetMethod write FTargetMethod;
+      property TargetDatum: Integer read FTargetDatum write FTargetDatum;
+      property TargetDisplacement: DWord read FTargetDisplacement write FTargetDisplacement;
+
+      { properties, specifying a physical start address (used when LogicalStartAddress=false) }
+      property PhysFrameNumber: Word read FPhysFrameNumber write FPhysFrameNumber;
+      property PhysOffset: DWord read FPhysOffset write FPhysOffset;
     end;
 
     { TOmfSubRecord_FIXUP }
@@ -419,6 +443,7 @@ interface
       FFrameMethod: TOmfFixupFrameMethod;
       FFrameDatum: Integer;
       function GetDataRecordOffset: Integer;
+      function GetLocationSize: Integer;
       procedure SetDataRecordOffset(AValue: Integer);
     public
       function ReadAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
@@ -428,6 +453,7 @@ interface
       property Mode: TOmfFixupMode read FMode write FMode;
       property LocationType: TOmfFixupLocationType read FLocationType write FLocationType;
       property LocationOffset: DWord read FLocationOffset write FLocationOffset;
+      property LocationSize: Integer read GetLocationSize;
       property DataRecordStartOffset: DWord read FDataRecordStartOffset write FDataRecordStartOffset;
       property DataRecordOffset: Integer read GetDataRecordOffset write SetDataRecordOffset;
       property TargetDeterminedByThread: Boolean read FTargetDeterminedByThread write FTargetDeterminedByThread;
@@ -442,9 +468,64 @@ interface
       property FrameDatum: Integer read FFrameDatum write FFrameDatum;
     end;
 
+    { TOmfRecord_LIBHEAD }
+
+    TOmfRecord_LIBHEAD = class(TOmfParsedRecord)
+    private
+      FPageSize: Integer;
+      FDictionaryOffset: DWord;
+      FDictionarySizeInBlocks: Word;
+      FFlags: Byte;
+      function IsCaseSensitive: Boolean;
+      procedure SetCaseSensitive(AValue: Boolean);
+      procedure SetPageSize(AValue: Integer);
+    public
+      constructor Create;
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      property PageSize: Integer read FPageSize write SetPageSize;
+      property DictionaryOffset: DWord read FDictionaryOffset write FDictionaryOffset;
+      property DictionarySizeInBlocks: Word read FDictionarySizeInBlocks write FDictionarySizeInBlocks;
+      property Flags: Byte read FFlags write FFlags;
+      property CaseSensitive: Boolean read IsCaseSensitive write SetCaseSensitive;
+    end;
+
+    { TOmfRecord_LIBEND }
+
+    TOmfRecord_LIBEND = class(TOmfParsedRecord)
+    private
+      FPaddingBytes: Word;
+    public
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      procedure CalculatePaddingBytes(RecordStartOffset: DWord);
+      property PaddingBytes: Word read FPaddingBytes write FPaddingBytes;
+    end;
+
+  const
+    { list of all the possible omf library dictionary block counts - contains
+      all the prime numbers less than 255 }
+    OmfLibDictionaryBlockCounts: array [0..53] of Byte =
+      (2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,
+       101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,
+       193,197,199,211,223,227,229,233,239,241,251);
+
+  type
+    TOmfLibHash = record
+      block_x: Integer;
+      block_d: Integer;
+      bucket_x: Integer;
+      bucket_d: Integer;
+    end;
+
+  function compute_omf_lib_hash(const name: string; blocks: Integer): TOmfLibHash;
+
 implementation
 
   uses
+    cutils,
     verbose;
 
   { TOmfOrderedNameCollection }
@@ -604,7 +685,18 @@ implementation
       aReader.read(RawData[0], RecordLength);
     end;
 
+  procedure TOmfRawRecord.ReadFrom(aReader: TDynamicArray);
+    begin
+      aReader.read(RawData, 3);
+      aReader.read(RawData[0], RecordLength);
+    end;
+
   procedure TOmfRawRecord.WriteTo(aWriter: TObjectWriter);
+    begin
+      aWriter.write(RawData, RecordLength+3);
+    end;
+
+  procedure TOmfRawRecord.WriteTo(aWriter: TDynamicArray);
     begin
       aWriter.write(RawData, RecordLength+3);
     end;
@@ -613,6 +705,8 @@ implementation
 
   procedure TOmfRecord_THEADR.DecodeFrom(RawRecord: TOmfRawRecord);
     begin
+      if RawRecord.RecordType<>RT_THEADR then
+        internalerror(2015040301);
       RawRecord.ReadStringAt(0,FModuleName);
     end;
 
@@ -687,9 +781,18 @@ implementation
     end;
 
   procedure TOmfRecord_LNAMES.DecodeFrom(RawRecord: TOmfRawRecord);
+    var
+      NextOfs: Integer;
+      Name: string;
     begin
-      {TODO: implement}
-      internalerror(2015040101);
+      if RawRecord.RecordType<>RT_LNAMES then
+        internalerror(2015040301);
+      NextOfs:=0;
+      while NextOfs<(RawRecord.RecordLength-1) do
+        begin
+          NextOfs:=RawRecord.ReadStringAt(NextOfs,Name);
+          Names.Add(Name);
+        end;
     end;
 
   procedure TOmfRecord_LNAMES.EncodeTo(RawRecord: TOmfRawRecord);
@@ -887,9 +990,52 @@ implementation
   { TOmfRecord_PUBDEF }
 
   procedure TOmfRecord_PUBDEF.DecodeFrom(RawRecord: TOmfRawRecord);
+    var
+      NextOfs: Integer;
+      Name: string;
+      TypeIndex: Integer;
+      PublicOffset: DWord;
+      PubName: TOmfPublicNameElement;
     begin
-      {TODO: implement}
-      internalerror(2015040101);
+      if not (RawRecord.RecordType in [RT_PUBDEF,RT_PUBDEF32]) then
+        internalerror(2015040301);
+      Is32Bit:=RawRecord.RecordType=RT_PUBDEF32;
+
+      NextOfs:=RawRecord.ReadIndexedRef(0,FBaseGroupIndex);
+      NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FBaseSegmentIndex);
+      if BaseSegmentIndex=0 then
+        begin
+          if (NextOfs+1)>=RawRecord.RecordLength then
+            internalerror(2015041401);
+          BaseFrame:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+          Inc(NextOfs,2);
+        end
+      else
+        BaseFrame:=0;
+
+      while NextOfs<(RawRecord.RecordLength-1) do
+        begin
+          NextOfs:=RawRecord.ReadStringAt(NextOfs,Name);
+          if Is32Bit then
+            begin
+              if (NextOfs+3)>=RawRecord.RecordLength then
+                internalerror(2015041401);
+              PublicOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8)+
+                (RawRecord.RawData[NextOfs+2] shl 16)+(RawRecord.RawData[NextOfs+3] shl 24);
+              Inc(NextOfs,4);
+            end
+          else
+            begin
+              if (NextOfs+1)>=RawRecord.RecordLength then
+                internalerror(2015041401);
+              PublicOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+              Inc(NextOfs,2);
+            end;
+          NextOfs:=RawRecord.ReadIndexedRef(NextOfs,TypeIndex);
+          PubName:=TOmfPublicNameElement.Create(PublicNames,Name);
+          PubName.PublicOffset:=PublicOffset;
+          PubName.TypeIndex:=TypeIndex;
+        end;
     end;
 
   procedure TOmfRecord_PUBDEF.EncodeTo(RawRecord: TOmfRawRecord);
@@ -936,6 +1082,8 @@ implementation
             end
           else
             begin
+              if PubName.PublicOffset>$ffff then
+                internalerror(2015041403);
               RawRecord.RawData[NextOfs]:=Byte(PubName.PublicOffset);
               RawRecord.RawData[NextOfs+1]:=Byte(PubName.PublicOffset shr 8);
               Inc(NextOfs,2);
@@ -961,9 +1109,22 @@ implementation
   { TOmfRecord_EXTDEF }
 
   procedure TOmfRecord_EXTDEF.DecodeFrom(RawRecord: TOmfRawRecord);
+    var
+      NextOfs: Integer;
+      Name: string;
+      TypeIndex: Integer;
+      ExtName: TOmfExternalNameElement;
     begin
-      {TODO: implement}
-      internalerror(2015040101);
+      if RawRecord.RecordType<>RT_EXTDEF then
+        internalerror(2015040301);
+      NextOfs:=0;
+      while NextOfs<(RawRecord.RecordLength-1) do
+        begin
+          NextOfs:=RawRecord.ReadStringAt(NextOfs,Name);
+          NextOfs:=RawRecord.ReadIndexedRef(NextOfs,TypeIndex);
+          ExtName:=TOmfExternalNameElement.Create(ExternalNames,Name);
+          ExtName.TypeIndex:=TypeIndex;
+        end;
     end;
 
   procedure TOmfRecord_EXTDEF.EncodeTo(RawRecord: TOmfRawRecord);
@@ -1001,15 +1162,110 @@ implementation
   { TOmfRecord_MODEND }
 
   procedure TOmfRecord_MODEND.DecodeFrom(RawRecord: TOmfRawRecord);
+    var
+      ModTyp: Byte;
+      NextOfs: Integer;
+      EndData: Byte;
     begin
-      {TODO: implement}
-      internalerror(2015040101);
+      if not (RawRecord.RecordType in [RT_MODEND,RT_MODEND32]) then
+        internalerror(2015040301);
+      Is32Bit:=RawRecord.RecordType=RT_MODEND32;
+
+      if RawRecord.RecordLength<2 then
+        internalerror(2015040305);
+      ModTyp:=RawRecord.RawData[0];
+      IsMainModule:=(ModTyp and $80)<>0;
+      HasStartAddress:=(ModTyp and $40)<>0;
+      SegmentBit:=(ModTyp and $20)<>0;
+      LogicalStartAddress:=(ModTyp and $01)<>0;
+      if (ModTyp and $1E)<>0 then
+        internalerror(2015041404);
+      NextOfs:=1;
+
+      { clear all the start address properties first }
+      FrameMethod:=Low(FrameMethod);
+      FrameDatum:=0;
+      TargetMethod:=Low(TargetMethod);
+      TargetDatum:=0;
+      TargetDisplacement:=0;
+      PhysFrameNumber:=0;
+      PhysOffset:=0;
+
+      if HasStartAddress then
+        begin
+          if LogicalStartAddress then
+            begin
+              if NextOfs>=RawRecord.RecordLength then
+                internalerror(2015040305);
+              EndData:=RawRecord.RawData[NextOfs];
+              Inc(NextOfs);
+              { frame and target method determined by thread is not allowed in MODEND records }
+              if (EndData and $88)<>0 then
+                internalerror(2015041406);
+              FrameMethod:=TOmfFixupFrameMethod((EndData shr 4) and 7);
+              TargetMethod:=TOmfFixupTargetMethod(EndData and 7);
+              { frame method ffmLocation is not allowed in an MODEND record }
+              if FrameMethod=ffmLocation then
+                internalerror(2015041402);
+              { read Frame Datum? }
+              if FrameMethod in [ffmSegmentIndex,ffmGroupIndex,ffmExternalIndex,ffmFrameNumber] then
+                NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FFrameDatum);
+              { read Target Datum? }
+              NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FTargetDatum);
+              { read Target Displacement? }
+              if TargetMethod in [ftmSegmentIndex,ftmGroupIndex,ftmExternalIndex,ftmFrameNumber] then
+                begin
+                  if Is32Bit then
+                    begin
+                      if (NextOfs+3)>=RawRecord.RecordLength then
+                        internalerror(2015040504);
+                      TargetDisplacement := RawRecord.RawData[NextOfs]+
+                                           (RawRecord.RawData[NextOfs+1] shl 8)+
+                                           (RawRecord.RawData[NextOfs+2] shl 16)+
+                                           (RawRecord.RawData[NextOfs+3] shl 24);
+                      Inc(NextOfs,4);
+                    end
+                  else
+                    begin
+                      if (NextOfs+1)>=RawRecord.RecordLength then
+                        internalerror(2015040504);
+                      TargetDisplacement := RawRecord.RawData[NextOfs]+
+                                           (RawRecord.RawData[NextOfs+1] shl 8);
+                      Inc(NextOfs,2);
+                    end;
+                end;
+            end
+          else
+            begin
+              { physical start address }
+              if (NextOfs+1)>=RawRecord.RecordLength then
+                internalerror(2015040305);
+              PhysFrameNumber:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+              Inc(NextOfs,2);
+              if Is32Bit then
+                begin
+                  if (NextOfs+3)>=RawRecord.RecordLength then
+                    internalerror(2015040305);
+                  PhysOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8)+
+                    (RawRecord.RawData[NextOfs+2] shl 16)+(RawRecord.RawData[NextOfs+3] shl 24);
+                  Inc(NextOfs,4);
+                end
+              else
+                begin
+                  if (NextOfs+1)>=RawRecord.RecordLength then
+                    internalerror(2015040305);
+                  PhysOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+                  Inc(NextOfs,2);
+                end;
+            end;
+        end;
     end;
 
   procedure TOmfRecord_MODEND.EncodeTo(RawRecord: TOmfRawRecord);
     var
       ModTyp: Byte;
       NextOfs: Integer;
+      EndData: Byte;
     begin
       if Is32Bit then
         RawRecord.RecordType:=RT_MODEND32
@@ -1020,8 +1276,63 @@ implementation
       NextOfs:=1;
       if HasStartAddress then
         begin
-          {TODO: implement writing a start address}
-          internalerror(2015040101);
+          if LogicalStartAddress then
+            begin
+              { frame method ffmLocation is not allowed in an MODEND record }
+              if FrameMethod=ffmLocation then
+                internalerror(2015041402);
+              EndData:=(Ord(FrameMethod) shl 4)+Ord(TargetMethod);
+              RawRecord.RawData[NextOfs]:=EndData;
+              Inc(NextOfs);
+              { save Frame Datum? }
+              if FrameMethod in [ffmSegmentIndex,ffmGroupIndex,ffmExternalIndex,ffmFrameNumber] then
+                NextOfs:=RawRecord.WriteIndexedRef(NextOfs,FrameDatum);
+              { save Target Datum? }
+              NextOfs:=RawRecord.WriteIndexedRef(NextOfs,TargetDatum);
+              { save Target Displacement? }
+              if TargetMethod in [ftmSegmentIndex,ftmGroupIndex,ftmExternalIndex,ftmFrameNumber] then
+                begin
+                  if Is32Bit then
+                    begin
+                      RawRecord.RawData[NextOfs]:=Byte(TargetDisplacement);
+                      RawRecord.RawData[NextOfs+1]:=Byte(TargetDisplacement shr 8);
+                      RawRecord.RawData[NextOfs+2]:=Byte(TargetDisplacement shr 16);
+                      RawRecord.RawData[NextOfs+3]:=Byte(TargetDisplacement shr 24);
+                      Inc(NextOfs,4);
+                    end
+                  else
+                    begin
+                      if TargetDisplacement>$ffff then
+                        internalerror(2015040502);
+                      RawRecord.RawData[NextOfs]:=Byte(TargetDisplacement);
+                      RawRecord.RawData[NextOfs+1]:=Byte(TargetDisplacement shr 8);
+                      Inc(NextOfs,2);
+                    end;
+                end;
+            end
+          else
+            begin
+              { physical start address }
+              RawRecord.RawData[NextOfs]:=Byte(PhysFrameNumber);
+              RawRecord.RawData[NextOfs+1]:=Byte(PhysFrameNumber shr 8);
+              Inc(NextOfs,2);
+              if Is32Bit then
+                begin
+                  RawRecord.RawData[NextOfs]:=Byte(PhysOffset);
+                  RawRecord.RawData[NextOfs+1]:=Byte(PhysOffset shr 8);
+                  RawRecord.RawData[NextOfs+2]:=Byte(PhysOffset shr 16);
+                  RawRecord.RawData[NextOfs+3]:=Byte(PhysOffset shr 24);
+                  Inc(NextOfs,4);
+                end
+              else
+                begin
+                  if PhysOffset>$ffff then
+                    internalerror(2015040502);
+                  RawRecord.RawData[NextOfs]:=Byte(PhysOffset);
+                  RawRecord.RawData[NextOfs+1]:=Byte(PhysOffset shr 8);
+                  Inc(NextOfs,2);
+                end;
+            end;
         end;
       RawRecord.RecordLength:=NextOfs+1;
       RawRecord.CalculateChecksumByte;
@@ -1034,6 +1345,29 @@ implementation
       Result:=FLocationOffset-FDataRecordStartOffset;
     end;
 
+  function TOmfSubRecord_FIXUP.GetLocationSize: Integer;
+    const
+      OmfLocationType2Size: array [TOmfFixupLocationType] of Integer=
+        (1,  // fltLoByte
+         2,  // fltOffset
+         2,  // fltBase
+         4,  // fltFarPointer
+         1,  // fltHiByte
+         2,  // fltLoaderResolvedOffset  (PharLap: Offset32)
+         0,  // fltUndefined6            (PharLap: Pointer48)
+         0,  // fltUndefined7
+         0,  // fltUndefined8
+         4,  // fltOffset32
+         0,  // fltUndefined10
+         6,  // fltFarPointer48
+         0,  // fltUndefined12
+         4,  // fltLoaderResolvedOffset32
+         0,  // fltUndefined14
+         0); // fltUndefined15
+    begin
+      Result:=OmfLocationType2Size[LocationType];
+    end;
+
   procedure TOmfSubRecord_FIXUP.SetDataRecordOffset(AValue: Integer);
     begin
       FLocationOffset:=AValue+FDataRecordStartOffset;
@@ -1044,7 +1378,7 @@ implementation
       Locat: Word;
       FixData: Byte;
     begin
-      if (Offset+2)>High(RawRecord.RawData) then
+      if (Offset+2)>=RawRecord.RecordLength then
         internalerror(2015040504);
       { unlike other fields in the OMF format, this one is big endian }
       Locat:=(RawRecord.RawData[Offset] shl 8) or RawRecord.RawData[Offset+1];
@@ -1084,7 +1418,7 @@ implementation
         begin
           if Is32Bit then
             begin
-              if (Offset+3)>High(RawRecord.RawData) then
+              if (Offset+3)>=RawRecord.RecordLength then
                 internalerror(2015040504);
               TargetDisplacement := RawRecord.RawData[Offset]+
                                    (RawRecord.RawData[Offset+1] shl 8)+
@@ -1094,7 +1428,7 @@ implementation
             end
           else
             begin
-              if (Offset+1)>High(RawRecord.RawData) then
+              if (Offset+1)>=RawRecord.RecordLength then
                 internalerror(2015040504);
               TargetDisplacement := RawRecord.RawData[Offset]+
                                    (RawRecord.RawData[Offset+1] shl 8);
@@ -1157,5 +1491,142 @@ implementation
       Result:=Offset;
     end;
 
+
+  { TOmfRecord_LIBHEAD }
+
+  constructor TOmfRecord_LIBHEAD.Create;
+    begin
+      PageSize:=512;
+      DictionarySizeInBlocks:=2;
+      CaseSensitive:=true;
+    end;
+
+  procedure TOmfRecord_LIBHEAD.SetPageSize(AValue: Integer);
+    var
+      p: longint;
+    begin
+      { valid library page sizes are powers of two, between 2**4 and 2**15 }
+      if not ispowerof2(AValue,p) then
+        internalerror(2015041802);
+      if (p<4) or (p>15) then
+        internalerror(2015041802);
+      FPageSize:=AValue;
+    end;
+
+  procedure TOmfRecord_LIBHEAD.DecodeFrom(RawRecord: TOmfRawRecord);
+    begin
+      if RawRecord.RecordType<>RT_LIBHEAD then
+        internalerror(2015040301);
+      { this will also range check PageSize and will ensure that RecordLength>=13 }
+      PageSize:=RawRecord.RecordLength+3;
+      DictionaryOffset:=RawRecord.RawData[0]+
+                       (RawRecord.RawData[1] shl 8)+
+                       (RawRecord.RawData[2] shl 16)+
+                       (RawRecord.RawData[3] shl 24);
+      DictionarySizeInBlocks:=RawRecord.RawData[4]+
+                             (RawRecord.RawData[5] shl 8);
+      Flags:=RawRecord.RawData[6];
+    end;
+
+  procedure TOmfRecord_LIBHEAD.EncodeTo(RawRecord: TOmfRawRecord);
+    begin
+      { make sure the LIBHEAD record is padded with zeros at the end }
+      FillChar(RawRecord.RawData,SizeOf(RawRecord.RawData),0);
+      RawRecord.RecordType:=RT_LIBHEAD;
+      RawRecord.RecordLength:=PageSize-3;
+      RawRecord.RawData[0]:=Byte(DictionaryOffset);
+      RawRecord.RawData[1]:=Byte(DictionaryOffset shr 8);
+      RawRecord.RawData[2]:=Byte(DictionaryOffset shr 16);
+      RawRecord.RawData[3]:=Byte(DictionaryOffset shr 24);
+      RawRecord.RawData[4]:=Byte(DictionarySizeInBlocks);
+      RawRecord.RawData[5]:=Byte(DictionarySizeInBlocks shr 8);
+      RawRecord.RawData[6]:=Flags;
+      { the LIBHEAD record contains no checksum byte, so no need to call
+        RawRecord.CalculateChecksumByte }
+    end;
+
+  function TOmfRecord_LIBHEAD.IsCaseSensitive: Boolean;
+    begin
+      Result:=(FFlags and 1)<>0;
+    end;
+
+  procedure TOmfRecord_LIBHEAD.SetCaseSensitive(AValue: Boolean);
+    begin
+      FFlags:=(FFlags and $FE) or Ord(AValue);
+    end;
+
+  { TOmfRecord_LIBEND }
+
+  procedure TOmfRecord_LIBEND.DecodeFrom(RawRecord: TOmfRawRecord);
+    begin
+      if RawRecord.RecordType<>RT_LIBEND then
+        internalerror(2015040301);
+      FPaddingBytes:=RawRecord.RecordLength;
+    end;
+
+  procedure TOmfRecord_LIBEND.EncodeTo(RawRecord: TOmfRawRecord);
+    begin
+      { make sure the LIBEND record is padded with zeros at the end }
+      FillChar(RawRecord.RawData,SizeOf(RawRecord.RawData),0);
+      RawRecord.RecordType:=RT_LIBEND;
+      RawRecord.RecordLength:=FPaddingBytes;
+      { the LIBEND record contains no checksum byte, so no need to call
+        RawRecord.CalculateChecksumByte }
+    end;
+
+  procedure TOmfRecord_LIBEND.CalculatePaddingBytes(RecordStartOffset: DWord);
+    var
+      DictionaryStartOffset: Integer;
+    begin
+      { padding must be calculated, so that the dictionary begins on a 512-byte boundary }
+      Inc(RecordStartOffset,3);  // padding begins _after_ the record header (3 bytes)
+      DictionaryStartOffset:=(RecordStartOffset+511) and $fffffe00;
+      PaddingBytes:=DictionaryStartOffset-RecordStartOffset;
+    end;
+
+  function compute_omf_lib_hash(const name: string; blocks: Integer): TOmfLibHash;
+    const
+      blank=$20;  // ASCII blank
+      nbuckets=37;
+    var
+      block_x: Integer;
+      block_d: Integer;
+      bucket_x: Integer;
+      bucket_d: Integer;
+      len: Integer;
+      pbidx,peidx: Integer;
+      cback,cfront: Byte;
+    begin
+      len:=Length(name);
+      if len=0 then
+        internalerror(2015041801);
+      pbidx:=1;
+      peidx:=len+1;
+      { left to right scan }
+      block_x:=len or blank;
+      bucket_d:=block_x;
+      { right to left scan }
+      block_d:=0;
+      bucket_x:=0;
+      while true do
+        begin
+          { blank -> convert to LC }
+          Dec(peidx);
+          cback:=Byte(name[peidx]) or blank;
+          bucket_x:=RorWord(bucket_x,2) xor cback;
+          block_d:=RolWord(block_d,2) xor cback;
+          Dec(len);
+          if len=0 then
+            break;
+          cfront:=Byte(name[pbidx]) or blank;
+          Inc(pbidx);
+          block_x:=RolWord(block_x,2) xor cfront;
+          bucket_d:=RorWord(bucket_d,2) xor cfront;
+        end;
+      Result.block_x:=block_x mod blocks;
+      Result.block_d:=max(block_d mod blocks,1);
+      Result.bucket_x:=bucket_x mod nbuckets;
+      Result.bucket_d:=max(bucket_d mod nbuckets,1);
+    end;
 
 end.

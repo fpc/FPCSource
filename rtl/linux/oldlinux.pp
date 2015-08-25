@@ -1924,9 +1924,16 @@ Function Sys_Mkdir(Filename:pchar;mode:longint):longint;
 var
   regs : SysCallregs;
 begin
+{$if defined(generic_linux_syscalls)}
+  regs.reg2:=AT_FDCWD;
+  regs.reg3:=longint(filename);
+  regs.reg4:=mode;
+  Sys_MkDir:=SysCall(SysCall_nr_mkdirat,regs);
+{$else}
   regs.reg2:=longint(filename);
   regs.reg3:=mode;
   Sys_MkDir:=SysCall(SysCall_nr_mkdir,regs);
+{$endif}
 end;
 
 
@@ -1935,8 +1942,15 @@ Function Sys_Rmdir(Filename:pchar):longint;
 var
   regs : SysCallregs;
 begin
+{$if defined(generic_linux_syscalls)}
+  regs.reg2:=AT_FDCWD;
+  regs.reg3:=longint(filename);
+  regs.reg4:=AT_REMOVEDIR;
+  Sys_Rmdir:=SysCall(SysCall_nr_unlinkat,regs);
+{$else}
   regs.reg2:=longint(filename);
   Sys_Rmdir:=SysCall(SysCall_nr_rmdir,regs);
+{$endif}
 end;
 
 
@@ -2744,7 +2758,18 @@ var
 begin
   sr.reg2:=oldfile;
   sr.reg3:=newfile;
+{$if defined(generic_linux_syscalls)}
+  sr.reg4:=0;
+  if oldfile<>newfile then
+    SysCall(Syscall_nr_dup3,sr)
+  else
+    begin
+      sr.reg3:=F_GetFd;
+      SysCall(Syscall_nr_fcntl,sr);
+    end;
+{$else}
   SysCall(Syscall_nr_dup2,sr);
+{$endif}
   linuxerror:=errno;
   Dup2:=(LinuxError=0);
 end;
@@ -2782,7 +2807,12 @@ var
   regs : SysCallregs;
 begin
   regs.reg2:=longint(@pip);
+{$if defined(generic_linux_syscalls)}
+  regs.reg3:=0;
+  SysCall(SysCall_nr_pipe2,regs);
+{$else}
   SysCall(SysCall_nr_pipe,regs);
+{$endif}
   pipe_in:=pip[1];
   pipe_out:=pip[2];
   linuxerror:=errno;

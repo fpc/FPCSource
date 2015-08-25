@@ -12,7 +12,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
 Unit consoleio;
 
   interface
@@ -37,12 +36,12 @@ Unit consoleio;
 
     function EmptyWrite(ACh: char; AUserData: pointer): boolean;
       begin
-        result:=true;
+        EmptyWrite:=true;
       end;
 
     function EmptyRead(var ACh: char; AUserData: pointer): boolean;
       begin
-        result:=true;
+        EmptyRead:=true;
         ACh:=#0;
       end;
 
@@ -55,9 +54,9 @@ Unit consoleio;
         c: char;
         got_linechar: boolean;
       begin
-        result:=0;
+        ReadData:=0;
         got_linechar:=false;
-        while (result < count) and (not got_linechar) do
+        while (ReadData < count) and (not got_linechar) do
           begin
             if Func(c, UserData) then
               begin
@@ -65,7 +64,7 @@ Unit consoleio;
                   got_linechar:=true;
                 buffer^:=c;
                 inc(buffer);
-                inc(result);
+                inc(ReadData);
               end;
           end;
       end;
@@ -119,7 +118,7 @@ Unit consoleio;
         TextRec(f).FlushFunc:=nil;
         case AMode of
           fmInput: TextRec(f).InOutFunc:=@Console_Read;
-          fmOutput: 
+          fmOutput:
             begin
               TextRec(f).InOutFunc:=@Console_Write;
               TextRec(f).FlushFunc:=@Console_Write;

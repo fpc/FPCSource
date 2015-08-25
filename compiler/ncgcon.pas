@@ -377,7 +377,7 @@ implementation
                           move(value_str^,pc[1],l);
                           pc[0]:=chr(l);
                           pc[l+1]:=#0;
-                          datadef:=getarraydef(cansichartype,l+1);
+                          datadef:=carraydef.getreusable(cansichartype,l+1);
                           datatcb.maybe_begin_aggregate(datadef);
                           datatcb.emit_tai(Tai_string.Create_pchar(pc,l+1),datadef);
                           datatcb.maybe_end_aggregate(datadef);
@@ -389,7 +389,6 @@ implementation
                         begin
                           current_asmdata.getglobaldatalabel(lastlabel.lab);
 
-                          datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
                           { include terminating zero }
                           getmem(pc,len+1);
                           move(value_str^,pc[0],len);
@@ -398,7 +397,7 @@ implementation
                             string can be used for pchar assignments (but it's
                             also used for array-of-char assignments, in which
                             case the terminating #0 is not part of the data) }
-                          datadef:=getarraydef(cansichartype,len+1);
+                          datadef:=carraydef.getreusable(cansichartype,len+1);
                           datatcb.maybe_begin_aggregate(datadef);
                           datatcb.emit_tai(Tai_string.Create_pchar(pc,len+1),datadef);
                           datatcb.maybe_end_aggregate(datadef);
@@ -408,8 +407,8 @@ implementation
                         end;
                       else
                         internalerror(2013120103);
-                      datatcb.free;
                    end;
+                   datatcb.free;
                    lab_str:=lastlabel.lab;
                    entry^.Data:=lastlabel.lab;
                 end;
@@ -458,10 +457,10 @@ implementation
         new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,result.name,const_align(8));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lab));
         if (source_info.endian=target_info.endian) then
-          for i:=0 to 31 do
+          for i:=0 to resultdef.size-1 do
             current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
         else
-          for i:=0 to 31 do
+          for i:=0 to resultdef.size-1 do
             current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));
       end;
 
@@ -474,7 +473,7 @@ implementation
         { const already used ? }
         if not assigned(lab_set) then
           begin
-            entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, 32);
+            entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, resultdef.size);
 
              { :-(, we must generate a new entry }
              if not assigned(entry^.Data) then
@@ -515,41 +514,6 @@ implementation
               location.value:=location.value shr (32-resultdef.size*8);
           end;
 
-        procedure varsetconst;
-          var
-             lastlabel   : tasmlabel;
-             i           : longint;
-             entry       : PHashSetItem;
-          begin
-            location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8));
-            lastlabel:=nil;
-            { const already used ? }
-            if not assigned(lab_set) then
-              begin
-                entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, 32);
-
-                lab_set := TAsmLabel(entry^.Data);  // is it needed anymore?
-
-                 { :-(, we must generate a new entry }
-                 if not assigned(entry^.Data) then
-                   begin
-                     current_asmdata.getglobaldatalabel(lastlabel);
-                     lab_set:=lastlabel;
-                     entry^.Data:=lastlabel;
-                     maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                     new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(8));
-                     current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
-                     if (source_info.endian=target_info.endian) then
-                       for i:=0 to 31 do
-                         current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
-                     else
-                       for i:=0 to 31 do
-                         current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));
-                   end;
-              end;
-            location.reference.symbol:=lab_set;
-          end;
-
       begin
         adjustforsetbase;
 
@@ -581,29 +545,27 @@ implementation
          lastlabel   : tasmlabel;
          i           : longint;
          entry       : PHashSetItem;
+         datatcb     : ttai_typedconstbuilder;
       begin
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(16));
         lastlabel:=nil;
         { const already used ? }
         if not assigned(lab_set) then
           begin
-            entry := current_asmdata.ConstPools[sp_guids].FindOrAdd(@value,sizeof(value));
-            lab_set := TAsmLabel(entry^.Data);  // is it needed anymore?
+            entry:=current_asmdata.ConstPools[sp_guids].FindOrAdd(@value,sizeof(value));
+            lab_set:=TAsmLabel(entry^.Data);  // is it needed anymore?
 
              { :-(, we must generate a new entry }
              if not assigned(entry^.Data) then
                begin
                  current_asmdata.getglobaldatalabel(lastlabel);
+                 datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
+                 datatcb.emit_guid_const(value);
+                 current_asmdata.asmlists[al_typedconsts].concatList(
+                   datatcb.get_final_asmlist(lastlabel,rec_tguid,sec_rodata_norel,lastlabel.name,const_align(16)));
+                 datatcb.free;
                  lab_set:=lastlabel;
                  entry^.Data:=lastlabel;
-                 maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                 new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(16));
-                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
-                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(longint(value.D1)));
-                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(value.D2));
-                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(value.D3));
-                 for i:=low(value.D4) to high(value.D4) do
-                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(value.D4[i]));
                end;
           end;
         location.reference.symbol:=lab_set;

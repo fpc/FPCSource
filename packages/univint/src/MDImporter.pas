@@ -4,10 +4,6 @@
  *      LastEditDate Was "Thu Jul  7 14:09:31 2005"
  *
  }
-
- { Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
- { Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
-
 {
     Modified for use with Free Pascal
     Version 308
@@ -224,7 +220,6 @@ uses MacTypes,CFBase,CFString,CFUUID,CFDictionary,CFPlugIn,CFPlugInCOM,MDItem;
 {!
         @constant kMDImporterTypeID The importer only loads CFPlugIns of type
         kMDImporterTypeID - 8B08C4BF-415B-11D8-B3F9-0003936726FC
-
 
         @constant kMDImporterInterfaceID Importers must implement this
         Interface - 6EBC27C4-899C-11D8-84A3-0003936726FC

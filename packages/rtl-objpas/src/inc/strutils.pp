@@ -1770,10 +1770,55 @@ begin
     end;
 end;
 
+Function isMatch(inputstr,wilds : string; CWild, CinputWord: integer;MaxInputword,maxwilds : word) : Boolean;
+
+begin
+  Result:=True;
+  repeat
+    if Wilds[CWild] = '*' then { handling of '*' }
+      begin
+      inc(CWild);
+      while Wilds[CWild] = '?' do { equal to '?' }
+        begin
+        { goto next letter }
+        inc(CWild);
+        inc(CinputWord);
+        end;
+      { increase until a match }
+      Repeat
+        while (inputStr[CinputWord]<>Wilds[CWild]) and (CinputWord <= MaxinputWord) do
+          inc(CinputWord);
+        Result:=isMatch(inputstr,wilds,CWild, CinputWord,MaxInputword,maxwilds);
+        if not Result then
+          Inc(cInputWord);
+      Until Result or (CinputWord>=MaxinputWord);
+      Continue;
+      end;
+    if Wilds[CWild] = '?' then { equal to '?' }
+      begin
+      { goto next letter }
+      inc(CWild);
+      inc(CinputWord);
+      Continue;
+      end;
+    if inputStr[CinputWord] = Wilds[CWild] then { equal letters }
+      begin
+      { goto next letter }
+      inc(CWild);
+      inc(CinputWord);
+      Continue;
+      end;
+    Result:=false;
+    Exit;
+  until (CinputWord > MaxinputWord) or (CWild > MaxWilds);
+  { no completed evaluation }
+  if (CinputWord <= MaxinputWord) or (CWild <= MaxWilds) then
+    Result:=false;
+end;
+
 function isWild(inputStr, Wilds: string; ignoreCase: boolean): boolean;
 
 var
-  CWild, CinputWord: integer; { counter for positions }
   i: integer;
   MaxinputWord, MaxWilds: integer; { Length of inputStr and Wilds }
 begin
@@ -1801,45 +1846,7 @@ begin
     inputStr:=AnsiUpperCase(inputStr);
     Wilds:=AnsiUpperCase(Wilds);
     end;
-  CinputWord:=1;
-  CWild:=1;
-  repeat
-    if Wilds[CWild] = '*' then { handling of '*' }
-      begin
-      inc(CWild);
-      while Wilds[CWild] = '?' do { equal to '?' }
-        begin
-        { goto next letter }
-        inc(CWild);
-        inc(CinputWord);
-        end;
-      { increase until a match }
-      while (inputStr[CinputWord] <> Wilds[CWild]) and 
-        (CinputWord <= MaxinputWord) do
-        inc(CinputWord);
-      Continue;
-      end;
-    if Wilds[CWild] = '?' then { equal to '?' }
-      begin
-      { goto next letter }
-      inc(CWild);
-      inc(CinputWord);
-      Continue;
-      end;
-    if inputStr[CinputWord] = Wilds[CWild] then { equal letters }
-      begin
-      { goto next letter }
-      inc(CWild);
-      inc(CinputWord);
-      Continue;
-      end;
-    Result:=false;
-    Exit;
-  until (CinputWord > MaxinputWord) or (CWild > MaxWilds);
-  { no completed evaluation }
-  if (CinputWord <= MaxinputWord) or 
-     (CWild <= MaxWilds) then
-    Result:=false;
+  Result:=isMatch(inputStr,wilds,1,1,MaxinputWord, MaxWilds);  
 end;
 
 

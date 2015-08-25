@@ -1,10 +1,6 @@
 {      MDQuery.h
         Copyright (c) 2003-2005, Apple Computer, Inc. All rights reserved.
 }
-
- { Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
- { Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
-
 {
     Modified for use with Free Pascal
     Version 308
@@ -279,7 +275,7 @@ type
 const
 	kMDQuerySynchronous = 1;
 	kMDQueryWantsUpdates = 4;
-	
+	kMDQueryAllowFSTranslation = 8;
 type
 	MDQueryOptionFlags = SIGNEDLONG;
 

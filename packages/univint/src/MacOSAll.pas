@@ -499,6 +499,8 @@ interface
 {$i Video.pas}
 {unit WSTypes}
 {$i WSTypes.pas}
+{unit acl}
+{$i acl.pas}
 {unit certextensions}
 {$i certextensions.pas}
 {unit cssmapple}
@@ -601,6 +603,10 @@ interface
 {$i PictUtils.pas}
 {unit QDOffscreen}
 {$i QDOffscreen.pas}
+{unit SKAnalysis}
+{$i SKAnalysis.pas}
+{unit SKSummary}
+{$i SKSummary.pas}
 {unit Scrap}
 {$i Scrap.pas}
 {unit SecTrust}
@@ -615,6 +621,8 @@ interface
 {$i CFCalendar.pas}
 {unit CFDateFormatter}
 {$i CFDateFormatter.pas}
+{unit CFFileSecurity}
+{$i CFFileSecurity.pas}
 {unit CFRunLoop}
 {$i CFRunLoop.pas}
 {unit CFSocket}
@@ -641,6 +649,8 @@ interface
 {$i AudioHardware.pas}
 {unit AudioHardwareDeprecated}
 {$i AudioHardwareDeprecated.pas}
+{unit CFFileDescriptor}
+{$i CFFileDescriptor.pas}
 {unit CFMachPort}
 {$i CFMachPort.pas}
 {unit CFMessagePort}
@@ -679,6 +689,8 @@ interface
 {$i CFURL.pas}
 {unit CFURLAccess}
 {$i CFURLAccess.pas}
+{unit CFURLEnumerator}
+{$i CFURLEnumerator.pas}
 {unit CFUserNotification}
 {$i CFUserNotification.pas}
 {unit CFXMLNode}
@@ -725,6 +737,12 @@ interface
 {$i PMCoreDeprecated.pas}
 {unit Pasteboard}
 {$i Pasteboard.pas}
+{unit SKDocument}
+{$i SKDocument.pas}
+{unit SKIndex}
+{$i SKIndex.pas}
+{unit SKSearch}
+{$i SKSearch.pas}
 {unit SpeechSynthesis}
 {$i SpeechSynthesis.pas}
 {unit TextInputSources}
@@ -1436,6 +1454,13 @@ function CGSizeMake(width: CGFloat; height: CGFloat): CGSize; inline;
 begin
   CGSizeMake.width := width;
   CGSizeMake.height := height;
+end;
+
+
+function CGVectorMake(dx: CGFloat; dy: CGFloat): CGVector; inline;
+begin
+  CGVectorMake.dx := dx;
+  CGVectorMake.dy := dy;
 end;
 
 

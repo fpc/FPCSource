@@ -752,6 +752,9 @@ Var
   { Stack checking }
   StackBottom : Pointer;
   StackLength : SizeUInt;
+  
+Var
+  WriteErrorsToStdErr : Boolean = True;
 
 function StackTop: Pointer;
 
@@ -1428,7 +1431,7 @@ Const
 
 Procedure Error(RunTimeError : TRunTimeError);
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
-Function  Paramcount:Longint;
+Function  ParamCount:Longint;
 Function  ParamStr(l:Longint):string;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 

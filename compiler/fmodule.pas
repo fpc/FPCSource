@@ -44,7 +44,7 @@ interface
     uses
        cutils,cclasses,cfileutl,
        globtype,finput,ogbase,
-       symbase,symconst,symsym,symcpu,
+       symbase,symconst,symsym,
        wpobase,
        aasmbase,aasmtai,aasmdata;
 
@@ -142,8 +142,9 @@ interface
         checkforwarddefs,
         deflist,
         symlist       : TFPObjectList;
-        ptrdefs       : tPtrDefHashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
+        ptrdefs       : THashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
         arraydefs     : THashSet; { list of single-element-arraydefs created in this module so we can reuse them (not saved/restored) }
+        procaddrdefs  : THashSet; { list of procvardefs created when getting the address of a procdef (not saved/restored) }
 {$ifdef llvm}
         llvmdefs      : THashSet; { defs added for llvm-specific reasons (not saved/restored) }
 {$endif llvm}
@@ -570,8 +571,9 @@ implementation
         derefdataintflen:=0;
         deflist:=TFPObjectList.Create(false);
         symlist:=TFPObjectList.Create(false);
-        ptrdefs:=cPtrDefHashSet.Create;
+        ptrdefs:=THashSet.Create(64,true,false);
         arraydefs:=THashSet.Create(64,true,false);
+        procaddrdefs:=THashSet.Create(64,true,false);
 {$ifdef llvm}
         llvmdefs:=THashSet.Create(64,true,false);
 {$endif llvm}
@@ -689,6 +691,7 @@ implementation
         symlist.free;
         ptrdefs.free;
         arraydefs.free;
+        procaddrdefs.free;
 {$ifdef llvm}
         llvmdefs.free;
 {$endif llvm}
@@ -753,9 +756,11 @@ implementation
         symlist.free;
         symlist:=TFPObjectList.Create(false);
         ptrdefs.free;
-        ptrdefs:=cPtrDefHashSet.Create;
+        ptrdefs:=THashSet.Create(64,true,false);
         arraydefs.free;
         arraydefs:=THashSet.Create(64,true,false);
+        procaddrdefs.free;
+        procaddrdefs:=THashSet.Create(64,true,false);
 {$ifdef llvm}
         llvmdefs.free;
         llvmdefs:=THashSet.Create(64,true,false);

@@ -1,13 +1,25 @@
 {
-     File:       CarbonCore/ConditionalMacros.h
- 
-     Contains:   This header file is deprecated.
-                 The contents have been moved to </usr/include/ConditionalMacros.h>.
- 
-     Copyright:  © 1993-2011 by Apple Inc. All rights reserved.
-}
-{    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
+ * Copyright (c) 1993-2011 by Apple Inc.. All rights reserved.
+ *
+ * @APPLE_LICENSE_HEADER_START@
+ * 
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ * 
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ * 
+ * @APPLE_LICENSE_HEADER_END@
+ }
 {
     Modified for use with Free Pascal
     Version 308
@@ -205,6 +217,21 @@ interface
 {$endc} {not MACOSALLINCLUDE}
 {$ALIGN POWER}
 
+
+{
+     File:       ConditionalMacros.h
+ 
+     Contains:   Set up for compiler independent conditionals
+ 
+     Version:    CarbonCore-769~1
+  
+     Bugs?:      For bug reports, consult the following page on
+                 the World Wide Web:
+ 
+                     http://developer.apple.com/bugreporter/
+ 
+}
+
 {***************************************************************************************************
     UNIVERSAL_INTERFACES_VERSION
     
@@ -277,7 +304,7 @@ interface
     Headers and implementation files can use the following macros to make their
     source more portable by hiding the calling convention details:
 
-    EXTERN_APIÅ 
+    EXTERN_API*
     These macros are used to specify the calling convention on a function prototype.
 
         EXTERN_API              - Classic 68k: pascal, Win32: __cdecl
@@ -286,7 +313,7 @@ interface
         EXTERN_API_C_STDCALL    - Classic 68k: C,      Win32: __stdcall
 
 
-    DEFINE_APIÅ 
+    DEFINE_API*
     These macros are used to specify the calling convention on a function definition.
 
         DEFINE_API              - Classic 68k: pascal, Win32: __cdecl
@@ -295,7 +322,7 @@ interface
         DEFINE_API_C_STDCALL    - Classic 68k: C,      Win32: __stdcall
 
 
-    CALLBACK_APIÅ   
+    CALLBACK_API*
     These macros are used to specify the calling convention of a function pointer.
 
         CALLBACK_API            - Classic 68k: pascal, Win32: __stdcall
@@ -307,7 +334,7 @@ interface
 
 {***************************************************************************************************
     
-    Set up TARGET_API_Å_Å values
+    Set up TARGET_API_*_* values
 
 ***************************************************************************************************}
 

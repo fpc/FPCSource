@@ -33,7 +33,8 @@ interface
       fmodule,
       globtype,
       ldscript,
-      ogbase;
+      ogbase,
+      owbase;
 
     Type
       TLinkerInfo=record
@@ -93,6 +94,7 @@ interface
       private
          FCExeOutput : TExeOutputClass;
          FCObjInput  : TObjInputClass;
+         FCArObjectReader : TObjectReaderClass;
          { Libraries }
          FStaticLibraryList : TFPObjectList;
          FImportLibraryList : TFPHashObjectList;
@@ -115,6 +117,7 @@ interface
          linkscript : TCmdStrList;
          ScriptCount : longint;
          IsHandled : PBooleanArray;
+         property CArObjectReader:TObjectReaderClass read FCArObjectReader write FCArObjectReader;
          property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
          property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
          property StaticLibraryList:TFPObjectList read FStaticLibraryList;
@@ -122,6 +125,9 @@ interface
          procedure DefaultLinkScript;virtual;abstract;
          procedure ScriptAddGenericSections(secnames:string);
          procedure ScriptAddSourceStatements(AddSharedAsStatic:boolean);virtual;
+         function GetCodeSize(aExeOutput: TExeOutput): QWord;virtual;
+         function GetDataSize(aExeOutput: TExeOutput): QWord;virtual;
+         function GetBssSize(aExeOutput: TExeOutput): QWord;virtual;
       public
          IsSharedLibrary : boolean;
          UseStabs : boolean;
@@ -156,7 +162,7 @@ Implementation
 {$endif hasUnix}
       script,globals,verbose,comphook,ppu,fpccrc,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      owbase,owar,ogmap;
+      ogmap;
 
     var
       CLinker : array[tlink] of TLinkerClass;
@@ -983,6 +989,30 @@ Implementation
       end;
 
 
+    function TInternalLinker.GetCodeSize(aExeOutput: TExeOutput): QWord;
+      begin
+        Result:=aExeOutput.findexesection('.text').size;
+      end;
+
+
+    function TInternalLinker.GetDataSize(aExeOutput: TExeOutput): QWord;
+      begin
+        Result:=aExeOutput.findexesection('.data').size;
+      end;
+
+
+    function TInternalLinker.GetBssSize(aExeOutput: TExeOutput): QWord;
+      var
+        bsssec: TExeSection;
+      begin
+        bsssec:=aExeOutput.findexesection('.bss');
+        if assigned(bsssec) then
+          Result:=bsssec.size
+        else
+          Result:=0;
+      end;
+
+
     procedure TInternalLinker.ParseLdScript(src:TScriptLexer);
       var
         asneeded: boolean;
@@ -1067,7 +1097,7 @@ Implementation
 
     procedure TInternalLinker.Load_ReadStaticLibrary(const para:TCmdStr;asneededflag:boolean);
       var
-        objreader : TArObjectReader;
+        objreader : TObjectReader;
         objinput: TObjInput;
         objdata: TObjData;
         ScriptLexer: TScriptLexer;
@@ -1078,7 +1108,7 @@ Implementation
         if copy(ExtractFileName(para),1,6)='libimp' then
           exit;
         Comment(V_Tried,'Opening library '+para);
-        objreader:=TArObjectreader.create(para,true);
+        objreader:=CArObjectreader.createAr(para,true);
         if ErrorCount>0 then
           exit;
         if objreader.isarchive then
@@ -1420,7 +1450,6 @@ Implementation
         myexit;
       var
         bsssize : aword;
-        bsssec  : TExeSection;
         dbgname : TCmdStr;
       begin
         result:=false;
@@ -1500,14 +1529,9 @@ Implementation
         { Post check that everything was handled }
         ParseScript_PostCheck;
 
-{ TODO: fixed section names}
-        status.codesize:=exeoutput.findexesection('.text').size;
-        status.datasize:=exeoutput.findexesection('.data').size;
-        bsssec:=exeoutput.findexesection('.bss');
-        if assigned(bsssec) then
-          bsssize:=bsssec.size
-        else
-          bsssize:=0;
+        status.codesize:=GetCodeSize(exeoutput);
+        status.datasize:=GetDataSize(exeoutput);
+        bsssize:=GetBssSize(exeoutput);
 
         { Executable info }
         Message1(execinfo_x_codesize,tostr(status.codesize));

@@ -78,7 +78,7 @@ Type
     procedure StartSubSection(SubSectionName : String);override;
     procedure StartSubSubSection(SubSubSectionName : String);override;
     procedure StartChapter(ChapterName : String); override;
-    procedure StartOverview(WithAccess : Boolean); override;
+    procedure StartOverview(Const What : String;WithAccess : Boolean); override;
     procedure EndOverview; override;
     procedure WriteOverviewMember(const ALabel,AName,Access,ADescr : String); override;
     procedure WriteOverviewMember(const ALabel,AName,ADescr : String); override;
@@ -135,7 +135,7 @@ Type
   end;
 
 
-procedure TTxtWriter.WriteUnderline(Const Msg : String; DoubleLine : Boolean);
+procedure TTXTWriter.WriteUnderline(const Msg: String; DoubleLine: Boolean);
 
 Var
   L : Integer;
@@ -146,7 +146,7 @@ begin
   WriteLine(L,DoubleLine);
 end;
 
-procedure TTxtWriter.WriteLine(DoubleLine : Boolean);
+procedure TTXTWriter.WriteLine(DoubleLine: Boolean);
 
 begin
   Writeline(LineWidth,DoubleLine);
@@ -216,14 +216,14 @@ begin
   end;
 end;
 
-procedure TTxtWriter.NewLine;
+procedure TTXTWriter.NewLine;
 
 begin
   If Not FCurrentPos=0 then
     Writeln('');
 end;
 
-procedure TTxtWriter.WriteLine(LineLength : Integer; DoubleLine : Boolean);
+procedure TTXTWriter.WriteLine(LineLength: Integer; DoubleLine: Boolean);
 
 begin
   NewLine;
@@ -234,7 +234,7 @@ begin
 end;
 
 
-function TTxtWriter.GetLabel(AElement: TPasElement): String;
+function TTXTWriter.GetLabel(AElement: TPasElement): String;
 
 begin
   if AElement.ClassType = TPasUnresolvedTypeRef then
@@ -246,87 +246,87 @@ begin
   end;
 end;
 
-procedure TTxtWriter.DescrBeginBold;
+procedure TTXTWriter.DescrBeginBold;
 begin
 end;
 
-procedure TTxtWriter.DescrEndBold;
+procedure TTXTWriter.DescrEndBold;
 begin
 end;
 
-procedure TTxtWriter.DescrBeginItalic;
+procedure TTXTWriter.DescrBeginItalic;
 begin
 end;
 
-procedure TTxtWriter.DescrEndItalic;
+procedure TTXTWriter.DescrEndItalic;
 begin
 end;
 
-procedure TTxtWriter.DescrBeginEmph;
+procedure TTXTWriter.DescrBeginEmph;
 begin
 end;
 
-procedure TTxtWriter.DescrEndEmph;
+procedure TTXTWriter.DescrEndEmph;
 begin
 end;
 
-procedure TTxtWriter.DescrWriteFileEl(const AText: DOMString);
-begin
-  DescrWriteText(AText);
-end;
-
-procedure TTxtWriter.DescrWriteKeywordEl(const AText: DOMString);
+procedure TTXTWriter.DescrWriteFileEl(const AText: DOMString);
 begin
   DescrWriteText(AText);
 end;
 
-procedure TTxtWriter.DescrWriteVarEl(const AText: DOMString);
+procedure TTXTWriter.DescrWriteKeywordEl(const AText: DOMString);
 begin
   DescrWriteText(AText);
 end;
 
-procedure TTxtWriter.DescrBeginLink(const AId: DOMString);
+procedure TTXTWriter.DescrWriteVarEl(const AText: DOMString);
+begin
+  DescrWriteText(AText);
+end;
+
+procedure TTXTWriter.DescrBeginLink(const AId: DOMString);
 begin
   Write('[');
 end;
 
-procedure TTxtWriter.DescrEndLink;
+procedure TTXTWriter.DescrEndLink;
 begin
   Write('] ');
 end;
 
-procedure TTxtWriter.DescrWriteLinebreak;
+procedure TTXTWriter.DescrWriteLinebreak;
 begin
   WriteLn('');
 end;
 
-procedure TTxtWriter.DescrBeginParagraph;
+procedure TTXTWriter.DescrBeginParagraph;
 begin
   // Do nothing
 end;
 
-procedure TTxtWriter.DescrEndParagraph;
+procedure TTXTWriter.DescrEndParagraph;
 begin
   WriteLn('');
 end;
 
-procedure TTxtWriter.DescrBeginCode(HasBorder: Boolean;
+procedure TTXTWriter.DescrBeginCode(HasBorder: Boolean;
   const AHighlighterName: String);
 begin
   StartListing(HasBorder,'');
 end;
 
-procedure TTxtWriter.DescrWriteCodeLine(const ALine: String);
+procedure TTXTWriter.DescrWriteCodeLine(const ALine: String);
 begin
   WriteLn(ALine);
 end;
 
-procedure TTxtWriter.DescrEndCode;
+procedure TTXTWriter.DescrEndCode;
 begin
   EndListing
 end;
 
-procedure TTxtWriter.NewListLevel(Initial : Integer);
+procedure TTXTWriter.NewListLevel(Initial: Integer);
 
 begin
   Inc(FListLevel);
@@ -334,44 +334,44 @@ begin
     FLists[FListLevel]:=0;
 end;
 
-procedure TTxtWriter.DecListLevel;
+procedure TTXTWriter.declistlevel;
 
 begin
   If (FListLevel>0) then
     Dec(FListLevel)
 end;
 
-procedure TTxtWriter.DescrBeginOrderedList;
+procedure TTXTWriter.DescrBeginOrderedList;
 begin
   NewListLevel(0);
 end;
 
-procedure TTxtWriter.DescrEndOrderedList;
+procedure TTXTWriter.DescrEndOrderedList;
 begin
   DecListLevel;
 end;
 
-procedure TTxtWriter.DescrBeginUnorderedList;
+procedure TTXTWriter.DescrBeginUnorderedList;
 begin
   NewListLevel(-1);
 end;
 
-procedure TTxtWriter.DescrEndUnorderedList;
+procedure TTXTWriter.DescrEndUnorderedList;
 begin
   DecListLevel;
 end;
 
-procedure TTxtWriter.DescrBeginDefinitionList;
+procedure TTXTWriter.DescrBeginDefinitionList;
 begin
   NewListLevel(-2);
 end;
 
-procedure TTxtWriter.DescrEndDefinitionList;
+procedure TTXTWriter.DescrEndDefinitionList;
 begin
   DecListLevel;
 end;
 
-procedure TTxtWriter.DescrBeginListItem;
+procedure TTXTWriter.DescrBeginListItem;
 begin
   If FLists[FListLevel]>=0 then
     begin
@@ -381,105 +381,105 @@ begin
   Write('   ');
 end;
 
-procedure TTxtWriter.DescrEndListItem;
+procedure TTXTWriter.DescrEndListItem;
 begin
   WriteLn('');
 end;
 
-procedure TTxtWriter.DescrBeginDefinitionTerm;
+procedure TTXTWriter.DescrBeginDefinitionTerm;
 begin
   Write('<<');
 end;
 
-procedure TTxtWriter.DescrEndDefinitionTerm;
+procedure TTXTWriter.DescrEndDefinitionTerm;
 begin
   WriteLn('>>:');
 end;
 
-procedure TTxtWriter.DescrBeginDefinitionEntry;
+procedure TTXTWriter.DescrBeginDefinitionEntry;
 begin
   // Do nothing
 end;
 
-procedure TTxtWriter.DescrEndDefinitionEntry;
+procedure TTXTWriter.DescrEndDefinitionEntry;
 begin
   WriteLn('');
 end;
 
-procedure TTxtWriter.DescrBeginSectionTitle;
+procedure TTXTWriter.DescrBeginSectionTitle;
 begin
   Inc(FSectionCount);
   WritelnF('%s %d.%d: ',[SDocSection,FChapterCount,FSectionCount]);
 end;
 
-procedure TTxtWriter.DescrBeginSectionBody;
+procedure TTXTWriter.DescrBeginSectionBody;
 begin
   WriteLn('');
 end;
 
-procedure TTxtWriter.DescrEndSection;
+procedure TTXTWriter.DescrEndSection;
 begin
   // Do noting
 end;
 
-procedure TTxtWriter.DescrBeginRemark;
+procedure TTXTWriter.DescrBeginRemark;
 begin
   WriteLn(SDocRemark+': ');
 end;
 
-procedure TTxtWriter.DescrEndRemark;
+procedure TTXTWriter.DescrEndRemark;
 begin
   WriteLn('');
 end;
 
-procedure TTxtWriter.DescrBeginTable(ColCount: Integer; HasBorder: Boolean);
+procedure TTXTWriter.DescrBeginTable(ColCount: Integer; HasBorder: Boolean);
 
 begin
   WriteLine(False);
 end;
 
-procedure TTxtWriter.DescrEndTable;
+procedure TTXTWriter.DescrEndTable;
 begin
   WriteLine(False);
 end;
 
-procedure TTxtWriter.DescrBeginTableCaption;
+procedure TTXTWriter.DescrBeginTableCaption;
 begin
   // Do nothing.
 end;
 
-procedure TTxtWriter.DescrEndTableCaption;
+procedure TTXTWriter.DescrEndTableCaption;
 begin
   Inc(FTableCount);
   WriteF('%s %d :',[SDoctable,FTableCount]);
   TableCaptionWritten := True;
 end;
 
-procedure TTxtWriter.DescrBeginTableHeadRow;
+procedure TTXTWriter.DescrBeginTableHeadRow;
 begin
   if not TableCaptionWritten then
     DescrEndTableCaption;
   TableRowStartFlag := True;
 end;
 
-procedure TTxtWriter.DescrEndTableHeadRow;
+procedure TTXTWriter.DescrEndTableHeadRow;
 begin
   WriteLine(False);
 end;
 
-procedure TTxtWriter.DescrBeginTableRow;
+procedure TTXTWriter.DescrBeginTableRow;
 begin
   if not TableCaptionWritten then
     DescrEndTableCaption;
   TableRowStartFlag := True;
 end;
 
-procedure TTxtWriter.DescrEndTableRow;
+procedure TTXTWriter.DescrEndTableRow;
 begin
   WriteLn('');
 end;
 
-procedure TTxtWriter.DescrBeginTableCell;
+procedure TTXTWriter.DescrBeginTableCell;
 begin
   if TableRowStartFlag then
     TableRowStartFlag := False
@@ -487,7 +487,7 @@ begin
     Write('    ');
 end;
 
-procedure TTxtWriter.DescrEndTableCell;
+procedure TTXTWriter.DescrEndTableCell;
 begin
   // Do nothing
 end;
@@ -514,15 +514,15 @@ begin
     Result:=inherited InterpretOption(Cmd, Arg);
 end;
 
-procedure TTxtWriter.WriteLabel(const s: String);
+procedure TTXTWriter.WriteLabel(const S: String);
 begin
 end;
 
-procedure TTxtWriter.WriteIndex(const s : String);
+procedure TTXTWriter.WriteIndex(const S: String);
 begin
 end;
 
-procedure TTxtWriter.StartListing(Frames: Boolean; const name: String);
+procedure TTXTWriter.StartListing(Frames: Boolean; const name: String);
 begin
   FInVerbatim:=True;
   If (Name<>'') then
@@ -533,21 +533,21 @@ begin
     WriteLn('');
 end;
 
-procedure TTxtWriter.EndListing;
+procedure TTXTWriter.EndListing;
 begin
   FInVerbatim:=False;
 end;
 
-procedure TTxtWriter.WriteCommentLine;
+procedure TTXTWriter.WriteCommentLine;
 
 begin
 end;
 
-procedure TTxtWriter.WriteComment(Comment : String);
+procedure TTXTWriter.WriteComment(Comment: String);
 begin
 end;
 
-procedure TTxtWriter.StartChapter(ChapterName : String);
+procedure TTXTWriter.StartChapter(ChapterName: String);
 begin
   Inc(FChapterCount);
   FSectionCount:=0;
@@ -559,7 +559,7 @@ begin
   Writeln('');
 end;
 
-procedure TTxtWriter.StartSection(SectionName : String);
+procedure TTXTWriter.StartSection(SectionName: String);
 begin
   Inc(FSectionCount);
   FSubSectionCount:=0;
@@ -570,7 +570,7 @@ begin
   Writeln('');
 end;
 
-procedure TTxtWriter.StartSubSection(SubSectionName : String);
+procedure TTXTWriter.StartSubSection(SubSectionName: String);
 begin
   Inc(FSubSectionCount);
   Writeln('');
@@ -579,7 +579,7 @@ begin
   Writeln('');
 end;
 
-procedure TTxtWriter.StartSubSubSection(SubSubSectionName : String);
+procedure TTXTWriter.StartSubSubSection(SubSubSectionName: String);
 begin
   Writeln('');
   Writeln(SubSubSectionName);
@@ -598,7 +598,7 @@ begin
   end;
 end;
 
-procedure TTxtWriter.WriteExampleFile(FN : String);
+procedure TTXTWriter.WriteExampleFile(FN: String);
 
 Var
   L : TStringList;
@@ -622,51 +622,52 @@ begin
     end;
 end;
 
-procedure TTxtWriter.StartOverview(WithAccess : Boolean);
+procedure TTXTWriter.StartOverview(const What: String; WithAccess: Boolean);
 
 begin
   If WithAccess then
-    WriteUnderLine(Format('%.30s %.10s %s',[EscapeText(SDocProperty), EscapeText(SDocAccess), EscapeText(SDocDescription)]),False)
+    WriteUnderLine(Format('%.30s %.10s %s',[EscapeText(What), EscapeText(SDocAccess), EscapeText(SDocDescription)]),False)
   else
-    WriteUnderLine(Format('%.30s %s',[EscapeText(SDocMethod), EscapeText(SDocDescription)]),False);
+    WriteUnderLine(Format('%.30s %s',[EscapeText(What), EscapeText(SDocDescription)]),False);
 end;
 
-procedure TTxtWriter.EndOverview;
+procedure TTXTWriter.EndOverview;
 
 begin
   WriteLine(False);
 end;
 
-procedure TTxtWriter.WriteOverviewMember(const ALabel,AName,Access,ADescr : String);
+procedure TTXTWriter.WriteOverviewMember(const ALabel, AName, Access,
+  ADescr: String);
 
 begin
   WriteLnF('%.30s %.10s  %s',[AName,Access,ADescr]);
 end;
 
-procedure TTxtWriter.WriteOverviewMember(const ALabel,AName,ADescr : String);
+procedure TTXTWriter.WriteOverviewMember(const ALabel, AName, ADescr: String);
 
 begin
   WriteLnF('%.30s %s ',[AName,ADescr]);
 end;
 
-class function TTxtWriter.FileNameExtension: String;
+class function TTXTWriter.FileNameExtension: String;
 begin
   Result:=TxtExtension;
 end;
 
-procedure TTxtWriter.StartUnitOverview(AModuleName,AModuleLabel : String);
+procedure TTXTWriter.StartUnitOverview(AModuleName, AModuleLabel: String);
 
 begin
   WriteUnderLine('Unit Name',False);
 end;
 
-procedure TTxtWriter.WriteUnitEntry(UnitRef : TPasType);
+procedure TTXTWriter.WriteUnitEntry(UnitRef: TPasType);
 
 begin
   Writeln(EscapeText(UnitRef.Name));
 end;
 
-procedure TTxtWriter.EndUnitOverview;
+procedure TTXTWriter.EndUnitOverview;
 
 begin
   Writeln('');

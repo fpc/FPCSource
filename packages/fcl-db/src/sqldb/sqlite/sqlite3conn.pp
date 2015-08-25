@@ -88,6 +88,8 @@ type
     constructor Create(AOwner : TComponent); override;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
     function GetConnectionInfo(InfoType:TConnInfoType): string; override;
+    procedure CreateDB; override;
+    procedure DropDB; override;
     function GetInsertID: int64;
     // See http://www.sqlite.org/c3ref/create_collation.html for detailed information
     // If eTextRep=0 a default UTF-8 compare function is used (UTF8CompareCallback)
@@ -176,7 +178,6 @@ Var
   I : Integer;
   P : TParam;  
   str1: string;
-  do1: double;
   wstr1: widestring;
   
 begin
@@ -189,23 +190,16 @@ begin
       case P.DataType of
         ftInteger,
         ftAutoInc,
-        ftBoolean,
         ftSmallint: checkerror(sqlite3_bind_int(fstatement,I,P.AsInteger));
         ftWord:     checkerror(sqlite3_bind_int(fstatement,I,P.AsWord));
+        ftBoolean:  checkerror(sqlite3_bind_int(fstatement,I,ord(P.AsBoolean)));
         ftLargeint: checkerror(sqlite3_bind_int64(fstatement,I,P.AsLargeint));
         ftBcd,
         ftFloat,
-        ftCurrency:
-                begin
-                do1:= P.AsFloat;
-                checkerror(sqlite3_bind_double(fstatement,I,do1));
-                end;
+        ftCurrency: checkerror(sqlite3_bind_double(fstatement, I, P.AsFloat));
         ftDateTime,
         ftDate,
-        ftTime: begin
-                do1:= P.AsFloat - JulianEpoch;
-                checkerror(sqlite3_bind_double(fstatement,I,do1));
-                end;
+        ftTime:     checkerror(sqlite3_bind_double(fstatement, I, P.AsFloat - JulianEpoch));
         ftFMTBcd:
                 begin
                 str1:=BCDToStr(P.AsFMTBCD, Fconnection.FSQLFormatSettings);
@@ -239,6 +233,8 @@ Procedure TSQLite3Cursor.Prepare(Buf : String; AParams : TParams);
 begin
   if assigned(AParams) and (AParams.Count > 0) then
     Buf := AParams.ParseSQL(Buf,false,false,false,psInterbase,fparambinding);
+  if (detActualSQL in fconnection.LogEvents) then
+    fconnection.Log(detActualSQL,Buf);
   checkerror(sqlite3_prepare(fhandle,pchar(Buf),length(Buf),@fstatement,@ftail));
   FPrepared:=True;
 end;
@@ -334,12 +330,12 @@ begin
   ABlobBuf^.BlobBuffer^.Size := int1;
 end;
 
-Function TSQLite3Connection.AllocateTransactionHandle: TSQLHandle;
+function TSQLite3Connection.AllocateTransactionHandle: TSQLHandle;
 begin
  result:= tsqlhandle.create;
 end;
 
-Function TSQLite3Connection.AllocateCursorHandle: TSQLCursor;
+function TSQLite3Connection.AllocateCursorHandle: TSQLCursor;
 
 Var
   Res : TSQLite3Cursor;
@@ -350,7 +346,7 @@ begin
   Result:=Res;
 end;
 
-Procedure TSQLite3Connection.DeAllocateCursorHandle(var cursor: TSQLCursor);
+procedure TSQLite3Connection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 begin
   freeandnil(cursor);
 end;
@@ -536,7 +532,9 @@ begin
   checkerror(sqlite3_reset(sc.fstatement));
   If (AParams<>Nil) and (AParams.count > 0) then
     SC.BindParams(AParams);
-  SC.Execute;    
+  If LogEvent(detParamValue) then
+    LogParams(AParams);
+  SC.Execute;
 end;
 
 Function NextWord(Var S : ShortString; Sep : Char) : String;
@@ -778,15 +776,14 @@ end;
 
 procedure TSQLite3Connection.DoInternalConnect;
 var
-  str1: string;
+  filename: ansistring;
 begin
   Inherited;
-  if Length(databasename)=0 then
+  if DatabaseName = '' then
     DatabaseError(SErrNoDatabaseName,self);
-  if (SQLiteLoadedLibrary='') then
-    InitializeSqlite(SQLiteDefaultLibrary);
-  str1:= databasename;
-  checkerror(sqlite3_open(pchar(str1),@fhandle));
+  InitializeSQLite;
+  filename := DatabaseName;
+  checkerror(sqlite3_open(PAnsiChar(filename),@fhandle));
   if (Length(Password)>0) and assigned(sqlite3_key) then
     checkerror(sqlite3_key(fhandle,PChar(Password),StrLen(PChar(Password))));
   if Params.IndexOfName('foreign_keys') <> -1 then
@@ -801,7 +798,7 @@ begin
     begin
     checkerror(sqlite3_close(fhandle));
     fhandle:= nil;
-    releasesqlite;
+    ReleaseSQLite;
     end; 
 end;
 
@@ -978,7 +975,7 @@ function TSQLite3Connection.GetConnectionInfo(InfoType: TConnInfoType): string;
 begin
   Result:='';
   try
-    InitializeSqlite(SQLiteDefaultLibrary);
+    InitializeSQLite;
     case InfoType of
       citServerType:
         Result:=TSQLite3ConnectionDef.TypeName;
@@ -995,6 +992,30 @@ begin
   finally
     ReleaseSqlite;
   end;
+end;
+
+procedure TSQLite3Connection.CreateDB;
+var filename: ansistring;
+begin
+  CheckDisConnected;
+  try
+    InitializeSQLite;
+    try
+      filename := DatabaseName;
+      checkerror(sqlite3_open(PAnsiChar(filename),@fhandle));
+    finally
+      sqlite3_close(fhandle);
+      fhandle := nil;
+    end;
+  finally
+    ReleaseSqlite;
+  end;
+end;
+
+procedure TSQLite3Connection.DropDB;
+begin
+  CheckDisConnected;
+  DeleteFile(DatabaseName);
 end;
 
 function UTF8CompareCallback(user: pointer; len1: longint; data1: pointer; len2: longint; data2: pointer): longint; cdecl;
@@ -1072,7 +1093,7 @@ end;
 
 class function TSQLite3ConnectionDef.LoadFunction: TLibraryLoadFunction;
 begin
-  Result:=@InitializeSqliteANSI; //the function taking the filename argument
+  Result:=@InitializeSQLiteANSI; //the function taking the filename argument
 end;
 
 class function TSQLite3ConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;

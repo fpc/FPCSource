@@ -305,7 +305,7 @@ interface
                   reference_reset(hr,2);
                   hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
                   location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,hr,location.register);
+                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr,location.register);
                 end
                else
                 begin
@@ -398,14 +398,20 @@ interface
 
 
     procedure tcgtypeconvnode.second_char_to_string;
+      var
+        tmpref: treference;
       begin
          location_reset_ref(location,LOC_REFERENCE,OS_NO,2);
          case tstringdef(resultdef).stringtype of
            st_shortstring :
              begin
                tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,location.reference);
+               tmpref:=location.reference;
+               hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
+                 cpointerdef.getreusable(cshortstringtype),
+                 cpointerdef.getreusable(left.resultdef),tmpref);
                hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
-                 location.reference);
+                 tmpref);
                location_freetemp(current_asmdata.CurrAsmList,left.location);
              end;
            { the rest is removed in the resultdef pass and converted to compilerprocs }
@@ -681,7 +687,7 @@ interface
          { FPC_EMPTYCHAR is a widechar -> 2 bytes }
          reference_reset(hr,2);
          hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
-         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,hr,location.register);
+         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr,location.register);
          hlcg.a_label(current_asmdata.CurrAsmList,l1);
       end;
 

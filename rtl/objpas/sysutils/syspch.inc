@@ -78,17 +78,16 @@ end ;
 function StrPLCopy(Dest: PChar; Const Source: string; MaxLen: SizeUInt): PChar;overload;
 var Count: SizeUInt;
 begin
-result := Dest;
-if (Result <> Nil) and (MaxLen <> 0) then
+Result := Dest;
+if Result <> Nil then
   begin
     Count := Length(Source);
     if Count > MaxLen then
       Count := MaxLen;
-    StrMove(Dest, PChar(Source), Count);
-    result[Count] := #0;  { terminate ! }
-  end ;
-end ;
-
+    StrMove(Result, PChar(Source), Count);
+    Result[Count] := #0;  { terminate ! }
+  end;
+end;
 
 {   StrDispose clears the memory allocated with StrAlloc   }
 

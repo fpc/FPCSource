@@ -4,6 +4,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -205,7 +206,11 @@ uses MacTypes,ConditionalMacros;
 
 
 type
+{$ifc TARGET_CPU_X86_64}
+	boolean_t							= UInt32;
+{$elsec}
 	boolean_t							= SInt32;
+{$endc}
 
 {$ifc TARGET_CPU_64}
 type

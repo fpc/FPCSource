@@ -70,6 +70,7 @@ resourcestring
   SDocMethodOverview         = 'Method overview';
   SDocPropertyOverview       = 'Property overview';
   SDocInterfacesOverview     = 'Interfaces overview';
+  SDocInterface              = 'Interfaces';
   SDocPage                   = 'Page';
   SDocMethod                 = 'Method';
   SDocProperty               = 'Property';
@@ -475,9 +476,6 @@ begin
       LastChild := Child;
       Child := Child.NextSibling;
     end;
-    { No child found, let's create one if we are at the end of the path }
-    if DotPos > 0 then
-      Raise Exception.CreateFmt('Link path does not exist: %s',[APathName]);
     Result := TLinkNode.Create(ChildName, ALinkTo);
     if Assigned(LastChild) then
       LastChild.FNextSibling := Result
@@ -633,6 +631,7 @@ begin
   FreeAndNil(DescrDocNames);
   FreeAndNil(DescrDocs);
   FreeAndNil(FAlwaysVisible);
+  FreeAndNil(FPackages);
   inherited Destroy;
 end;
 
@@ -710,9 +709,9 @@ var
     end;
   end;
 
-  function ResolvePackageModule(AName:String;var pkg:TPasPackage;var module:TPasModule;createnew:boolean):String;
+  function ResolvePackageModule(AName:String;out pkg:TPasPackage;out module:TPasModule;createnew:boolean):String;
     var
-      DotPos, DotPos2, i,j: Integer;
+      DotPos, DotPos2, i: Integer;
       s: String;
       HPackage: TPasPackage;
 
@@ -808,7 +807,6 @@ var
 
     function CreateClass(const AName: String;InheritanceStr:String): TPasClassType;
     var
-      DotPos, DotPos2, i,j: Integer;
       s: String;
       HPackage: TPasPackage;
       Module: TPasModule;
@@ -1445,9 +1443,7 @@ Var
   end;
 
 var
-  i: Integer;
   Node, Subnode, Subsubnode: TDOMNode;
-  Element: TDOMElement;
   Doc: TXMLDocument;
   PackageDocNode, TopicNode,ModuleDocNode: TDocNode;
 
@@ -1516,7 +1512,11 @@ begin
     if AElement.InheritsFrom(TPasUnresolvedTypeRef) then
       Result := FindDocNode(AElement.GetModule, AElement.Name)
     else
+      begin
       Result := RootDocNode.FindChild(AElement.PathName);
+      if (Result=Nil) and (AElement is TPasoperator) then
+        Result:=RootDocNode.FindChild(TPasOperator(AElement).OldName(True));
+      end;
     if (Result=Nil) and
        WarnNoNode and
        (Length(AElement.PathName)>0) and
@@ -1595,9 +1595,6 @@ end;
 
 
 function TFPDocEngine.FindLinkedNode(ANode : TDocNode) : TDocNode;
-
-Var
-  S: String;
 
 begin
   If (ANode.Link='') then

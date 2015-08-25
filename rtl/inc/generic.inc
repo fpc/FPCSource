@@ -1556,6 +1556,136 @@ function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; co
 {$endif FPC_SYSTEM_HAS_MOD_DWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_DIV_WORD}
+function fpc_div_word(n,z : word) : word; [public,alias: 'FPC_DIV_WORD']; compilerproc;
+  var
+     shift,lzz,lzn : Byte;
+  begin
+     result:=0;
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     if z=0 then
+       exit;
+     lzz:=BsrWord(z);
+     lzn:=BsrWord(n);
+     { if the denominator contains less zeros
+       then the numerator
+       then d is greater than the n }
+     if lzn>lzz then
+       exit;
+     shift:=lzz-lzn;
+     n:=n shl shift;
+     for shift:=shift downto 0 do
+       begin
+         if z>=n then
+           begin
+              z:=z-n;
+              result:=result+word(word(1) shl shift);
+           end;
+         n:=n shr 1;
+       end;
+  end;
+{$endif FPC_SYSTEM_HAS_DIV_WORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_MOD_WORD}
+function fpc_mod_word(n,z : word) : word; [public,alias: 'FPC_MOD_WORD']; compilerproc;
+  var
+     shift,lzz,lzn : Byte;
+  begin
+     result:=0;
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     if z=0 then
+       exit;
+     lzz:=BsrWord(z);
+     lzn:=BsrWord(n);
+     { if the denominator contains less zeros
+       then the numerator
+       then d is greater than the n }
+     if lzn>lzz then
+      begin
+         result:=z;
+         exit;
+      end;
+     shift:=lzz-lzn;
+     n:=n shl shift;
+     for shift:=shift downto 0 do
+       begin
+         if z>=n then
+           z:=z-n;
+         n:=n shr 1;
+       end;
+    result:=z;
+  end;
+{$endif FPC_SYSTEM_HAS_MOD_WORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_DIV_BYTE}
+function fpc_div_byte(n,z : byte) : byte; [public,alias: 'FPC_DIV_BYTE']; compilerproc;
+  var
+     shift,lzz,lzn : Byte;
+  begin
+     result:=0;
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     if z=0 then
+       exit;
+     lzz:=BsrByte(z);
+     lzn:=BsrByte(n);
+     { if the denominator contains less zeros
+       then the numerator
+       then d is greater than the n }
+     if lzn>lzz then
+       exit;
+     shift:=lzz-lzn;
+     n:=n shl shift;
+     for shift:=shift downto 0 do
+       begin
+         if z>=n then
+           begin
+              z:=z-n;
+              result:=result+byte(byte(1) shl shift);
+           end;
+         n:=n shr 1;
+       end;
+  end;
+{$endif FPC_SYSTEM_HAS_DIV_BYTE}
+
+
+{$ifndef FPC_SYSTEM_HAS_MOD_BYTE}
+function fpc_mod_byte(n,z : byte) : byte; [public,alias: 'FPC_MOD_BYTE']; compilerproc;
+  var
+     shift,lzz,lzn : Byte;
+  begin
+     result:=0;
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     if z=0 then
+       exit;
+     lzz:=BsrByte(z);
+     lzn:=BsrByte(n);
+     { if the denominator contains less zeros
+       then the numerator
+       then d is greater than the n }
+     if lzn>lzz then
+      begin
+         result:=z;
+         exit;
+      end;
+     shift:=lzz-lzn;
+     n:=n shl shift;
+     for shift:=shift downto 0 do
+       begin
+         if z>=n then
+           z:=z-n;
+         n:=n shr 1;
+       end;
+    result:=z;
+  end;
+{$endif FPC_SYSTEM_HAS_MOD_BYTE}
+
+
 {$ifndef FPC_SYSTEM_HAS_DIV_LONGINT}
 function fpc_div_longint(n,z : longint) : longint; [public,alias: 'FPC_DIV_LONGINT']; compilerproc;
   var
@@ -1618,8 +1748,133 @@ function fpc_mod_longint(n,z : longint) : longint; [public,alias: 'FPC_MOD_LONGI
   end;
 {$endif FPC_SYSTEM_HAS_MOD_LONGINT}
 
-{$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
+{$ifndef FPC_SYSTEM_HAS_DIV_SMALLINT}
+function fpc_div_smallint(n,z : smallint) : smallint; [public,alias: 'FPC_DIV_SMALLINT']; compilerproc;
+  var
+     sign : boolean;
+     w1,w2 : word;
+  begin
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     sign:=false;
+     if z<0 then
+       begin
+          sign:=not(sign);
+          w1:=word(-z);
+       end
+     else
+       w1:=z;
+     if n<0 then
+       begin
+          sign:=not(sign);
+          w2:=word(-n);
+       end
+     else
+       w2:=n;
+
+     { the div is coded by the compiler as call to divdword }
+     if sign then
+       result:=-(w1 div w2)
+     else
+       result:=w1 div w2;
+  end;
+{$endif FPC_SYSTEM_HAS_DIV_SMALLINT}
+
+
+{$ifndef FPC_SYSTEM_HAS_MOD_SMALLINT}
+function fpc_mod_smallint(n,z : smallint) : smallint; [public,alias: 'FPC_MOD_SMALLINT']; compilerproc;
+  var
+     signed : boolean;
+     r,nq,zq : word;
+  begin
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     nq:=abs(n);
+
+     if z<0 then
+       begin
+          zq:=word(-z);
+          signed:=true;
+       end
+     else
+       begin
+         zq:=z;
+         signed:=false;
+       end;
+
+     r:=zq mod nq;
+     if signed then
+       result:=-smallint(r)
+     else
+       result:=r;
+  end;
+{$endif FPC_SYSTEM_HAS_MOD_SMALLINT}
+
+
+{$ifndef FPC_SYSTEM_HAS_DIV_SHORTINT}
+function fpc_div_shortint(n,z : shortint) : shortint; [public,alias: 'FPC_DIV_SHORTINT']; compilerproc;
+  var
+     sign : boolean;
+     b1,b2 : byte;
+  begin
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     sign:=false;
+     if z<0 then
+       begin
+          sign:=not(sign);
+          b1:=byte(-z);
+       end
+     else
+       b1:=z;
+     if n<0 then
+       begin
+          sign:=not(sign);
+          b2:=byte(-n);
+       end
+     else
+       b2:=n;
+
+     { the div is coded by the compiler as call to divdword }
+     if sign then
+       result:=-(b1 div b2)
+     else
+       result:=b1 div b2;
+  end;
+{$endif FPC_SYSTEM_HAS_DIV_SHORTINT}
+
+
+{$ifndef FPC_SYSTEM_HAS_MOD_SHORTINT}
+function fpc_mod_shortint(n,z : shortint) : shortint; [public,alias: 'FPC_MOD_SHORTINT']; compilerproc;
+  var
+     signed : boolean;
+     r,nq,zq : byte;
+  begin
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     nq:=abs(n);
+
+     if z<0 then
+       begin
+          zq:=byte(-z);
+          signed:=true;
+       end
+     else
+       begin
+         zq:=z;
+         signed:=false;
+       end;
+
+     r:=zq mod nq;
+     if signed then
+       result:=-shortint(r)
+     else
+       result:=r;
+  end;
+{$endif FPC_SYSTEM_HAS_MOD_SHORTINT}
+
+{$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
 {****************************************************************************}
 

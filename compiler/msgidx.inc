@@ -442,6 +442,7 @@ const
   parser_w_ptr_type_ignored=03338;
   parser_e_global_generic_references_static=03339;
   parser_u_already_compiled=03340;
+  parser_e_explicit_method_implementation_for_specializations_not_allowed=03341;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -556,7 +557,6 @@ const
   type_e_procedure_must_be_far=04121;
   type_w_instance_abstract_class=04122;
   type_e_function_reference_kind=04123;
-  type_e_anonymous_function_unsupported=04999;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -825,6 +825,8 @@ const
   asmw_w_changing_bind_type=08027;
   asmw_h_changing_bind_type=08028;
   asmw_e_32bit_not_supported=08029;
+  asmw_f_code_segment_too_large=08030;
+  asmw_f_data_segment_too_large=08031;
   exec_w_source_os_redefined=09000;
   exec_i_assembling_pipe=09001;
   exec_d_cant_create_asmfile=09002;
@@ -870,6 +872,11 @@ const
   execinfo_x_stackcommit=09134;
   link_f_executable_too_big=09200;
   link_w_32bit_absolute_reloc=09201;
+  link_e_program_segment_too_large=09202;
+  link_e_code_segment_too_large=09203;
+  link_e_data_segment_too_large=09204;
+  link_e_segment_too_large=09205;
+  link_e_group_too_large=09206;
   unit_t_unitsearch=10000;
   unit_t_ppu_loading=10001;
   unit_u_ppu_name=10002;
@@ -1009,9 +1016,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 75436;
+  MsgTxtSize = 75786;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,99,341,1000,96,58,126,30,202,64,
+    26,99,342,124,96,58,126,32,207,64,
     58,20,1,1,1,1,1,1,1,1
   );

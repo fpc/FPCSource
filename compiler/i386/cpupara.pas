@@ -446,7 +446,7 @@ unit cpupara;
               begin
                 paralen:=sizeof(aint);
                 paracgsize:=OS_ADDR;
-                paradef:=getpointerdef(paradef);
+                paradef:=cpointerdef.getreusable(paradef);
               end
             else
               begin
@@ -598,7 +598,7 @@ unit cpupara;
                       begin
                         paralen:=sizeof(aint);
                         paracgsize:=OS_ADDR;
-                        paradef:=getpointerdef(paradef);
+                        paradef:=cpointerdef.getreusable(paradef);
                       end
                     else
                       begin
@@ -625,7 +625,8 @@ unit cpupara;
                     if (parareg<=high(parasupregs)) and
                        (paralen<=sizeof(aint)) and
                        (not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
-                        pushaddr) and
+                        pushaddr or
+                        is_dynamic_array(hp.vardef)) and
                        (not(vo_is_parentfp in hp.varoptions) or
                         not(po_delphi_nested_cc in p.procoptions)) then
                       begin

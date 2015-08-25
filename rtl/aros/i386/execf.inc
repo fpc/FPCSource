@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2006 Karoly Balogh
 
-    exec functions (V40) for Amiga/PowerPC
+    exec functions for AROS/i386
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -28,6 +28,7 @@ function AllocSignal(signalNum: LongInt): ShortInt; syscall LocalExecBase 55;
 procedure FreeSignal(signalNum: LongInt); syscall LocalExecBase 56;
 procedure AddPort(port: PMsgPort); syscall LocalExecBase 59;
 procedure RemPort(port: PMsgPort); syscall LocalExecBase 60;
+procedure PutMsg(Port: PMsgPort; Message: PMessage); syscall AOS_ExecBase 61;
 function GetMsg(port: PMsgPort): PMessage; syscall LocalExecBase 62;
 procedure ReplyMsg(message : pMessage); syscall LocalExecBase 63;
 function WaitPort(port: PMsgPort): PMessage; syscall LocalExecBase 64;
@@ -40,6 +41,9 @@ procedure InitSemaphore(SigSem: PSignalSemaphore); syscall AOS_ExecBase 93;
 procedure ObtainSemaphore(SigSem: PSignalSemaphore); syscall AOS_ExecBase 94;
 procedure ReleaseSemaphore(SigSem: PSignalSemaphore); syscall AOS_ExecBase 95;
 function AttemptSemaphore(SigSem: PSignalSemaphore): LongWord; syscall AOS_ExecBase 96;
+function CreateMsgPort: PMsgPort; syscall AOS_ExecBase 111;
+procedure DeleteMsgPort(Port: PMsgPort); syscall AOS_ExecBase 112;
+procedure ObtainSemaphoreShared(SigSem: PSignalSemaphore); syscall AOS_ExecBase 113;
 function CreatePool(requirements: Cardinal; puddleSize: Cardinal; threshSize: Cardinal): Pointer; syscall LocalExecBase 116;
 procedure DeletePool(poolHeader: Pointer); syscall LocalExecBase 117;
 function AllocPooled(poolHeader: Pointer; memSize: Cardinal): Pointer; syscall LocalExecBase 118;

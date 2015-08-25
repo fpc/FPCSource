@@ -270,14 +270,14 @@ FUNCTION WriteChunkRecords(iff : pIFFHandle location 'a0'; const buf : POINTER l
 FUNCTION SeekChunkBytes(iff : pIFFHandle location 'a0'; numBytes : LONGINT location 'd0'; mode : LONGINT location 'd1') : LONGINT; syscall IFFParseBase 276;
 FUNCTION SeekChunkRecords(iff : pIFFHandle location 'a0'; bytesPerRecord : LONGINT location 'd0'; numRecords : LONGINT location 'd1'; mode : LONGINT location 'd2') : LONGINT; syscall IFFParseBase 282;
 
-Function Make_ID(str : String) : LONGINT;
+Function Make_ID(const str : String) : LONGINT;
 function InitIFFPARSELibrary: boolean;
 
 
 IMPLEMENTATION
 
 
-function Make_ID(str : String) : LONGINT;
+function Make_ID(const str : String) : LONGINT;
 begin
   Make_ID := (LONGINT(Ord(Str[1])) shl 24) or
              (LONGINT(Ord(Str[2])) shl 16 ) or

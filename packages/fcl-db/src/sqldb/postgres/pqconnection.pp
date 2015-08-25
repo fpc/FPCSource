@@ -89,12 +89,14 @@ type
     FConnectString       : string;
     FIntegerDateTimes    : boolean;
     FVerboseErrors       : Boolean;
+  protected
+    // Protected so they can be used by descendents.
     procedure CheckConnectionStatus(var conn: PPGconn);
     procedure CheckResultError(var res: PPGresult; conn:PPGconn; ErrMsg: string);
     function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer; Out ATypeOID : oid) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
     Procedure GetExtendedFieldInfo(cursor: TPQCursor; Bindings : TFieldBindings);
-  protected
+
     procedure ApplyFieldUpdate(C : TSQLCursor; P: TSQLDBParam; F: TField; UseOldValue: Boolean); override;
     Function ErrorOnUnknownType : Boolean;
     // Add connection to pool.
@@ -929,6 +931,8 @@ begin
       s := s + ' as ' + buf;
       if LogEvent(detPrepare) then
         Log(detPrepare,S);
+      if LogEvent(detActualSQL) then
+        Log(detActualSQL,S);
       res := PQexec(tr.PGConn,pchar(s));
       CheckResultError(res,nil,SErrPrepareFailed);
       // if statement is INSERT, UPDATE, DELETE with RETURNING clause, then
@@ -990,6 +994,8 @@ begin
     PQclear(res);
     if FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
       begin
+      if LogEvent(detParamValue) then
+        LogParams(AParams);
       if Assigned(AParams) and (AParams.Count > 0) then
         begin
         l:=AParams.Count;

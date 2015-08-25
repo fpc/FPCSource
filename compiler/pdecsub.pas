@@ -996,45 +996,50 @@ implementation
               end;
             if (df_specialization in pd.struct.defoptions) then
               begin
-                include(pd.defoptions,df_specialization);
-                { Find corresponding genericdef, we need it later to
-                  replay the tokens to generate the body }
-                if not assigned(pd.struct.genericdef) then
-                  internalerror(200512113);
-                genericst:=pd.struct.genericdef.GetSymtable(gs_record);
-                if not assigned(genericst) then
-                  internalerror(200512114);
-
-                { when searching for the correct procdef to use as genericdef we need to ignore
-                  everything except procdefs so that we can find the correct indices }
-                index:=0;
-                found:=false;
-                for i:=0 to pd.owner.deflist.count-1 do
+                if assigned(current_specializedef) then
                   begin
-                    if tdef(pd.owner.deflist[i]).typ<>procdef then
-                      continue;
-                    if pd.owner.deflist[i]=pd then
+                    include(pd.defoptions,df_specialization);
+                    { Find corresponding genericdef, we need it later to
+                      replay the tokens to generate the body }
+                    if not assigned(pd.struct.genericdef) then
+                      internalerror(200512113);
+                    genericst:=pd.struct.genericdef.GetSymtable(gs_record);
+                    if not assigned(genericst) then
+                      internalerror(200512114);
+
+                    { when searching for the correct procdef to use as genericdef we need to ignore
+                      everything except procdefs so that we can find the correct indices }
+                    index:=0;
+                    found:=false;
+                    for i:=0 to pd.owner.deflist.count-1 do
                       begin
-                        found:=true;
-                        break;
+                        if tdef(pd.owner.deflist[i]).typ<>procdef then
+                          continue;
+                        if pd.owner.deflist[i]=pd then
+                          begin
+                            found:=true;
+                            break;
+                          end;
+                        inc(index);
                       end;
-                    inc(index);
-                  end;
-                if not found then
-                  internalerror(2014052301);
+                    if not found then
+                      internalerror(2014052301);
 
-                for i:=0 to genericst.deflist.count-1 do
-                  begin
-                    if tdef(genericst.deflist[i]).typ<>procdef then
-                      continue;
-                    if index=0 then
-                      pd.genericdef:=tstoreddef(genericst.deflist[i]);
-                    dec(index);
-                  end;
+                    for i:=0 to genericst.deflist.count-1 do
+                      begin
+                        if tdef(genericst.deflist[i]).typ<>procdef then
+                          continue;
+                        if index=0 then
+                          pd.genericdef:=tstoreddef(genericst.deflist[i]);
+                        dec(index);
+                      end;
 
-                if not assigned(pd.genericdef) or
-                   (pd.genericdef.typ<>procdef) then
-                  internalerror(200512115);
+                    if not assigned(pd.genericdef) or
+                       (pd.genericdef.typ<>procdef) then
+                      internalerror(200512115);
+                  end
+                else
+                  Message(parser_e_explicit_method_implementation_for_specializations_not_allowed);
               end;
           end;
 
@@ -1802,13 +1807,13 @@ end;
 
 
 procedure pd_syscall(pd:tabstractprocdef);
-{$if defined(powerpc) or defined(m68k) or defined(i386)}
+{$if defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
 var
   vs  : tparavarsym;
   sym : tsym;
   symtable : TSymtable;
   v: Tconstexprint;
-{$endif defined(powerpc) or defined(m68k) or defined(i386)}
+{$endif defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
 begin
   if (pd.typ<>procdef) and (target_info.system <> system_powerpc_amiga) then
     internalerror(2003042614);
@@ -1973,8 +1978,8 @@ begin
         Tprocdef(pd).extnumber:=v.uvalue;
     end;
 {$endif powerpc}
-{$ifdef i386}
-   if target_info.system = system_i386_aros then
+{$if defined(i386) or defined(x86_64)}
+   if target_info.system in [system_i386_aros,system_x86_64_aros] then
     begin
       include(pd.procoptions,po_syscall_sysvbase);
 
@@ -2002,7 +2007,7 @@ begin
       if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
         message(parser_e_range_check_error)
       else
-        Tprocdef(pd).extnumber:=v.uvalue * 4; { sizeof Pointer for the target }
+        Tprocdef(pd).extnumber:=v.uvalue * sizeof(pint);
     end;
 {$endif}
 end;
@@ -2808,6 +2813,12 @@ const
       end;
 
 
+    procedure compilerproc_set_symbol_name(pd: tprocdef);
+      begin
+        pd.procsym.realname:='$'+lower(pd.procsym.name);
+      end;
+
+
     procedure proc_set_mangledname(pd:tprocdef);
       var
         s : string;
@@ -2827,7 +2838,12 @@ const
                       begin
                         pd.setmangledname(s);
                       end;
-                  end;
+                    { since this is an external declaration, there won't be an
+                      implementation that needs to match the original symbol
+                      again -> immediately convert here }
+                    if po_compilerproc in pd.procoptions then
+                      compilerproc_set_symbol_name(pd);
+                  end
               end
             else
             { Normal procedures }
@@ -3366,16 +3382,11 @@ const
                      end;
                    fwpd.import_nr:=currpd.import_nr;
                    { for compilerproc defines we need to rename and update the
-                     symbolname to lowercase }
-                   if (po_compilerproc in fwpd.procoptions) then
-                    begin
-                      { rename to lowercase so users can't access it }
-                      fwpd.procsym.realname:='$'+lower(fwpd.procsym.name);
-                      { the mangeled name is already changed by the pd_compilerproc }
-                      { handler. It must be done immediately because if we have a   }
-                      { call to a compilerproc before it's implementation is        }
-                      { encountered, it must already use the new mangled name (JM)  }
-                    end;
+                     symbolname to lowercase so users can' access it (can't do
+                     it immediately, because then the implementation symbol
+                     won't be matched) }
+                   if po_compilerproc in fwpd.procoptions then
+                     compilerproc_set_symbol_name(fwpd);
 
                    { Release current procdef }
                    currpd.owner.deletedef(currpd);

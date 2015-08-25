@@ -236,7 +236,7 @@ unit cpupara;
         psym:=tparavarsym(pd.paras[nr-1]);
         pdef:=psym.vardef;
         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=getpointerdef(pdef);
+          pdef:=cpointerdef.getreusable(pdef);
         cgpara.reset;
         cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
@@ -442,7 +442,7 @@ unit cpupara;
               begin
                 paralen:=voidpointertype.size;
                 paracgsize:=int_cgsize(voidpointertype.size);
-                paradef:=getpointerdef(paradef);
+                paradef:=cpointerdef.getreusable(paradef);
               end
             else
               begin
@@ -602,7 +602,7 @@ unit cpupara;
                       begin
                         paralen:=voidpointertype.size;
                         paracgsize:=int_cgsize(voidpointertype.size);
-                        paradef:=getpointerdef(paradef);
+                        paradef:=cpointerdef.getreusable(paradef);
                       end
                     else
                       begin
@@ -629,7 +629,8 @@ unit cpupara;
                     if (parareg<=high(parasupregs)) and
                        (paralen<=sizeof(aint)) and
                        (not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
-                        pushaddr) and
+                        pushaddr or
+                        is_dynamic_array(hp.vardef)) and
                        (not(vo_is_parentfp in hp.varoptions) or
                         not(po_delphi_nested_cc in p.procoptions)) then
                       begin

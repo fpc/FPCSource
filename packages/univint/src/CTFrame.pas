@@ -7,6 +7,7 @@
  }
 {  Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -240,25 +241,29 @@ function CTFrameGetTypeID: CFTypeID; external name '_CTFrameGetTypeID';
 { --------------------------------------------------------------------------- }
 
 {!
-	@enum		CTFrameProgression
-	@abstract	These constants specify frame progression types.
-	
-	@discussion The lines of text within a frame may be stacked for either
-				horizontal or vertical text. Values are enumerated for each
-				stacking type supported by CTFrame. Frames created with a
-				progression type specifying vertical text will rotate lines
-				90 degrees counterclockwise when drawing.
-	
-	@constant	kCTFrameProgressionTopToBottom
-				Lines are stacked top to bottom for horizontal text.
-	
-	@constant	kCTFrameProgressionRightToLeft
-				Lines are stacked right to left for vertical text.
+    @enum		CTFrameProgression
+    @abstract	These constants specify frame progression types.
+
+    @discussion The lines of text within a frame may be stacked for either
+                horizontal or vertical text. Values are enumerated for each
+                stacking type supported by CTFrame. Frames created with a
+                progression type specifying vertical text will rotate lines
+                90 degrees counterclockwise when drawing.
+
+    @constant	kCTFrameProgressionTopToBottom
+                Lines are stacked top to bottom for horizontal text.
+
+    @constant	kCTFrameProgressionRightToLeft
+                Lines are stacked right to left for vertical text.
+
+    @constant	kCTFrameProgressionLeftToRight
+                Lines are stacked left to right for vertical text.
 }
 
 const
 	kCTFrameProgressionTopToBottom = 0;
 	kCTFrameProgressionRightToLeft = 1;
+        kCTFrameProgressionLeftToRight  = 2;
 type
 	CTFrameProgression = UInt32;
 
@@ -349,7 +354,7 @@ var kCTFrameClippingPathsAttributeName: CFStringRef; external name '_kCTFrameCli
 	@abstract	Specifies clipping path.  This attribute is valid in a dictionary contained in an array specified by kCTFrameClippingPathsAttributeName.
 				On 10.8 or later, This attribute is also valid in frameAttributes dictionary passed to CTFramesetterCreateFrame.
 
-	@discussion Value must be a CGPathRef specifying a clipping pat.
+	@discussion Value must be a CGPathRef specifying a clipping path.
 
 	@seealso	kCTFrameClippingPathsAttributeName
  }

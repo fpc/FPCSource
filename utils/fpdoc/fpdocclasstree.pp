@@ -18,7 +18,7 @@ Type
   Protected
     function LookForElement(PE: TDomElement; AElement: TPasElement; NoPath : Boolean): TDomNode;
     function NodeMatch(N: TDomNode; AElement: TPasElement; NoPath : Boolean): Boolean;
-    Function AddToClassTree(AElement : TPasElement; ACount : Integer) : TDomElement;
+    Function AddToClassTree(AElement : TPasElement; Var ACount : Integer) : TDomElement;
   Public
     Constructor Create(APackage : TPasPackage; AObjectKind : TPasObjKind = okClass);
     Destructor Destroy; override;
@@ -30,8 +30,7 @@ implementation
 
 constructor TClassTreeBuilder.Create(APackage : TPasPackage;
   AObjectKind: TPasObjKind);
-Var
-  N : TDomNode;
+
 begin
   FCLassTree:=TXMLDocument.Create;
   FPackage:=APAckage;
@@ -49,6 +48,7 @@ end;
 
 destructor TClassTreeBuilder.Destroy;
 begin
+  FreeAndNil(FParentObject);
   FreeAndNil(FClassTree);
   Inherited;
 end;
@@ -63,11 +63,9 @@ begin
   AObjects.Sorted:=True;
   For I:=0 to AObjects.Count-1 do
     begin
-    PC:=TPasClassType(AObjects.Objects[i]);
+    PC:=AObjects.Objects[i] as TPasClassType;
     If (PC.ObjKind=FObjectKind) and Not PC.IsForward then
-      begin
-      AddToClassTree(PC as TPasElement,Result)
-      end;
+      AddToClassTree(PC,Result);
     end;
 end;
 
@@ -83,7 +81,7 @@ begin
     S:=N.NodeName;
     if NoPath then
       Begin
-      Result:= (CompareText(S,AElement.Name)=0);
+      Result:=(CompareText(S,AElement.Name)=0);
       end
     else
       begin
@@ -92,7 +90,7 @@ begin
       else
         PN:=FPackage.Name;
       S:=PN+'.'+TDomElement(N)['unit']+'.'+S;
-      Result:= (CompareText(S,AElement.PathName)=0);
+      Result:=(CompareText(S,AElement.PathName)=0);
       end;
    end;
 end;
@@ -103,6 +101,7 @@ Var
   N : TDomNode;
 
 begin
+//  Writeln('Enter TClassTreeBuilderLookForElement');
   Result:=PE;
   While (Result<>Nil) and Not NodeMatch(Result,AElement,NoPath) do
     Result:=Result.NextSibling;
@@ -119,9 +118,10 @@ begin
         N:=N.NextSibling;
         end;
       end;
+//  Writeln('Exit TClassTreeBuilderLookForElement');
 end;
 
-Function TClassTreeBuilder.AddToClassTree(AElement : TPasElement; ACount : Integer) : TDomElement;
+Function TClassTreeBuilder.AddToClassTree(AElement : TPasElement; Var ACount : Integer) : TDomElement;
 // there are several codepaths that use uninitialized variables. (N,PE)
 // I initialized them to nil to at least make failures deterministic.
 Var
@@ -129,11 +129,13 @@ Var
   PE : TDomElement;
   M : TPasModule;
   N : TDomNode;
-  PF : String;
 
 begin
-  PF:=StringOfChar(' ',ACount);
-  Result:=Nil; N:=Nil;PE:=NIL;
+
+//  Writeln('Enter TClassTreeBuilder.AddToClassTree');
+  //if Assigned(AElement) then
+    //Writeln('Addtoclasstree : ',aElement.Name);
+  Result:=Nil; M:=Nil; N:=Nil;PE:=NIL;PC:=Nil;
   If (AElement=Nil) then
     begin
     Result:=FTreeStart;
@@ -143,9 +145,7 @@ begin
     begin
     N:=LookForElement(FTreeStart,AElement,True);
     If (N=Nil) then
-      begin
       PE:=FTreeStart;
-      end
     end
   else If (AElement is TPasClassType) then
     begin
@@ -154,14 +154,16 @@ begin
     else
       begin
       PC:=AElement as TPasClassType;
-      PE:=AddToClassTree(PC.AncestorType,ACount+1);
+      PE:=AddToClassTree(PC.AncestorType,ACount);
       if PE=Nil then
         PE:=FTreeStart;
       N:=LookForElement(PE,PC,False);
       end
     end;
   If (N<>Nil) then
+    begin
     Result:=N as TDomElement
+    end
   else
     begin // N=NIL, PE might be nil.
     Inc(ACount);
@@ -172,9 +174,13 @@ begin
       if Assigned(M) then
         Result['unit']:=M.Name;
       end;
-      if assigned(PE) then  // if not assigned, probably needs to be
-			    // assigned to something else.
-        PE.AppendChild(Result);
+    if PE=Nil then
+      begin
+      PE:=FTreeStart
+      end;
+    // if not assigned, probably needs to be assigned to something else.
+    if assigned(PE) then
+      PE.AppendChild(Result);
     end;
 end;
 

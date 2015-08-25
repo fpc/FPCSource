@@ -59,6 +59,7 @@
 {  1.33    16 Oct 00  LdB    WIN32/WIN16 defines added     }
 {  1.34    02 May 02  MvdV   FreeBSD, NetBSD, OS_UNIX      }
 {  1.35    28 Nov 10  PM     64 bit OS Linux, Win64, FreeBSD }
+{  1.36    22 Mar 15  PM     64 bit OS DragonFly           }
 {**********************************************************}
 
 { ****************************************************************************
@@ -93,6 +94,9 @@
 
  FREEBSD  OS_FREEBSD  FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
  FREEBSD  OS_FREEBSD  FPC      PPC_FPC      PROC_Protected  BIT_64  ASM_FPC
+          OS_UNIX
+
+ DRAGONFLY OS_DRAGONFLYBSD FPC PPC_FPC      PROC_Protected  BIT_64  ASM_FPC
           OS_UNIX
 
  OPENBSD  OS_OPENBSD  FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
@@ -149,6 +153,8 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
  AMIGA    OS_AMIGA             FPC     32-bit           Internal     CPU68
 
+ DRAGONFLY OS_DRAGONFLYBSD,OS_UNIX   FPC 32-bit         AT&T         ----
+
  ****************************************************************************}
 
 {---------------------------------------------------------------------------}
@@ -200,6 +206,12 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$IFDEF FreeBSD}
   {$UNDEF OS_DOS}
   {$DEFINE OS_FREEBSD}
+  {$DEFINE OS_UNIX}
+{$ENDIF}
+
+{$IFDEF DRAGONFLY}
+  {$UNDEF OS_DOS}
+  {$DEFINE OS_DRAGONFLYBSD}
   {$DEFINE OS_UNIX}
 {$ENDIF}
 

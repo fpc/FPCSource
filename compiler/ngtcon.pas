@@ -100,6 +100,7 @@ interface
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
        public
         constructor create(sym: tstaticvarsym);virtual;
+        destructor Destroy; override;
         procedure parse_into_asmlist;
         { the asmlist containing the definition of the parsed entity and another
           one containing the data generated for that same entity (e.g. the
@@ -165,7 +166,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       begin
         result:=tsym(def.symtable.SymList[symidx]);
         inc(symidx);
-        if result.typ=fieldvarsym then
+        if (result.typ=fieldvarsym) and
+           not(sp_static in result.symoptions) then
           exit;
       end;
     result:=nil;
@@ -447,6 +449,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       end;
 
 
+    destructor tasmlisttypedconstbuilder.Destroy;
+      begin
+        fdatalist.free;
+        ftcb.free;
+        inherited Destroy;
+      end;
+
+
     procedure tasmlisttypedconstbuilder.tc_emit_stringdef(def: tstringdef; var node: tnode);
       var
         strlength : aint;
@@ -542,7 +552,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   fillchar(ca[strlength],def.size-strlength-1,' ');
                   ca[strlength]:=#0;
                   ca[def.size-1]:=#0;
-                  ftcb.emit_tai(Tai_string.Create_pchar(ca,def.size-1),getarraydef(cansichartype,def.size-1));
+                  ftcb.emit_tai(Tai_string.Create_pchar(ca,def.size-1),carraydef.getreusable(cansichartype,def.size-1));
                   ftcb.maybe_end_aggregate(def);
                 end;
               st_ansistring:
@@ -820,14 +830,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    len:=255;
                   getmem(ca,len+1);
                   move(tstringconstnode(node).value_str^,ca^,len+1);
-                  datadef:=getarraydef(cansichartype,len+1);
+                  datadef:=carraydef.getreusable(cansichartype,len+1);
                   datatcb.maybe_begin_aggregate(datadef);
                   datatcb.emit_tai(Tai_string.Create_pchar(ca,len+1),datadef);
                   datatcb.maybe_end_aggregate(datadef);
                 end
               else if is_constcharnode(node) then
                 begin
-                  datadef:=getarraydef(cansichartype,2);
+                  datadef:=carraydef.getreusable(cansichartype,2);
                   datatcb.maybe_begin_aggregate(datadef);
                   datatcb.emit_tai(Tai_string.Create(char(byte(tordconstnode(node).value.svalue))+#0),datadef);
                   datatcb.maybe_end_aggregate(datadef);
@@ -835,15 +845,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               else
                 begin
                   IncompatibleTypes(node.resultdef, def);
-                  datadef:=getarraydef(cansichartype,1);
+                  datadef:=carraydef.getreusable(cansichartype,1);
                 end;
               ftcb.finish_internal_data_builder(datatcb,ll,datadef,varalign);
               { we now emit the address of the first element of the array
                 containing the string data }
               ftcb.queue_init(def);
-              { address of ... }
-              ftcb.queue_addrn(def.pointeddef,def);
-              { ... the first element ... }
+              { the first element ... }
               ftcb.queue_vecn(datadef,0);
               { ... of the string array }
               ftcb.queue_emit_asmsym(ll,datadef);
@@ -866,7 +874,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
                      pw:=pcompilerwidestring(tstringconstnode(node).value_str);
                      { include terminating #0 }
-                     datadef:=getarraydef(cwidechartype,tstringconstnode(node).len+1);
+                     datadef:=carraydef.getreusable(cwidechartype,tstringconstnode(node).len+1);
                      datatcb.maybe_begin_aggregate(datadef);
                      for i:=0 to tstringconstnode(node).len-1 do
                        datatcb.emit_tai(Tai_const.Create_16bit(pw^.data[i]),cwidechartype);
@@ -878,9 +886,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      { we now emit the address of the first element of the array
                        containing the string data }
                      ftcb.queue_init(def);
-                     { address of ... }
-                     ftcb.queue_addrn(def.pointeddef,def);
-                     { ... the first element ... }
+                     { the first element ... }
                      ftcb.queue_vecn(datadef,0);
                      { ... of the string array }
                      ftcb.queue_emit_asmsym(ll,datadef);
@@ -922,7 +928,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                                ftcb.queue_typeconvn(ttypeconvnode(hp).left.resultdef,hp.resultdef);
                            end;
                          addrn :
-                           ftcb.queue_addrn(taddrnode(hp).left.resultdef,hp.resultdef);
+                           { nothing, is implicit };
                          else
                            Message(parser_e_illegal_expression);
                        end;
@@ -1347,7 +1353,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { remove addrn which we also don't need here }
         if n.nodetype=addrn then
           begin
-            ftcb.queue_addrn(taddrnode(n).left.resultdef,n.resultdef);
             tmpn:=taddrnode(n).left;
             taddrnode(n).left:=nil;
             n.free;
@@ -1385,17 +1390,16 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   Message(parser_e_no_procvarnested_const);
                 ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
               end;
-            ftcb.maybe_end_aggregate(def);
           end
         else if n.nodetype=pointerconstn then
           begin
-            ftcb.maybe_begin_aggregate(def);
-            ftcb.emit_tai_procvar2procdef(Tai_const.Create_pint(tpointerconstnode(n).value),def);
+            ftcb.queue_emit_ordconst(tpointerconstnode(n).value,def);
             if not def.is_addressonly then
               ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
           end
         else
           Message(parser_e_illegal_expression);
+        ftcb.maybe_end_aggregate(def);
         n.free;
       end;
 

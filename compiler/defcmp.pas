@@ -247,12 +247,12 @@ implementation
 
          if cdo_strict_undefined_check in cdoptions then
            begin
-             { undefined defs are considered equal if both are undefined defs }
+             { two different undefined defs are not considered equal }
              if (def_from.typ=undefineddef) and
                 (def_to.typ=undefineddef) then
               begin
-                doconv:=tc_equal;
-                compare_defs_ext:=te_exact;
+                doconv:=tc_not_possible;
+                compare_defs_ext:=te_incompatible;
                 exit;
               end;
 
@@ -2010,15 +2010,18 @@ implementation
                 if (vo_is_hidden_para in currpara1.varoptions)<>(vo_is_hidden_para in currpara2.varoptions) then
                   exit;
                 eq:=te_exact;
-                if not(vo_is_self in currpara1.varoptions) and
-                   not(vo_is_self in currpara2.varoptions) then
+                if (([vo_is_self,vo_is_vmt]*currpara1.varoptions)=[]) and
+                   (([vo_is_self,vo_is_vmt]*currpara2.varoptions)=[]) then
                  begin
                    if not(cpo_ignorevarspez in cpoptions) and
                       (currpara1.varspez<>currpara2.varspez) then
                     exit;
                    eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                         convtype,hpd,cdoptions);
-                 end;
+                 end
+                else if ([vo_is_self,vo_is_vmt]*currpara1.varoptions)<>
+                         ([vo_is_self,vo_is_vmt]*currpara2.varoptions) then
+                   eq:=te_incompatible;
               end
              else
               begin

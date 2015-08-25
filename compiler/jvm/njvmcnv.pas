@@ -368,7 +368,7 @@ implementation
                       genintconstnode(tsetdef(left.resultdef).setbase),
                         ccallparanode.create(left,nil))));
               end;
-            inserttypeconv_explicit(result,getpointerdef(resultdef));
+            inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef));
             result:=cderefnode.create(result);
             { reused }
             left:=nil;
@@ -387,7 +387,7 @@ implementation
         result:=ccallnode.createinternmethod(
           cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',nil);
         { method pointer is an implicit pointer type }
-        result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
+        result:=ctypeconvnode.create_explicit(result,cpointerdef.getreusable(resultdef));
         result:=cderefnode.create(result);
       end;
 
@@ -494,7 +494,7 @@ implementation
           result:=ctypeconvnode.create_explicit(result,resultdef)
         else
           begin
-            result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
+            result:=ctypeconvnode.create_explicit(result,cpointerdef.getreusable(resultdef));
             result:=cderefnode.create(result)
           end;
         { reused }
@@ -1263,7 +1263,7 @@ implementation
                   a proper checkcast is inserted }
                 if not check_only then
                   begin
-                    resnode:=ctypeconvnode.create_explicit(left,getpointerdef(resultdef));
+                    resnode:=ctypeconvnode.create_explicit(left,cpointerdef.getreusable(resultdef));
                     resnode:=cderefnode.create(resnode);
                     left:=nil;
                   end;
@@ -1385,7 +1385,7 @@ implementation
                   begin
                     resnode:=to_set_explicit_typecast;
                     { convert to desired result }
-                    inserttypeconv_explicit(resnode,getpointerdef(resultdef));
+                    inserttypeconv_explicit(resnode,cpointerdef.getreusable(resultdef));
                     resnode:=cderefnode.create(resnode);
                   end;
                 result:=true;

@@ -27,7 +27,7 @@ type
   _TElfRelocTable_= class
   private
     fList : TFPList;
-    fRelocType : byte;
+    fRelocType : longword;
     fEntrySize : integer;
     fSectionType : integer;
     fSectionName : string;
@@ -418,6 +418,7 @@ begin
       EM_386    : begin RelocType:=R_386_32;        SectionType:=SHT_REL;  end;
       EM_PPC    : begin RelocType:=R_PPC_ADDR32;    SectionType:=SHT_RELA; end;
       EM_ARM    : begin RelocType:=R_ARM_ABS32;     SectionType:=SHT_REL;  end;
+      EM_AARCH64: begin RelocType:=R_AARCH64_ABS64; SectionType:=SHT_RELA; end;
       EM_68K    : begin RelocType:=R_68K_32;        SectionType:=SHT_RELA; end;
       EM_SPARC  : begin RelocType:=R_SPARC_32;      SectionType:=SHT_RELA; end;
       EM_X86_64 : begin RelocType:=R_x86_64_64;     SectionType:=SHT_RELA; end;

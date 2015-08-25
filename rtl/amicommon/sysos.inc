@@ -172,3 +172,66 @@ begin
     end;
   end;
 end;
+
+{ Thread Init/Exit Procedure support }
+Type
+  PThreadProcInfo = ^TThreadProcInfo;
+  TThreadProcInfo = Record
+    Next     : PThreadProcInfo;
+    Proc     : TProcedure;
+  End;
+
+const
+  threadInitProcList :PThreadProcInfo = nil;
+  threadExitProcList :PThreadProcInfo = nil;
+
+Procedure DoThreadProcChain(p: PThreadProcInfo);
+Begin
+  while p <> nil do
+    begin
+      p^.proc;
+      p:=p^.next;
+    end;
+End;
+
+Procedure AddThreadProc(var procList: PThreadProcInfo; Proc: TProcedure);
+var
+  P : PThreadProcInfo;
+Begin
+  New(P);
+  P^.Next:=procList;
+  P^.Proc:=Proc;
+  procList:=P;
+End;
+
+Procedure CleanupThreadProcChain(var procList: PThreadProcInfo);
+var
+  P : PThreadProcInfo;
+Begin
+  while procList <> nil do
+    begin
+      p:=procList;
+      procList:=procList^.next;
+      dispose(p);
+    end;
+End;
+
+Procedure AddThreadInitProc(Proc: TProcedure);
+Begin
+  AddThreadProc(threadInitProcList,Proc);
+End;
+
+Procedure AddThreadExitProc(Proc: TProcedure);
+Begin
+  AddThreadProc(threadExitProcList,Proc);
+End;
+
+Procedure DoThreadInitProcChain;
+Begin
+  DoThreadProcChain(threadInitProcList);
+End;
+
+Procedure DoThreadExitProcChain;
+Begin
+  DoThreadProcChain(threadExitProcList);
+End;

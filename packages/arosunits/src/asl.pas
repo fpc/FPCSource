@@ -536,13 +536,19 @@ implementation
 
 
 function AllocAslRequest(ReqType: LongWord; const Tags: array of const): Pointer;
+var
+  TagList: TTagsList;
 begin
-  AllocAslRequest := AllocAslRequestA(reqType , readintags(tags));
+  AddTags(TagList, Tags);
+  AllocAslRequest := AllocAslRequestA(reqType , GetTagPtr(TagList));
 end;
 
 function AslRequest(Requester: Pointer; const Tags: array of const): LongBool;
+var
+  TagList: TTagsList;
 begin
-  AslRequest := AslRequestA(Requester , readintags(tags));
+  AddTags(TagList, Tags);
+  AslRequest := AslRequestA(Requester , GetTagPtr(TagList));
 end;
 
 initialization

@@ -17,6 +17,7 @@ type
     FFunc: TPasFunction;
     FHint: String;
     FProc: TPasProcedure;
+    FOperator:TPasOperator;
     procedure AddDeclaration(const ASource: string; const AHint: String='');
     procedure AssertArg(ProcType: TPasProcedureType; AIndex: Integer;
       AName: String; AAccess: TArgumentAccess; const TypeName: String;
@@ -33,6 +34,7 @@ type
     function ParseProcedure(const ASource: string; const AHint: String=''): TPasProcedure;
     Procedure ParseFunction;
     function ParseFunction(const ASource : String; AResult: string = ''; const AHint: String=''; CC : TCallingConvention = ccDefault): TPasProcedure;
+    Procedure ParseOperator;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -156,6 +158,8 @@ type
     Procedure TestFunctionCdeclExternalLibNameName;
     Procedure TestProcedureCdeclExternalName;
     Procedure TestFunctionCdeclExternalName;
+    Procedure TestOperatorTokens;
+    procedure TestOperatorNames;
   end;
 
 implementation
@@ -199,7 +203,7 @@ begin
     AssertComment;
 end;
 
-Procedure TTestProcedureFunction.ParseProcedure;
+procedure TTestProcedureFunction.ParseProcedure;
 
 begin
   //  Writeln(source.text);
@@ -230,7 +234,19 @@ begin
   AssertEquals('Correct function result type name',AResult,FuncType.ResultEl.ResultType.Name);
 end;
 
-Procedure TTestProcedureFunction.ParseFunction;
+procedure TTestProcedureFunction.ParseOperator;
+begin
+  //  Writeln(source.text);
+  ParseDeclarations;
+  AssertEquals('One operator definition',1,Declarations.Functions.Count);
+  AssertEquals('First declaration is function declaration.',TPasOperator,TObject(Declarations.Functions[0]).ClassType);
+  FOperator:=TPasOperator(Declarations.Functions[0]);
+  Definition:=FOperator;
+  if (Hint<>'') then
+    CheckHint(TPasMemberHint(Getenumvalue(typeinfo(TPasMemberHint),'h'+Hint)));
+end;
+
+procedure TTestProcedureFunction.ParseFunction;
 begin
   //  Writeln(source.text);
   ParseDeclarations;
@@ -367,13 +383,13 @@ begin
   TestEmptyProcedure;
 end;
 
-Procedure TTestProcedureFunction.TestEmptyFunction;
+procedure TTestProcedureFunction.TestEmptyFunction;
 begin
   ParseFunction('');
   AssertFunc([],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestEmptyFunctionComment;
+procedure TTestProcedureFunction.TestEmptyFunctionComment;
 begin
   AddComment:=True;
   TestEmptyProcedure;
@@ -385,7 +401,7 @@ begin
   AssertProc([],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestEmptyFunctionDeprecated;
+procedure TTestProcedureFunction.TestEmptyFunctionDeprecated;
 begin
   ParseFunction('','deprecated');
   AssertFunc([],ccDefault,0);
@@ -397,7 +413,7 @@ begin
   AssertProc([],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestEmptyFunctionPlatform;
+procedure TTestProcedureFunction.TestEmptyFunctionPlatform;
 begin
   ParseFunction('','platform');
   AssertFunc([],ccDefault,0);
@@ -409,7 +425,7 @@ begin
   AssertProc([],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestEmptyFunctionExperimental;
+procedure TTestProcedureFunction.TestEmptyFunctionExperimental;
 begin
   ParseFunction('','experimental');
   AssertFunc([],ccDefault,0);
@@ -421,7 +437,7 @@ begin
   AssertProc([],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestEmptyFunctionUnimplemented;
+procedure TTestProcedureFunction.TestEmptyFunctionUnimplemented;
 begin
   ParseFunction('','unimplemented');
   AssertFunc([],ccDefault,0);
@@ -437,7 +453,7 @@ begin
   AssertArg(ProcType,0,'B',argDefault,'Integer','');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOneArg;
+procedure TTestProcedureFunction.TestFunctionOneArg;
 begin
   ParseFunction('(B : Integer)');
   AssertFunc([],ccDefault,1);
@@ -451,7 +467,7 @@ begin
   AssertArg(ProcType,0,'B',argVar,'Integer','');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOneVarArg;
+procedure TTestProcedureFunction.TestFunctionOneVarArg;
 begin
   ParseFunction('(Var B : Integer)');
   AssertFunc([],ccDefault,1);
@@ -465,7 +481,7 @@ begin
   AssertArg(ProcType,0,'B',argConst,'Integer','');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOneConstArg;
+procedure TTestProcedureFunction.TestFunctionOneConstArg;
 begin
   ParseFunction('(Const B : Integer)');
   AssertFunc([],ccDefault,1);
@@ -479,7 +495,7 @@ begin
   AssertArg(ProcType,0,'B',argOut,'Integer','');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOneOutArg;
+procedure TTestProcedureFunction.TestFunctionOneOutArg;
 begin
   ParseFunction('(Out B : Integer)');
   AssertFunc([],ccDefault,1);
@@ -493,7 +509,7 @@ begin
   AssertArg(ProcType,0,'B',argConstRef,'Integer','');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOneConstRefArg;
+procedure TTestProcedureFunction.TestFunctionOneConstRefArg;
 begin
   ParseFunction('(ConstRef B : Integer)');
   AssertFunc([],ccDefault,1);
@@ -508,7 +524,7 @@ begin
   AssertArg(ProcType,1,'C',argDefault,'Integer','');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionTwoArgs;
+procedure TTestProcedureFunction.TestFunctionTwoArgs;
 begin
   ParseFunction('(B,C : Integer)');
   AssertFunc([],ccDefault,2);
@@ -524,7 +540,7 @@ begin
   AssertArg(ProcType,1,'C',argDefault,'Integer','');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionTwoArgsSeparate;
+procedure TTestProcedureFunction.TestFunctionTwoArgsSeparate;
 begin
   ParseFunction('(B : Integer;C : Integer)');
   AssertFunc([],ccDefault,2);
@@ -539,7 +555,7 @@ begin
   AssertArg(ProcType,0,'B',argDefault,'Integer','1');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOneArgDefault;
+procedure TTestProcedureFunction.TestFunctionOneArgDefault;
 begin
   ParseFunction('(B : Integer = 1)');
   AssertFunc([],ccDefault,1);
@@ -553,7 +569,7 @@ begin
   AssertArg(ProcType,0,'B',argDefault,'MySet','[1, 2]');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOneArgDefaultSet;
+procedure TTestProcedureFunction.TestFunctionOneArgDefaultSet;
 begin
   ParseFunction('(B : MySet = [1,2])');
   AssertFunc([],ccDefault,1);
@@ -567,7 +583,7 @@ begin
   AssertArg(ProcType,0,'B',argDefault,'Integer','1 + 2');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOneArgDefaultExpr;
+procedure TTestProcedureFunction.TestFunctionOneArgDefaultExpr;
 begin
   ParseFunction('(B : Integer = 1 + 2)');
   AssertFunc([],ccDefault,1);
@@ -582,7 +598,7 @@ begin
   AssertArg(ProcType,1,'C',argDefault,'Integer','2');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionTwoArgsDefault;
+procedure TTestProcedureFunction.TestFunctionTwoArgsDefault;
 begin
   ParseFunction('(B : Integer = 1; C : Integer = 2)');
   AssertFunc([],ccDefault,2);
@@ -597,7 +613,7 @@ begin
   AssertArg(ProcType,0,'B',argVar,'','');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOneUntypedVarArg;
+procedure TTestProcedureFunction.TestFunctionOneUntypedVarArg;
 begin
   ParseFunction('(Var B)');
   AssertFunc([],ccDefault,1);
@@ -612,7 +628,7 @@ begin
   AssertArg(ProcType,1,'C',argVar,'','');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionTwoUntypedVarArgs;
+procedure TTestProcedureFunction.TestFunctionTwoUntypedVarArgs;
 begin
   ParseFunction('(Var B; Var C)');
   AssertFunc([],ccDefault,2);
@@ -627,7 +643,7 @@ begin
   AssertArg(ProcType,0,'B',argConst,'','');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOneUntypedConstArg;
+procedure TTestProcedureFunction.TestFunctionOneUntypedConstArg;
 begin
   ParseFunction('(Const B)');
   AssertFunc([],ccDefault,1);
@@ -642,7 +658,7 @@ begin
   AssertArg(ProcType,1,'C',argConst,'','');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionTwoUntypedConstArgs;
+procedure TTestProcedureFunction.TestFunctionTwoUntypedConstArgs;
 begin
   ParseFunction('(Const B; Const C)');
   AssertFunc([],ccDefault,2);
@@ -657,7 +673,7 @@ begin
   AssertArrayArg(ProcType,0,'B',argDefault,'Integer');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOpenArrayArg;
+procedure TTestProcedureFunction.TestFunctionOpenArrayArg;
 begin
   ParseFunction('(B : Array of Integer)');
   AssertFunc([],ccDefault,1);
@@ -672,7 +688,7 @@ begin
   AssertArrayArg(ProcType,1,'C',argDefault,'Integer');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionTwoOpenArrayArgs;
+procedure TTestProcedureFunction.TestFunctionTwoOpenArrayArgs;
 begin
   ParseFunction('(B : Array of Integer;C : Array of Integer)');
   AssertFunc([],ccDefault,2);
@@ -687,7 +703,7 @@ begin
   AssertArrayArg(ProcType,0,'B',argConst,'Integer');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionConstOpenArrayArg;
+procedure TTestProcedureFunction.TestFunctionConstOpenArrayArg;
 begin
   ParseFunction('(Const B : Array of Integer)');
   AssertFunc([],ccDefault,1);
@@ -701,7 +717,7 @@ begin
   AssertArrayArg(ProcType,0,'B',argVar,'Integer');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionVarOpenArrayArg;
+procedure TTestProcedureFunction.TestFunctionVarOpenArrayArg;
 begin
   ParseFunction('(Var B : Array of Integer)');
   AssertFunc([],ccDefault,1);
@@ -715,7 +731,7 @@ begin
   AssertArrayArg(ProcType,0,'B',argDefault,'');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionArrayOfConstArg;
+procedure TTestProcedureFunction.TestFunctionArrayOfConstArg;
 begin
   ParseFunction('(B : Array of Const)');
   AssertFunc([],ccDefault,1);
@@ -729,100 +745,100 @@ begin
   AssertArrayArg(ProcType,0,'B',argConst,'');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionConstArrayOfConstArg;
+procedure TTestProcedureFunction.TestFunctionConstArrayOfConstArg;
 begin
   ParseFunction('(Const B : Array of Const)');
   AssertFunc([],ccDefault,1);
   AssertArrayArg(FuncType,0,'B',argConst,'');
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCdecl;
+procedure TTestProcedureFunction.TestProcedureCdecl;
 begin
   ParseProcedure('; cdecl');
   AssertProc([],ccCdecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCdecl;
+procedure TTestProcedureFunction.TestFunctionCdecl;
 begin
   ParseFunction('','','',ccCdecl);
   AssertFunc([],ccCdecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCdeclDeprecated;
+procedure TTestProcedureFunction.TestProcedureCdeclDeprecated;
 begin
   ParseProcedure('; cdecl;','deprecated');
   AssertProc([],ccCdecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCdeclDeprecated;
+procedure TTestProcedureFunction.TestFunctionCdeclDeprecated;
 begin
   ParseFunction('','','deprecated',ccCdecl);
   AssertFunc([],ccCdecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureSafeCall;
+procedure TTestProcedureFunction.TestProcedureSafeCall;
 begin
   ParseProcedure('; safecall;','');
   AssertProc([],ccSafeCall,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionSafeCall;
+procedure TTestProcedureFunction.TestFunctionSafeCall;
 begin
   ParseFunction('','','',ccSafecall);
   AssertFunc([],ccSafecall,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedurePascal;
+procedure TTestProcedureFunction.TestProcedurePascal;
 begin
   ParseProcedure('; pascal;','');
   AssertProc([],ccPascal,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionPascal;
+procedure TTestProcedureFunction.TestFunctionPascal;
 begin
   ParseFunction('','','',ccPascal);
   AssertFunc([],ccPascal,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureStdCall;
+procedure TTestProcedureFunction.TestProcedureStdCall;
 begin
   ParseProcedure('; stdcall;','');
   AssertProc([],ccstdcall,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionStdCall;
+procedure TTestProcedureFunction.TestFunctionStdCall;
 begin
   ParseFunction('','','',ccStdCall);
   AssertFunc([],ccStdCall,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureOldFPCCall;
+procedure TTestProcedureFunction.TestProcedureOldFPCCall;
 begin
   ParseProcedure('; oldfpccall;','');
   AssertProc([],ccoldfpccall,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOldFPCCall;
+procedure TTestProcedureFunction.TestFunctionOldFPCCall;
 begin
   ParseFunction('','','',ccOldFPCCall);
   AssertFunc([],ccOldFPCCall,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedurePublic;
+procedure TTestProcedureFunction.TestProcedurePublic;
 begin
   ParseProcedure('; public name ''myfunc'';','');
   AssertProc([pmPublic],ccDefault,0);
   AssertExpression('Public name',Proc.PublicName,pekString,'''myfunc''');
 end;
 
-Procedure TTestProcedureFunction.TestProcedurePublicIdent;
+procedure TTestProcedureFunction.TestProcedurePublicIdent;
 begin
   ParseProcedure('; public name exportname;','');
   AssertProc([pmPublic],ccDefault,0);
   AssertExpression('Public name',Proc.PublicName,pekIdent,'exportname');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionPublic;
+procedure TTestProcedureFunction.TestFunctionPublic;
 begin
   AddDeclaration('function A : Integer; public name exportname');
   ParseFunction;
@@ -830,14 +846,14 @@ begin
   AssertExpression('Public name',Func.PublicName,pekIdent,'exportname');
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCdeclPublic;
+procedure TTestProcedureFunction.TestProcedureCdeclPublic;
 begin
   ParseProcedure('; cdecl; public name exportname;','');
   AssertProc([pmPublic],ccCDecl,0);
   AssertExpression('Public name',Proc.PublicName,pekIdent,'exportname');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCdeclPublic;
+procedure TTestProcedureFunction.TestFunctionCdeclPublic;
 begin
   AddDeclaration('function A : Integer; cdecl; public name exportname');
   ParseFunction;
@@ -845,58 +861,58 @@ begin
   AssertExpression('Public name',Func.PublicName,pekIdent,'exportname');
 end;
 
-Procedure TTestProcedureFunction.TestProcedureOverload;
+procedure TTestProcedureFunction.TestProcedureOverload;
 begin
   ParseProcedure('; overload;','');
   AssertProc([pmOverload],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionOverload;
+procedure TTestProcedureFunction.TestFunctionOverload;
 begin
   AddDeclaration('function A : Integer; overload');
   ParseFunction;
   AssertFunc([pmOverload],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureVarargs;
+procedure TTestProcedureFunction.TestProcedureVarargs;
 begin
   ParseProcedure('; varargs;','');
   AssertProc([pmVarArgs],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionVarArgs;
+procedure TTestProcedureFunction.TestFunctionVarArgs;
 begin
   AddDeclaration('function A : Integer; varargs');
   ParseFunction;
   AssertFunc([pmVarArgs],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCDeclVarargs;
+procedure TTestProcedureFunction.TestProcedureCDeclVarargs;
 begin
   ParseProcedure(';cdecl; varargs;','');
   AssertProc([pmVarArgs],ccCDecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCDeclVarArgs;
+procedure TTestProcedureFunction.TestFunctionCDeclVarArgs;
 begin
   AddDeclaration('function A : Integer; cdecl; varargs');
   ParseFunction;
   AssertFunc([pmVarArgs],ccCdecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureForwardInterface;
+procedure TTestProcedureFunction.TestProcedureForwardInterface;
 begin
   AddDeclaration('procedure A; forward;');
   AssertException(EParserError,@ParseProcedure);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionForwardInterface;
+procedure TTestProcedureFunction.TestFunctionForwardInterface;
 begin
   AddDeclaration('function A : integer; forward;');
   AssertException(EParserError,@ParseFunction);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureForward;
+procedure TTestProcedureFunction.TestProcedureForward;
 begin
   UseImplementation:=True;
   AddDeclaration('procedure A; forward;');
@@ -904,7 +920,7 @@ begin
   AssertProc([pmforward],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionForward;
+procedure TTestProcedureFunction.TestFunctionForward;
 begin
   UseImplementation:=True;
   AddDeclaration('function A : integer; forward;');
@@ -912,7 +928,7 @@ begin
   AssertFunc([pmforward],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCdeclForward;
+procedure TTestProcedureFunction.TestProcedureCdeclForward;
 begin
   UseImplementation:=True;
   AddDeclaration('procedure A; cdecl; forward;');
@@ -920,7 +936,7 @@ begin
   AssertProc([pmforward],ccCDecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCDeclForward;
+procedure TTestProcedureFunction.TestFunctionCDeclForward;
 begin
   UseImplementation:=True;
   AddDeclaration('function A : integer; cdecl; forward;');
@@ -928,92 +944,92 @@ begin
   AssertFunc([pmforward],ccCDecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCompilerProc;
+procedure TTestProcedureFunction.TestProcedureCompilerProc;
 begin
   ParseProcedure(';compilerproc;','');
   AssertProc([pmCompilerProc],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCompilerProc;
+procedure TTestProcedureFunction.TestFunctionCompilerProc;
 begin
   AddDeclaration('function A : Integer; compilerproc');
   ParseFunction;
   AssertFunc([pmCompilerProc],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCDeclCompilerProc;
+procedure TTestProcedureFunction.TestProcedureCDeclCompilerProc;
 begin
   ParseProcedure(';cdecl;compilerproc;','');
   AssertProc([pmCompilerProc],ccCDecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCDeclCompilerProc;
+procedure TTestProcedureFunction.TestFunctionCDeclCompilerProc;
 begin
   AddDeclaration('function A : Integer; cdecl; compilerproc');
   ParseFunction;
   AssertFunc([pmCompilerProc],ccCDecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureAssembler;
+procedure TTestProcedureFunction.TestProcedureAssembler;
 begin
   ParseProcedure(';assembler;','');
   AssertProc([pmAssembler],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionAssembler;
+procedure TTestProcedureFunction.TestFunctionAssembler;
 begin
   AddDeclaration('function A : Integer; assembler');
   ParseFunction;
   AssertFunc([pmAssembler],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCDeclAssembler;
+procedure TTestProcedureFunction.TestProcedureCDeclAssembler;
 begin
   ParseProcedure(';cdecl;assembler;','');
   AssertProc([pmAssembler],ccCDecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCDeclAssembler;
+procedure TTestProcedureFunction.TestFunctionCDeclAssembler;
 begin
   AddDeclaration('function A : Integer; cdecl; assembler');
   ParseFunction;
   AssertFunc([pmAssembler],ccCDecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureExport;
+procedure TTestProcedureFunction.TestProcedureExport;
 begin
   ParseProcedure(';export;','');
   AssertProc([pmExport],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionExport;
+procedure TTestProcedureFunction.TestFunctionExport;
 begin
   AddDeclaration('function A : Integer; export');
   ParseFunction;
   AssertFunc([pmExport],ccDefault,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCDeclExport;
+procedure TTestProcedureFunction.TestProcedureCDeclExport;
 begin
   ParseProcedure('cdecl;export;','');
   AssertProc([pmExport],ccCDecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCDeclExport;
+procedure TTestProcedureFunction.TestFunctionCDeclExport;
 begin
   AddDeclaration('function A : Integer; cdecl; export');
   ParseFunction;
   AssertFunc([pmExport],ccCDecl,0);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureExternal;
+procedure TTestProcedureFunction.TestProcedureExternal;
 begin
   ParseProcedure(';external','');
   AssertProc([pmExternal],ccDefault,0);
   AssertNull('No Library name expression',Proc.LibraryExpr);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionExternal;
+procedure TTestProcedureFunction.TestFunctionExternal;
 begin
   AddDeclaration('function A : Integer; external');
   ParseFunction;
@@ -1021,14 +1037,14 @@ begin
   AssertNull('No Library name expression',Func.LibraryExpr);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureExternalLibName;
+procedure TTestProcedureFunction.TestProcedureExternalLibName;
 begin
   ParseProcedure(';external ''libname''','');
   AssertProc([pmExternal],ccDefault,0);
   AssertExpression('Library name expression',Proc.LibraryExpr,pekString,'''libname''');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionExternalLibName;
+procedure TTestProcedureFunction.TestFunctionExternalLibName;
 begin
   AddDeclaration('function A : Integer; external ''libname''');
   ParseFunction;
@@ -1036,7 +1052,7 @@ begin
   AssertExpression('Library name expression',Func.LibraryExpr,pekString,'''libname''');
 end;
 
-Procedure TTestProcedureFunction.TestProcedureExternalLibNameName;
+procedure TTestProcedureFunction.TestProcedureExternalLibNameName;
 begin
   ParseProcedure(';external ''libname'' name ''symbolname''','');
   AssertProc([pmExternal],ccDefault,0);
@@ -1044,7 +1060,7 @@ begin
   AssertExpression('Library symbol expression',Proc.LibrarySymbolName,pekString,'''symbolname''');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionExternalLibNameName;
+procedure TTestProcedureFunction.TestFunctionExternalLibNameName;
 begin
   AddDeclaration('function A : Integer; external ''libname'' name ''symbolname''');
   ParseFunction;
@@ -1053,7 +1069,7 @@ begin
   AssertExpression('Library symbol expression',Func.LibrarySymbolName,pekString,'''symbolname''');
 end;
 
-Procedure TTestProcedureFunction.TestProcedureExternalName;
+procedure TTestProcedureFunction.TestProcedureExternalName;
 begin
   ParseProcedure(';external name ''symbolname''','');
   AssertProc([pmExternal],ccDefault,0);
@@ -1061,7 +1077,7 @@ begin
   AssertExpression('Library symbol expression',Proc.LibrarySymbolName,pekString,'''symbolname''');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionExternalName;
+procedure TTestProcedureFunction.TestFunctionExternalName;
 begin
   AddDeclaration('function A : Integer; external name ''symbolname''');
   ParseFunction;
@@ -1070,14 +1086,14 @@ begin
   AssertExpression('Library symbol expression',Func.LibrarySymbolName,pekString,'''symbolname''');
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCdeclExternal;
+procedure TTestProcedureFunction.TestProcedureCdeclExternal;
 begin
   ParseProcedure('; cdecl; external','');
   AssertProc([pmExternal],ccCdecl,0);
   AssertNull('No Library name expression',Proc.LibraryExpr);
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCdeclExternal;
+procedure TTestProcedureFunction.TestFunctionCdeclExternal;
 begin
   AddDeclaration('function A : Integer; cdecl; external');
   ParseFunction;
@@ -1085,14 +1101,14 @@ begin
   AssertNull('No Library name expression',Func.LibraryExpr);
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCdeclExternalLibName;
+procedure TTestProcedureFunction.TestProcedureCdeclExternalLibName;
 begin
   ParseProcedure('; cdecl; external ''libname''','');
   AssertProc([pmExternal],ccCdecl,0);
   AssertExpression('Library name expression',Proc.LibraryExpr,pekString,'''libname''');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCdeclExternalLibName;
+procedure TTestProcedureFunction.TestFunctionCdeclExternalLibName;
 begin
   AddDeclaration('function A : Integer; cdecl; external ''libname''');
   ParseFunction;
@@ -1100,7 +1116,7 @@ begin
   AssertExpression('Library name expression',Func.LibraryExpr,pekString,'''libname''');
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCdeclExternalLibNameName;
+procedure TTestProcedureFunction.TestProcedureCdeclExternalLibNameName;
 begin
   ParseProcedure('; cdecl; external ''libname'' name ''symbolname''','');
   AssertProc([pmExternal],ccCdecl,0);
@@ -1108,7 +1124,7 @@ begin
   AssertExpression('Library symbol expression',Proc.LibrarySymbolName,pekString,'''symbolname''');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCdeclExternalLibNameName;
+procedure TTestProcedureFunction.TestFunctionCdeclExternalLibNameName;
 begin
   AddDeclaration('function A : Integer; cdecl; external ''libname'' name ''symbolname''');
   ParseFunction;
@@ -1117,7 +1133,7 @@ begin
   AssertExpression('Library symbol expression',Func.LibrarySymbolName,pekString,'''symbolname''');
 end;
 
-Procedure TTestProcedureFunction.TestProcedureCdeclExternalName;
+procedure TTestProcedureFunction.TestProcedureCdeclExternalName;
 begin
   ParseProcedure('; cdecl; external name ''symbolname''','');
   AssertProc([pmExternal],ccCdecl,0);
@@ -1125,13 +1141,61 @@ begin
   AssertExpression('Library symbol expression',Proc.LibrarySymbolName,pekString,'''symbolname''');
 end;
 
-Procedure TTestProcedureFunction.TestFunctionCdeclExternalName;
+procedure TTestProcedureFunction.TestFunctionCdeclExternalName;
 begin
   AddDeclaration('function A : Integer; cdecl; external name ''symbolname''');
   ParseFunction;
   AssertFunc([pmExternal],ccCdecl,0);
   AssertNull('No Library name expression',Func.LibraryExpr);
   AssertExpression('Library symbol expression',Func.LibrarySymbolName,pekString,'''symbolname''');
+end;
+
+procedure TTestProcedureFunction.TestOperatorTokens;
+
+Var
+  t : TOperatorType;
+
+begin
+  For t:=otMul to High(TOperatorType) do
+    // No way to distinguish between logical/bitwise or/and/Xor
+    if not (t in [otBitwiseOr,otBitwiseAnd,otBitwiseXor]) then
+      begin
+      ResetParser;
+      if t in UnaryOperators then
+        AddDeclaration(Format('operator %s (a: Integer) : te',[OperatorTokens[t]]))
+      else
+        AddDeclaration(Format('operator %s (a: Integer; b: integer) : te',[OperatorTokens[t]]));
+      ParseOperator;
+      AssertEquals('Token based',Not (T in [otInc,otDec]),FOperator.TokenBased);
+      AssertEquals('Correct operator type',T,FOperator.OperatorType);
+      if t in UnaryOperators then
+        AssertEquals('Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
+      else
+        AssertEquals('Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
+      end;
+end;
+
+procedure TTestProcedureFunction.TestOperatorNames;
+
+Var
+  t : TOperatorType;
+
+begin
+  For t:=Succ(otUnknown) to High(TOperatorType) do
+      begin
+      ResetParser;
+      if t in UnaryOperators then
+        AddDeclaration(Format('operator %s (a: Integer) : te',[OperatorNames[t]]))
+      else
+        AddDeclaration(Format('operator %s (a: Integer; b: integer) : te',[OperatorNames[t]]));
+      ParseOperator;
+      AssertEquals('Token based',False,FOperator.TokenBased);
+      AssertEquals('Correct operator type',T,FOperator.OperatorType);
+      if t in UnaryOperators then
+        AssertEquals('Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
+      else
+        AssertEquals('Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
+      end;
 end;
 
 procedure TTestProcedureFunction.SetUp;
@@ -1144,7 +1208,7 @@ begin
    Inherited;
 end;
 
-Procedure TTestProcedureFunction.AssertComment;
+procedure TTestProcedureFunction.AssertComment;
 begin
   AssertEquals('Correct comment',' A comment'+sLineBreak,FProc.DocComment);
 end;

@@ -52,11 +52,13 @@ type
 
    { a simple data element; the value is stored as a tai }
    tai_simpletypedconst = class(tai_abstracttypedconst)
+   private
+     procedure setval(AValue: tai);
     protected
      fval: tai;
     public
      constructor create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
-     property val: tai read fval;
+     property val: tai read fval write setval;
    end;
 
 
@@ -118,8 +120,10 @@ type
    { information about aggregates we are parsing }
    taggregateinformation = class
     private
+     fnextfieldname: TIDString;
      function getcuroffset: asizeint;
      function getfieldoffset(l: longint): asizeint;
+     procedure setnextfieldname(AValue: TIDString);
     protected
      { type of the aggregate }
      fdef: tdef;
@@ -151,12 +155,13 @@ type
      constructor create(_def: tdef; _typ: ttypedconstkind); virtual;
      { calculated padding bytes for alignment if needed, and add the def of the
        next field in case we are constructing an anonymous record }
-     function prepare_next_field(nextfielddef: tdef): asizeint;
+     function prepare_next_field(nextfielddef: tdef): asizeint; virtual;
 
      property def: tdef read fdef;
      property typ: ttypedconstkind read ftyp;
      property curfield: tfieldvarsym read fcurfield write fcurfield;
      property nextfield: tfieldvarsym read fnextfield write fnextfield;
+     property nextfieldname: TIDString write setnextfieldname;
      property fieldoffset[l: longint]: asizeint read getfieldoffset;
      property curoffset: asizeint read getcuroffset;
      property anonrecord: boolean read fanonrecord write fanonrecord;
@@ -172,6 +177,7 @@ type
     private
      function getcurragginfo: taggregateinformation;
      procedure set_next_field(AValue: tfieldvarsym);
+     procedure set_next_field_name(AValue: TIDString);
     protected
      { temporary list in which all data is collected }
      fasmlist: tasmlist;
@@ -181,6 +187,7 @@ type
      { while queueing elements of a compound expression, this is the current
        offset in the top-level array/record }
      fqueue_offset: asizeint;
+     fqueued_def: tdef;
 
      { array of caggregateinformation instances }
      faggregateinformation: tfpobjectlist;
@@ -267,6 +274,7 @@ type
      procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); virtual;
 
     protected
+     procedure maybe_emit_tail_padding(def: tdef); virtual;
      function emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; var startlab: tasmlabel):tasmlabofs;
      procedure begin_aggregate_internal(def: tdef; anonymous: boolean); virtual;
      procedure end_aggregate_internal(def: tdef; anonymous: boolean); virtual;
@@ -306,8 +314,17 @@ type
         a) it's definitely a record
         b) the def of the record should be automatically constructed based on
            the types of the emitted fields
+
+        packrecords: same as "pacrecords x"
+        recordalign: specify the (minimum) alignment of the start of the record
+          (no equivalent in source code), used as an alternative for explicit
+          align statements. Use "1" if it should be calculated based on the
+          fields
+        recordalignmin: same as "codealign recordmin=x"
+        maxcrecordalign: specify maximum C record alignment (no equivalent in
+          source code)
      }
-     function begin_anonymous_record(const optionalname: string; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef; virtual;
+     function begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin, maxcrecordalign: shortint): trecorddef; virtual;
      function end_anonymous_record: trecorddef; virtual;
 
      { The next group of routines are for constructing complex expressions.
@@ -321,10 +338,11 @@ type
      procedure queue_vecn(def: tdef; const index: tconstexprint); virtual;
      { queue a subscripting operation }
      procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); virtual;
+     { queue indexing a record recursively via several field names. The fields
+       are specified in the inner to outer order (i.e., def.field1.field2) }
+     function queue_subscriptn_multiple_by_name(def: tabstractrecorddef; const fields: array of TIDString): tdef;
      { queue a type conversion operation }
      procedure queue_typeconvn(fromdef, todef: tdef); virtual;
-     { queue an address taking operation }
-     procedure queue_addrn(fromdef, todef: tdef); virtual;
      { finalise the queue (so a new one can be created) and flush the
         previously queued operations, applying them in reverse order on a...}
      { ... procdef }
@@ -339,6 +357,11 @@ type
      procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); virtual;
      { ... an ordinal constant }
      procedure queue_emit_ordconst(value: int64; def: tdef); virtual;
+    protected
+     { returns whether queue_init has been called without a corresponding
+       queue_emit_* to finish it }
+     function queue_is_active: boolean;
+    public
 
      { finalize the internal asmlist (if necessary) and return it.
        This asmlist will be freed when the builder is destroyed, so add its
@@ -357,6 +380,9 @@ type
        initialised. Also in case of objects, because the fieldvarsyms are spread
        over the symtables of the entire inheritance tree }
      property next_field: tfieldvarsym write set_next_field;
+     { set the name of the next field that will be emitted for an anonymous
+       record (or the next of the next started anonymous record) }
+     property next_field_name: TIDString write set_next_field_name;
     protected
      { this one always return the actual offset, called by the above (and
        overridden versions) }
@@ -387,6 +413,7 @@ implementation
 
    uses
      verbose,globals,systems,widestr,
+     fmodule,
      symbase,symtable,defutil;
 
 {****************************************************************************
@@ -415,6 +442,15 @@ implementation
       begin
         field:=tfieldvarsym(tabstractrecorddef(def).symtable.symlist[l]);
         result:=field.fieldoffset;
+      end;
+
+
+    procedure taggregateinformation.setnextfieldname(AValue: TIDString);
+      begin
+        if (fnextfieldname<>'') or
+           not anonrecord then
+          internalerror(2015071503);
+        fnextfieldname:=AValue;
       end;
 
 
@@ -451,12 +487,18 @@ implementation
             { if we are constructing this record as data gets emitted, add a field
               for this data }
             if anonrecord then
-              trecorddef(def).add_field_by_def(nextfielddef);
+              begin
+                trecorddef(def).add_field_by_def(fnextfieldname,nextfielddef);
+                fnextfieldname:='';
+              end
+            else if fnextfieldname<>'' then
+              internalerror(2015071501);
             { find next field }
             i:=curindex;
             repeat
               inc(i);
-            until tsym(tabstractrecorddef(def).symtable.symlist[i]).typ=fieldvarsym;
+            until (tsym(tabstractrecorddef(def).symtable.symlist[i]).typ=fieldvarsym) and
+              not(sp_static in tsym(tabstractrecorddef(def).symtable.symlist[i]).symoptions);
             nextoffset:=fieldoffset[i];
             currentoffset:=curoffset;
             curindex:=i;
@@ -490,6 +532,12 @@ implementation
 {****************************************************************************
                                 tai_simpletypedconst
  ****************************************************************************}
+
+    procedure tai_simpletypedconst.setval(AValue: tai);
+      begin
+        fval:=AValue;
+      end;
+
 
    constructor tai_simpletypedconst.create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
      begin
@@ -646,7 +694,7 @@ implementation
            if fvalues.count<>1 then
              internalerror(2014070105);
            tai_simpletypedconst(fvalues[0]).fdef:=
-             getarraydef(cansichartype,
+             carraydef.getreusable(cansichartype,
                tai_string(tai_simpletypedconst(fvalues[0]).val).len);
          end;
      end;
@@ -682,6 +730,17 @@ implementation
          internalerror(2014091206);
        info.nextfield:=AValue;
      end;
+
+
+    procedure ttai_typedconstbuilder.set_next_field_name(AValue: TIDString);
+      var
+        info: taggregateinformation;
+      begin
+        info:=curagginfo;
+        if not assigned(info) then
+          internalerror(2015071502);
+        info.nextfieldname:='$'+AValue;
+      end;
 
 
    procedure ttai_typedconstbuilder.pad_next_field(nextfielddef: tdef);
@@ -755,6 +814,11 @@ implementation
      var
        prelist: tasmlist;
      begin
+       { have we finished all aggregates? }
+       if (getcurragginfo<>nil) and
+          { in case of syntax errors, the aggregate may not have been finished }
+          (ErrorCount=0) then
+         internalerror(2015072301);
        prelist:=tasmlist.create;
        { only now add items based on the symbolname, because it may be
          modified by the "section" specifier in case of a typed constant }
@@ -976,8 +1040,10 @@ implementation
          an anonymous record also add the next field }
        if assigned(info) then
          begin
-           if ((info.def.typ=recorddef) or
-               is_object(info.def)) and
+           { queue_init already adds padding }
+           if not queue_is_active and
+               (is_record(info.def) or
+                is_object(info.def)) and
               { may add support for these later }
               not is_packed_record_or_object(info.def) then
              pad_next_field(def);
@@ -994,6 +1060,30 @@ implementation
      end;
 
 
+   procedure ttai_typedconstbuilder.maybe_emit_tail_padding(def: tdef);
+     var
+       info: taggregateinformation;
+       fillbytes: asizeint;
+     begin
+       info:=curagginfo;
+       if not assigned(info) then
+         internalerror(2014091002);
+       if def<>info.def then
+         internalerror(2014091205);
+       if (is_record(def) or
+           is_object(def)) and
+          not is_packed_record_or_object(def) then
+         begin
+           fillbytes:=def.size-info.curoffset;
+           while fillbytes>0 do
+             begin
+               do_emit_tai(Tai_const.Create_8bit(0),u8inttype);
+               dec(fillbytes)
+             end;
+         end;
+     end;
+
+
    function ttai_typedconstbuilder.emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; var startlab: tasmlabel): tasmlabofs;
      var
        string_symofs: asizeint;
@@ -1004,7 +1094,7 @@ implementation
        result.ofs:=0;
        { pack the data, so that we don't add unnecessary null bytes after the
          constant string }
-       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1,1,1);
+       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1,sizeof(TConstPtrUInt),1,1);
        string_symofs:=get_string_symofs(stringtype,false);
        { encoding }
        emit_tai(tai_const.create_16bit(encoding),u16inttype);
@@ -1069,9 +1159,14 @@ implementation
          begin
            { add padding if necessary, and update the current field/offset }
            info:=curagginfo;
-           if is_record(curagginfo.def) or
-              is_object(curagginfo.def) then
-             pad_next_field(def);
+           if (is_record(curagginfo.def) or
+               is_object(curagginfo.def)) and
+              not is_packed_record_or_object(curagginfo.def) then
+             begin
+               if queue_is_active then
+                 internalerror(2015073001);
+               pad_next_field(def);
+             end;
          end
        { if this is the outer record, no padding is required; the alignment
          has to be specified explicitly in that case via get_final_asmlist() }
@@ -1087,30 +1182,15 @@ implementation
    procedure ttai_typedconstbuilder.end_aggregate_internal(def: tdef; anonymous: boolean);
      var
        info: taggregateinformation;
-       fillbytes: asizeint;
        tck: ttypedconstkind;
      begin
        tck:=aggregate_kind(def);
        if tck=tck_simple then
          exit;
-       info:=curagginfo;
-       if not assigned(info) then
-         internalerror(2014091002);
-       if def<>info.def then
-         internalerror(2014091205);
        { add tail padding if necessary }
-       if (is_record(def) or
-           is_object(def)) and
-          not is_packed_record_or_object(def) then
-         begin
-           fillbytes:=def.size-info.curoffset;
-           while fillbytes>0 do
-             begin
-               do_emit_tai(Tai_const.Create_8bit(0),u8inttype);
-               dec(fillbytes)
-             end;
-         end;
+       maybe_emit_tail_padding(def);
        { pop and free the information }
+       info:=curagginfo;
        faggregateinformation.count:=faggregateinformation.count-1;
        info.free;
      end;
@@ -1150,7 +1230,7 @@ implementation
        move(data^,s^,len);
        s[len]:=#0;
        { terminating zero included }
-       datadef:=getarraydef(cansichartype,len+1);
+       datadef:=carraydef.getreusable(cansichartype,len+1);
        datatcb.maybe_begin_aggregate(datadef);
        datatcb.emit_tai(tai_string.create_pchar(s,len+1),datadef);
        datatcb.maybe_end_aggregate(datadef);
@@ -1174,7 +1254,7 @@ implementation
          begin
            result.lab:=startlab;
            datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),
-             4,
+             4,4,
              targetinfos[target_info.system]^.alignment.recordalignmin,
              targetinfos[target_info.system]^.alignment.maxCrecordalign);
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
@@ -1199,7 +1279,7 @@ implementation
          end;
        if cwidechartype.size = 2 then
          begin
-           datadef:=getarraydef(cwidechartype,strlength+1);
+           datadef:=carraydef.getreusable(cwidechartype,strlength+1);
            datatcb.maybe_begin_aggregate(datadef);
            for i:=0 to strlength-1 do
              datatcb.emit_tai(Tai_const.Create_16bit(pcompilerwidestring(data)^.data[i]),cwidechartype);
@@ -1227,11 +1307,11 @@ implementation
          functionality in place yet to reuse shortstringdefs of the same length
          and neither the lowlevel nor the llvm typedconst builder cares about
          this difference }
-       result:=getarraydef(cansichartype,length(str)+1);
+       result:=carraydef.getreusable(cansichartype,length(str)+1);
        maybe_begin_aggregate(result);
        emit_tai(Tai_const.Create_8bit(length(str)),u8inttype);
        if str<>'' then
-         emit_tai(Tai_string.Create(str),getarraydef(cansichartype,length(str)));
+         emit_tai(Tai_string.Create(str),carraydef.getreusable(cansichartype,length(str)));
        maybe_end_aggregate(result);
      end;
 
@@ -1259,7 +1339,7 @@ implementation
 
    procedure ttai_typedconstbuilder.emit_procdef_const(pd: tprocdef);
      begin
-       emit_tai(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0),pd.getcopyas(procvardef,pc_address_only));
+       emit_tai(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd));
      end;
 
 
@@ -1292,33 +1372,29 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef;
+   function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin, maxcrecordalign: shortint): trecorddef;
      var
        anonrecorddef: trecorddef;
-       srsym: tsym;
-       srsymtable: tsymtable;
-       found: boolean;
+       typesym: ttypesym;
      begin
        { if the name is specified, we create a typesym with that name in order
          to ensure we can find it again later with that name -> reuse here as
          well if possible (and that also avoids duplicate type name issues) }
        if optionalname<>'' then
          begin
-           if optionalname[1]='$' then
-             found:=searchsym_type(copy(optionalname,2,length(optionalname)),srsym,srsymtable)
-           else
-             found:=searchsym_type(optionalname,srsym,srsymtable);
-           if found then
+           typesym:=try_search_current_module_type(optionalname);
+           if assigned(typesym) then
              begin
-               if ttypesym(srsym).typedef.typ<>recorddef then
-                 internalerror(2014091207);
-               result:=trecorddef(ttypesym(srsym).typedef);
+               if typesym.typedef.typ<>recorddef then
+                 internalerror(2015071401);
+               result:=trecorddef(typesym.typedef);
                maybe_begin_aggregate(result);
                exit;
              end;
          end;
        { create skeleton def }
        anonrecorddef:=crecorddef.create_global_internal(optionalname,packrecords,recordalignmin,maxcrecordalign);
+       trecordsymtable(anonrecorddef.symtable).recordalignment:=recordalign;
        { generic aggregate housekeeping }
        begin_aggregate_internal(anonrecorddef,true);
        { mark as anonymous record }
@@ -1355,11 +1431,27 @@ implementation
 
 
    procedure ttai_typedconstbuilder.queue_init(todef: tdef);
+     var
+       info: taggregateinformation;
      begin
        { nested call to init? }
        if fqueue_offset<>low(fqueue_offset) then
          internalerror(2014062101);
+
+       { insert padding bytes before starting the queue, so that the first
+         padding byte won't be interpreted as the emitted value for this queue }
+       info:=curagginfo;
+       if assigned(info) then
+         begin
+           if ((info.def.typ=recorddef) or
+               is_object(info.def)) and
+              { may add support for these later }
+              not is_packed_record_or_object(info.def) then
+             pad_next_field(todef);
+         end;
+
        fqueue_offset:=0;
+       fqueued_def:=todef;
      end;
 
 
@@ -1404,12 +1496,43 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.queue_typeconvn(fromdef, todef: tdef);
+   function ttai_typedconstbuilder.queue_subscriptn_multiple_by_name(def: tabstractrecorddef; const fields: array of TIDString): tdef;
+     var
+       syms,
+       parentdefs: tfplist;
+       sym: tsym;
+       curdef: tdef;
+       i: longint;
      begin
-       { do nothing }
+       result:=nil;
+       if length(fields)=0 then
+         internalerror(2015071601);
+       syms:=tfplist.Create;
+       syms.count:=length(fields);
+       parentdefs:=tfplist.create;
+       parentdefs.Count:=length(fields);
+       curdef:=def;
+       for i:=low(fields) to high(fields) do
+         begin
+           sym:=search_struct_member_no_helper(tabstractrecorddef(curdef),fields[i]);
+           if not assigned(sym) or
+              (sym.typ<>fieldvarsym) or
+              ((i<>high(fields)) and
+               not(tfieldvarsym(sym).vardef.typ in [objectdef,recorddef])) then
+             internalerror(2015071505);
+           syms[i]:=sym;
+           parentdefs[i]:=curdef;
+           curdef:=tfieldvarsym(sym).vardef;
+           result:=curdef;
+         end;
+       for i:=high(fields) downto low(fields) do
+         queue_subscriptn(tabstractrecorddef(parentdefs[i]),tfieldvarsym(syms[i]));
+       syms.free;
+       parentdefs.free;
      end;
 
-   procedure ttai_typedconstbuilder.queue_addrn(fromdef, todef: tdef);
+
+   procedure ttai_typedconstbuilder.queue_typeconvn(fromdef, todef: tdef);
      begin
        { do nothing }
      end;
@@ -1426,9 +1549,9 @@ implementation
 
    procedure ttai_typedconstbuilder.queue_emit_staticvar(vs: tstaticvarsym);
      begin
-       { getpointerdef because we are emitting a pointer to the staticvarsym
+       { pointerdef because we are emitting a pointer to the staticvarsym
          data, not the data itself }
-       emit_tai(Tai_const.Createname(vs.mangledname,fqueue_offset),getpointerdef(vs.vardef));
+       emit_tai(Tai_const.Createname(vs.mangledname,fqueue_offset),cpointerdef.getreusable(vs.vardef));
        fqueue_offset:=low(fqueue_offset);
      end;
 
@@ -1454,17 +1577,24 @@ implementation
 
    procedure ttai_typedconstbuilder.queue_emit_asmsym(sym: tasmsymbol; def: tdef);
      begin
-       { getpointerdef, because "sym" represents the address of whatever the
+       { pointerdef, because "sym" represents the address of whatever the
          data is }
-       def:=getpointerdef(def);
+       def:=cpointerdef.getreusable(def);
        emit_tai(Tai_const.Create_sym_offset(sym,fqueue_offset),def);
        fqueue_offset:=low(fqueue_offset);
      end;
+
 
    procedure ttai_typedconstbuilder.queue_emit_ordconst(value: int64; def: tdef);
      begin
        emit_ord_const(value,def);
        fqueue_offset:=low(fqueue_offset);
+     end;
+
+
+   function ttai_typedconstbuilder.queue_is_active: boolean;
+     begin
+       result:=fqueue_offset<>low(fqueue_offset)
      end;
 
 

@@ -15,4 +15,6 @@
 
 procedure SysDebug(const s: RawByteString);
 procedure SysDebugLn(const s: RawByteString);
+procedure SysDebug(const s: ShortString);
+procedure SysDebugLn(const s: ShortString);
 procedure SysDebugLn;

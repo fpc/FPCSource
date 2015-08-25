@@ -137,7 +137,7 @@ unit rgcpu;
           end
         else
           inherited;
-    end;
+      end;
 
 
     procedure trgintcpu.add_cpu_interferences(p : tai);

@@ -24,48 +24,35 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="--suite=TTestParser.TestComment"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="4">
+    <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="fpcunitconsolerunner"/>
-      </Item1>
-      <Item2>
-        <PackageName Value="LCL"/>
-      </Item2>
-      <Item3>
-        <PackageName Value="FPCUnitTestRunner"/>
-      </Item3>
-      <Item4>
         <PackageName Value="FCL"/>
-      </Item4>
+      </Item1>
     </RequiredPackages>
     <Units Count="5">
       <Unit0>
         <Filename Value="testjson.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="testjson"/>
       </Unit0>
       <Unit1>
         <Filename Value="testjsonparser.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="testjsonparser"/>
       </Unit1>
       <Unit2>
         <Filename Value="testjsondata.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="testjsondata"/>
       </Unit2>
       <Unit3>
         <Filename Value="testjsonrtti.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="testjsonrtti"/>
       </Unit3>
       <Unit4>
         <Filename Value="../src/fpjsonrtti.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpjsonrtti"/>
       </Unit4>
     </Units>
   </ProjectOptions>
@@ -79,12 +66,6 @@
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Other>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="2">

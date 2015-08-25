@@ -11,8 +11,6 @@
                      http://bugs.freepascal.org
  
 }
-{    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -610,8 +608,8 @@ const
 	kUnicodeTextBreakClass = FourCharCode('ubrk');
 
 type
-	TextBreakLocatorRef = ^SInt32; { an opaque type }
-	TextBreakLocatorRefPtr = ^TextBreakLocatorRef;  { when a var xx:TextBreakLocatorRef parameter can be nil, it is changed to xx: TextBreakLocatorRefPtr }
+	TextBreakLocatorRef = ^OpaqueTextBreakLocatorRef; { an opaque type }
+	OpaqueTextBreakLocatorRef = record end;
 
 {
  *  UCTextBreakType

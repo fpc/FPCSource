@@ -6,6 +6,7 @@
  *
  }
 {  Initial Pascal Translation: Jonas Maebe <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308

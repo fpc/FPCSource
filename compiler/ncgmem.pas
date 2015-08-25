@@ -117,7 +117,7 @@ implementation
                  reference_reset_symbol(href,
                    current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname,AT_DATA),0,
                    voidpointertype.size);
-                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,location.register);
+                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,href,location.register);
                end
              else
                begin
@@ -138,11 +138,8 @@ implementation
                end;
            end
          else
-           begin
-             { left contains self, load vmt from self }
-             secondpass(left);
-             gen_load_vmt_register(current_asmdata.CurrAsmList,tobjectdef(left.resultdef),left.location,location.register);
-           end;
+           { should be handled in pass 1 }
+           internalerror(2015052801);
       end;
 
 
@@ -673,8 +670,8 @@ implementation
            internalerror(200608051);
          sref.ref := location.reference;
          hreg := cg.getaddressregister(current_asmdata.CurrAsmList);
-         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,tarraydef(left.resultdef).lowrange,maybe_const_reg,hreg);
-         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_INT,l,hreg);
+         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,tarraydef(left.resultdef).lowrange,maybe_const_reg,hreg);
+         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,hreg);
          { keep alignment for index }
          sref.ref.alignment := left.resultdef.alignment;
          if not ispowerof2(packedbitsloadsize(l),temp) then
@@ -692,8 +689,22 @@ implementation
              cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,sref.ref.base,offsetreg);
              sref.ref.base := offsetreg;
            end;
-         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,(1 shl (3+alignpower))-1,hreg);
-         sref.bitindexreg := hreg;
+
+         { the if expression below is a constant evaluated at compile time, so disable the unreachable code
+           warning }
+{$push}
+{$warn 6018 off}
+         { we can reuse hreg only if OS_INT and OS_ADDR have the same size/type }
+         if OS_INT<>OS_ADDR then
+           begin
+             sref.bitindexreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_INT,hreg,sref.bitindexreg);
+           end
+         else
+           sref.bitindexreg:=hreg;
+{$pop}
+
+         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,(1 shl (3+alignpower))-1,sref.bitindexreg);
          sref.startbit := 0;
          sref.bitlen := resultdef.packedbitsize;
          if (left.location.loc = LOC_REFERENCE) then

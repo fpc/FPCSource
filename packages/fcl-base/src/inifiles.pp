@@ -194,8 +194,8 @@ type
     procedure MaybeUpdateFile;
     property Dirty : Boolean Read FDirty;
   public
-    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); override;
-    constructor Create(AStream: TStream; AEscapeLineFeeds : Boolean = False);
+    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); overload; override;
+    constructor Create(AStream: TStream; AEscapeLineFeeds : Boolean = False); overload;
     destructor Destroy; override;
     function ReadString(const Section, Ident, Default: string): string; override;
     procedure WriteString(const Section, Ident, Value: String); override;
@@ -212,7 +212,7 @@ type
 
   TMemIniFile = class(TIniFile)
   public
-    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); override;
+    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); overload; override;
     procedure Clear;
     procedure GetStrings(List: TStrings);
     procedure Rename(const AFileName: string; Reload: Boolean);
@@ -1056,7 +1056,10 @@ begin
       slLines.SaveToFile(FFileName);
       end
     else if FStream <> nil then
+      begin
+      Fstream.Size:=0;
       slLines.SaveToStream(FStream);
+      end;
     FillSectionList(slLines);
     FDirty := false;
   finally

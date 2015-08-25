@@ -12,7 +12,7 @@ Const
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX];
 
-  CollationOSes = [aix,darwin,emx,freebsd,linux,netbsd,openbsd,os2,solaris,win32,win64,dragonfly];
+  CollationOSes = [aix,darwin,emx,freebsd,linux,netbsd,openbsd,os2,solaris,win32,win64,dragonfly,haiku];
   CPUnits       = [aix,amiga,aros,android,beos,darwin,iphonesim,emx,gba,nds,freebsd,go32v2,haiku,linux,morphos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince,dragonfly];
   utf8bidiOSes  = [netware,netwlibc];
   freebidiOSes  = [netware,netwlibc];  

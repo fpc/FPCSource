@@ -88,7 +88,7 @@ begin
   psym:=tparavarsym(pd.paras[nr-1]);
   pdef:=psym.vardef;
   if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-    pdef:=getpointerdef(pdef);
+    pdef:=cpointerdef.getreusable(pdef);
   cgpara.reset;
   cgpara.size := def_cgsize(pdef);
   cgpara.intsize := tcgsize2size[cgpara.size];
@@ -146,7 +146,10 @@ begin
     filedef:
       result := LOC_REGISTER;
     arraydef:
-      result := LOC_REFERENCE;
+      if is_dynamic_array(p) then
+        getparaloc:=LOC_REGISTER
+      else
+        result := LOC_REFERENCE;
     setdef:
       if is_smallset(p) then
         result := LOC_REGISTER
@@ -415,7 +418,7 @@ begin
     next 8 byte boundary? }
   paraaligned:=false;
   if push_addr_param(varspez, paradef, p.proccalloption) then begin
-    paradef := getpointerdef(paradef);
+    paradef := cpointerdef.getreusable(paradef);
     loc := LOC_REGISTER;
     paracgsize := OS_ADDR;
     paralen := tcgsize2size[OS_ADDR];

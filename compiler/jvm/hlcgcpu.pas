@@ -2401,6 +2401,7 @@ implementation
         begin
           sym:=tsym(obj.symtable.symlist[i]);
           if (sym.typ=fieldvarsym) and
+             not(sp_static in sym.symoptions) and
              (jvmimplicitpointertype(tfieldvarsym(sym).vardef) or
               ((tfieldvarsym(sym).vardef.typ=enumdef) and
                get_enum_init_val_ref(tfieldvarsym(sym).vardef,ref))) then

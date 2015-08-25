@@ -50,6 +50,7 @@ interface
          procedure extra_post_call_code; override;
          function dispatch_procvar: tnode;
          procedure remove_hidden_paras;
+         procedure gen_vmt_entry_load; override;
         public
          function pass_typecheck: tnode; override;
          function pass_1: tnode; override;
@@ -170,6 +171,9 @@ implementation
         implicitptrpara,
         verifyout: boolean;
       begin
+        { the original version doesn't do anything for garbage collected
+          platforms, but who knows in the future }
+        inherited;
         { implicit pointer types are already pointers -> no need to stuff them
           in an array to pass them by reference (except in case of a formal
           parameter, in which case everything is passed in an array since the
@@ -224,10 +228,10 @@ implementation
         if parasym.vardef.typ=formaldef then
           arreledef:=java_jlobject
         else if implicitptrpara then
-          arreledef:=getpointerdef(orgparadef)
+          arreledef:=cpointerdef.getreusable(orgparadef)
         else
           arreledef:=parasym.vardef;
-        arrdef:=getarraydef(arreledef,1+ord(cs_check_var_copyout in current_settings.localswitches));
+        arrdef:=carraydef.getreusable(arreledef,1+ord(cs_check_var_copyout in current_settings.localswitches));
         { the -1 means "use the array's element count to determine the number
           of elements" in the JVM temp generator }
         arraytemp:=ctempcreatenode.create(arrdef,-1,tt_persistent,true);
@@ -308,7 +312,7 @@ implementation
                   tempn:=cinlinenode.create(in_unbox_x_y,false,ccallparanode.create(
                     ctypenode.create(orgparadef),ccallparanode.create(tempn,nil)))
                 else if implicitptrpara then
-                  tempn:=ctypeconvnode.create_explicit(tempn,getpointerdef(orgparadef))
+                  tempn:=ctypeconvnode.create_explicit(tempn,cpointerdef.getreusable(orgparadef))
               end;
             if implicitptrpara then
               tempn:=cderefnode.create(tempn)
@@ -489,6 +493,12 @@ implementation
             prevpara:=para;
           para:=nextpara;
         end;
+    end;
+
+
+  procedure tjvmcallnode.gen_vmt_entry_load;
+    begin
+      { nothing to do }
     end;
 
 

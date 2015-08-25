@@ -31,7 +31,7 @@ implementation
 
     uses
        SysUtils,
-       cutils,cfileutl,cclasses,
+       cutils,cfileutl,cclasses,rescmn,comprsrc,
        globtype,globals,systems,verbose,script,fmodule,i_morph,link;
 
     type
@@ -265,4 +265,5 @@ end;
 initialization
   RegisterLinker(ld_morphos,TLinkerMorphOS);
   RegisterTarget(system_powerpc_morphos_info);
+  RegisterRes(res_elf_info, TWinLikeResourceFile);
 end.

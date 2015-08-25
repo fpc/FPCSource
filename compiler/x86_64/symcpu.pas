@@ -26,7 +26,7 @@ unit symcpu;
 interface
 
 uses
-  symtype,symdef,symsym,symx86;
+  symconst,symtype,symdef,symsym,symx86;
 
 type
   { defs }
@@ -91,6 +91,15 @@ type
   tcpuprocvardefclass = class of tcpuprocvardef;
 
   tcpuprocdef = class(tprocdef)
+    procedure ppuload_platform(ppufile: tcompilerppufile); override;
+    procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
+   public
+    { library symbol for AROS }
+    libsym : tsym;
+    libsymderef : tderef;
+    function getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef; override;
+    procedure buildderef; override;
+    procedure deref; override;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
@@ -114,6 +123,10 @@ type
   tcpuunitsym = class(tunitsym)
   end;
   tcpuunitsymclass = class of tcpuunitsym;
+
+  tcpuprogramparasym = class(tprogramparasym)
+  end;
+  tcpuprogramparasymclass = class(tprogramparasym);
 
   tcpunamespacesym = class(tnamespacesym)
   end;
@@ -170,6 +183,52 @@ const
 
 implementation
 
+{****************************************************************************
+                             tcpuprocdef
+****************************************************************************}
+
+  procedure tcpuprocdef.ppuload_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      if po_syscall_has_libsym in procoptions then
+        ppufile.getderef(libsymderef);
+    end;
+
+
+  procedure tcpuprocdef.ppuwrite_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      if po_syscall_has_libsym in procoptions then
+        ppufile.putderef(libsymderef);
+    end;
+
+
+  function tcpuprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
+    begin
+      result:=inherited;
+      if newtyp=procdef then
+        tcpuprocdef(result).libsym:=libsym;
+    end;
+
+
+  procedure tcpuprocdef.buildderef;
+    begin
+      inherited;
+      if po_syscall_has_libsym in procoptions then
+        libsymderef.build(libsym);
+    end;
+
+
+  procedure tcpuprocdef.deref;
+    begin
+      inherited;
+      if po_syscall_has_libsym in procoptions then
+        libsym:=tsym(libsymderef.resolve)
+      else
+        libsym:=nil;
+    end;
+
+
 begin
   { used tdef classes }
   cfiledef:=tcpufiledef;
@@ -195,6 +254,7 @@ begin
   { used tsym classes }
   clabelsym:=tcpulabelsym;
   cunitsym:=tcpuunitsym;
+  cprogramparasym:=tcpuprogramparasym;
   cnamespacesym:=tcpunamespacesym;
   cprocsym:=tcpuprocsym;
   ctypesym:=tcputypesym;
@@ -207,7 +267,5 @@ begin
   cconstsym:=tcpuconstsym;
   cenumsym:=tcpuenumsym;
   csyssym:=tcpusyssym;
-
-  cPtrDefHashSet:=tx86PtrDefHashSet;
 end.
 

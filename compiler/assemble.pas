@@ -33,7 +33,7 @@ interface
 
     uses
       SysUtils,
-      systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase,finput;
+      systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase,owbase,finput;
 
     const
        { maximum of aasmoutput lists there will be }
@@ -147,6 +147,7 @@ interface
       TInternalAssembler=class(TAssembler)
       private
         FCObjOutput : TObjOutputclass;
+        FCInternalAr : TObjectWriterClass;
         { the aasmoutput lists that need to be processed }
         lists        : byte;
         list         : array[1..maxoutputlists] of TAsmList;
@@ -165,6 +166,7 @@ interface
         ObjData   : TObjData;
         ObjOutput : tObjOutput;
         property CObjOutput:TObjOutputclass read FCObjOutput write FCObjOutput;
+        property CInternalAr : TObjectWriterClass read FCInternalAr write FCInternalAr;
       public
         constructor create(smart:boolean);override;
         destructor  destroy;override;
@@ -194,7 +196,7 @@ Implementation
       cpuinfo,
 {$endif m68k or arm}
       aasmcpu,
-      owbase,owar
+      owar,owomflib
       ;
 
     var
@@ -1819,16 +1821,20 @@ Implementation
         startsectype : TAsmSectiontype;
         place: tcutplace;
         ObjWriter : TObjectWriter;
+        startsecname: String;
+        startsecorder: TAsmSectionOrder;
       begin
         if not(cs_asm_leave in current_settings.globalswitches) and
            not(af_needar in target_asm.flags) then
-          ObjWriter:=TARObjectWriter.create(current_module.staticlibfilename)
+          ObjWriter:=CInternalAr.CreateAr(current_module.staticlibfilename)
         else
           ObjWriter:=TObjectwriter.create;
 
         NextSmartName(cut_normal);
         ObjOutput:=CObjOutput.Create(ObjWriter);
-        startsectype:=sec_code;
+        startsectype:=sec_none;
+        startsecname:='';
+        startsecorder:=secorder_default;
 
         { start with list 1 }
         currlistidx:=1;
@@ -1842,7 +1848,8 @@ Implementation
            ObjData.currpass:=0;
            ObjData.resetsections;
            ObjData.beforealloc;
-           ObjData.createsection(startsectype);
+           if startsectype<>sec_none then
+             ObjData.CreateSection(startsectype,startsecname,startsecorder);
            TreePass0(hp);
            ObjData.afteralloc;
            { leave if errors have occured }
@@ -1853,7 +1860,8 @@ Implementation
            ObjData.currpass:=1;
            ObjData.resetsections;
            ObjData.beforealloc;
-           ObjData.createsection(startsectype);
+           if startsectype<>sec_none then
+             ObjData.CreateSection(startsectype,startsecname,startsecorder);
            TreePass1(hp);
            ObjData.afteralloc;
 
@@ -1866,7 +1874,8 @@ Implementation
            ObjOutput.startobjectfile(ObjFileName);
            ObjData.resetsections;
            ObjData.beforewrite;
-           ObjData.createsection(startsectype);
+           if startsectype<>sec_none then
+             ObjData.CreateSection(startsectype,startsecname,startsecorder);
            hp:=TreePass2(hp);
            ObjData.afterwrite;
 
@@ -1892,12 +1901,18 @@ Implementation
              place := cut_normal;
 
            { avoid empty files }
-           startsectype:=sec_code;
+           startsectype:=sec_none;
+           startsecname:='';
+           startsecorder:=secorder_default;
            while assigned(hp) and
                  (Tai(hp).typ in [ait_marker,ait_comment,ait_section,ait_cutobject]) do
             begin
               if Tai(hp).typ=ait_section then
-                startsectype:=Tai_section(hp).sectype;
+                begin
+                  startsectype:=Tai_section(hp).sectype;
+                  startsecname:=Tai_section(hp).name^;
+                  startsecorder:=Tai_section(hp).secorder;
+                end;
               if (Tai(hp).typ=ait_cutobject) then
                 place:=Tai_cutobject(hp).place;
               hp:=Tai(hp.next);

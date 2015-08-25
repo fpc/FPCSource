@@ -1,10 +1,6 @@
 {	CFPreferences.h
-	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2013, Apple Inc. All rights reserved.
 }
-{   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
-{   Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -282,6 +278,7 @@ which have preferences in the scope of the given user and host.
 The returned value must be released by the caller; neither argument
 may be NULL. }
 function CFPreferencesCopyApplicationList( userName: CFStringRef; hostName: CFStringRef ): CFArrayRef; external name '_CFPreferencesCopyApplicationList';
+(* CF_DEPRECATED(10_0, 10_9, 2_0, 7_0) *)
 
 { Constructs and returns the list of all keys set in the given
 location.  The returned value must be released by the caller;

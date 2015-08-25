@@ -17,15 +17,15 @@ type
   private
     refcount: integer;
   public
-    function QueryInterface(constref iid : tguid;out obj) : Hresult;stdcall;
-    function _AddRef : longint;stdcall;
-    function _Release : longint;stdcall;
+    function QueryInterface(constref iid : tguid;out obj) : Hresult;{$IFNDEF WINDOWS}cdecl{$else}stdcall{$ENDIF};
+    function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$else}stdcall{$ENDIF};
+    function _Release : longint;{$IFNDEF WINDOWS}cdecl{$else}stdcall{$ENDIF};
   end;
 
 var
   called: Boolean = False;
 
-function TTest.QueryInterface(constref IID: TGUID; out Obj): Hresult; stdcall;
+function TTest.QueryInterface(constref IID: TGUID; out Obj): Hresult; {$IFNDEF WINDOWS}cdecl{$else}stdcall{$ENDIF};
 begin
   called := true;
   if getinterface(iid,obj) then
@@ -34,13 +34,13 @@ begin
    result:=longint(E_NOINTERFACE);
 end;
 
-function TTest._AddRef : longint;stdcall;
+function TTest._AddRef : longint;{$IFNDEF WINDOWS}cdecl{$else}stdcall{$ENDIF};
 begin
   Inc(refcount);
   result := refcount;
 end;
 
-function TTest._Release : longint;stdcall;
+function TTest._Release : longint;{$IFNDEF WINDOWS}cdecl{$else}stdcall{$ENDIF};
 begin
   Dec(refcount);
   result := refcount;

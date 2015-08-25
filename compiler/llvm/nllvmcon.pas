@@ -72,18 +72,18 @@ implementation
                   constants (-> excludes terminating #0) and pchars (-> includes
                   terminating #0). The resultdef excludes the #0 while the data
                   includes it -> insert typecast from datadef to resultdef }
-                datadef:=getarraydef(cansichartype,len+1);
+                datadef:=carraydef.getreusable(cansichartype,len+1);
               cst_shortstring:
                 { the resultdef of the string constant is the type of the
                   string to which it is assigned, which can be longer or shorter
                   than the length of the string itself -> typecast it to the
                   correct string type }
-                datadef:=getarraydef(cansichartype,min(len,255)+1);
+                datadef:=carraydef.getreusable(cansichartype,min(len,255)+1);
               else
                 internalerror(2014071203);
             end;
             { get address of array as pchar }
-            resptrdef:=getpointerdef(resultdef);
+            resptrdef:=cpointerdef.getreusable(resultdef);
             hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resptrdef);
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,datadef,resptrdef,location.reference,hreg);
             hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.alignment);
@@ -99,6 +99,7 @@ implementation
         srsymtable: tsymtable;
         offset: pint;
         field: tfieldvarsym;
+        llvmfield: tllvmshadowsymtableentry;
         dataptrdef: tdef;
         reg: tregister;
         href: treference;
@@ -121,13 +122,16 @@ implementation
         offset:=ctai_typedconstbuilder.get_string_symofs(stringtype,winlikewidestring);
         { field corresponding to this offset }
         field:=trecordsymtable(strrecdef.symtable).findfieldbyoffset(offset);
+        llvmfield:=trecordsymtable(strrecdef.symtable).llvmst[field];
+        if llvmfield.fieldoffset<>field.fieldoffset then
+          internalerror(2015061001);
         { pointerdef to the string data array }
-        dataptrdef:=getpointerdef(field.vardef);
+        dataptrdef:=cpointerdef.getreusable(field.vardef);
         { load the address of the string data }
         reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,dataptrdef);
-        reference_reset_symbol(href, lab_str, 0, const_align(strpointerdef.size));
+        reference_reset_symbol(href,lab_str,0,const_align(strpointerdef.size));
         current_asmdata.CurrAsmList.concat(
-          taillvm.getelementptr_reg_size_ref_size_const(reg,dataptrdef,href,
+          taillvm.getelementptr_reg_size_ref_size_const(reg,cpointerdef.getreusable(strrecdef),href,
           s32inttype,field.llvmfieldnr,true));
         { convert into a pointer to the individual elements }
         hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dataptrdef,strpointerdef,reg,location.register);

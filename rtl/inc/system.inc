@@ -736,6 +736,10 @@ begin
 end;
 {$endif ndef FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
 
+procedure fpc_objecterror; compilerproc;
+begin
+  HandleErrorAddrFrameInd(210,get_pc_addr,get_frame);
+end;
 
 procedure fpc_rangeerror;[public,alias:'FPC_RANGEERROR']; compilerproc;
 begin
@@ -993,7 +997,10 @@ Begin
     redirection to seriell i/o }
 {$ifndef EMBEDDED}
   { Show runtime error and exit }
-  pstdout:=@stdout;
+  if WriteErrorsToStdErr then
+    pstdout:=@stderr
+  else  
+    pstdout:=@stdout;
   If erroraddr<>nil Then
    Begin
      Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(erroraddr));
@@ -1308,6 +1315,7 @@ End;
 
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
 // Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
 // Note: for internal use by skilled programmers only
@@ -1342,6 +1350,7 @@ Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
 begin
   StringToPPChar:=StringToPPChar(PChar(S),ReserveEntries);
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;

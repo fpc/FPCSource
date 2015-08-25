@@ -337,7 +337,7 @@ interface
 implementation
 
     uses
-       verbose,cutils,symcpu;
+       verbose,cutils;
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;
@@ -1208,21 +1208,10 @@ implementation
           classrefdef,
           pointerdef:
             begin
-{$ifdef x86}
-              if (def.typ=pointerdef) and
-                 (tcpupointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
-                begin
-                  {$if defined(i8086)}
-                    result := OS_32;
-                  {$elseif defined(i386)}
-                    internalerror(2013052201);  { there's no OS_48 }
-                  {$elseif defined(x86_64)}
-                    internalerror(2013052202);  { there's no OS_80 }
-                  {$endif}
-                end
-              else
-{$endif x86}
-                result := int_cgsize(def.size);
+              result:=int_cgsize(def.size);
+              { can happen for far/huge pointers on non-i8086 }
+              if result=OS_NO then
+                internalerror(2013052201);
             end;
           formaldef:
             result := int_cgsize(voidpointertype.size);

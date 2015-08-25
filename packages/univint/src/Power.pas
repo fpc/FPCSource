@@ -3,7 +3,7 @@
  
      Contains:   *** DEPRECATED *** Power Manager Interfaces.
  
-     Copyright:  (c) 1990-2011 Apple Inc. All rights reserved.
+     Copyright:  (c) 1990-2012 Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -11,8 +11,6 @@
                      http://bugs.freepascal.org
  
 }
-{      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{      Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -263,7 +261,7 @@ const
 	UsrActivity = 1;    { Delays idle sleep and dimming by timeout time              }
 	NetActivity = 2;    { Delays idle sleep and power cycling by small amount        }
 	HDActivity = 3;    { Delays hard drive spindown and idle sleep by small amount  }
-	IdleActivity = 4;     { Delays idle sleep by timeout time                 }
+	IdleActivity = 4;     { Delays idle sleep by timeout time                          }
 
 type
 	SleepQRecPtr = ^SleepQRec;

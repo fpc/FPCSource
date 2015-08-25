@@ -34,7 +34,7 @@ unit i_go32v2;
             system       : system_i386_GO32V2;
             name         : 'GO32 V2 DOS extender';
             shortname    : 'Go32v2';
-            flags        : [tf_use_8_3,tf_smartlink_library,tf_smartlink_sections];
+            flags        : [tf_use_8_3,tf_smartlink_sections];
             cpu          : cpu_i386;
             unit_env     : 'GO32V2UNITS';
             extradefines : 'DPMI';

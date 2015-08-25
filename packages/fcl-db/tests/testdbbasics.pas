@@ -520,42 +520,49 @@ begin
 
     Open;
 
-    CheckEquals(0,RecordCount);
-    CheckEquals(0,RecNo);
+    CheckEquals(0,RecordCount,'1. record count after open');
+    CheckEquals(0,RecNo,'1. recno after open');
+    CheckEquals(True,EOF and BOF, '1. Empty');
 
     first;
-    CheckEquals(0,RecordCount);
-    CheckEquals(0,RecNo);
+    CheckEquals(0,RecordCount,'2. recordcount after first (empty)');
+    CheckEquals(0,RecNo,'2. recno after first (empty)');
+    CheckEquals(True,EOF and BOF, '1. Empty');
 
     last;
-    CheckEquals(0,RecordCount);
-    CheckEquals(0,RecNo);
+    CheckEquals(0,RecordCount,'3. recordcount after last (empty)');
+    CheckEquals(0,RecNo,'3. recordcount after last (empty)');
+    CheckEquals(True,EOF and BOF, '3. Empty');
 
     append;
-    CheckEquals(0,RecNo);
-    CheckEquals(0,RecordCount);
+    CheckEquals(0,RecNo,'4. recno after append (empty)');
+    CheckEquals(0,RecordCount,'4. recordcount after append (empty)');
+    CheckEquals(False, EOF and BOF, '4. Empty');
 
     first;
-    CheckEquals(0,RecNo);
-    CheckEquals(0,RecordCount);
+    CheckEquals(0,RecNo,'5. recno after first append (empty,append )');
+    CheckEquals(0,RecordCount,'5. recordcount after first (empty, append)');
+    CheckEquals(True,EOF and BOF, '5. Empty');
 
     append;
     FieldByName('id').AsInteger := 1;
-    CheckEquals(0,RecNo);
-    CheckEquals(0,RecordCount);
+    CheckEquals(0,RecNo,'6. recno after second append (empty,append)');
+    CheckEquals(0,RecordCount,'6. recordcount after second append (empty,append)');
+    CheckEquals(False ,EOF and BOF, '6. Empty');
 
     first;
-    CheckEquals(1,RecNo);
-    CheckEquals(1,RecordCount);
+    CheckEquals(1,RecNo,'7. recno after second append, first (1,append)');
+    CheckEquals(1,RecordCount,'7. recordcount after second append,first (1,append)');
+    CheckEquals(False ,EOF and BOF, '7. Empty');
 
     last;
-    CheckEquals(1,RecNo);
-    CheckEquals(1,RecordCount);
+    CheckEquals(1,RecNo,'8. recno after second append, last (1,append)');
+    CheckEquals(1,RecordCount,'8. recordcount after second append, last (1,append)');
 
     append;
     FieldByName('id').AsInteger := 2;
-    CheckEquals(0,RecNo,'RecNo after 3rd Append');
-    CheckEquals(1,RecordCount);
+    CheckEquals(0,RecNo,'9. RecNo after 3rd Append');
+    CheckEquals(1,RecordCount,'9. Recordcount after 3rd Append');
     post;
 
     edit;

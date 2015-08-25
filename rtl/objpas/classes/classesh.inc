@@ -392,6 +392,7 @@ type
       { functions and properties to match TBits class }
       procedure SetBit(bit : longint; value : Boolean);
       procedure SetSize(value : longint);
+   Protected   
       procedure CheckBitIndex (Bit : longint;CurrentSize : Boolean);
    public
       { Public declarations }
@@ -1634,11 +1635,8 @@ type
     FSuspendedExternal: boolean;
     FPid: LongInt;
 {$endif}
-{$ifdef aros}
+{$if defined(hasamiga)}
   private
-    // see tthread.inc, ThreadFunc and TThread.Resume
-    FSem: Pointer;
-    FCond: Pointer;
     FInitialSuspended: boolean;
 {$endif}
   public

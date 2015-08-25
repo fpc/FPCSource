@@ -85,9 +85,12 @@ uses
 
       procedure gen_proc_symbol(list: TAsmList); override;
       procedure gen_proc_symbol_end(list: TAsmList); override;
+      procedure handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr); override;
       procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean); override;
       procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean); override;
-
+     protected
+      procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
+     public
       procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
       procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
 
@@ -125,10 +128,13 @@ uses
 
       procedure varsym_set_localloc(list: TAsmList; vs: tabstractnormalvarsym); override;
       procedure paravarsym_set_initialloc_to_paraloc(vs: tparavarsym); override;
-    protected
+
+      procedure g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string); override;
+
       { def is the type of the data stored in memory pointed to by ref, not
         a pointer to this type }
       function make_simple_ref(list: TAsmList; const ref: treference; def: tdef): treference;
+    protected
       procedure paraloctoloc(const paraloc: pcgparalocation; out hloc: tlocation);
       procedure set_call_function_result(const list: TAsmList; const pd: tabstractprocdef; const llvmretdef, hlretdef: tdef; const resval: tregister; var retpara: tcgpara);
     end;
@@ -143,7 +149,7 @@ implementation
     defutil,llvmdef,llvmsym,
     aasmtai,aasmcpu,
     aasmllvm,llvmbase,tgllvm,
-    symtable,
+    symtable,symllvm,
     paramgr,llvmpara,
     procinfo,cpuinfo,cgobj,cgllvm,cghlcpu;
 
@@ -201,9 +207,9 @@ implementation
               { llvmparadef is a record in this case, with every field corresponding
                 to a single paraloc }
               paraloctoloc(location,hloc);
-              tmpreg:=getaddressregister(list,getpointerdef(location^.def));
-              list.concat(taillvm.getelementptr_reg_size_ref_size_const(tmpreg,getpointerdef(size),initialref,s32inttype,paralocidx,true));
-              reference_reset_base(tmpref,getpointerdef(location^.def),tmpreg,0,newalignment(initialref.alignment,totaloffset));
+              tmpreg:=getaddressregister(list,cpointerdef.getreusable(location^.def));
+              list.concat(taillvm.getelementptr_reg_size_ref_size_const(tmpreg,cpointerdef.getreusable(size),initialref,s32inttype,paralocidx,true));
+              reference_reset_base(tmpref,cpointerdef.getreusable(location^.def),tmpreg,0,newalignment(initialref.alignment,totaloffset));
             end
           else
             tmpref:=initialref;
@@ -232,7 +238,7 @@ implementation
               begin
                  if assigned(location^.next) then
                    internalerror(2010052906);
-                 reference_reset_base(ref,getpointerdef(size),location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
+                 reference_reset_base(ref,cpointerdef.getreusable(size),location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
                  if (def_cgsize(size)<>OS_NO) and
                     (size.size=sizeleft) and
                     (sizeleft<=sizeof(aint)) then
@@ -275,9 +281,9 @@ implementation
       newrefsize:=llvmgetcgparadef(para,true);
       if refsize<>newrefsize then
         begin
-          reg:=getaddressregister(list,getpointerdef(newrefsize));
-          a_loadaddr_ref_reg(list,refsize,getpointerdef(newrefsize),initialref,reg);
-          reference_reset_base(newref,getpointerdef(newrefsize),reg,0,initialref.alignment);
+          reg:=getaddressregister(list,cpointerdef.getreusable(newrefsize));
+          a_loadaddr_ref_reg(list,refsize,cpointerdef.getreusable(newrefsize),initialref,reg);
+          reference_reset_base(newref,cpointerdef.getreusable(newrefsize),reg,0,initialref.alignment);
           refsize:=newrefsize;
         end
       else
@@ -306,6 +312,23 @@ implementation
   procedure thlcgllvm.deallocallcpuregisters(list: TAsmList);
     begin
       { don't do anything }
+    end;
+
+
+  function get_call_pd(pd: tabstractprocdef): tdef;
+    begin
+      if (pd.typ=procdef) or
+         not pd.is_addressonly then
+        { we get a pointerdef rather than a procvardef so that if we have to
+          insert an external declaration for this procdef in llvmtype, we don't
+          have to create another procdef from the procvardef we've just created.
+          With a pointerdef, we can just get the pointeddef again. A pointerdef
+          is also much cheaper to create, and in llvm a provardef is a "function
+          pointer", so a pointer to a procdef is the same as a procvar as far
+          as llvm is concerned }
+        result:=cpointerdef.getreusable(pd)
+      else
+        result:=pd
     end;
 
 
@@ -359,7 +382,7 @@ implementation
                     internalerror(2014012307)
                   else
                     begin
-                      reference_reset_base(href, getpointerdef(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, paraloc^.def.alignment);
+                      reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, paraloc^.def.alignment);
                       res:=getregisterfordef(list, paraloc^.def);
                       load_ref_anyreg(callpara^.def, href, res, callpara);
                     end;
@@ -404,7 +427,7 @@ implementation
     { if this is a complex procvar, get the non-tmethod-like equivalent }
     if (pd.typ=procvardef) and
        not pd.is_addressonly then
-      pd:=tprocvardef(pd.getcopyas(procvardef,pc_address_only));
+      pd:=tprocvardef(cprocvardef.getreusableprocaddr(pd));
     { if the function returns a function pointer type or is varargs, we
       must specify the full function signature, otherwise we can only
       specify the return type }
@@ -412,11 +435,7 @@ implementation
        ((pd.proccalloption in cdecl_pocalls) and
         (pd.paras.count>0) and
         is_array_of_const(tparavarsym(pd.paras[pd.paras.count-1]).vardef)) then
-      if (pd.typ=procdef) or
-         not pd.is_addressonly then
-        calldef:=pd.getcopyas(procvardef,pc_address_only)
-      else
-        calldef:=pd
+      calldef:=get_call_pd(pd)
     else
       calldef:=llvmretdef;
   end;
@@ -425,22 +444,13 @@ implementation
   function thlcgllvm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     var
       callparas: tfplist;
-      asmsym: tasmsymbol;
       llvmretdef,
       hlretdef,
       calldef: tdef;
       res: tregister;
     begin
-      if not pd.owner.iscurrentunit or
-         (s<>pd.mangledname) or
-         (po_external in pd.procoptions) then
-        begin
-          asmsym:=current_asmdata.RefAsmSymbol(tprocdef(pd).mangledname);
-          if not asmsym.declared then
-            current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.create(asmsym,pd,nil,sec_code,pd.alignment));
-        end;
       a_call_common(list,pd,paras,forceresdef,res,calldef,hlretdef,llvmretdef,callparas);
-      list.concat(taillvm.call_size_name_paras(res,calldef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
+      list.concat(taillvm.call_size_name_paras(get_call_pd(pd),res,calldef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
       result:=get_call_result_cgpara(pd,forceresdef);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;
@@ -455,7 +465,7 @@ implementation
       res: tregister;
     begin
       a_call_common(list,pd,paras,nil,res,calldef,hlretdef,llvmretdef,callparas);
-      list.concat(taillvm.call_size_reg_paras(res,calldef,reg,callparas));
+      list.concat(taillvm.call_size_reg_paras(get_call_pd(pd),res,calldef,reg,callparas));
       result:=get_call_result_cgpara(pd,nil);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;
@@ -471,8 +481,16 @@ implementation
     var
       sref: treference;
     begin
-      sref:=make_simple_ref(list,ref,tosize);
-      list.concat(taillvm.op_size_const_size_ref(la_store,tosize,a,getpointerdef(tosize),sref))
+      { llvm instructions do not support pointer constants -> only directly
+        encode for integers; a_load_const_reg() handles pointers properly }
+      if is_ordinal(tosize) or
+         is_64bit(tosize) then
+        begin
+          sref:=make_simple_ref(list,ref,tosize);
+          list.concat(taillvm.op_size_const_size_ref(la_store,tosize,a,cpointerdef.getreusable(tosize),sref))
+        end
+      else
+        inherited;
     end;
 
 
@@ -515,15 +533,14 @@ implementation
               if fromsize.typ in [arraydef,recorddef] then
                 begin
                   { store struct/array-in-register to memory }
-                  tmpsize:=def2intdef(fromsize,tosize);
                   tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
                   a_load_reg_ref(list,fromsize,fromsize,register,tmpref);
                   { typecast pointer to memory into pointer to integer type }
-                  hreg:=getaddressregister(list,getpointerdef(tmpsize));
-                  a_loadaddr_ref_reg(list,fromsize,getpointerdef(tmpsize),tmpref,hreg);
-                  reference_reset_base(sref,getpointerdef(tmpsize),hreg,0,tmpref.alignment);
+                  hreg:=getaddressregister(list,cpointerdef.getreusable(tosize));
+                  a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tosize),tmpref,hreg);
+                  reference_reset_base(sref,cpointerdef.getreusable(tosize),hreg,0,tmpref.alignment);
                   { load the integer from the temp into the destination }
-                  a_load_ref_ref(list,tmpsize,tosize,tmpref,sref);
+                  a_load_ref_ref(list,tosize,tosize,sref,ref);
                   tg.ungettemp(list,tmpref);
                 end
               else
@@ -541,9 +558,9 @@ implementation
             end
           else
             begin
-              hreg2:=getaddressregister(list,getpointerdef(fromsize));
-              a_loadaddr_ref_reg(list,tosize,getpointerdef(fromsize),sref,hreg2);
-              reference_reset_base(sref,getpointerdef(fromsize),hreg2,0,sref.alignment);
+              hreg2:=getaddressregister(list,cpointerdef.getreusable(fromsize));
+              a_loadaddr_ref_reg(list,tosize,cpointerdef.getreusable(fromsize),sref,hreg2);
+              reference_reset_base(sref,cpointerdef.getreusable(fromsize),hreg2,0,sref.alignment);
               tosize:=fromsize;
             end;
         end
@@ -552,7 +569,7 @@ implementation
           hreg:=getregisterfordef(list,tosize);
           a_load_reg_reg(list,fromsize,tosize,register,hreg);
         end;
-      list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,hreg,getpointerdef(tosize),sref));
+      list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,hreg,cpointerdef.getreusable(tosize),sref));
     end;
 
 
@@ -609,12 +626,12 @@ implementation
              (fromsize<>tosize) then
             begin
               tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
-              list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,getpointerdef(fromsize),tmpref));
+              list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,cpointerdef.getreusable(fromsize),tmpref));
               a_load_ref_reg(list,fromsize,tosize,tmpref,register);
               tg.ungettemp(list,tmpref);
             end
           else
-            list.concat(taillvm.op_reg_size_ref_size(la_bitcast,register,fromsize,sref,tosize))
+            list.concat(taillvm.op_reg_size_ref_size(llvmconvop(fromsize,tosize),register,fromsize,sref,tosize))
         end
       else
         begin
@@ -632,9 +649,9 @@ implementation
                       { typecast the pointer to the struct into a pointer to an
                         integer of equal size }
                       tmpsize:=def2intdef(fromsize,tosize);
-                      hreg:=getaddressregister(list,getpointerdef(tmpsize));
-                      a_loadaddr_ref_reg(list,fromsize,getpointerdef(tmpsize),sref,hreg);
-                      reference_reset_base(sref,getpointerdef(tmpsize),hreg,0,sref.alignment);
+                      hreg:=getaddressregister(list,cpointerdef.getreusable(tmpsize));
+                      a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tmpsize),sref,hreg);
+                      reference_reset_base(sref,cpointerdef.getreusable(tmpsize),hreg,0,sref.alignment);
                       { load that integer }
                       a_load_ref_reg(list,tmpsize,tosize,sref,register);
                     end
@@ -662,16 +679,16 @@ implementation
                      itself if they have the same size but are of different
                      kinds, because we can't e.g. typecast a loaded <{i32, i32}>
                      to an i64 *)
-                  hreg:=getaddressregister(list,getpointerdef(tosize));
-                  a_loadaddr_ref_reg(list,fromsize,getpointerdef(tosize),sref,hreg);
-                  reference_reset_base(sref,getpointerdef(tosize),hreg,0,sref.alignment);
+                  hreg:=getaddressregister(list,cpointerdef.getreusable(tosize));
+                  a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tosize),sref,hreg);
+                  reference_reset_base(sref,cpointerdef.getreusable(tosize),hreg,0,sref.alignment);
                   fromsize:=tosize;
                 end;
             end;
           hreg:=register;
           if fromsize<>tosize then
             hreg:=getregisterfordef(list,fromsize);
-          list.concat(taillvm.op_reg_size_ref(la_load,hreg,getpointerdef(fromsize),sref));
+          list.concat(taillvm.op_reg_size_ref(la_load,hreg,cpointerdef.getreusable(fromsize),sref));
           if hreg<>register then
             a_load_reg_reg(list,fromsize,tosize,hreg,register);
         end;
@@ -686,7 +703,7 @@ implementation
          (sref.refaddr=addr_full) then
         begin
           sdref:=make_simple_ref(list,dref,tosize);
-          list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,getpointerdef(tosize),sdref));
+          list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,cpointerdef.getreusable(tosize),sdref));
         end
       else
         inherited
@@ -701,7 +718,7 @@ implementation
       if ref.refaddr=addr_full then
         internalerror(2013102306);
       sref:=make_simple_ref(list,ref,fromsize);
-      list.concat(taillvm.op_reg_size_ref_size(la_bitcast,r,getpointerdef(fromsize),sref,tosize));
+      list.concat(taillvm.op_reg_size_ref_size(la_bitcast,r,cpointerdef.getreusable(fromsize),sref,tosize));
     end;
 
 
@@ -898,8 +915,46 @@ implementation
 
 
   procedure thlcgllvm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
+    var
+      pd: tprocdef;
+      sourcepara, destpara, sizepara, alignpara, volatilepara: tcgpara;
+      maxalign: longint;
     begin
-      a_load_ref_ref(list,size,size,source,dest);
+      { perform small copies directly; not larger ones, because then llvm
+        will try to load the entire large datastructure into registers and
+        starts spilling like crazy; too small copies must not be done via
+        llvm.memcpy either, because then you get crashes in llvm }
+      if (size.typ in [orddef,floatdef,enumdef]) or
+         (size.size<=2*sizeof(aint)) then
+        begin
+          a_load_ref_ref(list,size,size,source,dest);
+          exit;
+        end;
+      pd:=search_system_proc('llvm_memcpy64');
+      sourcepara.init;
+      destpara.init;
+      sizepara.init;
+      alignpara.init;
+      volatilepara.init;
+      paramanager.getintparaloc(list,pd,1,sourcepara);
+      paramanager.getintparaloc(list,pd,2,destpara);
+      paramanager.getintparaloc(list,pd,3,sizepara);
+      paramanager.getintparaloc(list,pd,4,alignpara);
+      paramanager.getintparaloc(list,pd,5,volatilepara);
+      a_loadaddr_ref_cgpara(list,size,source,sourcepara);
+      a_loadaddr_ref_cgpara(list,size,dest,destpara);
+      a_load_const_cgpara(list,u64inttype,size.size,sizepara);
+      maxalign:=newalignment(source.alignment,dest.alignment);
+      a_load_const_cgpara(list,u32inttype,maxalign,alignpara);
+      { we don't know anything about volatility here, should become an extra
+        parameter to g_concatcopy }
+      a_load_const_cgpara(list,pasbool8type,0,volatilepara);
+      g_call_system_proc(list,pd,[@sourcepara,@destpara,@sizepara,@alignpara,@volatilepara],nil).resetiftemp;
+      sourcepara.done;
+      destpara.done;
+      sizepara.done;
+      alignpara.done;
+      volatilepara.done;
     end;
 
 
@@ -910,6 +965,12 @@ implementation
        fromcompcurr,
        tocompcurr: boolean;
      begin
+       { named register -> use generic code }
+       if ref.refaddr=addr_full then
+         begin
+           a_load_ref_reg(list,fromsize,tosize,ref,reg);
+           exit
+         end;
        { comp and currency are handled by the x87 in this case. They cannot
          be represented directly in llvm, and llvmdef translates them into i64
          (since that's their storage size and internally they also are int64).
@@ -927,7 +988,7 @@ implementation
        else
          tmpreg:=reg;
        { %tmpreg = load size* %ref }
-       list.concat(taillvm.op_reg_size_ref(la_load,tmpreg,getpointerdef(fromsize),href));
+       list.concat(taillvm.op_reg_size_ref(la_load,tmpreg,cpointerdef.getreusable(fromsize),href));
        if tmpreg<>reg then
          if fromcompcurr then
            { treat as extended as long as it's in a register }
@@ -964,7 +1025,7 @@ implementation
        else
          tmpreg:=reg;
        { store tosize tmpreg, tosize* href }
-       list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,tmpreg,getpointerdef(tosize),href));
+       list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,tmpreg,cpointerdef.getreusable(tosize),href));
      end;
 
 
@@ -1007,6 +1068,8 @@ implementation
       mangledname: TSymStr;
       asmsym: tasmsymbol;
     begin
+      if po_external in current_procinfo.procdef.procoptions then
+        exit;
       item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
       mangledname:=current_procinfo.procdef.mangledname;
       { predefine the real function name as local/global, so the aliases can
@@ -1030,6 +1093,17 @@ implementation
     begin
       list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
       { todo: darwin main proc, or handle in other way? }
+    end;
+
+
+  procedure thlcgllvm.handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr);
+    begin
+      { don't do anything, because at this point we can't know yet for certain
+        whether the aliased routine is internal to the current routine or not.
+        If it's internal, we would have to generate an llvm alias, while if it's
+        external, we would have to generate a declaration. Additionally, aliases
+        cannot refer to declarations, so always creating aliases doesn't work
+        either -> handle in llvmtype }
     end;
 
 
@@ -1066,6 +1140,11 @@ implementation
             LOC_FPUREGISTER,
             LOC_MMREGISTER:
               begin
+                { inline assembler routines contain a ret at the end and never
+                  get here, but we do need a return at the end -> return an
+                  undefined value in this case }
+                if po_assembler in current_procinfo.procdef.procoptions then
+                  gen_load_uninitialized_function_result(list,current_procinfo.procdef,retpara.def,retpara);
                 { sign/zeroextension of function results is handled implicitly
                   via the signext/zeroext modifiers of the result, rather than
                   in the code generator -> remove any explicit extensions here }
@@ -1089,6 +1168,25 @@ implementation
           end;
         end;
       retpara.resetiftemp;
+    end;
+
+
+  procedure thlcgllvm.gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);
+    begin
+      if not paramanager.ret_in_param(resdef,pd) then
+        begin
+          case resloc.location^.loc of
+            LOC_REGISTER,
+            LOC_FPUREGISTER,
+            LOC_MMREGISTER:
+              begin
+                resloc.check_simple_location;
+                list.concat(taillvm.op_reg_size_undef(la_bitcast,resloc.location^.register,resloc.location^.def));
+              end;
+            else
+              internalerror(2015042301);
+          end;
+        end;
     end;
 
 
@@ -1127,7 +1225,10 @@ implementation
     var
       href: treference;
     begin
-      if shuffle=mms_movescalar then
+      { named register -> use generic code }
+      if ref.refaddr=addr_full then
+        a_load_ref_reg(list,fromsize,tosize,ref,reg)
+      else if shuffle=mms_movescalar then
         a_loadfpu_ref_reg(list,fromsize,tosize,ref,reg)
       else
         begin
@@ -1136,7 +1237,7 @@ implementation
             internalerror(2013060220);
           href:=make_simple_ref(list,ref,fromsize);
           { %reg = load size* %ref }
-          list.concat(taillvm.op_reg_size_ref(la_load,reg,getpointerdef(fromsize),href));
+          list.concat(taillvm.op_reg_size_ref(la_load,reg,cpointerdef.getreusable(fromsize),href));
         end;
     end;
 
@@ -1154,7 +1255,7 @@ implementation
             internalerror(2013060220);
           href:=make_simple_ref(list,ref,tosize);
           { store tosize reg, tosize* href }
-          list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,reg,getpointerdef(tosize),href))
+          list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,reg,cpointerdef.getreusable(tosize),href))
         end;
     end;
 
@@ -1205,7 +1306,7 @@ implementation
         end;
       { get the LLVM representation of the function result (e.g. a
         struct with two i64 fields for a record with 4 i32 fields) }
-      result.def:=llvmgetcgparadef(result,false);
+      result.def:=llvmgetcgparadef(result,true);
       if assigned(result.location^.next) then
         begin
           { unify the result into a sinlge location; unlike for parameters,
@@ -1282,7 +1383,8 @@ implementation
         exit;
       { If the parameter location is reused we don't need to copy
         anything }
-      if reusepara then
+      if (destloc.loc=LOC_REFERENCE) and
+         reusepara then
         exit;
       { get the equivalent llvm def used to pass the parameter (e.g. a record
         with two int64 fields for passing a record consisiting of 8 bytes on
@@ -1299,18 +1401,18 @@ implementation
             tg.gethltemp(list,llvmparadef,llvmparadef.size,tt_normal,href)
           else
             begin
-              hreg:=getaddressregister(list,getpointerdef(llvmparadef));
-              a_loadaddr_ref_reg(list,vardef,getpointerdef(llvmparadef),destloc.reference,hreg);
-              reference_reset_base(href,getpointerdef(llvmparadef),hreg,0,destloc.reference.alignment);
+              hreg:=getaddressregister(list,cpointerdef.getreusable(llvmparadef));
+              a_loadaddr_ref_reg(list,vardef,cpointerdef.getreusable(llvmparadef),destloc.reference,hreg);
+              reference_reset_base(href,cpointerdef.getreusable(llvmparadef),hreg,0,destloc.reference.alignment);
             end;
           index:=0;
           offset:=0;
           ploc:=para.location;
           repeat
             paraloctoloc(ploc,hloc);
-            hreg:=getaddressregister(list,getpointerdef(ploc^.def));
-            list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,getpointerdef(llvmparadef),href,s32inttype,index,true));
-            reference_reset_base(href2,getpointerdef(ploc^.def),hreg,0,newalignment(href.alignment,offset));
+            hreg:=getaddressregister(list,cpointerdef.getreusable(ploc^.def));
+            list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,cpointerdef.getreusable(llvmparadef),href,s32inttype,index,true));
+            reference_reset_base(href2,cpointerdef.getreusable(ploc^.def),hreg,0,newalignment(href.alignment,offset));
             a_load_loc_ref(list,ploc^.def,ploc^.def,hloc,href2);
             inc(offset,ploc^.def.size);
             inc(index);
@@ -1329,26 +1431,26 @@ implementation
                 case def2regtyp(llvmparadef) of
                   R_INTREGISTER,
                   R_ADDRESSREGISTER:
-                    a_load_loc_ref(list,llvmparadef,para.def,hloc,destloc.reference);
+                    a_load_loc_ref(list,llvmparadef,vardef,hloc,destloc.reference);
                   R_FPUREGISTER:
-                    a_loadfpu_loc_ref(list,llvmparadef,para.def,hloc,destloc.reference);
+                    a_loadfpu_loc_ref(list,llvmparadef,vardef,hloc,destloc.reference);
                   R_MMREGISTER:
-                    a_loadmm_loc_ref(list,llvmparadef,para.def,hloc,destloc.reference,nil);
+                    a_loadmm_loc_ref(list,llvmparadef,vardef,hloc,destloc.reference,nil);
                   else
                     internalerror(2014080801);
                   end;
               end;
             LOC_REGISTER:
               begin
-                a_load_loc_reg(list,llvmparadef,para.def,hloc,destloc.register);
+                a_load_loc_reg(list,llvmparadef,vardef,hloc,destloc.register);
               end;
             LOC_FPUREGISTER:
               begin
-                a_loadfpu_loc_reg(list,llvmparadef,para.def,hloc,destloc.register);
+                a_loadfpu_loc_reg(list,llvmparadef,vardef,hloc,destloc.register);
               end;
             LOC_MMREGISTER:
               begin
-                a_loadmm_loc_reg(list,llvmparadef,para.def,hloc,destloc.register,nil);
+                a_loadmm_loc_reg(list,llvmparadef,vardef,hloc,destloc.register,nil);
               end;
             { TODO other possible locations }
             else
@@ -1424,7 +1526,7 @@ implementation
           exit;
         end;
 
-      hreg2:=getaddressregister(list,getpointerdef(def));
+      hreg2:=getaddressregister(list,cpointerdef.getreusable(def));
       defsize:=def.size;
       { for voiddef/formaldef }
       if defsize=0 then
@@ -1438,9 +1540,9 @@ implementation
           if assigned(ref.symbol) then
             reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment)
           else
-            reference_reset_base(tmpref,getpointerdef(def),ref.base,0,ref.alignment);
-          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg2,getpointerdef(def),tmpref,ptruinttype,ptrindex,assigned(ref.symbol)));
-          reference_reset_base(result,getpointerdef(def),hreg2,0,ref.alignment);
+            reference_reset_base(tmpref,cpointerdef.getreusable(def),ref.base,0,ref.alignment);
+          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg2,cpointerdef.getreusable(def),tmpref,ptruinttype,ptrindex,assigned(ref.symbol)));
+          reference_reset_base(result,cpointerdef.getreusable(def),hreg2,0,ref.alignment);
           exit;
         end;
       { for now, perform all calculations using plain pointer arithmetic. Later
@@ -1456,11 +1558,11 @@ implementation
           if ref.base<>NR_NO then
             internalerror(2012111301);
           reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
-          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg1,getpointerdef(def),tmpref,ptruinttype,0,true));
+          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg1,cpointerdef.getreusable(def),tmpref,ptruinttype,0,true));
         end
       else if ref.base<>NR_NO then
         begin
-          a_load_reg_reg(list,getpointerdef(def),ptruinttype,ref.base,hreg1);
+          a_load_reg_reg(list,cpointerdef.getreusable(def),ptruinttype,ref.base,hreg1);
         end
       else
         { todo: support for absolute addresses on embedded platforms }
@@ -1478,8 +1580,9 @@ implementation
           a_op_const_reg_reg(list,OP_ADD,ptruinttype,ref.offset,hreg1,hreg2);
           hreg1:=hreg2;
         end;
-      a_load_reg_reg(list,ptruinttype,getpointerdef(def),hreg1,hreg2);
-      reference_reset_base(result,getpointerdef(def),hreg2,0,ref.alignment);
+      hreg2:=getaddressregister(list,cpointerdef.getreusable(def));
+      a_load_reg_reg(list,ptruinttype,cpointerdef.getreusable(def),hreg1,hreg2);
+      reference_reset_base(result,cpointerdef.getreusable(def),hreg2,0,ref.alignment);
     end;
 
 
@@ -1600,6 +1703,17 @@ implementation
       reference_reset_symbol(vs.initialloc.reference,parasym,0,vs.paraloc[calleeside].alignment);
       if vs.paraloc[calleeside].location^.llvmvalueloc then
         vs.initialloc.reference.refaddr:=addr_full;
+    end;
+
+
+  procedure thlcgllvm.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+    var
+      asmsym: TAsmSymbol;
+    begin
+      if po_external in procdef.procoptions then
+        exit;
+      asmsym:=current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION);
+      list.concat(taillvmalias.create(asmsym,procdef.mangledname,procdef,llv_default,lll_default));
     end;
 
 

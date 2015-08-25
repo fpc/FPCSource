@@ -168,8 +168,9 @@
              system_i386_aros,          { 83 }
              system_x86_64_aros,        { 84 }
              system_x86_64_dragonfly,   { 85 }
-             system_aarch64_darwin,     { 85 }
-             system_x86_64_iphonesim    { 86 }
+             system_aarch64_darwin,     { 86 }
+             system_x86_64_iphonesim,   { 87 }
+             system_aarch64_linux       { 88 }
        );
 
      type
@@ -252,7 +253,8 @@
              ld_int_linux,
              ld_int_nativent,
              ld_int_netware,
-             ld_int_windows
+             ld_int_windows,
+             ld_int_msdos
        );
 
        tar = (ar_none

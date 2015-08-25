@@ -142,7 +142,7 @@ unit procinfo;
 
           procedure allocate_push_parasize(size:longint);
 
-          function calc_stackframe_size:longint;virtual;
+          function calc_stackframe_size:longint;virtual;abstract;
 
           { Set the address of the first temp, can be used to allocate
             space for pushing parameters }
@@ -190,12 +190,8 @@ unit procinfo;
 
 implementation
 
-     uses
-        cutils,systems,
-        tgobj,cgobj,
-        paramgr
-        ;
-
+    uses
+      cutils,systems;
 
 {****************************************************************************
                                  TProcInfo
@@ -277,7 +273,7 @@ implementation
     function tprocinfo.get_normal_proc: tprocinfo;
       begin
         result:=self;
-        while assigned(result.parent)and(result.procdef.parast.symtablelevel>normal_function_level) do
+        while assigned(result.parent) and (result.procdef.parast.symtablelevel>normal_function_level) do
           result:=result.parent;
       end;
 
@@ -301,17 +297,9 @@ implementation
           maxpushedparasize:=size;
       end;
 
-
-    function tprocinfo.calc_stackframe_size:longint;
-      begin
-        result:=Align(tg.direction*tg.lasttemp,current_settings.alignment.localalignmin);
-      end;
-
-
     procedure tprocinfo.set_first_temp_offset;
       begin
       end;
-
 
     procedure tprocinfo.generate_parameter_info;
       begin
@@ -321,19 +309,16 @@ implementation
         para_stack_size:=procdef.calleeargareasize;
       end;
 
-
     procedure tprocinfo.allocate_got_register(list: TAsmList);
       begin
         { most os/cpu combo's don't use this yet, so not yet abstract }
       end;
-
 
     procedure tprocinfo.init_framepointer;
       begin
         { most targets use a constant, but some have a typed constant that must
           be initialized }
       end;
-
 
     procedure tprocinfo.postprocess_code;
       begin

@@ -221,7 +221,7 @@ function tjvmloadnode.handle_threadvar_access: tnode;
       end
     else
       begin
-        result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
+        result:=ctypeconvnode.create_explicit(result,cpointerdef.getreusable(resultdef));
         result:=cderefnode.create(result);
       end;
   end;

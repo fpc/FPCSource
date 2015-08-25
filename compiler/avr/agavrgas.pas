@@ -128,8 +128,12 @@ unit agavrgas;
                   case refaddr of
                     addr_hi8:
                       s:='hi8('+s+')';
+                    addr_hi8_gs:
+                      s:='hi8(gs('+s+'))';
                     addr_lo8:
                       s:='lo8('+s+')';
+                    addr_lo8_gs:
+                      s:='lo8(gs('+s+'))';
                     else
                       s:='('+s+')';
                   end;

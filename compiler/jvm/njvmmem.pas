@@ -52,6 +52,7 @@ interface
        end;
 
        tjvmloadvmtaddrnode = class(tcgloadvmtaddrnode)
+         function pass_1: tnode; override;
          procedure pass_generate_code; override;
        end;
 
@@ -316,6 +317,28 @@ implementation
 {*****************************************************************************
                          TJVMLOADVMTADDRNODE
 *****************************************************************************}
+
+    function tjvmloadvmtaddrnode.pass_1: tnode;
+      var
+        vs: tsym;
+      begin
+        result:=nil;
+        if is_javaclass(left.resultdef) and
+           (left.nodetype<>typen) and
+           (left.resultdef.typ<>classrefdef) then
+          begin
+            { call java.lang.Object.getClass() }
+            vs:=search_struct_member(tobjectdef(left.resultdef),'GETCLASS');
+            if not assigned(vs) or
+               (tsym(vs).typ<>procsym) then
+              internalerror(2011041901);
+            result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[]);
+            inserttypeconv_explicit(result,resultdef);
+            { reused }
+            left:=nil;
+          end;
+      end;
+
 
     procedure tjvmloadvmtaddrnode.pass_generate_code;
       begin

@@ -21,13 +21,8 @@ unit Video;
 
 
 {
-  Date: 2013-01-09
-  What: Adjusted FPC video unit for AROS (/AmigaOS?)
-
-  goal:
-  ---------------------------------------------------------------------------
-  Attempt to add user-on-demand support for AROS Fullscreen to the FPC video 
-  unit.
+  History
+  2013-01-09  Add on demand support for full-screen video
 }
 
 
@@ -69,8 +64,8 @@ const
   VIDEOSCREENNAME = 'FPC Video Screen Output';
 
 var
-  OS_Screen             : PScreen   = nil;    // To hold our screen, when necessary
-  FPC_VIDEO_FULLSCREEN  : Boolean   = False;  // Global that defines when we need to attempt opening on own scren
+  OS_Screen             : PScreen   = nil;    // Holds optional screen pointer
+  FPC_VIDEO_FULLSCREEN  : Boolean   = False;  // Global that defines when we need to attempt opening on own screen
 
 var
   VideoColorMap         : PColorMap;
@@ -101,9 +96,7 @@ var
   WindowForReqSave: PWindow;
   Process: PProcess;
 
-{$IFNDEF AROS}
   FontBitmap: PBitmap;
-{$ENDIF}
 (*
   GetScreen: pScreen;
 
@@ -232,6 +225,7 @@ var
   Counter,
   Counter2: LongInt;
   P: PWord;
+  flags: DWord;
 begin
 {$IFDEF MORPHOS}
   InitGraphicsLibrary;
@@ -252,19 +246,19 @@ begin
 
   VideoWindow := GetWindow;
 
-  // nice hardcode values are probably going to screw up things
-  // so wee neeed a way to detrmined how many chars could be on
-  // the screen in both directions. And a bit accurate.
+  // nice hardcode values are probably going to mess things up
+  // so we need a way to determine how many characters would fit
+  // the screen in both directions. Try to be as accurate as possible.
   if FPC_VIDEO_FULLSCREEN then
   begin
     // just to make sure that we are going to use the window width 
-    // and height instead of the one from the screen. 
+    // and height instead of the screen dimensions. 
     // This is to circumvent that the window (or virtual window from
     // vision based on characters pixels * characters in both 
     // dimensions) is actually smaller then the window it resides on.
     //
-    // Can happen for instance when the window does not hide it's 
-    // borders or title as intended.
+    // Can happen for instance when the window does not hide its 
+    // borders or titlebar as intended.
     ScreenWidth := VideoWindow^.GZZWidth div 8;
     ScreenHeight := VideoWindow^.GZZHeight div 16;
     ScreenColor := False;
@@ -298,26 +292,39 @@ begin
      {$endif}
    end;
 
-{$IFNDEF AROS}
    { Obtain Friend bitmap for font blitting }
    FontBitmap:=AllocBitMap(16,16*256,1,0,VideoWindow^.RPort^.Bitmap);
 
-   { We need to make the data word wide, otherwise the blit will fail
-     miserably on classics (tested on 3.1 + AGA) }
-   if FontBitmap <> nil then
+   if (FontBitmap <> nil) then
    begin
-     { Locking the bitmap would be better, but that requires CGFX/P96/etc specific calls }
-     Forbid();
-     p:=PWord(FontBitmap^.Planes[0]);
-     for counter:=0 to 255 do
-       for counter2:=0 to 15 do
+     flags:=GetBitmapAttr(FontBitmap,BMA_FLAGS);
+     if (Flags and BMF_STANDARD) > 0 then
+     begin
+       {$ifdef VIDEODEBUG}
+       writeln('Using fontbitmap mode.');
+       {$endif}
+       { Locking the bitmap would be better, but that requires CGFX/P96/etc specific calls }
+       Forbid();
+       { We need to make the data word wide, otherwise the blit will fail
+         miserably on classics (tested on 3.1 + AGA) }
+       p:=PWord(FontBitmap^.Planes[0]);
+       for counter:=0 to 255 do
+         for counter2:=0 to 15 do
          begin
            p^:=vgafont[counter,counter2] shl 8;
            inc(p);
          end;
-     Permit();
+       Permit();
+     end
+     else
+     begin
+       {$ifdef VIDEODEBUG}
+       writeln('Using direct-from-fontdata mode.');
+       {$endif}
+       FreeBitmap(FontBitmap);
+       FontBitmap:=nil;
+     end;
    end;
-{$ENDIF}
 
    CursorX := 0;
    CursorY := 0;
@@ -361,9 +368,7 @@ begin
     VideoWindow := nil;
   end;
 
-{$IFNDEF AROS}
   FreeBitMap(FontBitmap);
-{$ENDIF}
 
   {$ifdef WITHBUFFERING}
   FreeBitmap(BufRp^.Bitmap);
@@ -444,11 +449,10 @@ begin
     SetABPenDrMd(rp, VideoPens[tmpBGColor], VideoPens[tmpFGColor], JAM2);
   end;
 
-{$IFNDEF AROS}
-  BltTemplate(@(PWord(FontBitmap^.Planes[0])[tmpChar * 16]), 0, 2, rp, sX, sY, 8, 16);
-{$ELSE}
-  BltTemplate(@Vgafont[tmpChar, 0], 0, 1, rp, sX, sY, 8, 16);
-{$ENDIF}
+  if FontBitmap <> nil then
+    BltTemplate(@(PWord(FontBitmap^.Planes[0])[tmpChar * 16]), 0, 2, rp, sX, sY, 8, 16)
+  else
+    BltTemplate(@Vgafont[tmpChar, 0], 0, 1, rp, sX, sY, 8, 16);
 
   if crType = crUnderLine then
   begin

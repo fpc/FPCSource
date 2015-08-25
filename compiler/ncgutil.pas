@@ -84,9 +84,6 @@ interface
     procedure gen_restore_used_regs(list:TAsmList);
     procedure gen_load_para_value(list:TAsmList);
 
-    procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
-    procedure gen_load_vmt_register(list:TAsmList;objdef:tobjectdef;selfloc:tlocation;var vmtreg:tregister);
-
     procedure get_used_regvars(n: tnode; var rv: tusedregvars);
     { adds the regvars used in n and its children to rv.allregvars,
       those which were already in rv.allregvars to rv.commonregvars and
@@ -436,6 +433,9 @@ implementation
         paramanager.freecgpara(list,paraloc1);
         { perform the fpc_pushexceptaddr call }
         pushexceptres:=hlcg.g_call_system_proc(list,pd,[@paraloc1,@paraloc2,@paraloc3],nil);
+        paraloc1.done;
+        paraloc2.done;
+        paraloc3.done;
 
         { get the result }
         location_reset(tmpresloc,LOC_REGISTER,def_cgsize(pushexceptres.def));
@@ -451,6 +451,7 @@ implementation
         paramanager.freecgpara(list,paraloc1);
         { perform the fpc_setjmp call }
         setjmpres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
+        paraloc1.done;
         location_reset(tmpresloc,LOC_REGISTER,def_cgsize(setjmpres.def));
         tmpresloc.register:=hlcg.getintregister(list,setjmpres.def);
         hlcg.gen_load_cgpara_loc(list,setjmpres.def,setjmpres,tmpresloc,true);
@@ -459,9 +460,6 @@ implementation
           longjmp'd back here }
         hlcg.a_cmp_const_reg_label(list,setjmpres.def,OC_NE,0,tmpresloc.register,exceptlabel);
         setjmpres.resetiftemp;
-        paraloc1.done;
-        paraloc2.done;
-        paraloc3.done;
      end;
 
 
@@ -1490,25 +1488,6 @@ implementation
 
 
 {****************************************************************************
-                           External handling
-****************************************************************************}
-
-    procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
-      begin
-        create_hlcodegen;
-        { add the procedure to the al_procedures }
-        maybe_new_object_file(list);
-        new_section(list,sec_code,lower(pd.mangledname),current_settings.alignment.procalign);
-        if (po_global in pd.procoptions) then
-          list.concat(Tai_symbol.createname_global(pd.mangledname,AT_FUNCTION,0))
-        else
-          list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
-
-        hlcg.g_external_wrapper(list,pd,externalname);
-        destroy_hlcodegen;
-      end;
-
-{****************************************************************************
                                Const Data
 ****************************************************************************}
 
@@ -1588,7 +1567,7 @@ implementation
                             begin
                               if isaddr then
                                 begin
-                                  ptrdef:=getpointerdef(vs.vardef);
+                                  ptrdef:=cpointerdef.getreusable(vs.vardef);
                                   tg.GetLocal(list,ptrdef.size,ptrdef,vs.initialloc.reference)
                                 end
                               else
@@ -1895,73 +1874,6 @@ implementation
                   end;
               end;
           end;
-      end;
-
-
-    procedure gen_load_vmt_register(list:TAsmList;objdef:tobjectdef;selfloc:tlocation;var vmtreg:tregister);
-      var
-        href : treference;
-        selfdef: tdef;
-      begin
-        if is_object(objdef) then
-          begin
-            case selfloc.loc of
-              LOC_CREFERENCE,
-              LOC_REFERENCE:
-                begin
-                  hlcg.reference_reset_base(href,voidpointertype,hlcg.getaddressregister(list,voidpointertype),objdef.vmt_offset,voidpointertype.size);
-                  hlcg.a_loadaddr_ref_reg(list,voidpointertype,voidpointertype,selfloc.reference,href.base);
-                  selfdef:=getpointerdef(objdef);
-                end;
-              else
-                internalerror(200305056);
-            end;
-          end
-        else
-          { This is also valid for Objective-C classes: vmt_offset is 0 there,
-            and the first "field" of an Objective-C class instance is a pointer
-            to its "meta-class".  }
-          begin
-            selfdef:=objdef;
-            case selfloc.loc of
-              LOC_REGISTER:
-                begin
-{$ifdef cpu_uses_separate_address_registers}
-                  if getregtype(selfloc.register)<>R_ADDRESSREGISTER then
-                    begin
-                      reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
-                      cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,selfloc.register,href.base);
-                    end
-                  else
-{$endif cpu_uses_separate_address_registers}
-                    hlcg.reference_reset_base(href,voidpointertype,selfloc.register,objdef.vmt_offset,voidpointertype.size);
-                end;
-              LOC_CONSTANT,
-              LOC_CREGISTER,
-              LOC_CREFERENCE,
-              LOC_REFERENCE,
-              LOC_CSUBSETREG,
-              LOC_SUBSETREG,
-              LOC_CSUBSETREF,
-              LOC_SUBSETREF:
-                begin
-                  hlcg.reference_reset_base(href,voidpointertype,hlcg.getaddressregister(list,voidpointertype),objdef.vmt_offset,voidpointertype.size);
-                  { todo: pass actual vmt pointer type to hlcg }
-                  hlcg.a_load_loc_reg(list,voidpointertype,voidpointertype,selfloc,href.base);
-                end;
-              else
-                internalerror(200305057);
-            end;
-          end;
-        vmtreg:=hlcg.getaddressregister(list,voidpointertype);
-        hlcg.g_maybe_testself(list,selfdef,href.base);
-        hlcg.a_load_ref_reg(list,voidpointertype,voidpointertype,href,vmtreg);
-
-        { test validity of VMT }
-        if not(is_interface(objdef)) and
-           not(is_cppclass(objdef)) and
-           not(is_objc_class_or_protocol(objdef)) then
-           cg.g_maybe_testvmt(list,vmtreg,objdef);
       end;
 
 

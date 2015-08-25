@@ -344,19 +344,42 @@ Unit raavrgas;
           AS_MINUS,
           AS_PLUS:
             Begin
-              { Constant memory offset }
-              { This must absolutely be followed by (  }
-              oper.InitRef;
-              oper.opr.ref.offset:=BuildConstExpression(True,False);
+              if (actasmtoken=AS_MINUS) and
+                 (actopcode in [A_LD,A_ST]) then
+                begin
+                  { Special handling of predecrement addressing }
+                  oper.InitRef;
+                  oper.opr.ref.addressmode:=AM_PREDRECEMENT;
 
-              { absolute memory addresss? }
-              if actopcode in [A_LDS,A_STS] then
-                BuildReference(oper)
+                  consume(AS_MINUS);
+
+                  if actasmtoken=AS_REGISTER then
+                    begin
+                      oper.opr.ref.base:=actasmregister;
+                      consume(AS_REGISTER);
+                    end
+                  else
+                    begin
+                      Message(asmr_e_invalid_reference_syntax);
+                      RecoverConsume(false);
+                    end;
+                end
               else
                 begin
-                  ofs:=oper.opr.ref.offset;
-                  BuildConstantOperand(oper);
-                  inc(oper.opr.val,ofs);
+                  { Constant memory offset }
+                  { This must absolutely be followed by (  }
+                  oper.InitRef;
+                  oper.opr.ref.offset:=BuildConstExpression(True,False);
+
+                  { absolute memory addresss? }
+                  if actopcode in [A_LDS,A_STS] then
+                    BuildReference(oper)
+                  else
+                    begin
+                      ofs:=oper.opr.ref.offset;
+                      BuildConstantOperand(oper);
+                      inc(oper.opr.val,ofs);
+                    end;
                 end;
             end;
 

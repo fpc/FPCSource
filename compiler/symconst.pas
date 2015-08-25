@@ -235,6 +235,8 @@ type
     uchar,uwidechar,scurrency
   );
 
+  tordtypeset = set of tordtype;
+
   { string types }
   tstringtype = (
     st_shortstring,
@@ -583,7 +585,7 @@ type
     staticvarsym,localvarsym,paravarsym,fieldvarsym,
     typesym,procsym,unitsym,constsym,enumsym,
     errorsym,syssym,labelsym,absolutevarsym,propertysym,
-    macrosym,namespacesym,undefinedsym
+    macrosym,namespacesym,undefinedsym,programparasym
   );
 
   { State of the variable:
@@ -625,6 +627,30 @@ type
     { Objective-C }
     objcmetartti,objcmetarortti,
     objcclassrtti,objcclassrortti
+  );
+
+  { prefixes for internally generated type names (centralised to avoid
+    accidental collisions) }
+  tinternaltypeprefix = (
+    itp_1byte,
+    itp_llvmstruct,
+    itp_vmtdef,
+    itp_vmt_tstringmesssagetable,
+    itp_vmt_msgint_table_entries,
+    itp_vmt_tmethod_name_table,
+    itp_vmt_intern_msgint_table,
+    itp_vmt_intern_tmethodnamerec,
+    itp_vmt_intern_tmethodnametable,
+    itp_rttidef,
+    itp_rtti_header,
+    itp_rtti_prop,
+    itp_rtti_ansistr,
+    itp_rtti_ord_outer,
+    itp_rtti_ord_inner,
+    itp_rtti_ord_64bit,
+    itp_rtti_normal_array,
+    itp_rtti_dyn_array,
+    itp_rtti_proc_param
   );
 
   { The order is from low priority to high priority,
@@ -702,11 +728,11 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
    pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
 {$endif}
 
-     SymTypeName : array[tsymtyp] of string[12] = (
+     SymTypeName : array[tsymtyp] of string[14] = (
        'abstractsym','globalvar','localvar','paravar','fieldvar',
        'type','proc','unit','const','enum',
        'errorsym','system sym','label','absolutevar','property',
-       'macrosym','namespace','undefinedsym'
+       'macrosym','namespace','undefinedsym','programparasym'
      );
 
      typName : array[tdeftyp] of string[12] = (
@@ -724,6 +750,28 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
      visibilityName : array[tvisibility] of string[16] = (
        'hidden','strict private','private','strict protected','protected',
        'public','published',''
+     );
+
+     internaltypeprefixName : array[tinternaltypeprefix] of TSymStr = (
+       '$1byte$',
+       '$llvmstruct$',
+       '$vmtdef$',
+       '$vmt_TStringMesssageTable$',
+       '$vmt_msgint_table_entries$',
+       '$vmt_tmethod_name_table$',
+       '$vmt_intern_msgint_table$',
+       '$vmt_intern_tmethodnamerec$',
+       '$vmt_intern_tmethodnametable$',
+       '$rttidef$',
+       '$rtti_header$',
+       '$rtti_prop$',
+       '$rtti_ansistr$',
+       '$rtti_ord_outer$',
+       '$rtti_ord_inner$',
+       '$rtti_ord_64bit$',
+       '$rtti_normal_array$',
+       '$rtti_dyn_array$',
+       '$rtti_proc_param$'
      );
 
 

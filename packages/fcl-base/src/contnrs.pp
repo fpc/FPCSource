@@ -360,7 +360,6 @@ type
   TFPCustomHashTable = class(TObject)
   private
     FHashTable: TFPObjectList;
-    FHashTableSize: Longword;
     FHashFunction: THashFunction;
     FCount: Longword;
     Function GetDensity: Longword;
@@ -372,6 +371,7 @@ type
     Function GetAVGChainLen: double;
     Function GetMaxChainLength: Longword;
   protected
+    FHashTableSize: Longword;
     Function Chain(const index: Longword):TFPObjectList;
     Function CreateNewNode(const aKey : string) : THTCustomNode; virtual; abstract;
     Procedure AddNode(ANode : THTCustomNode); virtual; abstract;

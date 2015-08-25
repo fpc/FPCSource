@@ -1500,17 +1500,25 @@ implementation
                         is_open_array(fromdef) or
                         is_open_array(todef) or
                         ((fromdef.typ=pointerdef) and (todef.typ=arraydef)) or
-                        (def_is_related(fromdef,todef))) and
-                    (fromdef.size<>todef.size) then
+                        (def_is_related(fromdef,todef))) then
                   begin
-                    { in TP it is allowed to typecast to smaller types. But the variable can't
-                      be in a register }
-                    if (m_tp7 in current_settings.modeswitches) or
-                       (todef.size<fromdef.size) then
-                      make_not_regable(hp,[ra_addr_regable])
+                    if (fromdef.size<>todef.size) then
+                      begin
+                        { in TP it is allowed to typecast to smaller types. But the variable can't
+                          be in a register }
+                        if (m_tp7 in current_settings.modeswitches) or
+                           (todef.size<fromdef.size) then
+                          make_not_regable(hp,[ra_addr_regable])
+                        else
+                          if report_errors then
+                            CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
+                      end
+{$ifdef llvm}
+                    { we can never typecast a non-memory value on the assignment
+                      side in llvm }
                     else
-                      if report_errors then
-                        CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
+                      make_not_regable(hp,[ra_addr_regable])
+{$endif llvm}
                   end;
 
                  { don't allow assignments to typeconvs that need special code }

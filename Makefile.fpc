@@ -21,7 +21,10 @@ rule=help
 
 [prerules]
 REQUIREDVERSION=2.6.4
-REQUIREDVERSION2=2.6.2
+# Accept 3.0.0, without requiring to using OVERRIDEVERSIONCHECK=1
+# 3.0.0 should become REQUIREDVERSION after 3.0.0 final release
+# and 2.6.4 should be moved to REQUIREDVERSION2
+REQUIREDVERSION2=3.0.0
 
 
 # make versions < 3.77 (OS2 version) are buggy

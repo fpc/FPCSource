@@ -140,7 +140,7 @@ unit llvmpara;
                 a pointer to the value that it should place on the stack (or
                 passed in registers, in some cases) }
               paraloc^.llvmvalueloc:=false;
-              paraloc^.def:=getpointerdef(paraloc^.def);
+              paraloc^.def:=cpointerdef.getreusable(paraloc^.def);
               paraloc^.size:=def_cgsize(paraloc^.def);
               paraloc^.loc:=LOC_REGISTER;
               paraloc^.register:=hlcg.getaddressregister(list,paraloc^.def);

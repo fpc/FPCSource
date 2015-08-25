@@ -250,6 +250,17 @@ Type
       ct_stm32f107rc,
       ct_stm32f107vb,
       ct_stm32f107vc,
+      
+      ct_stm32f429xe, // 512K flash
+      ct_stm32f429xg, // 1M flash
+      ct_stm32f429xi, // 2M flash
+
+      ct_stm32f745xe,
+      ct_stm32f745xg,
+      ct_stm32f746xe,
+      ct_stm32f746xg,
+      ct_stm32f756xe,
+      ct_stm32f756xg,
 
       { TI - Fury Class - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,
@@ -340,6 +351,11 @@ Type
 
       { Allwinner }
       ct_allwinner_a20,
+
+      { Freescale }
+      ct_mk20dx128xxx7,
+      ct_mk20dx256xxx7,
+      ct_mk20dx64xxx7,
 
       // generic Thumb2 target
       ct_thumb2bare
@@ -621,6 +637,17 @@ Const
       (controllertypestr:'STM32F107RC';     controllerunitstr:'STM32F10X_CL';     flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'STM32F107VB';     controllerunitstr:'STM32F10X_CL';     flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'STM32F107VC';     controllerunitstr:'STM32F10X_CL';     flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
+      
+      (controllertypestr:'STM32F429XE';     controllerunitstr:'STM32F429';        flashbase:$08000000; flashsize:$00080000; srambase:$20000000; sramsize:$00030000),
+      (controllertypestr:'STM32F429XG';     controllerunitstr:'STM32F429';        flashbase:$08000000; flashsize:$00100000; srambase:$20000000; sramsize:$00030000),
+      (controllertypestr:'STM32F429XI';     controllerunitstr:'STM32F429';        flashbase:$08000000; flashsize:$00200000; srambase:$20000000; sramsize:$00030000),
+
+      (controllertypestr:'STM32F745XE';     controllerunitstr:'STM32F745';        flashbase:$08000000; flashsize:$00080000; srambase:$20010000; sramsize:$00040000),
+      (controllertypestr:'STM32F745XG';     controllerunitstr:'STM32F745';        flashbase:$08000000; flashsize:$00100000; srambase:$20010000; sramsize:$00040000),
+      (controllertypestr:'STM32F746XE';     controllerunitstr:'STM32F746';        flashbase:$08000000; flashsize:$00080000; srambase:$20010000; sramsize:$00040000),
+      (controllertypestr:'STM32F746XG';     controllerunitstr:'STM32F746';        flashbase:$08000000; flashsize:$00100000; srambase:$20010000; sramsize:$00040000),
+      (controllertypestr:'STM32F756XE';     controllerunitstr:'STM32F756';        flashbase:$08000000; flashsize:$00080000; srambase:$20010000; sramsize:$00040000),
+      (controllertypestr:'STM32F756XG';     controllerunitstr:'STM32F756';        flashbase:$08000000; flashsize:$00100000; srambase:$20010000; sramsize:$00040000),
 
       (controllertypestr:'LM3S1110';	controllerunitstr:'LM3FURY';	flashbase:$00000000;	flashsize:$00010000;	srambase:$20000000;	sramsize:$00004000),
       (controllertypestr:'LM3S1133';	controllerunitstr:'LM3FURY';	flashbase:$00000000;	flashsize:$00010000;	srambase:$20000000;	sramsize:$00004000),
@@ -709,6 +736,11 @@ Const
 
       { Allwinner }
       (controllertypestr:'ALLWINNER_A20'; controllerunitstr:'ALLWINNER_A20';     flashbase:$00000000; flashsize:$00000000;  srambase:$40000000; sramsize:$80000000),
+
+      { Freescale }
+      (controllertypestr:'MK20DX128XXX7'; controllerunitstr:'MK20D7'; flashbase:$00000000; flashsize:$00020000; srambase:$20000000; sramsize:$00004000),
+      (controllertypestr:'MK20DX256XXX7'; controllerunitstr:'MK20D7'; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00008000),
+      (controllertypestr:'MK20DX64XXX7';  controllerunitstr:'MK20D7'; flashbase:$00000000; flashsize:$00010000; srambase:$20000000; sramsize:$00002000),
 
       { Bare bones }
       (controllertypestr:'THUMB2_BARE';	controllerunitstr:'THUMB2_BARE';	flashbase:$00000000;	flashsize:$00002000;	srambase:$20000000;	sramsize:$00000400)

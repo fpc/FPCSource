@@ -398,7 +398,7 @@ interface
         optimizerswitches : [];
         genwpoptimizerswitches : [];
         dowpoptimizerswitches : [];
-        debugswitches : [];
+        debugswitches : [ds_dwarf_sets];
 
         setalloc : 0;
         packenum : 4;

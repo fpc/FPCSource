@@ -56,6 +56,7 @@ implementation
     constructor TInternalLinkerSymbian.Create;
       begin
         inherited Create;
+        CArObjectReader:=TArObjectReader;
         CExeoutput:=TPECoffexeoutput;
         CObjInput:=TPECoffObjInput;
       end;

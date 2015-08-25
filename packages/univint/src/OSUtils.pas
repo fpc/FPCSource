@@ -6,10 +6,6 @@
  
      Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
-{      Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
-{      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{      Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
-{      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308

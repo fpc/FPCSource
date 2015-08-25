@@ -133,7 +133,7 @@ const // Checked OK 04.08.2011 ALB
 
 
 type  // Checked OK 04.08.2011 ALB
-  BPTR = Pointer;
+  BPTR = PtrInt;
   BSTR = Pointer;
 
 type  // Checked OK 04.08.2011 ALB

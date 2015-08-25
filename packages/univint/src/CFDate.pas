@@ -1,9 +1,6 @@
 {	CFDate.h
-	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2013, Apple Inc. All rights reserved.
 }
-{   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -245,6 +242,7 @@ type
 		minute: SInt8;
 		second: Float64;
 	end;
+	(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 	CFGregorianDatePtr = ^CFGregorianDate;
 
 type
@@ -256,34 +254,50 @@ type
 		minutes: SInt32;
 		seconds: Float64;
 	end;
+	(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 	CFGregorianUnitsPtr = ^CFGregorianUnits;
 
 type
 	CFGregorianUnitFlags = CFOptionFlags;
 const
 	kCFGregorianUnitsYears = 1 shl 0;
+	(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 	kCFGregorianUnitsMonths = 1 shl 1;
+	(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 	kCFGregorianUnitsDays = 1 shl 2;
+	(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 	kCFGregorianUnitsHours = 1 shl 3;
+	(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 	kCFGregorianUnitsMinutes = 1 shl 4;
+	(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 	kCFGregorianUnitsSeconds = 1 shl 5;
+	(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 	kCFGregorianAllUnits = $00FFFFFF;
+	(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 
 function CFGregorianDateIsValid( gdate: CFGregorianDate; unitFlags: CFOptionFlags ): Boolean; external name '_CFGregorianDateIsValid';
+(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 
-function CFGregorianDateGetAbsoluteTime( gdate: CFGregorianDate; tz: CFTimeZoneRef ): CFAbsoluteTime; external name '_CFGregorianDateGetAbsoluteTime';
+function CFGregorianDateGetAbsoluteTime( gdate: CFGregorianDate; tz: CFTimeZoneRef ): CFAbsoluteTime; external name '_CFGregorianDateGetAbsoluteTime'; 
+(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 
 function CFAbsoluteTimeGetGregorianDate( at: CFAbsoluteTime; tz: CFTimeZoneRef ): CFGregorianDate; external name '_CFAbsoluteTimeGetGregorianDate';
+(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 
 function CFAbsoluteTimeAddGregorianUnits( at: CFAbsoluteTime; tz: CFTimeZoneRef; units: CFGregorianUnits ): CFAbsoluteTime; external name '_CFAbsoluteTimeAddGregorianUnits';
+(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 
 function CFAbsoluteTimeGetDifferenceAsGregorianUnits( at1: CFAbsoluteTime; at2: CFAbsoluteTime; tz: CFTimeZoneRef; unitFlags: CFOptionFlags ): CFGregorianUnits; external name '_CFAbsoluteTimeGetDifferenceAsGregorianUnits';
+(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 
 function CFAbsoluteTimeGetDayOfWeek( at: CFAbsoluteTime; tz: CFTimeZoneRef ): SInt32; external name '_CFAbsoluteTimeGetDayOfWeek';
+(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 
 function CFAbsoluteTimeGetDayOfYear( at: CFAbsoluteTime; tz: CFTimeZoneRef ): SInt32; external name '_CFAbsoluteTimeGetDayOfYear';
+(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 
 function CFAbsoluteTimeGetWeekOfYear( at: CFAbsoluteTime; tz: CFTimeZoneRef ): SInt32; external name '_CFAbsoluteTimeGetWeekOfYear';
+(* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 

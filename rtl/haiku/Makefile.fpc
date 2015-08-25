@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-loaders=prt0 cprt0 func dllprt
+loaders=prt0 cprt0 dllcprt0 func dllprt
 units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings \
 #      beos \
       errors dos dl \
@@ -16,7 +16,7 @@ units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings \
       rtlconsts syscall unix unixutil termio initc \
       cmem \
       dynlibs cwstring cthreads \
-      fpintres unixcp
+      fpintres unixcp fpwidestring
 rsts=math typinfo sysconst rtlconsts
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -98,6 +98,9 @@ prt0$(OEXT) : $(CPU_TARGET)/prt0.as
 
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
         $(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+
+dllcprt0$(OEXT) : $(CPU_TARGET)/dllcprt0.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)dllcprt0$(OEXT) $(CPU_TARGET)/dllcprt0.as
 
 func$(OEXT) : $(CPU_TARGET)/func.as
         $(AS) -o $(UNITTARGETDIRPREFIX)func$(OEXT) $(CPU_TARGET)/func.as
@@ -214,6 +217,14 @@ charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
+
+fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/fpintres.pp
+
+fpwidestring$(PPUEXT) : $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 #
 # Other system-dependent RTL Units
 #

@@ -92,7 +92,7 @@ implementation
         def:=tdef(reginfo[orgsupreg].def);
         if not assigned(def) then
           internalerror(2013110803);
-        ins:=taillvm.op_reg_size_ref(la_load,tempreg,getpointerdef(def),spilltemp);
+        ins:=taillvm.op_reg_size_ref(la_load,tempreg,cpointerdef.getreusable(def),spilltemp);
         list.insertafter(ins,pos);
         {$ifdef DEBUG_SPILLING}
         list.Insertbefore(tai_comment.Create(strpnew('Spilling: Spill Read')),ins);
@@ -108,7 +108,7 @@ implementation
         def:=tdef(reginfo[orgsupreg].def);
         if not assigned(def) then
           internalerror(2013110802);
-        ins:=taillvm.op_size_reg_size_ref(la_store,def,tempreg,getpointerdef(def),spilltemp);
+        ins:=taillvm.op_size_reg_size_ref(la_store,def,tempreg,cpointerdef.getreusable(def),spilltemp);
         list.insertafter(ins,pos);
         {$ifdef DEBUG_SPILLING}
         list.Insertbefore(tai_comment.Create(strpnew('Spilling: Spill Write')),ins);

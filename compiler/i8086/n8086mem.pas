@@ -199,7 +199,7 @@ implementation
             result:=ccallnode.createintern(procname,
               ccallparanode.create(right,
               ccallparanode.create(ttypeconvnode(left).left,nil)));
-            inserttypeconv_internal(result,getx86pointerdef(arraydef.elementdef,x86pt_huge));
+            inserttypeconv_internal(result,tx86pointerdef(cpointerdef).getreusablex86(arraydef.elementdef,x86pt_huge));
             result:=cderefnode.create(result);
 
             ttypeconvnode(left).left:=nil;

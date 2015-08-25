@@ -1,11 +1,6 @@
 {	CFError.h
-	Copyright (c) 2006-2012, Apple Inc. All rights reserved.
+	Copyright (c) 2006-2013, Apple Inc. All rights reserved.
 }
-
-{	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
-{	 Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{	 Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
-
 {
     Modified for use with Free Pascal
     Version 308

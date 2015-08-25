@@ -95,7 +95,9 @@ interface
          {$ENDIF}
          {$IFDEF AVR}
          ,addr_lo8
+         ,addr_lo8_gs
          ,addr_hi8
+         ,addr_hi8_gs
          {$ENDIF}
          {$IFDEF i8086}
          ,addr_dgroup      // the data segment group

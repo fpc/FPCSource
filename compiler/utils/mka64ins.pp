@@ -14,7 +14,7 @@
  **********************************************************************}
 {$mode objfpc}
 
-program mkarmins;
+program mka64ins;
 
 const
   Version = '0.9';
@@ -153,7 +153,7 @@ begin
   writeln('creating ',fn);
   assign(f,fn);
   rewrite(f);
-  writeln(f,'{ don''t edit, this file is generated from armins.dat }');
+  writeln(f,'{ don''t edit, this file is generated from a64ins.dat }');
   writeln(f,'(');
 end;
 

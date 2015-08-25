@@ -16,6 +16,7 @@
 
 {  Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 
 {
     Modified for use with Free Pascal
@@ -228,7 +229,7 @@ type
 		length: UInt32;
 	end;
 
-	{	 The search fields limits numOffsets to 4096. 	}
+	{ The search fields limits numOffsets to 4096. }
 	sfntDirectoryPtr = ^sfntDirectory;
 	sfntDirectory = record
 		format: FourCharCode;

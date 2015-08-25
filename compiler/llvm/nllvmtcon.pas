@@ -39,6 +39,8 @@ interface
      public
       constructor create(_def: tdef; _typ: ttypedconstkind); override;
 
+      function prepare_next_field(nextfielddef: tdef): asizeint; override;
+
       property aggai: tai_aggregatetypedconst read faggai write faggai;
       property anonrecalignpos: longint read fanonrecalignpos write fanonrecalignpos;
     end;
@@ -49,7 +51,6 @@ interface
        { set the default value for caggregateinformation (= tllvmaggregateinformation) }
        class constructor classcreate;
      protected
-      fqueued_def: tdef;
       fqueued_tai,
       flast_added_tai: tai;
       fqueued_tai_opidx: longint;
@@ -66,13 +67,17 @@ interface
       procedure do_emit_tai(p: tai; def: tdef); override;
       procedure mark_anon_aggregate_alignment; override;
       procedure insert_marked_aggregate_alignment(def: tdef); override;
+      procedure maybe_emit_tail_padding(def: tdef); override;
       procedure begin_aggregate_internal(def: tdef; anonymous: boolean); override;
       procedure end_aggregate_internal(def: tdef; anonymous: boolean); override;
 
       function get_internal_data_section_start_label: tasmlabel; override;
       function get_internal_data_section_internal_label: tasmlabel; override;
+
+      procedure do_emit_extended_in_aggregate(p: tai);
      public
       destructor destroy; override;
+      procedure emit_tai(p: tai; def: tdef); override;
       procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); override;
       procedure emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef); override;
       procedure queue_init(todef: tdef); override;
@@ -90,9 +95,9 @@ interface
 implementation
 
   uses
-    verbose,
+    verbose,systems,
     aasmdata,
-    cpubase,llvmbase,
+    cpubase,cpuinfo,llvmbase,
     symbase,symtable,llvmdef,defutil;
 
   { tllvmaggregateinformation }
@@ -102,6 +107,14 @@ implementation
        inherited;
        fanonrecalignpos:=-1;
      end;
+
+   function tllvmaggregateinformation.prepare_next_field(nextfielddef: tdef): asizeint;
+    begin
+      result:=inherited;
+      { in case of C/ABI alignment, the padding gets added by LLVM }
+      if tabstractrecordsymtable(tabstractrecorddef(def).symtable).usefieldalignment=C_alignment then
+        result:=0;
+    end;
 
 
   class constructor tllvmtai_typedconstbuilder.classcreate;
@@ -136,7 +149,7 @@ implementation
         this typed const? -> insert type conversion }
       if not assigned(fqueued_tai) and
          (resdef<>fqueued_def) and
-         (llvmencodetype(resdef)<>llvmencodetype(fqueued_def)) then
+         (llvmencodetypename(resdef)<>llvmencodetypename(fqueued_def)) then
         queue_typeconvn(resdef,fqueued_def);
       if assigned(fqueued_tai) then
         begin
@@ -167,6 +180,22 @@ implementation
     end;
 
 
+  procedure tllvmtai_typedconstbuilder.emit_tai(p: tai; def: tdef);
+    var
+      arrdef: tdef;
+    begin
+      { inside an aggregate, an 80 bit floating point number must be
+        emitted as an array of 10 bytes to prevent ABI alignment and
+        padding to 16 bytes }
+      if (def.typ=floatdef) and
+         (tfloatdef(def).floattype=s80real) and
+         assigned(curagginfo) then
+        do_emit_extended_in_aggregate(p)
+      else
+        inherited;
+    end;
+
+
   procedure tllvmtai_typedconstbuilder.do_emit_tai(p: tai; def: tdef);
     var
       ai: tai;
@@ -174,7 +203,7 @@ implementation
       kind: ttypedconstkind;
       info: tllvmaggregateinformation;
     begin
-      if assigned(fqueued_tai) then
+      if queue_is_active then
         begin
           kind:=tck_simple;
           { finalise the queued expression }
@@ -232,11 +261,21 @@ implementation
         end;
     end;
 
+  procedure tllvmtai_typedconstbuilder.maybe_emit_tail_padding(def: tdef);
+    begin
+      { in case of C/ABI alignment, the padding gets added by LLVM }
+      if (is_record(def) or
+          is_object(def)) and
+         (tabstractrecordsymtable(tabstractrecorddef(def).symtable).usefieldalignment=C_alignment) then
+        exit;
+      inherited;
+    end;
+
 
   procedure tllvmtai_typedconstbuilder.emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef);
     begin
       if not pvdef.is_addressonly then
-        pvdef:=tprocvardef(pvdef.getcopyas(procvardef,pc_address_only));
+        pvdef:=cprocvardef.getreusableprocaddr(pvdef);
       emit_tai(p,pvdef);
     end;
 
@@ -272,9 +311,8 @@ implementation
           { field corresponding to this offset }
           field:=trecordsymtable(strrecdef.symtable).findfieldbyoffset(offset);
           { pointerdef to the string data array }
-          dataptrdef:=getpointerdef(field.vardef);
+          dataptrdef:=cpointerdef.getreusable(field.vardef);
           queue_init(charptrdef);
-          queue_addrn(dataptrdef,charptrdef);
           queue_subscriptn(strrecdef,field);
           queue_emit_asmsym(ll.lab,strrecdef);
         end
@@ -342,13 +380,44 @@ implementation
     end;
 
 
+  procedure tllvmtai_typedconstbuilder.do_emit_extended_in_aggregate(p: tai);
+    type
+      p80realval =^t80realval;
+      t80realval = packed record
+        case byte of
+          0: (v: ts80real);
+          1: (a: array[0..9] of byte);
+      end;
+
+    var
+      arrdef: tdef;
+      i: longint;
+      realval: p80realval;
+    begin
+      { emit as an array of 10 bytes }
+      arrdef:=carraydef.getreusable(u8inttype,10);
+      maybe_begin_aggregate(arrdef);
+      if (p.typ<>ait_realconst) then
+        internalerror(2015062401);
+      realval:=p80realval(@tai_realconst(p).value.s80val);
+      if target_info.endian=source_info.endian then
+        for i:=0 to 9 do
+          emit_tai(tai_const.Create_8bit(realval^.a[i]),u8inttype)
+      else
+        for i:=9 downto 0 do
+          emit_tai(tai_const.Create_8bit(realval^.a[i]),u8inttype);
+      maybe_end_aggregate(arrdef);
+      { free the original constant, since we didn't emit it }
+      p.free;
+    end;
+
+
   procedure tllvmtai_typedconstbuilder.queue_init(todef: tdef);
     begin
       inherited;
       fqueued_tai:=nil;
       flast_added_tai:=nil;
       fqueued_tai_opidx:=-1;
-      fqueued_def:=todef;
     end;
 
 
@@ -379,8 +448,8 @@ implementation
         else
           internalerror(2014062203);
       end;
-      aityped:=wrap_with_type(ai,getpointerdef(eledef));
-      update_queued_tai(getpointerdef(eledef),aityped,ai,1);
+      aityped:=wrap_with_type(ai,cpointerdef.getreusable(eledef));
+      update_queued_tai(cpointerdef.getreusable(eledef),aityped,ai,1);
     end;
 
 
@@ -393,13 +462,13 @@ implementation
     begin
       { update range checking info }
       inherited;
-      llvmfielddef:=tabstractrecordsymtable(def.symtable).llvmst[vs.llvmfieldnr].def;
+      llvmfielddef:=tabstractrecordsymtable(def.symtable).llvmst[vs].def;
       { get the address of the llvm-struct field that corresponds to this
         Pascal field }
       getllvmfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,s32inttype,vs.llvmfieldnr,true);
       { getelementptr doesn't contain its own resultdef, so encode it via a
         tai_simpletypedconst tai }
-      getllvmfieldaddrtyped:=wrap_with_type(getllvmfieldaddr,getpointerdef(llvmfielddef));
+      getllvmfieldaddrtyped:=wrap_with_type(getllvmfieldaddr,cpointerdef.getreusable(llvmfielddef));
       { if it doesn't match the requested field exactly (variant record),
         fixup the result }
       getpascalfieldaddr:=getllvmfieldaddrtyped;
@@ -419,14 +488,14 @@ implementation
               { add the offset }
               getpascalfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,getpascalfieldaddr,ptrsinttype,vs.offsetfromllvmfield,true);
               { ... and set the result type of the getelementptr }
-              getpascalfieldaddr:=wrap_with_type(getpascalfieldaddr,getpointerdef(u8inttype));
+              getpascalfieldaddr:=wrap_with_type(getpascalfieldaddr,cpointerdef.getreusable(u8inttype));
               llvmfielddef:=u8inttype;
             end;
           { bitcast the data at the final offset to the right type }
           if llvmfielddef<>vs.vardef then
-            getpascalfieldaddr:=wrap_with_type(taillvm.op_reg_tai_size(la_bitcast,NR_NO,getpascalfieldaddr,getpointerdef(vs.vardef)),getpointerdef(vs.vardef));
+            getpascalfieldaddr:=wrap_with_type(taillvm.op_reg_tai_size(la_bitcast,NR_NO,getpascalfieldaddr,cpointerdef.getreusable(vs.vardef)),cpointerdef.getreusable(vs.vardef));
         end;
-      update_queued_tai(getpointerdef(vs.vardef),getpascalfieldaddr,getllvmfieldaddr,1);
+      update_queued_tai(cpointerdef.getreusable(vs.vardef),getpascalfieldaddr,getllvmfieldaddr,1);
     end;
 
 
@@ -444,7 +513,7 @@ implementation
         the procdef }
       if (fromdef.typ=procdef) and
          (todef.typ<>procdef) then
-        fromdef:=tprocdef(fromdef).getcopyas(procvardef,pc_address_only);
+        fromdef:=cprocvardef.getreusableprocaddr(tprocdef(fromdef));
       op:=llvmconvop(fromdef,todef);
       case op of
         la_ptrtoint_to_x,
