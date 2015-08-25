@@ -71,7 +71,7 @@ unit i_msdos;
             dirsep       : '\';
             assem        : as_i8086_omf;
             assemextern  : as_i8086_nasmobj;
-            link         : ld_none;
+            link         : ld_int_msdos;
             linkextern   : ld_msdos;
 {$ifdef USE_SCRIPTED_WLIB}
             ar           : ar_watcom_wlib_omf_scripted;
