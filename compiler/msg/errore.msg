@@ -2942,7 +2942,7 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 #
 # Internal linker messages
 #
-# 09200 is the last used one
+# 09206 is the last used one
 #
 # BeginOfTeX
 % \section{Linker messages}
@@ -2954,6 +2954,17 @@ link_w_32bit_absolute_reloc=09201_W_Object file "$1" contains 32-bit absolute re
 % Warning when 64-bit object file contains 32-bit absolute relocations.
 % In such case an executable image can be loaded into lower 4Gb of
 % address space only.
+link_e_program_segment_too_large=09202_E_Program segment too large (exceeds 64k by $1 bytes)
+% Error when a 16-bit program is compiled in the tiny memory model, but its size exceeds 64k
+link_e_code_segment_too_large=09203_E_Code segment too large (exceeds 64k by $1 bytes)
+% Error when a 16-bit program's code segment exceeds 64k bytes
+link_e_data_segment_too_large=09204_E_Data segment too large (exceeds 64k by $1 bytes)
+% Error when a 16-bit program's data segment exceeds 64k bytes
+link_e_segment_too_large=09205_E_Segment "$1" too large (exceeds 64k by $2 bytes)
+% Error when a 16-bit program contains a segment that exceeds 64k bytes
+link_e_group_too_large=09206_E_Group "$1" too large (exceeds 64k by $2 bytes)
+% Error when a 16-bit program's object modules define a segment group that
+% exceeds 64k bytes
 %\end{description}
 # EndOfTeX
 

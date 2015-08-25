@@ -872,6 +872,11 @@ const
   execinfo_x_stackcommit=09134;
   link_f_executable_too_big=09200;
   link_w_32bit_absolute_reloc=09201;
+  link_e_program_segment_too_large=09202;
+  link_e_code_segment_too_large=09203;
+  link_e_data_segment_too_large=09204;
+  link_e_segment_too_large=09205;
+  link_e_group_too_large=09206;
   unit_t_unitsearch=10000;
   unit_t_ppu_loading=10001;
   unit_u_ppu_name=10002;
@@ -1011,9 +1016,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 75500;
+  MsgTxtSize = 75786;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,99,342,124,96,58,126,32,202,64,
+    26,99,342,124,96,58,126,32,207,64,
     58,20,1,1,1,1,1,1,1,1
   );
