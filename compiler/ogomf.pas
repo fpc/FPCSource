@@ -269,6 +269,7 @@ interface
         function FindStackSegment: TMZExeUnifiedLogicalSegment;
         procedure FillLoadableImageSize;
         procedure FillMinExtraParagraphs;
+        procedure FillMaxExtraParagraphs;
         procedure FillStartAddress;
         procedure FillStackAddress;
         procedure FillHeaderData;
@@ -2200,6 +2201,22 @@ implementation
         Header.MinExtraParagraphs:=(align(ExeSec.Size,16)-align(Header.LoadableImageSize,16)) div 16;
       end;
 
+    procedure TMZExeOutput.FillMaxExtraParagraphs;
+      var
+        heapmin_paragraphs: Integer;
+        heapmax_paragraphs: Integer;
+      begin
+        if current_settings.x86memorymodel in x86_far_data_models then
+          begin
+            { calculate the additional number of paragraphs needed }
+            heapmin_paragraphs:=(heapsize + 15) div 16;
+            heapmax_paragraphs:=(maxheapsize + 15) div 16;
+            Header.MaxExtraParagraphs:=min(Header.MinExtraParagraphs-heapmin_paragraphs+heapmax_paragraphs,$FFFF);
+          end
+        else
+          Header.MaxExtraParagraphs:=$FFFF;
+      end;
+
     procedure TMZExeOutput.FillStartAddress;
       var
         EntryMemPos: qword;
@@ -2236,6 +2253,7 @@ implementation
         Header.MaxExtraParagraphs:=$FFFF;
         FillLoadableImageSize;
         FillMinExtraParagraphs;
+        FillMaxExtraParagraphs;
         FillStartAddress;
         FillStackAddress;
         if assigned(exemap) then
