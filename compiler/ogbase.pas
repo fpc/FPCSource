@@ -193,7 +193,7 @@ interface
        procedure SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
        function  ObjData: TObjData;
        { string representation for the linker map file }
-       function  AddressStr(AImageBase: qword): string;
+       function  AddressStr(AImageBase: qword): string;virtual;
      end;
      TObjSymbolClass = class of TObjSymbol;
 
