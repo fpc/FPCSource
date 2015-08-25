@@ -1940,8 +1940,7 @@ implementation
             if (objsec.MemPos+objsec.Size)>MaxMemPos then
               MaxMemPos:=objsec.MemPos+objsec.Size;
           end;
-        { align *down* on a paragraph boundary }
-        MemPos:={(MinMemPos shr 4) shl 4}MinMemPos;
+        MemPos:=MinMemPos;
         Size:=MaxMemPos-MemPos;
       end;
 
