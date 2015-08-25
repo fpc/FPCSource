@@ -85,15 +85,6 @@ interface
         property MZExeUnifiedLogicalSegment: TMZExeUnifiedLogicalSegment read FMZExeUnifiedLogicalSegment write FMZExeUnifiedLogicalSegment;
       end;
 
-      { TOmfObjSectionGroup }
-
-      TOmfObjSectionGroup = class(TObjSectionGroup)
-      public
-        Size,
-        MemPos: qword;
-        procedure CalcMemPos;
-      end;
-
       { TOmfObjData }
 
       TOmfObjData = class(TObjData)
@@ -511,32 +502,6 @@ implementation
       end;
 
 {****************************************************************************
-                             TOmfObjSectionGroup
-****************************************************************************}
-
-    procedure TOmfObjSectionGroup.CalcMemPos;
-      var
-        MinMemPos: qword=high(qword);
-        MaxMemPos: qword=0;
-        objsec: TOmfObjSection;
-        i: Integer;
-      begin
-        if Length(members)=0 then
-          internalerror(2015082201);
-        for i:=low(members) to high(members) do
-          begin
-            objsec:=TOmfObjSection(members[i]);
-            if objsec.MemPos<MinMemPos then
-              MinMemPos:=objsec.MemPos;
-            if (objsec.MemPos+objsec.Size)>MaxMemPos then
-              MaxMemPos:=objsec.MemPos+objsec.Size;
-          end;
-        { align *down* on a paragraph boundary }
-        MemPos:=(MinMemPos shr 4) shl 4;
-        Size:=MaxMemPos-MemPos;
-      end;
-
-{****************************************************************************
                                 TOmfObjData
 ****************************************************************************}
 
@@ -559,7 +524,6 @@ implementation
       begin
         inherited create(n);
         CObjSection:=TOmfObjSection;
-        CObjSectionGroup:=TOmfObjSectionGroup;
       end;
 
     function TOmfObjData.sectiontype2align(atype: TAsmSectiontype): shortint;
@@ -1499,7 +1463,7 @@ implementation
         sym: TObjSymbol;
         RelocType: TObjRelocationType;
         target_section: TOmfObjSection;
-        target_group: TOmfObjSectionGroup;
+        target_group: TObjSectionGroup;
       begin
         Result:=False;
 
@@ -1660,7 +1624,7 @@ implementation
           end
         else if Fixup.TargetMethod in [ftmGroupIndex,ftmGroupIndexNoDisp] then
           begin
-            target_group:=TOmfObjSectionGroup(objdata.GroupsList[Fixup.TargetDatum-1]);
+            target_group:=TObjSectionGroup(objdata.GroupsList[Fixup.TargetDatum-1]);
             if target_group.Name<>'DGROUP' then
               begin
                 InputError('Fixup target group other than "DGROUP" is not supported');
@@ -2095,7 +2059,7 @@ implementation
       var
         objdataidx,groupidx,secidx: Integer;
         ObjData: TObjData;
-        ObjGroup: TOmfObjSectionGroup;
+        ObjGroup: TObjSectionGroup;
         ObjSec: TOmfObjSection;
         UniGrp: TMZExeUnifiedLogicalGroup;
       begin
@@ -2105,7 +2069,7 @@ implementation
             if assigned(ObjData.GroupsList) then
               for groupidx:=0 to ObjData.GroupsList.Count-1 do
                 begin
-                  ObjGroup:=TOmfObjSectionGroup(ObjData.GroupsList[groupidx]);
+                  ObjGroup:=TObjSectionGroup(ObjData.GroupsList[groupidx]);
                   for secidx:=low(ObjGroup.members) to high(ObjGroup.members) do
                     begin
                       ObjSec:=TOmfObjSection(ObjGroup.members[secidx]);
