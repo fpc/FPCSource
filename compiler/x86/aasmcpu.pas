@@ -350,6 +350,9 @@ interface
          function is_same_reg_move(regtype: Tregistertype):boolean;override;
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
+{$ifdef i8086}
+         procedure loadsegsymbol(opidx:longint;s:tasmsymbol);
+{$endif i8086}
       private
          { next fields are filled in pass1, so pass2 is faster }
          insentry  : PInsEntry;
@@ -3537,6 +3540,17 @@ implementation
         end;
       end;
 
+
+{$ifdef i8086}
+    procedure taicpu.loadsegsymbol(opidx:longint;s:tasmsymbol);
+      var
+        r: treference;
+      begin
+        reference_reset_symbol(r,s,0,1);
+        r.refaddr:=addr_seg;
+        loadref(opidx,r);
+      end;
+{$endif i8086}
 
 {*****************************************************************************
                               Instruction table

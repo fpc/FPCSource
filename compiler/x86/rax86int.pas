@@ -63,7 +63,7 @@ Unit Rax86int;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
          procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
-         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
+         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg:boolean);
          function BuildConstExpression:aint;
          function BuildRefConstExpression(startingminus:boolean=false):aint;
          procedure BuildReference(oper : tx86operand);
@@ -762,7 +762,7 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
+    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg:boolean);
       var
         tempstr,expr,hs,mangledname : string;
         parenlevel : longint;
@@ -781,6 +781,7 @@ Unit Rax86int;
         value:=0;
         asmsym:='';
         asmsymtyp:=AT_DATA;
+        isseg:=false;
         errorflag:=FALSE;
         tempstr:='';
         expr:='';
@@ -874,6 +875,15 @@ Unit Rax86int;
                 expr:=expr + actasmpattern;
                 Consume(AS_INTNUM);
               end;
+{$ifdef i8086}
+            AS_SEG:
+              begin
+                isseg:=true;
+                Consume(actasmtoken);
+                if actasmtoken<>AS_ID then
+                 Message(asmr_e_seg_without_identifier);
+              end;
+{$endif i8086}
             AS_VMTOFFSET,
             AS_OFFSET:
               begin
@@ -1134,8 +1144,9 @@ Unit Rax86int;
         l : aint;
         hs : string;
         hssymtyp : TAsmsymtype;
+        isseg : boolean;
       begin
-        BuildConstSymbolExpression(false,false,false,l,hs,hssymtyp);
+        BuildConstSymbolExpression(false,false,false,l,hs,hssymtyp,isseg);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildConstExpression:=l;
@@ -1147,8 +1158,9 @@ Unit Rax86int;
         l : aint;
         hs : string;
         hssymtyp : TAsmsymtype;
+        isseg : boolean;
       begin
-        BuildConstSymbolExpression(false,true,startingminus,l,hs,hssymtyp);
+        BuildConstSymbolExpression(false,true,startingminus,l,hs,hssymtyp,isseg);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildRefConstExpression:=l;
@@ -1166,6 +1178,7 @@ Unit Rax86int;
         GotStar,GotOffset,HadVar,
         GotPlus,Negative : boolean;
         hl : tasmlabel;
+        isseg: boolean;
       Begin
         Consume(AS_LBRACKET);
         if not(oper.opr.typ in [OPR_LOCAL,OPR_REFERENCE]) then
@@ -1478,7 +1491,7 @@ Unit Rax86int;
               begin
                 if not GotPlus and not GotStar then
                   Message(asmr_e_invalid_reference_syntax);
-                BuildConstSymbolExpression(true,true,GotPlus and negative,l,tempstr,tempsymtyp);
+                BuildConstSymbolExpression(true,true,GotPlus and negative,l,tempstr,tempsymtyp,isseg);
                 { already handled by BuildConstSymbolExpression(); must be
                   handled there to avoid [reg-1+1] being interpreted as
                   [reg-(1+1)] }
@@ -1489,7 +1502,13 @@ Unit Rax86int;
                    if GotStar then
                     Message(asmr_e_only_add_relocatable_symbol);
                    if not assigned(oper.opr.ref.symbol) then
-                    oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr)
+                     begin
+                       oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr);
+{$ifdef i8086}
+                       if isseg then
+                         oper.opr.ref.refaddr:=addr_seg;
+{$endif i8086}
+                     end
                    else
                     Message(asmr_e_cant_have_multiple_relocatable_symbols);
                  end;
@@ -1557,15 +1576,17 @@ Unit Rax86int;
         l : aint;
         tempstr : string;
         tempsymtyp : tasmsymtype;
+        isseg: boolean;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
-        BuildConstSymbolExpression(true,false,false,l,tempstr,tempsymtyp);
+        BuildConstSymbolExpression(true,false,false,l,tempstr,tempsymtyp,isseg);
         if tempstr<>'' then
           begin
             oper.opr.typ:=OPR_SYMBOL;
             oper.opr.symofs:=l;
             oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr);
+            oper.opr.symseg:=isseg;
           end
         else
           if oper.opr.typ=OPR_NONE then
@@ -1669,6 +1690,15 @@ Unit Rax86int;
            end;
 
           case actasmtoken of
+{$ifndef i8086}
+            AS_SEG :
+              Begin
+                Message(asmr_e_seg_not_supported);
+                Consume(actasmtoken);
+              end;
+{$else not i8086}
+            AS_SEG,
+{$endif not i8086}
             AS_OFFSET,
             AS_SIZEOF,
             AS_VMTOFFSET,
@@ -1889,12 +1919,6 @@ Unit Rax86int;
             AS_LBRACKET: { a variable reference, register ref. or a constant reference }
               Begin
                 BuildReference(oper);
-              end;
-
-            AS_SEG :
-              Begin
-                Message(asmr_e_seg_not_supported);
-                Consume(actasmtoken);
               end;
 
             AS_DWORD,
@@ -2189,6 +2213,7 @@ Unit Rax86int;
         asmsym,
         expr: string;
         value : aint;
+        isseg: boolean;
       Begin
         Repeat
           Case actasmtoken of
@@ -2219,12 +2244,17 @@ Unit Rax86int;
             AS_INTNUM,
             AS_ID :
               Begin
-                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp);
+                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp,isseg);
                 if asmsym<>'' then
                  begin
                    if constsize<>sizeof(pint) then
                      Message1(asmr_w_const32bit_for_address,asmsym);
-                   ConcatConstSymbol(curlist,asmsym,asmsymtyp,value)
+{$ifdef i8086}
+                   if isseg then
+                     curlist.concat(Tai_const.Create_seg_name(asmsym))
+                   else
+{$endif i8086}
+                     ConcatConstSymbol(curlist,asmsym,asmsymtyp,value);
                  end
                 else
                  ConcatConstant(curlist,value,constsize);

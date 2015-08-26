@@ -49,7 +49,7 @@ type
     case typ:TOprType of
       OPR_NONE      : ();
       OPR_CONSTANT  : (val:aint);
-      OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint);
+      OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint;symseg:boolean);
       OPR_REFERENCE : (varsize:asizeint; constoffset: asizeint; ref:treference);
       OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
       OPR_REGISTER  : (reg:tregister);

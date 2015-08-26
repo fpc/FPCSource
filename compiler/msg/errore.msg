@@ -2449,7 +2449,7 @@ cg_f_max_units_reached=06057_F_Maximum number of units ($1) reached for the curr
 #
 # Assembler reader
 #
-# 07125 is the last used one
+# 07126 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2750,6 +2750,9 @@ asmr_e_invalid_ref_register=07125_E_Invalid register used in memory reference ex
 % FPU, vector and sometimes integer registers cannot be used in memory reference
 % expressions, due to limitations of the cpu architecture or simple because
 % it is not meaningful.
+asmr_e_seg_without_identifier=07126_E_SEG used without identifier
+% You can only use SEG with an identifier. Other syntaxes are not
+% supported
 
 #
 # Assembler/binary writers
