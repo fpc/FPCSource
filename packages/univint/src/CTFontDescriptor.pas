@@ -481,7 +481,7 @@ var kCTFontDownloadableAttribute: CFStringRef; external name '_kCTFontDownloadab
     @discussion The value associated with this key is a CFBoolean.  If it is kCFBooleanTrue, corresponding FontAsset has been downloaded. (but still it may be necessary to call appropriate API in order to use the font in the FontAsset.)
 }
 var kCTFontDownloadedAttribute: CFStringRef; external name '_kCTFontDownloadedAttribute'; (* attribute const *)
-CT_AVAILABLE_STARTING_IOS( __MAC_NA, __IPHONE_7_0);
+(* CT_AVAILABLE_STARTING( __MAC_NA, __IPHONE_7_0) *)
 {$endc} {TARGET_OS_IPHONE}
 
 {! --------------------------------------------------------------------------
