@@ -26,7 +26,7 @@ unit nppcmat;
 interface
 
     uses
-      node,nmat;
+      node,nmat,ncgmat;
 
     type
       tppcmoddivnode = class(tmoddivnode)
@@ -44,7 +44,7 @@ interface
          procedure pass_generate_code;override;
       end;
 
-      tppcnotnode = class(tnotnode)
+      tppcnotnode = class(tcgnotnode)
          procedure pass_generate_code;override;
       end;
 
@@ -513,31 +513,11 @@ implementation
     procedure tppcnotnode.pass_generate_code;
 
       var
-         hl : tasmlabel;
          tmpreg: tregister;
       begin
          if is_boolean(resultdef) then
           begin
-            { if the location is LOC_JUMP, we do the secondpass after the
-              labels are allocated
-            }
-            if left.expectloc=LOC_JUMP then
-              begin
-                hl:=current_procinfo.CurrTrueLabel;
-                current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-                current_procinfo.CurrFalseLabel:=hl;
-                secondpass(left);
-
-                if left.location.loc<>LOC_JUMP then
-                  internalerror(2012081303);
-
-                maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
-                hl:=current_procinfo.CurrTrueLabel;
-                current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-                current_procinfo.CurrFalseLabel:=hl;
-                location.loc:=LOC_JUMP;
-              end
-            else
+            if not handle_locjump then
               begin
                 secondpass(left);
                 case left.location.loc of
