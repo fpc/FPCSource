@@ -1164,7 +1164,12 @@ begin
        OPR_REGISTER:
          ai.loadreg(i-1,operands[i].opr.reg);
        OPR_SYMBOL:
-         ai.loadsymbol(i-1,operands[i].opr.symbol,operands[i].opr.symofs);
+{$ifdef i8086}
+        if operands[i].opr.symseg then
+          taicpu(ai).loadsegsymbol(i-1,operands[i].opr.symbol)
+        else
+{$endif i8086}
+          ai.loadsymbol(i-1,operands[i].opr.symbol,operands[i].opr.symofs);
        OPR_LOCAL :
          with operands[i].opr do
            ai.loadlocal(i-1,localsym,localsymofs,localindexreg,

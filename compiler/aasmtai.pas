@@ -141,6 +141,8 @@ interface
           aitconst_64bit_unaligned,
           { i8086 far pointer; emits: 'DW symbol, SEG symbol' }
           aitconst_farptr,
+          { i8086 segment of symbol; emits: 'DW SEG symbol' }
+          aitconst_seg,
           { offset of symbol's GOT slot in GOT }
           aitconst_got,
           { offset of symbol itself from GOT }
@@ -632,6 +634,9 @@ interface
           constructor Create_nil_dataptr;
           constructor Create_int_codeptr(_value: int64);
           constructor Create_int_dataptr(_value: int64);
+{$ifdef i8086}
+          constructor Create_seg_name(const name:string);
+{$endif i8086}
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -1822,6 +1827,15 @@ implementation
       end;
 
 
+{$ifdef i8086}
+    constructor tai_const.Create_seg_name(const name:string);
+      begin
+        self.Createname(name,0);
+        self.consttype:=aitconst_seg;
+      end;
+{$endif i8086}
+
+
     constructor tai_const.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
@@ -1886,6 +1900,8 @@ implementation
             result:=2;
           aitconst_farptr:
             result:=4;
+          aitconst_seg:
+            result:=2;
           aitconst_got:
             result:=sizeof(pint);
           aitconst_gotoff_symbol:

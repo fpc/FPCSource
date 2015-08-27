@@ -41,6 +41,14 @@ interface
 
     type
 
+      { TOmfObjSymbol }
+
+      TOmfObjSymbol = class(TObjSymbol)
+      public
+        { string representation for the linker map file }
+        function AddressStr(AImageBase: qword): string;override;
+      end;
+
       { TOmfRelocation }
 
       TOmfRelocation = class(TObjRelocation)
@@ -305,6 +313,21 @@ implementation
        ;
 
 {****************************************************************************
+                                TOmfObjSymbol
+****************************************************************************}
+
+    function TOmfObjSymbol.AddressStr(AImageBase: qword): string;
+      var
+        base: qword;
+      begin
+        if assigned(TOmfObjSection(objsection).MZExeUnifiedLogicalSegment) then
+          base:=TOmfObjSection(objsection).MZExeUnifiedLogicalSegment.MemBasePos
+        else
+          base:=(address shr 4) shl 4;
+        Result:=HexStr(base shr 4,4)+':'+HexStr(address-base,4);
+      end;
+
+{****************************************************************************
                                 TOmfRelocation
 ****************************************************************************}
 
@@ -524,6 +547,7 @@ implementation
     constructor TOmfObjData.create(const n: string);
       begin
         inherited create(n);
+        CObjSymbol:=TOmfObjSymbol;
         CObjSection:=TOmfObjSection;
       end;
 
@@ -1940,8 +1964,7 @@ implementation
             if (objsec.MemPos+objsec.Size)>MaxMemPos then
               MaxMemPos:=objsec.MemPos+objsec.Size;
           end;
-        { align *down* on a paragraph boundary }
-        MemPos:={(MinMemPos shr 4) shl 4}MinMemPos;
+        MemPos:=MinMemPos;
         Size:=MaxMemPos-MemPos;
       end;
 
@@ -2522,6 +2545,7 @@ implementation
         inherited create;
         CExeSection:=TMZExeSection;
         CObjData:=TOmfObjData;
+        CObjSymbol:=TOmfObjSymbol;
         { "640K ought to be enough for anybody" :) }
         MaxMemPos:=$9FFFF;
         FExeUnifiedLogicalSegments:=TFPHashObjectList.Create;

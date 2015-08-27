@@ -1259,7 +1259,7 @@ Implementation
           begin
             { it's possible that indirect symbol is not present in the list,
               so we must create it as undefined }
-            indsym:=TObjSymbol.Create(ObjData.ObjSymbolList, indirectname);
+            indsym:=ObjData.CObjSymbol.Create(ObjData.ObjSymbolList, indirectname);
             indsym.typ:=AT_NONE;
             indsym.bind:=AB_NONE;
           end;

@@ -274,7 +274,7 @@ implementation
 
   procedure TElfExeOutputMIPS.CreateGOTSection;
     begin
-      nullstub:=TObjSymbol.Create(internalobjdata.ObjSymbolList,'*null_pic_stub*');
+      nullstub:=internalobjdata.CObjSymbol.Create(internalobjdata.ObjSymbolList,'*null_pic_stub*');
       nullstub.bind:=AB_LOCAL;
       nullstub.typ:=AT_FUNCTION;
 
@@ -502,7 +502,7 @@ implementation
               if (tmp>=numpages) then
                 InternalError(2013030402);
               { replace relocation symbol with one pointing to GOT slot }
-              objsym:=TObjSymbol.Create(local_got_slots,hexstr(addr,8));
+              objsym:=CObjSymbol.Create(local_got_slots,hexstr(addr,8));
               objsym.offset:=(got_local_area_start+tmp+1)*sizeof(pint);
               objsym.bind:=AB_LOCAL;
               if (source_info.endian=target_info.endian) then
