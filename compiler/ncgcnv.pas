@@ -160,13 +160,9 @@ interface
         hregister : tregister;
         href      : treference;
         resflags  : tresflags;
-        hlabel,oldTrueLabel,oldFalseLabel : tasmlabel;
+        hlabel    : tasmlabel;
         newsize   : tcgsize;
       begin
-        oldTrueLabel:=current_procinfo.CurrTrueLabel;
-        oldFalseLabel:=current_procinfo.CurrFalseLabel;
-        current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-        current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
         secondpass(left);
         if codegenerror then
          exit;
@@ -189,8 +185,6 @@ interface
                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
              else
                location.size:=newsize;
-             current_procinfo.CurrTrueLabel:=oldTrueLabel;
-             current_procinfo.CurrFalseLabel:=oldFalseLabel;
              exit;
           end;
         { though ppc/ppc64 doesn't use the generic code, we need to ifdef here
@@ -247,10 +241,10 @@ interface
             begin
               hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
               current_asmdata.getjumplabel(hlabel);
-              cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+              cg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
               cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,1,hregister);
               cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
-              cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+              cg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
               cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hregister);
               cg.a_label(current_asmdata.CurrAsmList,hlabel);
               cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_INT,hregister,hregister);
@@ -265,8 +259,6 @@ interface
         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
         if (is_cbool(resultdef)) then
           cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,location.register,location.register);
-        current_procinfo.CurrTrueLabel:=oldTrueLabel;
-        current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 {$endif cpuflags}
 
@@ -609,12 +601,7 @@ interface
     procedure tcgtypeconvnode.second_bool_to_int;
       var
          newsize: tcgsize;
-         oldTrueLabel,oldFalseLabel : tasmlabel;
       begin
-         oldTrueLabel:=current_procinfo.CurrTrueLabel;
-         oldFalseLabel:=current_procinfo.CurrFalseLabel;
-         current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-         current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
          secondpass(left);
          location_copy(location,left.location);
          newsize:=def_cgsize(resultdef);
@@ -637,8 +624,6 @@ interface
          else
            { may differ in sign, e.g. bytebool -> byte   }
            location.size:=newsize;
-         current_procinfo.CurrTrueLabel:=oldTrueLabel;
-         current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
 

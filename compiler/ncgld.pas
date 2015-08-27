@@ -584,7 +584,7 @@ implementation
 
     procedure tcgassignmentnode.pass_generate_code;
       var
-         otlabel,hlabel,oflabel : tasmlabel;
+         hlabel : tasmlabel;
          href : treference;
          releaseright : boolean;
          alignmentrequirement,
@@ -600,11 +600,6 @@ implementation
           managed types without any special "managing code"}
 
         location_reset(location,LOC_VOID,OS_NO);
-
-        otlabel:=current_procinfo.CurrTrueLabel;
-        oflabel:=current_procinfo.CurrFalseLabel;
-        current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-        current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
 
         {
           in most cases we can process first the right node which contains
@@ -962,7 +957,7 @@ implementation
               LOC_JUMP :
                 begin
                   current_asmdata.getjumplabel(hlabel);
-                  hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                  hlcg.a_label(current_asmdata.CurrAsmList,right.location.truelabel);
                   if is_pasbool(left.resultdef) then
                     begin
 {$ifndef cpu64bitalu}
@@ -983,7 +978,7 @@ implementation
                     end;
 
                   hlcg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
-                  hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                  hlcg.a_label(current_asmdata.CurrAsmList,right.location.falselabel);
 {$ifndef cpu64bitalu}
                   if left.location.size in [OS_64,OS_S64] then
                     cg64.a_load64_const_loc(current_asmdata.CurrAsmList,0,left.location)
@@ -1073,9 +1068,6 @@ implementation
 
         if releaseright then
           location_freetemp(current_asmdata.CurrAsmList,right.location);
-
-        current_procinfo.CurrTrueLabel:=otlabel;
-        current_procinfo.CurrFalseLabel:=oflabel;
       end;
 
 
@@ -1125,8 +1117,6 @@ implementation
         href  : treference;
         lt    : tdef;
         paraloc : tcgparalocation;
-        otlabel,
-        oflabel : tasmlabel;
         vtype : longint;
         eledef: tdef;
         elesize : longint;
@@ -1135,8 +1125,6 @@ implementation
         freetemp,
         dovariant: boolean;
       begin
-        otlabel:=nil;
-        oflabel:=nil;
         if is_packed_array(resultdef) then
           internalerror(200608042);
         dovariant:=
@@ -1175,25 +1163,13 @@ implementation
            if assigned(hp.left) then
             begin
               freetemp:=true;
-              if (hp.left.expectloc=LOC_JUMP) then
-                begin
-                  otlabel:=current_procinfo.CurrTrueLabel;
-                  oflabel:=current_procinfo.CurrFalseLabel;
-                  current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-                  current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-                end;
               secondpass(hp.left);
+              if (hp.left.location.loc=LOC_JUMP)<>
+                 (hp.left.expectloc=LOC_JUMP) then
+                internalerror(2007103101);
               { Move flags and jump in register }
               if hp.left.location.loc in [LOC_FLAGS,LOC_JUMP] then
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,hp.left.location,hp.left.resultdef,hp.left.resultdef,false);
-
-              if (hp.left.location.loc=LOC_JUMP) then
-                begin
-                  if (hp.left.expectloc<>LOC_JUMP) then
-                    internalerror(2007103101);
-                  current_procinfo.CurrTrueLabel:=otlabel;
-                  current_procinfo.CurrFalseLabel:=oflabel;
-                end;
 
               if dovariant then
                begin

@@ -169,6 +169,8 @@ procedure tllvmtypeconvnode.second_bool_to_int;
 
 procedure tllvmtypeconvnode.second_int_to_bool;
   var
+    truelabel,
+    falselabel: tasmlabel;
     newsize  : tcgsize;
   begin
     secondpass(left);
@@ -191,17 +193,20 @@ procedure tllvmtypeconvnode.second_int_to_bool;
          exit;
       end;
 
-    location_reset(location,LOC_JUMP,OS_NO);
     case left.location.loc of
       LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF,
       LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER:
         begin
-          hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location,current_procinfo.CurrFalseLabel);
-          hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+          current_asmdata.getjumplabel(truelabel);
+          current_asmdata.getjumplabel(falselabel);
+          location_reset_jump(location,truelabel,falselabel);
+
+          hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location,location.falselabel);
+          hlcg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
         end;
       LOC_JUMP :
         begin
-          { nothing to do, jumps already go to the right labels }
+          location:=left.location;
         end;
       else
         internalerror(10062);

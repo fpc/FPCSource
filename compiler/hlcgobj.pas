@@ -552,7 +552,12 @@ unit hlcgobj;
             a register it is expected to contain the address of the data }
           procedure location_get_data_ref(list:TAsmList;def: tdef; const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);virtual;
 
-          procedure maketojumpbool(list:TAsmList; p : tnode);virtual;
+          { if p is a boolean expression, turns p.location into a LOC_JUMP with
+            jumps to generated true and false labels; otherwise internalerrors }
+          procedure maketojumpbool(list: TAsmList; p: tnode);
+          { same as above, but using predefined true/false labels instead of
+            by generating new ones }
+          procedure maketojumpboollabels(list: TAsmList; p: tnode; truelabel, falselabel: tasmlabel);virtual;
           { if the result of n is a LOC_C(..)REGISTER, try to find the corresponding
             loadn and change its location to a new register (= SSA). In case reload
             is true, transfer the old to the new register                            }
@@ -3850,11 +3855,11 @@ implementation
 {$endif cpuflags}
         LOC_JUMP :
           begin
-            a_label(list,current_procinfo.CurrTrueLabel);
+            a_label(list,l.truelabel);
             a_load_const_reg(list,dst_size,1,hregister);
             current_asmdata.getjumplabel(hl);
             a_jmp_always(list,hl);
-            a_label(list,current_procinfo.CurrFalseLabel);
+            a_label(list,l.falselabel);
             a_load_const_reg(list,dst_size,0,hregister);
             a_label(list,hl);
           end;
@@ -4035,15 +4040,27 @@ implementation
         end;
       end;
 
-  procedure thlcgobj.maketojumpbool(list: TAsmList; p: tnode);
-  {
-    produces jumps to true respectively false labels using boolean expressions
 
-    depending on whether the loading of regvars is currently being
-    synchronized manually (such as in an if-node) or automatically (most of
-    the other cases where this procedure is called), loadregvars can be
-    "lr_load_regvars" or "lr_dont_load_regvars"
-  }
+  procedure thlcgobj.maketojumpbool(list: TAsmList; p: tnode);
+    var
+      truelabel,
+      falselabel: tasmlabel;
+    begin
+       if p.location.loc<>LOC_JUMP then
+         begin
+           current_asmdata.getjumplabel(truelabel);
+           current_asmdata.getjumplabel(falselabel);
+         end
+       else
+         begin
+           truelabel:=p.location.truelabel;
+           falselabel:=p.location.falselabel;
+         end;
+       maketojumpboollabels(list,p,truelabel,falselabel);
+    end;
+
+
+  procedure thlcgobj.maketojumpboollabels(list: TAsmList; p: tnode; truelabel, falselabel: tasmlabel);
     var
       storepos : tfileposinfo;
     begin
@@ -4056,9 +4073,9 @@ implementation
             if is_constboolnode(p) then
               begin
                  if Tordconstnode(p).value.uvalue<>0 then
-                   a_jmp_always(list,current_procinfo.CurrTrueLabel)
+                   a_jmp_always(list,truelabel)
                  else
-                   a_jmp_always(list,current_procinfo.CurrFalseLabel)
+                   a_jmp_always(list,falselabel)
               end
             else
               begin
@@ -4067,17 +4084,28 @@ implementation
                    LOC_SUBSETREF,LOC_CSUBSETREF,
                    LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE :
                      begin
-                       a_cmp_const_loc_label(list,p.resultdef,OC_NE,0,p.location,current_procinfo.CurrTrueLabel);
-                       a_jmp_always(list,current_procinfo.CurrFalseLabel);
+                       a_cmp_const_loc_label(list,p.resultdef,OC_NE,0,p.location,truelabel);
+                       a_jmp_always(list,falselabel);
                      end;
                    LOC_JUMP:
-                     ;
+                     begin
+                       if truelabel<>p.location.truelabel then
+                         begin
+                           a_label(list,p.location.truelabel);
+                           a_jmp_always(list,truelabel);
+                         end;
+                       if falselabel<>p.location.falselabel then
+                         begin
+                           a_label(list,p.location.falselabel);
+                           a_jmp_always(list,falselabel);
+                         end;
+                     end;
 {$ifdef cpuflags}
                    LOC_FLAGS :
                      begin
-                       a_jmp_flags(list,p.location.resflags,current_procinfo.CurrTrueLabel);
+                       a_jmp_flags(list,p.location.resflags,truelabel);
                        a_reg_dealloc(list,NR_DEFAULTFLAGS);
-                       a_jmp_always(list,current_procinfo.CurrFalseLabel);
+                       a_jmp_always(list,falselabel);
                      end;
 {$endif cpuflags}
                    else
@@ -4087,6 +4115,7 @@ implementation
                      end;
                  end;
               end;
+            location_reset_jump(p.location,truelabel,falselabel);
          end
        else
          internalerror(2011010419);

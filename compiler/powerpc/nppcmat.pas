@@ -26,7 +26,7 @@ unit nppcmat;
 interface
 
     uses
-      node,nmat,ncgmat;
+      node,nmat, ncgmat;
 
     type
       tppcmoddivnode = class(tmoddivnode)

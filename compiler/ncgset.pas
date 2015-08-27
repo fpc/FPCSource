@@ -241,7 +241,6 @@ implementation
          adjustment,
          setbase    : aint;
          l, l2      : tasmlabel;
-         otl, ofl   : tasmlabel;
          hr,
          pleftreg   : tregister;
          setparts   : Tsetparts;
@@ -252,14 +251,11 @@ implementation
          orgopsize  : tcgsize;
          orgopdef   : tdef;
          genjumps,
-         use_small,
-         isjump     : boolean;
+         use_small  : boolean;
          i,numparts : byte;
          needslabel : Boolean;
        begin
          l2:=nil;
-         ofl:=nil;
-         otl:=nil;
 
          { We check first if we can generate jumps, this can be done
            because the resultdef is already set in firstpass }
@@ -282,35 +278,17 @@ implementation
            end;
          needslabel := false;
 
-         isjump:=false;
-         if (left.expectloc=LOC_JUMP) then
-           begin
-             otl:=current_procinfo.CurrTrueLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-             ofl:=current_procinfo.CurrFalseLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-             isjump:=true;
-           end
-         else if not genjumps then
+         if not genjumps then
            { calculate both operators }
            { the complex one first }
-           { only if left will not be a LOC_JUMP, to keep complexity in the }
-           { code generator down. This almost never happens anyway, only in }
-           { case like "if ((a in someset) in someboolset) then" etc        }
-           { also not in case of genjumps, because then we don't secondpass }
+           { not in case of genjumps, because then we don't secondpass      }
            { right at all (so we have to make sure that "right" really is   }
            { "right" and not "swapped left" in that case)                   }
            firstcomplex(self);
 
          secondpass(left);
-         if isjump then
-           begin
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,orgopdef,opdef,true);
-             left.resultdef:=opdef;
-             current_procinfo.CurrTrueLabel:=otl;
-             current_procinfo.CurrFalseLabel:=ofl;
-           end
-         else if (left.location.loc=LOC_JUMP) then
+         if (left.expectloc=LOC_JUMP)<>
+            (left.location.loc=LOC_JUMP) then
            internalerror(2007070101);
 
          { Only process the right if we are not generating jumps }
@@ -327,7 +305,9 @@ implementation
          if genjumps then
            begin
              { location is always LOC_JUMP }
-             location_reset(location,LOC_JUMP,OS_NO);
+             current_asmdata.getjumplabel(l);
+             current_asmdata.getjumplabel(l2);
+             location_reset_jump(location,l,l2);
 
              { If register is used, use only lower 8 bits }
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
@@ -375,24 +355,24 @@ implementation
                      { (this will never overflow since we check at the     }
                      { beginning whether stop-start <> 255)                }
                      hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, uopdef, OC_B,
-                       setparts[i].stop-setparts[i].start+1,pleftreg,current_procinfo.CurrTrueLabel);
+                       setparts[i].stop-setparts[i].start+1,pleftreg,location.truelabel);
                    end
                  else
                    { if setparts[i].start = 0 and setparts[i].stop = 255,  }
                    { it's always true since "in" is only allowed for bytes }
                    begin
-                     hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                     hlcg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
                    end;
                end
               else
                begin
                  { Emit code to check if left is an element }
                  hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opdef, OC_EQ,
-                       setparts[i].stop-adjustment,pleftreg,current_procinfo.CurrTrueLabel);
+                       setparts[i].stop-adjustment,pleftreg,location.truelabel);
                end;
               { To compensate for not doing a second pass }
               right.location.reference.symbol:=nil;
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+              hlcg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
            end
          else
          {*****************************************************************}
@@ -935,15 +915,11 @@ implementation
          max_label: tconstexprint;
          labelcnt : tcgint;
          max_linear_list : aint;
-         otl, ofl: tasmlabel;
-         isjump : boolean;
          max_dist,
          dist : aword;
          oldexecutionweight : longint;
       begin
          location_reset(location,LOC_VOID,OS_NO);
-         ofl:=nil;
-         otl:=nil;
 
          oldflowcontrol := flowcontrol;
          include(flowcontrol,fc_inflowcontrol);
@@ -967,17 +943,10 @@ implementation
               jmp_le:=OC_BE;
            end;
 
-         { save current current_procinfo.CurrTrueLabel and current_procinfo.CurrFalseLabel }
-         isjump:=false;
-         if left.expectloc=LOC_JUMP then
-          begin
-            otl:=current_procinfo.CurrTrueLabel;
-            current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-            ofl:=current_procinfo.CurrFalseLabel;
-            current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-            isjump:=true;
-          end;
          secondpass(left);
+         if (left.expectloc=LOC_JUMP)<>
+            (left.location.loc=LOC_JUMP) then
+           internalerror(2006050501);
          { determines the size of the operand }
          opsize:=left.resultdef;
          { copy the case expression to a register }
@@ -991,14 +960,6 @@ implementation
          else
 {$endif not cpu64bitalu}
            hregister:=left.location.register;
-         if isjump then
-          begin
-            current_procinfo.CurrTrueLabel:=otl;
-            current_procinfo.CurrFalseLabel:=ofl;
-          end
-         else
-          if (left.location.loc=LOC_JUMP) then
-            internalerror(2006050501);
 
          { we need the min_label always to choose between }
          { cmps and subs/decs                             }

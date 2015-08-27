@@ -704,12 +704,7 @@ implementation
     procedure tjvmtypeconvnode.second_bool_to_int;
       var
          newsize: tcgsize;
-         oldTrueLabel,oldFalseLabel : tasmlabel;
       begin
-         oldTrueLabel:=current_procinfo.CurrTrueLabel;
-         oldFalseLabel:=current_procinfo.CurrFalseLabel;
-         current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-         current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
          secondpass(left);
          location_copy(location,left.location);
          newsize:=def_cgsize(resultdef);
@@ -737,20 +732,14 @@ implementation
          else
            { may differ in sign, e.g. bytebool -> byte   }
            location.size:=newsize;
-         current_procinfo.CurrTrueLabel:=oldTrueLabel;
-         current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
 
     procedure tjvmtypeconvnode.second_int_to_bool;
       var
-        hlabel1,hlabel2,oldTrueLabel,oldFalseLabel : tasmlabel;
+        hlabel1,hlabel2: tasmlabel;
         newsize  : tcgsize;
       begin
-        oldTrueLabel:=current_procinfo.CurrTrueLabel;
-        oldFalseLabel:=current_procinfo.CurrFalseLabel;
-        current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-        current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
         secondpass(left);
         if codegenerror then
           exit;
@@ -770,8 +759,6 @@ implementation
                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
              else
                location.size:=newsize;
-             current_procinfo.CurrTrueLabel:=oldTrueLabel;
-             current_procinfo.CurrFalseLabel:=oldFalseLabel;
              exit;
           end;
 
@@ -786,8 +773,8 @@ implementation
            end;
          LOC_JUMP :
            begin
-             hlabel1:=current_procinfo.CurrFalseLabel;
-             hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+             hlabel1:=left.location.falselabel;
+             hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
            end;
          else
            internalerror(10062);
@@ -805,9 +792,6 @@ implementation
        thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,resultdef,0,R_INTREGISTER);
        hlcg.a_label(current_asmdata.CurrAsmList,hlabel2);
        thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
-
-       current_procinfo.CurrTrueLabel:=oldTrueLabel;
-       current_procinfo.CurrFalseLabel:=oldFalseLabel;
      end;
 
 

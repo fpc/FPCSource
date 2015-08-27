@@ -57,7 +57,7 @@ interface
 }
 
     procedure firstcomplex(p : tbinarynode);
-    procedure maketojumpbool(list:TAsmList; p : tnode; loadregvars: tloadregvars);
+    procedure maketojumpboollabels(list: TAsmList; p: tnode; truelabel, falselabel: tasmlabel);
 //    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsuperregisterset);
 
     procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
@@ -257,14 +257,9 @@ implementation
       end;
 
 
-    procedure maketojumpbool(list:TAsmList; p : tnode; loadregvars: tloadregvars);
+    procedure maketojumpboollabels(list: TAsmList; p: tnode; truelabel, falselabel: tasmlabel);
     {
       produces jumps to true respectively false labels using boolean expressions
-
-      depending on whether the loading of regvars is currently being
-      synchronized manually (such as in an if-node) or automatically (most of
-      the other cases where this procedure is called), loadregvars can be
-      "lr_load_regvars" or "lr_dont_load_regvars"
     }
       var
         opsize : tcgsize;
@@ -277,16 +272,12 @@ implementation
          current_filepos:=p.fileinfo;
          if is_boolean(p.resultdef) then
            begin
-{$ifdef OLDREGVARS}
-              if loadregvars = lr_load_regvars then
-                load_all_regvars(list);
-{$endif OLDREGVARS}
               if is_constboolnode(p) then
                 begin
                    if Tordconstnode(p).value.uvalue<>0 then
-                     cg.a_jmp_always(list,current_procinfo.CurrTrueLabel)
+                     cg.a_jmp_always(list,truelabel)
                    else
-                     cg.a_jmp_always(list,current_procinfo.CurrFalseLabel)
+                     cg.a_jmp_always(list,falselabel)
                 end
               else
                 begin
@@ -297,8 +288,8 @@ implementation
                        begin
                          tmpreg := cg.getintregister(list,OS_INT);
                          hlcg.a_load_loc_reg(list,p.resultdef,osuinttype,p.location,tmpreg);
-                         cg.a_cmp_const_reg_label(list,OS_INT,OC_NE,0,tmpreg,current_procinfo.CurrTrueLabel);
-                         cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
+                         cg.a_cmp_const_reg_label(list,OS_INT,OC_NE,0,tmpreg,truelabel);
+                         cg.a_jmp_always(list,falselabel);
                        end;
                      LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE :
                        begin
@@ -323,17 +314,28 @@ implementation
                              opsize:=OS_32;
                            end;
 {$endif cpu64bitalu}
-                         cg.a_cmp_const_loc_label(list,opsize,OC_NE,0,p.location,current_procinfo.CurrTrueLabel);
-                         cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
+                         cg.a_cmp_const_loc_label(list,opsize,OC_NE,0,p.location,truelabel);
+                         cg.a_jmp_always(list,falselabel);
                        end;
                      LOC_JUMP:
-                       ;
+                       begin
+                         if truelabel<>p.location.truelabel then
+                           begin
+                             cg.a_label(list,p.location.truelabel);
+                             cg.a_jmp_always(list,truelabel);
+                           end;
+                         if falselabel<>p.location.falselabel then
+                           begin
+                             cg.a_label(list,p.location.falselabel);
+                             cg.a_jmp_always(list,falselabel);
+                           end;
+                       end;
 {$ifdef cpuflags}
                      LOC_FLAGS :
                        begin
-                         cg.a_jmp_flags(list,p.location.resflags,current_procinfo.CurrTrueLabel);
+                         cg.a_jmp_flags(list,p.location.resflags,truelabel);
                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
-                         cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
+                         cg.a_jmp_always(list,falselabel);
                        end;
 {$endif cpuflags}
                      else
@@ -343,6 +345,7 @@ implementation
                        end;
                    end;
                 end;
+              location_reset_jump(p.location,truelabel,falselabel);
            end
          else
            internalerror(200112305);

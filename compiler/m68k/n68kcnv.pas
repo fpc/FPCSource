@@ -165,16 +165,9 @@ implementation
         resflags : tresflags;
         opsize   : tcgsize;
         newsize  : tcgsize;
-        hlabel,
-        oldTrueLabel,
-        oldFalseLabel : tasmlabel;
+        hlabel   : tasmlabel;
         tmpreference : treference;
       begin
-         oldTrueLabel:=current_procinfo.CurrTrueLabel;
-         oldFalseLabel:=current_procinfo.CurrFalseLabel;
-         current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-         current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-
          secondpass(left);
 
          { Explicit typecasts from any ordinal type to a boolean type }
@@ -190,8 +183,6 @@ implementation
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
-              current_procinfo.CurrTrueLabel:=oldTrueLabel;
-              current_procinfo.CurrFalseLabel:=oldFalseLabel;
               exit;
            end;
 
@@ -266,13 +257,13 @@ implementation
                 location_reset(location,LOC_REGISTER,newsize);
                 location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
                 current_asmdata.getjumplabel(hlabel);
-                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                cg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
                 if not(is_cbool(resultdef)) then
                   cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,1,location.register)
                 else
                   cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,-1,location.register);
                 cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
-                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                cg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
                 cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,0,location.register);
                 cg.a_label(current_asmdata.CurrAsmList,hlabel);
               end;
@@ -305,8 +296,6 @@ implementation
                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,newsize,location.register,location.register);
               end
            end;
-         current_procinfo.CurrTrueLabel:=oldTrueLabel;
-         current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
 

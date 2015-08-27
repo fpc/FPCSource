@@ -134,7 +134,7 @@ implementation
       var
          lcont,lbreak,lloop,
          oldclabel,oldblabel : tasmlabel;
-         otlabel,oflabel : tasmlabel;
+         truelabel,falselabel : tasmlabel;
          oldflowcontrol : tflowcontrol;
          oldexecutionweight : longint;
       begin
@@ -181,27 +181,22 @@ implementation
 {$endif OLDREGVARS}
 
          hlcg.a_label(current_asmdata.CurrAsmList,lcont);
-         otlabel:=current_procinfo.CurrTrueLabel;
-         oflabel:=current_procinfo.CurrFalseLabel;
          if lnf_checknegate in loopflags then
-          begin
-            current_procinfo.CurrTrueLabel:=lbreak;
-            current_procinfo.CurrFalseLabel:=lloop;
-          end
+           begin
+             truelabel:=lbreak;
+             falselabel:=lloop;
+           end
          else
-          begin
-            current_procinfo.CurrTrueLabel:=lloop;
-            current_procinfo.CurrFalseLabel:=lbreak;
-          end;
+           begin
+             truelabel:=lloop;
+             falselabel:=lbreak;
+           end;
          secondpass(left);
 
-         hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
+         hlcg.maketojumpboollabels(current_asmdata.CurrAsmList,left,truelabel,falselabel);
          hlcg.a_label(current_asmdata.CurrAsmList,lbreak);
 
          sync_regvars(false);
-
-         current_procinfo.CurrTrueLabel:=otlabel;
-         current_procinfo.CurrFalseLabel:=oflabel;
 
          current_procinfo.CurrContinueLabel:=oldclabel;
          current_procinfo.CurrBreakLabel:=oldblabel;
@@ -217,7 +212,7 @@ implementation
     procedure tcgifnode.pass_generate_code;
 
       var
-         hl,otlabel,oflabel : tasmlabel;
+         hl : tasmlabel;
          oldflowcontrol: tflowcontrol;
          oldexecutionweight : longint;
 (*
@@ -238,10 +233,6 @@ implementation
 
          oldflowcontrol := flowcontrol;
          include(flowcontrol,fc_inflowcontrol);
-         otlabel:=current_procinfo.CurrTrueLabel;
-         oflabel:=current_procinfo.CurrFalseLabel;
-         current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-         current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
          secondpass(left);
 
 (*
@@ -270,7 +261,7 @@ implementation
 
          if assigned(right) then
            begin
-              hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+              hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
               secondpass(right);
            end;
 
@@ -305,7 +296,7 @@ implementation
                    ;
                    hlcg.a_jmp_always(current_asmdata.CurrAsmList,hl);
                 end;
-              hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+              hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
               secondpass(t1);
 (*
               { save current asmlist (previous instructions + else-block) }
@@ -332,11 +323,11 @@ implementation
                   current_asmdata.CurrAsmList := TAsmList.create;
                 end;
 *)
-              hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+              hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
            end;
          if not(assigned(right)) then
            begin
-              hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+              hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
            end;
 
 (*
@@ -376,8 +367,6 @@ implementation
 
          cg.executionweight:=oldexecutionweight;
 
-         current_procinfo.CurrTrueLabel:=otlabel;
-         current_procinfo.CurrFalseLabel:=oflabel;
          flowcontrol := oldflowcontrol + (flowcontrol - [fc_inflowcontrol]);
       end;
 
@@ -423,8 +412,7 @@ implementation
 
     procedure tcgfornode.pass_generate_code;
       var
-         l3,oldclabel,oldblabel,
-         otl, ofl : tasmlabel;
+         l3,oldclabel,oldblabel : tasmlabel;
          temptovalue : boolean;
          hop : topcg;
          hcond : topcmp;
@@ -433,11 +421,8 @@ implementation
          cmp_const:Tconstexprint;
          oldflowcontrol : tflowcontrol;
          oldexecutionweight : longint;
-         isjump: boolean;
       begin
          location_reset(location,LOC_VOID,OS_NO);
-         ofl:=nil;
-         otl:=nil;
 
          oldclabel:=current_procinfo.CurrContinueLabel;
          oldblabel:=current_procinfo.CurrBreakLabel;
@@ -458,22 +443,9 @@ implementation
          }
            and not(assigned(entrylabel));
 
-        isjump:=(t1.expectloc=LOC_JUMP);
-        if isjump then
-          begin
-             otl:=current_procinfo.CurrTrueLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-             ofl:=current_procinfo.CurrFalseLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-          end;
         secondpass(t1);
         if t1.location.loc in [LOC_FLAGS,LOC_JUMP] then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,t1.location,t1.resultdef,t1.resultdef,false);
-        if isjump then
-          begin
-            current_procinfo.CurrTrueLabel:=otl;
-            current_procinfo.CurrFalseLabel:=ofl;
-          end;
          { calculate pointer value and check if changeable and if so }
          { load into temporary variable                       }
          if t1.nodetype<>ordconstn then
@@ -491,22 +463,9 @@ implementation
          cg.executionweight:=oldexecutionweight;
 
          { load from value }
-         isjump:=(right.expectloc=LOC_JUMP);
-         if isjump then
-           begin
-              otl:=current_procinfo.CurrTrueLabel;
-              current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-              ofl:=current_procinfo.CurrFalseLabel;
-              current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-           end;
          secondpass(right);
          if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
            hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
-         if isjump then
-           begin
-             current_procinfo.CurrTrueLabel:=otl;
-             current_procinfo.CurrFalseLabel:=ofl;
-           end;
 
          hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,false);
          oldflowcontrol:=flowcontrol;

@@ -872,12 +872,10 @@ implementation
          offsetdec,
          extraoffset : aint;
          rightp      : pnode;
-         otl,ofl  : tasmlabel;
          newsize  : tcgsize;
          mulsize,
          bytemulsize,
          alignpow : aint;
-         isjump   : boolean;
          paraloc1,
          paraloc2 : tcgpara;
          subsetref : tsubsetreference;
@@ -1083,17 +1081,10 @@ implementation
               { calculate from left to right }
               if not(location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                 internalerror(200304237);
-              isjump:=(right.expectloc=LOC_JUMP);
-              otl:=nil;
-              ofl:=nil;
-              if isjump then
-               begin
-                 otl:=current_procinfo.CurrTrueLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-                 ofl:=current_procinfo.CurrFalseLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-               end;
               secondpass(right);
+              if (right.expectloc=LOC_JUMP)<>
+                 (right.location.loc=LOC_JUMP) then
+                internalerror(2006010801);
 
               { if mulsize = 1, we won't have to modify the index }
               if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
@@ -1104,14 +1095,6 @@ implementation
                 end
               else
                 indexdef:=right.resultdef;
-
-              if isjump then
-               begin
-                 current_procinfo.CurrTrueLabel:=otl;
-                 current_procinfo.CurrFalseLabel:=ofl;
-               end
-              else if (right.location.loc = LOC_JUMP) then
-                internalerror(2006010801);
 
             { produce possible range check code: }
               if cs_check_range in current_settings.localswitches then
