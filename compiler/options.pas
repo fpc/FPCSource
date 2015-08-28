@@ -51,6 +51,7 @@ Type
     ParaFrameworkPath : TSearchPathList;
     ParaAlignment   : TAlignmentInfo;
     paratarget        : tsystem;
+    paratargetasm     : tasm;
     Constructor Create;
     Destructor Destroy;override;
     procedure WriteLogo;
@@ -3094,6 +3095,7 @@ begin
   FillChar(ParaAlignment,sizeof(ParaAlignment),0);
   MacVersionSet:=false;
   paratarget:=system_none;
+  paratargetasm:=as_none;
 end;
 
 
@@ -3645,22 +3647,22 @@ begin
 
 {$ifdef llvm}
   { force llvm assembler writer }
-  paratargetasm:=as_llvm;
+  option.paratargetasm:=as_llvm;
 {$endif llvm}
   { maybe override assembler }
-  if (paratargetasm<>as_none) then
+  if (option.paratargetasm<>as_none) then
     begin
-      if not set_target_asm(paratargetasm) then
+      if not set_target_asm(option.paratargetasm) then
         begin
-          Message2(option_incompatible_asm,asminfos[paratargetasm]^.idtxt,target_info.name);
+          Message2(option_incompatible_asm,asminfos[option.paratargetasm]^.idtxt,target_info.name);
           set_target_asm(target_info.assemextern);
           Message1(option_asm_forced,target_asm.idtxt);
         end;
-      if (af_no_debug in asminfos[paratargetasm]^.flags) and
+      if (af_no_debug in asminfos[option.paratargetasm]^.flags) and
          (paratargetdbg<>dbg_none) then
         begin
           Message1(option_confict_asm_debug,
-            asminfos[paratargetasm]^.idtxt);
+            asminfos[option.paratargetasm]^.idtxt);
           paratargetdbg:=dbg_none;
           exclude(init_settings.moduleswitches,cs_debuginfo);
         end;

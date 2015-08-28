@@ -231,7 +231,6 @@ interface
 
        { things specified with parameters }
        paratargetdbg     : tdbg;
-       paratargetasm     : tasm;
        paralinkoptions   : TCmdStr;
        paradynamiclinker : string;
        paraprintnodetree : byte;
@@ -1371,7 +1370,6 @@ implementation
         compile_level:=0;
         codegenerror:=false;
         DLLsource:=false;
-        paratargetasm:=as_none;
         paratargetdbg:=dbg_none;
 
         { Output }
