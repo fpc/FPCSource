@@ -341,11 +341,6 @@ interface
     const
        DLLsource : boolean = false;
 
-       { used to set all registers used for each global function
-         this should dramatically decrease the number of
-         recompilations needed PM }
-       simplify_ppu : boolean = true;
-
        Inside_asm_statement : boolean = false;
 
        global_unit_count : word = 0;

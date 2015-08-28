@@ -1239,7 +1239,7 @@ type
            end;
 {$ifdef EXTDEBUG}
          if not(cs_compilesystem in current_settings.moduleswitches) then
-           if (store_crc<>current_module.crc) and simplify_ppu then
+           if (store_crc<>current_module.crc) then
              Message1(unit_u_implementation_crc_changed,current_module.ppufilename);
 {$endif EXTDEBUG}
 
