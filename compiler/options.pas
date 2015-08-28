@@ -50,6 +50,7 @@ Type
     ParaLibraryPath,
     ParaFrameworkPath : TSearchPathList;
     ParaAlignment   : TAlignmentInfo;
+    paratarget        : tsystem;
     Constructor Create;
     Destructor Destroy;override;
     procedure WriteLogo;
@@ -3092,6 +3093,7 @@ begin
   ParaFrameworkPath:=TSearchPathList.Create;
   FillChar(ParaAlignment,sizeof(ParaAlignment),0);
   MacVersionSet:=false;
+  paratarget:=system_none;
 end;
 
 

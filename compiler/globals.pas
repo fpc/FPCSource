@@ -230,7 +230,6 @@ interface
        asmextraopt       : string;
 
        { things specified with parameters }
-       paratarget        : tsystem;
        paratargetdbg     : tdbg;
        paratargetasm     : tasm;
        paralinkoptions   : TCmdStr;
@@ -1372,7 +1371,6 @@ implementation
         compile_level:=0;
         codegenerror:=false;
         DLLsource:=false;
-        paratarget:=system_none;
         paratargetasm:=as_none;
         paratargetdbg:=dbg_none;
 
