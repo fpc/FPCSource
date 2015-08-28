@@ -52,6 +52,7 @@ Type
     ParaAlignment   : TAlignmentInfo;
     paratarget        : tsystem;
     paratargetasm     : tasm;
+    paratargetdbg     : tdbg;
     Constructor Create;
     Destructor Destroy;override;
     procedure WriteLogo;
@@ -3096,6 +3097,7 @@ begin
   MacVersionSet:=false;
   paratarget:=system_none;
   paratargetasm:=as_none;
+  paratargetdbg:=dbg_none;
 end;
 
 
@@ -3659,11 +3661,11 @@ begin
           Message1(option_asm_forced,target_asm.idtxt);
         end;
       if (af_no_debug in asminfos[option.paratargetasm]^.flags) and
-         (paratargetdbg<>dbg_none) then
+         (option.paratargetdbg<>dbg_none) then
         begin
           Message1(option_confict_asm_debug,
             asminfos[option.paratargetasm]^.idtxt);
-          paratargetdbg:=dbg_none;
+          option.paratargetdbg:=dbg_none;
           exclude(init_settings.moduleswitches,cs_debuginfo);
         end;
     end;
@@ -3671,8 +3673,8 @@ begin
   option.checkoptionscompatibility;
 
   { maybe override debug info format }
-  if (paratargetdbg<>dbg_none) then
-    if not set_target_dbg(paratargetdbg) then
+  if (option.paratargetdbg<>dbg_none) then
+    if not set_target_dbg(option.paratargetdbg) then
       Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }

@@ -265,7 +265,7 @@ begin
 
   LinkRes.Add('option quiet');
 
-  if paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
+  if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
     LinkRes.Add('debug dwarf');
 
   { add objectfiles, start with prt0 always }

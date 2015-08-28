@@ -1098,7 +1098,7 @@ interface
         AsmWriteLn('GROUP DGROUP rodata data fpc bss stack heap')
       else
         AsmWriteLn('GROUP DGROUP rodata data fpc bss');
-      if paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
+      if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
         begin
           AsmWriteLn('SECTION .debug_frame  use32 class=DWARF align=4');
           AsmWriteLn('SECTION .debug_info   use32 class=DWARF align=4');

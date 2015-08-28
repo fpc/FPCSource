@@ -230,7 +230,6 @@ interface
        asmextraopt       : string;
 
        { things specified with parameters }
-       paratargetdbg     : tdbg;
        paralinkoptions   : TCmdStr;
        paradynamiclinker : string;
        paraprintnodetree : byte;
@@ -1370,7 +1369,6 @@ implementation
         compile_level:=0;
         codegenerror:=false;
         DLLsource:=false;
-        paratargetdbg:=dbg_none;
 
         { Output }
         OutputFileName:='';

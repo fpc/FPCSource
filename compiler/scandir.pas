@@ -1203,7 +1203,7 @@ unit scandir;
     procedure dir_smartlink;
       begin
         do_moduleswitch(cs_create_smart);
-        if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
+        if (target_dbg.id in [dbg_dwarf2,dbg_dwarf3]) and
             not(target_info.system in (systems_darwin+[system_i8086_msdos])) and
             { smart linking does not yet work with DWARF debug info on most targets }
             (cs_create_smart in current_settings.moduleswitches) and
