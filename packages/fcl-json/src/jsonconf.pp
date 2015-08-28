@@ -30,12 +30,9 @@ interface
 uses
   SysUtils, Classes, fpjson, jsonscanner,jsonparser;
 
-resourcestring
-  SWrongRootName = 'XML file has wrong root element name';
 
 type
   EJSONConfigError = class(Exception);
-  TPathFlags = set of (pfHasValue, pfWriteAccess);
 
 (* ********************************************************************
    "APath" is the path and name of a value: A JSON configuration file 
@@ -119,7 +116,7 @@ type
 
 implementation
 
-Const
+Resourcestring
   SErrInvalidJSONFile = '"%s" is not a valid JSON configuration file.';
   SErrCouldNotOpenKey = 'Could not open key "%s".';
 
