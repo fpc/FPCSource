@@ -679,9 +679,6 @@ begin
 {$ifdef sparc}
       'S',
 {$endif}
-{$ifdef vis}
-      'I',
-{$endif}
 {$ifdef avr}
       'V',
 {$endif}
@@ -3322,10 +3319,6 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif}
-{$ifdef ALPHA}
-  def_system_macro('CPUALPHA');
-  def_system_macro('CPU64');
-{$endif}
 {$ifdef powerpc}
   def_system_macro('CPUPOWERPC');
   def_system_macro('CPUPOWERPC32');
@@ -3339,10 +3332,6 @@ begin
   def_system_macro('CPU64');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
-{$endif}
-{$ifdef iA64}
-  def_system_macro('CPUIA64');
-  def_system_macro('CPU64');
 {$endif}
 {$ifdef x86_64}
   def_system_macro('CPUX86_64');
@@ -3366,10 +3355,6 @@ begin
   def_system_macro('CPU32');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
-{$endif}
-{$ifdef vis}
-  def_system_macro('CPUVIS');
-  def_system_macro('CPU32');
 {$endif}
 {$ifdef arm}
   def_system_macro('CPUARM');

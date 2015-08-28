@@ -53,21 +53,12 @@ interface
 {$ifdef cpum68k}
         source_cpu_string = 'm68k';
 {$endif cpum68k}
-{$ifdef cpuia64}
-        source_cpu_string = 'ia64';
-{$endif cpuia64}
 {$ifdef cpux86_64}
         source_cpu_string = 'x86_64';
 {$endif cpux86_64}
 {$ifdef cpusparc}
         source_cpu_string = 'sparc';
 {$endif cpusparc}
-{$ifdef cpusalpha}
-        source_cpu_string = 'alpha';
-{$endif cpualpha}
-{$ifdef cpuvis}
-        source_cpu_string = 'vis';
-{$endif cpuvis}
 {$ifdef cpuarm}
         source_cpu_string = 'arm';
 {$endif cpuarm}

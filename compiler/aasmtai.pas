@@ -69,14 +69,6 @@ interface
           ait_stab,
           ait_force_line,
           ait_function_name,
-{$ifdef alpha}
-          { the follow is for the DEC Alpha }
-          ait_frame,
-{$endif alpha}
-{$ifdef ia64}
-          ait_bundle,
-          ait_stop,
-{$endif ia64}
 {$ifdef m68k}
           ait_labeled_instruction,
 {$endif m68k}
@@ -197,14 +189,6 @@ interface
           'stab',
           'force_line',
           'function_name',
-{$ifdef alpha}
-          { the follow is for the DEC Alpha }
-          'frame',
-{$endif alpha}
-{$ifdef ia64}
-          'bundle',
-          'stop',
-{$endif ia64}
 {$ifdef m68k}
           'labeled_instr',
 {$endif m68k}
@@ -348,7 +332,7 @@ interface
         asd_weak_definition,
         { for Jasmin }
         asd_jclass,asd_jinterface,asd_jsuper,asd_jfield,asd_jlimit,asd_jline,
-        { .ent/.end for MIPS and Alpha }
+        { .ent/.end for MIPS }
         asd_ent,asd_ent_end,
         { supported by recent clang-based assemblers for data-in-code  }
         asd_data_region, asd_end_data_region,
@@ -383,7 +367,7 @@ interface
         'no_dead_strip','weak_reference','lazy_reference','weak_definition',
         { for Jasmin }
         'class','interface','super','field','limit','line',
-        { .ent/.end for MIPS and Alpha }
+        { .ent/.end for MIPS }
         'ent','end',
         { supported by recent clang-based assemblers for data-in-code }
         'data_region','end_data_region',

@@ -223,7 +223,7 @@ interface
        systems_wince = [system_arm_wince,system_i386_wince];
        systems_android = [system_arm_android, system_i386_android, system_mipsel_android];
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
-                       system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
+                       system_arm_linux,system_sparc_linux,system_m68k_linux,
                        system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux,system_aarch64_linux];
        systems_dragonfly = [system_x86_64_dragonfly];
        systems_freebsd = [system_i386_freebsd,
@@ -241,10 +241,10 @@ interface
        systems_aix = [system_powerpc_aix,system_powerpc64_aix];
 
        { all real windows systems, no cripple ones like wince, wdosx et. al. }
-       systems_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
+       systems_windows = [system_i386_win32,system_x86_64_win64];
 
        { all windows systems }
-       systems_all_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64,
+       systems_all_windows = [system_i386_win32,system_x86_64_win64,
                              system_arm_wince,system_i386_wince];
 
        { all darwin systems }
@@ -259,7 +259,7 @@ interface
 
        { all embedded systems }
        systems_embedded = [system_i386_embedded,system_m68k_embedded,
-                           system_alpha_embedded,system_powerpc_embedded,
+                           system_powerpc_embedded,
                            system_sparc_embedded,system_vm_embedded,
                            system_iA64_embedded,system_x86_64_embedded,
                            system_mips_embedded,system_arm_embedded,
@@ -305,8 +305,7 @@ interface
                                          system_i386_Netware,
                                          system_i386_netwlibc,
                                          system_arm_wince,
-                                         system_x86_64_win64,
-                                         system_ia64_win64]+systems_linux+systems_android;
+                                         system_x86_64_win64]+systems_linux+systems_android;
 
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
@@ -834,14 +833,6 @@ begin
     default_target(system_m68k_linux);
   {$endif cpu68}
 {$endif m68k}
-
-{$ifdef alpha}
-  {$ifdef cpualpha}
-    default_target(source_info.system);
-  {$else cpualpha}
-    default_target(system_alpha_linux);
-  {$endif cpualpha}
-{$endif alpha}
 
 {$ifdef powerpc}
   {$ifdef cpupowerpc}

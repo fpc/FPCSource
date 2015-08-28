@@ -142,13 +142,6 @@ implementation
           #9'.uahalf'#9,#9'.uaword'#9,#9'.uaxword'#9
         );
 
-      { Alpha type of unaligned pseudo-instructions }
-      use_ua_alpha_systems = [system_alpha_linux];
-      ait_ua_alpha_const2str : array[aitconst_16bit_unaligned..aitconst_64bit_unaligned]
-        of string[20]=(
-          #9'.uword'#9,#9'.ulong'#9,#9'.uquad'#9
-        );
-
       { Generic unaligned pseudo-instructions, seems ELF specific }
       use_ua_elf_systems = [system_mipsel_linux,system_mipseb_linux,system_mipsel_android,system_mipsel_embedded,system_mipseb_embedded];
       ait_ua_elf_const2str : array[aitconst_16bit_unaligned..aitconst_64bit_unaligned]
@@ -954,9 +947,6 @@ implementation
                          if (constdef in ait_unaligned_consts) and
                             (target_info.system in use_ua_sparc_systems) then
                            AsmWrite(ait_ua_sparc_const2str[constdef])
-                         else if (constdef in ait_unaligned_consts) and
-                            (target_info.system in use_ua_alpha_systems) then
-                           AsmWrite(ait_ua_alpha_const2str[constdef])
                          else if (constdef in ait_unaligned_consts) and
                                  (target_info.system in use_ua_elf_systems) then
                            AsmWrite(ait_ua_elf_const2str[constdef])

@@ -93,20 +93,6 @@
   {$define cpucapabilities}
 {$endif x86_64}
 
-{$ifdef ia64}
-  {$define cpuflags}
-  {$define cpu64bitalu}
-  {$define cpu64bitaddr}
-  {$define cpuextended}
-  {$define cpufloat128}
-{$endif ia64}
-
-{$ifdef alpha}
-  {$define cpu64bitalu}
-  {$define cpu64bitaddr}
-  {$define cpurefshaveindexreg}
-{$endif alpha}
-
 {$ifdef sparc}
   {$define cpu32bit}
   {$define cpu32bitaddr}

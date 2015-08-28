@@ -1785,11 +1785,6 @@ initialization
   RegisterExport(system_powerpc64_linux,texportliblinux);
   RegisterTarget(system_powerpc64_linux_info);
 {$endif powerpc64}
-{$ifdef alpha}
-  RegisterImport(system_alpha_linux,timportliblinux);
-  RegisterExport(system_alpha_linux,texportliblinux);
-  RegisterTarget(system_alpha_linux_info);
-{$endif alpha}
 {$ifdef x86_64}
   RegisterImport(system_x86_64_linux,timportliblinux);
   RegisterExport(system_x86_64_linux,texportliblinux);
