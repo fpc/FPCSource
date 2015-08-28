@@ -873,6 +873,11 @@ end;
 {$ifndef CPU64}
 
 procedure fpc_chararray_qword(v : qword;len : SizeInt;out a : array of char);compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(219);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -886,9 +891,15 @@ begin
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 
 procedure fpc_chararray_int64(v : int64;len : SizeInt;out a : array of char);compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(219);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -902,6 +913,7 @@ begin
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 {$endif CPU64}
 
@@ -1029,6 +1041,11 @@ end;
 {$ifndef FPC_HAS_CHARARRAY_CURRENCY}
 {$define FPC_HAS_CHARARRAY_CURRENCY}
 procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -1040,6 +1057,7 @@ begin
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 {$endif FPC_HAS_STR_CURRENCY}
 
 {*****************************************************************************
@@ -1956,6 +1974,11 @@ function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code
 {$endif FPC_STR_ENUM_INTERN}
 
 function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): currency; [public, alias:'FPC_VAL_CURRENCY_SHORTSTR']; compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 const
   MaxInt64 : Int64  = $7FFFFFFFFFFFFFFF;
   Int64Edge : Int64 = ($7FFFFFFFFFFFFFFF - 10) div 10;
@@ -2088,6 +2111,7 @@ begin
   fpc_Val_Currency_ShortStr:=PCurrency(@res[0])^;
   Code:=0;
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 
 {$ifndef FPC_HAS_SETSTRING_SHORTSTR}
