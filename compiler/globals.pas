@@ -294,7 +294,6 @@ interface
        MacOSXVersionMin,
        iPhoneOSVersionMin: string[15];
        RelocSectionSetExplicitly : boolean;
-       LinkTypeSetExplicitly : boolean;
 
        current_tokenpos,                  { position of the last token }
        current_filepos : tfileposinfo;    { current position }
@@ -1415,7 +1414,6 @@ implementation
         GenerateImportSection:=false;
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
-        LinkTypeSetExplicitly:=false;
         MacOSXVersionMin:='';
         iPhoneOSVersionMin:='';
         { memory sizes, will be overridden by parameter or default for target
