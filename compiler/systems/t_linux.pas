@@ -506,7 +506,7 @@ begin
       if (isdll) then
        begin
          Add('INPUT(');
-         Add(info.DynamicLinker);
+         Add(sysrootpath+info.DynamicLinker);
          Add(')');
        end;
       linksToSharedLibFiles := not SharedLibFiles.Empty;
