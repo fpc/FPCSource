@@ -290,7 +290,7 @@ endif
 
 # jvm specific
 ifeq ($(PPC_TARGET),jvm)
-override LOCALOPT+=-Fujvm -dNOOPT
+override LOCALOPT+=-Fujvm
 endif
 
 # i8086 specific

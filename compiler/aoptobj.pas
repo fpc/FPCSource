@@ -1239,7 +1239,7 @@ Unit AoptObj;
               if { the next instruction after the label where the jump hp arrives}
                  { is unconditional or of the same type as hp, so continue       }
                  IsJumpToLabel(taicpu(p1))
-{$ifndef MIPS}
+{$if not defined(MIPS) and not defined(JVM)}
 { for MIPS, it isn't enough to check the condition; first operands must be same, too. }
                  or
                  conditions_equal(taicpu(p1).condition,hp.condition) or
@@ -1256,7 +1256,7 @@ Unit AoptObj;
                    (IsJumpToLabel(taicpu(p2)) or
                    (conditions_equal(taicpu(p2).condition,hp.condition))) and
                   SkipLabels(p1,p1))
-{$endif MIPS}
+{$endif not MIPS and not JVM}
                  then
                 begin
                   { quick check for loops of the form "l5: ; jmp l5 }
@@ -1277,7 +1277,7 @@ Unit AoptObj;
                   JumpTargetOp(hp)^.ref^.symbol:=JumpTargetOp(taicpu(p1))^.ref^.symbol;
                   tasmlabel(JumpTargetOp(hp)^.ref^.symbol).increfs;
                 end
-{$ifndef MIPS}
+{$if not defined(MIPS) and not defined(JVM)}
               else
                 if conditions_equal(taicpu(p1).condition,inverse_cond(hp.condition)) then
                   if not FindAnyLabel(p1,l) then
@@ -1308,7 +1308,7 @@ Unit AoptObj;
                       if not GetFinalDestination(hp,succ(level)) then
                         exit;
                     end;
-{$endif not MIPS}
+{$endif not MIPS and not JVM}
           end;
         GetFinalDestination := true;
       end;
@@ -1357,7 +1357,11 @@ Unit AoptObj;
                           begin
                             hp2:=p;
                             while GetNextInstruction(hp2, hp1) and
-                                  (hp1.typ <> ait_label) do
+                                  (hp1.typ <> ait_label)
+{$ifdef JVM}
+                                  and (hp1.typ <> ait_jcatch)
+{$endif}
+                                  do
                               if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
                                 begin
                                   if (hp1.typ = ait_instruction) and
