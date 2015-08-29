@@ -312,21 +312,6 @@ implementation
                         removedsomething:=true;
                         continue;
                       end;
-                    { todo in peephole optimizer:
-                        alloc regx // not double precision
-                        store regx // not double precision
-                        load  regy or memy
-                        dealloc regx
-                        load regx
-                      -> change into
-                        load regy or memy
-                        swap       // can only handle single precision
-
-                      and then
-                        swap
-                        <commutative op>
-                       -> remove swap
-                    }
                   end;
               end;
               p:=tai(p.next);
