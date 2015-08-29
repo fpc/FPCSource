@@ -965,7 +965,7 @@ begin
 {$endif AArch64}
 
 {$ifdef ARM}
-      if target_info.abi=abi_eabi then
+      if target_info.abi in [abi_eabi,abi_eabihf] then
         begin
           { from GNU ld (CodeSourcery Sourcery G++ Lite 2007q3-53) 2.18.50.20070820 }
           add('/* Script for -z combreloc: combine and sort reloc sections */');
