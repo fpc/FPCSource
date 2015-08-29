@@ -276,7 +276,7 @@ interface
                    ,ait_directive
                    ,ait_varloc,
 {$ifdef JVM}
-                   ait_jvar, ait_jcatch,
+                   ait_jvar,
 {$endif JVM}
                    ait_seh_directive];
 
