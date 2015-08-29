@@ -201,6 +201,71 @@ implementation
         end;
 
 
+     function try_swap_store_x_load(var p: tai): boolean;
+       var
+         insertpos,
+         storex,
+         deallocy,
+         loady,
+         deallocx,
+         loadx: tai;
+         swapxy: taicpu;
+         regx, regy: tregister;
+       begin
+         result:=false;
+         { check for:
+             alloc regx (optional)
+             store regx (p)
+             dealloc regy
+             load regy
+             dealloc regx
+             load regx
+           and change to
+             dealloc regy
+             load regy
+             swap
+             alloc regx (if it existed)
+             store regx
+             dealloc regx
+             load  regx
+
+           This will create opportunities to remove the store/load regx
+           (and possibly also for regy)
+         }
+         regx:=NR_NO;
+         regy:=NR_NO;
+         if not issimpleregstore(p,regx,false) then
+           exit;
+         storex:=p;
+         deallocy:=nextskipping(storex,[ait_comment,ait_tempalloc]);
+         loady:=nextskipping(deallocy,[ait_comment,ait_tempalloc]);
+         deallocx:=nextskipping(loady,[ait_comment,ait_tempalloc]);
+         loadx:=nextskipping(deallocx,[ait_comment,ait_tempalloc]);
+         if not assigned(loadx) then
+           exit;
+         if not issimpleregload(loady,regy,false) then
+           exit;
+         if not issimpleregload(loadx,regx,false) then
+           exit;
+         if not isregallocoftyp(deallocy,ra_dealloc,regy) then
+           exit;
+         if not isregallocoftyp(deallocx,ra_dealloc,regx) then
+           exit;
+         insertpos:=tai(p.previous);
+         if not assigned(insertpos) or
+            not isregallocoftyp(insertpos,ra_alloc,regx) then
+           insertpos:=storex;
+         list.remove(deallocy);
+         list.insertbefore(deallocy,insertpos);
+         list.remove(loady);
+         list.insertbefore(loady,insertpos);
+         swapxy:=taicpu.op_none(a_swap);
+         swapxy.fileinfo:=taicpu(loady).fileinfo;
+         list.insertbefore(swapxy,insertpos);
+         result:=true;
+       end;
+
+
       var
         p,next,nextnext: tai;
         reg: tregister;
@@ -241,7 +306,8 @@ implementation
                   end;
                 ait_instruction:
                   begin
-                    if try_remove_store_dealloc_load(p) then
+                    if try_remove_store_dealloc_load(p) or
+                       try_swap_store_x_load(p) then
                       begin
                         removedsomething:=true;
                         continue;
