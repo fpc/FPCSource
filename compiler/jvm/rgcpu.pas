@@ -181,8 +181,8 @@ implementation
             and remove. We don't have to check that the load/store
             types match, because they have to for this to be
             valid JVM code }
-          dealloc:=nextskipping(p,[ait_comment]);
-          load:=nextskipping(dealloc,[ait_comment]);
+          dealloc:=nextskipping(p,[ait_comment,ait_tempalloc]);
+          load:=nextskipping(dealloc,[ait_comment,ait_tempalloc]);
           reg:=NR_NO;
           if issimpleregstore(p,reg,true) and
              isregallocoftyp(dealloc,ra_dealloc,reg) and
@@ -215,7 +215,7 @@ implementation
                 ait_regalloc:
                   begin
                     reg:=NR_NO;
-                    next:=nextskipping(p,[ait_comment]);
+                    next:=nextskipping(p,[ait_comment,ait_tempalloc]);
                     nextnext:=nextskipping(next,[ait_comment,ait_regalloc]);
                     if assigned(nextnext) then
                       begin
