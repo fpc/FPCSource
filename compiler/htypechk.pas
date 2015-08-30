@@ -2602,7 +2602,8 @@ implementation
         paraidx  : integer;
         currparanr : byte;
         rfh,rth  : double;
-        objdef   : tobjectdef;
+        obj_from,
+        obj_to   : tobjectdef;
         def_from,
         def_to   : tdef;
         currpt,
@@ -2768,13 +2769,15 @@ implementation
                   def_is_related(tobjectdef(def_from),tobjectdef(def_to)) then
                  begin
                    eq:=te_convert_l1;
-                   objdef:=tobjectdef(def_from);
-                   while assigned(objdef) do
+                   { resolve anonymous external class definitions }
+                   obj_from:=find_real_class_definition(tobjectdef(def_from),false);
+                   obj_to:=find_real_class_definition(tobjectdef(def_to),false);
+                   while assigned(obj_from) do
                      begin
-                       if objdef=def_to then
+                       if obj_from=obj_to then
                          break;
                        hp^.ordinal_distance:=hp^.ordinal_distance+1;
-                       objdef:=objdef.childof;
+                       obj_from:=obj_from.childof;
                      end;
                  end
                { compare_defs_ext compares sets and array constructors very poorly because
