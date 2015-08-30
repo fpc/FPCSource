@@ -611,7 +611,7 @@ begin
           add('  {');
           add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
           add('  }');
-          add('  .threadvar _edata: { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
+          add('  .threadvar _edata : { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
           add('}');
         end
       else
