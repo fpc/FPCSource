@@ -125,17 +125,17 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_POS_SHORTSTR}
 {$define FPC_HAS_SHORTSTR_POS_SHORTSTR}
-function pos(const substr : shortstring;const s : shortstring):SizeInt;
+function pos(const substr : shortstring;const s : shortstring; Offset : Sizeint = 1):SizeInt;
 var
   i,MaxLen : SizeInt;
   pc : pchar;
 begin
   Pos:=0;
-  if Length(SubStr)>0 then
+  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(S)) then
    begin
      MaxLen:=sizeint(Length(s))-Length(SubStr);
-     i:=0;
-     pc:=@s[1];
+     i:=Offset-1;
+     pc:=@s[Offset];
      while (i<=MaxLen) do
       begin
         inc(i);
@@ -155,13 +155,16 @@ end;
 {$ifndef FPC_HAS_SHORTSTR_POS_CHAR}
 {$define FPC_HAS_SHORTSTR_POS_CHAR}
 {Faster when looking for a single char...}
-function pos(c:char;const s:shortstring):SizeInt;
+function pos(c:char;const s:shortstring; Offset : Sizeint = 1 ):SizeInt;
 var
   i : SizeInt;
   pc : pchar;
 begin
-  pc:=@s[1];
-  for i:=1 to length(s) do
+  Pos:=0;
+  if (Offset<1) or (Offset>Length(S)) then
+    exit;
+  pc:=@s[Offset];
+  for i:=Offset to length(s) do
    begin
      if pc^=c then
       begin
@@ -183,9 +186,9 @@ begin
    fpc_char_Copy:='';
 end;
 
-function pos(const substr : shortstring;c:char): SizeInt;
+function pos(const substr : shortstring;c:char;  Offset : Sizeint = 1): SizeInt;
 begin
-  if (length(substr)=1) and (substr[1]=c) then
+  if (length(substr)=1) and (substr[1]=c) and (Offset=1) then
    Pos:=1
   else
    Pos:=0;
