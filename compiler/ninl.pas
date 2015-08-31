@@ -34,6 +34,7 @@ interface
        tinlinenode = class(tunarynode)
           inlinenumber : byte;
           constructor create(number : byte;is_const:boolean;l : tnode);virtual;
+          constructor createintern(number : byte;is_const:boolean;l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
@@ -135,6 +136,14 @@ implementation
          if is_const then
            include(flags,nf_inlineconst);
          inlinenumber:=number;
+      end;
+
+
+    constructor tinlinenode.createintern(number : byte; is_const : boolean;
+     l : tnode);
+      begin
+         create(number,is_const,l);
+         include(flags,nf_internal);
       end;
 
 
@@ -2286,7 +2295,7 @@ implementation
                         result:=create_simplified_ord_const(vl,resultdef,forinline)
                       else
                         { check the range for enums, chars, booleans }
-                        result:=cordconstnode.create(vl,left.resultdef,true)
+                        result:=cordconstnode.create(vl,left.resultdef,not(nf_internal in flags))
                     end
                 end;
               in_low_x,
