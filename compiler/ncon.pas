@@ -105,6 +105,7 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
+          procedure printnodedata(var t : text); override;
        end;
        tpointerconstnodeclass = class of tpointerconstnode;
 
@@ -802,6 +803,13 @@ implementation
         docompare :=
           inherited docompare(p) and
           (value = tpointerconstnode(p).value);
+      end;
+
+
+    procedure tpointerconstnode.printnodedata(var t : text);
+      begin
+        inherited printnodedata(t);
+        writeln(t,printnodeindention,'value = $',hexstr(PUInt(value),sizeof(PUInt)*2));
       end;
 
 
