@@ -16,13 +16,13 @@
 
 
 Procedure UniqueString (Var S : WideString);external name 'FPC_WIDESTR_UNIQUE';
-Function Pos (Const Substr : WideString; Const Source : WideString) : SizeInt;
-Function Pos (c : Char; Const s : WideString) : SizeInt;
-Function Pos (c : WideChar; Const s : WideString) : SizeInt;
-Function Pos (c : WideChar; Const s : RawByteString) : SizeInt;
-Function Pos (const c : RawByteString; Const s : WideString) : SizeInt;
-Function Pos (const c : WideString; Const s : RawByteString) : SizeInt;
-Function Pos (const c : ShortString; Const s : WideString) : SizeInt;
+Function Pos (Const Substr : WideString; Const Source : WideString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (c : Char; Const s : WideString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (c : WideChar; Const s : WideString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (c : WideChar; Const s : RawByteString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (const c : RawByteString; Const s : WideString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (const c : WideString; Const s : RawByteString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (const c : ShortString; Const s : WideString; Offset : SizeInt = 1) : SizeInt;
 
 Function UpCase(const s : WideString) : WideString;
 
