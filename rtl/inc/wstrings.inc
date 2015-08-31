@@ -584,7 +584,7 @@ var
   pc : pwidechar;
 begin
   Pos:=0;
-  if Length(SubStr)>0 and (Offset>0) and (Offset<Length(Source)) then
+  if (Length(SubStr)>0) and (Offset>0) and (Offset<Length(Source)) then
    begin
      MaxLen:=Length(source)-Length(SubStr);
      i:=Offset-1;
