@@ -21,9 +21,10 @@
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_REGALLOC}
+
 { Allow duplicate allocations, can be used to get the .s file written }
 { $define ALLOWDUPREG}
-
 
 unit rgobj;
 
@@ -577,9 +578,9 @@ unit rgobj;
         insert_regalloc_info_all(list);
         ibitmap:=tinterferencebitmap.create;
         generate_interference_graph(list,headertai);
-{$ifdef DEBUG_SSA}
+{$ifdef DEBUG_REGALLOC}
         writegraph(rtindex);
-{$endif DEBUG_SSA}
+{$endif DEBUG_REGALLOC}
         inc(rtindex);
         { Don't do the real allocation when -sr is passed }
         if (cs_no_regalloc in current_settings.globalswitches) then
@@ -1116,7 +1117,7 @@ unit rgobj;
             for i:=1 to adj^.length do
               begin
                 n:=adj^.buf^[i-1];
-                if flags*[ri_coalesced,ri_selected]=[] then
+                if reginfo[n].flags*[ri_coalesced,ri_selected]=[] then
                   begin
                     supregset_include(done,n);
                     if reginfo[n].degree>=usable_registers_cnt then
@@ -1131,7 +1132,7 @@ unit rgobj;
             n:=adj^.buf^[i-1];
             if not supregset_in(done,n) and
                (reginfo[n].degree>=usable_registers_cnt) and
-               (reginfo[u].flags*[ri_coalesced,ri_selected]=[]) then
+               (reginfo[n].flags*[ri_coalesced,ri_selected]=[]) then
               inc(k);
           end;
       conservative:=(k<usable_registers_cnt);

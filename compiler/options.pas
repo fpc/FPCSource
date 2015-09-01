@@ -50,6 +50,10 @@ Type
     ParaLibraryPath,
     ParaFrameworkPath : TSearchPathList;
     ParaAlignment   : TAlignmentInfo;
+    paratarget        : tsystem;
+    paratargetasm     : tasm;
+    paratargetdbg     : tdbg;
+    LinkTypeSetExplicitly : boolean;
     Constructor Create;
     Destructor Destroy;override;
     procedure WriteLogo;
@@ -674,9 +678,6 @@ begin
 {$endif}
 {$ifdef sparc}
       'S',
-{$endif}
-{$ifdef vis}
-      'I',
 {$endif}
 {$ifdef avr}
       'V',
@@ -3092,6 +3093,10 @@ begin
   ParaFrameworkPath:=TSearchPathList.Create;
   FillChar(ParaAlignment,sizeof(ParaAlignment),0);
   MacVersionSet:=false;
+  paratarget:=system_none;
+  paratargetasm:=as_none;
+  paratargetdbg:=dbg_none;
+  LinkTypeSetExplicitly:=false;
 end;
 
 
@@ -3314,10 +3319,6 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif}
-{$ifdef ALPHA}
-  def_system_macro('CPUALPHA');
-  def_system_macro('CPU64');
-{$endif}
 {$ifdef powerpc}
   def_system_macro('CPUPOWERPC');
   def_system_macro('CPUPOWERPC32');
@@ -3331,10 +3332,6 @@ begin
   def_system_macro('CPU64');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
-{$endif}
-{$ifdef iA64}
-  def_system_macro('CPUIA64');
-  def_system_macro('CPU64');
 {$endif}
 {$ifdef x86_64}
   def_system_macro('CPUX86_64');
@@ -3358,10 +3355,6 @@ begin
   def_system_macro('CPU32');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
-{$endif}
-{$ifdef vis}
-  def_system_macro('CPUVIS');
-  def_system_macro('CPU32');
 {$endif}
 {$ifdef arm}
   def_system_macro('CPUARM');
@@ -3643,23 +3636,23 @@ begin
 
 {$ifdef llvm}
   { force llvm assembler writer }
-  paratargetasm:=as_llvm;
+  option.paratargetasm:=as_llvm;
 {$endif llvm}
   { maybe override assembler }
-  if (paratargetasm<>as_none) then
+  if (option.paratargetasm<>as_none) then
     begin
-      if not set_target_asm(paratargetasm) then
+      if not set_target_asm(option.paratargetasm) then
         begin
-          Message2(option_incompatible_asm,asminfos[paratargetasm]^.idtxt,target_info.name);
+          Message2(option_incompatible_asm,asminfos[option.paratargetasm]^.idtxt,target_info.name);
           set_target_asm(target_info.assemextern);
           Message1(option_asm_forced,target_asm.idtxt);
         end;
-      if (af_no_debug in asminfos[paratargetasm]^.flags) and
-         (paratargetdbg<>dbg_none) then
+      if (af_no_debug in asminfos[option.paratargetasm]^.flags) and
+         (option.paratargetdbg<>dbg_none) then
         begin
           Message1(option_confict_asm_debug,
-            asminfos[paratargetasm]^.idtxt);
-          paratargetdbg:=dbg_none;
+            asminfos[option.paratargetasm]^.idtxt);
+          option.paratargetdbg:=dbg_none;
           exclude(init_settings.moduleswitches,cs_debuginfo);
         end;
     end;
@@ -3667,8 +3660,8 @@ begin
   option.checkoptionscompatibility;
 
   { maybe override debug info format }
-  if (paratargetdbg<>dbg_none) then
-    if not set_target_dbg(paratargetdbg) then
+  if (option.paratargetdbg<>dbg_none) then
+    if not set_target_dbg(option.paratargetdbg) then
       Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }
@@ -3967,7 +3960,7 @@ if (target_info.abi = abi_eabihf) then
      (target_info.system in [system_i386_win32,system_x86_64_win64]) then
     exclude(target_info.flags,tf_smartlink_sections);
 
-  if not LinkTypeSetExplicitly then
+  if not option.LinkTypeSetExplicitly then
     set_default_link_type;
 
   { Default alignment settings,

@@ -262,8 +262,6 @@ implementation
     procedure tcgcallparanode.secondcallparan;
       var
          href    : treference;
-         otlabel,
-         oflabel : tasmlabel;
          pushaddr: boolean;
       begin
          if not(assigned(parasym)) then
@@ -273,10 +271,6 @@ implementation
            a parameter }
          if (left.nodetype<>nothingn) then
            begin
-             otlabel:=current_procinfo.CurrTrueLabel;
-             oflabel:=current_procinfo.CurrFalseLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-             current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
              if assigned(fparainit) then
                secondpass(fparainit);
              secondpass(left);
@@ -373,8 +367,6 @@ implementation
                  else
                    push_value_para;
                end;
-             current_procinfo.CurrTrueLabel:=otlabel;
-             current_procinfo.CurrFalseLabel:=oflabel;
 
              { update return location in callnode when this is the function
                result }

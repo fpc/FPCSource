@@ -500,7 +500,7 @@ Function  hexStr(Val:Pointer):shortstring;
 Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
 Function  upCase(c:Char):Char;
 Function  lowerCase(c:Char):Char; overload;
-function  pos(const substr : shortstring;c:char): SizeInt;
+function  pos(const substr : shortstring;c:char; Offset : Sizeint=1): SizeInt;
 
 
 {****************************************************************************

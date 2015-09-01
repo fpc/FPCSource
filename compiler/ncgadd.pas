@@ -89,14 +89,9 @@ interface
       var
         tmpreg     : tregister;
 {$ifdef x86}
-        pushedfpu,
+        pushedfpu  : boolean;
 {$endif x86}
-        isjump     : boolean;
-        otl,ofl    : tasmlabel;
       begin
-        otl:=nil;
-        ofl:=nil;
-
         { calculate the operator which is more difficult }
         firstcomplex(self);
 
@@ -104,26 +99,9 @@ interface
         if (left.nodetype=ordconstn) then
           swapleftright;
 
-        isjump:=(left.expectloc=LOC_JUMP);
-        if isjump then
-          begin
-             otl:=current_procinfo.CurrTrueLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-             ofl:=current_procinfo.CurrFalseLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-          end;
         secondpass(left);
         if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
-        if isjump then
-          begin
-            current_procinfo.CurrTrueLabel:=otl;
-            current_procinfo.CurrFalseLabel:=ofl;
-          end
-        else
-          if left.location.loc=LOC_JUMP then
-            internalerror(2012081302);
-
 {$ifdef x86}
         { are too few registers free? }
         pushedfpu:=false;
@@ -135,22 +113,9 @@ interface
           end;
 {$endif x86}
 
-        isjump:=(right.expectloc=LOC_JUMP);
-        if isjump then
-          begin
-             otl:=current_procinfo.CurrTrueLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-             ofl:=current_procinfo.CurrFalseLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-          end;
         secondpass(right);
         if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,false);
-        if isjump then
-          begin
-            current_procinfo.CurrTrueLabel:=otl;
-            current_procinfo.CurrFalseLabel:=ofl;
-          end;
 {$ifdef x86}
         if pushedfpu then
           begin
@@ -414,7 +379,7 @@ interface
     procedure tcgaddnode.second_addboolean;
       var
         cgop    : TOpCg;
-        otl,ofl : tasmlabel;
+        truelabel, falselabel : tasmlabel;
         oldflowcontrol : tflowcontrol;
       begin
         { And,Or will only evaluate from left to right only the
@@ -423,25 +388,22 @@ interface
            (not(cs_full_boolean_eval in current_settings.localswitches) or
             (nf_short_bool in flags)) then
           begin
-            location_reset(location,LOC_JUMP,OS_NO);
             case nodetype of
               andn :
                 begin
-                   otl:=current_procinfo.CurrTrueLabel;
-                   current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
                    secondpass(left);
                    hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
-                   hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
-                   current_procinfo.CurrTrueLabel:=otl;
+                   hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
+                   current_asmdata.getjumplabel(truelabel);
+                   location_reset_jump(location,truelabel,left.location.falselabel);
                 end;
               orn :
                 begin
-                   ofl:=current_procinfo.CurrFalseLabel;
-                   current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
                    secondpass(left);
                    hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
-                   hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
-                   current_procinfo.CurrFalseLabel:=ofl;
+                   hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
+                   current_asmdata.getjumplabel(falselabel);
+                   location_reset_jump(location,left.location.truelabel,falselabel);
                 end;
               else
                 internalerror(200307044);
@@ -451,7 +413,9 @@ interface
             include(flowcontrol,fc_inflowcontrol);
 
             secondpass(right);
-            hlcg.maketojumpbool(current_asmdata.CurrAsmList,right);
+            { jump to the same labels as the left side, since the andn/orn
+              merges the results of left and right }
+            hlcg.maketojumpboollabels(current_asmdata.CurrAsmList,right,location.truelabel,location.falselabel);
 
             flowcontrol:=oldflowcontrol+(flowcontrol-[fc_inflowcontrol]);
           end

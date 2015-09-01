@@ -145,7 +145,7 @@ implementation
         if not(target_info.system in systems_darwin) and
            (
             (tf_needs_dwarf_cfi in target_info.flags) or
-            (paratargetdbg in [dbg_dwarf2, dbg_dwarf3])
+            (target_dbg.id in [dbg_dwarf2, dbg_dwarf3])
            ) then
           begin
             current_asmdata.asmlists[al_dwarf_frame].Free;
@@ -313,7 +313,7 @@ implementation
              AddUnit('heaptrc');
            { Lineinfo unit }
            if (cs_use_lineinfo in current_settings.globalswitches) then begin
-             case paratargetdbg of
+             case target_dbg.id of
                dbg_stabs:
                  AddUnit('lineinfo');
                dbg_stabx:
@@ -434,7 +434,7 @@ implementation
            if s='LINEINFO' then
              begin
                Message(parser_w_no_lineinfo_use_switch);
-               if (paratargetdbg in [dbg_dwarf2, dbg_dwarf3]) then
+               if (target_dbg.id in [dbg_dwarf2, dbg_dwarf3]) then
                 s := 'LNFODWRF';
               sorg := s;
              end;
@@ -1239,7 +1239,7 @@ type
            end;
 {$ifdef EXTDEBUG}
          if not(cs_compilesystem in current_settings.moduleswitches) then
-           if (store_crc<>current_module.crc) and simplify_ppu then
+           if (store_crc<>current_module.crc) then
              Message1(unit_u_implementation_crc_changed,current_module.ppufilename);
 {$endif EXTDEBUG}
 

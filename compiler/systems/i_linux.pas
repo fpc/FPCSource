@@ -359,70 +359,6 @@ unit i_linux;
             llvmdatalayout : 'E-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-f128:64:64-v128:128:128-n32:64';
           );
 
-       system_alpha_linux_info : tsysteminfo =
-          (
-            system       : system_alpha_LINUX;
-            name         : 'Linux for Alpha';
-            shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_smartlink_library,tf_has_winlike_resources];
-            cpu          : cpu_alpha;
-            unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX;HASUNIX';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            importlibprefix : 'libimp';
-            importlibext : '.a';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            assem        : as_gas;
-            assemextern  : as_gas;
-            link         : ld_none;
-            linkextern   : ld_linux;
-            ar           : ar_gnu_ar;
-            res          : res_elf;
-            dbg          : dbg_stabs;
-            script       : script_unix;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
-                varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 4;
-                localalignmax   : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            stacksize    : 32*1024*1024;
-            stackalign   : 8;  { ??? }
-            abi : abi_default;
-            llvmdatalayout : 'todo';
-          );
-
        system_x86_64_linux_info : tsysteminfo =
           (
             system       : system_x86_64_LINUX;
@@ -1047,11 +983,6 @@ initialization
     set_source_info(system_x86_64_linux_info);
   {$endif linux}
 {$endif CPUX86_64}
-{$ifdef CPUALPHA}
-  {$ifdef linux}
-    set_source_info(system_alpha_linux_info);
-  {$endif linux}
-{$endif CPUALPHA}
 {$ifdef CPUSPARC}
   {$ifdef linux}
     set_source_info(system_sparc_linux_info);

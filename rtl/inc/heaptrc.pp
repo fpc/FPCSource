@@ -30,6 +30,7 @@ interface
 {$endif}
 
 Procedure DumpHeap;
+Procedure DumpHeap(SkipIfNoLeaks : Boolean);
 
 { define EXTRA to add more
   tests :
@@ -85,6 +86,8 @@ const
   printleakedblock: boolean = false;
   printfaultyblock: boolean = false;
   maxprintedblocklength: integer = 128;
+  
+  GlobalSkipIfNoLeaks : Boolean = False;
 
 implementation
 
@@ -1106,6 +1109,12 @@ end;
 *****************************************************************************}
 
 procedure dumpheap;
+
+begin
+  DumpHeap(GlobalSkipIfNoLeaks);
+end;
+
+procedure dumpheap(SkipIfNoLeaks : Boolean);
 var
   pp : pheap_mem_info;
   i : ptrint;
@@ -1120,6 +1129,8 @@ begin
   else
     ptext:=textoutput;
   pp:=loc_info^.heap_mem_root;
+  if ((loc_info^.getmem_size-loc_info^.freemem_size)=0) and SkipIfNoLeaks then 
+    exit;
   Writeln(ptext^,'Heap dump by heaptrc unit');
   Writeln(ptext^,loc_info^.getmem_cnt, ' memory blocks allocated : ',
     loc_info^.getmem_size,'/',loc_info^.getmem8_size);
@@ -1517,6 +1528,8 @@ begin
    haltonerror:=false;
   if pos('haltonnotreleased',s)>0 then
    HaltOnNotReleased :=true;
+  if pos('skipifnoleaks',s)>0 then
+   GlobalSkipIfNoLeaks :=true;
   i:=pos('log=',s);
   if i>0 then
    begin

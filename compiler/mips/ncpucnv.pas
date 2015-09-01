@@ -195,14 +195,10 @@ procedure tMIPSELtypeconvnode.second_int_to_bool;
 var
   hreg1, hreg2: tregister;
   opsize: tcgsize;
-  hlabel, oldtruelabel, oldfalselabel: tasmlabel;
+  hlabel: tasmlabel;
   newsize  : tcgsize;
   href: treference;
 begin
-  oldtruelabel  := current_procinfo.CurrTrueLabel;
-  oldfalselabel := current_procinfo.CurrFalseLabel;
-  current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-  current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
   secondpass(left);
   if codegenerror then
     exit;
@@ -220,8 +216,6 @@ begin
          hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
        else
          location.size:=newsize;
-       current_procinfo.CurrTrueLabel:=oldTrueLabel;
-       current_procinfo.CurrFalseLabel:=oldFalseLabel;
        exit;
     end;
 
@@ -271,10 +265,10 @@ begin
     begin
       hreg1 := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
       current_asmdata.getjumplabel(hlabel);
-      cg.a_label(current_asmdata.CurrAsmList, current_procinfo.CurrTrueLabel);
+      cg.a_label(current_asmdata.CurrAsmList, left.location.truelabel);
       cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 1, hreg1);
       cg.a_jmp_always(current_asmdata.CurrAsmList, hlabel);
-      cg.a_label(current_asmdata.CurrAsmList, current_procinfo.CurrFalseLabel);
+      cg.a_label(current_asmdata.CurrAsmList, left.location.falselabel);
       cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, hreg1);
       cg.a_label(current_asmdata.CurrAsmList, hlabel);
     end;
@@ -305,10 +299,6 @@ begin
        else
 {$endif not cpu64bitalu}
          location.Register := hreg1;
-
-
-  current_procinfo.CurrTrueLabel  := oldtruelabel;
-  current_procinfo.CurrFalseLabel := oldfalselabel;
 end;
 
 

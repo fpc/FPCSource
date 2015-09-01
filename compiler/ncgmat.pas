@@ -609,15 +609,10 @@ implementation
 
 
     function tcgnotnode.handle_locjump: boolean;
-      var
-        hl: tasmlabel;
       begin
         result:=(left.expectloc=LOC_JUMP);
         if result then
           begin
-            hl:=current_procinfo.CurrTrueLabel;
-            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-            current_procinfo.CurrFalseLabel:=hl;
             secondpass(left);
 
             if is_constboolnode(left) then
@@ -625,12 +620,8 @@ implementation
             if left.location.loc<>LOC_JUMP then
               internalerror(2012081306);
 
-            { This does nothing for LOC_JUMP }
-            //maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
-            hl:=current_procinfo.CurrTrueLabel;
-            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-            current_procinfo.CurrFalseLabel:=hl;
-            location_reset(location,LOC_JUMP,OS_NO);
+            { switch true and false labels to invert result }
+            location_reset_jump(location,left.location.falselabel,left.location.truelabel);
           end;
       end;
 

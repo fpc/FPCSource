@@ -151,7 +151,10 @@ unit cgutils;
             );
             LOC_SUBSETREF : (
               sref: tsubsetreference;
-            )
+            );
+            LOC_JUMP : (
+              truelabel, falselabel: tasmlabel;
+            );
       end;
 
 
@@ -175,6 +178,8 @@ unit cgutils;
     procedure location_reset(var l : tlocation;lt:TCGNonRefLoc;lsize:TCGSize);
     { for loc_(c)reference }
     procedure location_reset_ref(var l : tlocation;lt:TCGRefLoc;lsize:TCGSize; alignment: longint);
+    { for loc_jump }
+    procedure location_reset_jump(out l: tlocation; truelab, falselab: tasmlabel);
     procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
     procedure location_swap(var destloc,sourceloc : tlocation);
     function location_reg2string(const locreg: tlocation): string;
@@ -247,8 +252,8 @@ uses
         FillChar(l,sizeof(tlocation),0);
         l.loc:=lt;
         l.size:=lsize;
-        if l.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-          { call location_reset_ref instead }
+        if l.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_JUMP] then
+          { call location_reset_ref/jump instead }
           internalerror(2009020705);
       end;
 
@@ -263,6 +268,16 @@ uses
 {$endif arm}
       l.reference.alignment:=alignment;
     end;
+
+
+    procedure location_reset_jump(out l: tlocation; truelab, falselab: tasmlabel);
+      begin
+        FillChar(l,sizeof(tlocation),0);
+        l.loc:=LOC_JUMP;
+        l.size:=OS_NO;
+        l.truelabel:=truelab;
+        l.falselabel:=falselab;
+      end;
 
 
     procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);

@@ -719,18 +719,10 @@ implementation
         aiclass[ait_stab]:=tai_stab;
         aiclass[ait_force_line]:=tai_force_line;
         aiclass[ait_function_name]:=tai_function_name;
-{$ifdef alpha}
-          { the follow is for the DEC Alpha }
-        aiclass[ait_frame]:=tai_frame;
-{$endif alpha}
 {$ifdef m68k}
 { TODO: FIXME: tai_labeled_instruction doesn't exists}
 //        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
 {$endif m68k}
-{$ifdef ia64}
-        aiclass[ait_bundle]:=tai_bundle;
-        aiclass[ait_stop]:=tai_stop;
-{$endif ia64}
 {$ifdef SPARC}
 //        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
 {$endif SPARC}

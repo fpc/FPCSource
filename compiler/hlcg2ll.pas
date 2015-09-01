@@ -307,7 +307,7 @@ unit hlcg2ll;
           procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
 
-          procedure maketojumpbool(list:TAsmList; p : tnode);override;
+          procedure maketojumpboollabels(list: TAsmList; p: tnode; truelabel, falselabel: tasmlabel); override;
 
           procedure gen_load_para_value(list:TAsmList);override;
          protected
@@ -1041,11 +1041,11 @@ implementation
 {$endif cpuflags}
               LOC_JUMP :
                 begin
-                  cg.a_label(list,current_procinfo.CurrTrueLabel);
+                  cg.a_label(list,l.truelabel);
                   cg.a_load_const_reg(list,OS_INT,1,hregister);
                   current_asmdata.getjumplabel(hl);
                   cg.a_jmp_always(list,hl);
-                  cg.a_label(list,current_procinfo.CurrFalseLabel);
+                  cg.a_label(list,l.falselabel);
                   cg.a_load_const_reg(list,OS_INT,0,hregister);
                   cg.a_label(list,hl);
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
@@ -1141,11 +1141,11 @@ implementation
                 if TCGSize2Size[dst_cgsize]>TCGSize2Size[OS_INT] then
                   tmpsize:=OS_INT;
 {$endif}
-                cg.a_label(list,current_procinfo.CurrTrueLabel);
+                cg.a_label(list,l.truelabel);
                 cg.a_load_const_reg(list,tmpsize,1,hregister);
                 current_asmdata.getjumplabel(hl);
                 cg.a_jmp_always(list,hl);
-                cg.a_label(list,current_procinfo.CurrFalseLabel);
+                cg.a_label(list,l.falselabel);
                 cg.a_load_const_reg(list,tmpsize,0,hregister);
                 cg.a_label(list,hl);
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
@@ -1311,11 +1311,11 @@ implementation
       ncgutil.location_force_mmreg(list,l,maybeconst);
     end;
 *)
-  procedure thlcg2ll.maketojumpbool(list: TAsmList; p: tnode);
+  procedure thlcg2ll.maketojumpboollabels(list: TAsmList; p: tnode; truelabel, falselabel: tasmlabel);
     begin
       { loadregvars parameter is no longer used, should be removed from
          ncgutil version as well }
-      ncgutil.maketojumpbool(list,p,lr_dont_load_regvars);
+      ncgutil.maketojumpboollabels(list,p,truelabel,falselabel);
     end;
 
   procedure thlcg2ll.gen_load_para_value(list: TAsmList);

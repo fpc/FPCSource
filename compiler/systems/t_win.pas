@@ -956,7 +956,7 @@ implementation
                     imagebase:=$10000
                   else
 {$ifdef cpu64bitaddr}
-                    if (paratargetdbg = dbg_stabs) then
+                    if (target_dbg.id = dbg_stabs) then
                       imagebase:=$400000
                     else
                       imagebase:= $100000000;

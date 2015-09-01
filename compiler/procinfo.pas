@@ -108,9 +108,7 @@ unit procinfo;
 
           { Labels for TRUE/FALSE condition, BREAK and CONTINUE }
           CurrBreakLabel,
-          CurrContinueLabel,
-          CurrTrueLabel,
-          CurrFalseLabel : tasmlabel;
+          CurrContinueLabel : tasmlabel;
 
           { label to leave the sub routine }
           CurrExitLabel : tasmlabel;
@@ -159,12 +157,6 @@ unit procinfo;
 
           { Destroy the entire procinfo tree, starting from the outermost parent }
           procedure destroy_tree;
-
-          { Store CurrTrueLabel and CurrFalseLabel to saved and generate new ones }
-          procedure save_jump_labels(out saved: tsavedlabels);
-
-          { Restore CurrTrueLabel and CurrFalseLabel from saved }
-          procedure restore_jump_labels(const saved: tsavedlabels);
 
           function get_first_nestedproc: tprocinfo;
           function has_nestedprocs: boolean;
@@ -216,8 +208,6 @@ implementation
         current_asmdata.getjumplabel(CurrGOTLabel);
         CurrBreakLabel:=nil;
         CurrContinueLabel:=nil;
-        CurrTrueLabel:=nil;
-        CurrFalseLabel:=nil;
         if Assigned(parent) and (parent.procdef.parast.symtablelevel>=normal_function_level) then
           parent.addnestedproc(Self);
       end;
@@ -275,20 +265,6 @@ implementation
         result:=self;
         while assigned(result.parent) and (result.procdef.parast.symtablelevel>normal_function_level) do
           result:=result.parent;
-      end;
-
-    procedure tprocinfo.save_jump_labels(out saved: tsavedlabels);
-      begin
-        saved[false]:=CurrFalseLabel;
-        saved[true]:=CurrTrueLabel;
-        current_asmdata.getjumplabel(CurrTrueLabel);
-        current_asmdata.getjumplabel(CurrFalseLabel);
-      end;
-
-    procedure tprocinfo.restore_jump_labels(const saved: tsavedlabels);
-      begin
-        CurrFalseLabel:=saved[false];
-        CurrTrueLabel:=saved[true];
       end;
 
     procedure tprocinfo.allocate_push_parasize(size:longint);

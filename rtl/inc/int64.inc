@@ -375,8 +375,15 @@
     function fpc_mul_int64_compilerproc(f1,f2 : int64;checkoverflow : longbool) : int64; external name 'FPC_MUL_INT64';
 
     function fpc_mul_longint_to_int64(f1,f2 : longint) : int64;[public,alias: 'FPC_MUL_LONGINT_TO_INT64']; compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+      begin
+        runerror(217);
+      end;
+{$else EXCLUDE_COMPLEX_PROCS}
       begin
         fpc_mul_longint_to_int64:=fpc_mul_int64_compilerproc(f1,f2,false);
       end;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
 {$endif FPC_SYSTEM_HAS_MUL_LONGINT_TO_INT64}
 

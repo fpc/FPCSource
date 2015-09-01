@@ -697,12 +697,14 @@ implementation
 {$endif}
         then
           begin
-            check_ranges(fileinfo,right,left.resultdef);
+            if not(nf_internal in flags) then
+              check_ranges(fileinfo,right,left.resultdef);
           end
         else
           begin
             { check if the assignment may cause a range check error }
-            check_ranges(fileinfo,right,left.resultdef);
+            if not(nf_internal in flags) then
+              check_ranges(fileinfo,right,left.resultdef);
 
             { beginners might be confused about an error message like
               Incompatible types: got "untyped" expected "LongInt"
@@ -711,6 +713,8 @@ implementation
             if (left.resultdef.typ<>procvardef) and
               (right.nodetype=calln) and is_void(right.resultdef) then
               CGMessage(type_e_procedures_return_no_value)
+            else if nf_internal in flags then
+              inserttypeconv_internal(right,left.resultdef)
             else
               inserttypeconv(right,left.resultdef);
           end;

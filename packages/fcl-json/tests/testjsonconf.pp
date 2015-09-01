@@ -18,6 +18,8 @@ var
   Application: TMyTestRunner;
 
 begin
+  DefaultFormat:=fPlain;
+  DefaultRunAllTests:=True;
   Application := TMyTestRunner.Create(nil);
   Application.Initialize;
   Application.Run;

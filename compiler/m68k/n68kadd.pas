@@ -375,6 +375,8 @@ implementation
 
     procedure t68kaddnode.second_cmp64bit;
       var
+        truelabel,
+        falselabel: tasmlabel;
         hlab: tasmlabel;
         unsigned : boolean;
         href: treference;
@@ -386,12 +388,12 @@ implementation
           case nodetype of
             ltn,gtn:
               begin
-                if (hlab<>current_procinfo.CurrTrueLabel) then
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                if (hlab<>location.truelabel) then
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
                 { cheat a little bit for the negative test }
                 toggleflag(nf_swapped);
-                if (hlab<>current_procinfo.CurrFalseLabel) then
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                if (hlab<>location.falselabel) then
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
                 toggleflag(nf_swapped);
               end;
             lten,gten:
@@ -401,21 +403,21 @@ implementation
                   nodetype:=ltn
                 else
                   nodetype:=gtn;
-                if (hlab<>current_procinfo.CurrTrueLabel) then
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                if (hlab<>location.truelabel) then
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
                 { cheat for the negative test }
                 if nodetype=ltn then
                   nodetype:=gtn
                 else
                   nodetype:=ltn;
-                if (hlab<>current_procinfo.CurrFalseLabel) then
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                if (hlab<>location.falselabel) then
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
                 nodetype:=oldnodetype;
               end;
             equaln:
-              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
+              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
             unequaln:
-              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
+              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
           end;
         end;
 
@@ -424,30 +426,34 @@ implementation
           case nodetype of
             ltn,gtn,lten,gten:
               begin
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
               end;
             equaln:
               begin
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
               end;
             unequaln:
               begin
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
               end;
           end;
         end;
 
       begin
+        truelabel:=nil;
+        falselabel:=nil;
         { This puts constant operand (if any) to the right }
         pass_left_right;
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
-        location_reset(location,LOC_JUMP,OS_NO);
+        current_asmdata.getjumplabel(truelabel);
+        current_asmdata.getjumplabel(falselabel);
+        location_reset_jump(location,truelabel,falselabel);
 
         { Relational compares against constants having low dword=0 can omit the
           second compare based on the fact that any unsigned value is >=0 }
@@ -456,8 +462,8 @@ implementation
            (lo(right.location.value64)=0) then
           begin
             case getresflags(true) of
-              F_AE: hlab:=current_procinfo.CurrTrueLabel;
-              F_B:  hlab:=current_procinfo.CurrFalseLabel;
+              F_AE: hlab:=location.truelabel;
+              F_B:  hlab:=location.falselabel;
             end;
           end;
 

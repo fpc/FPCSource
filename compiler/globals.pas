@@ -230,9 +230,6 @@ interface
        asmextraopt       : string;
 
        { things specified with parameters }
-       paratarget        : tsystem;
-       paratargetdbg     : tdbg;
-       paratargetasm     : tasm;
        paralinkoptions   : TCmdStr;
        paradynamiclinker : string;
        paraprintnodetree : byte;
@@ -297,7 +294,6 @@ interface
        MacOSXVersionMin,
        iPhoneOSVersionMin: string[15];
        RelocSectionSetExplicitly : boolean;
-       LinkTypeSetExplicitly : boolean;
 
        current_tokenpos,                  { position of the last token }
        current_filepos : tfileposinfo;    { current position }
@@ -344,11 +340,6 @@ interface
 
     const
        DLLsource : boolean = false;
-
-       { used to set all registers used for each global function
-         this should dramatically decrease the number of
-         recompilations needed PM }
-       simplify_ppu : boolean = true;
 
        Inside_asm_statement : boolean = false;
 
@@ -453,11 +444,6 @@ interface
         optimizecputype : cpu_athlon64;
         fputype : fpu_sse64;
   {$endif x86_64}
-  {$ifdef ia64}
-        cputype : cpu_itanium;
-        optimizecputype : cpu_itanium;
-        fputype : fpu_itanium;
-  {$endif ia64}
   {$ifdef avr}
         cputype : cpuinfo.cpu_avr5;
         optimizecputype : cpuinfo.cpu_avr5;
@@ -1372,9 +1358,6 @@ implementation
         compile_level:=0;
         codegenerror:=false;
         DLLsource:=false;
-        paratarget:=system_none;
-        paratargetasm:=as_none;
-        paratargetdbg:=dbg_none;
 
         { Output }
         OutputFileName:='';
@@ -1421,7 +1404,6 @@ implementation
         GenerateImportSection:=false;
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
-        LinkTypeSetExplicitly:=false;
         MacOSXVersionMin:='';
         iPhoneOSVersionMin:='';
         { memory sizes, will be overridden by parameter or default for target

@@ -2133,6 +2133,11 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INT_STR_INT64}
 
 procedure int_str(l:int64;out s:shortstring);
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   m,m1 : qword;
   pcstart,
@@ -2170,12 +2175,18 @@ begin
     end;
   s[0]:=char(pc2-pc2start);
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_INT64}
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_QWORD}
 
 procedure int_str_unsigned(l:qword;out s:shortstring);
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   m1 : qword;
   pcstart,
@@ -2205,6 +2216,7 @@ begin
     end;
   s[0]:=char(pc2-pc2start);
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_QWORD}
 

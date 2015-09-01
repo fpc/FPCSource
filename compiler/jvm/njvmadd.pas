@@ -56,7 +56,7 @@ interface
       cutils,verbose,constexp,globtype,
       symconst,symtable,symdef,symcpu,
       paramgr,procinfo,pass_1,
-      aasmtai,aasmdata,aasmcpu,defutil,
+      aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
       hlcgobj,hlcgcpu,cgutils,
       cpupara,
       nbas,ncon,nset,nadd,ncal,ncnv,ninl,nld,nmat,nmem,
@@ -335,8 +335,12 @@ interface
 
     procedure tjvmaddnode.second_generic_compare(unsigned: boolean);
       var
+        truelabel,
+        falselabel: tasmlabel;
         cmpop: TOpCmp;
       begin
+        truelabel:=nil;
+        falselabel:=nil;
         pass_left_right;
         { swap the operands to make it easier for the optimizer to optimize
           the operand stack slot reloading in case both are in a register }
@@ -346,21 +350,24 @@ interface
         cmpop:=cmpnode2topcmp(unsigned);
         if (nf_swapped in flags) then
           cmpop:=swap_opcmp(cmpop);
-        location_reset(location,LOC_JUMP,OS_NO);
+
+        current_asmdata.getjumplabel(truelabel);
+        current_asmdata.getjumplabel(falselabel);
+        location_reset_jump(location,truelabel,falselabel);
 
         if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          hlcg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location,left.location.register,current_procinfo.CurrTrueLabel)
+          hlcg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location,left.location.register,location.truelabel)
         else case right.location.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.register,left.location,current_procinfo.CurrTrueLabel);
+            hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.register,left.location,location.truelabel);
           LOC_REFERENCE,LOC_CREFERENCE:
-            hlcg.a_cmp_ref_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.reference,left.location,current_procinfo.CurrTrueLabel);
+            hlcg.a_cmp_ref_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.reference,left.location,location.truelabel);
           LOC_CONSTANT:
-            hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.value,left.location,current_procinfo.CurrTrueLabel);
+            hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.value,left.location,location.truelabel);
           else
             internalerror(2011010413);
         end;
-        hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+        hlcg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
       end;
 
     procedure tjvmaddnode.pass_left_right;
@@ -441,9 +448,13 @@ interface
 
     procedure tjvmaddnode.second_cmpfloat;
       var
-        op : tasmop;
+        truelabel,
+        falselabel: tasmlabel;
+        op: tasmop;
         cmpop: TOpCmp;
       begin
+        truelabel:=nil;
+        falselabel:=nil;
         pass_left_right;
         { swap the operands to make it easier for the optimizer to optimize
           the operand stack slot reloading in case both are in a register }
@@ -453,7 +464,10 @@ interface
         cmpop:=cmpnode2topcmp(false);
         if (nf_swapped in flags) then
           cmpop:=swap_opcmp(cmpop);
-        location_reset(location,LOC_JUMP,OS_NO);
+
+        current_asmdata.getjumplabel(truelabel);
+        current_asmdata.getjumplabel(falselabel);
+        location_reset_jump(location,truelabel,falselabel);
 
         thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
         thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
@@ -473,9 +487,9 @@ interface
         current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
         thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,(1+ord(left.location.size=OS_F64))*2-1);
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcmp2if[cmpop],current_procinfo.CurrTrueLabel));
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcmp2if[cmpop],location.truelabel));
         thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-        hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+        hlcg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
       end;
 
 

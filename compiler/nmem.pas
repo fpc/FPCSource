@@ -83,6 +83,7 @@ interface
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+          function simplify(forinline : boolean) : tnode; override;
          protected
           mark_read_written: boolean;
           function typecheck_non_proc(realsource: tnode; out res: tnode): boolean; virtual;
@@ -596,6 +597,32 @@ implementation
             { vsf_must_be_valid so it doesn't get changed into }
             { vsf_referred_not_inited                          }
             set_varstate(left,vs_read,[vsf_must_be_valid]);
+          end;
+        if not(assigned(result)) then
+          result:=simplify(false);
+      end;
+
+
+    function taddrnode.simplify(forinline : boolean) : tnode;
+      var
+        hsym : tfieldvarsym;
+      begin
+        result:=nil;
+        if ((left.nodetype=subscriptn) and
+          (tsubscriptnode(left).left.nodetype=derefn) and
+          (tsubscriptnode(left).left.resultdef.typ=recorddef) and
+          (tderefnode(tsubscriptnode(left).left).left.nodetype=niln)) or
+          ((left.nodetype=subscriptn) and
+          (tsubscriptnode(left).left.nodetype=typeconvn) and
+          (tsubscriptnode(left).left.resultdef.typ=recorddef) and
+          (ttypeconvnode(tsubscriptnode(left).left).left.nodetype=derefn) and
+          (tderefnode(ttypeconvnode(tsubscriptnode(left).left).left).left.nodetype=niln)) then
+          begin
+            hsym:=tsubscriptnode(left).vs;
+            if tabstractrecordsymtable(hsym.owner).is_packed then
+              result:=cpointerconstnode.create(hsym.fieldoffset div 8,resultdef)
+            else
+              result:=cpointerconstnode.create(hsym.fieldoffset,resultdef);
           end;
       end;
 

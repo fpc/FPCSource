@@ -30,9 +30,18 @@ var
 {$endif}
 
 
+procedure fail(apos : integer);
+ begin
+   if APos=0 then
+     WriteLn('Failed!' )
+   else
+     WriteLn('Failed on ',APos,'!');
+   Halt(1);
+ end;
+
 procedure fail;
  begin
-   WriteLn('Failed!');
+   Fail(0);
    Halt(1);
  end;
 
@@ -598,111 +607,264 @@ procedure test_insert;
 
  procedure test_pos;
   var
-    _result : boolean;
+    _result : integer;
     position: integer;
   begin
     Write('Pos tests...');
-    _result := true;
+    _result := 0;
    {************************* shortstring ************************}
    str1:='Hello world';
    position:=Pos('',str1);
    if position <> 0 then
-     _result := false;
+     _result := 1;
 
    str1:='';
    position:=Pos('',str1);
    if position <> 0 then
-     _result := false;
+     _result := 2;
 
    str1:='Hello world';
    position:=Pos('world',str1);
    if position <> 7 then
-     _result := false;
+     _result := 3;
 
    str1:='Hello world';
    position:=Pos('world',str1);
    if position <> 7 then
-     _result := false;
+     _result := 4;
 
    str1:='Hello world';
    position:=Pos('worldx',str1);
    if position <> 0 then
-     _result := false;
+     _result := 5;
 
    str1:='';
    position:=Pos('worldx',str1);
    if position <> 0 then
-     _result := false;
+     _result := 6;
 
    {************************* ansistring *************************}
    str2:='Hello world';
    position:=Pos('',str2);
    if position <> 0 then
-     _result := false;
+     _result := 7;
 
    str2:='';
    position:=Pos('',str2);
    if position <> 0 then
-     _result := false;
+     _result := 8;
 
    str2:='Hello world';
    position:=Pos('world',str2);
    if position <> 7 then
-     _result := false;
+     _result := 9;
 
    str2:='Hello world';
    position:=Pos('world',str2);
    if position <> 7 then
-     _result := false;
+     _result := 10;
 
    str2:='Hello world';
    position:=Pos('worldx',str2);
    if position <> 0 then
-     _result := false;
+     _result := 11;
 
    str2:='';
    position:=Pos('worldx',str2);
    if position <> 0 then
-     _result := false;
+     _result := 12;
 
    {************************* widestring *************************}
 {$ifdef haswidestring}
    str3:='Hello world';
    position:=Pos('',str3);
    if position <> 0 then
-     _result := false;
+     _result := 13;
 
    str3:='';
    position:=Pos('',str3);
    if position <> 0 then
-     _result := false;
+     _result := 14;
 
    str3:='Hello world';
    position:=Pos('world',str3);
    if position <> 7 then
-     _result := false;
+     _result := 15;
 
    str3:='Hello world';
    position:=Pos('world',str3);
    if position <> 7 then
-     _result := false;
+     _result := 16;
 
    str3:='Hello world';
    position:=Pos('worldx',str3);
    if position <> 0 then
-     _result := false;
+     _result := 17;
 
    str3:='';
    position:=Pos('worldx',str3);
    if position <> 0 then
-     _result := false;
+     _result := 18;
 
 {$endif}
-    if not _result then
-       fail
+    if not (_result=0) then
+       fail(_result)
     else
       WriteLn('Success!');
   end;
+
+  procedure test_pos_offset;
+  var
+    _result : integer;
+    position: integer;
+ begin
+   Write('Pos /Offset tests...');
+   _result := 0;
+  {************************* shortstring ************************}
+  str1:='Hello world';
+  position:=Pos('',str1,3);
+  if position <> 0 then
+    _result := 1;
+
+  str1:='';
+  position:=Pos('',str1,3);
+  if position <> 0 then
+    _result := 2;
+
+  str1:='Hello world';
+  position:=Pos('world',str1,3);
+  if position <> 7 then
+    _result := 3;
+
+  str1:='Hello world';
+  position:=Pos('world',str1,8);
+  if position <> 0 then
+    _result := 20;
+
+  str1:='Hello world';
+  position:=Pos('world',str1,12);
+  if position <> 0 then
+    _result := 26;
+
+  str1:='Hello world';
+  position:=Pos('world',str1,0);
+  if position <> 0 then
+    _result := 27;
+
+  str1:='Hello world';
+  position:=Pos('world',str1,3);
+  if position <> 7 then
+    _result := 4;
+
+  str1:='Hello world';
+  position:=Pos('worldx',str1,3);
+  if position <> 0 then
+    _result := 5;
+
+  str1:='';
+  position:=Pos('worldx',str1,3);
+  if position <> 0 then
+    _result := 6;
+
+  {************************* ansistring *************************}
+  str2:='Hello world';
+  position:=Pos('',str2,3);
+  if position <> 0 then
+    _result := 7;
+
+  str2:='';
+  position:=Pos('',str2,3);
+  if position <> 0 then
+    _result := 8;
+
+  str2:='Hello world';
+  position:=Pos('world',str2,3);
+  if position <> 7 then
+    _result := 9;
+
+  str2:='Hello world';
+  position:=Pos('world',str2,8);
+  if position <> 0 then
+    _result := 21;
+
+  str2:='Hello world';
+  position:=Pos('world',str2,12);
+  if position <> 0 then
+    _result := 28;
+
+  str2:='Hello world';
+  position:=Pos('world',str2,0);
+  if position <> 0 then
+    _result := 29;
+
+  str2:='Hello world';
+  position:=Pos('world',str2,3);
+  if position <> 7 then
+    _result := 10;
+
+  str2:='Hello world';
+  position:=Pos('worldx',str2,3);
+  if position <> 0 then
+    _result := 11;
+
+  str2:='';
+  position:=Pos('worldx',str2,3);
+  if position <> 0 then
+    _result := 12;
+
+  {************************* widestring *************************}
+{$ifdef haswidestring}
+  str3:='Hello world';
+  position:=Pos('',str3,3);
+  if position <> 0 then
+    _result := 13;
+
+  str3:='';
+  position:=Pos('',str3,3);
+  if position <> 0 then
+    _result := 14;
+
+  str3:='Hello world';
+  position:=Pos('world',str3,3);
+  if position <> 7 then
+    _result := 15;
+
+  str3:='Hello world';
+  position:=Pos('world',str3,3);
+  if position <> 7 then
+    _result := 16;
+
+  str1:='Hello world';
+  position:=Pos('world',str3,8);
+  if position <> 0 then
+    _result := 23;
+
+  str3:='Hello world';
+  position:=Pos('world',str3,12);
+  if position <> 0 then
+    _result := 30;
+
+  str3:='Hello world';
+  position:=Pos('world',str3,0);
+  if position <> 0 then
+    _result := 31;
+
+  str3:='Hello world';
+  position:=Pos('worldx',str3,3);
+  if position <> 0 then
+    _result := 17;
+
+  str3:='';
+  position:=Pos('worldx',str3,3);
+  if position <> 0 then
+    _result := 18;
+
+{$endif}
+   if not (_result=0) then
+      fail(_result)
+   else
+     WriteLn('Success!');
+ end;
 
  procedure test_chr;
   var
@@ -742,10 +904,11 @@ procedure test_insert;
  end;
 
 Begin
-  test_delete;
+{  test_delete;
   test_stringofchar;
   test_copy;
-  test_insert;
+  test_insert;}
   test_pos;
+  test_pos_offset;
   test_chr;
 end.

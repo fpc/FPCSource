@@ -19,11 +19,11 @@
 {$endif}
 unit objpas;
 
-  interface
+interface
 
-    { first, in object pascal, the integer type must be redefined }
+  { first, in object pascal, the integer type must be redefined }
 {$ifdef CPU16}
-    const
+   const
        MaxInt  = MaxSmallint;
     type
        Integer  = smallint;
@@ -57,7 +57,15 @@ unit objpas;
        TBoundArray = array of integer;
 
 
+
 {$if FPC_FULLVERSION >= 20701}
+
+      { Generic array type. 
+        Slightly Less useful in FPC, since dyn array compatibility is at the element level. 
+        But still useful for generic methods and of course Delphi compatibility}
+      
+      Generic TArray<T> = Array of T;
+      
       { Generic support for enumerator interfaces. These are added here, because
         mode (Obj)FPC does currently not allow the overloading of types with
         generic types (this will need a modeswitch...) }
