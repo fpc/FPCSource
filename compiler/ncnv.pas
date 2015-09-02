@@ -2955,23 +2955,23 @@ implementation
                 if is_currency(left.resultdef) then
                   left.resultdef := s64inttype;
                 if is_signed(left.resultdef) then
-                  fname:='I64TO'
+                  fname:='i64to'
                 else
-                  fname:='UI64TO';
+                  fname:='ui64to';
               end
             else
               { other integers are supposed to be 32 bit }
               begin
                 if is_signed(left.resultdef) then
-                  fname:='ITO'
+                  fname:='ito'
                 else
-                  fname:='UTO';
+                  fname:='uto';
                 firstpass(left);
               end;
             if tfloatdef(resultdef).floattype=s64real then
-              fname:=fname+'D'
+              fname:=fname+'d'
             else
-              fname:=fname+'S';
+              fname:=fname+'s';
             result:=ccallnode.createintern(fname,ccallparanode.create(
               left,nil));
             left:=nil;
@@ -3027,7 +3027,7 @@ implementation
                   s32real:
                     case tfloatdef(resultdef).floattype of
                       s64real:
-                        result:=ccallnode.createintern('STOD',ccallparanode.create(left,nil));
+                        result:=ccallnode.createintern('stod',ccallparanode.create(left,nil));
                       s32real:
                         begin
                           result:=left;
@@ -3039,7 +3039,7 @@ implementation
                   s64real:
                     case tfloatdef(resultdef).floattype of
                       s32real:
-                        result:=ccallnode.createintern('DTOS',ccallparanode.create(left,nil));
+                        result:=ccallnode.createintern('dtos',ccallparanode.create(left,nil));
                       s64real:
                         begin
                           result:=left;
