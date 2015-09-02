@@ -28,9 +28,67 @@ interface
 {$H+}
   uses
     cclasses,
+    aasmbase,
     owbase;
 
   const
+    { OMF segment names for the object sections, produced by the FPC code generator }
+    omf_secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
+      'text',
+      'data',
+      'data',
+      'rodata',
+      'bss',
+      'tbss',
+      'pdata',
+      'text','data','data','data','data',
+      'stab',
+      'stabstr',
+      'idata2','idata4','idata5','idata6','idata7','edata',
+      'eh_frame',
+      'debug_frame','debug_info','debug_line','debug_abbrev',
+      'fpc',
+      '',
+      'init',
+      'fini',
+      'objc_class',
+      'objc_meta_class',
+      'objc_cat_cls_meth',
+      'objc_cat_inst_meth',
+      'objc_protocol',
+      'objc_string_object',
+      'objc_cls_meth',
+      'objc_inst_meth',
+      'objc_cls_refs',
+      'objc_message_refs',
+      'objc_symbols',
+      'objc_category',
+      'objc_class_vars',
+      'objc_instance_vars',
+      'objc_module_info',
+      'objc_class_names',
+      'objc_meth_var_types',
+      'objc_meth_var_names',
+      'objc_selector_strs',
+      'objc_protocol_ext',
+      'objc_class_ext',
+      'objc_property',
+      'objc_image_info',
+      'objc_cstring_object',
+      'objc_sel_fixup',
+      '__DATA,__objc_data',
+      '__DATA,__objc_const',
+      'objc_superrefs',
+      '__DATA, __datacoal_nt,coalesced',
+      'objc_classlist',
+      'objc_nlclasslist',
+      'objc_catlist',
+      'obcj_nlcatlist',
+      'objc_protolist',
+      'stack',
+      'heap'
+    );
+
     { OMF record types }
     RT_THEADR    = $80;  { Translator Header Record }
     RT_LHEADR    = $82;  { Library Module Header Record }

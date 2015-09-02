@@ -61,7 +61,7 @@ interface
 
     uses
       cutils,globals,systems,cclasses,
-      fmodule,finput,verbose,cpuinfo,cgbase
+      fmodule,finput,verbose,cpuinfo,cgbase,omfbase
       ;
 
     const
@@ -539,6 +539,8 @@ interface
                 (current_settings.x86memorymodel in x86_far_data_models) then
           AsmWrite('heap class=HEAP align=16')
 {$endif i8086}
+        else if target_info.system=system_i8086_msdos then
+          AsmWrite(omf_secnames[atype])
         else
           AsmWrite(secnames[atype]);
         if create_smartlink_sections and
