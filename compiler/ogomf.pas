@@ -101,7 +101,9 @@ interface
       public
         constructor create(const n:string);override;
         function sectiontype2align(atype:TAsmSectiontype):shortint;override;
+        function sectiontype2class(atype:TAsmSectiontype):string;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
+        function createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;override;
         procedure writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
       end;
 
@@ -474,45 +476,28 @@ implementation
         FCombination:=scPublic;
         FUse:=suUse16;
         if oso_executable in Aoptions then
-          begin
-            FClassName:='CODE';
-            dgroup:=(current_settings.x86memorymodel=mm_tiny);
-          end
+          dgroup:=(current_settings.x86memorymodel=mm_tiny)
         else if Aname='stack' then
           begin
-            FClassName:='STACK';
             FCombination:=scStack;
             dgroup:=current_settings.x86memorymodel in (x86_near_data_models-[mm_tiny]);
           end
         else if Aname='heap' then
-          begin
-            FClassName:='HEAP';
-            dgroup:=current_settings.x86memorymodel in x86_near_data_models;
-          end
+          dgroup:=current_settings.x86memorymodel in x86_near_data_models
         else if Aname='bss' then
-          begin
-            FClassName:='BSS';
-            dgroup:=true;
-          end
+          dgroup:=true
         else if Aname='data' then
-          begin
-            FClassName:='DATA';
-            dgroup:=true;
-          end
+          dgroup:=true
         else if (Aname='debug_frame') or
                 (Aname='debug_info') or
                 (Aname='debug_line') or
                 (Aname='debug_abbrev') then
           begin
-            FClassName:='DWARF';
             FUse:=suUse32;
             dgroup:=false;
           end
         else
-          begin
-            FClassName:='DATA';
-            dgroup:=true;
-          end;
+          dgroup:=true;
         if dgroup then
           FPrimaryGroup:='DGROUP'
         else
@@ -581,6 +566,11 @@ implementation
         end;
       end;
 
+    function TOmfObjData.sectiontype2class(atype: TAsmSectiontype): string;
+      begin
+        Result:=omf_segclass[atype];
+      end;
+
     function TOmfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       begin
         if (atype=sec_user) then
@@ -589,6 +579,12 @@ implementation
           Result:=CodeSectionName(aname)
         else
           Result:=omf_secnames[atype];
+      end;
+
+    function TOmfObjData.createsection(atype: TAsmSectionType; const aname: string; aorder: TAsmSectionOrder): TObjSection;
+      begin
+        Result:=inherited createsection(atype, aname, aorder);
+        TOmfObjSection(Result).FClassName:=sectiontype2class(atype);
       end;
 
     procedure TOmfObjData.writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
