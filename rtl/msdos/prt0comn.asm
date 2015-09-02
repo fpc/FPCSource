@@ -36,7 +36,7 @@
 
         cpu 8086
 
-        segment text use16 class=CODE
+        segment _TEXT use16 class=CODE
 
         extern PASCALMAIN
         extern __fpc_PrefixSeg
@@ -523,7 +523,7 @@ __nullarea:
 %endif
 
 %ifdef __TINY__
-        group DGROUP text data bss
+        group DGROUP _TEXT data bss
 %else
     %ifdef __NEAR_DATA__
         group DGROUP _NULL _AFTERNULL data bss stack

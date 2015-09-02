@@ -273,8 +273,10 @@ interface
               result:=current_module.modulename^ + '_TEXT';
           end
         else
+          result:='_TEXT';
+{$else i8086}
+        result:='.text';
 {$endif}
-          result:='.text';
       end;
 
 
@@ -1095,7 +1097,7 @@ interface
         AsmWriteLn('SECTION heap class=HEAP align=16');
       { group these sections in the same segment }
       if current_settings.x86memorymodel=mm_tiny then
-        AsmWriteLn('GROUP DGROUP text rodata data fpc bss heap')
+        AsmWriteLn('GROUP DGROUP _TEXT rodata data fpc bss heap')
       else if current_settings.x86memorymodel in x86_near_data_models then
         AsmWriteLn('GROUP DGROUP rodata data fpc bss stack heap')
       else

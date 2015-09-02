@@ -541,7 +541,7 @@ implementation
           end
         else
 {$endif}
-          result:='text';
+          result:='_TEXT';
       end;
 
     constructor TOmfObjData.create(const n: string);

@@ -34,14 +34,14 @@ interface
   const
     { OMF segment names for the object sections, produced by the FPC code generator }
     omf_secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
-      'text',
+      '_TEXT',
       'data',
       'data',
       'rodata',
       'bss',
       'tbss',
       'pdata',
-      'text','data','data','data','data',
+      '_TEXT','data','data','data','data',
       'stab',
       'stabstr',
       'idata2','idata4','idata5','idata6','idata7','edata',
