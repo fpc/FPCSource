@@ -649,11 +649,17 @@ interface
 
   function compute_omf_lib_hash(const name: string; blocks: Integer): TOmfLibHash;
 
+  { returns whether the specified section type belongs to the group DGROUP in
+    the current memory model. DGROUP is the segment group pointed by DS }
+  function section_belongs_to_dgroup(atype:TAsmSectiontype): Boolean;
+
 implementation
 
   uses
     cutils,
-    verbose;
+    globals,globtype,
+    verbose,
+    cpuinfo;
 
   { TOmfOrderedNameCollection }
 
@@ -1754,6 +1760,27 @@ implementation
       Result.block_d:=max(block_d mod blocks,1);
       Result.bucket_x:=bucket_x mod nbuckets;
       Result.bucket_d:=max(bucket_d mod nbuckets,1);
+    end;
+
+  function section_belongs_to_dgroup(atype: TAsmSectiontype): Boolean;
+    begin
+{$ifdef i8086}
+      case omf_segclass[atype] of
+        'CODE':
+          result:=current_settings.x86memorymodel=mm_tiny;
+        'DATA',
+        'BSS':
+          result:=true;
+        'STACK':
+          result:=current_settings.x86memorymodel in (x86_near_data_models-[mm_tiny]);
+        'HEAP':
+          result:=current_settings.x86memorymodel in x86_near_data_models;
+        else
+          result:=false;
+      end;
+{$else i8086}
+      result:=false;
+{$endif i8086}
     end;
 
 end.

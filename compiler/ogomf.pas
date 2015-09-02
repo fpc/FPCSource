@@ -469,39 +469,17 @@ implementation
 
     constructor TOmfObjSection.create(AList: TFPHashObjectList;
           const Aname: string; Aalign: shortint; Aoptions: TObjSectionOptions);
-      var
-        dgroup: Boolean;
       begin
         inherited create(AList, Aname, Aalign, Aoptions);
         FCombination:=scPublic;
         FUse:=suUse16;
-        if oso_executable in Aoptions then
-          dgroup:=(current_settings.x86memorymodel=mm_tiny)
-        else if Aname='stack' then
-          begin
-            FCombination:=scStack;
-            dgroup:=current_settings.x86memorymodel in (x86_near_data_models-[mm_tiny]);
-          end
-        else if Aname='heap' then
-          dgroup:=current_settings.x86memorymodel in x86_near_data_models
-        else if Aname='bss' then
-          dgroup:=true
-        else if Aname='data' then
-          dgroup:=true
+        if Aname='stack' then
+          FCombination:=scStack
         else if (Aname='debug_frame') or
                 (Aname='debug_info') or
                 (Aname='debug_line') or
                 (Aname='debug_abbrev') then
-          begin
-            FUse:=suUse32;
-            dgroup:=false;
-          end
-        else
-          dgroup:=true;
-        if dgroup then
-          FPrimaryGroup:='DGROUP'
-        else
-          FPrimaryGroup:='';
+          FUse:=suUse32;
       end;
 
     function TOmfObjSection.MemPosStr(AImageBase: qword): string;
@@ -585,6 +563,8 @@ implementation
       begin
         Result:=inherited createsection(atype, aname, aorder);
         TOmfObjSection(Result).FClassName:=sectiontype2class(atype);
+        if section_belongs_to_dgroup(atype) then
+          TOmfObjSection(Result).FPrimaryGroup:='DGROUP';
       end;
 
     procedure TOmfObjData.writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
