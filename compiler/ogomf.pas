@@ -473,13 +473,6 @@ implementation
         inherited create(AList, Aname, Aalign, Aoptions);
         FCombination:=scPublic;
         FUse:=suUse16;
-        if Aname='stack' then
-          FCombination:=scStack
-        else if (Aname='debug_frame') or
-                (Aname='debug_info') or
-                (Aname='debug_line') or
-                (Aname='debug_abbrev') then
-          FUse:=suUse32;
       end;
 
     function TOmfObjSection.MemPosStr(AImageBase: qword): string;
@@ -563,6 +556,10 @@ implementation
       begin
         Result:=inherited createsection(atype, aname, aorder);
         TOmfObjSection(Result).FClassName:=sectiontype2class(atype);
+        if atype=sec_stack then
+          TOmfObjSection(Result).FCombination:=scStack
+        else if atype in [sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev] then
+          TOmfObjSection(Result).FUse:=suUse32;
         if section_belongs_to_dgroup(atype) then
           TOmfObjSection(Result).FPrimaryGroup:='DGROUP';
       end;
