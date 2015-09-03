@@ -557,6 +557,10 @@ interface
                 { yes -> write the section attributes as well }
                 if atype=sec_stack then
                   AsmWrite(' stack');
+                if atype in [sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev] then
+                  AsmWrite(' use32')
+                else
+                  AsmWrite(' use16');
                 AsmWrite(' class='+omf_segclass[atype]+
                   ' align='+tostr(omf_sectiontype2align(atype)));
                 FSectionsUsed.Add(secname,nil);
