@@ -1776,7 +1776,11 @@ unit cgcpu;
                   cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
               end
             else
-              generate_leave(list);
+              begin
+                if current_settings.x86memorymodel=mm_huge then
+                  list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
+                generate_leave(list);
+              end;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 

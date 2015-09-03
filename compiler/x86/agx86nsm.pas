@@ -387,6 +387,10 @@ interface
                 begin
                   AsmWrite('DGROUP');
                 end
+              else if o.ref^.refaddr=addr_fardataseg then
+                begin
+                  AsmWrite(current_module.modulename^+'_DATA');
+                end
 {$endif i8086}
               else
                 begin
@@ -603,14 +607,18 @@ interface
       var
         i: Integer;
       begin
+{$ifdef i8086}
         if target_info.system=system_i8086_msdos then
           begin
+            if current_settings.x86memorymodel=mm_huge then
+              WriteSection(sec_data,'',2);
             AsmLn;
             AsmWrite('GROUP DGROUP');
             for i:=0 to FSectionsInDGROUP.Count-1 do
               AsmWrite(' '+FSectionsInDGROUP.NameOfIndex(i));
             AsmLn;
           end;
+{$endif i8086}
       end;
 
     procedure TX86NasmAssembler.WriteTree(p:TAsmList);

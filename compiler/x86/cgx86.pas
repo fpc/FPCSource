@@ -2847,6 +2847,7 @@ unit cgx86;
         regsize: longint;
 {$ifdef i8086}
         dgroup: treference;
+        fardataseg: treference;
 {$endif i8086}
 
       procedure push_regs;
@@ -2974,6 +2975,17 @@ unit cgx86;
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;
               end;
+
+{$ifdef i8086}
+              if current_settings.x86memorymodel=mm_huge then
+                begin
+                  list.concat(Taicpu.op_reg(A_PUSH,S_W,NR_DS));
+                  reference_reset(fardataseg,0);
+                  fardataseg.refaddr:=addr_fardataseg;
+                  list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,fardataseg,NR_AX));
+                  list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+                end;
+{$endif i8086}
 
 {$ifdef i386}
             if (not paramanager.use_fixed_stack) and
