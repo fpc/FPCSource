@@ -561,7 +561,7 @@ interface
                   AsmWrite(' use32')
                 else
                   AsmWrite(' use16');
-                AsmWrite(' class='+omf_segclass[atype]+
+                AsmWrite(' class='+omf_segclass(atype)+
                   ' align='+tostr(omf_sectiontype2align(atype)));
                 FSectionsUsed.Add(secname,Pointer(self));
                 if section_belongs_to_dgroup(atype) then

@@ -88,75 +88,6 @@ interface
       'stack',
       'heap'
     );
-    { OMF segment class names for the object sections, produced by the FPC code generator }
-    omf_segclass : array[TAsmSectiontype] of string[length('DWARF')] = ('',
-      {user} 'DATA',
-      {code} 'CODE',
-      {data} 'DATA',
-      {rodata} 'DATA',
-      {rodata_norel} 'DATA',
-      {bss} 'BSS',
-      {threadvar} 'DATA',
-      {pdata} 'DATA',
-      {stub} 'CODE',
-      {data_nonlazy} 'DATA',
-      {data_lazy} 'DATA',
-      {init_func} 'DATA',
-      {term_func} 'DATA',
-      {stab} 'DATA',
-      {stabstr} 'DATA',
-      {idata2} 'DATA',
-      {idata4} 'DATA',
-      {idata5} 'DATA',
-      {idata6} 'DATA',
-      {idata7} 'DATA',
-      {edata} 'DATA',
-      {eh_frame} 'DATA',
-      {debug_frame} 'DWARF',
-      {debug_info} 'DWARF',
-      {debug_line} 'DWARF',
-      {debug_abbrev} 'DWARF',
-      {fpc} 'DATA',
-      {toc} 'DATA',
-      {init} 'CODE',
-      {fini} 'CODE',
-      {objc_class} 'DATA',
-      {objc_meta_class} 'DATA',
-      {objc_cat_cls_meth} 'DATA',
-      {objc_cat_inst_meth} 'DATA',
-      {objc_protocol} 'DATA',
-      {objc_string_object} 'DATA',
-      {objc_cls_meth} 'DATA',
-      {objc_inst_meth} 'DATA',
-      {objc_cls_refs} 'DATA',
-      {objc_message_refs} 'DATA',
-      {objc_symbols} 'DATA',
-      {objc_category} 'DATA',
-      {objc_class_vars} 'DATA',
-      {objc_instance_vars} 'DATA',
-      {objc_module_info} 'DATA',
-      {objc_class_names} 'DATA',
-      {objc_meth_var_types} 'DATA',
-      {objc_meth_var_names} 'DATA',
-      {objc_selector_strs} 'DATA',
-      {objc_protocol_ext} 'DATA',
-      {objc_class_ext} 'DATA',
-      {objc_property} 'DATA',
-      {objc_image_info} 'DATA',
-      {objc_cstring_object} 'DATA',
-      {objc_sel_fixup} 'DATA',
-      {objc_data} 'DATA',
-      {objc_const} 'DATA',
-      {objc_sup_refs} 'DATA',
-      {data_coalesced} 'DATA',
-      {objc_classlist} 'DATA',
-      {objc_nlclasslist} 'DATA',
-      {objc_catlist} 'DATA',
-      {objc_nlcatlist} 'DATA',
-      {objc_protolist} 'DATA',
-      {stack} 'STACK',
-      {heap} 'HEAP'
-    );
 
     { OMF record types }
     RT_THEADR    = $80;  { Translator Header Record }
@@ -649,6 +580,8 @@ interface
 
   function compute_omf_lib_hash(const name: string; blocks: Integer): TOmfLibHash;
 
+  { OMF segment class names for the object sections, produced by the FPC code generator }
+  function omf_segclass(atype:TAsmSectiontype):string;
   function omf_sectiontype2align(atype:TAsmSectiontype):shortint;
   { returns whether the specified section type belongs to the group DGROUP in
     the current memory model. DGROUP is the segment group pointed by DS }
@@ -1763,6 +1696,80 @@ implementation
       Result.bucket_d:=max(bucket_d mod nbuckets,1);
     end;
 
+  function omf_segclass(atype: TAsmSectiontype): string;
+    const
+      segclass : array[TAsmSectiontype] of string[length('DWARF')] = ('',
+        {user} 'DATA',
+        {code} 'CODE',
+        {data} 'DATA',
+        {rodata} 'DATA',
+        {rodata_norel} 'DATA',
+        {bss} 'BSS',
+        {threadvar} 'DATA',
+        {pdata} 'DATA',
+        {stub} 'CODE',
+        {data_nonlazy} 'DATA',
+        {data_lazy} 'DATA',
+        {init_func} 'DATA',
+        {term_func} 'DATA',
+        {stab} 'DATA',
+        {stabstr} 'DATA',
+        {idata2} 'DATA',
+        {idata4} 'DATA',
+        {idata5} 'DATA',
+        {idata6} 'DATA',
+        {idata7} 'DATA',
+        {edata} 'DATA',
+        {eh_frame} 'DATA',
+        {debug_frame} 'DWARF',
+        {debug_info} 'DWARF',
+        {debug_line} 'DWARF',
+        {debug_abbrev} 'DWARF',
+        {fpc} 'DATA',
+        {toc} 'DATA',
+        {init} 'CODE',
+        {fini} 'CODE',
+        {objc_class} 'DATA',
+        {objc_meta_class} 'DATA',
+        {objc_cat_cls_meth} 'DATA',
+        {objc_cat_inst_meth} 'DATA',
+        {objc_protocol} 'DATA',
+        {objc_string_object} 'DATA',
+        {objc_cls_meth} 'DATA',
+        {objc_inst_meth} 'DATA',
+        {objc_cls_refs} 'DATA',
+        {objc_message_refs} 'DATA',
+        {objc_symbols} 'DATA',
+        {objc_category} 'DATA',
+        {objc_class_vars} 'DATA',
+        {objc_instance_vars} 'DATA',
+        {objc_module_info} 'DATA',
+        {objc_class_names} 'DATA',
+        {objc_meth_var_types} 'DATA',
+        {objc_meth_var_names} 'DATA',
+        {objc_selector_strs} 'DATA',
+        {objc_protocol_ext} 'DATA',
+        {objc_class_ext} 'DATA',
+        {objc_property} 'DATA',
+        {objc_image_info} 'DATA',
+        {objc_cstring_object} 'DATA',
+        {objc_sel_fixup} 'DATA',
+        {objc_data} 'DATA',
+        {objc_const} 'DATA',
+        {objc_sup_refs} 'DATA',
+        {data_coalesced} 'DATA',
+        {objc_classlist} 'DATA',
+        {objc_nlclasslist} 'DATA',
+        {objc_catlist} 'DATA',
+        {objc_nlcatlist} 'DATA',
+        {objc_protolist} 'DATA',
+        {stack} 'STACK',
+        {heap} 'HEAP'
+      );
+    begin
+      result:=segclass[atype];
+    end;
+
   function omf_sectiontype2align(atype: TAsmSectiontype): shortint;
     begin
       case atype of
@@ -1796,7 +1803,7 @@ implementation
   function section_belongs_to_dgroup(atype: TAsmSectiontype): Boolean;
     begin
 {$ifdef i8086}
-      case omf_segclass[atype] of
+      case omf_segclass(atype) of
         'CODE':
           result:=current_settings.x86memorymodel=mm_tiny;
         'DATA',

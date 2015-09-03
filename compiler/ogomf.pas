@@ -514,7 +514,7 @@ implementation
 
     function TOmfObjData.sectiontype2class(atype: TAsmSectiontype): string;
       begin
-        Result:=omf_segclass[atype];
+        Result:=omf_segclass(atype);
       end;
 
     function TOmfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
