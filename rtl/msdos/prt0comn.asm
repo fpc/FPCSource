@@ -76,6 +76,7 @@
         resb 0100h
 %endif
 ..start:
+%ifndef __HUGE__
 %ifdef __TINY__
         mov bx, cs
 %else
@@ -95,12 +96,18 @@
         xor al, al
         cld
         rep stosb
+%endif ; not __HUGE__
 
         ; save the Program Segment Prefix
         push ds
 
         ; init DS
+%ifdef __HUGE__
+        mov bx, SYSTEM_DATA
         mov ds, bx
+%else
+        mov ds, bx
+%endif
 
         ; pop the PSP from stack and store it in the pascal variable PrefixSeg
         pop ax
@@ -279,6 +286,8 @@ FPC_INT00_HANDLER:
         ; init ds
 %ifdef __TINY__
         mov bp, cs
+%elifdef __HUGE__
+        mov bp, SYSTEM_DATA
 %else
         mov bp, DGROUP
 %endif
@@ -341,6 +350,11 @@ FPC_INT00_HANDLER:
 FPC_INSTALL_INTERRUPT_HANDLERS:
         push ds
 
+%ifdef __HUGE__
+        mov ax, SYSTEM_DATA
+        mov ds, ax
+%endif
+
         ; save old int 00 handler
         mov ax, 3500h
         int 21h
@@ -368,6 +382,11 @@ FPC_INSTALL_INTERRUPT_HANDLERS:
         global FPC_RESTORE_INTERRUPT_HANDLERS
 FPC_RESTORE_INTERRUPT_HANDLERS:
         push ds
+
+%ifdef __HUGE__
+        mov ax, SYSTEM_DATA
+        mov ds, ax
+%endif
 
         mov ax, 2500h
         lds dx, [__SaveInt00]
@@ -487,6 +506,11 @@ FPC_CHECK_NULLAREA:
     %else
         ret
     %endif
+%endif
+
+%ifdef __HUGE__
+        ; reference the system unit's data segment
+        segment SYSTEM_DATA use16 class=FAR_DATA align=2
 %endif
 
         segment data class=DATA align=2
