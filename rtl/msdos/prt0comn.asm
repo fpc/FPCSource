@@ -491,8 +491,13 @@ int_number:
 %ifndef __TINY__
         global FPC_CHECK_NULLAREA
 FPC_CHECK_NULLAREA:
+%ifdef __HUGE__
+        mov ax, DGROUP
+        mov es, ax
+%else
         push ds
         pop es
+%endif
         xor di, di
         mov cx, 32
         mov al, 1
