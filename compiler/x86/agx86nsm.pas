@@ -27,7 +27,7 @@ unit agx86nsm;
 interface
 
     uses
-      cpubase,globtype,
+      cclasses,cpubase,globtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,assemble,cgutils;
 
     type
@@ -36,12 +36,16 @@ interface
 
       TX86NasmAssembler = class(texternalassembler)
       private
+        FSectionsUsed: TFPHashList;
+        FSectionsInDGROUP: TFPHashList;
         using_relative : boolean;
         function CodeSectionName(const aname:string): string;
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; ai : taicpu);
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;alignment : byte);
+        procedure ResetSectionsList;
+        procedure WriteGroups;
       protected
         function single2str(d: single): string; override;
         function double2str(d: double): string; override;
@@ -60,7 +64,7 @@ interface
   implementation
 
     uses
-      cutils,globals,systems,cclasses,
+      cutils,globals,systems,
       fmodule,finput,verbose,cpuinfo,cgbase,omfbase
       ;
 
@@ -268,7 +272,7 @@ interface
         if current_settings.x86memorymodel in x86_far_code_models then
           begin
             if cs_huge_code in current_settings.moduleswitches then
-              result:=aname + '_TEXT use16 class=CODE'
+              result:=aname + '_TEXT'
             else
               result:=current_module.modulename^ + '_TEXT';
           end
@@ -515,6 +519,8 @@ interface
           '.stack',
           '.heap'
         );
+      var
+        secname: string;
       begin
         AsmLn;
         AsmWrite('SECTION ');
@@ -529,20 +535,28 @@ interface
         else if (atype=sec_threadvar) and
           (target_info.system in (systems_windows+systems_wince)) then
           AsmWrite('.tls'#9'bss')
+        else if target_info.system=system_i8086_msdos then
+          begin
+            if secnames[atype]='.text' then
+              secname:=CodeSectionName(aname)
+            else
+              secname:=omf_secnames[atype];
+            AsmWrite(secname);
+            { first use of this section in the object file? }
+            if FSectionsUsed.FindIndexOf(secname)=-1 then
+              begin
+                { yes -> write the section attributes as well }
+                if atype=sec_stack then
+                  AsmWrite(' stack');
+                AsmWrite(' class='+omf_segclass[atype]+
+                  ' align='+tostr(omf_sectiontype2align(atype)));
+                FSectionsUsed.Add(secname,nil);
+                if section_belongs_to_dgroup(atype) then
+                  FSectionsInDGROUP.Add(secname,nil);
+              end;
+          end
         else if secnames[atype]='.text' then
           AsmWrite(CodeSectionName(aname))
-{$ifdef i8086}
-        else if (target_info.system=system_i8086_msdos) and
-                (atype=sec_stack) and
-                (current_settings.x86memorymodel in x86_far_data_models) then
-          AsmWrite('stack stack class=STACK align=16')
-        else if (target_info.system=system_i8086_msdos) and
-                (atype=sec_heap) and
-                (current_settings.x86memorymodel in x86_far_data_models) then
-          AsmWrite('heap class=HEAP align=16')
-{$endif i8086}
-        else if target_info.system=system_i8086_msdos then
-          AsmWrite(omf_secnames[atype])
         else
           AsmWrite(secnames[atype]);
         if create_smartlink_sections and
@@ -560,6 +574,28 @@ interface
           end;
         AsmLn;
         LastSecType:=atype;
+      end;
+
+    procedure TX86NasmAssembler.ResetSectionsList;
+      begin
+        FSectionsUsed.Free;
+        FSectionsUsed:=TFPHashList.Create;
+        FSectionsInDGROUP.Free;
+        FSectionsInDGROUP:=TFPHashList.Create;
+      end;
+
+    procedure TX86NasmAssembler.WriteGroups;
+      var
+        i: Integer;
+      begin
+        if target_info.system=system_i8086_msdos then
+          begin
+            AsmLn;
+            AsmWrite('GROUP DGROUP');
+            for i:=0 to FSectionsInDGROUP.Count-1 do
+              AsmWrite(' '+FSectionsInDGROUP.NameOfIndex(i));
+            AsmLn;
+          end;
       end;
 
     procedure TX86NasmAssembler.WriteTree(p:TAsmList);
@@ -967,9 +1003,11 @@ interface
                         WriteSmartExternals;
                         FreeExternChainList;
                       end;
+                    WriteGroups;
                     AsmClose;
                     DoAssemble;
                     AsmCreate(tai_cutobject(hp).place);
+                    ResetSectionsList;
                     WriteHeader;
                   end;
                { avoid empty files }
@@ -1080,37 +1118,6 @@ interface
         else
           internalerror(2013050101);
       end;
-
-      if not (cs_huge_code in current_settings.moduleswitches) then
-        AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^) + ' use16 class=CODE');
-      { NASM complains if you put a missing section in the GROUP directive, so }
-      { we add empty declarations to make sure they exist, even if empty }
-      AsmWriteLn('SECTION .rodata class=DATA align=2');
-      AsmWriteLn('SECTION .data class=DATA align=2');
-      AsmWriteLn('SECTION .fpc class=DATA');
-      { WLINK requires class=bss in order to leave the BSS section out of the executable }
-      AsmWriteLn('SECTION .bss class=BSS align=2');
-      if (current_settings.x86memorymodel<>mm_tiny) and
-         (current_settings.x86memorymodel in x86_near_data_models) then
-        AsmWriteLn('SECTION stack stack class=STACK align=16');
-      if current_settings.x86memorymodel in x86_near_data_models then
-        AsmWriteLn('SECTION heap class=HEAP align=16');
-      { group these sections in the same segment }
-      if current_settings.x86memorymodel=mm_tiny then
-        AsmWriteLn('GROUP DGROUP _TEXT rodata data fpc bss heap')
-      else if current_settings.x86memorymodel in x86_near_data_models then
-        AsmWriteLn('GROUP DGROUP rodata data fpc bss stack heap')
-      else
-        AsmWriteLn('GROUP DGROUP rodata data fpc bss');
-      if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
-        begin
-          AsmWriteLn('SECTION .debug_frame  use32 class=DWARF align=4');
-          AsmWriteLn('SECTION .debug_info   use32 class=DWARF align=4');
-          AsmWriteLn('SECTION .debug_line   use32 class=DWARF align=4');
-          AsmWriteLn('SECTION .debug_abbrev use32 class=DWARF align=4');
-        end;
-      if not (cs_huge_code in current_settings.moduleswitches) then
-        AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^));
 {$elseif defined(i386)}
       AsmWriteLn('BITS 32');
       using_relative:=false;
@@ -1130,6 +1137,7 @@ interface
       if current_module.mainsource<>'' then
        comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource);
 {$endif}
+      ResetSectionsList;
       WriteHeader;
       AsmLn;
 
@@ -1151,6 +1159,7 @@ interface
           WriteSmartExternals;
           FreeExternChainList;
         end;
+      WriteGroups;
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
        comment(v_info,'Done writing nasm-styled assembler output for '+current_module.mainsource);
