@@ -1306,7 +1306,12 @@ implementation
                         { uninitialized warnings (tbs/tb0542)         }
                         set_varstate(left,vs_written,[]);
                         set_varstate(left,vs_readwritten,[]);
-                        make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
+                        { compilerprocs never capture the address of their
+                          parameters }
+                        if not(po_compilerproc in aktcallnode.procdefinition.procoptions) then
+                          make_not_regable(left,[ra_addr_regable,ra_addr_taken])
+                        else
+                          make_not_regable(left,[ra_addr_regable])
                       end;
                     vs_var,
                     vs_constref:
@@ -1315,7 +1320,12 @@ implementation
                         { constref takes also the address, but storing it is actually the compiler
                           is not supposed to expect }
                         if parasym.varspez=vs_var then
-                          make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
+                          { compilerprocs never capture the address of their
+                            parameters }
+                          if not(po_compilerproc in aktcallnode.procdefinition.procoptions) then
+                            make_not_regable(left,[ra_addr_regable,ra_addr_taken])
+                          else
+                            make_not_regable(left,[ra_addr_regable])
                       end;
                     else
                       set_varstate(left,vs_read,[vsf_must_be_valid]);
@@ -2885,21 +2895,28 @@ implementation
            (procdefinition.parast.symtablelevel=normal_function_level) and
            { must be a local variable, a value para or a hidden function result }
            { parameter (which can be passed by address, but in that case it got }
-           { through these same checks at the caller side and is thus safe      }
-           (
-            (tloadnode(realassignmenttarget).symtableentry.typ=localvarsym) or
+           { through these same checks at the caller side and is thus safe )    }
+           { other option: we're calling a compilerproc, because those don't
+             rely on global state
+           }
+           ((po_compilerproc in procdefinition.procoptions) or
             (
-             (tloadnode(realassignmenttarget).symtableentry.typ=paravarsym) and
-             ((tparavarsym(tloadnode(realassignmenttarget).symtableentry).varspez = vs_value) or
-              (vo_is_funcret in tparavarsym(tloadnode(realassignmenttarget).symtableentry).varoptions))
+             (
+              (tloadnode(realassignmenttarget).symtableentry.typ=localvarsym) or
+              (
+               (tloadnode(realassignmenttarget).symtableentry.typ=paravarsym) and
+               ((tparavarsym(tloadnode(realassignmenttarget).symtableentry).varspez = vs_value) or
+                (vo_is_funcret in tparavarsym(tloadnode(realassignmenttarget).symtableentry).varoptions))
+              )
+             ) and
+             { the address may not have been taken of the variable/parameter, because }
+             { otherwise it's possible that the called function can access it via a   }
+             { global variable or other stored state                                  }
+             (
+              not(tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).addr_taken) and
+              (tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).varregable in [vr_none,vr_addr])
+             )
             )
-           ) and
-           { the address may not have been taken of the variable/parameter, because }
-           { otherwise it's possible that the called function can access it via a   }
-           { global variable or other stored state                                  }
-           (
-            not(tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).addr_taken) and
-            (tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).varregable in [vr_none,vr_addr])
            ) then
           begin
             { If the funcret is also used as a parameter we can't optimize because the funcret
@@ -4050,7 +4067,8 @@ implementation
                   function result" is not something which can be stored
                   persistently by the callee (it becomes invalid when the callee
                   returns)                                                       }
-                if not(vo_is_funcret in hp.parasym.varoptions) then
+                if not(vo_is_funcret in hp.parasym.varoptions) and
+                   not(po_compilerproc in procdefinition.procoptions) then
                   make_not_regable(hp.left,[ra_addr_regable,ra_addr_taken])
                 else
                   make_not_regable(hp.left,[ra_addr_regable]);
