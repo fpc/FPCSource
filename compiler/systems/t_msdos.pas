@@ -296,7 +296,7 @@ begin
   if current_settings.x86memorymodel=mm_tiny then
     LinkRes.Add('order clname CODE clname DATA clname BSS')
   else
-    LinkRes.Add('order clname CODE clname BEGDATA segment _NULL segment _AFTERNULL clname DATA clname BSS clname STACK clname HEAP');
+    LinkRes.Add('order clname CODE clname FAR_DATA clname BEGDATA segment _NULL segment _AFTERNULL clname DATA clname BSS clname STACK clname HEAP');
   if (cs_link_map in current_settings.globalswitches) then
     LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
@@ -462,7 +462,6 @@ begin
   LinkScript.Concat('EXESECTION .MZ_flat_content');
   if current_settings.x86memorymodel=mm_tiny then
     begin
-      {LinkRes.Add('order clname CODE clname DATA clname BSS')}
       LinkScript.Concat('  OBJSECTION *||CODE');
       LinkScript.Concat('  OBJSECTION *||DATA');
       LinkScript.Concat('  SYMBOL _edata');
@@ -471,9 +470,9 @@ begin
     end
   else
     begin
-      {LinkRes.Add('order clname CODE clname BEGDATA segment _NULL segment _AFTERNULL clname DATA clname BSS clname STACK clname HEAP');}
       LinkScript.Concat('  OBJSECTION _TEXT||CODE');
       LinkScript.Concat('  OBJSECTION *||CODE');
+      LinkScript.Concat('  OBJSECTION *||FAR_DATA');
       LinkScript.Concat('  OBJSECTION _NULL||BEGDATA');
       LinkScript.Concat('  OBJSECTION _AFTERNULL||BEGDATA');
       LinkScript.Concat('  OBJSECTION *||BEGDATA');
