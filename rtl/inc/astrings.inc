@@ -1529,14 +1529,20 @@ procedure InternalSetCodePage(var s : RawByteString; CodePage : TSystemCodePage;
   extra exception frames }
 procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
   var
+    OrgCodePage,
     TranslatedCodePage,
     TranslatedCurrentCodePage: TSystemCodePage;
   begin
     if (S='') then
       exit;
+    { if the codepage are identical, we don't have to do anything (even if the
+      string has multiple references) }
+    OrgCodePage:=PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage;
+    if OrgCodePage=CodePage then
+      exit;
     { if we're just replacing a placeholder code page with its actual value or
       vice versa, we don't have to perform any conversion }
-    TranslatedCurrentCodePage:=TranslatePlaceholderCP(PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage);
+    TranslatedCurrentCodePage:=TranslatePlaceholderCP(OrgCodePage);
     TranslatedCodePage:=TranslatePlaceholderCP(CodePage);
     Convert:=Convert and
       (TranslatedCurrentCodePage<>TranslatedCodePage);
