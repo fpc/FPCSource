@@ -2229,7 +2229,7 @@ begin
                               'MEDIUM':  init_settings.x86memorymodel:=mm_medium;
                               'COMPACT': init_settings.x86memorymodel:=mm_compact;
                               'LARGE':   init_settings.x86memorymodel:=mm_large;
-                              'HUGE': IllegalPara(opt); { these are not implemented yet }
+                              'HUGE':    init_settings.x86memorymodel:=mm_huge;
                               else
                                 IllegalPara(opt);
                             end;
