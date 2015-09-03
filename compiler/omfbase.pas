@@ -1768,6 +1768,11 @@ implementation
       );
     begin
       result:=segclass[atype];
+{$ifdef i8086}
+      if (current_settings.x86memorymodel=mm_huge) and
+        ((result='DATA') or (result='BSS')) then
+        result:='FAR_DATA';
+{$endif i8086}
     end;
 
   function omf_sectiontype2align(atype: TAsmSectiontype): shortint;
@@ -1806,6 +1811,8 @@ implementation
       case omf_segclass(atype) of
         'CODE':
           result:=current_settings.x86memorymodel=mm_tiny;
+        'FAR_DATA':
+          result:=false;
         'DATA',
         'BSS':
           result:=true;
