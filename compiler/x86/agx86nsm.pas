@@ -51,6 +51,7 @@ interface
         function double2str(d: double): string; override;
         function extended2str(e: extended): string; override;
       public
+        destructor Destroy;override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
         procedure WriteExternals;
@@ -142,6 +143,14 @@ interface
          if p>0 then
           delete(hs,p,1);
          extended2str:=lower(hs);
+      end;
+
+
+    destructor TX86NasmAssembler.Destroy;
+      begin
+        FSectionsUsed.Free;
+        FSectionsInDGROUP.Free;
+        inherited Destroy;
       end;
 
 
