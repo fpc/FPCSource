@@ -4431,7 +4431,8 @@ implementation
       var
         para: tcallparanode;
         tempnode: ttempcreatenode;
-        n: tnode;
+        n,
+        realtarget: tnode;
         paracomplexity: longint;
         pushconstaddr: boolean;
         trytotakeaddress : Boolean;
@@ -4474,6 +4475,7 @@ implementation
                 paracomplexity:=node_complexity(para.left);
                 if para.parasym.varspez=vs_const then
                   pushconstaddr:=paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption);
+                realtarget:=actualtargetnode(@para.left)^;
 
                 { if the parameter is "complex", try to take the address
                   of the parameter expression, store it in a temp and replace
@@ -4482,11 +4484,16 @@ implementation
                 }
                 trytotakeaddress:=
                   { don't create a temp. for function results }
-                  not(nf_is_funcret in para.left.flags) and
+                  not(nf_is_funcret in realtarget.flags) and
                   { this makes only sense if the parameter is reasonable complex else inserting directly is a better solution }
-                  ((paracomplexity>2) or
-                  { don't create a temp. for the often seen case that p^ is passed to a var parameter }
-                  ((paracomplexity>1) and not((para.left.nodetype=derefn) and (para.parasym.varspez = vs_var))));
+                  (
+                   (paracomplexity>2) or
+                   { don't create a temp. for the often seen case that p^ is passed to a var parameter }
+                   ((paracomplexity>1) and
+                    not((realtarget.nodetype=derefn) and (para.parasym.varspez in [vs_var,vs_out,vs_constref])) and
+                    not((realtarget.nodetype=loadn) and tloadnode(realtarget).is_addr_param_load)
+                   )
+                  );
 
                 { check if we have to create a temp, assign the parameter's
                   contents to that temp and then substitute the parameter
