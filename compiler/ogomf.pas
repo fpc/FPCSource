@@ -509,32 +509,7 @@ implementation
 
     function TOmfObjData.sectiontype2align(atype: TAsmSectiontype): shortint;
       begin
-        case atype of
-          sec_stabstr:
-            result:=1;
-          sec_code:
-            result:=1;
-          sec_data,
-          sec_rodata,
-          sec_rodata_norel,
-          sec_bss:
-            result:=2;
-          { For idata (at least idata2) it must be 4 bytes, because
-            an entry is always (also in win64) 20 bytes and aligning
-            on 8 bytes will insert 4 bytes between the entries resulting
-            in a corrupt idata section.
-            Same story with .pdata, it has 4-byte elements which should
-            be packed without gaps. }
-          sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_pdata:
-            result:=4;
-          sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev:
-            result:=4;
-          sec_stack,
-          sec_heap:
-            result:=16;
-          else
-            result:=1;
-        end;
+        Result:=omf_sectiontype2align(atype);
       end;
 
     function TOmfObjData.sectiontype2class(atype: TAsmSectiontype): string;
