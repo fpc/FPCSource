@@ -32,7 +32,7 @@ interface
 
     type
 
-      { T386NasmAssembler }
+      { TX86NasmAssembler }
 
       TX86NasmAssembler = class(texternalassembler)
       private
