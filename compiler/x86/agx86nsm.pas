@@ -563,9 +563,9 @@ interface
                   AsmWrite(' use16');
                 AsmWrite(' class='+omf_segclass[atype]+
                   ' align='+tostr(omf_sectiontype2align(atype)));
-                FSectionsUsed.Add(secname,nil);
+                FSectionsUsed.Add(secname,Pointer(self));
                 if section_belongs_to_dgroup(atype) then
-                  FSectionsInDGROUP.Add(secname,nil);
+                  FSectionsInDGROUP.Add(secname,Pointer(self));
               end;
           end
         else if secnames[atype]='.text' then
