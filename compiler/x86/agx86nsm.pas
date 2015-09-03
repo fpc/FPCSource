@@ -548,6 +548,8 @@ interface
           begin
             if secnames[atype]='.text' then
               secname:=CodeSectionName(aname)
+            else if omf_segclass(atype)='FAR_DATA' then
+              secname:=current_module.modulename^ + '_DATA'
             else
               secname:=omf_secnames[atype];
             AsmWrite(secname);

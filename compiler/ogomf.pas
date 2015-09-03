@@ -523,6 +523,8 @@ implementation
           Result:=aname
         else if omf_secnames[atype]=omf_secnames[sec_code] then
           Result:=CodeSectionName(aname)
+        else if omf_segclass(atype)='FAR_DATA' then
+          Result:=current_module.modulename^ + '_DATA'
         else
           Result:=omf_secnames[atype];
       end;
