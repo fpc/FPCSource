@@ -382,6 +382,8 @@ const
 
   function NormalizeNFD(const AString : UnicodeString) : UnicodeString;inline;overload;
   function NormalizeNFD(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;overload;
+  function DecomposeCanonical(const AString : UnicodeString) : UnicodeString;inline;overload;
+  function DecomposeCanonical(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;overload;
   procedure CanonicalOrder(var AString : UnicodeString);inline;overload;
   procedure CanonicalOrder(AStr : PUnicodeChar; const ALength : SizeInt);overload;
 
@@ -1423,13 +1425,12 @@ begin
   end;
 end;
 
-//Canonical Decomposition
-function NormalizeNFD(const AString : UnicodeString) : UnicodeString;
+function DecomposeCanonical(const AString : UnicodeString) : UnicodeString;
 begin
-  Result := NormalizeNFD(@AString[1],Length(AString));
+  Result := DecomposeCanonical(@AString[1],Length(AString));
 end;
 
-function NormalizeNFD(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;
+function DecomposeCanonical(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;
 const MAX_EXPAND = 3;
 var
   i, c, kc, k : SizeInt;
@@ -1507,6 +1508,20 @@ begin
     SetLength(Result,i);
     CanonicalOrder(@Result[1],Length(Result));
   end;
+end;
+
+function NormalizeNFD(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;
+begin
+  if (ALength < 1) then
+    exit('');
+  Result := DecomposeCanonical(AStr,ALength);
+  CanonicalOrder(@Result[1],Length(Result));
+end;
+
+//Canonical Decomposition + _ordering_
+function NormalizeNFD(const AString : UnicodeString) : UnicodeString;
+begin
+  Result := NormalizeNFD(@AString[1],Length(AString));
 end;
 
 { TUCA_PropItemContextTreeNodeRec }
