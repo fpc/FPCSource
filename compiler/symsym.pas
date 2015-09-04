@@ -484,7 +484,8 @@ interface
     function internal_static_field_name(const fieldname: TSymStr): TSymStr;
     function get_high_value_sym(vs: tparavarsym):tsym; { marking it as inline causes IE 200311075 during loading from ppu file }
 
-    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
+    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);inline;
+    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring;filepos:tfileposinfo);
 
 implementation
 
@@ -523,21 +524,27 @@ implementation
 
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
       begin
+        check_hints(srsym,symoptions,deprecatedmsg,current_filepos);
+      end;
+
+
+    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring;filepos:tfileposinfo);
+      begin
         if not assigned(srsym) then
           internalerror(200602051);
         if sp_hint_deprecated in symoptions then
           if (sp_has_deprecated_msg in symoptions) and (deprecatedmsg <> nil) then
-            Message2(sym_w_deprecated_symbol_with_msg,srsym.realname,deprecatedmsg^)
+            MessagePos2(filepos,sym_w_deprecated_symbol_with_msg,srsym.realname,deprecatedmsg^)
           else
-            Message1(sym_w_deprecated_symbol,srsym.realname);
+            MessagePos1(filepos,sym_w_deprecated_symbol,srsym.realname);
         if sp_hint_experimental in symoptions then
-          Message1(sym_w_experimental_symbol,srsym.realname);
+          MessagePos1(filepos,sym_w_experimental_symbol,srsym.realname);
         if sp_hint_platform in symoptions then
-          Message1(sym_w_non_portable_symbol,srsym.realname);
+          MessagePos1(filepos,sym_w_non_portable_symbol,srsym.realname);
         if sp_hint_library in symoptions then
-          Message1(sym_w_library_symbol,srsym.realname);
+          MessagePos1(filepos,sym_w_library_symbol,srsym.realname);
         if sp_hint_unimplemented in symoptions then
-          Message1(sym_w_non_implemented_symbol,srsym.realname);
+          MessagePos1(filepos,sym_w_non_implemented_symbol,srsym.realname);
       end;
 
 {****************************************************************************
