@@ -1413,7 +1413,8 @@ Implementation
                end;
              ait_datablock :
                begin
-                 if (oso_data in ObjData.CurrObjSec.secoptions) then
+                 if (oso_data in ObjData.CurrObjSec.secoptions) and
+                    not (oso_sparse_data in ObjData.CurrObjSec.secoptions) then
                    Message(asmw_e_alloc_data_only_in_bss);
 {$ifdef USE_COMM_IN_BSS}
                  if writingpackages and

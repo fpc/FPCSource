@@ -157,7 +157,9 @@ interface
        { Must be cloned when writing separate debug file }
        oso_debug_copy,
        { Has relocations with explicit addends (ELF-specific) }
-       oso_rela_relocs
+       oso_rela_relocs,
+       { Supports bss-like allocation of data, even though it is written in file (i.e. also has oso_Data) }
+       oso_sparse_data
      );
 
      TObjSectionOptions = set of TObjSectionOption;
@@ -968,7 +970,10 @@ implementation
         if (qword(size)+l)>high(size) then
           SectionTooLargeError;
 {$endif}
-        inc(size,l);
+        if oso_sparse_data in SecOptions then
+          WriteZeros(l)
+        else
+          inc(size,l);
       end;
 
 
@@ -1366,6 +1371,8 @@ implementation
             Size:=0;
             Datapos:=0;
             mempos:=0;
+            if assigned(Data) then
+              Data.reset;
           end;
       end;
 
