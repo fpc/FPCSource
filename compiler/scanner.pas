@@ -172,6 +172,7 @@ interface
           procedure elseifpreprocstack(compile_time_predicate:tcompile_time_predicate);
           procedure elsepreprocstack;
           procedure popreplaystack;
+          function replay_stack_depth:longint;
           procedure handleconditional(p:tdirectiveitem);
           procedure handledirectives;
           procedure linebreak;
@@ -3768,6 +3769,20 @@ type
            replaystack.free;
            replaystack:=hp;
          end;
+      end;
+
+
+    function tscannerfile.replay_stack_depth:longint;
+      var
+        tmp: treplaystack;
+      begin
+        result:=0;
+        tmp:=replaystack;
+        while assigned(tmp) do
+          begin
+            inc(result);
+            tmp:=tmp.next;
+          end;
       end;
 
     procedure tscannerfile.handleconditional(p:tdirectiveitem);
