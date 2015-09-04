@@ -1101,13 +1101,11 @@ implementation
       end;
 
 
-    function parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
+    procedure parse_proc_dec_finish(pd:tprocdef;isclassmethod:boolean);
       var
-        pd: tprocdef;
         locationstr: string;
         i: integer;
         found: boolean;
-        old_block_type: tblock_type;
 
         procedure read_returndef(pd: tprocdef);
           var
@@ -1164,89 +1162,60 @@ implementation
 
       begin
         locationstr:='';
-        pd:=nil;
-        case token of
-          _FUNCTION :
+        case pd.proctypeoption of
+          potype_procedure:
             begin
-              consume(_FUNCTION);
-              if parse_proc_head(astruct,potype_function,pd) then
-                begin
-                  { pd=nil when it is a interface mapping }
-                  if assigned(pd) then
-                    begin
-                      if try_to_consume(_COLON) then
-                       begin
-                         read_returndef(pd);
-                         if (target_info.system in [system_m68k_amiga]) then
-                          begin
-                           if (idtoken=_LOCATION) then
-                            begin
-                             if po_explicitparaloc in pd.procoptions then
-                              begin
-                               consume(_LOCATION);
-                               locationstr:=cstringpattern;
-                               consume(_CSTRING);
-                              end
-                             else
-                              { I guess this needs a new message... (KB) }
-                              Message(parser_e_paraloc_all_paras);
-                            end
-                           else
-                            begin
-                             if po_explicitparaloc in pd.procoptions then
-                              { assign default locationstr, if none specified }
-                              { and we've arguments with explicit paraloc }
-                              locationstr:='D0';
-                            end;
-                          end;
-
-                       end
-                      else
-                       begin
-                          if (
-                              parse_only and
-                              not(is_interface(pd.struct))
-                             ) or
-                             (m_repeat_forward in current_settings.modeswitches) then
-                          begin
-                            consume(_COLON);
-                            consume_all_until(_SEMICOLON);
-                          end;
-                       end;
-                      if isclassmethod then
-                       include(pd.procoptions,po_classmethod);
-                    end;
-                end
-              else
-                begin
-                  { recover }
-                  consume(_COLON);
-                  consume_all_until(_SEMICOLON);
-                end;
-            end;
-
-          _PROCEDURE :
-            begin
-              consume(_PROCEDURE);
-              if parse_proc_head(astruct,potype_procedure,pd) then
-                begin
-                  { pd=nil when it is an interface mapping }
-                  if assigned(pd) then
-                    begin
-                      pd.returndef:=voidtype;
-                      if isclassmethod then
-                        include(pd.procoptions,po_classmethod);
-                    end;
-                end;
-            end;
-
-          _CONSTRUCTOR :
-            begin
-              consume(_CONSTRUCTOR);
+              pd.returndef:=voidtype;
               if isclassmethod then
-                parse_proc_head(astruct,potype_class_constructor,pd)
+                include(pd.procoptions,po_classmethod);
+            end;
+          potype_function:
+            begin
+              if try_to_consume(_COLON) then
+               begin
+                 read_returndef(pd);
+                 if (target_info.system in [system_m68k_amiga]) then
+                  begin
+                   if (idtoken=_LOCATION) then
+                    begin
+                     if po_explicitparaloc in pd.procoptions then
+                      begin
+                       consume(_LOCATION);
+                       locationstr:=cstringpattern;
+                       consume(_CSTRING);
+                      end
+                     else
+                      { I guess this needs a new message... (KB) }
+                      Message(parser_e_paraloc_all_paras);
+                    end
+                   else
+                    begin
+                     if po_explicitparaloc in pd.procoptions then
+                      { assign default locationstr, if none specified }
+                      { and we've arguments with explicit paraloc }
+                      locationstr:='D0';
+                    end;
+                  end;
+
+               end
               else
-                parse_proc_head(astruct,potype_constructor,pd);
+               begin
+                  if (
+                      parse_only and
+                      not(is_interface(pd.struct))
+                     ) or
+                     (m_repeat_forward in current_settings.modeswitches) then
+                  begin
+                    consume(_COLON);
+                    consume_all_until(_SEMICOLON);
+                  end;
+               end;
+              if isclassmethod then
+               include(pd.procoptions,po_classmethod);
+            end;
+          potype_constructor,
+          potype_class_constructor:
+            begin
               if not isclassmethod and
                  assigned(pd) and
                  assigned(pd.struct) then
@@ -1270,93 +1239,71 @@ implementation
               else
                 pd.returndef:=voidtype;
             end;
-
-          _DESTRUCTOR :
+          potype_class_destructor,
+          potype_destructor:
             begin
-              consume(_DESTRUCTOR);
-              if isclassmethod then
-                parse_proc_head(astruct,potype_class_destructor,pd)
-              else
-                parse_proc_head(astruct,potype_destructor,pd);
               if assigned(pd) then
                 pd.returndef:=voidtype;
             end;
-        else
-          if (token=_OPERATOR) or
-             (isclassmethod and (idtoken=_OPERATOR)) then
+          potype_operator:
             begin
-              { we need to set the block type to bt_body, so that operator names
-                like ">", "=>" or "<>" are parsed correctly instead of e.g.
-                _LSHARPBRACKET and _RSHARPBRACKET for "<>" }
-              old_block_type:=block_type;
-              block_type:=bt_body;
-              consume(_OPERATOR);
-              parse_proc_head(astruct,potype_operator,pd);
-              block_type:=old_block_type;
-              if assigned(pd) then
+              { operators always need to be searched in all units (that
+                contain operators) }
+              include(pd.procoptions,po_overload);
+              pd.procsym.owner.includeoption(sto_has_operator);
+              if pd.parast.symtablelevel>normal_function_level then
+                Message(parser_e_no_local_operator);
+              if isclassmethod then
+                include(pd.procoptions,po_classmethod);
+              if token<>_ID then
                 begin
-                  { operators always need to be searched in all units (that
-                    contain operators) }
-                  include(pd.procoptions,po_overload);
-                  pd.procsym.owner.includeoption(sto_has_operator);
-                  if pd.parast.symtablelevel>normal_function_level then
-                    Message(parser_e_no_local_operator);
-                  if isclassmethod then
-                    include(pd.procoptions,po_classmethod);
-                  if token<>_ID then
-                    begin
-                       if not(m_result in current_settings.modeswitches) then
-                         consume(_ID);
-                    end
-                  else
-                    begin
-                      pd.resultname:=stringdup(orgpattern);
-                      consume(_ID);
-                    end;
-                  if not try_to_consume(_COLON) then
-                    begin
-                      consume(_COLON);
-                      pd.returndef:=generrordef;
-                      consume_all_until(_SEMICOLON);
-                    end
-                  else
-                   begin
-                     read_returndef(pd);
-                     { check that class operators have either return type of structure or }
-                     { at least one argument of that type                                 }
-                     if (po_classmethod in pd.procoptions) and
-                        (pd.returndef <> pd.struct) then
-                       begin
-                         found:=false;
-                         for i := 0 to pd.parast.SymList.Count - 1 do
-                           if tparavarsym(pd.parast.SymList[i]).vardef=pd.struct then
-                             begin
-                               found:=true;
-                               break;
-                             end;
-                         if not found then
-                           if assigned(pd.struct) then
-                             Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName)
-                           else
-                             MessagePos(pd.fileinfo,type_e_type_id_expected);
-                       end;
-                     if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
-                        equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
-                        (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
-                       message(parser_e_no_such_assignment)
-                     else if not isoperatoracceptable(pd,optoken) then
-                       Message(parser_e_overload_impossible);
-                   end;
+                   if not(m_result in current_settings.modeswitches) then
+                     consume(_ID);
                 end
               else
                 begin
-                  { recover }
-                  try_to_consume(_ID);
-                  consume(_COLON);
-                  consume_all_until(_SEMICOLON);
+                  pd.resultname:=stringdup(orgpattern);
+                  consume(_ID);
                 end;
+              if not try_to_consume(_COLON) then
+                begin
+                  consume(_COLON);
+                  pd.returndef:=generrordef;
+                  consume_all_until(_SEMICOLON);
+                end
+              else
+               begin
+                 read_returndef(pd);
+                 { check that class operators have either return type of structure or }
+                 { at least one argument of that type                                 }
+                 if (po_classmethod in pd.procoptions) and
+                    (pd.returndef <> pd.struct) then
+                   begin
+                     found:=false;
+                     for i := 0 to pd.parast.SymList.Count - 1 do
+                       if tparavarsym(pd.parast.SymList[i]).vardef=pd.struct then
+                         begin
+                           found:=true;
+                           break;
+                         end;
+                     if not found then
+                       if assigned(pd.struct) then
+                         Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName)
+                       else
+                         MessagePos(pd.fileinfo,type_e_type_id_expected);
+                   end;
+                 if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
+                    equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
+                    (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
+                   message(parser_e_no_such_assignment)
+                 else if not isoperatoracceptable(pd,optoken) then
+                   Message(parser_e_overload_impossible);
+               end;
             end;
+          else
+            internalerror(2015052202);
         end;
+
         { file types can't be function results }
         if assigned(pd) and
            (pd.returndef.typ=filedef) then
@@ -1371,7 +1318,6 @@ implementation
               end;
             consume(_SEMICOLON);
           end;
-        result:=pd;
 
         if locationstr<>'' then
          begin
@@ -1379,6 +1325,120 @@ implementation
              { I guess this needs a new message... (KB) }
              message(parser_e_illegal_explicit_paraloc);
          end;
+      end;
+
+    function parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
+      var
+        pd : tprocdef;
+        old_block_type : tblock_type;
+        recover : boolean;
+
+        procedure finish_intf_mapping;
+          begin
+            if token=_COLON then
+              begin
+                message(parser_e_field_not_allowed_here);
+                consume_all_until(_SEMICOLON);
+              end;
+            consume(_SEMICOLON);
+          end;
+
+      begin
+        pd:=nil;
+        recover:=false;
+        case token of
+          _FUNCTION :
+            begin
+              consume(_FUNCTION);
+              if parse_proc_head(astruct,potype_function,pd) then
+                begin
+                  { pd=nil when it is a interface mapping }
+                  if assigned(pd) then
+                    parse_proc_dec_finish(pd,isclassmethod)
+                  else
+                    finish_intf_mapping;
+                end
+              else
+                begin
+                  { recover }
+                  consume(_COLON);
+                  consume_all_until(_SEMICOLON);
+                  recover:=true;
+                end;
+            end;
+
+          _PROCEDURE :
+            begin
+              consume(_PROCEDURE);
+              if parse_proc_head(astruct,potype_procedure,pd) then
+                begin
+                  { pd=nil when it is an interface mapping }
+                  if assigned(pd) then
+                    parse_proc_dec_finish(pd,isclassmethod)
+                  else
+                    finish_intf_mapping;
+                end
+              else
+                recover:=true;
+            end;
+
+          _CONSTRUCTOR :
+            begin
+              consume(_CONSTRUCTOR);
+              if isclassmethod then
+                recover:=not parse_proc_head(astruct,potype_class_constructor,pd)
+              else
+                recover:=not parse_proc_head(astruct,potype_constructor,pd);
+              if not recover then
+                parse_proc_dec_finish(pd,isclassmethod);
+            end;
+
+          _DESTRUCTOR :
+            begin
+              consume(_DESTRUCTOR);
+              if isclassmethod then
+                recover:=not parse_proc_head(astruct,potype_class_destructor,pd)
+              else
+                recover:=not parse_proc_head(astruct,potype_destructor,pd);
+              if not recover then
+                parse_proc_dec_finish(pd,isclassmethod);
+            end;
+        else
+          if (token=_OPERATOR) or
+             (isclassmethod and (idtoken=_OPERATOR)) then
+            begin
+              { we need to set the block type to bt_body, so that operator names
+                like ">", "=>" or "<>" are parsed correctly instead of e.g.
+                _LSHARPBRACKET and _RSHARPBRACKET for "<>" }
+              old_block_type:=block_type;
+              block_type:=bt_body;
+              consume(_OPERATOR);
+              parse_proc_head(astruct,potype_operator,pd);
+              block_type:=old_block_type;
+              if assigned(pd) then
+                parse_proc_dec_finish(pd,isclassmethod)
+              else
+                begin
+                  { recover }
+                  try_to_consume(_ID);
+                  consume(_COLON);
+                  consume_all_until(_SEMICOLON);
+                  recover:=true;
+                end;
+            end;
+        end;
+
+        if recover and not(check_proc_directive(false)) then
+          begin
+            if (token=_COLON) and not(Assigned(pd) and is_void(pd.returndef)) then
+              begin
+                message(parser_e_field_not_allowed_here);
+                consume_all_until(_SEMICOLON);
+              end;
+            consume(_SEMICOLON);
+          end;
+
+        result:=pd;
       end;
 
 
