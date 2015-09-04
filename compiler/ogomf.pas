@@ -105,6 +105,7 @@ interface
         function sectiontype2class(atype:TAsmSectiontype):string;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         function createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;override;
+        function reffardatasection:TObjSection;
         procedure writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
       end;
 
@@ -551,6 +552,21 @@ implementation
           TOmfObjSection(Result).FPrimaryGroup:='DGROUP';
       end;
 
+    function TOmfObjData.reffardatasection: TObjSection;
+      var
+        secname: string;
+      begin
+        secname:=current_module.modulename^ + '_DATA';
+
+        result:=TObjSection(ObjSectionList.Find(secname));
+        if not assigned(result) then
+          begin
+            result:=CObjSection.create(ObjSectionList,secname,2,[oso_Data,oso_load,oso_write]);
+            result.ObjData:=self;
+            TOmfObjSection(Result).FClassName:='FAR_DATA';
+          end;
+      end;
+
     procedure TOmfObjData.writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
       var
         objreloc: TOmfRelocation;
@@ -569,7 +585,15 @@ implementation
         if CurrObjSec=nil then
           internalerror(200403072);
         objreloc:=nil;
-        if assigned(p) then
+        if Reloctype in [RELOC_FARDATASEG,RELOC_FARDATASEGREL] then
+          begin
+            if Reloctype=RELOC_FARDATASEG then
+              objreloc:=TOmfRelocation.CreateSection(CurrObjSec.Size,reffardatasection,RELOC_SEG)
+            else
+              objreloc:=TOmfRelocation.CreateSection(CurrObjSec.Size,reffardatasection,RELOC_SEGREL);
+            CurrObjSec.ObjRelocations.Add(objreloc);
+          end
+        else if assigned(p) then
           begin
             { real address of the symbol }
             symaddr:=p.address;

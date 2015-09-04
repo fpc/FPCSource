@@ -2563,6 +2563,12 @@ implementation
                       currabsreloc:=RELOC_DGROUP;
                       currabsreloc32:=RELOC_DGROUP;
                     end
+                  else if oper[opidx]^.ref^.refaddr=addr_fardataseg then
+                    begin
+                      currrelreloc:=RELOC_FARDATASEGREL;
+                      currabsreloc:=RELOC_FARDATASEG;
+                      currabsreloc32:=RELOC_FARDATASEG;
+                    end
                   else
 {$endif i8086}
 {$ifdef i386}
@@ -2914,7 +2920,7 @@ implementation
 {$endif i8086}
                 if assigned(currsym)
 {$ifdef i8086}
-                   or (currabsreloc=RELOC_DGROUP)
+                   or (currabsreloc in [RELOC_DGROUP,RELOC_FARDATASEG])
 {$endif i8086}
                 then
                  objdata_writereloc(currval,2,currsym,currabsreloc)

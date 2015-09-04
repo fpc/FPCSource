@@ -72,6 +72,8 @@ interface
          RELOC_SEGREL,
          RELOC_DGROUP,
          RELOC_DGROUPREL,
+         RELOC_FARDATASEG,
+         RELOC_FARDATASEGREL,
 {$endif i8086}
 {$ifdef arm}
          RELOC_RELATIVE_24,
