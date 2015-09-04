@@ -28,22 +28,28 @@ interface
     uses
       globtype,
       symsym,symtype,
-      node,ncgld;
+      node,ncgld, aasmbase;
 
     type
+
+      { ti8086loadnode }
+
       ti8086loadnode = class(tcgloadnode)
+        protected
          procedure generate_nested_access(vs: tsym); override;
          procedure generate_absaddr_access(vs: tabsolutevarsym); override;
+        public
+         procedure pass_generate_code;override;
       end;
 
 
 implementation
 
     uses
-      globals,aasmdata,
-      symcpu,
+      globals,aasmdata,defutil,
+      symconst,symcpu,
       nld,
-      cgbase,cgobj,
+      cgbase,cgobj,cgutils,
       cpubase,cpuinfo;
 
 {*****************************************************************************
@@ -83,6 +89,79 @@ implementation
             cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,aint(tcpuabsolutevarsym(symtableentry).addrsegment),location.reference.segment);
           end;
         inherited;
+      end;
+
+    procedure ti8086loadnode.pass_generate_code;
+      var
+        gvs: tstaticvarsym;
+        segref: treference;
+        refsym: TAsmSymbol;
+        segreg: TRegister;
+        newsize: TCgSize;
+      begin
+        if current_settings.x86memorymodel=mm_huge then
+          begin
+            case symtableentry.typ of
+              staticvarsym:
+                begin
+                  gvs:=tstaticvarsym(symtableentry);
+                  if (vo_is_dll_var in gvs.varoptions) then
+                  { DLL variable }
+                    begin
+                      inherited pass_generate_code;
+                      exit;
+                    end
+                  { Thread variable }
+                  else if (vo_is_thread_var in gvs.varoptions) then
+                    begin
+                      inherited pass_generate_code;
+                      exit;
+                    end
+                  { Normal (or external) variable }
+                  else
+                    begin
+                      if gvs.Owner.iscurrentunit then
+                        begin
+                          inherited pass_generate_code;
+                          exit;
+                        end;
+
+                      { we don't know the size of all arrays }
+                      newsize:=def_cgsize(resultdef);
+                      { alignment is overridden per case below }
+                      location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment);
+
+                      if gvs.localloc.loc=LOC_INVALID then
+                        begin
+                          if not(vo_is_weak_external in gvs.varoptions) then
+                            refsym:=current_asmdata.RefAsmSymbol(gvs.mangledname)
+                          else
+                            refsym:=current_asmdata.WeakRefAsmSymbol(gvs.mangledname);
+
+                          segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+
+                          reference_reset_symbol(segref,refsym,0,0);
+                          segref.refaddr:=addr_seg;
+                          cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
+
+                          reference_reset_symbol(location.reference,refsym,0,location.reference.alignment);
+                          location.reference.segment:=segreg;
+                        end
+                      else
+                        location:=gvs.localloc;
+                    end;
+
+                  { make const a LOC_CREFERENCE }
+                  if (gvs.varspez=vs_const) and
+                     (location.loc=LOC_REFERENCE) then
+                    location.loc:=LOC_CREFERENCE;
+                end;
+              else
+                inherited pass_generate_code;
+            end;
+          end
+        else
+          inherited pass_generate_code;
       end;
 
 
