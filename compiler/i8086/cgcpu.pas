@@ -1762,6 +1762,9 @@ unit cgcpu;
         { remove stackframe }
         if not nostackframe then
           begin
+            if (current_settings.x86memorymodel=mm_huge) and
+                not (po_interrupt in current_procinfo.procdef.procoptions) then
+              list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 stacksize:=current_procinfo.calc_stackframe_size;
@@ -1776,12 +1779,7 @@ unit cgcpu;
                   cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
               end
             else
-              begin
-                if (current_settings.x86memorymodel=mm_huge) and
-                    not (po_interrupt in current_procinfo.procdef.procoptions) then
-                  list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
-                generate_leave(list);
-              end;
+              generate_leave(list);
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 
