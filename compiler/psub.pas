@@ -113,7 +113,7 @@ implementation
 {$endif}
        { parser }
        scanner,gendef,
-       pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
+       pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,pgentype,
        { codegen }
        tgobj,cgbase,cgobj,cgutils,hlcgobj,hlcgcpu,dbgbase,
 {$ifdef llvm}

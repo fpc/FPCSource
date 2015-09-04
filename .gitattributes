@@ -524,6 +524,7 @@ compiler/pdecsub.pas svneol=native#text/plain
 compiler/pdecvar.pas svneol=native#text/plain
 compiler/pexports.pas svneol=native#text/plain
 compiler/pexpr.pas svneol=native#text/plain
+compiler/pgentype.pas svneol=native#text/pascal
 compiler/pgenutil.pas svneol=native#text/pascal
 compiler/pinline.pas svneol=native#text/plain
 compiler/pmodules.pas svneol=native#text/plain
