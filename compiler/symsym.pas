@@ -43,15 +43,18 @@ interface
        { this class is the base for all symbol objects }
        tstoredsym = class(tsym)
        private
+          registered : boolean;
           procedure writeentry(ppufile: tcompilerppufile; ibnr: byte);
        protected
           procedure ppuwrite_platform(ppufile: tcompilerppufile);virtual;
           procedure ppuload_platform(ppufile: tcompilerppufile);virtual;
        public
-          constructor create(st:tsymtyp;const n : string);
+          constructor create(st:tsymtyp;const n : string;doregister:boolean);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
+          procedure register_sym;
+          property is_registered:boolean read registered;
        end;
 
        tlabelsym = class(tstoredsym)
@@ -541,15 +544,11 @@ implementation
                           TSYM (base for all symtypes)
 ****************************************************************************}
 
-    constructor tstoredsym.create(st:tsymtyp;const n : string);
+    constructor tstoredsym.create(st:tsymtyp;const n : string;doregister:boolean);
       begin
          inherited create(st,n);
-         { Register in current_module }
-         if assigned(current_module) then
-           begin
-             current_module.symlist.Add(self);
-             SymId:=current_module.symlist.Count-1;
-           end;
+         if doregister then
+           register_sym;
       end;
 
 
@@ -558,6 +557,7 @@ implementation
          SymId:=ppufile.getlongint;
          inherited Create(st,ppufile.getstring);
          { Register symbol }
+         registered:=true;
          current_module.symlist[SymId]:=self;
          ppufile.getposinfo(fileinfo);
          visibility:=tvisibility(ppufile.getbyte);
@@ -617,13 +617,26 @@ implementation
       end;
 
 
+    procedure tstoredsym.register_sym;
+      begin
+        if registered then
+          exit;
+        { Register in current_module }
+        if assigned(current_module) then
+          begin
+            current_module.symlist.Add(self);
+            SymId:=current_module.symlist.Count-1;
+          end;
+        registered:=true;
+      end;
+
 {****************************************************************************
                                  TLABELSYM
 ****************************************************************************}
 
     constructor tlabelsym.create(const n : string);
       begin
-         inherited create(labelsym,n);
+         inherited create(labelsym,n,true);
          used:=false;
          defined:=false;
          nonlocal:=false;
@@ -672,7 +685,7 @@ implementation
 
     constructor tunitsym.create(const n : string;amodule : tobject);
       begin
-         inherited create(unitsym,n);
+         inherited create(unitsym,n,true);
          module:=amodule;
       end;
 
@@ -701,7 +714,7 @@ implementation
 
     constructor tprogramparasym.create(const n : string; i : dword);
       begin
-         inherited create(programparasym,n);
+         inherited create(programparasym,n,true);
          isoindex:=i;
       end;
 
@@ -729,7 +742,7 @@ implementation
 
     constructor tnamespacesym.create(const n : string);
       begin
-         inherited create(namespacesym,n);
+         inherited create(namespacesym,n,true);
          unitsym:=nil;
       end;
 
@@ -770,7 +783,7 @@ implementation
       begin
          if not(ts_lowercase_proc_start in current_settings.targetswitches) or
             (n='') then
-           inherited create(procsym,n)
+           inherited create(procsym,n,true)
          else
            begin
              { YToX -> yToX
@@ -789,7 +802,7 @@ implementation
                    end;
                  inc(i);
                end;
-             inherited create(procsym,lower(copy(n,1,i-1))+copy(n,i,length(n)));
+             inherited create(procsym,lower(copy(n,1,i-1))+copy(n,i,length(n)),true);
            end;
          FProcdefList:=TFPObjectList.Create(false);
          FProcdefderefList:=nil;
@@ -1297,7 +1310,7 @@ implementation
       var
         pap : tpropaccesslisttypes;
       begin
-         inherited create(propertysym,n);
+         inherited create(propertysym,n,true);
          propoptions:=[];
          index:=0;
          default:=0;
@@ -1556,7 +1569,7 @@ implementation
 
     constructor tabstractvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(st,n);
+         inherited create(st,n,true);
          vardef:=def;
          varspez:=vsp;
          varstate:=vs_declared;
@@ -2323,7 +2336,7 @@ implementation
 
     constructor tconstsym.create_ord(const n : string;t : tconsttyp;v : tconstexprint;def:tdef);
       begin
-         inherited create(constsym,n);
+         inherited create(constsym,n,true);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueord:=v;
@@ -2333,7 +2346,7 @@ implementation
 
     constructor tconstsym.create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;def:tdef);
       begin
-         inherited create(constsym,n);
+         inherited create(constsym,n,true);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueordptr:=v;
@@ -2343,7 +2356,7 @@ implementation
 
     constructor tconstsym.create_ptr(const n : string;t : tconsttyp;v : pointer;def:tdef);
       begin
-         inherited create(constsym,n);
+         inherited create(constsym,n,true);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueptr:=v;
@@ -2353,7 +2366,7 @@ implementation
 
     constructor tconstsym.create_string(const n : string;t : tconsttyp;str:pchar;l:longint;def: tdef);
       begin
-         inherited create(constsym,n);
+         inherited create(constsym,n,true);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueptr:=str;
@@ -2367,7 +2380,7 @@ implementation
 
     constructor tconstsym.create_wstring(const n : string;t : tconsttyp;pw:pcompilerwidestring);
       begin
-         inherited create(constsym,n);
+         inherited create(constsym,n,true);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          pcompilerwidestring(value.valueptr):=pw;
@@ -2538,7 +2551,7 @@ implementation
 
     constructor tenumsym.create(const n : string;def : tenumdef;v : longint);
       begin
-         inherited create(enumsym,n);
+         inherited create(enumsym,n,true);
          definition:=def;
          value:=v;
       end;
@@ -2581,7 +2594,7 @@ implementation
     constructor ttypesym.create(const n : string;def:tdef);
 
       begin
-        inherited create(typesym,n);
+        inherited create(typesym,n,true);
         typedef:=def;
         { register the typesym for the definition }
         if assigned(typedef) and
@@ -2641,7 +2654,7 @@ implementation
 
     constructor tsyssym.create(const n : string;l : longint);
       begin
-         inherited create(syssym,n);
+         inherited create(syssym,n,true);
          number:=l;
       end;
 
@@ -2671,7 +2684,7 @@ implementation
 
     constructor tmacro.create(const n : string);
       begin
-         inherited create(macrosym,n);
+         inherited create(macrosym,n,true);
          owner:=nil;
          defined:=false;
          is_used:=false;
