@@ -2893,6 +2893,13 @@ unit cgx86;
                     list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
                   end;
               end
+            else if current_settings.x86memorymodel=mm_huge then
+              begin
+                reference_reset(fardataseg,0);
+                fardataseg.refaddr:=addr_fardataseg;
+                list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,fardataseg,NR_AX));
+                list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+              end
             else
               begin
                 reference_reset(dgroup,0);
@@ -2977,7 +2984,8 @@ unit cgx86;
               end;
 
 {$ifdef i8086}
-              if current_settings.x86memorymodel=mm_huge then
+              if (current_settings.x86memorymodel=mm_huge) and
+                 not (po_interrupt in current_procinfo.procdef.procoptions) then
                 begin
                   list.concat(Taicpu.op_reg(A_PUSH,S_W,NR_DS));
                   reference_reset(fardataseg,0);

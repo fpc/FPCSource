@@ -1777,7 +1777,8 @@ unit cgcpu;
               end
             else
               begin
-                if current_settings.x86memorymodel=mm_huge then
+                if (current_settings.x86memorymodel=mm_huge) and
+                    not (po_interrupt in current_procinfo.procdef.procoptions) then
                   list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
                 generate_leave(list);
               end;
