@@ -192,7 +192,7 @@ implementation
                   { Normal (or external) variable }
                   else
                     begin
-                      if gvs.Owner.iscurrentunit then
+                      if not (vo_is_external in gvs.varoptions) and gvs.Owner.iscurrentunit then
                         begin
                           inherited pass_generate_code;
                           exit;
