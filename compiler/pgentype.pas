@@ -27,7 +27,7 @@ interface
 
 uses
   cclasses,
-  symbase;
+  symtype,symbase;
 
 type
   tspecializationstate = record
@@ -36,8 +36,41 @@ type
     oldgenericdummysyms: tfphashobjectlist;
   end;
 
+  tspecializationcontext=class
+  public
+    genericdeflist : tfpobjectlist;
+    poslist : tfplist;
+    prettyname : ansistring;
+    specializename : ansistring;
+    genname : string;
+    sym : tsym;
+    symtable : tsymtable;
+    constructor create;
+    destructor destroy;override;
+  end;
+
 
 implementation
+
+uses
+  globtype;
+
+constructor tspecializationcontext.create;
+begin
+  genericdeflist:=tfpobjectlist.create(false);
+  poslist:=tfplist.create;
+end;
+
+destructor tspecializationcontext.destroy;
+var
+  i : longint;
+begin
+  genericdeflist.free;
+  for i:=0 to poslist.count-1 do
+    dispose(pfileposinfo(poslist[i]));
+  poslist.free;
+  inherited destroy;
+end;
 
 end.
 
