@@ -68,6 +68,8 @@ interface
           procedure writeentry(ppufile: tcompilerppufile; ibnr: byte);
        protected
           typesymderef  : tderef;
+          { whether this def is already registered in the unit's def list }
+          registered : boolean;
           procedure ppuwrite_platform(ppufile:tcompilerppufile);virtual;
           procedure ppuload_platform(ppufile:tcompilerppufile);virtual;
        public
@@ -86,7 +88,7 @@ interface
           { contains additional data if this def is a generic constraint
             Note: this class is allocated on demand! }
           genconstraintdata : tgenericconstraintdata;
-          constructor create(dt:tdeftyp);
+          constructor create(dt:tdeftyp;doregister:boolean);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
           function getcopy : tstoreddef;virtual;
@@ -118,6 +120,9 @@ interface
           function is_generic:boolean;inline;
           { same as above for specializations }
           function is_specialization:boolean;inline;
+          { registers this def in the unit's deflist; no-op if already registered }
+          procedure register_def;
+          property is_registered: boolean read registered;
        private
           savesize  : asizeuint;
        end;
@@ -1624,9 +1629,7 @@ implementation
       end;
 
 
-    constructor tstoreddef.create(dt:tdeftyp);
-      var
-        insertstack : psymtablestackitem;
+    constructor tstoreddef.create(dt:tdeftyp;doregister:boolean);
       begin
          inherited create(dt);
          savesize := 0;
@@ -1640,25 +1643,9 @@ implementation
            end of an type block }
          if (dt=forwarddef) then
            exit;
-         { Register in current_module }
-         if assigned(current_module) then
-           begin
-             current_module.deflist.Add(self);
-             DefId:=current_module.deflist.Count-1;
-           end;
-         { Register in symtable stack }
-         if assigned(symtablestack) then
-           begin
-             insertstack:=symtablestack.stack;
-             while assigned(insertstack) and
-                   (insertstack^.symtable.symtabletype=withsymtable) do
-               insertstack:=insertstack^.next;
-             if not assigned(insertstack) then
-               internalerror(200602044);
-             if insertstack^.symtable.sealed then
-               internalerror(2015022301);
-             insertstack^.symtable.insertdef(self);
-           end;
+         { register the definition if wanted }
+         if doregister then
+           register_def;
       end;
 
 
@@ -1693,6 +1680,8 @@ implementation
       begin
          inherited create(dt);
          DefId:=ppufile.getlongint;
+         { defs loaded from ppu are always owned }
+         registered:=true;
          current_module.deflist[DefId]:=self;
 {$ifdef EXTDEBUG}
          fillchar(fileinfo,sizeof(fileinfo),0);
@@ -2107,13 +2096,42 @@ implementation
      end;
 
 
+   procedure tstoreddef.register_def;
+     var
+       insertstack : psymtablestackitem;
+     begin
+       if registered then
+         exit;
+       { Register in current_module }
+       if assigned(current_module) then
+         begin
+           current_module.deflist.Add(self);
+           DefId:=current_module.deflist.Count-1;
+         end;
+       { Register in symtable stack }
+       if assigned(symtablestack) then
+         begin
+           insertstack:=symtablestack.stack;
+           while assigned(insertstack) and
+                 (insertstack^.symtable.symtabletype=withsymtable) do
+             insertstack:=insertstack^.next;
+           if not assigned(insertstack) then
+             internalerror(200602044);
+           if insertstack^.symtable.sealed then
+             internalerror(2015022301);
+           insertstack^.symtable.insertdef(self);
+         end;
+       registered:=true;
+     end;
+
+
 {****************************************************************************
                                Tstringdef
 ****************************************************************************}
 
     constructor tstringdef.createshort(l : byte);
       begin
-         inherited create(stringdef);
+         inherited create(stringdef,true);
          stringtype:=st_shortstring;
          encoding:=0;
          len:=l;
@@ -2132,7 +2150,7 @@ implementation
 
     constructor tstringdef.createlong(l : asizeint);
       begin
-         inherited create(stringdef);
+         inherited create(stringdef,true);
          stringtype:=st_longstring;
          encoding:=0;
          len:=l;
@@ -2151,7 +2169,7 @@ implementation
 
     constructor tstringdef.createansi(aencoding:tstringencoding);
       begin
-         inherited create(stringdef);
+         inherited create(stringdef,true);
          stringtype:=st_ansistring;
          encoding:=aencoding;
          len:=-1;
@@ -2170,7 +2188,7 @@ implementation
 
     constructor tstringdef.createwide;
       begin
-         inherited create(stringdef);
+         inherited create(stringdef,true);
          stringtype:=st_widestring;
          if target_info.endian=endian_little then
            encoding:=CP_UTF16LE
@@ -2195,7 +2213,7 @@ implementation
 
     constructor tstringdef.createunicode;
       begin
-         inherited create(stringdef);
+         inherited create(stringdef,true);
          stringtype:=st_unicodestring;
          if target_info.endian=endian_little then
            encoding:=CP_UTF16LE
@@ -2217,7 +2235,7 @@ implementation
 
     function tstringdef.getcopy : tstoreddef;
       begin
-        result:=cstringdef.create(typ);
+        result:=cstringdef.create(typ,true);
         result.typ:=stringdef;
         tstringdef(result).stringtype:=stringtype;
         tstringdef(result).encoding:=encoding;
@@ -2339,7 +2357,7 @@ implementation
 
     constructor tenumdef.create;
       begin
-         inherited create(enumdef);
+         inherited create(enumdef,true);
          minval:=0;
          maxval:=0;
          calcsavesize;
@@ -2351,7 +2369,7 @@ implementation
 
     constructor tenumdef.create_subrange(_basedef:tenumdef;_min,_max:asizeint);
       begin
-         inherited create(enumdef);
+         inherited create(enumdef,true);
          minval:=_min;
          maxval:=_max;
          basedef:=_basedef;
@@ -2581,7 +2599,7 @@ implementation
 
     constructor torddef.create(t : tordtype;v,b : TConstExprInt);
       begin
-         inherited create(orddef);
+         inherited create(orddef,true);
          low:=v;
          high:=b;
          ordtype:=t;
@@ -2722,7 +2740,7 @@ implementation
 
     constructor tfloatdef.create(t : tfloattype);
       begin
-         inherited create(floatdef);
+         inherited create(floatdef,true);
          floattype:=t;
          setsize;
       end;
@@ -2845,7 +2863,7 @@ implementation
 
     constructor tfiledef.createtext;
       begin
-         inherited create(filedef);
+         inherited create(filedef,true);
          filetyp:=ft_text;
          typedfiledef:=nil;
       end;
@@ -2853,7 +2871,7 @@ implementation
 
     constructor tfiledef.createuntyped;
       begin
-         inherited create(filedef);
+         inherited create(filedef,true);
          filetyp:=ft_untyped;
          typedfiledef:=nil;
       end;
@@ -2861,7 +2879,7 @@ implementation
 
     constructor tfiledef.createtyped(def:tdef);
       begin
-         inherited create(filedef);
+         inherited create(filedef,true);
          filetyp:=ft_typed;
          typedfiledef:=def;
       end;
@@ -2984,7 +3002,7 @@ implementation
 
     constructor tvariantdef.create(v : tvarianttype);
       begin
-         inherited create(variantdef);
+         inherited create(variantdef,true);
          varianttype:=v;
          setsize;
       end;
@@ -3060,7 +3078,7 @@ implementation
 
     constructor tabstractpointerdef.create(dt:tdeftyp;def:tdef);
       begin
-        inherited create(dt);
+        inherited create(dt,true);
         pointeddef:=def;
       end;
 
@@ -3276,7 +3294,7 @@ implementation
         packedsavesize: aint;
         actual_setalloc: ShortInt;
       begin
-         inherited create(setdef);
+         inherited create(setdef,true);
          elementdef:=def;
          setmax:=high;
          actual_setalloc:=current_settings.setalloc;
@@ -3373,7 +3391,7 @@ implementation
 
     constructor tformaldef.create(Atyped:boolean);
       begin
-         inherited create(formaldef);
+         inherited create(formaldef,true);
          typed:=Atyped;
          savesize:=0;
       end;
@@ -3411,7 +3429,7 @@ implementation
 
     constructor tarraydef.create(l,h:asizeint;def:tdef);
       begin
-         inherited create(arraydef);
+         inherited create(arraydef,true);
          lowrange:=l;
          highrange:=h;
          rangedef:=def;
@@ -3718,7 +3736,7 @@ implementation
 
     constructor tabstractrecorddef.create(const n:string; dt:tdeftyp);
       begin
-        inherited create(dt);
+        inherited create(dt,true);
         objname:=stringdup(upper(n));
         objrealname:=stringdup(n);
         objectoptions:=[];
@@ -4380,7 +4398,7 @@ implementation
 
     constructor tabstractprocdef.create(dt:tdeftyp;level:byte);
       begin
-         inherited create(dt);
+         inherited create(dt,true);
          parast:=tparasymtable.create(self,level);
          paras:=nil;
          minparacount:=0;
@@ -7288,7 +7306,7 @@ implementation
 
    constructor tforwarddef.create(const s:string;const pos:tfileposinfo);
      begin
-        inherited create(forwarddef);
+        inherited create(forwarddef,true);
         tosymname:=stringdup(s);
         forwardpos:=pos;
      end;
@@ -7317,7 +7335,7 @@ implementation
 
    constructor tundefineddef.create;
      begin
-        inherited create(undefineddef);
+        inherited create(undefineddef,true);
      end;
 
 
@@ -7346,7 +7364,7 @@ implementation
 
     constructor terrordef.create;
       begin
-        inherited create(errordef);
+        inherited create(errordef,true);
         { prevent consecutive faults }
         savesize:=1;
       end;
