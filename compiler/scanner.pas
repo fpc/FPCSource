@@ -68,11 +68,19 @@ interface
        // stack for replay buffers
        treplaystack = class
          token    : ttoken;
+         idtoken  : ttoken;
+         orgpattern,
+         pattern  : string;
+         cstringpattern: ansistring;
+         patternw : pcompilerwidestring;
          settings : tsettings;
          tokenbuf : tdynamicarray;
          next     : treplaystack;
-         constructor Create(atoken: ttoken;asettings:tsettings;
+         constructor Create(atoken: ttoken;aidtoken:ttoken;
+           const aorgpattern,apattern:string;const acstringpattern:ansistring;
+           apatternw:pcompilerwidestring;asettings:tsettings;
            atokenbuf:tdynamicarray;anext:treplaystack);
+         destructor destroy;override;
        end;
 
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
@@ -2525,13 +2533,31 @@ type
 {*****************************************************************************
                               TReplayStack
 *****************************************************************************}
-    constructor treplaystack.Create(atoken:ttoken;asettings:tsettings;
+    constructor treplaystack.Create(atoken:ttoken;aidtoken:ttoken;
+      const aorgpattern,apattern:string;const acstringpattern:ansistring;
+      apatternw:pcompilerwidestring;asettings:tsettings;
       atokenbuf:tdynamicarray;anext:treplaystack);
       begin
         token:=atoken;
+        idtoken:=aidtoken;
+        orgpattern:=aorgpattern;
+        pattern:=apattern;
+        cstringpattern:=acstringpattern;
+        initwidestring(patternw);
+        if assigned(apatternw) then
+          begin
+            setlengthwidestring(patternw,apatternw^.len);
+            move(apatternw^.data^,patternw^.data^,apatternw^.len*sizeof(tcompilerwidechar));
+          end;
         settings:=asettings;
         tokenbuf:=atokenbuf;
         next:=anext;
+      end;
+
+
+    destructor treplaystack.destroy;
+      begin
+        donewidestring(patternw);
       end;
 
 {*****************************************************************************
@@ -3196,11 +3222,9 @@ type
       begin
         if not assigned(buf) then
           internalerror(200511175);
-        { save current token }
-        if token in [_CWCHAR,_CWSTRING,_CCHAR,_CSTRING,_INTCONST,_REALNUMBER,_ID] then
-          internalerror(200511178);
-        replaystack:=treplaystack.create(token,current_settings,
-          replaytokenbuf,replaystack);
+        { save current scanner state }
+        replaystack:=treplaystack.create(token,idtoken,orgpattern,pattern,
+          cstringpattern,patternw,current_settings,replaytokenbuf,replaystack);
         if assigned(inputpointer) then
           dec(inputpointer);
         { install buffer }
@@ -3240,6 +3264,12 @@ type
         if replaytokenbuf.pos>=replaytokenbuf.size then
           begin
             token:=replaystack.token;
+            idtoken:=replaystack.idtoken;
+            pattern:=replaystack.pattern;
+            orgpattern:=replaystack.orgpattern;
+            setlengthwidestring(patternw,replaystack.patternw^.len);
+            move(replaystack.patternw^.data^,patternw^.data^,replaystack.patternw^.len*sizeof(tcompilerwidechar));
+            cstringpattern:=replaystack.cstringpattern;
             replaytokenbuf:=replaystack.tokenbuf;
             { restore compiler settings }
             current_settings:=replaystack.settings;
