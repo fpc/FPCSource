@@ -1,11 +1,13 @@
 #
-#   Makefile.fpc for MSDOS RTL
+#   Makefile.fpc for Free Pascal Win16 RTL
 #
 [package]
 main=rtl
 [target]
 loaders=prt0s prt0t prt0m prt0c prt0l prt0h 
-units=system wintypes winprocs win31
+units=system uuchar objpas strings \
+      wintypes winprocs win31
+
 
 [require]
 nortl=y
@@ -71,15 +73,34 @@ system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc
         $(COMPILER) -Us -Sg system.pp
 	$(EXECPPAS)
 
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+	$(COMPILER) $(INC)/uuchar.pp
+	$(EXECPPAS)
+
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+	$(EXECPPAS)
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
+                   $(INC)/genstr.inc $(INC)/genstrs.inc \
+                   system$(PPUEXT)
+	$(COMPILER) $(INC)/strings.pp
+	$(EXECPPAS)
+
 #
 # WinAPI Units
 #
 
 wintypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) wintypes.pp
 	$(COMPILER) wintypes.pp
+	$(EXECPPAS)
 
 winprocs$(PPUEXT) : wintypes$(PPUEXT) winprocs.pp
 	$(COMPILER) winprocs.pp
+	$(EXECPPAS)
 
 win31$(PPUEXT) : wintypes$(PPUEXT) win31.pp
 	$(COMPILER) win31.pp
+	$(EXECPPAS)
+
