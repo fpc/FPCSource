@@ -168,6 +168,18 @@ procedure DebugOutput(flags: UINT; lpsz: LPCSTR; etc: array of const); cdecl; ex
 
 function ExitWindowsExec(Exe, Params: LPCSTR): BOOL; external 'USER';
 
+
+{ Pointer validation }
+
+function IsBadReadPtr(lp: FarPointer; cb: UINT): BOOL; external 'KERNEL';
+function IsBadWritePtr(lp: FarPointer; cb: UINT): BOOL; external 'KERNEL';
+function IsBadHugeReadPtr(lp: HugePointer; cb: DWORD): BOOL; external 'KERNEL';
+function IsBadHugeReadPtr(lp: FarPointer; cb: DWORD): BOOL; external 'KERNEL';
+function IsBadHugeWritePtr(lp: HugePointer; cb: DWORD): BOOL; external 'KERNEL';
+function IsBadHugeWritePtr(lp: FarPointer; cb: DWORD): BOOL; external 'KERNEL';
+function IsBadCodePtr(lpfn: FARPROC): BOOL; external 'KERNEL';
+function IsBadStringPtr(lpsz: LPSTR; cchMax: UINT): BOOL; external 'KERNEL';
+
 implementation
 
 end.
