@@ -75,7 +75,7 @@ interface
         o_amiga,o_atari, o_solaris, o_qnx, o_netware, o_openbsd,o_wdosx,
         o_palmos,o_macos,o_darwin,o_emx,o_watcom,o_morphos,o_netwlibc,
         o_win64,o_wince,o_gba,o_nds,o_embedded,o_symbian,o_nativent,o_iphonesim,
-        o_wii,o_aix,o_java,o_android,o_msdos,o_aros,o_dragonfly
+        o_wii,o_aix,o_java,o_android,o_msdos,o_aros,o_dragonfly,o_win16
       );
 
       TTargetSet=array[tcpu,tos] of boolean;
@@ -99,7 +99,7 @@ interface
         'palmos','macos','darwin','emx','watcom','morphos','netwlibc',
         'win64','wince','gba','nds','embedded','symbian','nativent',
         'iphonesim', 'wii', 'aix', 'java', 'android', 'msdos', 'aros',
-        'dragonfly'
+        'dragonfly', 'win16'
       );
 
       OSSuffix : array[TOS] of string=(
@@ -108,7 +108,7 @@ interface
         '_palmos','_macos','_darwin','_emx','_watcom','_morphos','_netwlibc',
         '_win64','_wince','_gba','_nds','_embedded','_symbian','_nativent',
         '_iphonesim','_wii','_aix','_java','_android','_msdos','_aros',
-        '_dragonfly'
+        '_dragonfly','_win16'
       );
 
       { This table is kept OS,Cpu because it is easier to maintain (PFV) }
@@ -150,7 +150,8 @@ interface
         { android } ( true,  false, false, false, false, true,  false, false, false, false, false, true,  false, false,   true,  false, false),
         { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true , false),
         { aros }    ( true,  false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false),
-        {dragonfly} ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false)
+        {dragonfly} ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false),
+        { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true , false)
       );
 
     type
