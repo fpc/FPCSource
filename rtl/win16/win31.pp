@@ -180,6 +180,10 @@ function IsBadHugeWritePtr(lp: FarPointer; cb: DWORD): BOOL; external 'KERNEL';
 function IsBadCodePtr(lpfn: FARPROC): BOOL; external 'KERNEL';
 function IsBadStringPtr(lpsz: LPSTR; cchMax: UINT): BOOL; external 'KERNEL';
 
+{ Task Management }
+
+function IsTask(Task: HTASK): BOOL; external 'KERNEL';
+
 implementation
 
 end.

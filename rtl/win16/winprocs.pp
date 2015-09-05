@@ -101,6 +101,14 @@ function SetSwapAreaSize(Size: UINT): LONG; external 'KERNEL';
 procedure SwapRecording(Flag: UINT); external 'KERNEL';
 procedure ValidateCodeSegments; external 'KERNEL';
 
+{ Task Management }
+
+function GetNumTasks: UINT; external 'KERNEL';
+function GetCurrentTask: HTASK; external 'KERNEL';
+
+procedure Yield; external 'KERNEL';
+procedure DirectedYield(Task: HTASK); external 'KERNEL';
+
 implementation
 
 function LOBYTE(w: Word): Byte;

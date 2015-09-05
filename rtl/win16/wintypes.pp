@@ -114,6 +114,8 @@ type
   PSegInfo = ^TSegInfo;
   TSegInfo = SEGINFO;
 
+  HTASK = THandle;
+
 implementation
 
 end.
