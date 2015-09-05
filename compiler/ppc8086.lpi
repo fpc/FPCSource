@@ -28,7 +28,7 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="237">
+    <Units Count="239">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -96,12 +96,10 @@
       <Unit16>
         <Filename Value="x86\cgx86.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cgx86"/>
       </Unit16>
       <Unit17>
         <Filename Value="x86\agx86nsm.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="agx86nsm"/>
       </Unit17>
       <Unit18>
         <Filename Value="x86\nx86set.pas"/>
@@ -118,7 +116,6 @@
       <Unit21>
         <Filename Value="x86\cpubase.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cpubase"/>
       </Unit21>
       <Unit22>
         <Filename Value="x86\nx86mem.pas"/>
@@ -151,7 +148,6 @@
       <Unit29>
         <Filename Value="x86\aasmcpu.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="aasmcpu"/>
       </Unit29>
       <Unit30>
         <Filename Value="x86\agx86int.pas"/>
@@ -197,12 +193,10 @@
       <Unit40>
         <Filename Value="systems\i_msdos.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="i_msdos"/>
       </Unit40>
       <Unit41>
         <Filename Value="systems\t_msdos.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="t_msdos"/>
       </Unit41>
       <Unit42>
         <Filename Value="i8086\n8086mem.pas"/>
@@ -303,7 +297,6 @@
       <Unit66>
         <Filename Value="aasmtai.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="aasmtai"/>
       </Unit66>
       <Unit67>
         <Filename Value="dbgdwarf.pas"/>
@@ -312,12 +305,10 @@
       <Unit68>
         <Filename Value="symdef.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="symdef"/>
       </Unit68>
       <Unit69>
         <Filename Value="ogcoff.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ogcoff"/>
       </Unit69>
       <Unit70>
         <Filename Value="psystem.pas"/>
@@ -410,7 +401,6 @@
       <Unit92>
         <Filename Value="cgbase.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cgbase"/>
       </Unit92>
       <Unit93>
         <Filename Value="ncgcnv.pas"/>
@@ -431,7 +421,6 @@
       <Unit97>
         <Filename Value="aasmbase.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="aasmbase"/>
       </Unit97>
       <Unit98>
         <Filename Value="aasmdata.pas"/>
@@ -468,7 +457,6 @@
       <Unit106>
         <Filename Value="assemble.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="assemble"/>
       </Unit106>
       <Unit107>
         <Filename Value="browcol.pas"/>
@@ -585,7 +573,6 @@
       <Unit135>
         <Filename Value="fppu.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fppu"/>
       </Unit135>
       <Unit136>
         <Filename Value="gendef.pas"/>
@@ -614,7 +601,6 @@
       <Unit142>
         <Filename Value="link.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="link"/>
       </Unit142>
       <Unit143>
         <Filename Value="macho.pas"/>
@@ -707,12 +693,10 @@
       <Unit165>
         <Filename Value="ogbase.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ogbase"/>
       </Unit165>
       <Unit166>
         <Filename Value="ogelf.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ogelf"/>
       </Unit166>
       <Unit167>
         <Filename Value="oglx.pas"/>
@@ -765,12 +749,10 @@
       <Unit179>
         <Filename Value="owar.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="owar"/>
       </Unit179>
       <Unit180>
         <Filename Value="owbase.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="owbase"/>
       </Unit180>
       <Unit181>
         <Filename Value="parser.pas"/>
@@ -847,7 +829,6 @@
       <Unit199>
         <Filename Value="rasm.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="rasm"/>
       </Unit199>
       <Unit200>
         <Filename Value="rautils.pas"/>
@@ -964,12 +945,10 @@
       <Unit228>
         <Filename Value="ogomf.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ogomf"/>
       </Unit228>
       <Unit229>
         <Filename Value="omfbase.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="omfbase"/>
       </Unit229>
       <Unit230>
         <Filename Value="aasmcnst.pas"/>
@@ -998,8 +977,15 @@
       <Unit236>
         <Filename Value="owomflib.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="owomflib"/>
       </Unit236>
+      <Unit237>
+        <Filename Value="systems\i_win16.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit237>
+      <Unit238>
+        <Filename Value="systems\t_win16.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit238>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

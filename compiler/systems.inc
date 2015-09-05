@@ -170,7 +170,8 @@
              system_x86_64_dragonfly,   { 85 }
              system_aarch64_darwin,     { 86 }
              system_x86_64_iphonesim,   { 87 }
-             system_aarch64_linux       { 88 }
+             system_aarch64_linux,      { 88 }
+             system_i8086_win16         { 89 }
        );
 
      type
@@ -249,6 +250,7 @@
              ld_wdosx,
              ld_wii,
              ld_windows,
+             ld_win16,
              ld_int_go32v2,    { implemented internal linkers }
              ld_int_linux,
              ld_int_nativent,

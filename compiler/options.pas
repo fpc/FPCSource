@@ -2221,7 +2221,7 @@ begin
                     'm':
                       begin
 {$if defined(i8086)}
-                        if (target_info.system in [system_i8086_msdos]) then
+                        if (target_info.system in [system_i8086_msdos,system_i8086_win16]) then
                           begin
                             case Upper(Copy(More,j+1,255)) of
                               'TINY':    init_settings.x86memorymodel:=mm_tiny;
