@@ -240,12 +240,13 @@ interface
 
        systems_aix = [system_powerpc_aix,system_powerpc64_aix];
 
-       { all real windows systems, no cripple ones like wince, wdosx et. al. }
+       { all real windows systems, no cripple ones like win16, wince, wdosx et. al. }
        systems_windows = [system_i386_win32,system_x86_64_win64];
 
        { all windows systems }
        systems_all_windows = [system_i386_win32,system_x86_64_win64,
-                             system_arm_wince,system_i386_wince];
+                             system_arm_wince,system_i386_wince,
+                             system_i8086_win16];
 
        { all darwin systems }
        systems_darwin = [system_powerpc_darwin,system_i386_darwin,
