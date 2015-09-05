@@ -1,0 +1,85 @@
+#
+#   Makefile.fpc for MSDOS RTL
+#
+[package]
+main=rtl
+[target]
+loaders=prt0s prt0t prt0m prt0c prt0l prt0h 
+units=system wintypes winprocs win31
+
+[require]
+nortl=y
+[install]
+fpcpackage=y
+[default]
+fpcdir=../..
+target=msdos
+cpu=i8086
+[compiler]
+includedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
+[prerules]
+RTL=..
+INC=../inc
+COMMON=$(RTL)/common
+PROCINC=../$(CPU_TARGET)
+UNITPREFIX=rtl
+SYSTEMUNIT=system
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+# Insert exception handler in system unit
+ifdef EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
+endif
+# Insert exception handler in system unit
+ifdef NO_EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
+endif
+[rules]
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+#
+# Loaders
+#
+prt0s$(OEXT) : prt0s.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0s$(OEXT) prt0s.asm
+prt0t$(OEXT) : prt0t.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0t$(OEXT) prt0t.asm
+prt0m$(OEXT) : prt0m.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0m$(OEXT) prt0m.asm
+prt0c$(OEXT) : prt0c.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0c$(OEXT) prt0c.asm
+prt0l$(OEXT) : prt0l.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0l$(OEXT) prt0l.asm
+prt0h$(OEXT) : prt0h.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0h$(OEXT) prt0h.asm
+#
+# System Units (System, Objpas, Strings)
+#
+system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc
+        $(COMPILER) -Us -Sg system.pp
+	$(EXECPPAS)
+
+#
+# WinAPI Units
+#
+
+wintypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) wintypes.pp
+	$(COMPILER) wintypes.pp
+
+winprocs$(PPUEXT) : wintypes$(PPUEXT) winprocs.pp
+	$(COMPILER) winprocs.pp
+
+win31$(PPUEXT) : wintypes$(PPUEXT) win31.pp
+	$(COMPILER) win31.pp

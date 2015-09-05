@@ -9695,6 +9695,8 @@ rtl/win/wininc/unidef.inc svneol=native#text/plain
 rtl/win/wininc/unidef.sed -text
 rtl/win/wininc/unifun.inc svneol=native#text/plain
 rtl/win/winres.inc svneol=native#text/plain
+rtl/win16/Makefile svneol=native#text/plain
+rtl/win16/Makefile.fpc svneol=native#text/plain
 rtl/win16/prt0c.asm svneol=native#text/plain
 rtl/win16/prt0comn.asm svneol=native#text/plain
 rtl/win16/prt0h.asm svneol=native#text/plain
