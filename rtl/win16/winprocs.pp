@@ -109,6 +109,60 @@ function GetCurrentTask: HTASK; external 'KERNEL';
 procedure Yield; external 'KERNEL';
 procedure DirectedYield(Task: HTASK); external 'KERNEL';
 
+{ Global memory management }
+
+function GlobalDiscard(h: HGLOBAL): HGLOBAL; inline;
+
+function GlobalAlloc(Flags: UINT; Bytes: DWORD): HGLOBAL; external 'KERNEL';
+function GlobalReAlloc(Mem: HGLOBAL; Bytes: DWORD; Flags: UINT): HGLOBAL; external 'KERNEL';
+function GlobalFree(Mem: HGLOBAL): HGLOBAL; external 'KERNEL';
+
+function GlobalDosAlloc(Bytes: DWORD): DWORD; external 'KERNEL';
+function GlobalDosFree(Selector: UINT): UINT; external 'KERNEL';
+
+function GlobalLock(Mem: HGLOBAL): FarPointer; external 'KERNEL';
+function GlobalUnlock(Mem: HGLOBAL): BOOL; external 'KERNEL';
+
+function GlobalSize(Mem: HGLOBAL): DWORD; external 'KERNEL';
+function GlobalHandle(Mem: UINT): DWORD; external 'KERNEL';
+
+function GlobalFlags(Mem: HGLOBAL): UINT; external 'KERNEL';
+
+function GlobalWire(Mem: HGLOBAL): FarPointer; external 'KERNEL';
+function GlobalUnWire(Mem: HGLOBAL): BOOL; external 'KERNEL';
+
+function GlobalPageLock(Selector: HGLOBAL): UINT; external 'KERNEL';
+function GlobalPageUnlock(Selector: HGLOBAL): UINT; external 'KERNEL';
+
+procedure GlobalFix(Mem: HGLOBAL); external 'KERNEL';
+procedure GlobalUnfix(Mem: HGLOBAL); external 'KERNEL';
+
+function GlobalLRUNewest(Mem: HGLOBAL): HGLOBAL; external 'KERNEL';
+function GlobalLRUOldest(Mem: HGLOBAL): HGLOBAL; external 'KERNEL';
+
+function GlobalCompact(MinFree: DWORD): DWORD; external 'KERNEL';
+
+procedure GlobalNotify(NotifyProc: GNOTIFYPROC); external 'KERNEL';
+
+function LockSegment(Segment: UINT): HGLOBAL; external 'KERNEL';
+procedure UnlockSegment(Segment: UINT); external 'KERNEL';
+
+function LockData(dummy: SmallInt): HGLOBAL; inline;
+procedure UnlockData(dummy: SmallInt); inline;
+
+function AllocSelector(Selector: UINT): UINT; external 'KERNEL';
+function FreeSelector(Selector: UINT): UINT; external 'KERNEL';
+function AllocDStoCSAlias(Selector: UINT): UINT; external 'KERNEL';
+function PrestoChangoSelector(sourceSel, destSel: UINT): UINT; external 'KERNEL';
+function GetSelectorBase(Selector: UINT): DWORD; external 'KERNEL';
+function SetSelectorBase(Selector: UINT; Base: DWORD): UINT; external 'KERNEL';
+function GetSelectorLimit(Selector: UINT): DWORD; external 'KERNEL';
+function SetSelectorLimit(Selector: UINT; Base: DWORD): UINT; external 'KERNEL';
+
+procedure LimitEmsPages(Kbytes: DWORD); external 'KERNEL';
+
+procedure ValidateFreeSpaces; external 'KERNEL';
+
 implementation
 
 function LOBYTE(w: Word): Byte;
@@ -159,6 +213,21 @@ end;
 function OFFSETOF(lp: FarPointer): Word;
 begin
   OFFSETOF:=LOWORD(LongInt(lp));
+end;
+
+function GlobalDiscard(h: HGLOBAL): HGLOBAL;
+begin
+  GlobalDiscard := GlobalReAlloc(h, 0, GMEM_MOVEABLE);
+end;
+
+function LockData(dummy: SmallInt): HGLOBAL;
+begin
+  LockData := LockSegment(UINT(-1));
+end;
+
+procedure UnlockData(dummy: SmallInt);
+begin
+  UnlockSegment(UINT(-1));
 end;
 
 end.

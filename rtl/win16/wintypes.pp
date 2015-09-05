@@ -116,6 +116,34 @@ type
 
   HTASK = THandle;
 
+const
+{ Global Memory Flags }
+  GMEM_FIXED       = $0000;
+  GMEM_MOVEABLE    = $0002;
+  GMEM_NOCOMPACT   = $0010;
+  GMEM_NODISCARD   = $0020;
+  GMEM_ZEROINIT    = $0040;
+  GMEM_MODIFY      = $0080;
+  GMEM_DISCARDABLE = $0100;
+  GMEM_NOT_BANKED  = $1000;
+  GMEM_SHARE       = $2000;
+  GMEM_DDESHARE    = $2000;
+  GMEM_NOTIFY      = $4000;
+  GMEM_LOWER       = GMEM_NOT_BANKED;
+
+  GHND             = GMEM_MOVEABLE or GMEM_ZEROINIT;
+  GPTR             = GMEM_FIXED or GMEM_ZEROINIT;
+
+{ GlobalFlags return flags (in addition to GMEM_DISCARDABLE) }
+  GMEM_DISCARDED   = $4000;
+  GMEM_LOCKCOUNT   = $00FF;
+
+{ Low system memory notification message }
+  WM_COMPACTING    = $0041;
+
+type
+  GNOTIFYPROC = function(hGlbl: HGLOBAL): BOOL; far;
+
 implementation
 
 end.
