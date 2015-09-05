@@ -66,6 +66,41 @@ procedure Throw(var CatchBuf: TCatchBuf; ThrowBack: SmallInt); external 'KERNEL'
 procedure SwitchStackBack; external 'KERNEL';
 procedure SwitchStackTo(StackSegment, StackPointer, StackTop: UINT); external 'KERNEL';
 
+{ Module Management }
+
+function LoadModule(ModuleName: LPCSTR; ParameterName: LPVOID): HINST; external 'KERNEL';
+function FreeModule(Module: HINST): BOOL; external 'KERNEL';
+
+function LoadLibrary(LibFileName: LPCSTR): HINST; external 'KERNEL';
+procedure FreeLibrary(LibModule: HINST); external 'KERNEL';
+
+function WinExec(CmdLine: LPCSTR; CmdShow: UINT): UINT; external 'KERNEL';
+
+function GetModuleHandle(ModuleName: LPCSTR): HMODULE; external 'KERNEL';
+
+function GetModuleUsage(Module: HINST): SmallInt; external 'KERNEL';
+function GetModuleFileName(Module: HINST; FileName: LPSTR; Size: SmallInt): SmallInt; external 'KERNEL';
+
+function GetProcAddress(Module: HINST; ProcName: LPCSTR): FARPROC; external 'KERNEL';
+
+function GetInstanceData(Instance: HINST; Data: PBYTE; Count: SmallInt): SmallInt; external 'KERNEL';
+
+function GetCodeHandle(Proc: FARPROC): HGLOBAL; external 'KERNEL';
+
+procedure GetCodeInfo(lpProc: FARPROC; lpSegInfo: LPSEGINFO); external 'KERNEL';
+
+function MakeProcInstance(Proc: FARPROC; Instance: HINST): FARPROC; external 'KERNEL';
+procedure FreeProcInstance(Proc: FARPROC); external 'KERNEL';
+
+{#ifdef _LAX
+#define MakeProcInstance(__F, __H) MakeProcInstance((FARPROC)__F, __H)
+#define FreeProcInstance(__F)      FreeProcInstance((FARPROC)__F)
+#endif /* _LAX */}
+
+function SetSwapAreaSize(Size: UINT): LONG; external 'KERNEL';
+procedure SwapRecording(Flag: UINT); external 'KERNEL';
+procedure ValidateCodeSegments; external 'KERNEL';
+
 implementation
 
 function LOBYTE(w: Word): Byte;

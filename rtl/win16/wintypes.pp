@@ -93,6 +93,27 @@ type
   PCatchBuf = ^TCatchBuf;
   TCatchBuf = CATCHBUF;
 
+const
+  HINSTANCE_ERROR = HINST(32);
+
+{ Windows Exit Procedure flag values }
+  WEP_SYSTEM_EXIT = 1;
+  WEP_FREE_DLL    = 0;
+
+type
+  LPSEGINFO = ^SEGINFO; far;
+  SEGINFO = record
+    offSegment: UINT;
+    cbSegment: UINT;
+    flags: UINT;
+    cbAlloc: UINT;
+    h: HGLOBAL;
+    alignShift: UINT;
+    reserved: array [0..1] of UINT;
+  end;
+  PSegInfo = ^TSegInfo;
+  TSegInfo = SEGINFO;
+
 implementation
 
 end.
