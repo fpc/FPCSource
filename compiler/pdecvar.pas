@@ -1154,7 +1154,7 @@ implementation
                 abssym.addroffset:=Tordconstnode(pt).value.svalue;
 {$if defined(i386) or defined(i8086)}
               tcpuabsolutevarsym(abssym).absseg:=false;
-              if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos]) and
+              if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos,system_i8086_win16]) and
                   try_to_consume(_COLON) then
                 begin
                   pt.free;
