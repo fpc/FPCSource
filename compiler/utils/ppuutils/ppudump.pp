@@ -171,7 +171,8 @@ const
   { 85 }  'DragonFly-x86-64',
   { 86 }  'Darwin-AArch64',
   { 87 }  'iPhoneSim-x86-64',
-  { 88 }  'Linux-AArch64'
+  { 88 }  'Linux-AArch64',
+  { 89 }  'Win16'
   );
 
 const
