@@ -136,6 +136,7 @@ interface
       public
         constructor create(AWriter:TObjectWriter);override;
         destructor Destroy;override;
+        procedure WriteDllImport(const dllname,afuncname,mangledname:string;ordnr:longint;isvar:boolean);
       end;
 
       { TOmfObjInput }
@@ -997,6 +998,46 @@ implementation
         FSegments.Free;
         FLNames.Free;
         inherited Destroy;
+      end;
+
+    procedure TOmfObjOutput.WriteDllImport(const dllname,afuncname,mangledname: string; ordnr: longint; isvar: boolean);
+      var
+        RawRecord: TOmfRawRecord;
+        Header: TOmfRecord_THEADR;
+        DllImport_COMENT: TOmfRecord_COMENT;
+        ModEnd: TOmfRecord_MODEND;
+      begin
+        { write header record }
+        RawRecord:=TOmfRawRecord.Create;
+        Header:=TOmfRecord_THEADR.Create;
+        Header.ModuleName:=mangledname;
+        Header.EncodeTo(RawRecord);
+        RawRecord.WriteTo(FWriter);
+        Header.Free;
+
+        { write IMPDEF record }
+        DllImport_COMENT:=TOmfRecord_COMENT.Create;
+        DllImport_COMENT.CommentClass:=CC_OmfExtension;
+        if ordnr <= 0 then
+          begin
+            if afuncname=mangledname then
+              DllImport_COMENT.CommentString:=#1#0+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+#0
+            else
+              DllImport_COMENT.CommentString:=#1#0+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+Chr(Length(afuncname))+afuncname;
+          end
+        else
+          DllImport_COMENT.CommentString:=#1#1+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+Chr(ordnr and $ff)+Chr((ordnr shr 8) and $ff);
+        DllImport_COMENT.EncodeTo(RawRecord);
+        RawRecord.WriteTo(FWriter);
+        DllImport_COMENT.Free;
+
+        { write MODEND record }
+        ModEnd:=TOmfRecord_MODEND.Create;
+        ModEnd.EncodeTo(RawRecord);
+        RawRecord.WriteTo(FWriter);
+        ModEnd.Free;
+
+        RawRecord.Free;
       end;
 
 {****************************************************************************

@@ -64,6 +64,7 @@ type
     function TryWriteDictionaryWithSize(nblocks: Byte): Boolean;
   public
     constructor createAr(const Aarfn:string);override;
+    constructor createAr(const Aarfn:string;PageSize:Integer);
     destructor  destroy;override;
     function  createfile(const fn:string):boolean;override;
     procedure closefile;override;
@@ -135,7 +136,12 @@ implementation
 
     constructor TOmfLibObjectWriter.createAr(const Aarfn: string);
       begin
-        FPageSize:=512;
+        createAr(Aarfn,512);
+      end;
+
+    constructor TOmfLibObjectWriter.createAr(const Aarfn: string;PageSize: Integer);
+      begin
+        FPageSize:=PageSize;
         FLibName:=Aarfn;
         FLibData:=TDynamicArray.Create(libbufsize);
         FDictionary:=TFPHashObjectList.Create;
@@ -261,7 +267,7 @@ implementation
         libf.Free;
       end;
 
-    function TOmfLibObjectWriter.WriteDictionary: Byte;
+        function TOmfLibObjectWriter.WriteDictionary: byte;
       var
         nb: Byte;
       begin

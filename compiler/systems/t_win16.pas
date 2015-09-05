@@ -56,9 +56,6 @@ implementation
          function  MakeExecutable:boolean;override;
       end;
 
-    var
-      importlist: array of string;
-
 {****************************************************************************
                                TImportLibWin16
 ****************************************************************************}
@@ -66,21 +63,36 @@ implementation
 
 procedure TImportLibWin16.generatelib;
 var
-  i: Integer;
-  j: Integer;
+  ObjWriter: TOmfLibObjectWriter;
+  ObjOutput: TOmfObjOutput;
+  i,j: Integer;
   ImportLibrary: TImportLibrary;
   ImportSymbol: TImportSymbol;
+  AsmPrefix: String;
+
+  procedure AddImport(const dllname,afuncname,mangledname:string;ordnr:longint;isvar:boolean);
+    begin
+      ObjOutput.startObjectfile(mangledname);
+      ObjOutput.WriteDllImport(dllname,afuncname,mangledname,ordnr,isvar);
+      ObjOutput.Writer.closefile;
+    end;
+
 begin
+  AsmPrefix:='imp'+Lower(current_module.modulename^);
+  current_module.linkotherstaticlibs.add(current_module.importlibfilename,link_always);
+  ObjWriter:=TOmfLibObjectWriter.CreateAr(current_module.importlibfilename,32);
+  ObjOutput:=TOmfObjOutput.Create(ObjWriter);
   for i:=0 to current_module.ImportLibraryList.Count-1 do
     begin
       ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
       for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
         begin
           ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
-          SetLength(importlist, Length(importlist)+1);
-          WriteStr(importlist[high(importlist)],'import ',ImportSymbol.Name,' ',ImportLibrary.Name);
+          AddImport(ImportLibrary.Name,ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
         end;
     end;
+  ObjOutput.Free;
+  ObjWriter.Free;
 end;
 
 
@@ -132,12 +144,6 @@ begin
   if (cs_link_map in current_settings.globalswitches) then
     LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
-
-{  LinkRes.Add('import InitTask KERNEL');
-  LinkRes.Add('import WaitEvent KERNEL');
-  LinkRes.Add('import InitApp USER');}
-  for i:=low(importlist) to high(importlist) do
-    LinkRes.Add(importlist[i]);
 
   { Write and Close response }
   linkres.writetodisk;
