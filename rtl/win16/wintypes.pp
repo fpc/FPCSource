@@ -42,6 +42,9 @@ type
   
   LPVOID = FarPointer;
   
+  FARPROC = FarPointer;
+  TFarProc = FARPROC;
+
   PHANDLE = ^THandle;
   SPHANDLE = ^THandle; near;
   LPHANDLE = ^THandle; far;
@@ -75,6 +78,14 @@ const
   WF_80x87      = $0400;
   WF_PAGING     = $0800;
   WF_WLO        = $8000;
+
+{ ExitWindows values }
+  EW_RESTARTWINDOWS = $42;
+
+{ SetErrorMode() constants }
+  SEM_FAILCRITICALERRORS = $0001;
+  SEM_NOGPFAULTERRORBOX  = $0002;
+  SEM_NOOPENFILEERRORBOX = $8000;
 
 implementation
 

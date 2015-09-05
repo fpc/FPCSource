@@ -39,6 +39,17 @@ function GetCurrentTime: DWORD; external 'USER';
 function GetTickCount: DWORD; external 'USER';
 function GetTimerResolution: DWORD; external 'USER';
 
+{ Error handling }
+procedure FatalExit(Code: SmallInt); external 'KERNEL';
+procedure FatalAppExit(Action: UINT; MessageText: LPCSTR); external 'KERNEL';
+
+function ExitWindows(dwReturnCode: DWORD; wReserved: UINT): BOOL; external 'USER';
+
+procedure DebugBreak; external 'KERNEL';
+procedure OutputDebugString(OutputString: LPCSTR); external 'KERNEL';
+
+function SetErrorMode(Mode: UINT): UINT; external 'KERNEL';
+
 implementation
 
 function LOBYTE(w: Word): Byte;
