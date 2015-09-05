@@ -26,6 +26,7 @@
                 segment _TEXT use16 class=CODE align=1
 
                 extern PASCALMAIN
+                extern __fpc_PrefixSeg
 
                 extern InitTask
                 import InitTask KERNEL
@@ -64,6 +65,8 @@
                 ; ES:BX = the command line
                 ; SI = instance handle for the previous application instance (if any)
 
+                mov ax, es
+                mov [__fpc_PrefixSeg], ax
                 mov [hInst], di
 
                 ; call WaitEvent(0) to clear the event that started this task
