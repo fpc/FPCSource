@@ -163,6 +163,26 @@ procedure LimitEmsPages(Kbytes: DWORD); external 'KERNEL';
 
 procedure ValidateFreeSpaces; external 'KERNEL';
 
+{ Local Memory Management }
+
+function LocalDiscard(h: HLOCAL): HLOCAL; inline;
+
+function LocalAlloc(Flags, Bytes: UINT): HLOCAL; external 'KERNEL';
+function LocalReAlloc(Mem: HLOCAL; Bytes, Flags: UINT): HLOCAL; external 'KERNEL';
+function LocalFree(Mem: HLOCAL): HLOCAL; external 'KERNEL';
+
+function LocalLock(Mem: HLOCAL): NearPointer; external 'KERNEL';
+function LocalUnlock(Mem: HLOCAL): BOOL; external 'KERNEL';
+
+function LocalSize(Mem: HLOCAL): UINT; external 'KERNEL';
+function LocalHandle(Mem: NearPointer): HLOCAL; external 'KERNEL';
+
+function LocalFlags(Mem: HLOCAL): UINT; external 'KERNEL';
+
+function LocalInit(Segment, Start, EndPos: UINT): BOOL; external 'KERNEL';
+function LocalCompact(MinFree: UINT): UINT; external 'KERNEL';
+function LocalShrink(Seg: HLOCAL; Size: UINT): UINT; external 'KERNEL';
+
 implementation
 
 function LOBYTE(w: Word): Byte;
@@ -228,6 +248,11 @@ end;
 procedure UnlockData(dummy: SmallInt);
 begin
   UnlockSegment(UINT(-1));
+end;
+
+function LocalDiscard(h: HLOCAL): HLOCAL;
+begin
+  LocalDiscard := LocalReAlloc(h, 0, LMEM_MOVEABLE);
 end;
 
 end.

@@ -144,6 +144,26 @@ const
 type
   GNOTIFYPROC = function(hGlbl: HGLOBAL): BOOL; far;
 
+const
+{ Local Memory Flags }
+  LMEM_FIXED       = $0000;
+  LMEM_MOVEABLE    = $0002;
+  LMEM_NOCOMPACT   = $0010;
+  LMEM_NODISCARD   = $0020;
+  LMEM_ZEROINIT    = $0040;
+  LMEM_MODIFY      = $0080;
+  LMEM_DISCARDABLE = $0F00;
+
+  LHND             = LMEM_MOVEABLE or LMEM_ZEROINIT;
+  LPTR             = LMEM_FIXED or LMEM_ZEROINIT;
+
+  NONZEROLHND      = LMEM_MOVEABLE;
+  NONZEROLPTR      = LMEM_FIXED;
+
+{ LocalFlags return flags (in addition to LMEM_DISCARDABLE) }
+  LMEM_DISCARDED   = $4000;
+  LMEM_LOCKCOUNT   = $00FF;
+
 implementation
 
 end.
