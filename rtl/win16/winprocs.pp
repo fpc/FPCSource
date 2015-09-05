@@ -1,5 +1,9 @@
 unit winprocs;
 
+{$if defined(FPC_MM_COMPACT) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+  {$define VAR_PARAMS_ARE_FAR}
+{$endif}
+
 interface
 
 uses
@@ -49,6 +53,18 @@ procedure DebugBreak; external 'KERNEL';
 procedure OutputDebugString(OutputString: LPCSTR); external 'KERNEL';
 
 function SetErrorMode(Mode: UINT): UINT; external 'KERNEL';
+
+{ Catch/Throw and stack management }
+
+function Catch(CatchBuf: LPCATCHBUF): SmallInt; external 'KERNEL';
+procedure Throw(CatchBuf: LPCATCHBUF; ThrowBack: SmallInt); external 'KERNEL';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function Catch(var CatchBuf: TCatchBuf): SmallInt; external 'KERNEL';
+procedure Throw(var CatchBuf: TCatchBuf; ThrowBack: SmallInt); external 'KERNEL';
+{$endif}
+
+procedure SwitchStackBack; external 'KERNEL';
+procedure SwitchStackTo(StackSegment, StackPointer, StackTop: UINT); external 'KERNEL';
 
 implementation
 

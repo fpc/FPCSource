@@ -87,6 +87,12 @@ const
   SEM_NOGPFAULTERRORBOX  = $0002;
   SEM_NOOPENFILEERRORBOX = $8000;
 
+type
+  LPCATCHBUF = ^CATCHBUF; far;
+  CATCHBUF = array [0..8] of SmallInt;
+  PCatchBuf = ^TCatchBuf;
+  TCatchBuf = CATCHBUF;
+
 implementation
 
 end.
