@@ -184,6 +184,11 @@ function IsBadStringPtr(lpsz: LPSTR; cchMax: UINT): BOOL; external 'KERNEL';
 
 function IsTask(Task: HTASK): BOOL; external 'KERNEL';
 
+{ File I/O }
+
+function _hread(FileHandle: HFILE; Buffer: HugePointer; Bytes: LongInt): LongInt; external 'KERNEL';
+function _hwrite(FileHandle: HFILE; Buffer: HugePointer; Bytes: LongInt): LongInt; external 'KERNEL';
+
 implementation
 
 end.

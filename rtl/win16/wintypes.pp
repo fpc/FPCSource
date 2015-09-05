@@ -164,6 +164,65 @@ const
   LMEM_DISCARDED   = $4000;
   LMEM_LOCKCOUNT   = $00FF;
 
+{ File I/O }
+type
+  HFILE = SmallInt;
+
+const
+  HFILE_ERROR = HFILE(-1);
+
+type
+{ OpenFile() Structure }
+  POFSTRUCT = ^OFSTRUCT;
+  NPOFSTRUCT = ^OFSTRUCT; near;
+  LPOFSTRUCT = ^OFSTRUCT; far;
+  OFSTRUCT = record
+    cBytes: BYTE;
+    fFixedDisk: BYTE;
+    nErrCode: UINT;
+    reserved: array [0..3] of BYTE;
+    szPathName: array [0..127] of char;
+  end;
+  TOFStruct = OFSTRUCT;
+
+const
+{ OpenFile() Flags }
+  OF_READ             = $0000;
+  OF_WRITE            = $0001;
+  OF_READWRITE        = $0002;
+  OF_SHARE_COMPAT     = $0000;
+  OF_SHARE_EXCLUSIVE  = $0010;
+  OF_SHARE_DENY_WRITE = $0020;
+  OF_SHARE_DENY_READ  = $0030;
+  OF_SHARE_DENY_NONE  = $0040;
+  OF_PARSE            = $0100;
+  OF_DELETE           = $0200;
+  OF_VERIFY           = $0400;      { Used with OF_REOPEN }
+  OF_SEARCH           = $0400;      { Used without OF_REOPEN }
+  OF_CANCEL           = $0800;
+  OF_CREATE           = $1000;
+  OF_PROMPT           = $2000;
+  OF_EXIST            = $4000;
+  OF_REOPEN           = $8000;
+
+{ _lopen() flags }
+  READ       = 0;
+  WRITE      = 1;
+  READ_WRITE = 2;
+
+{ _llseek origin values }
+  SEEK_SET = 0;
+  SEEK_CUR = 1;
+  SEEK_END = 2;
+
+{ GetTempFileName() Flags }
+  TF_FORCEDRIVE = BYTE($80);
+
+{ GetDriveType return values }
+  DRIVE_REMOVABLE = 2;
+  DRIVE_FIXED     = 3;
+  DRIVE_REMOTE    = 4;
+
 implementation
 
 end.

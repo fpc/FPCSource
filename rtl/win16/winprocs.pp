@@ -183,6 +183,33 @@ function LocalInit(Segment, Start, EndPos: UINT): BOOL; external 'KERNEL';
 function LocalCompact(MinFree: UINT): UINT; external 'KERNEL';
 function LocalShrink(Seg: HLOCAL; Size: UINT): UINT; external 'KERNEL';
 
+{ File I/O }
+
+function OpenFile(FileName: LPCSTR; ReOpenBuff: LPOFSTRUCT; Style: UINT): HFILE; external 'KERNEL';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function OpenFile(FileName: LPCSTR; var ReOpenBuff: TOFStruct; Style: UINT): HFILE; external 'KERNEL';
+{$endif}
+
+function _lopen(PathName: LPCSTR; ReadWrite: SmallInt): HFILE; external 'KERNEL';
+function _lcreat(PathName: LPCSTR; Attribute: SmallInt): HFILE; external 'KERNEL';
+
+function _lclose(FileHandle: HFILE): HFILE; external 'KERNEL';
+
+function _llseek(FileHandle: HFILE; Offset: LONG; Origin: SmallInt): LONG; external 'KERNEL';
+
+function _lread(FileHandle: HFILE; Buffer: HugePointer; Bytes: UINT): UINT; external 'KERNEL';
+function _lread(FileHandle: HFILE; Buffer: FarPointer; Bytes: UINT): UINT; external 'KERNEL';
+function _lwrite(FileHandle: HFILE; Buffer: HugePointer; Bytes: UINT): UINT; external 'KERNEL';
+function _lwrite(FileHandle: HFILE; Buffer: FarPointer; Bytes: UINT): UINT; external 'KERNEL';
+
+function GetTempFileName(DriveLetter: BYTE; PrefixString: LPCSTR; Unique: UINT; TempFileName: LPSTR): SmallInt; external 'KERNEL';
+function GetTempFileName(DriveLetter: Char; PrefixString: LPCSTR; Unique: UINT; TempFileName: LPSTR): SmallInt; external 'KERNEL';
+function GetTempDrive(DriveLetter: Char): BYTE; external 'KERNEL';
+
+function GetDriveType(Drive: SmallInt): UINT; external 'KERNEL';
+
+function SetHandleCount(Number: UINT): UINT; external 'KERNEL';
+
 implementation
 
 function LOBYTE(w: Word): Byte;
