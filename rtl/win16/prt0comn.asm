@@ -28,8 +28,11 @@
                 extern PASCALMAIN
 
                 extern InitTask
+                import InitTask KERNEL
                 extern WaitEvent
+                import WaitEvent KERNEL
                 extern InitApp
+                import InitApp USER
 
 ..start:        ; Win16 applications start with the following
                 ; values in registers:

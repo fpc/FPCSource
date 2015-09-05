@@ -78,9 +78,6 @@ const
 {$endif RTLLITE}
 
 
-procedure InitTask;external 'KERNEL';
-procedure WaitEvent;external 'KERNEL';
-procedure InitApp;external 'USER';
 procedure MessageBox(hWnd: word; lpText, lpCaption: PChar; uType: word);external 'USER';
 
 implementation
