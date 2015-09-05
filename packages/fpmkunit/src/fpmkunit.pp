@@ -120,7 +120,8 @@ Type
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
-    aix,java,android,nativent,msdos,wii,aros,dragonfly
+    aix,java,android,nativent,msdos,wii,aros,dragonfly,
+    win16
   );
   TOSes = Set of TOS;
 
@@ -177,10 +178,10 @@ Const
   AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim,dragonfly];
   AllWindowsOSes  = [Win32,Win64,WinCE];
   AllAmigaLikeOSes = [Amiga,MorphOS,AROS];
-  AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos];
+  AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos,win16];
 
-  AllSmartLinkLibraryOSes = [Linux,msdos,amiga,morphos,aros]; // OSes that use .a library files for smart-linking
-  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos];
+  AllSmartLinkLibraryOSes = [Linux,msdos,amiga,morphos,aros,win16]; // OSes that use .a library files for smart-linking
+  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos,win16];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
   OSCPUSupported : array[TOS,TCpu] of boolean = (
@@ -222,7 +223,8 @@ Const
     { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false),
     { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false, false),
     { aros }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false),
-    { dragonfly}( false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false)
+    { dragonfly}( false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false),
+    { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false)
   );
 
   // Useful
@@ -7838,7 +7840,7 @@ end;
 
 function TTarget.GetUnitLibFileName(AOS : TOS): String;
 begin
-  if AOS in [atari,netwlibc,go32v2,watcom,wdosx,msdos] then
+  if AOS in [atari,netwlibc,go32v2,watcom,wdosx,msdos,win16] then
     Result := Name+LibExt
   else if AOS in [java] then
     Result:=Name+'.jar'
