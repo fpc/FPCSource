@@ -45,6 +45,7 @@ dirs_jvm_android=android/jvm
 dirs_msdos=msdos
 dirs_aros=aros
 dirs_atari=atari
+dirs_win16=win16
 
 [install]
 fpcpackage=y
