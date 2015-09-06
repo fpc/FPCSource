@@ -132,7 +132,7 @@ procedure ClearExceptions(RaisePending: Boolean =true);
 begin
 end;
 
-{$elseif defined(darwin) or defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV3_d16)}
+{$elseif defined(darwin) or defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV3_d16) or defined(FPUFPV4_s16)}
 
 const
   _VFP_ENABLE_IM  =  1 shl 8;         { invalid operation      }
