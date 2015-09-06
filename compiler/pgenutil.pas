@@ -384,12 +384,12 @@ uses
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef):tdef;
       var
         dummypos : tfileposinfo;
+{$push}
+{$warn 5036 off}
       begin
-        {$push}
-        {$warn 5036 off}
         result:=generate_specialization_phase1(context,genericdef,nil,'',dummypos);
-        {$pop}
       end;
+{$pop}
 
 
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;parsedtype:tdef;symname:string;parsedpos:tfileposinfo):tdef;
@@ -908,6 +908,7 @@ uses
                   { handle params, calling convention, etc }
                   procvardef:
                     begin
+                      hintsprocessed:=false;
                       if replaydepth>current_scanner.replay_stack_depth then
                         begin
                           if not check_proc_directive(true) then
