@@ -181,8 +181,10 @@ asm
 
         tst     r1, #4
         strne   r2,[r3],#4
+{$ifdef CPUARM_HAS_ALL_MEM}
         tst     r1, #2
         strneh  r2,[r3],#2
+{$endif CPUARM_HAS_ALL_MEM}
         tst     r1, #1
         strneb  r2,[r3],#1
 {$ifdef CPUARM_HAS_BX}

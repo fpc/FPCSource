@@ -378,7 +378,14 @@ unit cgcpu;
            else
              InternalError(200308297);
          end;
-         if (ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[fromsize]) then
+
+         if (fromsize=OS_S8) and
+            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) then
+           oppostfix:=PF_B;
+
+         if ((ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[fromsize])) or
+            ((not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) and
+             (oppostfix in [PF_SH,PF_H])) then
            begin
              if target_info.endian=endian_big then
                dir:=-1
@@ -479,7 +486,10 @@ unit cgcpu;
          else
            handle_load_store(list,A_LDR,oppostfix,reg,ref);
 
-         if (fromsize=OS_S8) and (tosize = OS_16) then
+         if (fromsize=OS_S8) and
+            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) then
+           a_load_reg_reg(list,OS_S8,OS_32,reg,reg)
+         else if (fromsize=OS_S8) and (tosize = OS_16) then
            a_load_reg_reg(list,OS_16,OS_32,reg,reg);
        end;
 
@@ -1116,7 +1126,8 @@ unit cgcpu;
           OP_IMUL,
           OP_MUL:
             begin
-              if cgsetflags or setflags then
+              if (cgsetflags or setflags) and
+                 (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) then
                 begin
                   overflowreg:=getintregister(list,size);
                   if op=OP_IMUL then
@@ -1184,21 +1195,34 @@ unit cgcpu;
     var
       asmop: tasmop;
     begin
-      list.concat(tai_comment.create(strpnew('tcgarm.a_mul_reg_reg_pair called')));
-      case size of
-        OS_32:  asmop:=A_UMULL;
-        OS_S32: asmop:=A_SMULL;
-        else
-          InternalError(2014060802);
-      end;
-      { The caller might omit dstlo or dsthi, when he is not interested in it, we still
-        need valid registers everywhere. In case of dsthi = NR_NO we could fall back to
-        32x32=32 bit multiplication}
-      if (dstlo = NR_NO) then
-        dstlo:=getintregister(list,size);
-      if (dsthi = NR_NO) then
-        dsthi:=getintregister(list,size);
-      list.concat(taicpu.op_reg_reg_reg_reg(asmop, dstlo, dsthi, src1,src2));
+      if CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype] then
+        begin
+          list.concat(tai_comment.create(strpnew('tcgarm.a_mul_reg_reg_pair called')));
+          case size of
+            OS_32:  asmop:=A_UMULL;
+            OS_S32: asmop:=A_SMULL;
+            else
+              InternalError(2014060802);
+          end;
+          { The caller might omit dstlo or dsthi, when he is not interested in it, we still
+            need valid registers everywhere. In case of dsthi = NR_NO we could fall back to
+            32x32=32 bit multiplication}
+          if (dstlo = NR_NO) then
+            dstlo:=getintregister(list,size);
+          if (dsthi = NR_NO) then
+            dsthi:=getintregister(list,size);
+          list.concat(taicpu.op_reg_reg_reg_reg(asmop, dstlo, dsthi, src1,src2));
+        end
+      else if dsthi=NR_NO then
+        begin
+          if (dstlo = NR_NO) then
+            dstlo:=getintregister(list,size);
+          list.concat(taicpu.op_reg_reg_reg(A_MUL, dstlo, src1,src2));
+        end
+      else
+        begin
+          internalerror(2015083022);
+        end;
     end;
 
     function tbasecgarm.handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
@@ -1373,7 +1397,10 @@ unit cgcpu;
            else
              InternalError(200308299);
          end;
-         if (ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[tosize]) then
+
+         if ((ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[tosize])) or
+            ((not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) and
+             (oppostfix =PF_H)) then
            begin
              if target_info.endian=endian_big then
                dir:=-1
@@ -1432,6 +1459,8 @@ unit cgcpu;
      function tbasecgarm.a_internal_load_reg_ref(list : TAsmList; fromsize, tosize: tcgsize; reg : tregister;const ref : treference):treference;
        var
          oppostfix:toppostfix;
+         href: treference;
+         tmpreg: TRegister;
        begin
          case ToSize of
            { signed integer registers }
@@ -1447,13 +1476,31 @@ unit cgcpu;
            else
              InternalError(2003082910);
          end;
-         result:=handle_load_store(list,A_STR,oppostfix,reg,ref);
+
+         if (tosize in [OS_S16,OS_16]) and
+            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) then
+           begin
+             result:=handle_load_store(list,A_STR,PF_B,reg,ref);
+
+             tmpreg:=getintregister(list,OS_INT);
+             a_op_const_reg_reg(list,OP_SHR,OS_INT,8,reg,tmpreg);
+
+             href:=result;
+             inc(href.offset);
+
+             handle_load_store(list,A_STR,PF_B,tmpreg,href);
+           end
+         else
+           result:=handle_load_store(list,A_STR,oppostfix,reg,ref);
        end;
 
 
      function tbasecgarm.a_internal_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister):treference;
        var
          oppostfix:toppostfix;
+         so: tshifterop;
+         tmpreg: TRegister;
+         href: treference;
        begin
          case FromSize of
            { signed integer registers }
@@ -1471,7 +1518,33 @@ unit cgcpu;
            else
              InternalError(200308291);
          end;
-         result:=handle_load_store(list,A_LDR,oppostfix,reg,ref);
+
+         if (tosize=OS_S8) and
+            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) then
+           begin
+             result:=handle_load_store(list,A_LDR,PF_B,reg,ref);
+             a_load_reg_reg(list,OS_S8,OS_32,reg,reg);
+           end
+         else if (tosize in [OS_S16,OS_16]) and
+            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) then
+           begin
+             result:=handle_load_store(list,A_LDR,PF_B,reg,ref);
+
+             tmpreg:=getintregister(list,OS_INT);
+
+             href:=result;
+             inc(href.offset);
+
+             handle_load_store(list,A_LDR,PF_B,tmpreg,href);
+
+             shifterop_reset(so);
+             so.shiftmode:=SM_LSL;
+             so.shiftimm:=8;
+
+             list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,reg,tmpreg,so));
+           end
+         else
+           result:=handle_load_store(list,A_LDR,oppostfix,reg,ref);
        end;
 
      procedure tbasecgarm.a_load_reg_reg(list : TAsmList; fromsize, tosize : tcgsize;reg1,reg2 : tregister);
