@@ -2582,10 +2582,10 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   system$(PPUEXT)
 	$(COMPILER) $(INC)/strings.pp
 	$(EXECPPAS)
-wintypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) wintypes.pp
+wintypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) wintypes.pp wintypes.inc
 	$(COMPILER) wintypes.pp
 	$(EXECPPAS)
-winprocs$(PPUEXT) : wintypes$(PPUEXT) winprocs.pp
+winprocs$(PPUEXT) : wintypes$(PPUEXT) winprocs.pp winprocsh.inc winprocs.inc
 	$(COMPILER) winprocs.pp
 	$(EXECPPAS)
 win31$(PPUEXT) : wintypes$(PPUEXT) win31.pp
