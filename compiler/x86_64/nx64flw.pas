@@ -509,7 +509,7 @@ procedure tx64tryexceptnode.pass_generate_code;
         cg.a_label(current_asmdata.CurrAsmList,breakexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
         if (fc_unwind in flowcontrol) then
-          cg.g_local_unwind(current_asmdata.CurrAsmList,oldCurrExitLabel)
+          cg.g_local_unwind(current_asmdata.CurrAsmList,oldBreakLabel)
         else
           cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
       end;
@@ -519,7 +519,7 @@ procedure tx64tryexceptnode.pass_generate_code;
         cg.a_label(current_asmdata.CurrAsmList,continueexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
         if (fc_unwind in flowcontrol) then
-          cg.g_local_unwind(current_asmdata.CurrAsmList,oldCurrExitLabel)
+          cg.g_local_unwind(current_asmdata.CurrAsmList,oldContinueLabel)
         else
           cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
       end;
