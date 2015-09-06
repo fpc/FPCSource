@@ -181,59 +181,45 @@ begin
 end;}
 
 
-{function GetCommandLine: string;
+function GetArg(ArgNo: Integer; out ArgResult: string): Integer;
 var
-  len, I: Integer;
-begin
-  len := PFarByte(Ptr(PrefixSeg, $80))^;
-  SetLength(GetCommandLine, len);
-  for I := 1 to len do
-    GetCommandLine[I] := PFarChar(Ptr(PrefixSeg, $80 + I))^;
-end;}
-
-
-{function GetArg(ArgNo: Integer; out ArgResult: string): Integer;
-var
-  cmdln: string;
   I: Integer;
   InArg: Boolean;
 begin
-  cmdln := GetCommandLine;
   ArgResult := '';
-  I := 1;
+  I := 0;
   InArg := False;
   GetArg := 0;
-  for I := 1 to Length(cmdln) do
+  while CmdLine[I]<>#0 do
     begin
-      if not InArg and (cmdln[I] <> ' ') then
+      if not InArg and (CmdLine[I] <> ' ') then
         begin
           InArg := True;
           Inc(GetArg);
         end;
-      if InArg and (cmdln[I] = ' ') then
+      if InArg and (CmdLine[I] = ' ') then
         InArg := False;
       if InArg and (GetArg = ArgNo) then
-        ArgResult := ArgResult + cmdln[I];
+        ArgResult := ArgResult + CmdLine[I];
+      Inc(I);
     end;
-end;}
+end;
 
 
 function paramcount : longint;
-{var
-  tmpstr: string;}
+var
+  tmpstr: string;
 begin
-{  paramcount := GetArg(-1, tmpstr);}
-  paramcount:=0;
+  paramcount := GetArg(-1, tmpstr);
 end;
 
 
 function paramstr(l : longint) : string;
 begin
-{  if l = 0 then
-    paramstr := GetProgramName
+  if l = 0 then
+    paramstr := ''{GetProgramName}
   else
-    GetArg(l, paramstr);}
-  paramstr:='';
+    GetArg(l, paramstr);
 end;
 
 procedure randomize;
