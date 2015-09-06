@@ -90,7 +90,7 @@ const
 {$endif RTLLITE}
 
 
-procedure MessageBox(hWnd: word; lpText, lpCaption: PChar; uType: word);external 'USER';
+procedure MessageBox(hWnd: word; lpText, lpCaption: LPSTR; uType: word);external 'USER';
 
 implementation
 
