@@ -27,6 +27,10 @@
 
                 extern PASCALMAIN
                 extern __fpc_PrefixSeg
+                extern __fpc_CmdLine
+                extern __fpc_CmdShow
+                extern __fpc_HInstance
+                extern __fpc_HPrevInst
 
                 extern InitTask
                 import InitTask KERNEL
@@ -67,7 +71,11 @@
 
                 mov ax, es
                 mov [__fpc_PrefixSeg], ax
-                mov [hInst], di
+                mov [__fpc_CmdLine+2], ax
+                mov [__fpc_CmdLine], bx
+                mov [__fpc_CmdShow], dx
+                mov [__fpc_HInstance], di
+                mov [__fpc_HPrevInst], si
 
                 ; call WaitEvent(0) to clear the event that started this task
                 ; Windows expects this call immediately after InitTask
@@ -75,10 +83,10 @@
                 push ax
                 call far WaitEvent
 
-                ; call InitApp(hInst) to initialize the queue and support routines
-                ; for the app. Windows expects this to be the third call in the
-                ; Win16 startup sequence.
-                push word [hInst]
+                ; call InitApp(hInstance) to initialize the queue and support
+                ; routines for the app. Windows expects this to be the third
+                ; call in the Win16 startup sequence.
+                push word [__fpc_HInstance]
                 call far InitApp
                 test ax, ax
                 jz error
@@ -108,7 +116,6 @@ pStackBot:      dw 0
                 ; end of reserved area, filled by InitTask
 
 
-hInst:          dw 0
 
                 segment _STACK stack class=STACK align=16
 

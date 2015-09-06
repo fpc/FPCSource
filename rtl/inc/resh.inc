@@ -53,7 +53,9 @@ function Is_IntResource(aStr : pchar) : boolean; {$ifdef SYSTEMINLINE}inline;{$e
 function MakeLangID(primary,sub : word) : word; {$ifdef SYSTEMINLINE}inline;{$endif}
 
 // Win32 API compatible Resource functions
+{$ifndef Win16}
 Function HINSTANCE : TFPResourceHMODULE;
+{$endif Win16}
 Function EnumResourceTypes(ModuleHandle : TFPResourceHMODULE; EnumFunc : EnumResTypeProc; lParam : PtrInt) : LongBool;
 Function EnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
 Function EnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;

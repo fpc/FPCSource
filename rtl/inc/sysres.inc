@@ -141,10 +141,12 @@ end;
 *****************************************************************************)
 { These functions will call the specified resource manager functions }
 
+{$ifndef Win16}
 Function HINSTANCE : TFPResourceHMODULE;
 begin
   Result:=resourcemanager.HINSTANCEFunc();
 end;
+{$endif Win16}
 
 Function EnumResourceTypes(ModuleHandle : TFPResourceHMODULE; EnumFunc : EnumResTypeProc; lParam : PtrInt) : LongBool;
 begin

@@ -13,6 +13,8 @@ interface
   systemh.inc is included otherwise the
   $mode switch is not effective }
 
+{$DEFINE HAS_CMDLINE}
+
 {$I systemh.inc}
 {$I tnyheaph.inc}
 
@@ -52,6 +54,9 @@ const
   64K bytes (BP7 compatibility) }
   SelectorInc: Word = $1000;
 
+type
+  LPSTR = ^Char;far;
+
 var
 { Mem[] support }
   mem  : array[0..$7fff-1] of byte absolute $0:$0;
@@ -65,6 +70,13 @@ var
 
 { The DOS Program Segment Prefix segment (TP7 compatibility) }
   PrefixSeg:Word;public name '__fpc_PrefixSeg';
+
+{ BP7 compatible windows variables }
+{ In C, these are the parameters to WinMain }
+  CmdLine: LPSTR;public name '__fpc_CmdLine';
+  CmdShow: SmallInt;public name '__fpc_CmdShow';
+  HInstance: Word{HINST};public name '__fpc_HInstance';
+  HPrevInst: Word{HINST};public name '__fpc_HPrevInst';
 
 {  SaveInt00: FarPointer;public name '__SaveInt00';}
 
