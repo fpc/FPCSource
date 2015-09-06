@@ -1,18 +1,18 @@
 
-function LOBYTE(w: Word): Byte; inline;
-function HIBYTE(w: Word): Byte; inline;
+function LOBYTE(w: Word): Byte; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+function HIBYTE(w: Word): Byte; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
 
-function LOWORD(l: LongInt): Word; inline;
-function HIWORD(l: LongInt): Word; inline;
+function LOWORD(l: LongInt): Word; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+function HIWORD(l: LongInt): Word; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
 
-function MAKELONG(low, high: Word): LONG; inline;
+function MAKELONG(low, high: Word): LONG; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
 
-function MAKELPARAM(low, high: Word): LPARAM; inline;
-function MAKELRESULT(low, high: Word): LRESULT; inline;
+function MAKELPARAM(low, high: Word): LPARAM; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+function MAKELRESULT(low, high: Word): LRESULT; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
 
-function MAKELP(sel, off: Word): FarPointer; inline;
-function SELECTOROF(lp: FarPointer): Word; inline;
-function OFFSETOF(lp: FarPointer): Word; inline;
+function MAKELP(sel, off: Word): FarPointer; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+function SELECTOROF(lp: FarPointer): Word; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+function OFFSETOF(lp: FarPointer): Word; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
 
 // FIELDOFFSET
 
@@ -101,7 +101,7 @@ procedure DirectedYield(Task: HTASK); external 'KERNEL';
 
 { Global memory management }
 
-function GlobalDiscard(h: HGLOBAL): HGLOBAL; inline;
+function GlobalDiscard(h: HGLOBAL): HGLOBAL; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
 
 function GlobalAlloc(Flags: UINT; Bytes: DWORD): HGLOBAL; external 'KERNEL';
 function GlobalReAlloc(Mem: HGLOBAL; Bytes: DWORD; Flags: UINT): HGLOBAL; external 'KERNEL';
@@ -137,8 +137,8 @@ procedure GlobalNotify(NotifyProc: GNOTIFYPROC); external 'KERNEL';
 function LockSegment(Segment: UINT): HGLOBAL; external 'KERNEL';
 procedure UnlockSegment(Segment: UINT); external 'KERNEL';
 
-function LockData(dummy: SmallInt): HGLOBAL; inline;
-procedure UnlockData(dummy: SmallInt); inline;
+function LockData(dummy: SmallInt): HGLOBAL; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+procedure UnlockData(dummy: SmallInt); {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
 
 function AllocSelector(Selector: UINT): UINT; external 'KERNEL';
 function FreeSelector(Selector: UINT): UINT; external 'KERNEL';
@@ -155,7 +155,7 @@ procedure ValidateFreeSpaces; external 'KERNEL';
 
 { Local Memory Management }
 
-function LocalDiscard(h: HLOCAL): HLOCAL; inline;
+function LocalDiscard(h: HLOCAL): HLOCAL; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
 
 function LocalAlloc(Flags, Bytes: UINT): HLOCAL; external 'KERNEL';
 function LocalReAlloc(Mem: HLOCAL; Bytes, Flags: UINT): HLOCAL; external 'KERNEL';

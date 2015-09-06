@@ -69,7 +69,7 @@ prt0h$(OEXT) : prt0h.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
 #
 # System Units (System, Objpas, Strings)
 #
-system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc
+system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc wintypes.inc winprocsh.inc winprocs.inc
         $(COMPILER) -Us -Sg system.pp
 	$(EXECPPAS)
 

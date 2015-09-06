@@ -118,6 +118,11 @@ type
 
 {$I registers.inc}
 
+{$define SYSTEMUNIT}
+{$I wintypes.inc}
+{$I winprocsh.inc}
+{$I winprocs.inc}
+
 {$I system.inc}
 
 {$I tinyheap.inc}

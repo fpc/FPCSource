@@ -2567,7 +2567,7 @@ prt0l$(OEXT) : prt0l.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
 	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0l$(OEXT) prt0l.asm
 prt0h$(OEXT) : prt0h.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
 	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0h$(OEXT) prt0h.asm
-system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc
+system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc wintypes.inc winprocsh.inc winprocs.inc
 	$(COMPILER) -Us -Sg system.pp
 	$(EXECPPAS)
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp

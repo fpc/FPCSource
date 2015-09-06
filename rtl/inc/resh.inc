@@ -2,8 +2,13 @@
 type
   //Obsolete types, kept for backwards compatibility
   TResourceHandle = PtrUint;
+{$ifdef Win16}
+  HMODULE = THandle; {HINST}
+  HGLOBAL = THandle;
+{$else Win16}
   HMODULE = PtrUint;
   HGLOBAL = PtrUint;
+{$endif Win16}
   //New types
   TFPResourceHandle = PtrUInt;
   TFPResourceHMODULE = PtrUInt;

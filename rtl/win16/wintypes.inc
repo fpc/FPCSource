@@ -18,7 +18,7 @@ type
     is better to be avoided. }
   PSTR = ^Char;
   NPSTR = ^Char; near;
-  LPSTR = ^Char; far;
+//  LPSTR = ^Char; far;
   LPCSTR = ^Char; far;
   
   { PBYTE is already defined in system }
@@ -45,7 +45,7 @@ type
   SPHANDLE = ^THandle; near;
   LPHANDLE = ^THandle; far;
   
-  HGLOBAL = THandle;
+//  HGLOBAL = THandle;
   HLOCAL = THandle;
   
   TGlobalHandle = THandle;
@@ -55,7 +55,7 @@ type
   TAtom = ATOM;
   
   HINST = THandle; { instead of HINSTANCE, to avoid conflict with var hInstance }
-  HMODULE = HINST;
+//  HMODULE = HINST;
   
 const
   { GetWinFlags result mask values }
@@ -202,8 +202,8 @@ const
   OF_REOPEN           = $8000;
 
 { _lopen() flags }
-  READ       = 0;
-  WRITE      = 1;
+  _READ      = 0;
+  _WRITE     = 1;
   READ_WRITE = 2;
 
 { _llseek origin values }
