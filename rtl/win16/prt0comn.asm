@@ -32,6 +32,7 @@
                 extern __fpc_HInstance
                 extern __fpc_HPrevInst
                 extern __fpc_SelectorInc
+                extern ___stack
 
                 extern InitTask
                 import InitTask KERNEL
@@ -127,6 +128,6 @@ pStackBot:      dw 0
 
 
 
-                segment _STACK stack class=STACK align=16
+                segment stack stack class=STACK align=16
 
-                group DGROUP _DATA _STACK
+                group DGROUP _DATA stack
