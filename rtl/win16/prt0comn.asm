@@ -31,6 +31,7 @@
                 extern __fpc_CmdShow
                 extern __fpc_HInstance
                 extern __fpc_HPrevInst
+                extern __fpc_SelectorInc
 
                 extern InitTask
                 import InitTask KERNEL
@@ -38,6 +39,8 @@
                 import WaitEvent KERNEL
                 extern InitApp
                 import InitApp USER
+                extern __AHIncr
+                import __AHIncr KERNEL
 
 ..start:        ; Win16 applications start with the following
                 ; values in registers:
@@ -76,6 +79,13 @@
                 mov [__fpc_CmdShow], dx
                 mov [__fpc_HInstance], di
                 mov [__fpc_HPrevInst], si
+
+                ; the offset of the Win16 kernel function __AHIncr (by definition)
+                ; gives us the value of SelectorInc. The function __AHIncr is
+                ; otherwise useless (when called, it increments AH by one :) )
+                ; The value of SelectorInc is usually 8 in most (all?) win16
+                ; implementations, but it's good practice not to hardcode it.
+                mov word [__fpc_SelectorInc], __AHIncr
 
                 ; call WaitEvent(0) to clear the event that started this task
                 ; Windows expects this call immediately after InitTask

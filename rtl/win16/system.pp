@@ -50,9 +50,6 @@ const
   segA000: Word = $A000;
   segB000: Word = $B000;
   segB800: Word = $B800;}
-{ The value that needs to be added to the segment to move the pointer by
-  64K bytes (BP7 compatibility) }
-  SelectorInc: Word = $1000;
 
 type
   LPSTR = ^Char;far;
@@ -77,6 +74,9 @@ var
   CmdShow: SmallInt;public name '__fpc_CmdShow';
   HInstance: Word{HINST};public name '__fpc_HInstance';
   HPrevInst: Word{HINST};public name '__fpc_HPrevInst';
+{ The value that needs to be added to the segment to move the pointer by
+  64K bytes (BP7 compatibility) }
+  SelectorInc: Word;public name '__fpc_SelectorInc';
 
 {  SaveInt00: FarPointer;public name '__SaveInt00';}
 
