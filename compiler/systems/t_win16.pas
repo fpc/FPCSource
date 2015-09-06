@@ -141,6 +141,7 @@ begin
       LinkRes.Add('library '+MaybeQuoted(s));
   end;
   LinkRes.Add('format windows');
+  LinkRes.Add('option heapsize='+tostr(heapsize));
   if (cs_link_map in current_settings.globalswitches) then
     LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
