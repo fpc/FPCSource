@@ -1196,7 +1196,8 @@ interface
         result:=Inherited MakeCmdLine;
 {$ifdef i8086}
         case target_info.system of
-          system_i8086_msdos:
+          system_i8086_msdos,
+          system_i8086_win16:
             FormatName:='obj';
           else
             internalerror(2014082060);
@@ -1247,7 +1248,7 @@ interface
             idtxt  : 'NASM';
             asmbin : 'nasm';
             asmcmd : '-f $FORMAT -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
-            supported_targets : [system_i8086_msdos];
+            supported_targets : [system_i8086_msdos,system_i8086_win16];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
@@ -1259,7 +1260,7 @@ interface
             idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
-            supported_targets : [system_i8086_msdos];
+            supported_targets : [system_i8086_msdos,system_i8086_win16];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
