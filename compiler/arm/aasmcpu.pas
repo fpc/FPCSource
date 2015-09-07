@@ -920,7 +920,9 @@ implementation
                (tai(hp).typ=ait_instruction) and
                ((taicpu(hp).opcode=A_FLDS) or
                 (taicpu(hp).opcode=A_FLDD) or
-                (taicpu(hp).opcode=A_VLDR)) then
+                (taicpu(hp).opcode=A_VLDR) or
+                (taicpu(hp).opcode=A_LDF) or
+                (taicpu(hp).opcode=A_STF)) then
               limit:=254;
         end;
 
