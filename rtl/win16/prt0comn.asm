@@ -103,9 +103,9 @@
                 jz error
 
 %ifdef __FAR_CODE__
-                jmp far PASCALMAIN
+                call far PASCALMAIN
 %else
-                jmp PASCALMAIN
+                call PASCALMAIN
 %endif
 
 error:
