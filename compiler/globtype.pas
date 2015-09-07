@@ -247,7 +247,18 @@ interface
            accidental uses of uninitialised values }
          ts_init_locals,
          { emit a CLD instruction before using the x86 string instructions }
-         ts_cld
+         ts_cld,
+         { increment BP before pushing it in the function prologue and decrement
+           it after popping it in the function epilogue, iff the function is
+           going to terminate with a far ret. Thus, the BP value pushed on the
+           stack becomes odd if the function is far and even if the function is
+           near. This allows walking the BP chain on the stack and e.g.
+           obtaining a stack trace even if the program uses a mixture of near
+           and far calls. This is also required for Win16 real mode, because it
+           allows Windows to move code segments around (in order to defragment
+           memory) and then walk through the stacks of all running programs and
+           update the segment values of the segment that has moved. }
+         ts_x86_far_procs_push_odd_bp
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -338,7 +349,8 @@ interface
          (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true ; define: ''),
          (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true ; define: ''),
          (name: 'INITLOCALS';          hasvalue: false; isglobal: true ; define: ''),
-         (name: 'CLD';                 hasvalue: false; isglobal: true ; define: 'FPC_ENABLED_CLD')
+         (name: 'CLD';                 hasvalue: false; isglobal: true ; define: 'FPC_ENABLED_CLD'),
+         (name: 'FARPROCSPUSHODDBP';   hasvalue: false; isglobal: true ; define: 'FPC_FAR_PROCS_PUSH_ODD_BP')
        );
 
        { switches being applied to all CPUs at the given level }

@@ -185,7 +185,7 @@ unit cgx86;
        globals,verbose,systems,cutils,
        defutil,paramgr,procinfo,
        tgobj,ncgutil,
-       fmodule,symsym;
+       fmodule,symsym,symcpu;
 
     function UseAVX: boolean;
       begin
@@ -2946,6 +2946,11 @@ unit cgx86;
               end
             else
               begin
+{$ifdef i8086}
+                if (ts_x86_far_procs_push_odd_bp in current_settings.targetswitches) and
+                    is_proc_far(current_procinfo.procdef) then
+                  cg.a_op_const_reg(list,OP_ADD,OS_ADDR,1,current_procinfo.framepointer);
+{$endif i8086}
                 { push <frame_pointer> }
                 inc(stackmisalignment,sizeof(pint));
                 include(rg[R_INTREGISTER].preserved_by_proc,RS_FRAME_POINTER_REG);

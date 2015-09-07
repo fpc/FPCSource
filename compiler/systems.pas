@@ -146,7 +146,9 @@ interface
               this is usefull for architectures which require a small code footprint }
             tf_no_objectfiles_when_smartlinking,
             { indicates that the default value of the ts_cld target switch is 'on' for this target }
-            tf_cld
+            tf_cld,
+            { indicates that the default value of the ts_x86_far_procs_push_odd_bp target switch is 'on' for this target }
+            tf_x86_far_procs_push_odd_bp
        );
 
        psysteminfo = ^tsysteminfo;

@@ -1779,7 +1779,12 @@ unit cgcpu;
                   cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
               end
             else
-              generate_leave(list);
+              begin
+                generate_leave(list);
+                if (ts_x86_far_procs_push_odd_bp in current_settings.targetswitches) and
+                    is_proc_far(current_procinfo.procdef) then
+                  cg.a_op_const_reg(list,OP_SUB,OS_ADDR,1,current_procinfo.framepointer);
+              end;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 

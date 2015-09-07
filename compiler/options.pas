@@ -3448,6 +3448,9 @@ begin
   if tf_cld in target_info.flags then
     if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
       InternalError(2013092801);
+  if tf_x86_far_procs_push_odd_bp in target_info.flags then
+    if not UpdateTargetSwitchStr('FARPROCSPUSHODDBP', init_settings.targetswitches, true) then
+      InternalError(2013092801);
 
   { Set up a default prefix for binutils when cross-compiling }
   if source_info.system<>target_info.system then
