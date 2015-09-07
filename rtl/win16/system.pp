@@ -140,18 +140,6 @@ type
 
 {$I tinyheap.inc}
 
-{procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS'];compilerproc;
-begin
-  MessageBox(0, 'Hello, world!', 'yo', 0);
-end;}
-
-{procedure fpc_do_exit;[public,alias:'FPC_DO_EXIT'];compilerproc;
-begin
-  asm
-    mov ax, 4c00h
-    int 21h
-  end;
-end;}
 {*****************************************************************************
                               ParamStr/Randomize
 *****************************************************************************}
@@ -317,5 +305,4 @@ begin
       StackLength := pStackBot-pStackTop;
     end;
 {$endif}
-  MessageBox(0, 'Hello, world!', 'yo', 0);
 end.
