@@ -70,7 +70,7 @@ unit i_win16;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            assem        : as_i8086_nasmobj;
+            assem        : as_i8086_omf;
             assemextern  : as_i8086_nasmobj;
             link         : ld_win16;
             linkextern   : ld_win16;

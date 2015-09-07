@@ -548,7 +548,7 @@ interface
         else if (atype=sec_threadvar) and
           (target_info.system in (systems_windows+systems_wince)) then
           AsmWrite('.tls'#9'bss')
-        else if target_info.system=system_i8086_msdos then
+        else if target_info.system in [system_i8086_msdos,system_i8086_win16] then
           begin
             if secnames[atype]='.text' then
               secname:=CodeSectionName(aname)
@@ -608,7 +608,7 @@ interface
         i: Integer;
       begin
 {$ifdef i8086}
-        if target_info.system=system_i8086_msdos then
+        if target_info.system in [system_i8086_msdos,system_i8086_win16] then
           begin
             if current_settings.x86memorymodel=mm_huge then
               WriteSection(sec_data,'',2);
