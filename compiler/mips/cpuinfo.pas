@@ -113,6 +113,12 @@ type
      CPUMIPS_HAS_ISA32R2           { mips32r2 instructions (also on PIC32)  }
    );
 
+   tcontrollerdatatype = record
+      controllertypestr, controllerunitstr: string[20];
+      cputype: tcputype; fputype: tfputype;
+      flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize, bootbase, bootsize: dword;
+   end;
+
 const
   cpu_capabilities : array[tcputype] of set of tcpuflags =
     ( { cpu_none }     [],
@@ -144,7 +150,7 @@ Const
     {$WARN 3177 OFF}
    embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
    (
-      (controllertypestr:''; controllerunitstr:''; flashbase:0; flashsize:0; srambase:0; sramsize:0));
+      (controllertypestr:''; controllerunitstr:''; cputype:cpu_none; fputype:fpu_none; flashbase:0; flashsize:0; srambase:0; sramsize:0));
    {$POP}
 {$ELSE MIPSEL}
    { Is there support for dealing with multiple microcontrollers available }
@@ -193,43 +199,43 @@ type
 const
    embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
    (
-      (controllertypestr:'';		controllerunitstr:'';	flashbase:0;	flashsize:0;	srambase:0;	sramsize:0),
+      (controllertypestr:'';		controllerunitstr:'';	cputype: cpu_none; fputype: fpu_none; flashbase:0;	flashsize:0;	srambase:0;	sramsize:0),
 
       { PIC32MX1xx Series}
-      (controllertypestr:'PIC32MX110F016B';	controllerunitstr:'PIC32MX1xxFxxxB';	flashbase:$9d000000;	flashsize:$00004000;	srambase:$A0000000;	sramsize:$00001000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX110F016C';	controllerunitstr:'PIC32MX1xxFxxxC';	flashbase:$9d000000;	flashsize:$00004000;	srambase:$A0000000;	sramsize:$00001000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX110F016D';	controllerunitstr:'PIC32MX1xxFxxxD';	flashbase:$9d000000;	flashsize:$00004000;	srambase:$A0000000;	sramsize:$00001000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX120F032B';	controllerunitstr:'PIC32MX1xxFxxxB';	flashbase:$9d000000;	flashsize:$00008000;	srambase:$A0000000;	sramsize:$00002000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX120F032C';	controllerunitstr:'PIC32MX1xxFxxxC';	flashbase:$9d000000;	flashsize:$00008000;	srambase:$A0000000;	sramsize:$00002000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX120F032D';	controllerunitstr:'PIC32MX1xxFxxxD';	flashbase:$9d000000;	flashsize:$00008000;	srambase:$A0000000;	sramsize:$00002000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX130F064B';	controllerunitstr:'PIC32MX1xxFxxxB';	flashbase:$9d000000;	flashsize:$00010000;	srambase:$A0000000;	sramsize:$00004000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX130F064C';	controllerunitstr:'PIC32MX1xxFxxxC';	flashbase:$9d000000;	flashsize:$00010000;	srambase:$A0000000;	sramsize:$00004000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX130F064D';	controllerunitstr:'PIC32MX1xxFxxxD';	flashbase:$9d000000;	flashsize:$00010000;	srambase:$A0000000;	sramsize:$00004000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX150F128B';	controllerunitstr:'PIC32MX1xxFxxxB';	flashbase:$9d000000;	flashsize:$00020000;	srambase:$A0000000;	sramsize:$00008000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX150F128C';	controllerunitstr:'PIC32MX1xxFxxxC';	flashbase:$9d000000;	flashsize:$00020000;	srambase:$A0000000;	sramsize:$00008000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX150F128D';	controllerunitstr:'PIC32MX1xxFxxxD';	flashbase:$9d000000;	flashsize:$00020000;	srambase:$A0000000;	sramsize:$00008000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX110F016B';	controllerunitstr:'PIC32MX1xxFxxxB';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00004000;	srambase:$A0000000;	sramsize:$00001000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX110F016C';	controllerunitstr:'PIC32MX1xxFxxxC';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00004000;	srambase:$A0000000;	sramsize:$00001000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX110F016D';	controllerunitstr:'PIC32MX1xxFxxxD';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00004000;	srambase:$A0000000;	sramsize:$00001000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX120F032B';	controllerunitstr:'PIC32MX1xxFxxxB';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00008000;	srambase:$A0000000;	sramsize:$00002000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX120F032C';	controllerunitstr:'PIC32MX1xxFxxxC';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00008000;	srambase:$A0000000;	sramsize:$00002000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX120F032D';	controllerunitstr:'PIC32MX1xxFxxxD';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00008000;	srambase:$A0000000;	sramsize:$00002000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX130F064B';	controllerunitstr:'PIC32MX1xxFxxxB';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00010000;	srambase:$A0000000;	sramsize:$00004000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX130F064C';	controllerunitstr:'PIC32MX1xxFxxxC';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00010000;	srambase:$A0000000;	sramsize:$00004000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX130F064D';	controllerunitstr:'PIC32MX1xxFxxxD';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00010000;	srambase:$A0000000;	sramsize:$00004000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX150F128B';	controllerunitstr:'PIC32MX1xxFxxxB';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00020000;	srambase:$A0000000;	sramsize:$00008000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX150F128C';	controllerunitstr:'PIC32MX1xxFxxxC';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00020000;	srambase:$A0000000;	sramsize:$00008000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX150F128D';	controllerunitstr:'PIC32MX1xxFxxxD';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00020000;	srambase:$A0000000;	sramsize:$00008000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
 
       { PIC32MX2xx Series}
-      (controllertypestr:'PIC32MX210F016B';	controllerunitstr:'PIC32MX2xxFxxxB';	flashbase:$9d000000;	flashsize:$00004000;	srambase:$A0000000;	sramsize:$00001000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX210F016C';	controllerunitstr:'PIC32MX2xxFxxxC';	flashbase:$9d000000;	flashsize:$00004000;	srambase:$A0000000;	sramsize:$00001000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX210F016D';	controllerunitstr:'PIC32MX2xxFxxxD';	flashbase:$9d000000;	flashsize:$00004000;	srambase:$A0000000;	sramsize:$00001000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX220F032B';	controllerunitstr:'PIC32MX2xxFxxxB';	flashbase:$9d000000;	flashsize:$00008000;	srambase:$A0000000;	sramsize:$00002000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX220F032C';	controllerunitstr:'PIC32MX2xxFxxxC';	flashbase:$9d000000;	flashsize:$00008000;	srambase:$A0000000;	sramsize:$00002000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX220F032D';	controllerunitstr:'PIC32MX2xxFxxxD';	flashbase:$9d000000;	flashsize:$00008000;	srambase:$A0000000;	sramsize:$00002000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX230F064B';	controllerunitstr:'PIC32MX2xxFxxxB';	flashbase:$9d000000;	flashsize:$00010000;	srambase:$A0000000;	sramsize:$00004000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX230F064C';	controllerunitstr:'PIC32MX2xxFxxxC';	flashbase:$9d000000;	flashsize:$00010000;	srambase:$A0000000;	sramsize:$00004000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX230F064D';	controllerunitstr:'PIC32MX2xxFxxxD';	flashbase:$9d000000;	flashsize:$00010000;	srambase:$A0000000;	sramsize:$00004000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX250F128B';	controllerunitstr:'PIC32MX2xxFxxxB';	flashbase:$9d000000;	flashsize:$00020000;	srambase:$A0000000;	sramsize:$00008000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX250F128C';	controllerunitstr:'PIC32MX2xxFxxxC';	flashbase:$9d000000;	flashsize:$00020000;	srambase:$80000000;	sramsize:$00008000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
-      (controllertypestr:'PIC32MX250F128D';	controllerunitstr:'PIC32MX2xxFxxxD';	flashbase:$9d000000;	flashsize:$00020000;	srambase:$A0000000;	sramsize:$00008000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX210F016B';	controllerunitstr:'PIC32MX2xxFxxxB';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00004000;	srambase:$A0000000;	sramsize:$00001000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX210F016C';	controllerunitstr:'PIC32MX2xxFxxxC';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00004000;	srambase:$A0000000;	sramsize:$00001000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX210F016D';	controllerunitstr:'PIC32MX2xxFxxxD';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00004000;	srambase:$A0000000;	sramsize:$00001000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX220F032B';	controllerunitstr:'PIC32MX2xxFxxxB';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00008000;	srambase:$A0000000;	sramsize:$00002000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX220F032C';	controllerunitstr:'PIC32MX2xxFxxxC';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00008000;	srambase:$A0000000;	sramsize:$00002000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX220F032D';	controllerunitstr:'PIC32MX2xxFxxxD';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00008000;	srambase:$A0000000;	sramsize:$00002000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX230F064B';	controllerunitstr:'PIC32MX2xxFxxxB';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00010000;	srambase:$A0000000;	sramsize:$00004000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX230F064C';	controllerunitstr:'PIC32MX2xxFxxxC';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00010000;	srambase:$A0000000;	sramsize:$00004000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX230F064D';	controllerunitstr:'PIC32MX2xxFxxxD';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00010000;	srambase:$A0000000;	sramsize:$00004000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX250F128B';	controllerunitstr:'PIC32MX2xxFxxxB';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00020000;	srambase:$A0000000;	sramsize:$00008000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX250F128C';	controllerunitstr:'PIC32MX2xxFxxxC';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00020000;	srambase:$80000000;	sramsize:$00008000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
+      (controllertypestr:'PIC32MX250F128D';	controllerunitstr:'PIC32MX2xxFxxxD';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00020000;	srambase:$A0000000;	sramsize:$00008000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00000BEF),
 
       { PIC32MX7x5 Series}
-      (controllertypestr:'PIC32MX775F256H';	controllerunitstr:'PIC32MX7x5FxxxH';	flashbase:$9d000000;	flashsize:$00040000;	srambase:$A0000000;	sramsize:$00010000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00002FEF),
-      (controllertypestr:'PIC32MX775F256L';	controllerunitstr:'PIC32MX7x5FxxxL';	flashbase:$9d000000;	flashsize:$00040000;	srambase:$A0000000;	sramsize:$00010000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00002FEF),
-      (controllertypestr:'PIC32MX775F512H';	controllerunitstr:'PIC32MX7x5FxxxH';	flashbase:$9d000000;	flashsize:$00080000;	srambase:$A0000000;	sramsize:$00010000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00002FEF),
-      (controllertypestr:'PIC32MX775F512L';	controllerunitstr:'PIC32MX7x5FxxxL';	flashbase:$9d000000;	flashsize:$00080000;	srambase:$A0000000;	sramsize:$00010000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00002FEF),
-      (controllertypestr:'PIC32MX795F512H';	controllerunitstr:'PIC32MX7x5FxxxH';	flashbase:$9d000000;	flashsize:$00080000;	srambase:$A0000000;	sramsize:$00020000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00002FEF),
-      (controllertypestr:'PIC32MX795F512L';	controllerunitstr:'PIC32MX7x5FxxxL';	flashbase:$9d000000;	flashsize:$00080000;	srambase:$A0000000;	sramsize:$00020000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00002FEF)
+      (controllertypestr:'PIC32MX775F256H';	controllerunitstr:'PIC32MX7x5FxxxH';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00040000;	srambase:$A0000000;	sramsize:$00010000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00002FEF),
+      (controllertypestr:'PIC32MX775F256L';	controllerunitstr:'PIC32MX7x5FxxxL';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00040000;	srambase:$A0000000;	sramsize:$00010000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00002FEF),
+      (controllertypestr:'PIC32MX775F512H';	controllerunitstr:'PIC32MX7x5FxxxH';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00080000;	srambase:$A0000000;	sramsize:$00010000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00002FEF),
+      (controllertypestr:'PIC32MX775F512L';	controllerunitstr:'PIC32MX7x5FxxxL';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00080000;	srambase:$A0000000;	sramsize:$00010000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00002FEF),
+      (controllertypestr:'PIC32MX795F512H';	controllerunitstr:'PIC32MX7x5FxxxH';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00080000;	srambase:$A0000000;	sramsize:$00020000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00002FEF),
+      (controllertypestr:'PIC32MX795F512L';	controllerunitstr:'PIC32MX7x5FxxxL';	cputype: cpu_pic32mx; fputype: fpu_soft; flashbase:$9d000000;	flashsize:$00080000;	srambase:$A0000000;	sramsize:$00020000;  eeprombase:0;   eepromsize:0;    bootbase:$BFC00000;     bootsize:$00002FEF)
   );
 
 {$endif MIPSEL}
