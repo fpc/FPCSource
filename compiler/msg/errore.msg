@@ -3590,6 +3590,7 @@ J*3CTautosetterprefix=X_  Automatically create setters for properties with prefi
 8*3CTcld_                 Emit a CLD instruction before using the x86 string instructions
 3*3CTcld_                 Emit a CLD instruction before using the x86 string instructions
 4*3CTcld_                 Emit a CLD instruction before using the x86 string instructions
+8*3CTfarprocspushoddbp_       Increment BP before pushing it in the prologue of far functions
 J*3CTcompactintarrayinit_ Generate smaller (but potentially slower) code for initializing integer array constants
 J*3CTenumfieldinit_       Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
 J*3CTinitlocals_          Initialize local variables that trigger a JVM bytecode verification error if used uninitialized (slows down code)
