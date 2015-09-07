@@ -116,6 +116,19 @@ type
   PFarChar = ^Char;far;
   PFarWord = ^Word;far;
 
+  { structure, located at DS:0, initialized by InitTask }
+  PAutoDataSegHeader = ^TAutoDataSegHeader;
+  TAutoDataSegHeader = record
+    null: Word;
+    oOldSP: Word;
+    hOldSS: Word;
+    pLocalHeap: Word;
+    pAtomTable: Word;
+    pStackTop: Word;
+    pStackMin: Word;
+    pStackBot: Word;
+  end;
+
 {$I registers.inc}
 
 {$define SYSTEMUNIT}
@@ -291,5 +304,18 @@ begin
 end;
 
 begin
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  with PAutoDataSegHeader(Ptr(DSeg,0))^ do
+    begin
+      StackBottom := Ptr(SSeg,pStackTop);
+      StackLength := pStackBot-pStackTop;
+    end;
+{$else}
+  with PAutoDataSegHeader(0)^ do
+    begin
+      StackBottom := NearPointer(pStackTop);
+      StackLength := pStackBot-pStackTop;
+    end;
+{$endif}
   MessageBox(0, 'Hello, world!', 'yo', 0);
 end.
