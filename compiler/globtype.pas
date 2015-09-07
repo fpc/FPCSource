@@ -319,7 +319,7 @@ interface
           hasvalue: boolean;
           { target switch can be used only globally }
           isglobal: boolean;
-          define: string[15];
+          define: string[25];
        end;
 
     const
