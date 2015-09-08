@@ -199,3 +199,9 @@ function GetTempDrive(DriveLetter: Char): BYTE; external 'KERNEL';
 function GetDriveType(Drive: SmallInt): UINT; external 'KERNEL';
 
 function SetHandleCount(Number: UINT): UINT; external 'KERNEL';
+
+{ Network support }
+function WNetAddConnection(lpszNetPath, lpszPassword, lpszLocalName: LPSTR): UINT; external 'USER';
+function WNetGetConnection(lpszLocalName, lpszRemoteName: LPSTR; cbBufferSize: LPUINT): UINT; external 'USER';
+function WNetCancelConnection(lpszName: LPSTR; tForce: BOOL): UINT; external 'USER';
+

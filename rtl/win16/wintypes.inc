@@ -29,6 +29,9 @@ type
   
   { PWORD is already defined in system }
   LPWORD = ^Word; far;
+
+  PUINT = ^UINT;
+  LPUINT = ^UINT; far;
   
   PLONG = ^LONG;
   LPLONG = ^LONG; far;
@@ -218,3 +221,30 @@ const
   DRIVE_REMOVABLE = 2;
   DRIVE_FIXED     = 3;
   DRIVE_REMOTE    = 4;
+
+{ Network support }
+{ Errors }
+  WN_SUCCESS           = $0000;
+  WN_NOT_SUPPORTED     = $0001;
+  WN_NET_ERROR         = $0002;
+  WN_MORE_DATA         = $0003;
+  WN_BAD_POINTER       = $0004;
+  WN_BAD_VALUE         = $0005;
+  WN_BAD_PASSWORD      = $0006;
+  WN_ACCESS_DENIED     = $0007;
+  WN_FUNCTION_BUSY     = $0008;
+  WN_WINDOWS_ERROR     = $0009;
+  WN_BAD_USER          = $000A;
+  WN_OUT_OF_MEMORY     = $000B;
+  WN_CANCEL            = $000C;
+  WN_CONTINUE          = $000D;
+
+{ Connection errors }
+  WN_NOT_CONNECTED     = $0030;
+  WN_OPEN_FILES        = $0031;
+  WN_BAD_NETNAME       = $0032;
+  WN_BAD_LOCALNAME     = $0033;
+  WN_ALREADY_CONNECTED = $0034;
+  WN_DEVICE_ERROR      = $0035;
+  WN_CONNECTION_CLOSED = $0036;
+
