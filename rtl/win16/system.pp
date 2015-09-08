@@ -16,7 +16,12 @@ interface
 {$DEFINE HAS_CMDLINE}
 
 {$I systemh.inc}
+{$IFDEF FPC_X86_DATA_NEAR}
+{$I locheaph.inc}
+{$ELSE FPC_X86_DATA_NEAR}
+{ todo: implement a working win16 heap manager for the far data models }
 {$I tnyheaph.inc}
+{$ENDIF FPC_X86_DATA_NEAR}
 
 const
   LineEnding = #13#10;
@@ -138,7 +143,13 @@ type
 
 {$I system.inc}
 
+{$IFDEF FPC_X86_DATA_NEAR}
+{$I locheap.inc}
+{$ELSE FPC_X86_DATA_NEAR}
+{ todo: implement a working win16 heap manager for the far data models }
 {$I tinyheap.inc}
+{$ENDIF FPC_X86_DATA_NEAR}
+
 
 {*****************************************************************************
                               ParamStr/Randomize
@@ -272,6 +283,15 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
+procedure InitWin16Heap;
+begin
+{$ifdef FPC_X86_DATA_NEAR}
+  SetMemoryManager(LocalHeapMemoryManager);
+{$else FPC_X86_DATA_NEAR}
+{ todo: implement a working win16 heap manager for the far data models }
+{$endif FPC_X86_DATA_NEAR}
+end;
+
 procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
@@ -305,4 +325,6 @@ begin
       StackLength := pStackBot-pStackTop;
     end;
 {$endif}
+{ Setup heap }
+  InitWin16Heap;
 end.
