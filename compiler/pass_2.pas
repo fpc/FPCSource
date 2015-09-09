@@ -36,7 +36,8 @@ uses
          fc_inflowcontrol,
          fc_gotolabel,
          { in try block of try..finally }
-         fc_unwind,
+         fc_unwind_exit,
+         fc_unwind_loop,
          { the left side of an expression is already handled, so we are
            not allowed to do ssl }
          fc_lefthandled);

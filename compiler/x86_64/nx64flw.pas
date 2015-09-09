@@ -87,7 +87,6 @@ end;
 
 procedure tx64onnode.pass_generate_code;
   var
-    oldflowcontrol : tflowcontrol;
     exceptvarsym : tlocalvarsym;
   begin
     if (target_info.system<>system_x86_64_win64) then
@@ -97,9 +96,6 @@ procedure tx64onnode.pass_generate_code;
       end;
 
     location_reset(location,LOC_VOID,OS_NO);
-
-    oldflowcontrol:=flowcontrol;
-    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
 
     { RTL will put exceptobject into RAX when jumping here }
     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
@@ -130,8 +126,6 @@ procedure tx64onnode.pass_generate_code;
       end;
     cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
     cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
-
-    flowcontrol:=oldflowcontrol+(flowcontrol-[fc_inflowcontrol]);
   end;
 
 { tx64tryfinallynode }
@@ -299,12 +293,12 @@ procedure tx64tryfinallynode.pass_generate_code;
     { try code }
     if assigned(left) then
       begin
-        { fc_unwind tells exit/continue/break statements to emit special
+        { fc_unwind_xx tells exit/continue/break statements to emit special
           unwind code instead of just JMP }
         if not implicitframe then
-          include(flowcontrol,fc_unwind);
+          flowcontrol:=flowcontrol+[fc_unwind_exit,fc_unwind_loop];
         secondpass(left);
-        exclude(flowcontrol,fc_unwind);
+        flowcontrol:=flowcontrol-[fc_unwind_exit,fc_unwind_loop];
         if codegenerror then
           exit;
       end;
@@ -393,7 +387,7 @@ procedure tx64tryexceptnode.pass_generate_code;
     continueexceptlabel:=nil;
     breakexceptlabel:=nil;
 
-    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
+    include(flowcontrol,fc_inflowcontrol);
     { this can be called recursivly }
     oldBreakLabel:=nil;
     oldContinueLabel:=nil;
@@ -442,7 +436,7 @@ procedure tx64tryexceptnode.pass_generate_code;
         current_procinfo.CurrBreakLabel:=breakexceptlabel;
       end;
 
-    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
+    flowcontrol:=[fc_inflowcontrol];
     { on statements }
     if assigned(right) then
       begin
@@ -496,7 +490,7 @@ procedure tx64tryexceptnode.pass_generate_code;
         { do some magic for exit in the try block }
         cg.a_label(current_asmdata.CurrAsmList,exitexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        if (fc_unwind in flowcontrol) then
+        if (fc_unwind_exit in oldflowcontrol) then
           cg.g_local_unwind(current_asmdata.CurrAsmList,oldCurrExitLabel)
         else
           cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
@@ -506,7 +500,7 @@ procedure tx64tryexceptnode.pass_generate_code;
       begin
         cg.a_label(current_asmdata.CurrAsmList,breakexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        if (fc_unwind in flowcontrol) then
+        if (fc_unwind_loop in oldflowcontrol) then
           cg.g_local_unwind(current_asmdata.CurrAsmList,oldBreakLabel)
         else
           cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
@@ -516,7 +510,7 @@ procedure tx64tryexceptnode.pass_generate_code;
       begin
         cg.a_label(current_asmdata.CurrAsmList,continueexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        if (fc_unwind in flowcontrol) then
+        if (fc_unwind_loop in oldflowcontrol) then
           cg.g_local_unwind(current_asmdata.CurrAsmList,oldContinueLabel)
         else
           cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);

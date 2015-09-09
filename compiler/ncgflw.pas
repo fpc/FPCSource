@@ -148,6 +148,7 @@ implementation
          oldclabel:=current_procinfo.CurrContinueLabel;
          oldblabel:=current_procinfo.CurrBreakLabel;
          include(flowcontrol,fc_inflowcontrol);
+         exclude(flowcontrol,fc_unwind_loop);
 
          sync_regvars(true);
 {$ifdef OLDREGVARS}
@@ -470,6 +471,7 @@ implementation
          hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,false);
          oldflowcontrol:=flowcontrol;
          include(flowcontrol,fc_inflowcontrol);
+         exclude(flowcontrol,fc_unwind_loop);
          { produce start assignment }
          case left.location.loc of
            LOC_REFERENCE,
@@ -816,7 +818,7 @@ implementation
          if assigned(left) then
            secondpass(left);
 
-         if (fc_unwind in flowcontrol) then
+         if (fc_unwind_exit in flowcontrol) then
            hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel)
          else
            hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel);
@@ -837,7 +839,7 @@ implementation
 {$ifdef OLDREGVARS}
              load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
-             if (fc_unwind in flowcontrol) then
+             if (fc_unwind_loop in flowcontrol) then
                hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
              else
                hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
@@ -861,7 +863,7 @@ implementation
 {$ifdef OLDREGVARS}
              load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
-             if (fc_unwind in flowcontrol) then
+             if (fc_unwind_loop in flowcontrol) then
                hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
              else
                hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
