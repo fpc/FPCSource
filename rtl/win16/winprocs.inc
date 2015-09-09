@@ -68,3 +68,9 @@ function LocalDiscard(h: HLOCAL): HLOCAL;
 begin
   LocalDiscard := LocalReAlloc(h, 0, LMEM_MOVEABLE);
 end;
+
+function UnlockResource(hResData: HGLOBAL): BOOL;
+begin
+  UnlockResource := GlobalUnlock(hResData);
+end;
+

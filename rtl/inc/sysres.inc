@@ -163,6 +163,7 @@ begin
   Result:=resourcemanager.EnumResourceLanguagesFunc(ModuleHandle,ResourceType,ResourceName,EnumFunc,lParam);
 end;
 
+{$ifndef Win16}
 Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PChar): TFPResourceHandle;
 begin
   Result:=resourcemanager.FindResourceFunc(ModuleHandle,ResourceName,ResourceType);
@@ -197,4 +198,5 @@ Function FreeResource(ResData: TFPResourceHGLOBAL): LongBool;
 begin
   Result:=resourcemanager.FreeResourceFunc(ResData);
 end;
+{$endif Win16}
 

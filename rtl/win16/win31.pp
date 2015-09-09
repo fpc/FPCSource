@@ -156,6 +156,12 @@ const
 { ExitWindows values }
   EW_REBOOTSYSTEM = $43;
 
+{ Predefined Resource Types }
+  OBM_UPARROWI    = 32737;
+  OBM_DNARROWI    = 32736;
+  OBM_RGARROWI    = 32735;
+  OBM_LFARROWI    = 32734;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';

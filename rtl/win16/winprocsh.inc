@@ -205,3 +205,20 @@ function WNetAddConnection(lpszNetPath, lpszPassword, lpszLocalName: LPSTR): UIN
 function WNetGetConnection(lpszLocalName, lpszRemoteName: LPSTR; cbBufferSize: LPUINT): UINT; external 'USER';
 function WNetCancelConnection(lpszName: LPSTR; tForce: BOOL): UINT; external 'USER';
 
+{ Resource Management }
+
+function FindResource(hInstance: HINST; lpName, lpType: LPCSTR): HRSRC; external 'KERNEL';
+function LoadResource(hInstance: HINST; hResInfo: HRSRC): HGLOBAL; external 'KERNEL';
+function FreeResource(hResData: HGLOBAL): BOOL; external 'KERNEL';
+
+function LockResource(hResData: HGLOBAL): FarPointer; external 'KERNEL';
+function UnlockResource(hResData: HGLOBAL): BOOL; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+
+function SizeofResource(hInstance: HINST; hResInfo: HRSRC): DWORD; external 'KERNEL';
+
+function AccessResource(hInstance: HINST; hResInfo: HRSRC): SmallInt; external 'KERNEL';
+
+function AllocResource(hInstance: HINST; hResInfo: HRSRC; dwSize: DWORD): HGLOBAL; external 'KERNEL';
+
+function SetResourceHandler(hInstance: HINST; lpType: LPCSTR; lpLoadFunc: RSRCHDLRPROC): RSRCHDLRPROC; external 'KERNEL';
+
