@@ -141,7 +141,7 @@ begin
         OpenDoubleBuffer := Nil;
     end;
 
-    bm := AllocMem(SizeOf(tBitMap), MEMF_PUBLIC);
+    bm := ExecAllocMem(SizeOf(tBitMap), MEMF_PUBLIC);
     if bm = Nil then begin
         CloseWindow(w);
         CloseScreen(s);
