@@ -328,6 +328,10 @@ begin
       StackLength := pStackBot-pStackTop;
     end;
 {$endif}
+  { To be set if this is a GUI or console application }
+  IsConsole := FALSE;
+  { To be set if this is a library and not a program  }
+  IsLibrary := FALSE;
 { Setup heap }
   InitWin16Heap;
 end.
