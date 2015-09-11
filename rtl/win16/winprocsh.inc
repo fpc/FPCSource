@@ -245,3 +245,36 @@ function GetAtomHandle(atm: ATOM): HLOCAL; external 'KERNEL';
   function GetPrivateProfileInt(lpszSection, lpszEntry: LPCSTR; default: SmallInt; lpszFilename: LPCSTR): UINT; external 'KERNEL';
   function GetPrivateProfileString(lpszSection, lpszEntry, lpszDefault: LPCSTR; lpszReturnBuffer: LPSTR; cbReturnBuffer: SmallInt; lpszFilename: LPCSTR): SmallInt; external 'KERNEL';
   function WritePrivateProfileString(lpszSection, lpszEntry, lpszString, lpszFilename: LPCSTR): BOOL; external 'KERNEL';
+
+{ International & Char Translation Support }
+
+procedure AnsiToOem(hpszWindows, hpszOem: PHugeChar); external 'KEYBOARD';
+procedure AnsiToOem(hpszWindows, hpszOem: PFarChar); external 'KEYBOARD';
+procedure OemToAnsi(hpszOemStr, hpszWindowsStr: PHugeChar); external 'KEYBOARD';
+procedure OemToAnsi(hpszOemStr, hpszWindowsStr: PFarChar); external 'KEYBOARD';
+
+procedure AnsiToOemBuff(lpszWindowsStr: LPCSTR; lpszOemStr: LPSTR; cbWindowsStr: UINT); external 'KEYBOARD';
+procedure OemToAnsiBuff(lpszOemStr: LPCSTR; lpszWindowsStr: LPSTR; cbOemStr: UINT); external 'KEYBOARD';
+
+function AnsiNext(lpchCurrentChar: LPCSTR): LPSTR; external 'USER';
+function AnsiPrev(lpchStart, lpchCurrentChar: LPCSTR): LPSTR; external 'USER';
+
+function AnsiUpper(lpszString: LPSTR): LPSTR; external 'USER';
+function AnsiLower(lpsz: LPSTR): LPSTR; external 'USER';
+
+function AnsiUpperBuff(lpszString: LPSTR; cbString: UINT): UINT; external 'USER';
+function AnsiLowerBuff(lpszString: LPSTR; cbString: UINT): UINT; external 'USER';
+
+
+function IsCharAlpha(chTest: char): BOOL; external 'USER';
+function IsCharAlphaNumeric(chTest: char): BOOL; external 'USER';
+function IsCharUpper(chTest: char): BOOL; external 'USER';
+function IsCharLower(chTest: char): BOOL; external 'USER';
+
+function lstrcmp(lpszString1, lpszString2: LPCSTR): SmallInt; external 'USER';
+function lstrcmpi(lpszString1, lpszString2: LPCSTR): SmallInt; external 'USER';
+function lstrcpy(lpszString1: LPSTR; lpszString2: LPCSTR): LPSTR; external 'KERNEL';
+function lstrcat(lpszString1: LPSTR; lpszString2: LPCSTR): LPSTR; external 'KERNEL';
+function lstrlen(lpszString: LPCSTR): SmallInt; external 'KERNEL';
+
+function LoadString(hints: HINST; idResrouce: UINT; lpszBuffer: LPSTR; cbBuffer: SmallInt): SmallInt; external 'USER';

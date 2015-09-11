@@ -195,6 +195,14 @@ function IsTask(Task: HTASK): BOOL; external 'KERNEL';
 function _hread(FileHandle: HFILE; Buffer: HugePointer; Bytes: LongInt): LongInt; external 'KERNEL';
 function _hwrite(FileHandle: HFILE; Buffer: HugePointer; Bytes: LongInt): LongInt; external 'KERNEL';
 
+{ International & Char Translation Support }
+
+function lstrcpyn(lpszString1: LPSTR; lpszString2: LPCSTR; cChars: SmallInt): LPSTR; external 'KERNEL';
+procedure hmemcpy(hpvDest, hpvSource: HugePointer; cbCopy: LongInt); external 'KERNEL';
+procedure hmemcpy(hpvDest, hpvSource: FarPointer; cbCopy: LongInt); external 'KERNEL';
+
+function IsDBCSLeadByte(bTestChar: BYTE): BOOL; external 'KERNEL';
+
 implementation
 
 end.

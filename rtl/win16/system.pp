@@ -58,6 +58,8 @@ const
 
 type
   LPSTR = ^Char;far;
+  PFarChar = ^Char;far;
+  PHugeChar = ^Char;huge;
 
 var
 { Mem[] support }
@@ -118,7 +120,6 @@ const
 
 type
   PFarByte = ^Byte;far;
-  PFarChar = ^Char;far;
   PFarWord = ^Word;far;
 
   { structure, located at DS:0, initialized by InitTask }
