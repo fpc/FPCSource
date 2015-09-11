@@ -162,6 +162,17 @@ const
   OBM_RGARROWI    = 32735;
   OBM_LFARROWI    = 32734;
 
+type
+{ GDI typedefs, structures, and functions }
+  PSIZE = ^SIZE;
+  NPSIZE = ^SIZE; near;
+  LPSIZE = ^SIZE; far;
+  SIZE = record
+    cx: SmallInt;
+    cy: SmallInt;
+  end;
+  TSize = SIZE;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';

@@ -330,3 +330,36 @@ type
 const
 { WIN.INI Support }
   WM_WININICHANGE = $001A;
+
+type
+{ GDI typedefs, structures, and functions }
+  HDC      = THandle;
+  HGDIOBJ  = THandle;
+  HBITMAP  = THandle;
+  HPEN     = THandle;
+  HBRUSH   = THandle;
+  HRGN     = THandle;
+  HPALETTE = THandle;
+  HFONT    = THandle;
+
+  PRECT = ^RECT;
+  NPRECT = ^RECT; near;
+  LPRECT = ^RECT; far;
+  RECT = record
+    left: SmallInt;
+    top: SmallInt;
+    right: SmallInt;
+    bottom: SmallInt;
+  end;
+  TRect = RECT;
+
+  PPOINT = ^POINT;
+  NPPOINT = ^POINT; near;
+  LPPOINT = ^POINT; far;
+  POINT = record
+    x: SmallInt;
+    y: SmallInt;
+  end;
+  TPoint = POINT;
+
+  MAKEPOINT = POINT;
