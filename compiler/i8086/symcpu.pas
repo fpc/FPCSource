@@ -123,7 +123,7 @@ type
       - it is compiled in a $F- state }
     function default_far:boolean;
    public
-    constructor create(level:byte);override;
+    constructor create(level:byte;doregister:boolean);override;
     function address_type:tdef;override;
     function size:asizeint;override;
     procedure declared_far;override;
@@ -324,9 +324,9 @@ implementation
                              tcpuprocdef
 ****************************************************************************}
 
-  constructor tcpuprocdef.create(level: byte);
+  constructor tcpuprocdef.create(level: byte;doregister:boolean);
     begin
-      inherited create(level);
+      inherited create(level,doregister);
       if (current_settings.x86memorymodel in x86_far_code_models) and
          ((cs_huge_code in current_settings.moduleswitches) or
           (cs_force_far_calls in current_settings.localswitches)) then
