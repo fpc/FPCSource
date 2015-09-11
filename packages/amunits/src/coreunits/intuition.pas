@@ -4100,7 +4100,8 @@ PROCEDURE FreeScreenBuffer(sc : pScreen location 'a0'; sb : pScreenBuffer locati
 PROCEDURE FreeScreenDrawInfo(screen : pScreen location 'a0'; drawInfo : pDrawInfo location 'a1'); syscall _IntuitionBase 696;
 PROCEDURE FreeSysRequest(window : pWindow location 'a0'); syscall _IntuitionBase 372;
 PROCEDURE GadgetMouse(gadget : pGadget location 'a0'; gInfo : pGadgetInfo location 'a1'; mousePoint : psmallint location 'a2'); syscall _IntuitionBase 570;
-FUNCTION GetAttr(attrID : ULONG location 'd0'; obj : POINTER location 'a0'; storagePtr : pULONG location 'a1') : ULONG; syscall _IntuitionBase 654;
+FUNCTION GetAttr(attrID : ULONG location 'd0'; obj : POINTER location 'a0'; storagePtr : pULONG location 'a1') : ULONG; overload; syscall _IntuitionBase 654;
+FUNCTION GetAttr(attrID : ULONG location 'd0'; obj : POINTER location 'a0'; var storage : ULONG location 'a1') : ULONG; overload; syscall _IntuitionBase 654;
 PROCEDURE GetDefaultPubScreen(nameBuffer : pCHAR location 'a0'); syscall _IntuitionBase 582;
 FUNCTION GetDefPrefs(preferences : pPreferences location 'a0'; size : LONGINT location 'd0') : pPreferences; syscall _IntuitionBase 126;
 FUNCTION GetPrefs(preferences : pPreferences location 'a0'; size : LONGINT location 'd0') : pPreferences; syscall _IntuitionBase 132;

@@ -1393,29 +1393,29 @@ type
 { dos.library functions }
 
 function dosOpen(fname     : PChar   location 'd1';
-              accessMode: LongInt location 'd2'): LongInt;
+              accessMode: LongInt location 'd2'): BPTR;
 SysCall MOS_DOSBase 30;
 
-function dosClose(fileh: LongInt location 'd1'): LongBool;
+function dosClose(fileh: BPTR location 'd1'): LongBool;
 SysCall MOS_DOSBase 36;
 
-function dosRead(fileh : LongInt location 'd1';
+function dosRead(fileh : BPTR location 'd1';
                  buffer: Pointer location 'd2';
                  length: LongInt location 'd3'): LongInt;
 SysCall MOS_DOSBase 42;
 
-function dosWrite(fileh : LongInt location 'd1';
+function dosWrite(fileh : BPTR location 'd1';
                   buffer: Pointer location 'd2';
                   length: LongInt location 'd3'): LongInt;
 SysCall MOS_DOSBase 48;
 
-function dosInput: LongInt;
+function dosInput: BPTR;
 SysCall MOS_DOSBase 54;
 
-function dosOutput: LongInt;
+function dosOutput: BPTR;
 SysCall MOS_DOSBase 60;
 
-function dosSeek(fileh   : LongInt location 'd1';
+function dosSeek(fileh   : BPTR location 'd1';
                  position: LongInt location 'd2';
                  posmode : LongInt location 'd3'): LongInt;
 SysCall MOS_DOSBase 66;
@@ -1428,31 +1428,31 @@ function dosRename(oldName: PChar location 'd1';
 SysCall MOS_DOSBase 78;
 
 function Lock(lname     : PChar   location 'd1';
-              accessMode: LongInt location 'd2'): LongInt;
+              accessMode: LongInt location 'd2'): BPTR;
 SysCall MOS_DOSBase 84;
 
-procedure Unlock(lock: LongInt location 'd1');
+procedure Unlock(lock: BPTR location 'd1');
 SysCall MOS_DOSBase 90;
 
-function DupLock(lock: LongInt location 'd1'): LongInt;
+function DupLock(lock: BPTR location 'd1'): LongInt;
 SysCall MOS_DOSBase 096;
 
-function Examine(lock         : LongInt        location 'd1';
+function Examine(lock         : BPTR        location 'd1';
                  fileInfoBlock: PFileInfoBlock location 'd2'): LongInt;
 SysCall MOS_DOSBase 102;
 
-function ExNext(lock         : LongInt        location 'd1';
+function ExNext(lock         : BPTR        location 'd1';
                 fileInfoBlock: PFileInfoBlock location 'd2'): LongInt;
 SysCall MOS_DOSBase 108;
 
-function Info(lock          : LongInt   location 'd1';
+function Info(lock          : BPTR   location 'd1';
               parameterBlock: PInfoData location 'd2'): LongInt;
 SysCall MOS_DOSBase 114;
 
 function dosCreateDir(dname: PChar location 'd1'): LongInt;
 SysCall MOS_DOSBase 120;
 
-function CurrentDir(lock: LongInt location 'd1'): LongInt;
+function CurrentDir(lock: BPTR location 'd1'): BPTR;
 SysCall MOS_DOSBase 126;
 
 function IoErr: LongInt;
@@ -1460,17 +1460,17 @@ SysCall MOS_DOSBase 132;
 
 function CreateProc(name     : PChar   location 'd1';
                     pri      : LongInt location 'd2';
-                    segList  : LongInt location 'd3';
+                    segList  : BPTR location 'd3';
                     stackSize: LongInt location 'd4'): PMsgPort;
 SysCall MOS_DOSBase 138;
 
 procedure dosExit(returnCode: LongInt location 'd1');
 SysCall MOS_DOSBase 144;
 
-function LoadSeg(name: PChar location 'd1'): LongInt;
+function LoadSeg(name: PChar location 'd1'): BPTR;
 SysCall MOS_DOSBase 150;
 
-procedure UnLoadSeg(seglist: LongInt location 'd1');
+procedure UnLoadSeg(seglist: BPTR location 'd1');
 SysCall MOS_DOSBase 156;
 
 function DeviceProc(name: PChar location 'd1'): PMsgPort;
@@ -1494,15 +1494,15 @@ function WaitForChar(file1  : LongInt location 'd1';
                      timeout: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 204;
 
-function ParentDir(lock: LongInt location 'd1'): LongInt;
+function ParentDir(lock: BPTR location 'd1'): BPTR;
 SysCall MOS_DOSBase 210;
 
-function IsInteractive(file1: LongInt location 'd1'): LongBool;
+function IsInteractive(file1: BPTR location 'd1'): LongBool;
 SysCall MOS_DOSBase 216;
 
 function Execute(string1: PChar   location 'd1';
-                 file1  : LongInt location 'd2';
-                 file2  : LongInt location 'd3'): LongBool;
+                 file1  : BPTR location 'd2';
+                 file2  : BPTR location 'd3'): LongBool;
 SysCall MOS_DOSBase 222;
 
 function AllocDosObject(type1: Cardinal location 'd1';
@@ -1573,7 +1573,7 @@ procedure AbortPkt(port: PMsgPort   location 'd1';
                    pkt : PDosPacket location 'd2');
 SysCall MOS_DOSBase 264;
 
-function LockRecord(fh     : LongInt  location 'd1';
+function LockRecord(fh     : BPTR  location 'd1';
                     offset : Cardinal location 'd2';
                     length : Cardinal location 'd3';
                     mode   : Cardinal location 'd4';
@@ -1584,7 +1584,7 @@ function LockRecords(recArray: PRecordLock location 'd1';
                      timeout : Cardinal    location 'd2'): LongBool;
 SysCall MOS_DOSBase 276;
 
-function UnLockRecord(fh    : LongInt  location 'd1';
+function UnLockRecord(fh    : BPTR  location 'd1';
                       offset: Cardinal location 'd2';
                       length: Cardinal location 'd3'): LongBool;
 SysCall MOS_DOSBase 282;
@@ -1592,73 +1592,73 @@ SysCall MOS_DOSBase 282;
 function UnLockRecords(recArray: PRecordLock location 'd1'): LongBool;
 SysCall MOS_DOSBase 288;
 
-function SelectInput(fh: LongInt location 'd1'): LongInt;
+function SelectInput(fh: BPTR location 'd1'): LongInt;
 SysCall MOS_DOSBase 294;
 
-function SelectOutput(fh: LongInt location 'd1'): LongInt;
+function SelectOutput(fh: BPTR location 'd1'): LongInt;
 SysCall MOS_DOSBase 300;
 
-function FGetC(fh: LongInt location 'd1'): LongInt;
+function FGetC(fh: BPTR location 'd1'): LongInt;
 SysCall MOS_DOSBase 306;
 
-function FPutC(fh: LongInt location 'd1';
+function FPutC(fh: BPTR location 'd1';
                ch: LongInt location 'd2'): LongInt;
 SysCall MOS_DOSBase 312;
 
-function UnGetC(fh       : LongInt location 'd1';
+function UnGetC(fh       : BPTR location 'd1';
                 character: LongInt location 'd2'): LongInt;
 SysCall MOS_DOSBase 318;
 
-function FRead(fh      : LongInt  location 'd1';
+function FRead(fh      : BPTR  location 'd1';
                block   : Pointer  location 'd2';
                blocklen: Cardinal location 'd3';
                number  : Cardinal location 'd4'): LongInt;
 SysCall MOS_DOSBase 324;
 
-function FWrite(fh      : LongInt  location 'd1';
+function FWrite(fh      : BPTR  location 'd1';
                 block   : Pointer  location 'd2';
                 blocklen: Cardinal location 'd3';
                 number  : Cardinal location 'd4'): LongInt;
 SysCall MOS_DOSBase 330;
 
-function FGets(fh    : LongInt  location 'd1';
+function FGets(fh    : BPTR  location 'd1';
                buf   : PChar    location 'd2';
                buflen: Cardinal location 'd3'): PChar;
 SysCall MOS_DOSBase 336;
 
-function FPuts(fh : LongInt location 'd1';
+function FPuts(fh : BPTR location 'd1';
                str: PChar   location 'd2'): LongInt;
 SysCall MOS_DOSBase 342;
 
-procedure VFWritef(fh      : LongInt location 'd1';
+procedure VFWritef(fh      : BPTR location 'd1';
                    format  : PChar   location 'd2';
                    argarray: Pointer location 'd3');
 SysCall MOS_DOSBase 348;
 
-function VFPrintf(fh      : LongInt location 'd1';
+function VFPrintf(fh      : BPTR location 'd1';
                   format  : PChar   location 'd2';
                   argarray: Pointer location 'd3'): LongInt;
 SysCall MOS_DOSBase 354;
 
-function dosFlush(fh: LongInt location 'd1'): LongInt;
+function dosFlush(fh: BPTR location 'd1'): LongInt;
 SysCall MOS_DOSBase 360;
 
-function SetVBuf(fh   : LongInt location 'd1';
+function SetVBuf(fh   : BPTR location 'd1';
                  buff : PChar   location 'd2';
                  type1: LongInt location 'd3';
                  size : LongInt location 'd4'): LongInt;
 SysCall MOS_DOSBase 366;
 
-function DupLockFromFH(fh: LongInt location 'd1'): LongInt;
+function DupLockFromFH(fh: BPTR location 'd1'): BPTR;
 SysCall MOS_DOSBase 372;
 
-function OpenFromLock(lock: LongInt location 'd1'): LongInt;
+function OpenFromLock(lock: BPTR location 'd1'): BPTR;
 SysCall MOS_DOSBase 378;
 
-function ParentOfFH(fh: LongInt location 'd1'): LongInt;
+function ParentOfFH(fh: BPTR location 'd1'): BPTR;
 SysCall MOS_DOSBase 384;
 
-function ExamineFH(fh : LongInt        location 'd1';
+function ExamineFH(fh : BPTR        location 'd1';
                    fib: PFileInfoBlock location 'd2'): LongBool;
 SysCall MOS_DOSBase 390;
 
@@ -1666,12 +1666,12 @@ function SetFileDate(name: PChar      location 'd1';
                      date: PDateStamp location 'd2'): LongBool;
 SysCall MOS_DOSBase 396;
 
-function NameFromLock(lock  : LongInt location 'd1';
+function NameFromLock(lock  : BPTR location 'd1';
                       buffer: PChar   location 'd2';
                       len   : LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 402;
 
-function NameFromFH(fh    : LongInt location 'd1';
+function NameFromFH(fh    : BPTR location 'd1';
                     buffer: PChar   location 'd2';
                     len   : LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 408;
@@ -1683,15 +1683,15 @@ function SplitName(name     : PChar    location 'd1';
                    size     : LongInt  location 'd5'): SmallInt;
 SysCall MOS_DOSBase 414;
 
-function SameLock(lock1: LongInt location 'd1';
-                  lock2: LongInt location 'd2'): LongInt;
+function SameLock(lock1: BPTR location 'd1';
+                  lock2: BPTR location 'd2'): LongInt;
 SysCall MOS_DOSBase 420;
 
-function SetMode(fh  : LongInt location 'd1';
+function SetMode(fh  : BPTR location 'd1';
                  mode: LongInt location 'd2'): LongInt;
 SysCall MOS_DOSBase 426;
 
-function ExAll(lock   : LongInt       location 'd1';
+function ExAll(lock   : BPTR       location 'd1';
                buffer : PExAllData    location 'd2';
                size   : LongInt       location 'd3';
                data   : LongInt       location 'd4';
@@ -1699,7 +1699,7 @@ function ExAll(lock   : LongInt       location 'd1';
 SysCall MOS_DOSBase 432;
 
 function ReadLink(port  : PMsgPort location 'd1';
-                  lock  : LongInt  location 'd2';
+                  lock  : BPTR  location 'd2';
                   path  : PChar    location 'd3';
                   buffer: PChar    location 'd4';
                   size  : Cardinal location 'd5'): LongBool;
@@ -1711,11 +1711,11 @@ function MakeLink(name: PChar   location 'd1';
 SysCall MOS_DOSBase 444;
 
 function ChangeMode(type1  : LongInt location 'd1';
-                    fh     : LongInt location 'd2';
+                    fh     : BPTR location 'd2';
                     newmode: LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 450;
 
-function SetFileSize(fh  : LongInt location 'd1';
+function SetFileSize(fh  : BPTR location 'd1';
                      pos : LongInt location 'd2';
                      mode: LongInt location 'd3'): LongInt;
 SysCall MOS_DOSBase 456;
@@ -1748,7 +1748,7 @@ SysCall MOS_DOSBase 498;
 function CreateNewProcTagList(tags: PTagItem location 'd1'): PProcess;
 SysCall MOS_DOSBase 498;
 
-function RunCommand(seg     : LongInt location 'd1';
+function RunCommand(seg     : BPTR location 'd1';
                     stack   : LongInt location 'd2';
                     paramptr: PChar   location 'd3';
                     paramlen: LongInt location 'd4'): LongInt;
@@ -1799,10 +1799,10 @@ function GetPrompt(buf: PChar   location 'd1';
                    len: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 588;
 
-function SetProgramDir(lock: LongInt location 'd1'): LongInt;
+function SetProgramDir(lock: BPTR location 'd1'): LongInt;
 SysCall MOS_DOSBase 594;
 
-function GetProgramDir: LongInt;
+function GetProgramDir: BPTR;
 SysCall MOS_DOSBase 600;
 
 function SystemTagList(command: PChar    location 'd1';
@@ -1814,7 +1814,7 @@ function dosSystem(command: PChar    location 'd1';
 SysCall MOS_DOSBase 606;
 
 function AssignLock(name: PChar   location 'd1';
-                    lock: LongInt location 'd2'): LongBool;
+                    lock: BPTR location 'd2'): LongBool;
 SysCall MOS_DOSBase 612;
 
 function AssignLate(name: PChar location 'd1';
@@ -1826,11 +1826,11 @@ function AssignPath(name: PChar location 'd1';
 SysCall MOS_DOSBase 624;
 
 function AssignAdd(name: PChar   location 'd1';
-                   lock: LongInt location 'd2'): LongBool;
+                   lock: BPTR location 'd2'): LongBool;
 SysCall MOS_DOSBase 630;
 
 function RemAssignList(name: PChar   location 'd1';
-                       lock: LongInt location 'd2'): LongBool;
+                       lock: BPTR location 'd2'): LongBool;
 SysCall MOS_DOSBase 636;
 
 function GetDeviceProc(name: PChar    location 'd1';
@@ -1901,7 +1901,7 @@ SysCall MOS_DOSBase 744;
 function StrToDate(datetime: _PDateTime location 'd1'): LongBool;
 SysCall MOS_DOSBase 750;
 
-function InternalLoadSeg(fh           : LongInt location 'd0';
+function InternalLoadSeg(fh           : BPTR location 'd0';
                          table        : LongInt location 'a0';
                          var funcarray: LongInt location 'a1';
                          var stack    : LongInt location 'a2'): LongInt;
@@ -1916,7 +1916,7 @@ function NewLoadSegTagList(file1: PChar    location 'd1';
 SysCall MOS_DOSBase 768;
 
 function AddSegment(name  : PChar   location 'd1';
-                    seg   : LongInt location 'd2';
+                    seg   : BPTR location 'd2';
                     system: LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 774;
 
@@ -2034,8 +2034,8 @@ function MatchPatternNoCase(pat: PChar location 'd1';
                             str: PChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 972;
 
-function SameDevice(lock1: LongInt location 'd1';
-                    lock2: LongInt location 'd2'): LongBool;
+function SameDevice(lock1: BPTR location 'd1';
+                    lock2: BPTR location 'd2'): LongBool;
 SysCall MOS_DOSBase 984;
 
 procedure ExAllEnd(lock   : LongInt       location 'd1';
@@ -2063,8 +2063,8 @@ SysCall MOS_DOSBase 1008;
   *********************************************************************
   * }
 
-function BADDR(x: LongInt): Pointer; Inline;
-function MKBADDR(x: Pointer): LongInt; Inline;
+function BADDR(x: BPTR): Pointer; Inline;
+function MKBADDR(x: Pointer): BPTR; Inline;
 
 
 { * dos stdio definitions
@@ -2137,12 +2137,12 @@ end;
   * }
 
 
-function BADDR(x: LongInt): Pointer; Inline;
+function BADDR(x: BPTR): Pointer; Inline;
 begin
  BADDR:=Pointer(x Shl 2);
 end;
 
-function MKBADDR(x: Pointer): LongInt; Inline;
+function MKBADDR(x: Pointer): BPTR; Inline;
 begin
  MKBADDR:=LongInt(PtrUInt(x)) Shr 2;
 end;
