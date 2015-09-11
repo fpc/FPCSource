@@ -110,7 +110,8 @@ interface
           loadparentfpn,    { Load the framepointer of the parent for nested procedures }
           dataconstn,       { node storing some binary data }
           objcselectorn,    { node for an Objective-C message selector }
-          objcprotocoln     { node for an Objective-C @protocol() expression (returns metaclass associated with protocol) }
+          objcprotocoln,    { node for an Objective-C @protocol() expression (returns metaclass associated with protocol) }
+          specializen       { parser-only node to handle Delphi-mode inline specializations }
        );
 
        tnodetypeset = set of tnodetype;
@@ -194,7 +195,8 @@ interface
           'loadparentfpn',
           'dataconstn',
           'objcselectorn',
-          'objcprotocoln');
+          'objcprotocoln',
+          'specializen');
 
       { a set containing all const nodes }
       nodetype_const = [ordconstn,

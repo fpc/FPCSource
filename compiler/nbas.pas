@@ -48,6 +48,15 @@ interface
        end;
        terrornodeclass = class of terrornode;
 
+       tspecializenode = class(tunarynode)
+          sym:tsym;
+          getaddr:boolean;
+          constructor create(l:tnode;g:boolean;s:tsym);virtual;
+          function pass_1:tnode;override;
+          function pass_typecheck:tnode;override;
+       end;
+       tspecializenodeclass = class of tspecializenode;
+
        tasmnode = class(tnode)
           p_asm : TAsmList;
           currenttai : tai;
@@ -248,6 +257,7 @@ interface
     var
        cnothingnode : tnothingnodeclass = tnothingnode;
        cerrornode : terrornodeclass = terrornode;
+       cspecializenode : tspecializenodeclass = tspecializenode;
        casmnode : tasmnodeclass = tasmnode;
        cstatementnode : tstatementnodeclass = tstatementnode;
        cblocknode : tblocknodeclass = tblocknode;
@@ -378,6 +388,36 @@ implementation
     procedure terrornode.mark_write;
       begin
       end;
+
+
+{*****************************************************************************
+                             TSPECIALIZENODE
+*****************************************************************************}
+
+    constructor tspecializenode.create(l:tnode;g:boolean;s:tsym);
+      begin
+         inherited create(specializen,l);
+         sym:=s;
+         getaddr:=g;
+      end;
+
+
+    function tspecializenode.pass_typecheck:tnode;
+      begin
+         result:=nil;
+         resultdef:=cundefinedtype;
+      end;
+
+
+    function tspecializenode.pass_1:tnode;
+      begin
+         { such a node should not reach pass_1 }
+         internalerror(2015071704);
+         result:=nil;
+         expectloc:=LOC_VOID;
+         codegenerror:=true;
+      end;
+
 
 {*****************************************************************************
                             TSTATEMENTNODE
