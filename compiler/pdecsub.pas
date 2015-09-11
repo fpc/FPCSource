@@ -3189,6 +3189,53 @@ const
       end;
 
     function proc_add_definition(var currpd:tprocdef):boolean;
+
+
+      function equal_generic_procdefs(fwpd,currpd:tprocdef):boolean;
+        var
+          i : longint;
+          fwtype,
+          currtype : ttypesym;
+          foundretdef : boolean;
+        begin
+          result:=false;
+          if fwpd.genericparas.count<>currpd.genericparas.count then
+            exit;
+          { comparing generic declarations is a bit more cumbersome as the
+            defs of the generic parameter types are not equal, especially if the
+            declaration contains constraints; essentially we have two cases:
+            - proc declared in interface of unit (or in class/record/object)
+              and defined in implementation; here the fwpd might contain
+              constraints while currpd must only contain undefineddefs
+            - forward declaration in implementation; this case is not supported
+              right now }
+          foundretdef:=false;
+          for i:=0 to fwpd.genericparas.count-1 do
+            begin
+              fwtype:=ttypesym(fwpd.genericparas[i]);
+              currtype:=ttypesym(currpd.genericparas[i]);
+              { if the type in the currpd isn't a pure undefineddef, then we can
+                stop right there }
+              if (currtype.typedef.typ<>undefineddef) or (df_genconstraint in currtype.typedef.defoptions) then
+                exit;
+              if not foundretdef then
+                begin
+                  { if the returndef is the same as this parameter's def then this
+                    needs to be the case for both procdefs }
+                  foundretdef:=fwpd.returndef=fwtype.typedef;
+                  if foundretdef xor (currpd.returndef=currtype.typedef) then
+                    exit;
+                end;
+            end;
+          if compare_paras(fwpd.paras,currpd.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv,cpo_generic])<>te_exact then
+            exit;
+          if not foundretdef then
+            { the returndef isn't a type parameter, so compare as usual }
+            result:=compare_defs(fwpd.returndef,currpd.returndef,nothingn)=te_exact
+          else
+            result:=true;
+        end;
+
       {
         Add definition aprocdef to the overloaded definitions of aprocsym. If a
         forwarddef is found and reused it returns true
@@ -3234,6 +3281,11 @@ const
                not(currpd.forwarddef) and
                is_bareprocdef(currpd) and
                not(po_overload in fwpd.procoptions)
+              ) or
+              (
+                fwpd.is_generic and
+                currpd.is_generic and
+                equal_generic_procdefs(fwpd,currpd)
               ) or
               { check arguments, we need to check only the user visible parameters. The hidden parameters
                 can be in a different location because of the calling convention, eg. L-R vs. R-L order (PFV)
@@ -3316,8 +3368,23 @@ const
                      have the same value }
                    if ((m_repeat_forward in current_settings.modeswitches) or
                        not is_bareprocdef(currpd)) and
-                      ((compare_paras(fwpd.paras,currpd.paras,cp_all,paracompopt)<>te_exact) or
-                       (compare_defs(fwpd.returndef,currpd.returndef,nothingn)<>te_exact)) then
+                       (
+                         (
+                           fwpd.is_generic and
+                           currpd.is_generic and
+                           not equal_generic_procdefs(fwpd,currpd)
+                         ) or
+                         (
+                           (
+                             not fwpd.is_generic or
+                             not currpd.is_generic
+                           ) and
+                           (
+                             (compare_paras(fwpd.paras,currpd.paras,cp_all,paracompopt)<>te_exact) or
+                             (compare_defs(fwpd.returndef,currpd.returndef,nothingn)<>te_exact)
+                           )
+                         )
+                       ) then
                      begin
                        MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
                                    fwpd.fullprocname(false));
