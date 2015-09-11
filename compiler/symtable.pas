@@ -2130,6 +2130,7 @@ implementation
         if not(m_duplicate_names in current_settings.modeswitches) and
            assigned(defowner) and (defowner.typ=procdef) and
            assigned(tprocdef(defowner).struct) and
+           assigned(tprocdef(defowner).owner) and
            (tprocdef(defowner).owner.defowner=tprocdef(defowner).struct) and
            (
             not(m_delphi in current_settings.modeswitches) or
