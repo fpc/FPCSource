@@ -334,4 +334,6 @@ begin
   IsLibrary := FALSE;
 { Setup heap }
   InitWin16Heap;
+  SysInitExceptions;
+  initunicodestringmanager;
 end.
