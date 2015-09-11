@@ -278,3 +278,13 @@ function lstrcat(lpszString1: LPSTR; lpszString2: LPCSTR): LPSTR; external 'KERN
 function lstrlen(lpszString: LPCSTR): SmallInt; external 'KERNEL';
 
 function LoadString(hints: HINST; idResrouce: UINT; lpszBuffer: LPSTR; cbBuffer: SmallInt): SmallInt; external 'USER';
+
+{ Keyboard Driver Functions }
+
+function OemKeyScan(uOemChar: UINT): DWORD; external 'KEYBOARD';
+function VkKeyScan(uChar: UINT): UINT; external 'KEYBOARD';
+function GetKeyboardType(fnKeybInfo: SmallInt): SmallInt; external 'KEYBOARD';
+function MapVirtualKey(uKeyCode, fuMapType: UINT): UINT; external 'KEYBOARD';
+function GetKBCodePage: SmallInt; external 'KEYBOARD';
+function GetKeyNameText(lParam: LONG; lpszBuffer: LPSTR; cbMaxKey: SmallInt): SmallInt; external 'KEYBOARD';
+function ToAscii(wVirtKey, wScanCode: UINT; lpKeyState: LPBYTE; lpChar: LPDWORD; wFlags: UINT): SmallInt; external 'KEYBOARD';
