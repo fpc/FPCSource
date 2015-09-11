@@ -310,3 +310,33 @@ function MulDiv(nMultiplicand, nMultiplier, nDivisor: SmallInt): SmallInt; exter
 { Device Capabilities }
 
 function GetDeviceCaps(hdc: HDC; iCapability: SmallInt): SmallInt; external 'GDI';
+
+{ Coordinate transformation support }
+
+function SetMapMode(hdc: HDC; fnMapMode: SmallInt): SmallInt; external 'GDI';
+function GetMapMode(hdc: HDC): SmallInt; external 'GDI';
+
+function SetWindowOrg(hdc: HDC; nXOrigin, nYOrigin: SmallInt): DWORD; external 'GDI';
+function GetWindowOrg(hdc: HDC): DWORD; external 'GDI';
+
+function SetWindowExt(hdc: HDC; nXExtent, nYExtent: SmallInt): DWORD; external 'GDI';
+function GetWindowExt(hdc: HDC): DWORD; external 'GDI';
+
+function OffsetWindowOrg(hdc: HDC; nXOffset, nYOffset: SmallInt): DWORD; external 'GDI';
+function ScaleWindowExt(hdc: HDC; nXNum, nXDenom, nYNum, nYDenom: SmallInt): DWORD; external 'GDI';
+
+function SetViewportOrg(hdc: HDC; nXOrigin, nYOrigin: SmallInt): DWORD; external 'GDI';
+function GetViewportOrg(hdc: HDC): DWORD; external 'GDI';
+
+function SetViewportExt(hdc: HDC; nXExtent, nYExtent: SmallInt): DWORD; external 'GDI';
+function GetViewportExt(hdc: HDC): DWORD; external 'GDI';
+
+function OffsetViewportOrg(hdc: HDC; nXOffset, nYOffset: SmallInt): DWORD; external 'GDI';
+function ScaleViewportExt(hdc: HDC; nXNum, nXDenom, nYNum, nYDenom: SmallInt): DWORD; external 'GDI';
+
+function DPtoLP(hdc: HDC; lppt: LPPOINT; cPoints: SmallInt): BOOL; external 'GDI';
+function LPtoDP(hdc: HDC; lppt: LPPOINT; cPoints: SmallInt): BOOL; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function DPtoLP(hdc: HDC; var pt; cPoints: SmallInt): BOOL; external 'GDI';
+function LPtoDP(hdc: HDC; var pt; cPoints: SmallInt): BOOL; external 'GDI';
+{$endif}

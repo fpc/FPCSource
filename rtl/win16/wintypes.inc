@@ -485,3 +485,19 @@ const
   RC_STRETCHDIB       = $2000;
   RC_OP_DX_OUTPUT     = $4000;
   RC_DEVBITS          = $8000;
+
+{ Coordinate transformation support }
+
+{ Map modes }
+  MM_TEXT        = 1;
+  MM_LOMETRIC    = 2;
+  MM_HIMETRIC    = 3;
+  MM_LOENGLISH   = 4;
+  MM_HIENGLISH   = 5;
+  MM_TWIPS       = 6;
+  MM_ISOTROPIC   = 7;
+  MM_ANISOTROPIC = 8;
+
+{ Coordinate Modes }
+  ABSOLUTE = 1;
+  RELATIVE = 2;

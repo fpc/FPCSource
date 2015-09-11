@@ -235,6 +235,25 @@ function SetBoundsRect(hDC: HDC; const lprcBounds: RECT; flags: UINT): UINT; ext
 function GetBoundsRect(hDC: HDC; var lprcBounds: RECT; flags: UINT): UINT; external 'GDI';
 {$endif}
 
+{ Coordinate transformation support }
+function SetWindowOrgEx(hdc: HDC; nX, nY: SmallInt; lpPoint: LPPOINT): BOOL; external 'GDI';
+function GetWindowOrgEx(hdc: HDC; lpPoint: LPPOINT): BOOL; external 'GDI';
+
+function SetWindowExtEx(hdc: HDC; nX, nY: SmallInt; lpSize: LPSIZE): BOOL; external 'GDI';
+function GetWindowExtEx(hdc: HDC; lpSize: LPSIZE): BOOL; external 'GDI';
+
+function OffsetWindowOrgEx(hdc: HDC; nX, nY: SmallInt; lpPoint: LPPOINT): BOOL; external 'GDI';
+function ScaleWindowExtEx(hdc: HDC; nXnum, nXdenom, nYnum, nYdenom: SmallInt; lpSize: LPSIZE): BOOL; external 'GDI';
+
+function SetViewportExtEx(hdc: HDC; nX, nY: SmallInt; lpSize: LPSIZE): BOOL; external 'GDI';
+function GetViewportExtEx(hdc: HDC; lpSize: LPSIZE): BOOL; external 'GDI';
+
+function SetViewportOrgEx(hdc: HDC; nX, nY: SmallInt; lpPoint: LPPOINT): BOOL; external 'GDI';
+function GetViewportOrgEx(hdc: HDC; lpPoint: LPPOINT): BOOL; external 'GDI';
+
+function OffsetViewportOrgEx(hdc: HDC; nX, nY: SmallInt; lpPoint: LPPOINT): BOOL; external 'GDI';
+function ScaleViewportExtEx(hdc: HDC; nXnum, nXdenom, nYnum, nYdenom: SmallInt; lpSize: LPSIZE): BOOL; external 'GDI';
+
 implementation
 
 end.
