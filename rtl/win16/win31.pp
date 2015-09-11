@@ -2,6 +2,10 @@ unit win31;
 
 {$MODE objfpc}
 
+{$if defined(FPC_MM_COMPACT) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+  {$define VAR_PARAMS_ARE_FAR}
+{$endif}
+
 interface
 
 uses
@@ -173,6 +177,15 @@ type
   end;
   TSize = SIZE;
 
+const
+{ Drawing bounds accumulation APIs }
+  DCB_RESET      = $0001;
+  DCB_ACCUMULATE = $0002;
+  DCB_DIRTY      = DCB_ACCUMULATE;
+  DCB_SET        = DCB_RESET or DCB_ACCUMULATE;
+  DCB_ENABLE     = $0004;
+  DCB_DISABLE    = $0008;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
@@ -213,6 +226,14 @@ procedure hmemcpy(hpvDest, hpvSource: HugePointer; cbCopy: LongInt); external 'K
 procedure hmemcpy(hpvDest, hpvSource: FarPointer; cbCopy: LongInt); external 'KERNEL';
 
 function IsDBCSLeadByte(bTestChar: BYTE): BOOL; external 'KERNEL';
+
+{ Drawing bounds accumulation APIs }
+function SetBoundsRect(hDC: HDC; lprcBounds: LPRECT; flags: UINT): UINT; external 'GDI';
+function GetBoundsRect(hDC: HDC; lprcBounds: LPRECT; flags: UINT): UINT; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function SetBoundsRect(hDC: HDC; const lprcBounds: RECT; flags: UINT): UINT; external 'GDI';
+function GetBoundsRect(hDC: HDC; var lprcBounds: RECT; flags: UINT): UINT; external 'GDI';
+{$endif}
 
 implementation
 

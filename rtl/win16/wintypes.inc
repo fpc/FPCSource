@@ -363,3 +363,125 @@ type
   TPoint = POINT;
 
   MAKEPOINT = POINT;
+
+{ Device Capabilities }
+const
+{ Device Parameters for GetDeviceCaps() }
+  DRIVERVERSION = 0;
+  TECHNOLOGY    = 2;
+  HORZSIZE      = 4;
+  VERTSIZE      = 6;
+  HORZRES       = 8;
+  VERTRES       = 10;
+  BITSPIXEL     = 12;
+  PLANES        = 14;
+  NUMBRUSHES    = 16;
+  NUMPENS       = 18;
+  NUMMARKERS    = 20;
+  NUMFONTS      = 22;
+  NUMCOLORS     = 24;
+  PDEVICESIZE   = 26;
+  CURVECAPS     = 28;
+  LINECAPS      = 30;
+  POLYGONALCAPS = 32;
+  TEXTCAPS      = 34;
+  CLIPCAPS      = 36;
+  RASTERCAPS    = 38;
+  ASPECTX       = 40;
+  ASPECTY       = 42;
+  ASPECTXY      = 44;
+
+  LOGPIXELSX    = 88;
+  LOGPIXELSY    = 90;
+
+  SIZEPALETTE   = 104;
+  NUMRESERVED   = 106;
+  COLORRES      = 108;
+
+{ GetDeviceCaps() return value masks }
+
+{ TECHNOLOGY }
+  DT_PLOTTER          = 0;
+  DT_RASDISPLAY       = 1;
+  DT_RASPRINTER       = 2;
+  DT_RASCAMERA        = 3;
+  DT_CHARSTREAM       = 4;
+  DT_METAFILE         = 5;
+  DT_DISPFILE         = 6;
+
+{ CURVECAPS }
+  CC_NONE             = $0000;
+  CC_CIRCLES          = $0001;
+  CC_PIE              = $0002;
+  CC_CHORD            = $0004;
+  CC_ELLIPSES         = $0008;
+  CC_WIDE             = $0010;
+  CC_STYLED           = $0020;
+  CC_WIDESTYLED       = $0040;
+  CC_INTERIORS        = $0080;
+  CC_ROUNDRECT        = $0100;
+
+{ LINECAPS }
+  LC_NONE             = $0000;
+  LC_POLYLINE         = $0002;
+  LC_MARKER           = $0004;
+  LC_POLYMARKER       = $0008;
+  LC_WIDE             = $0010;
+  LC_STYLED           = $0020;
+  LC_WIDESTYLED       = $0040;
+  LC_INTERIORS        = $0080;
+
+{ POLYGONALCAPS }
+  PC_NONE             = $0000;
+  PC_POLYGON          = $0001;
+  PC_RECTANGLE        = $0002;
+  PC_WINDPOLYGON      = $0004;
+  PC_SCANLINE         = $0008;
+  PC_WIDE             = $0010;
+  PC_STYLED           = $0020;
+  PC_WIDESTYLED       = $0040;
+  PC_INTERIORS        = $0080;
+
+{ TEXTCAPS }
+  TC_OP_CHARACTER     = $0001;
+  TC_OP_STROKE        = $0002;
+  TC_CP_STROKE        = $0004;
+  TC_CR_90            = $0008;
+  TC_CR_ANY           = $0010;
+  TC_SF_X_YINDEP      = $0020;
+  TC_SA_DOUBLE        = $0040;
+  TC_SA_INTEGER       = $0080;
+  TC_SA_CONTIN        = $0100;
+  TC_EA_DOUBLE        = $0200;
+  TC_IA_ABLE          = $0400;
+  TC_UA_ABLE          = $0800;
+  TC_SO_ABLE          = $1000;
+  TC_RA_ABLE          = $2000;
+  TC_VA_ABLE          = $4000;
+  TC_RESERVED         = $8000;
+
+{ CLIPCAPS }
+{$ifndef SYSTEMUNIT}
+  CP_NONE             = $0000;
+{$endif SYSTEMUNIT}
+  CP_RECTANGLE        = $0001;
+  CP_REGION           = $0002;
+
+{ RASTERCAPS }
+  RC_NONE             = $0000;
+  RC_BITBLT           = $0001;
+  RC_BANDING          = $0002;
+  RC_SCALING          = $0004;
+  RC_BITMAP64         = $0008;
+  RC_GDI20_OUTPUT     = $0010;
+  RC_GDI20_STATE      = $0020;
+  RC_SAVEBITMAP       = $0040;
+  RC_DI_BITMAP        = $0080;
+  RC_PALETTE          = $0100;
+  RC_DIBTODEV         = $0200;
+  RC_BIGFONT          = $0400;
+  RC_STRETCHBLT       = $0800;
+  RC_FLOODFILL        = $1000;
+  RC_STRETCHDIB       = $2000;
+  RC_OP_DX_OUTPUT     = $4000;
+  RC_DEVBITS          = $8000;

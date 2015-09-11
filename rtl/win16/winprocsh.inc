@@ -288,3 +288,25 @@ function MapVirtualKey(uKeyCode, fuMapType: UINT): UINT; external 'KEYBOARD';
 function GetKBCodePage: SmallInt; external 'KEYBOARD';
 function GetKeyNameText(lParam: LONG; lpszBuffer: LPSTR; cbMaxKey: SmallInt): SmallInt; external 'KEYBOARD';
 function ToAscii(wVirtKey, wScanCode: UINT; lpKeyState: LPBYTE; lpChar: LPDWORD; wFlags: UINT): SmallInt; external 'KEYBOARD';
+
+{ DC Management }
+
+function CreateDC(lpszDriver, lpszDevice, lpszOutput: LPCSTR; lpvInitData: FarPointer): HDC; external 'GDI';
+function CreateIC(lpszDriver, lpszDevice, lpszOutput: LPCSTR; lpvInitData: FarPointer): HDC; external 'GDI';
+function CreateCompatibleDC(hdc: HDC): HDC; external 'GDI';
+
+function DeleteDC(hdc: HDC): BOOL; external 'GDI';
+
+function GetDCOrg(hdc: HDC): DWORD; external 'GDI';
+
+function SaveDC(hdc: HDC): SmallInt; external 'GDI';
+function RestoreDC(hdc: HDC; nSavedDC: SmallInt): BOOL; external 'GDI';
+
+function SetEnvironment(lpPortName: LPCSTR; lpdev: FarPointer; nCount: UINT): SmallInt; external 'GDI';
+function GetEnvironment(lpPortName: LPCSTR; lpdev: FarPointer; nMaxSize: UINT): SmallInt; external 'GDI';
+
+function MulDiv(nMultiplicand, nMultiplier, nDivisor: SmallInt): SmallInt; external 'GDI';
+
+{ Device Capabilities }
+
+function GetDeviceCaps(hdc: HDC; iCapability: SmallInt): SmallInt; external 'GDI';
