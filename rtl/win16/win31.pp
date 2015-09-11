@@ -186,6 +186,10 @@ const
   DCB_ENABLE     = $0004;
   DCB_DISABLE    = $0008;
 
+{ Color support }
+  COLOR_INACTIVECAPTIONTEXT = 19;
+  COLOR_BTNHIGHLIGHT        = 20;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';

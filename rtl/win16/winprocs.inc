@@ -74,3 +74,22 @@ begin
   UnlockResource := GlobalUnlock(hResData);
 end;
 
+function RGB(cRed, cGreen, cBlue: BYTE): COLORREF;
+begin
+  RGB := COLORREF(cRed or (WORD(cGreen) shl 8) or (DWORD(cBlue) shl 16));
+end;
+
+function GetRValue(rgb: DWORD): BYTE;
+begin
+  GetRValue := Byte(rgb);
+end;
+
+function GetGValue(rgb: DWORD): BYTE;
+begin
+  GetGValue := Byte((Word(rgb) shr 8));
+end;
+
+function GetBValue(rgb: DWORD): BYTE;
+begin
+  GetBValue := Byte(rgb shr 16);
+end;

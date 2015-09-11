@@ -340,3 +340,19 @@ function LPtoDP(hdc: HDC; lppt: LPPOINT; cPoints: SmallInt): BOOL; external 'GDI
 function DPtoLP(hdc: HDC; var pt; cPoints: SmallInt): BOOL; external 'GDI';
 function LPtoDP(hdc: HDC; var pt; cPoints: SmallInt): BOOL; external 'GDI';
 {$endif}
+
+{ Color support }
+
+function RGB(cRed, cGreen, cBlue: BYTE): COLORREF; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+
+function GetRValue(rgb: DWORD): BYTE; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+function GetGValue(rgb: DWORD): BYTE; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+function GetBValue(rgb: DWORD): BYTE; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+
+function GetNearestColor(hdc: HDC; clrref: COLORREF): COLORREF; external 'GDI';
+
+function GetSysColor(nDspElement: SmallInt): COLORREF; external 'USER';
+procedure SetSysColors(cDspElements: SmallInt; lpnDspElements: LPINT; lpdwRgbValues: LPCOLORREF); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure SetSysColors(cDspElements: SmallInt; var DspElements; var RgbValues); external 'USER';
+{$endif}
