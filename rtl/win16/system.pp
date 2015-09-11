@@ -137,6 +137,8 @@ type
 
 {$I registers.inc}
 
+procedure MsDos(var Regs: Registers); external name 'FPC_MSDOS';
+
 {$define SYSTEMUNIT}
 {$I wintypes.inc}
 {$I winprocsh.inc}
