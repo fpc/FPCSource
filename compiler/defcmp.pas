@@ -45,7 +45,9 @@ interface
           cpo_ignorevarspez,          // ignore parameter access type
           cpo_ignoreframepointer,     // ignore frame pointer parameter (for assignment-compatibility of global procedures to nested procvars)
           cpo_compilerproc,
-          cpo_rtlproc
+          cpo_rtlproc,
+          cpo_generic                 // two different undefined defs (or a constraint in the forward) alone or in open arrays are
+                                      // treated as exactly equal (also in open arrays) if they are owned by their respective procdefs
        );
 
        tcompare_paras_options = set of tcompare_paras_option;
@@ -1955,9 +1957,27 @@ implementation
 
 
     function compare_paras(para1,para2 : TFPObjectList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
+
       var
         currpara1,
         currpara2 : tparavarsym;
+
+        function equal_genfunc_paradefs(def1,def2:tdef):boolean;
+          begin
+            result:=false;
+            if (sp_generic_para in def1.typesym.symoptions) and
+                (sp_generic_para in def2.typesym.symoptions) and
+                (def1.owner=currpara1.owner) and
+                (def2.owner=currpara2.owner) then
+              begin
+                { the forward declaration may have constraints }
+                if not (df_genconstraint in def2.defoptions) and (def2.typ=undefineddef) and
+                    ((def1.typ=undefineddef) or (df_genconstraint in def1.defoptions)) then
+                  result:=true;
+              end
+          end;
+
+      var
         eq,lowesteq : tequaltype;
         hpd       : tprocdef;
         convtype  : tconverttype;
@@ -2096,8 +2116,31 @@ implementation
                             Message2(type_w_procvar_univ_conflicting_para,currpara1.vardef.typename,currpara2.vardef.typename)
                         end;
                     end
+                  else if (cpo_generic in cpoptions) then
+                    begin
+                      if equal_genfunc_paradefs(currpara1.vardef,currpara2.vardef) then
+                        eq:=te_exact
+                      else
+                        exit;
+                    end
                   else
                     exit;
+                end;
+              if (eq=te_equal) and
+                  (cpo_generic in cpoptions) then
+                begin
+                  if is_open_array(currpara1.vardef) and
+                      is_open_array(currpara2.vardef) then
+                    begin
+                      if equal_genfunc_paradefs(tarraydef(currpara1.vardef).elementdef,tarraydef(currpara2.vardef).elementdef) then
+                        eq:=te_exact;
+                    end
+                  else
+                    { for the purpose of forward declarations two equal specializations
+                      are considered as exactly equal }
+                    if tstoreddef(currpara1.vardef).is_specialization and
+                        tstoreddef(currpara2.vardef).is_specialization then
+                      eq:=te_exact;
                 end;
               { open strings can never match exactly, since you cannot define }
               { a separate "open string" type -> we have to be able to        }
