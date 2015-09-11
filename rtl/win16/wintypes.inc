@@ -326,3 +326,7 @@ const
 type
 { Atom Management }
   MAKEINTATOM = LPCSTR;
+
+const
+{ WIN.INI Support }
+  WM_WININICHANGE = $001A;
