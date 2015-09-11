@@ -1270,7 +1270,7 @@ implementation
          (def.typ=recorddef) and
          not assigned(def.typesym) then
         begin
-          ts:=ctypesym.create(trecorddef(def).symtable.realname^,def);
+          ts:=ctypesym.create(trecorddef(def).symtable.realname^,def,true);
           st.insert(ts);
           ts.visibility:=vis_strictprivate;
           { this typesym can't be used by any Pascal code, so make sure we don't

@@ -172,7 +172,7 @@ implementation
 
         function addtype(const s:string;def:tdef):ttypesym;
         begin
-          result:=ctypesym.create(s,def);
+          result:=ctypesym.create(s,def,true);
           systemunit.insert(result);
         end;
 
@@ -480,7 +480,7 @@ implementation
             { can't use addtype for pvmt because the rtti of the pointed
               type is not available. The rtti for pvmt will be written implicitly
               by thev tblarray below }
-            systemunit.insert(ctypesym.create('$pvmt',pvmttype));
+            systemunit.insert(ctypesym.create('$pvmt',pvmttype,true));
             addfield(hrecst,cfieldvarsym.create('$length',vs_value,ptrsinttype,[]));
             addfield(hrecst,cfieldvarsym.create('$mlength',vs_value,ptrsinttype,[]));
             addfield(hrecst,cfieldvarsym.create('$parent',vs_value,pvmttype,[]));

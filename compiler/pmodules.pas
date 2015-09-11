@@ -723,7 +723,7 @@ implementation
           include(def.objectoptions,oo_is_external);
           include(def.objectoptions,oo_is_sealed);
           def.objextname:=stringdup(current_module.realmodulename^);
-          typesym:=ctypesym.create('__FPC_JVM_Module_Class_Alias$',def);
+          typesym:=ctypesym.create('__FPC_JVM_Module_Class_Alias$',def,true);
           symtablestack.top.insert(typesym);
         end;
 {$endif jvm}

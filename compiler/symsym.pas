@@ -157,7 +157,7 @@ interface
           typedef      : tdef;
           typedefderef : tderef;
           fprettyname : ansistring;
-          constructor create(const n : string;def:tdef);virtual;
+          constructor create(const n : string;def:tdef;doregister:boolean);virtual;
           destructor destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
           { do not override this routine in platform-specific subclasses,
@@ -2598,10 +2598,10 @@ implementation
 ****************************************************************************}
 
 
-    constructor ttypesym.create(const n : string;def:tdef);
+    constructor ttypesym.create(const n : string;def:tdef;doregister:boolean);
 
       begin
-        inherited create(typesym,n,true);
+        inherited create(typesym,n,doregister);
         typedef:=def;
         { register the typesym for the definition }
         if assigned(typedef) and

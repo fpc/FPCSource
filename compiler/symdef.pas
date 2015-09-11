@@ -4137,7 +4137,7 @@ implementation
         ts:=nil;
         if definedname then
           begin
-            ts:=ctypesym.create(n,self);
+            ts:=ctypesym.create(n,self,true);
             { avoid hints about unused types (these may only be used for
               typed constant data) }
             ts.increfcount;

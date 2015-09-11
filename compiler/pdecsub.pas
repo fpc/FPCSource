@@ -368,7 +368,7 @@ implementation
              { possible proc directives }
              if check_proc_directive(true) then
                begin
-                  dummytype:=ctypesym.create('unnamed',hdef);
+                  dummytype:=ctypesym.create('unnamed',hdef,true);
                   parse_var_proc_directives(tsym(dummytype));
                   dummytype.typedef:=nil;
                   hdef.typesym:=nil;

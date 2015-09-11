@@ -841,7 +841,7 @@ uses
 
                 { First a new typesym so we can reuse this specialization and
                   references to this specialization can be handled }
-                srsym:=ctypesym.create(finalspecializename,generrordef);
+                srsym:=ctypesym.create(finalspecializename,generrordef,true);
                 specializest.insert(srsym);
 
                 { specializations are declarations as such it is the wisest to
@@ -1033,7 +1033,7 @@ uses
         repeat
           if token=_ID then
             begin
-              generictype:=ctypesym.create(orgpattern,cundefinedtype);
+              generictype:=ctypesym.create(orgpattern,cundefinedtype,true);
               { type parameters need to be added as strict private }
               generictype.visibility:=vis_strictprivate;
               include(generictype.symoptions,sp_generic_para);
@@ -1230,7 +1230,7 @@ uses
             generictype:=ttypesym(genericlist[i]);
             if assigned(generictype.owner) then
               begin
-                sym:=ctypesym.create(genericlist.nameofindex(i),generictype.typedef);
+                sym:=ctypesym.create(genericlist.nameofindex(i),generictype.typedef,true);
                 { type parameters need to be added as strict private }
                 sym.visibility:=vis_strictprivate;
                 st.insert(sym);
@@ -1277,7 +1277,7 @@ uses
           begin
             { we need to pass nil as def here, because the constructor wants
               to set the typesym of the def which is not what we want }
-            gensym:=ctypesym.create(copy(name,1,pos('$',name)-1),nil);
+            gensym:=ctypesym.create(copy(name,1,pos('$',name)-1),nil,true);
             gensym.typedef:=current_structdef;
             include(gensym.symoptions,sp_internal);
             { the symbol should be only visible to the generic class

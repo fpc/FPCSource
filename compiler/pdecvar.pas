@@ -841,7 +841,7 @@ implementation
             (def.typesym=nil) and
             check_proc_directive(true) then
            begin
-              newtype:=ctypesym.create('unnamed',def);
+              newtype:=ctypesym.create('unnamed',def,true);
               parse_var_proc_directives(tsym(newtype));
               newtype.typedef:=nil;
               def.typesym:=nil;
