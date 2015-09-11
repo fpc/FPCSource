@@ -2206,7 +2206,7 @@ implementation
           destroyed before procsym, leaving invalid pointers). }
         oldsymtablestack:=symtablestack;
         symtablestack:=nil;
-        result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1);
+        result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1,true);
         symtablestack:=oldsymtablestack;
         st.insertdef(result);
         result.struct:=current_procinfo.procdef.struct;

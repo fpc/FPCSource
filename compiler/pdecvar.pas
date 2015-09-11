@@ -347,8 +347,8 @@ implementation
          { Generate temp procdefs to search for matching read/write
            procedures. the readprocdef will store all definitions }
          paranr:=0;
-         readprocdef:=cprocdef.create(normal_function_level);
-         writeprocdef:=cprocdef.create(normal_function_level);
+         readprocdef:=cprocdef.create(normal_function_level,true);
+         writeprocdef:=cprocdef.create(normal_function_level,true);
 
          readprocdef.struct:=astruct;
          writeprocdef.struct:=astruct;

@@ -980,7 +980,7 @@ implementation
               break;
             checkstack:=checkstack^.next;
           end;
-        pd:=cprocdef.create(st.symtablelevel+1);
+        pd:=cprocdef.create(st.symtablelevel+1,true);
         pd.struct:=astruct;
         pd.procsym:=aprocsym;
         pd.proctypeoption:=potype;
