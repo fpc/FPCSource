@@ -356,3 +356,17 @@ procedure SetSysColors(cDspElements: SmallInt; lpnDspElements: LPINT; lpdwRgbVal
 {$ifdef VAR_PARAMS_ARE_FAR}
 procedure SetSysColors(cDspElements: SmallInt; var DspElements; var RgbValues); external 'USER';
 {$endif}
+
+{ GDI Object Support }
+
+function GetStockObject(fnObject: SmallInt): HGDIOBJ; external 'GDI';
+
+function IsGDIObject(hgdiobj: HGDIOBJ): BOOL; external 'GDI';
+
+function DeleteObject(hgdiobj: HGDIOBJ): BOOL; external 'GDI';
+function SelectObject(hdc: HDC; hgdiobj: HGDIOBJ): HGDIOBJ; external 'GDI';
+function GetObject(hgdiobj: HGDIOBJ; cbBuffer: SmallInt; lpvObject: FarPointer): SmallInt; external 'GDI';
+function UnrealizeObject(hgdiobj: HGDIOBJ): BOOL; external 'GDI';
+
+function EnumObjects(hdc: HDC; fnObjectType: SmallInt; goenmprc: GOBJENUMPROC; lParam: LPARAM): SmallInt; external 'GDI';
+function EnumObjects(hdc: HDC; fnObjectType: SmallInt; goenmprc: FARPROC; lParam: LPARAM): SmallInt; external 'GDI';

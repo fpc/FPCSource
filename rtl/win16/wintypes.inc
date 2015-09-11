@@ -531,3 +531,12 @@ const
   COLOR_BTNTEXT         = 18;
 
   WM_SYSCOLORCHANGE = $0015;
+
+type
+{ GDI Object Support }
+  GOBJENUMPROC = function(lpLogObject: FarPointer; lpData: LPARAM): SmallInt; far;
+
+const
+{ Object types for EnumObjects() }
+  OBJ_PEN   = 1;
+  OBJ_BRUSH = 2;
