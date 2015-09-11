@@ -1330,7 +1330,7 @@ implementation
               begin
                 Message(parser_e_forward_mismatch);
                 { recover }
-                current_structdef:=cobjectdef.create(current_objectdef.objecttype,n,nil);
+                current_structdef:=cobjectdef.create(current_objectdef.objecttype,n,nil,true);
                 include(current_structdef.objectoptions,oo_is_forward);
               end
             else
@@ -1343,7 +1343,7 @@ implementation
               Message(parser_f_no_anonym_objects);
 
             { create new class }
-            current_structdef:=cobjectdef.create(objecttype,n,nil);
+            current_structdef:=cobjectdef.create(objecttype,n,nil,true);
 
             { include always the forward flag, it'll be removed after the parent class have been
               added. This is to prevent circular childof loops }

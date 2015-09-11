@@ -1141,7 +1141,7 @@ uses
                     if (basedef.typ<>objectdef) or
                         not (tobjectdef(basedef).objecttype in [odt_javaclass,odt_class]) then
                       internalerror(2012101101);
-                  basedef:=cobjectdef.create(tobjectdef(basedef).objecttype,defname,tobjectdef(basedef));
+                  basedef:=cobjectdef.create(tobjectdef(basedef).objecttype,defname,tobjectdef(basedef),true);
                   for i:=0 to constraintdata.interfaces.count-1 do
                     tobjectdef(basedef).implementedinterfaces.add(
                       timplementedinterface.create(tobjectdef(constraintdata.interfaces[i])));
@@ -1152,7 +1152,7 @@ uses
                     if basedef.typ<>errordef then
                       internalerror(2013021601);
                     def:=tdef(constraintdata.interfaces[0]);
-                    basedef:=cobjectdef.create(tobjectdef(def).objecttype,defname,tobjectdef(def));
+                    basedef:=cobjectdef.create(tobjectdef(def).objecttype,defname,tobjectdef(def),true);
                     constraintdata.interfaces.delete(0);
                   end;
               if basedef.typ<>errordef then

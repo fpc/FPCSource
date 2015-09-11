@@ -263,7 +263,7 @@ interface
           { for targets that initialise typed constants via explicit assignments
             instead of by generating an initialised data sectino }
           tcinitcode     : tnode;
-          constructor create(const n:string; dt:tdeftyp);
+          constructor create(const n:string; dt:tdeftyp;doregister:boolean);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           destructor destroy; override;
@@ -413,7 +413,7 @@ interface
           }
           classref_created_in_current_module : boolean;
           objecttype     : tobjecttyp;
-          constructor create(ot:tobjecttyp;const n:string;c:tobjectdef);virtual;
+          constructor create(ot:tobjecttyp;const n:string;c:tobjectdef;doregister:boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           function getcopy : tstoreddef;override;
@@ -3734,9 +3734,9 @@ implementation
                               tabstractrecorddef
 ***************************************************************************}
 
-    constructor tabstractrecorddef.create(const n:string; dt:tdeftyp);
+    constructor tabstractrecorddef.create(const n:string; dt:tdeftyp;doregister:boolean);
       begin
-        inherited create(dt,true);
+        inherited create(dt,doregister);
         objname:=stringdup(upper(n));
         objrealname:=stringdup(n);
         objectoptions:=[];
@@ -4104,7 +4104,7 @@ implementation
 
     constructor trecorddef.create(const n:string; p:TSymtable);
       begin
-         inherited create(n,recorddef);
+         inherited create(n,recorddef,true);
          symtable:=p;
          { we can own the symtable only if nobody else owns a copy so far }
          if symtable.refcount=1 then
@@ -4131,7 +4131,7 @@ implementation
         symtable:=trecordsymtable.create(n,packrecords,recordalignmin,maxCrecordalign);
         symtable.defowner:=self;
         isunion:=false;
-        inherited create(n,recorddef);
+        inherited create(n,recorddef,true);
         { if we specified a name, then we'll probably want to look up the
           type again by name too -> create typesym }
         ts:=nil;
@@ -6125,9 +6125,9 @@ implementation
                               TOBJECTDEF
 ***************************************************************************}
 
-   constructor tobjectdef.create(ot:tobjecttyp;const n:string;c:tobjectdef);
+   constructor tobjectdef.create(ot:tobjecttyp;const n:string;c:tobjectdef;doregister:boolean);
      begin
-        inherited create(n,objectdef);
+        inherited create(n,objectdef,doregister);
         fcurrent_dispid:=0;
         objecttype:=ot;
         childof:=nil;
@@ -6310,7 +6310,7 @@ implementation
       var
         i : longint;
       begin
-        result:=cobjectdef.create(objecttype,objrealname^,childof);
+        result:=cobjectdef.create(objecttype,objrealname^,childof,true);
         { the constructor allocates a symtable which we release to avoid memory leaks }
         tobjectdef(result).symtable.free;
         tobjectdef(result).symtable:=symtable.getcopy;
