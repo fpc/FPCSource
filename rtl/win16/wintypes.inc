@@ -323,3 +323,6 @@ const
   OIC_BANG        = 32515;
   OIC_NOTE        = 32516;
 
+type
+{ Atom Management }
+  MAKEINTATOM = LPCSTR;

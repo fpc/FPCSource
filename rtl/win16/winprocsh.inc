@@ -222,3 +222,15 @@ function AllocResource(hInstance: HINST; hResInfo: HRSRC; dwSize: DWORD): HGLOBA
 
 function SetResourceHandler(hInstance: HINST; lpType: LPCSTR; lpLoadFunc: RSRCHDLRPROC): RSRCHDLRPROC; external 'KERNEL';
 
+{ Atom Management }
+
+function InitAtomTable(cTableEntries: SmallInt): BOOL; external 'KERNEL';
+function AddAtom(lpszName: LPCSTR): ATOM; external 'KERNEL';
+function DeleteAtom(atm: ATOM): ATOM; external 'KERNEL';
+function FindAtom(lpszString: LPCSTR): ATOM; external 'KERNEL';
+function GetAtomName(atm: ATOM; lpszBuffer: LPSTR; cbBuffer: SmallInt): UINT; external 'KERNEL';
+function GlobalAddAtom(lpszString: LPCSTR): ATOM; external 'USER';
+function GlobalDeleteAtom(atm: ATOM): ATOM; external 'USER';
+function GlobalFindAtom(lpszString: LPCSTR): ATOM; external 'USER';
+function GlobalGetAtomName(atom: ATOM; lpszBuffer: LPSTR; cbBuffer: SmallInt): UINT; external 'USER';
+function GetAtomHandle(atm: ATOM): HLOCAL; external 'KERNEL';
