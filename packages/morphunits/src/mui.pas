@@ -3525,57 +3525,57 @@ end;
 
 function OBJ_App(obj : Pointer) : pObject_;       (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_App := pMUI_GlobalInfo(obj)^.mgi_ApplicationObject;
+    OBJ_App := MUIGlobalInfo(obj)^.mgi_ApplicationObject;
 end;
 
 function OBJ_Win(obj : Pointer) : pObject_;       (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Win := pMUI_RenderInfo(obj)^.mri_WindowObject;
+    OBJ_Win := MUIRenderInfo(obj)^.mri_WindowObject;
 end;
 
 function OBJ_Dri(obj : Pointer) : pDrawInfo;          (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Dri := pMUI_RenderInfo(obj)^.mri_DrawInfo;
+    OBJ_Dri := MUIRenderInfo(obj)^.mri_DrawInfo;
 end;
 
 function OBJ_Screen(obj : Pointer) : pScreen;         (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Screen := pMUI_RenderInfo(obj)^.mri_Screen;
+    OBJ_Screen := MUIRenderInfo(obj)^.mri_Screen;
 end;
 
 function OBJ_Pens(obj : Pointer) : pWord;      (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Pens := pMUI_RenderInfo(obj)^.mri_Pens;
+    OBJ_Pens := MUIRenderInfo(obj)^.mri_Pens;
 end;
 
 function OBJ_Window(obj : Pointer) : pWindow;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_Window := PMUI_RenderInfo(obj)^.mri_Window;
+    OBJ_Window := MUIRenderInfo(obj)^.mri_Window;
 end;
 
 function OBJ_Rp(obj : Pointer) : pRastPort;           (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_Rp := pMUI_RenderInfo(obj)^.mri_RastPort;
+    OBJ_Rp := MUIRenderInfo(obj)^.mri_RastPort;
 end;
 
 function OBJ_Left(obj : Pointer) : smallint;           (* valid during MUIM_Draw *)
 begin
-    OBJ_Left := pMUI_AreaData(obj)^.mad_Box.Left;
+    OBJ_Left := MUIAreaData(obj)^.mad_Box.Left;
 end;
 
 function OBJ_Top(obj : Pointer) : smallint;            (* valid during MUIM_Draw *)
 begin
-    OBJ_Top := pMUI_AreaData(obj)^.mad_Box.Top;
+    OBJ_Top := MUIAreaData(obj)^.mad_Box.Top;
 end;
 
 function OBJ_Width(obj : Pointer) : smallint;          (* valid during MUIM_Draw *)
 begin
-    OBJ_Width := pMUI_AreaData(obj)^.mad_Box.Width;
+    OBJ_Width := MUIAreaData(obj)^.mad_Box.Width;
 end;
 
 function OBJ_Height(obj : Pointer) : smallint;         (* valid during MUIM_Draw *)
 begin
-    OBJ_Height := pMUI_AreaData(obj)^.mad_Box.Height;
+    OBJ_Height := MUIAreaData(obj)^.mad_Box.Height;
 end;
 
 function OBJ_Right(obj : Pointer) : smallint;          (* valid during MUIM_Draw *)
@@ -3590,22 +3590,22 @@ end;
 
 function OBJ_AddLeft(obj : Pointer) : smallint;        (* valid during MUIM_Draw *)
 begin
-    OBJ_AddLeft := pMUI_AreaData(obj)^.mad_AddLeft;
+    OBJ_AddLeft := MUIAreaData(obj)^.mad_AddLeft;
 end;
 
 function OBJ_AddTop(obj : Pointer) : smallint;         (* valid during MUIM_Draw *)
 begin
-    OBJ_AddTop := pMUI_AreaData(obj)^.mad_AddTop;
+    OBJ_AddTop := MUIAreaData(obj)^.mad_AddTop;
 end;
 
 function OBJ_SubWidth(obj : Pointer) : smallint;       (* valid during MUIM_Draw *)
 begin
-    OBJ_SubWidth := pMUI_AreaData(obj)^.mad_SubWidth;
+    OBJ_SubWidth := MUIAreaData(obj)^.mad_SubWidth;
 end;
 
 function OBJ_SubHeight(obj : Pointer) : smallint;      (* valid during MUIM_Draw *)
 begin
-    OBJ_SubHeight := pMUI_AreaData(obj)^.mad_SubHeight;
+    OBJ_SubHeight := MUIAreaData(obj)^.mad_SubHeight;
 end;
 
 function OBJ_MLeft(obj : Pointer) : smallint;          (* valid during MUIM_Draw *)
@@ -3640,42 +3640,42 @@ end;
 
 function OBJ_Font(obj : Pointer) : pTextFont;         (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Font := pMUI_AreaData(obj)^.mad_Font;
+    OBJ_Font := MUIAreaData(obj)^.mad_Font;
 end;
 
 function OBJ_MinWidth(obj : Pointer) : LongWord;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_MinWidth := pMUI_AreaData(obj)^.mad_MinMax.MinWidth;
+    OBJ_MinWidth := MUIAreaData(obj)^.mad_MinMax.MinWidth;
 end;
 
 function OBJ_MinHeight(obj : Pointer) : LongWord;        (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_MinHeight := pMUI_AreaData(obj)^.mad_MinMax.MinHeight;
+    OBJ_MinHeight := MUIAreaData(obj)^.mad_MinMax.MinHeight;
 end;
 
 function OBJ_MaxWidth(obj : Pointer) : LongWord;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_maxWidth := pMUI_AreaData(obj)^.mad_MinMax.MaxWidth;
+    OBJ_maxWidth := MUIAreaData(obj)^.mad_MinMax.MaxWidth;
 end;
 
 function OBJ_MaxHeight(obj : Pointer) : LongWord;        (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_maxHeight := pMUI_AreaData(obj)^.mad_MinMax.MaxHeight;
+    OBJ_maxHeight := MUIAreaData(obj)^.mad_MinMax.MaxHeight;
 end;
 
 function OBJ_DefWidth(obj : Pointer) : LongWord;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_DefWidth := pMUI_AreaData(obj)^.mad_MinMax.DefWidth;
+    OBJ_DefWidth := MUIAreaData(obj)^.mad_MinMax.DefWidth;
 end;
 
 function OBJ_DefHeight(obj : Pointer) : LongWord;        (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_DefHeight := pMUI_AreaData(obj)^.mad_MinMax.DefHeight;
+    OBJ_DefHeight := MUIAreaData(obj)^.mad_MinMax.DefHeight;
 end;
 
 function OBJ_Flags(obj : Pointer) : LongWord;
 begin
-    OBJ_Flags := pMUI_AreaData(obj)^.mad_Flags;
+    OBJ_Flags := MUIAreaData(obj)^.mad_Flags;
 end;
 
 (*

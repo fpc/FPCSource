@@ -442,27 +442,19 @@ uses
        MUIV_DragReport_Continue = 1;
        MUIV_DragReport_Lock = 2;
        MUIV_DragReport_Refresh = 3;
-    {
-       Control codes for text strings
-                                                                               }
-    { right justified  }
-       MUIX_R : PChar = '\033r';
-    { centered         }
-       MUIX_C : PChar = '\033c';
-    { left justified   }
-       MUIX_L : PChar = '\033l';
-    { normal      }
-       MUIX_N : PChar = '\033n';
-    { bold        }
-       MUIX_B : PChar = '\033b';
-    { italic      }
-       MUIX_I : PChar = '\033i';
-    { underlined  }
-       MUIX_U : PChar = '\033u';
-    { text pen            }
-       MUIX_PT : PChar = '\0332';
-    { highlight text pen  }
-       MUIX_PH : PChar = '\0338';
+
+//       Control codes for text strings
+  MUIX_R  = #27+'r';     // right justified
+  MUIX_C  = #27+'c';     // centered
+  MUIX_L  = #27+'l';     // left justified
+
+  MUIX_N  = #27+'n';     // normal
+  MUIX_B  = #27+'b';     // bold
+  MUIX_I  = #27+'i';     // italic
+  MUIX_U  = #27+'u';     // underlined
+
+  MUIX_PT = #27+'2';     // text pen
+  MUIX_PH = #27+'8';     // highlight text pen
     {
        Parameter structures for some classes
                                                                                }
