@@ -288,6 +288,8 @@ uses
         typeparam : tnode;
         parampos : pfileposinfo;
         tmpparampos : tfileposinfo;
+        namepart : string;
+        prettynamepart : ansistring;
       begin
         result:=true;
         if genericdeflist=nil then
@@ -345,10 +347,25 @@ uses
                 else
                   begin
                     { we use the full name of the type to uniquely identify it }
-                    specializename:=specializename+'$'+typeparam.resultdef.fulltypename;
+                    if (symtablestack.top.symtabletype=parasymtable) and
+                        (typeparam.resultdef.owner=symtablestack.top) then
+                      begin
+                        { special handling for specializations inside generic function declarations }
+                        if symtablestack.top.defowner.typ<>procdef then
+                          internalerror(2015080101);
+                        str(symtablestack.top.defowner.defid,namepart);
+                        namepart:='genproc'+namepart+'_'+tdef(symtablestack.top.defowner).fullownerhierarchyname+'_'+tprocdef(symtablestack.top.defowner).procsym.realname+'_'+typeparam.resultdef.typename;
+                        prettynamepart:=tdef(symtablestack.top.defowner).fullownerhierarchyname+tprocdef(symtablestack.top.defowner).procsym.prettyname;
+                      end
+                    else
+                      begin
+                        namepart:=typeparam.resultdef.fulltypename;
+                        prettynamepart:=typeparam.resultdef.fullownerhierarchyname;
+                      end;
+                    specializename:=specializename+'$'+namepart;
                     if not first then
                       prettyname:=prettyname+',';
-                    prettyname:=prettyname+typeparam.resultdef.fullownerhierarchyname+typeparam.resultdef.typesym.prettyname;
+                    prettyname:=prettyname+prettynamepart+typeparam.resultdef.typesym.prettyname;
                   end;
               end
             else
