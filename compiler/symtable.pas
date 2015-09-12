@@ -1956,7 +1956,7 @@ implementation
             { find the last shadowfield whose offset <= the current field's offset }
             while (tllvmshadowsymtableentry(symdeflist[shadowindex]).fieldoffset<tfieldvarsym(equivst.symlist[i]).fieldoffset) and
                   (shadowindex<symdeflist.count-1) and
-                  (tllvmshadowsymtableentry(symdeflist[shadowindex+1]).fieldoffset>=tfieldvarsym(equivst.symlist[i]).fieldoffset) do
+                  (tllvmshadowsymtableentry(symdeflist[shadowindex+1]).fieldoffset<=tfieldvarsym(equivst.symlist[i]).fieldoffset) do
               inc(shadowindex);
             { set the field number and potential offset from that field (in case }
             { of overlapping variants)                                           }
