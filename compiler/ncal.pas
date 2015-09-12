@@ -1001,7 +1001,6 @@ implementation
 
         if assigned(parasym) and
            (parasym.varspez in [vs_var,vs_out,vs_constref]) and
-           (parasym.vardef.typ<>formaldef) and
            { for record constructors }
            (left.nodetype<>nothingn) then
           handlemanagedbyrefpara(left.resultdef);
