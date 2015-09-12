@@ -598,7 +598,10 @@ implementation
     var
       pd: tprocdef;
     begin
-      pd:=cprocdef.create(main_program_level,true);
+      if potype<>potype_mainstub then
+        pd:=cprocdef.create(main_program_level,true)
+      else
+        pd:=cprocdef.create(normal_function_level,true);
       pd.procsym:=ps;
       ps.ProcdefList.Add(pd);
       include(pd.procoptions,po_global);
@@ -610,7 +613,11 @@ implementation
       { may be required to calculate the mangled name }
       add_main_procdef_paras(pd);
       pd.setmangledname(name);
-      pd.aliasnames.insert(pd.mangledname);
+      { the mainstub is generated via a synthetic proc -> parsed via
+        psub.read_proc_body() -> that one will insert the mangled name in the
+        alias names already }
+      if potype<>potype_mainstub then
+        pd.aliasnames.insert(pd.mangledname);
       result:=pd;
     end;
 
@@ -1068,8 +1075,21 @@ implementation
 
 
    class procedure tnodeutils.add_main_procdef_paras(pd: tdef);
+     var
+       pvs: tparavarsym;
      begin
-       { no parameters by default }
+       { stub for calling FPC_SYSTEMMAIN from the C main -> add argc/argv/argp }
+       if (tprocdef(pd).proctypeoption=potype_mainstub) and
+          (target_info.system in (systems_darwin+[system_powerpc_macos]+systems_aix)) then
+         begin
+           pvs:=cparavarsym.create('ARGC',1,vs_const,s32inttype,[]);
+           tprocdef(pd).parast.insert(pvs);
+           pvs:=cparavarsym.create('ARGV',2,vs_const,cpointerdef.getreusable(charpointertype),[]);
+           tprocdef(pd).parast.insert(pvs);
+           pvs:=cparavarsym.create('ARGP',3,vs_const,cpointerdef.getreusable(charpointertype),[]);
+           tprocdef(pd).parast.insert(pvs);
+           tprocdef(pd).calcparas;
+         end;
      end;
 
 

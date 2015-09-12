@@ -4398,22 +4398,6 @@ implementation
           { setinitname may generate a new section -> don't add to the
             current list, because we assume this remains a text section }
           exportlib.setinitname(current_asmdata.AsmLists[al_exports],current_procinfo.procdef.mangledname);
-
-      if (current_procinfo.procdef.proctypeoption=potype_proginit) then
-        begin
-         if (target_info.system in (systems_darwin+[system_powerpc_macos]+systems_aix)) and
-            not(current_module.islibrary) then
-           begin
-            new_section(list,sec_code,'',4);
-            list.concat(tai_symbol.createname_global(
-              target_info.cprefix+mainaliasname,AT_FUNCTION,0));
-            { keep argc, argv and envp properly on the stack }
-            if not(target_info.system in systems_aix) then
-              cg.a_jmp_name(list,target_info.cprefix+'FPC_SYSTEMMAIN')
-            else
-              cg.a_call_name(list,target_info.cprefix+'FPC_SYSTEMMAIN',false)
-           end;
-        end;
     end;
 
 

@@ -575,8 +575,13 @@ implementation
         pd:=tprocdef(cnodeutils.create_main_procdef(target_info.cprefix+name,potype,ps));
         { We don't need is a local symtable. Change it into the static
           symtable }
-        pd.localst.free;
-        pd.localst:=st;
+        if potype<>potype_mainstub then
+          begin
+            pd.localst.free;
+            pd.localst:=st;
+          end
+        else
+          pd.proccalloption:=pocall_cdecl;
         handle_calling_convention(pd);
         { set procinfo and current_procinfo.procdef }
         result:=tcgprocinfo(cprocinfo.create(nil));
@@ -2137,6 +2142,17 @@ type
           end
          else if (target_info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macos]+systems_darwin+systems_aix)) then
            begin
+             { create a stub with the name of the desired main routine, with
+               the same signature as the C "main" function, and call through to
+               FPC_SYSTEMMAIN, which will initialise everything based on its
+               parameters. This function cannot be in the system unit, because
+               its name can be configured on the command line (for use with e.g.
+               SDL, where the main function should be called SDL_main) }
+             main_procinfo:=create_main_proc(mainaliasname,potype_mainstub,current_module.localsymtable);
+             call_through_new_name(main_procinfo.procdef,target_info.cprefix+'FPC_SYSTEMMAIN');
+             main_procinfo.free;
+             { now create the PASCALMAIN routine (which will be called from
+               FPC_SYSTEMMAIN) }
              main_procinfo:=create_main_proc('PASCALMAIN',potype_proginit,current_module.localsymtable);
            end
          else
