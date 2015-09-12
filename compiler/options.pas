@@ -3806,8 +3806,6 @@ if (target_info.abi = abi_eabihf) then
 {$ifdef llvm}
   { standard extension for llvm bitcode files }
   target_info.asmext:='.ll';
-  { always use section threadvars for now }
-  include(target_info.flags,tf_section_threadvars);
   { don't generate dwarf cfi, llvm will do that }
   exclude(target_info.flags,tf_needs_dwarf_cfi);
 {$endif llvm}

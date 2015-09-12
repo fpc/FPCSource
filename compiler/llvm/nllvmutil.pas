@@ -49,7 +49,7 @@ interface
 implementation
 
     uses
-      verbose,cutils,globals,fmodule,
+      verbose,cutils,globals,fmodule,systems,
       aasmbase,aasmtai,cpubase,llvmbase,aasmllvm,
       symbase,symtable,defutil,
       llvmtype;
@@ -57,6 +57,7 @@ implementation
   class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
     var
       asmsym: tasmsymbol;
+      field1, field2: tsym;
     begin
       if sym.globalasmsym then
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,AT_DATA)
@@ -64,8 +65,12 @@ implementation
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,AT_DATA);
       if not(vo_is_thread_var in sym.varoptions) then
         list.concat(taillvmdecl.createdef(asmsym,sym.vardef,nil,sec_data,varalign))
-      else
+      else if tf_section_threadvars in target_info.flags then
         list.concat(taillvmdecl.createtls(asmsym,sym.vardef,varalign))
+      else
+        list.concat(taillvmdecl.createdef(asmsym,
+          get_threadvar_record(sym.vardef,field1,field2),
+          nil,sec_data,varalign));
     end;
 
 
