@@ -471,3 +471,21 @@ function GetSystemPaletteEntries(hdc: HDC; iStart, cEntries: UINT; var pe): UINT
 
 function GetSystemPaletteUse(hdc: HDC): UINT; external 'GDI';
 function SetSystemPaletteUse(hdc: HDC; fuStatic: UINT): UINT; external 'GDI';
+
+{ Clipping support }
+
+function SelectClipRgn(hdc: HDC; hrgn: HRGN): SmallInt; external 'GDI';
+function GetClipBox(hdc: HDC; lprc: LPRECT): SmallInt; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetClipBox(hdc: HDC; var rc: RECT): SmallInt; external 'GDI';
+{$endif}
+
+function IntersectClipRect(hdc: HDC; nLeftRect, nTopRect, nRightRect, nBottomRect: SmallInt): SmallInt; external 'GDI';
+function OffsetClipRgn(hdc: HDC; nXOffset, nYOffset: SmallInt): SmallInt; external 'GDI';
+function ExcludeClipRect(hdc: HDC; nLeftRect, nTopRect, nRightRect, nBottomRect: SmallInt): SmallInt; external 'GDI';
+
+function PtVisible(hdc: HDC; nXPos, nYPos: SmallInt): BOOL; external 'GDI';
+function RectVisible(hdc: HDC; lprc: LPRECT): BOOL; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function RectVisible(hdc: HDC; var rc: RECT): BOOL; external 'GDI';
+{$endif}
