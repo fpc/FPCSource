@@ -255,12 +255,19 @@ implementation
 
     procedure tcgloadnode.generate_threadvar_access(gvs: tstaticvarsym);
       var
+        respara,
         paraloc1 : tcgpara;
+        fieldptrdef,
         pvd : tdef;
         endrelocatelab,
         norelocatelab : tasmlabel;
+        tvref,
         href : treference;
         hregister : tregister;
+        tv_rec : trecorddef;
+        tv_index_field,
+        tv_non_mt_data_field: tsym;
+        tmpresloc: tlocation;
       begin
          if (tf_section_threadvars in target_info.flags) then
            begin
@@ -279,51 +286,63 @@ implementation
                a relocate function is available. When the function
                is available it is called to retrieve the address.
                Otherwise the address is loaded with the symbol
-
-               The code needs to be in the order to first handle the
-               call and then the address load to be sure that the
-               register that is used for returning is the same (PFV)
              }
+             tv_rec:=get_threadvar_record(resultdef,tv_index_field,tv_non_mt_data_field);
+             fieldptrdef:=cpointerdef.getreusable(resultdef);
              current_asmdata.getjumplabel(norelocatelab);
              current_asmdata.getjumplabel(endrelocatelab);
              { make sure hregister can't allocate the register necessary for the parameter }
              pvd:=search_system_type('TRELOCATETHREADVARHANDLER').typedef;
              if pvd.typ<>procvardef then
                internalerror(2012120901);
+
+             { FPC_THREADVAR_RELOCATE is nil? }
              paraloc1.init;
              paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
              reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,pvd.size);
              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
-             { don't save the allocated register else the result will be destroyed later }
+             { no, call it with the index of the threadvar as parameter }
              if not(vo_is_weak_external in gvs.varoptions) then
-               reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
+               reference_reset_symbol(tvref,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
              else
-               reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
-             cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
+               reference_reset_symbol(tvref,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
+             href:=tvref;
+             hlcg.g_set_addr_nonbitpacked_record_field_ref(current_asmdata.CurrAsmList,
+               tv_rec,
+               tfieldvarsym(tv_index_field),href);
+             hlcg.a_load_ref_cgpara(current_asmdata.CurrAsmList,tfieldvarsym(tv_index_field).vardef,href,paraloc1);
              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-             paraloc1.done;
              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-             cg.a_call_reg(current_asmdata.CurrAsmList,hregister);
+             { result is the address of the threadvar }
+             respara:=hlcg.a_call_reg(current_asmdata.CurrAsmList,tprocvardef(pvd),hregister,[@paraloc1]);
+             paraloc1.done;
              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-             cg.getcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-             cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
-             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
-             cg.a_jmp_always(current_asmdata.CurrAsmList,endrelocatelab);
-             cg.a_label(current_asmdata.CurrAsmList,norelocatelab);
+
+             { load the address of the result in hregister }
+             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,fieldptrdef);
+             location_reset(tmpresloc,LOC_REGISTER,OS_ADDR);
+             tmpresloc.register:=hregister;
+             hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,fieldptrdef,respara,tmpresloc,true);
+             respara.resetiftemp;
+             hlcg.a_jmp_always(current_asmdata.CurrAsmList,endrelocatelab);
+
              { no relocation needed, load the address of the variable only, the
-               layout of a threadvar is (4 bytes pointer):
+               layout of a threadvar is:
                  0            - Threadvar index
                  sizeof(pint) - Threadvar value in single threading }
-             if not(vo_is_weak_external in gvs.varoptions) then
-               reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint))
-             else
-               reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint));
-             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,voidpointertype,href,hregister);
-             cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
-             hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,location.reference.alignment);
+             hlcg.a_label(current_asmdata.CurrAsmList,norelocatelab);
+             href:=tvref;
+             hlcg.g_set_addr_nonbitpacked_record_field_ref(current_asmdata.CurrAsmList,
+               tv_rec,
+               tfieldvarsym(tv_non_mt_data_field),href);
+             { load in the same "hregister" as above, so after this sequence
+               the address of the threadvar is always in hregister }
+             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,fieldptrdef,href,hregister);
+             hlcg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
+
+             hlcg.reference_reset_base(location.reference,fieldptrdef,hregister,0,location.reference.alignment);
            end;
        end;
 
