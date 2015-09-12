@@ -151,7 +151,8 @@ implementation
     aasmllvm,llvmbase,tgllvm,
     symtable,symllvm,
     paramgr,llvmpara,
-    procinfo,cpuinfo,cgobj,cgllvm,cghlcpu;
+    procinfo,cpuinfo,cgobj,cgllvm,cghlcpu,
+    cgcpu,hlcgcpu;
 
   const
     topcg2llvmop: array[topcg] of tllvmop =
@@ -1719,8 +1720,19 @@ implementation
 
   procedure create_hlcodegen;
     begin
-      hlcg:=thlcgllvm.create;
-      cgllvm.create_codegen
+      if not assigned(current_procinfo) or
+         not(po_assembler in current_procinfo.procdef.procoptions) then
+        begin
+          tgobjclass:=ttgllvm;
+          hlcg:=thlcgllvm.create;
+          cgllvm.create_codegen
+        end
+      else
+        begin
+          tgobjclass:=orgtgclass;
+          hlcgcpu.create_hlcodegen;
+          { todo: handle/remove chlcgobj }
+        end;
     end;
 
 begin

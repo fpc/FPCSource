@@ -2165,7 +2165,7 @@ Implementation
       end;
 
 
-    function GetExternalAssemblerWithAsmInfoWriter(info: pasminfo; wr: TExternalAssemblerOutputFile): TExternalAssembler;
+    function GetExternalGnuAssemblerWithAsmInfoWriter(info: pasminfo; wr: TExternalAssemblerOutputFile): TExternalAssembler;
       var
         asmkind: tasm;
       begin

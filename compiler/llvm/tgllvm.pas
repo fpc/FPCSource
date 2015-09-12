@@ -68,6 +68,10 @@ unit tgllvm;
         procedure ungetiftemp(list: TAsmList; const ref: treference); override;
       end;
 
+
+  var
+    orgtgclass: ttgobjclass;
+
 implementation
 
     uses
@@ -166,5 +170,6 @@ implementation
       end;
 
 begin
+  orgtgclass:=tgobjclass;
   tgobjclass:=ttgllvm;
 end.

@@ -1115,14 +1115,32 @@ implementation
       var
         hal : tasmlisttype;
         i: longint;
+        a: TExternalAssembler;
+        decorator: TLLVMModuleInlineAssemblyDecorator;
       begin
         WriteExtraHeader;
 
         for hal:=low(TasmlistType) to high(TasmlistType) do
           begin
-            writer.AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
-            writetree(current_asmdata.asmlists[hal]);
-            writer.AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
+            if not assigned(current_asmdata.asmlists[hal]) or
+               current_asmdata.asmlists[hal].Empty then
+              continue;
+            writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
+            if hal<>al_pure_assembler then
+              writetree(current_asmdata.asmlists[hal])
+            else
+              begin
+                { write routines using the target-specific external assembler
+                  writer, filtered using the LLVM module-level assembly
+                  decorator }
+                decorator:=TLLVMModuleInlineAssemblyDecorator.Create;
+                writer.decorator:=decorator;
+                a:=GetExternalGnuAssemblerWithAsmInfoWriter(asminfo,writer);
+                a.WriteTree(current_asmdata.asmlists[hal]);
+                writer.decorator:=nil;
+                decorator.free;
+              end;
+            writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmlistTypeStr[hal]);
           end;
 
         writer.AsmLn;
