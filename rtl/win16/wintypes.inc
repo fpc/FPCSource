@@ -569,3 +569,50 @@ const
   WHITE_PEN = 6;
   BLACK_PEN = 7;
   NULL_PEN  = 8;
+
+{ Brush support }
+
+{ Brush Styles }
+  BS_SOLID      = 0;
+  BS_NULL       = 1;
+  BS_HOLLOW     = BS_NULL;
+  BS_HATCHED    = 2;
+  BS_PATTERN    = 3;
+  BS_INDEXED    = 4;
+  BS_DIBPATTERN = 5;
+
+{ Hatch Styles }
+  HS_HORIZONTAL = 0;
+  HS_VERTICAL   = 1;
+  HS_FDIAGONAL  = 2;
+  HS_BDIAGONAL  = 3;
+  HS_CROSS      = 4;
+  HS_DIAGCROSS  = 5;
+
+{ Logical Brush (or Pattern) }
+type
+  PLOGBRUSH = ^LOGBRUSH;
+  NPLOGBRUSH = ^LOGBRUSH; near;
+  LPLOGBRUSH = ^LOGBRUSH; far;
+  LOGBRUSH = record
+    lbStyle: UINT;
+    lbColor: COLORREF;
+    lbHatch: SmallInt;
+  end;
+  TLogBrush = LOGBRUSH;
+
+  PPATTERN = ^PATTERN;
+  NPPATTERN = ^PATTERN; near;
+  LPPATTERN = ^PATTERN; far;
+  PATTERN = LOGBRUSH;
+  TPattern = PATTERN;
+
+{ Stock brushes for use with GetStockObject() }
+const
+  WHITE_BRUSH  = 0;
+  LTGRAY_BRUSH = 1;
+  GRAY_BRUSH   = 2;
+  DKGRAY_BRUSH = 3;
+  BLACK_BRUSH  = 4;
+  NULL_BRUSH   = 5;
+  HOLLOW_BRUSH = NULL_BRUSH;

@@ -378,3 +378,17 @@ function CreatePenIndirect(lplgpn: LPLOGPEN): HPEN; external 'GDI';
 {$ifdef VAR_PARAMS_ARE_FAR}
 function CreatePenIndirect(var lgpn: LOGPEN): HPEN; external 'GDI';
 {$endif}
+
+{ Brush support }
+
+function CreateSolidBrush(clrref: COLORREF): HBRUSH; external 'GDI';
+function CreateHatchBrush(fnStyle: SmallInt; clrref: COLORREF): HBRUSH; external 'GDI';
+function CreatePatternBrush(hbmp: HBITMAP): HBRUSH; external 'GDI';
+function CreateDIBPatternBrush(hglbDIBPacked: HGLOBAL; fnColorSpec: UINT): HBRUSH; external 'GDI';
+function CreateBrushIndirect(lplb: LPLOGBRUSH): HBRUSH; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function CreateBrushIndirect(var lb: LOGBRUSH): HBRUSH; external 'GDI';
+{$endif}
+
+function SetBrushOrg(hdc: HDC; nXOrg, nYOrg: SmallInt): DWORD; external 'GDI';
+function GetBrushOrg(hdc: HDC): DWORD; external 'GDI';

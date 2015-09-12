@@ -258,6 +258,9 @@ function GetViewportOrgEx(hdc: HDC; lpPoint: LPPOINT): BOOL; external 'GDI';
 function OffsetViewportOrgEx(hdc: HDC; nX, nY: SmallInt; lpPoint: LPPOINT): BOOL; external 'GDI';
 function ScaleViewportExtEx(hdc: HDC; nXnum, nXdenom, nYnum, nYdenom: SmallInt; lpSize: LPSIZE): BOOL; external 'GDI';
 
+{ Brush support }
+function GetBrushOrgEx(hDC: HDC; lpPoint: LPPOINT): BOOL; external 'GDI';
+
 implementation
 
 end.
