@@ -229,6 +229,11 @@ interface
 
     Procedure GenerateAsm(smart:boolean);
 
+    { get an instance of an external GNU-style assembler that is compatible
+      with the current target, reusing an existing writer. Used by the LLVM
+      target to write inline assembler }
+    function GetExternalGnuAssemblerWithAsmInfoWriter(info: pasminfo; wr: TExternalAssemblerOutputFile): TExternalAssembler;
+
     procedure RegisterAssembler(const r:tasminfo;c:TAssemblerClass);
 
 
@@ -2159,6 +2164,20 @@ Implementation
         a.Free;
       end;
 
+
+    function GetExternalAssemblerWithAsmInfoWriter(info: pasminfo; wr: TExternalAssemblerOutputFile): TExternalAssembler;
+      var
+        asmkind: tasm;
+      begin
+        for asmkind in [as_gas,as_ggas,as_darwin] do
+          if assigned(asminfos[asmkind]) and
+             (target_info.system in asminfos[asmkind]^.supported_targets) then
+            begin
+              result:=TExternalAssemblerClass(CAssembler[asmkind]).CreateWithWriter(asminfos[asmkind],wr,false,false);
+              exit;
+            end;
+        Internalerror(2015090604);
+      end;
 
 {*****************************************************************************
                                  Init/Done
