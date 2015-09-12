@@ -62,7 +62,15 @@ interface
 
       TExternalAssembler = class;
 
+      IExternalAssemblerOutputFileDecorator=interface
+        function LinePrefix: AnsiString;
+        function LinePostfix: AnsiString;
+        function LineFilter(const s: AnsiString): AnsiString;
+      end;
+
       TExternalAssemblerOutputFile=class
+      private
+        fdecorator: IExternalAssemblerOutputFileDecorator;
       protected
         owner: TExternalAssembler;
       {outfile}
@@ -72,8 +80,13 @@ interface
         outbuf   : array[0..AsmOutSize-1] of char;
         outfile  : file;
         fioerror : boolean;
+        linestart: boolean;
 
         Procedure AsmClear;
+        Procedure MaybeAddLinePrefix;
+        Procedure MaybeAddLinePostfix;
+
+        Procedure AsmWriteAnsiStringUnfiltered(const s: ansistring);
       public
         Constructor Create(_owner: TExternalAssembler);
 
@@ -86,6 +99,12 @@ interface
         { clears the assembler output if nothing was added since it was marked
           as empty, and returns whether it was empty }
         function ClearIfEmpty: boolean;
+        { these routines will write the filtered version of their argument
+          according to the current decorator }
+        procedure AsmWriteFiltered(const c:char);
+        procedure AsmWriteFiltered(const s:string);
+        procedure AsmWriteFiltered(const s:ansistring);
+        procedure AsmWriteFiltered(p:pchar; len: longint);
 
         {# Write a string to the assembler file }
         Procedure AsmWrite(const c:char);
@@ -107,6 +126,7 @@ interface
         procedure AsmClose;
 
         property ioerror: boolean read fioerror;
+        property decorator: IExternalAssemblerOutputFileDecorator read fdecorator write fdecorator;
       end;
 
       {# This is the base class which should be overridden for each each
@@ -356,39 +376,67 @@ Implementation
       end;
 
 
+    procedure TExternalAssemblerOutputFile.AsmWriteFiltered(const c: char);
+      begin
+        MaybeAddLinePrefix;
+        AsmWriteAnsiStringUnfiltered(decorator.LineFilter(c));
+      end;
+
+
+    procedure TExternalAssemblerOutputFile.AsmWriteFiltered(const s: string);
+      begin
+        MaybeAddLinePrefix;
+        AsmWriteAnsiStringUnfiltered(decorator.LineFilter(s));
+      end;
+
+
+    procedure TExternalAssemblerOutputFile.AsmWriteFiltered(const s: ansistring);
+      begin
+        MaybeAddLinePrefix;
+        AsmWriteAnsiStringUnfiltered(decorator.LineFilter(s));
+      end;
+
+
+    procedure TExternalAssemblerOutputFile.AsmWriteFiltered(p: pchar; len: longint);
+      var
+        s: ansistring;
+      begin
+        MaybeAddLinePrefix;
+        setlength(s,len);
+        move(p^,s[1],len);
+        AsmWriteAnsiStringUnfiltered(decorator.LineFilter(s));
+      end;
+
+
     Procedure TExternalAssemblerOutputFile.AsmClear;
       begin
         outcnt:=0;
       end;
 
 
-    constructor TExternalAssemblerOutputFile.Create(_owner: TExternalAssembler);
+    procedure TExternalAssemblerOutputFile.MaybeAddLinePrefix;
       begin
-        owner:=_owner;
+        if assigned(decorator) and
+           linestart then
+          begin
+            AsmWriteAnsiStringUnfiltered(decorator.LinePrefix);
+            linestart:=false;
+          end;
       end;
 
 
-    Procedure TExternalAssemblerOutputFile.AsmWrite(const c: char);
+    procedure TExternalAssemblerOutputFile.MaybeAddLinePostfix;
       begin
-        if OutCnt+1>=AsmOutSize then
-         AsmFlush;
-        OutBuf[OutCnt]:=c;
-        inc(OutCnt);
-        inc(AsmSize);
+        if assigned(decorator) and
+           not linestart then
+          begin
+            AsmWriteAnsiStringUnfiltered(decorator.LinePostfix);
+            linestart:=true;
+          end;
       end;
 
 
-    Procedure TExternalAssemblerOutputFile.AsmWrite(const s:string);
-      begin
-        if OutCnt+length(s)>=AsmOutSize then
-         AsmFlush;
-        Move(s[1],OutBuf[OutCnt],length(s));
-        inc(OutCnt,length(s));
-        inc(AsmSize,length(s));
-      end;
-
-
-    Procedure TExternalAssemblerOutputFile.AsmWrite(const s:ansistring);
+    procedure TExternalAssemblerOutputFile.AsmWriteAnsiStringUnfiltered(const s: ansistring);
       var
         StartIndex, ToWrite: longint;
       begin
@@ -410,6 +458,56 @@ Implementation
         Move(s[StartIndex],OutBuf[OutCnt],ToWrite);
         inc(OutCnt,ToWrite);
         inc(AsmSize,ToWrite);
+      end;
+
+
+    constructor TExternalAssemblerOutputFile.Create(_owner: TExternalAssembler);
+      begin
+        owner:=_owner;
+        linestart:=true;
+      end;
+
+
+    Procedure TExternalAssemblerOutputFile.AsmWrite(const c: char);
+      begin
+        if assigned(decorator) then
+          AsmWriteFiltered(c)
+        else
+          begin
+            if OutCnt+1>=AsmOutSize then
+             AsmFlush;
+            OutBuf[OutCnt]:=c;
+            inc(OutCnt);
+            inc(AsmSize);
+          end;
+      end;
+
+
+    Procedure TExternalAssemblerOutputFile.AsmWrite(const s:string);
+      begin
+        if s='' then
+          exit;
+        if assigned(decorator) then
+          AsmWriteFiltered(s)
+        else
+          begin
+            if OutCnt+length(s)>=AsmOutSize then
+             AsmFlush;
+            Move(s[1],OutBuf[OutCnt],length(s));
+            inc(OutCnt,length(s));
+            inc(AsmSize,length(s));
+          end;
+      end;
+
+
+    Procedure TExternalAssemblerOutputFile.AsmWrite(const s:ansistring);
+      begin
+        if s='' then
+          exit;
+        if assigned(decorator) then
+          AsmWriteFiltered(s)
+        else
+         AsmWriteAnsiStringUnfiltered(s);
       end;
 
 
@@ -439,23 +537,31 @@ Implementation
         i,j : longint;
       begin
         i:=StrLen(p);
-        j:=i;
-        while j>0 do
-         begin
-           i:=min(j,AsmOutSize);
-           if OutCnt+i>=AsmOutSize then
-            AsmFlush;
-           Move(p[0],OutBuf[OutCnt],i);
-           inc(OutCnt,i);
-           inc(AsmSize,i);
-           dec(j,i);
-           p:=pchar(@p[i]);
-         end;
+        if i=0 then
+          exit;
+        if assigned(decorator) then
+          AsmWriteFiltered(p,i)
+        else
+          begin
+            j:=i;
+            while j>0 do
+             begin
+               i:=min(j,AsmOutSize);
+               if OutCnt+i>=AsmOutSize then
+                AsmFlush;
+               Move(p[0],OutBuf[OutCnt],i);
+               inc(OutCnt,i);
+               inc(AsmSize,i);
+               dec(j,i);
+               p:=pchar(@p[i]);
+             end;
+          end;
       end;
 
 
     Procedure TExternalAssemblerOutputFile.AsmLn;
       begin
+        MaybeAddLinePostfix;
         if OutCnt>=AsmOutSize-2 then
          AsmFlush;
         if (cs_link_on_target in current_settings.globalswitches) then
