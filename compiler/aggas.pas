@@ -175,7 +175,7 @@ implementation
     function TGNUAssembler.NextSetLabel: string;
       begin
         inc(setcount);
-        result := target_asm.labelprefix+'$set$'+tostr(setcount);
+        result := asminfo^.labelprefix+'$set$'+tostr(setcount);
       end;
 
     function is_smart_section(atype:TAsmSectiontype):boolean;
@@ -636,7 +636,7 @@ implementation
     begin
       if not assigned(p) then
        exit;
-      replaceforbidden:=target_asm.dollarsign<>'$';
+      replaceforbidden:=asminfo^.dollarsign<>'$';
 
       last_align := 2;
       InlineLevel:=0;
@@ -661,7 +661,7 @@ implementation
 
            ait_comment :
              Begin
-               writer.AsmWrite(target_asm.comment);
+               writer.AsmWrite(asminfo^.comment);
                writer.AsmWritePChar(tai_comment(hp).str);
                writer.AsmLn;
              End;
@@ -670,7 +670,7 @@ implementation
              begin
                if (cs_asm_regalloc in current_settings.globalswitches) then
                  begin
-                   writer.AsmWrite(#9+target_asm.comment+'Register ');
+                   writer.AsmWrite(#9+asminfo^.comment+'Register ');
                    repeat
                      writer.AsmWrite(std_regname(Tai_regalloc(hp).reg));
                      if (hp.next=nil) or
@@ -706,7 +706,7 @@ implementation
                else
                  begin
 {$ifdef EXTDEBUG}
-                   writer.AsmWrite(target_asm.comment);
+                   writer.AsmWrite(asminfo^.comment);
                    writer.AsmWriteln(' sec_none');
 {$endif EXTDEBUG}
                 end;
@@ -1212,7 +1212,7 @@ implementation
              begin
                if tf_needs_symbol_size in target_info.flags then
                 begin
-                  s:=target_asm.labelprefix+'e'+tostr(symendcount);
+                  s:=asminfo^.labelprefix+'e'+tostr(symendcount);
                   inc(symendcount);
                   writer.AsmWriteLn(s+':');
                   writer.AsmWrite(#9'.size'#9);
@@ -1558,9 +1558,9 @@ implementation
         begin
           if not (current_asmdata.asmlists[hal].empty) then
             begin
-              writer.AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
+              writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
               writetree(current_asmdata.asmlists[hal]);
-              writer.AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
+              writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmlistTypeStr[hal]);
             end;
         end;
 

@@ -304,7 +304,7 @@ interface
       end;
 
       TOmfAssembler = class(tinternalassembler)
-        constructor create(smart:boolean);override;
+        constructor create(info: pasminfo; smart:boolean);override;
       end;
 
 implementation
@@ -2534,9 +2534,9 @@ implementation
                                TOmfAssembler
 ****************************************************************************}
 
-    constructor TOmfAssembler.Create(smart:boolean);
+    constructor TOmfAssembler.Create(info: pasminfo; smart:boolean);
       begin
-        inherited Create(smart);
+        inherited;
         CObjOutput:=TOmfObjOutput;
         CInternalAr:=TOmfLibObjectWriter;
       end;

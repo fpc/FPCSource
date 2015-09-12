@@ -31,7 +31,7 @@ unit agppcvasm;
   interface
   
     uses
-       aasmbase,
+       aasmbase,systems,
        aasmtai,aasmdata,
        aggas,
        cpubase,cgutils,
@@ -43,7 +43,7 @@ unit agppcvasm;
     end;
 
     TPPCVASM=class(TGNUassembler)
-      constructor create(smart: boolean); override;
+      constructor create(info: pasminfo; smart: boolean); override;
       function MakeCmdLine: TCmdStr; override;
     end;
 
@@ -59,7 +59,7 @@ unit agppcvasm;
 
     uses
        cutils,cfileutl,globals,verbose,
-       cgbase,systems,
+       cgbase,
        assemble,script,
        itcpugas,cpuinfo,
        aasmcpu;
@@ -359,15 +359,15 @@ unit agppcvasm;
 {****************************************************************************}
 
 
-    constructor TPPCVASM.create(smart: boolean);
+    constructor TPPCVASM.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TPPCInstrWriter.create(self);
       end;
 
     function TPPCVASM.MakeCmdLine: TCmdStr;
       begin
-        result:=target_asm.asmcmd;
+        result:=asminfo^.asmcmd;
         
         if (cs_link_on_target in current_settings.globalswitches) then
          begin

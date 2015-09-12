@@ -243,11 +243,11 @@ interface
        TObjSectionArray = array[0..high(smallint)] of TObjSection;
 
        TDJCoffAssembler = class(tinternalassembler)
-         constructor create(smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean);override;
        end;
 
        TPECoffassembler = class(tinternalassembler)
-         constructor create(smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean);override;
        end;
 
 
@@ -2843,9 +2843,9 @@ const pemagic : array[0..3] of byte = (
                                  TDJCoffAssembler
 ****************************************************************************}
 
-    constructor TDJCoffAssembler.Create(smart:boolean);
+    constructor TDJCoffAssembler.Create(info: pasminfo; smart:boolean);
       begin
-        inherited Create(smart);
+        inherited;
         CObjOutput:=TDJCoffObjOutput;
         CInternalAr:=tarobjectwriter;
       end;
@@ -2855,9 +2855,9 @@ const pemagic : array[0..3] of byte = (
                                TPECoffAssembler
 ****************************************************************************}
 
-    constructor TPECoffAssembler.Create(smart:boolean);
+    constructor TPECoffAssembler.Create(info: pasminfo; smart:boolean);
       begin
-        inherited Create(smart);
+        inherited;
         CObjOutput:=TPECoffObjOutput;
         CInternalAr:=tarobjectwriter;
       end;

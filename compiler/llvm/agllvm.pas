@@ -26,7 +26,7 @@ unit agllvm;
 interface
 
     uses
-      globtype,globals,
+      globtype,globals,systems,
       aasmbase,aasmtai,aasmdata,
       assemble;
 
@@ -46,7 +46,7 @@ interface
         procedure WriteOrdConst(hp: tai_const);
         procedure WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
        public
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
         function MakeCmdLine: TCmdStr; override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
@@ -77,7 +77,7 @@ implementation
 
     uses
       SysUtils,
-      cutils,cfileutl,systems,
+      cutils,cfileutl,
       fmodule,verbose,
       aasmcnst,symconst,symdef,symtable,
       llvmbase,aasmllvm,itllvm,llvmdef,
@@ -519,7 +519,7 @@ implementation
     begin
       if not assigned(p) then
        exit;
-      replaceforbidden:=target_asm.dollarsign<>'$';
+      replaceforbidden:=asminfo^.dollarsign<>'$';
 
       InlineLevel:=0;
       asmblock:=false;
@@ -580,16 +580,16 @@ implementation
           begin
             case tai_realconst(hp).realtyp of
               aitrealconst_s32bit:
-                writer.AsmWriteLn(target_asm.comment+'value: '+single2str(tai_realconst(hp).value.s32val));
+                writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_realconst(hp).value.s32val));
               aitrealconst_s64bit:
-                writer.AsmWriteLn(target_asm.comment+'value: '+double2str(tai_realconst(hp).value.s64val));
+                writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_realconst(hp).value.s64val));
 {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
               { can't write full 80 bit floating point constants yet on non-x86 }
               aitrealconst_s80bit:
-                writer.AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_realconst(hp).value.s80val));
+                writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s80val));
 {$endif cpuextended}
               aitrealconst_s64comp:
-                writer.AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
+                writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
               else
                 internalerror(2014050604);
             end;
@@ -617,7 +617,7 @@ implementation
         consttyp: taiconst_type;
       begin
         if fdecllevel=0 then
-          writer.AsmWrite(target_asm.comment+' const ');
+          writer.AsmWrite(asminfo^.comment+' const ');
         consttyp:=hp.consttype;
         case consttyp of
           aitconst_got,
@@ -641,7 +641,7 @@ implementation
           aitconst_64bit_unaligned:
             begin
               if fdecllevel=0 then
-                writer.AsmWrite(target_asm.comment);
+                writer.AsmWrite(asminfo^.comment);
               { can't have compile-time differences between symbols; these are
                 normally for PIC, but llvm takes care of that for us }
               if assigned(hp.endsym) then
@@ -758,7 +758,7 @@ implementation
         case hp.typ of
           ait_comment :
             begin
-              writer.AsmWrite(target_asm.comment);
+              writer.AsmWrite(asminfo^.comment);
               writer.AsmWritePChar(tai_comment(hp).str);
               if fdecllevel<>0 then
                 internalerror(2015090601);
@@ -769,7 +769,7 @@ implementation
             begin
               if (cs_asm_regalloc in current_settings.globalswitches) then
                 begin
-                  writer.AsmWrite(#9+target_asm.comment+'Register ');
+                  writer.AsmWrite(#9+asminfo^.comment+'Register ');
                   repeat
                     writer.AsmWrite(std_regname(Tai_regalloc(hp).reg));
                      if (hp.next=nil) or
@@ -800,7 +800,7 @@ implementation
 
           ait_datablock :
             begin
-              writer.AsmWrite(target_asm.comment);
+              writer.AsmWrite(asminfo^.comment);
               writer.AsmWriteln('datablock');
             end;
 
@@ -817,7 +817,7 @@ implementation
           ait_string :
             begin
               if fdecllevel=0 then
-                writer.AsmWrite(target_asm.comment);
+                writer.AsmWrite(asminfo^.comment);
               writer.AsmWrite('c"');
               for i:=1 to tai_string(hp).len do
                begin
@@ -850,7 +850,7 @@ implementation
                    begin
                      { should be emitted as part of the variable/function def }
                      //internalerror(2013010704);
-                     writer.AsmWriteln(target_asm.comment+'global/privateextern label: '+tai_label(hp).labsym.name);
+                     writer.AsmWriteln(asminfo^.comment+'global/privateextern label: '+tai_label(hp).labsym.name);
                    end;
                  if replaceforbidden then
                    writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
@@ -863,7 +863,7 @@ implementation
           ait_symbol :
             begin
               if fdecllevel=0 then
-                writer.AsmWrite(target_asm.comment);
+                writer.AsmWrite(asminfo^.comment);
               writer.AsmWriteln(LlvmAsmSymName(tai_symbol(hp).sym));
               { todo }
               if tai_symbol(hp).has_value then
@@ -1056,9 +1056,9 @@ implementation
       end;
 
 
-    constructor TLLVMAssember.create(smart: boolean);
+    constructor TLLVMAssember.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter:=TLLVMInstrWriter.create(self);
       end;
 

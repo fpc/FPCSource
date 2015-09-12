@@ -29,7 +29,7 @@ unit agavrgas;
   interface
 
     uses
-       globtype,
+       globtype,systems,
        aasmtai,aasmdata,
        aggas,
        cpubase;
@@ -39,7 +39,7 @@ unit agavrgas;
       { TAVRGNUAssembler }
 
       TAVRGNUAssembler=class(TGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
        function MakeCmdLine: TCmdStr; override;
       end;
 
@@ -52,7 +52,6 @@ unit agavrgas;
 
     uses
        cutils,globals,verbose,
-       systems,
        assemble,
        aasmbase,aasmcpu,
        itcpugas,
@@ -63,9 +62,9 @@ unit agavrgas;
 {                         GNU Arm Assembler writer                           }
 {****************************************************************************}
 
-    constructor TAVRGNUAssembler.create(smart: boolean);
+    constructor TAVRGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TAVRInstrWriter.create(self);
       end;
 

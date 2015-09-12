@@ -44,6 +44,8 @@ interface
     type
       TAssembler=class(TObject)
       public
+      {assembler info}
+        asminfo     : pasminfo;
       {filenames}
         path        : TPathStr;
         name        : string;
@@ -54,7 +56,7 @@ interface
         SmartAsm     : boolean;
         SmartFilesCount,
         SmartHeaderCount : longint;
-        Constructor Create(smart:boolean);virtual;
+        Constructor Create(info: pasminfo; smart:boolean);virtual;
         Destructor Destroy;override;
         procedure NextSmartName(place:tcutplace);
         procedure MakeObject;virtual;abstract;
@@ -183,8 +185,8 @@ interface
         {# Constructs the command line for calling the assembler }
         function MakeCmdLine: TCmdStr; virtual;
       public
-        Constructor Create(smart:boolean);override;
-        Constructor CreateWithWriter(wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+        Constructor Create(info: pasminfo; smart: boolean);override;
+        Constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
         procedure MakeObject;override;
         destructor Destroy; override;
 
@@ -218,7 +220,7 @@ interface
         property CObjOutput:TObjOutputclass read FCObjOutput write FCObjOutput;
         property CInternalAr : TObjectWriterClass read FCInternalAr write FCInternalAr;
       public
-        constructor create(smart:boolean);override;
+        constructor Create(info: pasminfo; smart: boolean);override;
         destructor  destroy;override;
         procedure MakeObject;override;
       end;
@@ -274,8 +276,9 @@ Implementation
                                    TAssembler
 *****************************************************************************}
 
-    Constructor TAssembler.Create(smart:boolean);
+    Constructor TAssembler.Create(info: pasminfo; smart: boolean);
       begin
+        asminfo:=info;
       { load start values }
         AsmFileName:=current_module.AsmFilename;
         ObjFileName:=current_module.ObjFileName;
@@ -724,13 +727,13 @@ Implementation
       begin
         DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
                 (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) and
-                ((target_asm.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff]));
+                ((asminfo^.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff]));
       end;
 
 
-    Constructor TExternalAssembler.Create(smart:boolean);
+    Constructor TExternalAssembler.Create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         if not assigned(fwriter) then
           begin
             fwriter:=TExternalAssemblerOutputFile.Create(self);
@@ -744,11 +747,11 @@ Implementation
       end;
 
 
-    constructor TExternalAssembler.CreateWithWriter(wr: TExternalAssemblerOutputFile; freewriter,smart: boolean);
+    constructor TExternalAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter,smart: boolean);
       begin
         fwriter:=wr;
         ffreewriter:=freewriter;
-        Create(smart);
+        Create(info,smart);
       end;
 
 
@@ -802,14 +805,14 @@ Implementation
         if cs_link_on_target in current_settings.globalswitches then
          begin
            { If linking on target, don't add any path PM }
-           FindAssembler:=utilsprefix+ChangeFileExt(target_asm.asmbin,target_info.exeext);
+           FindAssembler:=utilsprefix+ChangeFileExt(asminfo^.asmbin,target_info.exeext);
            exit;
          end
         else
-         UtilExe:=utilsprefix+ChangeFileExt(target_asm.asmbin,source_info.exeext);
-        if lastas<>ord(target_asm.id) then
+         UtilExe:=utilsprefix+ChangeFileExt(asminfo^.asmbin,source_info.exeext);
+        if lastas<>ord(asminfo^.id) then
          begin
-           lastas:=ord(target_asm.id);
+           lastas:=ord(asminfo^.id);
            { is an assembler passed ? }
            if utilsdirectory<>'' then
              asfound:=FindFile(UtilExe,utilsdirectory,false,LastASBin);
@@ -886,7 +889,7 @@ Implementation
 
     function TExternalAssembler.MakeCmdLine: TCmdStr;
       begin
-        result:=target_asm.asmcmd;
+        result:=asminfo^.asmcmd;
 {$ifdef arm}
         if (target_info.system=system_arm_darwin) then
           Replace(result,'$ARCH',lower(cputypestr[current_settings.cputype]));
@@ -955,7 +958,7 @@ Implementation
           begin
             if (infile<>lastinfile) then
               begin
-                writer.AsmWriteLn(target_asm.comment+'['+infile.name+']');
+                writer.AsmWriteLn(asminfo^.comment+'['+infile.name+']');
                 if assigned(lastinfile) then
                   lastinfile.close;
               end;
@@ -964,7 +967,7 @@ Implementation
               begin
                 if (hp.fileinfo.line<>0) and
                   (infile.linebuf^[hp.fileinfo.line]>=0) then
-                  writer.AsmWriteLn(target_asm.comment+'['+tostr(hp.fileinfo.line)+'] '+
+                  writer.AsmWriteLn(asminfo^.comment+'['+tostr(hp.fileinfo.line)+'] '+
                   fixline(infile.GetLineStr(hp.fileinfo.line)));
                 { set it to a negative value !
                   to make that is has been read already !! PM }
@@ -980,11 +983,11 @@ Implementation
       begin
 {$ifdef EXTDEBUG}
         if assigned(hp.problem) then
-          writer.AsmWriteLn(target_asm.comment+'Temp '+tostr(hp.temppos)+','+
+          writer.AsmWriteLn(asminfo^.comment+'Temp '+tostr(hp.temppos)+','+
           tostr(hp.tempsize)+' '+hp.problem^)
         else
 {$endif EXTDEBUG}
-          writer.AsmWriteLn(target_asm.comment+'Temp '+tostr(hp.temppos)+','+
+          writer.AsmWriteLn(asminfo^.comment+'Temp '+tostr(hp.temppos)+','+
             tostr(hp.tempsize)+' '+tempallocstr[hp.allocation]);
       end;
 
@@ -1004,16 +1007,16 @@ Implementation
           begin
             case tai_realconst(hp).realtyp of
               aitrealconst_s32bit:
-                writer.AsmWriteLn(target_asm.comment+'value: '+single2str(tai_realconst(hp).value.s32val));
+                writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_realconst(hp).value.s32val));
               aitrealconst_s64bit:
-                writer.AsmWriteLn(target_asm.comment+'value: '+double2str(tai_realconst(hp).value.s64val));
+                writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_realconst(hp).value.s64val));
 {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
               { can't write full 80 bit floating point constants yet on non-x86 }
               aitrealconst_s80bit:
-                writer.AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_realconst(hp).value.s80val));
+                writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s80val));
 {$endif cpuextended}
               aitrealconst_s64comp:
-                writer.AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
+                writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
               else
                 internalerror(2014050604);
             end;
@@ -1127,9 +1130,9 @@ Implementation
                                   TInternalAssembler
 *****************************************************************************}
 
-    constructor TInternalAssembler.create(smart:boolean);
+    constructor TInternalAssembler.Create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         ObjOutput:=nil;
         ObjData:=nil;
         SmartAsm:=smart;
@@ -2007,7 +2010,7 @@ Implementation
         startsecorder: TAsmSectionOrder;
       begin
         if not(cs_asm_leave in current_settings.globalswitches) and
-           not(af_needar in target_asm.flags) then
+           not(af_needar in asminfo^.flags) then
           ObjWriter:=CInternalAr.CreateAr(current_module.staticlibfilename)
         else
           ObjWriter:=TObjectwriter.create;
@@ -2151,7 +2154,7 @@ Implementation
       begin
         if not assigned(CAssembler[target_asm.id]) then
           Message(asmw_f_assembler_output_not_supported);
-        a:=CAssembler[target_asm.id].Create(smart);
+        a:=CAssembler[target_asm.id].Create(@target_asm,smart);
         a.MakeObject;
         a.Free;
       end;

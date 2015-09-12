@@ -26,13 +26,13 @@ unit ag68kgas;
 interface
 
     uses
-      cclasses,cpubase,
+      cclasses,cpubase,systems,
       globals,globtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,assemble,aggas;
 
     type
       Tm68kGNUAssembler=class(TGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
         function MakeCmdLine : TCmdStr; override;
       end;
 
@@ -49,7 +49,7 @@ interface
   implementation
 
     uses
-      cutils,systems,
+      cutils,
       cgbase,cgutils,cpuinfo,
       verbose,itcpugas;
 
@@ -58,9 +58,9 @@ interface
  {                         GNU m68k Assembler writer                          }
  {****************************************************************************}
 
- constructor Tm68kGNUAssembler.create(smart: boolean);
+ constructor Tm68kGNUAssembler.create(info: pasminfo; smart: boolean);
    begin
-     inherited create(smart);
+     inherited;
      InstrWriter := Tm68kInstrWriter.create(self);
    end;
 

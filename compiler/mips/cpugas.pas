@@ -26,13 +26,13 @@ unit cpugas;
   interface
 
     uses
-      cpubase, aasmbase, globtype,
+      cpubase, aasmbase, globtype, systems,
       aasmtai, aasmcpu, assemble, aggas;
 
     type
       TMIPSGNUAssembler = class(TGNUassembler)
         nomacro, noreorder, noat : boolean;
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
         {# Constructs the command line for calling the assembler }
         function MakeCmdLine: TCmdStr; override;
       end;
@@ -52,7 +52,7 @@ unit cpugas;
   implementation
 
     uses
-      cutils, systems, cpuinfo,
+      cutils, cpuinfo,
       globals, verbose, itcpugas, cgbase, cgutils;
 
 
@@ -69,10 +69,10 @@ unit cpugas;
 {                         GNU MIPS  Assembler writer                           }
 {****************************************************************************}
 
-    constructor TMIPSGNUAssembler.create(smart: boolean);
+    constructor TMIPSGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
-        InstrWriter := TMIPSInstrWriter.create(self);
+        inherited;
+        InstrWriter:=TMIPSInstrWriter.create(self);
         nomacro:=false;
         noreorder:=false;
         noat:=false;

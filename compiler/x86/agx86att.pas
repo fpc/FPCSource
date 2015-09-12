@@ -28,22 +28,22 @@ unit agx86att;
 interface
 
     uses
-      cclasses,cpubase,
+      cclasses,cpubase,systems,
       globals,globtype,cgutils,
       aasmbase,aasmtai,aasmdata,assemble,aggas;
 
     type
       Tx86ATTAssembler=class(TGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
         function MakeCmdLine: TCmdStr; override;
       end;
 
       Tx86AppleGNUAssembler=class(TAppleGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
       end;
 
       Tx86AoutGNUAssembler=class(TAoutGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
       end;
 
 
@@ -65,7 +65,7 @@ interface
   implementation
 
     uses
-      cutils,systems,
+      cutils,
       verbose,
       itcpugas,
       cgbase,
@@ -76,9 +76,9 @@ interface
                             Tx86ATTAssembler
  ****************************************************************************}
 
-    constructor Tx86ATTAssembler.create(smart: boolean);
+    constructor Tx86ATTAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := Tx86InstrWriter.create(self);
       end;
 
@@ -124,9 +124,9 @@ interface
                           Tx86AppleGNUAssembler
  ****************************************************************************}
 
-    constructor Tx86AppleGNUAssembler.create(smart: boolean);
+    constructor Tx86AppleGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := Tx86InstrWriter.create(self);
         { Apple's assembler does not support a size suffix for popcount }
         Tx86InstrWriter(InstrWriter).fskipPopcountSuffix := true;
@@ -138,9 +138,9 @@ interface
                           Tx86AoutGNUAssembler
  ****************************************************************************}
 
-    constructor Tx86AoutGNUAssembler.create(smart: boolean);
+    constructor Tx86AoutGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := Tx86InstrWriter.create(self);
       end;
 

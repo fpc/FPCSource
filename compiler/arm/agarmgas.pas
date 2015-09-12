@@ -29,14 +29,14 @@ unit agarmgas;
   interface
 
     uses
-       globtype,
+       globtype,systems,
        aasmtai,
        aggas,
        cpubase,cpuinfo;
 
     type
       TARMGNUAssembler=class(TGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
         function MakeCmdLine: TCmdStr; override;
         procedure WriteExtraHeader; override;
       end;
@@ -46,7 +46,7 @@ unit agarmgas;
       end;
 
       TArmAppleGNUAssembler=class(TAppleGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
       end;
 
 
@@ -79,7 +79,6 @@ unit agarmgas;
 
     uses
        cutils,globals,verbose,
-       systems,
        assemble,
        aasmcpu,
        itcpugas,
@@ -89,9 +88,9 @@ unit agarmgas;
 {                         GNU Arm Assembler writer                           }
 {****************************************************************************}
 
-    constructor TArmGNUAssembler.create(smart: boolean);
+    constructor TArmGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TArmInstrWriter.create(self);
       end;
 
@@ -135,9 +134,9 @@ unit agarmgas;
 {                      GNU/Apple ARM Assembler writer                        }
 {****************************************************************************}
 
-    constructor TArmAppleGNUAssembler.create(smart: boolean);
+    constructor TArmAppleGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TArmInstrWriter.create(self);
       end;
 

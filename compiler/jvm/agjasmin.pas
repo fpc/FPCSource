@@ -28,7 +28,7 @@ unit agjasmin;
 interface
 
     uses
-      cclasses,
+      cclasses,systems,
       globtype,globals,
       symconst,symbase,symdef,symsym,
       aasmbase,aasmtai,aasmdata,aasmcpu,
@@ -70,7 +70,7 @@ interface
         procedure WriteSymtableProcdefs(st: TSymtable);
         procedure WriteSymtableStructDefs(st: TSymtable);
        public
-        constructor Create(smart: boolean); override;
+        constructor Create(info: pasminfo; smart: boolean); override;
         function MakeCmdLine: TCmdStr;override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
@@ -101,7 +101,7 @@ implementation
 
     uses
       SysUtils,
-      cutils,cfileutl,systems,script,
+      cutils,cfileutl,script,
       fmodule,finput,verbose,
       symtype,symcpu,symtable,jvmdef,
       itcpujas,cpubase,cpuinfo,cgutils,
@@ -336,7 +336,7 @@ implementation
                    begin
                      if (infile<>lastinfile) then
                        begin
-                         writer.AsmWriteLn(target_asm.comment+'['+infile.name+']');
+                         writer.AsmWriteLn(asminfo^.comment+'['+infile.name+']');
                          if assigned(lastinfile) then
                            lastinfile.close;
                        end;
@@ -345,7 +345,7 @@ implementation
                        begin
                          if (hp1.fileinfo.line<>0) and
                             ((infile.linebuf^[hp1.fileinfo.line]>=0) or (InlineLevel>0)) then
-                           writer.AsmWriteLn(target_asm.comment+'['+tostr(hp1.fileinfo.line)+'] '+
+                           writer.AsmWriteLn(asminfo^.comment+'['+tostr(hp1.fileinfo.line)+'] '+
                              fixline(infile.GetLineStr(hp1.fileinfo.line)));
                          { set it to a negative value !
                          to make that is has been read already !! PM }
@@ -362,7 +362,7 @@ implementation
 
              ait_comment :
                Begin
-                 writer.AsmWrite(target_asm.comment);
+                 writer.AsmWrite(asminfo^.comment);
                  writer.AsmWritePChar(tai_comment(hp).str);
                  writer.AsmLn;
                End;
@@ -371,7 +371,7 @@ implementation
                begin
                  if (cs_asm_regalloc in current_settings.globalswitches) then
                    begin
-                     writer.AsmWrite(#9+target_asm.comment+'Register ');
+                     writer.AsmWrite(#9+asminfo^.comment+'Register ');
                      repeat
                        writer.AsmWrite(std_regname(Tai_regalloc(hp).reg));
                        if (hp.next=nil) or
@@ -392,11 +392,11 @@ implementation
                    begin
   {$ifdef EXTDEBUG}
                      if assigned(tai_tempalloc(hp).problem) then
-                       writer.AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
+                       writer.AsmWriteLn(asminfo^.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
                          tostr(tai_tempalloc(hp).tempsize)+' '+tai_tempalloc(hp).problem^)
                      else
   {$endif EXTDEBUG}
-                       writer.AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
+                       writer.AsmWriteLn(asminfo^.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
                          tostr(tai_tempalloc(hp).tempsize)+' '+tempallocstr[tai_tempalloc(hp).allocation]);
                    end;
                end;
@@ -686,7 +686,7 @@ implementation
            if jasminjarfound then
              Message1(exec_t_using_assembler,jasminjar);
          end;
-       result:=target_asm.asmcmd;
+       result:=asminfo^.asmcmd;
        filenames:=ScriptFixFileName(AsmFileName);
        if cs_asm_extern in current_settings.globalswitches then
          filenames:=maybequoted(filenames);
@@ -1078,9 +1078,9 @@ implementation
         nestedstructs.free;
       end;
 
-    constructor TJasminAssembler.Create(smart: boolean);
+    constructor TJasminAssembler.Create(info: pasminfo; smart: boolean);
       begin
-        inherited CreateWithWriter(TJasminAssemblerOutputFile.Create(self),true,smart);
+        inherited CreateWithWriter(info,TJasminAssemblerOutputFile.Create(self),true,smart);
         InstrWriter:=TJasminInstrWriter.Create(self);
         asmfiles:=TCmdStrList.Create;
       end;
@@ -1098,9 +1098,9 @@ implementation
 (*
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
-          writer.AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
+          writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
           writetree(current_asmdata.asmlists[hal]);
-          writer.AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
+          writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmlistTypeStr[hal]);
         end;
 *)
       { print all global variables }

@@ -29,7 +29,7 @@ unit agcpugas;
   interface
 
     uses
-       globtype,
+       globtype,systems,
        aasmtai,
        aggas,
        cpubase,cpuinfo;
@@ -40,11 +40,11 @@ unit agcpugas;
       end;
 
       TAArch64Assembler=class(TGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
       end;
 
       TAArch64AppleAssembler=class(TAppleGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
         function MakeCmdLine: TCmdStr; override;
       end;
 
@@ -65,7 +65,6 @@ unit agcpugas;
 
     uses
        cutils,globals,verbose,
-       systems,
        assemble,
        aasmcpu,
        itcpugas,
@@ -76,9 +75,9 @@ unit agcpugas;
 {                      AArch64 Assembler writer                              }
 {****************************************************************************}
 
-    constructor TAArch64Assembler.create(smart: boolean);
+    constructor TAArch64Assembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TAArch64InstrWriter.create(self);
       end;
 
@@ -86,9 +85,9 @@ unit agcpugas;
 {                      Apple AArch64 Assembler writer                        }
 {****************************************************************************}
 
-    constructor TAArch64AppleAssembler.create(smart: boolean);
+    constructor TAArch64AppleAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TAArch64InstrWriter.create(self);
       end;
 
@@ -109,7 +108,7 @@ unit agcpugas;
 {                  Helper routines for Instruction Writer                    }
 {****************************************************************************}
 
-    function getreferencestring(var ref : treference) : string;
+    function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
       const
         darwin_addrpage2str: array[addr_page..addr_gotpageoffset] of string[11] =
            ('@PAGE','@PAGEOFF','@GOTPAGE','@GOTPAGEOFF');
@@ -130,7 +129,7 @@ unit agcpugas;
                      (ref.shiftmode<>SM_None) or
                      (ref.offset<>0) then
                     internalerror(2014121501);
-                  if target_asm.id=as_darwin then
+                  if asminfo^.id=as_darwin then
                     result:=ref.symbol.name+darwin_addrpage2str[ref.refaddr]
                   else
                     result:=linux_addrpage2str[ref.refaddr]+ref.symbol.name
@@ -172,7 +171,7 @@ unit agcpugas;
                       addr_gotpageoffset,
                       addr_pageoffset:
                         begin
-                          if target_asm.id=as_darwin then
+                          if asminfo^.id=as_darwin then
                             result:=result+', '+ref.symbol.name+darwin_addrpage2str[ref.refaddr]
                           else
                             result:=result+', '+linux_addrpage2str[ref.refaddr]+ref.symbol.name
@@ -200,7 +199,7 @@ unit agcpugas;
       end;
 
 
-    function getopstr(hp: taicpu; opnr: longint; const o: toper): string;
+    function getopstr(asminfo: pasminfo; hp: taicpu; opnr: longint; const o: toper): string;
       begin
         case o.typ of
           top_reg:
@@ -248,7 +247,7 @@ unit agcpugas;
                 getopstr:=o.ref^.symbol.name;
               end
             else
-              getopstr:=getreferencestring(o.ref^);
+              getopstr:=getreferencestring(asminfo,o.ref^);
           else
             internalerror(2014121507);
         end;
@@ -274,7 +273,7 @@ unit agcpugas;
                  // debug code
                  // writeln(s);
                  // writeln(taicpu(hp).fileinfo.line);
-                 s:=s+sep+getopstr(taicpu(hp),i,taicpu(hp).oper[i]^);
+                 s:=s+sep+getopstr(owner.asminfo,taicpu(hp),i,taicpu(hp).oper[i]^);
                  sep:=',';
               end;
           end;

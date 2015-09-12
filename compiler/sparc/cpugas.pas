@@ -26,13 +26,13 @@ unit cpugas;
 interface
 
     uses
-      cpubase,
+      cpubase,systems,
       aasmtai,aasmdata,aasmcpu,assemble,aggas,
       cgutils,globtype;
 
     type
       TGasSPARC=class(TGnuAssembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
         {# Constructs the command line for calling the assembler }
         function MakeCmdLine: TCmdStr; override;
       end;
@@ -46,7 +46,7 @@ interface
 implementation
 
     uses
-      cutils,systems,globals,cpuinfo,procinfo,
+      cutils,globals,cpuinfo,procinfo,
       verbose,itcpugas,cgbase;
 
 
@@ -54,9 +54,9 @@ implementation
 {                         GNU PPC Assembler writer                           }
 {****************************************************************************}
 
-    constructor TGasSPARC.create(smart: boolean);
+    constructor TGasSPARC.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TSPARCInstrWriter.create(self);
       end;
 

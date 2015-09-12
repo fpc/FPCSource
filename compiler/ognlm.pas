@@ -302,7 +302,7 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
        end;
 
        TNLMCoffassembler = class(tinternalassembler)
-         constructor create(smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean);override;
        end;
 
       TNLMCoffObjData = class(TCoffObjData)
@@ -1471,9 +1471,9 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                                  TDJCoffAssembler
 ****************************************************************************}
 
-    constructor TNLMCoffAssembler.Create(smart:boolean);
+    constructor TNLMCoffAssembler.Create(info: pasminfo; smart:boolean);
       begin
-        inherited Create(smart);
+        inherited;
         CObjOutput:=TNLMCoffObjOutput;
         CInternalAr:=tarobjectwriter;
       end;

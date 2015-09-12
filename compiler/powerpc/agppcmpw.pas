@@ -734,7 +734,7 @@ interface
          case hp.typ of
             ait_comment:
               begin
-                 writer.AsmWrite(target_asm.comment);
+                 writer.AsmWrite(asminfo^.comment);
                  writer.AsmWritePChar(tai_comment(hp).str);
                  writer.AsmLn;
               end;
@@ -744,7 +744,7 @@ interface
             ait_section:
               begin
                  {if LastSecType<>sec_none then
-                  writer.AsmWriteLn('_'+target_asm.secnames[LastSecType]+#9#9'ENDS');}
+                  writer.AsmWriteLn('_'+asminfo^.secnames[LastSecType]+#9#9'ENDS');}
 
                  if tai_section(hp).sectype<>sec_none then
                   begin
@@ -911,7 +911,7 @@ interface
 (*
             ait_real_64bit :
               begin
-                writer.AsmWriteLn(target_asm.comment+'value: '+double2str(tai_real_64bit(hp).value));
+                writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_real_64bit(hp).value));
                 d:=tai_real_64bit(hp).value;
                 { swap the values to correct endian if required }
                 if source_info.endian <> target_info.endian then
@@ -930,7 +930,7 @@ interface
 
             ait_real_32bit :
               begin
-                writer.AsmWriteLn(target_asm.comment+'value: '+single2str(tai_real_32bit(hp).value));
+                writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_real_32bit(hp).value));
                 sin:=tai_real_32bit(hp).value;
                 { swap the values to correct endian if required }
                 if source_info.endian <> target_info.endian then
@@ -1221,9 +1221,9 @@ interface
 
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
-          writer.AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmListTypeStr[hal]);
+          writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
           writetree(current_asmdata.asmlists[hal]);
-          writer.AsmWriteLn(target_asm.comment+'End asmlist '+AsmListTypeStr[hal]);
+          writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmListTypeStr[hal]);
         end;
 
       writer.AsmWriteLn(#9'end');

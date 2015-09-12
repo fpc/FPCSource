@@ -668,7 +668,7 @@ interface
          case hp.typ of
            ait_comment :
              Begin
-               writer.AsmWrite(target_asm.comment);
+               writer.AsmWrite(asminfo^.comment);
                writer.AsmWritePChar(tai_comment(hp).str);
                writer.AsmLn;
              End;
@@ -676,7 +676,7 @@ interface
            ait_regalloc :
              begin
                if (cs_asm_regalloc in current_settings.globalswitches) then
-                 writer.AsmWriteLn(#9#9+target_asm.comment+'Register '+nasm_regname(tai_regalloc(hp).reg)+' '+
+                 writer.AsmWriteLn(#9#9+asminfo^.comment+'Register '+nasm_regname(tai_regalloc(hp).reg)+' '+
                    regallocstr[tai_regalloc(hp).ratype]);
              end;
 
@@ -743,7 +743,7 @@ interface
                  aitconst_sleb128bit,
                  aitconst_128bit:
                     begin
-                      writer.AsmWriteLn(target_asm.comment+'Unsupported const type '+
+                      writer.AsmWriteLn(asminfo^.comment+'Unsupported const type '+
                         ait_const2str[consttype]);
                     end;
 {$ifdef i8086}
@@ -963,7 +963,7 @@ interface
                       assigned(taicpu(hp).oper[1]^.ref^.symbol) and
                       (taicpu(hp).oper[1]^.ref^.base=NR_NO)) then
                     begin
-                      writer.AsmWrite(target_asm.comment);
+                      writer.AsmWrite(asminfo^.comment);
                       writer.AsmWriteln('Converting LEA to MOV instruction');
                       taicpu(hp).opcode:=A_MOV;
                     end;
@@ -1082,10 +1082,10 @@ interface
            ait_varloc:
              begin
                if tai_varloc(hp).newlocationhi<>NR_NO then
-                 writer.AsmWriteLn(target_asm.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                 writer.AsmWriteLn(asminfo^.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
                    std_regname(tai_varloc(hp).newlocationhi)+':'+std_regname(tai_varloc(hp).newlocation))
                else
-                 writer.AsmWriteLn(target_asm.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                 writer.AsmWriteLn(asminfo^.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
                    std_regname(tai_varloc(hp).newlocation));
              end;
            else
@@ -1168,9 +1168,9 @@ interface
         begin
           if not (current_asmdata.asmlists[hal].empty) then
             begin
-              writer.AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmListTypeStr[hal]);
+              writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
               writetree(current_asmdata.asmlists[hal]);
-              writer.AsmWriteLn(target_asm.comment+'End asmlist '+AsmListTypeStr[hal]);
+              writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmListTypeStr[hal]);
             end;
         end;
 
