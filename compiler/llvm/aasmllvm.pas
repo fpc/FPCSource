@@ -147,6 +147,13 @@ interface
       constructor create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _vis: tllvmvisibility; _linkage: tllvmlinkage);
     end;
 
+    taillvmdeclflag =
+    (
+      ldf_definition,   { definition as opposed to (an external) declaration }
+      ldf_tls           { tls definition }
+    );
+    taillvmdeclflags = set of taillvmdeclflag;
+
     { declarations/definitions of symbols (procedures, variables), both defined
       here and external }
     taillvmdecl = class(tai)
@@ -156,8 +163,7 @@ interface
       def: tdef;
       sec: TAsmSectiontype;
       alignment: shortint;
-      definition: boolean;
-      tls: boolean;
+      flags: taillvmdeclflags;
       constructor createdecl(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       constructor createdef(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       constructor createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
@@ -196,21 +202,21 @@ uses
         sec:=_sec;
         alignment:=_alignment;
         _namesym.declared:=true;
-        definition:=false;
+        flags:=[];
       end;
 
 
     constructor taillvmdecl.createdef(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       begin
         createdecl(_namesym,_def,_initdata,_sec,_alignment);
-        definition:=true;
+        include(flags,ldf_definition);
       end;
 
 
     constructor taillvmdecl.createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
       begin
         createdef(_namesym,_def,nil,sec_data,_alignment);
-        tls:=true;
+        include(flags,ldf_tls);
       end;
 
 

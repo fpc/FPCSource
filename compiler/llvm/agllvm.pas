@@ -915,7 +915,7 @@ implementation
             begin
               if taillvmdecl(hp).def.typ=procdef then
                 begin
-                  if not taillvmdecl(hp).definition then
+                  if not(ldf_definition in taillvmdecl(hp).flags) then
                     begin
                       writer.AsmWrite('declare');
                       writer.AsmWriteln(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), taillvmdecl(hp).namesym.name, lpd_decl));
@@ -946,7 +946,7 @@ implementation
                     else
                       internalerror(2014020104);
                   end;
-                  if taillvmdecl(hp).tls then
+                  if (ldf_tls in taillvmdecl(hp).flags) then
                     writer.AsmWrite('thread_local ');
                   { todo: handle more different section types (mainly
                       Objective-C }
