@@ -64,6 +64,9 @@ interface
         function  get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
       end;
 
+    { generate RTTI and init tables }
+    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
+
     var
       RTTIWriter : TRTTIWriter;
 
@@ -93,6 +96,61 @@ implementation
          propindex : longint;
          propowner : TSymtable;
        end;
+
+
+    procedure write_persistent_type_info(st: tsymtable; is_global: boolean);
+      var
+        i : longint;
+        def : tdef;
+      begin
+        { no Delphi-style RTTI for managed platforms }
+        if target_info.system in systems_managed_vm then
+          exit;
+        for i:=0 to st.DefList.Count-1 do
+          begin
+            def:=tdef(st.DefList[i]);
+            case def.typ of
+              recorddef:
+                write_persistent_type_info(trecorddef(def).symtable,is_global);
+              objectdef :
+                begin
+                  { Skip generics and forward defs }
+                  if ([df_generic,df_genconstraint]*def.defoptions<>[]) or
+                     (oo_is_forward in tobjectdef(def).objectoptions) then
+                    continue;
+                  write_persistent_type_info(tobjectdef(def).symtable,is_global);
+                end;
+              procdef :
+                begin
+                  if assigned(tprocdef(def).localst) and
+                     (tprocdef(def).localst.symtabletype=localsymtable) then
+                    write_persistent_type_info(tprocdef(def).localst,false);
+                  if assigned(tprocdef(def).parast) then
+                    write_persistent_type_info(tprocdef(def).parast,false);
+                end;
+            end;
+            { always generate persistent tables for types in the interface so
+              they can be reused in other units and give always the same pointer
+              location. }
+            { Init }
+            if (
+                assigned(def.typesym) and
+                is_global and
+                not is_objc_class_or_protocol(def)
+               ) or
+               is_managed_type(def) or
+               (ds_init_table_used in def.defstates) then
+              RTTIWriter.write_rtti(def,initrtti);
+            { RTTI }
+            if (
+                assigned(def.typesym) and
+                is_global and
+                not is_objc_class_or_protocol(def)
+               ) or
+               (ds_rtti_table_used in def.defstates) then
+              RTTIWriter.write_rtti(def,fullrtti);
+          end;
+      end;
 
 
 {***************************************************************************

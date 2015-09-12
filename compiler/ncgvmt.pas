@@ -98,8 +98,8 @@ interface
       end;
       TVMTWriterClass = class of TVMTWriter;
 
-    { generate persistent type information like VMT, RTTI and inittables }
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
+    { generate VMTs }
+    procedure write_vmts(st:tsymtable;is_global:boolean);
 
   var
     CVMTWriter: TVMTWriterClass = TVMTWriter;
@@ -1268,7 +1268,7 @@ implementation
       end;
 
 
-    procedure do_write_persistent_type_info(st:tsymtable;is_global:boolean);
+    procedure do_write_vmts(st:tsymtable;is_global:boolean);
       var
         i : longint;
         def : tdef;
@@ -1281,14 +1281,14 @@ implementation
             def:=tdef(st.DefList[i]);
             case def.typ of
               recorddef :
-                do_write_persistent_type_info(trecorddef(def).symtable,is_global);
+                do_write_vmts(trecorddef(def).symtable,is_global);
               objectdef :
                 begin
                   { Skip generics and forward defs }
                   if ([df_generic,df_genconstraint]*def.defoptions<>[]) or
                      (oo_is_forward in tobjectdef(def).objectoptions) then
                     continue;
-                  do_write_persistent_type_info(tobjectdef(def).symtable,is_global);
+                  do_write_vmts(tobjectdef(def).symtable,is_global);
                   { Write also VMT if not done yet }
                   if not(ds_vmt_written in def.defstates) then
                     begin
@@ -1307,37 +1307,18 @@ implementation
                 begin
                   if assigned(tprocdef(def).localst) and
                      (tprocdef(def).localst.symtabletype=localsymtable) then
-                    do_write_persistent_type_info(tprocdef(def).localst,false);
+                    do_write_vmts(tprocdef(def).localst,false);
                   if assigned(tprocdef(def).parast) then
-                    do_write_persistent_type_info(tprocdef(def).parast,false);
+                    do_write_vmts(tprocdef(def).parast,false);
                 end;
             end;
-            { generate always persistent tables for types in the interface so it can
-              be reused in other units and give always the same pointer location. }
-            { Init }
-            if (
-                assigned(def.typesym) and
-                is_global and
-                not is_objc_class_or_protocol(def)
-               ) or
-               is_managed_type(def) or
-               (ds_init_table_used in def.defstates) then
-              RTTIWriter.write_rtti(def,initrtti);
-            { RTTI }
-            if (
-                assigned(def.typesym) and
-                is_global and
-                not is_objc_class_or_protocol(def)
-               ) or
-               (ds_rtti_table_used in def.defstates) then
-              RTTIWriter.write_rtti(def,fullrtti);
           end;
       end;
 
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
+    procedure write_vmts(st:tsymtable;is_global:boolean);
       begin
         create_hlcodegen;
-        do_write_persistent_type_info(st,is_global);
+        do_write_vmts(st,is_global);
         destroy_hlcodegen;
       end;
 

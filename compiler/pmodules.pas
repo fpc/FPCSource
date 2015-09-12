@@ -46,7 +46,7 @@ implementation
        pexports,
        objcgutl,
        wpobase,
-       scanner,pbase,pexpr,psystem,psub,pdecsub,ncgvmt,
+       scanner,pbase,pexpr,psystem,psub,pdecsub,ncgvmt,ncgrtti,
        cpuinfo;
 
 
@@ -1069,6 +1069,13 @@ type
 
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
+
+         { Generate VMTs }
+         if Errorcount=0 then
+           begin
+             write_vmts(current_module.globalsymtable,true);
+             write_vmts(current_module.localsymtable,false);
+           end;
 
          { add implementations for synthetic method declarations added by
            the compiler }
@@ -2143,6 +2150,10 @@ type
 
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
+
+         { Generate VMTs }
+         if Errorcount=0 then
+           write_vmts(current_module.localsymtable,false);
 
          { add implementations for synthetic method declarations added by
            the compiler }
