@@ -723,38 +723,52 @@ implementation
   class procedure tnodeutils.InsertThreadvarTablesTable;
     var
       hp : tused_unit;
-      ltvTables : TAsmList;
-      count : longint;
+      tcb: ttai_typedconstbuilder;
+      count: longint;
+      sym: tasmsymbol;
+      placeholder: ttypedconstplaceholder;
     begin
       if (tf_section_threadvars in target_info.flags) then
         exit;
-      ltvTables:=TAsmList.Create;
       count:=0;
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+      tcb.begin_anonymous_record('',1,sizeof(pint),
+        targetinfos[target_info.system]^.alignment.recordalignmin,
+        targetinfos[target_info.system]^.alignment.maxCrecordalign
+      );
+      placeholder:=tcb.emit_placeholder(u32inttype);
+
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
        begin
-         If (hp.u.flags and uf_threadvars)=uf_threadvars then
-          begin
-            ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),0));
-            inc(count);
-          end;
+         if (hp.u.flags and uf_threadvars)=uf_threadvars then
+           begin
+             tcb.emit_tai(
+               tai_const.Createname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),0),
+               voidpointertype);
+             inc(count);
+           end;
          hp:=tused_unit(hp.next);
        end;
       { Add program threadvars, if any }
-      If (current_module.flags and uf_threadvars)=uf_threadvars then
-       begin
-         ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',current_module.localsymtable,''),0));
-         inc(count);
-       end;
-      { Insert TableCount at start }
-      ltvTables.insert(Tai_const.Create_32bit(count));
+      if (current_module.flags and uf_threadvars)=uf_threadvars then
+        begin
+          tcb.emit_tai(
+            Tai_const.Createname(make_mangledname('THREADVARLIST',current_module.localsymtable,''),0),
+            voidpointertype);
+          inc(count);
+        end;
+      { set the count at the start }
+      placeholder.replace(tai_const.Create_32bit_unaligned(count),u32inttype);
+      placeholder.free;
       { insert in data segment }
-      maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,'FPC_THREADVARTABLES',const_align(sizeof(pint)));
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('FPC_THREADVARTABLES',AT_DATA,0));
-      current_asmdata.asmlists[al_globals].concatlist(ltvTables);
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
-      ltvTables.free;
+      sym:=current_asmdata.DefineAsmSymbol('FPC_THREADVARTABLES',AB_GLOBAL,AT_DATA);
+      current_asmdata.asmlists[al_globals].concatlist(
+        tcb.get_final_asmlist(
+          sym,tcb.end_anonymous_record,sec_data,'FPC_THREADVARTABLES',sizeof(pint)
+        )
+      );
+      tcb.free;
     end;
 
 
