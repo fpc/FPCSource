@@ -1570,7 +1570,18 @@ implementation
        if fqueue_offset<>0 then
          internalerror(2014062103);
        { warning: update if/when the type of resource strings changes }
-       emit_tai(Tai_const.Createname(make_mangledname('RESSTR',cs.owner,cs.name),AT_DATA,sizeof(pint)),cansistringtype);
+       case cs.consttyp of
+         constresourcestring:
+           emit_tai(Tai_const.Createname(make_mangledname('RESSTR',cs.owner,cs.name),AT_DATA,sizeof(pint)),cpointerdef.getreusable(cansistringtype));
+         { can these occur? }
+         constord,
+         conststring,constreal,
+         constset,constpointer,constnil,
+         constwstring,constguid:
+           internalerror(2015090903);
+         else
+           internalerror(2015090904);
+       end;
        fqueue_offset:=low(fqueue_offset);
      end;
 
