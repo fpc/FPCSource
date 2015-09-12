@@ -226,7 +226,6 @@ interface
     TAssemblerClass = class of TAssembler;
 
     Procedure GenerateAsm(smart:boolean);
-    Procedure OnlyAsm;
 
     procedure RegisterAssembler(const r:tasminfo;c:TAssemblerClass);
 
@@ -2154,16 +2153,6 @@ Implementation
           Message(asmw_f_assembler_output_not_supported);
         a:=CAssembler[target_asm.id].Create(smart);
         a.MakeObject;
-        a.Free;
-      end;
-
-
-    Procedure OnlyAsm;
-      var
-        a : TExternalAssembler;
-      begin
-        a:=TExternalAssembler.Create(false);
-        a.DoAssemble;
         a.Free;
       end;
 
