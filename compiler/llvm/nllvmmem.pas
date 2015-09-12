@@ -123,7 +123,7 @@ implementation
             newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(llvmfielddef));
             location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
             current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,location.reference,s32inttype,vs.llvmfieldnr,true));
-            reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset));
+            reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset+vs.offsetfromllvmfield));
             { in case of an 80 bits extended type, typecast from an array of 10
               bytes (used because otherwise llvm will allocate the ABI-defined
               size for extended, which is usually larger) into an extended }
