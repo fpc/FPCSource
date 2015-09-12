@@ -5228,15 +5228,21 @@ implementation
     end;
 
   procedure thlcgobj.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
+    var
+      alt: TAsmListType;
     begin
+      if not(po_assembler in pd.procoptions) then
+        alt:=al_procedures
+      else
+        alt:=al_pure_assembler;
       { add the procedure to the al_procedures }
-      maybe_new_object_file(current_asmdata.asmlists[al_procedures]);
-      new_section(current_asmdata.asmlists[al_procedures],sec_code,lower(pd.mangledname),getprocalign);
-      current_asmdata.asmlists[al_procedures].concatlist(code);
+      maybe_new_object_file(current_asmdata.asmlists[alt]);
+      new_section(current_asmdata.asmlists[alt],sec_code,lower(pd.mangledname),getprocalign);
+      current_asmdata.asmlists[alt].concatlist(code);
       { save local data (casetable) also in the same file }
       if assigned(data) and
          (not data.empty) then
-        current_asmdata.asmlists[al_procedures].concatlist(data);
+        current_asmdata.asmlists[alt].concatlist(data);
     end;
 
   function thlcgobj.g_call_system_proc(list: TAsmList; const procname: string; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
