@@ -97,6 +97,8 @@ uses
       procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister); override;
       procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference); override;
 
+      procedure g_set_addr_nonbitpacked_record_field_ref(list: TAsmList; recdef: trecorddef; field: tfieldvarsym; var recref: treference); override;
+
       procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle); override;
       procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle); override;
       procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister; shuffle: pmmshuffle); override;
@@ -1214,6 +1216,25 @@ implementation
       hreg:=getaddressregister(list,todef);
       a_loadaddr_ref_reg(list,fromdef.pointeddef,todef,ref,hreg);
       reference_reset_base(ref,todef,hreg,0,ref.alignment);
+    end;
+
+
+  procedure thlcgllvm.g_set_addr_nonbitpacked_record_field_ref(list: TAsmList; recdef: trecorddef; field: tfieldvarsym; var recref: treference);
+    var
+      llvmfielddef,
+      llvmfieldptrdef,
+      subscriptdef: tdef;
+      newbase: tregister;
+    begin
+      { get the type of the corresponding field in the llvm shadow
+        definition }
+      llvmfielddef:=tabstractrecordsymtable(recdef.symtable).llvmst[field].def;
+      subscriptdef:=cpointerdef.getreusable(recdef);
+      { load the address of that shadow field }
+      newbase:=hlcg.getaddressregister(list,cpointerdef.getreusable(llvmfielddef));
+      recref:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,recref,recdef);
+      list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,field.llvmfieldnr,true));
+      reference_reset_base(recref,cpointerdef.getreusable(field.vardef),newbase,field.offsetfromllvmfield,newalignment(recref.alignment,field.fieldoffset+field.offsetfromllvmfield));
     end;
 
 
