@@ -713,6 +713,24 @@ implementation
 
     procedure TLLVMAssember.WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
 
+      procedure WriteFunctionFlags(pd: tprocdef);
+        begin
+          if (pos('FPC_SETJMP',upper(pd.mangledname))<>0) or
+             (pd.mangledname=(target_info.cprefix+'setjmp')) then
+            writer.AsmWrite(' returns_twice');
+          if po_inline in pd.procoptions then
+            writer.AsmWrite(' inlinehint');
+          { ensure that functions that happen to have the same name as a
+            standard C library function, but which are implemented in Pascal,
+            are not considered to have the same semantics as the C function with
+            the same name }
+          if not(po_external in pd.procoptions) then
+            writer.AsmWrite(' nobuiltin');
+          if po_noreturn in pd.procoptions then
+            writer.AsmWrite(' noreturn');
+        end;
+
+
       procedure WriteTypedConstData(hp: tai_abstracttypedconst);
         var
           p: tai_abstracttypedconst;
@@ -918,12 +936,15 @@ implementation
                   if not(ldf_definition in taillvmdecl(hp).flags) then
                     begin
                       writer.AsmWrite('declare');
-                      writer.AsmWriteln(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), taillvmdecl(hp).namesym.name, lpd_decl));
+                      writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), taillvmdecl(hp).namesym.name, lpd_decl));
+                      WriteFunctionFlags(tprocdef(taillvmdecl(hp).def));
+                      writer.AsmLn;
                     end
                   else
                     begin
                       writer.AsmWrite('define');
                       writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), '', lpd_decl));
+                      WriteFunctionFlags(tprocdef(taillvmdecl(hp).def));
                       writer.AsmWriteln(' {');
                     end;
                 end
