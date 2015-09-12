@@ -622,7 +622,7 @@ implementation
         if (parasym.varspez=vs_out) and
            is_managed_type(orgparadef) and
            (not is_open_array(resultdef) or
-            is_managed_type(orgparadef)) and
+            is_managed_type(tarraydef(resultdef).elementdef)) and
            not(target_info.system in systems_garbage_collected_managed_types) then
           begin
             paraaddrtype:=cpointerdef.getreusable(orgparadef);
