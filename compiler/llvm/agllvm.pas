@@ -33,6 +33,12 @@ interface
     type
       TLLVMInstrWriter = class;
 
+      TLLVMModuleInlineAssemblyDecorator = class(TObject,IExternalAssemblerOutputFileDecorator)
+       function LinePrefix: AnsiString;
+       function LinePostfix: AnsiString;
+       function LineFilter(const s: AnsiString): AnsiString;
+      end;
+
       TLLVMAssember=class(texternalassembler)
       protected
         fdecllevel: longint;
@@ -131,6 +137,42 @@ implementation
       end;
 
 
+{****************************************************************************}
+{               Decorator for module-level inline assembly                   }
+{****************************************************************************}
+
+    function TLLVMModuleInlineAssemblyDecorator.LinePrefix: AnsiString;
+      begin
+        result:='module asm "';
+      end;
+
+
+    function TLLVMModuleInlineAssemblyDecorator.LinePostfix: AnsiString;
+      begin
+        result:='"';
+      end;
+
+
+    function TLLVMModuleInlineAssemblyDecorator.LineFilter(const s: AnsiString): AnsiString;
+      var
+        i: longint;
+      begin
+        result:='';
+        for i:=1 to length(s) do
+          begin
+            case s[i] of
+              #0..#31,
+              #127..#255,
+              '"','\':
+                result:=result+
+                        '\'+
+                        chr((ord(s[i]) shr 4)+ord('0'))+
+                        chr((ord(s[i]) and $f)+ord('0'));
+            else
+              result:=result+s[i];
+            end;
+          end;
+      end;
 
 
  {****************************************************************************}
