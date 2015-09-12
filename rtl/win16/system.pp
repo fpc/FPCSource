@@ -371,4 +371,6 @@ begin
    end
   else
    AllFilesMask := '*.*';
+{ Reset IO Error }
+  InOutRes:=0;
 end.

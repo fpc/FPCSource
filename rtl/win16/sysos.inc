@@ -16,10 +16,11 @@
  **********************************************************************}
 
 procedure GetInOutRes(def: Word);
-{var
-  regs : Registers;}
+var
+  regs : Registers;
 begin
-{  regs.AX:=$5900;
+  FillChar(regs,SizeOf(regs),0);
+  regs.AX:=$5900;
   regs.BX:=$0;
   MsDos(regs);
   InOutRes:=regs.AX;
@@ -29,6 +30,6 @@ begin
    32 : InOutRes:=5;
   end;
   if InOutRes=0 then
-    InOutRes:=Def;}
+    InOutRes:=Def;
 end;
 

@@ -14,14 +14,14 @@
  **********************************************************************}
 
    { Keep Track of open files }
-{   const
+   const
       max_files = 50;
    var
-      openfiles : array [0..max_files-1] of boolean;}
+      openfiles : array [0..max_files-1] of boolean;
 {$ifdef SYSTEMDEBUG}
-{      opennames : array [0..max_files-1] of pchar;
+      opennames : array [0..max_files-1] of pchar;
    const
-      free_closed_names : boolean = true;}
+      free_closed_names : boolean = true;
 {$endif SYSTEMDEBUG}
 
 
@@ -33,8 +33,9 @@ procedure do_close(handle : thandle);
 var
   regs : Registers;
 begin
-(*  if Handle<=4 then
+  if Handle<=4 then
    exit;
+  FillChar(regs,SizeOf(regs),0);
   regs.BX:=handle;
   if handle<max_files then
     begin
@@ -50,7 +51,7 @@ begin
   regs.AX:=$3e00;
   MsDos(regs);
   if (regs.Flags and fCarry) <> 0 then
-   GetInOutRes(regs.AX);*)
+   GetInOutRes(regs.AX);
 end;
 
 
@@ -59,8 +60,9 @@ var
   regs : Registers;
   oldp : pchar;
 begin
-(*  oldp:=p;
+  oldp:=p;
   DoDirSeparators(p,pchangeable);
+  FillChar(regs,SizeOf(regs),0);
   regs.DX:=Ofs(p^);
   regs.DS:=Seg(p^);
   if LFNSupport then
@@ -73,7 +75,7 @@ begin
   if (regs.Flags and fCarry) <> 0 then
    GetInOutRes(regs.AX);
   if p<>oldp then
-    freemem(p);*)
+    freemem(p);
 end;
 
 
@@ -82,10 +84,11 @@ var
   regs : Registers;
   oldp1, oldp2 : pchar;
 begin
-(*  oldp1:=p1;
+  oldp1:=p1;
   oldp2:=p2;
   DoDirSeparators(p1,p1changeable);
   DoDirSeparators(p2,p2changeable);
+  FillChar(regs,SizeOf(regs),0);
   regs.DS:=Seg(p1^);
   regs.DX:=Ofs(p1^);
   regs.ES:=Seg(p2^);
@@ -101,7 +104,7 @@ begin
   if p1<>oldp1 then
     freemem(p1);
   if p2<>oldp2 then
-    freemem(p2);*)
+    freemem(p2);
 end;
 
 
@@ -109,7 +112,8 @@ function do_write(h:thandle;addr:pointer;len : longint) : longint;
 var
   regs: Registers;
 begin
-(*  regs.AH := $40;
+  FillChar(regs,SizeOf(regs),0);
+  regs.AH := $40;
   regs.BX := h;
   regs.CX := len;
   regs.DS := Seg(addr^);
@@ -120,7 +124,7 @@ begin
     GetInOutRes(regs.AX);
     exit(0);
   end;
-  do_write := regs.AX;*)
+  do_write := regs.AX;
 end;
 
 
@@ -128,7 +132,8 @@ function do_read(h:thandle;addr:pointer;len : longint) : longint;
 var
   regs: Registers;
 begin
-(*  regs.AH := $3F;
+  FillChar(regs,SizeOf(regs),0);
+  regs.AH := $3F;
   regs.BX := h;
   regs.CX := len;
   regs.DS := Seg(addr^);
@@ -139,7 +144,7 @@ begin
     GetInOutRes(regs.AX);
     exit(0);
   end;
-  do_read := regs.AX;*)
+  do_read := regs.AX;
 end;
 
 
@@ -147,7 +152,8 @@ function do_filepos(handle : thandle) : longint;
 var
   regs : Registers;
 begin
-(*  regs.BX:=handle;
+  FillChar(regs,SizeOf(regs),0);
+  regs.BX:=handle;
   regs.CX:=0;
   regs.DX:=0;
   regs.AX:=$4201;
@@ -158,7 +164,7 @@ begin
      do_filepos:=0;
    end
   else
-   do_filepos:=(longint(regs.DX) shl 16) + regs.AX;*)
+   do_filepos:=(longint(regs.DX) shl 16) + regs.AX;
 end;
 
 
@@ -166,13 +172,14 @@ procedure do_seek(handle:thandle;pos : longint);
 var
   regs : Registers;
 begin
-(*  regs.BX:=handle;
+  FillChar(regs,SizeOf(regs),0);
+  regs.BX:=handle;
   regs.CX:=pos shr 16;
   regs.DX:=pos and $ffff;
   regs.AX:=$4200;
   MsDos(regs);
   if (regs.Flags and fCarry) <> 0 then
-   GetInOutRes(regs.AX);*)
+   GetInOutRes(regs.AX);
 end;
 
 
@@ -181,7 +188,8 @@ function do_seekend(handle:thandle):longint;
 var
   regs : Registers;
 begin
-(*  regs.BX:=handle;
+  FillChar(regs,SizeOf(regs),0);
+  regs.BX:=handle;
   regs.CX:=0;
   regs.DX:=0;
   regs.AX:=$4202;
@@ -192,7 +200,7 @@ begin
      do_seekend:=0;
    end
   else
-   do_seekend:=(longint(regs.DX) shl 16) + regs.AX;*)
+   do_seekend:=(longint(regs.DX) shl 16) + regs.AX;
 end;
 
 
@@ -200,9 +208,9 @@ function do_filesize(handle : thandle) : longint;
 var
   aktfilepos : longint;
 begin
-{  aktfilepos:=do_filepos(handle);
+  aktfilepos:=do_filepos(handle);
   do_filesize:=do_seekend(handle);
-  do_seek(handle,aktfilepos);}
+  do_seek(handle,aktfilepos);
 end;
 
 
@@ -211,16 +219,17 @@ procedure do_truncate (handle:thandle;pos:longint);
 var
   regs : Registers;
 begin
-{  do_seek(handle,pos);
+  do_seek(handle,pos);
+  FillChar(regs,SizeOf(regs),0);
   regs.CX:=0;
   regs.BX:=handle;
   regs.AX:=$4000;
   MsDos(regs);
   if (regs.Flags and fCarry) <> 0 then
-   GetInOutRes(regs.AX);}
+   GetInOutRes(regs.AX);
 end;
 
-{const
+const
   FileHandleCount : word = 20;
 
 function Increase_file_handle_count : boolean;
@@ -228,6 +237,7 @@ var
   regs : Registers;
 begin
   Inc(FileHandleCount,10);
+  FillChar(regs,SizeOf(regs),0);
   regs.BX:=FileHandleCount;
   regs.AX:=$6700;
   MsDos(regs);
@@ -238,7 +248,7 @@ begin
    end
   else
     Increase_file_handle_count:=true;
-end;}
+end;
 
 procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
 {
@@ -253,8 +263,9 @@ var
   action : word;
   oldp : pchar;
 begin
+  FillChar(regs,SizeOf(regs),0);
 { close first if opened }
-(*  if ((flags and $10000)=0) then
+  if ((flags and $10000)=0) then
    begin
      case filerec(f).mode of
       fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
@@ -384,7 +395,7 @@ begin
    end;
 
   if oldp<>p then
-    freemem(p);*)
+    freemem(p);
 end;
 
 
@@ -392,10 +403,11 @@ function do_isdevice(handle:THandle):boolean;
 var
   regs: Registers;
 begin
-(*  regs.AX := $4400;
+  FillChar(regs,SizeOf(regs),0);
+  regs.AX := $4400;
   regs.BX := handle;
   MsDos(regs);
   do_isdevice := (regs.DL and $80) <> 0;
   if (regs.Flags and fCarry) <> 0 then
-   GetInOutRes(regs.AX);*)
+   GetInOutRes(regs.AX);
 end;
