@@ -879,7 +879,6 @@ implementation
            (pi_needs_implicit_finally in flags) and
            { but it's useless in init/final code of units }
            not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) and
-           not(po_assembler in procdef.procoptions) and
            not(target_info.system in systems_garbage_collected_managed_types) then
           begin
             { Any result of managed type must be returned in parameter }
@@ -1315,8 +1314,11 @@ implementation
           end;
 
         { set implicit_finally flag when there are locals/paras to be finalized }
-        procdef.parast.SymList.ForEachCall(@check_finalize_paras,nil);
-        procdef.localst.SymList.ForEachCall(@check_finalize_locals,nil);
+        if not(po_assembler in current_procinfo.procdef.procoptions) then
+          begin
+            procdef.parast.SymList.ForEachCall(@check_finalize_paras,nil);
+            procdef.localst.SymList.ForEachCall(@check_finalize_locals,nil);
+          end;
 
 {$ifdef SUPPORT_SAFECALL}
         { set implicit_finally flag for if procedure is safecall }
@@ -1638,7 +1640,6 @@ implementation
             if (cs_implicit_exceptions in current_settings.moduleswitches) and
                not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) and
                (pi_needs_implicit_finally in flags) and
-               not(po_assembler in procdef.procoptions) and
                not(pi_has_implicit_finally in flags) and
                not(target_info.system in systems_garbage_collected_managed_types) then
              internalerror(200405231);
