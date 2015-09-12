@@ -1137,6 +1137,8 @@ interface
     function getansistringdef:tstringdef;
     function getparaencoding(def:tdef):tstringencoding; inline;
 
+    function get_threadvar_record(def: tdef; out index_field, non_mt_data_field: tsym): trecorddef;
+
 implementation
 
     uses
@@ -1210,6 +1212,32 @@ implementation
         if result=globals.CP_NONE then
           result:=0
       end;
+
+
+    function get_threadvar_record(def: tdef; out index_field, non_mt_data_field: tsym): trecorddef;
+      var
+        typ: ttypesym;
+        name: string;
+      begin
+        name:=internaltypeprefixName[itp_threadvar_record]+tostr(def.defid);
+        typ:=try_search_current_module_type(name);
+        if assigned(typ) then
+          begin
+            result:=trecorddef(ttypesym(typ).typedef);
+            index_field:=tsym(result.symtable.symlist[0]);
+            non_mt_data_field:=tsym(result.symtable.symlist[1]);
+            exit;
+          end;
+        { set recordalinmin to sizeof(pint), so the second field gets put at
+          offset = sizeof(pint) as expected }
+        result:=crecorddef.create_global_internal(
+          name,sizeof(pint),sizeof(pint),
+          init_settings.alignment.maxCrecordalign);
+        index_field:=result.add_field_by_def('',u32inttype);
+        non_mt_data_field:=result.add_field_by_def('',def);
+        { no need to add alignment padding, we won't create arrays of these }
+      end;
+
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
       var

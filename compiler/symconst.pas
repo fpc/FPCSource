@@ -658,7 +658,8 @@ type
     itp_rtti_ord_64bit,
     itp_rtti_normal_array,
     itp_rtti_dyn_array,
-    itp_rtti_proc_param
+    itp_rtti_proc_param,
+    itp_threadvar_record
   );
 
   { The order is from low priority to high priority,
@@ -779,7 +780,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$rtti_ord_64bit$',
        '$rtti_normal_array$',
        '$rtti_dyn_array$',
-       '$rtti_proc_param$'
+       '$rtti_proc_param$',
+       '$threadvar_record$'
      );
 
 
