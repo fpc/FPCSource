@@ -616,3 +616,20 @@ const
   BLACK_BRUSH  = 4;
   NULL_BRUSH   = 5;
   HOLLOW_BRUSH = NULL_BRUSH;
+
+{ Region support }
+
+{ Region type flags }
+{$ifndef SYSTEMUNIT}
+  ERROR         = 0;
+{$endif SYSTEMUNIT}
+  NULLREGION    = 1;
+  SIMPLEREGION  = 2;
+  COMPLEXREGION = 3;
+
+{ CombineRgn() command values }
+  RGN_AND  = 1;
+  RGN_OR   = 2;
+  RGN_XOR  = 3;
+  RGN_DIFF = 4;
+  RGN_COPY = 5;

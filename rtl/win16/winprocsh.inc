@@ -392,3 +392,43 @@ function CreateBrushIndirect(var lb: LOGBRUSH): HBRUSH; external 'GDI';
 
 function SetBrushOrg(hdc: HDC; nXOrg, nYOrg: SmallInt): DWORD; external 'GDI';
 function GetBrushOrg(hdc: HDC): DWORD; external 'GDI';
+
+{ Region support }
+
+function CreateRectRgn(nLeftRect, nTopRect, nRightRect, nBottomRect: SmallInt): HRGN; external 'GDI';
+function CreateRectRgnIndirect(lprc: LPRECT): HRGN; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function CreateRectRgnIndirect(var rc: RECT): HRGN; external 'GDI';
+{$endif}
+function CreateEllipticRgnIndirect(lprc: LPRECT): HRGN; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function CreateEllipticRgnIndirect(var rc: RECT): HRGN; external 'GDI';
+{$endif}
+function CreateEllipticRgn(nLeftRect, nTopRect, nRightRect, nBottomRect: SmallInt): HRGN; external 'GDI';
+function CreatePolygonRgn(lppt: LPPOINT; cPoints, fnPolyFillMode: SmallInt): HRGN; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function CreatePolygonRgn(var pt; cPoints, fnPolyFillMode: SmallInt): HRGN; external 'GDI';
+{$endif}
+function CreatePolyPolygonRgn(lppt: LPPOINT; lpnPolyCount: LPINT; cIntegers, fnPolyFillMode: SmallInt): HRGN; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function CreatePolyPolygonRgn(var pt; var nPolyCount; cIntegers, fnPolyFillMode: SmallInt): HRGN; external 'GDI';
+{$endif}
+function CreateRoundRectRgn(nLeftRect, nTopRect, nRightRect, nBottomRect, nWidthEllipse, nHeightEllipse: SmallInt): HRGN; external 'GDI';
+
+procedure SetRectRgn(hrgn: HRGN; nLeftRect, nTopRect, nRightRect, nBottomRect: SmallInt); external 'GDI';
+
+function CombineRgn(hrgnDest, hrgnSrc1, hrgnSrc2: HRGN; fCombineMode: SmallInt): SmallInt; external 'GDI';
+
+function EqualRgn(hrgnSrc1, hrgnSrc2: HRGN): BOOL; external 'GDI';
+function OffsetRgn(hrgn: HRGN; nXOffset, nYOffset: SmallInt): SmallInt; external 'GDI';
+
+function GetRgnBox(hrgn: HRGN; lprc: LPRECT): SmallInt; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetRgnBox(hrgn: HRGN; var rc: RECT): SmallInt; external 'GDI';
+{$endif}
+
+function RectInRegion(hrgn: HRGN; lprc: LPRECT): BOOL; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function RectInRegion(hrgn: HRGN; var rc: RECT): BOOL; external 'GDI';
+{$endif}
+function PtInRegion(hrgn: HRGN; nXPos, nYPos: SmallInt): BOOL; external 'GDI';
