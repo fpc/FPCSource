@@ -145,6 +145,7 @@ begin
   if (cs_link_map in current_settings.globalswitches) then
     LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
+  LinkRes.Add('option dosseg');
 
   { Write and Close response }
   linkres.writetodisk;
