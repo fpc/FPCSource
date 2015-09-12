@@ -539,6 +539,9 @@ unit hlcgobj;
             reference if necessary }
           procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference); virtual;
 
+          { update a reference pointing to the start address of a record so it
+            refers to the indicated field }
+          procedure g_set_addr_nonbitpacked_record_field_ref(list: TAsmList; recdef: trecorddef; field: tfieldvarsym; var recref: treference); virtual;
 
           { routines migrated from ncgutil }
 
@@ -3833,6 +3836,12 @@ implementation
   procedure thlcgobj.g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference);
     begin
       { nothing to do }
+    end;
+
+  procedure thlcgobj.g_set_addr_nonbitpacked_record_field_ref(list: TAsmList; recdef: trecorddef; field: tfieldvarsym; var recref: treference);
+    begin
+      inc(recref.offset,field.fieldoffset);
+      recref.alignment:=newalignment(recref.alignment,field.fieldoffset);
     end;
 
   procedure thlcgobj.location_force_reg(list: TAsmList; var l: tlocation; src_size, dst_size: tdef; maybeconst: boolean);
