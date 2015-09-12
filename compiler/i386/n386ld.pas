@@ -28,10 +28,10 @@ interface
     uses
       globtype,
       symsym,
-      node,ncgld,pass_1;
+      node,ncgld,nx86ld,pass_1;
 
     type
-      ti386loadnode = class(tcgloadnode)
+      ti386loadnode = class(tx86loadnode)
          procedure generate_absaddr_access(vs: tabsolutevarsym); override;
       end;
 

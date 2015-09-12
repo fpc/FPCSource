@@ -816,6 +816,7 @@ compiler/x86/nx86cal.pas svneol=native#text/plain
 compiler/x86/nx86cnv.pas svneol=native#text/plain
 compiler/x86/nx86con.pas svneol=native#text/plain
 compiler/x86/nx86inl.pas svneol=native#text/plain
+compiler/x86/nx86ld.pas svneol=native#text/plain
 compiler/x86/nx86mat.pas svneol=native#text/plain
 compiler/x86/nx86mem.pas svneol=native#text/plain
 compiler/x86/nx86set.pas svneol=native#text/plain

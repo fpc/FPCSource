@@ -37,6 +37,7 @@ interface
          protected
           procedure generate_nested_access(vs: tsym);virtual;
           procedure generate_absaddr_access(vs: tabsolutevarsym); virtual;
+          procedure generate_threadvar_access(gvs: tstaticvarsym); virtual;
          public
           procedure pass_generate_code;override;
           procedure changereflocation(const ref: treference);
@@ -252,6 +253,81 @@ implementation
       end;
 
 
+    procedure tcgloadnode.generate_threadvar_access(gvs: tstaticvarsym);
+      var
+        paraloc1 : tcgpara;
+        pvd : tdef;
+        endrelocatelab,
+        norelocatelab : tasmlabel;
+        href : treference;
+        hregister : tregister;
+      begin
+         if (tf_section_threadvars in target_info.flags) then
+           begin
+             if gvs.localloc.loc=LOC_INVALID then
+               if not(vo_is_weak_external in gvs.varoptions) then
+                 reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+               else
+                 reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+             else
+               location:=gvs.localloc;
+           end
+         else
+           begin
+             {
+               Thread var loading is optimized to first check if
+               a relocate function is available. When the function
+               is available it is called to retrieve the address.
+               Otherwise the address is loaded with the symbol
+
+               The code needs to be in the order to first handle the
+               call and then the address load to be sure that the
+               register that is used for returning is the same (PFV)
+             }
+             current_asmdata.getjumplabel(norelocatelab);
+             current_asmdata.getjumplabel(endrelocatelab);
+             { make sure hregister can't allocate the register necessary for the parameter }
+             pvd:=search_system_type('TRELOCATETHREADVARHANDLER').typedef;
+             if pvd.typ<>procvardef then
+               internalerror(2012120901);
+             paraloc1.init;
+             paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
+             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
+             reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,pvd.size);
+             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
+             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
+             { don't save the allocated register else the result will be destroyed later }
+             if not(vo_is_weak_external in gvs.varoptions) then
+               reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
+             else
+               reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
+             cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
+             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+             paraloc1.done;
+             cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+             cg.a_call_reg(current_asmdata.CurrAsmList,hregister);
+             cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+             cg.getcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+             cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
+             cg.a_jmp_always(current_asmdata.CurrAsmList,endrelocatelab);
+             cg.a_label(current_asmdata.CurrAsmList,norelocatelab);
+             { no relocation needed, load the address of the variable only, the
+               layout of a threadvar is (4 bytes pointer):
+                 0            - Threadvar index
+                 sizeof(pint) - Threadvar value in single threading }
+             if not(vo_is_weak_external in gvs.varoptions) then
+               reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint))
+             else
+               reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint));
+             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,voidpointertype,href,hregister);
+             cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
+             hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,location.reference.alignment);
+           end;
+       end;
+
+
     procedure tcgloadnode.pass_generate_code;
       var
         hregister : tregister;
@@ -260,11 +336,7 @@ implementation
         pd   : tprocdef;
         href : treference;
         newsize : tcgsize;
-        endrelocatelab,
-        norelocatelab : tasmlabel;
-        paraloc1 : tcgpara;
-        vd,
-        pvd : tdef;
+        vd : tdef;
       begin
         { we don't know the size of all arrays }
         newsize:=def_cgsize(resultdef);
@@ -319,110 +391,18 @@ implementation
                  end
                { Thread variable }
                else if (vo_is_thread_var in gvs.varoptions) then
+                 generate_threadvar_access(gvs)
+               { Normal (or external) variable }
+               else
                  begin
-                    if (tf_section_threadvars in target_info.flags) then
-                      begin
-                        if target_info.system in [system_i386_win32,system_x86_64_win64] then
-                          begin
-                            paraloc1.init;
-                            pd:=search_system_proc('fpc_tls_add');
-                            paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-                            if not(vo_is_weak_external in gvs.varoptions) then
-                              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
-                            else
-                              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
-                            cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href,paraloc1);
-                            paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-                            paraloc1.done;
-
-                            cg.g_call(current_asmdata.CurrAsmList,'FPC_TLS_ADD');
-                            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-                            hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
-                            location.reference.base:=hregister;
-                          end
-                        else
-                          begin
-                            if gvs.localloc.loc=LOC_INVALID then
-                              if not(vo_is_weak_external in gvs.varoptions) then
-                                reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
-                              else
-                                reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
-                            else
-                              location:=gvs.localloc;
-{$ifdef i386}
-                            case target_info.system of
-                              system_i386_linux,system_i386_android:
-                                location.reference.segment:=NR_GS;
-                            end;
-{$endif i386}
-                          end;
-                      end
-                    else
-                      begin
-                        {
-                          Thread var loading is optimized to first check if
-                          a relocate function is available. When the function
-                          is available it is called to retrieve the address.
-                          Otherwise the address is loaded with the symbol
-
-                          The code needs to be in the order to first handle the
-                          call and then the address load to be sure that the
-                          register that is used for returning is the same (PFV)
-                        }
-                        current_asmdata.getjumplabel(norelocatelab);
-                        current_asmdata.getjumplabel(endrelocatelab);
-                        { make sure hregister can't allocate the register necessary for the parameter }
-                        pvd:=search_system_type('TRELOCATETHREADVARHANDLER').typedef;
-                        if pvd.typ<>procvardef then
-                          internalerror(2012120901);
-                        paraloc1.init;
-                        paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
-                        hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
-                        reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,pvd.size);
-                        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
-                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
-                        { don't save the allocated register else the result will be destroyed later }
-                        if not(vo_is_weak_external in gvs.varoptions) then
-                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
-                        else
-                          reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
-                        cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
-                        paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-                        paraloc1.done;
-                        cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                        cg.a_call_reg(current_asmdata.CurrAsmList,hregister);
-                        cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-                        cg.getcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-                        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-                        hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
-                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
-                        cg.a_jmp_always(current_asmdata.CurrAsmList,endrelocatelab);
-                        cg.a_label(current_asmdata.CurrAsmList,norelocatelab);
-                        { no relocation needed, load the address of the variable only, the
-                          layout of a threadvar is (4 bytes pointer):
-                            0 - Threadvar index
-                            4 - Threadvar value in single threading }
-                        if not(vo_is_weak_external in gvs.varoptions) then
-                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint))
-                        else
-                          reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint));
-                        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,voidpointertype,href,hregister);
-                        cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
-                        hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,location.reference.alignment);
-                      end;
-                  end
-                { Normal (or external) variable }
-                else
-                  begin
-                    if gvs.localloc.loc=LOC_INVALID then
-                      if not(vo_is_weak_external in gvs.varoptions) then
-                        reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
-                      else
-                        reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
-                    else
-                      location:=gvs.localloc;
-                  end;
+                   if gvs.localloc.loc=LOC_INVALID then
+                     if not(vo_is_weak_external in gvs.varoptions) then
+                       reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                     else
+                       reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                   else
+                     location:=gvs.localloc;
+                 end;
 
                 { make const a LOC_CREFERENCE }
                 if (gvs.varspez=vs_const) and

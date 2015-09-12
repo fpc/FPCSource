@@ -28,13 +28,13 @@ interface
     uses
       globtype,
       symsym,symtype,
-      node,ncgld, aasmbase;
+      node,ncgld,nx86ld,aasmbase;
 
     type
 
       { ti8086loadnode }
 
-      ti8086loadnode = class(tcgloadnode)
+      ti8086loadnode = class(tx86loadnode)
         protected
          procedure generate_nested_access(vs: tsym); override;
          procedure generate_absaddr_access(vs: tabsolutevarsym); override;
