@@ -432,3 +432,42 @@ function RectInRegion(hrgn: HRGN; lprc: LPRECT): BOOL; external 'GDI';
 function RectInRegion(hrgn: HRGN; var rc: RECT): BOOL; external 'GDI';
 {$endif}
 function PtInRegion(hrgn: HRGN; nXPos, nYPos: SmallInt): BOOL; external 'GDI';
+
+{ Color palette Support }
+
+function PALETTERGB(cRed, cGreen, cBlue: BYTE): COLORREF; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+function PALETTEINDEX(wPaletteIndex: WORD): COLORREF; {$ifdef SYSTEMUNIT}forward;{$else}inline;{$endif}
+
+function CreatePalette(lplgpl: LPLOGPALETTE): HPALETTE; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function CreatePalette(var lgpl: LOGPALETTE): HPALETTE; external 'GDI';
+{$endif}
+
+function SelectPalette(hdc: HDC; hpal: HPALETTE; fPalBack: BOOL): HPALETTE; external 'USER';
+
+function RealizePalette(hdc: HDC): UINT; external 'USER';
+
+function UpdateColors(hdc: HDC): SmallInt; external 'GDI';
+procedure AnimatePalette(hpal: HPALETTE; iStart, cEntries: UINT; lppe: LPPALETTEENTRY); external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure AnimatePalette(hpal: HPALETTE; iStart, cEntries: UINT; var pe); external 'GDI';
+{$endif}
+
+function SetPaletteEntries(hpal: HPALETTE; iStart, cEntries: UINT; lppe: LPPALETTEENTRY): UINT; external 'GDI';
+function GetPaletteEntries(hpal: HPALETTE; iStart, cEntries: UINT; lppe: LPPALETTEENTRY): UINT; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function SetPaletteEntries(hpal: HPALETTE; iStart, cEntries: UINT; var pe): UINT; external 'GDI';
+function GetPaletteEntries(hpal: HPALETTE; iStart, cEntries: UINT; var pe): UINT; external 'GDI';
+{$endif}
+
+function GetNearestPaletteIndex(hpal: HPALETTE; clrref: COLORREF): UINT; external 'GDI';
+
+function ResizePalette(hpal: HPALETTE; cEntries: UINT): BOOL; external 'GDI';
+
+function GetSystemPaletteEntries(hdc: HDC; iStart, cEntries: UINT; lppe: LPPALETTEENTRY): UINT; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetSystemPaletteEntries(hdc: HDC; iStart, cEntries: UINT; var pe): UINT; external 'GDI';
+{$endif}
+
+function GetSystemPaletteUse(hdc: HDC): UINT; external 'GDI';
+function SetSystemPaletteUse(hdc: HDC; fuStatic: UINT): UINT; external 'GDI';

@@ -633,3 +633,43 @@ const
   RGN_XOR  = 3;
   RGN_DIFF = 4;
   RGN_COPY = 5;
+
+{ Color palette Support }
+type
+  PPALETTEENTRY = ^PALETTEENTRY;
+  LPPALETTEENTRY = ^PALETTEENTRY; far;
+  PALETTEENTRY = record
+    peRed: BYTE;
+    peGreen: BYTE;
+    peBlue: BYTE;
+    peFlags: BYTE;
+  end;
+  TPaletteEntry = PALETTEENTRY;
+
+{ Palette entry flags }
+const
+  PC_RESERVED   = $01;  { palette index used for animation }
+  PC_EXPLICIT   = $02;  { palette index is explicit to device }
+  PC_NOCOLLAPSE = $04;  { do not match color to system palette }
+
+{ Logical Palette }
+type
+  PLOGPALETTE = ^LOGPALETTE;
+  NPLOGPALETTE = ^LOGPALETTE; near;
+  LPLOGPALETTE = ^LOGPALETTE; far;
+  LOGPALETTE = record
+    palVersion: WORD;
+    palNumEntries: WORD;
+    palPalEntry: array [0..0] of PALETTEENTRY;
+  end;
+  TLogPalette = LOGPALETTE;
+
+{ Get/SetSystemPaletteUse() values }
+const
+  SYSPAL_STATIC   = 1;
+  SYSPAL_NOSTATIC = 2;
+
+{ Palette window messages }
+  WM_QUERYNEWPALETTE   = $030F;
+  WM_PALETTEISCHANGING = $0310;
+  WM_PALETTECHANGED    = $0311;

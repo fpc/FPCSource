@@ -93,3 +93,13 @@ function GetBValue(rgb: DWORD): BYTE;
 begin
   GetBValue := Byte(rgb shr 16);
 end;
+
+function PALETTERGB(cRed, cGreen, cBlue: BYTE): COLORREF;
+begin
+  PALETTERGB := $02000000 or RGB(cRed, cGreen, cBlue);
+end;
+
+function PALETTEINDEX(wPaletteIndex: WORD): COLORREF;
+begin
+  PALETTEINDEX := COLORREF(DWORD($01000000) or DWORD(wPaletteIndex));
+end;
