@@ -849,17 +849,26 @@ implementation
   class procedure tnodeutils.InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal);
     var
       hp: tused_unit;
-      hlist: TAsmList;
+      tcb: ttai_typedconstbuilder;
+      countplaceholder: ttypedconstplaceholder;
       count: longint;
     begin
-      hlist:=TAsmList.Create;
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+      tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
+        targetinfos[target_info.system]^.alignment.recordalignmin,
+        targetinfos[target_info.system]^.alignment.maxCrecordalign
+      );
+      { placeholder for the count }
+      countplaceholder:=tcb.emit_placeholder(ptruinttype);
       count:=0;
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
        begin
          if (hp.u.flags and unitflag)=unitflag then
           begin
-            hlist.concat(Tai_const.Createname(make_mangledname(prefix,hp.u.globalsymtable,''),0));
+            tcb.emit_tai(
+              Tai_const.Createname(make_mangledname(prefix,hp.u.globalsymtable,''),0),
+              voidcodepointertype);
             inc(count);
           end;
          hp:=tused_unit(hp.next);
@@ -867,18 +876,23 @@ implementation
       { Add items from program, if any }
       if (current_module.flags and unitflag)=unitflag then
        begin
-         hlist.concat(Tai_const.Createname(make_mangledname(prefix,current_module.localsymtable,''),0));
+         tcb.emit_tai(
+           Tai_const.Createname(make_mangledname(prefix,current_module.localsymtable,''),0),
+           voidcodepointertype);
          inc(count);
        end;
       { Insert TableCount at start }
-      hlist.insert(Tai_const.Create_pint(count));
+      countplaceholder.replace(Tai_const.Create_pint(count),ptruinttype);
+      countplaceholder.free;
       { insert in data segment }
-      maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,tablename,const_align(sizeof(pint)));
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(tablename,AT_DATA,0));
-      current_asmdata.asmlists[al_globals].concatlist(hlist);
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(tablename));
-      hlist.free;
+      current_asmdata.asmlists[al_globals].concatlist(
+        tcb.get_final_asmlist(
+          current_asmdata.DefineAsmSymbol(tablename,AB_GLOBAL,AT_DATA),
+          tcb.end_anonymous_record,
+          sec_data,tablename,sizeof(pint)
+        )
+      );
+      tcb.free;
     end;
 
 

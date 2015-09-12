@@ -36,8 +36,6 @@ interface
      strict protected
       class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint); override;
      public
-      class procedure InsertWideInitsTablesTable; override;
-      class procedure InsertWideInits; override;
       class procedure InsertResourceTablesTable; override;
       class procedure InsertResourceInfo(ResourcesUsed : boolean); override;
       class procedure InsertMemorySizes; override;
@@ -70,18 +68,6 @@ implementation
         list.concat(taillvmdecl.createdef(asmsym,
           get_threadvar_record(sym.vardef,field1,field2),
           nil,sec_data,varalign));
-    end;
-
-
-  class procedure tllvmnodeutils.InsertWideInitsTablesTable;
-    begin
-      { not required }
-    end;
-
-
-  class procedure tllvmnodeutils.InsertWideInits;
-    begin
-      { not required }
     end;
 
 
