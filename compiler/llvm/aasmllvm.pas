@@ -156,8 +156,10 @@ interface
       def: tdef;
       sec: TAsmSectiontype;
       alignment: shortint;
+      definition: boolean;
       tls: boolean;
-      constructor create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+      constructor createdecl(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+      constructor createdef(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       constructor createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
       destructor destroy; override;
     end;
@@ -184,7 +186,7 @@ uses
 
     { taillvmprocdecl }
 
-    constructor taillvmdecl.create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+    constructor taillvmdecl.createdecl(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       begin
         inherited create;
         typ:=ait_llvmdecl;
@@ -194,12 +196,20 @@ uses
         sec:=_sec;
         alignment:=_alignment;
         _namesym.declared:=true;
+        definition:=false;
+      end;
+
+
+    constructor taillvmdecl.createdef(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+      begin
+        createdecl(_namesym,_def,_initdata,_sec,_alignment);
+        definition:=true;
       end;
 
 
     constructor taillvmdecl.createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
       begin
-        create(_namesym,_def,nil,sec_data,_alignment);
+        createdef(_namesym,_def,nil,sec_data,_alignment);
         tls:=true;
       end;
 

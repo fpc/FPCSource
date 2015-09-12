@@ -63,7 +63,7 @@ implementation
       else
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,AT_DATA);
       if not(vo_is_thread_var in sym.varoptions) then
-        list.concat(taillvmdecl.create(asmsym,sym.vardef,nil,sec_data,varalign))
+        list.concat(taillvmdecl.createdef(asmsym,sym.vardef,nil,sec_data,varalign))
       else
         list.concat(taillvmdecl.createtls(asmsym,sym.vardef,varalign))
     end;

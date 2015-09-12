@@ -873,7 +873,7 @@ implementation
             begin
               if taillvmdecl(hp).def.typ=procdef then
                 begin
-                  if taillvmdecl(hp).namesym.bind in [AB_EXTERNAL, AB_WEAK_EXTERNAL] then
+                  if not taillvmdecl(hp).definition then
                     begin
                       writer.AsmWrite('declare');
                       writer.AsmWriteln(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), taillvmdecl(hp).namesym.name, lpd_decl));

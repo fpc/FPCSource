@@ -133,7 +133,7 @@ implementation
       newasmlist:=tasmlist.create;
       { llvm declaration with as initialisation data all the elements from the
         original asmlist }
-      newasmlist.concat(taillvmdecl.create(sym,def,fasmlist,section,alignment));
+      newasmlist.concat(taillvmdecl.createdef(sym,def,fasmlist,section,alignment));
       fasmlist:=newasmlist;
     end;
 

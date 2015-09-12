@@ -420,7 +420,7 @@ implementation
               sec:=sec_code
             else
               sec:=sec_data;
-            toplevellist.Concat(taillvmdecl.create(sym,def,nil,sec,def.alignment));
+            toplevellist.Concat(taillvmdecl.createdecl(sym,def,nil,sec,def.alignment));
             record_asmsym_def(sym,def,true);
           end;
       end;
