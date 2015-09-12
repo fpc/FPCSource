@@ -92,6 +92,7 @@ type
      procedure addvalue(val: tai_abstracttypedconst);
      function valuecount: longint;
      procedure insertvaluebeforepos(val: tai_abstracttypedconst; pos: longint);
+     function replacevalueatpos(val: tai_abstracttypedconst; pos: longint): tai_abstracttypedconst;
      procedure finish;
      destructor destroy; override;
    end;
@@ -167,6 +168,14 @@ type
      property anonrecord: boolean read fanonrecord write fanonrecord;
    end;
    taggregateinformationclass = class of taggregateinformation;
+
+   { information about a placeholder element that has been added, and which has
+     to be replaced later with a real data element }
+   ttypedconstplaceholder = class abstract
+     def: tdef;
+     constructor create(d: tdef);
+     procedure replace(ai: tai; d: tdef); virtual; abstract;
+   end;
 
    { Warning: never directly create a ttai_typedconstbuilder instance,
      instead create a cai_typedconstbuilder (this class can be overridden) }
@@ -327,6 +336,16 @@ type
      function begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin, maxcrecordalign: shortint): trecorddef; virtual;
      function end_anonymous_record: trecorddef; virtual;
 
+     { add a placeholder element at the current position that later can be
+       filled in with the actual data (via ttypedconstplaceholder.replace)
+
+       useful in case you have table preceded by the number of elements, and
+       you cound the elements while building the table }
+     function emit_placeholder(def: tdef): ttypedconstplaceholder; virtual; abstract;
+     { common code to check whether a placeholder can be added at the current
+       position }
+     procedure check_add_placeholder(def: tdef);
+
      { The next group of routines are for constructing complex expressions.
        While parsing a typed constant these operators are encountered from
        outer to inner, so that is also the order in which they should be
@@ -397,6 +416,13 @@ type
      property anonrecmarker: tai read fanonrecmarker write fanonrecmarker;
    end;
 
+   tlowleveltypedconstplaceholder = class(ttypedconstplaceholder)
+     list: tasmlist;
+     insertpos: tai;
+     constructor create(l: tasmlist; pos: tai; d: tdef);
+     procedure replace(ai: tai; d: tdef); override;
+   end;
+
    ttai_lowleveltypedconstbuilder = class(ttai_typedconstbuilder)
     protected
      procedure mark_anon_aggregate_alignment; override;
@@ -404,6 +430,7 @@ type
     public
      { set the default value for caggregateinformation (= tlowlevelaggregateinformation) }
      class constructor classcreate;
+     function emit_placeholder(def: tdef): ttypedconstplaceholder; override;
    end;
 
    var
@@ -507,6 +534,15 @@ implementation
         result:=nextoffset-currentoffset;
       end;
 
+
+{****************************************************************************
+                             ttypedconstplaceholder
+ ****************************************************************************}
+
+    constructor ttypedconstplaceholder.create(d: tdef);
+      begin
+        def:=d;
+      end;
 
 {****************************************************************************
                             tai_abstracttypedconst
@@ -682,6 +718,13 @@ implementation
    procedure tai_aggregatetypedconst.insertvaluebeforepos(val: tai_abstracttypedconst; pos: longint);
      begin
        fvalues.insert(pos,val);
+     end;
+
+
+   function tai_aggregatetypedconst.replacevalueatpos(val: tai_abstracttypedconst; pos: longint): tai_abstracttypedconst;
+     begin
+       result:=tai_abstracttypedconst(fvalues[pos]);
+       fvalues[pos]:=val;
      end;
 
 
@@ -1430,6 +1473,22 @@ implementation
      end;
 
 
+   procedure ttai_typedconstbuilder.check_add_placeholder(def: tdef);
+     begin
+       { it only makes sense to add a placeholder inside an aggregate
+         (otherwise there can be but one element)
+
+         we cannot add a placeholder in the middle of a queued expression
+         either
+
+         the placeholder cannot be an aggregate }
+       if not assigned(curagginfo) or
+          queue_is_active or
+          (aggregate_kind(def)<>tck_simple) then
+         internalerror(2015091001);
+     end;
+
+
    procedure ttai_typedconstbuilder.queue_init(todef: tdef);
      var
        info: taggregateinformation;
@@ -1609,6 +1668,28 @@ implementation
      end;
 
 
+   {****************************************************************************
+                         tlowleveltypedconstplaceholder
+   ****************************************************************************}
+
+   constructor tlowleveltypedconstplaceholder.create(l: tasmlist; pos: tai; d: tdef);
+     begin
+       inherited create(d);
+       list:=l;
+       insertpos:=pos;
+     end;
+
+
+   procedure tlowleveltypedconstplaceholder.replace(ai: tai; d: tdef);
+     begin
+       if d<>def then
+         internalerror(2015091001);
+       list.insertafter(ai,insertpos);
+       list.remove(insertpos);
+       insertpos.free;
+     end;
+
+
 {****************************************************************************
                            tai_abstracttypedconst
  ****************************************************************************}
@@ -1616,6 +1697,17 @@ implementation
    class constructor ttai_lowleveltypedconstbuilder.classcreate;
      begin
        caggregateinformation:=tlowlevelaggregateinformation;
+     end;
+
+
+   function ttai_lowleveltypedconstbuilder.emit_placeholder(def: tdef): ttypedconstplaceholder;
+     var
+       p: tai;
+     begin
+       check_add_placeholder(def);
+       p:=tai_marker.Create(mark_position);
+       emit_tai(p,def);
+       result:=tlowleveltypedconstplaceholder.create(fasmlist,p,def);
      end;
 
 

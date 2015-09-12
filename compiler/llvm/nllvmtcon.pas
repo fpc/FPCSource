@@ -45,6 +45,13 @@ interface
       property anonrecalignpos: longint read fanonrecalignpos write fanonrecalignpos;
     end;
 
+    tllvmtypedconstplaceholder = class(ttypedconstplaceholder)
+      agginfo: tllvmaggregateinformation;
+      pos: longint;
+      constructor create(info: tllvmaggregateinformation; p: longint; d: tdef);
+      procedure replace(ai: tai; d: tdef); override;
+    end;
+
     tllvmtai_typedconstbuilder = class(ttai_typedconstbuilder)
      protected type
       public
@@ -88,6 +95,8 @@ interface
       procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); override;
       procedure queue_emit_ordconst(value: int64; def: tdef); override;
 
+      function emit_placeholder(def: tdef): ttypedconstplaceholder; override;
+
       class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; override;
     end;
 
@@ -116,6 +125,31 @@ implementation
         result:=0;
     end;
 
+
+   { tllvmtypedconstplaceholder }
+
+  constructor tllvmtypedconstplaceholder.create(info: tllvmaggregateinformation; p: longint; d: tdef);
+    begin
+      inherited create(d);
+      agginfo:=info;
+      pos:=p;
+    end;
+
+
+  procedure tllvmtypedconstplaceholder.replace(ai: tai; d: tdef);
+    var
+      oldconst: tai_abstracttypedconst;
+    begin
+      if d<>def then
+        internalerror(2015091002);
+      oldconst:=agginfo.aggai.replacevalueatpos(
+        tai_simpletypedconst.create(tck_simple,d,ai),pos
+      );
+      oldconst.free;
+    end;
+
+
+  { tllvmtai_typedconstbuilder }
 
   class constructor tllvmtai_typedconstbuilder.classcreate;
     begin
@@ -573,6 +607,22 @@ implementation
       if fqueue_offset<>0 then
         internalerror(2015030702);
       inherited;
+    end;
+
+
+  function tllvmtai_typedconstbuilder.emit_placeholder(def: tdef): ttypedconstplaceholder;
+    var
+      pos: longint;
+    begin
+      check_add_placeholder(def);
+      { we can't support extended constants, because those are transformed into
+        an array of bytes, so we can't easily replace them afterwards }
+      if (def.typ=floatdef) and
+         (tfloatdef(def).floattype=s80real) then
+        internalerror(2015091003);
+      pos:=tllvmaggregateinformation(curagginfo).aggai.valuecount;
+      emit_tai(tai_marker.Create(mark_position),def);
+      result:=tllvmtypedconstplaceholder.create(tllvmaggregateinformation(curagginfo),pos,def);
     end;
 
 
