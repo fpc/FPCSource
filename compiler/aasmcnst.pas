@@ -870,8 +870,7 @@ implementation
            maybe_new_object_file(prelist);
            { we always need a new section here, since if we started a new
              object file then we have to say what the section is, and otherwise
-             we need a new section because that's how the dead stripping works
-             (except on Darwin, but that will be addressed in a future commit) }
+             we need a new section because that's how the dead stripping works }
            new_section(prelist,section,secname,const_align(alignment));
          end
        else if tcalo_new_section in options then
