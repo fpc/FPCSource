@@ -152,7 +152,8 @@ implementation
              'loadparentfpn',
              'dataconstn',
              'objselectorn',
-             'objcprotocoln'
+             'objcprotocoln',
+             'specializen'
              );
       var
         p: pchar;
