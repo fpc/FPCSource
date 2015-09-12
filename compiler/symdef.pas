@@ -307,7 +307,7 @@ interface
           isunion       : boolean;
           constructor create(const n:string; p:TSymtable);virtual;
           constructor create_global_internal(n: string; packrecords, recordalignmin, maxCrecordalign: shortint); virtual;
-          procedure add_field_by_def(const optionalname: TIDString; def: tdef);
+          function add_field_by_def(const optionalname: TIDString; def: tdef): tsym;
           procedure add_fields_from_deflist(fieldtypes: tfplist);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -4160,7 +4160,7 @@ implementation
       end;
 
 
-    procedure trecorddef.add_field_by_def(const optionalname: TIDString; def: tdef);
+    function trecorddef.add_field_by_def(const optionalname: TIDString; def: tdef): tsym;
       var
         sym: tfieldvarsym;
         name: TIDString;
@@ -4176,6 +4176,7 @@ implementation
         sym:=cfieldvarsym.create(pname^,vs_value,def,[]);
         symtable.insert(sym);
         trecordsymtable(symtable).addfield(sym,vis_hidden);
+        result:=sym;
       end;
 
 
