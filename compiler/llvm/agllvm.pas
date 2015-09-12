@@ -948,10 +948,12 @@ implementation
                   end;
                   if (ldf_tls in taillvmdecl(hp).flags) then
                     writer.AsmWrite('thread_local ');
+                  if ldf_unnamed_addr in taillvmdecl(hp).flags then
+                    writer.AsmWrite('unnamed_addr ');
                   { todo: handle more different section types (mainly
                       Objective-C }
                   if taillvmdecl(hp).sec in [sec_rodata,sec_rodata_norel] then
-                    writer.AsmWrite('unnamed_addr constant ')
+                    writer.AsmWrite('constant ')
                   else
                     writer.AsmWrite('global ');
                   if not assigned(taillvmdecl(hp).initdata) then

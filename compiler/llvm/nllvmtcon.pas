@@ -160,6 +160,7 @@ implementation
   procedure tllvmtai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
     var
       newasmlist: tasmlist;
+      decl: taillvmdecl;
     begin
       { todo }
       if section = sec_user then
@@ -167,7 +168,10 @@ implementation
       newasmlist:=tasmlist.create;
       { llvm declaration with as initialisation data all the elements from the
         original asmlist }
-      newasmlist.concat(taillvmdecl.createdef(sym,def,fasmlist,section,alignment));
+      decl:=taillvmdecl.createdef(sym,def,fasmlist,section,alignment);
+      if tcalo_is_lab in options then
+        include(decl.flags,ldf_unnamed_addr);
+      newasmlist.concat(decl);
       fasmlist:=newasmlist;
     end;
 

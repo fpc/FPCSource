@@ -150,7 +150,8 @@ interface
     taillvmdeclflag =
     (
       ldf_definition,   { definition as opposed to (an external) declaration }
-      ldf_tls           { tls definition }
+      ldf_tls,          { tls definition }
+      ldf_unnamed_addr  { address doesn't matter, only content }
     );
     taillvmdeclflags = set of taillvmdeclflag;
 
