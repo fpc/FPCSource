@@ -116,7 +116,7 @@ implementation
     uses
       verbose,version,globals,cutils,constexp,
       scanner,systems,procinfo,fmodule,
-      aasmbase,aasmtai,
+      aasmbase,aasmtai,aasmcnst,
       symbase,symtable,defutil,
       nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nobj,nutils,
       ppu,
@@ -761,16 +761,21 @@ implementation
 
   procedure AddToThreadvarList(p:TObject;arg:pointer);
     var
-      ltvTable : TAsmList;
+      tcb: ttai_typedconstbuilder;
+      field1, field2: tsym;
     begin
-      ltvTable:=TAsmList(arg);
       if (tsym(p).typ=staticvarsym) and
          (vo_is_thread_var in tstaticvarsym(p).varoptions) then
        begin
+         tcb:=ttai_typedconstbuilder(arg);
          { address of threadvar }
-         ltvTable.concat(tai_const.Createname(tstaticvarsym(p).mangledname,0));
+         tcb.emit_tai(tai_const.Createname(tstaticvarsym(p).mangledname,0),
+           cpointerdef.getreusable(
+             get_threadvar_record(tstaticvarsym(p).vardef,field1,field2)
+           )
+         );
          { size of threadvar }
-         ltvTable.concat(tai_const.create_32bit(tstaticvarsym(p).getsize));
+         tcb.emit_ord_const(tstaticvarsym(p).getsize,u32inttype);
        end;
     end;
 
@@ -778,28 +783,32 @@ implementation
   class procedure tnodeutils.InsertThreadvars;
     var
       s : string;
-      ltvTable : TAsmList;
+      tcb: ttai_typedconstbuilder;
+      sym: tasmsymbol;
+      tabledef: trecorddef;
     begin
        if (tf_section_threadvars in target_info.flags) then
          exit;
-       ltvTable:=TAsmList.create;
+       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+       tabledef:=tcb.begin_anonymous_record('',1,sizeof(pint),
+         targetinfos[target_info.system]^.alignment.recordalignmin,
+         targetinfos[target_info.system]^.alignment.maxCrecordalign);
        if assigned(current_module.globalsymtable) then
-         current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,ltvTable);
-       current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,ltvTable);
-       if not ltvTable.Empty then
-        begin
-          s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
-          { end of the list marker }
-          ltvTable.concat(tai_const.create_sym(nil));
-          { add to datasegment }
-          maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-          new_section(current_asmdata.asmlists[al_globals],sec_data,s,sizeof(pint));
-          current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
-          current_asmdata.asmlists[al_globals].concatlist(ltvTable);
-          current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(s));
-          current_module.flags:=current_module.flags or uf_threadvars;
-        end;
-       ltvTable.Free;
+         current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
+       current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
+       if trecordsymtable(tabledef.symtable).datasize<>0 then
+         { terminator }
+         tcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype);
+       tcb.end_anonymous_record;
+       if trecordsymtable(tabledef.symtable).datasize<>0 then
+         begin
+           s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
+           sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA);
+           current_asmdata.asmlists[al_globals].concatlist(
+             tcb.get_final_asmlist(sym,tabledef,sec_data,s,sizeof(pint)));
+           current_module.flags:=current_module.flags or uf_threadvars;
+         end;
+       tcb.Free;
     end;
 
 
