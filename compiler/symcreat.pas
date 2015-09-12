@@ -935,6 +935,32 @@ implementation
       str_parse_method_impl(str,pd,false);
     end;
 
+
+  procedure implement_interface_wrapper(pd: tprocdef);
+    var
+      wrapperinfo: pskpara_interface_wrapper;
+      callthroughpd: tprocdef;
+      str: ansistring;
+    begin
+      wrapperinfo:=pskpara_interface_wrapper(pd.skpara);
+      if not assigned(wrapperinfo) then
+        internalerror(2015090801);
+      callthroughpd:=tprocdef(wrapperinfo^.pd);
+      str:='begin ';
+      { self right now points to the VMT of interface inside the instance ->
+        adjust so it points to the start of the instance }
+      str:=str+'pointer(self):=pointer(self) - '+tostr(wrapperinfo^.offset)+';';
+      { now call through to the actual method }
+      if pd.returndef<>voidtype then
+        str:=str+'result:=';
+      str:=str+callthroughpd.procsym.realname+'(';
+      addvisibibleparameters(str,callthroughpd);
+      str:=str+') end;';
+      str_parse_method_impl(str,pd,false);
+      dispose(wrapperinfo);
+      pd.skpara:=nil;
+    end;
+
   procedure add_synthetic_method_implementations_for_st(st: tsymtable);
     var
       i   : longint;
@@ -1007,6 +1033,8 @@ implementation
               implement_field_setter(pd);
             tsk_block_invoke_procvar:
               implement_block_invoke_procvar(pd);
+            tsk_interface_wrapper:
+              implement_interface_wrapper(pd);
             else
               internalerror(2011032801);
           end;

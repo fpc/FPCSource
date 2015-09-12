@@ -401,8 +401,16 @@ type
     tsk_jvm_virtual_clmethod,  // Java wrapper for virtual class method
     tsk_field_getter,          // getter for a field (callthrough property is passed in skpara)
     tsk_field_setter,          // Setter for a field (callthrough property is passed in skpara)
-    tsk_block_invoke_procvar   // Call a procvar to invoke inside a block
+    tsk_block_invoke_procvar,  // Call a procvar to invoke inside a block
+    tsk_interface_wrapper      // Call through to a method from an interface wrapper
   );
+
+  { synthetic procdef supplementary information (tprocdef.skpara) }
+  tskpara_interface_wrapper = record
+    pd: pointer;
+    offset: longint;
+  end;
+  pskpara_interface_wrapper = ^tskpara_interface_wrapper;
 
   { options for objects and classes }
   tobjecttyp = (odt_none,

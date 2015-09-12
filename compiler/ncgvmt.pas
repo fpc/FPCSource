@@ -110,15 +110,14 @@ implementation
       cutils,cclasses,
       globtype,globals,verbose,constexp,
       systems,fmodule,
-      symsym,symtable,defutil,
+      symsym,symtable,symcreat,defutil,
+{$ifdef cpuhighleveltarget}
+      pparautl,
+{$endif cpuhighleveltarget}
       aasmtai,
       wpobase,
       nobj,
       cgbase,parabase,paramgr,cgobj,cgcpu,hlcgobj,hlcgcpu,
-{$ifdef llvm}
-      { override create_hlcodegen from hlcgcpu }
-      hlcgllvm,
-{$endif}
       ncgrtti;
 
 
@@ -1239,6 +1238,10 @@ implementation
         tmps : string;
         pd   : TProcdef;
         ImplIntf : TImplementedInterface;
+{$ifdef cpuhighleveltarget}
+        wrapperpd: tprocdef;
+        wrapperinfo: pskpara_interface_wrapper;
+{$endif cpuhighleveltarget}
       begin
         for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
@@ -1257,11 +1260,34 @@ implementation
                       tobjectdef(tprocdef(pd).struct).register_vmt_call(tprocdef(pd).extnumber);
                     tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+
                       ImplIntf.IntfDef.objname^+'_$_'+tostr(j)+'_$_'+pd.mangledname);
+{$ifdef cpuhighleveltarget}
+                    { bare copy so we don't copy the aliasnames }
+                    wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc));
+                    { set the mangled name to the wrapper name }
+                    wrapperpd.setmangledname(tmps);
+                    { insert the wrapper procdef in the current unit's local
+                      symbol table, but set the owning "struct" to the current
+                      class (so self will have the correct type) }
+                    finish_copied_procdef(wrapperpd,tmps,current_module.localsymtable,_class);
+                    { now insert self/vmt }
+                    insert_self_and_vmt_para(wrapperpd);
+                    { and the function result }
+                    insert_funcret_para(wrapperpd);
+                    { recalculate the parameters now that we've added the above }
+                    wrapperpd.calcparas;
+                    { set the info required to generate the implementation }
+                    wrapperpd.synthetickind:=tsk_interface_wrapper;
+                    new(wrapperinfo);
+                    wrapperinfo^.pd:=pd;
+                    wrapperinfo^.offset:=ImplIntf.ioffset;
+                    wrapperpd.skpara:=wrapperinfo;
+{$else cpuhighleveltarget}
                     { create wrapper code }
                     new_section(list,sec_code,tmps,target_info.alignment.procalign);
                     hlcg.init_register_allocators;
                     hlcg.g_intf_wrapper(list,pd,tmps,ImplIntf.ioffset);
                     hlcg.done_register_allocators;
+{$endif cpuhighleveltarget}
                   end;
               end;
           end;
@@ -1317,9 +1343,15 @@ implementation
 
     procedure write_vmts(st:tsymtable;is_global:boolean);
       begin
+        { high level targets use synthetic procdefs to create the inteface
+          wrappers }
+{$ifndef cpuhighleveltarget}
         create_hlcodegen;
+{$endif}
         do_write_vmts(st,is_global);
+{$ifndef cpuhighleveltarget}
         destroy_hlcodegen;
+{$endif}
       end;
 
 end.
