@@ -540,3 +540,32 @@ const
 { Object types for EnumObjects() }
   OBJ_PEN   = 1;
   OBJ_BRUSH = 2;
+
+{ Pen support }
+
+{ Logical Pen }
+type
+  PLOGPEN = ^LOGPEN;
+  NPLOGPEN = ^LOGPEN; near;
+  LPLOGPEN = ^LOGPEN; far;
+  LOGPEN = record
+    lopnStyle: UINT;
+    lopnWidth: POINT;
+    lopnColor: COLORREF;
+  end;
+  TLogPen = LOGPEN;
+
+{ Pen Styles }
+const
+  PS_SOLID       = 0;
+  PS_DASH        = 1;
+  PS_DOT         = 2;
+  PS_DASHDOT     = 3;
+  PS_DASHDOTDOT  = 4;
+  PS_NULL        = 5;
+  PS_INSIDEFRAME = 6;
+
+{ Stock pens for use with GetStockObject(); }
+  WHITE_PEN = 6;
+  BLACK_PEN = 7;
+  NULL_PEN  = 8;

@@ -370,3 +370,11 @@ function UnrealizeObject(hgdiobj: HGDIOBJ): BOOL; external 'GDI';
 
 function EnumObjects(hdc: HDC; fnObjectType: SmallInt; goenmprc: GOBJENUMPROC; lParam: LPARAM): SmallInt; external 'GDI';
 function EnumObjects(hdc: HDC; fnObjectType: SmallInt; goenmprc: FARPROC; lParam: LPARAM): SmallInt; external 'GDI';
+
+{ Pen support }
+
+function CreatePen(fnPenStyle, nWidth: SmallInt; clrref: COLORREF): HPEN; external 'GDI';
+function CreatePenIndirect(lplgpn: LPLOGPEN): HPEN; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function CreatePenIndirect(var lgpn: LOGPEN): HPEN; external 'GDI';
+{$endif}
