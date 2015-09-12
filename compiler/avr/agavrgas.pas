@@ -188,7 +188,7 @@ unit agavrgas;
               sep:=',';
             end;
         end;
-      owner.AsmWriteLn(s);
+      owner.writer.AsmWriteLn(s);
     end;
 
 

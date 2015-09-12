@@ -366,7 +366,7 @@ unit agppcgas;
             begin
               { first write the current contents of s, because the symbol }
               { may be 255 characters                                     }
-              owner.asmwrite(s);
+              owner.writer.AsmWrite(s);
               s:=getopstr_jmp(taicpu(hp).oper[0]^);
             end;
         end
@@ -392,7 +392,7 @@ unit agppcgas;
                 end;
             end;
         end;
-      owner.AsmWriteLn(s);
+      owner.writer.AsmWriteLn(s);
     end;
 
 
@@ -412,11 +412,11 @@ unit agppcgas;
          i : longint;
       begin
         if target_info.abi = abi_powerpc_elfv2 then
-          AsmWriteln(#9'.abiversion 2');
+          writer.AsmWriteln(#9'.abiversion 2');
         for i:=0 to 31 do
-          AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
+          writer.AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
         for i:=0 to 31 do
-          AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
+          writer.AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
       end;
 
 
@@ -467,13 +467,13 @@ unit agppcgas;
         inherited WriteExtraHeader;
         { map cr registers to plain numbers }
         for i:=0 to 7 do
-          AsmWriteln(#9'.set'#9'cr'+tostr(i)+','+tostr(i));
+          writer.AsmWriteln(#9'.set'#9'cr'+tostr(i)+','+tostr(i));
         { make sure we always have a code and toc section, the linker expects
           that }
-        AsmWriteln(#9'.csect .text[PR]');
+        writer.AsmWriteln(#9'.csect .text[PR]');
         { set _text_s, to be used by footer below } 
-        AsmWriteln(#9'_text_s:');
-        AsmWriteln(#9'.toc');
+        writer.AsmWriteln(#9'_text_s:');
+        writer.AsmWriteln(#9'.toc');
       end;
 
 
@@ -481,11 +481,11 @@ unit agppcgas;
       begin
         inherited WriteExtraFooter;
         { link between data and text section }
-        AsmWriteln(#9'.csect .data[RW],4');
+        writer.AsmWriteln(#9'.csect .data[RW],4');
 {$ifdef cpu64bitaddr}
-        AsmWriteln('text_pos:'#9'.llong _text_s')
+        writer.AsmWriteln('text_pos:'#9'.llong _text_s')
 {$else cpu64bitaddr}
-        AsmWriteln('text_pos:'#9'.long _text_s')
+        writer.AsmWriteln('text_pos:'#9'.long _text_s')
 {$endif cpu64bitaddr}
       end;
 
@@ -494,10 +494,10 @@ unit agppcgas;
       begin
         case dir of
           asd_reference:
-            AsmWrite('.ref ');
+            writer.AsmWrite('.ref ');
           asd_weak_reference,
           asd_weak_definition:
-            AsmWrite('.weak ');
+            writer.AsmWrite('.weak ');
           else
             inherited WriteDirectiveName(dir);
         end;

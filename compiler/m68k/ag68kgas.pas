@@ -281,7 +281,7 @@ interface
              { quick hack to overcome a problem with manglednames=255 chars }
              if calljmp then
                 begin
-                  owner.AsmWrite(s+#9);
+                  owner.writer.AsmWrite(s+#9);
                   s:=getopstr_jmp(taicpu(hp).oper[0]^);
                   { dbcc dx,<sym> has two operands! (KB) }
                   if (taicpu(hp).ops>1) then
@@ -310,7 +310,7 @@ interface
                     end;
                 end;
            end;
-           owner.AsmWriteLn(s);
+           owner.writer.AsmWriteLn(s);
        end;
 
 

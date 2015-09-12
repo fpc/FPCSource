@@ -324,7 +324,7 @@ unit agppcvasm;
             begin
               { first write the current contents of s, because the symbol }
               { may be 255 characters                                     }
-              owner.asmwrite(s);
+              owner.writer.AsmWrite(s);
               s:=getopstr_jmp(taicpu(hp).oper[0]^);
             end;
         end
@@ -350,7 +350,7 @@ unit agppcvasm;
                 end;
             end;
         end;
-      owner.AsmWriteLn(s);
+      owner.writer.AsmWriteLn(s);
     end;
 
 

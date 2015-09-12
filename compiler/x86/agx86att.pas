@@ -157,11 +157,11 @@ interface
            { should be replaced by coding the segment override  }
            { directly! - DJGPP FAQ                              }
            if segment<>NR_NO then
-             owner.AsmWrite(gas_regname(segment)+':');
+             owner.writer.AsmWrite(gas_regname(segment)+':');
            if assigned(symbol) then
-             owner.AsmWrite(symbol.name);
+             owner.writer.AsmWrite(symbol.name);
            if assigned(relsymbol) then
-             owner.AsmWrite('-'+relsymbol.name);
+             owner.writer.AsmWrite('-'+relsymbol.name);
            if ref.refaddr=addr_pic then
              begin
                { @GOT and @GOTPCREL references are only allowed for symbol alone,
@@ -171,50 +171,50 @@ interface
 {$ifdef x86_64}
                if (base<>NR_RIP) then
                  InternalError(2015011802);
-               owner.AsmWrite('@GOTPCREL');
+               owner.writer.AsmWrite('@GOTPCREL');
 {$else x86_64}
-               owner.AsmWrite('@GOT');
+               owner.writer.AsmWrite('@GOT');
 {$endif x86_64}
              end;
            if offset<0 then
-             owner.AsmWrite(tostr(offset))
+             owner.writer.AsmWrite(tostr(offset))
            else
             if (offset>0) then
              begin
                if assigned(symbol) then
-                owner.AsmWrite('+'+tostr(offset))
+                owner.writer.AsmWrite('+'+tostr(offset))
                else
-                owner.AsmWrite(tostr(offset));
+                owner.writer.AsmWrite(tostr(offset));
              end
            else if (index=NR_NO) and (base=NR_NO) and (not assigned(symbol)) then
-             owner.AsmWrite('0');
+             owner.writer.AsmWrite('0');
            if (index<>NR_NO) and (base=NR_NO) then
             begin
               if scalefactor in [0,1] then
                 { Switching index to base position gives shorter
                   assembler instructions }
                 begin
-                  owner.AsmWrite('('+gas_regname(index)+')');
+                  owner.writer.AsmWrite('('+gas_regname(index)+')');
                 end
               else
                 begin
-                  owner.AsmWrite('(,'+gas_regname(index));
+                  owner.writer.AsmWrite('(,'+gas_regname(index));
                   if scalefactor<>0 then
-                   owner.AsmWrite(','+tostr(scalefactor)+')')
+                   owner.writer.AsmWrite(','+tostr(scalefactor)+')')
                   else
-                   owner.AsmWrite(')');
+                   owner.writer.AsmWrite(')');
                 end;
             end
            else
             if (index=NR_NO) and (base<>NR_NO) then
-              owner.AsmWrite('('+gas_regname(base)+')')
+              owner.writer.AsmWrite('('+gas_regname(base)+')')
             else
              if (index<>NR_NO) and (base<>NR_NO) then
               begin
-                owner.AsmWrite('('+gas_regname(base)+','+gas_regname(index));
+                owner.writer.AsmWrite('('+gas_regname(base)+','+gas_regname(index));
                 if scalefactor<>0 then
-                 owner.AsmWrite(','+tostr(scalefactor));
-                owner.AsmWrite(')');
+                 owner.writer.AsmWrite(','+tostr(scalefactor));
+                owner.writer.AsmWrite(')');
               end;
          end;
       end;
@@ -224,26 +224,26 @@ interface
       begin
         case o.typ of
           top_reg :
-            owner.AsmWrite(gas_regname(o.reg));
+            owner.writer.AsmWrite(gas_regname(o.reg));
           top_ref :
             if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got] then
               WriteReference(o.ref^)
             else
               begin
-                owner.AsmWrite('$');
+                owner.writer.AsmWrite('$');
                 if assigned(o.ref^.symbol) then
-                 owner.AsmWrite(o.ref^.symbol.name);
+                 owner.writer.AsmWrite(o.ref^.symbol.name);
                 if o.ref^.offset>0 then
-                 owner.AsmWrite('+'+tostr(o.ref^.offset))
+                 owner.writer.AsmWrite('+'+tostr(o.ref^.offset))
                 else
                  if o.ref^.offset<0 then
-                  owner.AsmWrite(tostr(o.ref^.offset))
+                  owner.writer.AsmWrite(tostr(o.ref^.offset))
                 else
                  if not(assigned(o.ref^.symbol)) then
-                   owner.AsmWrite('0');
+                   owner.writer.AsmWrite('0');
               end;
           top_const :
-              owner.AsmWrite('$'+tostr(o.val));
+              owner.writer.AsmWrite('$'+tostr(o.val));
           else
             internalerror(10001);
         end;
@@ -254,28 +254,28 @@ interface
       begin
         case o.typ of
           top_reg :
-            owner.AsmWrite('*'+gas_regname(o.reg));
+            owner.writer.AsmWrite('*'+gas_regname(o.reg));
           top_ref :
             begin
               if o.ref^.refaddr in [addr_no,addr_pic_no_got] then
                 begin
-                  owner.AsmWrite('*');
+                  owner.writer.AsmWrite('*');
                   WriteReference(o.ref^);
                 end
               else
                 begin
-                  owner.AsmWrite(o.ref^.symbol.name);
+                  owner.writer.AsmWrite(o.ref^.symbol.name);
                   if o.ref^.refaddr=addr_pic then
-                    owner.AsmWrite('@PLT');
+                    owner.writer.AsmWrite('@PLT');
                   if o.ref^.offset>0 then
-                   owner.AsmWrite('+'+tostr(o.ref^.offset))
+                   owner.writer.AsmWrite('+'+tostr(o.ref^.offset))
                   else
                    if o.ref^.offset<0 then
-                    owner.AsmWrite(tostr(o.ref^.offset));
+                    owner.writer.AsmWrite(tostr(o.ref^.offset));
                 end;
             end;
           top_const :
-            owner.AsmWrite(tostr(o.val));
+            owner.writer.AsmWrite(tostr(o.val));
           else
             internalerror(10001);
         end;
@@ -333,14 +333,14 @@ interface
                 taicpu(hp).opcode:=op;
               end;
           end;
-        owner.AsmWrite(#9);
+        owner.writer.AsmWrite(#9);
         { movsd should not be translated to movsl when there
           are (xmm) arguments }
         if (op=A_MOVSD) and (taicpu(hp).ops>0) then
-          owner.AsmWrite('movsd')
+          owner.writer.AsmWrite('movsd')
         else
-          owner.AsmWrite(gas_op2str[op]);
-        owner.AsmWrite(cond2str[taicpu(hp).condition]);
+          owner.writer.AsmWrite(gas_op2str[op]);
+        owner.writer.AsmWrite(cond2str[taicpu(hp).condition]);
         { suffix needed ?  fnstsw,fldcw don't support suffixes
           with binutils 2.9.5 under linux }
 {        if (Taicpu(hp).oper[0]^.typ=top_reg) and
@@ -371,30 +371,30 @@ interface
               begin
                 case taicpu(hp).oper[i]^.ot and OT_SIZE_MASK of
                    OT_BITS32: begin
-                                owner.AsmWrite(gas_opsize2str[S_L]);
+                                owner.writer.AsmWrite(gas_opsize2str[S_L]);
                                 break;
                               end;
                    OT_BITS64: begin
-                                owner.AsmWrite(gas_opsize2str[S_Q]);
+                                owner.writer.AsmWrite(gas_opsize2str[S_Q]);
                                 break;
                               end;
                   OT_BITS128: begin
-                                owner.AsmWrite(gas_opsize2str[S_XMM]);
+                                owner.writer.AsmWrite(gas_opsize2str[S_XMM]);
                                 break;
                               end;
                   OT_BITS256: begin
-                                owner.AsmWrite(gas_opsize2str[S_YMM]);
+                                owner.writer.AsmWrite(gas_opsize2str[S_YMM]);
                                 break;
                               end;
                            0: begin
-                                owner.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
+                                owner.writer.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
                                 break;
                               end;
                 end;
               end;
             end;
           end
-          else owner.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
+          else owner.writer.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
         end;
 
         { process operands }
@@ -402,7 +402,7 @@ interface
           begin
             if calljmp then
              begin
-               owner.AsmWrite(#9);
+               owner.writer.AsmWrite(#9);
                WriteOper_jmp(taicpu(hp).oper[0]^);
              end
             else
@@ -410,14 +410,14 @@ interface
                for i:=0 to taicpu(hp).ops-1 do
                  begin
                    if i=0 then
-                     owner.AsmWrite(#9)
+                     owner.writer.AsmWrite(#9)
                    else
-                     owner.AsmWrite(',');
+                     owner.writer.AsmWrite(',');
                    WriteOper(taicpu(hp).oper[i]^);
                  end;
              end;
           end;
-        owner.AsmLn;
+        owner.writer.AsmLn;
       end;
 
 

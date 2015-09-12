@@ -128,7 +128,7 @@ unit agarmgas;
       begin
         inherited WriteExtraHeader;
         if GenerateThumb2Code then
-          AsmWriteLn(#9'.syntax unified');
+          writer.AsmWriteLn(#9'.syntax unified');
       end;
 
 {****************************************************************************}
@@ -376,7 +376,7 @@ unit agarmgas;
                sep:=',';
             end;
         end;
-      owner.AsmWriteLn(s);
+      owner.writer.AsmWriteLn(s);
     end;
 
 

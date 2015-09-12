@@ -32,7 +32,6 @@ interface
 
     type
       TLLVMInstrWriter = class;
-      { TLLVMAssember }
 
       TLLVMAssember=class(texternalassembler)
       protected
@@ -48,7 +47,6 @@ interface
         procedure WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
        public
         constructor create(smart: boolean); override;
-        procedure AsmLn; override;
         function MakeCmdLine: TCmdStr; override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
@@ -316,7 +314,7 @@ implementation
              tmpinline:=1;
              tmpasmblock:=false;
              hp:=o.ai;
-             owner.AsmWrite(fstr);
+             owner.writer.AsmWrite(fstr);
              fstr:='';
              owner.WriteTai(false,false,tmpinline,tmpasmblock,hp);
              result:='';
@@ -349,7 +347,7 @@ implementation
         (and their output must come after everything that was processed in this
          instruction, such as its opcode or previous operands) }
       if owner.fdecllevel=0 then
-        owner.AsmWrite(#9);
+        owner.writer.AsmWrite(#9);
       sep:=' ';
       done:=false;
       opstart:=0;
@@ -357,9 +355,9 @@ implementation
       case op of
         la_type:
            begin
-             owner.asmwrite(llvmtypeidentifier(taillvm(hp).oper[0]^.def));
-             owner.asmwrite(' = type ');
-             owner.asmwrite(llvmencodetypedecl(taillvm(hp).oper[0]^.def));
+             owner.writer.AsmWrite(llvmtypeidentifier(taillvm(hp).oper[0]^.def));
+             owner.writer.AsmWrite(' = type ');
+             owner.writer.AsmWrite(llvmencodetypedecl(taillvm(hp).oper[0]^.def));
              done:=true;
            end;
         la_ret, la_br, la_switch, la_indirectbr,
@@ -375,13 +373,13 @@ implementation
         la_call:
           begin
             if taillvm(hp).oper[1]^.reg<>NR_NO then
-              owner.AsmWrite(getregisterstring(taillvm(hp).oper[1]^.reg)+' = ');
+              owner.writer.AsmWrite(getregisterstring(taillvm(hp).oper[1]^.reg)+' = ');
             sep:=' ';
             opstart:=2;
           end;
         la_alloca:
           begin
-            owner.AsmWrite(getreferencestring(taillvm(hp).oper[0]^.ref^,false)+' = ');
+            owner.writer.AsmWrite(getreferencestring(taillvm(hp).oper[0]^.ref^,false)+' = ');
             sep:=' ';
             opstart:=1;
           end;
@@ -394,27 +392,27 @@ implementation
               data initialisers }
             if (taillvm(hp).oper[0]^.typ<>top_reg) or
                (taillvm(hp).oper[0]^.reg<>NR_NO) then
-              owner.AsmWrite(getopstr(taillvm(hp).oper[0]^,false)+' = ')
+              owner.writer.AsmWrite(getopstr(taillvm(hp).oper[0]^,false)+' = ')
             else
               nested:=true;
-            owner.AsmWrite(llvm_op2str[op]);
+            owner.writer.AsmWrite(llvm_op2str[op]);
             if not nested then
-              owner.AsmWrite(' ')
+              owner.writer.AsmWrite(' ')
             else
-              owner.AsmWrite(' (');
-            owner.AsmWrite(getopstr(taillvm(hp).oper[1]^,false));
+              owner.writer.AsmWrite(' (');
+            owner.writer.AsmWrite(getopstr(taillvm(hp).oper[1]^,false));
             { if there's a tai operand, its def is used instead of an
               explicit def operand }
             if taillvm(hp).ops=4 then
               begin
-                owner.AsmWrite(' ');
-                owner.AsmWrite(getopstr(taillvm(hp).oper[2]^,false));
+                owner.writer.AsmWrite(' ');
+                owner.writer.AsmWrite(getopstr(taillvm(hp).oper[2]^,false));
                 opstart:=3;
               end
             else
               opstart:=2;
-            owner.AsmWrite(' to ');
-            owner.AsmWrite(getopstr(taillvm(hp).oper[opstart]^,false));
+            owner.writer.AsmWrite(' to ');
+            owner.writer.AsmWrite(getopstr(taillvm(hp).oper[opstart]^,false));
             done:=true;
           end
         else
@@ -422,7 +420,7 @@ implementation
             if (taillvm(hp).oper[0]^.typ<>top_reg) or
                (taillvm(hp).oper[0]^.reg<>NR_NO) then
               begin
-                owner.AsmWrite(getopstr(taillvm(hp).oper[0]^,true)+' = ');
+                owner.writer.AsmWrite(getopstr(taillvm(hp).oper[0]^,true)+' = ');
               end
             else
               nested:=true;
@@ -433,15 +431,15 @@ implementation
       { process operands }
       if not done then
         begin
-          owner.AsmWrite(llvm_op2str[op]);
+          owner.writer.AsmWrite(llvm_op2str[op]);
           if nested then
-            owner.AsmWrite(' (');
+            owner.writer.AsmWrite(' (');
           if taillvm(hp).ops<>0 then
             begin
               for i:=opstart to taillvm(hp).ops-1 do
                 begin
-                   owner.AsmWrite(sep);
-                   owner.AsmWrite(getopstr(taillvm(hp).oper[i]^,op in [la_load,la_store]));
+                   owner.writer.AsmWrite(sep);
+                   owner.writer.AsmWrite(getopstr(taillvm(hp).oper[i]^,op in [la_load,la_store]));
                    if (taillvm(hp).oper[i]^.typ in [top_def,top_cond,top_fpcond]) or
                       (op=la_call) then
                      sep :=' '
@@ -451,12 +449,13 @@ implementation
             end;
         end;
       if op=la_alloca then
-        owner.AsmWrite(getreferencealignstring(taillvm(hp).oper[0]^.ref^));
+        owner.writer.AsmWrite(getreferencealignstring(taillvm(hp).oper[0]^.ref^));
       if nested then
-        owner.AsmWrite(')')
-      else
-        owner.AsmLn;
+        owner.writer.AsmWrite(')')
+      else if owner.fdecllevel=0 then
+        owner.writer.AsmLn;
     end;
+
 
 {****************************************************************************}
 {                          LLVM Assembler writer                              }
@@ -548,12 +547,12 @@ implementation
 
     procedure TLLVMAssember.WriteExtraHeader;
       begin
-        AsmWrite('target datalayout = "');
-        AsmWrite(target_info.llvmdatalayout);
-        AsmWriteln('"');
-        AsmWrite('target triple = "');
-        AsmWrite(llvm_target_name);
-        AsmWriteln('"');
+        writer.AsmWrite('target datalayout = "');
+        writer.AsmWrite(target_info.llvmdatalayout);
+        writer.AsmWriteln('"');
+        writer.AsmWrite('target triple = "');
+        writer.AsmWrite(llvm_target_name);
+        writer.AsmWriteln('"');
       end;
 
 
@@ -581,32 +580,32 @@ implementation
           begin
             case tai_realconst(hp).realtyp of
               aitrealconst_s32bit:
-                AsmWriteLn(target_asm.comment+'value: '+single2str(tai_realconst(hp).value.s32val));
+                writer.AsmWriteLn(target_asm.comment+'value: '+single2str(tai_realconst(hp).value.s32val));
               aitrealconst_s64bit:
-                AsmWriteLn(target_asm.comment+'value: '+double2str(tai_realconst(hp).value.s64val));
+                writer.AsmWriteLn(target_asm.comment+'value: '+double2str(tai_realconst(hp).value.s64val));
 {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
               { can't write full 80 bit floating point constants yet on non-x86 }
               aitrealconst_s80bit:
-                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_realconst(hp).value.s80val));
+                writer.AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_realconst(hp).value.s80val));
 {$endif cpuextended}
               aitrealconst_s64comp:
-                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
+                writer.AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
               else
                 internalerror(2014050604);
             end;
           end;
         case hp.realtyp of
           aitrealconst_s32bit:
-            AsmWriteln(llvmdoubletostr(hp.value.s32val));
+            writer.AsmWriteln(llvmdoubletostr(hp.value.s32val));
           aitrealconst_s64bit:
-            AsmWriteln(llvmdoubletostr(hp.value.s64val));
+            writer.AsmWriteln(llvmdoubletostr(hp.value.s64val));
 {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
           aitrealconst_s80bit:
-            AsmWriteln(llvmextendedtostr(hp.value.s80val));
+            writer.AsmWriteln(llvmextendedtostr(hp.value.s80val));
 {$endif defined(cpuextended)}
           aitrealconst_s64comp:
             { handled as int64 most of the time in llvm }
-            AsmWriteln(tostr(round(hp.value.s64compval)));
+            writer.AsmWriteln(tostr(round(hp.value.s64compval)));
           else
             internalerror(2014062401);
         end;
@@ -618,7 +617,7 @@ implementation
         consttyp: taiconst_type;
       begin
         if fdecllevel=0 then
-          asmwrite(target_asm.comment+' const ');
+          writer.AsmWrite(target_asm.comment+' const ');
         consttyp:=hp.consttype;
         case consttyp of
           aitconst_got,
@@ -642,26 +641,27 @@ implementation
           aitconst_64bit_unaligned:
             begin
               if fdecllevel=0 then
-                AsmWrite(target_asm.comment);
+                writer.AsmWrite(target_asm.comment);
               { can't have compile-time differences between symbols; these are
                 normally for PIC, but llvm takes care of that for us }
               if assigned(hp.endsym) then
                 internalerror(2014052902);
               if assigned(hp.sym) then
                 begin
-                  AsmWrite(LlvmAsmSymName(hp.sym));
+                  writer.AsmWrite(LlvmAsmSymName(hp.sym));
                   { can't have offsets }
                   if hp.value<>0 then
                     if fdecllevel<>0 then
                       internalerror(2014052903)
                     else
-                      asmwrite(' -- symbol offset: ' + tostr(hp.value));
+                      writer.AsmWrite(' -- symbol offset: ' + tostr(hp.value));
                 end
               else if hp.value=0 then
-                AsmWrite('zeroinitializer')
+                writer.AsmWrite('zeroinitializer')
               else
-                AsmWrite(tostr(hp.value));
-              AsmLn;
+                writer.AsmWrite(tostr(hp.value));
+              if fdecllevel=0 then
+                writer.AsmLn;
             end;
           else
             internalerror(200704251);
@@ -683,38 +683,38 @@ implementation
           case hp.adetyp of
             tck_record:
               begin
-                AsmWrite(defstr);
-                AsmWrite(' ');
+                writer.AsmWrite(defstr);
+                writer.AsmWrite(' ');
                 if tabstractrecordsymtable(tabstractrecorddef(hp.def).symtable).usefieldalignment<>C_alignment then
-                  AsmWrite('<{')
+                  writer.AsmWrite('<{')
                 else
-                  AsmWrite('{');
+                  writer.AsmWrite('{');
                 first:=true;
                 for p in tai_aggregatetypedconst(hp) do
                   begin
                     if not first then
-                      AsmWrite(', ')
+                      writer.AsmWrite(', ')
                     else
                       first:=false;
                     WriteTypedConstData(p);
                   end;
                 if tabstractrecordsymtable(tabstractrecorddef(hp.def).symtable).usefieldalignment<>C_alignment then
-                  AsmWrite('}>')
+                  writer.AsmWrite('}>')
                 else
-                  AsmWrite('}');
+                  writer.AsmWrite('}');
               end;
             tck_array:
               begin
-                AsmWrite(defstr);
+                writer.AsmWrite(defstr);
                 first:=true;
                 gotstring:=false;
                 for p in tai_aggregatetypedconst(hp) do
                   begin
                     if not first then
-                      AsmWrite(',')
+                      writer.AsmWrite(',')
                     else
                       begin
-                        AsmWrite(' ');
+                        writer.AsmWrite(' ');
                         if (tai_abstracttypedconst(p).adetyp=tck_simple) and
                            (tai_simpletypedconst(p).val.typ=ait_string) then
                           begin
@@ -722,7 +722,7 @@ implementation
                           end
                         else
                           begin
-                            AsmWrite('[');
+                            writer.AsmWrite('[');
                           end;
                         first:=false;
                       end;
@@ -734,15 +734,15 @@ implementation
                     WriteTypedConstData(p);
                   end;
                 if not gotstring then
-                  AsmWrite(']');
+                  writer.AsmWrite(']');
               end;
             tck_simple:
               begin
                 pval:=tai_simpletypedconst(hp).val;
                 if pval.typ<>ait_string then
                   begin
-                    AsmWrite(defstr);
-                    AsmWrite(' ');
+                    writer.AsmWrite(defstr);
+                    writer.AsmWrite(' ');
                   end;
                 WriteTai(replaceforbidden,do_line,InlineLevel,asmblock,pval);
               end;
@@ -758,27 +758,29 @@ implementation
         case hp.typ of
           ait_comment :
             begin
-              AsmWrite(target_asm.comment);
-              AsmWritePChar(tai_comment(hp).str);
-              AsmLn;
+              writer.AsmWrite(target_asm.comment);
+              writer.AsmWritePChar(tai_comment(hp).str);
+              if fdecllevel<>0 then
+                internalerror(2015090601);
+              writer.AsmLn;
             end;
 
           ait_regalloc :
             begin
               if (cs_asm_regalloc in current_settings.globalswitches) then
                 begin
-                  AsmWrite(#9+target_asm.comment+'Register ');
+                  writer.AsmWrite(#9+target_asm.comment+'Register ');
                   repeat
-                    AsmWrite(std_regname(Tai_regalloc(hp).reg));
+                    writer.AsmWrite(std_regname(Tai_regalloc(hp).reg));
                      if (hp.next=nil) or
                        (tai(hp.next).typ<>ait_regalloc) or
                        (tai_regalloc(hp.next).ratype<>tai_regalloc(hp).ratype) then
                       break;
                     hp:=tai(hp.next);
-                    AsmWrite(',');
+                    writer.AsmWrite(',');
                   until false;
-                  AsmWrite(' ');
-                  AsmWriteLn(regallocstr[tai_regalloc(hp).ratype]);
+                  writer.AsmWrite(' ');
+                  writer.AsmWriteLn(regallocstr[tai_regalloc(hp).ratype]);
                 end;
             end;
 
@@ -798,8 +800,8 @@ implementation
 
           ait_datablock :
             begin
-              AsmWrite(target_asm.comment);
-              AsmWriteln('datablock');
+              writer.AsmWrite(target_asm.comment);
+              writer.AsmWriteln('datablock');
             end;
 
           ait_const:
@@ -815,8 +817,8 @@ implementation
           ait_string :
             begin
               if fdecllevel=0 then
-                AsmWrite(target_asm.comment);
-              AsmWrite('c"');
+                writer.AsmWrite(target_asm.comment);
+              writer.AsmWrite('c"');
               for i:=1 to tai_string(hp).len do
                begin
                  ch:=tai_string(hp).str[i-1];
@@ -829,9 +831,9 @@ implementation
                  else
                    s:=ch;
                  end;
-                 AsmWrite(s);
+                 writer.AsmWrite(s);
                end;
-              AsmWriteLn('"');
+              writer.AsmWriteLn('"');
             end;
 
           ait_label :
@@ -848,21 +850,21 @@ implementation
                    begin
                      { should be emitted as part of the variable/function def }
                      //internalerror(2013010704);
-                     AsmWriteln(target_asm.comment+'global/privateextern label: '+tai_label(hp).labsym.name);
+                     writer.AsmWriteln(target_asm.comment+'global/privateextern label: '+tai_label(hp).labsym.name);
                    end;
                  if replaceforbidden then
-                   AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
+                   writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
                  else
-                   AsmWrite(tai_label(hp).labsym.name);
-                 AsmWriteLn(':');
+                   writer.AsmWrite(tai_label(hp).labsym.name);
+                 writer.AsmWriteLn(':');
                end;
             end;
 
           ait_symbol :
             begin
               if fdecllevel=0 then
-                AsmWrite(target_asm.comment);
-              AsmWriteln(LlvmAsmSymName(tai_symbol(hp).sym));
+                writer.AsmWrite(target_asm.comment);
+              writer.AsmWriteln(LlvmAsmSymName(tai_symbol(hp).sym));
               { todo }
               if tai_symbol(hp).has_value then
                 internalerror(2014062402);
@@ -873,48 +875,48 @@ implementation
                 begin
                   if taillvmdecl(hp).namesym.bind in [AB_EXTERNAL, AB_WEAK_EXTERNAL] then
                     begin
-                      asmwrite('declare');
-                      asmwriteln(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), taillvmdecl(hp).namesym.name, lpd_decl));
+                      writer.AsmWrite('declare');
+                      writer.AsmWriteln(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), taillvmdecl(hp).namesym.name, lpd_decl));
                     end
                   else
                     begin
-                      asmwrite('define');
-                      asmwrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), '', lpd_decl));
-                      asmwriteln(' {');
+                      writer.AsmWrite('define');
+                      writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), '', lpd_decl));
+                      writer.AsmWriteln(' {');
                     end;
                 end
               else
                 begin
-                  asmwrite(LlvmAsmSymName(taillvmdecl(hp).namesym));
+                  writer.AsmWrite(LlvmAsmSymName(taillvmdecl(hp).namesym));
                   case taillvmdecl(hp).namesym.bind of
                     AB_EXTERNAL:
-                      asmwrite(' = external ');
+                      writer.AsmWrite(' = external ');
                     AB_COMMON:
-                      asmwrite(' = common ');
+                      writer.AsmWrite(' = common ');
                     AB_LOCAL:
-                      asmwrite(' = internal ');
+                      writer.AsmWrite(' = internal ');
                     AB_GLOBAL:
-                      asmwrite(' = ');
+                      writer.AsmWrite(' = ');
                     AB_WEAK_EXTERNAL:
-                      asmwrite(' = extern_weak ');
+                      writer.AsmWrite(' = extern_weak ');
                     AB_PRIVATE_EXTERN:
-                      asmwrite('= linker_private ');
+                      writer.AsmWrite('= linker_private ');
                     else
                       internalerror(2014020104);
                   end;
                   if taillvmdecl(hp).tls then
-                    asmwrite('thread_local ');
+                    writer.AsmWrite('thread_local ');
                   { todo: handle more different section types (mainly
                       Objective-C }
                   if taillvmdecl(hp).sec in [sec_rodata,sec_rodata_norel] then
-                    asmwrite('unnamed_addr constant ')
+                    writer.AsmWrite('unnamed_addr constant ')
                   else
-                    asmwrite('global ');
+                    writer.AsmWrite('global ');
                   if not assigned(taillvmdecl(hp).initdata) then
                     begin
-                      asmwrite(llvmencodetypename(taillvmdecl(hp).def));
+                      writer.AsmWrite(llvmencodetypename(taillvmdecl(hp).def));
                       if not(taillvmdecl(hp).namesym.bind in [AB_EXTERNAL, AB_WEAK_EXTERNAL]) then
-                        asmwrite(' zeroinitializer');
+                        writer.AsmWrite(' zeroinitializer');
                     end
                   else
                     begin
@@ -933,32 +935,32 @@ implementation
                       dec(fdecllevel);
                     end;
                   { alignment }
-                  asmwrite(', align ');
-                  asmwriteln(tostr(taillvmdecl(hp).alignment));
+                  writer.AsmWrite(', align ');
+                  writer.AsmWriteln(tostr(taillvmdecl(hp).alignment));
                 end;
             end;
           ait_llvmalias:
             begin
-              asmwrite(LlvmAsmSymName(taillvmalias(hp).newsym));
-              asmwrite(' = alias ');
+              writer.AsmWrite(LlvmAsmSymName(taillvmalias(hp).newsym));
+              writer.AsmWrite(' = alias ');
               if taillvmalias(hp).linkage<>lll_default then
                 begin
                   str(taillvmalias(hp).linkage, s);
-                  asmwrite(copy(s, length('lll_')+1, 255));
-                  asmwrite(' ');
+                  writer.AsmWrite(copy(s, length('lll_')+1, 255));
+                  writer.AsmWrite(' ');
                 end;
               if taillvmalias(hp).vis<>llv_default then
                 begin
                   str(taillvmalias(hp).vis, s);
-                  asmwrite(copy(s, length('llv_')+1, 255));
-                  asmwrite(' ');
+                  writer.AsmWrite(copy(s, length('llv_')+1, 255));
+                  writer.AsmWrite(' ');
                 end;
               if taillvmalias(hp).def.typ=procdef then
-                asmwrite(llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def), '', lpd_alias))
+                writer.AsmWrite(llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def), '', lpd_alias))
               else
-                asmwrite(llvmencodetypename(taillvmalias(hp).def));
-              asmwrite('* ');
-              asmwriteln(LlvmAsmSymName(taillvmalias(hp).oldsym));
+                writer.AsmWrite(llvmencodetypename(taillvmalias(hp).def));
+              writer.AsmWrite('* ');
+              writer.AsmWriteln(LlvmAsmSymName(taillvmalias(hp).oldsym));
             end;
           ait_symbolpair:
             begin
@@ -975,9 +977,9 @@ implementation
           ait_symbol_end :
             begin
               if tai_symbol_end(hp).sym.typ=AT_FUNCTION then
-                asmwriteln('}')
+                writer.AsmWriteln('}')
               else
-                asmwriteln('; ait_symbol_end error, should not be generated');
+                writer.AsmWriteln('; ait_symbol_end error, should not be generated');
 //                internalerror(2013010711);
             end;
 
@@ -1022,8 +1024,10 @@ implementation
             begin
               WriteDirectiveName(tai_directive(hp).directive);
               if tai_directive(hp).name <>'' then
-                AsmWrite(tai_directive(hp).name);
-              AsmLn;
+                writer.AsmWrite(tai_directive(hp).name);
+              if fdecllevel<>0 then
+                internalerror(2015090602);
+              writer.AsmLn;
             end;
 
           ait_seh_directive :
@@ -1033,12 +1037,14 @@ implementation
           ait_varloc:
             begin
               if tai_varloc(hp).newlocationhi<>NR_NO then
-                AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                writer.AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
                   std_regname(tai_varloc(hp).newlocationhi)+':'+std_regname(tai_varloc(hp).newlocation)))
               else
-                AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                writer.AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
                   std_regname(tai_varloc(hp).newlocation)));
-              AsmLn;
+              if fdecllevel<>0 then
+                internalerror(2015090603);
+              writer.AsmLn;
             end;
            ait_typedconst:
              begin
@@ -1057,18 +1063,9 @@ implementation
       end;
 
 
-    procedure TLLVMAssember.AsmLn;
-      begin
-        { don't write newlines in the middle of declarations }
-        if fdecllevel=0 then
-          inherited AsmLn;
-      end;
-
-
-
     procedure TLLVMAssember.WriteDirectiveName(dir: TAsmDirective);
       begin
-        AsmWrite('.'+directivestr[dir]+' ');
+        writer.AsmWrite('.'+directivestr[dir]+' ');
       end;
 
 
@@ -1078,16 +1075,15 @@ implementation
         i: longint;
       begin
         WriteExtraHeader;
-        AsmStartSize:=AsmSize;
 
         for hal:=low(TasmlistType) to high(TasmlistType) do
           begin
-            AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
+            writer.AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
             writetree(current_asmdata.asmlists[hal]);
-            AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
+            writer.AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
           end;
 
-        AsmLn;
+        writer.AsmLn;
       end;
 
 

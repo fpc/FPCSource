@@ -168,11 +168,11 @@ implementation
              (taicpu(hp).oper[1]^.typ<>top_reg) then
             internalerror(200401045);
           { Fxxxs %f<even>,%f<even> }
-          owner.AsmWriteln(#9+std_op2str[opc]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^));
+          owner.writer.AsmWriteln(#9+std_op2str[opc]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^));
           { FMOVs %f<odd>,%f<odd> }
           inc(taicpu(hp).oper[0]^.reg);
           inc(taicpu(hp).oper[1]^.reg);
-          owner.AsmWriteln(#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^));
+          owner.writer.AsmWriteln(#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^));
           dec(taicpu(hp).oper[0]^.reg);
           dec(taicpu(hp).oper[1]^.reg);
         end;
@@ -211,7 +211,7 @@ implementation
                   for i:=1 to taicpu(hp).ops-1 do
                     s:=s+','+getopstr(taicpu(hp).oper[i]^);
                 end;
-              owner.AsmWriteLn(s);
+              owner.writer.AsmWriteLn(s);
             end;
         end;
       end;

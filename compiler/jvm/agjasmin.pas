@@ -35,6 +35,10 @@ interface
       assemble;
 
     type
+      TJasminAssemblerOutputFile=class(TExternalAssemblerOutputFile)
+        procedure RemoveAsm; override;
+      end;
+
       TJasminInstrWriter = class;
       {# This is a derived class which is used to write
          Jasmin-styled assembler.
@@ -70,7 +74,6 @@ interface
         function MakeCmdLine: TCmdStr;override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
-        procedure RemoveAsm; override;
         destructor destroy; override;
        protected
         InstrWriter: TJasminInstrWriter;
@@ -244,6 +247,34 @@ implementation
        result:='0dx'+result;
       end;
 
+
+{****************************************************************************}
+{                       Jasmin Output File                                   }
+{****************************************************************************}
+
+    procedure TJasminAssemblerOutputFile.RemoveAsm;
+      var
+        g : file;
+      begin
+        inherited;
+        if cs_asm_leave in current_settings.globalswitches then
+         exit;
+        while not TJasminAssembler(owner).asmfiles.empty do
+          begin
+            if cs_asm_extern in current_settings.globalswitches then
+             AsmRes.AddDeleteCommand(TJasminAssembler(owner).asmfiles.GetFirst)
+            else
+             begin
+               assign(g,TJasminAssembler(owner).asmfiles.GetFirst);
+               {$I-}
+                erase(g);
+               {$I+}
+               if ioresult<>0 then;
+             end;
+          end;
+      end;
+
+
 {****************************************************************************}
 {                       Jasmin Assembler writer                              }
 {****************************************************************************}
@@ -305,7 +336,7 @@ implementation
                    begin
                      if (infile<>lastinfile) then
                        begin
-                         AsmWriteLn(target_asm.comment+'['+infile.name+']');
+                         writer.AsmWriteLn(target_asm.comment+'['+infile.name+']');
                          if assigned(lastinfile) then
                            lastinfile.close;
                        end;
@@ -314,7 +345,7 @@ implementation
                        begin
                          if (hp1.fileinfo.line<>0) and
                             ((infile.linebuf^[hp1.fileinfo.line]>=0) or (InlineLevel>0)) then
-                           AsmWriteLn(target_asm.comment+'['+tostr(hp1.fileinfo.line)+'] '+
+                           writer.AsmWriteLn(target_asm.comment+'['+tostr(hp1.fileinfo.line)+'] '+
                              fixline(infile.GetLineStr(hp1.fileinfo.line)));
                          { set it to a negative value !
                          to make that is has been read already !! PM }
@@ -331,27 +362,27 @@ implementation
 
              ait_comment :
                Begin
-                 AsmWrite(target_asm.comment);
-                 AsmWritePChar(tai_comment(hp).str);
-                 AsmLn;
+                 writer.AsmWrite(target_asm.comment);
+                 writer.AsmWritePChar(tai_comment(hp).str);
+                 writer.AsmLn;
                End;
 
              ait_regalloc :
                begin
                  if (cs_asm_regalloc in current_settings.globalswitches) then
                    begin
-                     AsmWrite(#9+target_asm.comment+'Register ');
+                     writer.AsmWrite(#9+target_asm.comment+'Register ');
                      repeat
-                       AsmWrite(std_regname(Tai_regalloc(hp).reg));
+                       writer.AsmWrite(std_regname(Tai_regalloc(hp).reg));
                        if (hp.next=nil) or
                           (tai(hp.next).typ<>ait_regalloc) or
                           (tai_regalloc(hp.next).ratype<>tai_regalloc(hp).ratype) then
                          break;
                        hp:=tai(hp.next);
-                       AsmWrite(',');
+                       writer.AsmWrite(',');
                      until false;
-                     AsmWrite(' ');
-                     AsmWriteLn(regallocstr[tai_regalloc(hp).ratype]);
+                     writer.AsmWrite(' ');
+                     writer.AsmWriteLn(regallocstr[tai_regalloc(hp).ratype]);
                    end;
                end;
 
@@ -361,11 +392,11 @@ implementation
                    begin
   {$ifdef EXTDEBUG}
                      if assigned(tai_tempalloc(hp).problem) then
-                       AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
+                       writer.AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
                          tostr(tai_tempalloc(hp).tempsize)+' '+tai_tempalloc(hp).problem^)
                      else
   {$endif EXTDEBUG}
-                       AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
+                       writer.AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
                          tostr(tai_tempalloc(hp).tempsize)+' '+tempallocstr[tai_tempalloc(hp).allocation]);
                    end;
                end;
@@ -387,7 +418,7 @@ implementation
 
              ait_const:
                begin
-                 AsmWriteln('constant');
+                 writer.AsmWriteln('constant');
 //                 internalerror(2010122702);
                end;
 
@@ -403,7 +434,7 @@ implementation
                    begin
                      if pos=0 then
                       begin
-                        AsmWrite(#9'strconst: '#9'"');
+                        writer.AsmWrite(#9'strconst: '#9'"');
                         pos:=20;
                       end;
                      ch:=tai_string(hp).str[i-1];
@@ -416,11 +447,11 @@ implementation
                      else
                       s:=ch;
                      end;
-                     AsmWrite(s);
+                     writer.AsmWrite(s);
                      inc(pos,length(s));
                      if (pos>line_length) or (i=tai_string(hp).len) then
                       begin
-                        AsmWriteLn('"');
+                        writer.AsmWriteLn('"');
                         pos:=0;
                       end;
                    end;
@@ -430,8 +461,8 @@ implementation
                begin
                  if (tai_label(hp).labsym.is_used) then
                   begin
-                    AsmWrite(tai_label(hp).labsym.name);
-                    AsmWriteLn(':');
+                    writer.AsmWrite(tai_label(hp).labsym.name);
+                    writer.AsmWriteLn(':');
                   end;
                end;
 
@@ -442,8 +473,8 @@ implementation
                     end
                   else
                    begin
-                     AsmWrite('data symbol: ');
-                     AsmWriteln(tai_symbol(hp).sym.name);
+                     writer.AsmWrite('data symbol: ');
+                     writer.AsmWriteln(tai_symbol(hp).sym.name);
 //                     internalerror(2010122706);
                    end;
                end;
@@ -471,34 +502,34 @@ implementation
 
              ait_directive :
                begin
-                 AsmWrite('.'+directivestr[tai_directive(hp).directive]+' ');
+                 writer.AsmWrite('.'+directivestr[tai_directive(hp).directive]+' ');
                  if tai_directive(hp).name<>'' then
-                   AsmWrite(tai_directive(hp).name);
-                 AsmLn;
+                   writer.AsmWrite(tai_directive(hp).name);
+                 writer.AsmLn;
                end;
 
              ait_jvar:
                begin
-                 AsmWrite('.var ');
-                 AsmWrite(tostr(tai_jvar(hp).stackslot));
-                 AsmWrite(' is ');
-                 AsmWrite(tai_jvar(hp).desc^);
-                 AsmWrite(' from ');
-                 AsmWrite(tai_jvar(hp).startlab.name);
-                 AsmWrite(' to ');
-                 AsmWriteLn(tai_jvar(hp).stoplab.name);
+                 writer.AsmWrite('.var ');
+                 writer.AsmWrite(tostr(tai_jvar(hp).stackslot));
+                 writer.AsmWrite(' is ');
+                 writer.AsmWrite(tai_jvar(hp).desc^);
+                 writer.AsmWrite(' from ');
+                 writer.AsmWrite(tai_jvar(hp).startlab.name);
+                 writer.AsmWrite(' to ');
+                 writer.AsmWriteLn(tai_jvar(hp).stoplab.name);
                end;
 
              ait_jcatch:
                begin
-                 AsmWrite('.catch ');
-                 AsmWrite(tai_jcatch(hp).name^);
-                 AsmWrite(' from ');
-                 AsmWrite(tai_jcatch(hp).startlab.name);
-                 AsmWrite(' to ');
-                 AsmWrite(tai_jcatch(hp).stoplab.name);
-                 AsmWrite(' using ');
-                 AsmWriteLn(tai_jcatch(hp).handlerlab.name);
+                 writer.AsmWrite('.catch ');
+                 writer.AsmWrite(tai_jcatch(hp).name^);
+                 writer.AsmWrite(' from ');
+                 writer.AsmWrite(tai_jcatch(hp).startlab.name);
+                 writer.AsmWrite(' to ');
+                 writer.AsmWrite(tai_jcatch(hp).stoplab.name);
+                 writer.AsmWrite(' using ');
+                 writer.AsmWriteLn(tai_jcatch(hp).handlerlab.name);
                end;
              else
                internalerror(2010122707);
@@ -519,14 +550,14 @@ implementation
         superclass:=nil;
 
         { JVM 1.5+ }
-        AsmWriteLn('.bytecode 49.0');
+        writer.AsmWriteLn('.bytecode 49.0');
         // include files are not support by Java, and the directory of the main
         // source file must not be specified
         if current_module.mainsource<>'' then
           n:=ExtractFileName(current_module.mainsource)
         else
           n:=InputFileName;
-        AsmWriteLn('.source '+ExtractFileName(n));
+        writer.AsmWriteLn('.source '+ExtractFileName(n));
 
         { class/interface name }
         if not assigned(obj) then
@@ -534,11 +565,11 @@ implementation
             { fake class type for unit -> name=unitname and
               superclass=java.lang.object, make final so you cannot descend
               from it }
-            AsmWrite('.class final public ');
+            writer.AsmWrite('.class final public ');
             if assigned(current_module.namespace) then
-              AsmWrite(current_module.namespace^+'.');
-            AsmWriteln(current_module.realmodulename^);
-            AsmWriteLn('.super java/lang/Object');
+              writer.AsmWrite(current_module.namespace^+'.');
+            writer.AsmWriteln(current_module.realmodulename^);
+            writer.AsmWriteLn('.super java/lang/Object');
           end
         else
           begin
@@ -549,10 +580,10 @@ implementation
               recorddef:
                 begin
                   { can't inherit from records }
-                  AsmWrite('.class final ');
+                  writer.AsmWrite('.class final ');
                   if toplevelowner.symtabletype=globalsymtable then
-                    AsmWrite('public ');
-                  AsmWriteln(obj.jvm_full_typename(true));
+                    writer.AsmWrite('public ');
+                  writer.AsmWriteln(obj.jvm_full_typename(true));
                   superclass:=java_fpcbaserecordtype;
                 end;
               objectdef:
@@ -560,25 +591,25 @@ implementation
                   case tobjectdef(obj).objecttype of
                     odt_javaclass:
                       begin
-                        AsmWrite('.class ');
+                        writer.AsmWrite('.class ');
                         if oo_is_sealed in tobjectdef(obj).objectoptions then
-                          AsmWrite('final ');
+                          writer.AsmWrite('final ');
                         if (oo_is_abstract in tobjectdef(obj).objectoptions) or
                            (tobjectdef(obj).abstractcnt<>0) then
-                          AsmWrite('abstract ');
+                          writer.AsmWrite('abstract ');
                         if toplevelowner.symtabletype=globalsymtable then
-                          AsmWrite('public ');
+                          writer.AsmWrite('public ');
                         if (oo_is_enum_class in tobjectdef(obj).objectoptions) then
-                          AsmWrite('enum ');
-                        AsmWriteln(obj.jvm_full_typename(true));
+                          writer.AsmWrite('enum ');
+                        writer.AsmWriteln(obj.jvm_full_typename(true));
                         superclass:=tobjectdef(obj).childof;
                       end;
                     odt_interfacejava:
                       begin
-                        AsmWrite('.interface abstract ');
+                        writer.AsmWrite('.interface abstract ');
                         if toplevelowner.symtabletype=globalsymtable then
-                          AsmWrite('public ');
-                        AsmWriteLn(obj.jvm_full_typename(true));
+                          writer.AsmWrite('public ');
+                        writer.AsmWriteLn(obj.jvm_full_typename(true));
                         { interfaces must always specify Java.lang.object as
                           superclass }
                         superclass:=java_jlobject;
@@ -591,10 +622,10 @@ implementation
             { superclass }
             if assigned(superclass) then
               begin
-                AsmWrite('.super ');
+                writer.AsmWrite('.super ');
                 if assigned(superclass.import_lib) then
-                  AsmWrite(superclass.import_lib^+'/');
-                AsmWriteln(superclass.objextname^);
+                  writer.AsmWrite(superclass.import_lib^+'/');
+                writer.AsmWriteln(superclass.objextname^);
               end;
             { implemented interfaces }
             if (obj.typ=objectdef) and
@@ -603,26 +634,26 @@ implementation
                 for i:=0 to tobjectdef(obj).ImplementedInterfaces.count-1 do
                   begin
                     intf:=TImplementedInterface(tobjectdef(obj).ImplementedInterfaces[i]).IntfDef;
-                    AsmWrite('.implements ');
-                    AsmWriteLn(intf.jvm_full_typename(true));
+                    writer.AsmWrite('.implements ');
+                    writer.AsmWriteLn(intf.jvm_full_typename(true));
                   end;
               end;
             { signature for enum classes (must come after superclass and
               implemented interfaces) }
             if (obj.typ=objectdef) and
                (oo_is_enum_class in tobjectdef(obj).objectoptions) then
-              AsmWriteln('.signature "Ljava/lang/Enum<L'+obj.jvm_full_typename(true)+';>;"');
+              writer.AsmWriteln('.signature "Ljava/lang/Enum<L'+obj.jvm_full_typename(true)+';>;"');
             { in case of nested class: relation to parent class }
             if obj.owner.symtabletype in [objectsymtable,recordsymtable] then
-              AsmWriteln(InnerStructDef(obj));
+              writer.AsmWriteln(InnerStructDef(obj));
             { add all nested classes }
             for i:=0 to obj.symtable.deflist.count-1 do
               if (is_java_class_or_interface(tdef(obj.symtable.deflist[i])) or
                   (tdef(obj.symtable.deflist[i]).typ=recorddef)) and
                  not(df_generic in tdef(obj.symtable.deflist[i]).defoptions) then
-                AsmWriteln(InnerStructDef(tabstractrecorddef(obj.symtable.deflist[i])));
+                writer.AsmWriteln(InnerStructDef(tabstractrecorddef(obj.symtable.deflist[i])));
           end;
-        AsmLn;
+        writer.AsmLn;
       end;
 
 
@@ -686,17 +717,15 @@ implementation
 
    procedure TJasminAssembler.NewAsmFileForStructDef(obj: tabstractrecorddef);
       begin
-        if AsmSize<>AsmStartSize then
+        if not writer.ClearIfEmpty then
           begin
-            AsmClose;
+            writer.AsmClose;
             asmfiles.Concat(AsmFileName);
-          end
-        else
-          AsmClear;
+          end;
 
         AsmFileName:=obj.jvm_full_typename(false);
         AsmFileName:=Path+FixFileName(AsmFileName)+target_info.asmext;
-        AsmCreate(cut_normal);
+        writer.AsmCreate(cut_normal);
       end;
 
 
@@ -912,17 +941,17 @@ implementation
            (not is_javainterface(pd.struct) or
             (pd.proctypeoption in [potype_unitinit,potype_unitfinalize])) then
           exit;
-        AsmWrite('.method ');
-        AsmWriteln(MethodDefinition(pd));
+        writer.AsmWrite('.method ');
+        writer.AsmWriteln(MethodDefinition(pd));
         if jvmtypeneedssignature(pd) then
           begin
-            AsmWrite('.signature "');
-            AsmWrite(tcpuprocdef(pd).jvmmangledbasename(true));
-            AsmWriteln('"');
+            writer.AsmWrite('.signature "');
+            writer.AsmWrite(tcpuprocdef(pd).jvmmangledbasename(true));
+            writer.AsmWriteln('"');
           end;
         WriteTree(tcpuprocdef(pd).exprasmlist);
-        AsmWriteln('.end method');
-        AsmLn;
+        writer.AsmWriteln('.end method');
+        writer.AsmLn;
       end;
 
 
@@ -935,15 +964,15 @@ implementation
         { external or threadvar definition -> no definition here }
         if ([vo_is_external,vo_is_thread_var]*sym.varoptions)<>[] then
           exit;
-        AsmWrite('.field ');
-        AsmWriteln(FieldDefinition(sym));
+        writer.AsmWrite('.field ');
+        writer.AsmWriteln(FieldDefinition(sym));
       end;
 
 
     procedure TJasminAssembler.WriteConstSym(sym: tconstsym);
       begin
-        AsmWrite('.field ');
-        AsmWriteln(ConstDefinition(sym));
+        writer.AsmWrite('.field ');
+        writer.AsmWriteln(ConstDefinition(sym));
       end;
 
 
@@ -1042,7 +1071,7 @@ implementation
             NewAsmFileForStructDef(obj);
             WriteExtraHeader(obj);
             WriteSymtableVarSyms(obj.symtable);
-            AsmLn;
+            writer.AsmLn;
             WriteSymtableProcDefs(obj.symtable);
             WriteSymtableStructDefs(obj.symtable);
           end;
@@ -1051,7 +1080,7 @@ implementation
 
     constructor TJasminAssembler.Create(smart: boolean);
       begin
-        inherited create(smart);
+        inherited CreateWithWriter(TJasminAssemblerOutputFile.Create(self),true,smart);
         InstrWriter:=TJasminInstrWriter.Create(self);
         asmfiles:=TCmdStrList.Create;
       end;
@@ -1064,20 +1093,20 @@ implementation
        Comment(V_Debug,'Start writing Jasmin-styled assembler output for '+current_module.mainsource);
 {$endif}
 
-      AsmStartSize:=AsmSize;
+      writer.MarkEmpty;
       WriteExtraHeader(nil);
 (*
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
-          AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
+          writer.AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
           writetree(current_asmdata.asmlists[hal]);
-          AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
+          writer.AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
         end;
 *)
       { print all global variables }
       WriteSymtableVarSyms(current_module.globalsymtable);
       WriteSymtableVarSyms(current_module.localsymtable);
-      AsmLn;
+      writer.AsmLn;
       { print all global procedures/functions }
       WriteSymtableProcdefs(current_module.globalsymtable);
       WriteSymtableProcdefs(current_module.localsymtable);
@@ -1085,35 +1114,13 @@ implementation
       WriteSymtableStructDefs(current_module.globalsymtable);
       WriteSymtableStructDefs(current_module.localsymtable);
 
-      AsmLn;
+      writer.AsmLn;
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
        Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource);
 {$endif EXTDEBUG}
     end;
 
-
-    procedure TJasminAssembler.RemoveAsm;
-      var
-        g : file;
-      begin
-        inherited;
-        if cs_asm_leave in current_settings.globalswitches then
-         exit;
-        while not asmfiles.empty do
-          begin
-            if cs_asm_extern in current_settings.globalswitches then
-             AsmRes.AddDeleteCommand(asmfiles.GetFirst)
-            else
-             begin
-               assign(g,asmfiles.GetFirst);
-               {$I-}
-                erase(g);
-               {$I+}
-               if ioresult<>0 then;
-             end;
-          end;
-      end;
 
 {****************************************************************************}
 {                         Jasmin Instruction Writer                          }
@@ -1205,7 +1212,7 @@ implementation
                  sep:=' ';
               end;
           end;
-        owner.AsmWriteLn(s);
+        owner.writer.AsmWriteLn(s);
       end;
 
 {****************************************************************************}
