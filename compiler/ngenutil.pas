@@ -634,8 +634,9 @@ implementation
   class procedure tnodeutils.InsertInitFinalTable;
     var
       hp : tused_unit;
-      unitinits : TAsmList;
+      unitinits : ttai_typedconstbuilder;
       count : aint;
+      tablecountplaceholder: ttypedconstplaceholder;
 
       procedure write_struct_inits(u: tmodule);
         var
@@ -648,25 +649,32 @@ implementation
             u.globalsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
           u.localsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
           { write structures }
-          for i := 0 to structlist.Count - 1 do
+          for i:=0 to structlist.Count-1 do
           begin
-            pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
+            pd:=tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
             if assigned(pd) then
-              unitinits.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0))
+              unitinits.emit_procdef_const(pd)
             else
-              unitinits.concat(Tai_const.Create_nil_codeptr);
+              unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
             pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
             if assigned(pd) then
-              unitinits.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0))
+              unitinits.emit_procdef_const(pd)
             else
-              unitinits.concat(Tai_const.Create_nil_codeptr);
+              unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
             inc(count);
           end;
           structlist.free;
         end;
 
     begin
-      unitinits:=TAsmList.Create;
+      unitinits:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+      unitinits.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
+        targetinfos[target_info.system]^.alignment.recordalignmin,
+        targetinfos[target_info.system]^.alignment.maxCrecordalign);
+      { placeholder for tablecount }
+      tablecountplaceholder:=unitinits.emit_placeholder(sinttype);
+      { initcount (initialised at run time }
+      unitinits.emit_ord_const(0,sinttype);
       count:=0;
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
@@ -680,13 +688,17 @@ implementation
              if count=high(aint) then
                Message1(cg_f_max_units_reached,tostr(count));
              if (hp.u.flags and uf_init)<>0 then
-               unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_FUNCTION,0))
+               unitinits.emit_tai(
+                 Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_FUNCTION,0),
+                 voidcodepointertype)
              else
-               unitinits.concat(Tai_const.Create_nil_codeptr);
+               unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
              if (hp.u.flags and uf_finalize)<>0 then
-               unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_FUNCTION,0))
+               unitinits.emit_tai(
+                 Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_FUNCTION,0),
+                 voidcodepointertype)
              else
-               unitinits.concat(Tai_const.Create_nil_codeptr);
+               unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
              inc(count);
            end;
          hp:=tused_unit(hp.next);
@@ -698,24 +710,32 @@ implementation
       if (current_module.flags and (uf_init or uf_finalize))<>0 then
         begin
           if (current_module.flags and uf_init)<>0 then
-            unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),AT_FUNCTION,0))
+            unitinits.emit_tai(
+              Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),AT_FUNCTION,0),
+              voidcodepointertype)
           else
-            unitinits.concat(Tai_const.Create_nil_codeptr);
+            unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
           if (current_module.flags and uf_finalize)<>0 then
-            unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),AT_FUNCTION,0))
+            unitinits.emit_tai(
+              Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),AT_FUNCTION,0),
+              voidcodepointertype)
           else
-            unitinits.concat(Tai_const.Create_nil_codeptr);
+            unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
           inc(count);
         end;
-      { Insert TableCount,InitCount at start }
-      unitinits.insert(Tai_const.Create_aint(0));
-      unitinits.insert(Tai_const.Create_aint(count));
+      { fill in tablecount }
+      tablecountplaceholder.replace(tai_const.Create_aint(count),sinttype);
+      tablecountplaceholder.free;
       { Add to data segment }
-      maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,'INITFINAL',const_align(sizeof(pint)));
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('INITFINAL',AT_DATA,0));
-      current_asmdata.asmlists[al_globals].concatlist(unitinits);
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('INITFINAL'));
+
+      current_asmdata.asmlists[al_globals].concatlist(
+        unitinits.get_final_asmlist(
+          current_asmdata.DefineAsmSymbol('INITFINAL',AB_GLOBAL,AT_DATA),
+          unitinits.end_anonymous_record,
+          sec_data,'INITFINAL',sizeof(pint)
+        )
+      );
+
       unitinits.free;
     end;
 
