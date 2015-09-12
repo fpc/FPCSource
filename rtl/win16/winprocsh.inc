@@ -489,3 +489,55 @@ function RectVisible(hdc: HDC; lprc: LPRECT): BOOL; external 'GDI';
 {$ifdef VAR_PARAMS_ARE_FAR}
 function RectVisible(hdc: HDC; var rc: RECT): BOOL; external 'GDI';
 {$endif}
+
+{ General drawing support }
+
+function MoveTo(hdc: HDC; x, y: SmallInt): DWORD; external 'GDI';
+function GetCurrentPosition(hdc: HDC): DWORD; external 'GDI';
+
+function LineTo(hdc: HDC; xEnd, yEnd: SmallInt): BOOL; external 'GDI';
+function Polyline(hdc: HDC; lppt: LPPOINT; cPoints: SmallInt): BOOL; external 'GDI';
+
+procedure LineDDA(nXStart, nYStart, nXEnd, nYEnd: SmallInt; lnddaprc: LINEDDAPROC; lParam: LPARAM); external 'GDI';
+procedure LineDDA(nXStart, nYStart, nXEnd, nYEnd: SmallInt; lnddaprc: TFarProc; lParam: FarPointer); external 'GDI';
+
+function Rectangle(hdc: HDC; nLeftRect, nTopRect, nRightRect, nBottomRect: SmallInt): BOOL; external 'GDI';
+function RoundRect(hdc: HDC; nLeftRect, nTopRect, nRightRect, nBottomRect, nEllipseWidth, nEllipseHeight: SmallInt): BOOL; external 'GDI';
+
+function Ellipse(hdc: HDC; nLeftRect, nTopRect, nRightRect, nBottomRect: SmallInt): BOOL; external 'GDI';
+function Arc(hdc: HDC; nLeftRect, nTopRect, nRightRect, nBottomRect, nXStartArc, nYStartArc, nXEndArc, nYEndArc: SmallInt): BOOL; external 'GDI';
+function Chord(hdc: HDC; nLeftRect, nTopRect, nRightRect, nBottomRect, nXStartLine, nYStartLine, nXEndLine, nYEndLine: SmallInt): BOOL; external 'GDI';
+function Pie(hdc: HDC; nLeftRect, nTopRect, nRightRect, nBottomRect, nxStartArc, nyStartArc, nxEndArc, nyEndArc: SmallInt): BOOL; external 'GDI';
+
+function Polygon(hdc: HDC; lppt: LPPOINT; cPoints: SmallInt): BOOL; external 'GDI';
+function PolyPolygon(hdc: HDC; lppt: LPPOINT; lpnPolyCounts: LPINT; cPolygons: SmallInt): BOOL; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function Polygon(hdc: HDC; var pt; cPoints: SmallInt): BOOL; external 'GDI';
+function PolyPolygon(hdc: HDC; var pt; var nPolyCounts; cPolygons: SmallInt): BOOL; external 'GDI';
+{$endif}
+
+function SetPolyFillMode(hdc: HDC; fnMode: SmallInt): SmallInt; external 'GDI';
+function GetPolyFillMode(hdc: HDC): SmallInt; external 'GDI';
+
+function FloodFill(hdc: HDC; nXStart, nYStart: SmallInt; clrref: COLORREF): BOOL; external 'GDI';
+function ExtFloodFill(hdc: HDC; nXStart, nYStart: SmallInt; clrref: COLORREF; fuFillType: UINT): BOOL; external 'GDI';
+
+function FillRgn(hdc: HDC; hrgn: HRGN; hbr: HBRUSH): BOOL; external 'GDI';
+function FrameRgn(hdc: HDC; hrgn: HRGN; hbr: HBRUSH; nWidth, nHeight: SmallInt): BOOL; external 'GDI';
+function InvertRgn(hdc: HDC; hrgn: HRGN): BOOL; external 'GDI';
+function PaintRgn(hdc: HDC; hrgn: HRGN): BOOL; external 'GDI';
+
+{ Rectangle output routines }
+function FillRect(hdc: HDC; lprc: LPRECT; hbr: HBRUSH): SmallInt; external 'USER';
+function FrameRect(hdc: HDC; lprc: LPRECT; hbr: HBRUSH): SmallInt; external 'USER';
+procedure InvertRect(hdc: HDC; lprc: LPRECT); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function FillRect(hdc: HDC; var rc: RECT; hbr: HBRUSH): SmallInt; external 'USER';
+function FrameRect(hdc: HDC; var rc: RECT; hbr: HBRUSH): SmallInt; external 'USER';
+procedure InvertRect(hdc: HDC; var rc: RECT); external 'USER';
+{$endif}
+
+procedure DrawFocusRect(hdc: HDC; lprc: LPRECT); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure DrawFocusRect(hdc: HDC; var rc: RECT); external 'USER';
+{$endif}

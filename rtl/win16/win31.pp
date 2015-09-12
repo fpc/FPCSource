@@ -261,6 +261,10 @@ function ScaleViewportExtEx(hdc: HDC; nXnum, nXdenom, nYnum, nYdenom: SmallInt; 
 { Brush support }
 function GetBrushOrgEx(hDC: HDC; lpPoint: LPPOINT): BOOL; external 'GDI';
 
+{ General drawing support }
+function MoveToEx(hdc: HDC; x, y: SmallInt; lpPoint: LPPOINT): BOOL; external 'GDI';
+function GetCurrentPositionEx(hdc: HDC; lpPoint: LPPOINT): BOOL; external 'GDI';
+
 implementation
 
 end.

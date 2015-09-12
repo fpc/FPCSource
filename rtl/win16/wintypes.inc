@@ -673,3 +673,16 @@ const
   WM_QUERYNEWPALETTE   = $030F;
   WM_PALETTEISCHANGING = $0310;
   WM_PALETTECHANGED    = $0311;
+
+{ General drawing support }
+type
+  LINEDDAPROC = procedure(xPos, yPos: SmallInt; lpData: LPARAM); far;
+
+const
+{ PolyFill Modes }
+  ALTERNATE = 1;
+  WINDING   = 2;
+
+{ ExtFloodFill style flags }
+  FLOODFILLBORDER  = 0;
+  FLOODFILLSURFACE = 1;
