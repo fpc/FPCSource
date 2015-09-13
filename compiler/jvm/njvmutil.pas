@@ -50,6 +50,8 @@ interface
       class procedure InsertWideInits; override;
       class procedure InsertResourceTablesTable; override;
       class procedure InsertResourceInfo(ResourcesUsed : boolean); override;
+      class procedure InsertResStrTablesTable; override;
+      class procedure InsertResStrInits; override;
       class procedure InsertMemorySizes; override;
      strict protected
        class procedure add_main_procdef_paras(pd: tdef); override;
@@ -452,6 +454,18 @@ implementation
 
 
   class procedure tjvmnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
+    begin
+      { not supported }
+    end;
+
+
+  class procedure tjvmnodeutils.InsertResStrTablesTable;
+    begin
+      { not supported }
+    end;
+
+
+  class procedure tjvmnodeutils.InsertResStrInits;
     begin
       { not supported }
     end;
