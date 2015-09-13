@@ -318,8 +318,12 @@ begin
    begin
      ExeCmd[1]:='ld '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE';
      DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE';
-     { when we want to cross-link we need to override default library paths }
-     if length(sysrootpath) > 0 then
+     { when we want to cross-link we need to override default library paths;
+       when targeting binutils 2.19 or later, we use the "INSERT" command to
+       augment the default linkerscript, which also requires -T (normally that
+       option means "completely replace the default linkerscript) }
+     if not(cs_link_pre_binutils_2_19 in current_settings.globalswitches) or
+       (length(sysrootpath)>0) then
        begin
          ExeCmd[1]:=ExeCmd[1]+' -T';
          DllCmd[1]:=DllCmd[1]+' -T';
@@ -590,29 +594,39 @@ begin
           end;
        end;
 
-      {Entry point. Only needed for executables, set on the linker command line for
-       shared libraries. }
+      { Entry point. Only needed for executables, as for shared lubraries we use
+        the -init command line option instead
+
+       The "ENTRY" linkerscript command does not have any effect when augmenting
+       a linker script, so use the command line parameter instead }
       if (not isdll) then
-       if (linksToSharedLibFiles and not linklibc) then
-        add('ENTRY(_dynamic_start)')
-       else
-        add('ENTRY(_start)');
+        if (linksToSharedLibFiles and not linklibc) then
+          info.ExeCmd[1]:=info.ExeCmd[1]+' -e _dynamic_start'
+        else
+          info.ExeCmd[1]:=info.ExeCmd[1]+' -e _start';
 
       { If we are using the default sysroot, use the default linker script and
-        just augment it with the FPC-specific parts. Ideally, we should add
-        "INSERT AFTER" at the end to explicitly tell ld to just augment the
-        built-in linker script, but that's only supported by ld 2.19 and later.
+        just augment it with the FPC-specific parts.
       }
       if sysrootpath='' then
         begin
           add('SECTIONS');
           add('{');
-          add('  .data           :');
+          if not(cs_link_pre_binutils_2_19 in current_settings.globalswitches) then
+            { we can't use ".data", as that would hide the .data from the
+              original linker script in combination with the INSERT at the end }
+            add('  .fpcdata           :')
+          else
+            add('  .data           :');
           add('  {');
           add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
           add('  }');
           add('  .threadvar _edata : { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
           add('}');
+          { this "INSERT" means "merge into the original linker script, even if
+            -T is used" }
+          if not(cs_link_pre_binutils_2_19 in current_settings.globalswitches) then
+            add('INSERT AFTER .data;');
         end
       else
         begin
