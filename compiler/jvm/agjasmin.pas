@@ -1078,11 +1078,22 @@ implementation
         nestedstructs.free;
       end;
 
+
     constructor TJasminAssembler.Create(info: pasminfo; smart: boolean);
       begin
-        inherited CreateWithWriter(info,TJasminAssemblerOutputFile.Create(self),true,smart);
-        InstrWriter:=TJasminInstrWriter.Create(self);
-        asmfiles:=TCmdStrList.Create;
+        { this is a bit dirty: the "main" constructor is is this one, which is
+          called by TExternalAssembler.CreateWithWriter(). That means the call
+          below to CreateWithWriter will end up here again when it calls create.
+          It will first initialise fwriter though, so we can check that field,
+          and otherwise call the inherited create }
+        if not assigned(writer) then
+          begin
+            CreateWithWriter(info,TJasminAssemblerOutputFile.Create(self),true,smart);
+            InstrWriter:=TJasminInstrWriter.Create(self);
+            asmfiles:=TCmdStrList.Create;
+          end
+        else
+          inherited;
       end;
 
 
