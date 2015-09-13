@@ -3,7 +3,8 @@
 #
 # Install file for Go32v2/Win32/OS2/EMX
 #
-# Warning: no package should contain more than 60 files
+# Warning: no package should contain more than 31 files (32-bit version
+# of TV/FV cannot hold more than 31 members of a checkbox group)
 
 title=Free Pascal Compiler 3.1.1
 version=3.1.1
@@ -89,51 +90,57 @@ package=ufcl-resdos.zip[ufcledos.zip],Free Component Library (FCL)-resources
 package=ubzip2dos.zip[ubz2dos.zip],Units for bzip2 decompression
 # Dos 31
 package=ufcl-jsdos.zip[ufcjsdos.zip],Free Component Library (FCL)-Javascript support
-# Dos 32
+
+#
+# Go32v2 packages 2nd part
+#
+pack=Dos/~G~o32v2-2
+filecheck=*dos.zip
+# Dos-2 1
 package=uhermesdos.zip[uhermdos.zip],Port of Hermes graphics library
-# Dos 33
+# Dos-2 2
 package=ufppkgdos.zip[ufppkdos.zip],Units for FPPkg packaging support
-# Dos 34
+# Dos-2 3
 package=ufcl-sounddos.zip[ufsnddos.zip],Free Component Library (FCL)-sound files
-# Dos 35
+# Dos-2 4
 package=ufcl-sdodos.zip[ufcsddos.zip],Free Component Library (FCL)-Service Data Objects
-# Dos 36
+# Dos-2 5
 package=ufcl-stldos.zip[ufcstdos.zip],Free Component Library (FCL)-generic container library
-# Dos 37
+# Dos-2 6
 package=ulibtardos.zip[ultardos.zip],Unit for .tar file handling
-# Dos 38
+# Dos-2 7
 package=urtl-consoledos.zip[urtlcdos.zip],RTL-console abstraction (keyboard, video & mouse)
-# Dos 39
+# Dos-2 8
 package=urtl-extrados.zip[urtledos.zip],RTL-additional units not needed for bootstrapping
-# Dos 40
+# Dos-2 9
 package=urtl-objpasdos.zip[urtlodos.zip],RTL-Object Pascal units (e.g. Delphi compatibility)
-# Dos 41
+# Dos-2 10
 package=urtl-unicodedos.zip[urtludos.zip],RTL-miscellaneous Unicode support units
-# Dos 42
+# Dos-2 11
 package=utils-fpcmkcfgdos.zip[fcmkdos.zip],Creation of Free Pascal configuration files
-# Dos 43
+# Dos-2 12
 package=utils-fpcmdos.zip[fpcmdos.zip],Generate Makefiles out of Makefile.fpc files
-# Dos 44
+# Dos-2 13
 package=utils-fpdocdos.zip[fpdocdos.zip],Free Pascal documentation generation utility
-# Dos 45
+# Dos-2 14
 package=utils-fppkgdos.zip[fppkgdos.zip],Free Pascal package repository utility
-# Dos 46
+# Dos-2 15
 package=utils-fprcpdos.zip[fprcpdos.zip],Free Pascal Resource Compiler Preprocessor
-# Dos 47
+# Dos-2 16
 package=utils-h2pasdos.zip[h2pasdos.zip],Create Pascal interface units from C headers
-# Dos 48
+# Dos-2 17
 package=utils-pas2fpmdos.zip[p2fmdos.zip],Generate fpmake.pp for Pascal source
-# Dos 49
+# Dos-2 18
 package=utils-pas2jnidos.zip[p2jndos.zip],Generate JNI bridge for Pascal code
-# Dos 50
+# Dos-2 19
 package=utils-pas2utdos.zip[p2utdos.zip],Pascal source to FPC Unit test generator
-# Dos 51
+# Dos-2 20
 package=utils-rmwaitdos.zip[rmwdos.zip],Remove (delete) file(s) with optional retries
-# Dos 52
+# Dos-2 21
 package=utils-lexyaccdos.zip[tplydos.zip],Compiler generator for TP and compatibles
-# Dos 53
+# Dos-2 22
 package=units-ptcdos.zip[uptcdos.zip],Free portable framebuffer library
-# Dos 54
+# Dos-2 23
 package=utils-dxegendos.zip[dxegdos.zip],Generation of D~X~E modules loadable at runtime
 
 #
@@ -196,6 +203,20 @@ package=units-openssl.i386-win32.zip,OpenSSL interface units
 package=units-hermes.i386-win32.zip,Port of Hermes graphics library
 # Win32 24
 package=units-fppkg.i386-win32.zip,Units for FPPkg packaging support
+# Win32 25
+package=units-fcl-sdo.i386-win32.zip,Free Component Library (FCL)-Service Data Objects
+# Win32 26
+package=units-fcl-stl.i386-win32.zip,Free Component Library (FCL)-generic container library
+# Win32 27
+package=units-libtar.i386-win32.zip,Unit for .tar file handling
+# Win32 28
+package=units-rtl-console.i386-win32.zip,RTL-console abstraction (keyboard, video & mouse)
+# Win32 29
+package=units-rtl-extra.i386-win32.zip,RTL-additional units not needed for bootstrapping
+# Win32 30
+package=units-rtl-objpas.i386-win32.zip,RTL-Object Pascal units (e.g. Delphi compatibility)
+# Win32 31
+package=units-rtl-unicode.i386-win32.zip,RTL-miscellaneous Unicode support units
 
 #
 # Win32 packages 2nd part
@@ -246,39 +267,25 @@ package=units-fcl-web.i386-win32.zip,Free Component Library (FCL)-Web
 package=units-fcl-xml.i386-win32.zip,Free Component Library (FCL)-XML
 # Win32-2 22
 package=units-fcl-json.i386-win32.zip,Free Component Library (FCL)-JSON interface
+# Win32-2
+#package=units-fcl-async.i386-win32.zip,Free Component Library (FCL)-asynchronous events
 # Win32-2 23
-package=units-fcl-async.i386-win32.zip,Free Component Library (FCL)-asynchronous events
-# Win32-2 24
 package=units-fcl-process.i386-win32.zip,Free Component Library (FCL)-process management
-# Win32-2 25
+# Win32-2 24
 package=units-chm.i386-win32.zip,Support for .chm files handling
-# Win32-2 26
+# Win32-2 25
 package=units-libgd.i386-win32.zip,GD library interface unit
-# Win32-2 27
+# Win32-2 26
 package=units-symbolic.i386-win32.zip,Symbolic (unit for parsing and evaluating expressions)
-# Win32-2 28
+# Win32-2 27
 package=units-fcl-res.i386-win32.zip,Free Component Library (FCL)-resources
-# Win32-2 29
+# Win32-2 28
 package=units-bzip2.i386-win32.zip,Units for bzip2 decompression
-# Win32-2 30
+# Win32-2 29
 package=units-fcl-js.i386-win32.zip,Free Component Library (FCL)-Javascript support
-# Win32-2 31
+# Win32-2 30
 package=units-fcl-sound.i386-win32.zip,Free Component Library (FCL)-sound files
-# Win32-2 32
-package=units-fcl-sdo.i386-win32.zip,Free Component Library (FCL)-Service Data Objects
-# Win32-2 33
-package=units-fcl-stl.i386-win32.zip,Free Component Library (FCL)-generic container library
-# Win32-2 34
-package=units-libtar.i386-win32.zip,Unit for .tar file handling
-# Win32-2 35
-package=units-rtl-console.i386-win32.zip,RTL-console abstraction (keyboard, video & mouse)
-# Win32-2 36
-package=units-rtl-extra.i386-win32.zip,RTL-additional units not needed for bootstrapping
-# Win32-2 37
-package=units-rtl-objpas.i386-win32.zip,RTL-Object Pascal units (e.g. Delphi compatibility)
-# Win32-2 38
-package=units-rtl-unicode.i386-win32.zip,RTL-miscellaneous Unicode support units
-# Win32-2 39
+# Win32-1 31
 package=utils-unicode.i386-win32.zip,Transformation of Unicode consortium data for FPC
 
 #
@@ -332,112 +339,112 @@ package=ufcl-passrcos2.zip[ufclsos2.zip],Free Component Library (FCL)-Pascal sou
 package=ufcl-registryos2.zip[ufclros2.zip],Free Component Library (FCL)-registry
 # OS/2 19
 package=ufcl-xmlos2.zip[ufclxos2.zip],Free Component Library (FCL)-XML
-# OS/2 20
+# OS/2
 #package=ufcl-webos2.zip[ufclwos2.zip],Free Component Library (FCL)-Web
-# OS/2 21
+# OS/2 20
 package=uhermesos2.zip[uhermos2.zip],Port of Hermes graphics library
-# OS/2 22
+# OS/2 21
 package=ufppkgos2.zip[ufppkos2.zip],Units for FPPkg packaging support
-# OS/2 23
+# OS/2 22
 package=uopensslos2.zip[uosslos2.zip],OpenSSL interface units
-# OS/2 24
+# OS/2 23
 package=utils-fpcmkcfgos2.zip[fcmkos2.zip],Creation of Free Pascal configuration files
-# OS/2 25
+# OS/2 24
 package=utils-fpdocos2.zip[fpdocos2.zip],Free Pascal documentation generation utility
-# OS/2 26
+# OS/2 25
 package=utils-fpmcos2.zip[fpmcos2.zip],Free Pascal Message Compiler
-# OS/2 27
+# OS/2 26
 package=utils-fppkgos2.zip[fppkgos2.zip],Free Pascal package repository utility
-# OS/2 28
+# OS/2 27
 package=utils-fprcpos2.zip[fprcpos2.zip],Free Pascal Resource Compiler Preprocessor
-# OS/2 29
+# OS/2 28
 package=utils-fpcresos2.zip[fpresos2.zip],Free Pascal Resource Converter
-# OS/2 30
+# OS/2 29
 package=utils-pas2fpmos2.zip[p2fmos2.zip],Generate fpmake.pp for Pascal source
-# OS/2 31
+# OS/2 30
 package=utils-pas2jnios2.zip[p2jnos2.zip],Generate JNI bridge for Pascal code
-# OS/2 32
+# OS/2 31
 package=utils-pas2utos2.zip[p2utos2.zip],Pascal source to FPC Unit test generator
-# OS/2 33
-package=utils-rmwaitos2.zip[rmwos2.zip],Remove (delete) file(s) with optional retries
-# OS/2 34
-package=utils-lexyaccos2.zip[tplyos2.zip],Compiler generator for TP and compatibles
-# OS/2 35
-package=utils-fpcmos2.zip[fpcmos2.zip],Generate Makefiles out of Makefile.fpc files
-# OS/2 36
-package=utils-unicodeos2.zip[ucodeos2.zip],Transformation of Unicode consortium data for FPC
 
 #
 # OS/2 packages 2nd part
 #
 pack=OS/~2~-2
 filecheck=*os2.zip
-# OS/2-2 1
+# OS/2-2
 #package=ugdbintos2.zip[ugdbos2.zip],GDB interfacing units
-# OS/2-2 2
+# OS/2-2 1
 package=upaszlibos2.zip[upzlos2.zip],PasZLib units
-# OS/2-2 3
+# OS/2-2 2
 package=uregexpros2.zip[uregos2.zip],Regular expression units
-# OS/2-2 4
+# OS/2-2 3
 package=urexxos2.zip,REXX SAA interface units
-# OS/2-2 5
+# OS/2-2 4
 package=uunzipos2.zip[uzipos2.zip],Unzip units
-# OS/2-2 6
+# OS/2-2
 #package=uftpapios2.zip[uftpos2.zip],FTP API interface units
-# OS/2-2 7
+# OS/2-2
 #package=uhwvideoos2.zip[uhwvos2.zip],HW Video interface units
-# OS/2-2 8
+# OS/2-2
 #package=ummtkos2.zip,MMOS/2 interface units
-# OS/2-2 9
+# OS/2-2 5
 package=ux11os2.zip,X Window (X11) interface units
-# OS/2-2 10
+# OS/2-2 6
 package=ugtk1os2.zip,GTK1 interface units
-# OS/2-2 11
+# OS/2-2 7
 package=ufpgtkos2.zip[ufpgtos2.zip],Lightweight OOP wrapper over GTK1
-# OS/2-2 12
+# OS/2-2 8
 package=uimlibos2.zip[uimlbos2.zip],ImLib interface units
-# OS/2-2 13
+# OS/2-2 9
 package=ulibpngos2.zip[ulpngos2.zip],LibPNG interface units
-# OS/2-2 14
+# OS/2-2 10
 package=utclos2.zip,TCL interface units
-# OS/2-2 15
+# OS/2-2 11
 package=uzlibos2.zip,ZLib interface units
-# OS/2-2 16
+# OS/2-2 12
 package=ufpmkunitos2.zip[ufpmkos2.zip],Units required for building fpmake.exe
-# OS/2-2 17
+# OS/2-2 13
 package=ufcl-jsonos2.zip[ufcljos2.zip],Free Component Library (FCL)-JSON interface
-# OS/2-2 18
-package=ufcl-asyncos2.zip[ufclaos2.zip],Free Component Library (FCL)-asynchronous events
-# OS/2-2 19
+# OS/2-2
+#package=ufcl-asyncos2.zip[ufclaos2.zip],Free Component Library (FCL)-asynchronous events
+# OS/2-2 14
 package=ufcl-processos2.zip[ufclpos2.zip],Free Component Library (FCL)-process management
-# OS/2-2 20
+# OS/2-2 15
 package=uchmos2.zip,Support for .chm files handling
-# OS/2-2 21
+# OS/2-2 16
 package=ulibgdos2.zip[ulgdos2.zip],GD library interface unit
-# OS/2-2 22
+# OS/2-2 17
 package=usymbolicos2.zip[usymbos2.zip],Symbolic (unit for parsing and evaluating expressions)
-# OS/2-2 23
+# OS/2-2 18
 package=ufcl-resos2.zip[ufcleos2.zip],Free Component Library (FCL)-resources
-# OS/2-2 24
+# OS/2-2 19
 package=ubzip2os2.zip[ubz2os2.zip],Units for bzip2 decompression
-# OS/2-2 25
+# OS/2-2 20
 package=ufcl-jsos2.zip[ufcjsos2.zip],Free Component Library (FCL)-Javascript support
-# OS/2-2 26
+# OS/2-2 21
 package=ufcl-soundos2.zip[ufsndos2.zip],Free Component Library (FCL)-sound files
-# OS/2-2 27
+# OS/2-2 22
 package=ufcl-sdoos2.zip[ufcsdos2.zip],Free Component Library (FCL)-Service Data Objects
-# OS/2-2 28
+# OS/2-2 23
 package=ufcl-stlos2.zip[ufcstos2.zip],Free Component Library (FCL)-generic container library
-# OS/2-2 29
+# OS/2-2 24
 package=ulibtaros2.zip[ultaros2.zip],Unit for .tar file handling
-# OS/2-2 30
+# OS/2-2 25
 package=urtl-consoleos2.zip[urtlcos2.zip],RTL-console abstraction (keyboard, video & mouse)
-# OS/2-2 31
+# OS/2-2 26
 package=urtl-extraos2.zip[urtleos2.zip],RTL-additional units not needed for bootstrapping
-# OS/2-2 32
+# OS/2-2 27
 package=urtl-objpasos2.zip[urtloos2.zip],RTL-Object Pascal units (e.g. Delphi compatibility)
-# OS/2-2 33
+# OS/2-2 28
 package=urtl-unicodeos2.zip[urtluos2.zip],RTL-miscellaneous Unicode support units
+# OS/2-2 29
+package=utils-rmwaitos2.zip[rmwos2.zip],Remove (delete) file(s) with optional retries
+# OS/2-2 30
+package=utils-lexyaccos2.zip[tplyos2.zip],Compiler generator for TP and compatibles
+# OS/2-2 31
+package=utils-fpcmos2.zip[fpcmos2.zip],Generate Makefiles out of Makefile.fpc files
+# OS/2-2 32
+package=utils-unicodeos2.zip[ucodeos2.zip],Transformation of Unicode consortium data for FPC
 
 
 
@@ -470,136 +477,136 @@ package=ufvemx.zip,Free ~V~ision (FV)
 # EMX 8
 package=uos2unitsemx.zip[uos2emx.zip],Units interfacing libraries delivered with OS/2/eCS
 #package=uclkdllemx.zip[uclkemx.zip],CLKDLL interface unit (eCS 1.1+)
-# EMX 9
+# EMX
 #package=ulvmemx.zip,LVM interface unit (OS/2 v4.5 / eCS)
-# EMX 10
+# EMX 9
 package=upasjpegemx.zip[upjpemx.zip],Pas~J~PEG units
-# EMX 11
+# EMX 10
 package=uhashemx.zip,Hash calculation units
-# EMX 12
+# EMX 11
 package=ufcl-baseemx.zip[ufclbemx.zip],Free Component Library (FCL)-base part
-# EMX 13
+# EMX 12
 package=ufcl-dbemx.zip[ufcldemx.zip],Free Component Library (FCL)-datasets
-# EMX 14
+# EMX 13
 package=ufcl-fpcunitemx.zip[ufcluemx.zip],Free Component Library (FCL)-FPCUnit
-# EMX 15
+# EMX 14
 package=ufcl-imageemx.zip[ufcliemx.zip],Free Component Library (FCL)-images
-# EMX 16
+# EMX 15
 package=ufcl-netemx.zip[ufclnemx.zip],Free Component Library (FCL)-network
-# EMX 17
+# EMX 16
 package=ufcl-passrcemx.zip[ufclsemx.zip],Free Component Library (FCL)-Pascal sources processing
-# EMX 18
+# EMX 17
 package=ufcl-registryemx.zip[ufclremx.zip],Free Component Library (FCL)-registry
-# EMX 19
+# EMX 18
 package=ufcl-xmlemx.zip[ufclxemx.zip],Free Component Library (FCL)-XML
-# EMX 20
+# EMX
 #package=ufcl-webemx.zip[ufclwemx.zip],Free Component Library (FCL)-Web
-# EMX 21
+# EMX 19
 package=uhermesemx.zip[uhermemx.zip],Port of Hermes graphics library
-# EMX 22
+# EMX 20
 package=ufppkgemx.zip[ufppkemx.zip],Units for FPPkg packaging support
-# EMX 23
+# EMX 21
 package=uopensslemx.zip[uosslemx.zip],OpenSSL interface units
-# EMX 24
+# EMX 22
 package=utils-fpcmkcfgemx.zip[fcmkemx.zip],Creation of Free Pascal configuration files
-# EMX 25
+# EMX 23
 package=utils-fpdocemx.zip[fpdocemx.zip],Free Pascal documentation generation utility.
-# EMX 26
+# EMX 24
 package=utils-fpmcemx.zip[fpmcemx.zip],Free Pascal Message Compiler.
-# EMX 27
+# EMX 25
 package=utils-fppkgemx.zip[fppkgemx.zip],Free Pascal package repository utility.
-# EMX 28
+# EMX 26
 package=utils-fprcpemx.zip[fprcpemx.zip],Free Pascal Resource Compiler Preprocessor
-# EMX 29
+# EMX 27
 package=utils-fpcresemx.zip[fpresemx.zip],Free Pascal Resource Converter
-# EMX 30
+# EMX 28
 package=utils-h2pasemx.zip[h2pasemx.zip],Create Pascal interface units from C headers
-# EMX 31
+# EMX 29
 package=utils-pas2fpmemx.zip[p2fmemx.zip],Generate fpmake.pp for Pascal source
-# EMX 32
+# EMX 30
 package=utils-pas2jniemx.zip[p2jnemx.zip],Generate JNI bridge for Pascal code
-# EMX 33
+# EMX 31
 package=utils-pas2utemx.zip[p2utemx.zip],Pascal source to FPC Unit test generator
-# EMX 34
-package=utils-rmwaitemx.zip[rmwemx.zip],Remove (delete) file(s) with optional retries
-# EMX 35
-package=utils-lexyaccemx.zip[tplyemx.zip],Compiler generator for TP and compatibles
-# EMX 36
-package=utils-fpcmemx.zip[fpcmemx.zip],Generate Makefiles out of Makefile.fpc files
-# EMX 37
-package=utils-unicodeemx.zip[ucodeemx.zip],Transformation of Unicode consortium data for FPC
 
 #
 # EMX packages 2nd part
 #
 pack=E~M~X-2
 filecheck=*emx.zip
-# EMX-2 1
+# EMX-2
 #package=ugdbintemx.zip[ugdbemx.zip],GDB interfacing units
-# EMX-2 2
+# EMX-2 1
 package=upaszlibemx.zip[upzlemx.zip],PasZLib units
-# EMX-2 3
+# EMX-2 2
 package=uregexpremx.zip[uregemx.zip],Regular expression units
-# EMX-2 4
+# EMX-2 3
 package=urexxemx.zip,REXX SAA interface units
-# EMX-2 5
+# EMX-2 4
 package=uunzipemx.zip[uzipemx.zip],Unzip units
-# EMX-2 6
+# EMX-2
 #package=uftpapiemx.zip[uftpemx.zip],FTP API interface units
-# EMX-2 7
+# EMX-2
 #package=uhwvideoemx.zip[uhwvemx.zip],HW Video interface units
-# EMX-2 8
+# EMX-2
 #package=ummtkemx.zip,MMOS/2 interface units
-# EMX-2 9
+# EMX-2 5
 package=ux11emx.zip,X Window (X11) interface units
-# EMX-2 10
+# EMX-2 6
 package=ugtk1emx.zip,GTK1 interface units
-# EMX-2 11
+# EMX-2 7
 package=units-fpgtkemx.zip[ufpgtemx.zip],Lightweight OOP wrapper over GTK1
-# EMX-2 12
+# EMX-2 8
 package=uimlibemx.zip[uimlbemx.zip],ImLib interface units
-# EMX-2 13
+# EMX-2 9
 package=ulibpngemx.zip[ulpngemx.zip],LibPNG interface units
-# EMX-2 14
+# EMX-2 10
 package=utclemx.zip,TCL interface units
-# EMX-2 15
+# EMX-2 11
 package=uzlibemx.zip,ZLib interface units
-# EMX-2 16
+# EMX-2 12
 package=ufpmkunitemx.zip[ufpmkemx.zip],Units required for building fpmake.exe
-# EMX-2 17
+# EMX-2 13
 package=ufcl-jsonemx.zip[ufcljemx.zip],Free Component Library (FCL)-JSON interface
-# EMX-2 18
-package=ufcl-asyncemx.zip[ufclaemx.zip],Free Component Library (FCL)-asynchronous events
-# EMX-2 19
+# EMX-2
+#package=ufcl-asyncemx.zip[ufclaemx.zip],Free Component Library (FCL)-asynchronous events
+# EMX-2 14
 package=ufcl-processemx.zip[ufclpemx.zip],Free Component Library (FCL)-process management
-# EMX-2 20
+# EMX-2 15
 package=uchmemx.zip,Support for .chm files handling
-# EMX-2 21
+# EMX-2 16
 package=ulibgdemx.zip[ulgdemx.zip],GD library interface unit
-# EMX-2 22
+# EMX-2 17
 package=usymbolicemx.zip[usymbemx.zip],Symbolic (unit for parsing and evaluating expressions)
-# EMX-2 23
+# EMX-2 18
 package=ufcl-resemx.zip[ufcleemx.zip],Free Component Library (FCL)-resources
-# EMX-2 24
+# EMX-2 19
 package=ubzip2emx.zip[ubz2emx.zip],Units for bzip2 decompression
-# EMX-2 25
+# EMX-2 20
 package=ufcl-jsemx.zip[ufcjsemx.zip],Free Component Library (FCL)-Javascript support
-# EMX-2 26
+# EMX-2 21
 package=ufcl-soundemx.zip[ufsndemx.zip],Free Component Library (FCL)-sound files
-# EMX-2 27
+# EMX-2 22
 package=ufcl-sdoemx.zip[ufcsdemx.zip],Free Component Library (FCL)-Service Data Objects
-# EMX-2 28
+# EMX-2 23
 package=ufcl-stlemx.zip[ufcstemx.zip],Free Component Library (FCL)-generic container library
-# EMX-2 29
+# EMX-2 24
 package=ulibtaremx.zip[ultaremx.zip],Unit for .tar file handling
-# EMX-2 30
+# EMX-2 25
 package=urtl-consoleemx.zip[urtlcemx.zip],RTL-console abstraction (keyboard, video & mouse)
-# EMX-2 31
+# EMX-2 26
 package=urtl-extraemx.zip[urtleemx.zip],RTL-additional units not needed for bootstrapping
-# EMX-2 32
+# EMX-2 27
 package=urtl-objpasemx.zip[urtloemx.zip],RTL-Object Pascal units (e.g. Delphi compatibility)
-# EMX-2 33
+# EMX-2 28
 package=urtl-unicodeemx.zip[urtluemx.zip],RTL-miscellaneous Unicode support units
+# EMX-2 29
+package=utils-rmwaitemx.zip[rmwemx.zip],Remove (delete) file(s) with optional retries
+# EMX-2 30
+package=utils-lexyaccemx.zip[tplyemx.zip],Compiler generator for TP and compatibles
+# EMX-2 31
+package=utils-fpcmemx.zip[fpcmemx.zip],Generate Makefiles out of Makefile.fpc files
+# EMX-3 32
+package=utils-unicodeemx.zip[ucodeemx.zip],Transformation of Unicode consortium data for FPC
 
 
 #
@@ -685,10 +692,6 @@ package=utils-pas2jni.source.zip[p2jnsrc.zip],Generate JNI bridge for Pascal cod
 package=utils-pas2ut.source.zip[p2utsrc.zip],Pascal source to FPC Unit test generator
 # Source 31
 package=utils-rmwait.source.zip[rmwsrc.zip],Remove (delete) file(s) with optional retries
-# Source 32
-package=utils-lexyacc.source.zip[tplysrc.zip],Compiler generator for TP and compatibles
-# Source 33
-package=utils-unicode.source.zip[ucodesrc.zip],Transformation of Unicode consortium data for FPC
 
 #
 # Source packages 2nd part
@@ -706,52 +709,56 @@ package=units-ibase.source.zip[uibassrc.zip],Interbase interface units sources
 # Source-2 5
 package=units-mysql.source.zip[umysqsrc.zip],MySQL interface units sources
 # Source-2 6
-#package=units-ftpapi.source.zip[uftpsrc.zip],OS/2 FTP API interface units
+package=utils-lexyacc.source.zip[tplysrc.zip],Compiler generator for TP and compatibles
 # Source-2 7
+package=utils-unicode.source.zip[ucodesrc.zip],Transformation of Unicode consortium data for FPC
+# Source-2
+#package=units-ftpapi.source.zip[uftpsrc.zip],OS/2 FTP API interface units
+# Source-2
 #package=units-hwvideo.source.zip[uhwvsrc.zip],OS/2 HWVideo interface units
-# Source-2 8
+# Source-2
 #package=units-mmtk.source.zip[ummtksrc.zip],MMOS/2 interface units sources
-# Source-2 9
+# Source-2 8
 package=units-os2units.source.zip[uos2src.zip],Units interfacing libraries delivered with OS/2/eCS
 #package=units-clkdll.source.zip[uclksrc.zip],CLKDLL interface unit (eCS 1.1+)
-# Source-2 10
+# Source-2 9
 #package=units-lvm.source.zip[ulvmsrc.zip],OS/2 LVM interface unit sources
 package=units-gtk1.source.zip[ugtk1src.zip],Header to the GTK widgetset (v1)
-# Source-2 11
+# Source-2 10
 package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units sources
-# Source-2 12
+# Source-2 11
 package=units-fv.source.zip[ufvsrc.zip],Free ~V~ision (FV) sources
-# Source-2 13
+# Source-2 12
 package=units-libpng.source.zip[ulpngsrc.zip],LibPNG interface units sources
-# Source-2 14
+# Source-2 13
 package=units-imlib.source.zip[uimlbsrc.zip],ImLib interface units sources
-# Source-2 15
+# Source-2 14
 package=units-fpgtk.source.zip[ufpgtsrc.zip],Lightweight OOP wrapper over GTK1 sources
-# Source-2 16
+# Source-2 15
 package=units-sqlite.source.zip[usqltsrc.zip],SQLite interface units sources
-# Source-2 17
+# Source-2 16
 package=units-fpmkunit.source.zip[ufpmksrc.zip],Units required for building fpmake.exe
-# Source-2 18
+# Source-2 17
 package=fcl-json.source.zip[ufcljsrc.zip],Free Component Library (FCL)-JSON interface
-# Source-2 19
+# Source-2 18
 package=fcl-async.source.zip[ufclasrc.zip],Free Component Library (FCL)-asynchronous events
-# Source-2 20
+# Source-2 19
 package=fcl-process.source.zip[ufclpsrc.zip],Free Component Library (FCL)-process management
-# Source-2 21
+# Source-2 20
 package=units-chm.source.zip[uchmsrc.zip],Support for .chm files handling
-# Source-2 22
+# Source-2 21
 package=units-libgd.source.zip[ulgdsrc.zip],GD library interface unit
-# Source-2 23
+# Source-2 22
 package=units-symbolic.source.zip[usymbsrc.zip],Symbolic (unit for parsing and evaluating expressions)
-# Source-2 24
+# Source-2 23
 package=units-fcl-res.source.zip[ufclesrc.zip],Free Component Library (FCL)-resources
-# Source-2 25
+# Source-2 24
 package=units-bzip2.source.zip[ubz2src.zip],Units for bzip2 decompression
-# Source-2 26
+# Source-2 25
 package=fcl-js.source.zip[ufcjssrc.zip],Free Component Library (FCL)-Javascript support
-# Source-2 27
+# Source-2 26
 package=units-ptc.source.zip[uptcsrc.zip],Free portable framebuffer library
-# Source-2 28
+# Source-2 27
 package=units-x11.source.zip[ux11src.zip],X Window (X11) interface units
 
 
