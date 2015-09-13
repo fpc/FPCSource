@@ -2347,18 +2347,6 @@ begin
                while j<=length(more) do
                 begin
                   case More[j] of
-                    '9' :
-                      begin
-                        if target_info.system in systems_linux then
-                          begin
-                            if UnsetBool(More, j, opt, false) then
-                              exclude(init_settings.globalswitches,cs_link_pre_binutils_2_19)
-                            else
-                              include(init_settings.globalswitches,cs_link_pre_binutils_2_19);
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
                     'c' : Cshared:=TRUE;
                     'd' : Dontlinkstdlibpath:=TRUE;
                     'e' :
