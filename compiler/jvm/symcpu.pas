@@ -379,7 +379,7 @@ implementation
         { create procdef }
         if not assigned(orgaccesspd) then
           begin
-            pd:=cprocdef.create(normal_function_level);
+            pd:=cprocdef.create(normal_function_level,true);
             if df_generic in obj.defoptions then
               include(pd.defoptions,df_generic);
             { method of this objectdef }
