@@ -1271,9 +1271,7 @@ implementation
                        vs_out :
                          begin
                            if not valid_for_formal_var(left,true) then
-                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list)
-                           else if (target_info.system in systems_managed_vm) then
-                             handlemanagedbyrefpara(left.resultdef);
+                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
                          end;
                        vs_const :
                          begin
