@@ -84,10 +84,13 @@ implementation
         if not handled then
           inherited;
 
-        case target_info.system of
-          system_i386_linux,system_i386_android:
-            location.reference.segment:=NR_GS;
-        end;
+        if (tf_section_threadvars in target_info.flags) then
+          begin
+            case target_info.system of
+              system_i386_linux,system_i386_android:
+                location.reference.segment:=NR_GS;
+            end;
+          end;
       end;
 
 
