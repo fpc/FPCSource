@@ -322,7 +322,7 @@ implementation
 
              { load the address of the result in hregister }
              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,fieldptrdef);
-             location_reset(tmpresloc,LOC_REGISTER,OS_ADDR);
+             location_reset(tmpresloc,LOC_REGISTER,def_cgsize(fieldptrdef));
              tmpresloc.register:=hregister;
              hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,fieldptrdef,respara,tmpresloc,true);
              respara.resetiftemp;
