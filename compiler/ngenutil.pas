@@ -786,7 +786,7 @@ implementation
           inc(count);
         end;
       { set the count at the start }
-      placeholder.replace(tai_const.Create_32bit_unaligned(count),u32inttype);
+      placeholder.replace(tai_const.Create_32bit(count),u32inttype);
       placeholder.free;
       { insert in data segment }
       sym:=current_asmdata.DefineAsmSymbol('FPC_THREADVARTABLES',AB_GLOBAL,AT_DATA);
