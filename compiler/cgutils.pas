@@ -141,9 +141,9 @@ unit cgutils;
                 { overlay a 64 Bit register type }
                 2 : (register64 : tregister64);
 {$endif cpu64bitalu}
-{$ifdef avr}
+{$ifdef cpu8bitalu}
                 3 : (registers : array[0..3] of tregister);
-{$endif avr}
+{$endif cpu8bitalu}
               );
             LOC_SUBSETREG,
             LOC_CSUBSETREG : (
