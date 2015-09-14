@@ -1,7 +1,7 @@
 {$ifdef Delphi}
-const msgtxt : array[0..000316] of string[240]=(
+const msgtxt : array[0..000317] of string[240]=(
 {$else Delphi}
-const msgtxt : array[0..000316,1..240] of char=(
+const msgtxt : array[0..000317,1..240] of char=(
 {$endif Delphi}
   '01000_T_Compiler: $1'#000+
   '01001_D_Compiler OS: $1'#000+
@@ -1722,36 +1722,39 @@ const msgtxt : array[0..000316,1..240] of char=(
   'P*2WT_Specify MPW tool type application (Classic Mac OS)'#010+
   '**2WX_Enable executable stack (Linux)'#010+
   '**1X_Executable options:'#010+
-  '**2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD',', L'+
-  'inux)'#010+
+  '**2X9_Generate linkerscript for GNU Binutils ld older than versio','n 2'+
+  '.19.1 (Linux)'#010+
+  '**2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Lin'+
+  'ux)'#010+
   '**2Xd_Do not search default library path (sometimes required for cross'+
   '-compiling when not using -XR)'#010+
   '**2Xe_Use external linker'#010+
-  '**2Xf_Substitute pthread library name for linking (BSD)'#010+
-  '**2Xg_Create debuginfo in a separate file and ad','d a debuglink sectio'+
-  'n to executable'#010+
+  '**2Xf_Substitute pthre','ad library name for linking (BSD)'#010+
+  '**2Xg_Create debuginfo in a separate file and add a debuglink section '+
+  'to executable'#010+
   '**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xi_Use internal linker'#010+
-  '**2XLA_Define library substitutions for linking'#010+
+  '**2XLA_Define library substi','tutions for linking'#010+
   '**2XLO_Define order of library linking'#010+
-  '**2XLD_Exclude default ','order of standard libraries'#010+
+  '**2XLD_Exclude default order of standard libraries'#010+
   '**2Xm_Generate link map'#010+
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
   's '#039'main'#039')'#010+
-  '**2Xn_Use target system native linker instead of GNU ld (Solaris, AIX)'+
-  #010+
-  'F*2Xp<x>_First search for the compiler binary',' in the directory <x>'#010+
+  '**2Xn_Use target system native lin','ker instead of GNU ld (Solaris, AI'+
+  'X)'#010+
+  'F*2Xp<x>_First search for the compiler binary in the directory <x>'#010+
   '**2XP<x>_Prepend the binutils names with the prefix <x>'#010+
   '**2Xr<x>_Set the linker'#039's rlink-path to <x> (needed for cross comp'+
-  'ile, see the ld manual for more information) (BeOS, Linux)'#010+
-  '**2XR<x>_Prepend <x> to all linker se','arch paths (BeOS, Darwin, FreeB'+
-  'SD, Linux, Mac OS, Solaris)'#010+
+  'ile, see the l','d manual for more information) (BeOS, Linux)'#010+
+  '**2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD'+
+  ', Linux, Mac OS, Solaris)'#010+
   '**2Xs_Strip all symbols from executable'#010+
-  '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
+  '**2XS_Try to link units statically (default, defines FPC_LI','NK_STATIC'+
+  ')'#010+
   '**2Xt_Link with static libraries (-static is passed to linker)'#010+
-  '**2Xv_Ge','nerate table for Virtual Entry calls'#010+
+  '**2Xv_Generate table for Virtual Entry calls'#010+
   '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_Show this help'#010+
-  '**1h_Shows this help without waiting'
+  '**1h_Shows this help without ','waiting'
 );
