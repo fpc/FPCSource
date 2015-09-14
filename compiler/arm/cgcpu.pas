@@ -661,7 +661,6 @@ unit cgcpu;
         if (tf_pic_uses_got in target_info.flags) and
            (cs_create_pic in current_settings.moduleswitches) then
           begin
-            include(current_procinfo.flags,pi_needs_got);
             r.refaddr:=addr_pic
           end
         else
@@ -2132,6 +2131,12 @@ unit cgcpu;
          mmpostfix: toppostfix;
          imm1, imm2: DWord;
       begin
+        { Release PIC register }
+        if (cs_create_pic in current_settings.moduleswitches) and
+           (tf_pic_uses_got in target_info.flags) and
+           (pi_needs_got in current_procinfo.flags)
+        then
+          list.concat(tai_regalloc.dealloc(current_procinfo.got,nil));
         if not(nostackframe) then
           begin
             registerarea:=0;
@@ -2339,6 +2344,9 @@ unit cgcpu;
            (pi_needs_got in current_procinfo.flags) and
            (tf_pic_uses_got in target_info.flags) then
           begin
+            a_reg_alloc(list,current_procinfo.got);  // Alloc PIC register
+            if getsupreg(current_procinfo.got) < first_int_imreg then
+              include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
             reference_reset(ref,4);
             current_asmdata.getglobaldatalabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
@@ -2445,12 +2453,12 @@ unit cgcpu;
               begin
                 tmpreg:=g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol));
                 if ref.offset<>0 then
-                  a_op_const_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg);
+                    a_op_const_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg);
                 indirection_done:=true;
               end
             else if (cs_create_pic in current_settings.moduleswitches) then
               if (tf_pic_uses_got in target_info.flags) then
-                current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym_offset(aitconst_got,ref.symbol,ref.offset))
+                current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_got,ref.symbol))
               else
                 begin
                   { ideally, we would want to generate
@@ -2474,7 +2482,7 @@ unit cgcpu;
               current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
           end
         else
-          current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
+            current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
         { load consts entry }
         if not indirection_done then
@@ -2492,6 +2500,8 @@ unit cgcpu;
                 tmpref.base:=current_procinfo.got;
                 tmpref.index:=tmpreg;
                 list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+                if ref.offset<>0 then
+                  a_op_const_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg);
               end;
           end;
 

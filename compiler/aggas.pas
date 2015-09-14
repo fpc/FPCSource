@@ -871,6 +871,8 @@ implementation
 {$endif cpu64bitaddr}
                  aitconst_got:
                    begin
+                     if tai_const(hp).symofs<>0 then
+                       InternalError(2015091401);  // No symbol offset is allowed for GOT.
                      writer.AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(GOT)');
                      writer.AsmLn;
                    end;

@@ -265,7 +265,7 @@ unit cpupi;
       begin
         { darwin doesn't use a got }
         if tf_pic_uses_got in target_info.flags then
-          got := cg.getaddressregister(list);
+          got := NR_PIC_OFFSET_REG;
       end;
 
 
