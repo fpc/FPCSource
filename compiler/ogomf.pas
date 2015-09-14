@@ -1533,6 +1533,7 @@ implementation
         if Fixup.TargetMethod in [ftmExternalIndex,ftmExternalIndexNoDisp] then
           begin
             sym:=objdata.symbolref(TOmfExternalNameElement(ExtDefs[Fixup.TargetDatum-1]).Name);
+            RelocType:=RELOC_NONE;
             case Fixup.LocationType of
               fltOffset:
                 case Fixup.Mode of
@@ -1548,12 +1549,12 @@ implementation
                   fmSelfRelative:
                     RelocType:=RELOC_SEGREL;
                 end;
-              else
-                begin
-                  InputError('Unsupported fixup location type '+IntToStr(Ord(Fixup.LocationType))+' in external reference to '+sym.Name);
-                  exit;
-                end;
             end;
+            if RelocType=RELOC_NONE then
+              begin
+                InputError('Unsupported fixup location type '+tostr(Ord(Fixup.LocationType))+' with mode '+tostr(ord(Fixup.Mode))+' in external reference to '+sym.Name);
+                exit;
+              end;
             reloc:=TOmfRelocation.CreateSymbol(Fixup.LocationOffset,sym,RelocType);
             objsec.ObjRelocations.Add(reloc);
             case Fixup.FrameMethod of
@@ -1576,6 +1577,7 @@ implementation
         else if Fixup.TargetMethod in [ftmSegmentIndex,ftmSegmentIndexNoDisp] then
           begin
             target_section:=TOmfObjSection(objdata.ObjSectionList[Fixup.TargetDatum-1]);
+            RelocType:=RELOC_NONE;
             case Fixup.LocationType of
               fltOffset:
                 case Fixup.Mode of
@@ -1591,12 +1593,12 @@ implementation
                   fmSelfRelative:
                     RelocType:=RELOC_SEGREL;
                 end;
-              else
-                begin
-                  InputError('Unsupported fixup location type '+IntToStr(Ord(Fixup.LocationType))+' in reference to segment '+target_section.Name);
-                  exit;
-                end;
             end;
+            if RelocType=RELOC_NONE then
+              begin
+                InputError('Unsupported fixup location type '+tostr(Ord(Fixup.LocationType))+' with location type '+tostr(ord(Fixup.LocationType))+' in reference to segment '+target_section.Name);
+                exit;
+              end;
             reloc:=TOmfRelocation.CreateSection(Fixup.LocationOffset,target_section,RelocType);
             objsec.ObjRelocations.Add(reloc);
             case Fixup.FrameMethod of
@@ -1624,6 +1626,7 @@ implementation
                 InputError('Fixup target group other than "DGROUP" is not supported');
                 exit;
               end;
+            RelocType:=RELOC_NONE;
             case Fixup.LocationType of
               fltBase:
                 case Fixup.Mode of
@@ -1632,12 +1635,12 @@ implementation
                   fmSelfRelative:
                     RelocType:=RELOC_DGROUPREL;
                 end;
-              else
-                begin
-                  InputError('Unsupported fixup location type '+IntToStr(Ord(Fixup.LocationType))+' in reference to group '+target_group.Name);
-                  exit;
-                end;
             end;
+            if RelocType=RELOC_NONE then
+              begin
+                InputError('Unsupported fixup location type '+IntToStr(Ord(Fixup.LocationType))+'with mode '+tostr(Ord(Fixup.Mode))+' in reference to group '+target_group.Name);
+                exit;
+              end;
             reloc:=TOmfRelocation.CreateSection(Fixup.LocationOffset,nil,RelocType);
             objsec.ObjRelocations.Add(reloc);
             case Fixup.FrameMethod of
