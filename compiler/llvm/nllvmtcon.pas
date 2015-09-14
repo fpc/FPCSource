@@ -171,6 +171,7 @@ implementation
       decl:=taillvmdecl.createdef(sym,def,fasmlist,section,alignment);
       if tcalo_is_lab in options then
         include(decl.flags,ldf_unnamed_addr);
+      { TODO: tcalo_no_dead_strip: add to @llvm.user meta-variable }
       newasmlist.concat(decl);
       fasmlist:=newasmlist;
     end;

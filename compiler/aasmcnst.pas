@@ -113,7 +113,9 @@ type
      { this symbol is the start of a block of data that should be
        dead-stripable/smartlinkable; may imply starting a new section, but
        not necessarily (depends on what the platform requirements are) }
-     tcalo_make_dead_strippable
+     tcalo_make_dead_strippable,
+     { this symbol should never be removed by the linker }
+     tcalo_no_dead_strip
    );
    ttcasmlistoptions = set of ttcasmlistoption;
 
@@ -865,7 +867,11 @@ implementation
        prelist:=tasmlist.create;
        { only now add items based on the symbolname, because it may be
          modified by the "section" specifier in case of a typed constant }
-       if tcalo_make_dead_strippable in options then
+
+       { both in case the data should be dead strippable and never dead
+         stripped, it should be in a separate section (so this property doesn't
+         affect other data) }
+       if ([tcalo_no_dead_strip,tcalo_make_dead_strippable]*options)<>[] then
          begin
            maybe_new_object_file(prelist);
            { we always need a new section here, since if we started a new
@@ -877,6 +883,18 @@ implementation
          new_section(prelist,section,secname,const_align(alignment))
        else
          prelist.concat(cai_align.Create(const_align(alignment)));
+
+       { On Darwin, use .reference to ensure the data doesn't get dead stripped.
+         On other platforms, the data must be in the .fpc section (which is
+         kept via the linker script) }
+       if tcalo_no_dead_strip in options then
+         begin
+           if target_info.system in systems_darwin then
+             prelist.concat(tai_directive.Create(asd_reference,sym.name))
+           else if section<>sec_fpc then
+             internalerror(2015101402);
+         end;
+
        if not(tcalo_is_lab in options) then
          if sym.bind=AB_GLOBAL then
            prelist.concat(tai_symbol.Create_Global(sym,0))
