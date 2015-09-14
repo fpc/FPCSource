@@ -38,7 +38,6 @@ interface
      public
       class procedure InsertResourceTablesTable; override;
       class procedure InsertResourceInfo(ResourcesUsed : boolean); override;
-      class procedure InsertMemorySizes; override;
       class procedure InsertObjectInfo; override;
     end;
 
@@ -80,12 +79,6 @@ implementation
   class procedure tllvmnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
     begin
       { not supported }
-    end;
-
-
-  class procedure tllvmnodeutils.InsertMemorySizes;
-    begin
-      { not required }
     end;
 
 

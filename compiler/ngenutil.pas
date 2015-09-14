@@ -1014,22 +1014,36 @@ implementation
 
 
   class procedure tnodeutils.InsertMemorySizes;
-{$IFDEF POWERPC}
     var
-      stkcookie: string;
-{$ENDIF POWERPC}
+      tcb: ttai_typedconstbuilder;
+      s: shortstring;
+      sym: tasmsymbol;
+      def: tdef;
     begin
-      maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       { Insert Ident of the compiler in the .fpc.version section }
-      new_section(current_asmdata.asmlists[al_globals],sec_fpc,'version',const_align(32));
-      current_asmdata.asmlists[al_globals].concat(Tai_string.Create('FPC '+full_version_string+
-        ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
+      tcb:=ctai_typedconstbuilder.create([tcalo_no_dead_strip]);
+      s:='FPC '+full_version_string+
+        ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname;
+      def:=carraydef.getreusable(cansichartype,length(s));
+      tcb.maybe_begin_aggregate(def);
+      tcb.emit_tai(Tai_string.Create(s),def);
+      tcb.maybe_end_aggregate(def);
+      sym:=current_asmdata.DefineAsmSymbol('__fpc_ident',AB_LOCAL,AT_DATA);
+      current_asmdata.asmlists[al_globals].concatlist(
+        tcb.get_final_asmlist(sym,def,sec_fpc,'version',const_align(32))
+      );
+      tcb.free;
+
       if not(tf_no_generic_stackcheck in target_info.flags) then
         begin
           { stacksize can be specified and is now simulated }
-          new_section(current_asmdata.asmlists[al_globals],sec_data,'__stklen', sizeof(pint));
-          current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(pint)));
-          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(stacksize));
+          tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
+          tcb.emit_tai(Tai_const.Create_pint(stacksize),ptruinttype);
+          sym:=current_asmdata.DefineAsmSymbol('__stklen',AB_GLOBAL,AT_DATA);
+          current_asmdata.asmlists[al_globals].concatlist(
+            tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__stklen',sizeof(pint))
+          );
+          tcb.free;
         end;
 {$IFDEF POWERPC}
       { AmigaOS4 "stack cookie" support }
@@ -1038,33 +1052,48 @@ implementation
          { this symbol is needed to ignite powerpc amigaos' }
          { stack allocation magic for us with the given stack size. }
          { note: won't work for m68k amigaos or morphos. (KB) }
-         str(stacksize,stkcookie);
-         stkcookie:='$STACK: '+stkcookie+#0;
-         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-         new_section(current_asmdata.asmlists[al_globals],sec_data,'__stack_cookie',length(stkcookie));
-         current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__stack_cookie',AT_DATA,length(stkcookie)));
-         current_asmdata.asmlists[al_globals].concat(Tai_string.Create(stkcookie));
+         str(stacksize,s);
+         s:='$STACK: '+s+#0;
+         def:=carraydef.getreusable(cansichartype,length(s));
+         tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+         tcb.maybe_begin_aggregate(def);
+         tcb.emit_tai(Tai_string.Create(s),def);
+         tcb.maybe_end_aggregate(def);
+         sym:=current_asmdata.DefineAsmSymbol('__stack_cookie',AB_GLOBAL,AT_DATA);
+         current_asmdata.asmlists[al_globals].concatlist(
+           tcb.get_final_asmlist(sym,def,sec_data,'__stack_cookie',sizeof(pint))
+         );
+         tcb.free;
        end;
 {$ENDIF POWERPC}
       { Initial heapsize }
-      maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,'__heapsize',const_align(sizeof(pint)));
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,sizeof(pint)));
-      current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(heapsize));
+      tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
+      tcb.emit_tai(Tai_const.Create_pint(heapsize),ptruinttype);
+      sym:=current_asmdata.DefineAsmSymbol('__heapsize',AB_GLOBAL,AT_DATA);
+      current_asmdata.asmlists[al_globals].concatlist(
+        tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__heapsize',sizeof(pint))
+      );
+      tcb.free;
 
       { allocate an initial heap on embedded systems }
       if target_info.system in systems_embedded then
         begin
+          { tai_datablock cannot yet be handled via the high level typed const
+            builder, because it implies the generation of a symbol, while this
+            is separate in the builder }
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
           new_section(current_asmdata.asmlists[al_globals],sec_bss,'__fpc_initialheap',current_settings.alignment.varalignmax);
           current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize));
         end;
 
       { Valgrind usage }
-      maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_valgrind',const_align(sizeof(pint)));
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__fpc_valgrind',AT_DATA,sizeof(boolean)));
-      current_asmdata.asmlists[al_globals].concat(Tai_const.create_8bit(byte(cs_gdb_valgrind in current_settings.globalswitches)));
+      tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
+      tcb.emit_ord_const(byte(cs_gdb_valgrind in current_settings.globalswitches),u8inttype);
+      sym:=current_asmdata.DefineAsmSymbol('__fpc_valgrind',AB_GLOBAL,AT_DATA);
+      current_asmdata.asmlists[al_globals].concatlist(
+        tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__fpc_valgrind',sizeof(pint))
+      );
+      tcb.free;
     end;
 
 
