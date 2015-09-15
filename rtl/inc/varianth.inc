@@ -125,10 +125,8 @@ type
                      varany :  (vany : pointer);
                      vararray : (varray : pvararray);
                      varbyref : (vpointer : pointer);
-{$ifdef FPC_HASFIXED64BITVARIANT}
                      { unused so far, only to fill up space }
                      varrecord : (vrecord : pointer;precinfo : pointer);
-{$endif FPC_HASFIXED64BITVARIANT}
                 );
                1:
                  (vlongs : array[0..2] of longint);
