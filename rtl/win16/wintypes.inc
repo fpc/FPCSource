@@ -686,3 +686,42 @@ const
 { ExtFloodFill style flags }
   FLOODFILLBORDER  = 0;
   FLOODFILLSURFACE = 1;
+
+{ Text support }
+  ETO_GRAYED  = $0001;
+  ETO_OPAQUE  = $0002;
+  ETO_CLIPPED = $0004;
+
+{ DrawText() Format Flags }
+  DT_TOP             = $0000;
+  DT_LEFT            = $0000;
+  DT_CENTER          = $0001;
+  DT_RIGHT           = $0002;
+  DT_VCENTER         = $0004;
+  DT_BOTTOM          = $0008;
+  DT_WORDBREAK       = $0010;
+  DT_SINGLELINE      = $0020;
+  DT_EXPANDTABS      = $0040;
+  DT_TABSTOP         = $0080;
+  DT_NOCLIP          = $0100;
+  DT_EXTERNALLEADING = $0200;
+  DT_CALCRECT        = $0400;
+  DT_NOPREFIX        = $0800;
+  DT_INTERNAL        = $1000;
+
+{ Background Modes }
+  TRANSPARENT = 1;
+  OPAQUE      = 2;
+
+{ Text Alignment Options }
+  TA_NOUPDATECP = $0000;
+  TA_UPDATECP   = $0001;
+  TA_LEFT       = $0000;
+  TA_RIGHT      = $0002;
+  TA_CENTER     = $0006;
+  TA_TOP        = $0000;
+  TA_BOTTOM     = $0008;
+  TA_BASELINE   = $0018;
+
+type
+  GRAYSTRINGPROC = function(hdc: HDC; lpData: LPARAM; cch: SmallInt): BOOL; far;

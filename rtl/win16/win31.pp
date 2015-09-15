@@ -265,6 +265,12 @@ function GetBrushOrgEx(hDC: HDC; lpPoint: LPPOINT): BOOL; external 'GDI';
 function MoveToEx(hdc: HDC; x, y: SmallInt; lpPoint: LPPOINT): BOOL; external 'GDI';
 function GetCurrentPositionEx(hdc: HDC; lpPoint: LPPOINT): BOOL; external 'GDI';
 
+{ Text support }
+function GetTextExtentPoint(hdc: HDC; lpszString: LPCSTR; cbString: SmallInt; lpSize: LPSIZE): BOOL; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetTextExtentPoint(hdc: HDC; lpszString: LPCSTR; cbString: SmallInt; var Size: SIZE): BOOL; external 'GDI';
+{$endif}
+
 implementation
 
 end.

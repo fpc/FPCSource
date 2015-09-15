@@ -541,3 +541,48 @@ procedure DrawFocusRect(hdc: HDC; lprc: LPRECT); external 'USER';
 {$ifdef VAR_PARAMS_ARE_FAR}
 procedure DrawFocusRect(hdc: HDC; var rc: RECT); external 'USER';
 {$endif}
+
+{ Text support }
+
+function TextOut(hdc: HDC; nXStart, nYStart: SmallInt; lpszString: LPCSTR; cbString: SmallInt): BOOL; external 'GDI';
+function TabbedTextOut(hdc: HDC; xPosStart, yPosStart: SmallInt; lpszString: LPCSTR; cbString, cTabStops: SmallInt; lpnTabPositions: LPINT; nTabOrigin: SmallInt): LONG; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function TabbedTextOut(hdc: HDC; xPosStart, yPosStart: SmallInt; lpszString: LPCSTR; cbString, cTabStops: SmallInt; var nTabPositions; nTabOrigin: SmallInt): LONG; external 'USER';
+{$endif}
+function ExtTextOut(hdc: HDC; nXStart, nYStart: SmallInt; fuOptions: UINT; lprc: LPRECT; lpszString: LPCSTR; cbString: UINT; lpDx: LPINT): BOOL; external 'GDI';
+
+function GetTextExtent(hdc: HDC; lpszString: LPCSTR; cbString: SmallInt): DWORD; external 'GDI';
+function GetTabbedTextExtent(hdc: HDC; lpszString: LPCSTR; cChars, cTabs: SmallInt; lpnTabs: LPINT): DWORD; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetTabbedTextExtent(hdc: HDC; lpszString: LPCSTR; cChars, cTabs: SmallInt; var nTabs): DWORD; external 'USER';
+{$endif}
+
+function DrawText(hdc: HDC; lpsz: LPCSTR; cb: SmallInt; lprc: LPRECT; fuFormat: UINT): SmallInt; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function DrawText(hdc: HDC; lpsz: LPCSTR; cb: SmallInt; var rc: RECT; fuFormat: UINT): SmallInt; external 'USER';
+{$endif}
+
+function GrayString(hdc: HDC; hbr: HBRUSH; gsprc: GRAYSTRINGPROC; lParam: LPARAM; cch, x, y, cx, cy: SmallInt): BOOL; external 'USER';
+function GrayString(hdc: HDC; hbr: HBRUSH; gsprc: TFarProc; lParam: LPARAM; cch, x, y, cx, cy: SmallInt): BOOL; external 'USER';
+
+function GetCharWidth(hdc: HDC; uFirstChar, uLastChar: UINT; lpnWidths: LPINT): BOOL; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetCharWidth(hdc: HDC; uFirstChar, uLastChar: UINT; var nWidths): BOOL; external 'GDI';
+{$endif}
+
+function SetTextColor(hdc: HDC; clrref: COLORREF): COLORREF; external 'GDI';
+function GetTextColor(hdc: HDC): COLORREF; external 'GDI';
+
+function SetBkColor(hdc: HDC; clrref: COLORREF): COLORREF; external 'GDI';
+function GetBkColor(hdc: HDC): COLORREF; external 'GDI';
+
+function SetBkMode(hdc: HDC; fnBkMode: SmallInt): SmallInt; external 'GDI';
+function GetBkMode(hdc: HDC): SmallInt; external 'GDI';
+
+function SetTextAlign(hdc: HDC; fuAlign: UINT): UINT; external 'GDI';
+function GetTextAlign(hdc: HDC): UINT; external 'GDI';
+
+function SetTextCharacterExtra(hdc: HDC; nExtraSpace: SmallInt): SmallInt; external 'GDI';
+function GetTextCharacterExtra(hdc: HDC): SmallInt; external 'GDI';
+
+function SetTextJustification(hdc: HDC; nExtraSpace, cBreakChars: SmallInt): SmallInt; external 'GDI';
