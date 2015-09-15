@@ -2030,6 +2030,9 @@ implementation
             is_intregable:=is_smallset(self);
           recorddef:
             begin
+{$ifdef llvm}
+              is_intregable:=false;
+{$else llvm}
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
@@ -2039,6 +2042,7 @@ implementation
                   not trecorddef(self).contains_float_field) or
                   (recsize <= sizeof(asizeint))) and
                 not needs_inittable;
+{$endif llvm}
             end;
         end;
      end;
