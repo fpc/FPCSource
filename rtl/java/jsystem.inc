@@ -68,13 +68,9 @@ Const
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
-  {$ifdef FPC_OBJFPC_EXTENDED_IF}
-    {$if High(errorcode)<>maxExitCode}
-      {$define FPC_LIMITED_EXITCODE}
-    {$endif}
-  {$else}
+  {$if High(errorcode)<>maxExitCode}
     {$define FPC_LIMITED_EXITCODE}
-  {$endif FPC_OBJFPC_EXTENDED_IF}
+  {$endif}
 {$endif FPC_HAS_FEATURE_EXITCODE}
 
 Procedure HandleError (Errno : Longint); external name 'fpc_handleerror';
