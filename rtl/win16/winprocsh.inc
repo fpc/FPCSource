@@ -586,3 +586,30 @@ function SetTextCharacterExtra(hdc: HDC; nExtraSpace: SmallInt): SmallInt; exter
 function GetTextCharacterExtra(hdc: HDC): SmallInt; external 'GDI';
 
 function SetTextJustification(hdc: HDC; nExtraSpace, cBreakChars: SmallInt): SmallInt; external 'GDI';
+
+{ Font support }
+
+function CreateFont(nHeight, nWidth, nEscapement, nOrientation, fnWeight: SmallInt;
+                    fbItalic, fbUnderline, fbStrikeOut, fbCharSet,
+                    fbOutputPrecision, fbClipPrecision, fbQuality, fbPitchAndFamily: BYTE; lpszFace: LPCSTR): HFONT; external 'GDI';
+function CreateFontIndirect(lplf: LPLOGFONT): HFONT; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function CreateFontIndirect(var lf: LOGFONT): HFONT; external 'GDI';
+{$endif}
+
+function SetMapperFlags(hdc: HDC; fdwMatch: DWORD): DWORD; external 'GDI';
+
+function AddFontResource(lpszFilename: LPCSTR): SmallInt; external 'GDI';
+function RemoveFontResource(lpszFile: LPCSTR): BOOL; external 'GDI';
+
+function GetTextFace(hdc: HDC; cbBuffer: SmallInt; lpszFace: LPSTR): SmallInt; external 'GDI';
+
+function GetAspectRatioFilter(hdc: HDC): DWORD; external 'GDI';
+
+function GetTextMetrics(hdc: HDC; lptm: LPTEXTMETRIC): BOOL; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetTextMetrics(hdc: HDC; var tm: TEXTMETRIC): BOOL; external 'GDI';
+{$endif}
+
+function EnumFonts(hdc: HDC; lpszFace: LPCSTR; fntenmprc: OLDFONTENUMPROC; lParam: LPARAM): SmallInt; external 'GDI';
+function EnumFonts(hdc: HDC; lpszFace: LPCSTR; fntenmprc: TFarProc; lParam: LPARAM): SmallInt; external 'GDI';

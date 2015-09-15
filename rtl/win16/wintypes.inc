@@ -725,3 +725,144 @@ const
 
 type
   GRAYSTRINGPROC = function(hdc: HDC; lpData: LPARAM; cch: SmallInt): BOOL; far;
+
+{ Font support }
+
+const
+{ Logical Font }
+  LF_FACESIZE = 32;
+
+type
+  PLOGFONT = ^LOGFONT;
+  NPLOGFONT = ^LOGFONT; near;
+  LPLOGFONT = ^LOGFONT; far;
+  LOGFONT = record
+    lfHeight: SmallInt;
+    lfWidth: SmallInt;
+    lfEscapement: SmallInt;
+    lfOrientation: SmallInt;
+    lfWeight: SmallInt;
+    lfItalic: BYTE;
+    lfUnderline: BYTE;
+    lfStrikeOut: BYTE;
+    lfCharSet: BYTE;
+    lfOutPrecision: BYTE;
+    lfClipPrecision: BYTE;
+    lfQuality: BYTE;
+    lfPitchAndFamily: BYTE;
+    lfFaceName: array [0..LF_FACESIZE-1] of char;
+  end;
+  TLogFont = LOGFONT;
+
+const
+{ weight values }
+  FW_DONTCARE   = 0;
+  FW_THIN       = 100;
+  FW_EXTRALIGHT = 200;
+  FW_LIGHT      = 300;
+  FW_NORMAL     = 400;
+  FW_MEDIUM     = 500;
+  FW_SEMIBOLD   = 600;
+  FW_BOLD       = 700;
+  FW_EXTRABOLD  = 800;
+  FW_HEAVY      = 900;
+
+  FW_ULTRALIGHT = FW_EXTRALIGHT;
+  FW_REGULAR    = FW_NORMAL;
+  FW_DEMIBOLD   = FW_SEMIBOLD;
+  FW_ULTRABOLD  = FW_EXTRABOLD;
+  FW_BLACK      = FW_HEAVY;
+
+{ CharSet values }
+  ANSI_CHARSET        = 0;
+  DEFAULT_CHARSET     = 1;
+  SYMBOL_CHARSET      = 2;
+  SHIFTJIS_CHARSET    = 128;
+  HANGEUL_CHARSET     = 129;
+  CHINESEBIG5_CHARSET = 136;
+  OEM_CHARSET         = 255;
+
+{ OutPrecision values }
+  OUT_DEFAULT_PRECIS   = 0;
+  OUT_STRING_PRECIS    = 1;
+  OUT_CHARACTER_PRECIS = 2;
+  OUT_STROKE_PRECIS    = 3;
+
+{ ClipPrecision values }
+  CLIP_DEFAULT_PRECIS   = $00;
+  CLIP_CHARACTER_PRECIS = $01;
+  CLIP_STROKE_PRECIS    = $02;
+  CLIP_MASK             = $0F;
+
+{ Quality values }
+  DEFAULT_QUALITY = 0;
+  DRAFT_QUALITY   = 1;
+  PROOF_QUALITY   = 2;
+
+{ PitchAndFamily pitch values (low 4 bits) }
+  DEFAULT_PITCH  = $00;
+  FIXED_PITCH    = $01;
+  VARIABLE_PITCH = $02;
+
+{ PitchAndFamily family values (high 4 bits) }
+  FF_DONTCARE   = $00;
+  FF_ROMAN      = $10;
+  FF_SWISS      = $20;
+  FF_MODERN     = $30;
+  FF_SCRIPT     = $40;
+  FF_DECORATIVE = $50;
+
+{ Stock fonts for use with GetStockObject() }
+  OEM_FIXED_FONT      = 10;
+  ANSI_FIXED_FONT     = 11;
+  ANSI_VAR_FONT       = 12;
+  SYSTEM_FONT         = 13;
+  DEVICE_DEFAULT_FONT = 14;
+  DEFAULT_PALETTE     = 15;
+  SYSTEM_FIXED_FONT   = 16;
+
+  ASPECT_FILTERING    = $00000001;
+
+  WM_FONTCHANGE       = $001D;
+
+type
+  PTEXTMETRIC = ^TEXTMETRIC;
+  NPTEXTMETRIC = ^TEXTMETRIC; near;
+  LPTEXTMETRIC = ^TEXTMETRIC; far;
+  TEXTMETRIC = record
+    tmHeight: SmallInt;
+    tmAscent: SmallInt;
+    tmDescent: SmallInt;
+    tmInternalLeading: SmallInt;
+    tmExternalLeading: SmallInt;
+    tmAveCharWidth: SmallInt;
+    tmMaxCharWidth: SmallInt;
+    tmWeight: SmallInt;
+    tmItalic: BYTE;
+    tmUnderlined: BYTE;
+    tmStruckOut: BYTE;
+    tmFirstChar: BYTE;
+    tmLastChar: BYTE;
+    tmDefaultChar: BYTE;
+    tmBreakChar: BYTE;
+    tmPitchAndFamily: BYTE;
+    tmCharSet: BYTE;
+    tmOverhang: SmallInt;
+    tmDigitizedAspectX: SmallInt;
+    tmDigitizedAspectY: SmallInt;
+  end;
+  TTextMetric = TEXTMETRIC;
+
+const
+{ tmPitchAndFamily values }
+  TMPF_FIXED_PITCH = $01;
+  TMPF_VECTOR      = $02;
+  TMPF_DEVICE      = $08;
+
+type
+  OLDFONTENUMPROC = function(lplf: LPLOGFONT; lptm: LPTEXTMETRIC; FontType: SmallInt; lpData: LPARAM): SmallInt; far;
+
+const
+{ EnumFonts font type values }
+  RASTER_FONTTYPE = $0001;
+  DEVICE_FONTTYPE = $0002;

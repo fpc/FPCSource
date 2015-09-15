@@ -190,6 +190,234 @@ const
   COLOR_INACTIVECAPTIONTEXT = 19;
   COLOR_BTNHIGHLIGHT        = 20;
 
+{ Font support }
+{ OutPrecision values }
+  OUT_TT_PRECIS      = 4;
+  OUT_DEVICE_PRECIS  = 5;
+  OUT_RASTER_PRECIS  = 6;
+  OUT_TT_ONLY_PRECIS = 7;
+
+{ ClipPrecision values }
+  CLIP_LH_ANGLES = $10;
+  CLIP_TT_ALWAYS = $20;
+  CLIP_EMBEDDED  = $80;
+
+{ tmPitchAndFamily values }
+  TMPF_TRUETYPE = $04;
+
+type
+  PPANOSE = ^PANOSE;
+  LPPANOSE = ^PANOSE; far;
+  PANOSE = record
+    bFamilyType: BYTE;
+    bSerifStyle: BYTE;
+    bWeight: BYTE;
+    bProportion: BYTE;
+    bContrast: BYTE;
+    bStrokeVariation: BYTE;
+    bArmStyle: BYTE;
+    bLetterform: BYTE;
+    bMidline: BYTE;
+    bXHeight: BYTE;
+  end;
+  TPanose = PANOSE;
+
+  POUTLINETEXTMETRIC = ^OUTLINETEXTMETRIC;
+  LPOUTLINETEXTMETRIC = ^OUTLINETEXTMETRIC; far;
+  OUTLINETEXTMETRIC = record
+    otmSize: UINT;
+    otmTextMetrics: TEXTMETRIC;
+    otmFiller: BYTE;
+    otmPanoseNumber: PANOSE;
+    otmfsSelection: UINT;
+    otmfsType: UINT;
+    otmsCharSlopeRise: SmallInt;
+    otmsCharSlopeRun: SmallInt;
+    otmItalicAngle: SmallInt;
+    otmEMSquare: UINT;
+    otmAscent: SmallInt;
+    otmDescent: SmallInt;
+    otmLineGap: UINT;
+    otmsCapEmHeight: UINT;
+    otmsXHeight: UINT;
+    otmrcFontBox: RECT;
+    otmMacAscent: SmallInt;
+    otmMacDescent: SmallInt;
+    otmMacLineGap: UINT;
+    otmusMinimumPPEM: UINT;
+    otmptSubscriptSize: POINT;
+    otmptSubscriptOffset: POINT;
+    otmptSuperscriptSize: POINT;
+    otmptSuperscriptOffset: POINT;
+    otmsStrikeoutSize: UINT;
+    otmsStrikeoutPosition: SmallInt;
+    otmsUnderscorePosition: SmallInt;
+    otmsUnderscoreSize: SmallInt;
+    otmpFamilyName: PSTR;
+    otmpFaceName: PSTR;
+    otmpStyleName: PSTR;
+    otmpFullName: PSTR;
+  end;
+  TOutlineTextMetric = OUTLINETEXTMETRIC;
+
+{ Structure passed to FONTENUMPROC }
+{ NOTE: NEWTEXTMETRIC is the same as TEXTMETRIC plus 4 new fields }
+  PNEWTEXTMETRIC = ^NEWTEXTMETRIC;
+  NPNEWTEXTMETRIC = ^NEWTEXTMETRIC; near;
+  LPNEWTEXTMETRIC = ^NEWTEXTMETRIC; far;
+  NEWTEXTMETRIC = record
+    tmHeight: SmallInt;
+    tmAscent: SmallInt;
+    tmDescent: SmallInt;
+    tmInternalLeading: SmallInt;
+    tmExternalLeading: SmallInt;
+    tmAveCharWidth: SmallInt;
+    tmMaxCharWidth: SmallInt;
+    tmWeight: SmallInt;
+    tmItalic: BYTE;
+    tmUnderlined: BYTE;
+    tmStruckOut: BYTE;
+    tmFirstChar: BYTE;
+    tmLastChar: BYTE;
+    tmDefaultChar: BYTE;
+    tmBreakChar: BYTE;
+    tmPitchAndFamily: BYTE;
+    tmCharSet: BYTE;
+    tmOverhang: SmallInt;
+    tmDigitizedAspectX: SmallInt;
+    tmDigitizedAspectY: SmallInt;
+    ntmFlags: DWORD;
+    ntmSizeEM: UINT;
+    ntmCellHeight: UINT;
+    ntmAvgWidth: UINT;
+  end;
+  TNewTextMetric = NEWTEXTMETRIC;
+
+const
+{ ntmFlags field flags }
+  NTM_REGULAR = $00000040;
+  NTM_BOLD    = $00000020;
+  NTM_ITALIC  = $00000001;
+
+  LF_FULLFACESIZE = 64;
+
+type
+{ Structure passed to FONTENUMPROC }
+  PENUMLOGFONT = ^ENUMLOGFONT;
+  LPENUMLOGFONT = ^ENUMLOGFONT; far;
+  ENUMLOGFONT = record
+    elfLogFont: LOGFONT;
+    elfFullName: array [0..LF_FULLFACESIZE-1] of char;
+    elfStyle: array [0..LF_FACESIZE-1] of char;
+  end;
+  TEnumLogFont = ENUMLOGFONT;
+
+  FONTENUMPROC = function(lpelf: LPENUMLOGFONT; lpntm: LPNEWTEXTMETRIC; FontType: SmallInt; lpData: LPARAM): SmallInt; far;
+
+const
+{ EnumFonts font type values }
+  TRUETYPE_FONTTYPE = $0004;
+
+type
+  PGLYPHMETRICS = ^GLYPHMETRICS;
+  LPGLYPHMETRICS = ^GLYPHMETRICS; far;
+  GLYPHMETRICS = record
+    gmBlackBoxX: UINT;
+    gmBlackBoxY: UINT;
+    gmptGlyphOrigin: POINT;
+    gmCellIncX: SmallInt;
+    gmCellIncY: SmallInt;
+  end;
+  TGlyphMetrics = GLYPHMETRICS;
+
+  PFIXED = ^FIXED;
+  LPFIXED = ^FIXED; far;
+  FIXED = record
+    fract: UINT;
+    value: SmallInt;
+  end;
+  TFixed = FIXED;
+
+  PMAT2 = ^MAT2;
+  LPMAT2 = ^MAT2; far;
+  MAT2 = record
+    eM11: FIXED;
+    eM12: FIXED;
+    eM21: FIXED;
+    eM22: FIXED;
+  end;
+  TMat2 = MAT2;
+
+const
+{ GetGlyphOutline constants }
+  GGO_METRICS     =  0;
+  GGO_BITMAP      =  1;
+  GGO_NATIVE      =  2;
+
+  TT_POLYGON_TYPE = 24;
+
+  TT_PRIM_LINE    =  1;
+  TT_PRIM_QSPLINE =  2;
+
+type
+  PPOINTFX = ^POINTFX;
+  LPPOINTFX = ^POINTFX; far;
+  POINTFX = record
+    x: FIXED;
+    y: FIXED;
+  end;
+  TPointFX = POINTFX;
+
+  PTTPOLYCURVE = ^TTPOLYCURVE;
+  LPTTPOLYCURVE = ^TTPOLYCURVE; far;
+  TTPOLYCURVE = record
+    wType: UINT;
+    cpfx: UINT;
+    apfx: array [0..0] of POINTFX;
+  end;
+  TTTPOLYCURVE = TTPolyCurve;
+
+  PTTPOLYGONHEADER = ^TTPOLYGONHEADER;
+  LPTTPOLYGONHEADER = ^TTPOLYGONHEADER; far;
+  TTPOLYGONHEADER = record
+    cb: DWORD;
+    dwType: DWORD;
+    pfxStart: POINTFX;
+  end;
+  TTTPolygonHeader = TTPOLYGONHEADER;
+
+  PABC = ^ABC;
+  LPABC = ^ABC; far;
+  ABC = record
+    abcA: SmallInt;
+    abcB: UINT;
+    abcC: SmallInt;
+  end;
+  TABC = ABC;
+
+  PKERNINGPAIR = ^KERNINGPAIR;
+  LPKERNINGPAIR = ^KERNINGPAIR; far;
+  KERNINGPAIR = record
+    wFirst: WORD;
+    wSecond: WORD;
+    iKernAmount: SmallInt;
+  end;
+  TKerningPair = KERNINGPAIR;
+
+  PRASTERIZER_STATUS = ^RASTERIZER_STATUS;
+  LPRASTERIZER_STATUS = ^RASTERIZER_STATUS; far;
+  RASTERIZER_STATUS = record
+    nSize: SmallInt;
+    wFlags: SmallInt;
+    nLanguageID: SmallInt;
+  end;
+  TRasterizer_Status = RASTERIZER_STATUS;
+
+const
+{ bits defined in wFlags of RASTERIZER_STATUS }
+  TT_AVAILABLE = $0001;
+  TT_ENABLED   = $0002;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
@@ -269,6 +497,34 @@ function GetCurrentPositionEx(hdc: HDC; lpPoint: LPPOINT): BOOL; external 'GDI';
 function GetTextExtentPoint(hdc: HDC; lpszString: LPCSTR; cbString: SmallInt; lpSize: LPSIZE): BOOL; external 'GDI';
 {$ifdef VAR_PARAMS_ARE_FAR}
 function GetTextExtentPoint(hdc: HDC; lpszString: LPCSTR; cbString: SmallInt; var Size: SIZE): BOOL; external 'GDI';
+{$endif}
+
+{ Font support }
+function GetAspectRatioFilterEx(hdc: HDC; lpAspectRatio: LPSIZE): BOOL; external 'GDI';
+
+function GetOutlineTextMetrics(hdc: HDC; cbData: UINT; lpotm: LPOUTLINETEXTMETRIC): WORD; external 'GDI';
+
+function EnumFontFamilies(hdc: HDC; lpszFamily: LPCSTR; fntenmprc: FONTENUMPROC; lParam: LPARAM): SmallInt; external 'GDI';
+function EnumFontFamilies(hdc: HDC; lpszFamily: LPCSTR; fntenmprc: TFarProc; lParam: LPARAM): SmallInt; external 'GDI';
+
+function GetFontData(hdc: HDC; dwTable, dwOffset: DWORD; lpvBuffer: FarPointer; cbData: DWORD): DWORD; external 'GDI';
+function CreateScalableFontResource(fHidden: UINT; lpszResourceFile, lpszFontFile, lpszCurrentPath: LPCSTR): BOOL; external 'GDI';
+
+function GetGlyphOutline(hdc: HDC; uChar, fuFormat: UINT; lpgm: LPGLYPHMETRICS; cbBuffer: DWORD; lpBuffer: FarPointer; lpmat2: LPMAT2): DWORD; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetGlyphOutline(hdc: HDC; uChar, fuFormat: UINT; var gm: GLYPHMETRICS; cbBuffer: DWORD; lpBuffer: FarPointer; var mat2: MAT2): DWORD; external 'GDI';
+{$endif}
+
+function GetCharABCWidths(hdc: HDC; uFirstChar, uLastChar: UINT; lpabc: LPABC): BOOL; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetCharABCWidths(hdc: HDC; uFirstChar, uLastChar: UINT; var abc: ABC): BOOL; external 'GDI';
+{$endif}
+
+function GetKerningPairs(hdc: HDC; cPairs: SmallInt; lpkrnpair: LPKERNINGPAIR): SmallInt; external 'GDI';
+
+function GetRasterizerCaps(lpraststat: LPRASTERIZER_STATUS; cb: SmallInt): BOOL; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetRasterizerCaps(var raststat: RASTERIZER_STATUS; cb: SmallInt): BOOL; external 'GDI';
 {$endif}
 
 implementation
