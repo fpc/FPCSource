@@ -1343,15 +1343,9 @@ implementation
 
     procedure write_vmts(st:tsymtable;is_global:boolean);
       begin
-        { high level targets use synthetic procdefs to create the inteface
-          wrappers }
-{$ifndef cpuhighleveltarget}
         create_hlcodegen;
-{$endif}
         do_write_vmts(st,is_global);
-{$ifndef cpuhighleveltarget}
         destroy_hlcodegen;
-{$endif}
       end;
 
 end.
