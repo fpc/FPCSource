@@ -290,7 +290,17 @@ implementation
               encodedstr:=encodedstr+c;
             end;
           filedef :
-            result:=false;
+            begin
+              case tfiledef(def).filetyp of
+                ft_text:
+                  result:=jvmaddencodedtype(search_system_type('TEXTREC').typedef,false,encodedstr,forcesignature,founderror);
+                ft_typed,
+                ft_untyped:
+                  result:=jvmaddencodedtype(search_system_type('FILEREC').typedef,false,encodedstr,forcesignature,founderror);
+                else
+                  internalerror(2015091406);
+              end;
+            end;
           recorddef :
             begin
               encodedstr:=encodedstr+'L'+trecorddef(def).jvm_full_typename(true)+';'

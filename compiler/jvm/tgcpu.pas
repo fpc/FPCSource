@@ -55,7 +55,7 @@ unit tgcpu;
     uses
        verbose,
        cgbase,
-       symconst,symdef,symsym,symcpu,defutil,
+       symconst,symtable,symdef,symsym,symcpu,defutil,
        cpubase,aasmcpu,
        hlcgobj,hlcgcpu;
 
@@ -210,6 +210,18 @@ unit tgcpu;
                   thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
                   result:=true;
                 end;
+            end;
+          filedef:
+            begin
+              case tfiledef(def).filetyp of
+                ft_text:
+                  result:=getifspecialtemp(list,search_system_type('TEXTREC').typedef,forcesize,temptype,ref);
+                ft_typed,
+                ft_untyped:
+                  result:=getifspecialtemp(list,search_system_type('FILEREC').typedef,forcesize,temptype,ref);
+                else
+                  internalerror(2015091405);
+              end;
             end;
         end;
       end;

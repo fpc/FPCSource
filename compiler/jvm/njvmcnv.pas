@@ -1121,6 +1121,24 @@ implementation
           result:=false;
         end;
 
+
+      function compatible_file_conversion(def1, def2: tdef): boolean;
+        begin
+          if def1.typ=filedef then
+            case tfiledef(def1).filetyp of
+              ft_text:
+                result:=def2=search_system_type('TEXTREC').typedef;
+              ft_typed,
+              ft_untyped:
+                result:=def2=search_system_type('FILEREC').typedef;
+              else
+                internalerror(2015091401);
+            end
+          else
+            result:=false;
+        end;
+
+
       var
         fromclasscompatible,
         toclasscompatible: boolean;
@@ -1379,6 +1397,15 @@ implementation
               could also be added (cannot be handled by the above, because
               float(intvalue) will convert rather than re-interpret the value) }
           end;
+
+        { files }
+        if compatible_file_conversion(left.resultdef,resultdef) or
+           compatible_file_conversion(resultdef,left.resultdef) then
+          begin
+            result:=true;
+            exit;
+          end;
+
 
         { anything not explicitly handled is a problem }
         result:=true;
