@@ -543,13 +543,6 @@ operator :=(const source : variant) dest : tdatetime;{$ifdef SYSTEMINLINE}inline
   end;
 {$endif}
 
-{$ifndef FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
-operator :=(const source : olevariant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    tvardata(result):=tvardata(source);
-  end;
-{$endif FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
-
 operator :=(const source : variant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     variantmanager.olevarfromvar(dest,source);
