@@ -3248,7 +3248,6 @@ begin
   def_system_macro('VER'+version_nr+'_'+release_nr+'_'+patch_nr);
 
 { Temporary defines, until things settle down }
-  def_system_macro('FPC_HAS_VALGRINDBOOL');
   def_system_macro('FPC_HAS_STR_CURRENCY');
   def_system_macro('FPC_REAL2REAL_FIXED');
   def_system_macro('FPC_STRTOCHARARRAYPROC');
