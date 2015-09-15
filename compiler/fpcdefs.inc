@@ -7,11 +7,9 @@
 
 { This reduces the memory requirements a lot }
 {$PACKENUM 1}
-{$ifdef FPC_HAS_VARSETS}
 {$ifndef FPC_BIG_ENDIAN}
 { $define USE_PACKSET1}
 {$endif}
-{$endif FPC_HAS_VARSETS}
 
 {$ifdef USE_PACKSET1}
 {$PACKSET 1}
