@@ -613,3 +613,60 @@ function GetTextMetrics(hdc: HDC; var tm: TEXTMETRIC): BOOL; external 'GDI';
 
 function EnumFonts(hdc: HDC; lpszFace: LPCSTR; fntenmprc: OLDFONTENUMPROC; lParam: LPARAM): SmallInt; external 'GDI';
 function EnumFonts(hdc: HDC; lpszFace: LPCSTR; fntenmprc: TFarProc; lParam: LPARAM): SmallInt; external 'GDI';
+
+{ Bitmap support }
+
+function CreateBitmap(nWidth, nHeight: SmallInt; cbPlanes, cbBits: UINT; lpvBits: FarPointer): HBITMAP; external 'GDI';
+function CreateBitmapIndirect(lpbm: LPBITMAP): HBITMAP; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function CreateBitmapIndirect(var bm: BITMAP): HBITMAP; external 'GDI';
+{$endif}
+function CreateCompatibleBitmap(hdc: HDC; nWidth, nHeight: SmallInt): HBITMAP; external 'GDI';
+function CreateDiscardableBitmap(hdc: HDC; nWidth, nHeight: SmallInt): HBITMAP; external 'GDI';
+function CreateDIBitmap(hdc: HDC; lpbmih: LPBITMAPINFOHEADER; dwInit: DWORD; lpvBits: FarPointer; lpbmi: LPBITMAPINFO; fnColorUse: UINT): HBITMAP; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function CreateDIBitmap(hdc: HDC; var bmih: BITMAPINFOHEADER; dwInit: DWORD; lpvBits: FarPointer; var bmi: BITMAPINFO; fnColorUse: UINT): HBITMAP; external 'GDI';
+{$endif}
+
+function LoadBitmap(hinst: HINST; lpszBitmap: LPCSTR): HBITMAP; external 'USER';
+
+function BitBlt(hdcDest: HDC; nXDest, nYDest, nWidth, nHeight: SmallInt; hdcSrc: HDC; nXSrc, nYSrc: SmallInt; dwRop: DWORD): BOOL; external 'GDI';
+
+function PatBlt(hdc: HDC; nLeftRect, nTopRect, nwidth, nheight: SmallInt; fdwRop: DWORD): BOOL; external 'GDI';
+
+function StretchBlt(hdcDest: HDC; nXOriginDest, nYOriginDest, nWidthDest, nHeightDest: SmallInt; hdcSrc: HDC; nXOriginSrc, nYOriginSrc, nWidthSrc, nHeightSrc: SmallInt; fdwRop: DWORD): BOOL; external 'GDI';
+function StretchDIBits(hdc: HDC; XDest, YDest, cxDest, cyDest, XSrc, YSrc, cxSrc, cySrc: SmallInt;
+                       lpvBits: FarPointer; lpbmi: LPBITMAPINFO; fuColorUse: UINT; fdwRop: DWORD): SmallInt; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function StretchDIBits(hdc: HDC; XDest, YDest, cxDest, cyDest, XSrc, YSrc, cxSrc, cySrc: SmallInt;
+                       lpvBits: FarPointer; var bmi: BITMAPINFO; fuColorUse: UINT; fdwRop: DWORD): SmallInt; external 'GDI';
+{$endif}
+
+function SetPixel(hdc: HDC; nXPos, nYPos: SmallInt; clrref: COLORREF): COLORREF; external 'GDI';
+function GetPixel(hdc: HDC; nXPos, nYPos: SmallInt): COLORREF; external 'GDI';
+
+function SetStretchBltMode(hdc: HDC; fnStretchMode: SmallInt): SmallInt; external 'GDI';
+function GetStretchBltMode(hdc: HDC): SmallInt; external 'GDI';
+
+function SetBitmapDimension(hbmp: HBITMAP; nWidth, nHeight: SmallInt): DWORD; external 'GDI';
+function GetBitmapDimension(hbm: HBITMAP): DWORD; external 'GDI';
+
+function SetROP2(hdc: HDC; fnDrawMode: SmallInt): SmallInt; external 'GDI';
+function GetROP2(hdc: HDC): SmallInt; external 'GDI';
+
+function SetBitmapBits(hbmp: HBITMAP; cBits: DWORD; lpvBits: FarPointer): LONG; external 'GDI';
+function GetBitmapBits(hbm: HBITMAP; cbBuffer: LONG; lpvBits: FarPointer): LONG; external 'GDI';
+
+function SetDIBits(hdc: HDC; hbmp: HBITMAP; uStartScan, cScanLines: UINT; lpvBits: FarPointer; lpbmi: LPBITMAPINFO; fuColorUse: UINT): SmallInt; external 'GDI';
+function GetDIBits(hdc: HDC; hbmp: HBITMAP; nStartScan, cScanLines: UINT; lpvBits: FarPointer; lpbmi: LPBITMAPINFO; fuColorUse: UINT): SmallInt; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function SetDIBits(hdc: HDC; hbmp: HBITMAP; uStartScan, cScanLines: UINT; lpvBits: FarPointer; var bmi: BITMAPINFO; fuColorUse: UINT): SmallInt; external 'GDI';
+function GetDIBits(hdc: HDC; hbmp: HBITMAP; nStartScan, cScanLines: UINT; lpvBits: FarPointer; var bmi: BITMAPINFO; fuColorUse: UINT): SmallInt; external 'GDI';
+{$endif}
+
+function SetDIBitsToDevice(hdc: HDC; XDest, YDest, cx, cy, XSrc, YSrc: SmallInt; uStartScan, cScanLines: UINT;
+                    lpvBits: FarPointer; lpbmi: LPBITMAPINFO; fuColorUse: UINT): SmallInt; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function SetDIBitsToDevice(hdc: HDC; XDest, YDest, cx, cy, XSrc, YSrc: SmallInt; uStartScan, cScanLines: UINT;
+                    lpvBits: FarPointer; var bmi: BITMAPINFO; fuColorUse: UINT): SmallInt; external 'GDI';
+{$endif}

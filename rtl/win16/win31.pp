@@ -527,6 +527,10 @@ function GetRasterizerCaps(lpraststat: LPRASTERIZER_STATUS; cb: SmallInt): BOOL;
 function GetRasterizerCaps(var raststat: RASTERIZER_STATUS; cb: SmallInt): BOOL; external 'GDI';
 {$endif}
 
+{ Bitmap support }
+function SetBitmapDimensionEx(hbm: HBITMAP; nX, nY: SmallInt; lpSize: LPSIZE): BOOL; external 'GDI';
+function GetBitmapDimensionEx(hBitmap: HBITMAP; lpDimension: LPSIZE): BOOL; external 'GDI';
+
 implementation
 
 end.

@@ -866,3 +866,155 @@ const
 { EnumFonts font type values }
   RASTER_FONTTYPE = $0001;
   DEVICE_FONTTYPE = $0002;
+
+type
+{ Bitmap support }
+  PBITMAP = ^BITMAP;
+  NPBITMAP = ^BITMAP; near;
+  LPBITMAP = ^BITMAP; far;
+  BITMAP = record
+    bmType: SmallInt;
+    bmWidth: SmallInt;
+    bmHeight: SmallInt;
+    bmWidthBytes: SmallInt;
+    bmPlanes: BYTE;
+    bmBitsPixel: BYTE;
+    bmBits: FarPointer;
+  end;
+  TBitmap = BITMAP;
+
+{ Bitmap Header structures }
+  PRGBTRIPLE = ^RGBTRIPLE;
+  LPRGBTRIPLE = ^RGBTRIPLE; far;
+  RGBTRIPLE = record
+    rgbtBlue: BYTE;
+    rgbtGreen: BYTE;
+    rgbtRed: BYTE;
+  end;
+  TRGBTriple = RGBTRIPLE;
+
+  PRGBQUAD = ^RGBQUAD;
+  LPRGBQUAD = ^RGBQUAD; far;
+  RGBQUAD = record
+    rgbBlue: BYTE;
+    rgbGreen: BYTE;
+    rgbRed: BYTE;
+    rgbReserved: BYTE;
+  end;
+  TRGBQuad = RGBQUAD;
+
+{ structures for defining DIBs }
+  PBITMAPCOREHEADER = ^BITMAPCOREHEADER;
+  LPBITMAPCOREHEADER = ^BITMAPCOREHEADER; far;
+  BITMAPCOREHEADER = record
+    bcSize: DWORD;
+    bcWidth: SmallInt;
+    bcHeight: SmallInt;
+    bcPlanes: WORD;
+    bcBitCount: WORD;
+  end;
+  TBitmapCoreHeader = BITMAPCOREHEADER;
+
+  PBITMAPINFOHEADER = ^BITMAPINFOHEADER;
+  LPBITMAPINFOHEADER = ^BITMAPINFOHEADER; far;
+  BITMAPINFOHEADER = record
+    biSize: DWORD;
+    biWidth: LONG;
+    biHeight: LONG;
+    biPlanes: WORD;
+    biBitCount: WORD;
+    biCompression: DWORD;
+    biSizeImage: DWORD;
+    biXPelsPerMeter: LONG;
+    biYPelsPerMeter: LONG;
+    biClrUsed: DWORD;
+    biClrImportant: DWORD;
+  end;
+  TBitmapInfoHeader = BITMAPINFOHEADER;
+
+const
+{ constants for the biCompression field }
+  BI_RGB  = 0;
+  BI_RLE8 = 1;
+  BI_RLE4 = 2;
+
+type
+  PBITMAPINFO = ^BITMAPINFO;
+  LPBITMAPINFO = ^BITMAPINFO; far;
+  BITMAPINFO = record
+    bmiHeader: BITMAPINFOHEADER;
+    bmiColors: array [0..0] of RGBQUAD;
+  end;
+  TBitmapInfo = BITMAPINFO;
+
+  PBITMAPCOREINFO = ^BITMAPCOREINFO;
+  LPBITMAPCOREINFO = ^BITMAPCOREINFO; far;
+  BITMAPCOREINFO = record
+    bmciHeader: BITMAPCOREHEADER;
+    bmciColors: array [0..0] of RGBTRIPLE;
+  end;
+  TBitmapCoreInfo = BITMAPCOREINFO;
+
+  PBITMAPFILEHEADER = ^BITMAPFILEHEADER;
+  LPBITMAPFILEHEADER = ^BITMAPFILEHEADER; far;
+  BITMAPFILEHEADER = record
+    bfType: UINT;
+    bfSize: DWORD;
+    bfReserved1: UINT;
+    bfReserved2: UINT;
+    bfOffBits: DWORD;
+  end;
+  TBitmapFileHeader = BITMAPFILEHEADER;
+
+const
+{ DIB color table identifiers }
+  DIB_RGB_COLORS = 0;
+  DIB_PAL_COLORS = 1;
+
+{ constants for CreateDIBitmap }
+  CBM_INIT = $00000004;
+
+{ Binary raster ops }
+  R2_BLACK       = 1;
+  R2_NOTMERGEPEN = 2;
+  R2_MASKNOTPEN  = 3;
+  R2_NOTCOPYPEN  = 4;
+  R2_MASKPENNOT  = 5;
+  R2_NOT         = 6;
+  R2_XORPEN      = 7;
+  R2_NOTMASKPEN  = 8;
+  R2_MASKPEN     = 9;
+  R2_NOTXORPEN   = 10;
+  R2_NOP         = 11;
+  R2_MERGENOTPEN = 12;
+  R2_COPYPEN     = 13;
+  R2_MERGEPENNOT = 14;
+  R2_MERGEPEN    = 15;
+  R2_WHITE       = 16;
+
+{ Ternary raster operations }
+  SRCCOPY     = $00CC0020;
+  SRCPAINT    = $00EE0086;
+  SRCAND      = $008800C6;
+  SRCINVERT   = $00660046;
+  SRCERASE    = $00440328;
+  NOTSRCCOPY  = $00330008;
+  NOTSRCERASE = $001100A6;
+  MERGECOPY   = $00C000CA;
+  MERGEPAINT  = $00BB0226;
+  PATCOPY     = $00F00021;
+  PATPAINT    = $00FB0A09;
+  PATINVERT   = $005A0049;
+  DSTINVERT   = $00550009;
+  BLACKNESS   = $00000042;
+  WHITENESS   = $00FF0062;
+
+{ StretchBlt() Modes }
+  BLACKONWHITE = 1;
+  WHITEONBLACK = 2;
+  COLORONCOLOR = 3;
+
+{ new StretchBlt() Modes (simpler names) }
+  STRETCH_ANDSCANS    = 1;
+  STRETCH_ORSCANS     = 2;
+  STRETCH_DELETESCANS = 3;
