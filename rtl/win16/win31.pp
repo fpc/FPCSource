@@ -531,6 +531,9 @@ function GetRasterizerCaps(var raststat: RASTERIZER_STATUS; cb: SmallInt): BOOL;
 function SetBitmapDimensionEx(hbm: HBITMAP; nX, nY: SmallInt; lpSize: LPSIZE): BOOL; external 'GDI';
 function GetBitmapDimensionEx(hBitmap: HBITMAP; lpDimension: LPSIZE): BOOL; external 'GDI';
 
+{ Metafile support }
+function SetMetaFileBitsBetter(hmf: HGLOBAL): HMETAFILE; external 'GDI';
+
 implementation
 
 end.

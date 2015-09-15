@@ -1018,3 +1018,137 @@ const
   STRETCH_ANDSCANS    = 1;
   STRETCH_ORSCANS     = 2;
   STRETCH_DELETESCANS = 3;
+
+type
+{ Metafile support }
+  HMETAFILE = THandle;
+
+{ Clipboard Metafile Picture Structure }
+  PMETAFILEPICT = ^METAFILEPICT;
+  LPMETAFILEPICT = ^METAFILEPICT; far;
+  METAFILEPICT = record
+    mm: SmallInt;
+    xExt: SmallInt;
+    yExt: SmallInt;
+    hMF: HMETAFILE;
+  end;
+  TMetaFilePict = METAFILEPICT;
+
+  PMETAHEADER = ^METAHEADER;
+  LPMETAHEADER = ^METAHEADER; far;
+  METAHEADER = record
+    mtType: UINT;
+    mtHeaderSize: UINT;
+    mtVersion: UINT;
+    mtSize: DWORD;
+    mtNoObjects: UINT;
+    mtMaxRecord: DWORD;
+    mtNoParameters: UINT;
+  end;
+  TMetaHeader = METAHEADER;
+
+  PHANDLETABLE = ^HANDLETABLE;
+  LPHANDLETABLE = ^HANDLETABLE; far;
+  HANDLETABLE = record
+    objectHandle: array [0..0] of HGDIOBJ;
+  end;
+  THandleTable = HANDLETABLE;
+
+  PMETARECORD = ^METARECORD;
+  LPMETARECORD = ^METARECORD; far;
+  METARECORD = record
+    rdSize: DWORD;
+    rdFunction: UINT;
+    rdParm: array [0..0] of UINT;
+  end;
+  TMetaRecord = METARECORD;
+
+const
+{ Metafile Functions }
+  META_SETBKCOLOR            = $0201;
+  META_SETBKMODE             = $0102;
+  META_SETMAPMODE            = $0103;
+  META_SETROP2               = $0104;
+  META_SETRELABS             = $0105;
+  META_SETPOLYFILLMODE       = $0106;
+  META_SETSTRETCHBLTMODE     = $0107;
+  META_SETTEXTCHAREXTRA      = $0108;
+  META_SETTEXTCOLOR          = $0209;
+  META_SETTEXTJUSTIFICATION  = $020A;
+  META_SETWINDOWORG          = $020B;
+  META_SETWINDOWEXT          = $020C;
+  META_SETVIEWPORTORG        = $020D;
+  META_SETVIEWPORTEXT        = $020E;
+  META_OFFSETWINDOWORG       = $020F;
+  META_SCALEWINDOWEXT        = $0410;
+  META_OFFSETVIEWPORTORG     = $0211;
+  META_SCALEVIEWPORTEXT      = $0412;
+  META_LINETO                = $0213;
+  META_MOVETO                = $0214;
+  META_EXCLUDECLIPRECT       = $0415;
+  META_INTERSECTCLIPRECT     = $0416;
+  META_ARC                   = $0817;
+  META_ELLIPSE               = $0418;
+  META_FLOODFILL             = $0419;
+  META_PIE                   = $081A;
+  META_RECTANGLE             = $041B;
+  META_ROUNDRECT             = $061C;
+  META_PATBLT                = $061D;
+  META_SAVEDC                = $001E;
+  META_SETPIXEL              = $041F;
+  META_OFFSETCLIPRGN         = $0220;
+  META_TEXTOUT               = $0521;
+  META_BITBLT                = $0922;
+  META_STRETCHBLT            = $0B23;
+  META_POLYGON               = $0324;
+  META_POLYLINE              = $0325;
+  META_ESCAPE                = $0626;
+  META_RESTOREDC             = $0127;
+  META_FILLREGION            = $0228;
+  META_FRAMEREGION           = $0429;
+  META_INVERTREGION          = $012A;
+  META_PAINTREGION           = $012B;
+  META_SELECTCLIPREGION      = $012C;
+  META_SELECTOBJECT          = $012D;
+  META_SETTEXTALIGN          = $012E;
+  META_DRAWTEXT              = $062F;
+
+  META_CHORD                 = $0830;
+  META_SETMAPPERFLAGS        = $0231;
+  META_EXTTEXTOUT            = $0a32;
+  META_SETDIBTODEV           = $0d33;
+  META_SELECTPALETTE         = $0234;
+  META_REALIZEPALETTE        = $0035;
+  META_ANIMATEPALETTE        = $0436;
+  META_SETPALENTRIES         = $0037;
+  META_POLYPOLYGON           = $0538;
+  META_RESIZEPALETTE         = $0139;
+
+  META_DIBBITBLT             = $0940;
+  META_DIBSTRETCHBLT         = $0b41;
+  META_DIBCREATEPATTERNBRUSH = $0142;
+  META_STRETCHDIB            = $0f43;
+
+  META_EXTFLOODFILL          = $0548;
+
+  META_RESETDC               = $014C;
+  META_STARTDOC              = $014D;
+  META_STARTPAGE             = $004F;
+  META_ENDPAGE               = $0050;
+  META_ABORTDOC              = $0052;
+  META_ENDDOC                = $005E;
+
+  META_DELETEOBJECT          = $01f0;
+
+  META_CREATEPALETTE         = $00f7;
+  META_CREATEBRUSH           = $00F8;
+  META_CREATEPATTERNBRUSH    = $01F9;
+  META_CREATEPENINDIRECT     = $02FA;
+  META_CREATEFONTINDIRECT    = $02FB;
+  META_CREATEBRUSHINDIRECT   = $02FC;
+  META_CREATEBITMAPINDIRECT  = $02FD;
+  META_CREATEBITMAP          = $06FE;
+  META_CREATEREGION          = $06FF;
+
+type
+  MFENUMPROC = function(hdc: HDC; lpht: LPHANDLETABLE; lpmr: LPMETARECORD; cObj: SmallInt; lParam: LPARAM): SmallInt; far;

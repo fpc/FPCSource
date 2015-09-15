@@ -670,3 +670,25 @@ function SetDIBitsToDevice(hdc: HDC; XDest, YDest, cx, cy, XSrc, YSrc: SmallInt;
 function SetDIBitsToDevice(hdc: HDC; XDest, YDest, cx, cy, XSrc, YSrc: SmallInt; uStartScan, cScanLines: UINT;
                     lpvBits: FarPointer; var bmi: BITMAPINFO; fuColorUse: UINT): SmallInt; external 'GDI';
 {$endif}
+
+{ Metafile support }
+
+function CreateMetaFile(lpszFile: LPCSTR): HDC; external 'GDI';
+function CloseMetaFile(hdc: HDC): HMETAFILE; external 'GDI';
+
+function GetMetaFile(lpszFile: LPCSTR): HMETAFILE; external 'GDI';
+function DeleteMetaFile(hmf: HMETAFILE): BOOL; external 'GDI';
+function CopyMetaFile(hmfSrc: HMETAFILE; lpszFile: LPCSTR): HMETAFILE; external 'GDI';
+
+function PlayMetaFile(hdc: HDC; hmf: HMETAFILE): BOOL; external 'GDI';
+
+function GetMetaFileBits(hmf: HMETAFILE): HGLOBAL; external 'GDI';
+function SetMetaFileBits(hmf: HGLOBAL): HMETAFILE; external 'GDI';
+
+procedure PlayMetaFileRecord(hdc: HDC; lpht: LPHANDLETABLE; lpmr: LPMETARECORD; cHandles: UINT); external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure PlayMetaFileRecord(hdc: HDC; var ht: HANDLETABLE; var mr: METARECORD; cHandles: UINT); external 'GDI';
+{$endif}
+
+function EnumMetaFile(hdc: HDC; hmf: HMETAFILE; mfenmprc: MFENUMPROC; lParam: LPARAM): BOOL; external 'GDI';
+function EnumMetaFile(hdc: HDC; hmf: HMETAFILE; mfenmprc: TFarProc; lParam: LPARAM): BOOL; external 'GDI';
