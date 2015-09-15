@@ -88,9 +88,9 @@ interface
     procedure tcgaddnode.pass_left_right;
       var
         tmpreg     : tregister;
-{$ifdef x86}
+{$if defined(x86) and not defined(llvm)}
         pushedfpu  : boolean;
-{$endif x86}
+{$endif x86 and not llvm}
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
@@ -102,7 +102,7 @@ interface
         secondpass(left);
         if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
-{$ifdef x86}
+{$if defined(x86) and not defined(llvm)}
         { are too few registers free? }
         pushedfpu:=false;
         if (left.location.loc=LOC_FPUREGISTER) and
@@ -111,12 +111,12 @@ interface
             hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
             pushedfpu:=true;
           end;
-{$endif x86}
+{$endif x86 and not llvm}
 
         secondpass(right);
         if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,false);
-{$ifdef x86}
+{$if defined(x86) and not defined(llvm)}
         if pushedfpu then
           begin
             if use_vectorfpu(left.resultdef) then
@@ -139,7 +139,7 @@ interface
                   toggleflag(nf_swapped);
               end;
           end;
-{$endif x86}
+{$endif x86 and not llvm}
       end;
 
 
