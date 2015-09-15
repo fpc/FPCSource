@@ -153,15 +153,6 @@ Var
    Procedure FinalizeResourceTables;
    Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
    Procedure SetUnitResourceStrings (const UnitName:string;SetFunction :  TResourceIterator;arg:pointer);
-{$ifndef RESSTRSECTIONS}
-   Function ResourceStringTableCount : Longint;
-   Function ResourceStringCount(TableIndex : longint) : longint;
-   Function GetResourceStringName(TableIndex,StringIndex : Longint) : Ansistring;
-   Function GetResourceStringHash(TableIndex,StringIndex : Longint) : Longint;
-   Function GetResourceStringDefaultValue(TableIndex,StringIndex : Longint) : AnsiString;
-   Function GetResourceStringCurrentValue(TableIndex,StringIndex : Longint) : AnsiString;
-   Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;
-{$endif RESSTRSECTIONS}
 
    { Delphi compatibility }
    type
@@ -321,7 +312,6 @@ begin
      Hash:=TheHash;
 end;
 
-{$ifdef RESSTRSECTIONS}
 Type
   PResourceStringRecord = ^TResourceStringRecord;
   TResourceStringRecord = Packed Record
@@ -483,157 +473,6 @@ begin
     end;
 end;
 
-{$else RESSTRSECTIONS}
-
-Type
-  PResourceStringRecord = ^TResourceStringRecord;
-  TResourceStringRecord = Packed Record
-     DefaultValue,
-     CurrentValue : AnsiString;
-     HashValue    : LongWord;
-     Name         : AnsiString;
-   end;
-
-   TResourceStringTable = Packed Record
-     Count : longint;
-     Resrec : Array[Word] of TResourceStringRecord;
-   end;
-   PResourceStringTable = ^TResourceStringTable;
-
-   TResourceTableList = Packed Record
-     Count : longint;
-     Tables : Array[Word] of PResourceStringTable;
-     end;
-
-Var
-  ResourceStringTable : TResourceTablelist; External Name 'FPC_RESOURCESTRINGTABLES';
-
-Function GetResourceString(Const TheTable: TResourceStringTable;Index : longint) : AnsiString;[Public,Alias : 'FPC_GETRESOURCESTRING'];
-begin
-  If (Index>=0) and (Index<TheTAble.Count) then
-     Result:=TheTable.ResRec[Index].CurrentValue
-  else
-     Result:='';
-end;
-
-
-Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
-
-Var I,J : longint;
-
-begin
-  With ResourceStringTable do
-    For I:=0 to Count-1 do
-      With Tables[I]^ do
-         For J:=0 to Count-1 do
-           With ResRec[J] do
-             CurrentValue:=SetFunction(Name,DefaultValue,Longint(HashValue),arg);
-end;
-
-
-Procedure SetUnitResourceStrings (const UnitName:string;SetFunction :  TResourceIterator;arg:pointer);
-begin
-  SetResourceStrings (SetFunction,arg);
-end;
-
-
-Procedure ResetResourceTables;
-
-Var I,J : longint;
-
-begin
-  With ResourceStringTable do
-  For I:=0 to Count-1 do
-    With Tables[I]^ do
-        For J:=0 to Count-1 do
-          With ResRec[J] do
-            CurrentValue:=DefaultValue;
-end;
-
-Procedure FinalizeResourceTables;
-
-Var I,J : longint;
-
-begin
-  With ResourceStringTable do
-  For I:=0 to Count-1 do
-    With Tables[I]^ do
-        For J:=0 to Count-1 do
-          With ResRec[J] do
-            CurrentValue:='';
-end;
-
-Function ResourceStringTableCount : Longint;
-
-begin
-  Result:=ResourceStringTable.Count;
-end;
-
-Function CheckTableIndex (Index: longint) : Boolean;
-begin
-  Result:=(Index<ResourceStringTable.Count) and (Index>=0)
-end;
-
-Function CheckStringIndex (TableIndex,Index: longint) : Boolean;
-begin
-  Result:=(TableIndex<ResourceStringTable.Count) and (TableIndex>=0) and
-          (Index<ResourceStringTable.Tables[TableIndex]^.Count) and (Index>=0)
-end;
-
-Function ResourceStringCount(TableIndex : longint) : longint;
-
-begin
-  If not CheckTableIndex(TableIndex) then
-     Result:=-1
-  else
-    Result:=ResourceStringTable.Tables[TableIndex]^.Count;
-end;
-
-Function GetResourceStringName(TableIndex,StringIndex : Longint) : Ansistring;
-
-begin
-  If not CheckStringIndex(Tableindex,StringIndex) then
-    Result:=''
-  else
-    result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].Name;
-end;
-
-Function GetResourceStringHash(TableIndex,StringIndex : Longint) : Longint;
-
-begin
-  If not CheckStringIndex(Tableindex,StringIndex) then
-    Result:=0
-  else
-    result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].HashValue;
-end;
-
-Function GetResourceStringDefaultValue(TableIndex,StringIndex : Longint) : AnsiString;
-
-begin
-  If not CheckStringIndex(Tableindex,StringIndex) then
-    Result:=''
-  else
-    result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].DefaultValue;
-end;
-
-Function GetResourceStringCurrentValue(TableIndex,StringIndex : Longint) : AnsiString;
-
-begin
-  If not CheckStringIndex(Tableindex,StringIndex) then
-    Result:=''
-  else
-    result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue;
-end;
-
-Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;
-
-begin
-  Result:=CheckStringIndex(Tableindex,StringIndex);
-  If Result then
-   ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue:=Value;
-end;
-
-{$endif RESSTRSECTIONS}
 
 Function LoadResString(p:PResStringRec):AnsiString;
 begin
