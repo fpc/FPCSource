@@ -1233,7 +1233,6 @@ begin
 {$endif EXCLUDE_COMPLEX_PROCS}
 end;
 
-{$ifdef FPC_HAS_STR_CURRENCY}
 Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Currency); iocheck; compilerproc;
 {$ifdef EXCLUDE_COMPLEX_PROCS}
       begin
@@ -1249,8 +1248,6 @@ Begin
   Write_Str(Len,t,s);
 End;
 {$endif EXCLUDE_COMPLEX_PROCS}
-
-{$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); iocheck; compilerproc;
 Begin

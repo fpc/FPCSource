@@ -1062,9 +1062,6 @@ Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue; Const For
 Var
   E,P : Integer;
   S : String;
-{$ifndef FPC_HAS_STR_CURRENCY}
-  TempValue: extended;
-{$endif FPC_HAS_STR_CURRENCY}
 
 Begin
   S:=StrPas(Buffer);
@@ -1088,15 +1085,7 @@ Begin
   try
     case ValueType of
       fvCurrency:
-{$ifdef FPC_HAS_STR_CURRENCY}
         Val(S,Currency(Value),E);
-{$else FPC_HAS_STR_CURRENCY}
-        begin
-          // needed for platforms where Currency = Int64
-          Val(S,TempValue,E);
-          Currency(Value) := TempValue;
-        end;
-{$endif FPC_HAS_STR_CURRENCY}
       fvExtended:
         Val(S,Extended(Value),E);
       fvDouble:
@@ -1219,11 +1208,7 @@ Begin
           fvSingle:
             Str(Single(Extended(Aligned(Value))):precision+6, Result);
           fvCurrency:
-{$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Aligned(Value)):precision+6, Result);
-{$else}
-            Str(Extended(Currency(Aligned(Value))):precision+8, Result);
-{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Aligned(Value)):precision+8, Result);
         end;
@@ -1316,11 +1301,7 @@ Begin
           fvSingle:
             Str(Single(Extended(Aligned(Value))):Precision+6, Result);
           fvCurrency:
-{$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Aligned(Value)):Precision+6, Result);
-{$else}
-            Str(Extended(Currency(Aligned(Value))):Precision+8, Result);
-{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Aligned(Value)):Precision+8, Result);
         end;
@@ -1369,11 +1350,7 @@ Begin
           fvSingle:
             Str(Single(Extended(Aligned(Value))):0:Digits, Result);
           fvCurrency:
-{$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Aligned(Value)):0:Digits, Result);
-{$else}
-            Str(Extended(Currency(Aligned(Value))):0:Digits, Result);
-{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Aligned(Value)):0:Digits, Result);
         end;
@@ -1394,11 +1371,7 @@ Begin
           fvSingle:
             Str(Single(Extended(Aligned(Value))):0:Digits, Result);
           fvCurrency:
-{$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Aligned(Value)):0:Digits, Result);
-{$else}
-            Str(Extended(Currency(Aligned(Value))):0:Digits, Result);
-{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Aligned(Value)):0:Digits, Result);
         end;
@@ -1428,11 +1401,7 @@ Begin
           fvSingle:
             Str(Single(Extended(Aligned(Value))):0:Digits, Result);
           fvCurrency:
-{$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Aligned(Value)):0:Digits, Result);
-{$else}
-            Str(Extended(Currency(Aligned(Value))):0:Digits, Result);
-{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Aligned(Value)):0:Digits, Result);
         end;

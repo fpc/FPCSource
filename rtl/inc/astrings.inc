@@ -1242,7 +1242,6 @@ end;
 {$endif FPC_STR_ENUM_INTERN}
 
 
-{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[public,alias:'FPC_ANSISTR_CURRENCY']; compilerproc; inline;
 var
   ss: ShortString;
@@ -1253,7 +1252,6 @@ begin
   SetCodePage(s,cp,false);
   {$endif FPC_HAS_CPSTRING}
 end;
-{$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc; inline;
 Var

@@ -1577,7 +1577,6 @@ begin
   s:=UnicodeString(ss);
 end;
 
-{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_UnicodeStr_Currency(c : Currency;len,fr : SizeInt;out s : UnicodeString);compilerproc;
 var
   ss: shortstring;
@@ -1585,7 +1584,6 @@ begin
   str(c:len:fr,ss);
   s:=UnicodeString(ss);
 end;
-{$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_UnicodeStr_SInt(v : ValSint; Len : SizeInt; out S : UnicodeString);compilerproc;
 Var

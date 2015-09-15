@@ -1595,11 +1595,9 @@ implementation
         else
 {$endif FPC_REAL2REAL_FIXED}
           result:=crealconstnode.create(d,pbestrealtype^);
-{$ifdef FPC_HAS_STR_CURRENCY}
         val(pattern,cur,code);
         if code=0 then
           trealconstnode(result).value_currency:=cur;
-{$endif FPC_HAS_STR_CURRENCY}
       end;
 
 {---------------------------------------------
