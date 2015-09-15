@@ -1,8 +1,7 @@
 ; common startup code for all the memory models
 
 %ifdef __TINY__
-        %define __NEAR_CODE__
-        %define __NEAR_DATA__
+        %fatal "The tiny memory model is not supported by Windows."
 %elifdef __SMALL__
         %define __NEAR_CODE__
         %define __NEAR_DATA__

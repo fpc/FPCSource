@@ -4,7 +4,7 @@
 [package]
 main=rtl
 [target]
-loaders=prt0s prt0t prt0m prt0c prt0l prt0h 
+loaders=prt0s prt0m prt0c prt0l prt0h 
 units=system uuchar objpas strings \
       wintypes winprocs win31
 
@@ -56,8 +56,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 prt0s$(OEXT) : prt0s.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
         $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0s$(OEXT) prt0s.asm
-prt0t$(OEXT) : prt0t.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
-        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0t$(OEXT) prt0t.asm
 prt0m$(OEXT) : prt0m.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
         $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0m$(OEXT) prt0m.asm
 prt0c$(OEXT) : prt0c.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
