@@ -1583,7 +1583,6 @@ implementation
            Message(parser_e_error_in_real);
            d:=1.0;
          end;
-{$ifdef FPC_REAL2REAL_FIXED}
         if current_settings.fputype=fpu_none then
           Message(parser_e_unsupported_real);
         if (current_settings.minfpconstprec=s32real) and
@@ -1593,7 +1592,6 @@ implementation
                 (d = double(d)) then
           result:=crealconstnode.create(d,s64floattype)
         else
-{$endif FPC_REAL2REAL_FIXED}
           result:=crealconstnode.create(d,pbestrealtype^);
         val(pattern,cur,code);
         if code=0 then
