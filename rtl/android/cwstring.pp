@@ -98,7 +98,7 @@ begin
     exit;
   end;
   InitThreadData;
-  if (cp = DefaultSystemCodePage) or (cp = CP_ACP) then
+  if (cp = CP_UTF8) or (cp = CP_ACP) then
     Result:=DefConv
   else begin
     if cp <> LastCP then begin
