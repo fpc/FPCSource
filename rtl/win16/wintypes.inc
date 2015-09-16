@@ -1244,3 +1244,10 @@ const
   TRANSFORM_CTM          = 4107;
   SET_CLIP_BOX           = 4108;
   SET_BOUNDS             = 4109;
+
+type
+{ USER typedefs, structures, and functions }
+  HWND = THandle;
+  HMENU = THandle;
+  HICON = THandle;
+  HCURSOR = HICON;  { HICONs & HCURSORs are polymorphic }
