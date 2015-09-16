@@ -3751,11 +3751,11 @@ begin
       end;
     system_arm_android:
       begin
-        { set default cpu type to ARMv5T for Android unless specified otherwise }
+        { set default cpu type to ARMv6 for Android unless specified otherwise }
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_armv5t;
+          init_settings.cputype:=cpu_armv6;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_armv5t;
+          init_settings.optimizecputype:=cpu_armv6;
       end;
   end;
 
