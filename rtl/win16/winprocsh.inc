@@ -789,3 +789,22 @@ function CallMsgFilter(var msg: MSG; nCode: SmallInt): BOOL; external 'USER';
 { Application termination }
 
 procedure PostQuitMessage(nExitCode: SmallInt); external 'USER';
+
+{ Window class management }
+
+function RegisterClass(lpwc: LPWNDCLASS): ATOM; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function RegisterClass(var wc: WNDCLASS): ATOM; external 'USER';
+{$endif}
+function UnregisterClass(lpszClassName: LPCSTR; hinst: HINST): BOOL; external 'USER';
+
+function GetClassInfo(hinst: HINST; lpszClassName: LPCSTR; lpwc: LPWNDCLASS): BOOL; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetClassInfo(hinst: HINST; lpszClassName: LPCSTR; var wc: WNDCLASS): BOOL; external 'USER';
+{$endif}
+function GetClassName(hwnd: HWND; lpszClassName: LPSTR; cchClassName: SmallInt): SmallInt; external 'USER';
+
+function GetClassWord(hwnd: HWND; offset: SmallInt): WORD; external 'USER';
+function SetClassWord(hwnd: HWND; nIndex: SmallInt; wNewWord: WORD): WORD; external 'USER';
+function GetClassLong(hwnd: HWND; offset: SmallInt): LONG; external 'USER';
+function SetClassLong(hwnd: HWND; nIndex: SmallInt; nVal: LONG): LONG; external 'USER';

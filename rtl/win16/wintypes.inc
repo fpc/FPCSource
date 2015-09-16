@@ -1359,3 +1359,58 @@ const
   WM_QUIT            = $0012;
 
   WM_SYSTEMERROR     = $0017;
+
+type
+{ Window class management }
+  WNDPROC = function(hwnd: HWND; msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; far;
+
+  PWNDCLASS = ^WNDCLASS;
+  NPWNDCLASS = ^WNDCLASS; near;
+  LPWNDCLASS = ^WNDCLASS; far;
+  WNDCLASS = record
+    style: UINT;
+    lpfnWndProc: WNDPROC;
+    cbClsExtra: SmallInt;
+    cbWndExtra: SmallInt;
+    hInstance: HINST;
+    hIcon: HICON;
+    hCursor: HCURSOR;
+    hbrBackground: HBRUSH;
+    lpszMenuName: LPCSTR;
+    lpszClassName: LPCSTR;
+  end;
+  TWndClass = WNDCLASS;
+
+const
+{ Class styles }
+  CS_VREDRAW         = $0001;
+  CS_HREDRAW         = $0002;
+
+  CS_OWNDC           = $0020;
+  CS_CLASSDC         = $0040;
+  CS_PARENTDC        = $0080;
+
+  CS_SAVEBITS        = $0800;
+
+  CS_DBLCLKS         = $0008;
+
+  CS_BYTEALIGNCLIENT = $1000;
+  CS_BYTEALIGNWINDOW = $2000;
+
+  CS_NOCLOSE         = $0200;
+
+  CS_KEYCVTWINDOW    = $0004;
+  CS_NOKEYCVT        = $0100;
+
+  CS_GLOBALCLASS     = $4000;
+
+{ Class field offsets for GetClassLong() and GetClassWord() }
+  GCL_MENUNAME      = (-8);
+  GCW_HBRBACKGROUND = (-10);
+  GCW_HCURSOR       = (-12);
+  GCW_HICON         = (-14);
+  GCW_HMODULE       = (-16);
+  GCW_CBWNDEXTRA    = (-18);
+  GCW_CBCLSEXTRA    = (-20);
+  GCL_WNDPROC       = (-24);
+  GCW_STYLE         = (-26);

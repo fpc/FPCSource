@@ -504,6 +504,10 @@ const
   PWR_SUSPENDRESUME  = 2;
   PWR_CRITICALRESUME = 3;
 
+{ Window class management }
+{ Class field offsets for GetClassLong() and GetClassWord() }
+  GCW_ATOM = (-32);
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
