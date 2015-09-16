@@ -2355,19 +2355,14 @@ unit cgcpu;
             current_asmdata.getaddrlabel(l);
             current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_32bit,l,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),-8));
             cg.a_label(list,l);
-            if cs_opt_regvar in current_settings.optimizerswitches then
-              begin
-                {
-                  When regvars are used, it is needed to perform GOT calculations using the scratch register R12
-                  and then MOV the result to the GOT register. Otherwise the register allocator will use
-                  register R0 as temp to perform calculations in case if a procedure uses all available registers.
-                  It leads to corruption of R0 which is normally holds a value of the first procedure parameter.
-                }
-                list.concat(Taicpu.op_reg_reg_reg(A_ADD,NR_R12,NR_PC,NR_R12));
-                list.concat(Taicpu.op_reg_reg(A_MOV,current_procinfo.got,NR_R12));
-              end
-            else
-              list.concat(Taicpu.op_reg_reg_reg(A_ADD,current_procinfo.got,NR_PC,NR_R12));
+            {
+              It is needed to perform GOT calculations using the scratch register R12
+              and then MOV the result to the GOT register. Otherwise the register allocator will use
+              register R0 as temp to perform calculations in case if a procedure uses all available registers.
+              It leads to corruption of R0 which is normally holds a value of the first procedure parameter.
+            }
+            list.concat(Taicpu.op_reg_reg_reg(A_ADD,NR_R12,NR_PC,NR_R12));
+            list.concat(Taicpu.op_reg_reg(A_MOV,current_procinfo.got,NR_R12));
             a_reg_dealloc(list,NR_R12);
           end;
       end;
