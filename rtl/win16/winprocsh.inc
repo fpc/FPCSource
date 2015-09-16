@@ -692,3 +692,7 @@ procedure PlayMetaFileRecord(hdc: HDC; var ht: HANDLETABLE; var mr: METARECORD; 
 
 function EnumMetaFile(hdc: HDC; hmf: HMETAFILE; mfenmprc: MFENUMPROC; lParam: LPARAM): BOOL; external 'GDI';
 function EnumMetaFile(hdc: HDC; hmf: HMETAFILE; mfenmprc: TFarProc; lParam: LPARAM): BOOL; external 'GDI';
+
+{ Printing support }
+
+function QueryAbort(hdc: HDC; reserved: SmallInt): BOOL; external 'GDI';

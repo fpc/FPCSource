@@ -418,6 +418,17 @@ const
   TT_AVAILABLE = $0001;
   TT_ENABLED   = $0002;
 
+type
+{ Printing support }
+  PDOCINFO = ^DOCINFO;
+  LPDOCINFO = ^DOCINFO; far;
+  DOCINFO = record
+    cbSize: SmallInt;
+    lpszDocName: LPCSTR;
+    lpszOutput: LPCSTR;
+  end;
+  TDocInfo = DOCINFO;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
@@ -533,6 +544,19 @@ function GetBitmapDimensionEx(hBitmap: HBITMAP; lpDimension: LPSIZE): BOOL; exte
 
 { Metafile support }
 function SetMetaFileBitsBetter(hmf: HGLOBAL): HMETAFILE; external 'GDI';
+
+{ Printing support }
+function StartDoc(hdc: HDC; lpdi: LPDOCINFO): SmallInt; external 'GDI';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function StartDoc(hdc: HDC; var di: DOCINFO): SmallInt; external 'GDI';
+{$endif}
+function StartPage(hdc: HDC): SmallInt; external 'GDI';
+function EndPage(hdc: HDC): SmallInt; external 'GDI';
+function EndDoc(hdc: HDC): SmallInt; external 'GDI';
+function AbortDoc(hdc: HDC): SmallInt; external 'GDI';
+
+function SetAbortProc(hdc: HDC; abrtprc: ABORTPROC): SmallInt; external 'GDI';
+function SpoolFile(lpszPrinter, lpszPort, lpszJob, lpszFile: LPSTR): HANDLE; external 'GDI';
 
 implementation
 

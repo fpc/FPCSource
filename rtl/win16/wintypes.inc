@@ -44,6 +44,7 @@ type
   FARPROC = FarPointer;
   TFarProc = FARPROC;
 
+  HANDLE = THandle;
   PHANDLE = ^THandle;
   SPHANDLE = ^THandle; near;
   LPHANDLE = ^THandle; far;
@@ -1152,3 +1153,20 @@ const
 
 type
   MFENUMPROC = function(hdc: HDC; lpht: LPHANDLETABLE; lpmr: LPMETARECORD; cObj: SmallInt; lParam: LPARAM): SmallInt; far;
+
+{ Printing support }
+  ABORTPROC = function(hdc: HDC; error: SmallInt): BOOL; far;
+
+const
+{ Spooler Error Codes }
+  SP_NOTREPORTED   = $4000;
+  SP_ERROR         = (-1);
+  SP_APPABORT      = (-2);
+  SP_USERABORT     = (-3);
+  SP_OUTOFDISK     = (-4);
+  SP_OUTOFMEMORY   = (-5);
+
+  PR_JOBSTATUS     = $0000;
+
+{ Spooler status notification message }
+  WM_SPOOLERSTATUS = $002A;
