@@ -1484,7 +1484,14 @@ begin
     If (Result='') Then
       Result:=GetEnvironmentVariable('TMPDIR');
     if (Result='') then
-      Result:='/tmp/' // fallback.
+      begin
+      // fallback.
+      {$ifdef android}
+        Result:='/data/local/tmp/';
+      {$else}
+        Result:='/tmp/';
+      {$endif android}
+      end;
     end;
   if (Result<>'') then
     Result:=IncludeTrailingPathDelimiter(Result);
