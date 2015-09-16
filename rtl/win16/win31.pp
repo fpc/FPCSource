@@ -441,6 +441,45 @@ const
   SM_DBCSENABLED       = 42;
   SM_CMETRICS          = 43;
 
+{ System Parameters support }
+  SPI_GETBEEP               = 1;
+  SPI_SETBEEP               = 2;
+  SPI_GETMOUSE              = 3;
+  SPI_SETMOUSE              = 4;
+  SPI_GETBORDER             = 5;
+  SPI_SETBORDER             = 6;
+  SPI_GETKEYBOARDSPEED      = 10;
+  SPI_SETKEYBOARDSPEED      = 11;
+  SPI_LANGDRIVER            = 12;
+  SPI_ICONHORIZONTALSPACING = 13;
+  SPI_GETSCREENSAVETIMEOUT  = 14;
+  SPI_SETSCREENSAVETIMEOUT  = 15;
+  SPI_GETSCREENSAVEACTIVE   = 16;
+  SPI_SETSCREENSAVEACTIVE   = 17;
+  SPI_GETGRIDGRANULARITY    = 18;
+  SPI_SETGRIDGRANULARITY    = 19;
+  SPI_SETDESKWALLPAPER      = 20;
+  SPI_SETDESKPATTERN        = 21;
+  SPI_GETKEYBOARDDELAY      = 22;
+  SPI_SETKEYBOARDDELAY      = 23;
+  SPI_ICONVERTICALSPACING   = 24;
+  SPI_GETICONTITLEWRAP      = 25;
+  SPI_SETICONTITLEWRAP      = 26;
+  SPI_GETMENUDROPALIGNMENT  = 27;
+  SPI_SETMENUDROPALIGNMENT  = 28;
+  SPI_SETDOUBLECLKWIDTH     = 29;
+  SPI_SETDOUBLECLKHEIGHT    = 30;
+  SPI_GETICONTITLELOGFONT   = 31;
+  SPI_SETDOUBLECLICKTIME    = 32;
+  SPI_SETMOUSEBUTTONSWAP    = 33;
+  SPI_SETICONTITLELOGFONT   = 34;
+  SPI_GETFASTTASKSWITCH     = 35;
+  SPI_SETFASTTASKSWITCH     = 36;
+
+{ SystemParametersInfo flags }
+  SPIF_UPDATEINIFILE    = $0001;
+  SPIF_SENDWININICHANGE = $0002;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
@@ -569,6 +608,9 @@ function AbortDoc(hdc: HDC): SmallInt; external 'GDI';
 
 function SetAbortProc(hdc: HDC; abrtprc: ABORTPROC): SmallInt; external 'GDI';
 function SpoolFile(lpszPrinter, lpszPort, lpszJob, lpszFile: LPSTR): HANDLE; external 'GDI';
+
+{ System Parameters support }
+function SystemParametersInfo(uAction, uParam: UINT; lpvParam: FarPointer; fuWinIni: UINT): BOOL; external 'USER';
 
 implementation
 
