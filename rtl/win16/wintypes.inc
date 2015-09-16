@@ -1170,3 +1170,77 @@ const
 
 { Spooler status notification message }
   WM_SPOOLERSTATUS = $002A;
+
+{ GDI Escape support }
+{ GDI Escapes }
+  NEWFRAME               = 1;
+  ABORTDOC               = 2;
+  NEXTBAND               = 3;
+  SETCOLORTABLE          = 4;
+  GETCOLORTABLE          = 5;
+  FLUSHOUTPUT            = 6;
+  DRAFTMODE              = 7;
+  QUERYESCSUPPORT        = 8;
+  SETABORTPROC           = 9;
+  STARTDOC               = 10;
+  ENDDOC                 = 11;
+  GETPHYSPAGESIZE        = 12;
+  GETPRINTINGOFFSET      = 13;
+  GETSCALINGFACTOR       = 14;
+  MFCOMMENT              = 15;
+  GETPENWIDTH            = 16;
+  SETCOPYCOUNT           = 17;
+  SELECTPAPERSOURCE      = 18;
+  DEVICEDATA             = 19;
+  PASSTHROUGH            = 19;
+  GETTECHNOLGY           = 20;
+  GETTECHNOLOGY          = 20;
+  SETLINECAP             = 21;
+  SETLINEJOIN            = 22;
+  SETMITERLIMIT          = 23;
+  BANDINFO               = 24;
+  DRAWPATTERNRECT        = 25;
+  GETVECTORPENSIZE       = 26;
+  GETVECTORBRUSHSIZE     = 27;
+  ENABLEDUPLEX           = 28;
+  GETSETPAPERBINS        = 29;
+  GETSETPRINTORIENT      = 30;
+  ENUMPAPERBINS          = 31;
+  SETDIBSCALING          = 32;
+  EPSPRINTING            = 33;
+  ENUMPAPERMETRICS       = 34;
+  GETSETPAPERMETRICS     = 35;
+  POSTSCRIPT_DATA        = 37;
+  POSTSCRIPT_IGNORE      = 38;
+  MOUSETRAILS            = 39;
+
+  GETEXTENDEDTEXTMETRICS = 256;
+  GETEXTENTTABLE         = 257;
+  GETPAIRKERNTABLE       = 258;
+  GETTRACKKERNTABLE      = 259;
+  GDIEXTTEXTOUT          = 512; { renamed to avoid conflict with the ExtTextOut function }
+  GETFACENAME            = 513;
+  ENABLERELATIVEWIDTHS   = 768;
+  ENABLEPAIRKERNING      = 769;
+  SETKERNTRACK           = 770;
+  SETALLJUSTVALUES       = 771;
+  SETCHARSET             = 772;
+
+  GDISTRETCHBLT          = 2048; { renamed to avoid conflict with the StretchBlt function }
+
+  GETSETSCREENPARAMS     = 3072;
+
+  BEGIN_PATH             = 4096;
+  CLIP_TO_PATH           = 4097;
+  END_PATH               = 4098;
+  EXT_DEVICE_CAPS        = 4099;
+  RESTORE_CTM            = 4100;
+  SAVE_CTM               = 4101;
+  SET_ARC_DIRECTION      = 4102;
+  SET_BACKGROUND_COLOR   = 4103;
+  SET_POLY_MODE          = 4104;
+  SET_SCREEN_ANGLE       = 4105;
+  SET_SPREAD             = 4106;
+  TRANSFORM_CTM          = 4107;
+  SET_CLIP_BOX           = 4108;
+  SET_BOUNDS             = 4109;

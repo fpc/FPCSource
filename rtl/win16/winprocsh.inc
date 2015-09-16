@@ -696,3 +696,7 @@ function EnumMetaFile(hdc: HDC; hmf: HMETAFILE; mfenmprc: TFarProc; lParam: LPAR
 { Printing support }
 
 function QueryAbort(hdc: HDC; reserved: SmallInt): BOOL; external 'GDI';
+
+{ GDI Escape support }
+
+function Escape(hdc: HDC; nEscape, cbInput: SmallInt; lpszInData: LPCSTR; lpvOutData: FarPointer): SmallInt; external 'GDI';
