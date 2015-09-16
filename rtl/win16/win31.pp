@@ -612,6 +612,12 @@ function SpoolFile(lpszPrinter, lpszPort, lpszJob, lpszFile: LPSTR): HANDLE; ext
 { System Parameters support }
 function SystemParametersInfo(uAction, uParam: UINT; lpvParam: FarPointer; fuWinIni: UINT): BOOL; external 'USER';
 
+{ Rectangle support }
+function SubtractRect(lprcDest: LPRECT; lprcSource1, lprcSource2: LPRECT): BOOL; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function SubtractRect(var rcDest: RECT; var rcSource1, rcSource2: RECT): BOOL; external 'USER';
+{$endif}
+
 implementation
 
 end.

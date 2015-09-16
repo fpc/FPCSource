@@ -707,3 +707,41 @@ function GetSystemMetrics(nIndex: SmallInt): SmallInt; external 'USER';
 
 function GetDoubleClickTime: UINT; external 'USER';
 procedure SetDoubleClickTime(uInterval: UINT); external 'USER';
+
+{ Rectangle support }
+
+procedure SetRect(lprc: LPRECT; nLeft, nTop, nRight, nBottom: SmallInt); external 'USER';
+procedure SetRectEmpty(lprc: LPRECT); external 'USER';
+
+procedure CopyRect(lprcDst: LPRECT; lprcSrc: LPRECT); external 'USER';
+
+function IsRectEmpty(lprc: LPRECT): BOOL; external 'USER';
+
+function EqualRect(lprc1, lprc2: LPRECT): BOOL; external 'USER';
+
+function IntersectRect(lprcDest: LPRECT; lprcSrc1, lprcSrc2: LPRECT): BOOL; external 'USER';
+function UnionRect(lprcDest: LPRECT; lprcSrc1, lprcSrc2: LPRECT): BOOL; external 'USER';
+
+procedure OffsetRect(lprc: LPRECT; x, y: SmallInt); external 'USER';
+procedure InflateRect(lprc: LPRECT; xAmt, yAmt: SmallInt); external 'USER';
+
+function PtInRect(lprc: LPRECT; pt: POINT): BOOL; external 'USER';
+
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure SetRect(var rc: RECT; nLeft, nTop, nRight, nBottom: SmallInt); external 'USER';
+procedure SetRectEmpty(var rc: RECT); external 'USER';
+
+procedure CopyRect(var rcDst: RECT; var rcSrc: RECT); external 'USER';
+
+function IsRectEmpty(var rc: RECT): BOOL; external 'USER';
+
+function EqualRect(var rc1, rc2: RECT): BOOL; external 'USER';
+
+function IntersectRect(var rcDest: RECT; var rcSrc1, rcSrc2: RECT): BOOL; external 'USER';
+function UnionRect(var rcDest: RECT; var rcSrc1, rcSrc2: RECT): BOOL; external 'USER';
+
+procedure OffsetRect(var rc: RECT; x, y: SmallInt); external 'USER';
+procedure InflateRect(var rc: RECT; xAmt, yAmt: SmallInt); external 'USER';
+
+function PtInRect(var rc: RECT; pt: POINT): BOOL; external 'USER';
+{$endif}
