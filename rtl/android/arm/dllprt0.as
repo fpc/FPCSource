@@ -25,30 +25,30 @@ FPC_SHARED_LIB_START:
         sub fp, ip, #4
 
         /* Get GOT */
-        ldr r4,.L_GOT1
+        ldr r3,.L_GOT1
 .LPIC1:
-        add r4,pc,r4
+        add r3,pc,r3
 
         /* Save initial stackpointer */
         ldr ip,.L__stkptr
-        ldr ip,[r4, ip]
+        ldr ip,[r3, ip]
         str sp,[ip]
 
         /* Get environment info from libc */
         ldr ip,.Lenviron
-        ldr ip,[r4, ip]
+        ldr ip,[r3, ip]
         ldr r0,[ip]
         /* Check if environment is NULL */
         cmp r0,#0
         ldreq r0,.LEmptyEnv
-        ldreq r0,[r4, r0]
+        ldreq r0,[r3, r0]
         ldr ip,.Loperatingsystem_parameter_envp
-        ldr ip,[r4, ip]
+        ldr ip,[r3, ip]
         str r0,[ip]
         
         /* Register exit handler. It is called only when the main process terminates */
         ldr r0,.LFPC_LIB_EXIT
-        ldr r0,[r4, r0]
+        ldr r0,[r3, r0]
         blx atexit
 
         /* call main and exit normally */
