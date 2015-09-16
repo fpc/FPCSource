@@ -494,6 +494,16 @@ const
 
   QS_ALLINPUT    = $007f;
 
+{ Power management }
+  WM_POWER = $0048;
+
+{ wParam for WM_POWER window message and DRV_POWER driver notification }
+  PWR_OK             = 1;
+  PWR_FAIL           = (-1);
+  PWR_SUSPENDREQUEST = 1;
+  PWR_SUSPENDRESUME  = 2;
+  PWR_CRITICALRESUME = 3;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
