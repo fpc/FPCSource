@@ -700,3 +700,10 @@ function QueryAbort(hdc: HDC; reserved: SmallInt): BOOL; external 'GDI';
 { GDI Escape support }
 
 function Escape(hdc: HDC; nEscape, cbInput: SmallInt; lpszInData: LPCSTR; lpvOutData: FarPointer): SmallInt; external 'GDI';
+
+{ System Metrics }
+
+function GetSystemMetrics(nIndex: SmallInt): SmallInt; external 'USER';
+
+function GetDoubleClickTime: UINT; external 'USER';
+procedure SetDoubleClickTime(uInterval: UINT); external 'USER';

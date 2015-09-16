@@ -1251,3 +1251,47 @@ type
   HMENU = THandle;
   HICON = THandle;
   HCURSOR = HICON;  { HICONs & HCURSORs are polymorphic }
+
+{ System Metrics }
+const
+{ GetSystemMetrics() codes }
+  SM_CXSCREEN      = 0;
+  SM_CYSCREEN      = 1;
+  SM_CXVSCROLL     = 2;
+  SM_CYHSCROLL     = 3;
+  SM_CYCAPTION     = 4;
+  SM_CXBORDER      = 5;
+  SM_CYBORDER      = 6;
+  SM_CXDLGFRAME    = 7;
+  SM_CYDLGFRAME    = 8;
+  SM_CYVTHUMB      = 9;
+  SM_CXHTHUMB      = 10;
+  SM_CXICON        = 11;
+  SM_CYICON        = 12;
+  SM_CXCURSOR      = 13;
+  SM_CYCURSOR      = 14;
+  SM_CYMENU        = 15;
+  SM_CXFULLSCREEN  = 16;
+  SM_CYFULLSCREEN  = 17;
+  SM_CYKANJIWINDOW = 18;
+  SM_MOUSEPRESENT  = 19;
+  SM_CYVSCROLL     = 20;
+  SM_CXHSCROLL     = 21;
+  SM_DEBUG         = 22;
+  SM_SWAPBUTTON    = 23;
+  SM_RESERVED1     = 24;
+  SM_RESERVED2     = 25;
+  SM_RESERVED3     = 26;
+  SM_RESERVED4     = 27;
+  SM_CXMIN         = 28;
+  SM_CYMIN         = 29;
+  SM_CXSIZE        = 30;
+  SM_CYSIZE        = 31;
+  SM_CXFRAME       = 32;
+  SM_CYFRAME       = 33;
+  SM_CXMINTRACK    = 34;
+  SM_CYMINTRACK    = 35;
+  SM_CMETRICS      = 36;
+
+  WM_DEVMODECHANGE = $001B;
+  WM_TIMECHANGE    = $001E;

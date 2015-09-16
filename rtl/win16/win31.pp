@@ -429,6 +429,18 @@ type
   end;
   TDocInfo = DOCINFO;
 
+{ System Metrics }
+const
+{ GetSystemMetrics() codes }
+  SM_CXDOUBLECLK       = 36;
+  SM_CYDOUBLECLK       = 37;
+  SM_CXICONSPACING     = 38;
+  SM_CYICONSPACING     = 39;
+  SM_MENUDROPALIGNMENT = 40;
+  SM_PENWINDOWS        = 41;
+  SM_DBCSENABLED       = 42;
+  SM_CMETRICS          = 43;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
