@@ -745,3 +745,43 @@ procedure InflateRect(var rc: RECT; xAmt, yAmt: SmallInt); external 'USER';
 
 function PtInRect(var rc: RECT; pt: POINT): BOOL; external 'USER';
 {$endif}
+
+{ Window message support }
+
+function RegisterWindowMessage(lpsz: LPCSTR): UINT; external 'USER';
+
+function GetMessage(lpmsg: LPMSG; hwnd: HWND; uMsgFilterMin, uMsgFilterMax: UINT): BOOL; external 'USER';
+function PeekMessage(lpmsg: LPMSG; hwnd: HWND; uFilterFirst, uFilterLast, fuRemove: UINT): BOOL; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetMessage(var msg: MSG; hwnd: HWND; uMsgFilterMin, uMsgFilterMax: UINT): BOOL; external 'USER';
+function PeekMessage(var msg: MSG; hwnd: HWND; uFilterFirst, uFilterLast, fuRemove: UINT): BOOL; external 'USER';
+{$endif}
+
+procedure WaitMessage; external 'USER';
+
+function GetMessagePos: DWORD; external 'USER';
+function GetMessageTime: LONG; external 'USER';
+
+function TranslateMessage(lpmsg: LPMSG): BOOL; external 'USER';
+function DispatchMessage(lpmsg: LPMSG): LONG; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function TranslateMessage(var msg: MSG): BOOL; external 'USER';
+function DispatchMessage(var msg: MSG): LONG; external 'USER';
+{$endif}
+
+function SetMessageQueue(cMsg: SmallInt): BOOL; external 'USER';
+
+function GetInputState: BOOL; external 'USER';
+
+function PostMessage(hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): BOOL; external 'USER';
+function SendMessage(hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; external 'USER';
+
+function PostAppMessage(htask: HTASK; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): BOOL; external 'USER';
+
+procedure ReplyMessage(lResult: LRESULT); external 'USER';
+function InSendMessage: BOOL; external 'USER';
+
+function CallMsgFilter(lpmsg: LPMSG; nCode: SmallInt): BOOL; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function CallMsgFilter(var msg: MSG; nCode: SmallInt): BOOL; external 'USER';
+{$endif}

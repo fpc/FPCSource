@@ -480,6 +480,20 @@ const
   SPIF_UPDATEINIFILE    = $0001;
   SPIF_SENDWININICHANGE = $0002;
 
+{ Window message support }
+
+{ GetQueueStatus flags }
+  QS_KEY         = $0001;
+  QS_MOUSEMOVE   = $0002;
+  QS_MOUSEBUTTON = $0004;
+  QS_MOUSE       = QS_MOUSEMOVE or QS_MOUSEBUTTON;
+  QS_POSTMESSAGE = $0008;
+  QS_TIMER       = $0010;
+  QS_PAINT       = $0020;
+  QS_SENDMESSAGE = $0040;
+
+  QS_ALLINPUT    = $007f;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
@@ -617,6 +631,10 @@ function SubtractRect(lprcDest: LPRECT; lprcSource1, lprcSource2: LPRECT): BOOL;
 {$ifdef VAR_PARAMS_ARE_FAR}
 function SubtractRect(var rcDest: RECT; var rcSource1, rcSource2: RECT): BOOL; external 'USER';
 {$endif}
+
+{ Window message support }
+function GetMessageExtraInfo: LPARAM; external 'USER';
+function GetQueueStatus(flags: UINT): DWORD; external 'USER';
 
 implementation
 

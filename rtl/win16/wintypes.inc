@@ -1295,3 +1295,59 @@ const
 
   WM_DEVMODECHANGE = $001B;
   WM_TIMECHANGE    = $001E;
+
+{ Window message support }
+  WM_NULL = $0000;
+
+{ NOTE: All messages below $0400 are RESERVED by Windows }
+  WM_USER = $0400;
+
+type
+{ Queued message structure }
+  PMSG = ^MSG;
+  NPMSG = ^MSG; near;
+  LPMSG = ^MSG; far;
+  MSG = record
+    hwnd: HWND;
+    message: UINT;
+    wParam: WPARAM;
+    lParam: LPARAM;
+    time: DWORD;
+    pt: POINT;
+  end;
+  TMsg = MSG;
+
+const
+{ PeekMessage() options }
+  PM_NOREMOVE = $0000;
+  PM_REMOVE   = $0001;
+  PM_NOYIELD  = $0002;
+
+{ Special HWND value for use with PostMessage() and SendMessage() }
+  HWND_BROADCAST = HWND($ffff);
+
+  WH_GETMESSAGE   = 3;
+
+  WH_CALLWNDPROC  = 4;
+
+  WH_MSGFILTER    = (-1);
+  WH_SYSMSGFILTER = 6;
+
+{ CallMsgFilter() and WH_SYS/MSGFILTER context codes }
+  MSGF_DIALOGBOX  = 0;
+  MSGF_MENU       = 2;
+  MSGF_MOVE       = 3;
+  MSGF_SIZE       = 4;
+  MSGF_SCROLLBAR  = 5;
+  MSGF_NEXTWINDOW = 6;
+  MSGF_MAINLOOP   = 8;
+  MSGF_USER       = 4096;
+
+{ Standard window messages }
+{ PenWindows specific messages }
+  WM_PENWINFIRST = $0380;
+  WM_PENWINLAST  = $038F;
+
+{ Coalescing messages }
+  WM_COALESCE_FIRST = $0390;
+  WM_COALESCE_LAST  = $039F;
