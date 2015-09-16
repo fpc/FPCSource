@@ -2344,20 +2344,31 @@ unit cgcpu;
            (pi_needs_got in current_procinfo.flags) and
            (tf_pic_uses_got in target_info.flags) then
           begin
-            a_reg_alloc(list,current_procinfo.got);  // Alloc PIC register
-            if getsupreg(current_procinfo.got) < first_int_imreg then
-              include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
             reference_reset(ref,4);
             current_asmdata.getglobaldatalabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
             ref.symbol:=l;
             ref.base:=NR_PC;
             ref.symboldata:=current_procinfo.aktlocaldata.last;
-            list.concat(Taicpu.op_reg_ref(A_LDR,current_procinfo.got,ref));
+            a_reg_alloc(list,NR_R12);
+            list.concat(Taicpu.op_reg_ref(A_LDR,NR_R12,ref));
             current_asmdata.getaddrlabel(l);
             current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_32bit,l,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),-8));
             cg.a_label(list,l);
-            list.concat(Taicpu.op_reg_reg_reg(A_ADD,current_procinfo.got,NR_PC,current_procinfo.got));
+            if cs_opt_regvar in current_settings.optimizerswitches then
+              begin
+                {
+                  When regvars are used, it is needed to perform GOT calculations using the scratch register R12
+                  and then MOV the result to the GOT register. Otherwise the register allocator will use
+                  register R0 as temp to perform calculations in case if a procedure uses all available registers.
+                  It leads to corruption of R0 which is normally holds a value of the first procedure parameter.
+                }
+                list.concat(Taicpu.op_reg_reg_reg(A_ADD,NR_R12,NR_PC,NR_R12));
+                list.concat(Taicpu.op_reg_reg(A_MOV,current_procinfo.got,NR_R12));
+              end
+            else
+              list.concat(Taicpu.op_reg_reg_reg(A_ADD,current_procinfo.got,NR_PC,NR_R12));
+            a_reg_dealloc(list,NR_R12);
           end;
       end;
 
