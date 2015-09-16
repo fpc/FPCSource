@@ -1351,3 +1351,11 @@ const
 { Coalescing messages }
   WM_COALESCE_FIRST = $0390;
   WM_COALESCE_LAST  = $039F;
+
+{ Application termination }
+  WM_QUERYENDSESSION = $0011;
+  WM_ENDSESSION      = $0016;
+
+  WM_QUIT            = $0012;
+
+  WM_SYSTEMERROR     = $0017;

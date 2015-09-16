@@ -785,3 +785,7 @@ function CallMsgFilter(lpmsg: LPMSG; nCode: SmallInt): BOOL; external 'USER';
 {$ifdef VAR_PARAMS_ARE_FAR}
 function CallMsgFilter(var msg: MSG; nCode: SmallInt): BOOL; external 'USER';
 {$endif}
+
+{ Application termination }
+
+procedure PostQuitMessage(nExitCode: SmallInt); external 'USER';
