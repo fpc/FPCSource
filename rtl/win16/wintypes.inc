@@ -1547,3 +1547,52 @@ const
   GWW_ID              = (-12);
   GWL_STYLE           = (-16);
   GWL_EXSTYLE         = (-20);
+
+{ Window size, position, Z-order, and visibility }
+
+  CW_USEDEFAULT      = SmallInt($8000);
+
+{ SetWindowPos() and WINDOWPOS flags }
+  SWP_NOSIZE         = $0001;
+  SWP_NOMOVE         = $0002;
+  SWP_NOZORDER       = $0004;
+  SWP_NOREDRAW       = $0008;
+  SWP_NOACTIVATE     = $0010;
+  SWP_FRAMECHANGED   = $0020;  { The frame changed: send WM_NCCALCSIZE }
+  SWP_SHOWWINDOW     = $0040;
+  SWP_HIDEWINDOW     = $0080;
+  SWP_NOCOPYBITS     = $0100;
+  SWP_NOOWNERZORDER  = $0200;  { Don't do owner Z ordering }
+
+  SWP_DRAWFRAME      = SWP_FRAMECHANGED;
+  SWP_NOREPOSITION   = SWP_NOOWNERZORDER;
+
+  SWP_NOSENDCHANGING = $0400;
+  SWP_DEFERERASE     = $2000;
+
+{ SetWindowPos() hwndInsertAfter field values }
+  HWND_TOP           = HWND(0);
+  HWND_BOTTOM        = HWND(1);
+  HWND_TOPMOST       = HWND(-1);
+  HWND_NOTOPMOST     = HWND(-2);
+
+type
+  HDWP = THandle;
+
+const
+  WM_MOVE            = $0003;
+  WM_SIZE            = $0005;
+
+{ WM_SIZE message wParam values }
+  SIZE_RESTORED      = 0;
+  SIZE_MINIMIZED     = 1;
+  SIZE_MAXIMIZED     = 2;
+  SIZE_MAXSHOW       = 3;
+  SIZE_MAXHIDE       = 4;
+
+{ Obsolete constant names }
+  SIZENORMAL         = SIZE_RESTORED;
+  SIZEICONIC         = SIZE_MINIMIZED;
+  SIZEFULLSCREEN     = SIZE_MAXIMIZED;
+  SIZEZOOMSHOW       = SIZE_MAXSHOW;
+  SIZEZOOMHIDE       = SIZE_MAXHIDE;

@@ -848,3 +848,21 @@ function GetWindowWord(hwnd: HWND; nOffset: SmallInt): WORD; external 'USER';
 function SetWindowWord(hwnd: HWND; nOffset: SmallInt; nVal: WORD): WORD; external 'USER';
 function GetWindowLong(hwnd: HWND; nOffset: SmallInt): LONG; external 'USER';
 function SetWindowLong(hwnd: HWND; nOffset: SmallInt; nVal: LONG): LONG; external 'USER';
+
+{ Window size, position, Z-order, and visibility }
+
+procedure GetClientRect(hwnd: HWND; lprc: LPRECT); external 'USER';
+procedure GetWindowRect(hwnd: HWND; lprc: LPRECT); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure GetClientRect(hwnd: HWND; var rc: RECT); external 'USER';
+procedure GetWindowRect(hwnd: HWND; var rc: RECT); external 'USER';
+{$endif}
+
+function SetWindowPos(hwnd, hwndInsertAfter: HWND; x, y, cx, cy: SmallInt; fuFlags: UINT): BOOL; external 'USER';
+
+function BeginDeferWindowPos(cWindows: SmallInt): HDWP; external 'USER';
+function DeferWindowPos(hdwp: HDWP; hwnd, hwndInsertAfter: HWND; x, y, cx, cy: SmallInt; flags: UINT): HDWP; external 'USER';
+function EndDeferWindowPos(hdwp: HDWP): BOOL; external 'USER';
+
+function MoveWindow(hwnd: HWND; nLeft, nTop, nWidth, nHeight: SmallInt; fRepaint: BOOL): BOOL; external 'USER';
+function BringWindowToTop(hwnd: HWND): BOOL; external 'USER';

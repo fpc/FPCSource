@@ -515,6 +515,42 @@ const
   WS_EX_ACCEPTFILES = $00000010;
   WS_EX_TRANSPARENT = $00000020;
 
+type
+{ Window size, position, Z-order, and visibility }
+  PWINDOWPLACEMENT = ^WINDOWPLACEMENT;
+  LPWINDOWPLACEMENT = ^WINDOWPLACEMENT; far;
+  WINDOWPLACEMENT = record
+    length: UINT;
+    flags: UINT;
+    showCmd: UINT;
+    ptMinPosition: POINT;
+    ptMaxPosition: POINT;
+    rcNormalPosition: RECT;
+  end;
+  TWindowPlacement = WINDOWPLACEMENT;
+
+const
+  WPF_SETMINPOSITION     = $0001;
+  WPF_RESTORETOMAXIMIZED = $0002;
+
+  WM_WINDOWPOSCHANGING   = $0046;
+  WM_WINDOWPOSCHANGED    = $0047;
+
+type
+{ WM_WINDOWPOSCHANGING/CHANGED struct pointed to by lParam }
+  PWINDOWPOS = ^WINDOWPOS;
+  LPWINDOWPOS = ^WINDOWPOS; far;
+  WINDOWPOS = record
+    hwnd: HWND;
+    hwndInsertAfter: HWND;
+    x: SmallInt;
+    y: SmallInt;
+    cx: SmallInt;
+    cy: SmallInt;
+    flags: UINT;
+  end;
+  TWindowPos = WINDOWPOS;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
@@ -665,6 +701,10 @@ function RegisterClass(lpwc: LPWNDCLASS): ATOM; external 'USER';
 {$ifdef VAR_PARAMS_ARE_FAR}
 function RegisterClass(var wc: WNDCLASS): ATOM; external 'USER';
 {$endif}
+
+{ Window size, position, Z-order, and visibility }
+function GetWindowPlacement(hwnd: HWND; lpwndpl: LPWINDOWPLACEMENT): BOOL; external 'USER';
+function SetWindowPlacement(hwnd: HWND; lpwndpl: LPWINDOWPLACEMENT): BOOL; external 'USER';
 
 implementation
 
