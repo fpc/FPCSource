@@ -2087,7 +2087,10 @@ implementation
                            expstr:=copy(pattern,2,length(pattern)-1);
                            val(expstr,intval,code);
                            if code<>0 then
-                             haderror:=true;
+                             begin
+                               haderror:=true;
+                               intval:=intval; // Hackfix the "var assigned but never used" note.
+                             end;
                          end
                        else
                          expstr:='';
