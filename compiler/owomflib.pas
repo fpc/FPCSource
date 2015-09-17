@@ -366,6 +366,8 @@ implementation
       Header.DecodeFrom(RawRecord);
       FPageSize:=Header.PageSize;
       ReadDictionary(Header.DictionaryOffset, Header.DictionarySizeInBlocks);
+      Header.Free;
+      RawRecord.Free;
     end;
 
   procedure TOmfLibObjectReader.ReadDictionary(DictionaryOffset: DWord; DictionarySizeInBlocks: Word);
