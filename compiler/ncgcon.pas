@@ -543,7 +543,6 @@ implementation
     procedure tcgguidconstnode.pass_generate_code;
       var
          lastlabel   : tasmlabel;
-         i           : longint;
          entry       : PHashSetItem;
          datatcb     : ttai_typedconstbuilder;
       begin

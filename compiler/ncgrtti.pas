@@ -1403,7 +1403,7 @@ implementation
         var
           t:Tenumsym;
           syms:tfplist;
-          h,i,p:longint;
+          i:longint;
           rttitypesym: ttypesym;
           rttidef: trecorddef;
         begin

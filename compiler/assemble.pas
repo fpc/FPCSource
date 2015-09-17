@@ -1711,7 +1711,9 @@ Implementation
         pdata : pointer;
         ssingle : single;
         ddouble : double;
+        {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
         eextended : extended;
+        {$endif}
         ccomp : comp;
         tmp    : word;
       begin

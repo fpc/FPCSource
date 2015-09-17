@@ -174,7 +174,6 @@ unit rgcpu;
       var
         tmpref : treference;
         helplist : TAsmList;
-        l : tasmlabel;
         hreg : tregister;
         immshift: byte;
         a: aint;
@@ -283,8 +282,6 @@ unit rgcpu;
 
 
     function trgcpu.do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;
-      var
-        b : byte;
       begin
         result:=false;
         if abs(spilltemp.offset)>4095 then
@@ -611,8 +608,7 @@ unit rgcpu;
     procedure trgintcputhumb.add_cpu_interferences(p: tai);
       var
         r : tregister;
-        i,
-        hr : longint;
+        i : longint;
       begin
         if p.typ=ait_instruction then
           begin

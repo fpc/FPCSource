@@ -412,10 +412,6 @@ implementation
 
     function new_function : tnode;
       var
-        newstatement : tstatementnode;
-        newblock     : tblocknode;
-        temp         : ttempcreatenode;
-        para         : tcallparanode;
         p1,p2  : tnode;
         classh : tobjectdef;
         srsym    : tsym;

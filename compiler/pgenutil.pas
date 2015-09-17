@@ -416,15 +416,10 @@ uses
         found,
         first,
         err : boolean;
-        errval,
         i,
         gencount : longint;
         def : tstoreddef;
-        generictype : ttypesym;
-        generictypelist : tfphashobjectlist;
-        prettyname,specializename : ansistring;
-        ufinalspecializename,
-        countstr,genname,ugenname,finalspecializename : string;
+        countstr,genname,ugenname : string;
         srsym : tsym;
         st : tsymtable;
       begin

@@ -1241,16 +1241,11 @@ implementation
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
       var
-        s,hs,
+        s,
         prefix : TSymStr;
-        oldlen,
-        newlen,
-        i   : longint;
         crc : dword;
-        hp  : tparavarsym;
       begin
         prefix:='';
-        hp:=nil;
         if not assigned(st) then
          internalerror(200204212);
         { sub procedures }
@@ -3170,7 +3165,6 @@ implementation
       var
         res: PHashSetItem;
         oldsymtablestack: tsymtablestack;
-        savesymtab: tsymtable;
       begin
         if not assigned(current_module) then
           internalerror(2011071101);

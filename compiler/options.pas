@@ -215,7 +215,7 @@ const
   procedure SplitLine (var OrigString: TCmdStr; const Placeholder: TCmdStr;
                                                  var RemainderString: TCmdStr);
   var
-    I, L: longint;
+    I: longint;
     HS2: TCmdStr;
   begin
     RemainderString := '';

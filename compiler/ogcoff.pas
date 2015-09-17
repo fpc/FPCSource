@@ -2184,7 +2184,6 @@ const pemagic : array[0..3] of byte = (
         bssExeSec,
         idataExeSec,
         tlsExeSec : TExeSection;
-        tlsdir : TlsDirectory;
         hassymbols,
         writeDbgStrings : boolean;
 
@@ -2504,7 +2503,6 @@ const pemagic : array[0..3] of byte = (
       var
         exesec:TExeSection;
         objsec,textsec:TObjSection;
-        objsym:TObjSymbol;
         objreloc:TObjRelocation;
         i,j:longint;
       begin

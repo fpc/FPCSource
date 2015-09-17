@@ -1212,7 +1212,6 @@ implementation
         templist : TAsmList;
         headertai : tai;
         i : integer;
-        varsym : tabstractnormalvarsym;
         {RedoDFA : boolean;}
 
         procedure delete_marker(anode: tasmnode);
@@ -2040,7 +2039,6 @@ implementation
         old_current_specializedef: tstoreddef;
         pdflags    : tpdflags;
         pd,firstpd : tprocdef;
-        s          : string;
       begin
          { save old state }
          old_current_procinfo:=current_procinfo;

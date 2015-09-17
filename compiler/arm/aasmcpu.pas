@@ -945,12 +945,10 @@ implementation
         penalty,
         lastinspos,
         { increased for every data element > 4 bytes inserted }
-        currentsize,
         extradataoffset,
         curop : longint;
         curtai,
         inserttai : tai;
-        ai_label : tai_label;
         curdatatai,hp,hp2 : tai;
         curdata : TAsmList;
         l : tasmlabel;
@@ -1322,7 +1320,6 @@ implementation
     procedure ensurethumbencodings(list: TAsmList);
       var
         curtai: tai;
-        op2reg: TRegister;
       begin
         { Do Thumb 16bit transformations to form valid instruction forms }
         curtai:=tai(list.first);

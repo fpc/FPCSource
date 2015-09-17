@@ -1041,7 +1041,6 @@ implementation
     function _asm_statement : tnode;
       var
         asmstat : tasmnode;
-        Marker  : tai;
         reg     : tregister;
         asmreader : tbaseasmreader;
         entrypos : tfileposinfo;

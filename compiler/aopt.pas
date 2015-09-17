@@ -331,7 +331,7 @@ Unit aopt;
 
     procedure TAsmScheduler.SchedulerPass1;
       var
-        p,hp1,hp2 : tai;
+        p : tai;
       begin
         p:=BlockStart;
         while p<>BlockEnd Do

@@ -2632,8 +2632,7 @@ Implementation
   function TCpuThumb2AsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       hp : taicpu;
-      hp1,hp2 : tai;
-      oldreg : TRegister;
+      //hp1,hp2 : tai;
     begin
       result:=false;
       if inherited PeepHoleOptPass1Cpu(p) then
@@ -2760,10 +2759,8 @@ Implementation
   procedure TCpuThumb2AsmOptimizer.PeepHoleOptPass2;
     var
       p,hp1,hp2: tai;
-      l,l2 : longint;
+      l : longint;
       condition : tasmcond;
-      hp3: tai;
-      WasLast: boolean;
       { UsedRegs, TmpUsedRegs: TRegSet; }
 
     begin

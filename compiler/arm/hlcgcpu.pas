@@ -63,7 +63,6 @@ implementation
       var
         tmpref,
         href : treference;
-        extrareg : boolean;
         l : TAsmLabel;
       begin
         reference_reset_base(href,voidpointertype,NR_R0,0,sizeof(pint));

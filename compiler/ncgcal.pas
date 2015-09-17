@@ -261,7 +261,6 @@ implementation
 
     procedure tcgcallparanode.secondcallparan;
       var
-         href    : treference;
          pushaddr: boolean;
       begin
          if not(assigned(parasym)) then
@@ -858,7 +857,6 @@ implementation
         regs_to_save_mm   : Tcpuregisterset;
         href : treference;
         pop_size : longint;
-        vmtoffset : aint;
         pvreg : tregister;
         oldaktcallnode : tcallnode;
         retlocitem: pcgparalocation;
@@ -868,6 +866,7 @@ implementation
         callref: boolean;
 {$ifdef vtentry}
         sym : tasmsymbol;
+        vmtoffset : aint;
 {$endif vtentry}
 {$ifdef SUPPORT_SAFECALL}
         cgpara : tcgpara;

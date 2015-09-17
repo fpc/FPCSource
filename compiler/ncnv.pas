@@ -1087,9 +1087,6 @@ implementation
         para : tcallparanode;
         hp : tstringconstnode;
         ws : pcompilerwidestring;
-        newblock : tblocknode;
-        newstat  : tstatementnode;
-        restemp  : ttempcreatenode;
         sa : ansistring;
         cw : tcompilerwidechar;
         l : SizeUInt;

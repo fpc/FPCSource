@@ -2182,8 +2182,6 @@ implementation
 
 
     constructor tparavarsym.ppuload(ppufile:tcompilerppufile);
-      var
-        b : byte;
       begin
          inherited ppuload(paravarsym,ppufile);
          paranr:=ppufile.getword;

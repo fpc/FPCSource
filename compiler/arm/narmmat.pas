@@ -393,7 +393,6 @@ implementation
 
     procedure tarmunaryminusnode.second_float;
       var
-        op: tasmop;
         pf: TOpPostfix;
       begin
         secondpass(left);

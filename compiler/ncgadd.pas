@@ -86,9 +86,9 @@ interface
 *****************************************************************************}
 
     procedure tcgaddnode.pass_left_right;
+{$if defined(x86) and not defined(llvm)}
       var
         tmpreg     : tregister;
-{$if defined(x86) and not defined(llvm)}
         pushedfpu  : boolean;
 {$endif x86 and not llvm}
       begin

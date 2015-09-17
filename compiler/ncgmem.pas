@@ -223,7 +223,6 @@ implementation
         sym : tsym;
         st : tsymtable;
         hp : pnode;
-        hp2 : tnode;
         extraoffset : tcgint;
       begin
          sym:=nil;

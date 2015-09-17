@@ -2215,8 +2215,6 @@ type
       var
         hs  : string;
         mac : tmacro;
-        l : longint;
-        w : integer;
         exprvalue: texprvalue;
       begin
         current_scanner.skipspace;

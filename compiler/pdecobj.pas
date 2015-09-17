@@ -1301,8 +1301,6 @@ implementation
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
         old_current_specializedef: tstoreddef;
-        hrecst: trecordsymtable;
-        fsym: tfieldvarsym;
         old_parse_generic: boolean;
         list: TFPObjectList;
         s: String;

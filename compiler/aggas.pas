@@ -623,9 +623,6 @@ implementation
       i,pos,l  : longint;
       InlineLevel : cardinal;
       last_align : longint;
-      co       : comp;
-      sin      : single;
-      d        : double;
 {$ifdef cpuextended}
       e        : extended;
 {$endif cpuextended}

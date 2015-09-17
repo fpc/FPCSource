@@ -783,7 +783,6 @@ implementation
         paraloc   : pcgparalocation;
         href      : treference;
         sizeleft  : aint;
-        alignment : longint;
         tempref   : treference;
 {$ifdef mips}
         tmpreg   : tregister;

@@ -218,7 +218,6 @@ unit cpupara;
       var
         i: longint;
         sym: tsym;
-        fpufield: boolean;
       begin
         if handle_common_ret_in_param(def,pd,result) then
           exit;

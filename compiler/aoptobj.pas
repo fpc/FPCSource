@@ -859,8 +859,6 @@ Unit AoptObj;
 
 
       procedure TAOptObj.UpdateUsedRegs(p : Tai);
-        var
-          i : TRegisterType;
         begin
           { this code is based on TUsedRegs.Update to avoid multiple passes through the asmlist,
             the code is duplicated here }
