@@ -938,3 +938,28 @@ function GetDC(hwnd: HWND): HDC; external 'USER';
 function ReleaseDC(hwnd: HWND; hdc: HDC): SmallInt; external 'USER';
 
 function GetWindowDC(hwnd: HWND): HDC; external 'USER';
+
+{ Window repainting }
+
+function BeginPaint(hwnd: HWND; lpps: LPPAINTSTRUCT): HDC; external 'USER';
+procedure EndPaint(hwnd: HWND; lpps: LPPAINTSTRUCT); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function BeginPaint(hwnd: HWND; var ps: PAINTSTRUCT): HDC; external 'USER';
+procedure EndPaint(hwnd: HWND; var ps: PAINTSTRUCT); external 'USER';
+{$endif}
+
+procedure UpdateWindow(hwnd: HWND); external 'USER';
+
+function ExcludeUpdateRgn(hdc: HDC; hwnd: HWND): SmallInt; external 'USER';
+
+function GetUpdateRect(hwnd: HWND; lprc: LPRECT; fErase: BOOL): BOOL; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetUpdateRect(hwnd: HWND; var rc: RECT; fErase: BOOL): BOOL; external 'USER';
+{$endif}
+function GetUpdateRgn(hwnd: HWND; hrgn: HRGN; fErase: BOOL): SmallInt; external 'USER';
+
+procedure InvalidateRect(hwnd: HWND; lprc: LPRECT; fErase: BOOL); external 'USER';
+procedure ValidateRect(hwnd: HWND; lprc: LPRECT); external 'USER';
+
+procedure InvalidateRgn(hwnd: HWND; hrgn: HRGN; fErase: BOOL); external 'USER';
+procedure ValidateRgn(hwnd: HWND; hrgn: HRGN); external 'USER';

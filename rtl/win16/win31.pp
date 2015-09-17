@@ -739,6 +739,10 @@ procedure MapWindowPoints(hwndFrom, hwndTo: HWND; var pt: POINT; cpt: UINT); ext
  }
 function GetDCEx({register} hwnd: HWND; hrgnClip: HRGN; flags: DWORD): HDC; external 'USER';
 
+{ Window repainting }
+function LockWindowUpdate(hwndLock: HWND): BOOL; external 'USER';
+function RedrawWindow(hwnd: HWND; lprcUpdate: LPRECT; hrgnUpdate: HRGN; flags: UINT): BOOL; external 'USER';
+
 implementation
 
 end.

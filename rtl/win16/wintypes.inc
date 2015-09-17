@@ -1634,3 +1634,42 @@ const
 type
 { Window property support }
   PROPENUMPROC = function(hwnd: HWND; lpsz: LPCSTR; hData: HANDLE): BOOL; far;
+
+const
+{ Window repainting }
+  WM_PAINT          = $000F;
+  WM_ERASEBKGND     = $0014;
+  WM_ICONERASEBKGND = $0027;
+
+type
+{ BeginPaint() return structure }
+  PPAINTSTRUCT = ^PAINTSTRUCT;
+  NPPAINTSTRUCT = ^PAINTSTRUCT; near;
+  LPPAINTSTRUCT = ^PAINTSTRUCT; far;
+  PAINTSTRUCT = record
+    hdc: HDC;
+    fErase: BOOL;
+    rcPaint: RECT;
+    fRestore: BOOL;
+    fIncUpdate: BOOL;
+    rgbReserved: array [0..15] of BYTE;
+  end;
+  TPaintStruct = PAINTSTRUCT;
+
+const
+  RDW_INVALIDATE      = $0001;
+  RDW_INTERNALPAINT   = $0002;
+  RDW_ERASE           = $0004;
+
+  RDW_VALIDATE        = $0008;
+  RDW_NOINTERNALPAINT = $0010;
+  RDW_NOERASE         = $0020;
+
+  RDW_NOCHILDREN      = $0040;
+  RDW_ALLCHILDREN     = $0080;
+
+  RDW_UPDATENOW       = $0100;
+  RDW_ERASENOW        = $0200;
+
+  RDW_FRAME           = $0400;
+  RDW_NOFRAME         = $0800;
