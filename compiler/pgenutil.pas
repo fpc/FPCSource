@@ -647,7 +647,6 @@ uses
         ufinalspecializename : tidstring;
         prettyname : ansistring;
         generictypelist : tfphashobjectlist;
-        st,
         specializest : tsymtable;
         hashedid : thashedidstring;
         tempst : tglobalsymtable;
@@ -685,21 +684,6 @@ uses
         finalspecializename:=generate_generic_name(context.genname,context.specializename,genericdef.ownerhierarchyname);
         ufinalspecializename:=upper(finalspecializename);
         prettyname:=genericdef.typesym.prettyname+'<'+context.prettyname+'>';
-
-        { select the symtable containing the params }
-        case genericdef.typ of
-          procdef:
-            st:=genericdef.GetSymtable(gs_para);
-          objectdef,
-          recorddef:
-            st:=genericdef.GetSymtable(gs_record);
-          arraydef:
-            st:=tarraydef(genericdef).symtable;
-          procvardef:
-            st:=genericdef.GetSymtable(gs_para);
-          else
-            internalerror(200511182);
-        end;
 
         generictypelist:=tfphashobjectlist.create(false);
 
