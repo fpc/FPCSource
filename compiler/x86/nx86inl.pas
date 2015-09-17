@@ -806,7 +806,6 @@ implementation
         negop3,
         negproduct,
         gotmem : boolean;
-        hp : tnode;
       begin
 {$ifndef i8086}
          if (cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[] then

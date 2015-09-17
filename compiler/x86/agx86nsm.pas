@@ -604,8 +604,10 @@ interface
       end;
 
     procedure TX86NasmAssembler.WriteGroups;
+      {$ifdef i8086}
       var
         i: Integer;
+      {$endif i8086}
       begin
 {$ifdef i8086}
         if target_info.system in [system_i8086_msdos,system_i8086_win16] then
@@ -636,12 +638,6 @@ interface
       consttype : taiconst_type;
       do_line, SkipNewLine,
       quoted   : boolean;
-      co       : comp;
-      sin      : single;
-      d        : double;
-{$ifdef cpuextended}
-      e        : extended;
-{$endif cpuextended}
       fixed_opcode: TAsmOp;
       prefix, LastSecName  : string;
       LastAlign : Byte;
@@ -1332,7 +1328,7 @@ interface
             comment : '; ';
             dollarsign: '$';
           );
-
+{
        as_i386_nasmdarwin_info : tasminfo =
           (
             id           : as_i386_nasmdarwin;
@@ -1345,7 +1341,7 @@ interface
             comment : '; ';
             dollarsign: '$';
           );
-
+}
        as_i386_nasmbeos_info : tasminfo =
           (
             id           : as_i386_nasmbeos;

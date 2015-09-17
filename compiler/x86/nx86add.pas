@@ -932,7 +932,9 @@ unit nx86add;
       var
         op : topcg;
         sqr_sum : boolean;
+        {$ifdef dummy}
         tmp : tnode;
+        {$endif dummy}
       begin
         sqr_sum:=false;
 {$ifdef dummy}

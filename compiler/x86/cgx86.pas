@@ -1703,12 +1703,8 @@ unit cgx86;
 
 
     procedure tcgx86.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);
-
-      var
-        opcode : tasmop;
-        power  : longint;
-        href : treference;
 {$ifdef x86_64}
+      var
         tmpreg : tregister;
 {$endif x86_64}
       begin
@@ -1812,8 +1808,6 @@ unit cgx86;
 
     procedure tcgx86.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
       var
-        opcode: tasmop;
-        power: longint;
 {$ifdef x86_64}
         tmpreg : tregister;
 {$endif x86_64}

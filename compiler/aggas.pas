@@ -623,9 +623,6 @@ implementation
       i,pos,l  : longint;
       InlineLevel : cardinal;
       last_align : longint;
-{$ifdef cpuextended}
-      e        : extended;
-{$endif cpuextended}
       do_line  : boolean;
 
       sepChar : char;
