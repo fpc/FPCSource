@@ -508,6 +508,13 @@ const
 { Class field offsets for GetClassLong() and GetClassWord() }
   GCW_ATOM = (-32);
 
+{ Window creation/destroy }
+
+{ Window Styles }
+  WS_EX_TOPMOST     = $00000008;
+  WS_EX_ACCEPTFILES = $00000010;
+  WS_EX_TRANSPARENT = $00000020;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';

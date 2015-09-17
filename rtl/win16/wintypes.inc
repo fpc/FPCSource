@@ -1414,3 +1414,136 @@ const
   GCW_CBCLSEXTRA    = (-20);
   GCL_WNDPROC       = (-24);
   GCW_STYLE         = (-26);
+
+{ Window creation/destroy }
+
+{ Window Styles }
+
+{ Basic window types }
+  WS_OVERLAPPED        = $00000000;
+  WS_POPUP             = $80000000;
+  WS_CHILD             = $40000000;
+
+{ Clipping styles }
+  WS_CLIPSIBLINGS      = $04000000;
+  WS_CLIPCHILDREN      = $02000000;
+
+{ Generic window states }
+  WS_VISIBLE           = $10000000;
+  WS_DISABLED          = $08000000;
+
+{ Main window states }
+  WS_MINIMIZE          = $20000000;
+  WS_MAXIMIZE          = $01000000;
+
+{ Main window styles }
+  WS_CAPTION           = $00C00000;     { WS_BORDER | WS_DLGFRAME }
+  WS_BORDER            = $00800000;
+  WS_DLGFRAME          = $00400000;
+  WS_VSCROLL           = $00200000;
+  WS_HSCROLL           = $00100000;
+  WS_SYSMENU           = $00080000;
+  WS_THICKFRAME        = $00040000;
+  WS_MINIMIZEBOX       = $00020000;
+  WS_MAXIMIZEBOX       = $00010000;
+
+{ Control window styles }
+  WS_GROUP             = $00020000;
+  WS_TABSTOP           = $00010000;
+
+{ Common Window Styles }
+  WS_OVERLAPPEDWINDOW  = (WS_OVERLAPPED or WS_CAPTION or WS_SYSMENU or WS_THICKFRAME or WS_MINIMIZEBOX or WS_MAXIMIZEBOX);
+  WS_POPUPWINDOW       = (WS_POPUP or WS_BORDER or WS_SYSMENU);
+  WS_CHILDWINDOW       = (WS_CHILD);
+
+{ Extended Window Styles }
+  WS_EX_DLGMODALFRAME  = $00000001;
+  WS_EX_NOPARENTNOTIFY = $00000004;
+
+{ Obsolete style names }
+  WS_TILED             = WS_OVERLAPPED;
+  WS_ICONIC            = WS_MINIMIZE;
+  WS_SIZEBOX           = WS_THICKFRAME;
+  WS_TILEDWINDOW       = WS_OVERLAPPEDWINDOW;
+
+
+
+{ Special value for CreateWindow, et al. }
+  HWND_DESKTOP          = HWND(0);
+
+  WM_CREATE   = $0001;
+  WM_NCCREATE = $0081;
+
+type
+{ WM_CREATE/WM_NCCREATE lParam struct }
+  PCREATESTRUCT = ^CREATESTRUCT;
+  LPCREATESTRUCT = ^CREATESTRUCT; far;
+  CREATESTRUCT = record
+    lpCreateParams: FarPointer;
+    hInstance: HINST;
+    hMenu: HMENU;
+    hwndParent: HWND;
+    cy: SmallInt;
+    cx: SmallInt;
+    y: SmallInt;
+    x: SmallInt;
+    style: LONG;
+    lpszName: LPCSTR;
+    lpszClass: LPCSTR;
+    dwExStyle: DWORD;
+  end;
+  TCreateStruct = CREATESTRUCT;
+
+const
+  WM_DESTROY          = $0002;
+  WM_NCDESTROY        = $0082;
+
+  SW_HIDE             = 0;
+  SW_SHOWNORMAL       = 1;
+  SW_NORMAL           = 1;
+  SW_SHOWMINIMIZED    = 2;
+  SW_SHOWMAXIMIZED    = 3;
+  SW_MAXIMIZE         = 3;
+  SW_SHOWNOACTIVATE   = 4;
+  SW_SHOW             = 5;
+  SW_MINIMIZE         = 6;
+  SW_SHOWMINNOACTIVE  = 7;
+  SW_SHOWNA           = 8;
+  SW_RESTORE          = 9;
+
+{ Obsolete ShowWindow() command names }
+  HIDE_WINDOW         = 0;
+  SHOW_OPENWINDOW     = 1;
+  SHOW_ICONWINDOW     = 2;
+  SHOW_FULLSCREEN     = 3;
+  SHOW_OPENNOACTIVATE = 4;
+
+  WM_SHOWWINDOW       = $0018;
+
+{ WM_SHOWWINDOW wParam codes }
+  SW_PARENTCLOSING    = 1;
+  SW_OTHERMAXIMIZED   = 2;
+  SW_PARENTOPENING    = 3;
+  SW_OTHERRESTORED    = 4;
+
+{ Obsolete constant names }
+  SW_OTHERZOOM        = SW_OTHERMAXIMIZED;
+  SW_OTHERUNZOOM      = SW_OTHERRESTORED;
+
+  WM_SETREDRAW        = $000B;
+
+{ Enabled state }
+  WM_ENABLE           = $000A;
+
+{ Window text }
+  WM_SETTEXT          = $000C;
+  WM_GETTEXT          = $000D;
+  WM_GETTEXTLENGTH    = $000E;
+
+{ Window field offsets for GetWindowLong() and GetWindowWord() }
+  GWL_WNDPROC         = (-4);
+  GWW_HINSTANCE       = (-6);
+  GWW_HWNDPARENT      = (-8);
+  GWW_ID              = (-12);
+  GWL_STYLE           = (-16);
+  GWL_EXSTYLE         = (-20);

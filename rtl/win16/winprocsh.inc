@@ -811,3 +811,40 @@ function GetClassWord(hwnd: HWND; offset: SmallInt): WORD; external 'USER';
 function SetClassWord(hwnd: HWND; nIndex: SmallInt; wNewWord: WORD): WORD; external 'USER';
 function GetClassLong(hwnd: HWND; offset: SmallInt): LONG; external 'USER';
 function SetClassLong(hwnd: HWND; nIndex: SmallInt; nVal: LONG): LONG; external 'USER';
+
+{ Window creation/destroy }
+
+function IsWindow(hwnd: HWND): BOOL; external 'USER';
+
+function CreateWindowEx(dwExStyle: DWORD; lpszClassName, lpszWindowName: LPCSTR; dwStyle: DWORD; x, y, nWidth, nHeight: SmallInt; hwndParent: HWND; hmenu: HMENU; hinst: HINST; lpvCreateParams: FarPointer): HWND; external 'USER';
+function CreateWindow(lpszClassName, lpszWindowName: LPCSTR; dwStyle: DWORD; x, y, nWidth, nHeight: SmallInt; hwndParent: HWND; hmenu: HMENU; hinst: HINST; lpvParam: FarPointer): HWND; external 'USER';
+
+function DestroyWindow(hwnd: HWND): BOOL; external 'USER';
+
+{ Basic window attributes }
+
+function GetWindowTask(hwnd: HWND): HTASK; external 'USER';
+
+function IsChild(hwndParent, hwndChild: HWND): BOOL; external 'USER';
+
+function GetParent(hwnd: HWND): HWND; external 'USER';
+function SetParent(hwndChild, hwndNewParent: HWND): HWND; external 'USER';
+
+function IsWindowVisible(hwnd: HWND): BOOL; external 'USER';
+
+function ShowWindow(hwnd: HWND; nCmdShow: SmallInt): BOOL; external 'USER';
+
+{ Enabled state }
+function EnableWindow(hwnd: HWND; fEnable: BOOL): BOOL; external 'USER';
+function IsWindowEnabled(hwnd: HWND): BOOL; external 'USER';
+
+{ Window text }
+procedure SetWindowText(hwnd: HWND; lpsz: LPCSTR); external 'USER';
+function GetWindowText(hwnd: HWND; lpsz: LPSTR; cbMax: SmallInt): SmallInt; external 'USER';
+function GetWindowTextLength(hwnd: HWND): SmallInt; external 'USER';
+
+{ Window words }
+function GetWindowWord(hwnd: HWND; nOffset: SmallInt): WORD; external 'USER';
+function SetWindowWord(hwnd: HWND; nOffset: SmallInt; nVal: WORD): WORD; external 'USER';
+function GetWindowLong(hwnd: HWND; nOffset: SmallInt): LONG; external 'USER';
+function SetWindowLong(hwnd: HWND; nOffset: SmallInt; nVal: LONG): LONG; external 'USER';
