@@ -2321,10 +2321,8 @@ end;
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 function EndOfLastCompleteUTF8CodePoint(var t: textrec): SizeInt;
 var
-  i, lenfound, codepointlen: sizeint;
-  b: byte;
+  i, codepointlen: sizeint;
 begin
-  lenfound:=0;
   for i:=t.bufpos-1 downto 0 do
     begin
       { we don't care about combining diacritical marks here: we just want a

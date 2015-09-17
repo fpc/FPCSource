@@ -295,7 +295,6 @@ end;
 procedure call_stack(pp : pheap_mem_info;var ptext : text);
 var
   i  : ptruint;
-  s: PtrUInt;
 begin
   writeln(ptext,'Call trace for block $',hexstr(pointer(pp)+sizeof(theap_mem_info)),' size ',pp^.size);
   if printleakedblock then

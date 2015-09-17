@@ -595,7 +595,6 @@ Function TStrings.GetNextLineBreak (Const Value : String; Var S : String; Var P 
 
 Var
   PS,PC,PP : PChar;
-  IP,L : Integer;
 
 begin
   S:='';
@@ -1238,7 +1237,7 @@ end;
 Procedure TStringList.SetCapacity(NewCapacity: Integer);
 
 Var NewList : Pointer;
-    I,MSize : Longint;
+    MSize : Longint;
 
 begin
   If (NewCapacity<0) then

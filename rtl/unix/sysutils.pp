@@ -236,7 +236,6 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
   var
     act: SigActionRec;
     lowsig, highsig, i: Integer;
-    state: TSignalState;
   begin
     if not signalinfoinited then
       initsignalinfo;

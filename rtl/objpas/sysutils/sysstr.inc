@@ -1878,7 +1878,6 @@ Var
   UnexpectedDigits: Integer;                  { Number Of unexpected Digits that }
                                               { have To be inserted before the   }
                                               { First placeholder.               }
-  UnexpectedDigitsStart: Integer;             { Location in Digits where first unexpected Digit is located }
   DigitExponent: Integer;                     { Exponent Of First digit In       }
                                               { Digits Array.                    }
 
@@ -2823,6 +2822,7 @@ cd    it is better to not use those, since most implementation are not 100%
 
 
 const
+{$if defined(MSDOS) or defined(GO32V2) or defined(WATCOM) }
    { upper case translation table for character set 850 }
    CP850UCT: array[128..255] of char =
    (#128,#154,#144,#182,#142,#182,#143,#128,#210,#211,#212,#216,#215,#222,#142,#143,
@@ -2844,6 +2844,7 @@ const
     #208,#209,#136,#137,#138,#213,#161,#140,#139,#217,#218,#219,#220,#221,#141,#223,
     #162,#225,#147,#149,#228,#228,#230,#237,#232,#163,#150,#151,#236,#236,#238,#239,
     #240,#241,#242,#243,#244,#245,#246,#247,#248,#249,#250,#251,#252,#253,#254,#255);
+{$endif}
 
    { upper case translation table for character set ISO 8859/1  Latin 1  }
    CPISO88591UCT: array[192..255] of char =

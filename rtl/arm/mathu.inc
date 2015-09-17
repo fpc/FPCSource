@@ -450,8 +450,10 @@ function GetExceptionMask: TFPUExceptionMask;
 
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+{$if not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
   var
     cw : dword;
+{$endif}
   begin
 {$if not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
     cw:=FPU_GetCW;
