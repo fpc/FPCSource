@@ -905,3 +905,21 @@ procedure ScreenToClient(hwnd: HWND; var pt: POINT); external 'USER';
 
 function WindowFromPoint(pt: POINT): HWND; external 'USER';
 function ChildWindowFromPoint(hwndParent: HWND; pt: POINT): HWND; external 'USER';
+
+{ Window query and enumeration }
+
+function GetDesktopWindow: HWND; external 'USER';
+
+function FindWindow(lpszClassName, lpszWindow: LPCSTR): HWND; external 'USER';
+
+function EnumWindows(wndenmprc: WNDENUMPROC; lParam: LPARAM): BOOL; external 'USER';
+function EnumWindows(wndenmprc: TFarProc; lParam: LPARAM): BOOL; external 'USER';
+function EnumChildWindows(hwndParent: HWND; wndenmprc: WNDENUMPROC; lParam: LPARAM): BOOL; external 'USER';
+function EnumChildWindows(hwndParent: HWND; wndenmprc: TFarProc; lParam: LPARAM): BOOL; external 'USER';
+function EnumTaskWindows(htask: HTASK; wndenmprc: WNDENUMPROC; lParam: LPARAM): BOOL; external 'USER';
+function EnumTaskWindows(htask: HTASK; wndenmprc: TFarProc; lParam: LPARAM): BOOL; external 'USER';
+
+function GetTopWindow(hwnd: HWND): HWND; external 'USER';
+
+function GetWindow(hwnd: HWND; fuRel: UINT): HWND; external 'USER';
+function GetNextWindow(hwnd: HWND; uFlag: UINT): HWND; external 'USER';

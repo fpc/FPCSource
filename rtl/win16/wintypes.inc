@@ -1617,3 +1617,16 @@ type
 
 const
   WM_GETMINMAXINFO = $0024;
+
+type
+{ Window query and enumeration }
+  WNDENUMPROC = function(hwnd: HWND; lParam: LPARAM): BOOL; far;
+
+const
+{ GetWindow() constants }
+  GW_HWNDFIRST = 0;
+  GW_HWNDLAST  = 1;
+  GW_HWNDNEXT  = 2;
+  GW_HWNDPREV  = 3;
+  GW_OWNER     = 4;
+  GW_CHILD     = 5;
