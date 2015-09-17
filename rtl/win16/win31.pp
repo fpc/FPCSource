@@ -551,6 +551,23 @@ type
   end;
   TWindowPos = WINDOWPOS;
 
+const
+{ Window drawing support }
+  DCX_WINDOW           = $00000001;
+  DCX_CACHE            = $00000002;
+  DCX_CLIPCHILDREN     = $00000008;
+  DCX_CLIPSIBLINGS     = $00000010;
+  DCX_PARENTCLIP       = $00000020;
+
+  DCX_EXCLUDERGN       = $00000040;
+  DCX_INTERSECTRGN     = $00000080;
+
+
+  DCX_LOCKWINDOWUPDATE = $00000400;
+
+
+  DCX_USESTYLE         = $00010000;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
@@ -712,6 +729,15 @@ procedure MapWindowPoints(hwndFrom, hwndTo: HWND; lppt: LPPOINT; cpt: UINT); ext
 {$ifdef VAR_PARAMS_ARE_FAR}
 procedure MapWindowPoints(hwndFrom, hwndTo: HWND; var pt: POINT; cpt: UINT); external 'USER';
 {$endif}
+
+{ Window drawing support }
+{ note: the first parameter in this function is declared 'register' in windows.h, even though
+        the calling convention of the function is 'pascal'
+  todo: figure out whether the first parameter really needs to be passed in register, or
+        whether the 'register' modifier is ignored by 16-bit C compilers, when the calling
+        convention is 'pascal'.
+ }
+function GetDCEx({register} hwnd: HWND; hrgnClip: HRGN; flags: DWORD): HDC; external 'USER';
 
 implementation
 

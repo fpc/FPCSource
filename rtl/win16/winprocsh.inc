@@ -923,3 +923,18 @@ function GetTopWindow(hwnd: HWND): HWND; external 'USER';
 
 function GetWindow(hwnd: HWND; fuRel: UINT): HWND; external 'USER';
 function GetNextWindow(hwnd: HWND; uFlag: UINT): HWND; external 'USER';
+
+{ Window property support }
+
+function SetProp(hwnd: HWND; lpsz: LPCSTR; hData: HANDLE): BOOL; external 'USER';
+function GetProp(hwnd: HWND; lpsz: LPCSTR): HANDLE; external 'USER';
+function RemoveProp(hwnd: HWND; lpsz: LPCSTR): HANDLE; external 'USER';
+
+function EnumProps(hwnd: HWND; prpenmprc: PROPENUMPROC): SmallInt; external 'USER';
+
+{ Window drawing support }
+
+function GetDC(hwnd: HWND): HDC; external 'USER';
+function ReleaseDC(hwnd: HWND; hdc: HDC): SmallInt; external 'USER';
+
+function GetWindowDC(hwnd: HWND): HDC; external 'USER';

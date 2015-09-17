@@ -1630,3 +1630,7 @@ const
   GW_HWNDPREV  = 3;
   GW_OWNER     = 4;
   GW_CHILD     = 5;
+
+type
+{ Window property support }
+  PROPENUMPROC = function(hwnd: HWND; lpsz: LPCSTR; hData: HANDLE): BOOL; far;
