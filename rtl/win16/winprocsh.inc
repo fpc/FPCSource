@@ -931,6 +931,7 @@ function GetProp(hwnd: HWND; lpsz: LPCSTR): HANDLE; external 'USER';
 function RemoveProp(hwnd: HWND; lpsz: LPCSTR): HANDLE; external 'USER';
 
 function EnumProps(hwnd: HWND; prpenmprc: PROPENUMPROC): SmallInt; external 'USER';
+function EnumProps(hwnd: HWND; prpenmprc: TFarProc): SmallInt; external 'USER';
 
 { Window drawing support }
 
