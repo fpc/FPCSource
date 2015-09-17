@@ -32,6 +32,7 @@ procedure SetPrinterDevice(const Device: string);
 implementation
 
 uses
+  sysutils, { used for SameFileName function }
   Dos,Objects,Drivers,
   FVConsts,
   Version,
@@ -233,10 +234,17 @@ begin
                ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+IniName),nil)
              else
                IniFileName:=CurDir+IniName;
-             if CopyFile(SwitchesPath,CurDir+SwitchesName)=false then
-               ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+SwitchesName),nil)
-             else
-               SwitchesPath:=CurDir+SwitchesName;
+             { copy also SwitchesPath to current dir, but only if
+               1) SwitchesPath exists
+               2) SwitchesPath is different from CurDir+SwitchesName }
+             if ExistsFile(SwitchesPath) and
+                not SameFileName(SwitchesPath,CurDir+SwitchesName) then
+               begin
+                 if CopyFile(SwitchesPath,CurDir+SwitchesName)=false then
+                   ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+SwitchesName),nil)
+                 else
+                   SwitchesPath:=CurDir+SwitchesName;
+               end;
            end;
        end
      else
