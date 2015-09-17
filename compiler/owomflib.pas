@@ -81,6 +81,7 @@ type
     CurrMemberPos : longint;
     CurrMemberName : string;
     FPageSize: Integer;
+    FIsCaseSensitive: Boolean;
     procedure ReadLibrary;
     procedure ReadDictionary(DictionaryOffset: DWord; DictionarySizeInBlocks: Word);
   protected
@@ -93,6 +94,7 @@ type
     function  openfile(const fn:string):boolean;override;
     procedure closefile;override;
     procedure seek(len:longint);override;
+    property IsCaseSensitive: Boolean read FIsCaseSensitive;
   end;
 
 implementation
@@ -365,6 +367,7 @@ implementation
       Header:=TOmfRecord_LIBHEAD.Create;
       Header.DecodeFrom(RawRecord);
       FPageSize:=Header.PageSize;
+      FIsCaseSensitive:=Header.CaseSensitive;
       ReadDictionary(Header.DictionaryOffset, Header.DictionarySizeInBlocks);
       Header.Free;
       RawRecord.Free;
