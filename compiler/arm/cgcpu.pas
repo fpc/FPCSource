@@ -1227,8 +1227,6 @@ unit cgcpu;
     function tbasecgarm.handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
       var
         tmpreg1,tmpreg2 : tregister;
-        tmpref : treference;
-        l : tasmlabel;
       begin
         tmpreg1:=NR_NO;
 
@@ -1890,7 +1888,6 @@ unit cgcpu;
          registerarea,
          r7offset,
          stackmisalignment : pint;
-         postfix: toppostfix;
          imm1, imm2: DWord;
          stack_parameters : Boolean;
       begin
@@ -2128,7 +2125,6 @@ unit cgcpu;
          registerarea,
          stackmisalignment: pint;
          paddingreg: TSuperRegister;
-         mmpostfix: toppostfix;
          imm1, imm2: DWord;
       begin
         { Release PIC register }
@@ -3563,14 +3559,10 @@ unit cgcpu;
     procedure tthumbcgarm.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
       var
          ref : treference;
-         shift : byte;
          r : byte;
-         regs, saveregs : tcpuregisterset;
-         r7offset,
+         regs : tcpuregisterset;
          stackmisalignment : pint;
-         postfix: toppostfix;
-         registerarea,
-         imm1, imm2: DWord;
+         registerarea: DWord;
          stack_parameters: Boolean;
       begin
         stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
@@ -3676,15 +3668,11 @@ unit cgcpu;
 
     procedure tthumbcgarm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
       var
-         ref : treference;
          LocalSize : longint;
-         r,
-         shift : byte;
-         saveregs,
+         r: byte;
          regs : tcpuregisterset;
          registerarea : DWord;
          stackmisalignment: pint;
-         imm1, imm2: DWord;
          stack_parameters : Boolean;
       begin
         if not(nostackframe) then
@@ -3879,7 +3867,6 @@ unit cgcpu;
 
      procedure tthumbcgarm.a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);
        var
-          imm_shift : byte;
           l : tasmlabel;
           hr : treference;
        begin
@@ -4041,8 +4028,7 @@ unit cgcpu;
 
     procedure tthumbcgarm.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
       var
-        tmpreg,overflowreg : tregister;
-        asmop : tasmop;
+        tmpreg : tregister;
       begin
         case op of
           OP_NEG:
@@ -4075,9 +4061,9 @@ unit cgcpu;
     procedure tthumbcgarm.a_op_const_reg(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; dst: tregister);
       var
         tmpreg : tregister;
-        so : tshifterop;
+        {$ifdef DUMMY}
         l1 : longint;
-        imm1, imm2: DWord;
+        {$endif DUMMY}
       begin
         //!!! ovloc.loc:=LOC_VOID;
         if {$ifopt R+}(a<>-2147483648) and{$endif} {!!!!!! not setflags and } is_thumb_imm(-a) then
@@ -4278,7 +4264,6 @@ unit cgcpu;
 
      procedure tthumb2cgarm.a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);
        var
-          imm_shift : byte;
           l : tasmlabel;
           hr : treference;
        begin
@@ -4764,7 +4749,6 @@ unit cgcpu;
 
 
     procedure tthumb2cgarm.g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister);
-      var item: taicpu;
       begin
         list.concat(taicpu.op_cond(A_ITE, flags_to_cond(f)));
         list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,1),flags_to_cond(f)));
@@ -4980,7 +4964,6 @@ unit cgcpu;
         tmpreg : tregister;
         tmpref : treference;
         l : tasmlabel;
-        so: tshifterop;
       begin
         tmpreg:=NR_NO;
 
@@ -5258,7 +5241,6 @@ unit cgcpu;
     procedure tthumbcg64farm.a_op64_const_reg(list: TAsmList; op: TOpCG; size: tcgsize; value: int64; reg: tregister64);
       var
         tmpreg : tregister;
-        b : byte;
       begin
         case op of
           OP_AND,OP_OR,OP_XOR:
