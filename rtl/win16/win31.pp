@@ -706,6 +706,13 @@ function RegisterClass(var wc: WNDCLASS): ATOM; external 'USER';
 function GetWindowPlacement(hwnd: HWND; lpwndpl: LPWINDOWPLACEMENT): BOOL; external 'USER';
 function SetWindowPlacement(hwnd: HWND; lpwndpl: LPWINDOWPLACEMENT): BOOL; external 'USER';
 
+{ Window coordinate mapping and hit-testing }
+
+procedure MapWindowPoints(hwndFrom, hwndTo: HWND; lppt: LPPOINT; cpt: UINT); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure MapWindowPoints(hwndFrom, hwndTo: HWND; var pt: POINT; cpt: UINT); external 'USER';
+{$endif}
+
 implementation
 
 end.

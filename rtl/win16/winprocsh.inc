@@ -893,3 +893,15 @@ procedure CloseWindow(hwnd: HWND); external 'USER';
 function AnyPopup: BOOL; external 'USER';
 function IsIconic(hwnd: HWND): BOOL; external 'USER';
 function IsZoomed(hwnd: HWND): BOOL; external 'USER';
+
+{ Window coordinate mapping and hit-testing }
+
+procedure ClientToScreen(hwnd: HWND; lppt: LPPOINT); external 'USER';
+procedure ScreenToClient(hwnd: HWND; lppt: LPPOINT); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure ClientToScreen(hwnd: HWND; var pt: POINT); external 'USER';
+procedure ScreenToClient(hwnd: HWND; var pt: POINT); external 'USER';
+{$endif}
+
+function WindowFromPoint(pt: POINT): HWND; external 'USER';
+function ChildWindowFromPoint(hwndParent: HWND; pt: POINT): HWND; external 'USER';
