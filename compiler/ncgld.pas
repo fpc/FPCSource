@@ -589,7 +589,9 @@ implementation
          alignmentrequirement,
          len : aint;
          r : tregister;
+         {$if not defined(cpu64bitalu) and not defined(x86)}
          r64 : tregister64;
+         {$endif}
          oldflowcontrol : tflowcontrol;
       begin
         { previously, managed types were handled in firstpass

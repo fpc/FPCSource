@@ -153,7 +153,6 @@ function MatchReference(const ref : treference;base,index : TRegister) : Boolean
 
 function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
 var
-  next1: tai;
   hp1, hp2: tai;
   GetNextIntruction_p : boolean;
   TmpUsedRegs : TAllUsedRegs;
