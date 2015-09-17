@@ -1877,7 +1877,7 @@ var
   s: rawbytestring;
 begin
   Do_getdir(drivenr,s);
-  dir:=s;
+  dir:=unicodestring(s);
 end;
 {$endif FPCRTL_FILESYSTEM_TWO_BYTE_API}
 

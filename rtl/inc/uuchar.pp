@@ -40,7 +40,7 @@ Function ParamStr(Param: Longint): UnicodeString;
     In time, the system unit should get a GetExeName call.
   }
     if (Param=0) then
-      Paramstr:=System.Paramstr(0)
+      Paramstr:=UnicodeString(System.Paramstr(0))
     else if (Param>0) and (Param<argc) then
       paramstr:=UnicodeString(Argv[Param])
     else

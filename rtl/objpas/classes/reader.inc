@@ -1526,12 +1526,12 @@ begin
     begin
       Result := FDriver.ReadString(StringType);
       if (StringType=vaUTF8String) then
-        Result:=utf8Decode(Result);
+        Result:=string(utf8Decode(Result));
     end
   else if StringType in [vaWString] then
-    Result:= FDriver.ReadWidestring
+    Result:= string(FDriver.ReadWidestring)
   else if StringType in [vaUString] then
-    Result:= FDriver.ReadUnicodeString
+    Result:= string(FDriver.ReadUnicodeString)
   else
     raise EReadError.Create(SInvalidPropertyValue);
 end;
