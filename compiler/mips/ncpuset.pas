@@ -67,7 +67,7 @@ procedure tcpucasenode.genjumptable(hp: pcaselabel; min_, max_: aint);
 var
   table: tasmlabel;
   last:  TConstExprInt;
-  indexreg, jmpreg, basereg: tregister;
+  indexreg, jmpreg: tregister;
   href:  treference;
   jumpsegment: TAsmlist;
   opcgsize: tcgsize;

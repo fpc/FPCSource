@@ -3275,7 +3275,9 @@ implementation
       pltreltags: array[boolean] of longword=(DT_REL,DT_RELA);
       relsztags:  array[boolean] of longword=(DT_RELSZ,DT_RELASZ);
       relenttags: array[boolean] of longword=(DT_RELENT,DT_RELAENT);
+      {$ifndef MIPS}
       relcnttags: array[boolean] of longword=(DT_RELCOUNT,DT_RELACOUNT);
+      {$endif MIPS}
 
     procedure TElfExeOutput.FinishDynamicTags;
       var

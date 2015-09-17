@@ -964,11 +964,13 @@ implementation
       end;
 
 
+{$if defined(i386) or defined(x86_64) or defined(arm)}
     const
       exception_flags: array[boolean] of tprocinfoflags = (
         [],
         [pi_uses_exceptions,pi_needs_implicit_finally,pi_has_implicit_finally]
       );
+{$endif}
 
     procedure tcgprocinfo.setup_tempgen;
       begin

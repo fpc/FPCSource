@@ -1221,8 +1221,11 @@ Unit AoptObj;
        the level parameter denotes how deeep we have already followed the jump,
        to avoid endless loops with constructs such as "l5: ; jmp l5"           }
 
-      var p1, p2: tai;
+      var p1: tai;
+          {$if not defined(MIPS) and not defined(JVM)}
+          p2: tai;
           l: tasmlabel;
+          {$endif}
 
       begin
         GetfinalDestination := false;

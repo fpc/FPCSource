@@ -235,10 +235,10 @@ unit cpugas;
     procedure TMIPSInstrWriter.WriteInstruction(hp: Tai);
       var
         Op: TAsmOp;
-        s,s1:  string;
+        s:  string;
         i:  integer;
         tmpfpu: string;
-        tmpfpu_len: longint;
+        //tmpfpu_len: longint;
         r: TRegister;
       begin
         if hp.typ <> ait_instruction then
@@ -357,6 +357,7 @@ unit cpugas;
 
 
     const
+{$ifdef MIPSEL}
       as_MIPSEL_as_info: tasminfo =
         (
         id: as_gas;
@@ -369,6 +370,7 @@ unit cpugas;
         comment: '# ';
         dollarsign: '$';
         );
+{$else MIPSEL}
       as_MIPSEB_as_info: tasminfo =
         (
         id: as_gas;
@@ -381,6 +383,7 @@ unit cpugas;
         comment: '# ';
         dollarsign: '$';
         );
+{$endif MIPSEL}
 
 begin
 {$ifdef MIPSEL}

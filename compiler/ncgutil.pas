@@ -785,7 +785,7 @@ implementation
         sizeleft  : aint;
         tempref   : treference;
 {$ifdef mips}
-        tmpreg   : tregister;
+        //tmpreg   : tregister;
 {$endif mips}
 {$ifndef cpu64bitalu}
         tempreg  : tregister;

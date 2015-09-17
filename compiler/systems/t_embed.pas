@@ -90,7 +90,7 @@ Var
   linklibc : boolean;
   found1,
   found2   : boolean;
-{$if defined(ARM) or defined(MIPSEL)}
+{$if defined(ARM)}
   LinkStr  : string;
 {$endif}
 begin

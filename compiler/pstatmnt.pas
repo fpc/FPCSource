@@ -1398,9 +1398,9 @@ implementation
     function assembler_block : tnode;
       var
         p : tnode;
-{$ifndef arm}
+        {$if not(defined(sparc)) and not(defined(arm)) and not(defined(avr)) and not(defined(mips))}
         locals : longint;
-{$endif arm}
+        {$endif}
         srsym : tsym;
       begin
          if parse_generic then
