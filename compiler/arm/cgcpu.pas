@@ -2339,31 +2339,43 @@ unit cgcpu;
       var
         ref : treference;
         l : TAsmLabel;
+        regs : tcpuregisterset;
+        r: byte;
       begin
         if (cs_create_pic in current_settings.moduleswitches) and
            (pi_needs_got in current_procinfo.flags) and
            (tf_pic_uses_got in target_info.flags) then
           begin
+            { Procedure parametrs are not initialized at this stage.
+              Before GOT initialization code, allocate registers used for procedure parameters
+              to prevent usage of these registers for temp operations in later stages of code
+              generation. }
+            regs:=rg[R_INTREGISTER].used_in_proc;
+            for r:=RS_R0 to RS_R3 do
+              if r in regs then
+                a_reg_alloc(list, newreg(R_INTREGISTER,r,R_SUBWHOLE));
+            { Allocate scratch register R12 and use it for GOT calculations directly.
+              Otherwise the init code can be distorted in later stages of code generation. }
+            a_reg_alloc(list,NR_R12);
+
             reference_reset(ref,4);
             current_asmdata.getglobaldatalabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
             ref.symbol:=l;
             ref.base:=NR_PC;
             ref.symboldata:=current_procinfo.aktlocaldata.last;
-            a_reg_alloc(list,NR_R12);
             list.concat(Taicpu.op_reg_ref(A_LDR,NR_R12,ref));
             current_asmdata.getaddrlabel(l);
             current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_32bit,l,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),-8));
             cg.a_label(list,l);
-            {
-              It is needed to perform GOT calculations using the scratch register R12
-              and then MOV the result to the GOT register. Otherwise the register allocator will use
-              register R0 as temp to perform calculations in case if a procedure uses all available registers.
-              It leads to corruption of R0 which is normally holds a value of the first procedure parameter.
-            }
             list.concat(Taicpu.op_reg_reg_reg(A_ADD,NR_R12,NR_PC,NR_R12));
             list.concat(Taicpu.op_reg_reg(A_MOV,current_procinfo.got,NR_R12));
+
+            { Deallocate registers }
             a_reg_dealloc(list,NR_R12);
+            for r:=RS_R3 downto RS_R0 do
+              if r in regs then
+                a_reg_dealloc(list, newreg(R_INTREGISTER,r,R_SUBWHOLE));
           end;
       end;
 
