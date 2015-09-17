@@ -230,7 +230,7 @@ interface
     procedure tx86notnode.second_boolean;
       var
          opsize : tcgsize;
-         {$if defined(cpu32bitalu)}
+         {$if defined(cpu32bitalu) or defined(cpu16bitalu)}
          hreg: tregister;
          {$endif}
       begin
