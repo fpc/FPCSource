@@ -873,9 +873,7 @@ implementation
         srsym: tsym;
         srsymtable: tsymtable;
         i: longint;
-        name: TIDString;
       begin
-        name:=internaltypeprefixName[prefix];
         if searchsym_type(copy(internaltypeprefixName[prefix],2,length(internaltypeprefixName[prefix])),srsym,srsymtable) then
           begin
             result:=trecorddef(ttypesym(srsym).typedef);
@@ -1034,7 +1032,9 @@ implementation
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel,
          fieldtablelabel : tasmlabel;
+{$ifdef vtentry}
          hs: string;
+{$endif vtentry}
 {$ifdef WITHDMT}
          dmtlabel : tasmlabel;
 {$endif WITHDMT}
@@ -1082,7 +1082,6 @@ implementation
           begin
             { write class name }
             tcb.start_internal_data_builder(current_asmdata.asmlists[al_const],sec_rodata_norel,'',datatcb,classnamelabel);
-            hs:=_class.RttiName;
             classnamedef:=datatcb.emit_shortstring_const(_class.RttiName);
             tcb.finish_internal_data_builder(datatcb,classnamelabel,classnamedef,sizeof(pint));
 

@@ -249,7 +249,6 @@ implementation
          uopsize    : tcgsize;
          uopdef     : tdef;
          orgopsize  : tcgsize;
-         orgopdef   : tdef;
          genjumps,
          use_small  : boolean;
          i,numparts : byte;
@@ -263,7 +262,6 @@ implementation
          genjumps := checkgenjumps(setparts,numparts,use_small);
 
          orgopsize := def_cgsize(left.resultdef);
-         orgopdef := left.resultdef;
          uopsize := OS_32;
          uopdef := u32inttype;
          if is_signed(left.resultdef) then

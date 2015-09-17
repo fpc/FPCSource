@@ -861,8 +861,6 @@ implementation
         oldaktcallnode : tcallnode;
         retlocitem: pcgparalocation;
         pd : tprocdef;
-        proc_addr_size: TCgSize;
-        proc_addr_voidptrdef: tdef;
         callref: boolean;
 {$ifdef vtentry}
         sym : tasmsymbol;
@@ -885,9 +883,6 @@ implementation
          regs_to_save_address:=paramanager.get_volatile_registers_address(procdefinition.proccalloption);
          regs_to_save_fpu:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
          regs_to_save_mm:=paramanager.get_volatile_registers_mm(procdefinition.proccalloption);
-
-         proc_addr_voidptrdef:=procdefinition.address_type;
-         proc_addr_size:=def_cgsize(proc_addr_voidptrdef);
 
          { Include Function result registers }
          if (not is_void(resultdef)) then

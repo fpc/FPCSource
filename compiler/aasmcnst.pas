@@ -1305,7 +1305,6 @@ implementation
        string_symofs: asizeint;
        startlab: tasmlabel;
        datadef: tdef;
-       uniwidestrrecdef: trecorddef;
        datatcb: ttai_typedconstbuilder;
      begin
        start_internal_data_builder(datalist,sec_rodata_norel,'',datatcb,startlab);
@@ -1346,7 +1345,7 @@ implementation
            { ending #0 }
            datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
            datatcb.maybe_end_aggregate(datadef);
-           uniwidestrrecdef:=datatcb.end_anonymous_record;
+           datatcb.end_anonymous_record;
          end
        else
          { code generation for other sizes must be written }

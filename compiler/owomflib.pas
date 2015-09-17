@@ -359,14 +359,12 @@ implementation
     var
       RawRecord: TOmfRawRecord;
       Header: TOmfRecord_LIBHEAD;
-      FIsCaseSensitive: Boolean;
     begin
       RawRecord:=TOmfRawRecord.Create;
       RawRecord.ReadFrom(Self);
       Header:=TOmfRecord_LIBHEAD.Create;
       Header.DecodeFrom(RawRecord);
       FPageSize:=Header.PageSize;
-      FIsCaseSensitive:=Header.CaseSensitive;
       ReadDictionary(Header.DictionaryOffset, Header.DictionarySizeInBlocks);
     end;
 

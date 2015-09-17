@@ -2182,8 +2182,7 @@ const pemagic : array[0..3] of byte = (
         textExeSec,
         dataExeSec,
         bssExeSec,
-        idataExeSec,
-        tlsExeSec : TExeSection;
+        idataExeSec : TExeSection;
         hassymbols,
         writeDbgStrings : boolean;
 
@@ -2248,7 +2247,7 @@ const pemagic : array[0..3] of byte = (
           tlsexesymbol: TExeSymbol;
           tlssymbol: TObjSymbol;
           callbackexesymbol: TExeSymbol;
-          callbacksymbol: TObjSymbol;
+          //callbacksymbol: TObjSymbol;
         begin
           { according to GNU ld,
             the callback routines should be placed into .CRT$XL*
@@ -2274,7 +2273,7 @@ const pemagic : array[0..3] of byte = (
                                         '__FPC_tls_callbacks'));
                   if assigned (callbackexesymbol) then
                     begin
-                      callbacksymbol:=callbackexesymbol.ObjSymbol;
+                      //callbacksymbol:=callbackexesymbol.ObjSymbol;
 
                     end;
                 end;
@@ -2288,7 +2287,6 @@ const pemagic : array[0..3] of byte = (
         textExeSec:=FindExeSection('.text');
         dataExeSec:=FindExeSection('.data');
         bssExeSec:=FindExeSection('.bss');
-        tlsExeSec:=FindExeSection('.tls');
         if not assigned(TextExeSec) or
            not assigned(DataExeSec) then
           internalerror(200602231);

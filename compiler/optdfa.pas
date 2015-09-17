@@ -326,8 +326,11 @@ unit optdfa;
                 counteruse_after_loop:=assigned(tfornode(node).left.optinfo) and assigned(node.successor) and
                   DFASetIn(node.successor.optinfo^.life,tfornode(node).left.optinfo^.index);
 
-                { if yes, then we should warn }
-                { !!!!!! }
+                if counteruse_after_loop then
+                  begin
+                    { if yes, then we should warn }
+                    { !!!!!! }
+                  end;
 
                 { first update the dummy node }
 

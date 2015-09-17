@@ -346,9 +346,7 @@ Unit aopt;
     procedure TAsmScheduler.Optimize;
       Var
         HP: tai;
-        pass: longint;
       Begin
-        pass:=0;
         BlockStart := tai(AsmL.First);
         While Assigned(BlockStart) Do
           Begin
