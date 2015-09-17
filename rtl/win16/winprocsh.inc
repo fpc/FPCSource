@@ -866,3 +866,10 @@ function EndDeferWindowPos(hdwp: HDWP): BOOL; external 'USER';
 
 function MoveWindow(hwnd: HWND; nLeft, nTop, nWidth, nHeight: SmallInt; fRepaint: BOOL): BOOL; external 'USER';
 function BringWindowToTop(hwnd: HWND): BOOL; external 'USER';
+
+{ Window proc implementation & subclassing support }
+
+function DefWindowProc(hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; external 'USER';
+
+function CallWindowProc(wndprcPrev: WNDPROC; hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; external 'USER';
+function CallWindowProc(wndprcPrev: TFarProc; hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; external 'USER';
