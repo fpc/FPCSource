@@ -1596,3 +1596,24 @@ const
   SIZEFULLSCREEN     = SIZE_MAXIMIZED;
   SIZEZOOMSHOW       = SIZE_MAXSHOW;
   SIZEZOOMHIDE       = SIZE_MAXHIDE;
+
+{ Main window support }
+
+  WM_QUERYOPEN = $0013;
+  WM_CLOSE     = $0010;
+
+type
+{ Struct pointed to by WM_GETMINMAXINFO lParam }
+  PMINMAXINFO = ^MINMAXINFO;
+  LPMINMAXINFO = ^MINMAXINFO; far;
+  MINMAXINFO = record
+    ptReserved: POINT;
+    ptMaxSize: POINT;
+    ptMaxPosition: POINT;
+    ptMinTrackSize: POINT;
+    ptMaxTrackSize: POINT;
+  end;
+  TMinMaxInfo = MINMAXINFO;
+
+const
+  WM_GETMINMAXINFO = $0024;

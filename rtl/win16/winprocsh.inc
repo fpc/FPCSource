@@ -873,3 +873,23 @@ function DefWindowProc(hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): 
 
 function CallWindowProc(wndprcPrev: WNDPROC; hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; external 'USER';
 function CallWindowProc(wndprcPrev: TFarProc; hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; external 'USER';
+
+{ Main window support }
+
+procedure AdjustWindowRect(lprc: LPRECT; dwStyle: DWORD; fMenu: BOOL); external 'USER';
+procedure AdjustWindowRectEx(lprc: LPRECT; dwStyle: DWORD; fMenu: BOOL; dwExStyle: DWORD); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure AdjustWindowRect(var rc: RECT; dwStyle: DWORD; fMenu: BOOL); external 'USER';
+procedure AdjustWindowRectEx(var rc: RECT; dwStyle: DWORD; fMenu: BOOL; dwExStyle: DWORD); external 'USER';
+{$endif}
+
+function FlashWindow(hwnd: HWND; fInvert: BOOL): BOOL; external 'USER';
+
+procedure ShowOwnedPopups(hwnd: HWND; fShow: BOOL); external 'USER';
+
+{ Obsolete functions }
+function OpenIcon(hwnd: HWND): BOOL; external 'USER';
+procedure CloseWindow(hwnd: HWND); external 'USER';
+function AnyPopup: BOOL; external 'USER';
+function IsIconic(hwnd: HWND): BOOL; external 'USER';
+function IsZoomed(hwnd: HWND): BOOL; external 'USER';
