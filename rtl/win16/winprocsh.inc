@@ -792,9 +792,12 @@ procedure PostQuitMessage(nExitCode: SmallInt); external 'USER';
 
 { Window class management }
 
-function RegisterClass(lpwc: LPWNDCLASS): ATOM; external 'USER';
+{ in Windows 3.1+, RegisterClass returns an ATOM that unquely identifies the 
+  class. In Windows 3.0 and earlier, the return value is BOOL. That's why we
+  redefine this function in the win31 unit. }
+function RegisterClass(lpwc: LPWNDCLASS): BOOL; external 'USER';
 {$ifdef VAR_PARAMS_ARE_FAR}
-function RegisterClass(var wc: WNDCLASS): ATOM; external 'USER';
+function RegisterClass(var wc: WNDCLASS): BOOL; external 'USER';
 {$endif}
 function UnregisterClass(lpszClassName: LPCSTR; hinst: HINST): BOOL; external 'USER';
 

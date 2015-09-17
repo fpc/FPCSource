@@ -650,6 +650,15 @@ function SubtractRect(var rcDest: RECT; var rcSource1, rcSource2: RECT): BOOL; e
 function GetMessageExtraInfo: LPARAM; external 'USER';
 function GetQueueStatus(flags: UINT): DWORD; external 'USER';
 
+{ Window class management }
+{ in Windows 3.1+, RegisterClass returns an ATOM that unquely identifies the 
+  class. In Windows 3.0 and earlier, the return value is BOOL. That's why we
+  redefine this function in the win31 unit. }
+function RegisterClass(lpwc: LPWNDCLASS): ATOM; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function RegisterClass(var wc: WNDCLASS): ATOM; external 'USER';
+{$endif}
+
 implementation
 
 end.
