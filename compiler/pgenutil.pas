@@ -604,7 +604,7 @@ uses
         else
           found:=searchsym(ugenname,context.sym,context.symtable);
 
-        if not found or (context.sym.typ<>typesym) then
+        if not found or not (context.sym.typ in [typesym,procsym]) then
           begin
             identifier_not_found(genname);
             if not try_to_consume(_GT) then
@@ -616,7 +616,14 @@ uses
           end;
 
         { we've found the correct def }
-        result:=tstoreddef(ttypesym(context.sym).typedef);
+        if context.sym.typ=typesym then
+          result:=tstoreddef(ttypesym(context.sym).typedef)
+        else
+          begin
+            if tprocsym(context.sym).procdeflist.count=0 then
+              internalerror(2015061203);
+            result:=tstoreddef(tprocsym(context.sym).procdefList[0]);
+          end;
 
         if not try_to_consume(_GT) then
           consume(_RSHARPBRACKET);
@@ -642,6 +649,32 @@ uses
             end;
           end;
 
+        procedure retrieve_genericdef_or_procsym(sym:tsym;out gendef:tdef;out psym:tsym);
+          var
+            i : longint;
+          begin
+            gendef:=nil;
+            psym:=nil;
+            case sym.typ of
+              typesym:
+                begin
+                  gendef:=ttypesym(sym).typedef
+                end;
+              procsym:
+                begin
+                  for i:=0 to tprocsym(sym).procdeflist.count-1 do
+                    if tstoreddef(tprocsym(sym).procdeflist[i]).genericdef=genericdef then
+                      begin
+                        gendef:=tdef(tprocsym(sym).procdeflist[i]);
+                        break;
+                      end;
+                  psym:=sym;
+                end
+              else
+                internalerror(200710171);
+            end;
+          end;
+
       var
         finalspecializename,
         ufinalspecializename : tidstring;
@@ -650,6 +683,7 @@ uses
         specializest : tsymtable;
         hashedid : thashedidstring;
         tempst : tglobalsymtable;
+        psym,
         srsym : tsym;
         def : tdef;
         old_block_type : tblock_type;
@@ -666,6 +700,7 @@ uses
         replaydepth : longint;
         item : tobject;
         hintsprocessed : boolean;
+        pd : tprocdef;
       begin
         if not assigned(context) then
           internalerror(2015052203);
@@ -683,7 +718,11 @@ uses
         { build the new type's name }
         finalspecializename:=generate_generic_name(context.genname,context.specializename,genericdef.ownerhierarchyname);
         ufinalspecializename:=upper(finalspecializename);
-        prettyname:=genericdef.typesym.prettyname+'<'+context.prettyname+'>';
+        if genericdef.typ=procdef then
+          prettyname:=tprocdef(genericdef).procsym.prettyname
+        else
+          prettyname:=genericdef.typesym.prettyname;
+        prettyname:=prettyname+'<'+context.prettyname+'>';
 
         generictypelist:=tfphashobjectlist.create(false);
 
@@ -776,6 +815,7 @@ uses
           internalerror(2014050910);
 
         { now check whether there is a specialization somewhere else }
+        psym:=nil;
         if not assigned(result) then
           begin
             hashedid.id:=ufinalspecializename;
@@ -783,9 +823,7 @@ uses
             srsym:=tsym(specializest.findwithhash(hashedid));
             if assigned(srsym) then
               begin
-                if srsym.typ<>typesym then
-                  internalerror(200710171);
-                result:=ttypesym(srsym).typedef;
+                retrieve_genericdef_or_procsym(srsym,result,psym);
               end
             else
               { the generic could have been specialized in the globalsymtable
@@ -795,9 +833,7 @@ uses
                   srsym:=tsym(current_module.globalsymtable.findwithhash(hashedid));
                   if assigned(srsym) then
                     begin
-                      if srsym.typ<>typesym then
-                        internalerror(2011121101);
-                      result:=ttypesym(srsym).typedef;
+                      retrieve_genericdef_or_procsym(srsym,result,psym);
                     end;
                 end;
           end;
@@ -835,10 +871,17 @@ uses
 
                 maybe_add_waiting_unit(genericdef);
 
-                { First a new typesym so we can reuse this specialization and
+                { First a new sym so we can reuse this specialization and
                   references to this specialization can be handled }
                 srsym:=ctypesym.create(finalspecializename,generrordef,true);
-                specializest.insert(srsym);
+                if genericdef.typ=procdef then
+                  srsym:=cprocsym.create(finalspecializename)
+                else
+                  srsym:=ctypesym.create(finalspecializename,generrordef,true);
+                { insert the symbol only if we don't know already that we have
+                  a procsym to add it to }
+                if not assigned(psym) then
+                  specializest.insert(srsym);
 
                 { specializations are declarations as such it is the wisest to
                   declare set the blocktype to "type"; otherwise we'll
@@ -926,6 +969,11 @@ uses
                             consume(_SEMICOLON);
                         end;
                     end;
+                  procdef:
+                    begin
+                      handle_calling_convention(tprocdef(result),hcc_all);
+                      proc_add_definition(tprocdef(result));
+                    end;
                   else
                     { parse hint directives for records and arrays }
                     if replaydepth>current_scanner.replay_stack_depth then begin
@@ -990,7 +1038,10 @@ uses
         if assigned(genericdef) then
           begin
             { check the hints of the found generic symbol }
-            srsym:=genericdef.typesym;
+            if genericdef.typ=procdef then
+              srsym:=tprocdef(genericdef).procsym
+            else
+              srsym:=genericdef.typesym;
             check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
           end;
       end;
