@@ -411,7 +411,7 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegal argument for HUGEPOINTER
 #
 # Parser
 #
-# 03339 is the last used one
+# 03343 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1536,6 +1536,12 @@ parser_u_already_compiled=03340_UL_Unit $1 has been already compiled meanwhile.
 % a compilation of the current unit, so the current compilation can be aborted.
 parser_e_explicit_method_implementation_for_specializations_not_allowed=03341_E_Explicit implementation of methods for specializations of generics is not allowed
 % Methods introduced in a generic must be implemented for the generic. It is not possible to implement them only for specializations.
+parser_e_no_genfuncs_in_interfaces=03342_E_Generic methods are not allowed in interfaces
+% Generic methods are not allowed in interfaces, because there is no way to specialize a suitable
+% implementation.
+parser_e_genfuncs_cannot_be_virtual=03343_E_Generic methods can not be virtual
+% Generic methods can not be declared as virtual as there'd need to be a VMT entry for each
+% specialization. This is however not possible with a static VMT.
 %
 %
 % \end{description}
