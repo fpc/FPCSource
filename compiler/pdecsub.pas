@@ -1698,6 +1698,8 @@ begin
   if (pd.proctypeoption=potype_constructor) and
      is_object(tprocdef(pd).struct) then
     Message(parser_e_constructor_cannot_be_not_virtual);
+  if pd.is_generic then
+    message(parser_e_genfuncs_cannot_be_virtual);
   if is_objectpascal_helper(tprocdef(pd).struct) and
       (m_objfpc in current_settings.modeswitches) then
     Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_VIRTUAL].str);
