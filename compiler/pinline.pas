@@ -125,7 +125,7 @@ implementation
                  exit;
               end;
 
-            do_member_read(classh,false,sym,p2,again,[]);
+            do_member_read(classh,false,sym,p2,again,[],nil);
 
             { we need the real called method }
             do_typecheckpass(p2);
@@ -238,11 +238,11 @@ implementation
                 else
                   callflag:=cnf_dispose_call;
                 if is_new then
-                  do_member_read(classh,false,sym,p2,again,[callflag])
+                  do_member_read(classh,false,sym,p2,again,[callflag],nil)
                 else
                   begin
                     if not(m_fpc in current_settings.modeswitches) then
-                      do_member_read(classh,false,sym,p2,again,[callflag])
+                      do_member_read(classh,false,sym,p2,again,[callflag],nil)
                     else
                       begin
                         p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2,[callflag],nil);
@@ -475,7 +475,7 @@ implementation
             afterassignment:=false;
             searchsym_in_class(classh,classh,pattern,srsym,srsymtable,[ssf_search_helper]);
             consume(_ID);
-            do_member_read(classh,false,srsym,p1,again,[cnf_new_call]);
+            do_member_read(classh,false,srsym,p1,again,[cnf_new_call],nil);
             { we need to know which procedure is called }
             do_typecheckpass(p1);
             if not(

@@ -45,7 +45,7 @@ interface
     function parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;
 
     { the ID token has to be consumed before calling this function }
-    procedure do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags);
+    procedure do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
 
     function get_intconst:TConstExprInt;
     function get_stringconst:string;
@@ -1244,7 +1244,7 @@ implementation
 
 
     { the ID token has to be consumed before calling this function }
-    procedure do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags);
+    procedure do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
       var
         isclassref:boolean;
       begin
@@ -1256,6 +1256,7 @@ implementation
               p1.free;
               p1:=cerrornode.create;
               { try to clean up }
+              spezcontext.free;
               again:=false;
            end
          else
@@ -1269,6 +1270,9 @@ implementation
               else
                 isclassref:=false;
 
+              if assigned(spezcontext) and not (sym.typ=procsym) then
+                internalerror(2015091801);
+
               { we assume, that only procsyms and varsyms are in an object }
               { symbol table, for classes, properties are allowed          }
               case sym.typ of
@@ -1276,7 +1280,7 @@ implementation
                    begin
                       do_proc_call(sym,sym.owner,structh,
                                    (getaddr and not(token in [_CARET,_POINT])),
-                                   again,p1,callflags,nil);
+                                   again,p1,callflags,spezcontext);
                       { we need to know which procedure is called }
                       do_typecheckpass(p1);
                       { calling using classref? }
@@ -1464,7 +1468,7 @@ implementation
                      consume(_ID);
                    end;
                  if result.nodetype<>errorn then
-                   do_member_read(tabstractrecorddef(hdef),false,srsym,result,again,[]);
+                   do_member_read(tabstractrecorddef(hdef),false,srsym,result,again,[],nil);
                end
              else
               begin
@@ -1508,7 +1512,7 @@ implementation
                       Message1(sym_e_id_no_member,orgpattern);
                   end;
                 if (result.nodetype<>errorn) and assigned(srsym) then
-                  do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[]);
+                  do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],nil);
               end;
            end
          else
@@ -1550,7 +1554,7 @@ implementation
                         (srsym.typ=procsym) and
                         (token in [_CARET,_POINT]) then
                        result:=cloadvmtaddrnode.create(result);
-                     do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[]);
+                     do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],nil);
                    end
                   else
                    begin
@@ -1831,7 +1835,7 @@ implementation
                     end;
                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                   consume(_ID);
-                  do_member_read(nil,getaddr,srsym,node,again,[]);
+                  do_member_read(nil,getaddr,srsym,node,again,[],nil);
                 end;
             end;
         end;
@@ -2244,7 +2248,7 @@ implementation
                              p1:=cerrornode.create;
                            end
                          else
-                           do_member_read(structh,getaddr,srsym,p1,again,[]);
+                           do_member_read(structh,getaddr,srsym,p1,again,[],nil);
                        end
                      else
                      consume(_ID);
@@ -2360,7 +2364,7 @@ implementation
                             begin
                               check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                               consume(_ID);
-                              do_member_read(structh,getaddr,srsym,p1,again,[]);
+                              do_member_read(structh,getaddr,srsym,p1,again,[],nil);
                             end
                           else
                             begin
@@ -2417,7 +2421,7 @@ implementation
                               p1:=cerrornode.create;
                             end
                           else
-                            do_member_read(structh,getaddr,srsym,p1,again,[]);
+                            do_member_read(structh,getaddr,srsym,p1,again,[],nil);
                         end
                       else { Error }
                         Consume(_ID);
@@ -2819,7 +2823,7 @@ implementation
                         {  e.g., "with classinstance do field := 5"), then    }
                         { let do_member_read handle it                        }
                         if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[])
+                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[],nil)
                         else
                           { otherwise it's a regular record subscript }
                           p1:=csubscriptnode.create(srsym,p1);
@@ -2882,7 +2886,7 @@ implementation
                         { not srsymtable.symtabletype since that can be }
                         { withsymtable as well                          }
                         if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[])
+                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[],nil)
                         else
                           { no procsyms in records (yet) }
                           internalerror(2007012006);
@@ -2918,7 +2922,7 @@ implementation
                         { not srsymtable.symtabletype since that can be }
                         { withsymtable as well                          }
                         if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[])
+                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[],nil)
                         else
                           { no propertysyms in records (yet) }
                           internalerror(2009111510);
@@ -3255,7 +3259,7 @@ implementation
                        include(current_procinfo.flags,pi_has_inherited);
                        if anon_inherited then
                          include(callflags,cnf_anon_inherited);
-                       do_member_read(hclassdef,getaddr,srsym,p1,again,callflags);
+                       do_member_read(hclassdef,getaddr,srsym,p1,again,callflags,nil);
                      end
                     else
                      begin
