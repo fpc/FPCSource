@@ -480,7 +480,7 @@ implementation
                                     voidpointertype),
                                 ccallnode.create(nil,tprocsym(srsym),srsym.owner,
                                   ctypeconvnode.create_internal(load_self_pointer_node,cclassrefdef.create(current_structdef)),
-                                  [])),
+                                  [],nil)),
                             nil));
                       end
                     else
@@ -527,7 +527,7 @@ implementation
                          if assigned(srsym) and
                             (srsym.typ=procsym) then
                            begin
-                             call:=ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[cnf_inherited]);
+                             call:=ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[cnf_inherited],nil);
                              exclude(tcallnode(call).callnodeflags,cnf_return_value_used);
                              addstatement(newstatement,call);
                            end
@@ -569,7 +569,7 @@ implementation
                               load_vmt_pointer_node,ptrsinttype),
                             ctypeconvnode.create_internal(
                               cnilnode.create,ptrsinttype)),
-                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
+                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                         nil));
                   end
                 else
@@ -620,7 +620,7 @@ implementation
                                         load_vmt_pointer_node,
                                         voidpointertype),
                                     cpointerconstnode.create(0,voidpointertype))),
-                            ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
+                            ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                             nil));
                       end
                     else
@@ -766,7 +766,7 @@ implementation
                         caddnode.create(unequaln,
                           load_vmt_pointer_node,
                           cnilnode.create)),
-                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
+                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                         nil));
                     tocode:=afterconstructionblock;
                   end
@@ -794,7 +794,7 @@ implementation
                             load_vmt_pointer_node,
                             cnilnode.create),
                           { cnf_create_failed -> don't call BeforeDestruction }
-                          ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
+                          ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed],nil),
                           nil))
                     else
                       { object without destructor, call 'fail' helper }

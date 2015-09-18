@@ -146,7 +146,7 @@ implementation
                       caddnode.create(unequaln,
                           load_vmt_pointer_node,
                           cnilnode.create)),
-                  ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
+                  ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                   nil));
             end
           else
@@ -353,7 +353,7 @@ implementation
                        (tprocsym(psym).procdeflist.count<>1) then
                       internalerror(2011040301);
                     addstatement(stat,ccallnode.create(nil,tprocsym(psym),
-                      pd.struct.symtable,nil,[]));
+                      pd.struct.symtable,nil,[],nil));
                   end;
                 addstatement(stat,result);
                 result:=block

@@ -35,7 +35,8 @@ interface
        {$ifdef state_tracking}
        nstate,
        {$endif state_tracking}
-       symbase,symtype,symsym,symdef,symtable;
+       symbase,symtype,symsym,symdef,symtable,
+       pgentype;
 
     type
        tcallnodeflag = (
@@ -153,9 +154,11 @@ interface
           typedef: tdef;
           callnodeflags : tcallnodeflags;
 
+          spezcontext : tspecializationcontext;
+
           { only the processor specific nodes need to override this }
           { constructor                                             }
-          constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags);virtual;
+          constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext);virtual;
           constructor create_procvar(l,r:tnode);
           constructor createintern(const name: string; params: tnode);
           constructor createinternfromunit(const fromunit, procname: string; params: tnode);
@@ -1412,9 +1415,10 @@ implementation
                                  TCALLNODE
  ****************************************************************************}
 
-    constructor tcallnode.create(l:tnode;v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags);
+    constructor tcallnode.create(l:tnode;v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext);
       begin
          inherited create(calln,l,nil);
+         spezcontext:=sc;
          symtableprocentry:=v;
          symtableproc:=st;
          callnodeflags:=callflags+[cnf_return_value_used];
@@ -1440,7 +1444,7 @@ implementation
 
     constructor tcallnode.create_procvar(l,r:tnode);
       begin
-         create(l,nil,nil,nil,[]);
+         create(l,nil,nil,nil,[],nil);
          right:=r;
       end;
 
@@ -1460,7 +1464,7 @@ implementation
          if not assigned(srsym) or
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,name);
-         create(params,tprocsym(srsym),srsym.owner,nil,[]);
+         create(params,tprocsym(srsym),srsym.owner,nil,[],nil);
        end;
 
 
@@ -1473,7 +1477,7 @@ implementation
          if not searchsym_in_named_module(fromunit,procname,srsym,srsymtable) or
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,fromunit+'.'+procname);
-         create(params,tprocsym(srsym),srsymtable,nil,[]);
+         create(params,tprocsym(srsym),srsymtable,nil,[],nil);
        end;
 
 
@@ -1530,7 +1534,7 @@ implementation
         if not assigned(ps) or
            (ps.typ<>procsym) then
           internalerror(2011062806);
-        create(params,tprocsym(ps),ps.owner,mp,[]);
+        create(params,tprocsym(ps),ps.owner,mp,[],nil);
       end;
 
 
@@ -3442,7 +3446,7 @@ implementation
                                       ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
                     candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility,
                       not(nf_isproperty in flags),cnf_objc_id_call in callnodeflags,cnf_unit_specified in callnodeflags,
-                      callnodeflags*[cnf_anon_inherited,cnf_inherited]=[],cnf_anon_inherited in callnodeflags,nil);
+                      callnodeflags*[cnf_anon_inherited,cnf_inherited]=[],cnf_anon_inherited in callnodeflags,spezcontext);
 
                      { no procedures found? then there is something wrong
                        with the parameter size or the procedures are
@@ -3542,6 +3546,10 @@ implementation
                         candidates.free;
                         exit;
                       end;
+
+                     { if the final procedure definition is not yet owned,
+                       ensure that it is }
+                     procdefinition.register_def;
 
                      candidates.free;
                  end; { end of procedure to call determination }

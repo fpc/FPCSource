@@ -245,7 +245,7 @@ implementation
                       do_member_read(classh,false,sym,p2,again,[callflag])
                     else
                       begin
-                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2,[callflag]);
+                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2,[callflag],nil);
                         { support dispose(p,done()); }
                         if try_to_consume(_LKLAMMER) then
                           begin

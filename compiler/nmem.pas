@@ -293,7 +293,7 @@ implementation
                 (vs.typ<>procsym) then
                internalerror(2011080601);
              { can't reuse "self", because it will be freed when we return }
-             result:=ccallnode.create(nil,tprocsym(vs),vs.owner,self.getcopy,[]);
+             result:=ccallnode.create(nil,tprocsym(vs),vs.owner,self.getcopy,[],nil);
            end;
       end;
 
