@@ -1228,7 +1228,7 @@ uses
                   { two different typeless parameters are considered as incompatible }
                   for i:=firstidx to result.count-1 do
                     begin
-                      ttypesym(result[i]).typedef:=cundefineddef.create;
+                      ttypesym(result[i]).typedef:=cundefineddef.create(true);
                       ttypesym(result[i]).typedef.typesym:=ttypesym(result[i]);
                     end;
                   { a semicolon terminates a type parameter group }
@@ -1239,7 +1239,7 @@ uses
         { two different typeless parameters are considered as incompatible }
         for i:=firstidx to result.count-1 do
           begin
-            ttypesym(result[i]).typedef:=cundefineddef.create;
+            ttypesym(result[i]).typedef:=cundefineddef.create(true);
             ttypesym(result[i]).typedef.typesym:=ttypesym(result[i]);
           end;
         block_type:=old_block_type;

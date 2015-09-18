@@ -592,7 +592,7 @@ implementation
                   sym:=tsym(symtablestack.top.Find(typename));
                   if not assigned(sym) then
                     begin
-                      sym:=ctypesym.create(orgtypename,cundefineddef.create,true);
+                      sym:=ctypesym.create(orgtypename,cundefineddef.create(true),true);
                       Include(sym.symoptions,sp_generic_dummy);
                       ttypesym(sym).typedef.typesym:=sym;
                       sym.visibility:=symtablestack.top.currentvisibility;

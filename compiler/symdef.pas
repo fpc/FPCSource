@@ -188,7 +188,7 @@ interface
        tforwarddefclass = class of tforwarddef;
 
        tundefineddef = class(tstoreddef)
-          constructor create;virtual;
+          constructor create(doregister:boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
@@ -7360,9 +7360,9 @@ implementation
                                TUNDEFINEDDEF
 ****************************************************************************}
 
-   constructor tundefineddef.create;
+   constructor tundefineddef.create(doregister:boolean);
      begin
-        inherited create(undefineddef,true);
+        inherited create(undefineddef,doregister);
      end;
 
 

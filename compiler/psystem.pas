@@ -202,7 +202,7 @@ implementation
         hrecst : trecordsymtable;
       begin
         symtablestack.push(systemunit);
-        cundefinedtype:=cundefineddef.create;
+        cundefinedtype:=cundefineddef.create(true);
         cformaltype:=cformaldef.create(false);
         ctypedformaltype:=cformaldef.create(true);
         voidtype:=corddef.create(uvoid,0,0);

@@ -2950,7 +2950,7 @@ implementation
                 undefinedsym :
                   begin
                     p1:=cnothingnode.Create;
-                    p1.resultdef:=cundefineddef.create;
+                    p1.resultdef:=cundefineddef.create(true);
                     { clean up previously created dummy symbol }
                     srsym.free;
                   end;
