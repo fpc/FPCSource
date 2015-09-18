@@ -28,7 +28,8 @@ interface
     uses
       symtype,symdef,symbase,
       node,ncal,
-      tokens,globtype,globals,constexp;
+      tokens,globtype,globals,constexp,
+      pgentype;
 
     { reads a whole expression }
     function expr(dotypecheck:boolean) : tnode;
@@ -942,7 +943,7 @@ implementation
 
 
     { reads the parameter for a subroutine call }
-    procedure do_proc_call(sym:tsym;st:TSymtable;obj:tabstractrecorddef;getaddr:boolean;var again : boolean;var p1:tnode;callflags:tcallnodeflags);
+    procedure do_proc_call(sym:tsym;st:TSymtable;obj:tabstractrecorddef;getaddr:boolean;var again : boolean;var p1:tnode;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
       var
          membercall,
          prevafterassn : boolean;
@@ -985,6 +986,16 @@ implementation
          { only need to get the address of the procedure? }
          if getaddr then
            begin
+             { for now we don't support pointers to generic functions, but since
+               this is only temporary we use a non translated message }
+             if assigned(spezcontext) then
+               begin
+                 comment(v_error, 'Pointers to generics functions not implemented');
+                 p1:=cerrornode.create;
+                 spezcontext.free;
+                 exit;
+               end;
+
              { Retrieve info which procvar to call. For tp_procvar the
                aprocdef is already loaded above so we can reuse it }
              if not assigned(aprocdef) and
@@ -1056,10 +1067,10 @@ implementation
                begin
                  if not (st.symtabletype in [ObjectSymtable,recordsymtable]) then
                    internalerror(200310031);
-                 p1:=ccallnode.create(para,tprocsym(sym),obj.symtable,p1,callflags,nil);
+                 p1:=ccallnode.create(para,tprocsym(sym),obj.symtable,p1,callflags,spezcontext);
                end
              else
-               p1:=ccallnode.create(para,tprocsym(sym),st,p1,callflags,nil);
+               p1:=ccallnode.create(para,tprocsym(sym),st,p1,callflags,spezcontext);
            end;
          afterassignment:=prevafterassn;
       end;
@@ -1265,7 +1276,7 @@ implementation
                    begin
                       do_proc_call(sym,sym.owner,structh,
                                    (getaddr and not(token in [_CARET,_POINT])),
-                                   again,p1,callflags);
+                                   again,p1,callflags,nil);
                       { we need to know which procedure is called }
                       do_typecheckpass(p1);
                       { calling using classref? }
@@ -2423,7 +2434,7 @@ implementation
                               consume(_ID);
                               do_proc_call(srsym,srsymtable,nil,
                                 (getaddr and not(token in [_CARET,_POINT])),
-                                again,p1,[cnf_objc_id_call]);
+                                again,p1,[cnf_objc_id_call],nil);
                               { we need to know which procedure is called }
                               do_typecheckpass(p1);
                             end
@@ -2885,7 +2896,7 @@ implementation
                           callflags:=[cnf_unit_specified];
                         do_proc_call(srsym,srsymtable,nil,
                                      (getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER])),
-                                     again,p1,callflags);
+                                     again,p1,callflags,nil);
                       end;
                   end;
 
@@ -3259,7 +3270,7 @@ implementation
                                  (srsym.typ<>procsym) then
                                 internalerror(200303171);
                               p1:=nil;
-                              do_proc_call(srsym,srsym.owner,hclassdef,false,again,p1,[]);
+                              do_proc_call(srsym,srsym.owner,hclassdef,false,again,p1,[],nil);
                             end
                           else
                             begin
