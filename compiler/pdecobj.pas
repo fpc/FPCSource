@@ -104,7 +104,7 @@ implementation
         result:=nil;
         consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parse_proc_head(current_structdef,potype_class_constructor,false,pd);
+        parse_proc_head(current_structdef,potype_class_constructor,false,nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -129,7 +129,7 @@ implementation
         result:=nil;
         consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parse_proc_head(current_structdef,potype_constructor,false,pd);
+        parse_proc_head(current_structdef,potype_constructor,false,nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -226,7 +226,7 @@ implementation
       begin
         result:=nil;
         consume(_DESTRUCTOR);
-        parse_proc_head(current_structdef,potype_class_destructor,false,pd);
+        parse_proc_head(current_structdef,potype_class_destructor,false,nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -250,7 +250,7 @@ implementation
       begin
         result:=nil;
         consume(_DESTRUCTOR);
-        parse_proc_head(current_structdef,potype_destructor,false,pd);
+        parse_proc_head(current_structdef,potype_destructor,false,nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);

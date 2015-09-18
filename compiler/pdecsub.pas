@@ -26,7 +26,12 @@ unit pdecsub;
 interface
 
     uses
-      tokens,symconst,symtype,symdef,symsym;
+      { common }
+      cclasses,
+      { scanner }
+      tokens,
+      { symtable }
+      symconst,symtype,symdef,symsym;
 
     type
       tpdflag=(
@@ -72,7 +77,7 @@ interface
     procedure parse_var_proc_directives(sym:tsym);
     procedure parse_object_proc_directives(pd:tabstractprocdef);
     procedure parse_record_proc_directives(pd:tabstractprocdef);
-    function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;isgeneric:boolean;out pd:tprocdef):boolean;
+    function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;isgeneric:boolean;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
     function  parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
 
     { parse a record method declaration (not a (class) constructor/destructor) }
@@ -93,7 +98,7 @@ implementation
     uses
        SysUtils,
        { common }
-       cutils,cclasses,
+       cutils,
        { global }
        globtype,globals,verbose,constexp,
        systems,
@@ -542,7 +547,7 @@ implementation
       end;
 
 
-    function parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;isgeneric:boolean;out pd:tprocdef):boolean;
+    function parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;isgeneric:boolean;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
       var
         hs       : string;
         orgsp,sp,orgspnongen,spnongen : TIDString;
@@ -840,205 +845,208 @@ implementation
         freegenericparams:=true;
         hadspecialize:=false;
 
-        consume_proc_name;
-
-        { examine interface map: function/procedure iname.functionname=locfuncname }
-        if assigned(astruct) and
-           (astruct.typ=objectdef) and
-           assigned(tobjectdef(astruct).ImplementedInterfaces) and
-           (tobjectdef(astruct).ImplementedInterfaces.count>0) and
-           (
-             (token=_POINT) or
-             (
-               hadspecialize and
-               (token=_ID)
-             )
-           ) then
-         begin
-           if hadspecialize and (token=_ID) then
-             specialize_generic_interface;
-           consume(_POINT);
-           if hadspecialize or not handle_generic_interface then
-             srsym:=search_object_name(sp,true);
-           { qualifier is interface? }
-           ImplIntf:=nil;
-           if assigned(srsym) and
-              (srsym.typ=typesym) and
-              (ttypesym(srsym).typedef.typ=objectdef) then
-             ImplIntf:=find_implemented_interface(tobjectdef(astruct),tobjectdef(ttypesym(srsym).typedef));
-           if ImplIntf=nil then
-             Message(parser_e_interface_id_expected)
-           else
-             { in case of a generic or specialized interface we need to use the
-               name of the def instead of the symbol, so that always the correct
-               name is used }
-             if [df_generic,df_specialization]*ttypesym(srsym).typedef.defoptions<>[] then
-               sp:=tobjectdef(ttypesym(srsym).typedef).objname^;
-           { must be a directly implemented interface }
-           if Assigned(ImplIntf.ImplementsGetter) then
-             Message2(parser_e_implements_no_mapping,ImplIntf.IntfDef.typename,astruct.objrealname^);
-           consume(_ID);
-           { Create unique name <interface>.<method> }
-           hs:=sp+'.'+pattern;
-           consume(_EQ);
-           if assigned(ImplIntf) and
-              (token=_ID) then
-             ImplIntf.AddMapping(hs,pattern);
-           consume(_ID);
-           result:=true;
-           exit;
-         end;
-
-        { method  ? }
-        srsym:=nil;
-        if not assigned(astruct) and
-           (symtablestack.top.symtablelevel=main_program_level) and
-           try_to_consume(_POINT) then
-         begin
-           repeat
-             classstartfilepos:=procstartfilepos;
-             searchagain:=false;
-
-             { throw the error at the right location }
-             oldfilepos:=current_filepos;
-             current_filepos:=procstartfilepos;
-             if not assigned(astruct) and not assigned(srsym) then
-               srsym:=search_object_name(sp,true);
-             current_filepos:=oldfilepos;
-
-             { consume proc name }
-             procstartfilepos:=current_tokenpos;
-             consume_proc_name;
-             { qualifier is class name ? }
-             if (srsym.typ=typesym) and
-                (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
-              begin
-                astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
-                if (token<>_POINT) then
-                  if (potype in [potype_class_constructor,potype_class_destructor]) then
-                    sp:=lower(sp)
-                  else
-                  if (potype=potype_operator) and (optoken=NOTOKEN) then
-                    parse_operator_name;
-                srsym:=tsym(astruct.symtable.Find(sp));
-                if assigned(srsym) then
-                 begin
-                   if srsym.typ=procsym then
-                     aprocsym:=tprocsym(srsym)
-                   else
-                   if (srsym.typ=typesym) and
-                      (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
-                     begin
-                       searchagain:=true;
-                       consume(_POINT);
-                     end
-                   else
-                     begin
-                       {  we use a different error message for tp7 so it looks more compatible }
-                       if (m_fpc in current_settings.modeswitches) then
-                         Message1(parser_e_overloaded_no_procedure,srsym.realname)
-                       else
-                         Message(parser_e_methode_id_expected);
-                       { rename the name to an unique name to avoid an
-                         error when inserting the symbol in the symtable }
-                       orgsp:=orgsp+'$'+tostr(current_filepos.line);
-                     end;
-                 end
-                else
-                 begin
-                   MessagePos(procstartfilepos,parser_e_methode_id_expected);
-                   { recover by making it a normal procedure instead of method }
-                   astruct:=nil;
-                 end;
-              end
-             else
-              MessagePos(classstartfilepos,parser_e_class_id_expected);
-           until not searchagain;
-         end
-        else
-         begin
-           { check for constructor/destructor/class operators which are not allowed here }
-           if (not parse_only) and
-              ((potype in [potype_constructor,potype_destructor,
-                           potype_class_constructor,potype_class_destructor]) or
-               ((potype=potype_operator) and (m_delphi in current_settings.modeswitches))) then
-             Message(parser_e_only_methods_allowed);
-
-           repeat
-             searchagain:=false;
-             current_tokenpos:=procstartfilepos;
-
-             if (potype=potype_operator)and(optoken=NOTOKEN) then
-               parse_operator_name;
-
-             srsym:=tsym(symtablestack.top.Find(sp));
-
-             { Also look in the globalsymtable if we didn't found
-               the symbol in the localsymtable }
-             if not assigned(srsym) and
-                not(parse_only) and
-                (symtablestack.top=current_module.localsymtable) and
-                assigned(current_module.globalsymtable) then
-               srsym:=tsym(current_module.globalsymtable.Find(sp));
-
-             { Check if overloaded is a procsym }
-             if assigned(srsym) then
-               begin
-                 if srsym.typ=procsym then
-                   aprocsym:=tprocsym(srsym)
-                 else
-                   begin
-                     { when the other symbol is a unit symbol then hide the unit
-                       symbol, this is not supported in tp7 }
-                     if not(m_tp7 in current_settings.modeswitches) and
-                        (srsym.typ=unitsym) then
-                      begin
-                        HideSym(srsym);
-                        searchagain:=true;
-                      end
-                     else
-                     if (m_delphi in current_settings.modeswitches) and
-                        (srsym.typ=absolutevarsym) and
-                        ([vo_is_funcret,vo_is_result]*tabstractvarsym(srsym).varoptions=[vo_is_funcret]) then
-                       begin
-                         HideSym(srsym);
-                         searchagain:=true;
-                       end
-                     else
-                      begin
-                        {  we use a different error message for tp7 so it looks more compatible }
-                        if (m_fpc in current_settings.modeswitches) then
-                          Message1(parser_e_overloaded_no_procedure,srsym.realname)
-                        else
-                          Message1(sym_e_duplicate_id,srsym.realname);
-                        { rename the name to an unique name to avoid an
-                          error when inserting the symbol in the symtable }
-                        orgsp:=orgsp+'$'+tostr(current_filepos.line);
-                      end;
-                   end;
-              end;
-           until not searchagain;
-         end;
-
-        { test again if assigned, it can be reset to recover }
-        if not assigned(aprocsym) then
+        if not assigned(genericdef) then
           begin
-            { create a new procsym and set the real filepos }
-            current_tokenpos:=procstartfilepos;
-            { for operator we have only one procsym for each overloaded
-              operation }
-            if (potype=potype_operator) then
+            consume_proc_name;
+
+            { examine interface map: function/procedure iname.functionname=locfuncname }
+            if assigned(astruct) and
+               (astruct.typ=objectdef) and
+               assigned(tobjectdef(astruct).ImplementedInterfaces) and
+               (tobjectdef(astruct).ImplementedInterfaces.count>0) and
+               (
+                 (token=_POINT) or
+                 (
+                   hadspecialize and
+                   (token=_ID)
+                 )
+               ) then
+             begin
+               if hadspecialize and (token=_ID) then
+                 specialize_generic_interface;
+               consume(_POINT);
+               if hadspecialize or not handle_generic_interface then
+                 srsym:=search_object_name(sp,true);
+               { qualifier is interface? }
+               ImplIntf:=nil;
+               if assigned(srsym) and
+                  (srsym.typ=typesym) and
+                  (ttypesym(srsym).typedef.typ=objectdef) then
+                 ImplIntf:=find_implemented_interface(tobjectdef(astruct),tobjectdef(ttypesym(srsym).typedef));
+               if ImplIntf=nil then
+                 Message(parser_e_interface_id_expected)
+               else
+                 { in case of a generic or specialized interface we need to use the
+                   name of the def instead of the symbol, so that always the correct
+                   name is used }
+                 if [df_generic,df_specialization]*ttypesym(srsym).typedef.defoptions<>[] then
+                   sp:=tobjectdef(ttypesym(srsym).typedef).objname^;
+               { must be a directly implemented interface }
+               if Assigned(ImplIntf.ImplementsGetter) then
+                 Message2(parser_e_implements_no_mapping,ImplIntf.IntfDef.typename,astruct.objrealname^);
+               consume(_ID);
+               { Create unique name <interface>.<method> }
+               hs:=sp+'.'+pattern;
+               consume(_EQ);
+               if assigned(ImplIntf) and
+                  (token=_ID) then
+                 ImplIntf.AddMapping(hs,pattern);
+               consume(_ID);
+               result:=true;
+               exit;
+             end;
+
+            { method  ? }
+            srsym:=nil;
+            if not assigned(astruct) and
+               (symtablestack.top.symtablelevel=main_program_level) and
+               try_to_consume(_POINT) then
+             begin
+               repeat
+                 classstartfilepos:=procstartfilepos;
+                 searchagain:=false;
+
+                 { throw the error at the right location }
+                 oldfilepos:=current_filepos;
+                 current_filepos:=procstartfilepos;
+                 if not assigned(astruct) and not assigned(srsym) then
+                   srsym:=search_object_name(sp,true);
+                 current_filepos:=oldfilepos;
+
+                 { consume proc name }
+                 procstartfilepos:=current_tokenpos;
+                 consume_proc_name;
+                 { qualifier is class name ? }
+                 if (srsym.typ=typesym) and
+                    (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
+                  begin
+                    astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
+                    if (token<>_POINT) then
+                      if (potype in [potype_class_constructor,potype_class_destructor]) then
+                        sp:=lower(sp)
+                      else
+                      if (potype=potype_operator) and (optoken=NOTOKEN) then
+                        parse_operator_name;
+                    srsym:=tsym(astruct.symtable.Find(sp));
+                    if assigned(srsym) then
+                     begin
+                       if srsym.typ=procsym then
+                         aprocsym:=tprocsym(srsym)
+                       else
+                       if (srsym.typ=typesym) and
+                          (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
+                         begin
+                           searchagain:=true;
+                           consume(_POINT);
+                         end
+                       else
+                         begin
+                           {  we use a different error message for tp7 so it looks more compatible }
+                           if (m_fpc in current_settings.modeswitches) then
+                             Message1(parser_e_overloaded_no_procedure,srsym.realname)
+                           else
+                             Message(parser_e_methode_id_expected);
+                           { rename the name to an unique name to avoid an
+                             error when inserting the symbol in the symtable }
+                           orgsp:=orgsp+'$'+tostr(current_filepos.line);
+                         end;
+                     end
+                    else
+                     begin
+                       MessagePos(procstartfilepos,parser_e_methode_id_expected);
+                       { recover by making it a normal procedure instead of method }
+                       astruct:=nil;
+                     end;
+                  end
+                 else
+                  MessagePos(classstartfilepos,parser_e_class_id_expected);
+               until not searchagain;
+             end
+            else
+             begin
+               { check for constructor/destructor/class operators which are not allowed here }
+               if (not parse_only) and
+                  ((potype in [potype_constructor,potype_destructor,
+                               potype_class_constructor,potype_class_destructor]) or
+                   ((potype=potype_operator) and (m_delphi in current_settings.modeswitches))) then
+                 Message(parser_e_only_methods_allowed);
+
+               repeat
+                 searchagain:=false;
+                 current_tokenpos:=procstartfilepos;
+
+                 if (potype=potype_operator)and(optoken=NOTOKEN) then
+                   parse_operator_name;
+
+                 srsym:=tsym(symtablestack.top.Find(sp));
+
+                 { Also look in the globalsymtable if we didn't found
+                   the symbol in the localsymtable }
+                 if not assigned(srsym) and
+                    not(parse_only) and
+                    (symtablestack.top=current_module.localsymtable) and
+                    assigned(current_module.globalsymtable) then
+                   srsym:=tsym(current_module.globalsymtable.Find(sp));
+
+                 { Check if overloaded is a procsym }
+                 if assigned(srsym) then
+                   begin
+                     if srsym.typ=procsym then
+                       aprocsym:=tprocsym(srsym)
+                     else
+                       begin
+                         { when the other symbol is a unit symbol then hide the unit
+                           symbol, this is not supported in tp7 }
+                         if not(m_tp7 in current_settings.modeswitches) and
+                            (srsym.typ=unitsym) then
+                          begin
+                            HideSym(srsym);
+                            searchagain:=true;
+                          end
+                         else
+                         if (m_delphi in current_settings.modeswitches) and
+                            (srsym.typ=absolutevarsym) and
+                            ([vo_is_funcret,vo_is_result]*tabstractvarsym(srsym).varoptions=[vo_is_funcret]) then
+                           begin
+                             HideSym(srsym);
+                             searchagain:=true;
+                           end
+                         else
+                          begin
+                            {  we use a different error message for tp7 so it looks more compatible }
+                            if (m_fpc in current_settings.modeswitches) then
+                              Message1(parser_e_overloaded_no_procedure,srsym.realname)
+                            else
+                              Message1(sym_e_duplicate_id,srsym.realname);
+                            { rename the name to an unique name to avoid an
+                              error when inserting the symbol in the symtable }
+                            orgsp:=orgsp+'$'+tostr(current_filepos.line);
+                          end;
+                       end;
+                  end;
+               until not searchagain;
+             end;
+
+            { test again if assigned, it can be reset to recover }
+            if not assigned(aprocsym) then
               begin
-                aprocsym:=Tprocsym(symtablestack.top.Find(sp));
-                if aprocsym=nil then
-                  aprocsym:=cprocsym.create('$'+sp);
-              end
-            else
-            if (potype in [potype_class_constructor,potype_class_destructor]) then
-              aprocsym:=cprocsym.create('$'+lower(sp))
-            else
-              aprocsym:=cprocsym.create(orgsp);
-            symtablestack.top.insert(aprocsym);
+                { create a new procsym and set the real filepos }
+                current_tokenpos:=procstartfilepos;
+                { for operator we have only one procsym for each overloaded
+                  operation }
+                if (potype=potype_operator) then
+                  begin
+                    aprocsym:=Tprocsym(symtablestack.top.Find(sp));
+                    if aprocsym=nil then
+                      aprocsym:=cprocsym.create('$'+sp);
+                  end
+                else
+                if (potype in [potype_class_constructor,potype_class_destructor]) then
+                  aprocsym:=cprocsym.create('$'+lower(sp))
+                else
+                  aprocsym:=cprocsym.create(orgsp);
+                symtablestack.top.insert(aprocsym);
+              end;
           end;
 
         { to get the correct symtablelevel we must ignore ObjectSymtables }
@@ -1051,7 +1059,7 @@ implementation
               break;
             checkstack:=checkstack^.next;
           end;
-        pd:=cprocdef.create(st.symtablelevel+1,true);
+        pd:=cprocdef.create(st.symtablelevel+1,not assigned(genericdef));
         pd.struct:=astruct;
         pd.procsym:=aprocsym;
         pd.proctypeoption:=potype;
@@ -1090,6 +1098,9 @@ implementation
             pd.init_genericdecl;
             current_scanner.startrecordtokens(pd.genericdecltokenbuf);
           end;
+
+        if assigned(genericdef) and not assigned(genericparams) then
+          insert_generic_parameter_types(pd,tstoreddef(genericdef),generictypelist);
 
         { methods inherit df_generic or df_specialization from the objectdef }
         if assigned(pd.struct) and
@@ -1461,7 +1472,7 @@ implementation
           _FUNCTION :
             begin
               consume(_FUNCTION);
-              if parse_proc_head(astruct,potype_function,false,pd) then
+              if parse_proc_head(astruct,potype_function,false,nil,nil,pd) then
                 begin
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
@@ -1481,7 +1492,7 @@ implementation
           _PROCEDURE :
             begin
               consume(_PROCEDURE);
-              if parse_proc_head(astruct,potype_procedure,false,pd) then
+              if parse_proc_head(astruct,potype_procedure,false,nil,nil,pd) then
                 begin
                   { pd=nil when it is an interface mapping }
                   if assigned(pd) then
@@ -1497,9 +1508,9 @@ implementation
             begin
               consume(_CONSTRUCTOR);
               if isclassmethod then
-                recover:=not parse_proc_head(astruct,potype_class_constructor,false,pd)
+                recover:=not parse_proc_head(astruct,potype_class_constructor,false,nil,nil,pd)
               else
-                recover:=not parse_proc_head(astruct,potype_constructor,false,pd);
+                recover:=not parse_proc_head(astruct,potype_constructor,false,nil,nil,pd);
               if not recover then
                 parse_proc_dec_finish(pd,isclassmethod);
             end;
@@ -1508,9 +1519,9 @@ implementation
             begin
               consume(_DESTRUCTOR);
               if isclassmethod then
-                recover:=not parse_proc_head(astruct,potype_class_destructor,false,pd)
+                recover:=not parse_proc_head(astruct,potype_class_destructor,false,nil,nil,pd)
               else
-                recover:=not parse_proc_head(astruct,potype_destructor,false,pd);
+                recover:=not parse_proc_head(astruct,potype_destructor,false,nil,nil,pd);
               if not recover then
                 parse_proc_dec_finish(pd,isclassmethod);
             end;
@@ -1524,7 +1535,7 @@ implementation
               old_block_type:=block_type;
               block_type:=bt_body;
               consume(_OPERATOR);
-              parse_proc_head(astruct,potype_operator,false,pd);
+              parse_proc_head(astruct,potype_operator,false,nil,nil,pd);
               block_type:=old_block_type;
               if assigned(pd) then
                 parse_proc_dec_finish(pd,isclassmethod)
