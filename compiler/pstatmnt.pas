@@ -541,7 +541,7 @@ implementation
          { parse loop header }
          consume(_FOR);
 
-         hloopvar:=factor(false,false);
+         hloopvar:=factor(false,false,false);
          valid_for_loopvar(hloopvar,true);
 
          if try_to_consume(_ASSIGNMENT) then

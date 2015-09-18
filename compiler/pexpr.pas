@@ -38,7 +38,7 @@ interface
     function comp_expr(accept_equal,typeonly:boolean):tnode;
 
     { reads a single factor }
-    function factor(getaddr,typeonly:boolean) : tnode;
+    function factor(getaddr,typeonly,hadspecialize:boolean) : tnode;
 
     procedure string_dec(var def: tdef; allowtypedef: boolean);
 
@@ -750,7 +750,7 @@ implementation
                   consume(_LKLAMMER);
                   in_args:=true;
                   { don't turn procsyms into calls (getaddr = true) }
-                  p1:=factor(true,false);
+                  p1:=factor(true,false,false);
                   p2:=geninlinenode(l,false,p1);
                   consume(_RKLAMMER);
                   statement_syssym:=p2;
@@ -2567,7 +2567,7 @@ implementation
 
   {$maxfpuregisters 0}
 
-    function factor(getaddr,typeonly:boolean) : tnode;
+    function factor(getaddr,typeonly,hadspecialize:boolean) : tnode;
 
          {---------------------------------------------
                          Factor_read_id
@@ -2611,14 +2611,16 @@ implementation
            tokenpos:=current_filepos;
            p1:=nil;
 
-           allowspecialize:=not (m_delphi in current_settings.modeswitches) and (block_type in [bt_type,bt_var_type,bt_const_type]);
+           allowspecialize:=not (m_delphi in current_settings.modeswitches) and
+                            not hadspecialize and
+                            (block_type in [bt_type,bt_var_type,bt_const_type]);
            if allowspecialize and (token=_ID) and (idtoken=_SPECIALIZE) then
              begin
                consume(_ID);
                isspecialize:=true;
              end
            else
-             isspecialize:=false;
+             isspecialize:=hadspecialize;
 
            { first check for identifier }
            if token<>_ID then
@@ -3453,14 +3455,14 @@ implementation
                  { support both @<x> and @(<x>) }
                  if try_to_consume(_LKLAMMER) then
                   begin
-                    p1:=factor(true,false);
+                    p1:=factor(true,false,false);
                     { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
                     if token<>_RKLAMMER then
                       p1:=sub_expr(opcompare,true,false,p1);
                     consume(_RKLAMMER);
                   end
                  else
-                  p1:=factor(true,false);
+                  p1:=factor(true,false,false);
                  if token in postfixoperator_tokens then
                   begin
                     again:=true;
@@ -3503,7 +3505,7 @@ implementation
              _PLUS :
                begin
                  consume(_PLUS);
-                 p1:=factor(false,false);
+                 p1:=factor(false,false,false);
                  p1:=cunaryplusnode.create(p1);
                end;
 
@@ -3550,7 +3552,7 @@ implementation
              _OP_NOT :
                begin
                  consume(_OP_NOT);
-                 p1:=factor(false,false);
+                 p1:=factor(false,false,false);
                  p1:=cnotnode.create(p1);
                end;
 
@@ -3576,7 +3578,7 @@ implementation
                }
                consume(_OBJCPROTOCOL);
                consume(_LKLAMMER);
-               p1:=factor(false,false);
+               p1:=factor(false,false,false);
                consume(_RKLAMMER);
                p1:=cinlinenode.create(in_objc_protocol_x,false,p1);
              end;
@@ -3698,7 +3700,7 @@ implementation
         if pred_level=highest_precedence then
           begin
             if factornode=nil then
-              p1:=factor(false,typeonly)
+              p1:=factor(false,typeonly,false)
             else
               p1:=factornode;
           end
@@ -3713,7 +3715,7 @@ implementation
              filepos:=current_tokenpos;
              consume(token);
              if pred_level=highest_precedence then
-               p2:=factor(false,false)
+               p2:=factor(false,false,false)
              else
                p2:=sub_expr(succ(pred_level),true,typeonly,nil);
              case oldt of

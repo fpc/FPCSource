@@ -327,7 +327,7 @@ uses
               consume(_COMMA);
             block_type:=bt_type;
             tmpparampos:=current_filepos;
-            typeparam:=factor(false,true);
+            typeparam:=factor(false,true,false);
             if typeparam.nodetype=typen then
               begin
                 if tstoreddef(typeparam.resultdef).is_generic and
@@ -453,7 +453,7 @@ uses
               repeat
                 if not first then
                   begin
-                    pt2:=factor(false,true);
+                    pt2:=factor(false,true,false);
                     pt2.free;
                   end;
                 first:=false;
