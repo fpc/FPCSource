@@ -444,6 +444,7 @@ implementation
          p:tnode;
          gendef : tstoreddef;
          s : shortstring;
+         i : longint;
 {$ifdef x86}
          segment_register: string;
 {$endif x86}
@@ -481,6 +482,13 @@ implementation
                consume(_LSHARPBRACKET);
                generictypelist:=parse_generic_parameters(true);
                consume(_RSHARPBRACKET);
+
+               { we are not freeing the type parameters, so register them }
+               for i:=0 to generictypelist.count-1 do
+                 begin
+                    ttypesym(generictypelist[i]).register_sym;
+                    tstoreddef(ttypesym(generictypelist[i]).typedef).register_def;
+                 end;
 
                str(generictypelist.Count,s);
                gentypename:=typename+'$'+s;

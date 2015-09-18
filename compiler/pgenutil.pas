@@ -1080,7 +1080,7 @@ uses
         repeat
           if token=_ID then
             begin
-              generictype:=ctypesym.create(orgpattern,cundefinedtype,true);
+              generictype:=ctypesym.create(orgpattern,cundefinedtype,false);
               { type parameters need to be added as strict private }
               generictype.visibility:=vis_strictprivate;
               include(generictype.symoptions,sp_generic_para);
@@ -1188,7 +1188,7 @@ uses
                     if (basedef.typ<>objectdef) or
                         not (tobjectdef(basedef).objecttype in [odt_javaclass,odt_class]) then
                       internalerror(2012101101);
-                  basedef:=cobjectdef.create(tobjectdef(basedef).objecttype,defname,tobjectdef(basedef),true);
+                  basedef:=cobjectdef.create(tobjectdef(basedef).objecttype,defname,tobjectdef(basedef),false);
                   for i:=0 to constraintdata.interfaces.count-1 do
                     tobjectdef(basedef).implementedinterfaces.add(
                       timplementedinterface.create(tobjectdef(constraintdata.interfaces[i])));
@@ -1199,7 +1199,7 @@ uses
                     if basedef.typ<>errordef then
                       internalerror(2013021601);
                     def:=tdef(constraintdata.interfaces[0]);
-                    basedef:=cobjectdef.create(tobjectdef(def).objecttype,defname,tobjectdef(def),true);
+                    basedef:=cobjectdef.create(tobjectdef(def).objecttype,defname,tobjectdef(def),false);
                     constraintdata.interfaces.delete(0);
                   end;
               if basedef.typ<>errordef then
@@ -1228,7 +1228,7 @@ uses
                   { two different typeless parameters are considered as incompatible }
                   for i:=firstidx to result.count-1 do
                     begin
-                      ttypesym(result[i]).typedef:=cundefineddef.create(true);
+                      ttypesym(result[i]).typedef:=cundefineddef.create(false);
                       ttypesym(result[i]).typedef.typesym:=ttypesym(result[i]);
                     end;
                   { a semicolon terminates a type parameter group }
@@ -1239,7 +1239,7 @@ uses
         { two different typeless parameters are considered as incompatible }
         for i:=firstidx to result.count-1 do
           begin
-            ttypesym(result[i]).typedef:=cundefineddef.create(true);
+            ttypesym(result[i]).typedef:=cundefineddef.create(false);
             ttypesym(result[i]).typedef.typesym:=ttypesym(result[i]);
           end;
         block_type:=old_block_type;
