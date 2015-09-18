@@ -25,26 +25,39 @@ FPC_SHARED_LIB_START:
         /* Align the stack to a 16 byte boundary */
         andl $~15, %esp
 
+        /* Save ebx */
+        pushl   %ebx
+
+        /* GOT init */
+        call    fpc_geteipasebx
+        addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+
         /* Save initial stackpointer */
-        movl    %esp,__stkptr
+        movl    __stkptr@GOT(%ebx),%eax
+        movl    %esp,(%eax)
 
         /* Get environment info from libc */
-        movl    environ,%eax
+        movl    environ@GOT(%ebx),%eax
+        movl    (%eax),%eax
         /* Check if environment is NULL */
         test    %eax,%eax
         jne     env_ok
-        leal    EmptyEnv,%eax
+        movl    EmptyEnv@GOT(%ebx),%eax
 env_ok:
-        movl    %eax,operatingsystem_parameter_envp
+        movl    operatingsystem_parameter_envp@GOT(%ebx),%edx
+        movl    %eax,(%edx)
 
         /* Register exit handler. It is called only when the main process terminates */
-        leal    FPC_LIB_EXIT,%eax
+        movl    FPC_LIB_EXIT@GOT(%ebx),%eax
         pushl   %eax
-        call    atexit
+        call    atexit@PLT
         addl    $4,%esp
 
+        /* Restore ebx */
+        popl    %ebx
+
         /* call main and exit normally */
-        call    PASCALMAIN
+        call    PASCALMAIN@PLT
         leave
         ret
 
@@ -52,10 +65,16 @@ env_ok:
         .globl  _haltproc
         .type   _haltproc,@function
 _haltproc:
-        movzwl  operatingsystem_result,%ebx
-        pushl   %ebx
+        /* GOT init */
+        call    fpc_geteipasebx
+        addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+
+        movl    operatingsystem_result@GOT(%ebx),%eax
+        movzwl  (%eax),%eax
+
+        pushl   %eax
         /* Call libc exit() */
-        call    exit
+        call    exit@PLT
 
 /* --------------------------------------------------------- */
 .data
