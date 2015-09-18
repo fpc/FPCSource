@@ -2127,12 +2127,6 @@ unit cgcpu;
          paddingreg: TSuperRegister;
          imm1, imm2: DWord;
       begin
-        { Release PIC register }
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           (pi_needs_got in current_procinfo.flags)
-        then
-          list.concat(tai_regalloc.dealloc(current_procinfo.got,nil));
         if not(nostackframe) then
           begin
             registerarea:=0;
