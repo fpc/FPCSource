@@ -72,7 +72,7 @@ interface
     procedure parse_var_proc_directives(sym:tsym);
     procedure parse_object_proc_directives(pd:tabstractprocdef);
     procedure parse_record_proc_directives(pd:tabstractprocdef);
-    function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;out pd:tprocdef):boolean;
+    function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;isgeneric:boolean;out pd:tprocdef):boolean;
     function  parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
 
     { parse a record method declaration (not a (class) constructor/destructor) }
@@ -103,7 +103,7 @@ implementation
        { parameter handling }
        paramgr,cpupara,
        { pass 1 }
-       fmodule,node,htypechk,ncon,ppu,
+       fmodule,node,htypechk,ncon,ppu,nld,
        objcutil,
        { parser }
        scanner,
@@ -542,17 +542,20 @@ implementation
       end;
 
 
-    function parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;out pd:tprocdef):boolean;
+    function parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;isgeneric:boolean;out pd:tprocdef):boolean;
       var
         hs       : string;
-        orgsp,sp : TIDString;
-        srsym : tsym;
+        orgsp,sp,orgspnongen,spnongen : TIDString;
+        dummysym,srsym : tsym;
         checkstack : psymtablestackitem;
         oldfilepos,
         classstartfilepos,
         procstartfilepos : tfileposinfo;
         i,
         index : longint;
+        hadspecialize,
+        firstpart,
+        freegenericparams,
         found,
         searchagain : boolean;
         st,
@@ -565,6 +568,7 @@ implementation
         old_current_genericdef,
         old_current_specializedef: tstoreddef;
         lasttoken,lastidtoken: ttoken;
+        genericparams : tfphashobjectlist;
 
         procedure parse_operator_name;
          begin
@@ -623,12 +627,32 @@ implementation
             end;
            sp:=overloaded_names[optoken];
            orgsp:=sp;
+           spnongen:=sp;
+           orgspnongen:=orgsp;
          end;
 
         procedure consume_proc_name;
+          var
+            s : string;
+            i : longint;
+            sym : ttypesym;
           begin
             lasttoken:=token;
             lastidtoken:=idtoken;
+            if assigned(genericparams) and freegenericparams then
+              for i:=0 to genericparams.count-1 do
+                begin
+                  sym:=ttypesym(genericparams[i]);
+                  if tstoreddef(sym.typedef).is_registered then
+                    begin
+                      sym.typedef.free;
+                      sym.typedef:=nil;
+                    end;
+                  sym.free;
+                end;
+            genericparams.free;
+            genericparams:=nil;
+            hadspecialize:=false;
             if potype=potype_operator then
               optoken:=NOTOKEN;
             if (potype=potype_operator) and (token<>_ID) then
@@ -640,8 +664,38 @@ implementation
               begin
                 sp:=pattern;
                 orgsp:=orgpattern;
+                spnongen:=sp;
+                orgspnongen:=orgsp;
+                if firstpart and
+                    not (m_delphi in current_settings.modeswitches) and
+                    (idtoken=_SPECIALIZE) then
+                  hadspecialize:=true;
                 consume(_ID);
+                if (isgeneric or (m_delphi in current_settings.modeswitches)) and
+                    (token in [_LT,_LSHARPBRACKET]) then
+                  begin
+                    consume(token);
+                    if token in [_GT,_RSHARPBRACKET] then
+                      message(type_e_type_id_expected)
+                    else
+                      begin
+                        genericparams:=parse_generic_parameters(true);
+                        if not assigned(genericparams) then
+                          internalerror(2015061201);
+                        if genericparams.count=0 then
+                          internalerror(2015061202);
+                        s:='';
+                        str(genericparams.count,s);
+                        spnongen:=sp;
+                        orgspnongen:=orgsp;
+                        sp:=sp+'$'+s;
+                        orgsp:=orgsp+'$'+s;
+                      end;
+                    if not try_to_consume(_GT) then
+                      consume(_RSHARPBRACKET);
+                  end;
               end;
+            firstpart:=false;
           end;
 
         function search_object_name(sp:TIDString;gen_error:boolean):tsym;
@@ -659,63 +713,6 @@ implementation
                 result:=generrorsym;
               end;
             current_tokenpos:=storepos;
-          end;
-
-        function consume_generic_type_parameter:boolean;
-          var
-            idx : integer;
-            genparalistdecl : TFPHashList;
-            genname : tidstring;
-            s : shortstring;
-          begin
-            result:=not assigned(astruct)and
-                      (m_delphi in current_settings.modeswitches)and
-                      (token in [_LT,_LSHARPBRACKET]);
-            if result then
-              begin
-                consume(token);
-                { parse all parameters first so we can check whether we have
-                  the correct generic def available }
-                genparalistdecl:=TFPHashList.Create;
-
-                { start with 1, so Find can return Nil (= 0) }
-                idx:=1;
-                repeat
-                  if token=_ID then
-                    begin
-                      genparalistdecl.Add(pattern, Pointer(PtrInt(idx)));
-                      consume(_ID);
-                      inc(idx);
-                    end
-                  else
-                    begin
-                      message2(scan_f_syn_expected,arraytokeninfo[_ID].str,arraytokeninfo[token].str);
-                      if token<>_COMMA then
-                        consume(token);
-                    end;
-                until not try_to_consume(_COMMA);
-                if not try_to_consume(_GT) then
-                  consume(_RSHARPBRACKET);
-
-                s:='';
-                str(genparalistdecl.count,s);
-                genname:=sp+'$'+s;
-
-                genparalistdecl.free;
-
-                srsym:=search_object_name(genname,false);
-
-                if not assigned(srsym) then
-                  begin
-                    { TODO : print a nicer typename that contains the parsed
-                             generic types }
-                    Message1(type_e_generic_declaration_does_not_match,genname);
-                    srsym:=nil;
-                    exit;
-                  end
-              end
-            else
-              srsym:=nil;
           end;
 
         procedure consume_generic_interface;
@@ -754,18 +751,93 @@ implementation
             consume(_RSHARPBRACKET);
           end;
 
+        function handle_generic_interface:boolean;
+          var
+            i : longint;
+            sym : ttypesym;
+            typesrsym : tsym;
+            typesrsymtable : tsymtable;
+            specializename,
+            prettyname: ansistring;
+            error : boolean;
+            genname,
+            ugenname : tidstring;
+          begin
+            result:=false;
+            if not assigned(genericparams) then
+              exit;
+            specializename:='';
+            prettyname:='';
+            error:=false;
+            for i:=0 to genericparams.count-1 do
+              begin
+                sym:=ttypesym(genericparams[i]);
+                { ToDo: position }
+                if not searchsym(upper(sym.RealName),typesrsym,typesrsymtable) then
+                  begin
+                    message1(sym_e_id_not_found,sym.name);
+                    error:=true;
+                    continue;
+                  end;
+                if typesrsym.typ<>typesym then
+                  begin
+                    message(type_e_type_id_expected);
+                    error:=true;
+                    continue;
+                  end;
+                specializename:=specializename+'$'+ttypesym(typesrsym).typedef.fulltypename;
+                if i>0 then
+                  prettyname:=prettyname+',';
+                prettyname:=prettyname+ttypesym(typesrsym).prettyname;
+              end;
+            result:=true;
+            if error then
+              begin
+                srsym:=generrorsym;
+                exit;
+              end;
+            { ToDo: handle nested interfaces }
+            genname:=generate_generic_name(sp,specializename,'');
+            ugenname:=upper(genname);
+
+            srsym:=search_object_name(ugenname,false);
+            if not assigned(srsym) then
+              begin
+                Message1(type_e_generic_declaration_does_not_match,sp+'<'+prettyname+'>');
+                srsym:=generrorsym;
+              end;
+          end;
+
+        procedure specialize_generic_interface;
+          var
+            node : tnode;
+          begin
+            node:=factor(false,true,true);
+            if node.nodetype=typen then
+              begin
+                sp:=ttypenode(node).typedef.typesym.name;
+              end
+            else
+              sp:='';
+          end;
+
       begin
         sp:='';
         orgsp:='';
+        spnongen:='';
+        orgspnongen:='';
 
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
         old_parse_generic:=parse_generic;
 
+        firstpart:=true;
         result:=false;
         pd:=nil;
         aprocsym:=nil;
         srsym:=nil;
+        genericparams:=nil;
+        freegenericparams:=true;
 
         consume_proc_name;
 
@@ -775,24 +847,22 @@ implementation
            assigned(tobjectdef(astruct).ImplementedInterfaces) and
            (tobjectdef(astruct).ImplementedInterfaces.count>0) and
            (
-             (token = _POINT) or
-             (token = _LSHARPBRACKET)
+             (token=_POINT) or
+             (
+               hadspecialize and
+               (token=_ID)
+             )
            ) then
          begin
-           if token = _POINT then
-             begin
-               consume(_POINT);
-               srsym:=search_object_name(sp,true);
-             end
-           else
-             begin
-               consume_generic_interface;
-               consume(_POINT);
-               { srsym is now either an interface def or generrordef }
-             end;
+           if hadspecialize and (token=_ID) then
+             specialize_generic_interface;
+           consume(_POINT);
+           if hadspecialize or not handle_generic_interface then
+             srsym:=search_object_name(sp,true);
            { qualifier is interface? }
            ImplIntf:=nil;
-           if (srsym.typ=typesym) and
+           if assigned(srsym) and
+              (srsym.typ=typesym) and
               (ttypesym(srsym).typedef.typ=objectdef) then
              ImplIntf:=find_implemented_interface(tobjectdef(astruct),tobjectdef(ttypesym(srsym).typedef));
            if ImplIntf=nil then
@@ -820,7 +890,7 @@ implementation
 
         { method  ? }
         srsym:=nil;
-        if (consume_generic_type_parameter or not assigned(astruct)) and
+        if not assigned(astruct) and
            (symtablestack.top.symtablelevel=main_program_level) and
            try_to_consume(_POINT) then
          begin
@@ -985,6 +1055,41 @@ implementation
         pd.procsym:=aprocsym;
         pd.proctypeoption:=potype;
 
+        if assigned(genericparams) then
+          begin
+            include(pd.defoptions,df_generic);
+            { push the parameter symtable so that constraint definitions are added
+              there and not in the owner symtable }
+            symtablestack.push(pd.parast);
+            insert_generic_parameter_types(pd,nil,genericparams);
+            symtablestack.pop(pd.parast);
+            freegenericparams:=false;
+            parse_generic:=true;
+            { also generate a dummy symbol if none exists already }
+            if assigned(astruct) then
+              dummysym:=tsym(astruct.symtable.find(spnongen))
+            else
+              begin
+                dummysym:=tsym(symtablestack.top.find(spnongen));
+                if not assigned(dummysym) and
+                    (symtablestack.top=current_module.localsymtable) and
+                    assigned(current_module.globalsymtable) then
+                  dummysym:=tsym(current_module.globalsymtable.find(spnongen));
+              end;
+            if not assigned(dummysym) then
+              begin
+                dummysym:=ctypesym.create(orgspnongen,cundefineddef.create(true),true);
+                if assigned(astruct) then
+                  astruct.symtable.insert(dummysym)
+                else
+                  symtablestack.top.insert(dummysym);
+              end;
+            include(dummysym.symoptions,sp_generic_dummy);
+            { start token recorder for the declaration }
+            pd.init_genericdecl;
+            current_scanner.startrecordtokens(pd.genericdecltokenbuf);
+          end;
+
         { methods inherit df_generic or df_specialization from the objectdef }
         if assigned(pd.struct) and
            (pd.parast.symtablelevel=normal_function_level) then
@@ -1061,7 +1166,7 @@ implementation
         if token=_LKLAMMER then
           begin
             old_current_structdef:=nil;
-            old_current_genericdef:=nil;
+            old_current_genericdef:=current_genericdef;
             old_current_specializedef:=nil;
             { Add ObjectSymtable to be able to find nested type definitions }
             popclass:=0;
@@ -1071,7 +1176,6 @@ implementation
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
                 old_current_structdef:=current_structdef;
-                old_current_genericdef:=current_genericdef;
                 old_current_specializedef:=current_specializedef;
                 current_structdef:=pd.struct;
                 if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
@@ -1079,16 +1183,18 @@ implementation
                 if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
                   current_specializedef:=current_structdef;
               end;
+            if pd.is_generic then
+              current_genericdef:=pd;
             { Add parameter symtable }
             if pd.parast.symtabletype<>staticsymtable then
               symtablestack.push(pd.parast);
             parse_parameter_dec(pd);
             if pd.parast.symtabletype<>staticsymtable then
               symtablestack.pop(pd.parast);
+            current_genericdef:=old_current_genericdef;
             if popclass>0 then
               begin
                 current_structdef:=old_current_structdef;
-                current_genericdef:=old_current_genericdef;
                 current_specializedef:=old_current_specializedef;
                 dec(popclass,pop_nested_hierarchy(pd.struct));
                 if popclass<>0 then
@@ -1136,6 +1242,8 @@ implementation
                 if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
                   current_specializedef:=current_structdef;
               end;
+            if pd.is_generic or pd.is_specialization then
+              symtablestack.push(pd.parast);
             single_type(pd.returndef,[stoAllowSpecialization]);
 
             // Issue #24863, enabled only for the main progra commented out for now because it breaks building of RTL and needs extensive
@@ -1148,6 +1256,8 @@ implementation
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
               Message1(type_e_not_automatable,pd.returndef.typename);
 
+            if pd.is_generic or pd.is_specialization then
+              symtablestack.pop(pd.parast);
             if popclass>0 then
               begin
                 current_structdef:=old_current_structdef;
@@ -1350,7 +1460,7 @@ implementation
           _FUNCTION :
             begin
               consume(_FUNCTION);
-              if parse_proc_head(astruct,potype_function,pd) then
+              if parse_proc_head(astruct,potype_function,false,pd) then
                 begin
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
@@ -1370,7 +1480,7 @@ implementation
           _PROCEDURE :
             begin
               consume(_PROCEDURE);
-              if parse_proc_head(astruct,potype_procedure,pd) then
+              if parse_proc_head(astruct,potype_procedure,false,pd) then
                 begin
                   { pd=nil when it is an interface mapping }
                   if assigned(pd) then
@@ -1386,9 +1496,9 @@ implementation
             begin
               consume(_CONSTRUCTOR);
               if isclassmethod then
-                recover:=not parse_proc_head(astruct,potype_class_constructor,pd)
+                recover:=not parse_proc_head(astruct,potype_class_constructor,false,pd)
               else
-                recover:=not parse_proc_head(astruct,potype_constructor,pd);
+                recover:=not parse_proc_head(astruct,potype_constructor,false,pd);
               if not recover then
                 parse_proc_dec_finish(pd,isclassmethod);
             end;
@@ -1397,9 +1507,9 @@ implementation
             begin
               consume(_DESTRUCTOR);
               if isclassmethod then
-                recover:=not parse_proc_head(astruct,potype_class_destructor,pd)
+                recover:=not parse_proc_head(astruct,potype_class_destructor,false,pd)
               else
-                recover:=not parse_proc_head(astruct,potype_destructor,pd);
+                recover:=not parse_proc_head(astruct,potype_destructor,false,pd);
               if not recover then
                 parse_proc_dec_finish(pd,isclassmethod);
             end;
@@ -1413,7 +1523,7 @@ implementation
               old_block_type:=block_type;
               block_type:=bt_body;
               consume(_OPERATOR);
-              parse_proc_head(astruct,potype_operator,pd);
+              parse_proc_head(astruct,potype_operator,false,pd);
               block_type:=old_block_type;
               if assigned(pd) then
                 parse_proc_dec_finish(pd,isclassmethod)
@@ -1437,6 +1547,12 @@ implementation
               end;
             consume(_SEMICOLON);
           end;
+
+        { we've parsed the final semicolon, so stop recording tokens }
+        if assigned(pd) and
+            (df_generic in pd.defoptions) and
+            assigned(pd.genericdecltokenbuf) then
+          current_scanner.stoprecordtokens;
 
         result:=pd;
       end;

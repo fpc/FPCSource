@@ -3124,7 +3124,8 @@ implementation
                  sub_expr if necessary }
                dopostfix:=not could_be_generic(idstr);
              end;
-           if dopostfix then
+           { maybe an additional parameter instead of misusing hadspezialize? }
+           if dopostfix and not hadspecialize then
              updatefpos:=postfixoperators(p1,again,getaddr);
          end
         else
