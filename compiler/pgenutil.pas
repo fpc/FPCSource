@@ -892,7 +892,13 @@ uses
                 old_block_type:=block_type;
                 block_type:=bt_type;
 
-                if not assigned(genericdef.generictokenbuf) then
+                if (
+                     (genericdef.typ=procdef) and
+                     not assigned(tprocdef(genericdef).genericdecltokenbuf)
+                   ) or (
+                     (genericdef.typ<>procdef) and
+                     not assigned(genericdef.generictokenbuf)
+                   ) then
                   internalerror(200511171);
                 hmodule:=find_module_from_symtable(genericdef.owner);
                 if hmodule=nil then
@@ -909,17 +915,34 @@ uses
                 else
                   recordbuf:=nil;
                 replaydepth:=current_scanner.replay_stack_depth;
-                current_scanner.startreplaytokens(genericdef.generictokenbuf);
-                hadtypetoken:=false;
-                read_named_type(result,srsym,genericdef,generictypelist,false,hadtypetoken);
-                current_filepos:=oldcurrent_filepos;
-                ttypesym(srsym).typedef:=result;
-                result.typesym:=srsym;
-
-                if _prettyname<>'' then
-                  ttypesym(result.typesym).fprettyname:=_prettyname
+                if genericdef.typ=procdef then
+                  begin
+                    current_scanner.startreplaytokens(tprocdef(genericdef).genericdecltokenbuf);
+                    parse_proc_head(tprocdef(genericdef).struct,tprocdef(genericdef).proctypeoption,false,genericdef,generictypelist,pd);
+                    if assigned(pd) then
+                      begin
+                        if assigned(psym) then
+                          pd.procsym:=psym
+                        else
+                          pd.procsym:=srsym;
+                        parse_proc_dec_finish(pd,po_classmethod in tprocdef(genericdef).procoptions);
+                      end;
+                    result:=pd;
+                  end
                 else
-                  ttypesym(result.typesym).fprettyname:=prettyname;
+                  begin
+                    current_scanner.startreplaytokens(genericdef.generictokenbuf);
+                    hadtypetoken:=false;
+                    read_named_type(result,srsym,genericdef,generictypelist,false,hadtypetoken);
+                    ttypesym(srsym).typedef:=result;
+                    result.typesym:=srsym;
+
+                    if _prettyname<>'' then
+                      ttypesym(result.typesym).fprettyname:=_prettyname
+                    else
+                      ttypesym(result.typesym).fprettyname:=prettyname;
+                  end;
+                current_filepos:=oldcurrent_filepos;
 
                 { Note regarding hint directives:
                   There is no need to remove the flags for them from the
