@@ -28,7 +28,8 @@ interface
     uses
       cclasses,cmsgs,tokens,cpuinfo,
       node,globtype,
-      symconst,symtype,symdef,symsym,symbase;
+      symconst,symtype,symdef,symsym,symbase,
+      pgentype;
 
     type
       Ttok2nodeRec=record
@@ -69,12 +70,13 @@ interface
         FParaNode   : tnode;
         FParaLength : smallint;
         FAllowVariant : boolean;
-        procedure collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers,anoninherited:boolean);
-        procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean);
-        procedure create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean);
+        procedure collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
+        procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean;spezcontext:tspecializationcontext);
+        procedure create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
         function  proc_add(st:tsymtable;pd:tprocdef;objcidcall: boolean):pcandidate;
+        function  maybe_specialize(var pd:tprocdef;spezcontext:tspecializationcontext):boolean;
       public
-        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean);
+        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
         constructor create_operator(op:ttoken;ppn:tnode);
         destructor destroy;override;
         procedure list(all:boolean);
@@ -187,7 +189,8 @@ implementation
        cutils,verbose,
        symtable,
        defutil,defcmp,
-       nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,procinfo
+       nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,procinfo,
+       pgenutil
        ;
 
     type
@@ -2110,7 +2113,7 @@ implementation
                            TCallCandidates
 ****************************************************************************}
 
-    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean);
+    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
       begin
         if not assigned(sym) then
           internalerror(200411015);
@@ -2119,7 +2122,7 @@ implementation
         FProcsymtable:=st;
         FParanode:=ppn;
         FIgnoredCandidateProcs:=tfpobjectlist.create(false);
-        create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited);
+        create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited,spezcontext);
       end;
 
 
@@ -2130,7 +2133,7 @@ implementation
         FProcsymtable:=nil;
         FParanode:=ppn;
         FIgnoredCandidateProcs:=tfpobjectlist.create(false);
-        create_candidate_list(false,false,false,false,false,false);
+        create_candidate_list(false,false,false,false,false,false,nil);
       end;
 
 
@@ -2144,13 +2147,16 @@ implementation
         while assigned(hp) do
          begin
            hpnext:=hp^.next;
+           { free those procdef specializations that are not owned (thus were discarded) }
+           if hp^.data.is_specialization and not hp^.data.is_registered then
+             hp^.data.free;
            dispose(hp);
            hp:=hpnext;
          end;
       end;
 
 
-    procedure tcallcandidates.collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers,anoninherited:boolean);
+    procedure tcallcandidates.collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
 
       function processprocsym(srsym:tprocsym; out foundanything: boolean):boolean;
         var
@@ -2163,6 +2169,8 @@ implementation
           for j:=0 to srsym.ProcdefList.Count-1 do
             begin
               pd:=tprocdef(srsym.ProcdefList[j]);
+              if not maybe_specialize(pd,spezcontext) then
+                continue;
               if (po_ignore_for_overload_resolution in pd.procoptions) then
                 begin
                   FIgnoredCandidateProcs.add(pd);
@@ -2194,7 +2202,7 @@ implementation
                 FProcsym:=tprocsym(srsym);
               if po_overload in pd.procoptions then
                 result:=true;
-              ProcdefOverloadList.Add(srsym.ProcdefList[j]);
+              ProcdefOverloadList.Add(pd);
             end;
         end;
 
@@ -2275,7 +2283,7 @@ implementation
       end;
 
 
-    procedure tcallcandidates.collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean);
+    procedure tcallcandidates.collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean;spezcontext:tspecializationcontext);
       var
         j          : integer;
         pd         : tprocdef;
@@ -2332,6 +2340,8 @@ implementation
                     for j:=0 to tprocsym(srsym).ProcdefList.Count-1 do
                       begin
                         pd:=tprocdef(tprocsym(srsym).ProcdefList[j]);
+                        if not maybe_specialize(pd,spezcontext) then
+                          continue;
                         if (po_ignore_for_overload_resolution in pd.procoptions) then
                           begin
                             FIgnoredCandidateProcs.add(pd);
@@ -2342,7 +2352,7 @@ implementation
                           FProcsym:=tprocsym(srsym);
                         if po_overload in pd.procoptions then
                           hasoverload:=true;
-                        ProcdefOverloadList.Add(tprocsym(srsym).ProcdefList[j]);
+                        ProcdefOverloadList.Add(pd);
                       end;
                     { when there is no explicit overload we stop searching,
                       except for Objective-C methods called via id }
@@ -2356,13 +2366,14 @@ implementation
       end;
 
 
-    procedure tcallcandidates.create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean);
+    procedure tcallcandidates.create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
       var
         j     : integer;
         pd    : tprocdef;
         hp    : pcandidate;
         pt    : tcallparanode;
-        found : boolean;
+        found,
+        added : boolean;
         st    : TSymtable;
         contextstructdef : tabstractrecorddef;
         ProcdefOverloadList : TFPObjectList;
@@ -2375,7 +2386,7 @@ implementation
         if not objcidcall and
            (FOperator=NOTOKEN) and
            (FProcsym.owner.symtabletype in [objectsymtable,recordsymtable]) then
-          collect_overloads_in_struct(tabstractrecorddef(FProcsym.owner.defowner),ProcdefOverloadList,searchhelpers,anoninherited)
+          collect_overloads_in_struct(tabstractrecorddef(FProcsym.owner.defowner),ProcdefOverloadList,searchhelpers,anoninherited,spezcontext)
         else
         if (FOperator<>NOTOKEN) then
           begin
@@ -2386,13 +2397,13 @@ implementation
               begin
                 if (pt.resultdef.typ=recorddef) and
                     (sto_has_operator in tabstractrecorddef(pt.resultdef).owner.tableoptions) then
-                  collect_overloads_in_struct(tabstractrecorddef(pt.resultdef),ProcdefOverloadList,searchhelpers,anoninherited);
+                  collect_overloads_in_struct(tabstractrecorddef(pt.resultdef),ProcdefOverloadList,searchhelpers,anoninherited,spezcontext);
                 pt:=tcallparanode(pt.right);
               end;
-            collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit);
+            collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit,spezcontext);
           end
         else
-          collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit);
+          collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit,spezcontext);
 
         { determine length of parameter list.
           for operators also enable the variant-operators if
@@ -2433,6 +2444,7 @@ implementation
         for j:=0 to ProcdefOverloadList.Count-1 do
           begin
             pd:=tprocdef(ProcdefOverloadList[j]);
+            added:=false;
 
             { only when the # of parameter are supported by the procedure and
               it is visible }
@@ -2452,8 +2464,23 @@ implementation
                ) and
                (
                 ignorevisibility or
-                not (pd.owner.symtabletype in [objectsymtable,recordsymtable]) or
-                is_visible_for_object(pd,contextstructdef)
+                (
+                  pd.is_specialization and not assigned(pd.owner) and
+                  (
+                    not (pd.genericdef.owner.symtabletype in [objectsymtable,recordsymtable]) or
+                    is_visible_for_object(tprocdef(pd.genericdef),contextstructdef)
+                  )
+                ) or
+                (
+                  (
+                    not pd.is_specialization or
+                    assigned(pd.owner)
+                  ) and
+                  (
+                    not (pd.owner.symtabletype in [objectsymtable,recordsymtable]) or
+                    is_visible_for_object(pd,contextstructdef)
+                  )
+                )
                ) then
               begin
                 { don't add duplicates, only compare visible parameters for the user }
@@ -2476,7 +2503,20 @@ implementation
                     hp:=hp^.next;
                   end;
                 if not found then
-                  proc_add(st,pd,objcidcall);
+                  begin
+                    proc_add(st,pd,objcidcall);
+                    added:=true;
+                  end;
+              end;
+
+            { we need to remove all specializations that were not used from their
+              procsyms as no code must be generated for them (if they are used
+              later on they'll be added like the ones that were used now) }
+            if not added and assigned(spezcontext) and not pd.is_registered then
+              begin
+                if tprocsym(pd.procsym).procdeflist.extract(pd)<>pd then
+                  internalerror(20150828);
+                pd.free;
               end;
           end;
 
@@ -2524,6 +2564,33 @@ implementation
           result^.ordinal_distance:=result^.ordinal_distance+1.0;
       end;
 
+
+    function tcallcandidates.maybe_specialize(var pd:tprocdef;spezcontext:tspecializationcontext):boolean;
+      var
+        def : tdef;
+      begin
+        result:=false;
+        if assigned(spezcontext) then
+          begin
+            if not (df_generic in pd.defoptions) then
+              internalerror(2015060301);
+            { check whether the given parameters are compatible
+              to the def's constraints }
+            if not check_generic_constraints(pd,spezcontext.genericdeflist,spezcontext.poslist) then
+              exit;
+            def:=generate_specialization_phase2(spezcontext,pd,false,'');
+            case def.typ of
+              errordef:
+                { do nothing }
+                ;
+              procdef:
+                pd:=tprocdef(def);
+              else
+                internalerror(2015070303);
+            end;
+          end;
+        result:=true;
+      end;
 
     procedure tcallcandidates.list(all:boolean);
       var
