@@ -721,6 +721,8 @@ interface
 {$endif}
           symoptions : tsymoptions;
           deprecatedmsg : pshortstring;
+          { generic support }
+          genericdecltokenbuf : tdynamicarray;
           { symbol owning this definition }
           procsym : tsym;
           procsymderef : tderef;
@@ -779,6 +781,7 @@ interface
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           procedure make_external;
+          procedure init_genericdecl;
 
           { aliases to fields only required when a function is implemented in
             the current unit }
@@ -5182,8 +5185,9 @@ implementation
 
     constructor tprocdef.ppuload(ppufile:tcompilerppufile);
       var
-        i,aliasnamescount : longint;
+        i,aliasnamescount,sizeleft : longint;
         level : byte;
+        buf : array[0..255] of byte;
       begin
          inherited ppuload(procdef,ppufile);
 {$ifdef symansistr}
@@ -5245,6 +5249,23 @@ implementation
          for i:=1 to aliasnamescount do
            aliasnames.insert(ppufile.getstring);
 
+         { load the token stream containing the declaration }
+         sizeleft:=ppufile.getlongint;
+         if sizeleft>0 then
+           begin
+             init_genericdecl;
+             while sizeleft>0 do
+               begin
+                 if sizeleft>sizeof(buf) then
+                   i:=sizeof(buf)
+                 else
+                   i:=sizeleft;
+                 ppufile.getdata(buf,i);
+                 genericdecltokenbuf.write(buf,i);
+                 dec(sizeleft,i);
+               end;
+           end;
+
          ppuload_platform(ppufile);
 
          { load para symtable }
@@ -5305,6 +5326,8 @@ implementation
             freemem(implprocdefinfo);
             implprocdefinfo:=nil;
            end;
+         genericdecltokenbuf.free;
+         genericdecltokenbuf:=nil;
          stringdispose(import_dll);
          stringdispose(import_name);
          stringdispose(deprecatedmsg);
@@ -5329,8 +5352,9 @@ implementation
     procedure tprocdef.ppuwrite(ppufile:tcompilerppufile);
       var
         oldintfcrc : boolean;
-        aliasnamescount : longint;
+        aliasnamescount,i,sizeleft : longint;
         item : TCmdStrListItem;
+        buf : array[0..255] of byte;
       begin
          { released procdef? }
          if not assigned(parast) then
@@ -5396,6 +5420,26 @@ implementation
           end;
 
          ppufile.do_crc:=oldintfcrc;
+
+         { generic tokens for the declaration }
+         if assigned(genericdecltokenbuf) and (genericdecltokenbuf.size>0) then
+           begin
+             sizeleft:=genericdecltokenbuf.size;
+             genericdecltokenbuf.seek(0);
+             ppufile.putlongint(sizeleft);
+             while sizeleft>0 do
+               begin
+                 if sizeleft>sizeof(buf) then
+                   i:=sizeof(buf)
+                 else
+                   i:=sizeleft;
+                 genericdecltokenbuf.read(buf,i);
+                 ppufile.putdata(buf,i);
+                 dec(sizeleft,i);
+               end;
+           end
+         else
+           ppufile.putlongint(0);
 
          { write this entry }
          writeentry(ppufile,ibprocdef);
@@ -5529,6 +5573,14 @@ implementation
       begin
         include(procoptions,po_external);
         forwarddef:=false;
+      end;
+
+
+    procedure tprocdef.init_genericdecl;
+      begin
+        if assigned(genericdecltokenbuf) then
+          internalerror(2015061901);
+        genericdecltokenbuf:=tdynamicarray.create(256);
       end;
 
 

@@ -2718,7 +2718,8 @@ procedure readdefinitions(const s:string; ParentDef: TPpuContainerDef);
 { type tvarianttype is in symconst unit }
 var
   b : byte;
-  l,j : longint;
+  l,j,tokenbufsize : longint;
+  tokenbuf : pbyte;
   calloption : tproccalloption;
   procoptions : tprocoptions;
   implprocoptions: timplprocoptions;
@@ -3028,6 +3029,14 @@ begin
                        write(', ');
                    end;
                  writeln;
+               end;
+             tokenbufsize:=ppufile.getlongint;
+             if tokenbufsize<>0 then
+               begin
+                 write  ([space,'      Declaration token buffer : TODO']);
+                 tokenbuf:=allocmem(tokenbufsize);
+                 ppufile.getdata(tokenbuf^,tokenbufsize);
+                 freemem(tokenbuf);
                end;
              if not EndOfEntry then
                HasMoreInfos;
