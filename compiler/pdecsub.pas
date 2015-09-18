@@ -838,6 +838,7 @@ implementation
         srsym:=nil;
         genericparams:=nil;
         freegenericparams:=true;
+        hadspecialize:=false;
 
         consume_proc_name;
 
