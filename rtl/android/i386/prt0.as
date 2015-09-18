@@ -60,7 +60,8 @@ _fpc_start:
         /* Save envp */
         movl    %eax,operatingsystem_parameter_envp
         
-        /* Finally go to libc startup code. It will call "PASCALMAIN" via alias "main" */
+        /* Finally go to libc startup code. It will call "PASCALMAIN" via alias "main". */
+        /* No need to align stack since it will aligned by libc. */
         jmp _start
 
 /* --------------------------------------------------------- */
