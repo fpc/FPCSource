@@ -515,6 +515,7 @@ implementation
                 is_open_array(def) or
                 is_array_of_const(def) or
                 is_array_constructor(def);
+          filedef,
           recorddef,
           setdef:
             result:=true;
