@@ -1232,7 +1232,7 @@ implementation
       subscriptdef:=cpointerdef.getreusable(recdef);
       { load the address of that shadow field }
       newbase:=hlcg.getaddressregister(list,cpointerdef.getreusable(llvmfielddef));
-      recref:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,recref,recdef);
+      recref:=thlcgllvm(hlcg).make_simple_ref(list,recref,recdef);
       list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,field.llvmfieldnr,true));
       reference_reset_base(recref,cpointerdef.getreusable(field.vardef),newbase,field.offsetfromllvmfield,newalignment(recref.alignment,field.fieldoffset+field.offsetfromllvmfield));
     end;
