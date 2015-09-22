@@ -1117,6 +1117,7 @@ implementation
         hp    : tarrayconstructornode;
         href  : treference;
         lt    : tdef;
+        realresult: tdef;
         paraloc : tcgparalocation;
         vtype : longint;
         eledef: tdef;
@@ -1135,11 +1136,15 @@ implementation
           begin
             eledef:=search_system_type('TVARREC').typedef;
             elesize:=eledef.size;
+            { in this case, the elementdef is set to "void", so create an
+              array of tvarrec instead }
+            realresult:=carraydef.getreusable(eledef,tarraydef(resultdef).highrange+1);
           end
         else
           begin
             eledef:=tarraydef(resultdef).elementdef;
             elesize:=tarraydef(resultdef).elesize;
+            realresult:=resultdef;
           end;
         { alignment is filled in by tg.gethltemp below }
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,0);
@@ -1152,9 +1157,9 @@ implementation
           allocating a temp of size 0 also forces it to be size 4 on regular
           targets }
          if tarraydef(resultdef).highrange=-1 then
-           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,0,tt_normal,location.reference)
+           tg.gethltemp(current_asmdata.CurrAsmList,realresult,0,tt_normal,location.reference)
          else
-           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
+           tg.gethltemp(current_asmdata.CurrAsmList,realresult,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
          href:=location.reference;
          makearrayref(href,eledef);
         { Process nodes in array constructor }
