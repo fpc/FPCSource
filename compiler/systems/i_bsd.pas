@@ -747,7 +747,7 @@ unit i_bsd;
             linkextern   : ld_bsd;
             ar           : ar_gnu_ar;
             res          : res_macho;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf2;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
