@@ -78,6 +78,7 @@ type
 
   THTMLNodeInfo = class
     NodeType: THTMLNodeType;
+    Closed: Boolean;
     DOMNode: TDOMNode;
   end;
 
@@ -85,7 +86,6 @@ type
   private
     FReader: THTMLReader;
     FDocument: TDOMDocument;
-    FElementStack: TList;
     FNodeBuffer: TList;
     IsFragmentMode, FragmentRootSet: Boolean;
     FragmentRoot: TDOMNode;
@@ -545,7 +545,6 @@ begin
   FReader.OnStartElement := @ReaderStartElement;
   FReader.OnEndElement := @ReaderEndElement;
   FDocument := ADocument;
-  FElementStack := TList.Create;
   FNodeBuffer := TList.Create;
 end;
 
@@ -566,7 +565,6 @@ begin
     THTMLNodeInfo(FNodeBuffer[i]).Free;
   FNodeBuffer.Free;
 
-  FElementStack.Free;
   inherited Destroy;
 end;
 
@@ -653,7 +651,7 @@ begin
   while i >= 0 do
   begin
     NodeInfo := THTMLNodeInfo(FNodeBuffer.Items[i]);
-    if (NodeInfo.NodeType = ntTag) and
+    if (NodeInfo.NodeType = ntTag) and (not NodeInfo.Closed) and
       (CompareText(NodeInfo.DOMNode.NodeName, LocalName) = 0) then
     begin
       // We found the matching start tag
@@ -689,6 +687,7 @@ begin
         NodeInfo2.Free;
         FNodeBuffer.Delete(i);
       end;
+      NodeInfo.Closed := True;
       break;
     end;
     Dec(i);
