@@ -49,6 +49,7 @@ unit agarmgas;
 
       TArmAppleGNUAssembler=class(TAppleGNUassembler)
         constructor create(info: pasminfo; smart: boolean); override;
+        procedure WriteExtraHeader; override;
       end;
 
 
@@ -142,6 +143,15 @@ unit agarmgas;
       begin
         inherited;
         InstrWriter := TArmInstrWriter.create(self);
+        TArmInstrWriter(InstrWriter).unified_syntax:=true;
+      end;
+
+
+    procedure TArmAppleGNUAssembler.WriteExtraHeader;
+      begin
+        inherited WriteExtraHeader;
+        if TArmInstrWriter(InstrWriter).unified_syntax then
+          writer.AsmWriteLn(#9'.syntax unified');
       end;
 
 
