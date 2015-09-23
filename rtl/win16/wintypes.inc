@@ -1909,3 +1909,10 @@ type
 const
 { Mode control }
   WM_CANCELMODE = $001F;
+
+type
+{ Timer support }
+  TIMERPROC = procedure(hwnd: HWND; msg, idTimer: UINT; dwTime: DWORD); far;
+
+const
+  WM_TIMER = $0113;

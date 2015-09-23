@@ -1007,3 +1007,8 @@ function SwapMouseButton(fSwap: BOOL): BOOL; external 'USER';
 
 function GetSysModalWindow: HWND; external 'USER';
 function SetSysModalWindow(hwnd: HWND): HWND; external 'USER';
+
+{ Timer support }
+function SetTimer(hwnd: HWND; idTimer, uTimeout: UINT; tmprc: TIMERPROC): UINT; external 'USER';
+function SetTimer(hwnd: HWND; idTimer, uTimeout: UINT; tmprc: TFarProc): UINT; external 'USER';
+function KillTimer(hwnd: HWND; idTimer: UINT): BOOL; external 'USER';
