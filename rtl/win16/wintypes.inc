@@ -1905,3 +1905,7 @@ type
     dwExtraInfo: DWORD;
   end;
   TMouseHookStruct = MOUSEHOOKSTRUCT;
+
+const
+{ Mode control }
+  WM_CANCELMODE = $001F;
