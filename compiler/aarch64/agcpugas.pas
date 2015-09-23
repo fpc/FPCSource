@@ -129,7 +129,7 @@ unit agcpugas;
                      (ref.shiftmode<>SM_None) or
                      (ref.offset<>0) then
                     internalerror(2014121501);
-                  if asminfo^.id=as_darwin then
+                  if target_info.system in systems_darwin then
                     result:=ref.symbol.name+darwin_addrpage2str[ref.refaddr]
                   else
                     result:=linux_addrpage2str[ref.refaddr]+ref.symbol.name
@@ -171,7 +171,7 @@ unit agcpugas;
                       addr_gotpageoffset,
                       addr_pageoffset:
                         begin
-                          if asminfo^.id=as_darwin then
+                          if target_info.system in systems_darwin then
                             result:=result+', '+ref.symbol.name+darwin_addrpage2str[ref.refaddr]
                           else
                             result:=result+', '+linux_addrpage2str[ref.refaddr]+ref.symbol.name
