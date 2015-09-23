@@ -789,6 +789,9 @@ function ScrollWindowEx(hwnd: HWND; dx, dy: SmallInt;
 { Menu support }
 function IsMenu(hmenu: HMENU): BOOL; external 'USER';
 
+{ Scroll bar support }
+function EnableScrollBar(hwnd: HWND; fnSBFlags: SmallInt; fuArrowFlags: UINT): BOOL; external 'USER';
+
 implementation
 
 end.

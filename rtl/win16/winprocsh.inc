@@ -1061,3 +1061,14 @@ function SetMenuItemBitmaps(hmenu: HMENU; idItem, fuFlags: UINT; hbmUnchecked, h
 function GetMenuCheckMarkDimensions: DWORD; external 'USER';
 
 function TrackPopupMenu(hmenu: HMENU; fuFlags: UINT; x, y, nReserved: SmallInt; hwnd: HWND; lprc: LPRECT): BOOL; external 'USER';
+
+{ Scroll bar support }
+
+function SetScrollPos(hwnd: HWND; fnBar, nPos: SmallInt; fRepaint: BOOL): SmallInt; external 'USER';
+function GetScrollPos(hwnd: HWND; fnBar: SmallInt): SmallInt; external 'USER';
+procedure SetScrollRange(hwnd: HWND; fnBar, nMin, nMax: SmallInt; fRedraw: BOOL); external 'USER';
+procedure GetScrollRange(hwnd: HWND; fnBar: SmallInt; lpnMinPos, lpnMaxPos: LPINT); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure GetScrollRange(hwnd: HWND; fnBar: SmallInt; var nMinPos, nMaxPos: SmallInt); external 'USER';
+{$endif}
+procedure ShowScrollBar(hwnd: HWND; fnBar: SmallInt; fShow: BOOL); external 'USER';
