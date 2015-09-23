@@ -972,3 +972,10 @@ function ScrollDC(hdc: HDC; dx, dy: SmallInt; lprcScroll, lprcClip: LPRECT; hrgn
 {$ifdef VAR_PARAMS_ARE_FAR}
 function ScrollDC(hdc: HDC; dx, dy: SmallInt; var rcScroll, rcClip: RECT; hrgnUpdate: HRGN; lprcUpdate: LPRECT): BOOL; external 'USER';
 {$endif}
+
+{ Window activation }
+
+function SetActiveWindow(hwnd: HWND): HWND; external 'USER';
+function GetActiveWindow: HWND; external 'USER';
+
+function GetLastActivePopup(hwndOwner: HWND): HWND; external 'USER';

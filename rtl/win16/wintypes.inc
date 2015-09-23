@@ -1722,3 +1722,13 @@ const
 
   WM_QUERYDRAGICON = $0037;
   WM_DROPFILES     = $0233;
+
+{ Window activation }
+{ WM_ACTIVATE state values }
+  WA_INACTIVE    = 0;
+  WA_ACTIVE      = 1;
+  WA_CLICKACTIVE = 2;
+
+  WM_ACTIVATE    = $0006;
+  WM_ACTIVATEAPP = $001C;
+  WM_NCACTIVATE  = $0086;
