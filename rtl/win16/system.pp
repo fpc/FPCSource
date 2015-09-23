@@ -97,8 +97,6 @@ const
 {$endif RTLLITE}
 
 
-procedure MessageBox(hWnd: word; lpText, lpCaption: LPSTR; uType: word);external 'USER';
-
 implementation
 
 const

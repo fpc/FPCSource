@@ -1126,3 +1126,8 @@ function CreateIcon(hinst: HINST; nWidth, nHeight: SmallInt; bPlanes, bBitsPerPi
 function DestroyIcon(hicon: HICON): BOOL; external 'USER';
 
 function DrawIcon(hdc: HDC; x, y: SmallInt; hicon: HICON): BOOL; external 'USER';
+
+{ Message Box support }
+
+function MessageBox(hwndParent: HWND; lpszText, lpszTitle: LPCSTR; fuStyle: UINT): SmallInt; external 'USER';
+procedure MessageBeep(uAlert: UINT); external 'USER';
