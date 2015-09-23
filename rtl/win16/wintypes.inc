@@ -2136,3 +2136,29 @@ const
   MB_TASKMODAL        = $2000;
 
   MB_NOFOCUS          = $8000;
+
+{ WM_SYSCOMMAND support }
+
+  WM_SYSCOMMAND = $0112;
+
+{ System Menu Command Values }
+  SC_SIZE       = $F000;
+  SC_MOVE       = $F010;
+  SC_MINIMIZE   = $F020;
+  SC_MAXIMIZE   = $F030;
+  SC_NEXTWINDOW = $F040;
+  SC_PREVWINDOW = $F050;
+  SC_CLOSE      = $F060;
+  SC_VSCROLL    = $F070;
+  SC_HSCROLL    = $F080;
+  SC_MOUSEMENU  = $F090;
+  SC_KEYMENU    = $F100;
+  SC_ARRANGE    = $F110;
+  SC_RESTORE    = $F120;
+  SC_TASKLIST   = $F130;
+  SC_SCREENSAVE = $F140;
+  SC_HOTKEY     = $F150;
+
+{ Obsolete names }
+  SC_ICON = SC_MINIMIZE;
+  SC_ZOOM = SC_MAXIMIZE;
