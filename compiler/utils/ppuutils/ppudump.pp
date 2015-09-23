@@ -3440,7 +3440,7 @@ end;
                            Read General Part
 ****************************************************************************}
 
-procedure readinterface;
+procedure readinterface(silent : boolean);
 var
   b : byte;
   sourcenumber, i : longint;
@@ -3454,76 +3454,90 @@ begin
          ibmodulename :
            begin
              CurUnit.Name:=getstring;
-             Writeln(['Module Name: ',CurUnit.Name]);
+             if not silent then
+               Writeln(['Module Name: ',CurUnit.Name]);
            end;
 
          ibmoduleoptions:
-           readmoduleoptions('  ');
+           if not silent then
+             readmoduleoptions('  ');
 
          ibsourcefiles :
            begin
              sourcenumber:=1;
-             while not EndOfEntry do
-              begin
-                with TPpuSrcFile.Create(CurUnit.SourceFiles) do begin
-                  Name:=getstring;
-                  i:=getlongint;
-                  if i >= 0 then
-                    FileTime:=FileDateToDateTime(i);
-                  Writeln(['Source file ',sourcenumber,' : ',Name,' ',filetimestring(i)]);
-                end;
+             if not silent then
+               while not EndOfEntry do
+                 begin
+                   with TPpuSrcFile.Create(CurUnit.SourceFiles) do begin
+                     Name:=getstring;
+                     i:=getlongint;
+                     if i >= 0 then
+                       FileTime:=FileDateToDateTime(i);
+                     Writeln(['Source file ',sourcenumber,' : ',Name,' ',filetimestring(i)]);
+                   end;
 
-                inc(sourcenumber);
-              end;
+                   inc(sourcenumber);
+                 end;
            end;
 {$IFDEF MACRO_DIFF_HINT}
          ibusedmacros :
            begin
-             while not EndOfEntry do
-              begin
-                Write('Conditional ',getstring);
-                b:=getbyte;
-                if boolean(b)=true then
-                  write(' defined at startup')
-                else
-                  write(' not defined at startup');
-                b:=getbyte;
-                if boolean(b)=true then
-                  writeln(' was used')
-                else
-                  writeln;
-              end;
-           end;
+             if not silent then
+               while not EndOfEntry do
+                 begin
+                    Write('Conditional ',getstring);
+                    b:=getbyte;
+                    if boolean(b)=true then
+                      write(' defined at startup')
+                    else
+                      write(' not defined at startup');
+                    b:=getbyte;
+                    if boolean(b)=true then
+                      writeln(' was used')
+                    else
+                      writeln;
+                  end;
+                end;
 {$ENDIF}
          ibloadunit :
-           ReadLoadUnit;
+           if not silent then
+             ReadLoadUnit;
 
          iblinkunitofiles :
-           ReadLinkContainer('Link unit object file: ');
+           if not silent then
+             ReadLinkContainer('Link unit object file: ');
 
          iblinkunitstaticlibs :
-           ReadLinkContainer('Link unit static lib: ');
+           if not silent then
+             ReadLinkContainer('Link unit static lib: ');
 
          iblinkunitsharedlibs :
-           ReadLinkContainer('Link unit shared lib: ');
+           if not silent then
+             ReadLinkContainer('Link unit shared lib: ');
 
          iblinkotherofiles :
-           ReadLinkContainer('Link other object file: ');
+           if not silent then
+             ReadLinkContainer('Link other object file: ');
 
          iblinkotherstaticlibs :
-           ReadLinkContainer('Link other static lib: ');
+           if not silent then
+             ReadLinkContainer('Link other static lib: ');
 
          iblinkothersharedlibs :
-           ReadLinkContainer('Link other shared lib: ');
+           if not silent then
+             ReadLinkContainer('Link other shared lib: ');
 
          iblinkotherframeworks:
-           ReadLinkContainer('Link framework: ');
+           if not silent then
+             ReadLinkContainer('Link framework: ');
 
          ibmainname:
-           Writeln(['Specified main program symbol name: ',getstring]);
+           if not silent then
+             Writeln(['Specified main program symbol name: ',getstring]);
 
          ibImportSymbols :
-           ReadImportSymbols;
+           if not silent then
+             ReadImportSymbols;
 
          ibderefdata :
            ReadDerefData;
@@ -3532,10 +3546,12 @@ begin
            ReadDerefMap;
 
          ibwpofile :
-           ReadWpoFileInfo;
+           if not silent then
+             ReadWpoFileInfo;
 
          ibresources :
-           ReadLinkContainer('Resource file: ');
+           if not silent then
+             ReadLinkContainer('Resource file: ');
 
          iberror :
            begin
@@ -3668,8 +3684,11 @@ begin
      Writeln;
      Writeln('Interface section');
      Writeln('------------------');
-     readinterface;
+     readinterface(false);
    end
+  { We need derefdata from Interface }
+  else if verbose and (v_defs or v_syms or v_implementation)<>0 then
+     readinterface(true)
   else
    ppufile.skipuntilentry(ibendinterface);
   Writeln;
