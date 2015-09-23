@@ -1100,3 +1100,21 @@ function EnumClipboardFormats(uFormat: UINT): UINT; external 'USER';
 function GetClipboardFormatName(uFormat: UINT; lpszFormatName: LPSTR; cbMax: SmallInt): SmallInt; external 'USER';
 
 function ChangeClipboardChain(hwnd, hwndNext: HWND): BOOL; external 'USER';
+
+{ Mouse cursor support }
+
+function LoadCursor(hinst: HINST; pszCursor: LPCSTR): HCURSOR; external 'USER';
+function CreateCursor(hinst: HINST; xHotSpot, yHotSpot, nWidth, nHeight: SmallInt; lpvANDplane, lpvXORplane: LPVOID): HCURSOR; external 'USER';
+function DestroyCursor(hcur: HCURSOR): BOOL; external 'USER';
+
+function ShowCursor(fShow: BOOL): SmallInt; external 'USER';
+
+procedure SetCursorPos(x, y: SmallInt); external 'USER';
+procedure GetCursorPos(lppt: LPPOINT); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure GetCursorPos(var pt: POINT); external 'USER';
+{$endif}
+
+function SetCursor(hcur: HCURSOR): HCURSOR; external 'USER';
+
+procedure ClipCursor(lprc: LPRECT); external 'USER';

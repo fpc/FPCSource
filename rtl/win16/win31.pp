@@ -795,6 +795,14 @@ function EnableScrollBar(hwnd: HWND; fnSBFlags: SmallInt; fuArrowFlags: UINT): B
 { Clipboard Manager Functions }
 function GetOpenClipboardWindow: HWND; external 'USER';
 
+{ Mouse cursor support }
+function CopyCursor(hinst: HINST; hcur: HCURSOR): HCURSOR; external 'USER';
+function GetCursor: HCURSOR; external 'USER';
+procedure GetClipCursor(lprc: LPRECT); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure GetClipCursor(var rc: RECT); external 'USER';
+{$endif}
+
 implementation
 
 end.
