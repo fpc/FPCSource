@@ -964,3 +964,11 @@ procedure ValidateRect(hwnd: HWND; lprc: LPRECT); external 'USER';
 
 procedure InvalidateRgn(hwnd: HWND; hrgn: HRGN; fErase: BOOL); external 'USER';
 procedure ValidateRgn(hwnd: HWND; hrgn: HRGN); external 'USER';
+
+{ Window scrolling }
+
+procedure ScrollWindow(hwnd: HWND; dx, dy: SmallInt; lprcScroll, lprcClip: LPRECT); external 'USER';
+function ScrollDC(hdc: HDC; dx, dy: SmallInt; lprcScroll, lprcClip: LPRECT; hrgnUpdate: HRGN; lprcUpdate: LPRECT): BOOL; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function ScrollDC(hdc: HDC; dx, dy: SmallInt; var rcScroll, rcClip: RECT; hrgnUpdate: HRGN; lprcUpdate: LPRECT): BOOL; external 'USER';
+{$endif}

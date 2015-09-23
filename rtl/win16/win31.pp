@@ -568,6 +568,11 @@ const
 
   DCX_USESTYLE         = $00010000;
 
+{ Window scrolling }
+  SW_SCROLLCHILDREN = $0001;
+  SW_INVALIDATE     = $0002;
+  SW_ERASE          = $0004;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
@@ -742,6 +747,11 @@ function GetDCEx({register} hwnd: HWND; hrgnClip: HRGN; flags: DWORD): HDC; exte
 { Window repainting }
 function LockWindowUpdate(hwndLock: HWND): BOOL; external 'USER';
 function RedrawWindow(hwnd: HWND; lprcUpdate: LPRECT; hrgnUpdate: HRGN; flags: UINT): BOOL; external 'USER';
+
+{ Window scrolling }
+function ScrollWindowEx(hwnd: HWND; dx, dy: SmallInt;
+          prcScroll, prcClip: LPRECT;
+          hrgnUpdate: HRGN; prcUpdate: LPRECT; flags: UINT): SmallInt; external 'USER';
 
 implementation
 
