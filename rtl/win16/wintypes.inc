@@ -1673,3 +1673,47 @@ const
 
   RDW_FRAME           = $0400;
   RDW_NOFRAME         = $0800;
+
+{ Non-client window area management }
+
+  WM_NCPAINT    = $0085;
+
+  WM_NCCALCSIZE = $0083;
+
+type
+{ WM_NCCALCSIZE parameter structure }
+  PNCCALCSIZE_PARAMS = ^NCCALCSIZE_PARAMS;
+  LPNCCALCSIZE_PARAMS = ^NCCALCSIZE_PARAMS; far;
+  NCCALCSIZE_PARAMS = record
+    rgrc: array [0..1] of RECT;
+  end;
+  TNCCalcSize_Params = NCCALCSIZE_PARAMS;
+
+const
+  WM_NCHITTEST  = $0084;
+
+{ WM_NCHITTEST return codes }
+  HTERROR       = (-2);
+  HTTRANSPARENT = (-1);
+  HTNOWHERE     = 0;
+  HTCLIENT      = 1;
+  HTCAPTION     = 2;
+  HTSYSMENU     = 3;
+  HTSIZE        = 4;
+  HTMENU        = 5;
+  HTHSCROLL     = 6;
+  HTVSCROLL     = 7;
+  HTMINBUTTON   = 8;
+  HTMAXBUTTON   = 9;
+  HTLEFT        = 10;
+  HTRIGHT       = 11;
+  HTTOP         = 12;
+  HTTOPLEFT     = 13;
+  HTTOPRIGHT    = 14;
+  HTBOTTOM      = 15;
+  HTBOTTOMLEFT  = 16;
+  HTBOTTOMRIGHT = 17;
+  HTBORDER      = 18;
+  HTGROWBOX     = HTSIZE;
+  HTREDUCE      = HTMINBUTTON;
+  HTZOOM        = HTMAXBUTTON;

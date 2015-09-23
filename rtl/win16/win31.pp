@@ -573,6 +573,27 @@ const
   SW_INVALIDATE     = $0002;
   SW_ERASE          = $0004;
 
+{ Non-client window area management }
+{ WM_NCCALCSIZE return flags }
+  WVR_ALIGNTOP    = $0010;
+  WVR_ALIGNLEFT   = $0020;
+  WVR_ALIGNBOTTOM = $0040;
+  WVR_ALIGNRIGHT  = $0080;
+  WVR_HREDRAW     = $0100;
+  WVR_VREDRAW     = $0200;
+  WVR_REDRAW      = WVR_HREDRAW or WVR_VREDRAW;
+  WVR_VALIDRECTS  = $0400;
+
+type
+{ WM_NCCALCSIZE parameter structure }
+  PNCCALCSIZE_PARAMS = ^NCCALCSIZE_PARAMS;
+  LPNCCALCSIZE_PARAMS = ^NCCALCSIZE_PARAMS; far;
+  NCCALCSIZE_PARAMS = record
+    rgrc: array [0..2] of RECT;
+    lppos: LPWINDOWPOS;
+  end;
+  TNCCalcSize_Params = NCCALCSIZE_PARAMS;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
