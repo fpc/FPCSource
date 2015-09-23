@@ -599,6 +599,13 @@ type
 { WM_MOUSEACTIVATE return codes }
   MA_NOACTIVATEANDEAT = 4;
 
+{ Menu support }
+{ Flags for TrackPopupMenu }
+  TPM_RIGHTBUTTON = $0002;
+  TPM_LEFTALIGN   = $0000;
+  TPM_CENTERALIGN = $0004;
+  TPM_RIGHTALIGN  = $0008;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
@@ -778,6 +785,9 @@ function RedrawWindow(hwnd: HWND; lprcUpdate: LPRECT; hrgnUpdate: HRGN; flags: U
 function ScrollWindowEx(hwnd: HWND; dx, dy: SmallInt;
           prcScroll, prcClip: LPRECT;
           hrgnUpdate: HRGN; prcUpdate: LPRECT; flags: UINT): SmallInt; external 'USER';
+
+{ Menu support }
+function IsMenu(hmenu: HMENU): BOOL; external 'USER';
 
 implementation
 

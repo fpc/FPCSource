@@ -1920,3 +1920,76 @@ const
 type
 { Accelerator support }
   HACCEL = THandle;
+
+{ Menu support }
+
+{ Menu template header }
+  PMENUITEMTEMPLATEHEADER = ^MENUITEMTEMPLATEHEADER;
+  LPMENUITEMTEMPLATEHEADER = ^MENUITEMTEMPLATEHEADER; far;
+  MENUITEMTEMPLATEHEADER = record
+    versionNumber: UINT;
+    offset: UINT;
+  end;
+  TMenuItemTemplateHeader = MENUITEMTEMPLATEHEADER;
+
+{ Menu template item struct }
+  PMENUITEMTEMPLATE = ^MENUITEMTEMPLATE;
+  LPMENUITEMTEMPLATE = ^MENUITEMTEMPLATE; far;
+  MENUITEMTEMPLATE = record
+    mtOption: UINT;
+    mtID: UINT;
+    mtString: array [0..0] of Char;
+  end;
+  TMenuItemTemplate = MENUITEMTEMPLATE;
+
+const
+  MF_INSERT          = $0000;
+  MF_CHANGE          = $0080;
+  MF_APPEND          = $0100;
+  MF_DELETE          = $0200;
+  MF_REMOVE          = $1000;
+
+{ Menu flags for Add/Check/EnableMenuItem() }
+  MF_BYCOMMAND       = $0000;
+  MF_BYPOSITION      = $0400;
+
+  MF_SEPARATOR       = $0800;
+
+  MF_ENABLED         = $0000;
+  MF_GRAYED          = $0001;
+  MF_DISABLED        = $0002;
+
+  MF_UNCHECKED       = $0000;
+  MF_CHECKED         = $0008;
+  MF_USECHECKBITMAPS = $0200;
+
+  MF_STRING          = $0000;
+  MF_BITMAP          = $0004;
+  MF_OWNERDRAW       = $0100;
+
+  MF_POPUP           = $0010;
+  MF_MENUBARBREAK    = $0020;
+  MF_MENUBREAK       = $0040;
+
+  MF_UNHILITE        = $0000;
+  MF_HILITE          = $0080;
+
+  MF_SYSMENU         = $2000;
+  MF_HELP            = $4000;
+  MF_MOUSESELECT     = $8000;
+
+
+  MF_END             = $0080;  { Only valid in menu resource templates }
+
+{ Flags for TrackPopupMenu }
+  TPM_LEFTBUTTON     = $0000;
+
+{ Menu messages }
+  WM_INITMENU        = $0116;
+  WM_INITMENUPOPUP   = $0117;
+
+  WM_MENUSELECT      = $011F;
+  WM_MENUCHAR        = $0120;
+
+{ Menu and control command messages }
+  WM_COMMAND         = $0111;

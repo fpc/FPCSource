@@ -1019,3 +1019,45 @@ function TranslateAccelerator(hwnd: HWND; haccl: HACCEL; lpmsg: LPMSG): SmallInt
 {$ifdef VAR_PARAMS_ARE_FAR}
 function TranslateAccelerator(hwnd: HWND; haccl: HACCEL; var msg: MSG): SmallInt; external 'USER';
 {$endif}
+
+{ Menu support }
+
+function CreateMenu: HMENU; external 'USER';
+function CreatePopupMenu: HMENU; external 'USER';
+function LoadMenu(hinst: HINST; lpszMenuName: LPCSTR): HMENU; external 'USER';
+function LoadMenuIndirect(lpmith: LPVOID): HMENU; external 'USER';
+
+function DestroyMenu(hmenu: HMENU): BOOL; external 'USER';
+
+function GetMenu(hwnd: HWND): HMENU; external 'USER';
+function SetMenu(hwnd: HWND; hmenu: HMENU): BOOL; external 'USER';
+
+function GetSystemMenu(hwnd: HWND; fRevert: BOOL): HMENU; external 'USER';
+
+procedure DrawMenuBar(hwnd: HWND); external 'USER';
+
+function HiliteMenuItem(hwnd: HWND; hmenu: HMENU; idHiliteItem, fuHilite: UINT): BOOL; external 'USER';
+
+function InsertMenu(hmenu: HMENU; idItem, fuFlags, idNewItem: UINT; lpNewItem: LPCSTR): BOOL; external 'USER';
+function AppendMenu(hmenu: HMENU; fuFlags, idNewItem: UINT; lpNewItem: LPCSTR): BOOL; external 'USER';
+function ModifyMenu(hmenu: HMENU; idItem, fuFlags, idNewItem: UINT; lpNewItem: LPCSTR): BOOL; external 'USER';
+function RemoveMenu(hmenu: HMENU; idItem, fuFlags: UINT): BOOL; external 'USER';
+function DeleteMenu(hmenu: HMENU; idItem, fuFlags: UINT): BOOL; external 'USER';
+
+function ChangeMenu(hmenu: HMENU; uPosition: UINT; lpNewItem: LPCSTR; idNewItem, fuFlags: UINT): BOOL; external 'USER';
+
+function EnableMenuItem(hmenu: HMENU; idEnableItem, uEnable: UINT): BOOL; external 'USER';
+function CheckMenuItem(hmenu: HMENU; idCheckItem, uCheck: UINT): BOOL; external 'USER';
+
+function GetSubMenu(hmenu: HMENU; nPos: SmallInt): HMENU; external 'USER';
+
+function GetMenuItemCount(hmenu: HMENU): SmallInt; external 'USER';
+function GetMenuItemID(hmenu: HMENU; pos: SmallInt): UINT; external 'USER';
+
+function GetMenuString(hmenu: HMENU; idItem: UINT; lpsz: LPSTR; cbMax: SmallInt; fwFlags: UINT): SmallInt; external 'USER';
+function GetMenuState(hmenu: HMENU; idItem, fuFlags: UINT): UINT; external 'USER';
+
+function SetMenuItemBitmaps(hmenu: HMENU; idItem, fuFlags: UINT; hbmUnchecked, hbmChecked: HBITMAP): BOOL; external 'USER';
+function GetMenuCheckMarkDimensions: DWORD; external 'USER';
+
+function TrackPopupMenu(hmenu: HMENU; fuFlags: UINT; x, y, nReserved: SmallInt; hwnd: HWND; lprc: LPRECT): BOOL; external 'USER';
