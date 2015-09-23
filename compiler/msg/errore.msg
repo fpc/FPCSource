@@ -49,7 +49,7 @@
 #
 # General
 #
-# 01023 is the last used one
+# 01026 is the last used one
 #
 # BeginOfTeX
 % \section{General compiler messages}
@@ -132,6 +132,8 @@ general_f_ioerror=01024_F_I/O error: $1
 % During compilation an I/O error happened which allows no further compilation.
 general_f_oserror=01025_F_Operating system error: $1
 % During compilation an operating system error happened which allows no further compilation.
+general_e_exception_raised=01026_E_Compilation raised exception internally
+% Compilation was aborted, due to an exception generation.
 % \end{description}
 #
 # Scanner
