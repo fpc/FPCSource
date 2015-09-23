@@ -1916,3 +1916,7 @@ type
 
 const
   WM_TIMER = $0113;
+
+type
+{ Accelerator support }
+  HACCEL = THandle;

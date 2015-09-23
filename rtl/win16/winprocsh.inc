@@ -1012,3 +1012,10 @@ function SetSysModalWindow(hwnd: HWND): HWND; external 'USER';
 function SetTimer(hwnd: HWND; idTimer, uTimeout: UINT; tmprc: TIMERPROC): UINT; external 'USER';
 function SetTimer(hwnd: HWND; idTimer, uTimeout: UINT; tmprc: TFarProc): UINT; external 'USER';
 function KillTimer(hwnd: HWND; idTimer: UINT): BOOL; external 'USER';
+
+{ Accelerator support }
+function LoadAccelerators(hinst: HINST; lpszTableName: LPCSTR): HACCEL; external 'USER';
+function TranslateAccelerator(hwnd: HWND; haccl: HACCEL; lpmsg: LPMSG): SmallInt; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function TranslateAccelerator(hwnd: HWND; haccl: HACCEL; var msg: MSG): SmallInt; external 'USER';
+{$endif}
