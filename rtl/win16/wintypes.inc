@@ -1717,3 +1717,8 @@ const
   HTGROWBOX     = HTSIZE;
   HTREDUCE      = HTMINBUTTON;
   HTZOOM        = HTMAXBUTTON;
+
+{ Drag-and-drop support }
+
+  WM_QUERYDRAGICON = $0037;
+  WM_DROPFILES     = $0233;
