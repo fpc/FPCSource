@@ -173,11 +173,17 @@ interface
        end;
 {$endif llvm}
 
-       { tabstractlocalsymtable }
+       { tabstractsubsymtable }
 
-       tabstractlocalsymtable = class(tstoredsymtable)
+       tabstractsubsymtable = class(tstoredsymtable)
        public
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+       end;
+
+       { tabstractlocalsymtable }
+
+       tabstractlocalsymtable = class(tabstractsubsymtable)
+       public
           function count_locals:longint;
           function iscurrentunit: boolean; override;
        end;
@@ -250,7 +256,7 @@ interface
 
        { tenumsymtable }
 
-       tenumsymtable = class(tstoredsymtable)
+       tenumsymtable = class(tabstractsubsymtable)
        public
           procedure insert(sym: TSymEntry; checkdup: boolean = true); override;
           constructor create(adefowner:tdef);
@@ -258,7 +264,7 @@ interface
 
        { tarraysymtable }
 
-       tarraysymtable = class(tstoredsymtable)
+       tarraysymtable = class(tabstractsubsymtable)
        public
           procedure insertdef(def:TDefEntry);override;
           constructor create(adefowner:tdef);
@@ -1992,10 +1998,10 @@ implementation
 {$endif llvm}
 
 {****************************************************************************
-                          TAbstractLocalSymtable
+                          TAbstractSubSymtable
 ****************************************************************************}
 
-   procedure tabstractlocalsymtable.ppuwrite(ppufile:tcompilerppufile);
+   procedure tabstractsubsymtable.ppuwrite(ppufile:tcompilerppufile);
       var
         oldtyp : byte;
       begin
@@ -2007,6 +2013,10 @@ implementation
          ppufile.entrytyp:=oldtyp;
       end;
 
+
+{****************************************************************************
+                          TAbstractLocalSymtable
+****************************************************************************}
 
     function tabstractlocalsymtable.count_locals:longint;
       var
