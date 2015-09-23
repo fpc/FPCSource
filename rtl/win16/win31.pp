@@ -594,6 +594,11 @@ type
   end;
   TNCCalcSize_Params = NCCALCSIZE_PARAMS;
 
+{ Mouse input support }
+  const
+{ WM_MOUSEACTIVATE return codes }
+  MA_NOACTIVATEANDEAT = 4;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';

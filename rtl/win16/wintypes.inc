@@ -1847,3 +1847,61 @@ const
 
 { SetWindowsHook() keyboard hook }
   WH_KEYBOARD    = 2;
+
+{ Mouse input support }
+{ Mouse input messages }
+  WM_MOUSEMOVE       = $0200;
+  WM_LBUTTONDOWN     = $0201;
+  WM_LBUTTONUP       = $0202;
+  WM_LBUTTONDBLCLK   = $0203;
+  WM_RBUTTONDOWN     = $0204;
+  WM_RBUTTONUP       = $0205;
+  WM_RBUTTONDBLCLK   = $0206;
+  WM_MBUTTONDOWN     = $0207;
+  WM_MBUTTONUP       = $0208;
+  WM_MBUTTONDBLCLK   = $0209;
+
+{ Mouse input message range }
+  WM_MOUSEFIRST      = $0200;
+  WM_MOUSELAST       = $0209;
+
+{ Mouse message wParam key states }
+  MK_LBUTTON         = $0001;
+  MK_RBUTTON         = $0002;
+  MK_SHIFT           = $0004;
+  MK_CONTROL         = $0008;
+  MK_MBUTTON         = $0010;
+
+{ Non-client mouse messages }
+  WM_NCMOUSEMOVE     = $00A0;
+  WM_NCLBUTTONDOWN   = $00A1;
+  WM_NCLBUTTONUP     = $00A2;
+  WM_NCLBUTTONDBLCLK = $00A3;
+  WM_NCRBUTTONDOWN   = $00A4;
+  WM_NCRBUTTONUP     = $00A5;
+  WM_NCRBUTTONDBLCLK = $00A6;
+  WM_NCMBUTTONDOWN   = $00A7;
+  WM_NCMBUTTONUP     = $00A8;
+  WM_NCMBUTTONDBLCLK = $00A9;
+
+{ Mouse click activation support }
+  WM_MOUSEACTIVATE   = $0021;
+
+{ WM_MOUSEACTIVATE return codes }
+  MA_ACTIVATE        = 1;
+  MA_ACTIVATEANDEAT  = 2;
+  MA_NOACTIVATE      = 3;
+
+{ SetWindowsHook() mouse hook }
+  WH_MOUSE           = 7;
+
+type
+  PMOUSEHOOKSTRUCT = ^MOUSEHOOKSTRUCT;
+  LPMOUSEHOOKSTRUCT = ^MOUSEHOOKSTRUCT; far;
+  MOUSEHOOKSTRUCT = record
+    pt: POINT;
+    hwnd: HWND;
+    wHitTestCode: UINT;
+    dwExtraInfo: DWORD;
+  end;
+  TMouseHookStruct = MOUSEHOOKSTRUCT;

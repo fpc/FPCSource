@@ -994,3 +994,11 @@ procedure SetKeyboardState(lpbKeyState: LPBYTE); external 'USER';
 procedure GetKeyboardState(var bKeyState: TKeyboardState); external 'USER';
 procedure SetKeyboardState(var bKeyState: TKeyboardState); external 'USER';
 {$endif}
+
+{ Mouse input support }
+
+function SetCapture(hwnd: HWND): HWND; external 'USER';
+procedure ReleaseCapture; external 'USER';
+function GetCapture: HWND; external 'USER';
+
+function SwapMouseButton(fSwap: BOOL): BOOL; external 'USER';
