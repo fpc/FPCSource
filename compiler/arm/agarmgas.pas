@@ -42,6 +42,8 @@ unit agarmgas;
       end;
 
       TArmInstrWriter=class(TCPUInstrWriter)
+        unified_syntax: boolean;
+
         procedure WriteInstruction(hp : tai);override;
       end;
 
@@ -92,6 +94,8 @@ unit agarmgas;
       begin
         inherited;
         InstrWriter := TArmInstrWriter.create(self);
+        if GenerateThumb2Code then
+          TArmInstrWriter(InstrWriter).unified_syntax:=true;
       end;
 
 
@@ -126,7 +130,7 @@ unit agarmgas;
     procedure TArmGNUAssembler.WriteExtraHeader;
       begin
         inherited WriteExtraHeader;
-        if GenerateThumb2Code then
+        if TArmInstrWriter(InstrWriter).unified_syntax then
           writer.AsmWriteLn(#9'.syntax unified');
       end;
 
@@ -319,12 +323,14 @@ unit agarmgas;
         sep: string[3];
     begin
       op:=taicpu(hp).opcode;
+      postfix:='';
       if GenerateThumb2Code then
         begin
-          postfix:='';
           if taicpu(hp).wideformat then
             postfix:='.w';
-
+        end;
+      if unified_syntax then
+        begin
           if taicpu(hp).ops = 0 then
             s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
           else if taicpu(hp).oppostfix in [PF_8..PF_U32F64] then
