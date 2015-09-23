@@ -2033,3 +2033,53 @@ const
 
   ESB_DISABLE_LTUP  = ESB_DISABLE_LEFT;
   ESB_DISABLE_RTDN  = ESB_DISABLE_RIGHT;
+
+{ Clipboard manager }
+
+{ Predefined Clipboard Formats }
+  CF_TEXT             = 1;
+  CF_BITMAP           = 2;
+  CF_METAFILEPICT     = 3;
+  CF_SYLK             = 4;
+  CF_DIF              = 5;
+  CF_TIFF             = 6;
+  CF_OEMTEXT          = 7;
+  CF_DIB              = 8;
+  CF_PALETTE          = 9;
+  CF_PENDATA          = 10;
+  CF_RIFF             = 11;
+  CF_WAVE             = 12;
+
+  CF_OWNERDISPLAY     = $0080;
+  CF_DSPTEXT          = $0081;
+  CF_DSPBITMAP        = $0082;
+  CF_DSPMETAFILEPICT  = $0083;
+
+{ "Private" formats don't get GlobalFree()'d }
+  CF_PRIVATEFIRST     = $0200;
+  CF_PRIVATELAST      = $02FF;
+
+{ "GDIOBJ" formats do get DeleteObject()'d }
+  CF_GDIOBJFIRST      = $0300;
+  CF_GDIOBJLAST       = $03FF;
+
+{ Clipboard command messages }
+  WM_CUT              = $0300;
+  WM_COPY             = $0301;
+  WM_PASTE            = $0302;
+  WM_CLEAR            = $0303;
+  WM_UNDO             = $0304;
+
+{ Clipboard owner messages }
+  WM_RENDERFORMAT     = $0305;
+  WM_RENDERALLFORMATS = $0306;
+  WM_DESTROYCLIPBOARD = $0307;
+
+{ Clipboard viewer messages }
+  WM_DRAWCLIPBOARD    = $0308;
+  WM_PAINTCLIPBOARD   = $0309;
+  WM_SIZECLIPBOARD    = $030B;
+  WM_VSCROLLCLIPBOARD = $030A;
+  WM_HSCROLLCLIPBOARD = $030E;
+  WM_ASKCBFORMATNAME  = $030C;
+  WM_CHANGECBCHAIN    = $030D;

@@ -792,6 +792,9 @@ function IsMenu(hmenu: HMENU): BOOL; external 'USER';
 { Scroll bar support }
 function EnableScrollBar(hwnd: HWND; fnSBFlags: SmallInt; fuArrowFlags: UINT): BOOL; external 'USER';
 
+{ Clipboard Manager Functions }
+function GetOpenClipboardWindow: HWND; external 'USER';
+
 implementation
 
 end.

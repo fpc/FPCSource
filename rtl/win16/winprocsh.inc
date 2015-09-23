@@ -1072,3 +1072,31 @@ procedure GetScrollRange(hwnd: HWND; fnBar: SmallInt; lpnMinPos, lpnMaxPos: LPIN
 procedure GetScrollRange(hwnd: HWND; fnBar: SmallInt; var nMinPos, nMaxPos: SmallInt); external 'USER';
 {$endif}
 procedure ShowScrollBar(hwnd: HWND; fnBar: SmallInt; fShow: BOOL); external 'USER';
+
+{ Clipboard manager }
+
+{ Clipboard Manager Functions }
+function OpenClipboard(hwnd: HWND): BOOL; external 'USER';
+function CloseClipboard: BOOL; external 'USER';
+function EmptyClipboard: BOOL; external 'USER';
+
+function GetClipboardOwner: HWND; external 'USER';
+
+function SetClipboardViewer(hwnd: HWND): HWND; external 'USER';
+function GetClipboardViewer: HWND; external 'USER';
+
+function SetClipboardData(uFormat: UINT; hData: HANDLE): HANDLE; external 'USER';
+function GetClipboardData(uFormat: UINT): HANDLE; external 'USER';
+
+function IsClipboardFormatAvailable(uFormat: UINT): BOOL; external 'USER';
+function GetPriorityClipboardFormat(lpuPriorityList: LPUINT; cEntries: SmallInt): SmallInt; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function GetPriorityClipboardFormat(var uPriorityList; cEntries: SmallInt): SmallInt; external 'USER';
+{$endif}
+
+function RegisterClipboardFormat(lpszFormatName: LPCSTR): UINT; external 'USER';
+function CountClipboardFormats: SmallInt; external 'USER';
+function EnumClipboardFormats(uFormat: UINT): UINT; external 'USER';
+function GetClipboardFormatName(uFormat: UINT; lpszFormatName: LPSTR; cbMax: SmallInt): SmallInt; external 'USER';
+
+function ChangeClipboardChain(hwnd, hwndNext: HWND): BOOL; external 'USER';
