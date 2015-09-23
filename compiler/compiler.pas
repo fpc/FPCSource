@@ -370,7 +370,13 @@ begin
           { in case of 50 errors, this could cause another exception,
             suppress this exception
           }
-          Message(general_f_compilation_aborted);
+          if not exception_raised then
+            begin
+              exception_raised:=true;
+              Message(general_e_exception_raised);
+            end
+          else
+            Message(general_f_compilation_aborted);
         except
           on ECompilerAbort do
             ;

@@ -303,6 +303,7 @@ interface
        nwcopyright  : string;
 
        codegenerror : boolean;           { true if there is an error reported }
+       exception_raised : boolean;           { true if there is an exception reported }
 
        block_type : tblock_type;         { type of currently parsed block }
 

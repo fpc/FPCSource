@@ -394,10 +394,14 @@ implementation
                raise;
              on Exception do
                begin
-                 { Increase errorcounter to prevent some
-                   checks during cleanup,
-                   but use GenerateError procedure for this. }
-                 GenerateError;
+                 { Generate exception_raised message,
+                   but avoid multiple messages by
+                   guarding with exception_raised global variable }
+                 if not exception_raised then
+                   begin
+                     exception_raised:=true;
+                     Message(general_e_exception_raised);
+                   end;
                  raise;
                end;
            end;
