@@ -1732,3 +1732,118 @@ const
   WM_ACTIVATE    = $0006;
   WM_ACTIVATEAPP = $001C;
   WM_NCACTIVATE  = $0086;
+
+type
+{ Keyboard input support }
+  PKeyboardState = ^TKeyboardState;
+  LPKeyboardState = ^TKeyboardState; far;
+  TKeyboardState = array [0..255] of Char;
+
+const
+  WM_SETFOCUS    = $0007;
+  WM_KILLFOCUS   = $0008;
+
+  WM_KEYDOWN     = $0100;
+  WM_KEYUP       = $0101;
+
+  WM_CHAR        = $0102;
+  WM_DEADCHAR    = $0103;
+
+  WM_SYSKEYDOWN  = $0104;
+  WM_SYSKEYUP    = $0105;
+
+  WM_SYSCHAR     = $0106;
+  WM_SYSDEADCHAR = $0107;
+
+
+{ Keyboard message range }
+  WM_KEYFIRST    = $0100;
+  WM_KEYLAST     = $0108;
+
+{ WM_KEYUP/DOWN/CHAR HIWORD(lParam) flags }
+  KF_EXTENDED    = $0100;
+  KF_DLGMODE     = $0800;
+  KF_MENUMODE    = $1000;
+  KF_ALTDOWN     = $2000;
+  KF_REPEAT      = $4000;
+  KF_UP          = $8000;
+
+{ Virtual key codes }
+  VK_LBUTTON     = $01;
+  VK_RBUTTON     = $02;
+  VK_CANCEL      = $03;
+  VK_MBUTTON     = $04;
+  VK_BACK        = $08;
+  VK_TAB         = $09;
+  VK_CLEAR       = $0C;
+  VK_RETURN      = $0D;
+  VK_SHIFT       = $10;
+  VK_CONTROL     = $11;
+  VK_MENU        = $12;
+  VK_PAUSE       = $13;
+  VK_CAPITAL     = $14;
+  VK_ESCAPE      = $1B;
+  VK_SPACE       = $20;
+  VK_PRIOR       = $21;
+  VK_NEXT        = $22;
+  VK_END         = $23;
+  VK_HOME        = $24;
+  VK_LEFT        = $25;
+  VK_UP          = $26;
+  VK_RIGHT       = $27;
+  VK_DOWN        = $28;
+  VK_SELECT      = $29;
+  VK_PRINT       = $2A;
+  VK_EXECUTE     = $2B;
+  VK_SNAPSHOT    = $2C;
+  VK_INSERT      = $2D;
+  VK_DELETE      = $2E;
+  VK_HELP        = $2F;
+  VK_NUMPAD0     = $60;
+  VK_NUMPAD1     = $61;
+  VK_NUMPAD2     = $62;
+  VK_NUMPAD3     = $63;
+  VK_NUMPAD4     = $64;
+  VK_NUMPAD5     = $65;
+  VK_NUMPAD6     = $66;
+  VK_NUMPAD7     = $67;
+  VK_NUMPAD8     = $68;
+  VK_NUMPAD9     = $69;
+  VK_MULTIPLY    = $6A;
+  VK_ADD         = $6B;
+  VK_SEPARATOR   = $6C;
+  VK_SUBTRACT    = $6D;
+  VK_DECIMAL     = $6E;
+  VK_DIVIDE      = $6F;
+  VK_F1          = $70;
+  VK_F2          = $71;
+  VK_F3          = $72;
+  VK_F4          = $73;
+  VK_F5          = $74;
+  VK_F6          = $75;
+  VK_F7          = $76;
+  VK_F8          = $77;
+  VK_F9          = $78;
+  VK_F10         = $79;
+  VK_F11         = $7A;
+  VK_F12         = $7B;
+  VK_F13         = $7C;
+  VK_F14         = $7D;
+  VK_F15         = $7E;
+  VK_F16         = $7F;
+  VK_F17         = $80;
+  VK_F18         = $81;
+  VK_F19         = $82;
+  VK_F20         = $83;
+  VK_F21         = $84;
+  VK_F22         = $85;
+  VK_F23         = $86;
+  VK_F24         = $87;
+  VK_NUMLOCK     = $90;
+  VK_SCROLL      = $91;
+
+{ VK_A thru VK_Z are the same as their ASCII equivalents: 'A' thru 'Z' }
+{ VK_0 thru VK_9 are the same as their ASCII equivalents: '0' thru '0' }
+
+{ SetWindowsHook() keyboard hook }
+  WH_KEYBOARD    = 2;

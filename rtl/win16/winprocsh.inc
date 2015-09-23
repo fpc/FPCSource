@@ -979,3 +979,18 @@ function SetActiveWindow(hwnd: HWND): HWND; external 'USER';
 function GetActiveWindow: HWND; external 'USER';
 
 function GetLastActivePopup(hwndOwner: HWND): HWND; external 'USER';
+
+{ Keyboard input support }
+
+function SetFocus(hwnd: HWND): HWND; external 'USER';
+function GetFocus: HWND; external 'USER';
+
+function GetKeyState(vkey: SmallInt): SmallInt; external 'USER';
+function GetAsyncKeyState(vkey: SmallInt): SmallInt; external 'USER';
+
+procedure GetKeyboardState(lpbKeyState: LPBYTE); external 'USER';
+procedure SetKeyboardState(lpbKeyState: LPBYTE); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure GetKeyboardState(var bKeyState: TKeyboardState); external 'USER';
+procedure SetKeyboardState(var bKeyState: TKeyboardState); external 'USER';
+{$endif}
