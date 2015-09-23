@@ -1131,3 +1131,20 @@ function DrawIcon(hdc: HDC; x, y: SmallInt; hicon: HICON): BOOL; external 'USER'
 
 function MessageBox(hwndParent: HWND; lpszText, lpszTitle: LPCSTR; fuStyle: UINT): SmallInt; external 'USER';
 procedure MessageBeep(uAlert: UINT); external 'USER';
+
+{ Caret support }
+
+procedure CreateCaret(hwnd: HWND; hbmp: HBITMAP; nWidth, nHeight: SmallInt); external 'USER';
+procedure DestroyCaret; external 'USER';
+
+procedure SetCaretPos(x, y: SmallInt); external 'USER';
+procedure GetCaretPos(lppt: LPPOINT); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure GetCaretPos(var pt: POINT); external 'USER';
+{$endif}
+
+procedure HideCaret(hwnd: HWND); external 'USER';
+procedure ShowCaret(hwnd: HWND); external 'USER';
+
+function GetCaretBlinkTime: UINT; external 'USER';
+procedure SetCaretBlinkTime(uMSeconds: UINT); external 'USER';
