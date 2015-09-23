@@ -1002,3 +1002,8 @@ procedure ReleaseCapture; external 'USER';
 function GetCapture: HWND; external 'USER';
 
 function SwapMouseButton(fSwap: BOOL): BOOL; external 'USER';
+
+{ System modal window support }
+
+function GetSysModalWindow: HWND; external 'USER';
+function SetSysModalWindow(hwnd: HWND): HWND; external 'USER';
