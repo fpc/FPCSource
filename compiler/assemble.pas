@@ -735,7 +735,7 @@ Implementation
       begin
         DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
                 (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) and
-                ((asminfo^.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff]));
+                ((asminfo^.id in [as_gas,as_ggas,as_powerpc_xcoff]));
       end;
 
 
@@ -2174,7 +2174,7 @@ Implementation
       var
         asmkind: tasm;
       begin
-        for asmkind in [as_gas,as_ggas,as_darwin] do
+        for asmkind in [as_gas,as_ggas] do
           if assigned(asminfos[asmkind]) and
              (target_info.system in asminfos[asmkind]^.supported_targets) then
             begin

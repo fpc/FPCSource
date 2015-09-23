@@ -553,9 +553,8 @@ unit agppcgas;
 
     as_ppc_gas_darwin_powerpc_info : tasminfo =
        (
-         id     : as_darwin;
-
-         idtxt  : 'AS-Darwin';
+         id     : as_gas;
+         idtxt  : 'AS';
          asmbin : 'as';
          asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch $ARCH';
          supported_targets : [system_powerpc_darwin,system_powerpc64_darwin];
