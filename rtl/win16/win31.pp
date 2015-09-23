@@ -803,6 +803,9 @@ procedure GetClipCursor(lprc: LPRECT); external 'USER';
 procedure GetClipCursor(var rc: RECT); external 'USER';
 {$endif}
 
+{ Icon support }
+function CopyIcon(hinst: HINST; hicon: HICON): HICON; external 'USER';
+
 implementation
 
 end.

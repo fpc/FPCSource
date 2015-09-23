@@ -1118,3 +1118,11 @@ procedure GetCursorPos(var pt: POINT); external 'USER';
 function SetCursor(hcur: HCURSOR): HCURSOR; external 'USER';
 
 procedure ClipCursor(lprc: LPRECT); external 'USER';
+
+{ Icon support }
+
+function LoadIcon(hinst: HINST; pszIcon: LPCSTR): HICON; external 'USER';
+function CreateIcon(hinst: HINST; nWidth, nHeight: SmallInt; bPlanes, bBitsPerPixel: BYTE; lpvANDbits, lpvXORbits: LPVOID): HICON; external 'USER';
+function DestroyIcon(hicon: HICON): BOOL; external 'USER';
+
+function DrawIcon(hdc: HDC; x, y: SmallInt; hicon: HICON): BOOL; external 'USER';
