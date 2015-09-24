@@ -2289,3 +2289,274 @@ const
   IDIGNORE             = 5;
   IDYES                = 6;
   IDNO                 = 7;
+
+{ Owner draw control support }
+
+{ Owner draw control types }
+  ODT_MENU       = 1;
+  ODT_LISTBOX    = 2;
+  ODT_COMBOBOX   = 3;
+  ODT_BUTTON     = 4;
+
+{ Owner draw actions }
+  ODA_DRAWENTIRE = $0001;
+  ODA_SELECT     = $0002;
+  ODA_FOCUS      = $0004;
+
+{ Owner draw state }
+  ODS_SELECTED   = $0001;
+  ODS_GRAYED     = $0002;
+  ODS_DISABLED   = $0004;
+  ODS_CHECKED    = $0008;
+  ODS_FOCUS      = $0010;
+
+  WM_DRAWITEM    = $002B;
+
+type
+  PDRAWITEMSTRUCT = ^DRAWITEMSTRUCT;
+  NPDRAWITEMSTRUCT = ^DRAWITEMSTRUCT; near;
+  LPDRAWITEMSTRUCT = ^DRAWITEMSTRUCT; far;
+  DRAWITEMSTRUCT = record
+    CtlType: UINT;
+    CtlID: UINT;
+    itemID: UINT;
+    itemAction: UINT;
+    itemState: UINT;
+    hwndItem: HWND;
+    hDC: HDC;
+    rcItem: RECT;
+    itemData: DWORD;
+  end;
+  TDrawItemStruct = DRAWITEMSTRUCT;
+
+const
+  WM_MEASUREITEM = $002C;
+
+type
+  PMEASUREITEMSTRUCT = ^MEASUREITEMSTRUCT;
+  NPMEASUREITEMSTRUCT = ^MEASUREITEMSTRUCT; near;
+  LPMEASUREITEMSTRUCT = ^MEASUREITEMSTRUCT; far;
+  MEASUREITEMSTRUCT = record
+    CtlType: UINT;
+    CtlID: UINT;
+    itemID: UINT;
+    itemWidth: UINT;
+    itemHeight: UINT;
+    itemData: DWORD;
+  end;
+  TMeasureItemStruct = MEASUREITEMSTRUCT;
+
+const
+  WM_DELETEITEM  = $002D;
+
+type
+  PDELETEITEMSTRUCT = ^DELETEITEMSTRUCT;
+  NPDELETEITEMSTRUCT = ^DELETEITEMSTRUCT; near;
+  LPDELETEITEMSTRUCT = ^DELETEITEMSTRUCT; far;
+  DELETEITEMSTRUCT = record
+    CtlType: UINT;
+    CtlID: UINT;
+    itemID: UINT;
+    hwndItem: HWND;
+    itemData: DWORD;
+  end;
+  TDeleteItemStruct = DELETEITEMSTRUCT;
+
+const
+  WM_COMPAREITEM = $0039;
+
+type
+  PCOMPAREITEMSTRUCT = ^COMPAREITEMSTRUCT;
+  NPCOMPAREITEMSTRUCT = ^COMPAREITEMSTRUCT; near;
+  LPCOMPAREITEMSTRUCT = ^COMPAREITEMSTRUCT; far;
+  COMPAREITEMSTRUCT = record
+    CtlType: UINT;
+    CtlID: UINT;
+    hwndItem: HWND;
+    itemID1: UINT;
+    itemData1: DWORD;
+    itemID2: UINT;
+    itemData2: DWORD;
+  end;
+  TCompareItemStruct = COMPAREITEMSTRUCT;
+
+{ Static control }
+
+const
+{ Static Control Styles }
+  SS_LEFT           = $00000000;
+  SS_CENTER         = $00000001;
+  SS_RIGHT          = $00000002;
+  SS_ICON           = $00000003;
+  SS_BLACKRECT      = $00000004;
+  SS_GRAYRECT       = $00000005;
+  SS_WHITERECT      = $00000006;
+  SS_BLACKFRAME     = $00000007;
+  SS_GRAYFRAME      = $00000008;
+  SS_WHITEFRAME     = $00000009;
+  SS_SIMPLE         = $0000000B;
+  SS_LEFTNOWORDWRAP = $0000000C;
+  SS_NOPREFIX       = $00000080;
+
+{ Button control }
+
+{ Button Control Styles }
+  BS_PUSHBUTTON      = $00000000;
+  BS_DEFPUSHBUTTON   = $00000001;
+  BS_CHECKBOX        = $00000002;
+  BS_AUTOCHECKBOX    = $00000003;
+  BS_RADIOBUTTON     = $00000004;
+  BS_3STATE          = $00000005;
+  BS_AUTO3STATE      = $00000006;
+  BS_GROUPBOX        = $00000007;
+  BS_USERBUTTON      = $00000008;
+  BS_AUTORADIOBUTTON = $00000009;
+  BS_OWNERDRAW       = $0000000B;
+  BS_LEFTTEXT        = $00000020;
+
+{ Button Control Messages  }
+  BM_GETCHECK        = (WM_USER+0);
+  BM_SETCHECK        = (WM_USER+1);
+  BM_GETSTATE        = (WM_USER+2);
+  BM_SETSTATE        = (WM_USER+3);
+  BM_SETSTYLE        = (WM_USER+4);
+
+{ User Button Notification Codes }
+  BN_CLICKED         = 0;
+  BN_PAINT           = 1;
+  BN_HILITE          = 2;
+  BN_UNHILITE        = 3;
+  BN_DISABLE         = 4;
+  BN_DOUBLECLICKED   = 5;
+
+{ Edit control }
+
+{ Edit control styles }
+  ES_LEFT            = $00000000;
+  ES_CENTER          = $00000001;
+  ES_RIGHT           = $00000002;
+  ES_MULTILINE       = $00000004;
+  ES_UPPERCASE       = $00000008;
+  ES_LOWERCASE       = $00000010;
+  ES_PASSWORD        = $00000020;
+  ES_AUTOVSCROLL     = $00000040;
+  ES_AUTOHSCROLL     = $00000080;
+  ES_NOHIDESEL       = $00000100;
+  ES_OEMCONVERT      = $00000400;
+
+{ Edit control messages }
+  EM_GETSEL          = (WM_USER+0);
+  EM_SETSEL          = (WM_USER+1);
+  EM_GETRECT         = (WM_USER+2);
+  EM_SETRECT         = (WM_USER+3);
+  EM_SETRECTNP       = (WM_USER+4);
+  EM_LINESCROLL      = (WM_USER+6);
+  EM_GETMODIFY       = (WM_USER+8);
+  EM_SETMODIFY       = (WM_USER+9);
+  EM_GETLINECOUNT    = (WM_USER+10);
+  EM_LINEINDEX       = (WM_USER+11);
+  EM_SETHANDLE       = (WM_USER+12);
+  EM_GETHANDLE       = (WM_USER+13);
+  EM_LINELENGTH      = (WM_USER+17);
+  EM_REPLACESEL      = (WM_USER+18);
+  EM_SETFONT         = (WM_USER+19);  { NOT IMPLEMENTED: use WM_SETFONT }
+  EM_GETLINE         = (WM_USER+20);
+  EM_LIMITTEXT       = (WM_USER+21);
+  EM_CANUNDO         = (WM_USER+22);
+  EM_UNDO            = (WM_USER+23);
+  EM_FMTLINES        = (WM_USER+24);
+  EM_LINEFROMCHAR    = (WM_USER+25);
+  EM_SETWORDBREAK    = (WM_USER+26);  { NOT IMPLEMENTED: use EM_SETWORDBREAK }
+  EM_SETTABSTOPS     = (WM_USER+27);
+  EM_SETPASSWORDCHAR = (WM_USER+28);
+  EM_EMPTYUNDOBUFFER = (WM_USER+29);
+
+{ Edit control notification codes }
+  EN_SETFOCUS        = $0100;
+  EN_KILLFOCUS       = $0200;
+  EN_CHANGE          = $0300;
+  EN_UPDATE          = $0400;
+  EN_ERRSPACE        = $0500;
+  EN_MAXTEXT         = $0501;
+  EN_HSCROLL         = $0601;
+  EN_VSCROLL         = $0602;
+
+{ Scroll bar control }
+{ Also see scrolling support }
+
+{ Scroll bar styles }
+  SBS_HORZ                    = $0000;
+  SBS_VERT                    = $0001;
+  SBS_TOPALIGN                = $0002;
+  SBS_LEFTALIGN               = $0002;
+  SBS_BOTTOMALIGN             = $0004;
+  SBS_RIGHTALIGN              = $0004;
+  SBS_SIZEBOXTOPLEFTALIGN     = $0002;
+  SBS_SIZEBOXBOTTOMRIGHTALIGN = $0004;
+  SBS_SIZEBOX                 = $0008;
+
+{ Listbox control }
+
+{ Listbox styles }
+  LBS_NOTIFY             = $0001;
+  LBS_SORT               = $0002;
+  LBS_NOREDRAW           = $0004;
+  LBS_MULTIPLESEL        = $0008;
+  LBS_OWNERDRAWFIXED     = $0010;
+  LBS_OWNERDRAWVARIABLE  = $0020;
+  LBS_HASSTRINGS         = $0040;
+  LBS_USETABSTOPS        = $0080;
+  LBS_NOINTEGRALHEIGHT   = $0100;
+  LBS_MULTICOLUMN        = $0200;
+  LBS_WANTKEYBOARDINPUT  = $0400;
+  LBS_EXTENDEDSEL        = $0800;
+  LBS_STANDARD           = (LBS_NOTIFY or LBS_SORT or WS_VSCROLL or WS_BORDER);
+
+{ Listbox messages }
+  LB_ADDSTRING           = (WM_USER+1);
+  LB_INSERTSTRING        = (WM_USER+2);
+  LB_DELETESTRING        = (WM_USER+3);
+  LB_RESETCONTENT        = (WM_USER+5);
+  LB_SETSEL              = (WM_USER+6);
+  LB_SETCURSEL           = (WM_USER+7);
+  LB_GETSEL              = (WM_USER+8);
+  LB_GETCURSEL           = (WM_USER+9);
+  LB_GETTEXT             = (WM_USER+10);
+  LB_GETTEXTLEN          = (WM_USER+11);
+  LB_GETCOUNT            = (WM_USER+12);
+  LB_SELECTSTRING        = (WM_USER+13);
+  LB_DIR                 = (WM_USER+14);
+  LB_GETTOPINDEX         = (WM_USER+15);
+  LB_FINDSTRING          = (WM_USER+16);
+  LB_GETSELCOUNT         = (WM_USER+17);
+  LB_GETSELITEMS         = (WM_USER+18);
+  LB_SETTABSTOPS         = (WM_USER+19);
+  LB_GETHORIZONTALEXTENT = (WM_USER+20);
+  LB_SETHORIZONTALEXTENT = (WM_USER+21);
+  LB_SETCOLUMNWIDTH      = (WM_USER+22);
+  LB_SETTOPINDEX         = (WM_USER+24);
+  LB_GETITEMRECT         = (WM_USER+25);
+  LB_GETITEMDATA         = (WM_USER+26);
+  LB_SETITEMDATA         = (WM_USER+27);
+  LB_SELITEMRANGE        = (WM_USER+28);
+  LB_SETCARETINDEX       = (WM_USER+31);
+  LB_GETCARETINDEX       = (WM_USER+32);
+
+{ Listbox notification codes }
+  LBN_ERRSPACE           = (-2);
+  LBN_SELCHANGE          = 1;
+  LBN_DBLCLK             = 2;
+  LBN_SELCANCEL          = 3;
+  LBN_SETFOCUS           = 4;
+  LBN_KILLFOCUS          = 5;
+
+{ Listbox notification messages }
+  WM_VKEYTOITEM          = $002E;
+  WM_CHARTOITEM          = $002F;
+
+{ Listbox message return values }
+  LB_OKAY                = 0;
+  LB_ERR                 = (-1);
+  LB_ERRSPACE            = (-2);
+
+  LB_CTLCODE             = 0;

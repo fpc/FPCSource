@@ -616,6 +616,41 @@ type
   MDITILE_HORIZONTAL   = $0001;
   MDITILE_SKIPDISABLED = $0002;
 
+{ Static control }
+{ Static Control Mesages }
+  STM_SETICON = (WM_USER+0);
+  STM_GETICON = (WM_USER+1);
+
+{ Edit control }
+{ Edit control styles }
+  ES_READONLY            = $00000800;
+  ES_WANTRETURN          = $00001000;
+
+{ Edit control messages }
+  EM_GETFIRSTVISIBLELINE = (WM_USER+30);
+  EM_SETREADONLY         = (WM_USER+31);
+  EM_SETWORDBREAKPROC    = (WM_USER+32);
+  EM_GETWORDBREAKPROC    = (WM_USER+33);
+  EM_GETPASSWORDCHAR     = (WM_USER+34);
+
+type
+  EDITWORDBREAKPROC = function(lpch: LPSTR; ichCurrent, cch, code: SmallInt): SmallInt; far;
+
+const
+{ EDITWORDBREAKPROC code values }
+  WB_LEFT                = 0;
+  WB_RIGHT               = 1;
+  WB_ISDELIMITER         = 2;
+
+{ Listbox control }
+{ Listbox styles }
+  LBS_DISABLENOSCROLL = $1000;
+
+{ Listbox messages }
+  LB_SETITEMHEIGHT    = (WM_USER+33);
+  LB_GETITEMHEIGHT    = (WM_USER+34);
+  LB_FINDSTRINGEXACT  = (WM_USER+35);
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
