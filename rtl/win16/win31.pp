@@ -713,6 +713,31 @@ const
   HSHELL_WINDOWDESTROYED     = 2;
   HSHELL_ACTIVATESHELLWINDOW = 3;
 
+{ Debugger support }
+
+{ SetWindowsHook debug hook support }
+  WH_DEBUG = 9;
+
+type
+  PDEBUGHOOKINFO = ^DEBUGHOOKINFO;
+  LPDEBUGHOOKINFO = ^DEBUGHOOKINFO; far;
+  DEBUGHOOKINFO = record
+    hModuleHook: HMODULE;
+    reserved: LPARAM;
+    lParam: LPARAM;
+    wParam: WPARAM;
+    code: SmallInt;
+  end;
+  TDebugHookInfo = DEBUGHOOKINFO;
+
+const
+{ Flags returned by GetSystemDebugState. }
+  SDS_MENU        = $0001;
+  SDS_SYSMODAL    = $0002;
+  SDS_NOTASKQUEUE = $0004;
+  SDS_DIALOG      = $0008;
+  SDS_TASKLOCKED  = $0010;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
@@ -921,6 +946,11 @@ function DlgDirSelectComboBoxEx(hwndDlg: HWND; lpszPath: LPSTR; cbPath, idComboB
 function SetWindowsHookEx(idHook: SmallInt; lpfn: HOOKPROC; hInstance: HINST; hTask: HTASK): HHOOK; external 'USER';
 function UnhookWindowsHookEx(hHook: HHOOK): BOOL; external 'USER';
 function CallNextHookEx(hHook: HHOOK; code: SmallInt; wParam: WPARAM; lParam: LPARAM): LRESULT; external 'USER';
+
+{ Debugger support }
+function QuerySendMessage(h1, h2, h3: HANDLE; lpmsg: LPMSG): BOOL; external 'USER';
+function LockInput(h1: HANDLE; hwndInput: HWND; fLock: BOOL): BOOL; external 'USER';
+function GetSystemDebugState: LONG; external 'USER';
 
 implementation
 
