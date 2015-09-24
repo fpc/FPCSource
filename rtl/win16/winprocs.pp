@@ -4,6 +4,8 @@ unit winprocs;
   {$define VAR_PARAMS_ARE_FAR}
 {$endif}
 
+{$MODE objfpc}
+
 interface
 
 uses

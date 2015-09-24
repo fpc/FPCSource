@@ -1297,3 +1297,15 @@ function SetCommEventMask(idComDev: SmallInt; fuEvtMask: UINT): LPUINT; external
 function GetCommEventMask(idComDev, fnEvtClear: SmallInt): UINT; external 'USER';
 
 function EscapeCommFunction(idComDev, nFunction: SmallInt): LONG; external 'USER';
+
+{ String formatting support }
+
+function wvsprintf(lpszOut: LPSTR; lpszFmt: LPCSTR; lpParams: FarPointer): SmallInt; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function wvsprintf(lpszOut: LPSTR; lpszFmt: LPCSTR; var Params): SmallInt; external 'USER';
+{$endif}
+
+{$ifndef SYSTEMUNIT}
+function wsprintf(lpszOut: LPSTR; lpszFmt: LPCSTR; etc: array of const): SmallInt; cdecl; external 'USER' name '_wsprintf';
+{$endif not SYSTEMUNIT}
+
