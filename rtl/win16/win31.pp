@@ -689,6 +689,21 @@ type
   end;
   TCBTActivateStruct = CBTACTIVATESTRUCT;
 
+const
+{ Hardware hook support }
+  WH_HARDWARE = 8;
+
+type
+  PHARDWAREHOOKSTRUCT = ^HARDWAREHOOKSTRUCT;
+  LPHARDWAREHOOKSTRUCT = ^HARDWAREHOOKSTRUCT; far;
+  HARDWAREHOOKSTRUCT = record
+    hWnd: HWND;
+    wMessage: UINT;
+    wParam: WPARAM;
+    lParam: LPARAM;
+  end;
+  THardwareHookStruct = HARDWAREHOOKSTRUCT;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
