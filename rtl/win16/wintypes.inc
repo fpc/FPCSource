@@ -2560,3 +2560,17 @@ const
   LB_ERRSPACE            = (-2);
 
   LB_CTLCODE             = 0;
+
+{ Dialog directory support }
+
+{ DlgDirList, DlgDirListComboBox flags values }
+  DDL_READWRITE = $0000;
+  DDL_READONLY  = $0001;
+  DDL_HIDDEN    = $0002;
+  DDL_SYSTEM    = $0004;
+  DDL_DIRECTORY = $0010;
+  DDL_ARCHIVE   = $0020;
+
+  DDL_POSTMSGS  = $2000;
+  DDL_DRIVES    = $4000;
+  DDL_EXCLUSIVE = $8000;

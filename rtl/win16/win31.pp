@@ -851,6 +851,10 @@ procedure GetClipCursor(var rc: RECT); external 'USER';
 { Icon support }
 function CopyIcon(hinst: HINST; hicon: HICON): HICON; external 'USER';
 
+{ Dialog directory support }
+function DlgDirSelectEx(hwndDlg: HWND; lpszPath: LPSTR; cbPath, idListBox: SmallInt): BOOL; external 'USER';
+function DlgDirSelectComboBoxEx(hwndDlg: HWND; lpszPath: LPSTR; cbPath, idComboBox: SmallInt): BOOL; external 'USER';
+
 implementation
 
 end.

@@ -1212,3 +1212,11 @@ procedure MapDialogRect(hwndDlg: HWND; lprc: LPRECT); external 'USER';
 procedure MapDialogRect(hwndDlg: HWND; var rc: RECT); external 'USER';
 {$endif}
 function GetDialogBaseUnits: DWORD; external 'USER';
+
+{ Dialog directory support }
+
+function DlgDirList(hwndDlg: HWND; lpszPath: LPSTR; idListBox, idStaticPath: SmallInt; uFileType: UINT): SmallInt; external 'USER';
+function DlgDirSelect(hwndDlg: HWND; lpszPath: LPSTR; idListBox: SmallInt): BOOL; external 'USER';
+
+function DlgDirListComboBox(hwndDlg: HWND; lpszPath: LPSTR; idComboBox, idStaticPath: SmallInt; uFileType: UINT): SmallInt; external 'USER';
+function DlgDirSelectComboBox(hwndDlg: HWND; lpszPath: LPSTR; idComboBox: SmallInt): BOOL; external 'USER';
