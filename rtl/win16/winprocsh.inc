@@ -1233,3 +1233,7 @@ function UnhookWindowsHook(idHook: SmallInt; hkprc: TFarProc): BOOL; external 'U
 { Journalling support }
 
 function EnableHardwareInput(fEnableInput: BOOL): BOOL; external 'USER';
+
+{ Help support }
+
+function WinHelp(hwndMain: HWND; lpszHelp: LPCSTR; usCommand: UINT; ulData: DWORD): BOOL; external 'USER';

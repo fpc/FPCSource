@@ -2683,3 +2683,46 @@ type
     time: DWORD;
   end;
   TEventMsg = EVENTMSG;
+
+{ Help support }
+
+const
+{ WinHelp() commands }
+  HELP_CONTEXT      = $0001;
+  HELP_QUIT         = $0002;
+  HELP_INDEX        = $0003;
+  HELP_CONTENTS     = $0003;
+  HELP_HELPONHELP   = $0004;
+  HELP_SETINDEX     = $0005;
+  HELP_SETCONTENTS  = $0005;
+  HELP_CONTEXTPOPUP = $0008;
+  HELP_FORCEFILE    = $0009;
+  HELP_KEY          = $0101;
+  HELP_COMMAND      = $0102;
+  HELP_PARTIALKEY   = $0105;
+  HELP_MULTIKEY     = $0201;
+  HELP_SETWINPOS    = $0203;
+
+type
+  PMULTIKEYHELP = ^MULTIKEYHELP;
+  LPMULTIKEYHELP = ^MULTIKEYHELP; far;
+  MULTIKEYHELP = record
+    mkSize: UINT;
+    mkKeylist: BYTE;
+    szKeyphrase: array [0..0] of BYTE;
+  end;
+  TMultiKeyHelp = MULTIKEYHELP;
+
+  PHELPWININFO = ^HELPWININFO;
+  NPHELPWININFO = ^HELPWININFO; near;
+  LPHELPWININFO = ^HELPWININFO; far;
+  HELPWININFO = record
+    wStructSize: SmallInt;
+    x: SmallInt;
+    y: SmallInt;
+    dx: SmallInt;
+    dy: SmallInt;
+    wMax: SmallInt;
+    rgchMember: array [0..1] of char;
+  end;
+  THelpWinInfo = HELPWININFO;
