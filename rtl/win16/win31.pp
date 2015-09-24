@@ -766,6 +766,68 @@ const
 
   WM_COMMNOTIFY = $0044;
 
+type
+{ Driver support }
+  HDRVR = THandle;
+  DRIVERPROC = function(dwDriverIdentifier: DWORD; hDriver: HDRVR; msg: UINT; lParam1, lParam2: LPARAM): LRESULT; far;
+
+const
+{ Driver messages }
+  DRV_LOAD              = $0001;
+  DRV_ENABLE            = $0002;
+  DRV_OPEN              = $0003;
+  DRV_CLOSE             = $0004;
+  DRV_DISABLE           = $0005;
+  DRV_FREE              = $0006;
+  DRV_CONFIGURE         = $0007;
+  DRV_QUERYCONFIGURE    = $0008;
+  DRV_INSTALL           = $0009;
+  DRV_REMOVE            = $000A;
+  DRV_EXITSESSION       = $000B;
+  DRV_EXITAPPLICATION   = $000C;
+  DRV_POWER             = $000F;
+
+  DRV_RESERVED          = $0800;
+  DRV_USER              = $4000;
+
+type
+{ LPARAM of DRV_CONFIGURE message }
+  PDRVCONFIGINFO = ^DRVCONFIGINFO;
+  LPDRVCONFIGINFO = ^DRVCONFIGINFO; far;
+  DRVCONFIGINFO = record
+    dwDCISize: DWORD;
+    lpszDCISectionName: LPCSTR;
+    lpszDCIAliasName: LPCSTR;
+  end;
+  TDrvConfigInfo = DRVCONFIGINFO;
+
+const
+{ Supported return values for DRV_CONFIGURE message }
+  DRVCNF_CANCEL         = $0000;
+  DRVCNF_OK             = $0001;
+  DRVCNF_RESTART        = $0002;
+
+{ Supported lParam1 of DRV_EXITAPPLICATION notification }
+  DRVEA_NORMALEXIT      = $0001;
+  DRVEA_ABNORMALEXIT    = $0002;
+
+{ GetNextDriver flags }
+  GND_FIRSTINSTANCEONLY = $00000001;
+
+  GND_FORWARD           = $00000000;
+  GND_REVERSE           = $00000002;
+
+type
+  PDRIVERINFOSTRUCT = ^DRIVERINFOSTRUCT;
+  LPDRIVERINFOSTRUCT = ^DRIVERINFOSTRUCT; far;
+  DRIVERINFOSTRUCT = record
+    length: UINT;
+    hDriver: HDRVR;
+    hModule: HINST;
+    szAliasName: array [0..127] of char;
+  end;
+  TDriverInfoStruct = DRIVERINFOSTRUCT;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
@@ -982,6 +1044,15 @@ function GetSystemDebugState: LONG; external 'USER';
 
 { Comm support }
 function EnableCommNotification(idComDev: SmallInt; hwnd: HWND; cbWriteNotify, cbOutQueue: SmallInt): BOOL; external 'USER';
+
+{ Driver support }
+function DefDriverProc(dwDriverIdentifier: DWORD; driverID: HDRVR; message: UINT; lParam1, lParam2: LPARAM): LRESULT; external 'USER';
+function OpenDriver(szDriverName, szSectionName: LPCSTR; lParam2: LPARAM): HDRVR; external 'USER';
+function CloseDriver(hDriver: HDRVR; lParam1, lParam2: LPARAM): LRESULT; external 'USER';
+function SendDriverMessage(hDriver: HDRVR; message: UINT; lParam1, lParam2: LPARAM): LRESULT; external 'USER';
+function GetDriverModuleHandle(hDriver: HDRVR): HINST; external 'USER';
+function GetNextDriver(hdrvr: HDRVR; fdwFlag: DWORD): HDRVR; external 'USER';
+function GetDriverInfo(hdrvr: HDRVR; lpdis: LPDRIVERINFOSTRUCT): BOOL; external 'USER';
 
 implementation
 
