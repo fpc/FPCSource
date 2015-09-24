@@ -297,8 +297,8 @@ unit agcpugas;
 
        as_aarch64_gas_darwin_info : tasminfo =
           (
-            id     : as_gas;
-            idtxt  : 'AS';
+            id     : as_darwin;
+            idtxt  : 'AS-Darwin';
             asmbin : 'as';
             asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch arm64';
             supported_targets : [system_aarch64_darwin];
