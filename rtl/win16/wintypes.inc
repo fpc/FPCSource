@@ -2726,3 +2726,44 @@ type
     rgchMember: array [0..1] of char;
   end;
   THelpWinInfo = HELPWININFO;
+
+{ Sound support }
+
+const
+{ SetSoundNoise() Sources }
+  S_PERIOD512    = 0;
+  S_PERIOD1024   = 1;
+  S_PERIOD2048   = 2;
+  S_PERIODVOICE  = 3;
+  S_WHITE512     = 4;
+  S_WHITE1024    = 5;
+  S_WHITE2048    = 6;
+  S_WHITEVOICE   = 7;
+
+{ WaitSoundState() constants }
+  S_QUEUEEMPTY   = 0;
+  S_THRESHOLD    = 1;
+  S_ALLTHRESHOLD = 2;
+
+{ Accent Modes }
+  S_NORMAL       = 0;
+  S_LEGATO       = 1;
+  S_STACCATO     = 2;
+
+{ Error return values }
+  S_SERDVNA      = (-1);
+  S_SEROFM       = (-2);
+  S_SERMACT      = (-3);
+  S_SERQFUL      = (-4);
+  S_SERBDNT      = (-5);
+  S_SERDLN       = (-6);
+  S_SERDCC       = (-7);
+  S_SERDTP       = (-8);
+  S_SERDVL       = (-9);
+  S_SERDMD       = (-10);
+  S_SERDSH       = (-11);
+  S_SERDPT       = (-12);
+  S_SERDFQ       = (-13);
+  S_SERDDR       = (-14);
+  S_SERDSR       = (-15);
+  S_SERDST       = (-16);

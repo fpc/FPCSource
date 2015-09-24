@@ -1237,3 +1237,28 @@ function EnableHardwareInput(fEnableInput: BOOL): BOOL; external 'USER';
 { Help support }
 
 function WinHelp(hwndMain: HWND; lpszHelp: LPCSTR; usCommand: UINT; ulData: DWORD): BOOL; external 'USER';
+
+{ Sound support }
+
+function OpenSound: SmallInt; external 'SOUND';
+procedure CloseSound; external 'SOUND';
+
+function StartSound: SmallInt; external 'SOUND';
+function StopSound: SmallInt; external 'SOUND';
+
+function SetVoiceQueueSize(nVoice, cbQueue: SmallInt): SmallInt; external 'SOUND';
+function SetVoiceNote(voice, value, length, cdots: SmallInt): SmallInt; external 'SOUND';
+function SetVoiceAccent(nVoice, nTempo, nVolume, fnMode, nPitch: SmallInt): SmallInt; external 'SOUND';
+function SetVoiceEnvelope(nVoice, nShape, nRepeat: SmallInt): SmallInt; external 'SOUND';
+function SetVoiceSound(nVoice: SmallInt; dwFrequency: DWORD; nDuration: SmallInt): SmallInt; external 'SOUND';
+
+function SetVoiceThreshold(voice, cNotesThreshold: SmallInt): SmallInt; external 'SOUND';
+function GetThresholdEvent: LPINT; external 'SOUND';
+function GetThresholdStatus: SmallInt; external 'SOUND';
+
+function SetSoundNoise(fnSource, nDuration: SmallInt): SmallInt; external 'SOUND';
+
+function WaitSoundState(fnState: SmallInt): SmallInt; external 'SOUND';
+
+function SyncAllVoices: SmallInt; external 'SOUND';
+function CountVoiceNotes(nvoice: SmallInt): SmallInt; external 'SOUND';
