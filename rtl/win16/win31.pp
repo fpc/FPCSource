@@ -651,6 +651,24 @@ const
   LB_GETITEMHEIGHT    = (WM_USER+34);
   LB_FINDSTRINGEXACT  = (WM_USER+35);
 
+{ Combo box control }
+{ Combo box styles }
+  CBS_DISABLENOSCROLL      = $0800;
+
+{ Combo box messages }
+  CB_GETDROPPEDCONTROLRECT = (WM_USER+18);
+  CB_SETITEMHEIGHT         = (WM_USER+19);
+  CB_GETITEMHEIGHT         = (WM_USER+20);
+  CB_SETEXTENDEDUI         = (WM_USER+21);
+  CB_GETEXTENDEDUI         = (WM_USER+22);
+  CB_GETDROPPEDSTATE       = (WM_USER+23);
+  CB_FINDSTRINGEXACT       = (WM_USER+24);
+
+{ Combo box notification codes }
+  CBN_CLOSEUP              = 8;
+  CBN_SELENDOK             = 9;
+  CBN_SELENDCANCEL         = 10;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';

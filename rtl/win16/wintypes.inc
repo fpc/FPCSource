@@ -2574,3 +2574,52 @@ const
   DDL_POSTMSGS  = $2000;
   DDL_DRIVES    = $4000;
   DDL_EXCLUSIVE = $8000;
+
+{ Combo box control }
+
+{ Combo box styles }
+  CBS_SIMPLE            = $0001;
+  CBS_DROPDOWN          = $0002;
+  CBS_DROPDOWNLIST      = $0003;
+  CBS_OWNERDRAWFIXED    = $0010;
+  CBS_OWNERDRAWVARIABLE = $0020;
+  CBS_AUTOHSCROLL       = $0040;
+  CBS_OEMCONVERT        = $0080;
+  CBS_SORT              = $0100;
+  CBS_HASSTRINGS        = $0200;
+  CBS_NOINTEGRALHEIGHT  = $0400;
+
+{ Combo box messages }
+  CB_GETEDITSEL         = (WM_USER+0);
+  CB_LIMITTEXT          = (WM_USER+1);
+  CB_SETEDITSEL         = (WM_USER+2);
+  CB_ADDSTRING          = (WM_USER+3);
+  CB_DELETESTRING       = (WM_USER+4);
+  CB_DIR                = (WM_USER+5);
+  CB_GETCOUNT           = (WM_USER+6);
+  CB_GETCURSEL          = (WM_USER+7);
+  CB_GETLBTEXT          = (WM_USER+8);
+  CB_GETLBTEXTLEN       = (WM_USER+9);
+  CB_INSERTSTRING       = (WM_USER+10);
+  CB_RESETCONTENT       = (WM_USER+11);
+  CB_FINDSTRING         = (WM_USER+12);
+  CB_SELECTSTRING       = (WM_USER+13);
+  CB_SETCURSEL          = (WM_USER+14);
+  CB_SHOWDROPDOWN       = (WM_USER+15);
+  CB_GETITEMDATA        = (WM_USER+16);
+  CB_SETITEMDATA        = (WM_USER+17);
+
+{ Combo box notification codes }
+  CBN_ERRSPACE          = (-1);
+  CBN_SELCHANGE         = 1;
+  CBN_DBLCLK            = 2;
+  CBN_SETFOCUS          = 3;
+  CBN_KILLFOCUS         = 4;
+  CBN_EDITCHANGE        = 5;
+  CBN_EDITUPDATE        = 6;
+  CBN_DROPDOWN          = 7;
+
+{ Combo box message return values }
+  CB_OKAY               = 0;
+  CB_ERR                = (-1);
+  CB_ERRSPACE           = (-2);
