@@ -669,6 +669,26 @@ const
   CBN_SELENDOK             = 9;
   CBN_SELENDCANCEL         = 10;
 
+{ Computer-based-training (CBT) support }
+type
+{ HCBT_CREATEWND parameters pointed to by lParam }
+  PCBT_CREATEWND = ^CBT_CREATEWND;
+  LPCBT_CREATEWND = ^CBT_CREATEWND; far;
+  CBT_CREATEWND = record
+    lpcs: LPCREATESTRUCT;
+    hwndInsertAfter: HWND;
+  end;
+  TCBT_CreateWnd = CBT_CREATEWND;
+
+{ HCBT_ACTIVATE structure pointed to by lParam }
+  PCBTACTIVATESTRUCT = ^CBTACTIVATESTRUCT;
+  LPCBTACTIVATESTRUCT = ^CBTACTIVATESTRUCT; far;
+  CBTACTIVATESTRUCT = record
+    fMouse: BOOL;
+    hWndActive: HWND;
+  end;
+  TCBTActivateStruct = CBTACTIVATESTRUCT;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';

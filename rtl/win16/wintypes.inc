@@ -2639,3 +2639,21 @@ const
   HC_GETLPLPFN  = (-3);
   HC_LPLPFNNEXT = (-2);
   HC_LPFNNEXT   = (-1);
+
+{ Computer-based-training (CBT) support }
+
+  WM_QUEUESYNC      = $0023;
+
+{ SetWindowsHook() code }
+  WH_CBT            = 5;
+
+  HCBT_MOVESIZE     = 0;
+  HCBT_MINMAX       = 1;
+  HCBT_QS           = 2;
+  HCBT_CREATEWND    = 3;
+  HCBT_DESTROYWND   = 4;
+  HCBT_ACTIVATE     = 5;
+  HCBT_CLICKSKIPPED = 6;
+  HCBT_KEYSKIPPED   = 7;
+  HCBT_SYSCOMMAND   = 8;
+  HCBT_SETFOCUS     = 9;
