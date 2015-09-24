@@ -1229,3 +1229,7 @@ function DefHookProc(nCode: SmallInt; uParam: WPARAM; dwParam: LPARAM; lphhook: 
 function DefHookProc(nCode: SmallInt; uParam: WPARAM; dwParam: LPARAM; lphhook: TFarProc): LRESULT; external 'USER';
 function UnhookWindowsHook(idHook: SmallInt; hkprc: HOOKPROC): BOOL; external 'USER';
 function UnhookWindowsHook(idHook: SmallInt; hkprc: TFarProc): BOOL; external 'USER';
+
+{ Journalling support }
+
+function EnableHardwareInput(fEnableInput: BOOL): BOOL; external 'USER';

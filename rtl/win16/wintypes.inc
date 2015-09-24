@@ -2657,3 +2657,29 @@ const
   HCBT_KEYSKIPPED   = 7;
   HCBT_SYSCOMMAND   = 8;
   HCBT_SETFOCUS     = 9;
+
+{ Journalling support }
+
+  WH_JOURNALRECORD   = 0;
+  WH_JOURNALPLAYBACK = 1;
+
+{ Journalling hook codes }
+  HC_GETNEXT         = 1;
+  HC_SKIP            = 2;
+  HC_NOREMOVE        = 3;
+  HC_NOREM           = HC_NOREMOVE;
+  HC_SYSMODALON      = 4;
+  HC_SYSMODALOFF     = 5;
+
+type
+{ Journalling message structure }
+  PEVENTMSG = ^EVENTMSG;
+  NPEVENTMSG = ^EVENTMSG; near;
+  LPEVENTMSG = ^EVENTMSG; far;
+  EVENTMSG = record
+    message: UINT;
+    paramL: UINT;
+    paramH: UINT;
+    time: DWORD;
+  end;
+  TEventMsg = EVENTMSG;
