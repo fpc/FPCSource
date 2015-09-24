@@ -704,6 +704,15 @@ type
   end;
   THardwareHookStruct = HARDWAREHOOKSTRUCT;
 
+{ Shell support }
+const
+{ SetWindowsHook() Shell hook code }
+  WH_SHELL                   = 10;
+
+  HSHELL_WINDOWCREATED       = 1;
+  HSHELL_WINDOWDESTROYED     = 2;
+  HSHELL_ACTIVATESHELLWINDOW = 3;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
