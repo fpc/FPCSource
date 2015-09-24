@@ -474,7 +474,7 @@ interface
        as_x86_64_gas_darwin_info : tasminfo =
           (
             id     : as_darwin;
-            idtxt  : 'AS-Darwin';
+            idtxt  : 'AS-DARWIN';
             asmbin : 'as';
             asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch x86_64';
             supported_targets : [system_x86_64_darwin,system_x86_64_iphonesim];
@@ -535,7 +535,7 @@ interface
        as_i386_gas_darwin_info : tasminfo =
           (
             id     : as_darwin;
-            idtxt  : 'AS-Darwin';
+            idtxt  : 'AS-DARWIN';
             asmbin : 'as';
             asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch i386';
             supported_targets : [system_i386_darwin,system_i386_iphonesim];

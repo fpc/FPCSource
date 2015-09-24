@@ -555,7 +555,7 @@ unit agppcgas;
        (
          id     : as_darwin;
 
-         idtxt  : 'AS-Darwin';
+         idtxt  : 'AS-DARWIN';
          asmbin : 'as';
          asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch $ARCH';
          supported_targets : [system_powerpc_darwin,system_powerpc64_darwin];

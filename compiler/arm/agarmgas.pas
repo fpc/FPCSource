@@ -414,7 +414,7 @@ unit agarmgas;
        as_arm_gas_darwin_info : tasminfo =
           (
             id     : as_darwin;
-            idtxt  : 'AS-Darwin';
+            idtxt  : 'AS-DARWIN';
             asmbin : 'as';
             asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch $ARCH';
             supported_targets : [system_arm_darwin];
