@@ -1160,3 +1160,55 @@ function TranslateMDISysAccel(hwndClient: HWND; var msg: MSG): BOOL; external 'U
 {$endif}
 
 function ArrangeIconicWindows(hwnd: HWND): UINT; external 'USER';
+
+{ Dialog and Control Management }
+
+function IsDialogMessage(hwndDlg: HWND; lpmsg: LPMSG): BOOL; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function IsDialogMessage(hwndDlg: HWND; var msg: MSG): BOOL; external 'USER';
+{$endif}
+
+function DefDlgProc(hwndDlg: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; external 'USER';
+
+function CreateDialog(hinst: HINST; lpszDlgTemp: LPCSTR; hwndOwner: HWND; dlgprc: DLGPROC): HWND; external 'USER';
+function CreateDialog(hinst: HINST; lpszDlgTemp: LPCSTR; hwndOwner: HWND; dlgprc: TFarProc): HWND; external 'USER';
+function CreateDialogIndirect(hinst: HINST; lpvDlgTmp: FarPointer; hwndOwner: HWND; dlgprc: DLGPROC): HWND; external 'USER';
+function CreateDialogIndirect(hinst: HINST; lpvDlgTmp: FarPointer; hwndOwner: HWND; dlgprc: TFarProc): HWND; external 'USER';
+function CreateDialogParam(hinst: HINST; lpszDlgTemp: LPCSTR; hwndOwner: HWND; dlgprc: DLGPROC; lParamInit: LPARAM): HWND; external 'USER';
+function CreateDialogParam(hinst: HINST; lpszDlgTemp: LPCSTR; hwndOwner: HWND; dlgprc: TFarProc; lParamInit: LPARAM): HWND; external 'USER';
+function CreateDialogIndirectParam(hinst: HINST; lpvDlgTmp: FarPointer; hwndOwner: HWND; dlgprc: DLGPROC; lParamInit: LPARAM): HWND; external 'USER';
+function CreateDialogIndirectParam(hinst: HINST; lpvDlgTmp: FarPointer; hwndOwner: HWND; dlgprc: TFarProc; lParamInit: LPARAM): HWND; external 'USER';
+
+function DialogBox(hinst: HINST; lpszDlgTemp: LPCSTR; hwndOwner: HWND; dlgprc: DLGPROC): SmallInt; external 'USER';
+function DialogBox(hinst: HINST; lpszDlgTemp: LPCSTR; hwndOwner: HWND; dlgprc: TFarProc): SmallInt; external 'USER';
+function DialogBoxIndirect(hinst: HINST; hglbDlgTemp: HGLOBAL; hwndOwner: HWND; dlgprc: DLGPROC): SmallInt; external 'USER';
+function DialogBoxIndirect(hinst: HINST; hglbDlgTemp: HGLOBAL; hwndOwner: HWND; dlgprc: TFarProc): SmallInt; external 'USER';
+function DialogBoxParam(hinst: HINST; lpszDlgTemp: LPCSTR; hwndOwner: HWND; dlgprc: DLGPROC; lParamInit: LPARAM): SmallInt; external 'USER';
+function DialogBoxParam(hinst: HINST; lpszDlgTemp: LPCSTR; hwndOwner: HWND; dlgprc: TFarProc; lParamInit: LPARAM): SmallInt; external 'USER';
+function DialogBoxIndirectParam(hinst: HINST; hglbDlgTemp: HGLOBAL; hwndOwner: HWND; dlgprc: DLGPROC; lParamInit: LPARAM): SmallInt; external 'USER';
+function DialogBoxIndirectParam(hinst: HINST; hglbDlgTemp: HGLOBAL; hwndOwner: HWND; dlgprc: TFarProc; lParamInit: LPARAM): SmallInt; external 'USER';
+
+procedure EndDialog(hwndDlg: HWND; nResult: SmallInt); external 'USER';
+
+function GetDlgCtrlID(hwnd: HWND): SmallInt; external 'USER';
+function GetDlgItem(hwndDlg: HWND; idControl: SmallInt): HWND; external 'USER';
+function SendDlgItemMessage(hwndDlg: HWND; idDlgItem: SmallInt; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; external 'USER';
+
+procedure SetDlgItemInt(hwndDlg: HWND; idControl: SmallInt; uValue: UINT; fSigned: BOOL); external 'USER';
+function GetDlgItemInt(hwndDlg: HWND; idControl: SmallInt; lpfTranslated: LPBOOL; fSigned: BOOL): UINT; external 'USER';
+
+procedure SetDlgItemText(hwndDlg: HWND; idControl: SmallInt; lpsz: LPCSTR); external 'USER';
+function GetDlgItemText(hwndDlg: HWND; idControl: SmallInt; lpsz: LPSTR; cbMax: SmallInt): SmallInt; external 'USER';
+
+procedure CheckDlgButton(hwndDlg: HWND; idButton: SmallInt; uCheck: UINT); external 'USER';
+procedure CheckRadioButton(hwndDlg: HWND; idFirstButton, idLastButton, idCheckButton: SmallInt); external 'USER';
+function IsDlgButtonChecked(hwndDlg: HWND; idButton: SmallInt): UINT; external 'USER';
+
+function GetNextDlgGroupItem(hwndDlg, hwndCtrl: HWND; fPrevious: BOOL): HWND; external 'USER';
+function GetNextDlgTabItem(hwndDlg, hwndCtrl: HWND; fPrevious: BOOL): HWND; external 'USER';
+
+procedure MapDialogRect(hwndDlg: HWND; lprc: LPRECT); external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+procedure MapDialogRect(hwndDlg: HWND; var rc: RECT); external 'USER';
+{$endif}
+function GetDialogBaseUnits: DWORD; external 'USER';

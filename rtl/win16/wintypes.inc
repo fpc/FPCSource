@@ -39,6 +39,9 @@ type
   { PDWORD is already defined in system }
   LPDWORD = ^DWORD; far;
   
+  PBOOL = ^BOOL;
+  LPBOOL = ^BOOL; far;
+  
   LPVOID = FarPointer;
   
   FARPROC = FarPointer;
@@ -2208,3 +2211,81 @@ type
 
 const
   WM_CHILDACTIVATE  = $0022;
+
+{ Dialog and Control Management }
+
+{ Dialog window class }
+  WC_DIALOG = MAKEINTATOM($8002);
+
+{ cbWndExtra bytes needed by dialog manager for dialog classes }
+  DLGWINDOWEXTRA = 30;
+
+{ Dialog styles }
+  DS_ABSALIGN          = $01;
+  DS_SYSMODAL          = $02;
+  DS_LOCALEDIT         = $20;
+  DS_SETFONT           = $40;
+  DS_MODALFRAME        = $80;
+  DS_NOIDLEMSG         = $100;
+
+{ Dialog messages }
+  DM_GETDEFID          = (WM_USER+0);
+  DM_SETDEFID          = (WM_USER+1);
+
+{ Returned in HIWORD() of DM_GETDEFID result if msg is supported }
+  DC_HASDEFID          = $534B;
+
+{ Dialog notification messages }
+  WM_INITDIALOG        = $0110;
+  WM_NEXTDLGCTL        = $0028;
+
+  WM_PARENTNOTIFY      = $0210;
+
+  WM_ENTERIDLE         = $0121;
+
+type
+  DLGPROC = function(hwndDlg: HWND; msg: UINT; wParam: WPARAM; lParam: LPARAM): BOOL; far;
+
+const
+{ Get/SetWindowWord/Long offsets for use with WC_DIALOG windows }
+  DWL_MSGRESULT        = 0;
+  DWL_DLGPROC          = 4;
+  DWL_USER             = 8;
+
+  WM_GETDLGCODE        = $0087;
+
+{ dialog codes }
+  DLGC_WANTARROWS      = $0001;
+  DLGC_WANTTAB         = $0002;
+  DLGC_WANTALLKEYS     = $0004;
+  DLGC_WANTMESSAGE     = $0004;
+  DLGC_HASSETSEL       = $0008;
+  DLGC_DEFPUSHBUTTON   = $0010;
+  DLGC_UNDEFPUSHBUTTON = $0020;
+  DLGC_RADIOBUTTON     = $0040;
+  DLGC_WANTCHARS       = $0080;
+  DLGC_STATIC          = $0100;
+  DLGC_BUTTON          = $2000;
+
+  WM_CTLCOLOR          = $0019;
+
+{ WM_CTLCOLOR control IDs }
+  CTLCOLOR_MSGBOX      = 0;
+  CTLCOLOR_EDIT        = 1;
+  CTLCOLOR_LISTBOX     = 2;
+  CTLCOLOR_BTN         = 3;
+  CTLCOLOR_DLG         = 4;
+  CTLCOLOR_SCROLLBAR   = 5;
+  CTLCOLOR_STATIC      = 6;
+
+  WM_SETFONT           = $0030;
+  WM_GETFONT           = $0031;
+
+{ Standard dialog button IDs }
+  IDOK                 = 1;
+  IDCANCEL             = 2;
+  IDABORT              = 3;
+  IDRETRY              = 4;
+  IDIGNORE             = 5;
+  IDYES                = 6;
+  IDNO                 = 7;
