@@ -2162,3 +2162,49 @@ const
 { Obsolete names }
   SC_ICON = SC_MINIMIZE;
   SC_ZOOM = SC_MAXIMIZE;
+
+{ MDI Support }
+
+type
+{ CreateWindow lpParams structure for creating MDI client }
+  PCLIENTCREATESTRUCT = ^CLIENTCREATESTRUCT;
+  LPCLIENTCREATESTRUCT = ^CLIENTCREATESTRUCT; far;
+  CLIENTCREATESTRUCT = record
+    hWindowMenu: HMENU;
+    idFirstChild: UINT;
+  end;
+  TClientCreateStruct = CLIENTCREATESTRUCT;
+
+const
+{ MDI messages }
+  WM_MDICREATE      = $0220;
+  WM_MDIDESTROY     = $0221;
+  WM_MDIACTIVATE    = $0222;
+  WM_MDIRESTORE     = $0223;
+  WM_MDINEXT        = $0224;
+  WM_MDIMAXIMIZE    = $0225;
+  WM_MDITILE        = $0226;
+  WM_MDICASCADE     = $0227;
+  WM_MDIICONARRANGE = $0228;
+  WM_MDIGETACTIVE   = $0229;
+  WM_MDISETMENU     = $0230;
+
+type
+{ WM_MDICREATE message structure }
+  PMDICREATESTRUCT = ^MDICREATESTRUCT;
+  LPMDICREATESTRUCT = ^MDICREATESTRUCT; far;
+  MDICREATESTRUCT = record
+    szClass: LPCSTR;
+    szTitle: LPCSTR;
+    hOwner: HINST;
+    x: SmallInt;
+    y: SmallInt;
+    cx: SmallInt;
+    cy: SmallInt;
+    style: DWORD;
+    lParam: LPARAM;
+  end;
+  TMDICreateStruct = MDICREATESTRUCT;
+
+const
+  WM_CHILDACTIVATE  = $0022;

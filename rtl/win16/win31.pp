@@ -606,6 +606,16 @@ type
   TPM_CENTERALIGN = $0004;
   TPM_RIGHTALIGN  = $0008;
 
+{ MDI Support }
+
+{ MDI client style bits }
+  MDIS_ALLCHILDSTYLES = $0001;
+
+{ wParam values for WM_MDITILE and WM_MDICASCADE messages. }
+  MDITILE_VERTICAL     = $0000;
+  MDITILE_HORIZONTAL   = $0001;
+  MDITILE_SKIPDISABLED = $0002;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';

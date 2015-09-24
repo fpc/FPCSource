@@ -1148,3 +1148,15 @@ procedure ShowCaret(hwnd: HWND); external 'USER';
 
 function GetCaretBlinkTime: UINT; external 'USER';
 procedure SetCaretBlinkTime(uMSeconds: UINT); external 'USER';
+
+{ MDI Support }
+
+function DefFrameProc(hwnd, hwndMDIClient: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; external 'USER';
+function DefMDIChildProc(hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; external 'USER';
+
+function TranslateMDISysAccel(hwndClient: HWND; lpmsg: LPMSG): BOOL; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function TranslateMDISysAccel(hwndClient: HWND; var msg: MSG): BOOL; external 'USER';
+{$endif}
+
+function ArrangeIconicWindows(hwnd: HWND): UINT; external 'USER';
