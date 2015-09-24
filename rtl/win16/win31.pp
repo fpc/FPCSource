@@ -738,6 +738,34 @@ const
   SDS_DIALOG      = $0008;
   SDS_TASKLOCKED  = $0010;
 
+{ Comm support }
+{ new escape functions }
+  GETMAXLPT     = 8;
+  GETMAXCOM     = 9;
+  GETBASEIRQ    = 10;
+
+{ Comm Baud Rate indices }
+  CBR_110       = $FF10;
+  CBR_300       = $FF11;
+  CBR_600       = $FF12;
+  CBR_1200      = $FF13;
+  CBR_2400      = $FF14;
+  CBR_4800      = $FF15;
+  CBR_9600      = $FF16;
+  CBR_14400     = $FF17;
+  CBR_19200     = $FF18;
+  CBR_38400     = $FF1B;
+  CBR_56000     = $FF1F;
+  CBR_128000    = $FF23;
+  CBR_256000    = $FF27;
+
+{ notifications passed in low word of lParam on WM_COMMNOTIFY messages }
+  CN_RECEIVE    = $0001;
+  CN_TRANSMIT   = $0002;
+  CN_EVENT      = $0004;
+
+  WM_COMMNOTIFY = $0044;
+
 function GetFreeSystemResources(SysResource: UINT): UINT; external 'USER';
 
 procedure LogError(err: UINT; lpInfo: FarPointer); external 'KERNEL';
@@ -951,6 +979,9 @@ function CallNextHookEx(hHook: HHOOK; code: SmallInt; wParam: WPARAM; lParam: LP
 function QuerySendMessage(h1, h2, h3: HANDLE; lpmsg: LPMSG): BOOL; external 'USER';
 function LockInput(h1: HANDLE; hwndInput: HWND; fLock: BOOL): BOOL; external 'USER';
 function GetSystemDebugState: LONG; external 'USER';
+
+{ Comm support }
+function EnableCommNotification(idComDev: SmallInt; hwnd: HWND; cbWriteNotify, cbOutQueue: SmallInt): BOOL; external 'USER';
 
 implementation
 

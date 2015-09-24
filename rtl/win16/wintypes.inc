@@ -2767,3 +2767,166 @@ const
   S_SERDDR       = (-14);
   S_SERDSR       = (-15);
   S_SERDST       = (-16);
+
+{ Comm support }
+
+  NOPARITY      = 0;
+  ODDPARITY     = 1;
+  EVENPARITY    = 2;
+  MARKPARITY    = 3;
+  SPACEPARITY   = 4;
+
+  ONESTOPBIT    = 0;
+  ONE5STOPBITS  = 1;
+  TWOSTOPBITS   = 2;
+
+  IGNORE        = 0;
+  INFINITE      = $FFFF;
+
+{ Error Flags }
+  CE_RXOVER     = $0001;
+  CE_OVERRUN    = $0002;
+  CE_RXPARITY   = $0004;
+  CE_FRAME      = $0008;
+  CE_BREAK      = $0010;
+  CE_CTSTO      = $0020;
+  CE_DSRTO      = $0040;
+  CE_RLSDTO     = $0080;
+  CE_TXFULL     = $0100;
+  CE_PTO        = $0200;
+  CE_IOE        = $0400;
+  CE_DNS        = $0800;
+  CE_OOP        = $1000;
+  CE_MODE       = $8000;
+
+  IE_BADID      = (-1);
+  IE_OPEN       = (-2);
+  IE_NOPEN      = (-3);
+  IE_MEMORY     = (-4);
+  IE_DEFAULT    = (-5);
+  IE_HARDWARE   = (-10);
+  IE_BYTESIZE   = (-11);
+  IE_BAUDRATE   = (-12);
+
+{ Events }
+  EV_RXCHAR     = $0001;
+  EV_RXFLAG     = $0002;
+  EV_TXEMPTY    = $0004;
+  EV_CTS        = $0008;
+  EV_DSR        = $0010;
+  EV_RLSD       = $0020;
+  EV_BREAK      = $0040;
+  EV_ERR        = $0080;
+  EV_RING       = $0100;
+  EV_PERR       = $0200;
+  EV_CTSS       = $0400;
+  EV_DSRS       = $0800;
+  EV_RLSDS      = $1000;
+  EV_RingTe     = $2000;
+//  EV_RINGTE     = EV_RingTe;
+
+{ Escape Functions }
+  SETXOFF       = 1;
+  SETXON        = 2;
+  SETRTS        = 3;
+  CLRRTS        = 4;
+  SETDTR        = 5;
+  CLRDTR        = 6;
+  RESETDEV      = 7;
+
+  LPTx          = $80;
+
+type
+  PDCB = ^DCB;
+  LPDCB = ^DCB; far;
+  DCB = record
+    Id: BYTE;
+    BaudRate: UINT;
+    ByteSize: BYTE;
+    Parity: BYTE;
+    StopBits: BYTE;
+    RlsTimeout: UINT;
+    CtsTimeout: UINT;
+    DsrTimeout: UINT;
+
+    Flags: Word;
+{    UINT fBinary        :1;
+    UINT fRtsDisable    :1;
+    UINT fParity        :1;
+    UINT fOutxCtsFlow   :1;
+    UINT fOutxDsrFlow   :1;
+    UINT fDummy         :2;
+    UINT fDtrDisable    :1;
+
+    UINT fOutX          :1;
+    UINT fInX           :1;
+    UINT fPeChar        :1;
+    UINT fNull          :1;
+    UINT fChEvt         :1;
+    UINT fDtrflow       :1;
+    UINT fRtsflow       :1;
+    UINT fDummy2        :1;}
+
+    XonChar: char;
+    XoffChar: char;
+    XonLim: UINT;
+    XoffLim: UINT;
+    PeChar: char;
+    EofChar: char;
+    EvtChar: char;
+    TxDelay: UINT;
+  end;
+  TDCB = DCB;
+
+const
+  DCB_Binary      = $0001;
+  DCB_RtsDisable  = $0002;
+  DCB_Parity      = $0004;
+  DCB_OutxCtsFlow = $0008;
+  DCB_OutxDsrFlow = $0010;
+  DCB_Dummy       = $0060;
+  DCB_DtrDisable  = $0080;
+
+  DCB_OutX        = $0100;
+  DCB_InX         = $0200;
+  DCB_PeChar      = $0400;
+  DCB_Null        = $0800;
+  DCB_ChEvt       = $1000;
+  DCB_Dtrflow     = $2000;
+  DCB_Rtsflow     = $4000;
+  DCB_Dummy2      = $8000;
+
+type
+  PCOMSTAT = ^COMSTAT;
+  LPCOMSTAT = ^COMSTAT; far;
+  COMSTAT = record
+    case Integer of
+      0: (
+           status: BYTE;
+           cbInQue: UINT;
+           cbOutQue: UINT;
+         );
+      1: (
+           { BP7 compatible field name, overlaid on top of 'status' }
+           Flags: Byte
+         );
+  end;
+  TComStat = COMSTAT;
+
+const
+  CSTF_CTSHOLD  = $01;
+  CSTF_DSRHOLD  = $02;
+  CSTF_RLSDHOLD = $04;
+  CSTF_XOFFHOLD = $08;
+  CSTF_XOFFSENT = $10;
+  CSTF_EOF      = $20;
+  CSTF_TXIM     = $40;
+
+  { BP7 compatibility constants }
+  COM_CtsHold   = $01;
+  COM_DsrHold   = $02;
+  COM_RlsdHold  = $04;
+  COM_XoffHold  = $08;
+  COM_XoffSent  = $10;
+  COM_Eof       = $20;
+  COM_Txim      = $40;

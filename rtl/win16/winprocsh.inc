@@ -1262,3 +1262,38 @@ function WaitSoundState(fnState: SmallInt): SmallInt; external 'SOUND';
 
 function SyncAllVoices: SmallInt; external 'SOUND';
 function CountVoiceNotes(nvoice: SmallInt): SmallInt; external 'SOUND';
+
+{ Comm support }
+
+function BuildCommDCB(lpszDef: LPCSTR; lpdcb: LPDCB): SmallInt; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function BuildCommDCB(lpszDef: LPCSTR; var dcb: DCB): SmallInt; external 'USER';
+{$endif}
+
+function OpenComm(lpszDevControl: LPCSTR; cbInQueue, cbOutQueue: UINT): SmallInt; external 'USER';
+function CloseComm(idComDev: SmallInt): SmallInt; external 'USER';
+
+function ReadComm(idComDev: SmallInt; lpvBuf: FarPointer; cbRead: SmallInt): SmallInt; external 'USER';
+function ReadComm(idComDev: SmallInt; lpvBuf: PFarChar; cbRead: SmallInt): SmallInt; external 'USER';
+function WriteComm(idComDev: SmallInt; lpvBuf: FarPointer; cbWrite: SmallInt): SmallInt; external 'USER';
+function WriteComm(idComDev: SmallInt; lpvBuf: PFarChar; cbWrite: SmallInt): SmallInt; external 'USER';
+function UngetCommChar(idComDev: SmallInt; chUnget: char): SmallInt; external 'USER';
+function FlushComm(idComDev, fnQueue: SmallInt): SmallInt; external 'USER';
+function TransmitCommChar(idComDev: SmallInt; chTransmit: char): SmallInt; external 'USER';
+
+function SetCommState(lpdcb: LPDCB): SmallInt; external 'USER';
+function GetCommState(idComDev: SmallInt; lpdcb: LPDCB): SmallInt; external 'USER';
+function GetCommError(idComDev: SmallInt; lpStat: LPCOMSTAT): SmallInt; external 'USER';
+{$ifdef VAR_PARAMS_ARE_FAR}
+function SetCommState(var dcb: DCB): SmallInt; external 'USER';
+function GetCommState(idComDev: SmallInt; var dcb: DCB): SmallInt; external 'USER';
+function GetCommError(idComDev: SmallInt; var Stat: COMSTAT): SmallInt; external 'USER';
+{$endif}
+
+function SetCommBreak(idComDev: SmallInt): SmallInt; external 'USER';
+function ClearCommBreak(idComDev: SmallInt): SmallInt; external 'USER';
+
+function SetCommEventMask(idComDev: SmallInt; fuEvtMask: UINT): LPUINT; external 'USER';
+function GetCommEventMask(idComDev, fnEvtClear: SmallInt): UINT; external 'USER';
+
+function EscapeCommFunction(idComDev, nFunction: SmallInt): LONG; external 'USER';
