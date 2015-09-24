@@ -873,6 +873,11 @@ function CopyIcon(hinst: HINST; hicon: HICON): HICON; external 'USER';
 function DlgDirSelectEx(hwndDlg: HWND; lpszPath: LPSTR; cbPath, idListBox: SmallInt): BOOL; external 'USER';
 function DlgDirSelectComboBoxEx(hwndDlg: HWND; lpszPath: LPSTR; cbPath, idComboBox: SmallInt): BOOL; external 'USER';
 
+{ Windows hook support }
+function SetWindowsHookEx(idHook: SmallInt; lpfn: HOOKPROC; hInstance: HINST; hTask: HTASK): HHOOK; external 'USER';
+function UnhookWindowsHookEx(hHook: HHOOK): BOOL; external 'USER';
+function CallNextHookEx(hHook: HHOOK; code: SmallInt; wParam: WPARAM; lParam: LPARAM): LRESULT; external 'USER';
+
 implementation
 
 end.

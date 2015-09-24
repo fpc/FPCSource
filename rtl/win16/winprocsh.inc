@@ -1220,3 +1220,12 @@ function DlgDirSelect(hwndDlg: HWND; lpszPath: LPSTR; idListBox: SmallInt): BOOL
 
 function DlgDirListComboBox(hwndDlg: HWND; lpszPath: LPSTR; idComboBox, idStaticPath: SmallInt; uFileType: UINT): SmallInt; external 'USER';
 function DlgDirSelectComboBox(hwndDlg: HWND; lpszPath: LPSTR; idComboBox: SmallInt): BOOL; external 'USER';
+
+{ Windows hook support }
+
+function SetWindowsHook(idHook: SmallInt; hkprc: HOOKPROC): HHOOK; external 'USER';
+function SetWindowsHook(idHook: SmallInt; hkprc: TFarProc): TFarProc; external 'USER';
+function DefHookProc(nCode: SmallInt; uParam: WPARAM; dwParam: LPARAM; lphhook: LPHHOOK): LRESULT; external 'USER';
+function DefHookProc(nCode: SmallInt; uParam: WPARAM; dwParam: LPARAM; lphhook: TFarProc): LRESULT; external 'USER';
+function UnhookWindowsHook(idHook: SmallInt; hkprc: HOOKPROC): BOOL; external 'USER';
+function UnhookWindowsHook(idHook: SmallInt; hkprc: TFarProc): BOOL; external 'USER';

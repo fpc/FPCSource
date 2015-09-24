@@ -2623,3 +2623,19 @@ const
   CB_OKAY               = 0;
   CB_ERR                = (-1);
   CB_ERRSPACE           = (-2);
+
+type
+{ Windows hook support }
+  LPHHOOK = ^HHOOK; far;
+  HHOOK = DWORD;
+  HOOKPROC = function(code: SmallInt; wParam: WPARAM; lParam: LPARAM): LRESULT; far;
+  THookProc = HOOKPROC;
+
+const
+{ Standard hook code }
+  HC_ACTION     = 0;
+
+{ Obsolete hook codes (NO LONGER SUPPORTED) }
+  HC_GETLPLPFN  = (-3);
+  HC_LPLPFNNEXT = (-2);
+  HC_LPFNNEXT   = (-1);
