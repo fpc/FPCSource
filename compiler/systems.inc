@@ -220,6 +220,7 @@
              ,as_arm_elf32
              ,as_i8086_omf
              ,as_llvm
+             ,as_clang
        );
 
        tlink = (ld_none,

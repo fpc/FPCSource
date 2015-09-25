@@ -45,7 +45,6 @@ unit agcpugas;
 
       TAArch64AppleAssembler=class(TAppleGNUassembler)
         constructor create(info: pasminfo; smart: boolean); override;
-        function MakeCmdLine: TCmdStr; override;
       end;
 
 
@@ -89,18 +88,6 @@ unit agcpugas;
       begin
         inherited;
         InstrWriter := TAArch64InstrWriter.create(self);
-      end;
-
-    function TAArch64AppleAssembler.MakeCmdLine: TCmdStr;
-      begin
-        { 'as' calls through to clang for aarch64, and that one only supports
-          reading from standard input in case "-" is specified as input file
-          (in which case you also have to specify the language via -x) }
-        result:=inherited;
-{$ifdef hasunix}
-        if DoPipe then
-          result:=result+' -x assembler -'
-{$endif}
       end;
 
 
@@ -295,14 +282,14 @@ unit agcpugas;
             dollarsign: '$';
           );
 
-       as_aarch64_gas_darwin_info : tasminfo =
+       as_aarch64_clang_darwin_info : tasminfo =
           (
-            id     : as_darwin;
-            idtxt  : 'AS-DARWIN';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch arm64';
+            id     : as_clang;
+            idtxt  : 'CLANG';
+            asmbin : 'clang';
+            asmcmd : '-c -o $OBJ $EXTRAOPT -arch arm64 $DARWINVERSION -x assembler $ASM';
             supported_targets : [system_aarch64_darwin];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
@@ -311,5 +298,5 @@ unit agcpugas;
 
 begin
   RegisterAssembler(as_aarch64_gas_info,TAArch64Assembler);
-  RegisterAssembler(as_aarch64_gas_darwin_info,TAArch64AppleAssembler);
+  RegisterAssembler(as_aarch64_clang_darwin_info,TAArch64AppleAssembler);
 end.

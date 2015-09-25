@@ -898,6 +898,13 @@ Implementation
     function TExternalAssembler.MakeCmdLine: TCmdStr;
       begin
         result:=asminfo^.asmcmd;
+        { for Xcode 7.x and later }
+        if MacOSXVersionMin<>'' then
+          Replace(result,'$DARWINVERSION','-mmacosx-version-min='+MacOSXVersionMin)
+        else if iPhoneOSVersionMin<>'' then
+          Replace(result,'$DARWINVERSION','-miphoneos-version-min='+iPhoneOSVersionMin)
+        else
+          Replace(result,'$DARWINVERSION','');
 {$ifdef arm}
         if (target_info.system=system_arm_darwin) then
           Replace(result,'$ARCH',lower(cputypestr[current_settings.cputype]));
@@ -911,7 +918,10 @@ Implementation
          begin
 {$ifdef hasunix}
           if DoPipe then
-            Replace(result,'$ASM','')
+            if asminfo^.id<>as_clang then
+              Replace(result,'$ASM','')
+            else
+              Replace(result,'$ASM','-')
           else
 {$endif}
              Replace(result,'$ASM',maybequoted(AsmFileName));

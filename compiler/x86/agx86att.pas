@@ -484,6 +484,19 @@ interface
             dollarsign: '$';
           );
 
+       as_x86_64_clang_darwin_info : tasminfo =
+          (
+            id     : as_clang;
+            idtxt  : 'CLANG';
+            asmbin : 'clang';
+            asmcmd : '-c -o $OBJ $EXTRAOPT -arch x86_64 $DARWINVERSION -x assembler $ASM';
+            supported_targets : [system_x86_64_darwin,system_x86_64_iphonesim];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : 'L';
+            comment : '# ';
+            dollarsign: '$';
+          );
+
 {$else x86_64}
        as_i386_as_info : tasminfo =
           (
@@ -545,6 +558,19 @@ interface
             dollarsign: '$';
           );
 
+       as_i386_clang_darwin_info : tasminfo =
+          (
+            id     : as_clang;
+            idtxt  : 'CLANG';
+            asmbin : 'clang';
+            asmcmd : '-c -o $OBJ $EXTRAOPT -arch i386 $DARWINVERSION -x assembler $ASM';
+            supported_targets : [system_i386_darwin,system_i386_iphonesim];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : 'L';
+            comment : '# ';
+            dollarsign: '$';
+          );
+
        as_i386_gas_info : tasminfo =
           (
             id     : as_ggas;
@@ -568,11 +594,13 @@ initialization
   RegisterAssembler(as_x86_64_yasm_info,Tx86ATTAssembler);
   RegisterAssembler(as_x86_64_gas_info,Tx86ATTAssembler);
   RegisterAssembler(as_x86_64_gas_darwin_info,Tx86AppleGNUAssembler);
+  RegisterAssembler(as_x86_64_clang_darwin_info,Tx86AppleGNUAssembler);
 {$else x86_64}
   RegisterAssembler(as_i386_as_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_gas_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_yasm_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_gas_darwin_info,Tx86AppleGNUAssembler);
+  RegisterAssembler(as_i386_clang_darwin_info,Tx86AppleGNUAssembler);
   RegisterAssembler(as_i386_as_aout_info,Tx86AoutGNUAssembler);
 {$endif x86_64}
 end.
