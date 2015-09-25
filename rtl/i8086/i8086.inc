@@ -225,22 +225,50 @@ asm
 {$endif FPC_X86_CODE_FAR}
 {$ifdef FPC_X86_DATA_NEAR}
   mov ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
+ {$ifdef WIN16}
+  mov cx, ax
+  and al, $FE
+ {$endif WIN16}
   or ax, ax
   jz @@Lg_a_null
   xchg ax, bx  // 1 byte shorter than a mov
   mov ax, [bx+2]
  {$ifdef FPC_X86_CODE_FAR}
-  mov dx, [bx+4]
+  {$ifdef WIN16}
+   test cl, 1
+   jnz @@farretaddr
+   mov dx, ss:[si + 2 + extra_param_offset + extra_param_offset]  // Seg(addr^)
+   jmp @@retsegdone
+@@farretaddr:
+   mov dx, [bx+4]
+@@retsegdone:
+  {$else WIN16}
+   mov dx, [bx+4]
+  {$endif WIN16}
  {$endif FPC_X86_CODE_FAR}
 {$else FPC_X86_DATA_NEAR}
   les ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
+ {$ifdef WIN16}
+  mov cx, ax
+  and al, $FE
+ {$endif WIN16}
   mov dx, es
   or dx, ax
   jz @@Lg_a_null
   xchg ax, bx  // 1 byte shorter than a mov
   mov ax, es:[bx+2]
  {$ifdef FPC_X86_CODE_FAR}
-  mov dx, es:[bx+4]
+  {$ifdef WIN16}
+   test cl, 1
+   jnz @@farretaddr
+   mov dx, ss:[si + 2 + extra_param_offset + extra_param_offset]  // Seg(addr^)
+   jmp @@retsegdone
+@@farretaddr:
+   mov dx, es:[bx+4]
+@@retsegdone:
+  {$else WIN16}
+   mov dx, es:[bx+4]
+  {$endif WIN16}
  {$endif FPC_X86_CODE_FAR}
 {$endif FPC_X86_DATA_NEAR}
 @@Lg_a_null:
@@ -252,6 +280,9 @@ asm
 {$ifdef FPC_X86_DATA_NEAR}
   mov si, sp
   mov ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
+ {$ifdef WIN16}
+  and al, $FE
+ {$endif WIN16}
   or ax, ax
   jz @@Lgnf_null
   xchg ax, si  // 1 byte shorter than a mov
@@ -260,6 +291,9 @@ asm
 {$else FPC_X86_DATA_NEAR}
   mov si, sp
   les ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
+ {$ifdef WIN16}
+  and al, $FE
+ {$endif WIN16}
   mov dx, es
   or dx, ax
   jz @@Lgnf_null
