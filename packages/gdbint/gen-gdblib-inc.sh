@@ -153,7 +153,7 @@ if [ "${1#removedir=}" != "$1" ]; then
   opt_handled=1
 fi
 
-if [ $opthandled -eq 0 ] ; then
+if [ $opt_handled -eq 0 ] ; then
   if [ "${1//=/ }" != "$1" ]; then
     # Some variable set explicitly
     echo "Evaluating \"$1\""
@@ -177,6 +177,11 @@ if [ "$1" != "" ]; then
   echo "Unrecognized option \"$1\""
   usage
   exit
+fi
+
+if [ "x$FORCEAWK" != "x" ] ; then
+  echo "Forcing use of AWK=${FORCEAWK}"
+  AWK=${FORCEAWK}
 fi
 
 if [ "$OSTYPE" == "msys" ]; then
