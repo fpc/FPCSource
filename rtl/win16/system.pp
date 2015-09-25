@@ -256,6 +256,80 @@ begin
   randseed:=hl*$10000+ regs.CX;}
 end;
 
+{****************************************************************************
+                    Error Message writing using messageboxes
+****************************************************************************}
+
+const
+  ErrorBufferLength = 1024;
+  ErrorMessageBoxFlags = MB_OK or MB_ICONHAND or MB_TASKMODAL;
+var
+  ErrorBuf : array[0..ErrorBufferLength] of char;
+  ErrorLen : SizeInt;
+
+procedure ErrorWrite(Var F: TextRec);
+{
+  An error message should always end with #13#10#13#10
+}
+var
+  i : SizeInt;
+Begin
+  while F.BufPos>0 do
+    begin
+      begin
+        if F.BufPos+ErrorLen>ErrorBufferLength then
+          i:=ErrorBufferLength-ErrorLen
+        else
+          i:=F.BufPos;
+        Move(F.BufPtr^,ErrorBuf[ErrorLen],i);
+        inc(ErrorLen,i);
+        ErrorBuf[ErrorLen]:=#0;
+      end;
+      if ErrorLen=ErrorBufferLength then
+        begin
+          if not NoErrMsg then
+{$IFDEF FPC_X86_DATA_NEAR}
+            MessageBox(0,Ptr(Seg(ErrorBuf),Ofs(ErrorBuf)),nil,ErrorMessageBoxFlags);
+{$ELSE FPC_X86_DATA_NEAR}
+            MessageBox(0,@ErrorBuf,nil,ErrorMessageBoxFlags);
+{$ENDIF FPC_X86_DATA_NEAR}
+          ErrorLen:=0;
+        end;
+      Dec(F.BufPos,i);
+    end;
+End;
+
+
+procedure ErrorClose(Var F: TextRec);
+begin
+  if ErrorLen>0 then
+    begin
+{$IFDEF FPC_X86_DATA_NEAR}
+      MessageBox(0,Ptr(Seg(ErrorBuf),Ofs(ErrorBuf)),nil,ErrorMessageBoxFlags);
+{$ELSE FPC_X86_DATA_NEAR}
+      MessageBox(0,@ErrorBuf,nil,ErrorMessageBoxFlags);
+{$ENDIF FPC_X86_DATA_NEAR}
+      ErrorLen:=0;
+    end;
+end;
+
+
+procedure ErrorOpen(Var F: TextRec);
+Begin
+  TextRec(F).InOutFunc:=@ErrorWrite;
+  TextRec(F).FlushFunc:=@ErrorWrite;
+  TextRec(F).CloseFunc:=@ErrorClose;
+  ErrorLen:=0;
+End;
+
+
+procedure AssignError(Var T: Text);
+begin
+  Assign(T,'');
+  TextRec(T).OpenFunc:=@ErrorOpen;
+  Rewrite(T);
+end;
+
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
@@ -278,6 +352,11 @@ begin
   if not CheckNullArea then
     writeln(stderr, 'Nil pointer assignment');
 {$endif FPC_MM_TINY}*)
+  Close(stderr);
+  Close(stdout);
+  Close(erroutput);
+  Close(Input);
+  Close(Output);
   asm
     mov al, byte [exitcode]
     mov ah, 4Ch
@@ -321,11 +400,11 @@ end;
 
 procedure SysInitStdIO;
 begin
-  OpenStdIO(Input,fmInput,StdInputHandle);
-  OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  AssignError(stderr);
+  AssignError(StdOut);
+  Assign(Output,'');
+  Assign(Input,'');
+  Assign(ErrOutput,'');
 end;
 
 function GetProcessID: SizeUInt;
@@ -360,6 +439,8 @@ begin
   InitWin16Heap;
   SysInitExceptions;
   initunicodestringmanager;
+{ Setup stdin, stdout and stderr }
+  SysInitStdIO;
 { Use LFNSupport LFN }
   LFNSupport:=CheckLFN;
   if LFNSupport then
