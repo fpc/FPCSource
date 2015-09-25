@@ -392,26 +392,67 @@ implementation
         { turn on system codepage by default }
         if switch in [m_none,m_systemcodepage] then
           begin
+            { both m_systemcodepage and specifying a code page via -FcXXX or
+              "$codepage XXX" change current_settings.sourcecodepage. If
+              we used -FcXXX and then have a sourcefile with "$mode objfpc",
+              this routine will be called to disable m_systemcodepage (to ensure
+              it's off in case it would have been set on the command line, or
+              by a previous mode(switch).
+
+              In that case, we have to ensure that we don't overwrite
+              current_settings.sourcecodepage, as that would cancel out the
+              -FcXXX. This is why we use two separate module switches
+              (cs_explicit_codepage and cs_system_codepage) for the same setting
+              (current_settings.sourcecodepage)
+            }
             if m_systemcodepage in current_settings.modeswitches then
               begin
+                { m_systemcodepage gets enabled -> disable any -FcXXX and
+                  "codepage XXX" settings (exclude cs_explicit_codepage), and
+                  overwrite the sourcecode page }
                 current_settings.sourcecodepage:=DefaultSystemCodePage;
                 if (current_settings.sourcecodepage<>CP_UTF8) and not cpavailable(current_settings.sourcecodepage) then
                   begin
                     Message2(scan_w_unavailable_system_codepage,IntToStr(current_settings.sourcecodepage),IntToStr(default_settings.sourcecodepage));
                     current_settings.sourcecodepage:=default_settings.sourcecodepage;
                   end;
-                include(current_settings.moduleswitches,cs_explicit_codepage);
+                exclude(current_settings.moduleswitches,cs_explicit_codepage);
+                include(current_settings.moduleswitches,cs_system_codepage);
                 if changeinit then
-                begin
-                  init_settings.sourcecodepage:=current_settings.sourcecodepage;
-                  include(init_settings.moduleswitches,cs_explicit_codepage);
-                end;
+                  begin
+                    init_settings.sourcecodepage:=current_settings.sourcecodepage;
+                    exclude(init_settings.moduleswitches,cs_explicit_codepage);
+                    include(init_settings.moduleswitches,cs_system_codepage);
+                  end;
               end
             else
               begin
-                exclude(current_settings.moduleswitches,cs_explicit_codepage);
+                { m_systemcodepage gets disabled -> reset sourcecodepage only if
+                  cs_explicit_codepage is not set (it may be set in the scenario
+                  where -FcXXX was passed on the command line and then "$mode
+                  fpc" is used, because then the caller of this routine will
+                  set the "$mode fpc" modeswitches (which don't include
+                  m_systemcodepage) and call this routine with m_none).
+
+                  Or it can happen if -FcXXX was passed, and the sourcefile
+                  contains "$modeswitch systemcodepage-" statement.
+
+                  Since we unset cs_system_codepage if m_systemcodepage gets
+                  activated, we will revert to the default code page if you
+                  set a source file code page, then enable the systemcode page
+                  and finally disable it again. We don't keep a stack of
+                  settings, by design. The only thing we have to ensure is that
+                  disabling m_systemcodepage if it wasn't on in the first place
+                  doesn't overwrite the sourcecodepage }
+                exclude(current_settings.moduleswitches,cs_system_codepage);
+                if not(cs_explicit_codepage in current_settings.moduleswitches) then
+                  current_settings.sourcecodepage:=default_settings.sourcecodepage;
                 if changeinit then
-                  exclude(init_settings.moduleswitches,cs_explicit_codepage);
+                  begin
+                    exclude(init_settings.moduleswitches,cs_system_codepage);
+                    if not(cs_explicit_codepage in init_settings.moduleswitches) then
+                      init_settings.sourcecodepage:=default_settings.sourcecodepage;
+                  end;
               end;
           end;
       end;

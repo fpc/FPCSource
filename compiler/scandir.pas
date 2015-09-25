@@ -1654,6 +1654,9 @@ unit scandir;
               Message1(option_code_page_not_available,s)
             else
               current_settings.sourcecodepage:=codepagebyname(s);
+            { we're not using the system code page now }
+            exclude(current_settings.modeswitches,m_systemcodepage);
+            exclude(current_settings.moduleswitches,cs_system_codepage);
             include(current_settings.moduleswitches,cs_explicit_codepage);
           end;
       end;
