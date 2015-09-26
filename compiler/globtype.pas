@@ -346,7 +346,7 @@ interface
          (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true ; define: ''),
          (name: 'INITLOCALS';          hasvalue: false; isglobal: true ; define: ''),
          (name: 'CLD';                 hasvalue: false; isglobal: true ; define: 'FPC_ENABLED_CLD'),
-         (name: 'FARPROCSPUSHODDBP';   hasvalue: false; isglobal: true ; define: 'FPC_FAR_PROCS_PUSH_ODD_BP')
+         (name: 'FARPROCSPUSHODDBP';   hasvalue: false; isglobal: false; define: 'FPC_FAR_PROCS_PUSH_ODD_BP')
        );
 
        { switches being applied to all CPUs at the given level }
