@@ -316,10 +316,10 @@ begin
   TempItem^.Next := FEndItem;
   FEndItem^.Previous := TempItem;
 
-  // Alloc temporary item used in append/insert
-  GetMem(FCacheItem^.Row, FRowBufferSize);
+  // Alloc temporary item used in edit
+  GetMem(FSavedEditItem^.Row, FRowBufferSize);
   for Counter := 0 to FRowCount - 1 do
-    FCacheItem^.Row[Counter] := nil;
+    FSavedEditItem^.Row[Counter] := nil;
   // Fill FBeginItem.Row with nil -> necessary for avoid exceptions in empty datasets
   GetMem(FBeginItem^.Row, FRowBufferSize);
   //Todo: see if is better to nullif using FillDWord
