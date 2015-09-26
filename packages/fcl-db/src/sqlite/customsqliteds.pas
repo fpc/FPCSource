@@ -571,16 +571,21 @@ begin
   end;
 end;
 
-function TCustomSqliteDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark
-  ): LongInt;
+function TCustomSqliteDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint;
 var
   TempItem: PDataRecord;
 begin
-  if PPDataRecord(Bookmark1)^ = PPDataRecord(Bookmark2)^ then
+  Result := 0;
+  if (Bookmark1 = nil) or (Bookmark2 = nil) then
   begin
-    Result := 0;
+    if Bookmark1 <> nil then
+      Result := -1
+    else if Bookmark2 <> nil then
+      Result := 1;
     Exit;
   end;
+  if PPDataRecord(Bookmark1)^ = PPDataRecord(Bookmark2)^ then
+    Exit;
   //assume Bookmark1 < Bookmark2
   Result := -1;
   TempItem := PPDataRecord(Bookmark1)^^.Previous;
