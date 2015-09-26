@@ -1280,6 +1280,11 @@ unit scandir;
             value:=orgpattern;
             UpdateTargetSwitchStr(name+'='+value,current_settings.targetswitches,current_module.in_global);
           end
+        else if c='-' then
+          begin
+            current_scanner.readchar;
+            UpdateTargetSwitchStr(name+'-',current_settings.targetswitches,current_module.in_global);
+          end
         else
           UpdateTargetSwitchStr(name,current_settings.targetswitches,current_module.in_global);
       end;
