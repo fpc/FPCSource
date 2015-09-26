@@ -4,9 +4,6 @@ program concurrencyds;
 {$H+}
 {$define DEBUGHEAP}
 
-//To test the sqlite3 version replace sqliteds by sqlite3ds
-//  and TSqliteDataset by TSqlite3Dataset
-
 uses
 {$ifdef DEBUGHEAP}
   Heaptrc,
@@ -14,7 +11,7 @@ uses
 {$ifdef Linux}
   cmem,
 {$endif}
-  sysutils,sqliteds, inifiles;
+  sysutils,sqlite3ds, inifiles;
   
 const
   SQLITEDS_TESTS_INI_FILE = 'sqlitedstests.ini';
@@ -37,7 +34,7 @@ const
   );
 
 var
-  dsArray: array [0..10] of TSqliteDataset;
+  dsArray: array [0..10] of TSqlite3Dataset;
   ini:TIniFile;
   i: Integer;
 
@@ -48,7 +45,7 @@ begin
   ini:=TIniFile.Create(SQLITEDS_TESTS_INI_FILE);
   for i:= 0 to 10 do
   begin
-    dsArray[i] := TSqliteDataset.Create(nil);
+    dsArray[i] := TSqlite3Dataset.Create(nil);
     with dsArray[i] do
     begin
       FileName:=ini.ReadString('testinfo','filename',DEFAULT_FILENAME);

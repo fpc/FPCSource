@@ -4,9 +4,6 @@ program fillds;
 {$H+}
 {$define DEBUGHEAP}
 
-//To test the sqlite3 version replace sqliteds by sqlite3ds
-//  and TSqliteDataset by TSqlite3Dataset
-
 uses 
 {$ifdef DEBUGHEAP}
   Heaptrc,
@@ -14,7 +11,7 @@ uses
 {$ifdef Linux}
   cmem,
 {$endif}
-  sqliteds,
+  sqlite3ds,
   sysutils,db,IniFiles;
 
 const
@@ -24,14 +21,14 @@ const
   MEMOTEST_FILENAME = 'createds.pas';
 
 var 
-  dsTest:TSqliteDataset;
+  dsTest: TSqlite3Dataset;
   ini: TIniFile;
 
 begin 
   {$ifdef DEBUGHEAP}
   SetHeapTraceOutput(ExtractFileName(ParamStr(0))+'.heap.log');
   {$endif}
-  dsTest:=TSqliteDataset.Create(nil);
+  dsTest:=TSqlite3Dataset.Create(nil);
   with dsTest do
   begin
      //Load Database properties from a inifile
@@ -55,6 +52,7 @@ begin
     FieldByName('Currency').AsFloat:=1.23;
     FieldByName('LargeInt').AsLargeInt:=2163871263187263;
     Post;
+	{
     Append;
     FieldByName('Integer').AsInteger:=101;
     FieldByName('String').AsString:='Américo';
@@ -93,6 +91,7 @@ begin
     writeln('ReturnString after ApplyUpdates: ',ReturnString);
     //Is not necessary to call Close. Destroy will call it.
     //Close;
+	}
     Destroy;
   end;
 end.
