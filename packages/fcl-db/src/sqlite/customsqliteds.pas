@@ -664,6 +664,8 @@ begin
     FreeItem(PDataRecord(FDeletedItems.List^[i]));
 
   //Dispose FBeginItem.Row
+  for i := 0 to FRowCount - 1 do
+    StrDispose(FBeginItem^.Row[i]);
   FreeMem(FBeginItem^.Row, FRowBufferSize);
     
   //Dispose edit item row
