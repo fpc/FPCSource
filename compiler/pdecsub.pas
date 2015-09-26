@@ -2499,7 +2499,7 @@ const
       mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,pocall_stdcall,pocall_mwpascal,
                        pocall_pascal,pocall_far16,pocall_oldfpccall];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
-      mutexclpo     : [po_external,po_inline]
+      mutexclpo     : [po_external,po_inline,po_exports]
     ),(
       idtok:_IOCHECK;
       pd_flags : [pd_implemen,pd_body,pd_notobjintf];
