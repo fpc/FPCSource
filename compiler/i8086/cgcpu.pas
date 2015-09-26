@@ -1762,8 +1762,16 @@ unit cgcpu;
         { remove stackframe }
         if not nostackframe then
           begin
-            if (current_settings.x86memorymodel=mm_huge) and
-                not (po_interrupt in current_procinfo.procdef.procoptions) then
+            if (po_exports in current_procinfo.procdef.procoptions) and
+               (target_info.system=system_i8086_win16) then
+              begin
+                list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DI));
+                list.concat(Taicpu.Op_reg(A_POP,S_W,NR_SI));
+              end;
+            if ((current_settings.x86memorymodel=mm_huge) and
+                not (po_interrupt in current_procinfo.procdef.procoptions)) or
+               ((po_exports in current_procinfo.procdef.procoptions) and
+                (target_info.system=system_i8086_win16)) then
               list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
@@ -1781,7 +1789,9 @@ unit cgcpu;
             else
               begin
                 generate_leave(list);
-                if (ts_x86_far_procs_push_odd_bp in current_settings.targetswitches) and
+                if ((ts_x86_far_procs_push_odd_bp in current_settings.targetswitches) or
+                    ((po_exports in current_procinfo.procdef.procoptions) and
+                     (target_info.system=system_i8086_win16))) and
                     is_proc_far(current_procinfo.procdef) then
                   cg.a_op_const_reg(list,OP_SUB,OS_ADDR,1,current_procinfo.framepointer);
               end;

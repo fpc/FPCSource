@@ -387,8 +387,8 @@ implementation
 
   function tcpuprocdef.is_far: boolean;
     begin
-      result:=(current_settings.x86memorymodel in x86_far_code_models) and
-        ((po_far in procoptions) or default_far);
+      result:=(po_exports in procoptions) or
+              ((current_settings.x86memorymodel in x86_far_code_models) and ((po_far in procoptions) or default_far));
     end;
 
 {****************************************************************************

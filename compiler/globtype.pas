@@ -169,7 +169,8 @@ interface
          { target specific }
          cs_executable_stack,
          { i8086 specific }
-         cs_huge_code
+         cs_huge_code,
+         cs_win16_smartcallbacks
        );
        tmoduleswitches = set of tmoduleswitch;
 

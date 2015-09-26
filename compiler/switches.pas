@@ -73,7 +73,11 @@ const
    {H} (typesw:localsw; setsw:ord(cs_refcountedstrings)),
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:localsw; setsw:ord(cs_typed_const_writable)),
+{$ifdef i8086}
+   {K} (typesw:modulesw; setsw:ord(cs_win16_smartcallbacks)),
+{$else i8086}
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+{$endif i8086}
    {L} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
@@ -111,7 +115,11 @@ const
    {H} (typesw:localsw; setsw:ord(cs_refcountedstrings)),
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:localsw; setsw:ord(cs_external_var)),
+{$ifdef i8086}
+   {K} (typesw:modulesw; setsw:ord(cs_win16_smartcallbacks)),
+{$else i8086}
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+{$endif i8086}
    {L} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
