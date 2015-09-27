@@ -31,7 +31,7 @@ begin
     P.Email := '';
     P.Description := 'Network related parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=P.OSes-[embedded,msdos];
+    P.OSes:=P.OSes-[embedded,msdos,win16];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);

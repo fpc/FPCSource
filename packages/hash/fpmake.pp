@@ -23,7 +23,7 @@ begin
     P.Email := '';
     P.Description := 'Several hash and cryptography algorithms (MD5,CRC,Linux crypt and NTLM1).';
     P.NeedLibC:= false;
-    P.OSes:=P.OSes-[embedded];
+    P.OSes:=P.OSes-[embedded,win16];
     P.Dependencies.Add('rtl-objpas');
 
     P.Version:='3.1.1';

@@ -26,7 +26,7 @@ begin
     P.Email := '';
     P.Description := 'Sound loading, storing and conversion parts for the Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos];
+    P.OSes:=AllOSes-[embedded,msdos,win16];
 
     P.SourcePath.Add('src');
 

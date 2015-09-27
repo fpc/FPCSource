@@ -44,7 +44,7 @@ begin
     P.Email := '';
     P.Description := 'Libraries to create fppkg package managers.';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [embedded,nativent,msdos];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16];
 
     P.SourcePath.Add('src');
 

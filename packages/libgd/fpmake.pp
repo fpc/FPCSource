@@ -20,7 +20,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.1.1';
     P.SourcePath.Add('src');
-    P.OSes := P.OSes - [embedded,nativent,msdos];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16];
 
     T:=P.Targets.AddUnit('gd.pas');
 

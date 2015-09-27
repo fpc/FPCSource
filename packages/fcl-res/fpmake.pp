@@ -24,7 +24,7 @@ begin
     P.Email := '';
     P.Description := 'Resource handling of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos];
+    P.OSes:=AllOSes-[embedded,msdos,win16];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
