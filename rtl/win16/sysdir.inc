@@ -23,7 +23,7 @@ var
   regs   : Registers;
   len    : Integer;
 begin
-(*  DoDirSeparators(s);
+  DoDirSeparators(s);
   { True DOS does not like backslashes at end
     Win95 DOS accepts this !!
     but "\" and "c:\" should still be kept and accepted hopefully PM }
@@ -39,22 +39,22 @@ begin
    regs.AX:=func shl 8;
   MsDos(regs);
   if (regs.Flags and fCarry) <> 0 then
-   GetInOutRes(regs.AX);*)
+   GetInOutRes(regs.AX);
 end;
 
 Procedure do_MkDir(const s: rawbytestring);
 begin
-{   DosDir($39,s);}
+  DosDir($39,s);
 end;
 
 Procedure do_RmDir(const s: rawbytestring);
 begin
-{  if s='.' then
+  if s='.' then
     begin
       InOutRes:=16;
       exit;
     end;
-  DosDir($3a,s);}
+  DosDir($3a,s);
 end;
 
 Procedure do_ChDir(const s: rawbytestring);
@@ -62,7 +62,7 @@ var
   regs : Registers;
   len  : Integer;
 begin
-(*  len:=Length(s);
+  len:=Length(s);
 { First handle Drive changes }
   if (len>=2) and (s[2]=':') then
    begin
@@ -82,7 +82,7 @@ begin
        exit;
    end;
 { do the normal dos chdir }
-  DosDir($3b,s);*)
+  DosDir($3b,s);
 end;
 
 procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
@@ -91,7 +91,7 @@ var
   i    : integer;
   regs : Registers;
 begin
-(*  regs.DX:=drivenr;
+  regs.DX:=drivenr;
   regs.SI:=Ofs(temp);
   regs.DS:=Seg(temp);
   if LFNSupport then
@@ -135,5 +135,5 @@ begin
      MsDos(regs);
      i:= (regs.AX and $ff) + ord('A');
      dir[1]:=chr(i);
-   end;*)
+   end;
 end;
