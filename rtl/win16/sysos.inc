@@ -19,7 +19,7 @@ procedure GetInOutRes(def: Word);
 var
   regs : Registers;
 begin
-  FillChar(regs,SizeOf(regs),0);
+  ZeroSegRegs(regs);
   regs.AX:=$5900;
   regs.BX:=$0;
   MsDos(regs);

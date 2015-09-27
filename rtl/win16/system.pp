@@ -146,6 +146,14 @@ procedure MsDos_Carry(var Regs: Registers); external name 'FPC_MSDOS_CARRY';
 {$I winprocsh.inc}
 {$I winprocs.inc}
 
+{ in protected mode, loading invalid values into segment registers causes an
+  exception, so we use this function to initialize our Registers structure }
+procedure ZeroSegRegs(var regs: Registers); inline;
+begin
+  regs.DS:=0;
+  regs.ES:=0;
+end;
+
 {$I system.inc}
 
 {$IFDEF FPC_X86_DATA_NEAR}
