@@ -19,8 +19,7 @@ interface
 {$IFDEF FPC_X86_DATA_NEAR}
 {$I locheaph.inc}
 {$ELSE FPC_X86_DATA_NEAR}
-{ todo: implement a working win16 heap manager for the far data models }
-{$I tnyheaph.inc}
+{$I glbheaph.inc}
 {$ENDIF FPC_X86_DATA_NEAR}
 
 const
@@ -152,8 +151,7 @@ procedure MsDos_Carry(var Regs: Registers); external name 'FPC_MSDOS_CARRY';
 {$IFDEF FPC_X86_DATA_NEAR}
 {$I locheap.inc}
 {$ELSE FPC_X86_DATA_NEAR}
-{ todo: implement a working win16 heap manager for the far data models }
-{$I tinyheap.inc}
+{$I glbheap.inc}
 {$ENDIF FPC_X86_DATA_NEAR}
 
 
@@ -373,7 +371,7 @@ begin
 {$ifdef FPC_X86_DATA_NEAR}
   SetMemoryManager(LocalHeapMemoryManager);
 {$else FPC_X86_DATA_NEAR}
-{ todo: implement a working win16 heap manager for the far data models }
+  SetMemoryManager(GlobalHeapMemoryManager);
 {$endif FPC_X86_DATA_NEAR}
 end;
 
