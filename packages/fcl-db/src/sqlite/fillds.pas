@@ -52,7 +52,7 @@ begin
     FieldByName('Currency').AsFloat:=1.23;
     FieldByName('LargeInt').AsLargeInt:=2163871263187263;
     Post;
-	{
+
     Append;
     FieldByName('Integer').AsInteger:=101;
     FieldByName('String').AsString:='Américo';
@@ -66,6 +66,7 @@ begin
     if FileExists(MEMOTEST_FILENAME) then
       TMemoField(FieldByName('Memo')).LoadFromFile(MEMOTEST_FILENAME);
     Post;
+
     Append;
     FieldByName('Integer').AsInteger:=102;
     FieldByName('String').AsString:='Ana';
@@ -76,6 +77,7 @@ begin
     FieldByName('Date').AsDateTime:=Date;
     FieldByName('LargeInt').AsLargeInt:=9223372036854775807;
     Post;
+
     Append;
     FieldByName('Integer').AsInteger:=103;
     FieldByName('String').AsString:='Luiza';
@@ -86,12 +88,12 @@ begin
     FieldByName('Date').AsDateTime:=Date;
     FieldByName('Currency').AsFloat:=20.08;
     Post;
+
     //Save the added data to database
     ApplyUpdates;
     writeln('ReturnString after ApplyUpdates: ',ReturnString);
     //Is not necessary to call Close. Destroy will call it.
     //Close;
-	}
     Destroy;
   end;
 end.
