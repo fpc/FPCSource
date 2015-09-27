@@ -947,6 +947,7 @@ begin
   if FAutoIncFieldNo <> - 1 then
   begin
     Str(FNextAutoInc, TempStr);
+    StrDispose(FBeginItem^.Row[FAutoIncFieldNo]);
     FBeginItem^.Row[FAutoIncFieldNo] := StrAlloc(Length(TempStr) + 1);
     StrPCopy(FBeginItem^.Row[FAutoIncFieldNo], TempStr);
   end;  
