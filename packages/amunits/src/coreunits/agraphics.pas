@@ -2419,6 +2419,8 @@ PROCEDURE ON_SPRITE (cust: pCustom);
 PROCEDURE OFF_VBLANK (cust: pCustom);
 PROCEDURE ON_VBLANK (cust: pCustom);
 
+function RasSize(w, h: Word): Integer;
+
 {Here we read how to compile this unit}
 {You can remove this include and use a define instead}
 {$I useautoopenlib.inc}
@@ -2531,6 +2533,11 @@ PROCEDURE ON_VBLANK (cust: pCustom);
 BEGIN
     cust^.intena := BITSET OR INTF_VERTB;
 END;
+
+function RasSize(w, h: Word): Integer; inline;
+begin
+  RasSize := h * (((w + 15) shr 3) and $FFFE);
+end;
 
 const
     { Change VERSION and LIBVERSION to proper values }

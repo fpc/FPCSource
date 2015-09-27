@@ -423,8 +423,8 @@ const
   ACTION_CURRENT_VOLUME = 7;
   ACTION_LOCATE_OBJECT  = 8;
   ACTION_RENAME_DISK    = 9;
-  ACTION_WRITE          = 'W';
-  ACTION_READ           = 'R';
+  ACTION_WRITE          = $57;  // 'W'
+  ACTION_READ           = $52;  // 'R'
   ACTION_FREE_LOCK      = 15;
   ACTION_DELETE_OBJECT  = 16;
   ACTION_RENAME_OBJECT  = 17;

@@ -2208,10 +2208,10 @@ SysCall GfxBase 042;
 procedure ClearScreen(rp : pRastPort location 'a1');
 SysCall GfxBase 048;
 
-function TextLength(rp : pRastPort location 'a1'; string1 : pSHORTINT location 'a0'; count : CARDINAL location 'd0') : INTEGER;
+function TextLength(rp : pRastPort location 'a1'; string1 : STRPTR location 'a0'; count : CARDINAL location 'd0') : INTEGER;
 SysCall GfxBase 054;
 
-function Text(rp : pRastPort location 'a1'; string1: pSHORTINT location 'a0'; count : CARDINAL location 'd0') : LongInt;
+function GfxText(rp : pRastPort location 'a1'; string1: STRPTR location 'a0'; count : CARDINAL location 'd0') : LongInt;
 SysCall GfxBase 060;
 
 function SetFont(rp : pRastPort location 'a1'; textFont : pTextFont location 'a0') : LongInt;
@@ -2704,6 +2704,8 @@ procedure ON_SPRITE (cust: pCustom);
 procedure OFF_VBLANK (cust: pCustom);
 procedure ON_VBLANK (cust: pCustom);
 
+function RasSize(w, h: Word): Integer;
+
 { unit/library initialization }
 function InitGraphicsLibrary : boolean;
 
@@ -2802,6 +2804,10 @@ begin
     cust^.intena := BITSET or INTF_VERTB;
 end;
 
+function RasSize(w, h: Word): Integer; inline;
+begin
+  RasSize := h * (((w + 15) shr 3) and $FFFE);
+end;
 
 const
   { Change VERSION and LIBVERSION to proper values }

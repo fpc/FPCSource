@@ -1699,6 +1699,8 @@ CONST
     SELECTDOWN          = IECODE_LBUTTON;
     MENUUP              = IECODE_RBUTTON + IECODE_UP_PREFIX;
     MENUDOWN            = IECODE_RBUTTON;
+    MIDDLEUP            = IECODE_MBUTTON + IECODE_UP_PREFIX;
+    MIDDLEDOWN          = IECODE_MBUTTON;
     ALTLEFT             = IEQUALIFIER_LALT;
     ALTRIGHT            = IEQUALIFIER_RALT;
     AMIGALEFT           = IEQUALIFIER_LCOMMAND;
@@ -2725,6 +2727,7 @@ Type
 Type
  Object_ = Cardinal;
  pObject_ = ^Object_;
+ ppObject_ = ^pObject_;
  ClassID = ^Byte;
 
 {
