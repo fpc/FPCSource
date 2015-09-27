@@ -202,6 +202,8 @@ end;
 
 procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
 begin
+  CursorX:=NewCursorX;
+  CursorY:=NewCursorY;
 end;
 
 function SysGetCursorType: Word;
