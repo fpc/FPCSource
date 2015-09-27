@@ -17,12 +17,18 @@ unit video;
 
 interface
 
+uses
+  WinTypes;
+
 {$I videoh.inc}
+
+var
+  KeyEventWndProc: WNDPROC;
 
 implementation
 
 uses
-  WinTypes, WinProcs;
+  WinProcs;
 
 {$I video.inc}
 
@@ -81,6 +87,11 @@ end;
 function MainWndProc(hwnd: HWND; msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; export;
 begin
   case msg of
+    WM_KEYDOWN,
+    WM_KEYUP,
+    WM_SYSKEYDOWN,
+    WM_SYSKEYUP:
+      MainWndProc:=KeyEventWndProc(hwnd,msg,wParam,lParam);
     WM_PAINT:
       WindowPaint(hwnd);
     WM_DESTROY:
@@ -234,5 +245,6 @@ const
   );
 
 begin
+  KeyEventWndProc:=@DefWindowProc;
   SetVideoDriver(SysVideoDriver);
 end.

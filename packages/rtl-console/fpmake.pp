@@ -17,7 +17,7 @@ Const
   
   // all full KVMers have crt too, except Amigalikes
   CrtOSes      = KVMALL+[msdos,WatCom,win16]-[aros,morphos];
-  KbdOSes      = KVMALL+[msdos];
+  KbdOSes      = KVMALL+[msdos,win16];
   VideoOSes    = KVMALL+[win16];
   MouseOSes    = KVMALL;
   TerminfoOSes = UnixLikes-[beos,haiku];
@@ -73,6 +73,7 @@ begin
         AddInclude('keyscan.inc',AllUnixOSes);
         AddUnit   ('winevent',[win32,win64]);
         AddInclude('nwsys.inc',[netware]);
+        AddUnit   ('video',[win16]);
       end;
 
     T:=P.Targets.AddUnit('mouse.pp',MouseOSes);
