@@ -142,7 +142,7 @@ begin
   if KbdBufEmpty then
     SysPollKeyEvent:=0
   else
-    SysPollKeyEvent:=KbdBufDequeue;
+    SysPollKeyEvent:=KbdBuf[KbdBufTail];
 end;
 
 
