@@ -97,33 +97,41 @@ begin
 end;
 }
 
+{ convert the utf8strings to the defaultsystemcodepage encoding, since that's what
+  AnsiStarts/EndsText expects }
+function a(const s: ansistring): rawbytestring;
+  begin
+    result:=s;
+    setcodepage(result,defaultsystemcodepage);
+  end;
+
 function TestOK: Boolean;
 begin
   TestOK :=
     // AnsiStartsText
-{1}    TestValue(not AnsiStartsText(Str_Empty, Str_Empty),'not AnsiStartsText', Str_Empty, Str_Empty)
-{2}    and TestValue(not AnsiStartsText(Str_Empty, Str_ab),'not AnsiStartsText', Str_Empty, Str_ab)
-{3}    and TestValue(not AnsiStartsText(Str_ab, Str_Empty),'not AnsiStartsText', Str_ab, Str_Empty)
-{4}    and TestValue(AnsiStartsText(Str_abc, Str_abc),'AnsiStartsText',Str_abc, Str_abc)
-{5}    and TestValue(not AnsiStartsText(Str_abc, Str_def),'not AnsiStartsText', Str_abc, Str_def)
-{6}    and TestValue(AnsiStartsText(Str_abc, Str_abcedfg),'AnsiStartsText', Str_abc, Str_abcedfg)
-{7}    and TestValue(not AnsiStartsText(Str_abc, Str_ab),'not AnsiStartsText', Str_abc, Str_ab)
-{8}    and TestValue(AnsiStartsText(StrStart8a, StrStart8b),'AnsiStartsText', StrStart8a, StrStart8b)
-{9}    and TestValue(AnsiStartsText(StrStart9a, StrStart9b),'AnsiStartsText', StrStart9a, StrStart9b)
-{10}    and TestValue(not AnsiStartsText(StrStart10a, StrStart10b),'not AnsiStartsText', StrStart10a, StrStart10b)
-{11}    and TestValue(not AnsiStartsText(StrStart11a, StrStart11b),'not AnsiStartsText', StrStart11a, StrStart11b)
+{1}    TestValue(not AnsiStartsText(a(Str_Empty), a(Str_Empty)),'not AnsiStartsText', Str_Empty, Str_Empty)
+{2}    and TestValue(not AnsiStartsText(a(Str_Empty), a(Str_ab)),'not AnsiStartsText', Str_Empty, Str_ab)
+{3}    and TestValue(not AnsiStartsText(a(Str_ab), a(Str_Empty)),'not AnsiStartsText', Str_ab, Str_Empty)
+{4}    and TestValue(AnsiStartsText(a(Str_abc), a(Str_abc)),'AnsiStartsText',Str_abc, Str_abc)
+{5}    and TestValue(not AnsiStartsText(a(Str_abc), a(Str_def)),'not AnsiStartsText', Str_abc, Str_def)
+{6}    and TestValue(AnsiStartsText(a(Str_abc), a(Str_abcedfg)),'AnsiStartsText', Str_abc, Str_abcedfg)
+{7}    and TestValue(not AnsiStartsText(a(Str_abc), a(Str_ab)),'not AnsiStartsText', Str_abc, Str_ab)
+{8}    and TestValue(AnsiStartsText(a(StrStart8a), a(StrStart8b)),'AnsiStartsText', StrStart8a, StrStart8b)
+{9}    and TestValue(AnsiStartsText(a(StrStart9a), a(StrStart9b)),'AnsiStartsText', StrStart9a, StrStart9b)
+{10}    and TestValue(not AnsiStartsText(a(StrStart10a), a(StrStart10b)),'not AnsiStartsText', StrStart10a, StrStart10b)
+{11}    and TestValue(not AnsiStartsText(a(StrStart11a), a(StrStart11b)),'not AnsiStartsText', StrStart11a, StrStart11b)
     // AnsiEndsText
-{1}    and TestValue(AnsiEndsText(Str_Empty, Str_Empty),'AnsiEndsText', Str_Empty, Str_Empty)
-{2}    and TestValue(AnsiEndsText(Str_Empty, Str_ab),'AnsiEndsText', Str_Empty, Str_ab)
-{3}    and TestValue(not AnsiEndsText(Str_ab, Str_Empty),'not AnsiEndsText', Str_ab, Str_Empty)
-{4}    and TestValue(AnsiEndsText(Str_abc, Str_abc),'AnsiEndsText', Str_abc, Str_abc)
-{5}    and TestValue(not AnsiEndsText(Str_abc, Str_def),'not AnsiEndsText', Str_abc, Str_def)
-{6}    and TestValue(AnsiEndsText(Str_dfg, Str_abcedfg),'AnsiEndsText', Str_dfg, Str_abcedfg)
-{7}    and TestValue(not AnsiEndsText(Str_dfg, Str_df),'not AnsiEndsText', Str_dfg, Str_df)
-{8}    and TestValue(AnsiEndsText(StrEnd8a, StrEnd8b),'AnsiEndsText',StrEnd8a, StrEnd8b)
-{9}    and TestValue(AnsiEndsText(StrEnd9a, StrEnd9b),'AnsiEndsText',StrEnd9a, StrEnd9b)
-{10}    and TestValue(not AnsiEndsText(StrEnd10a, StrEnd10b),'not AnsiEndsText', StrEnd10a, StrEnd10b)
-{11}    and TestValue(not AnsiEndsText(StrEnd11a, StrEnd11b),'not AnsiEndsText', StrEnd11a, StrEnd11b);
+{1}    and TestValue(AnsiEndsText(a(Str_Empty), a(Str_Empty)),'AnsiEndsText', Str_Empty, Str_Empty)
+{2}    and TestValue(AnsiEndsText(a(Str_Empty), a(Str_ab)),'AnsiEndsText', Str_Empty, Str_ab)
+{3}    and TestValue(not AnsiEndsText(a(Str_ab), a(Str_Empty)),'not AnsiEndsText', Str_ab, Str_Empty)
+{4}    and TestValue(AnsiEndsText(a(Str_abc), a(Str_abc)),'AnsiEndsText', Str_abc, Str_abc)
+{5}    and TestValue(not AnsiEndsText(a(Str_abc), a(Str_def)),'not AnsiEndsText', Str_abc, Str_def)
+{6}    and TestValue(AnsiEndsText(a(Str_dfg), a(Str_abcedfg)),'AnsiEndsText', Str_dfg, Str_abcedfg)
+{7}    and TestValue(not AnsiEndsText(a(Str_dfg), a(Str_df)),'not AnsiEndsText', Str_dfg, Str_df)
+{8}    and TestValue(AnsiEndsText(a(StrEnd8a), a(StrEnd8b)),'AnsiEndsText',StrEnd8a, StrEnd8b)
+{9}    and TestValue(AnsiEndsText(a(StrEnd9a), a(StrEnd9b)),'AnsiEndsText',StrEnd9a, StrEnd9b)
+{10}    and TestValue(not AnsiEndsText(a(StrEnd10a), a(StrEnd10b)),'not AnsiEndsText', StrEnd10a, StrEnd10b)
+{11}    and TestValue(not AnsiEndsText(a(StrEnd11a), a(StrEnd11b)),'not AnsiEndsText', StrEnd11a, StrEnd11b);
 end;
 
 begin
