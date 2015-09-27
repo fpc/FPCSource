@@ -121,7 +121,8 @@ begin
     exit;
   end;
   conv:=GetConverter(cp);
-  if conv = nil then begin
+  if (conv = nil) and not ( (cp = CP_UTF8) or (cp = CP_ACP) ) then begin
+    // fallback implementation
     DefaultUnicode2AnsiMove(source,dest,DefaultSystemCodePage,len);
     exit;
   end;
@@ -129,12 +130,23 @@ begin
   len2:=len*3;
   SetLength(dest, len2);
   err:=0;
-  len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err);
+  if conv <> nil then
+    len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err)
+  else begin
+    // Use UTF-8 conversion from RTL
+    cp:=CP_UTF8;
+    len2:=UnicodeToUtf8(PAnsiChar(dest), len2, source, len) - 1;
+  end;
   if len2 > Length(dest) then begin
     SetLength(dest, len2);
     err:=0;
-    len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err);
+    if conv <> nil then
+      len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err)
+    else
+      len2:=UnicodeToUtf8(PAnsiChar(dest), len2, source, len) - 1;
   end;
+  if len2 < 0 then
+    len2:=0;
   SetLength(dest, len2);
   SetCodePage(dest, cp, False);
 end;
@@ -150,7 +162,8 @@ begin
     exit;
   end;
   conv:=GetConverter(cp);
-  if conv = nil then begin
+  if (conv = nil) and not ( (cp = CP_UTF8) or (cp = CP_ACP) ) then begin
+    // fallback implementation
     DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
     exit;
   end;
@@ -158,12 +171,21 @@ begin
   len2:=len;
   SetLength(dest, len2);
   err:=0;
-  len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err);
+  if conv <> nil then
+    len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err)
+  else
+    // Use UTF-8 conversion from RTL
+    len2:=Utf8ToUnicode(PUnicodeChar(dest), len2, source, len) - 1;
   if len2 > Length(dest) then begin
     SetLength(dest, len2);
     err:=0;
-    len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err);
+    if conv <> nil then
+      len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err)
+    else
+      len2:=Utf8ToUnicode(PUnicodeChar(dest), len2, source, len) - 1;
   end;
+  if len2 < 0 then
+    len2:=0;
   SetLength(dest, len2);
 end;
 
@@ -485,7 +507,7 @@ var
   end;
 
 const
-  ICUver: array [1..5] of ansistring = ('3_8', '4_2', '44', '46', '48');
+  ICUver: array [1..9] of ansistring = ('3_8', '4_2', '44', '46', '48', '50', '51', '53', '55');
   TestProcName = 'ucnv_open';
 
 var
@@ -511,7 +533,7 @@ begin
     // Finding unknown ICU version
     Val(ICUver[High(ICUver)], i);
     repeat
-      Inc(i, 2);
+      Inc(i);
       Str(i, s);
       s:='_'  + s;
       if GetProcedureAddress(hlibICU, TestProcName + s) <> nil then begin
