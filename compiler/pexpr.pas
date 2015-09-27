@@ -132,7 +132,7 @@ implementation
                   if m_default_unicodestring in current_settings.modeswitches then
                     def:=cunicodestringtype
                   else
-                    def:=getansistringdef
+                    def:=cansistringtype
                 end
               else
                 def:=cshortstringtype;
