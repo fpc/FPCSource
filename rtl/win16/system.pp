@@ -298,7 +298,7 @@ Begin
 End;
 
 
-procedure ErrorClose(Var F: TextRec);
+procedure ShowErrMsg;
 begin
   if ErrorLen>0 then
     begin
@@ -312,8 +312,16 @@ begin
 end;
 
 
+procedure ErrorClose(Var F: TextRec);
+begin
+  ShowErrMsg;
+end;
+
+
 procedure ErrorOpen(Var F: TextRec);
 Begin
+  TextRec(F).Handle:=StdErrorHandle;
+  TextRec(F).Mode:=fmOutput;
   TextRec(F).InOutFunc:=@ErrorWrite;
   TextRec(F).FlushFunc:=@ErrorWrite;
   TextRec(F).CloseFunc:=@ErrorClose;
@@ -355,6 +363,7 @@ begin
   Close(erroutput);
   Close(Input);
   Close(Output);
+  ShowErrMsg;
   asm
     mov al, byte [exitcode]
     mov ah, 4Ch

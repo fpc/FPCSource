@@ -403,6 +403,11 @@ function do_isdevice(handle:THandle):boolean;
 var
   regs: Registers;
 begin
+  if (handle=StdInputHandle) or (handle=StdOutputHandle) or (handle=StdErrorHandle) then
+    begin
+      do_isdevice:=true;
+      exit;
+    end;
   FillChar(regs,SizeOf(regs),0);
   regs.AX := $4400;
   regs.BX := handle;
