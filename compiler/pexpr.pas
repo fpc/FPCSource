@@ -1377,27 +1377,64 @@ implementation
       end;
 
 
-    function handle_specialize_inline_specialization(var srsym:tsym;out srsymtable:tsymtable):boolean;
+    function handle_specialize_inline_specialization(var srsym:tsym;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
       var
         spezdef : tdef;
       begin
         result:=false;
+        spezcontext:=nil;
+        srsymtable:=nil;
         if not assigned(srsym) then
           message1(sym_e_id_no_member,orgpattern)
         else
-          if srsym.typ<>typesym then
+          if not (srsym.typ in [typesym,procsym]) then
             message(type_e_type_id_expected)
           else
             begin
-              spezdef:=ttypesym(srsym).typedef;
-              generate_specialization(spezdef,false,'');
-              if spezdef<>generrordef then
-                begin
-                  srsym:=spezdef.typesym;
-                  srsymtable:=srsym.owner;
-                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                  result:=true;
-                end
+              if srsym.typ=typesym then
+                spezdef:=ttypesym(srsym).typedef
+              else
+                spezdef:=tdef(tprocsym(srsym).procdeflist[0]);
+              spezdef:=generate_specialization_phase1(spezcontext,spezdef);
+              case spezdef.typ of
+                errordef:
+                  begin
+                    spezcontext.free;
+                    spezcontext:=nil;
+                    srsym:=generrorsym;
+                  end;
+                procdef:
+                  begin
+                    if block_type<>bt_body then
+                      begin
+                        message(parser_e_illegal_expression);
+                        spezcontext.free;
+                        spezcontext:=nil;
+                        srsym:=generrorsym;
+                      end
+                    else
+                      begin
+                        srsym:=tprocdef(spezdef).procsym;
+                        srsymtable:=srsym.owner;
+                        result:=true;
+                      end;
+                  end;
+                objectdef,
+                recorddef,
+                arraydef,
+                procvardef:
+                  begin
+                    spezdef:=generate_specialization_phase2(spezcontext,tstoreddef(spezdef),false,'');
+                    spezcontext.free;
+                    spezcontext:=nil;
+                    srsym:=spezdef.typesym;
+                    srsymtable:=srsym.owner;
+                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                    result:=true;
+                  end;
+                else
+                  internalerror(2015070302);
+              end;
             end;
       end;
 
@@ -1407,7 +1444,9 @@ implementation
         srsym : tsym;
         srsymtable : tsymtable;
         isspecialize : boolean;
+        spezcontext : tspecializationcontext;
       begin
+         spezcontext:=nil;
          if sym=nil then
            sym:=hdef.typesym;
          { allow Ordinal(Value) for type declarations since it
@@ -1455,7 +1494,7 @@ implementation
                  if isspecialize then
                    begin
                      consume(_ID);
-                     if not handle_specialize_inline_specialization(srsym,srsymtable) then
+                     if not handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
                        begin
                          result.free;
                          result:=cerrornode.create;
@@ -1468,7 +1507,9 @@ implementation
                      consume(_ID);
                    end;
                  if result.nodetype<>errorn then
-                   do_member_read(tabstractrecorddef(hdef),false,srsym,result,again,[],nil);
+                   do_member_read(tabstractrecorddef(hdef),false,srsym,result,again,[],spezcontext)
+                 else
+                   spezcontext.free;
                end
              else
               begin
@@ -1495,7 +1536,7 @@ implementation
                 if isspecialize then
                   begin
                     consume(_ID);
-                    if not handle_specialize_inline_specialization(srsym,srsymtable) then
+                    if not handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
                       begin
                         result.free;
                         result:=cerrornode.create;
@@ -1512,7 +1553,9 @@ implementation
                       Message1(sym_e_id_no_member,orgpattern);
                   end;
                 if (result.nodetype<>errorn) and assigned(srsym) then
-                  do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],nil);
+                  do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],spezcontext)
+                else
+                  spezcontext.free;
               end;
            end
          else
@@ -1860,6 +1903,8 @@ implementation
      intval : qword;
      code : integer;
      strdef : tdef;
+     spezcontext : tspecializationcontext;
+     old_current_filepos : tfileposinfo;
     label
      skipreckklammercheck,
      skippointdefcheck;
@@ -1868,6 +1913,7 @@ implementation
      again:=true;
      while again do
       begin
+        spezcontext:=nil;
         { we need the resultdef }
         do_typecheckpass_changed(p1,nodechanged);
         result:=result or nodechanged;
@@ -2222,7 +2268,7 @@ implementation
                                begin
                                  searchsym_in_record(structh,pattern,srsym,srsymtable);
                                  consume(_ID);
-                                 if handle_specialize_inline_specialization(srsym,srsymtable) then
+                                 if handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
                                    erroroutp1:=false;
                                end;
                            end
@@ -2248,7 +2294,7 @@ implementation
                              p1:=cerrornode.create;
                            end
                          else
-                           do_member_read(structh,getaddr,srsym,p1,again,[],nil);
+                           do_member_read(structh,getaddr,srsym,p1,again,[],spezcontext);
                        end
                      else
                      consume(_ID);
@@ -2359,21 +2405,43 @@ implementation
                       if token=_ID then
                         begin
                           structh:=tobjectdef(tclassrefdef(p1.resultdef).pointeddef);
-                          searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
-                          if assigned(srsym) then
+                          if isspecialize then
                             begin
-                              check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                              { consume the specialize }
                               consume(_ID);
-                              do_member_read(structh,getaddr,srsym,p1,again,[],nil);
+                              if token<>_ID then
+                                consume(_ID)
+                              else
+                                begin
+                                  searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
+                                  consume(_ID);
+                                  if handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
+                                    erroroutp1:=false;
+                                end;
                             end
                           else
                             begin
-                              Message1(sym_e_id_no_member,orgpattern);
-                              p1.destroy;
-                              p1:=cerrornode.create;
-                              { try to clean up }
-                              consume(_ID);
+                              searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
+                              if assigned(srsym) then
+                                begin
+                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                                  consume(_ID);
+                                  erroroutp1:=false;
+                                end
+                              else
+                                begin
+                                  Message1(sym_e_id_no_member,orgpattern);
+                                  { try to clean up }
+                                  consume(_ID);
+                                end;
                             end;
+                          if erroroutp1 then
+                            begin
+                              p1.free;
+                              p1:=cerrornode.create;
+                            end
+                          else
+                            do_member_read(structh,getaddr,srsym,p1,again,[],spezcontext);
                         end
                       else { Error }
                         Consume(_ID);
@@ -2395,7 +2463,7 @@ implementation
                                 begin
                                   searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
                                   consume(_ID);
-                                  if handle_specialize_inline_specialization(srsym,srsymtable) then
+                                  if handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
                                     erroroutp1:=false;
                                 end;
                             end
@@ -2421,7 +2489,7 @@ implementation
                               p1:=cerrornode.create;
                             end
                           else
-                            do_member_read(structh,getaddr,srsym,p1,again,[],nil);
+                            do_member_read(structh,getaddr,srsym,p1,again,[],spezcontext);
                         end
                       else { Error }
                         Consume(_ID);
