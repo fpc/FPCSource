@@ -886,10 +886,18 @@ interface
                end;
              LOC_CONSTANT :
                begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value shr 16) and $FFFF),GetNextReg(left.location.register)));
-                 firstjmp32bitcmp;
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint(right.location.value and $FFFF),left.location.register));
-                 secondjmp32bitcmp;
+                 if (right.location.value=0) and (nodetype in [equaln,unequaln]) and (left.location.loc=LOC_REGISTER) then
+                   begin
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_W,GetNextReg(left.location.register),left.location.register));
+                     secondjmp32bitcmp;
+                   end
+                 else
+                   begin
+                     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value shr 16) and $FFFF),GetNextReg(left.location.register)));
+                     firstjmp32bitcmp;
+                     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint(right.location.value and $FFFF),left.location.register));
+                     secondjmp32bitcmp;
+                   end;
                end;
              else
                internalerror(200203282);
