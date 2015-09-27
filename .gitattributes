@@ -804,6 +804,7 @@ compiler/x86/aasmcpu.pas svneol=native#text/plain
 compiler/x86/agx86att.pas svneol=native#text/plain
 compiler/x86/agx86int.pas svneol=native#text/plain
 compiler/x86/agx86nsm.pas svneol=native#text/plain
+compiler/x86/aoptx86.pas svneol=native#text/pascal
 compiler/x86/cga.pas svneol=native#text/plain
 compiler/x86/cgx86.pas svneol=native#text/plain
 compiler/x86/cpubase.pas svneol=native#text/plain

@@ -44,7 +44,8 @@ uses
   cobjects,
 {$endif finaldestdebug}
   cpuinfo,cpubase,cgutils,daopt386,
-  cgx86;
+  cgx86,
+  aoptx86;
 
 
 function isFoldableArithOp(hp1: taicpu; reg: tregister): boolean;
@@ -122,7 +123,7 @@ begin
        (taicpu(hp1).opcode = A_FILD))) and
      (taicpu(hp1).oper[0]^.typ = top_ref) and
      (taicpu(hp1).opsize = taicpu(p).opsize) and
-     refsEqual(taicpu(p).oper[0]^.ref^, taicpu(hp1).oper[0]^.ref^) then
+     RefsEqual(taicpu(p).oper[0]^.ref^, taicpu(hp1).oper[0]^.ref^) then
     begin
       { replacing fstp f;fld f by fst f is only valid for extended because of rounding }
       if (taicpu(p).opsize=S_FX) and
