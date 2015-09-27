@@ -332,6 +332,7 @@ begin
     if regs.AX=4 then
       if Increase_file_handle_count then
         begin
+          FillChar(regs,SizeOf(regs),0);
           { Try again }
           if LFNSupport then
             begin
