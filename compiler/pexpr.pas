@@ -2277,8 +2277,13 @@ implementation
                              searchsym_in_record(structh,pattern,srsym,srsymtable);
                              if assigned(srsym) then
                                begin
-                                 check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                                 old_current_filepos:=current_filepos;
                                  consume(_ID);
+                                 if not (sp_generic_dummy in srsym.symoptions) or
+                                     not (token in [_LT,_LSHARPBRACKET]) then
+                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
+                                 else
+                                   p1:=cspecializenode.create(p1,getaddr,srsym);
                                  erroroutp1:=false;
                                end
                              else
@@ -2294,7 +2299,8 @@ implementation
                              p1:=cerrornode.create;
                            end
                          else
-                           do_member_read(structh,getaddr,srsym,p1,again,[],spezcontext);
+                           if p1.nodetype<>specializen then
+                             do_member_read(structh,getaddr,srsym,p1,again,[],spezcontext);
                        end
                      else
                      consume(_ID);
@@ -2424,8 +2430,13 @@ implementation
                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
                               if assigned(srsym) then
                                 begin
-                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                                  old_current_filepos:=current_filepos;
                                   consume(_ID);
+                                  if not (sp_generic_dummy in srsym.symoptions) or
+                                      not (token in [_LT,_LSHARPBRACKET]) then
+                                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
+                                  else
+                                    p1:=cspecializenode.create(p1,getaddr,srsym);
                                   erroroutp1:=false;
                                 end
                               else
@@ -2441,7 +2452,8 @@ implementation
                               p1:=cerrornode.create;
                             end
                           else
-                            do_member_read(structh,getaddr,srsym,p1,again,[],spezcontext);
+                            if p1.nodetype<>specializen then
+                              do_member_read(structh,getaddr,srsym,p1,again,[],spezcontext);
                         end
                       else { Error }
                         Consume(_ID);
@@ -2472,8 +2484,13 @@ implementation
                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
                               if assigned(srsym) then
                                 begin
-                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                                   old_current_filepos:=current_filepos;
                                    consume(_ID);
+                                   if not (sp_generic_dummy in srsym.symoptions) or
+                                       not (token in [_LT,_LSHARPBRACKET]) then
+                                     check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
+                                   else
+                                     p1:=cspecializenode.create(p1,getaddr,srsym);
                                    erroroutp1:=false;
                                 end
                               else
@@ -2489,7 +2506,8 @@ implementation
                               p1:=cerrornode.create;
                             end
                           else
-                            do_member_read(structh,getaddr,srsym,p1,again,[],spezcontext);
+                            if p1.nodetype<>specializen then
+                              do_member_read(structh,getaddr,srsym,p1,again,[],spezcontext);
                         end
                       else { Error }
                         Consume(_ID);
@@ -3173,25 +3191,29 @@ implementation
               filepos:=current_tokenpos;
             end;
            { handle post fix operators }
-           if (m_delphi in current_settings.modeswitches) and
-               (block_type=bt_body) and
-               (token in [_LT,_LSHARPBRACKET]) then
-             begin
-               if p1.nodetype=typen then
-                 idstr:=ttypenode(p1).typesym.name
-               else
-                 if (p1.nodetype=loadvmtaddrn) and
-                     (tloadvmtaddrnode(p1).left.nodetype=typen) then
-                   idstr:=ttypenode(tloadvmtaddrnode(p1).left).typesym.name
+           if (p1.nodetype=specializen) then
+             { post fix operators are handled after specialization }
+             dopostfix:=false
+           else
+             if (m_delphi in current_settings.modeswitches) and
+                 (block_type=bt_body) and
+                 (token in [_LT,_LSHARPBRACKET]) then
+               begin
+                 if p1.nodetype=typen then
+                   idstr:=ttypenode(p1).typesym.name
                  else
-                   if (p1.nodetype=loadn) then
-                     idstr:=tloadnode(p1).symtableentry.name
+                   if (p1.nodetype=loadvmtaddrn) and
+                       (tloadvmtaddrnode(p1).left.nodetype=typen) then
+                     idstr:=ttypenode(tloadvmtaddrnode(p1).left).typesym.name
                    else
-                     idstr:='';
-               { if this is the case then the postfix handling is done in
-                 sub_expr if necessary }
-               dopostfix:=not could_be_generic(idstr);
-             end;
+                     if (p1.nodetype=loadn) then
+                       idstr:=tloadnode(p1).symtableentry.name
+                     else
+                       idstr:='';
+                 { if this is the case then the postfix handling is done in
+                   sub_expr if necessary }
+                 dopostfix:=not could_be_generic(idstr);
+               end;
            { maybe an additional parameter instead of misusing hadspezialize? }
            if dopostfix and not hadspecialize then
              updatefpos:=postfixoperators(p1,again,getaddr);
@@ -3727,7 +3749,7 @@ implementation
                     );
         end;
 
-      function gettypedef(n:tnode):tdef;inline;
+      (*function gettypedef(n:tnode):tdef;inline;
       { This returns the typedef that belongs to the given typenode or
         loadvmtaddrnode. n must not be Nil! }
         begin
@@ -3735,6 +3757,19 @@ implementation
             result:=ttypenode(n).typedef
           else
             result:=ttypenode(tloadvmtaddrnode(n).left).typedef;
+        end;*)
+
+      function gettypedef(sym:tsym):tdef;inline;
+        begin
+          result:=nil;
+          case sym.typ of
+            typesym:
+              result:=ttypesym(sym).typedef;
+            procsym:
+              result:=tdef(tprocsym(sym).procdeflist[0]);
+            else
+              internalerror(2015092701);
+          end;
         end;
 
       function getgenericsym(n:tnode;out srsym:tsym):boolean;
@@ -3750,18 +3785,146 @@ implementation
             loadn:
               if not searchsym_with_symoption(tloadnode(n).symtableentry.Name,srsym,srsymtable,sp_generic_dummy) then
                 srsym:=nil;
+            specializen:
+              srsym:=tspecializenode(n).sym;
             { TODO : handle const nodes }
           end;
           result:=assigned(srsym);
         end;
 
+      function generate_inline_specialization(gendef:tdef;n:tnode;filepos:tfileposinfo;parseddef:tdef;gensym:tsym;p2:tnode):tnode;
+        var
+          again,
+          getaddr : boolean;
+          pload : tnode;
+          spezcontext : tspecializationcontext;
+          structdef : tabstractrecorddef;
+        begin
+          if n.nodetype=specializen then
+            begin
+              getaddr:=tspecializenode(n).getaddr;
+              pload:=tspecializenode(n).left;
+              tspecializenode(n).left:=nil;
+            end
+          else
+            begin
+              getaddr:=false;
+              pload:=nil;
+            end;
+
+          if assigned(parseddef) and assigned(gensym) and assigned(p2) then
+            gendef:=generate_specialization_phase1(spezcontext,gendef,parseddef,gensym.realname,p2.fileinfo)
+          else
+            gendef:=generate_specialization_phase1(spezcontext,gendef);
+          case gendef.typ of
+            errordef:
+              begin
+                spezcontext.free;
+                spezcontext:=nil;
+                gensym:=generrorsym;
+              end;
+            objectdef,
+            recorddef,
+            procvardef,
+            arraydef:
+              begin
+                gendef:=generate_specialization_phase2(spezcontext,tstoreddef(gendef),false,'');
+                spezcontext.free;
+                spezcontext:=nil;
+                gensym:=gendef.typesym;
+              end;
+            procdef:
+              begin
+                if block_type<>bt_body then
+                  begin
+                    message(parser_e_illegal_expression);
+                    gensym:=generrorsym;
+                  end
+                else
+                  begin
+                    gensym:=tprocdef(gendef).procsym;
+                  end;
+              end;
+            else
+              internalerror(2015092702);
+          end;
+
+          { in case of a class or a record the specialized generic
+            is always a classrefdef }
+          again:=false;
+
+          if assigned(pload) then
+            begin
+              result:=pload;
+              structdef:=nil;
+              case result.resultdef.typ of
+                objectdef,
+                recorddef:
+                  begin
+                    structdef:=tabstractrecorddef(result.resultdef);
+                  end;
+                classrefdef:
+                  begin
+                    structdef:=tabstractrecorddef(tclassrefdef(result.resultdef).pointeddef);
+                  end;
+                else
+                  internalerror(2015092703);
+              end;
+              do_member_read(structdef,getaddr,gensym,result,again,[],spezcontext);
+            end
+          else
+            begin
+              result:=nil;
+              { check if it's a method/class method }
+              if is_member_read(gensym,gensym.owner,result,parseddef) then
+                begin
+                  { if we are accessing a owner procsym from the nested }
+                  { class we need to call it as a class member }
+                  if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
+                      assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
+                    begin
+                      result:=cloadvmtaddrnode.create(ctypenode.create(parseddef));
+                      { not srsymtable.symtabletype since that can be }
+                      { withsymtable as well                          }
+                      if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                        begin
+                          do_member_read(tabstractrecorddef(parseddef),getaddr,gensym,result,again,[],spezcontext);
+                          spezcontext:=nil;
+                        end
+                      else
+                        { no procsyms in records (yet) }
+                        internalerror(2015092704);
+                    end
+                  else
+                    begin
+                      { regular procedure/function call }
+                      do_proc_call(gensym,gensym.owner,nil,
+                                   (getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER])),
+                                   again,result,[],spezcontext);
+                      spezcontext:=nil;
+                    end;
+                  end
+                else
+                  { handle potential typecasts, etc }
+                  result:=handle_factor_typenode(gendef,false,again,nil,false);
+            end;
+
+          { parse postfix operators }
+          if postfixoperators(result,again,false) then
+            if assigned(result) then
+              result.fileinfo:=filepos
+            else
+              result:=cerrornode.create;
+
+          spezcontext.free;
+        end;
+
       label
         SubExprStart;
       var
-        p1,p2   : tnode;
+        p1,p2,ptmp : tnode;
         oldt    : Ttoken;
         filepos : tfileposinfo;
-        again   : boolean;
         gendef,parseddef : tdef;
         gensym : tsym;
       begin
@@ -3820,32 +3983,22 @@ implementation
                        { this is an inline specialization }
 
                        { retrieve the defs of two nodes }
-                       gendef:=nil;
+                       if p1.nodetype=specializen then
+                         gendef:=gettypedef(tspecializenode(p1).sym)
+                       else
+                         gendef:=nil;
                        parseddef:=gettypedef(p2);
 
-                       if parseddef.typesym.typ<>typesym then
-                         Internalerror(2011051001);
-
                        { check the hints for parseddef }
-                       check_hints(parseddef.typesym,parseddef.typesym.symoptions,parseddef.typesym.deprecatedmsg);
+                       check_hints(parseddef.typesym,parseddef.typesym.symoptions,parseddef.typesym.deprecatedmsg,p1.fileinfo);
 
-                       { generate the specialization }
-                       generate_specialization(gendef,false,'',parseddef,gensym.RealName,p2.fileinfo);
+                       ptmp:=generate_inline_specialization(gendef,p1,filepos,parseddef,gensym,p2);
 
-                       { we don't need the old left and right nodes anymore }
-                       p1.Free;
-                       p2.Free;
-                       { in case of a class or a record the specialized generic
-                         is always a classrefdef }
-                       again:=false;
-                       { handle potential typecasts, etc }
-                       p1:=handle_factor_typenode(gendef,false,again,nil,false);
-                       { parse postfix operators }
-                       if postfixoperators(p1,again,false) then
-                         if assigned(p1) then
-                           p1.fileinfo:=filepos
-                         else
-                           p1:=cerrornode.create;
+                       { we don't need these nodes anymore }
+                       p1.free;
+                       p2.free;
+
+                       p1:=ptmp;
 
                        { with p1 now set we are in reality directly behind the
                          call to "factor" thus we need to call down to that
@@ -3912,7 +4065,9 @@ implementation
                _OP_AS,
                _OP_IS :
                  begin
-                   if token in [_LT, _LSHARPBRACKET] then
+                   if (m_delphi in current_settings.modeswitches) and
+                       (token in [_LT, _LSHARPBRACKET]) and
+                       getgenericsym(p2,gensym) then
                      begin
                        { for now we're handling this as a generic declaration;
                          there could be cases though (because of operator
@@ -3921,24 +4076,12 @@ implementation
                                 point to a variable, etc }
                        gendef:=gettypedef(p2);
 
-                       if gendef.typesym.typ<>typesym then
-                         Internalerror(2011071401);
-
-                       { generate the specialization }
-                       generate_specialization(gendef,false,'');
+                       ptmp:=generate_inline_specialization(gendef,p2,filepos,nil,nil,nil);
 
                        { we don't need the old p2 anymore }
                        p2.Free;
 
-                       again:=false;
-                       { handle potential typecasts, etc }
-                       p2:=handle_factor_typenode(gendef,false,again,nil,false);
-                       { parse postfix operators }
-                       if postfixoperators(p2,again,false) then
-                         if assigned(p2) then
-                           p2.fileinfo:=filepos
-                         else
-                           p2:=cerrornode.create;
+                       p2:=ptmp;
 
                        { here we don't need to call back down to "factor", thus
                          no "goto" }
