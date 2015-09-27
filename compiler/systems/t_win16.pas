@@ -33,9 +33,10 @@ implementation
        SysUtils,
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,script,
-       import,fmodule,i_win16,
+       import,export,fmodule,i_win16,
        link,aasmbase,cpuinfo,
-       omfbase,ogbase,ogomf,owomflib;
+       omfbase,ogbase,ogomf,owbase,owomflib,
+       symconst,symdef,symsym;
 
     type
 
@@ -43,6 +44,18 @@ implementation
 
       TImportLibWin16=class(timportlib)
       public
+        procedure generatelib;override;
+      end;
+
+      { TExportLibWin16 }
+
+      TExportLibWin16=class(texportlib)
+      private
+        EList: TFPList;
+      public
+        destructor Destroy;override;
+        procedure preparelib(const s : string);override;
+        procedure exportprocedure(hp : texported_item);override;
         procedure generatelib;override;
       end;
 
@@ -93,6 +106,105 @@ begin
     end;
   ObjOutput.Free;
   ObjWriter.Free;
+end;
+
+
+{****************************************************************************
+                               TExportLibWin16
+****************************************************************************}
+
+destructor TExportLibWin16.Destroy;
+begin
+  EList.Free;
+  inherited Destroy;
+end;
+
+procedure TExportLibWin16.preparelib(const s: string);
+begin
+  if EList=nil then
+    EList:=TFPList.Create;
+end;
+
+procedure TExportLibWin16.exportprocedure(hp: texported_item);
+begin
+  if ((hp.options and eo_index)<>0) and ((hp.index<=0) or (hp.index>$ffff)) then
+    begin
+     message1(parser_e_export_invalid_index,tostr(hp.index));
+     exit;
+    end;
+  EList.Add(hp);
+end;
+
+procedure TExportLibWin16.generatelib;
+var
+  ObjWriter: TObjectWriter;
+  ObjOutput: TOmfObjOutput;
+  RawRecord: TOmfRawRecord;
+  Header: TOmfRecord_THEADR;
+  i: Integer;
+  hp: texported_item;
+  ModEnd: TOmfRecord_MODEND;
+  DllExport_COMENT: TOmfRecord_COMENT;
+  expflag: Byte;
+  internal_name: TSymStr;
+begin
+  if EList.Count=0 then
+    exit;
+
+  current_module.linkotherofiles.add(current_module.exportfilename,link_always);
+  ObjWriter:=TObjectWriter.Create;
+  ObjOutput:=TOmfObjOutput.Create(ObjWriter);
+  ObjWriter.createfile(current_module.exportfilename);
+
+  { write header record }
+  RawRecord:=TOmfRawRecord.Create;
+  Header:=TOmfRecord_THEADR.Create;
+  Header.ModuleName:=current_module.exportfilename;
+  Header.EncodeTo(RawRecord);
+  RawRecord.WriteTo(ObjWriter);
+  Header.Free;
+
+  for i:=0 to EList.Count-1 do
+    begin
+      hp:=texported_item(EList[i]);
+
+      { write EXPDEF record }
+      DllExport_COMENT:=TOmfRecord_COMENT.Create;
+      DllExport_COMENT.CommentClass:=CC_OmfExtension;
+      expflag:=0;
+      if (hp.options and eo_index)<>0 then
+        expflag:=expflag or $80;
+      if (hp.options and eo_resident)<>0 then
+        expflag:=expflag or $40;
+      if assigned(hp.sym) then
+        case hp.sym.typ of
+          staticvarsym:
+            internal_name:=tstaticvarsym(hp.sym).mangledname;
+          procsym:
+            internal_name:=tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
+          else
+            internalerror(2015092701);
+        end
+      else
+        internal_name:=hp.name^;
+      DllExport_COMENT.CommentString:=#2+Chr(expflag)+Chr(Length(hp.name^))+hp.name^+Chr(Length(internal_name))+internal_name;
+      if (hp.options and eo_index)<>0 then
+        DllExport_COMENT.CommentString:=DllExport_COMENT.CommentString+Chr(Byte(hp.index))+Chr(Byte(hp.index shr 8));
+      DllExport_COMENT.EncodeTo(RawRecord);
+      RawRecord.WriteTo(ObjWriter);
+      DllExport_COMENT.Free;
+    end;
+
+  { write MODEND record }
+  ModEnd:=TOmfRecord_MODEND.Create;
+  ModEnd.EncodeTo(RawRecord);
+  RawRecord.WriteTo(ObjWriter);
+  ModEnd.Free;
+
+  ObjWriter.closefile;
+  ObjOutput.Free;
+  ObjWriter.Free;
+  RawRecord.Free;
 end;
 
 
@@ -203,5 +315,6 @@ end;
 initialization
   RegisterLinker(ld_win16,TExternalLinkerWin16WLink);
   RegisterImport(system_i8086_win16,TImportLibWin16);
+  RegisterExport(system_i8086_win16,TExportLibWin16);
   RegisterTarget(system_i8086_win16_info);
 end.

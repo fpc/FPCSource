@@ -308,7 +308,8 @@ interface
                                          system_i386_Netware,
                                          system_i386_netwlibc,
                                          system_arm_wince,
-                                         system_x86_64_win64]+systems_linux+systems_android;
+                                         system_x86_64_win64,
+                                         system_i8086_win16]+systems_linux+systems_android;
 
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
