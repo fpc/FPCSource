@@ -297,7 +297,9 @@ type
   
   function Num2SQLStr(APChar: PAnsiChar): String;
   function Char2SQLStr(APChar: PAnsiChar): String;
-
+  function Memo2SQLStr(APChar: PAnsiChar): String;
+  function StrBufNew(p : PAnsiChar): PAnsiChar;
+  function StrBufNew(p : PAnsiChar; BufLen: Cardinal): PAnsiChar;
 
 implementation
 
@@ -311,6 +313,29 @@ const
   SQLITE_DONE = 101;
   
   NullString = 'NULL';
+
+function StrBufNew(p : PAnsiChar): PAnsiChar;
+var
+  BufLen : Cardinal;
+begin
+  Result := nil;
+  if (p = nil) or (p^ = #0) then
+    Exit;
+  BufLen := StrBufSize(p);
+  Result := StrAlloc(BufLen);
+  if Result <> nil then
+    Move(p^, Result^, BufLen);
+end;
+
+function StrBufNew(p: PChar; BufLen: Cardinal): PChar;
+begin
+  Result := nil;
+  if (p = nil) or (p^ = #0) then
+    Exit;
+  Result := StrAlloc(BufLen);
+  if Result <> nil then
+    Move(p^, Result^, BufLen);
+end;
   
 
 function CallbackDispatcher(UserData: Pointer; Count: LongInt; Values: PPAnsiChar; Names: PPAnsiChar): LongInt; cdecl;
@@ -343,6 +368,26 @@ begin
   Result := '''' + Result + '''';
 end;
 
+function Memo2SQLStr(APChar: PAnsiChar): String;
+var
+  Len: Cardinal;
+begin
+  if APChar = nil then
+  begin
+    Result := NullString;
+    Exit;
+  end;
+  //todo: create custom routine to directly transform PAnsiChar -> SQL str
+  Len := StrBufSize(APChar) - 1;
+  SetLength(Result, Len);
+  Move(APChar^, Result[1], Len);
+  if Pos('''', Result) > 0 then
+    Result := AnsiReplaceStr(Result, '''', '''''');
+  Result := '''' + Result + '''';
+  if Pos(#0, Result) > 0 then
+    Result := AnsiReplaceStr(Result, #0, '''||x''00''||''');
+end;
+
 // TDSStream
 
 function TDSStream.GetPosition: Int64;
@@ -367,7 +412,7 @@ begin
   FEditItem := EditItem;
   FFieldRow := FEditItem^.Row[FFieldOffset];
   if FFieldRow <> nil then
-    FRowSize := StrLen(FFieldRow);
+    FRowSize := StrBufSize(FFieldRow) - 1;
   //else
   //  FRowSize := 0;  
 end;
@@ -410,11 +455,11 @@ begin
     WriteLn('  FPosition(Before): ', FPosition);
     WriteLn('  FRowSize(Before): ', FRowSize);
     WriteLn('  FPosition(After): ', FPosition+Count);
-    WriteLn('  FRowSize(After): ', StrLen(NewRow));
+    WriteLn('  FRowSize(After): ', StrBufSize(NewRow) -1);
     //WriteLn('  Stream Value: ',NewRow);
     {$endif}
     FFieldRow := NewRow;
-    FRowSize := StrLen(NewRow);
+    FRowSize := StrBufSize(NewRow) - 1;
     Inc(FPosition, Count);
   end;
 end; 
@@ -712,7 +757,7 @@ begin
     case Field.Datatype of
     ftString:
       begin
-        Move(FieldRow^, PAnsiChar(Buffer)^, StrLen(FieldRow) + 1);
+        Move(FieldRow^, PAnsiChar(Buffer)^, StrBufSize(FieldRow));
       end;
     ftInteger, ftAutoInc:
       begin
@@ -822,7 +867,7 @@ begin
     SetMasterIndexValue;
   //necessary to nullify the Row before copy the cache
   for i := 0 to FRowCount - 1 do
-    NewItem^.Row[i] := StrNew(ActiveItem^.Row[i]);
+    NewItem^.Row[i] := StrBufNew(ActiveItem^.Row[i]);
   NewItem^.BookmarkFlag := bfCurrent;
 
   //insert in the linked list
@@ -909,7 +954,7 @@ begin
   for i:= 0 to FRowCount - 1 do
   begin
     StrDispose(FSavedEditItem^.Row[i]);
-    FSavedEditItem^.Row[i] := StrNew(ActiveItem^.Row[i]);
+    FSavedEditItem^.Row[i] := StrBufNew(ActiveItem^.Row[i]);
   end;
 end;
 

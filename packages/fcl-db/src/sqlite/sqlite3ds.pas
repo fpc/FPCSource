@@ -239,10 +239,14 @@ begin
     end;
     FieldDefs.Add(String(sqlite3_column_name(vm, i)), AType, DataSize);
     //Set the pchar2sql function
-    if AType in [ftString, ftMemo] then
-      FGetSqlStr[i] := @Char2SQLStr
+    case AType of
+      ftString:
+        FGetSqlStr[i] := @Char2SQLStr;
+      ftMemo:
+        FGetSqlStr[i] := @Memo2SQLStr;
     else
       FGetSqlStr[i] := @Num2SQLStr;
+    end;
     {$ifdef DEBUG_SQLITEDS}
     WriteLn('  Field[', i, '] Name: ', sqlite3_column_name(vm, i));
     WriteLn('  Field[', i, '] Type: ', sqlite3_column_decltype(vm, i));
@@ -304,7 +308,7 @@ begin
     TempItem := TempItem^.Next;
     GetMem(TempItem^.Row, FRowBufferSize);
     for Counter := 0 to ColumnCount - 1 do
-      TempItem^.Row[Counter] := StrNew(sqlite3_column_text(vm, Counter));
+      TempItem^.Row[Counter] := StrBufNew(sqlite3_column_text(vm, Counter), sqlite3_column_bytes(vm, Counter) + 1);
     //initialize calculated fields with nil
     for Counter := ColumnCount to FRowCount - 1 do
       TempItem^.Row[Counter] := nil;
