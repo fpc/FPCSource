@@ -27,7 +27,7 @@ Var
 implementation
 
 uses
-  video;
+  video, keyboard;
 
 {****************************************************************************
                            Low level Routines
@@ -241,13 +241,44 @@ End;
                             KeyBoard
 *************************************************************************}
 
+var
+   is_last : boolean;
+   last    : char;
+
 function readkey : char;
+var
+  k: TKeyEvent;
+  char1, char2: char;
 begin
+  if is_last then
+  begin
+    is_last:=false;
+    readkey:=last;
+  end
+  else
+  begin
+    k:=GetKeyEvent;
+    char1:=Chr(Byte(k));
+    char2:=Chr(Word(k) shr 8);
+    if char1=#0 then
+    begin
+      is_last:=true;
+      last:=char2;
+    end;
+    readkey:=char1;
+  end;
 end;
 
 
 function keypressed : boolean;
 begin
+  if is_last then
+  begin
+    keypressed:=true;
+    exit;
+  end
+  else
+    keypressed:=PollKeyEvent<>0;
 end;
 
 
@@ -459,12 +490,14 @@ Begin
            f.bufptr^[f.bufend]:=#13;
            f.bufptr^[f.bufend+1]:=#10;
            inc(f.bufend,2);
+           UpdateScreen(false);
            break;
          end;
    #26 : if CheckEOF then
           begin
             f.bufptr^[f.bufend]:=#26;
             inc(f.bufend);
+            UpdateScreen(false);
             break;
           end;
     else
@@ -477,6 +510,7 @@ Begin
         end;
      end;
     end;
+    UpdateScreen(false);
   until false;
   f.bufpos:=0;
   SetScreenCursor(CurrX,CurrY);
@@ -519,6 +553,7 @@ end;
 
 begin
   InitVideo;
+  InitKeyboard;
 { Load startup values }
   ScreenWidth:=GetScreenWidth;
   ScreenHeight:=GetScreenHeight;

@@ -101,6 +101,7 @@ begin
        AddInclude('crt.inc');
        AddInclude('nwsys.inc',[netware]);
        AddUnit   ('video',[win16]);
+       AddUnit   ('keyboard',[win16]);
      end;
 
     T:=P.Targets.AddUnit('vesamode.pp',[go32v2]);
