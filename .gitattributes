@@ -6809,6 +6809,7 @@ packages/rtl-console/src/win/video.pp svneol=native#text/plain
 packages/rtl-console/src/win/winevent.pp svneol=native#text/plain
 packages/rtl-console/src/win16/crt.pp svneol=native#text/plain
 packages/rtl-console/src/win16/keyboard.pp svneol=native#text/plain
+packages/rtl-console/src/win16/mouse.pp svneol=native#text/plain
 packages/rtl-console/src/win16/video.pp svneol=native#text/plain
 packages/rtl-extra/Makefile svneol=native#text/plain
 packages/rtl-extra/Makefile.fpc svneol=native#text/plain

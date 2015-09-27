@@ -13,12 +13,12 @@ Const
   UnixLikes = AllUnixOSes -[QNX];
  
   WinEventOSes = [win32,win64];
-  KVMAll       = [emx,go32v2,netware,netwlibc,os2,win32,win64]+UnixLikes+AllAmigaLikeOSes;
+  KVMAll       = [emx,go32v2,netware,netwlibc,os2,win32,win64,win16]+UnixLikes+AllAmigaLikeOSes;
   
   // all full KVMers have crt too, except Amigalikes
-  CrtOSes      = KVMALL+[msdos,WatCom,win16]-[aros,morphos];
-  KbdOSes      = KVMALL+[msdos,win16];
-  VideoOSes    = KVMALL+[win16];
+  CrtOSes      = KVMALL+[msdos,WatCom]-[aros,morphos];
+  KbdOSes      = KVMALL+[msdos];
+  VideoOSes    = KVMALL;
   MouseOSes    = KVMALL;
   TerminfoOSes = UnixLikes-[beos,haiku];
 
