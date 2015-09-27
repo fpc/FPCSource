@@ -18,11 +18,11 @@ Const
   // all full KVMers have crt too, except Amigalikes
   CrtOSes      = KVMALL+[msdos,WatCom]-[aros,morphos];
   KbdOSes      = KVMALL+[msdos];
-  VideoOSes    = KVMALL;
+  VideoOSes    = KVMALL+[win16];
   MouseOSes    = KVMALL;
   TerminfoOSes = UnixLikes-[beos,haiku];
 
-  rtl_consoleOSes =KVMALL+CrtOSes+TermInfoOSes;
+  rtl_consoleOSes =KVMALL+CrtOSes+TermInfoOSes+[win16];
 
 // Amiga has a crt in its RTL dir, but it is commented in the makefile
 
