@@ -5,7 +5,7 @@
 {$mode macpas}
 
 uses
-  strings, uprintf3;
+  strings, uprintf3, ctypes;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 {$define TEST_EXTENDED}
@@ -39,7 +39,7 @@ const
   s2 : pchar = 'next';
   si : single = 32.12;
   d : double = 45.45;
-  e : extended = 74.74;
+  e : clongdouble = 74.74;
   p : pchar = nil;
   has_errors : boolean = false;
 
