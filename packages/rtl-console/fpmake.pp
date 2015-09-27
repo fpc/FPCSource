@@ -16,13 +16,13 @@ Const
   KVMAll       = [emx,go32v2,netware,netwlibc,os2,win32,win64]+UnixLikes+AllAmigaLikeOSes;
   
   // all full KVMers have crt too, except Amigalikes
-  CrtOSes      = KVMALL+[msdos,WatCom]-[aros,morphos];
+  CrtOSes      = KVMALL+[msdos,WatCom,win16]-[aros,morphos];
   KbdOSes      = KVMALL+[msdos];
   VideoOSes    = KVMALL+[win16];
   MouseOSes    = KVMALL;
   TerminfoOSes = UnixLikes-[beos,haiku];
 
-  rtl_consoleOSes =KVMALL+CrtOSes+TermInfoOSes+[win16];
+  rtl_consoleOSes =KVMALL+CrtOSes+TermInfoOSes;
 
 // Amiga has a crt in its RTL dir, but it is commented in the makefile
 
@@ -99,6 +99,7 @@ begin
        AddInclude('crth.inc');
        AddInclude('crt.inc');
        AddInclude('nwsys.inc',[netware]);
+       AddUnit   ('video',[win16]);
      end;
 
     T:=P.Targets.AddUnit('vesamode.pp',[go32v2]);
