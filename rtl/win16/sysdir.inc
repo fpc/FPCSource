@@ -31,6 +31,7 @@ begin
   if (len>0) and (s[len]='\') and
      Not ((len=1) or ((len=3) and (s[2]=':'))) then
     s[len]:=#0;
+  ZeroSegRegs(regs);
   regs.DX:=Ofs(s[1]);
   regs.DS:=Seg(s[1]);
   if LFNSupport then
@@ -66,9 +67,11 @@ begin
 { First handle Drive changes }
   if (len>=2) and (s[2]=':') then
    begin
+     ZeroSegRegs(regs);
      regs.DX:=(ord(s[1]) and (not 32))-ord('A');
      regs.AX:=$0e00;
      MsDos(regs);
+     ZeroSegRegs(regs);
      regs.AX:=$1900;
      MsDos(regs);
      if regs.AL<>regs.DL then
@@ -91,6 +94,7 @@ var
   i    : integer;
   regs : Registers;
 begin
+  ZeroSegRegs(regs);
   regs.DX:=drivenr;
   regs.SI:=Ofs(temp);
   regs.DS:=Seg(temp);
@@ -131,6 +135,7 @@ begin
    begin
    { We need to get the current drive from DOS function 19H  }
    { because the drive was the default, which can be unknown }
+     ZeroSegRegs(regs);
      regs.AX:=$1900;
      MsDos(regs);
      i:= (regs.AX and $ff) + ord('A');
