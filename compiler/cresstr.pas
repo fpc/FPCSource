@@ -237,11 +237,22 @@ uses
             message1(general_e_errorwritingresourcefile,ResFileName);
             exit;
           end;
+        { write the data in two formats:
+           a) backward compatible: the plain bytes from the source file
+           b) portable: converted to utf-16
+        }
         writeln(f,'{"version":1,"strings":[');
         R:=TResourceStringItem(List.First);
         while assigned(R) do
           begin
-            write(f, '{"hash":',R.Hash,',"name":"',R.Name,'","value":"');
+            write(f, '{"hash":',R.Hash,',"name":"',R.Name,'","sourcebytes":[');
+            for i:=0 to R.Len-1 do
+              begin
+                write(f,ord(R.Value[i]));
+                if i<>R.Len-1 then
+                  write(f,',');
+              end;
+            write(f,'],"value":"');
             initwidestring(W);
             ascii2unicode(R.Value,R.Len,current_settings.sourcecodepage,W);
             for I := 0 to W^.len - 1 do

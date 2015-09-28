@@ -18,7 +18,11 @@
 
 program rstconv;
 
-uses sysutils, classes, jsonparser, fpjson;
+uses
+{$ifdef unix}
+  cwstring,
+{$endif}
+  sysutils, classes, jsonparser, fpjson, charset, cpall;
 
 resourcestring
   help =
@@ -40,7 +44,10 @@ resourcestring
     'Resource compiler script only options are:'+LineEnding+
     '  -s             Use STRINGTABLE instead of MESSAGETABLE'+LineEnding+
     '  -c identifier  Use identifier as ID base (ID+n) (OPTIONAL)'+LineEnding+
-    '  -n number      Specifies the first ID number (OPTIONAL)'+LineEnding;
+    '  -n number      Specifies the first ID number (OPTIONAL)'+LineEnding+
+    '.rsj-input format-only options are:'+LineEnding+
+    '  -p codepage    Convert the string data to the specified code page before'+LineEnding+
+    '                 writing it to the output file. Possible values:';
 
 
   InvalidOption = 'Invalid option - ';
@@ -50,7 +57,9 @@ resourcestring
   InvalidOutputFormat = 'Invalid output format -';
   MessageNumberTooBig = 'Message number too big';
   InvalidRange = 'Invalid range of the first message number';
-
+  MissingOption = 'Missing option after parameter ';
+  UnsupportedOutputCodePage = 'Unsupported output code page specified: ';
+  RstNoOutputCodePage = 'It is not possible to specify an output code page when using a .rst file';
 
 type
 
@@ -62,8 +71,9 @@ type
 var
   InFilename, OutFilename: String;
   ConstItems: TCollection;
-  CharSet: String;
+  HeaderCharSet: String;
   Identifier: String;
+  OutputCodePage: Longint;
   FirstMessage: Word;
   MessageTable: Boolean;
 
@@ -121,12 +131,15 @@ procedure ReadRSJFile;
 var
   Stream: TFileStream;
   Parser: TJSONParser;
-  JsonItems: TJSONArray;
+  JsonItems,
+  RawStringData: TJSONArray;
   JsonData, JsonItem: TJSONObject;
   S: String;
   item: TConstItem;
-  DotPos, I: Integer;
+  DotPos, I, J: Integer;
 begin
+  if OutputCodePage<>-1 then
+    DefaultSystemCodePage:=OutputCodePage;
   Stream := TFileStream.Create(InFilename, fmOpenRead or fmShareDenyNone);
   Parser := TJSONParser.Create(Stream);
   try
@@ -141,7 +154,17 @@ begin
         DotPos := Pos('.', s);
         item.ModuleName := Copy(s, 1, DotPos - 1);
         item.ConstName := Copy(s, DotPos + 1, Length(S) - DotPos);
-        item.Value := JsonItem.Get('value');
+        if OutputCodePage=-1 then
+          begin
+            RawStringData:=JsonItem.Get('sourcebytes',TJSONArray(nil));
+            SetLength(item.Value, RawStringData.Count);
+            for J := 1 to Length(item.Value) do
+              item.Value[J]:=char(RawStringData.Integers[J-1]);
+          end
+        else
+          { automatically converts from UTF-16 to the correct code page due
+            to the change of DefaultSystemCodePage to OutputCodePage above }
+          item.Value := JsonItem.Get('value');
       end;
     finally
       JsonData.Free;
@@ -164,12 +187,12 @@ begin
   Assign(f, OutFilename);
   Rewrite(f);
   
-  if CharSet<>'' then begin
+  if HeaderCharSet<>'' then begin
     // Write file header  with
     WriteLn(f, 'msgid ""');
     WriteLn(f, 'msgstr ""');
     WriteLn(f, '"MIME-Version: 1.0\n"');
-    WriteLn(f, '"Content-Type: text/plain; charset=', CharSet, '\n"');
+    WriteLn(f, '"Content-Type: text/plain; charset=', HeaderCharSet, '\n"');
     WriteLn(f, '"Content-Transfer-Encoding: 8bit\n"');
     WriteLn(f);
   end;
@@ -345,15 +368,21 @@ begin
 
   if (ParamStr(1) = '-h') or (ParamStr(1) = '--help') then begin
     WriteLn(help);
+    for i:=low(word) to high(word) do
+      if mappingavailable(i) then
+        writeln('                   ',getmap(i)^.cpname);
+    { UTF-8 is not supported via the CharSet unit }
+    writeln('                   UTF-8');
     exit;
   end;
 
   ConversionProc := @ConvertToGettextPO;
   OutputFormat:='';
-  CharSet:='';
+  HeaderCharSet:='';
   Identifier:='';
   FirstMessage:=0;
   MessageTable:=True;
+  OutputCodePage:=-1;
 
   i := 1;
   while i <= ParamCount do begin
@@ -391,11 +420,11 @@ begin
       Inc(i, 2);
     end else if ParamStr(i) = '-c' then begin
       if (OutputFormat='') or (OutputFormat='po') then begin
-        if CharSet <> '' then begin
+        if HeaderCharSet <> '' then begin
           WriteLn(StdErr, OptionAlreadySpecified, '-c');
           Halt(1);
         end;
-        CharSet:=ParamStr(i+1);
+        HeaderCharSet:=ParamStr(i+1);
       end else
       begin
         if Identifier <> '' then begin
@@ -428,13 +457,32 @@ begin
         end;
       end;
       Inc(i, 2);
-    end else begin
+    end else if ParamStr(i) = '-p' then
+      begin
+        if paramcount=i then
+          begin
+            WriteLn(StdErr, MissingOption,'-p');
+            Halt(1)
+          end;
+        if UpperCase(paramstr(i+1))<>'UTF-8' then
+          if not mappingavailable(ParamStr(i+1)) then
+            begin
+              WriteLn(StdErr, UnsupportedOutputCodePage, ParamStr(i+1));
+              Halt(1);
+            end
+          else
+            OutputCodePage:=getmap(ParamStr(i+1))^.cp
+        else
+          OutputCodePage:=CP_UTF8;
+        Inc(i, 2);
+      end
+    else begin
       WriteLn(StdErr, InvalidOption, ParamStr(i));
       Halt(1);
     end;
   end;
 
-  If ((OutputFormat<>'') and (OutputFormat<>'po')) and (CharSet<>'')  then begin
+  If ((OutputFormat<>'') and (OutputFormat<>'po')) and (HeaderCharSet<>'')  then begin
     WriteLn(StdErr, InvalidOption, '');
     Halt(1);
   end;
@@ -459,7 +507,14 @@ begin
   if ExtractFileExt(InFilename) = '.rsj' then
     ReadRSJFile
   else
-    ReadRSTFile;
+    begin
+      if OutputCodePage<>-1 then
+        begin
+          WriteLn(StdErr, RstNoOutputCodePage);
+          Halt(1);
+        end;
+      ReadRSTFile;
+    end;
 
   ConversionProc;
 end.

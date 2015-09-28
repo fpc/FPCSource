@@ -201,6 +201,7 @@ unit widestr;
          Result := getascii(c,getmap(current_settings.sourcecodepage))[1];
       end;
 
+
     procedure ascii2unicode(p : pchar;l : SizeInt;cp : tstringencoding;r : pcompilerwidestring;codepagetranslation : boolean = true);
       var
          source : pchar;
@@ -212,15 +213,25 @@ unit widestr;
          setlengthwidestring(r,l);
          source:=p;
          dest:=tcompilerwidecharptr(r^.data);
-         if (cp<>CP_UTF8) and
-            codepagetranslation then
+         if codepagetranslation then
            begin
-             for i:=1 to l do
-                begin
-                  dest^:=getunicode(source^,m);
-                  inc(dest);
-                  inc(source);
-                end;
+             if cp<>CP_UTF8 then
+               begin
+                 for i:=1 to l do
+                    begin
+                      dest^:=getunicode(source^,m);
+                      inc(dest);
+                      inc(source);
+                    end;
+               end
+             else
+               begin
+                 r^.len:=Utf8ToUnicode(punicodechar(r^.data),r^.maxlen,p,l);
+                 { -1, because utf8tounicode includes room for a terminating 0 in
+                   its result count }
+                 if r^.len>0 then
+                   dec(r^.len);
+               end;
            end
          else
            begin
@@ -232,6 +243,7 @@ unit widestr;
                 end;
            end;
       end;
+
 
     procedure unicode2ascii(r : pcompilerwidestring;p:pchar;cp : tstringencoding);
       var
