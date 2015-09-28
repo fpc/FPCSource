@@ -212,7 +212,7 @@ unit widestr;
          setlengthwidestring(r,l);
          source:=p;
          dest:=tcompilerwidecharptr(r^.data);
-         if (current_settings.sourcecodepage <> CP_UTF8) and
+         if (cp<>CP_UTF8) and
             codepagetranslation then
            begin
              for i:=1 to l do
