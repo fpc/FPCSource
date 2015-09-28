@@ -395,7 +395,7 @@ begin
 { Check LFN API on drive c:\ }
   RootName:='C:\';
 { Call 'Get Volume Information' ($71A0) }
-  FillChar(regs,SizeOf(regs),0);
+{ no need to ZeroSegRegs(regs), because we initialize both DS and ES }
   regs.AX:=$71a0;
   regs.ES:=Seg(buf);
   regs.DI:=Ofs(buf);
