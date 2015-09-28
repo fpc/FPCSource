@@ -1336,7 +1336,7 @@ begin
     SaveState := SetTempState(dsInternalCalc);
     try
       CalculateFields(TRecordBuffer(@TempItem));
-      Result := FieldByName(ResultFields).Value;
+      Result := FieldValues[ResultFields];
     finally
       RestoreState(SaveState);
     end;
