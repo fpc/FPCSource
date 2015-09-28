@@ -1037,6 +1037,8 @@ procedure TCustomSqliteDataset.InternalPost;
 var
   ActiveItem: PDataRecord;
 begin
+  inherited InternalPost;
+
   if State <> dsEdit then
     InternalAddRecord(ActiveBuffer, True)
   else
