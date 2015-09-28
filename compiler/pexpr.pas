@@ -3749,7 +3749,7 @@ implementation
                     );
         end;
 
-      (*function gettypedef(n:tnode):tdef;inline;
+      function gettypedef(n:tnode):tdef;inline;
       { This returns the typedef that belongs to the given typenode or
         loadvmtaddrnode. n must not be Nil! }
         begin
@@ -3757,7 +3757,7 @@ implementation
             result:=ttypenode(n).typedef
           else
             result:=ttypenode(tloadvmtaddrnode(n).left).typedef;
-        end;*)
+        end;
 
       function gettypedef(sym:tsym):tdef;inline;
         begin
