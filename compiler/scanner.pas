@@ -3490,6 +3490,7 @@ type
                        inc(inputpointer,3);
                        message(scan_c_switching_to_utf8);
                        current_settings.sourcecodepage:=CP_UTF8;
+                       exclude(current_settings.moduleswitches,cs_system_codepage);
                        include(current_settings.moduleswitches,cs_explicit_codepage);
                      end;
 
