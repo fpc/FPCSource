@@ -252,11 +252,15 @@ unit widestr;
         dest   : pchar;
         i      : longint;
       begin
+        { can't implement that here, because the memory size for p() cannot
+          be changed here, and we may need more bytes than have been allocated }
+        if cp=CP_UTF8 then
+          internalerrorproc(2015092701);
+
         if (cp = 0) or (cp=CP_NONE) then
           m:=getmap(current_settings.sourcecodepage)
         else
           m:=getmap(cp);
-         // !!!! MBCS
         source:=tcompilerwidecharptr(r^.data);
         dest:=p;
         for i:=1 to r^.len do
@@ -266,28 +270,7 @@ unit widestr;
            inc(source);
          end;
       end;
-(*
-      var
-        source : tcompilerwidecharptr;
-        dest   : pchar;
-        i      : longint;
-      begin
-        { This routine must work the same as the
-          the routine in the RTL to have the same compile time (for constant strings)
-          and runtime conversion (for variables) }
-        source:=tcompilerwidecharptr(r^.data);
-        dest:=p;
-        for i:=1 to r^.len do
-         begin
-           if word(source^)<128 then
-            dest^:=char(word(source^))
-           else
-            dest^:='?';
-           inc(dest);
-           inc(source);
-         end;
-      end;
-*)
+
 
     function hasnonasciichars(const p: pcompilerwidestring): boolean;
       var
