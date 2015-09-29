@@ -997,18 +997,15 @@ end;
 
 function GetEnvStr(EnvNo: Integer; var OutEnvStr: string): integer;
 var
-  dos_env_seg: Word;
-  ofs: Word;
-  Ch, Ch2: Char;
+  dos_env_ptr: LPSTR;
+  Ch: Char;
 begin
-  dos_env_seg := PFarWord(Ptr(PrefixSeg, $2C))^;
+  dos_env_ptr := GetDOSEnvironment;
   GetEnvStr := 1;
   OutEnvStr := '';
-  ofs := 0;
   repeat
-    Ch := PFarChar(Ptr(dos_env_seg,ofs))^;
-    Ch2 := PFarChar(Ptr(dos_env_seg,ofs + 1))^;
-    if (Ch = #0) and (Ch2 = #0) then
+    Ch := dos_env_ptr^;
+    if (Ch = #0) and ((dos_env_ptr+1)^ = #0) then
       exit;
 
     if Ch = #0 then
@@ -1017,8 +1014,8 @@ begin
     if (Ch <> #0) and (GetEnvStr = EnvNo) then
       OutEnvStr := OutEnvStr + Ch;
 
-    Inc(ofs);
-    if ofs = 0 then
+    Inc(dos_env_ptr);
+    if Ofs(dos_env_ptr^) = 0 then
       exit;
   until false;
 end;
