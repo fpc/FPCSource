@@ -39,6 +39,7 @@ unit aoptx86;
 
     function MatchOperand(const oper: TOper; const reg: TRegister): boolean; inline;
     function MatchOperand(const oper: TOper; const a: tcgint): boolean; inline;
+    function MatchOperand(const oper1: TOper; const oper2: TOper): boolean;
 
     function RefsEqual(const r1, r2: treference): boolean;
 
@@ -96,7 +97,7 @@ unit aoptx86;
       end;
 
 
-    function MatchOperand(const oper1: TOper; const oper2: TOper): boolean; inline;
+    function MatchOperand(const oper1: TOper; const oper2: TOper): boolean;
       begin
         result := oper1.typ = oper2.typ;
 
