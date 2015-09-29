@@ -54,7 +54,7 @@ const
   s2 : pchar = 'next';
   si : single = 32.12;
   d : double = 45.45;
-  e : clongdouble = 74.74;
+  e : cextended = 74.74;
   p : pchar = nil;
   has_errors : boolean = false;
 
