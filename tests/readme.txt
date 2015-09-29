@@ -180,9 +180,9 @@ TEST_RSH             set this to the hostname when you want to use rsh/rcp
                      to execute/copy the test
 TEST_SSH             set this to use ssh/scp to execute the test
 TEST_PUTTY           test using putty when remote testing (pscp and plink)
-TEST_ADB             run tests om remote Android device using ADB. Specify
-                     TEST_ADB=1 to run on default connected device. Specify
-                     TEST_ADB=<serial> to run on specific connected device.
+TEST_ADB             run tests on a remote Android device using ADB. Specify
+                     TEST_ADB=1 to run on a default connected device. Specify
+                     TEST_ADB=<serial> to run on a specific connected device.
 TEST_REMOTEOPT       extra options to remote program
 TEST_REMOTEPATH      set remote path to use, default is /tmp
 TEST_DELBEFORE       delete remote executable before uploading
