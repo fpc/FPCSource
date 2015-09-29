@@ -2009,6 +2009,7 @@ packages/fcl-base/examples/tstelgtk.pp svneol=native#text/plain
 packages/fcl-base/examples/txmlreg.pp svneol=native#text/plain
 packages/fcl-base/examples/xmldump.pp svneol=native#text/plain
 packages/fcl-base/fpmake.pp svneol=native#text/plain
+packages/fcl-base/src/advancedipc.pp svneol=native#text/plain
 packages/fcl-base/src/ascii85.pp svneol=native#text/plain
 packages/fcl-base/src/avl_tree.pp svneol=native#text/plain
 packages/fcl-base/src/base64.pp svneol=native#text/plain

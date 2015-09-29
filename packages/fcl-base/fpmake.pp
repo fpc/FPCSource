@@ -63,7 +63,9 @@ begin
     T:=P.Targets.AddUnit('fptimer.pp',AllWindowsOSes+AllUnixOSes);
     T:=P.Targets.AddUnit('gettext.pp');
     T:=P.Targets.AddUnit('idea.pp');
+    
     T:=P.Targets.AddUnit('inicol.pp');
+    
       T.ResourceStrings:=true;
       with T.Dependencies do
         begin
@@ -117,6 +119,7 @@ begin
       AddUnit('csvreadwrite');
       AddUnit('contnrs');
       end;
+    T:=P.Targets.addUnit('advancedipc.pp');
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*');
     // Install windows resources
