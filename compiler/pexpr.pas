@@ -2411,6 +2411,7 @@ implementation
                       erroroutp1:=true;
                       if token=_ID then
                         begin
+                          srsym:=nil;
                           structh:=tobjectdef(tclassrefdef(p1.resultdef).pointeddef);
                           if isspecialize then
                             begin
