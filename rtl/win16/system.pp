@@ -15,6 +15,9 @@ interface
 
 {$DEFINE HAS_CMDLINE}
 
+{$DEFINE DISABLE_NO_DYNLIBS_MANAGER}
+{$DEFINE FPC_SYSTEM_HAS_SYSDLH}
+
 {$I systemh.inc}
 {$IFDEF FPC_X86_DATA_NEAR}
 {$I locheaph.inc}
