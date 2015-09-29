@@ -2,7 +2,13 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2015 by Ondrej Pokorny
 
-    Unit implementing two-way (request/response) IPC between 1 server and more clients, based on files.
+    Unit implementing two-way (request/response) IPC between 1 server and more
+    clients, based on files.
+    The order of message processing is not deterministic (if there are more
+    pending messages, the server won't process them in the order they have
+    been sent to the server.
+    SendRequest and PostRequest+PeekResponse sequences from 1 client are
+    blocking and processed in correct order.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -27,13 +33,14 @@ uses
   sysutils, Classes;
 
 const
-  HEADER_VERSION = 1;
+  HEADER_VERSION = 2;
 
 type
+  TMessageType = LongInt;
   TMessageHeader = packed record
-    HeaderVersion: Integer;
+    HeaderVersion: Byte;
     FileLock: Byte;//0 = unlocked, 1 = locked
-    MsgType: Integer;
+    MsgType: TMessageType;
     MsgLen: Integer;
     MsgVersion: Integer;
   end;
@@ -45,47 +52,58 @@ type
     destructor Destroy; override;
   end;
 
-  TIPCBase = class
+  TIPCBase = class(TComponent)
   private
     FGlobal: Boolean;
     FFileName: string;
-    FServerName: string;
+    FServerID: string;
     FMessageVersion: Integer;
   protected
-    class function ServerNameToFileName(const aServerName: string; const aGlobal: Boolean): string;
+    class function ServerIDToFileName(const aServerID: string; const aGlobal: Boolean): string;
     function GetResponseFileName(const aMsgID: Integer): string;
     function GetResponseFileName(const aRequestFileName: string): string;
+    function GetPeekedRequestFileName(const aMsgID: Integer): string;
+    function GetPeekedRequestFileName(const aRequestFileName: string): string;
     function GetRequestPrefix: string;
     function GetRequestFileName(const aMsgID: Integer): string;
     function RequestFileNameToMsgID(const aFileName: string): Integer;
 
     function GetUniqueRequest(out outFileName: string): Integer;
-    procedure SetServerName(const aServerName: string); virtual;
+    procedure SetServerID(const aServerID: string); virtual;
     procedure SetGlobal(const aGlobal: Boolean); virtual;
 
-    function CanReadMessage(const aFileName: string; out outStream: TStream; out outMsgType, outMsgLen: Integer): Boolean;
-    procedure DoPostMessage(const aFileName: string; const aMsgType: Integer; const aStream: TStream);
+    function CanReadMessage(const aFileName: string; out outStream: TStream; out outMsgType: TMessageType; out outMsgLen: Integer): Boolean;
+    procedure DoPostMessage(const aFileName: string; const aMsgType: TMessageType; const aStream: TStream);
 
     property FileName: string read FFileName;
   public
-    constructor Create; virtual;
+    class procedure FindRunningServers(const aServerIDPrefix: string;
+      const outServerIDs: TStrings; const aGlobal: Boolean = False);
+    class function ServerRunning(const aServerID: string; const aGlobal: Boolean = False): Boolean; overload;
   public
-    class procedure FindRunningServers(const aServerNamePrefix: string;
-      const outServerNames: TStrings; const aGlobal: Boolean = False);
-    class function ServerIsRunning(const aServerName: string; const aGlobal: Boolean = False): Boolean;
-    property ServerName: string read FServerName write SetServerName;
+    //ServerID: name/ID of the server. Use only ['a'..'z', 'A'..'Z', '_'] characters
+    property ServerID: string read FServerID write SetServerID;
+    //Global: if true, processes from different users can communicate; false, processes only from current users can communicate
     property Global: Boolean read FGlobal write SetGlobal;
+    //MessageVersion: only messages with the same MessageVersion can be delivered between server/client
     property MessageVersion: Integer read FMessageVersion write FMessageVersion;
   end;
 
   TIPCClient = class(TIPCBase)
-  var
+  private
     FLastMsgFileName: string;
   public
-    function PostRequest(const aMsgType: Integer; const aStream: TStream): Integer;//returns ID
-    function PeekResponse(const aStream: TStream; var outMsgType: Integer; const aTimeOut: Integer): Boolean;
+    //post request to server, do not wait until request is peeked; returns request ID
+    function PostRequest(const aMsgType: TMessageType; const aStream: TStream): Integer;
+    //send request to server, wait until request is peeked; returns True if request was peeked within the aTimeOut limit
+    function SendRequest(const aMsgType: TMessageType; const aStream: TStream; const aTimeOut: Integer): Boolean;
+    function SendRequest(const aMsgType: TMessageType; const aStream: TStream; const aTimeOut: Integer; out outRequestID: Integer): Boolean;
+    //peek a response from last request from this client
+    function PeekResponse(const aStream: TStream; out outMsgType: TMessageType; const aTimeOut: Integer): Boolean;
+    //delete last request from this client
     procedure DeleteRequest;
-    function ServerRunning: Boolean;
+    //check if server is running
+    function ServerRunning: Boolean; overload;
   end;
 
   TIPCServer = class(TIPCBase)
@@ -93,32 +111,54 @@ type
     FFileHandle: TFileHandle;
     FActive: Boolean;
 
-    function FindFirstRequest(out outFileName: string; out outStream: TStream; out outMsgType, outMsgLen: Integer): Integer;
+    function FindFirstRequest(out outFileName: string; out outStream: TStream; out outMsgType: TMessageType; out outMsgLen: Integer): Integer;
 
   protected
-    procedure SetServerName(const aServerName: string); override;
+    procedure SetServerID(const aServerID: string); override;
     procedure SetGlobal(const aGlobal: Boolean); override;
   public
-    constructor Create; override;
+    constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
   public
-    function PeekRequest(const aStream: TStream; var outMsgType: Integer): Boolean; overload;
-    function PeekRequest(const aStream: TStream; var outMsgID, outMsgType: Integer): Boolean; overload;
-    function PeekRequest(const aStream: TStream; var outMsgID, outMsgType: Integer; const aTimeOut: Integer): Boolean; overload;
-    procedure PostResponse(const aMsgID: Integer; const aMsgType: Integer; const aStream: TStream);
+    //peek request and read the message into a stream
+    function PeekRequest(const aStream: TStream; out outMsgType: TMessageType): Boolean; overload;
+    function PeekRequest(const aStream: TStream; out outMsgID: Integer; out outMsgType: TMessageType): Boolean; overload;
+    function PeekRequest(const aStream: TStream; out outMsgID: Integer; out outMsgType: TMessageType; const aTimeOut: Integer): Boolean; overload;
+    //only peek request, you have to read/delete the request manually with ReadRequest/DeleteRequest
+    function PeekRequest(out outMsgType: TMessageType): Boolean; overload;
+    function PeekRequest(out outMsgID: Integer; out outMsgType: TMessageType): Boolean; overload;
+    function PeekRequest(out outMsgID: Integer; out outMsgType: TMessageType; const aTimeOut: Integer): Boolean; overload;
+    //read a peeked request (that hasn't been read yet)
+    function ReadRequest(const aMsgID: Integer; const aStream: TStream): Boolean;
+    //delete a peeked request (that hasn't been read yet)
+    procedure DeleteRequest(const aMsgID: Integer);
 
+    //post response to a request
+    procedure PostResponse(const aMsgID: Integer; const aMsgType: TMessageType; const aStream: TStream);
+
+    //find the highest request ID from all pending requests
     function FindHighestPendingRequestId: Integer;
+    //get the pending request count
     function GetPendingRequestCount: Integer;
 
-    function StartServer(const aDeletePendingRequests: Boolean = True): Boolean;//returns true if unique and started
-    function StopServer(const aDeletePendingRequests: Boolean = True): Boolean;//returns true if stopped
+    //start server: returns true if unique and started
+    function StartServer(const aDeletePendingRequests: Boolean = True): Boolean;
+    //stop server: returns true if stopped
+    function StopServer(const aDeletePendingRequests: Boolean = True): Boolean;
 
+    //delete all pending requests and responses
     procedure DeletePendingRequests;
-
-    property Active: Boolean read FActive;//true if started
+  public
+    //true if server runs (was started)
+    property Active: Boolean read FActive;
   end;
 
   EICPException = class(Exception);
+
+resourcestring
+  SErrInvalidServerID = 'Invalid server ID "%s". Please use only alphanumerical characters and underlines.';
+  SErrSetGlobalActive = 'You cannot change the global property when the server is active.';
+  SErrSetServerIDActive = 'You cannot change the server ID when the server is active.';
 
 implementation
 
@@ -132,7 +172,8 @@ const
 { TIPCBase }
 
 function TIPCBase.CanReadMessage(const aFileName: string; out
-  outStream: TStream; out outMsgType, outMsgLen: Integer): Boolean;
+  outStream: TStream; out outMsgType: TMessageType; out outMsgLen: Integer
+  ): Boolean;
 var
   xFileHandle: TFileHandle;
   xHeader: TMessageHeader;
@@ -172,11 +213,6 @@ begin
   outMsgLen := xHeader.MsgLen;
 end;
 
-constructor TIPCBase.Create;
-begin
-  inherited Create;
-end;
-
 function TIPCBase.GetUniqueRequest(out outFileName: string): Integer;
 begin
   Randomize;
@@ -186,13 +222,13 @@ begin
   until not FileExists(outFileName);
 end;
 
-class function TIPCBase.ServerIsRunning(const aServerName: string;
+class function TIPCBase.ServerRunning(const aServerID: string;
   const aGlobal: Boolean): Boolean;
 var
   xServerFileHandle: TFileHandle;
   xFileName: String;
 begin
-  xFileName := ServerNameToFileName(aServerName, aGlobal);
+  xFileName := ServerIDToFileName(aServerID, aGlobal);
   Result := FileExists(xFileName);
   if Result then
   begin//+ check -> we should not be able to access the file
@@ -203,10 +239,10 @@ begin
   end;
 end;
 
-class function TIPCBase.ServerNameToFileName(const aServerName: string;
+class function TIPCBase.ServerIDToFileName(const aServerID: string;
   const aGlobal: Boolean): string;
 begin
-  Result := GetTempDir(aGlobal)+aServerName;
+  Result := GetTempDir(aGlobal)+aServerID;
 end;
 
 procedure TIPCBase.SetGlobal(const aGlobal: Boolean);
@@ -214,11 +250,11 @@ begin
   if FGlobal = aGlobal then Exit;
 
   FGlobal := aGlobal;
-  FFileName := ServerNameToFileName(FServerName, FGlobal);
+  FFileName := ServerIDToFileName(FServerID, FGlobal);
 end;
 
 procedure TIPCBase.DoPostMessage(const aFileName: string;
-  const aMsgType: Integer; const aStream: TStream);
+  const aMsgType: TMessageType; const aStream: TStream);
 var
   xHeader: TMessageHeader;
   xStream: TFileStream;
@@ -226,13 +262,17 @@ begin
   xHeader.HeaderVersion := HEADER_VERSION;
   xHeader.FileLock := 1;//locking
   xHeader.MsgType := aMsgType;
-  xHeader.MsgLen := aStream.Size-aStream.Position;
+  if Assigned(aStream) then
+    xHeader.MsgLen := aStream.Size-aStream.Position
+  else
+    xHeader.MsgLen := 0;
   xHeader.MsgVersion := MessageVersion;
 
   xStream := TFileStream.Create(aFileName, fmCreate or fmShareExclusive, GLOBAL_RIGHTS);
   try
     xStream.WriteBuffer(xHeader, SizeOf(xHeader));
-    xStream.CopyFrom(aStream, 0);
+    if Assigned(aStream) then
+      xStream.CopyFrom(aStream, 0);
 
     xStream.Position := 0;//unlocking
     xHeader.FileLock := 0;
@@ -244,27 +284,40 @@ end;
 
 function TIPCBase.RequestFileNameToMsgID(const aFileName: string): Integer;
 begin
-  if Length(aFileName) > 8 then
+  //the function prevents all responses/temp files to be handled
+  //only valid response files are returned
+  if (Length(aFileName) > 9) and (aFileName[Length(aFileName)-8] = '-') then
     Result := StrToIntDef('$'+Copy(aFileName, Length(aFileName)-7, 8), -1)
   else
     Result := -1;
 end;
 
-class procedure TIPCBase.FindRunningServers(const aServerNamePrefix: string;
-  const outServerNames: TStrings; const aGlobal: Boolean);
+class procedure TIPCBase.FindRunningServers(const aServerIDPrefix: string;
+  const outServerIDs: TStrings; const aGlobal: Boolean);
 var
   xRec: TRawByteSearchRec;
 begin
-  if FindFirst(ServerNameToFileName(aServerNamePrefix+'*', aGlobal), faAnyFile, xRec) = 0 then
+  if FindFirst(ServerIDToFileName(aServerIDPrefix+'*', aGlobal), faAnyFile, xRec) = 0 then
   begin
     repeat
-      if (Pos('_', xRec.Name) = 0) and//file that we found is not pending a message
-         ServerIsRunning(xRec.Name)
+      if (Pos('-', xRec.Name) = 0) and//file that we found is a pending message
+         ServerRunning(xRec.Name, aGlobal)
       then
-        outServerNames.Add(xRec.Name);
+        outServerIDs.Add(xRec.Name);
     until FindNext(xRec) <> 0;
   end;
   FindClose(xRec);
+end;
+
+function TIPCBase.GetPeekedRequestFileName(const aMsgID: Integer): string;
+begin
+  Result := GetPeekedRequestFileName(GetRequestFileName(aMsgID));
+end;
+
+function TIPCBase.GetPeekedRequestFileName(const aRequestFileName: string
+  ): string;
+begin
+  Result := aRequestFileName+'-t';
 end;
 
 function TIPCBase.GetRequestFileName(const aMsgID: Integer): string;
@@ -274,7 +327,7 @@ end;
 
 function TIPCBase.GetRequestPrefix: string;
 begin
-  Result := FFileName+'_';
+  Result := FFileName+'-';
 end;
 
 function TIPCBase.GetResponseFileName(const aMsgID: Integer): string;
@@ -284,22 +337,22 @@ end;
 
 function TIPCBase.GetResponseFileName(const aRequestFileName: string): string;
 begin
-  Result := aRequestFileName+'_r';
+  Result := aRequestFileName+'-r';
 end;
 
-procedure TIPCBase.SetServerName(const aServerName: string);
+procedure TIPCBase.SetServerID(const aServerID: string);
 var
   I: Integer;
 begin
-  if FServerName = aServerName then Exit;
+  if FServerID = aServerID then Exit;
 
-  for I := 1 to Length(aServerName) do
-  if not (aServerName[I] in ['a'..'z', 'A'..'Z', '0'..'9']) then
-    raise EICPException.Create('You cannot use the "_" character in server name.');
+  for I := 1 to Length(aServerID) do
+  if not (aServerID[I] in ['a'..'z', 'A'..'Z', '0'..'9', '_']) then
+    raise EICPException.CreateFmt(SErrInvalidServerID , [aServerID]);
 
-  FServerName := aServerName;
+  FServerID := aServerID;
 
-  FFileName := ServerNameToFileName(FServerName, FGlobal);
+  FFileName := ServerIDToFileName(FServerID, FGlobal);
 end;
 
 { TIPCClient }
@@ -310,8 +363,8 @@ begin
     FLastMsgFileName := '';
 end;
 
-function TIPCClient.PeekResponse(const aStream: TStream;
-  var outMsgType: Integer; const aTimeOut: Integer): Boolean;
+function TIPCClient.PeekResponse(const aStream: TStream; out
+  outMsgType: TMessageType; const aTimeOut: Integer): Boolean;
 var
   xStart: QWord;
   xStream: TStream;
@@ -319,7 +372,6 @@ var
   xFileResponse: string;
 begin
   aStream.Size := 0;
-  outMsgType := -1;
   Result := False;
   xStart := GetTickCount64;
   repeat
@@ -337,17 +389,45 @@ begin
   until (GetTickCount64-xStart > aTimeOut);
 end;
 
-function TIPCClient.PostRequest(const aMsgType: Integer; const aStream: TStream
-  ): Integer;
+function TIPCClient.PostRequest(const aMsgType: TMessageType;
+  const aStream: TStream): Integer;
 begin
   Result := GetUniqueRequest(FLastMsgFileName);
   DeleteFile(GetResponseFileName(FLastMsgFileName));//delete old response, if there is any
   DoPostMessage(FLastMsgFileName, aMsgType, aStream);
 end;
 
+function TIPCClient.SendRequest(const aMsgType: TMessageType;
+  const aStream: TStream; const aTimeOut: Integer): Boolean;
+var
+  xRequestID: Integer;
+begin
+  Result := SendRequest(aMsgType, aStream, aTimeOut, xRequestID);
+end;
+
+function TIPCClient.SendRequest(const aMsgType: TMessageType;
+  const aStream: TStream; const aTimeOut: Integer; out outRequestID: Integer
+  ): Boolean;
+var
+  xStart: QWord;
+  xRequestFileName: string;
+begin
+  outRequestID := PostRequest(aMsgType, aStream);
+  Result := False;
+
+  xRequestFileName := GetRequestFileName(outRequestID);
+  xStart := GetTickCount64;
+  repeat
+    if not FileExists(xRequestFileName) then
+      Exit(True)
+    else if aTimeOut > 20 then
+      Sleep(10);
+  until (GetTickCount64-xStart > aTimeOut);
+end;
+
 function TIPCClient.ServerRunning: Boolean;
 begin
-  Result := ServerIsRunning(ServerName);
+  Result := ServerRunning(ServerID, Global);
 end;
 
 { TReleaseHandleStream }
@@ -376,9 +456,14 @@ begin
   FindClose(xRec);
 end;
 
-constructor TIPCServer.Create;
+procedure TIPCServer.DeleteRequest(const aMsgID: Integer);
 begin
-  inherited Create;
+  DeleteFile(GetPeekedRequestFileName(aMsgID));
+end;
+
+constructor TIPCServer.Create(aOwner: TComponent);
+begin
+  inherited Create(aOwner);
 
   FFileHandle := feInvalidHandle;
 end;
@@ -392,7 +477,8 @@ begin
 end;
 
 function TIPCServer.FindFirstRequest(out outFileName: string; out
-  outStream: TStream; out outMsgType, outMsgLen: Integer): Integer;
+  outStream: TStream; out outMsgType: TMessageType; out outMsgLen: Integer
+  ): Integer;
 var
   xRec: TRawByteSearchRec;
 begin
@@ -452,70 +538,111 @@ begin
   FindClose(xRec);
 end;
 
-function TIPCServer.PeekRequest(const aStream: TStream; var outMsgID,
-  outMsgType: Integer): Boolean;
+function TIPCServer.PeekRequest(out outMsgID: Integer; out
+  outMsgType: TMessageType): Boolean;
 var
   xStream: TStream;
   xMsgLen: Integer;
   xMsgFileName: string;
 begin
-  aStream.Size := 0;
   outMsgType := -1;
   xMsgFileName := '';
   outMsgID := FindFirstRequest(xMsgFileName, xStream, outMsgType, xMsgLen);
   Result := outMsgID >= 0;
   if Result then
   begin
-    aStream.CopyFrom(xStream, xMsgLen);
-    aStream.Position := 0;
     xStream.Free;
-    DeleteFile(xMsgFileName);
+    RenameFile(xMsgFileName, GetPeekedRequestFileName(xMsgFileName));
   end;
 end;
 
-function TIPCServer.PeekRequest(const aStream: TStream; var outMsgID,
-  outMsgType: Integer; const aTimeOut: Integer): Boolean;
+function TIPCServer.PeekRequest(out outMsgID: Integer; out
+  outMsgType: TMessageType; const aTimeOut: Integer): Boolean;
 var
   xStart: QWord;
 begin
   Result := False;
   xStart := GetTickCount64;
   repeat
-    if PeekRequest(aStream, outMsgID, outMsgType) then
+    if PeekRequest(outMsgID, outMsgType) then
       Exit(True)
     else if aTimeOut > 20 then
       Sleep(10);
   until (GetTickCount64-xStart > aTimeOut);
 end;
 
-function TIPCServer.PeekRequest(const aStream: TStream; var outMsgType: Integer
-  ): Boolean;
+function TIPCServer.PeekRequest(out outMsgType: TMessageType): Boolean;
 var
   xMsgID: Integer;
 begin
-  Result := PeekRequest(aStream, xMsgID{%H-}, outMsgType);
+  Result := PeekRequest(xMsgID, outMsgType);
+end;
+
+function TIPCServer.PeekRequest(const aStream: TStream; out outMsgID: Integer;
+  out outMsgType: TMessageType): Boolean;
+begin
+  Result := PeekRequest(outMsgID, outMsgType);
+  if Result then
+    Result := ReadRequest(outMsgID, aStream);
+end;
+
+function TIPCServer.PeekRequest(const aStream: TStream; out outMsgID: Integer;
+  out outMsgType: TMessageType; const aTimeOut: Integer): Boolean;
+begin
+  Result := PeekRequest(outMsgID, outMsgType, aTimeOut);
+  if Result then
+    Result := ReadRequest(outMsgID, aStream);
+end;
+
+function TIPCServer.PeekRequest(const aStream: TStream; out
+  outMsgType: TMessageType): Boolean;
+var
+  xMsgID: Integer;
+begin
+  Result := PeekRequest(aStream, xMsgID, outMsgType);
 end;
 
 procedure TIPCServer.PostResponse(const aMsgID: Integer;
-  const aMsgType: Integer; const aStream: TStream);
+  const aMsgType: TMessageType; const aStream: TStream);
 begin
   DoPostMessage(GetResponseFileName(aMsgID), aMsgType, aStream);
+end;
+
+function TIPCServer.ReadRequest(const aMsgID: Integer; const aStream: TStream
+  ): Boolean;
+var
+  xStream: TStream;
+  xMsgLen: Integer;
+  xMsgType: TMessageType;
+  xFileRequest: string;
+begin
+  aStream.Size := 0;
+  xFileRequest := GetPeekedRequestFileName(aMsgID);
+  Result := CanReadMessage(xFileRequest, xStream, xMsgType, xMsgLen);
+  if Result then
+  begin
+    aStream.CopyFrom(xStream, xMsgLen);
+    xStream.Free;
+    aStream.Position := 0;
+    DeleteFile(xFileRequest);
+    Exit(True);
+  end;
 end;
 
 procedure TIPCServer.SetGlobal(const aGlobal: Boolean);
 begin
   if Active then
-    raise EICPException.Create('You cannot change the global property when the server is active.');
+    raise EICPException.Create(SErrSetGlobalActive);
 
   inherited SetGlobal(aGlobal);
 end;
 
-procedure TIPCServer.SetServerName(const aServerName: string);
+procedure TIPCServer.SetServerID(const aServerID: string);
 begin
   if Active then
-    raise EICPException.Create('You cannot change the server name when the server is active.');
+    raise EICPException.Create(SErrSetServerIDActive);
 
-  inherited SetServerName(aServerName);
+  inherited SetServerID(aServerID);
 end;
 
 function TIPCServer.StartServer(const aDeletePendingRequests: Boolean): Boolean;
@@ -534,7 +661,7 @@ begin
 
   if FFileHandle<>feInvalidHandle then
     FileClose(FFileHandle);
-  DeleteFile(FFileName);
+  Result := DeleteFile(FFileName);
   FFileName := '';
 
   if aDeletePendingRequests then
