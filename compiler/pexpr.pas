@@ -2408,6 +2408,7 @@ implementation
                      end;
                   classrefdef:
                     begin
+                      erroroutp1:=true;
                       if token=_ID then
                         begin
                           structh:=tobjectdef(tclassrefdef(p1.resultdef).pointeddef);
