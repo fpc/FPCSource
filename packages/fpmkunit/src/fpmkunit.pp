@@ -2608,6 +2608,13 @@ function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): stri
 {$ifdef HAS_UNIT_PROCESS}
       ExecResult:=GetCompilerInfo(GccExecutable,'-v '+GCCParams, True);
       libgccFilename:=Get4thWord(ExecResult);
+      // Use IsRelativePath to check if the 4th word is an (absolute) path.
+      // This depends on the language settings. In English the 4th word is
+      // empty, if this particular gcc version does not return the libgcc-
+      // filename on -v. But in other languages (e.g. Dutch) it may be another
+      // word.
+      if IsRelativePath(libgccFilename) then
+        libgccFilename:='';
       if libgccFilename='' then
         libgccFilename:=GetCompilerInfo(GccExecutable,'--print-libgcc-file-name '+GCCParams, False);
       result := ExtractFileDir(libgccFilename);
