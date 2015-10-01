@@ -462,6 +462,7 @@ begin
    end
   else
    AllFilesMask := '*.*';
+  InitSystemDynLibs;
 { Reset IO Error }
   InOutRes:=0;
 end.
