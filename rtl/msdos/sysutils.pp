@@ -696,6 +696,8 @@ end;
 
 
 procedure InitAnsi;
+type
+  PFarChar = ^char; far;
 var
   CountryInfo: TCountryInfo; i: integer;
 begin
@@ -728,10 +730,9 @@ begin
     and Offset:Segment word record (PM) }
     {  get the uppercase table from dosmemory  }
     GetExtendedCountryInfo(2, $FFFF, $FFFF, CountryInfo);
-    { TODO: implement }
-//    DosMemGet(CountryInfo.UpperCaseTable shr 16, 2 + CountryInfo.UpperCaseTable and 65535, UpperCaseTable[128], 128);
     for i := 128 to 255 do
        begin
+       UpperCaseTable[i] := PFarChar(CountryInfo.UpperCaseTable)[i+(2-128)];
        if UpperCaseTable[i] <> chr(i) then
           LowerCaseTable[ord(UpperCaseTable[i])] := chr(i);
        end;
