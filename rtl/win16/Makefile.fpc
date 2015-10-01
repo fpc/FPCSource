@@ -6,7 +6,7 @@ main=rtl
 [target]
 loaders=prt0s prt0m prt0c prt0l prt0h 
 units=system uuchar objpas strings dos \
-      wintypes winprocs win31
+      wintypes winprocs win31 dynlibs
 
 
 [require]
@@ -103,6 +103,13 @@ winprocs$(PPUEXT) : wintypes$(PPUEXT) winprocs.pp winprocsh.inc winprocs.inc
 win31$(PPUEXT) : wintypes$(PPUEXT) win31.pp
 	$(COMPILER) win31.pp
 	$(EXECPPAS)
+
+#
+# $(SYSTEMUNIT) Dependent Units
+#
+
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pas dynlibs.inc objpas$(PPUEXT)
+	$(COMPILER) $(INC)/dynlibs.pas
 
 #
 # TP7 Compatible RTL Units

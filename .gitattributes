@@ -9706,6 +9706,7 @@ rtl/win/winres.inc svneol=native#text/plain
 rtl/win16/Makefile svneol=native#text/plain
 rtl/win16/Makefile.fpc svneol=native#text/plain
 rtl/win16/dos.pp svneol=native#text/plain
+rtl/win16/dynlibs.inc svneol=native#text/plain
 rtl/win16/glbheap.inc svneol=native#text/plain
 rtl/win16/glbheaph.inc svneol=native#text/plain
 rtl/win16/locheap.inc svneol=native#text/plain
