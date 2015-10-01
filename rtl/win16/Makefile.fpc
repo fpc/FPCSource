@@ -6,7 +6,8 @@ main=rtl
 [target]
 loaders=prt0s prt0m prt0c prt0l prt0h 
 units=system uuchar objpas strings iso7185 dos \
-      wintypes winprocs win31 dynlibs
+      wintypes winprocs win31 dynlibs \
+      sysconst rtlconst
 
 
 [require]
@@ -122,4 +123,15 @@ dos$(PPUEXT) : dos.pp registers.inc \
                $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc \
                strings$(PPUEXT) wintypes$(PPUEXT) winprocs$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) dos.pp
+	$(EXECPPAS)
+
+#
+# Delphi Compatible Units
+#
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+	$(EXECPPAS)
+
+rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp $(OBJPASDIR)/rtlconst.inc objpas$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
 	$(EXECPPAS)
