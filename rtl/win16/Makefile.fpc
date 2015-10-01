@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=prt0s prt0m prt0c prt0l prt0h 
-units=system uuchar objpas strings dos \
+units=system uuchar objpas strings iso7185 dos \
       wintypes winprocs win31 dynlibs
 
 
@@ -86,6 +86,10 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(INC)/genstr.inc $(INC)/genstrs.inc \
                    system$(PPUEXT)
 	$(COMPILER) $(INC)/strings.pp
+	$(EXECPPAS)
+
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
 	$(EXECPPAS)
 
 #
