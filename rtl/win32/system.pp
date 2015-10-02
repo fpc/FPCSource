@@ -194,6 +194,11 @@ begin
   ExitProcess(exitcode);
 end;
 
+procedure InitEntryInformation(const info : TEntryInformation);[public,alias:'_FPC_InitEntryInformation'];
+begin
+  EntryInformation:=info;
+end;
+
 var
   { value of the stack segment
     to check if the call stack can be written on exceptions }
