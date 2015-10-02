@@ -198,7 +198,7 @@ implementation
                           { same index? And/or should we also export the aliases }
                           { if a name is specified? (JM)                         }
 
-                          if eo_name in options then
+                          if not (eo_name in options) then
                             { Export names are not mangled on Windows and OS/2 }
                             if (target_info.system in (systems_all_windows+[system_i386_emx, system_i386_os2])) then
                               hpname:=orgs
@@ -216,7 +216,7 @@ implementation
                     end;
                   staticvarsym:
                     begin
-                      if eo_name in options then
+                      if not (eo_name in options) then
                         { for "cvar" }
                         if (vo_has_mangledname in tstaticvarsym(srsym).varoptions) then
                           hpname:=srsym.mangledname
