@@ -198,6 +198,18 @@ const
 
 implementation
 
+function IsSameType(t1, t2: TDef): boolean;
+begin
+  Result:=t1 = t2;
+  if Result then
+    exit;
+  if (t1 = nil) or (t2 = nil) or (t1.DefType <> t2.DefType) then
+    exit;
+  if t1.DefType <> dtType then
+    exit;
+  Result:=TTypeDef(t1).BasicType = TTypeDef(t2).BasicType;
+end;
+
 { TReplDef }
 
 procedure TReplDef.SetIsUsed(const AValue: boolean);
@@ -310,10 +322,10 @@ begin
   if d.DefType <> dtProc then
     exit;
   p:=TProcDef(d);
-  if (ReturnType <> p.ReturnType) and (Count = p.Count) and inherited IsReplacedBy(p) then begin
+  if (Count = p.Count) and inherited IsReplacedBy(p) then begin
     // Check parameter types
     for i:=0 to Count - 1 do
-      if TVarDef(Items[i]).VarType <> TVarDef(p.Items[i]).VarType then
+      if not IsSameType(TVarDef(Items[i]).VarType, TVarDef(p.Items[i]).VarType) then
         exit;
     Result:=True;
   end;
@@ -356,7 +368,7 @@ end;
 
 function TVarDef.IsReplacedBy(d: TReplDef): boolean;
 begin
-  Result:=(d.DefType in [dtProp, dtField]) and (VarType <> TVarDef(d).VarType) and inherited IsReplacedBy(d);
+  Result:=(d.DefType in [dtProp, dtField]) and not IsSameType(VarType, TVarDef(d).VarType) and inherited IsReplacedBy(d);
 end;
 
 function TVarDef.CanReplaced: boolean;
