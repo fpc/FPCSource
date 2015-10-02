@@ -3649,7 +3649,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/strings.pp
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-		 unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) unixutil$(ppuext) \
+		 unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) unixutil$(PPUEXT) \
 		 unxfunc.inc
 	$(COMPILER) $(UNIXINC)/unix.pp
 syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(ARCH)/syscallh.inc $(ARCH)/sysnr.inc $(SYSTEMUNIT)$(PPUEXT)
