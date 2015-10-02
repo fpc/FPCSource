@@ -27,9 +27,9 @@ uses
 resourcestring
   help =
     'rstconv [-h|--help]    Displays this help'+LineEnding+
-    'rstconv options        Convert rst file'+LineEnding+LineEnding+
+    'rstconv options        Convert .rsj/.rst file'+LineEnding+LineEnding+
     'Options are:'+LineEnding+
-    '  -i file        Use specified file instead of stdin as input .rst (OPTIONAL)'+LineEnding+
+    '  -i file        Use specified file instead of stdin as input .rsj/.rst (OPTIONAL)'+LineEnding+
     '  -o file        Write output to specified file (REQUIRED)'+LineEnding+
     '  -f format      Specifies the output format:'+LineEnding+
     '                 po    GNU gettext .po (portable) format (DEFAULT)'+LineEnding+
