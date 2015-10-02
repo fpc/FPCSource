@@ -127,6 +127,7 @@ implementation
         srsym  : tsym;
         srsymtable : TSymtable;
         hs : string;
+        fileinfo : tfileposinfo;
       begin
         for i:=0 to current_module.checkforwarddefs.Count-1 do
           begin
@@ -171,10 +172,17 @@ implementation
                                   the case for generics defined in non-Delphi
                                   modes }
                                 tstoreddef(ttypesym(srsym).typedef).is_generic and
-                                not parse_generic
+                                not defs_belong_to_same_generic(def,ttypesym(srsym).typedef)
                               )
                             ) then
-                          MessagePos(def.typesym.fileinfo,parser_e_no_generics_as_types);
+                          begin
+                            if assigned(def.typesym) then
+                              fileinfo:=def.typesym.fileinfo
+                            else
+                              { this is the case for inline pointer declarations }
+                              fileinfo:=srsym.fileinfo;
+                            MessagePos(fileinfo,parser_e_no_generics_as_types);
+                          end;
                       end
                      else
                       begin
