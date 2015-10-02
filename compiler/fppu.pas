@@ -830,13 +830,24 @@ var
       end;
 
 
+{$if not defined(ver2_6) or defined(InLazIDE)}
+  {$define writestr_avail}
+{$endif}
+
+
     procedure tppumodule.readunitimportsyms;
       var
         c,i : longint;
         deref : pderef;
+        {$ifdef writestr_avail}
+        s : string;
+        {$endif}
       begin
         c:=ppufile.getlongint;
-        writeln('loading: unit ', modulename^, ' has ', c, ' imported symbols');
+        {$ifdef writestr_avail}
+        writestr(s,'loading: unit ',modulename^,' has ',c,' imported symbols');
+        comment(v_info,s);
+        {$endif}
         for i:=0 to c-1 do
           begin
             new(deref);
@@ -849,8 +860,14 @@ var
     procedure tppumodule.writeunitimportsyms;
       var
         i : longint;
+        {$ifdef writestr_avail}
+        s : string;
+        {$endif}
       begin
-        writeln('writing: unit ', modulename^, ' has ', unitimportsymsderefs.Count, ' imported symbols');
+        {$ifdef writestr_avail}
+        writestr(s,'writing: unit ',modulename^,' has ',unitimportsymsderefs.Count,' imported symbols');
+        comment(v_info,s);
+        {$endif}
         ppufile.putlongint(unitimportsymsderefs.count);
         for i:=0 to unitimportsymsderefs.count-1 do
           ppufile.putderef(pderef(unitimportsymsderefs[i])^);
