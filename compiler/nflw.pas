@@ -29,7 +29,6 @@ interface
     uses
       cclasses,
       node,cpubase,
-      symnot,
       symtype,symbase,symdef,symsym,
       optloop;
 
@@ -102,7 +101,6 @@ interface
           loopiteration : tnode;
           loopvar_notid:cardinal;
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;reintroduce;
-          procedure loop_var_access(not_type:Tnotification_flag;symbol:Tsym);
           function wrap_to_value:tnode;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
@@ -1442,26 +1440,6 @@ implementation
            include(loopflags,lnf_backward);
          include(loopflags,lnf_testatbegin);
       end;
-
-    procedure Tfornode.loop_var_access(not_type:Tnotification_flag;
-                                       symbol:Tsym);
-
-    begin
-      {If there is a read access, the value of the loop counter is important;
-       at the end of the loop the loop variable should contain the value it
-       had in the last iteration.}
-      if not_type=vn_onwrite then
-        begin
-          writeln('Loopvar does not matter on exit');
-        end
-      else
-        begin
-          exclude(loopflags,lnf_dont_mind_loopvar_on_exit);
-          writeln('Loopvar does matter on exit');
-        end;
-      Tabstractvarsym(symbol).unregister_notification(loopvar_notid);
-    end;
-
 
     function tfornode.simplify(forinline : boolean) : tnode;
       begin

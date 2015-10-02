@@ -688,7 +688,6 @@ compiler/symbase.pas svneol=native#text/plain
 compiler/symconst.pas svneol=native#text/plain
 compiler/symcreat.pas svneol=native#text/plain
 compiler/symdef.pas svneol=native#text/plain
-compiler/symnot.pas svneol=native#text/plain
 compiler/symsym.pas svneol=native#text/plain
 compiler/symtable.pas svneol=native#text/plain
 compiler/symtype.pas svneol=native#text/plain

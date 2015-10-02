@@ -33,7 +33,7 @@ interface
        symconst,symbase,symtype,symdef,defcmp,
        { ppu }
        ppu,finput,
-       cclasses,symnot,
+       cclasses,
        { aasm }
        aasmbase,
        cpuinfo,cpubase,cgbase,cgutils,parabase
@@ -171,7 +171,6 @@ interface
 
        tabstractvarsym = class(tstoredsym)
           varoptions    : tvaroptions;
-          notifications : Tlinkedlist;
           varspez       : tvarspez;  { sets the type of access }
           varregable    : tvarregable;
           varstate      : tvarstate;
@@ -182,17 +181,12 @@ interface
           addr_taken     : boolean;
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
-          destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
           function  getsize : asizeint;
           function  getpackedbitsize : longint;
           function  is_regvar(refpara: boolean):boolean;
-          procedure trigger_notifications(what:Tnotification_flag);
-          function register_notification(flags:Tnotification_flags;
-                                         callback:Tnotification_callback):cardinal;
-          procedure unregister_notification(id:cardinal);
         private
           _vardef     : tdef;
           vardefderef : tderef;
@@ -1596,14 +1590,6 @@ implementation
       end;
 
 
-    destructor tabstractvarsym.destroy;
-      begin
-        if assigned(notifications) then
-          notifications.destroy;
-        inherited destroy;
-      end;
-
-
     procedure tabstractvarsym.buildderef;
       begin
         vardefderef.build(vardef);
@@ -1684,61 +1670,6 @@ implementation
                      not(varstate in [vs_written,vs_readwritten]));
 {$endif}
       end;
-
-
-    procedure tabstractvarsym.trigger_notifications(what:Tnotification_flag);
-
-    var n:Tnotification;
-
-    begin
-        if assigned(notifications) then
-          begin
-            n:=Tnotification(notifications.first);
-            while assigned(n) do
-              begin
-                if what in n.flags then
-                  n.callback(what,self);
-                n:=Tnotification(n.next);
-              end;
-          end;
-    end;
-
-    function Tabstractvarsym.register_notification(flags:Tnotification_flags;callback:
-                                           Tnotification_callback):cardinal;
-
-    var n:Tnotification;
-
-    begin
-      if not assigned(notifications) then
-        notifications:=Tlinkedlist.create;
-      n:=Tnotification.create(flags,callback);
-      register_notification:=n.id;
-      notifications.concat(n);
-    end;
-
-    procedure Tabstractvarsym.unregister_notification(id:cardinal);
-
-    var n:Tnotification;
-
-    begin
-      if not assigned(notifications) then
-        internalerror(200212311)
-      else
-        begin
-            n:=Tnotification(notifications.first);
-            while assigned(n) do
-              begin
-                if n.id=id then
-                  begin
-                    notifications.remove(n);
-                    n.destroy;
-                    exit;
-                  end;
-                n:=Tnotification(n.next);
-              end;
-            internalerror(200212311)
-        end;
-    end;
 
 
     procedure tabstractvarsym.setvardef(def:tdef);
