@@ -297,7 +297,7 @@ class procedure TIPCBase.FindRunningServers(const aServerIDPrefix: string;
 var
   xRec: TRawByteSearchRec;
 begin
-  if FindFirst(ServerIDToFileName(aServerIDPrefix+'*', aGlobal), faAnyFile, xRec) = 0 then
+  if FindFirst(ServerIDToFileName(aServerIDPrefix+AllFilesMask, aGlobal), faAnyFile, xRec) = 0 then
   begin
     repeat
       if (Pos('-', xRec.Name) = 0) and//file that we found is a pending message
@@ -447,7 +447,7 @@ var
   xDir: string;
 begin
   xDir := ExtractFilePath(FFileName);
-  if FindFirst(GetRequestPrefix+'*', faAnyFile, xRec) = 0 then
+  if FindFirst(GetRequestPrefix+AllFilesMask, faAnyFile, xRec) = 0 then
   begin
     repeat
       DeleteFile(xDir+xRec.Name);
@@ -487,7 +487,7 @@ begin
   outMsgType := -1;
   outMsgLen := 0;
   Result := -1;
-  if FindFirst(GetRequestPrefix+'*', faAnyFile, xRec) = 0 then
+  if FindFirst(GetRequestPrefix+AllFilesMask, faAnyFile, xRec) = 0 then
   begin
     repeat
       Result := RequestFileNameToMsgID(xRec.Name);
@@ -509,7 +509,7 @@ var
 begin
   xHighestId := -1;
   Result := -1;
-  if FindFirst(GetRequestPrefix+'*', faAnyFile, xRec) = 0 then
+  if FindFirst(GetRequestPrefix+AllFilesMask, faAnyFile, xRec) = 0 then
   begin
     repeat
       xMsgID := RequestFileNameToMsgID(xRec.Name);
@@ -528,7 +528,7 @@ var
   xRec: TRawByteSearchRec;
 begin
   Result := 0;
-  if FindFirst(GetRequestPrefix+'*', faAnyFile, xRec) = 0 then
+  if FindFirst(GetRequestPrefix+AllFilesMask, faAnyFile, xRec) = 0 then
   begin
     repeat
       if RequestFileNameToMsgID(xRec.Name) >= 0 then
