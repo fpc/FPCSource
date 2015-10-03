@@ -1519,14 +1519,17 @@ type
              current_module.allunitsused;
            end;
 
-         new_section(current_asmdata.asmlists[al_globals],sec_data,'_FPCDummy',4);
-         current_asmdata.asmlists[al_globals].concat(tai_symbol.createname_global('_FPCDummy',AT_DATA,0));
-         current_asmdata.asmlists[al_globals].concat(tai_const.create_32bit(0));
+         if target_info.system in systems_windows then
+           begin
+             new_section(current_asmdata.asmlists[al_globals],sec_data,'_FPCDummy',4);
+             current_asmdata.asmlists[al_globals].concat(tai_symbol.createname_global('_FPCDummy',AT_DATA,0));
+             current_asmdata.asmlists[al_globals].concat(tai_const.create_32bit(0));
 
-         new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
-         current_asmdata.asmlists[al_procedures].concat(tai_symbol.createname_global('_DLLMainCRTStartup',AT_FUNCTION,0));
-         gen_fpc_dummy(current_asmdata.asmlists[al_procedures]);
-         current_asmdata.asmlists[al_procedures].concat(tai_const.createname('_FPCDummy',0));
+             new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
+             current_asmdata.asmlists[al_procedures].concat(tai_symbol.createname_global('_DLLMainCRTStartup',AT_FUNCTION,0));
+             gen_fpc_dummy(current_asmdata.asmlists[al_procedures]);
+             current_asmdata.asmlists[al_procedures].concat(tai_const.createname('_FPCDummy',0));
+           end;
 
          { leave when we got an error }
          if (Errorcount>0) and not status.skip_error then
