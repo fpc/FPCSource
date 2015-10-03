@@ -1547,6 +1547,8 @@ type
           begin
             hp2:=hp;
             hp:=tmodule(hp.next);
+            if assigned(hp2.package) then
+              add_package_unit_ref(hp2.package);
             if hp2.is_unit and
                not assigned(hp2.globalsymtable) then
               loaded_units.remove(hp2);
@@ -2157,6 +2159,8 @@ type
                     if hp.flags and uf_in_library=0 then
                       linker.AddModuleFiles(hp);
                     hp2:=tmodule(hp.next);
+                    if assigned(hp.package) then
+                      add_package_unit_ref(hp.package);
                     if (hp<>current_module) and
                        (not needsymbolinfo) then
                       begin

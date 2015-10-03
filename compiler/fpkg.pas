@@ -53,6 +53,7 @@ interface
     tpackageentry=record
       package : tpackage;
       realpkgname : string;
+      usedunits : longint;
     end;
     ppackageentry=^tpackageentry;
 
