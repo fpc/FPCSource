@@ -32,6 +32,10 @@ Interface
 {$define FPC_USE_SYSCALL}
 {$endif}
 
+{$if defined(darwin) and not defined(ver2_6)}
+{$define FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif}
+
 
 {$define FPC_IS_SYSTEM}
 
@@ -76,6 +80,11 @@ Implementation
 
 {$endif defined(CPUARM) or defined(CPUM68K)}
 
+
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+var
+  EntryInformation: TEntryInformation;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 
 {$I system.inc}
 
@@ -292,6 +301,29 @@ end;
 
 {$ifdef Darwin}
 
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
+var
+  FPCResStrInitTables : Pointer;public name '_FPC_ResStrInitTables';
+  FPCResourceStringTables : Pointer;public name '_FPC_ResourceStringTables';
+
+procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
+begin
+  EntryInformation := info;
+  argc := EntryInformation.Platform.argc;
+  argv := EntryInformation.Platform.argv;
+  envp := EntryInformation.Platform.envp;
+  initialstklen := EntryInformation.Platform.stklen;
+  FPCResStrInitTables := EntryInformation.ResStrInitTables;
+  FPCResourceStringTables := EntryInformation.ResourceStringTables;
+{$ifdef cpui386}
+  Set8087CW(Default8087CW);
+{$endif cpui386}
+  EntryInformation.PascalMain();
+end;
+
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
 procedure pascalmain;cdecl;external name 'PASCALMAIN';
 
 procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
@@ -305,6 +337,7 @@ begin
 {$endif cpui386}
   pascalmain;  {run the pascal main program}
 end;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 {$endif Darwin}
 {$endif FPC_USE_LIBC}
 

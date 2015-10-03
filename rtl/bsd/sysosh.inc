@@ -26,6 +26,18 @@ type
   PRTLCriticalSection = ^TRTLCriticalSection;
   TRTLCriticalSection = {$i pmutext.inc}
 
+{$ifdef darwin}
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$define HAS_ENTRYINFORMATION_PLATFORM}
+  TPlatformEntryInformation = record
+    argc: longint;
+    argv: ppchar;
+    envp: ppchar;
+    stklen: sizeuint;
+  end;
+{$endif}
+{$endif}
+
 {$if defined(darwin) and defined(powerpc)}
   { for profiling support }
   procedure mcount(p: pointer); compilerproc; cdecl; external;

@@ -8,7 +8,7 @@ main=rtl
 # disabled units: serial
 [target]
 loaders=
-units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
+units=$(SYSTEMUNIT) sysinit uuchar unixtype ctypes objpas macpas iso7185 \
       strings sysctl baseunix unixutil \
       unix initc cmem dynlibs $(CPU_UNITS) \
       dos dl \

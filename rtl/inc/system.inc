@@ -102,7 +102,7 @@ var
 {$ifndef FPC_NO_GENERIC_STACK_CHECK}
   { if the OS does the stack checking, we don't need any stklen from the
     main program }
-  initialstklen : SizeUint;external name '__stklen';
+  initialstklen : SizeUint;{$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}external name '__stklen';{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 {$endif FPC_NO_GENERIC_STACK_CHECK}
 
 { checks whether the given suggested size for the stack of the current
