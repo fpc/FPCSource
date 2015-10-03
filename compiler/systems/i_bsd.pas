@@ -572,7 +572,7 @@ unit i_bsd;
             system       : system_powerpc_darwin;
             name         : 'Darwin for PowerPC';
             shortname    : 'Darwin';
-            flags        : [tf_p_ext_support,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources];
+            flags        : [tf_p_ext_support,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources,tf_supports_packages];
             cpu          : cpu_powerpc;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
