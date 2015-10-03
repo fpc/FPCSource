@@ -1145,6 +1145,7 @@ Type
 
     property Verbose : boolean read FVerbose write FVerbose;
     Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true; WarnIfNotFound:boolean=true);
+    Procedure ClearResolvedFileNames(APackage : TPackage);
 
     // Public Copy/delete/Move/Archive/Mkdir Commands.
     Procedure ExecuteCommand(const Cmd,Args : String; const Env: TStrings = nil; IgnoreError : Boolean = False); virtual;
@@ -5849,6 +5850,34 @@ begin
   end;
 end;
 
+procedure TBuildEngine.ClearResolvedFileNames(APackage: TPackage);
+
+  procedure ClearResolvedFileNamesForDependencies(ADependencies: TDependencies);
+  var
+    I: Integer;
+    D: TDependency;
+  begin
+    For I:=0 to ADependencies.Count-1 do
+      begin
+        D := ADependencies[I];
+        D.TargetFileName:='';
+      end;
+  end;
+
+var
+  T : TTarget;
+  I : Integer;
+begin
+  APackage.FAllFilesResolved:=false;
+  ClearResolvedFileNamesForDependencies(APackage.Dependencies);
+  For I:=0 to APackage.Targets.Count-1 do
+    begin
+      T:=APackage.FTargets.TargetItems[I];
+      T.FTargetSourceFileName:='';
+      ClearResolvedFileNamesForDependencies(T.Dependencies);
+    end;
+end;
+
 
 procedure TBuildEngine.ResolvePackagePaths(APackage:TPackage);
 
@@ -7168,8 +7197,8 @@ begin
         for IOS:=Low(TOS) to high(TOS) do
           if OSCPUSupported[IOS,ICPU] then
             begin
-              // Make sure that the package is resolved for each targbet
-              APackage.FAllFilesResolved:=false;
+              // Make sure that the package is resolved for each target
+              ClearResolvedFileNames(APackage);
               ResolveFileNames(APackage,ICPU,IOS,false);
               APackage.GetArchiveFiles(L, ICPU, IOS);
             end;
