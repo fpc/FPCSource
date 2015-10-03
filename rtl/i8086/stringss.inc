@@ -16,6 +16,29 @@
  **********************************************************************}
 
 
+{$if defined(FPC_MM_TINY)}
+  {$define FPC_X86_CODE_NEAR}
+  {$define FPC_X86_DATA_NEAR}
+{$elseif defined(FPC_MM_SMALL)}
+  {$define FPC_X86_CODE_NEAR}
+  {$define FPC_X86_DATA_NEAR}
+{$elseif defined(FPC_MM_MEDIUM)}
+  {$define FPC_X86_CODE_FAR}
+  {$define FPC_X86_DATA_NEAR}
+{$elseif defined(FPC_MM_COMPACT)}
+  {$define FPC_X86_CODE_NEAR}
+  {$define FPC_X86_DATA_FAR}
+{$elseif defined(FPC_MM_LARGE)}
+  {$define FPC_X86_CODE_FAR}
+  {$define FPC_X86_DATA_FAR}
+{$elseif defined(FPC_MM_HUGE)}
+  {$define FPC_X86_CODE_FAR}
+  {$define FPC_X86_DATA_HUGE}
+{$else}
+  {$fatal No memory model defined}
+{$endif}
+
+
 {$ifndef FPC_UNIT_HAS_STRPCOPY}
 {$define FPC_UNIT_HAS_STRPCOPY}
 function strpcopy(d : pchar;const s : string) : pchar;assembler;nostackframe;
