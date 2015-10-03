@@ -311,7 +311,7 @@ Type
    end;
    PResourceStringTableList = ^TResourceStringTableList;
 
-{$ifdef win32}
+{$if defined(win32) or (defined(darwin) and not defined(ver2_6))}
   {$define FPC_HAS_INDIRECT_MAIN_INFORMATION}
 {$endif}
 
