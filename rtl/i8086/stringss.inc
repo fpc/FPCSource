@@ -33,11 +33,11 @@ asm
   mov dx, ds  // for far data models, backup ds; for near data models, use to initialize es
 {$ifdef FPC_X86_DATA_NEAR}
   mov es, dx
-  mov si, ss:[bx + 4 + extra_param_offset]  // @d
-  mov di, ss:[bx + 2 + extra_param_offset]  // @s
+  mov si, ss:[bx + 2 + extra_param_offset]  // @s
+  mov di, ss:[bx + 4 + extra_param_offset]  // @d
 {$else FPC_X86_DATA_NEAR}
-  lds si, ss:[bx + 6 + extra_param_offset]  // @d
-  les di, ss:[bx + 2 + extra_param_offset]  // @s
+  lds si, ss:[bx + 2 + extra_param_offset]  // @s
+  les di, ss:[bx + 6 + extra_param_offset]  // @d
 {$endif FPC_X86_DATA_NEAR}
   // we will no longer use bx for reading parameters, so save di there
   // in order to be able to return it in the end
