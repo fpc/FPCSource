@@ -56,22 +56,10 @@ interface
     end;
     ppackageentry=^tpackageentry;
 
-    procedure addpackage(list:tfphashlist;const pn:string);
-
 implementation
 
   uses
     cutils,globals;
-
-  procedure addpackage(list: tfphashlist;const pn:string);
-    var
-      pkgentry : ppackageentry;
-    begin
-      new(pkgentry);
-      pkgentry^.realpkgname:=pn;
-      pkgentry^.package:=nil;
-      list.add(upper(pn),pkgentry);
-    end;
 
   { tpackage }
 
