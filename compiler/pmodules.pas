@@ -1673,6 +1673,9 @@ type
                       end;
                     hp:=hp2;
                   end;
+                 { add the library of directly used packages }
+                 add_package_libs(linker);
+                 { and now link the package library }
                  linker.MakeSharedLibrary
                end;
 
@@ -2165,6 +2168,8 @@ type
                  { free also unneeded units we didn't free before }
                  if not needsymbolinfo then
                    unloaded_units.Clear;
+                 { add all directly used packages as libraries }
+                 add_package_libs(linker);
                  { finally we can create a executable }
                  if DLLSource then
                    linker.MakeSharedLibrary
