@@ -441,7 +441,7 @@ implementation
       new(entry);
       entry^.package:=nil;
       entry^.realpkgname:=name;
-      packagelist.add(name,entry);
+      packagelist.add(upper(name),entry);
     end;
 
 
