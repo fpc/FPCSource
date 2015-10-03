@@ -1560,7 +1560,7 @@ type
                  systemunit:=tglobalsymtable(uu.u.globalsymtable);
                  load_intern_types;
                end;
-             if not assigned(uu.u.package) then
+             if not assigned(uu.u.package) and (target_info.system in systems_packages_need_exports) then
                export_unit(uu.u);
 
              uu:=tused_unit(uu.next);
