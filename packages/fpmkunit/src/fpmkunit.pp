@@ -1202,7 +1202,7 @@ Type
     Procedure UnInstall(Packages : TPackages);
     Procedure ZipInstall(Packages : TPackages);
     Procedure Archive(Packages : TPackages);
-    procedure Manifest(Packages: TPackages);
+    procedure Manifest(Packages: TPackages; Package: TPackage);
     procedure PkgList(Packages: TPackages);
     Procedure Clean(Packages : TPackages; AllTargets: boolean);
 
@@ -4860,8 +4860,6 @@ end;
 
 procedure TCustomInstaller.Archive;
 begin
-  // Force generation of manifest.xml, this is required for the repository
-  BuildEngine.Manifest(Packages);
   NotifyEventCollection.CallEvents(neaBeforeArchive, self);
   BuildEngine.Archive(Packages);
   NotifyEventCollection.CallEvents(neaAfterArchive, self);
@@ -4871,7 +4869,7 @@ end;
 procedure TCustomInstaller.Manifest;
 begin
   NotifyEventCollection.CallEvents(neaBeforeManifest, self);
-  BuildEngine.Manifest(Packages);
+  BuildEngine.Manifest(Packages, nil);
   NotifyEventCollection.CallEvents(neaAfterManifest, self);
 end;
 
@@ -7580,17 +7578,20 @@ begin
   For I:=0 to Packages.Count-1 do
     begin
       P:=Packages.PackageItems[i];
+      // Force generation of manifest.xml, this is required for the repository
+      Manifest(nil, P);
       Archive(P);
     end;
   NotifyEventCollection.CallEvents(neaAfterArchive, Self);
 end;
 
 
-procedure TBuildEngine.Manifest(Packages: TPackages);
+procedure TBuildEngine.Manifest(Packages: TPackages; Package: TPackage);
 Var
   L : TStrings;
   I : Integer;
   P : TPackage;
+  FN: string;
 begin
   NotifyEventCollection.CallEvents(neaBeforeManifest, Self);
   Log(vlDebug, SDbgBuildEngineGenerateManifests);
@@ -7600,14 +7601,25 @@ begin
     Log(vlDebug, Format(SDbgGenerating, [ManifestFile]));
     L.Add('<?xml version="1.0"?>');
     L.Add('<packages>');
-    For I:=0 to Packages.Count-1 do
+    if assigned(Packages) then
       begin
-        P:=Packages.PackageItems[i];
-        Log(vlInfo, Format(SInfoManifestPackage,[P.Name]));
-        P.GetManifest(L);
+        For I:=0 to Packages.Count-1 do
+          begin
+            P:=Packages.PackageItems[i];
+            Log(vlInfo, Format(SInfoManifestPackage,[P.Name]));
+            P.GetManifest(L);
+          end
+      end;
+    if assigned(Package) then
+      begin
+        Log(vlInfo, Format(SInfoManifestPackage,[Package.Name]));
+        Package.GetManifest(L);
       end;
     L.Add('</packages>');
-    L.SaveToFile(ManifestFile);
+    FN := ManifestFile;
+    if assigned(Package) then
+      FN := FixPath(Package.Directory, True)+FN;
+    L.SaveToFile(FN);
   Finally
     L.Free;
   end;
