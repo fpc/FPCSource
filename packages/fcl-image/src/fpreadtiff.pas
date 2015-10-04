@@ -1486,11 +1486,20 @@ begin
   if EntryType<>2 then
     TiffError('asciiz expected, but found '+IntToStr(EntryType));
   EntryCount:=ReadDWord;
-  EntryStart:=ReadDWord;
-  SetStreamPos(EntryStart);
   SetLength(Result,EntryCount-1);
-  if EntryCount>1 then
+  if EntryCount>4 then begin
+    // long string -> next 4 DWord is the offset
+    EntryStart:=ReadDWord;
+    SetStreamPos(EntryStart);
     s.Read(Result[1],EntryCount-1);
+  end else begin
+    // short string -> stored directly in the next 4 bytes
+    if Result<>'' then
+      s.Read(Result[1],length(Result));
+    // skip rest of 4 bytes
+    if length(Result)<4 then
+      s.Read(EntryStart,4-length(Result));
+  end;
 end;
 
 function TFPReaderTiff.ReadByte: Byte;
