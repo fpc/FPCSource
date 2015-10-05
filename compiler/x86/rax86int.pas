@@ -2164,14 +2164,20 @@ Unit Rax86int;
            (instr.operands[1].typesize<>0) then
           instr.operands[1].setsize(instr.operands[1].typesize,false);
 {$ifdef i8086}
-        { convert 'call symbol' to 'call far symbol' for memory models with far code }
         for i:=1 to operandnum do
           with instr.operands[i].opr do
-            if (instr.opcode=A_CALL) and (typ=OPR_SYMBOL) and (symbol<>nil) and (symbol.typ<>AT_DATA) then
-              if current_settings.x86memorymodel in x86_far_code_models then
-                begin
-                  instr.opsize:=S_FAR;
-                end;
+            begin
+              { convert 'call symbol' to 'call far symbol' for memory models with far code }
+              if (instr.opcode=A_CALL) and (typ=OPR_SYMBOL) and (symbol<>nil) and (symbol.typ<>AT_DATA) then
+                if current_settings.x86memorymodel in x86_far_code_models then
+                  begin
+                    instr.opsize:=S_FAR;
+                  end;
+              { convert 'call/jmp dword [something]' to 'call/jmp far [something]' (BP7 compatibility) }
+              if (instr.opcode in [A_CALL,A_JMP]) and (instr.opsize=S_NO) and
+                 (typ in [OPR_LOCAL,OPR_REFERENCE]) and (instr.operands[i].size=OS_32) then
+                instr.opsize:=S_FAR;
+            end;
 {$endif i8086}
         if (MemRefInfo(instr.opcode).ExistsSSEAVX) and
            (MemRefInfo(instr.opcode).MemRefSize in MemRefSizeInfoVMems) then
