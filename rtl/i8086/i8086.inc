@@ -189,9 +189,6 @@ asm
   sub di, si
   xchg ax, di
   dec ax
-{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
-  mov dx, es
-{$endif}
 @@Done:
 end;
 {$endif FPC_SYSTEM_HAS_INDEXBYTE}
