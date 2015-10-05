@@ -1187,7 +1187,10 @@ begin
                      asize:=OT_BITS16;
                    OS_32,OS_S32 :
 {$ifdef i8086}
-                     asize:=OT_BITS16;
+                     if siz=S_FAR then
+                       asize:=OT_FAR
+                     else
+                       asize:=OT_BITS16;
 {$else i8086}
                      asize:=OT_BITS32;
 {$endif i8086}
