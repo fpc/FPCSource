@@ -2223,6 +2223,7 @@ packages/fcl-db/src/sqldb/mysql/mysql50conn.pas svneol=native#text/plain
 packages/fcl-db/src/sqldb/mysql/mysql51conn.pas svneol=native#text/plain
 packages/fcl-db/src/sqldb/mysql/mysql55conn.pas svneol=native#text/plain
 packages/fcl-db/src/sqldb/mysql/mysql56conn.pas svneol=native#text/pascal
+packages/fcl-db/src/sqldb/mysql/mysql57conn.pas svneol=native#text/plain
 packages/fcl-db/src/sqldb/mysql/mysqlconn.inc svneol=native#text/plain
 packages/fcl-db/src/sqldb/odbc/Makefile svneol=native#text/plain
 packages/fcl-db/src/sqldb/odbc/Makefile.fpc svneol=native#text/plain
