@@ -676,7 +676,7 @@ implementation
         begin
           s:=make_mangledname('IID',_class.owner,_class.objname^);
           maybe_new_object_file(list);
-          new_section(list,sec_rodata_norel,s,const_align(sizeof(pint)));
+          new_section(list,sec_rodata,s,const_align(sizeof(pint)));
           list.concat(Tai_symbol.Createname_global(s,AT_DATA,0));
           list.concat(Tai_const.Create_32bit(longint(_class.iidguid^.D1)));
           list.concat(Tai_const.Create_16bit(_class.iidguid^.D2));
@@ -690,7 +690,7 @@ implementation
         end;
       maybe_new_object_file(list);
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
-      new_section(list,sec_rodata_norel,s,sizeof(pint));
+      new_section(list,sec_rodata,s,sizeof(pint));
       list.concat(Tai_symbol.Createname_global(s,AT_DATA,0));
       list.concat(Tai_const.Create_8bit(length(_class.iidstr^)));
       list.concat(Tai_string.Create(_class.iidstr^));
