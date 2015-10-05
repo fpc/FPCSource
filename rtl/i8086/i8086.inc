@@ -167,7 +167,7 @@ asm
   mov bx, sp
   mov cx, ss:[bx + 4 + extra_param_offset]  // len
   or cx, cx
-  jle @@NotFound
+  jz @@NotFound
 {$ifdef FPC_X86_DATA_NEAR}
   mov di, ss:[bx + 6 + extra_param_offset]  // @buf
   mov ax, ds
@@ -201,7 +201,7 @@ asm
   mov bx, sp
   mov cx, ss:[bx + 4 + extra_param_offset]  // len
   or cx, cx
-  jle @@NotFound
+  jz @@NotFound
 {$ifdef FPC_X86_DATA_NEAR}
   mov di, ss:[bx + 6 + extra_param_offset]  // @buf
   mov ax, ds
