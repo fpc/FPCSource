@@ -1465,17 +1465,14 @@ begin
      end;
    FreeEnvironmentStrings(p);
 end;
-{$else defined(win32) or defined(win64)}
-
-{$ifdef wince}
+{$elseif defined(wince)}
 Function GetEnv(P:string):Pchar;
 begin
   { WinCE does not have environment strings.
     Add some way to specify heaptrc options? }
   GetEnv:=nil;
 end;
-{$else wince}
-
+{$else}
 Function GetEnv(P:string):Pchar;
 {
   Searches the environment for a string with name p and
@@ -1510,8 +1507,7 @@ Begin
   else
    getenv:=nil;
 end;
-{$endif wince}
-{$endif win32}
+{$endif}
 
 procedure LoadEnvironment;
 var
