@@ -228,6 +228,54 @@ end;
 {$endif FPC_SYSTEM_HAS_INDEXWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
+{$define FPC_SYSTEM_HAS_INDEXDWORD}
+function IndexDWord(Const buf;len:SizeInt;b:DWord):SizeInt; assembler; nostackframe;
+asm
+  mov bx, sp
+  mov cx, ss:[bx + 6 + extra_param_offset]  // len
+  or cx, cx
+  jz @@NotFound
+{$ifdef FPC_X86_DATA_NEAR}
+  mov di, ss:[bx + 8 + extra_param_offset]  // @buf
+  mov ax, ds
+  mov es, ax
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[bx + 8 + extra_param_offset]  // @buf
+{$endif FPC_X86_DATA_NEAR}
+  mov si, cx  // save the length of the buffer in si
+  mov ax, ss:[bx + 2 + extra_param_offset]  // b
+  mov bx, ss:[bx + 4 + extra_param_offset]
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  jmp @@LoopStart
+@@SkipWord:
+  scasw
+@@LoopStart:
+  scasw
+  loopne @@SkipWord
+  jne @@NotFound
+  xchg ax, bx
+  scasw
+  je @@Found
+  jcxz @@NotFound
+  xchg ax, bx
+  jmp @@LoopStart
+
+@@Found:
+  sub si, cx
+  xchg ax, si
+  dec ax
+  jmp @@Done
+
+@@NotFound:
+  mov ax, 0FFFFh  // return -1
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_INDEXDWORD}
+
+
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;nostackframe;
 asm
