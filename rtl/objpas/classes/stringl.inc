@@ -1391,6 +1391,8 @@ var
   CompareRes: PtrInt;
 begin
   Result := false;
+  if Not Sorted then 
+    exit;
   // Use binary search.
   L := 0;
   R := Count - 1;
