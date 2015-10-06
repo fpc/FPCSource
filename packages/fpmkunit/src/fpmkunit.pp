@@ -3772,7 +3772,8 @@ begin
       Values[KeyName]:=Name;
       Values[KeyVersion]:=Version;
       // TODO Generate checksum based on PPUs
-      Values[KeyChecksum]:=IntToStr(DateTimeToFileDate(Now));
+      InstalledChecksum:=DateTimeToFileDate(Now);
+      Values[KeyChecksum]:=IntToStr(InstalledChecksum);
       Values[KeyCPU]:=CPUToString(ACPU);
       Values[KeyOS]:=OSToString(AOS);
       //Installer;
