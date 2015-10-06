@@ -76,17 +76,15 @@ FPCGLOBALPREFIX=`dirname "$1"`/../../
 echo Writing sample configuration file to $fpccfgfile
 ${FPCMKCFGBIN} -d "basepath=$FPCPATH" -d "sharepath=$SHAREPATH" -o $fpccfgfile
 
-if ! [ -f "$FPBIN" ] ; then
-  exit
+if [ -f "$FPBIN" ] ; then
+  # Write fp.cfg
+  echo Writing sample configuration file to $fpcfgfile
+  ${FPCMKCFGBIN} -p -1 -d "basepath=$FPCPATH" -d "sharepath=$SHAREPATH" -o $fpcfgfile
+
+  # Write fp.ini
+  echo Writing sample configuration file to $fpinifile
+  ${FPCMKCFGBIN} -p -2 -o $fpinifile
 fi
-
-# Write fp.cfg
-echo Writing sample configuration file to $fpcfgfile
-${FPCMKCFGBIN} -p -1 -d "basepath=$FPCPATH" -d "sharepath=$SHAREPATH" -o $fpcfgfile
-
-# Write fp.ini
-echo Writing sample configuration file to $fpinifile
-${FPCMKCFGBIN} -p -2 -o $fpinifile
 
 # Do not write fppkg configuration when fppkg is not available
 if ! [ -f "$FPPKGBIN" ] ; then
