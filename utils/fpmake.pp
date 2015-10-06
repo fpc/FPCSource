@@ -65,6 +65,8 @@ begin
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('hash');
     P.Dependencies.Add('univint',[darwin,iphonesim]);
+    P.Dependencies.Add('fcl-json');
+
     P.Dependencies.Add('rtl-extra');
     P.Dependencies.Add('rtl-objpas');
 	
@@ -75,7 +77,7 @@ begin
     T.ResourceStrings:=true;
 
     P.Targets.AddProgram('ppdep.pp');
-    P.Targets.AddProgram('rstconv.pp').ResourceStrings:=true;
+    P.Targets.AddProgram('rstconv.pp');
     P.Targets.AddProgram('data2inc.pp');
     P.Targets.AddProgram('delp.pp');
     P.Targets.AddProgram('bin2obj.pp');
