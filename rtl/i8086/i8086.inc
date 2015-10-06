@@ -166,8 +166,7 @@ function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackfram
 asm
   mov bx, sp
   mov cx, ss:[bx + 4 + extra_param_offset]  // len
-  or cx, cx
-  jz @@NotFound
+  jcxz @@NotFound
 {$ifdef FPC_X86_DATA_NEAR}
   mov di, ss:[bx + 6 + extra_param_offset]  // @buf
   mov ax, ds
@@ -200,8 +199,7 @@ function IndexWord(Const buf;len:SizeInt;b:word):SizeInt; assembler; nostackfram
 asm
   mov bx, sp
   mov cx, ss:[bx + 4 + extra_param_offset]  // len
-  or cx, cx
-  jz @@NotFound
+  jcxz @@NotFound
 {$ifdef FPC_X86_DATA_NEAR}
   mov di, ss:[bx + 6 + extra_param_offset]  // @buf
   mov ax, ds
@@ -234,8 +232,7 @@ function IndexDWord(Const buf;len:SizeInt;b:DWord):SizeInt; assembler; nostackfr
 asm
   mov bx, sp
   mov cx, ss:[bx + 6 + extra_param_offset]  // len
-  or cx, cx
-  jz @@NotFound
+  jcxz @@NotFound
 {$ifdef FPC_X86_DATA_NEAR}
   mov di, ss:[bx + 8 + extra_param_offset]  // @buf
   mov ax, ds
