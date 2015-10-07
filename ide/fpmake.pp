@@ -202,14 +202,36 @@ begin
       P.Options.Add('-Fu../compiler/mips');
 
     P.Options.Add('-Sg');
+    P.IncludePath.Add('compiler');
 
     T:=P.Targets.AddProgram('fp.pas');
-    T.Dependencies.AddUnit('compunit');
+    with T.Dependencies do
+     begin
+      AddUnit('compunit');
+{
+      AddInclude('fakegdb/' + AllFilesMask);
+      AddInclude('*.tdf');
+      AddInclude('*.pas');
+      AddInclude('*.inc');
+      AddInclude('Makefile');
+      AddInclude('Makefile.fpc');
+      AddInclude('*.rc');
+      AddInclude('*.ico');
+      AddInclude('*.term');
+      AddInclude('*.pt');
+}
+     end;
 
     T:=P.Targets.AddUnit('compunit.pas');
     T.Directory:='compiler';
     T.Install:=false;
 
+{    with T.Dependencies do
+     begin
+      AddInclude('Makefile');
+      AddInclude('Makefile.fpc');
+     end;
+}
     P.InstallFiles.Add('fp.ans','$(bininstalldir)');
     P.InstallFiles.Add('gplprog.pt','$(bininstalldir)');
     P.InstallFiles.Add('gplunit.pt','$(bininstalldir)');
@@ -222,7 +244,23 @@ begin
     P.InstallFiles.Add('tpgrep.tdf','$(bininstalldir)');
     P.InstallFiles.Add('fp32.ico', [win32, win64], '$(bininstalldir)');
 
-    P.Sources.AddDoc('readme.ide');
+    with P.Sources do
+     begin
+      AddDoc('readme.ide');
+      AddSrc('readme.txt');
+      AddSrc('todo.txt');
+      AddSrc('fp.ans');
+      AddSrc('Makefile.fpc.fpcmake');
+      AddSrcFiles('Makefile',true);
+      AddSrcFiles('Makefile.fpc',true);
+      AddSrcFiles('*.tdf');
+      AddSrcFiles('*.pas',true);
+      AddSrcFiles('*.inc',true);
+      AddSrcFiles('*.rc');
+      AddSrcFiles('*.ico');
+      AddSrcFiles('*.term');
+      AddSrcFiles('*.pt');
+     end;
 
     P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.ppu');
     P.CleanFiles.Add('$(UNITSOUTPUTDIR)compiler.ppu');
