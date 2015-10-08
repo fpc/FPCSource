@@ -151,6 +151,9 @@ begin
 {$ifdef x86_64}
       LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/x86_64-linux-gnu',true);
 {$endif x86_64}
+{$ifdef i386}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/i386-linux-gnu',true);
+{$endif i386}
     end;
 end;
 
