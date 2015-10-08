@@ -11064,6 +11064,7 @@ tests/test/jvm/testall.sh svneol=native#text/plain
 tests/test/jvm/testansi.pp svneol=native#text/plain
 tests/test/jvm/testintf.pp svneol=native#text/plain
 tests/test/jvm/testshort.pp svneol=native#text/plain
+tests/test/jvm/tformalclass.pp svneol=native#text/plain
 tests/test/jvm/tformalpara.pp svneol=native#text/plain
 tests/test/jvm/tinitvar.pp svneol=native#text/plain
 tests/test/jvm/tint.pp svneol=native#text/plain
