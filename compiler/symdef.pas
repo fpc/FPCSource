@@ -1170,7 +1170,7 @@ implementation
             if not assigned(current_module.ansistrdef) then
               begin
                 { if we did not create it yet we need to do this now }
-                if current_module.is_unit then
+                if current_module.in_interface then
                   symtable:=current_module.globalsymtable
                 else
                   symtable:=current_module.localsymtable;
@@ -3133,6 +3133,7 @@ implementation
       begin
         inherited create(pointerdef,def);
         has_pointer_math:=cs_pointermath in current_settings.localswitches;
+        // Dump_Stack(Output,get_frame);
       end;
 
 
