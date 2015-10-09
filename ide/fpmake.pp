@@ -232,9 +232,6 @@ begin
       AddSrc('readme.txt');
       AddSrc('todo.txt');
       AddSrc('fp.ans');
-      AddSrc('Makefile.fpc.fpcmake');
-      AddSrcFiles('Makefile',true);
-      AddSrcFiles('Makefile.fpc',true);
       AddSrcFiles('*.tdf');
       AddSrcFiles('*.pas',true);
       AddSrcFiles('*.inc',true);
