@@ -1476,6 +1476,17 @@ type
          { All units are read, now give them a number }
          current_module.updatemaps;
 
+         hp:=tmodule(loaded_units.first);
+         while assigned(hp) do
+           begin
+             if (hp<>current_module) and not assigned(hp.package) then
+               begin
+                 if (hp.flags and uf_package_deny) <> 0 then
+                   message1(package_e_unit_deny_package,hp.realmodulename^);
+               end;
+             hp:=tmodule(hp.next);
+           end;
+
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
            tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
