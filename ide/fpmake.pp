@@ -192,9 +192,13 @@ begin
       P.Options.Add('-Fu../compiler/mips');
 
     P.Options.Add('-Sg');
+    P.IncludePath.Add('compiler');
 
     T:=P.Targets.AddProgram('fp.pas');
-    T.Dependencies.AddUnit('compunit');
+    with T.Dependencies do
+     begin
+      AddUnit('compunit');
+     end;
 
     T:=P.Targets.AddUnit('compunit.pas');
     T.Directory:='compiler';
@@ -212,7 +216,20 @@ begin
     P.InstallFiles.Add('tpgrep.tdf','$(bininstalldir)');
     P.InstallFiles.Add('fp32.ico', [win32, win64], '$(bininstalldir)');
 
-    P.Sources.AddDoc('readme.ide');
+    with P.Sources do
+     begin
+      AddDoc('readme.ide');
+      AddSrc('readme.txt');
+      AddSrc('todo.txt');
+      AddSrc('fp.ans');
+      AddSrcFiles('*.tdf');
+      AddSrcFiles('*.pas',true);
+      AddSrcFiles('*.inc',true);
+      AddSrcFiles('*.rc');
+      AddSrcFiles('*.ico');
+      AddSrcFiles('*.term');
+      AddSrcFiles('*.pt');
+     end;
 
     P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.ppu');
     P.CleanFiles.Add('$(UNITSOUTPUTDIR)compiler.ppu');
