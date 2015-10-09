@@ -118,6 +118,18 @@ unit scandir;
       end;
 
 
+    procedure do_moduleflagswitch(flag:cardinal);
+      var
+        state : char;
+      begin
+        state:=current_scanner.readstate;
+        if state='-' then
+          current_module.flags:=current_module.flags and not flag
+        else
+          current_module.flags:=current_module.flags or flag;
+      end;
+
+
     procedure do_message(w:integer);
       begin
         current_scanner.skipspace;
@@ -336,6 +348,11 @@ unit scandir;
     procedure dir_debuginfo;
       begin
         do_delphiswitch('D');
+      end;
+
+    procedure dir_denypackageunit;
+      begin
+        do_moduleflagswitch(uf_package_deny);
       end;
 
     procedure dir_description;
@@ -1531,6 +1548,11 @@ unit scandir;
         do_setverbose('W');
       end;
 
+    procedure dir_weakpackageunit;
+      begin
+        do_moduleflagswitch(uf_package_weak);
+      end;
+
     procedure dir_writeableconst;
       begin
         do_delphiswitch('J');
@@ -1629,10 +1651,6 @@ unit scandir;
         do_localswitch(cs_hugeptr_comparison_normalization);
       end;
 
-    procedure dir_weakpackageunit;
-      begin
-      end;
-
     procedure dir_codealign;
       var
         s : string;
@@ -1717,6 +1735,7 @@ unit scandir;
         AddDirective('COPYRIGHT',directive_all, @dir_copyright);
         AddDirective('D',directive_all, @dir_description);
         AddDirective('DEBUGINFO',directive_all, @dir_debuginfo);
+        AddDirective('DENYPACKAGEUNIT',directive_all,@dir_denypackageunit);
         AddDirective('DESCRIPTION',directive_all, @dir_description);
         AddDirective('ENDREGION',directive_all, @dir_endregion);
         AddDirective('ERROR',directive_all, @dir_error);
