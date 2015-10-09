@@ -10,6 +10,8 @@ type
     link: ^node;
   end;
 
+  tintnode = specialize node<int32>;
+
 begin
 
 end.

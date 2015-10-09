@@ -122,6 +122,7 @@ implementation
     procedure resolve_forward_types;
       var
         i: longint;
+        tmp,
         hpd,
         def : tdef;
         srsym  : tsym;
@@ -153,6 +154,20 @@ implementation
                      if assigned(srsym) and
                         (srsym.typ=typesym) then
                       begin
+                        if (sp_generic_dummy in srsym.symoptions) and
+                            not (ttypesym(srsym).typedef.typ=undefineddef) and
+                            assigned(def.owner.defowner) then
+                          begin
+                            { is the forward def part of a specialization? }
+                            tmp:=tdef(def.owner.defowner);
+                            while not tstoreddef(tmp).is_specialization and assigned(tmp.owner.defowner) do
+                              tmp:=tdef(tmp.owner.defowner);
+                            { if the genericdef of the specialization is the same as the
+                              def the dummy points to, then update the found symbol }
+                            if tstoreddef(tmp).is_specialization and
+                                (tstoreddef(tmp).genericdef=ttypesym(srsym).typedef) then
+                              srsym:=tstoreddef(tmp).typesym;
+                          end;
                         tabstractpointerdef(def).pointeddef:=ttypesym(srsym).typedef;
                         { avoid wrong unused warnings web bug 801 PM }
                         inc(ttypesym(srsym).refs);
