@@ -201,7 +201,7 @@ end;
     begin
       T:=0;
       Repeat
-         r:=Write(PByte(@Buffer)[t],Count);
+         r:=Write(PByte(@Buffer)[t],Count-t);
          inc(t,r);
       Until (t=count) or (r<=0);
       if (t<Count) then
