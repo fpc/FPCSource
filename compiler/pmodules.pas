@@ -1527,7 +1527,7 @@ type
              tstoredsymtable(current_module.localsymtable).allprivatesused;
              tstoredsymtable(current_module.localsymtable).check_forwards;
 
-             current_module.allunitsused;
+             { Note: all contained units are considered as used }
            end;
 
          if target_info.system in systems_windows then
