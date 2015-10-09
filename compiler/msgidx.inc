@@ -994,13 +994,15 @@ const
   package_f_cant_find_pcp=13001;
   package_u_pcp_found=13002;
   package_e_duplicate_package=13003;
+  package_e_unit_deny_package=13004;
+  package_n_implicit_unit_import=13005;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 72180;
+  MsgTxtSize = 72281;
 
   MsgIdxMax : array[1..20] of longint=(
     26,99,340,123,89,57,126,27,202,64,
-    58,20,4,1,1,1,1,1,1,1
+    58,20,6,1,1,1,1,1,1,1
   );
