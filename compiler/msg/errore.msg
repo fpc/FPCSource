@@ -3344,7 +3344,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 # Package loading and handling
 #
-# 13003 is the last used one
+# 13005 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -3361,6 +3361,11 @@ package_u_pcp_found=13002_U_PCP file for package $1 found
 package_e_duplicate_package=13003_E_Duplicate package $1
 % The package was already specified as required package and may not be specified
 % a second time.
+package_e_unit_deny_package=13004_E_Unit $1 can not be part of a package
+% The unit can not be part of a package because the DenyPackageUnit directive is enabled for the unit.
+package_n_implicit_unit_import=13005_N_Unit $1 is implicitely imported into package $2
+% The unit was not specified as part of the \var{contains} section and is also not included in one of the
+% required packages. Add the unit to the \var{contains} section to increase compatibility with other packages.
 % \end{description}
 
 
