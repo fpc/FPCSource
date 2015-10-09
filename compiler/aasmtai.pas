@@ -80,7 +80,6 @@ interface
           ait_labeled_instruction,
 {$endif m68k}
 {$ifdef arm}
-          ait_thumb_func,
           ait_thumb_set,
 {$endif arm}
           ait_set,
@@ -198,7 +197,6 @@ interface
           'labeled_instr',
 {$endif m68k}
 {$ifdef arm}
-          'thumb_func',
           'thumb_set',
 {$endif arm}
           'set',
@@ -310,7 +308,6 @@ interface
                      ait_cutobject,ait_marker,ait_varloc,ait_align,ait_section,ait_comment,
                      ait_const,ait_directive,
 {$ifdef arm}
-                     ait_thumb_func,
                      ait_thumb_set,
 {$endif arm}
                      ait_set,ait_weak,
@@ -358,7 +355,9 @@ interface
         { .ent/.end for MIPS and Alpha }
         asd_ent,asd_ent_end,
         { supported by recent clang-based assemblers for data-in-code  }
-        asd_data_region, asd_end_data_region
+        asd_data_region, asd_end_data_region,
+        { .thumb_func for ARM }
+        asd_thumb_func
       );
 
       TAsmSehDirective=(
@@ -389,7 +388,9 @@ interface
         { .ent/.end for MIPS and Alpha }
         'ent','end',
         { supported by recent clang-based assemblers for data-in-code }
-        'data_region','end_data_region'
+        'data_region','end_data_region',
+        { .thumb_func for ARM }
+        'thumb_func'
       );
       sehdirectivestr : array[TAsmSehDirective] of string[16]=(
         '.seh_proc','.seh_endproc',

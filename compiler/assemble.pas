@@ -1215,6 +1215,10 @@ Implementation
                    asd_reference:
                      { ignore for now, but should be added}
                      ;
+{$ifdef ARM}
+                   asd_thumb_func:
+                     ObjData.ThumbFunc:=true;
+{$endif ARM}
                    else
                      internalerror(2010011101);
                  end;
@@ -1359,6 +1363,9 @@ Implementation
                    asd_reference:
                      { ignore for now, but should be added}
                      ;
+                   asd_thumb_func:
+                     { ignore for now, but should be added}
+                     ;
                    else
                      internalerror(2010011102);
                  end;
@@ -1382,6 +1389,7 @@ Implementation
         objsymend : TObjSymbol;
         zerobuf : array[0..63] of byte;
         relative_reloc: boolean;
+        tmp    : word;
       begin
         fillchar(zerobuf,sizeof(zerobuf),0);
         fillchar(objsym,sizeof(objsym),0);
@@ -1505,6 +1513,11 @@ Implementation
                    aitconst_darwin_dwarf_delta32,
                    aitconst_darwin_dwarf_delta64:
                      ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
+                   aitconst_half16bit:
+                     begin
+                       tmp:=Tai_const(hp).value div 2;
+                       ObjData.writebytes(tmp,2);
+                     end
                    else
                      internalerror(200603254);
                  end;

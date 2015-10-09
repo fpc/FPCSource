@@ -67,7 +67,8 @@ Type
       fpu_vfpv2,
       fpu_vfpv3,
       fpu_vfpv3_d16,
-      fpu_fpv4_s16
+      fpu_fpv4_s16,
+      fpu_vfpv4
      );
 
    tcontrollertype =
@@ -399,7 +400,8 @@ Const
      'VFPV2',
      'VFPV3',
      'VFPV3_D16',
-     'FPV4_S16'
+     'FPV4_S16',
+     'VFPV4'
    );
 
 
@@ -746,7 +748,7 @@ Const
        { cpu_armv3    } [],
        { cpu_armv4    } [CPUARM_HAS_UMULL],
        { cpu_armv4t   } [CPUARM_HAS_BX,CPUARM_HAS_UMULL],
-       { cpu_armv5    } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_UMULL],
+       { cpu_armv5    } [CPUARM_HAS_CLZ,CPUARM_HAS_UMULL],
        { cpu_armv5t   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_UMULL],
        { cpu_armv5te  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_UMULL],
        { cpu_armv5tej } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_UMULL],

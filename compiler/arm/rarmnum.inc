@@ -122,4 +122,11 @@ tregister($0500001E),
 tregister($0500001F),
 tregister($05000020),
 tregister($05000021),
-tregister($05000022)
+tregister($05000022),
+tregister($05000023),
+tregister($05000024),
+tregister($05000025),
+tregister($05000026),
+tregister($05000027),
+tregister($05000028),
+tregister($05000029)

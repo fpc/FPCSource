@@ -170,9 +170,9 @@ implementation
 
     procedure tarmtypeconvnode.second_int_to_real;
       const
-        signedprec2vfpop: array[boolean,OS_F32..OS_F64] of tasmop =
-          ((A_FUITOS,A_FUITOD),
-           (A_FSITOS,A_FSITOD));
+        signedprec2vfppf: array[boolean,OS_F32..OS_F64] of toppostfix =
+          ((PF_F32U32,PF_F64U32),
+           (PF_F32S32,PF_F64S32));
       var
         instr : taicpu;
         href : treference;
@@ -253,8 +253,9 @@ implementation
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size)
               else
                 location.register:=left.location.register;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(
-                signedprec2vfpop[signed,location.size],location.register,left.location.register));
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VCVT,
+                location.register,left.location.register),
+                signedprec2vfppf[signed,location.size]));
             end;
           fpu_fpv4_s16:
             begin

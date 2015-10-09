@@ -198,7 +198,7 @@ unit i_win;
             Cprefix      : '';
             newline      : #13#10;
             dirsep       : '\';
-            assem        : as_gas;
+            assem        : as_arm_pecoffwince;
             assemextern  : as_gas;
             link         : ld_int_windows;
             linkextern   : ld_windows;

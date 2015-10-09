@@ -68,6 +68,8 @@ interface
 {$endif i386}
 {$ifdef arm}
          RELOC_RELATIVE_24,
+         RELOC_RELATIVE_24_THUMB,
+         RELOC_RELATIVE_CALL_THUMB,
 {$endif arm}
          { Relative relocation }
          RELOC_RELATIVE,
@@ -169,6 +171,10 @@ interface
 
        { Darwin asm is using indirect symbols resolving }
        indsymbol  : TObjSymbol;
+
+{$ifdef ARM}
+       ThumbFunc : boolean;
+{$endif ARM}
 
        constructor create(AList:TFPHashObjectList;const AName:string);
        function  address:aword;
@@ -287,6 +293,9 @@ interface
      public
        CurrPass  : byte;
        ExecStack : boolean;
+{$ifdef ARM}
+       ThumbFunc : boolean;
+{$endif ARM}
        constructor create(const n:string);virtual;
        destructor  destroy;override;
        { Sections }
@@ -982,6 +991,9 @@ implementation
         FCachedAsmSymbolList:=TFPObjectList.Create(false);
         { section class type for creating of new sections }
         FCObjSection:=TObjSection;
+{$ifdef ARM}
+        ThumbFunc:=false;
+{$endif ARM}
       end;
 
 
@@ -1166,6 +1178,11 @@ implementation
         result:=TObjSymbol(FObjSymbolList.Find(aname));
         if not assigned(result) then
           result:=TObjSymbol.Create(FObjSymbolList,aname);
+
+{$ifdef ARM}
+        result.ThumbFunc:=ThumbFunc;
+        ThumbFunc:=false;
+{$endif ARM}
       end;
 
 

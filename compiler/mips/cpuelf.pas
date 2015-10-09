@@ -1026,6 +1026,7 @@ implementation
         encodereloc:       @elf_mips_encodeReloc;
         loadreloc:         @elf_mips_loadReloc;
         loadsection:       @elf_mips_loadSection;
+        encodeflags:       nil;
       );
 
 initialization

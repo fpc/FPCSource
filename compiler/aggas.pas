@@ -1353,10 +1353,6 @@ implementation
                  AsmWriteLn(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value));
              end;
 {$ifdef arm}
-           ait_thumb_func:
-             begin
-               AsmWriteLn(#9'.thumb_func');
-             end;
            ait_thumb_set:
              begin
                AsmWriteLn(#9'.thumb_set '+tai_thumb_set(hp).sym^+', '+tai_thumb_set(hp).value^);

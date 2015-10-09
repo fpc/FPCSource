@@ -234,7 +234,7 @@ implementation
     procedure tarminlinenode.second_abs_real;
       var
         singleprec: boolean;
-        op: TAsmOp;
+        pf: TOpPostfix;
       begin
         load_fpu_location(singleprec);
         case current_settings.fputype of
@@ -247,10 +247,10 @@ implementation
           fpu_vfpv3_d16:
             begin
               if singleprec then
-                op:=A_FABSS
+                pf:=PF_F32
               else
-                op:=A_FABSD;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
+                pf:=PF_F64;
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register),pf));
             end;
           fpu_fpv4_s16:
             current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register), PF_F32));
@@ -270,7 +270,7 @@ implementation
     procedure tarminlinenode.second_sqr_real;
       var
         singleprec: boolean;
-        op: TAsmOp;
+        pf: TOpPostfix;
       begin
         load_fpu_location(singleprec);
         case current_settings.fputype of
@@ -283,10 +283,10 @@ implementation
           fpu_vfpv3_d16:
             begin
               if singleprec then
-                op:=A_FMULS
+                pf:=PF_F32
               else
-                op:=A_FMULD;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,left.location.register));
+                pf:=PF_F64;
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register),pf));
             end;
           fpu_fpv4_s16:
             current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register), PF_F32));
@@ -299,7 +299,7 @@ implementation
     procedure tarminlinenode.second_sqrt_real;
       var
         singleprec: boolean;
-        op: TAsmOp;
+        pf: TOpPostfix;
       begin
         load_fpu_location(singleprec);
         case current_settings.fputype of
@@ -312,13 +312,13 @@ implementation
           fpu_vfpv3_d16:
             begin
               if singleprec then
-                op:=A_FSQRTS
+                pf:=PF_F32
               else
-                op:=A_FSQRTD;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
+                pf:=PF_F64;
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register),pf));
             end;
           fpu_fpv4_s16:
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register));
+            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register), PF_F32));
         else
           internalerror(2009111402);
         end;
