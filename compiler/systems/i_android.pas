@@ -100,10 +100,10 @@ unit i_android;
             system       : system_i386_ANDROID;
             name         : 'Android for i386';
             shortname    : 'Android';
-            flags        : [tf_needs_symbol_size,tf_pic_uses_got,tf_smartlink_sections,
-                            tf_needs_symbol_type,tf_files_case_sensitive,
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_needs_dwarf_cfi,tf_has_winlike_resources,
-                            tf_safecall_exceptions, tf_safecall_clearstack];
+                            tf_pic_uses_got, tf_smartlink_sections,
+                            tf_safecall_exceptions];
             cpu          : cpu_i386;
             unit_env     : 'ANDROIDUNITS';
             extradefines : 'UNIX;HASUNIX';
