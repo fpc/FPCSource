@@ -68,13 +68,8 @@ _haltproc:
         /* GOT init */
         call    fpc_geteipasebx
         addl    $_GLOBAL_OFFSET_TABLE_,%ebx
-
-        movl    operatingsystem_result@GOT(%ebx),%eax
-        movzwl  (%eax),%eax
-
-        pushl   %eax
-        /* Call libc exit() */
-        call    exit@PLT
+        /* Jump to libc exit(). _haltproc has the same declaration as exit. */
+        jmp     exit@GOT
 
 /* --------------------------------------------------------- */
 .data

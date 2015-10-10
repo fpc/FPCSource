@@ -68,11 +68,9 @@ _fpc_start:
         .globl  _haltproc
         .type   _haltproc,@function
 _haltproc:
-        movzwl  operatingsystem_result,%ebx
-        pushl   %ebx
-        /* Call libc exit() */
-        call    exit
-        
+        /* Jump to libc exit(). _haltproc has the same declaration as exit. */
+        jmp     exit
+
 /* --------------------------------------------------------- */
 .data
 /* Define a symbol for the first piece of initialized data.  */
