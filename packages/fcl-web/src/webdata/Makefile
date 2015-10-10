@@ -326,7 +326,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fcl-web
-override PACKAGE_VERSION=3.0.1
+override PACKAGE_VERSION=3.0.0rc2
 PACKAGEDIR_MAIN:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-web/Makefile.fpc,$(PACKAGESDIR))))))
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=fpwebdata sqldbwebdata fpextjs extjsjson extjsxml

@@ -70,7 +70,7 @@ begin
     P.Dependencies.Add('rtl-extra');
     P.Dependencies.Add('rtl-objpas');
 	
-    P.Version:='3.0.1';
+    P.Version:='3.0.0rc2';
 
     T:=P.Targets.AddProgram('ptop.pp');
     T.Dependencies.AddUnit('ptopu');

@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.1';
+    P.Version:='3.0.0rc2';
     P.Description:='Free Pascal Make Tool';
     P.Author := 'Peter Vreman';
     P.License := 'LGPL with modification, ';
@@ -31,13 +31,13 @@ begin
     // here to be able to update all requirements to
     // compile fpmake from a single place
     D:=P.Dependencies.Add('hash');
-      D.Version:='3.0.1';
+      D.Version:='3.0.0rc2';
     D:=P.Dependencies.Add('paszlib');
-      D.Version:='3.0.1';
+      D.Version:='3.0.0rc2';
     D:=P.Dependencies.Add('fcl-process');
-      D.Version:='3.0.1';
+      D.Version:='3.0.0rc2';
     D:=P.Dependencies.Add('libtar');
-      D.Version:='3.0.1';
+      D.Version:='3.0.0rc2';
 
     with P.Targets.AddUnit('src/fpmkunit.pp') do
       ResourceStrings:=true;

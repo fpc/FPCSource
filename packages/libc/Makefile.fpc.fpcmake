@@ -4,7 +4,7 @@
 
 [package]
 name=libc
-version=3.0.1
+version=3.0.0rc2
 
 [target]
 units=kerneldefs kernelioctl libc

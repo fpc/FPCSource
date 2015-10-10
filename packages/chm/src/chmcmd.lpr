@@ -26,7 +26,7 @@ uses
   {$ifdef Unix}cthreads,{$endif} Classes, Sysutils, chmfilewriter, GetOpts;
 
 Const
-  CHMCMDVersion = '3.0.1';
+  CHMCMDVersion = '3.0.0-rc2';
 
 Procedure Usage;
 

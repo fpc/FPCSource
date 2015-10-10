@@ -27,7 +27,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.0.1';
+    P.Version:='3.0.0rc2';
 
     T:=P.Targets.AddProgram('fprcp.pp');
     T.Dependencies.AddUnit('comments');
