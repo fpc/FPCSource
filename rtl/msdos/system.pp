@@ -58,7 +58,7 @@ var
   memw : array[0..($7fff div sizeof(word))-1] of word absolute $0:$0;
   meml : array[0..($7fff div sizeof(longint))-1] of longint absolute $0:$0;
 { C-compatible arguments and environment }
-  argc:longint; //!! public name 'operatingsystem_parameter_argc';
+  argc:smallint; //!! public name 'operatingsystem_parameter_argc';
   argv:PPchar; //!! public name 'operatingsystem_parameter_argv';
 
 { The DOS Program Segment Prefix segment (TP7 compatibility) }
@@ -210,74 +210,221 @@ begin
 end;
 
 
-function GetProgramName: string;
+procedure setup_arguments;
 var
-  cp: PFarChar;
+  I: SmallInt;
+  pc: PChar;
+  pfc: PFarChar;
+  quote: Char;
+  count: SmallInt;
+  arglen, argv0len: SmallInt;
+  argblock: PChar;
+  arg: PChar;
+  doscmd   : string[129];  { Dos commandline copied from PSP, max is 128 chars +1 for terminating zero }
 begin
-  GetProgramName := '';
-  cp := dos_argv0;
-  if cp = nil then
-    exit;
-  while cp^ <> #0 do
+  { load commandline from psp }
+  SetLength(doscmd, Mem[PrefixSeg:$80]);
+  for I := 1 to length(doscmd) do
+    doscmd[I] := Chr(Mem[PrefixSeg:$80+I]);
+  doscmd[length(doscmd)+1]:=#0;
+{$IfDef SYSTEM_DEBUG_STARTUP}
+  Writeln(stderr,'Dos command line is #',doscmd,'# size = ',length(doscmd));
+{$EndIf }
+  { find argv0len }
+  argv0len:=0;
+  if dos_argv0<>nil then
     begin
-      GetProgramName := GetProgramName + cp^;
-      Inc(cp);
-    end;
-end;
-
-
-function GetCommandLine: string;
-var
-  len, I: Integer;
-begin
-  len := PFarByte(Ptr(PrefixSeg, $80))^;
-  SetLength(GetCommandLine, len);
-  for I := 1 to len do
-    GetCommandLine[I] := PFarChar(Ptr(PrefixSeg, $80 + I))^;
-end;
-
-
-function GetArg(ArgNo: Integer; out ArgResult: string): Integer;
-var
-  cmdln: string;
-  I: Integer;
-  InArg: Boolean;
-begin
-  cmdln := GetCommandLine;
-  ArgResult := '';
-  I := 1;
-  InArg := False;
-  GetArg := 0;
-  for I := 1 to Length(cmdln) do
-    begin
-      if not InArg and (cmdln[I] <> ' ') then
+      pfc:=dos_argv0;
+      while pfc^<>#0 do
         begin
-          InArg := True;
-          Inc(GetArg);
+          Inc(argv0len);
+          Inc(pfc);
         end;
-      if InArg and (cmdln[I] = ' ') then
-        InArg := False;
-      if InArg and (GetArg = ArgNo) then
-        ArgResult := ArgResult + cmdln[I];
+    end;
+  { parse dos commandline }
+  pc:=@doscmd[1];
+  count:=1;
+  { calc total arguments length and count }
+  arglen:=argv0len+1;
+  while pc^<>#0 do
+    begin
+      { skip leading spaces }
+      while pc^ in [#1..#32] do
+        inc(pc);
+      if pc^=#0 then
+        break;
+      { calc argument length }
+      quote:=' ';
+      while (pc^<>#0) do
+        begin
+          case pc^ of
+            #1..#32 :
+              begin
+                if quote<>' ' then
+                  inc(arglen)
+                else
+                  break;
+              end;
+            '"' :
+              begin
+                if quote<>'''' then
+                  begin
+                    if pchar(pc+1)^<>'"' then
+                      begin
+                        if quote='"' then
+                          quote:=' '
+                        else
+                          quote:='"';
+                      end
+                    else
+                     inc(pc);
+                  end
+                else
+                  inc(arglen);
+              end;
+            '''' :
+              begin
+                if quote<>'"' then
+                  begin
+                    if pchar(pc+1)^<>'''' then
+                      begin
+                        if quote=''''  then
+                         quote:=' '
+                        else
+                         quote:='''';
+                      end
+                    else
+                      inc(pc);
+                  end
+                else
+                  inc(arglen);
+              end;
+            else
+              inc(arglen);
+          end;
+          inc(pc);
+        end;
+      inc(arglen);  { for the null terminator }
+      inc(count);
+    end;
+  { set argc and allocate argv }
+  argc:=count;
+  argv:=AllocMem((count+1)*SizeOf(PChar));
+  { allocate a single memory block for all arguments }
+  argblock:=GetMem(arglen);
+  { create argv[0] }
+  argv[0]:=argblock;
+  arg:=argblock;
+  if dos_argv0<>nil then
+    begin
+      pfc:=dos_argv0;
+      while pfc^<>#0 do
+        begin
+          arg^:=pfc^;
+          Inc(arg);
+          Inc(pfc);
+        end;
+    end;
+  arg^:=#0;
+  Inc(arg);
+
+  pc:=@doscmd[1];
+  count:=1;
+  while pc^<>#0 do
+    begin
+      { skip leading spaces }
+      while pc^ in [#1..#32] do
+        inc(pc);
+      if pc^=#0 then
+        break;
+      { copy argument }
+      argv[count]:=arg;
+      quote:=' ';
+      while (pc^<>#0) do
+        begin
+          case pc^ of
+            #1..#32 :
+              begin
+                if quote<>' ' then
+                  begin
+                    arg^:=pc^;
+                    inc(arg);
+                  end
+                else
+                  break;
+              end;
+            '"' :
+              begin
+                if quote<>'''' then
+                  begin
+                    if pchar(pc+1)^<>'"' then
+                      begin
+                        if quote='"' then
+                          quote:=' '
+                        else
+                          quote:='"';
+                      end
+                    else
+                      inc(pc);
+                  end
+                else
+                  begin
+                    arg^:=pc^;
+                    inc(arg);
+                  end;
+              end;
+            '''' :
+              begin
+                if quote<>'"' then
+                  begin
+                    if pchar(pc+1)^<>'''' then
+                      begin
+                        if quote=''''  then
+                          quote:=' '
+                        else
+                          quote:='''';
+                      end
+                    else
+                      inc(pc);
+                  end
+                else
+                  begin
+                    arg^:=pc^;
+                    inc(arg);
+                  end;
+              end;
+            else
+              begin
+                arg^:=pc^;
+                inc(arg);
+              end;
+          end;
+          inc(pc);
+        end;
+      arg^:=#0;
+      Inc(arg);
+ {$IfDef SYSTEM_DEBUG_STARTUP}
+      Writeln(stderr,'dos arg ',count,' #',strlen(argv[count]),'#',argv[count],'#');
+ {$EndIf SYSTEM_DEBUG_STARTUP}
+      inc(count);
     end;
 end;
 
 
 function paramcount : longint;
-var
-  tmpstr: string;
 begin
-  paramcount := GetArg(-1, tmpstr);
+  paramcount := argc - 1;
 end;
 
 
 function paramstr(l : longint) : string;
 begin
-  if l = 0 then
-    paramstr := GetProgramName
+  if (l>=0) and (l+1<=argc) then
+    paramstr:=strpas(argv[l])
   else
-    GetArg(l, paramstr);
+    paramstr:='';
 end;
+
 
 procedure randomize;
 var
@@ -393,6 +540,7 @@ begin
   SysInitStdIO;
 { Setup environment and arguments }
   Setup_Environment;
+  Setup_Arguments;
 { Use LFNSupport LFN }
   LFNSupport:=CheckLFN;
   if LFNSupport then
