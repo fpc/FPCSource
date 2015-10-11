@@ -50,16 +50,6 @@ _start:
 	/* This should never happen */
 	b	abort
 
-	.globl	_init
-	.type	_init,#function
-_init:
-	ret
-
-	.globl	_fini
-	.type	_fini,#function
-_fini:
-	ret
-
 	.globl	_haltproc
 	.type	_haltproc,#function
 _haltproc:
