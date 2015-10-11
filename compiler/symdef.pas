@@ -1236,7 +1236,11 @@ implementation
         result:=crecorddef.create_global_internal(
           name,sizeof(pint),sizeof(pint),
           init_settings.alignment.maxCrecordalign);
+{$ifdef cpu16bitaddr}
+        index_field:=result.add_field_by_def('',u16inttype);
+{$else cpu16bitaddr}
         index_field:=result.add_field_by_def('',u32inttype);
+{$endif cpu16bitaddr}
         non_mt_data_field:=result.add_field_by_def('',def);
         { no need to add alignment padding, we won't create arrays of these }
       end;

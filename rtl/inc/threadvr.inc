@@ -23,7 +23,7 @@
 type
   pltvInitEntry = ^ltvInitEntry;
   ltvInitEntry = packed record
-     varaddr : pdword;
+     varaddr : {$ifdef cpu16}pword{$else}pdword{$endif};
      size    : longint;
   end;
 
