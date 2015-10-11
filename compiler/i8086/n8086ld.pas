@@ -151,7 +151,7 @@ implementation
               reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
             else
               reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
-            cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
+            cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_16,href,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
             cg.allocallcpuregisters(current_asmdata.CurrAsmList);
