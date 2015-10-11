@@ -1149,7 +1149,7 @@ implementation
 
     function getansistringcodepage:tstringencoding; inline;
       begin
-        if cs_explicit_codepage in current_settings.moduleswitches then
+        if ([cs_explicit_codepage,cs_system_codepage]*current_settings.moduleswitches)<>[] then
           result:=current_settings.sourcecodepage
         else
           result:=0;
@@ -1159,9 +1159,9 @@ implementation
       var
         symtable:tsymtable;
       begin
-        { if codepage is explicitly defined in this mudule we need to return
+        { if a codepage is explicitly defined in this mudule we need to return
           a replacement for ansistring def }
-        if cs_explicit_codepage in current_settings.moduleswitches then
+        if ([cs_explicit_codepage,cs_system_codepage]*current_settings.moduleswitches)<>[] then
           begin
             if not assigned(current_module) then
               internalerror(2011101301);
@@ -1170,7 +1170,7 @@ implementation
             if not assigned(current_module.ansistrdef) then
               begin
                 { if we did not create it yet we need to do this now }
-                if current_module.is_unit then
+                if current_module.in_interface then
                   symtable:=current_module.globalsymtable
                 else
                   symtable:=current_module.localsymtable;
@@ -3134,6 +3134,7 @@ implementation
       begin
         inherited create(pointerdef,def);
         has_pointer_math:=cs_pointermath in current_settings.localswitches;
+        // Dump_Stack(Output,get_frame);
       end;
 
 

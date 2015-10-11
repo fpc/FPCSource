@@ -1145,6 +1145,7 @@ Type
 
     property Verbose : boolean read FVerbose write FVerbose;
     Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true; WarnIfNotFound:boolean=true);
+    Procedure ClearResolvedFileNames(APackage : TPackage);
 
     // Public Copy/delete/Move/Archive/Mkdir Commands.
     Procedure ExecuteCommand(const Cmd,Args : String; const Env: TStrings = nil; IgnoreError : Boolean = False); virtual;
@@ -1201,7 +1202,7 @@ Type
     Procedure UnInstall(Packages : TPackages);
     Procedure ZipInstall(Packages : TPackages);
     Procedure Archive(Packages : TPackages);
-    procedure Manifest(Packages: TPackages);
+    procedure Manifest(Packages: TPackages; Package: TPackage);
     procedure PkgList(Packages: TPackages);
     Procedure Clean(Packages : TPackages; AllTargets: boolean);
 
@@ -2601,6 +2602,13 @@ function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): stri
 {$ifdef HAS_UNIT_PROCESS}
       ExecResult:=GetCompilerInfo(GccExecutable,'-v '+GCCParams, True);
       libgccFilename:=Get4thWord(ExecResult);
+      // Use IsRelativePath to check if the 4th word is an (absolute) path.
+      // This depends on the language settings. In English the 4th word is
+      // empty, if this particular gcc version does not return the libgcc-
+      // filename on -v. But in other languages (e.g. Dutch) it may be another
+      // word.
+      if IsRelativePath(libgccFilename) then
+        libgccFilename:='';
       if libgccFilename='' then
         libgccFilename:=GetCompilerInfo(GccExecutable,'--print-libgcc-file-name '+GCCParams, False);
       result := ExtractFileDir(libgccFilename);
@@ -3767,7 +3775,8 @@ begin
       Values[KeyName]:=Name;
       Values[KeyVersion]:=Version;
       // TODO Generate checksum based on PPUs
-      Values[KeyChecksum]:=IntToStr(DateTimeToFileDate(Now));
+      InstalledChecksum:=DateTimeToFileDate(Now);
+      Values[KeyChecksum]:=IntToStr(InstalledChecksum);
       Values[KeyCPU]:=CPUToString(ACPU);
       Values[KeyOS]:=OSToString(AOS);
       //Installer;
@@ -4862,8 +4871,6 @@ end;
 
 procedure TCustomInstaller.Archive;
 begin
-  // Force generation of manifest.xml, this is required for the repository
-  BuildEngine.Manifest(Packages);
   NotifyEventCollection.CallEvents(neaBeforeArchive, self);
   BuildEngine.Archive(Packages);
   NotifyEventCollection.CallEvents(neaAfterArchive, self);
@@ -4873,7 +4880,7 @@ end;
 procedure TCustomInstaller.Manifest;
 begin
   NotifyEventCollection.CallEvents(neaBeforeManifest, self);
-  BuildEngine.Manifest(Packages);
+  BuildEngine.Manifest(Packages, nil);
   NotifyEventCollection.CallEvents(neaAfterManifest, self);
 end;
 
@@ -5850,6 +5857,34 @@ begin
     If DoChangeDir and (APackage.Directory<>'') then
       GPathPrefix := '';
   end;
+end;
+
+procedure TBuildEngine.ClearResolvedFileNames(APackage: TPackage);
+
+  procedure ClearResolvedFileNamesForDependencies(ADependencies: TDependencies);
+  var
+    I: Integer;
+    D: TDependency;
+  begin
+    For I:=0 to ADependencies.Count-1 do
+      begin
+        D := ADependencies[I];
+        D.TargetFileName:='';
+      end;
+  end;
+
+var
+  T : TTarget;
+  I : Integer;
+begin
+  APackage.FAllFilesResolved:=false;
+  ClearResolvedFileNamesForDependencies(APackage.Dependencies);
+  For I:=0 to APackage.Targets.Count-1 do
+    begin
+      T:=APackage.FTargets.TargetItems[I];
+      T.FTargetSourceFileName:='';
+      ClearResolvedFileNamesForDependencies(T.Dependencies);
+    end;
 end;
 
 
@@ -7171,8 +7206,8 @@ begin
         for IOS:=Low(TOS) to high(TOS) do
           if OSCPUSupported[IOS,ICPU] then
             begin
-              // Make sure that the package is resolved for each targbet
-              APackage.FAllFilesResolved:=false;
+              // Make sure that the package is resolved for each target
+              ClearResolvedFileNames(APackage);
               ResolveFileNames(APackage,ICPU,IOS,false);
               APackage.GetArchiveFiles(L, ICPU, IOS);
             end;
@@ -7554,17 +7589,20 @@ begin
   For I:=0 to Packages.Count-1 do
     begin
       P:=Packages.PackageItems[i];
+      // Force generation of manifest.xml, this is required for the repository
+      Manifest(nil, P);
       Archive(P);
     end;
   NotifyEventCollection.CallEvents(neaAfterArchive, Self);
 end;
 
 
-procedure TBuildEngine.Manifest(Packages: TPackages);
+procedure TBuildEngine.Manifest(Packages: TPackages; Package: TPackage);
 Var
   L : TStrings;
   I : Integer;
   P : TPackage;
+  FN: string;
 begin
   NotifyEventCollection.CallEvents(neaBeforeManifest, Self);
   Log(vlDebug, SDbgBuildEngineGenerateManifests);
@@ -7574,14 +7612,25 @@ begin
     Log(vlDebug, Format(SDbgGenerating, [ManifestFile]));
     L.Add('<?xml version="1.0"?>');
     L.Add('<packages>');
-    For I:=0 to Packages.Count-1 do
+    if assigned(Packages) then
       begin
-        P:=Packages.PackageItems[i];
-        Log(vlInfo, Format(SInfoManifestPackage,[P.Name]));
-        P.GetManifest(L);
+        For I:=0 to Packages.Count-1 do
+          begin
+            P:=Packages.PackageItems[i];
+            Log(vlInfo, Format(SInfoManifestPackage,[P.Name]));
+            P.GetManifest(L);
+          end
+      end;
+    if assigned(Package) then
+      begin
+        Log(vlInfo, Format(SInfoManifestPackage,[Package.Name]));
+        Package.GetManifest(L);
       end;
     L.Add('</packages>');
-    L.SaveToFile(ManifestFile);
+    FN := ManifestFile;
+    if assigned(Package) then
+      FN := FixPath(Package.Directory, True)+FN;
+    L.SaveToFile(FN);
   Finally
     L.Free;
   end;

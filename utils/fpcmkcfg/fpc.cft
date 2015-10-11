@@ -140,8 +140,10 @@
 #-Fr%basepath%/msg/errord.msg
 #-Fr%basepath%/msg/errorr.msg
 
-# search path for unicode binary files
+# search path for unicode binary files (FPC 2.x does not know this switch)
+#ifndef VER2
 -FM%sharepath%/unicode/
+#endif
 
 # searchpath for units and other system dependent things
 -Fu%basepath%/units/$fpctarget
@@ -194,6 +196,12 @@
 # never need cross-prefix when targeting the i8086
 # (no native compiler, always cross-compiling)
 #ifdef cpui8086
+#undef NEEDCROSSBINUTILS
+#endif
+
+# never need cross-prefix when targeting the i8086
+# (no native compiler, always cross-compiling)
+#ifdef cpujvm
 #undef NEEDCROSSBINUTILS
 #endif
 

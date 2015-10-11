@@ -2523,7 +2523,7 @@ end;
 function scandatetime(const pattern:string;const s:string;startpos:integer=1) : tdatetime; overload;
 
 begin
- result:=scandatetime(pattern,s,defaultformatsettings);
+ result:=scandatetime(pattern,s,defaultformatsettings,startpos);
 end;
 
 { Conversion of UTC to local time and vice versa }

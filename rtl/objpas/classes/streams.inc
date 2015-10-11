@@ -190,7 +190,7 @@ end;
   begin
     t:=0;
     repeat
-      r:=Read(PByte(@Buffer)[t],Count);
+      r:=Read(PByte(@Buffer)[t],Count-t);
       inc(t,r);
     until (t=Count) or (r<=0);
     if (t<Count) then

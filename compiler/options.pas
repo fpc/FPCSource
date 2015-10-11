@@ -1436,6 +1436,10 @@ begin
                    autoloadunits:=more;
                  'c' :
                    begin
+                     { if we first specify that the system code page should be
+                       used and then explicitly specify a code page, unset the
+                       flag that we're using the system code page again }
+                     SetCompileModeSwitch('SYSTEMCODEPAGE-',true);
                      if (upper(more)='UTF8') or (upper(more)='UTF-8') then
                        init_settings.sourcecodepage:=CP_UTF8
                      else if not(cpavailable(more)) then
@@ -3717,11 +3721,11 @@ begin
       end;
     system_arm_android:
       begin
-        { set default cpu type to ARMv5T for Android unless specified otherwise }
+        { set default cpu type to ARMv6 for Android unless specified otherwise }
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_armv5t;
+          init_settings.cputype:=cpu_armv6;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_armv5t;
+          init_settings.optimizecputype:=cpu_armv6;
       end;
   end;
 

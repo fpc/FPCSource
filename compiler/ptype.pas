@@ -122,11 +122,13 @@ implementation
     procedure resolve_forward_types;
       var
         i: longint;
+        tmp,
         hpd,
         def : tdef;
         srsym  : tsym;
         srsymtable : TSymtable;
         hs : string;
+        fileinfo : tfileposinfo;
       begin
         for i:=0 to current_module.checkforwarddefs.Count-1 do
           begin
@@ -152,6 +154,20 @@ implementation
                      if assigned(srsym) and
                         (srsym.typ=typesym) then
                       begin
+                        if (sp_generic_dummy in srsym.symoptions) and
+                            not (ttypesym(srsym).typedef.typ=undefineddef) and
+                            assigned(def.owner.defowner) then
+                          begin
+                            { is the forward def part of a specialization? }
+                            tmp:=tdef(def.owner.defowner);
+                            while not tstoreddef(tmp).is_specialization and assigned(tmp.owner.defowner) do
+                              tmp:=tdef(tmp.owner.defowner);
+                            { if the genericdef of the specialization is the same as the
+                              def the dummy points to, then update the found symbol }
+                            if tstoreddef(tmp).is_specialization and
+                                (tstoreddef(tmp).genericdef=ttypesym(srsym).typedef) then
+                              srsym:=tstoreddef(tmp).typesym;
+                          end;
                         tabstractpointerdef(def).pointeddef:=ttypesym(srsym).typedef;
                         { avoid wrong unused warnings web bug 801 PM }
                         inc(ttypesym(srsym).refs);
@@ -171,10 +187,17 @@ implementation
                                   the case for generics defined in non-Delphi
                                   modes }
                                 tstoreddef(ttypesym(srsym).typedef).is_generic and
-                                not parse_generic
+                                not defs_belong_to_same_generic(def,ttypesym(srsym).typedef)
                               )
                             ) then
-                          MessagePos(def.typesym.fileinfo,parser_e_no_generics_as_types);
+                          begin
+                            if assigned(def.typesym) then
+                              fileinfo:=def.typesym.fileinfo
+                            else
+                              { this is the case for inline pointer declarations }
+                              fileinfo:=srsym.fileinfo;
+                            MessagePos(fileinfo,parser_e_no_generics_as_types);
+                          end;
                       end
                      else
                       begin
@@ -900,10 +923,7 @@ implementation
            include(current_structdef.defoptions,df_specialization);
          if assigned(old_current_structdef) and
              (df_generic in old_current_structdef.defoptions) then
-           begin
-             include(current_structdef.defoptions,df_generic);
-             current_genericdef:=current_structdef;
-           end;
+           include(current_structdef.defoptions,df_generic);
 
          insert_generic_parameter_types(current_structdef,genericdef,genericlist);
          { when we are parsing a generic already then this is a generic as
@@ -911,6 +931,8 @@ implementation
          if old_parse_generic then
            include(current_structdef.defoptions, df_generic);
          parse_generic:=(df_generic in current_structdef.defoptions);
+         if parse_generic and not assigned(current_genericdef) then
+           current_genericdef:=current_structdef;
          { in non-Delphi modes we need a strict private symbol without type
            count and type parameters in the name to simply resolving }
          maybe_insert_generic_rename_symbol(n,genericlist);

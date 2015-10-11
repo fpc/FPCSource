@@ -392,9 +392,8 @@ begin
       end;
     end;
 
-  HMySQL:=mysql_real_connect(HMySQL,PChar(HostName),PChar(UserName),PChar(Password),Nil,APort,Nil,CLIENT_MULTI_RESULTS); //CLIENT_MULTI_RESULTS is required by CALL SQL statement(executes stored procedure), that produces result sets
-  If (HMySQL=Nil) then
-    MySQLError(Nil,SErrServerConnectFailed,Self);
+  if mysql_real_connect(HMySQL,PChar(HostName),PChar(UserName),PChar(Password),Nil,APort,Nil,CLIENT_MULTI_RESULTS) = nil then //CLIENT_MULTI_RESULTS is required by CALL SQL statement(executes stored procedure), that produces result sets
+    MySQLError(HMySQL,SErrServerConnectFailed,Self);
 
   if (trim(CharSet) <> '') then
     // major_version*10000 + minor_version *100 + sub_version
