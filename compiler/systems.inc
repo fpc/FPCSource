@@ -217,6 +217,7 @@
              ,as_i8086_nasmobj
              ,as_gas_powerpc_xcoff
              ,as_arm_elf32
+             ,as_clang
        );
 
        tlink = (ld_none,

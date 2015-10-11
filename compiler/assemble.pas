@@ -276,7 +276,7 @@ Implementation
       begin
         DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
                 (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) and
-                ((target_asm.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff]));
+                ((target_asm.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff,as_clang]));
       end;
 
 
@@ -583,6 +583,13 @@ Implementation
     function TExternalAssembler.MakeCmdLine: TCmdStr;
       begin
         result:=target_asm.asmcmd;
+        { for Xcode 7.x and later }
+        if MacOSXVersionMin<>'' then
+          Replace(result,'$DARWINVERSION','-mmacosx-version-min='+MacOSXVersionMin)
+        else if iPhoneOSVersionMin<>'' then
+          Replace(result,'$DARWINVERSION','-miphoneos-version-min='+iPhoneOSVersionMin)
+        else
+          Replace(result,'$DARWINVERSION','');
 {$ifdef arm}
         if (target_info.system=system_arm_darwin) then
           Replace(result,'$ARCH',lower(cputypestr[current_settings.cputype]));
@@ -596,7 +603,10 @@ Implementation
          begin
 {$ifdef hasunix}
           if DoPipe then
-            Replace(result,'$ASM','')
+            if target_asm.id<>as_clang then
+              Replace(result,'$ASM','')
+            else
+              Replace(result,'$ASM','-')
           else
 {$endif}
              Replace(result,'$ASM',maybequoted(AsmFileName));

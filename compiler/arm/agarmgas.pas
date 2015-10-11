@@ -416,7 +416,7 @@ unit agarmgas;
        as_arm_gas_darwin_info : tasminfo =
           (
             id     : as_darwin;
-            idtxt  : 'AS-Darwin';
+            idtxt  : 'AS-DARWIN';
             asmbin : 'as';
             asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch $ARCH';
             supported_targets : [system_arm_darwin];
@@ -427,7 +427,22 @@ unit agarmgas;
           );
 
 
+       as_arm_clang_darwin_info : tasminfo =
+          (
+            id     : as_clang;
+            idtxt  : 'CLANG';
+            asmbin : 'clang';
+            asmcmd : '-c -o $OBJ $EXTRAOPT -arch $ARCH $DARWINVERSION -x assembler $ASM';
+            supported_targets : [system_arm_darwin];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : 'L';
+            comment : '# ';
+            dollarsign: '$';
+          );
+
+
 begin
   RegisterAssembler(as_arm_gas_info,TARMGNUAssembler);
   RegisterAssembler(as_arm_gas_darwin_info,TArmAppleGNUAssembler);
+  RegisterAssembler(as_arm_clang_darwin_info,TArmAppleGNUAssembler);
 end.
