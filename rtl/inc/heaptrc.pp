@@ -1472,6 +1472,48 @@ begin
     Add some way to specify heaptrc options? }
   GetEnv:=nil;
 end;
+{$elseif defined(msdos)}
+   type
+     PFarChar=^Char;far;
+     PPFarChar=^PFarChar;
+   var
+     envp: PPFarChar;external name '__fpc_envp';
+Function GetEnv(P:string):string;
+var
+  ep    : ppfarchar;
+  pc    : pfarchar;
+  i     : smallint;
+  found : boolean;
+Begin
+  getenv:='';
+  p:=p+'=';            {Else HOST will also find HOSTNAME, etc}
+  ep:=envp;
+  found:=false;
+  if ep<>nil then
+    begin
+      while (not found) and (ep^<>nil) do
+        begin
+          found:=true;
+          for i:=1 to length(p) do
+            if p[i]<>ep^[i-1] then
+              begin
+                found:=false;
+                break;
+              end;
+          if not found then
+            inc(ep);
+        end;
+    end;
+  if found then
+    begin
+      pc:=ep^+length(p);
+      while pc^<>#0 do
+        begin
+          getenv:=getenv+pc^;
+          Inc(pc);
+        end;
+    end;
+end;
 {$else}
 Function GetEnv(P:string):Pchar;
 {

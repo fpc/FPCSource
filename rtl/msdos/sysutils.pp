@@ -49,6 +49,13 @@ implementation
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
+type
+  PFarChar=^Char;far;
+  PPFarChar=^PFarChar;
+var
+  envp:PPFarChar;external name '__fpc_envp';
+  dos_env_count:smallint;external name '__dos_env_count';
+
 
 {****************************************************************************
                               File Functions
@@ -751,23 +758,86 @@ end;
                               Os utils
 ****************************************************************************}
 
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
+{$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
+{ environment handling for near data memory models }
 
+function far_strpas(p: pfarchar): string;
+begin
+  Result:='';
+  if p<>nil then
+    while p^<>#0 do
+      begin
+        Result:=Result+p^;
+        Inc(p);
+      end;
+end;
+
+Function small_FPCGetEnvVarFromP(EP : PPFarChar; EnvVar : String) : String;
+var
+  hp         : ppfarchar;
+  lenvvar,hs : string;
+  eqpos      : smallint;
+begin
+  lenvvar:=upcase(envvar);
+  hp:=EP;
+  Result:='';
+  If (hp<>Nil) then
+    while assigned(hp^) do
+     begin
+       hs:=far_strpas(hp^);
+       eqpos:=pos('=',hs);
+       if upcase(copy(hs,1,eqpos-1))=lenvvar then
+        begin
+          Result:=copy(hs,eqpos+1,length(hs)-eqpos);
+          exit;
+        end;
+       inc(hp);
+     end;
+end;
+
+Function small_FPCGetEnvStrFromP(EP : PPFarChar; Index : SmallInt) : String;
+begin
+  Result:='';
+  while assigned(EP^) and (Index>1) do
+    begin
+      dec(Index);
+      inc(EP);
+    end;
+  if Assigned(EP^) then
+    Result:=far_strpas(EP^);
+end;
+
+Function GetEnvironmentVariable(Const EnvVar : String) : String;
+begin
+  Result:=small_FPCGetEnvVarFromP(envp,EnvVar);
+end;
+
+Function GetEnvironmentVariableCount : Integer;
+begin
+  Result:=dos_env_count;
+end;
+
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
+begin
+  Result:=small_FPCGetEnvStrFromP(Envp,Index);
+end;
+{$else}
+{ environment handling for far data memory models }
+Function GetEnvironmentVariable(Const EnvVar : String) : String;
 begin
   Result:=FPCGetEnvVarFromP(envp,EnvVar);
 end;
 
 Function GetEnvironmentVariableCount : Integer;
-
 begin
-  Result:=FPCCountEnvVar(EnvP);
+  Result:=dos_env_count;
 end;
 
 Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
-
 begin
   Result:=FPCGetEnvStrFromP(Envp,Index);
 end;
+{$endif}
 
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;

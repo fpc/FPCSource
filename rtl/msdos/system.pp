@@ -60,8 +60,6 @@ var
 { C-compatible arguments and environment }
   argc:longint; //!! public name 'operatingsystem_parameter_argc';
   argv:PPchar; //!! public name 'operatingsystem_parameter_argv';
-  envp:PPchar; //!! public name 'operatingsystem_parameter_envp';
-  dos_argv0 : pchar; //!! public name 'dos_argv0';
 
 { The DOS Program Segment Prefix segment (TP7 compatibility) }
   PrefixSeg:Word;public name '__fpc_PrefixSeg';
@@ -103,6 +101,7 @@ type
   PFarByte = ^Byte;far;
   PFarChar = ^Char;far;
   PFarWord = ^Word;far;
+  PPFarChar = ^PFarChar;
 
 var
   __stktop : pointer;public name '__stktop';
@@ -110,6 +109,9 @@ var
   __nearheap_start: pointer;public name '__nearheap_start';
   __nearheap_end: pointer;public name '__nearheap_end';
   dos_version:Word;public name 'dos_version';
+  envp:PPFarChar;public name '__fpc_envp';
+  dos_env_count:smallint;public name '__dos_env_count';
+  dos_argv0 : PFarChar;public name '__fpc_dos_argv0';
 
 {$I registers.inc}
 
@@ -170,46 +172,57 @@ end;
                               ParamStr/Randomize
 *****************************************************************************}
 
+procedure setup_environment;
+var
+  env_count : smallint;
+  cp, dos_env: PFarChar;
+begin
+  env_count:=0;
+  dos_env:=Ptr(MemW[PrefixSeg:$2C], 0);
+  cp:=dos_env;
+  while cp^<>#0 do
+    begin
+      inc(env_count);
+      while (cp^ <> #0) do
+        inc(cp); { skip to NUL }
+      inc(cp); { skip to next character }
+    end;
+  envp := getmem((env_count+1) * sizeof(PFarChar));
+  cp:=dos_env;
+  env_count:=0;
+  while cp^<>#0 do
+    begin
+      envp[env_count] := cp;
+      inc(env_count);
+      while (cp^ <> #0) do
+        inc(cp); { skip to NUL }
+      inc(cp); { skip to next character }
+    end;
+  envp[env_count]:=nil;
+  dos_env_count := env_count;
+  if dos_version >= $300 then
+    begin
+      inc(cp, 3);
+      dos_argv0 := cp;
+    end
+  else
+    dos_argv0 := nil;
+end;
+
+
 function GetProgramName: string;
 var
-  dos_env_seg: Word;
-  ofs: Word;
-  Ch, Ch2: Char;
+  cp: PFarChar;
 begin
-  if dos_version < $300 then
+  GetProgramName := '';
+  cp := dos_argv0;
+  if cp = nil then
+    exit;
+  while cp^ <> #0 do
     begin
-      GetProgramName := '';
-      exit;
+      GetProgramName := GetProgramName + cp^;
+      Inc(cp);
     end;
-  dos_env_seg := PFarWord(Ptr(PrefixSeg, $2C))^;
-  ofs := 1;
-  repeat
-    Ch := PFarChar(Ptr(dos_env_seg,ofs - 1))^;
-    Ch2 := PFarChar(Ptr(dos_env_seg,ofs))^;
-    if (Ch = #0) and (Ch2 = #0) then
-      begin
-        Inc(ofs, 3);
-        GetProgramName := '';
-        repeat
-          Ch := PFarChar(Ptr(dos_env_seg,ofs))^;
-          if Ch <> #0 then
-            GetProgramName := GetProgramName + Ch;
-          Inc(ofs);
-          if ofs = 0 then
-            begin
-              GetProgramName := '';
-              exit;
-            end;
-        until Ch = #0;
-        exit;
-      end;
-    Inc(ofs);
-    if ofs = 0 then
-      begin
-        GetProgramName := '';
-        exit;
-      end;
-  until false;
 end;
 
 
@@ -378,6 +391,8 @@ begin
   initunicodestringmanager;
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
+{ Setup environment and arguments }
+  Setup_Environment;
 { Use LFNSupport LFN }
   LFNSupport:=CheckLFN;
   if LFNSupport then
