@@ -701,7 +701,7 @@ filecheck=*.source.zip[*src.zip]
 # Source-2 1
 package=units-opengl.source.zip[uoglsrc.zip],OpenGL interface units sources
 # Source-2 2
-package=units-gtk1.source.zip[ugtksrc.zip],GTK1 interface units sources
+package=units-gtk1.source.zip[ugtk1src.zip],GTK1 interface units sources
 # Source-2 3
 package=units-odbc.source.zip[uodbcsrc.zip],ODBC interface units sources
 # Source-2 4
@@ -723,7 +723,7 @@ package=units-os2units.source.zip[uos2src.zip],Units interfacing libraries deliv
 #package=units-clkdll.source.zip[uclksrc.zip],CLKDLL interface unit (eCS 1.1+)
 # Source-2 9
 #package=units-lvm.source.zip[ulvmsrc.zip],OS/2 LVM interface unit sources
-package=units-gtk1.source.zip[ugtk1src.zip],Header to the GTK widgetset (v1)
+package=units-sdl.source.zip[usdlsrc.zip],SDL interface units sources
 # Source-2 10
 package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units sources
 # Source-2 11
@@ -802,26 +802,28 @@ package=units-httpd-2.0.source.zip[uhd20src.zip],HTTPD 2.0 interface units sourc
 # Source-3 17
 package=units-httpd-2.2.source.zip[uhd22src.zip],HTTPD 2.2 interface units sources
 # Source-3 18
-package=units-oggvorbis.source.zip[uoggvsrc.zip],OGG Vorbis interface units sources
+package=units-httpd-2.4.source.zip[uhd24src.zip],HTTPD 2.4 interface units sources
 # Source-3 19
-package=units-openal.source.zip[uoalsrc.zip],OpenAL interface units sources
+package=units-oggvorbis.source.zip[uoggvsrc.zip],OGG Vorbis interface units sources
 # Source-3 20
-package=units-openssl.source.zip[uosslsrc.zip],OpenSSL interface units sources
+package=units-openal.source.zip[uoalsrc.zip],OpenAL interface units sources
 # Source-3 21
-package=units-fcl-sound.source.zip[ufsndsrc.zip],Free Component Library (FCL)-sound files sources
+package=units-openssl.source.zip[uosslsrc.zip],OpenSSL interface units sources
 # Source-3 22
-package=units-fcl-sdo.source.zip[ufcsdsrc.zip],Free Component Library (FCL)-Service Data Objects
+package=units-fcl-sound.source.zip[ufsndsrc.zip],Free Component Library (FCL)-sound files sources
 # Source-3 23
-package=units-fcl-stl.source.zip[ufcstsrc.zip],Free Component Library (FCL)-generic container library
+package=units-fcl-sdo.source.zip[ufcsdsrc.zip],Free Component Library (FCL)-Service Data Objects
 # Source-3 24
-package=units-libtar.source.zip[ultarsrc.zip],Unit for .tar file handling
+package=units-fcl-stl.source.zip[ufcstsrc.zip],Free Component Library (FCL)-generic container library
 # Source-3 25
-package=units-rtl-console.source.zip[urtlcsrc.zip],RTL-console abstraction (keyboard, video & mouse)
+package=units-libtar.source.zip[ultarsrc.zip],Unit for .tar file handling
 # Source-3 26
-package=units-rtl-extra.source.zip[urtlesrc.zip],RTL-additional units not needed for bootstrapping
+package=units-rtl-console.source.zip[urtlcsrc.zip],RTL-console abstraction (keyboard, video & mouse)
 # Source-3 27
-package=units-rtl-objpas.source.zip[urtlosrc.zip],RTL-Object Pascal units (e.g. Delphi compatibility)
+package=units-rtl-extra.source.zip[urtlesrc.zip],RTL-additional units not needed for bootstrapping
 # Source-3 28
+package=units-rtl-objpas.source.zip[urtlosrc.zip],RTL-Object Pascal units (e.g. Delphi compatibility)
+# Source-3 29
 package=units-rtl-unicode.source.zip[urtlusrc.zip],RTL-miscellaneous Unicode support units
 
 defaultcfg=
