@@ -264,6 +264,7 @@ implementation
          defoptions:=[];
          dbg_state:=dbg_state_unused;
          stab_number:=0;
+         defid:=defid_not_registered;
       end;
 
 
@@ -402,6 +403,7 @@ implementation
          isdbgwritten := false;
          visibility:=vis_public;
          deprecatedmsg:=nil;
+         symid:=symid_not_registered;
       end;
 
     destructor  Tsym.destroy;

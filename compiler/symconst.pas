@@ -145,6 +145,16 @@ const
   { prefix for names of class helper procsyms added to regular symtables }
   class_helper_prefix = 'CH$';
 
+  { tsym.symid value in case the sym has not yet been registered }
+  symid_not_registered = -1;
+  { tsym.symid value in case the sym has been registered, but not put in a
+    symtable }
+  symid_registered_nost = -2;
+  { tdef.defid value in case the def has not yet been registered }
+  defid_not_registered = -1;
+  { tdef.defid value in case the sym has been registered, but not put in a
+    symtable }
+  defid_registered_nost = -2;
 
 type
   { keep this in sync with TIntfFlag in rtl/objpas/typinfo.pp }

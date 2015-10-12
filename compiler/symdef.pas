@@ -69,7 +69,7 @@ interface
        protected
           typesymderef  : tderef;
           { whether this def is already registered in the unit's def list }
-          registered : boolean;
+          function registered : boolean;
           procedure ppuwrite_platform(ppufile:tcompilerppufile);virtual;
           procedure ppuload_platform(ppufile:tcompilerppufile);virtual;
        public
@@ -1647,6 +1647,12 @@ implementation
       end;
 
 
+    function tstoreddef.registered: boolean;
+      begin
+        result:=defid<>defid_not_registered;
+      end;
+
+
     procedure tstoreddef.ppuwrite_platform(ppufile: tcompilerppufile);
       begin
         { by default: do nothing }
@@ -1710,8 +1716,6 @@ implementation
       begin
          inherited create(dt);
          DefId:=ppufile.getlongint;
-         { defs loaded from ppu are always owned }
-         registered:=true;
          current_module.deflist[DefId]:=self;
 {$ifdef EXTDEBUG}
          fillchar(fileinfo,sizeof(fileinfo),0);
@@ -2141,7 +2145,9 @@ implementation
          begin
            current_module.deflist.Add(self);
            DefId:=current_module.deflist.Count-1;
-         end;
+         end
+       else
+         DefId:=defid_registered_nost;
        { Register in symtable stack }
        if assigned(symtablestack) then
          begin
@@ -2155,7 +2161,6 @@ implementation
              internalerror(2015022301);
            insertstack^.symtable.insertdef(self);
          end;
-       registered:=true;
      end;
 
 

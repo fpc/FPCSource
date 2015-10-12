@@ -43,7 +43,7 @@ interface
        { this class is the base for all symbol objects }
        tstoredsym = class(tsym)
        private
-          registered : boolean;
+          function registered : boolean;
           procedure writeentry(ppufile: tcompilerppufile; ibnr: byte);
        protected
           procedure ppuwrite_platform(ppufile: tcompilerppufile);virtual;
@@ -555,10 +555,8 @@ implementation
 
     constructor tstoredsym.ppuload(st:tsymtyp;ppufile:tcompilerppufile);
       begin
-         SymId:=ppufile.getlongint;
          inherited Create(st,ppufile.getstring);
-         { Register symbol }
-         registered:=true;
+         SymId:=ppufile.getlongint;
          current_module.symlist[SymId]:=self;
          ppufile.getposinfo(fileinfo);
          visibility:=tvisibility(ppufile.getbyte);
@@ -574,8 +572,8 @@ implementation
       var
         oldintfcrc : boolean;
       begin
-         ppufile.putlongint(SymId);
          ppufile.putstring(realname);
+         ppufile.putlongint(SymId);
          ppufile.putposinfo(fileinfo);
          ppufile.putbyte(byte(visibility));
          { symoptions can differ between interface and implementation, except
@@ -591,6 +589,12 @@ implementation
          if sp_has_deprecated_msg in symoptions then
            ppufile.putstring(deprecatedmsg^);
          ppufile.do_interface_crc:=oldintfcrc;
+      end;
+
+
+    function tstoredsym.registered: boolean;
+      begin
+        result:=symid<>symid_not_registered;
       end;
 
 
@@ -627,8 +631,9 @@ implementation
           begin
             current_module.symlist.Add(self);
             SymId:=current_module.symlist.Count-1;
-          end;
-        registered:=true;
+          end
+        else
+          SymId:=symid_registered_nost;
       end;
 
 {****************************************************************************
