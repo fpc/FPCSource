@@ -75,15 +75,8 @@ _haltproc:
         .globl  _haltproc_eabi
         .type   _haltproc_eabi,#function
 _haltproc_eabi:
-        ldr r0,.Loperatingsystem_result
-.LPIC10:
-        add r0,pc,r0
-        ldr r0,[r0]
-        /* Call libc exit() */
+        /* Simply call libc exit(). _haltproc has the same declaration as exit. */
         blx exit
-
-.Loperatingsystem_result:
-        .long operatingsystem_result-.LPIC10-8
 
 /* --------------------------------------------------------- */
 .data
