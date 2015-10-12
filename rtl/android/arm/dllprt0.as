@@ -45,14 +45,12 @@ FPC_SHARED_LIB_START:
         ldr ip,.Loperatingsystem_parameter_envp
         ldr ip,[r3, ip]
         str r0,[ip]
-        
-        /* Register exit handler. It is called only when the main process terminates */
-        ldr r0,.LFPC_LIB_EXIT
-        ldr r0,[r3, r0]
-        blx atexit
 
-        /* call main and exit normally */
+        /* Call main */
         blx PASCALMAIN
+        /* Call library init */
+        blx FPC_LIB_INIT_ANDROID
+
         ldmea fp, {fp, sp, pc}
 
 .L_GOT1:
@@ -65,8 +63,6 @@ FPC_SHARED_LIB_START:
         .word EmptyEnv(GOT)
 .Loperatingsystem_parameter_envp:
         .word operatingsystem_parameter_envp(GOT)
-.LFPC_LIB_EXIT:
-        .word FPC_LIB_EXIT(GOT)
 
 /* --------------------------------------------------------- */
         .globl  _haltproc

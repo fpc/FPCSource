@@ -47,17 +47,14 @@ env_ok:
         movl    operatingsystem_parameter_envp@GOT(%ebx),%edx
         movl    %eax,(%edx)
 
-        /* Register exit handler. It is called only when the main process terminates */
-        movl    FPC_LIB_EXIT@GOT(%ebx),%eax
-        pushl   %eax
-        call    atexit@PLT
-        addl    $4,%esp
-
         /* Restore ebx */
         popl    %ebx
 
-        /* call main and exit normally */
+        /* Call main */
         call    PASCALMAIN@PLT
+        /* Call library init */
+        call    FPC_LIB_INIT_ANDROID@PLT
+
         leave
         ret
 
