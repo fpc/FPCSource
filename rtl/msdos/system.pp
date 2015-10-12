@@ -202,6 +202,8 @@ begin
   dos_env_count := env_count;
   if dos_version >= $300 then
     begin
+      if cp=dos_env then
+        inc(cp);
       inc(cp, 3);
       dos_argv0 := cp;
     end
