@@ -273,6 +273,63 @@ end;
 {$endif FPC_SYSTEM_HAS_INDEXDWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
+{$define FPC_SYSTEM_HAS_COMPAREBYTE}
+function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+asm
+  xor ax, ax  // initialize ax=0 (it's the result register, we never use it for anything else in this function)
+  mov bx, sp
+  mov cx, ss:[bx + 2 + extra_param_offset]  // len
+
+  mov dx, ds  // for far data models, backup ds; for near data models, use to initialize es
+  or cx, cx
+  jz @@Equal
+{$ifdef FPC_X86_DATA_NEAR}
+  mov es, dx
+  mov si, ss:[bx + 6 + extra_param_offset]  // @buf1
+  mov di, ss:[bx + 4 + extra_param_offset]  // @buf2
+{$else FPC_X86_DATA_NEAR}
+  lds si, ss:[bx + 8 + extra_param_offset]  // @buf1
+  les di, ss:[bx + 4 + extra_param_offset]  // @buf2
+{$endif FPC_X86_DATA_NEAR}
+
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  xor bx, bx
+  shr cx, 1
+  adc bx, bx  // remainder goes to bx
+  jcxz @@BytewiseComparison
+  repe cmpsw
+  je @@BytewiseComparison
+  // we found an unequal word
+  // let's go back and compare it bytewise
+  mov bl, 2
+  dec si
+  dec si
+  dec di
+  dec di
+@@BytewiseComparison:
+  mov cx, bx
+  jcxz @@Equal
+  repe cmpsb
+  je @@Equal
+  // ax is 0
+  sbb ax, ax
+  shl ax, 1
+  inc ax
+
+@@Equal:
+  // ax is 0
+
+@@Done:
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, dx
+{$endif}
+end;
+{$endif FPC_SYSTEM_HAS_COMPAREBYTE}
+
+
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;nostackframe;
 asm
