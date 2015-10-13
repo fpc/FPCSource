@@ -896,7 +896,7 @@ interface
           elementdefderef : tderef;
           setbase,
           setmax   : asizeint;
-          constructor create(def:tdef;low, high : asizeint);virtual;
+          constructor create(def: tdef; low, high: asizeint; doregister: boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -3326,13 +3326,13 @@ implementation
                                    TSETDEF
 ***************************************************************************}
 
-    constructor tsetdef.create(def:tdef;low, high : asizeint);
+    constructor tsetdef.create(def: tdef; low, high: asizeint; doregister: boolean);
       var
         setallocbits: aint;
         packedsavesize: aint;
         actual_setalloc: ShortInt;
       begin
-         inherited create(setdef,true);
+         inherited create(setdef,doregister);
          elementdef:=def;
          setmax:=high;
          actual_setalloc:=current_settings.setalloc;
@@ -3377,7 +3377,7 @@ implementation
 
     function tsetdef.getcopy : tstoreddef;
       begin
-        result:=csetdef.create(elementdef,setbase,setmax);
+        result:=csetdef.create(elementdef,setbase,setmax,true);
         { the copy might have been created with a different setalloc setting }
         tsetdef(result).savesize:=savesize;
       end;
