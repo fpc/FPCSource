@@ -923,7 +923,7 @@ type
       booldef:=torddef.create(pasbool8,0,1,false);
       strdef:=tstringdef.createansi(0,false);
       setdef:=tsetdef.create(sintdef,0,255,false);
-      realdef:=tfloatdef.create(s80real);
+      realdef:=tfloatdef.create(s80real,false);
     end;
 
   class destructor texprvalue.destroydefs;

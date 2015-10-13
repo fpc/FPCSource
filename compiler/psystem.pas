@@ -186,10 +186,10 @@ implementation
         begin
           if init_settings.fputype<>fpu_none then
             begin
-              s32floattype:=cfloatdef.create(s32real);
-              s64floattype:=cfloatdef.create(s64real);
-              s80floattype:=cfloatdef.create(s80real);
-              sc80floattype:=cfloatdef.create(sc80real);
+              s32floattype:=cfloatdef.create(s32real,true);
+              s64floattype:=cfloatdef.create(s64real,true);
+              s80floattype:=cfloatdef.create(s80real,true);
+              sc80floattype:=cfloatdef.create(sc80real,true);
             end else begin
               s32floattype:=nil;
               s64floattype:=nil;
@@ -246,7 +246,7 @@ implementation
           end
         else
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
-          s64currencytype:=cfloatdef.create(s64currency);
+          s64currencytype:=cfloatdef.create(s64currency,true);
 {$endif x86}
 {$ifdef powerpc}
         create_fpu_types;
@@ -273,10 +273,10 @@ implementation
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif aarch64}
 {$ifdef avr}
-        s32floattype:=cfloatdef.create(s32real);
-        s64floattype:=cfloatdef.create(s64real);
-        s80floattype:=cfloatdef.create(s80real);
-        sc80floattype:=cfloatdef.create(sc80real);
+        s32floattype:=cfloatdef.create(s32real,true);
+        s64floattype:=cfloatdef.create(s64real,true);
+        s80floattype:=cfloatdef.create(s80real,true);
+        sc80floattype:=cfloatdef.create(sc80real,true);
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif avr}
 {$ifdef mips}
@@ -359,7 +359,7 @@ implementation
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if target_info.system<>system_x86_64_win64 then
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
-          addtype('Comp',cfloatdef.create(s64comp));
+          addtype('Comp',cfloatdef.create(s64comp,true));
 {$endif x86}
         addtype('Currency',s64currencytype);
         addtype('Pointer',voidpointertype);

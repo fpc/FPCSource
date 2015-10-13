@@ -535,7 +535,7 @@ interface
 
        tfloatdef = class(tstoreddef)
           floattype : tfloattype;
-          constructor create(t : tfloattype);virtual;
+          constructor create(t: tfloattype; doregister: boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -2777,9 +2777,9 @@ implementation
                                 TFLOATDEF
 ****************************************************************************}
 
-    constructor tfloatdef.create(t : tfloattype);
+    constructor tfloatdef.create(t: tfloattype; doregister: boolean);
       begin
-         inherited create(floatdef,true);
+         inherited create(floatdef,doregister);
          floattype:=t;
          setsize;
       end;
@@ -2796,7 +2796,7 @@ implementation
 
     function tfloatdef.getcopy : tstoreddef;
       begin
-         result:=cfloatdef.create(floattype);
+         result:=cfloatdef.create(floattype,true);
          result.typ:=floatdef;
          tfloatdef(result).savesize:=savesize;
       end;
