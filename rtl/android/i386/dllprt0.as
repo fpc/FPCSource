@@ -66,7 +66,7 @@ _haltproc:
         call    fpc_geteipasebx
         addl    $_GLOBAL_OFFSET_TABLE_,%ebx
         /* Jump to libc exit(). _haltproc has the same declaration as exit. */
-        jmp     exit@GOT
+        jmp     exit@PLT
 
 /* --------------------------------------------------------- */
 .data

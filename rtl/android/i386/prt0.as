@@ -42,23 +42,30 @@
         .globl _fpc_start
         .type _fpc_start,@function
 _fpc_start:
+        /* GOT init */
+        call    fpc_geteipasebx
+        addl    $_GLOBAL_OFFSET_TABLE_,%ebx
         /* Clear the frame pointer since this is the outermost frame.  */
         xorl    %ebp,%ebp
         /* Save initial stackpointer */
-        movl    %esp,__stkptr
+        movl    __stkptr@GOT(%ebx),%eax
+        movl    %esp,(%eax)
         /* First locate the start of the environment variables */
         /* Get argc in ecx */
         movl    (%esp),%ecx
         /* Save argc */
-        movl    %ecx,operatingsystem_parameter_argc
-        /* Get argv pointer in ebx */
-        leal    4(%esp),%ebx
+        movl    operatingsystem_parameter_argc@GOT(%ebx),%eax
+        movl    %ecx,(%eax)
+        /* Get argv pointer in edx */
+        leal    4(%esp),%edx
         /* Save argv */
-        movl    %ebx,operatingsystem_parameter_argv
+        movl    operatingsystem_parameter_argv@GOT(%ebx),%eax
+        movl    %edx,(%eax)
         /* The start of the environment is: esp+ecx*4+12 */
-        leal    12(%esp,%ecx,4),%eax
+        leal    12(%esp,%ecx,4),%edx
         /* Save envp */
-        movl    %eax,operatingsystem_parameter_envp
+        movl    operatingsystem_parameter_envp@GOT(%ebx),%eax
+        movl    %edx,(%eax)
         
         /* Finally go to libc startup code. It will call "PASCALMAIN" via alias "main". */
         /* No need to align stack since it will aligned by libc. */
@@ -68,8 +75,11 @@ _fpc_start:
         .globl  _haltproc
         .type   _haltproc,@function
 _haltproc:
+        /* GOT init */
+        call    fpc_geteipasebx
+        addl    $_GLOBAL_OFFSET_TABLE_,%ebx
         /* Jump to libc exit(). _haltproc has the same declaration as exit. */
-        jmp     exit
+        jmp     exit@PLT
 
 /* --------------------------------------------------------- */
 .data
