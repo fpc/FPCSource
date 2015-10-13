@@ -1061,14 +1061,14 @@ implementation
                          orddef :
                            begin
                              if is_char(pt1.resultdef) then
-                               def:=corddef.create(uchar,lv,hv)
+                               def:=corddef.create(uchar,lv,hv,true)
                              else
                                if is_boolean(pt1.resultdef) then
-                                 def:=corddef.create(pasbool8,lv,hv)
+                                 def:=corddef.create(pasbool8,lv,hv,true)
                                else if is_signed(pt1.resultdef) then
-                                 def:=corddef.create(range_to_basetype(lv,hv),lv,hv)
+                                 def:=corddef.create(range_to_basetype(lv,hv),lv,hv,true)
                                else
-                                 def:=corddef.create(range_to_basetype(lv,hv),lv,hv);
+                                 def:=corddef.create(range_to_basetype(lv,hv),lv,hv,true);
                            end;
                        end;
                      end;

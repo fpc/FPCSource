@@ -3399,7 +3399,8 @@ implementation
                       s32bit,
 {$endif cpu64bitaddr}
                       get_min_value(resultdef),
-                      get_max_value(resultdef)))
+                      get_max_value(resultdef),
+                      true))
                   else
                     inserttypeconv(hp,resultdef);
 
@@ -3858,7 +3859,8 @@ implementation
                  s32bit,
 {$endif cpu64bitaddr}
                  get_min_value(resultnode.resultdef),
-                 get_max_value(resultnode.resultdef)))
+                 get_max_value(resultnode.resultdef),
+                 true))
              else
                inserttypeconv(hpp,resultnode.resultdef);
 
@@ -4274,7 +4276,9 @@ implementation
          temprangedef:=nil;
          getrange(unpackednode.resultdef,ulorange,uhirange);
          getrange(packednode.resultdef,plorange,phirange);
-         temprangedef:=corddef.create(torddef(sinttype).ordtype,ulorange,uhirange);
+         { does not really need to be registered, but then we would have to
+           record it elsewhere so it still can be freed }
+         temprangedef:=corddef.create(torddef(sinttype).ordtype,ulorange,uhirange,true);
          sourcevecindex := ctemprefnode.create(loopvar);
          targetvecindex := ctypeconvnode.create_internal(index.getcopy,sinttype);
          targetvecindex := caddnode.create(subn,targetvecindex,cordconstnode.create(plorange,sinttype,true));

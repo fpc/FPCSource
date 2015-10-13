@@ -518,7 +518,7 @@ interface
        torddef = class(tstoreddef)
           low,high : TConstExprInt;
           ordtype  : tordtype;
-          constructor create(t : tordtype;v,b : TConstExprInt);virtual;
+          constructor create(t : tordtype;v,b : TConstExprInt; doregister: boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -2636,9 +2636,9 @@ implementation
                                  TORDDEF
 ****************************************************************************}
 
-    constructor torddef.create(t : tordtype;v,b : TConstExprInt);
+    constructor torddef.create(t : tordtype;v,b : TConstExprInt; doregister: boolean);
       begin
-         inherited create(orddef,true);
+         inherited create(orddef,doregister);
          low:=v;
          high:=b;
          ordtype:=t;
@@ -2659,7 +2659,7 @@ implementation
 
     function torddef.getcopy : tstoreddef;
       begin
-         result:=corddef.create(ordtype,low,high);
+         result:=corddef.create(ordtype,low,high,true);
          result.typ:=orddef;
          torddef(result).low:=low;
          torddef(result).high:=high;

@@ -205,26 +205,26 @@ implementation
         cundefinedtype:=cundefineddef.create(true);
         cformaltype:=cformaldef.create(false);
         ctypedformaltype:=cformaldef.create(true);
-        voidtype:=corddef.create(uvoid,0,0);
+        voidtype:=corddef.create(uvoid,0,0,true);
         voidpointertype:=cpointerdef.create(voidtype);
-        u8inttype:=corddef.create(u8bit,0,255);
-        s8inttype:=corddef.create(s8bit,int64(-128),127);
-        u16inttype:=corddef.create(u16bit,0,65535);
-        s16inttype:=corddef.create(s16bit,int64(-32768),32767);
-        u32inttype:=corddef.create(u32bit,0,high(longword));
-        s32inttype:=corddef.create(s32bit,int64(low(longint)),int64(high(longint)));
-        u64inttype:=corddef.create(u64bit,low(qword),high(qword));
-        s64inttype:=corddef.create(s64bit,low(int64),high(int64));
-        pasbool8type:=corddef.create(pasbool8,0,1);
-        pasbool16type:=corddef.create(pasbool16,0,1);
-        pasbool32type:=corddef.create(pasbool32,0,1);
-        pasbool64type:=corddef.create(pasbool64,0,1);
-        bool8type:=corddef.create(bool8bit,low(int64),high(int64));
-        bool16type:=corddef.create(bool16bit,low(int64),high(int64));
-        bool32type:=corddef.create(bool32bit,low(int64),high(int64));
-        bool64type:=corddef.create(bool64bit,low(int64),high(int64));
-        cansichartype:=corddef.create(uchar,0,255);
-        cwidechartype:=corddef.create(uwidechar,0,65535);
+        u8inttype:=corddef.create(u8bit,0,255,true);
+        s8inttype:=corddef.create(s8bit,int64(-128),127,true);
+        u16inttype:=corddef.create(u16bit,0,65535,true);
+        s16inttype:=corddef.create(s16bit,int64(-32768),32767,true);
+        u32inttype:=corddef.create(u32bit,0,high(longword),true);
+        s32inttype:=corddef.create(s32bit,int64(low(longint)),int64(high(longint)),true);
+        u64inttype:=corddef.create(u64bit,low(qword),high(qword),true);
+        s64inttype:=corddef.create(s64bit,low(int64),high(int64),true);
+        pasbool8type:=corddef.create(pasbool8,0,1,true);
+        pasbool16type:=corddef.create(pasbool16,0,1,true);
+        pasbool32type:=corddef.create(pasbool32,0,1,true);
+        pasbool64type:=corddef.create(pasbool64,0,1,true);
+        bool8type:=corddef.create(bool8bit,low(int64),high(int64),true);
+        bool16type:=corddef.create(bool16bit,low(int64),high(int64),true);
+        bool32type:=corddef.create(bool32bit,low(int64),high(int64),true);
+        bool64type:=corddef.create(bool64bit,low(int64),high(int64),true);
+        cansichartype:=corddef.create(uchar,0,255,true);
+        cwidechartype:=corddef.create(uwidechar,0,65535,true);
         cshortstringtype:=cstringdef.createshort(255);
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype:=cstringdef.createlong(-1);
@@ -241,7 +241,7 @@ implementation
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if target_info.system=system_x86_64_win64 then
           begin
-            s64currencytype:=corddef.create(scurrency,low(int64),high(int64));
+            s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
             pbestrealtype:=@s64floattype;
           end
         else
@@ -250,42 +250,42 @@ implementation
 {$endif x86}
 {$ifdef powerpc}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64));
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif powerpc}
 {$ifdef POWERPC64}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64));
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif POWERPC64}
 {$ifdef sparc}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64));
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif sparc}
 {$ifdef m68k}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64));
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif}
 {$ifdef arm}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64));
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif arm}
 {$ifdef aarch64}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64));
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif aarch64}
 {$ifdef avr}
         s32floattype:=cfloatdef.create(s32real);
         s64floattype:=cfloatdef.create(s64real);
         s80floattype:=cfloatdef.create(s80real);
         sc80floattype:=cfloatdef.create(sc80real);
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64));
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif avr}
 {$ifdef mips}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64));
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif mips}
 {$ifdef jvm}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64));
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif jvm}
         set_default_int_types;
         { some other definitions }

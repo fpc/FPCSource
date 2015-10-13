@@ -918,9 +918,9 @@ type
         variables are initialised. Since these types are only used for
         compile-time evaluation of conditional expressions, it doesn't matter
         that we use the base types instead of the cpu-specific ones. }
-      sintdef:=torddef.create(s64bit,low(int64),high(int64));
-      uintdef:=torddef.create(u64bit,low(qword),high(qword));
-      booldef:=torddef.create(pasbool8,0,1);
+      sintdef:=torddef.create(s64bit,low(int64),high(int64),false);
+      uintdef:=torddef.create(u64bit,low(qword),high(qword),false);
+      booldef:=torddef.create(pasbool8,0,1,false);
       strdef:=tstringdef.createansi(0);
       setdef:=tsetdef.create(sintdef,0,255);
       realdef:=tfloatdef.create(s80real);
