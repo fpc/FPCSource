@@ -544,6 +544,7 @@ implementation
                     pd.localst.free;
                     pd.localst:=nil;
                   end;
+                pd.freeimplprocdefinfo;
               end;
           end;
       end;

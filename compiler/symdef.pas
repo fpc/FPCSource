@@ -753,6 +753,7 @@ interface
           constructor create(level:byte;doregister:boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
+          procedure   freeimplprocdefinfo;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
@@ -5329,12 +5330,7 @@ implementation
             dispose(inlininginfo);
             inlininginfo:=nil;
           end;
-         if assigned(implprocdefinfo) then
-           begin
-            stringdispose(implprocdefinfo^.resultname);
-            freemem(implprocdefinfo);
-            implprocdefinfo:=nil;
-           end;
+         freeimplprocdefinfo;
          genericdecltokenbuf.free;
          genericdecltokenbuf:=nil;
          stringdispose(import_dll);
@@ -5355,6 +5351,17 @@ implementation
           end;
 {$endif symansistr}
          inherited destroy;
+      end;
+
+
+    procedure tprocdef.freeimplprocdefinfo;
+      begin
+        if assigned(implprocdefinfo) then
+          begin
+            stringdispose(implprocdefinfo^.resultname);
+            freemem(implprocdefinfo);
+            implprocdefinfo:=nil;
+          end;
       end;
 
 
