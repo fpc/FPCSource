@@ -2900,7 +2900,7 @@ end;
           end
         else
           begin
-            New(Result);
+            GetMem(Result,SizeOfItem);
             if FOwnsKeys then
             begin
               GetMem(Result^.Key, KeyLen);
@@ -3007,7 +3007,7 @@ end;
           end
         else
           begin
-            New(Result);
+            Getmem(Result,SizeOfItem);
             if FOwnsKeys then
             begin
               GetMem(Result^.Key, KeyLen);
