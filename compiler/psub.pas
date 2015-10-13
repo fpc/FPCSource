@@ -145,6 +145,11 @@ implementation
         currpara : tparavarsym;
       begin
         result := false;
+        { this code will never be used (only specialisations can be inlined),
+          and moreover contains references to defs that are not stored in the
+          ppu file }
+        if df_generic in current_procinfo.procdef.defoptions then
+          exit;
         if pi_has_assembler_block in current_procinfo.flags then
           begin
             Message1(parser_h_not_supported_for_inline,'assembler');
