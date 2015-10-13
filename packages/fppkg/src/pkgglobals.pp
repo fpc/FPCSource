@@ -49,7 +49,7 @@ Const
      undef  : 'NO_UNIT_PROCESS'),
    (package: 'libtar';
     reqver : '2.7.1';
-    undef  : ''),
+    undef  : 'NO_TAR_SUPPORT'),
     (package: 'fpmkunit';
      reqver : '2.2.2-1';
      undef  : '')
