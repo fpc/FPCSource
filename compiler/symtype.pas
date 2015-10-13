@@ -53,10 +53,6 @@ interface
 
       tdef = class(TDefEntry)
          typesym    : tsym;  { which type the definition was generated this def }
-         { maybe it's useful to merge the dwarf and stabs debugging info with some hacking }
-         { dwarf debugging }
-         dwarf_lab : tasmsymbol;
-         dwarf_ref_lab : tasmsymbol;
          { stabs debugging }
          stab_number : word;
          dbg_state   : tdefdbgstatus;

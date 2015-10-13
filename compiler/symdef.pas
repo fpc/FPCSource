@@ -376,7 +376,6 @@ interface
        private
           fcurrent_dispid: longint;
        public
-          dwarf_struct_lab : tasmsymbol;
           childof        : tobjectdef;
           childofderef   : tderef;
 

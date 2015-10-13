@@ -276,6 +276,17 @@ interface
         bit8: boolean;
       end;
 
+      TDwarfHashSetItem = record
+        HashSetItem: THashSetItem;
+        lab, ref_lab: tasmsymbol;
+        struct_lab: tasmsymbol;
+      end;
+      PDwarfHashSetItem = ^TDwarfHashSetItem;
+
+      TDwarfLabHashSet = class(THashSet)
+        class function SizeOfItem: Integer; override;
+      end;
+
       { TDebugInfoDwarf }
 
       TDebugInfoDwarf = class(TDebugInfo)
@@ -292,6 +303,9 @@ interface
         filesequence: Integer;
         loclist: tdynamicarray;
         asmline: TAsmList;
+
+        { lookup table for def -> DWARF-labels }
+        dwarflabels: TDwarfLabHashSet;
 
         // The current entry in dwarf_info with the link to the abbrev-section
         dwarf_info_abbref_tai: tai_const;
@@ -328,7 +342,7 @@ interface
         procedure set_use_64bit_headers(state: boolean);
         property use_64bit_headers: Boolean read _use_64bit_headers write set_use_64bit_headers;
 
-        procedure set_def_dwarf_labs(def:tdef);
+        function get_def_dwarf_labs(def:tdef): PDwarfHashSetItem;
 
         { Convenience version of the method below, so the compiler creates the
           tvarrec for us (must only pass one element in the last parameter).  }
@@ -719,6 +733,16 @@ implementation
         Dispose(SI);
       end;
 
+
+{****************************************************************************
+                              TDwarfLabHashSet
+****************************************************************************}
+
+    class function TDwarfLabHashSet.SizeOfItem: Integer;
+      begin
+        Result:=sizeof(TDwarfHashSetItem);
+      end;
+
 {****************************************************************************
                               TDirIndexItem
 ****************************************************************************}
@@ -915,7 +939,9 @@ implementation
       end;
 
 
-    procedure TDebugInfoDwarf.set_def_dwarf_labs(def:tdef);
+    function TDebugInfoDwarf.get_def_dwarf_labs(def:tdef): PDwarfHashSetItem;
+      var
+        needstructdeflab: boolean;
       begin
         { Keep track of used dwarf entries, this info is only useful for dwarf entries
           referenced by the symbols. Definitions will always include all
@@ -923,18 +949,23 @@ implementation
         if def.dbg_state=dbg_state_unused then
           def.dbg_state:=dbg_state_used;
         { Need a new label? }
-        if not assigned(def.dwarf_lab) then
+        result:=PDwarfHashSetItem(dwarflabels.FindOrAdd(@def,sizeof(def)));
+        { the other fields besides  Data are not initialised }
+        if not assigned(result^.HashSetItem.Data) then
           begin
+            { Mark as initialised }
+            result^.HashSetItem.Data:=self;
+            needstructdeflab:=is_implicit_pointer_object_type(def);
             if not(tf_dwarf_only_local_labels in target_info.flags) then
               begin
                 if (ds_dwarf_dbg_info_written in def.defstates) then
                   begin
                     if not assigned(def.typesym) then
                       internalerror(200610011);
-                    def.dwarf_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym, true)),AT_DATA);
-                    def.dwarf_ref_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym, true)),AT_DATA);
-                    if is_class_or_interface_or_dispinterface(def) or is_objectpascal_helper(def) then
-                      tobjectdef(def).dwarf_struct_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym, true)),AT_DATA);
+                    result^.lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym, true)),AT_DATA);
+                    result^.ref_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym, true)),AT_DATA);
+                    if needstructdeflab then
+                      result^.struct_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym, true)),AT_DATA);
                     def.dbg_state:=dbg_state_written;
                   end
                 else
@@ -945,20 +976,20 @@ implementation
                        (def.owner.symtabletype=globalsymtable) and
                        (def.owner.iscurrentunit) then
                       begin
-                        def.dwarf_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym, true)),AB_GLOBAL,AT_DATA);
-                        def.dwarf_ref_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym, true)),AB_GLOBAL,AT_DATA);
-                        if is_class_or_interface_or_dispinterface(def) or is_objectpascal_helper(def) then
-                          tobjectdef(def).dwarf_struct_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym, true)),AB_GLOBAL,AT_DATA);
+                        result^.lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym, true)),AB_GLOBAL,AT_DATA);
+                        result^.ref_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym, true)),AB_GLOBAL,AT_DATA);
+                        if needstructdeflab then
+                          result^.struct_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym, true)),AB_GLOBAL,AT_DATA);
                         include(def.defstates,ds_dwarf_dbg_info_written);
                       end
                     else
                       begin
                         { The pointer typecast is needed to prevent a problem with range checking
                           on when the typecast is changed to 'as' }
-                        current_asmdata.getglobaldatalabel(TAsmLabel(pointer(def.dwarf_lab)));
-                        current_asmdata.getglobaldatalabel(TAsmLabel(pointer(def.dwarf_ref_lab)));
-                        if is_implicit_pointer_object_type(def) then
-                          current_asmdata.getglobaldatalabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
+                        current_asmdata.getglobaldatalabel(TAsmLabel(pointer(result^.lab)));
+                        current_asmdata.getglobaldatalabel(TAsmLabel(pointer(result^.ref_lab)));
+                        if needstructdeflab then
+                          current_asmdata.getglobaldatalabel(TAsmLabel(pointer(result^.struct_lab)));
                       end;
                   end;
               end
@@ -967,10 +998,10 @@ implementation
                 { The pointer typecast is needed to prevent a problem with range checking
                   on when the typecast is changed to 'as' }
                 { addrlabel instead of datalabel because it must be a local one }
-                current_asmdata.getaddrlabel(TAsmLabel(pointer(def.dwarf_lab)));
-                current_asmdata.getaddrlabel(TAsmLabel(pointer(def.dwarf_ref_lab)));
-                if is_implicit_pointer_object_type(def) then
-                  current_asmdata.getaddrlabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
+                current_asmdata.getaddrlabel(TAsmLabel(pointer(result^.lab)));
+                current_asmdata.getaddrlabel(TAsmLabel(pointer(result^.ref_lab)));
+                if needstructdeflab then
+                  current_asmdata.getaddrlabel(TAsmLabel(pointer(result^.struct_lab)));
               end;
             if def.dbg_state=dbg_state_used then
               deftowritelist.Add(def);
@@ -980,20 +1011,17 @@ implementation
 
     function TDebugInfoDwarf.def_dwarf_lab(def: tdef): tasmsymbol;
       begin
-        set_def_dwarf_labs(def);
-        result:=def.dwarf_lab;
+        result:=get_def_dwarf_labs(def)^.lab;
       end;
 
     function TDebugInfoDwarf.def_dwarf_class_struct_lab(def: tobjectdef): tasmsymbol;
       begin
-        set_def_dwarf_labs(def);
-        result:=def.dwarf_struct_lab;
+        result:=get_def_dwarf_labs(def)^.struct_lab;
       end;
 
     function TDebugInfoDwarf.def_dwarf_ref_lab(def: tdef): tasmsymbol;
       begin
-        set_def_dwarf_labs(def);
-        result:=def.dwarf_ref_lab;
+        result:=get_def_dwarf_labs(def)^.ref_lab;
       end;
 
     constructor TDebugInfoDwarf.Create;
@@ -3117,6 +3145,15 @@ implementation
         storefilepos:=current_filepos;
         current_filepos:=current_module.mainfilepos;
 
+        if assigned(dwarflabels) then
+          internalerror(2015100301);
+        { one item per def, plus some extra space in case of nested types,
+          externally used types etc (it will grow further if necessary) }
+        i:=current_module.localsymtable.DefList.count*4;
+        if assigned(current_module.globalsymtable) then
+          inc(i,current_module.globalsymtable.DefList.count*2);
+        dwarflabels:=TDwarfLabHashSet.Create(i,true,false);
+
         currabbrevnumber:=0;
 
         defnumberlist:=TFPObjectList.create(false);
@@ -3231,16 +3268,15 @@ implementation
         { end of abbrev table }
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
 
-        { reset all def labels }
+        { reset all def debug states }
         for i:=0 to defnumberlist.count-1 do
           begin
             def := tdef(defnumberlist[i]);
             if assigned(def) then
-              begin
-                def.dwarf_lab:=nil;
-                def.dbg_state:=dbg_state_unused;
-              end;
+              def.dbg_state:=dbg_state_unused;
           end;
+        dwarflabels.free;
+        dwarflabels:=nil;
 
         defnumberlist.free;
         defnumberlist:=nil;
