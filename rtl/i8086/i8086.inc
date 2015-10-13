@@ -330,6 +330,46 @@ end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
 
+{$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
+{$define FPC_SYSTEM_HAS_COMPAREWORD}
+function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+asm
+  xor ax, ax  // initialize ax=0 (it's the result register, we never use it for anything else in this function)
+  mov bx, sp
+  mov cx, ss:[bx + 2 + extra_param_offset]  // len
+  jcxz @@Equal
+
+  mov dx, ds  // for far data models, backup ds; for near data models, use to initialize es
+{$ifdef FPC_X86_DATA_NEAR}
+  mov es, dx
+  mov si, ss:[bx + 6 + extra_param_offset]  // @buf1
+  mov di, ss:[bx + 4 + extra_param_offset]  // @buf2
+{$else FPC_X86_DATA_NEAR}
+  lds si, ss:[bx + 8 + extra_param_offset]  // @buf1
+  les di, ss:[bx + 4 + extra_param_offset]  // @buf2
+{$endif FPC_X86_DATA_NEAR}
+
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  repe cmpsw
+  je @@Equal
+  // ax is 0
+  sbb ax, ax
+  shl ax, 1
+  inc ax
+
+@@Equal:
+  // ax is 0
+
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, dx
+{$endif}
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_COMPAREWORD}
+
+
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;nostackframe;
 asm
