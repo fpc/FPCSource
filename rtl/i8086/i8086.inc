@@ -280,10 +280,9 @@ asm
   xor ax, ax  // initialize ax=0 (it's the result register, we never use it for anything else in this function)
   mov bx, sp
   mov cx, ss:[bx + 2 + extra_param_offset]  // len
+  jcxz @@Done
 
   mov dx, ds  // for far data models, backup ds; for near data models, use to initialize es
-  or cx, cx
-  jz @@Equal
 {$ifdef FPC_X86_DATA_NEAR}
   mov es, dx
   mov si, ss:[bx + 6 + extra_param_offset]  // @buf1
@@ -322,10 +321,10 @@ asm
 @@Equal:
   // ax is 0
 
-@@Done:
 {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
   mov ds, dx
 {$endif}
+@@Done:
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
