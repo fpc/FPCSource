@@ -921,7 +921,7 @@ type
       sintdef:=torddef.create(s64bit,low(int64),high(int64),false);
       uintdef:=torddef.create(u64bit,low(qword),high(qword),false);
       booldef:=torddef.create(pasbool8,0,1,false);
-      strdef:=tstringdef.createansi(0);
+      strdef:=tstringdef.createansi(0,false);
       setdef:=tsetdef.create(sintdef,0,255);
       realdef:=tfloatdef.create(s80real);
     end;

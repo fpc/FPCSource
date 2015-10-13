@@ -116,11 +116,11 @@ implementation
 {                    t:=cstringdef.createlong(tordconstnode(p).value))}
                     Message(parser_e_invalid_string_size);
                     tordconstnode(p).value:=255;
-                    def:=cstringdef.createshort(int64(tordconstnode(p).value));
+                    def:=cstringdef.createshort(int64(tordconstnode(p).value),true);
                   end
                 else
                   if tordconstnode(p).value<>255 then
-                    def:=cstringdef.createshort(int64(tordconstnode(p).value));
+                    def:=cstringdef.createshort(int64(tordconstnode(p).value),true);
                 consume(_RECKKLAMMER);
               end;
              p.free;

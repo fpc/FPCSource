@@ -225,17 +225,17 @@ implementation
         bool64type:=corddef.create(bool64bit,low(int64),high(int64),true);
         cansichartype:=corddef.create(uchar,0,255,true);
         cwidechartype:=corddef.create(uwidechar,0,65535,true);
-        cshortstringtype:=cstringdef.createshort(255);
+        cshortstringtype:=cstringdef.createshort(255,true);
         { should we give a length to the default long and ansi string definition ?? }
-        clongstringtype:=cstringdef.createlong(-1);
-        cansistringtype:=cstringdef.createansi(0);
+        clongstringtype:=cstringdef.createlong(-1,true);
+        cansistringtype:=cstringdef.createansi(0,true);
         if target_info.system in systems_windows then
-          cwidestringtype:=cstringdef.createwide
+          cwidestringtype:=cstringdef.createwide(true)
         else
-          cwidestringtype:=cstringdef.createunicode;
-        cunicodestringtype:=cstringdef.createunicode;
+          cwidestringtype:=cstringdef.createunicode(true);
+        cunicodestringtype:=cstringdef.createunicode(true);
         { length=0 for shortstring is open string (needed for readln(string) }
-        openshortstringtype:=cstringdef.createshort(0);
+        openshortstringtype:=cstringdef.createshort(0,true);
 {$ifdef x86}
         create_fpu_types;
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
