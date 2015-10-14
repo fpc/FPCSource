@@ -1375,13 +1375,13 @@ var
   i: integer;
   n: string;
 begin
+  n:=ppufile.getstring;
+  if Def <> nil then
+    Def.Name:=n;
   i:=ppufile.getlongint;
   if Def <> nil then
     Def.SetSymId(i);
   writeln([space,'** Symbol Id ',i,' **']);
-  n:=ppufile.getstring;
-  if Def <> nil then
-    Def.Name:=n;
   writeln([space,s,n]);
   write  ([space,'     File Pos : ']);
   readposinfo(Def);
