@@ -2881,7 +2881,7 @@ end;
         h: LongWord;
       begin
         h := FPHash(Key, KeyLen);
-        Entry := @FBucket[h mod FBucketCount];
+        Entry := @FBucket[h and (FBucketCount-1)];
         while Assigned(Entry^) and
           not ((Entry^^.HashValue = h) and (Entry^^.KeyLength = KeyLen) and
             (CompareByte(Entry^^.Key^, Key^, KeyLen) = 0)) do
@@ -2930,7 +2930,7 @@ end;
             e := FBucket[i];
             while Assigned(e) do
             begin
-              chain := @p[e^.HashValue mod NewCapacity];
+              chain := @p[e^.HashValue and (NewCapacity-1)];
               n := e^.Next;
               e^.Next := chain^;
               chain^ := e;
@@ -2988,7 +2988,7 @@ end;
         h: LongWord;
       begin
         h := FPHash(Key, KeyLen, Tag);
-        Entry := @PPTagHashSetItem(FBucket)[h mod FBucketCount];
+        Entry := @PPTagHashSetItem(FBucket)[h and (FBucketCount-1)];
         while Assigned(Entry^) and
           not ((Entry^^.HashValue = h) and (Entry^^.KeyLength = KeyLen) and
             (Entry^^.Tag = Tag) and (CompareByte(Entry^^.Key^, Key^, KeyLen) = 0)) do
