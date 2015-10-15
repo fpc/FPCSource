@@ -397,6 +397,8 @@ implementation
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         hreg64hi:=left.location.register64.reghi;
         hreg64lo:=left.location.register64.reglo;
+        location.register64.reglo:=hreg64lo;
+        location.register64.reghi:=hreg64hi;
 
         v:=0;
         if right.nodetype=ordconstn then
@@ -446,25 +448,22 @@ implementation
               end;
           end
         { shifting by 32..47 }
-        else if (right.nodetype=ordconstn) and (v>=32) and (v<=47) and
-                ((not (cs_opt_size in current_settings.optimizerswitches)) or (v<=33)) then
+        else if (right.nodetype=ordconstn) and (v>=32) and (v<=47) then
           begin
             if nodetype=shln then
               begin
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,hreg64lo,hreg64hi);
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,GetNextReg(hreg64lo),GetNextReg(hreg64hi));
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64lo,hreg64lo);
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64lo),GetNextReg(hreg64lo));
-                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,v-32,hreg64hi);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64hi,hreg64hi);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64hi),GetNextReg(hreg64hi));
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,v-32,hreg64lo);
               end
             else
               begin
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,hreg64hi,hreg64lo);
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,GetNextReg(hreg64hi),GetNextReg(hreg64lo));
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64hi,hreg64hi);
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64hi),GetNextReg(hreg64hi));
-                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,v-32,hreg64lo);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64lo,hreg64lo);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64lo),GetNextReg(hreg64lo));
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,v-32,hreg64hi);
               end;
+            location.register64.reghi:=hreg64lo;
+            location.register64.reglo:=hreg64hi;
           end
         else
           begin
@@ -534,9 +533,6 @@ implementation
 
             cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
           end;
-
-        location.register64.reglo:=hreg64lo;
-        location.register64.reghi:=hreg64hi;
       end;
 
 
