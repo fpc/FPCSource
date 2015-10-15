@@ -445,6 +445,27 @@ implementation
                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_16,v-48,hreg64lo);
               end;
           end
+        { shifting by 32..47 }
+        else if (right.nodetype=ordconstn) and (v>=32) and (v<=47) and
+                ((not (cs_opt_size in current_settings.optimizerswitches)) or (v<=33)) then
+          begin
+            if nodetype=shln then
+              begin
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,hreg64lo,hreg64hi);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,GetNextReg(hreg64lo),GetNextReg(hreg64hi));
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,0,hreg64lo);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,0,GetNextReg(hreg64lo));
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,v-32,hreg64hi);
+              end
+            else
+              begin
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,hreg64hi,hreg64lo);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,GetNextReg(hreg64hi),GetNextReg(hreg64lo));
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,0,hreg64hi);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,0,GetNextReg(hreg64hi));
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,v-32,hreg64lo);
+              end;
+          end
         else
           begin
             { load right operators in a register }
