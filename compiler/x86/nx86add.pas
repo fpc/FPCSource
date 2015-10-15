@@ -146,7 +146,8 @@ unit nx86add;
                  if (op=A_ADD) and
                     (right.location.loc=LOC_CONSTANT) and
                     (right.location.value=1) and
-                    not(cs_check_overflow in current_settings.localswitches) then
+                    not(cs_check_overflow in current_settings.localswitches) and
+                    UseIncDec then
                   begin
                     emit_reg(A_INC,TCGSize2Opsize[opsize],left.location.register);
                   end
