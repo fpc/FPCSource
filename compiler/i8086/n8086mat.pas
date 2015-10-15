@@ -425,6 +425,26 @@ implementation
                 emit_const_reg(A_RCR,S_W,1,hreg64lo);
               end;
           end
+        { shifting by >=48 }
+        else if (right.nodetype=ordconstn) and (v>=48) then
+          begin
+            if nodetype=shln then
+              begin
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,hreg64lo,GetNextReg(hreg64hi));
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,0,hreg64lo);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,0,GetNextReg(hreg64lo));
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,0,hreg64hi);
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_16,v-48,GetNextReg(hreg64hi));
+              end
+            else
+              begin
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,GetNextReg(hreg64hi),hreg64lo);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,0,GetNextReg(hreg64hi));
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,0,hreg64hi);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,0,GetNextReg(hreg64lo));
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_16,v-48,hreg64lo);
+              end;
+          end
         else
           begin
             { load right operators in a register }
