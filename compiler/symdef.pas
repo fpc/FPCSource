@@ -1865,6 +1865,8 @@ implementation
         buf  : array[0..255] of byte;
         oldintfcrc : boolean;
       begin
+        if defid<0 then
+          internalerror(2015101401);
         ppufile.putlongint(DefId);
         ppufile.putderef(typesymderef);
         ppufile.putsmallset(defoptions);
