@@ -121,9 +121,8 @@ implementation
 
   constructor tx86pointerdef.createx86(def: tdef; x86typ: tx86pointertyp);
     begin
-      tabstractpointerdef(self).create(pointerdef,def);
-      x86pointertyp := x86typ;
-      has_pointer_math:=cs_pointermath in current_settings.localswitches;
+      inherited create(def);
+      x86pointertyp:=x86typ;
     end;
 
 
