@@ -970,8 +970,6 @@ asm
 {$else}
 {$ifdef SYSTEM_HAS_KUSER_CMPXCHG}
   stmfd r13!, {r4, lr}
-  mvn   r3, #0x0000f000
-  sub   r3, r3, #0x3F
 
   mov   r4, r2 // Swap parameters around
   mov   r2, r0
@@ -979,9 +977,13 @@ asm
 
   // r1 and r2 will not be clobbered by kuser_cmpxchg
   // If we have to loop, r0 will be set to the original Comperand
+  // kuser_cmpxchg is documented to destroy r3, therefore setting
+  // r3 must be in the loop
   .Linterlocked_compare_exchange_loop:
+  mvn   r3, #0x0000f000
+  sub   r3, r3, #0x3F
 {$ifdef CPUARM_HAS_BLX}
-  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+  blx r3       // Call kuser_cmpxchg, sets C-Flag on success
 {$else}
   mov lr, pc
 {$ifdef CPUARM_HAS_BX}
@@ -997,11 +999,11 @@ asm
   // The loop case is HIGHLY unlikely, it would require that we got rescheduled between
   // calling kuser_cmpxchg and the ldr. While beeing rescheduled another process/thread
   // would have the set the value to our comperand
-  ldr	r0, [r2] // Load the currently set value
+  ldr   r0, [r2] // Load the currently set value
   cmp   r0, r4   // Return if Comperand != current value, otherwise loop again
   ldmnefd r13!, {r4, pc}
   // If we need to loop here, we have to
-  b	.Linterlocked_compare_exchange_loop
+  b    .Linterlocked_compare_exchange_loop
 
 {$else}
 // lock
