@@ -171,14 +171,19 @@ Implementation
                                     A_INC,A_LSL,A_LSR,
                                     A_OR,A_ORI,A_ROL,A_ROR,A_SBC,A_SBCI,A_SUB,A_SUBI]) and
               GetNextInstruction(p, hp1) and
-              MatchInstruction(hp1, A_CP) and
-              (((taicpu(p).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
-                (taicpu(hp1).oper[1]^.reg = NR_R1)) or
-               ((taicpu(p).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) and
-                (taicpu(hp1).oper[0]^.reg = NR_R1) and
-                (taicpu(p).opcode in [A_ADC,A_ADD,A_AND,A_ANDI,A_ASR,A_COM,A_EOR,
-                                      A_LSL,A_LSR,
-                                      A_OR,A_ORI,A_ROL,A_ROR]))) and
+              ((MatchInstruction(hp1, A_CP) and
+                (((taicpu(p).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
+                  (taicpu(hp1).oper[1]^.reg = NR_R1)) or
+                 ((taicpu(p).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) and
+                  (taicpu(hp1).oper[0]^.reg = NR_R1) and
+                  (taicpu(p).opcode in [A_ADC,A_ADD,A_AND,A_ANDI,A_ASR,A_COM,A_EOR,
+                                        A_LSL,A_LSR,
+                                        A_OR,A_ORI,A_ROL,A_ROR])))) or
+               (MatchInstruction(hp1, A_CPI) and
+                (taicpu(p).opcode in [A_ANDI,A_ORI]) and
+                (taicpu(p).oper[1]^.typ=top_const) and
+                (taicpu(hp1).oper[1]^.typ=top_const) and
+                (taicpu(p).oper[1]^.val=taicpu(hp1).oper[1]^.val))) and
               GetNextInstruction(hp1, hp2) and
               { be careful here, following instructions could use other flags
                 however after a jump fpc never depends on the value of flags }
@@ -202,6 +207,10 @@ Implementation
                     asml.insertbefore(hp2, p);
                   end;
                 }
+
+                asml.InsertBefore(tai_regalloc.alloc(NR_DEFAULTFLAGS,p), p);
+                asml.InsertAfter(tai_regalloc.dealloc(NR_DEFAULTFLAGS,hp2), hp2);
+                IncludeRegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs);
 
                 DebugMsg('Peephole OpCp2Op performed', p);
 
@@ -584,6 +593,7 @@ Implementation
                        (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p, hp1)) and
                        (hp1.typ = ait_instruction) and
                        (taicpu(hp1).opcode in [A_PUSH,A_MOV,A_CP,A_CPC,A_ADD,A_SUB,A_ADC,A_SBC,A_EOR,A_AND,A_OR,
+                                               A_STD,A_ST,
                                                A_OUT,A_IN]) and
                        RegInInstruction(taicpu(p).oper[0]^.reg, hp1) and
                        (not RegModifiedByInstruction(taicpu(p).oper[0]^.reg, hp1)) and

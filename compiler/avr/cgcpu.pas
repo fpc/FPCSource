@@ -308,13 +308,15 @@ unit cgcpu;
       var
         i : longint;
         hp : PCGParaLocation;
+        ref: treference;
       begin
         if not(tcgsize2size[paraloc.Size] in [1..4]) then
           internalerror(2014011101);
 
         hp:=paraloc.location;
 
-        for i:=1 to tcgsize2size[paraloc.Size] do
+        i:=1;
+        while i<tcgsize2size[paraloc.Size] do
           begin
             if not(assigned(hp)) then
               internalerror(2014011105);
@@ -326,9 +328,18 @@ unit cgcpu;
                      internalerror(2015041101);
                    a_load_const_reg(list,hp^.size,(a shr (8*(i-1))) and $ff,hp^.register);
                    hp:=hp^.Next;
+                   inc(i);
                  end;
                LOC_REFERENCE,LOC_CREFERENCE:
-                 list.concat(taicpu.op_const(A_PUSH,(a shr (8*(i-1))) and $ff));
+                 begin
+                   reference_reset(ref,paraloc.alignment);
+                   ref.base:=hp^.reference.index;
+                   ref.offset:=hp^.reference.offset;
+                   a_load_const_ref(list,hp^.size,a shr (8*(i-1)),ref);
+
+                   inc(i,tcgsize2size[hp^.size]);
+                   hp:=hp^.Next;
+                 end;
                else
                  internalerror(2002071004);
             end;
