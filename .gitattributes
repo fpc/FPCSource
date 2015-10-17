@@ -12285,6 +12285,7 @@ tests/test/tinterface3.pp svneol=native#text/plain
 tests/test/tinterface4.pp svneol=native#text/plain
 tests/test/tinterface5.pp svneol=native#text/plain
 tests/test/tinterface6.pp svneol=native#text/plain
+tests/test/tinterlockedmt.pp svneol=native#text/plain
 tests/test/tinterrupt.pp svneol=native#text/plain
 tests/test/tintfcdecl1.pp svneol=native#text/plain
 tests/test/tintfcdecl2.pp svneol=native#text/plain
