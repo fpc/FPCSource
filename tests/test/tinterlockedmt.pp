@@ -123,7 +123,11 @@ begin
               writeln('InterLockedCompareExchange seems to be broken.');
               Halt(10);
             end;
+          {$ifdef FPC}
+            ThreadSwitch;
+          {$else}
             Sleep(0);
+          {$endif FPC}
           end;
           if FOption + 2 <> LastCompareVal then
             InterLockedIncrement(Counter3)
