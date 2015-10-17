@@ -23,6 +23,7 @@ begin
     P.Email := '';
     P.Description := 'Event based micro-http server library interface';
     P.NeedLibC:= true;
+    P.Dependencies.Add('rtl-extra',[win32,win64]);
     P.OSes := [win32,win64,linux];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
