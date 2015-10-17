@@ -1185,12 +1185,29 @@ asm
   // assembler settings 
 {$ifdef CPUARM_HAS_DMB}
   .long 0xf57ff05f  // dmb sy
-{$else}
+{$else CPUARM_HAS_DMB}
 {$ifdef CPUARMV6}
   mov r0, #0
   .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5}
-{$endif}
-{$endif}
+{$else CPUARMV6}
+{$ifdef SYSTEM_HAS_KUSER_MEMORY_BARRIER}
+  stmfd r13!, {lr}
+  mvn   r0, #0x0000f000
+  sub   r0, r0, #0x5F
+{$ifdef CPUARM_HAS_BLX}
+  blx r0       // Call kuser_memory_barrier at address 0xffff0fa0
+{$else CPUARM_HAS_BLX}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r0
+{$else CPUARM_HAS_BX}
+  mov pc, r0
+{$endif CPUARM_HAS_BX}
+{$endif CPUARM_HAS_BLX}
+  ldmfd r13!, {pc}
+{$endif SYSTEM_HAS_KUSER_MEMORY_BARRIER}
+{$endif CPUARMV6}
+{$endif CPUARM_HAS_DMB}
 end;
 
 procedure ReadBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1214,12 +1231,29 @@ asm
   // "dmb st" may be more optimal than the more generic "dmb sy"
 {$ifdef CPUARM_HAS_DMB}
   .long 0xf57ff05e  // dmb st
-{$else}
+{$else CPUARM_HAS_DMB}
 {$ifdef CPUARMV6}
   mov r0, #0
   .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5} 
-{$endif}
-{$endif}
+{$else CPUARMV6}
+{$ifdef SYSTEM_HAS_KUSER_MEMORY_BARRIER}
+  stmfd r13!, {lr}
+  mvn   r0, #0x0000f000
+  sub   r0, r0, #0x5F
+{$ifdef CPUARM_HAS_BLX}
+  blx r0       // Call kuser_memory_barrier at address 0xffff0fa0
+{$else CPUARM_HAS_BLX}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r0
+{$else CPUARM_HAS_BX}
+  mov pc, r0
+{$endif CPUARM_HAS_BX}
+{$endif CPUARM_HAS_BLX}
+  ldmfd r13!, {pc}
+{$endif SYSTEM_HAS_KUSER_MEMORY_BARRIER}
+{$endif CPUARMV6}
+{$endif CPUARM_HAS_DMB}
 end;
 
 {$endif}
