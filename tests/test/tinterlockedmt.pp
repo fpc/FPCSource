@@ -60,6 +60,8 @@ begin
   FOption:=AOption;
   inherited Create(True);
   FreeOnTerminate:=True;
+  if FOp = opCompareExchange then
+    Priority:=tpHighest;
 end;
 
 procedure TWorker.Execute;
@@ -118,10 +120,15 @@ begin
           t:=Now;
           j:=0;
           while InterLockedCompareExchange(Counter3, FOption + 1, FOption) <> FOption do begin
+            if AbortThread then
+              break;
             Inc(j);
-            if (j > 1000) and (Now - t >= 5/SecsPerDay) then begin
-              writeln('InterLockedCompareExchange seems to be broken.');
-              Halt(10);
+            if j >= 10000 then begin
+              if Now - t >= 5/SecsPerDay then begin
+                writeln('InterLockedCompareExchange seems to be broken.');
+                Halt(10);
+              end;
+              Sleep(1);
             end;
           {$ifdef FPC}
             ThreadSwitch;
@@ -129,13 +136,13 @@ begin
             Sleep(0);
           {$endif FPC}
           end;
+          if AbortThread then
+            break;
           if FOption + 2 <> LastCompareVal then
             InterLockedIncrement(Counter3)
           else
             InterLockedExchange(Counter3, 0);
           InterLockedIncrement(Counter2);
-          if AbortThread then
-            break;
         end;
       end;
   end;
@@ -146,7 +153,7 @@ end;
 procedure Run;
 var
   i, j, k, CmpCount: longint;
-  t: TDateTime;
+  t, tt: TDateTime;
   workers: array[0..TotalThreadCount - 1] of TWorker;
 begin
   Counter:=0;
@@ -196,7 +203,7 @@ begin
       end
       else begin
         AbortThread:=True;
-        writeln('Timeout has expired.');
+        writeln('Timeout has expired. Active threads left: ', WorkingCount);
         t:=Now;
       end;
     end;
@@ -204,15 +211,18 @@ begin
   end;
 
   if AbortThread then begin
-    writeln('The execution is too slow.');
+    writeln('The execution is too slow (', Counter2, ').');
     Halt(2);
   end;
+
+  tt:=Now;
 
   CheckResult(Counter, 0, 1, 'Counter error:');
 
   CheckResult(Counter2, (k div 2)*CmpCount, 4, 'Counter2 error:');
 
   writeln('Test OK.');
+  writeln('InterLockedCompareExchange: ', Round(Counter2/((tt-t)*SecsPerDay)), ' ops/sec.');
 end;
 
 begin
