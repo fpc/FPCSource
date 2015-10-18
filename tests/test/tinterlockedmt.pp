@@ -129,7 +129,10 @@ begin
                 Halt(10);
               end;
               Sleep(1);
-            end;
+            end
+            else
+              if j >= 100 then
+                Sleep(0);
           {$ifdef FPC}
             ThreadSwitch;
           {$else}
