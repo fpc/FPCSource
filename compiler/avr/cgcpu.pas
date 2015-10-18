@@ -968,7 +968,12 @@ unit cgcpu;
              if ((qword(a) and mask) shr shift)=0 then
                emit_mov(list,reg,NR_R1)
              else
-               list.concat(taicpu.op_reg_const(A_LDI,reg,(qword(a) and mask) shr shift));
+               begin
+                 getcpuregister(list,NR_R26);
+                 list.concat(taicpu.op_reg_const(A_LDI,NR_R26,(qword(a) and mask) shr shift));
+                 a_load_reg_reg(list,OS_8,OS_8,NR_R26,reg);
+                 ungetcpuregister(list,NR_R26);
+               end;
 
              mask:=mask shl 8;
              inc(shift,8);

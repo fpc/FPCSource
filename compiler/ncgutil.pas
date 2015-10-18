@@ -930,7 +930,7 @@ implementation
                                 unget_para(curparaloc^.next^.next^);
                                 cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^.next^,GetNextReg(GetNextReg(destloc.register64.reglo)),1);
                                 unget_para(curparaloc^.next^.next^.next^);
-                                cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^.next^,GetNextReg(GetNextReg(GetNextReg(destloc.register64.reglo))),1);
+                                cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^.next^.next^,GetNextReg(GetNextReg(GetNextReg(destloc.register64.reglo))),1);
 
                                 curparaloc:=paraloc^.next^.next^.next^.next;
                                 unget_para(curparaloc^);
