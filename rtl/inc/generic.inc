@@ -893,7 +893,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 procedure fpc_shortstr_concat(var dests:shortstring;const s1,s2:shortstring);compilerproc;
 var
-  s1l, s2l : longint;
+  s1l, s2l : ObjpasInt;
 begin
   s1l:=length(s1);
   s2l:=length(s2);
@@ -923,7 +923,7 @@ procedure fpc_shortstr_concat_multi(var dests:shortstring;const sarr:array of ps
 var
   s2l : byte;
   LowStart,i,
-  Len : longint;
+  Len : ObjpasInt;
   needtemp : boolean;
   tmpstr  : shortstring;
   p,pdest  : pshortstring;
@@ -1004,7 +1004,7 @@ end;
 function fpc_shortstr_compare(const left,right:shortstring) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
 var
    s1,s2,max,i : byte;
-   d : longint;
+   d : ObjpasInt;
 begin
   s1:=length(left);
   s2:=length(right);
@@ -1033,7 +1033,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE_EQUAL}
 function fpc_shortstr_compare_equal(const left,right:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE_EQUAL']; compilerproc;
 begin
-  Result := longint(left[0]) - longint(right[0]);
+  Result := ObjpasInt(left[0]) - ObjpasInt(right[0]);
   if Result = 0 then
     Result := CompareByte(left[1],right[1], longint(left[0]));
 end;
@@ -1045,7 +1045,7 @@ end;
 
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 var
-  l : longint;
+  l : ObjpasInt;
   s: shortstring;
 begin
   if p=nil then
@@ -1218,8 +1218,8 @@ function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningD
 
 procedure fpc_chararray_to_shortstr(out res : shortstring;const arr: array of char; zerobased: boolean = true);[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
 var
- l: longint;
- index: longint;
+ l: ObjpasInt;
+ index: ObjpasInt;
  len: byte;
 begin
   l:=high(arr)+1;
@@ -1248,7 +1248,7 @@ end;
 
 procedure fpc_shortstr_to_chararray(out res: array of char; const src: ShortString); compilerproc;
 var
-  len: longint;
+  len: ObjpasInt;
 begin
   len := length(src);
   if len > length(res) then
