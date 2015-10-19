@@ -1035,7 +1035,7 @@ function fpc_shortstr_compare_equal(const left,right:shortstring): longint; [pub
 begin
   Result := ObjpasInt(left[0]) - ObjpasInt(right[0]);
   if Result = 0 then
-    Result := CompareByte(left[1],right[1], longint(left[0]));
+    Result := CompareByte(left[1],right[1], ObjpasInt(left[0]));
 end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE_EQUAL}
 
