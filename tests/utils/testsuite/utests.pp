@@ -1982,7 +1982,7 @@ begin
         end
       else
         begin
-          cpu_last:=StrToInt(GetSingleton('SELECT COUNT(*) FROM TESTCPU'));
+          cpu_last:=StrToInt(GetSingleton('SELECT MAX(TC_ID) FROM TESTCPU'));
           cpu_size:=Sizeof(StatusLongintArray)*(1+cpu_last);
           cpu_count:=GetMem(cpu_size);
           FillChar(cpu_count^,cpu_size,#0);
@@ -2002,7 +2002,7 @@ begin
         end
       else
         begin
-          version_last:=StrToInt(GetSingleton('SELECT COUNT(*) FROM TESTVERSION'));
+          version_last:=StrToInt(GetSingleton('SELECT MAX(TV_ID) FROM TESTVERSION'));
           version_size:=Sizeof(StatusLongintArray)*(1+version_last);
           version_count:=GetMem(version_size);
           FillChar(version_count^,version_size,#0);
@@ -2024,7 +2024,7 @@ begin
         end
       else
         begin
-          os_last:=StrToInt(GetSingleton('SELECT COUNT(*) FROM TESTOS'));
+          os_last:=StrToInt(GetSingleton('SELECT MAX(TO_ID) FROM TESTOS'));
           os_size:=Sizeof(StatusLongintArray)*(1+os_last);
           os_count:=GetMem(os_size);
           FillChar(os_count^,os_size,#0);
