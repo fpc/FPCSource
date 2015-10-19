@@ -30,7 +30,7 @@ type
 const
   TotalThreadCount = 100;
   TestCount = 1000000;
-  WaitTime = 30;
+  WaitTime = 60;
 
 var
   Counter, Counter2, Counter3: longint;
@@ -42,6 +42,11 @@ var
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
 begin
   Result:=longint(Windows.InterlockedCompareExchange(pointer(Target), pointer(NewValue), pointer(Comperand)));
+end;
+
+procedure  ThreadSwitch;
+begin
+  Sleep(0);
 end;
 {$endif FPC}
 
@@ -123,21 +128,18 @@ begin
             if AbortThread then
               break;
             Inc(j);
-            if j >= 10000 then begin
+            if j and $FFF = 0 then begin
               if Now - t >= 5/SecsPerDay then begin
                 writeln('InterLockedCompareExchange seems to be broken.');
                 Halt(10);
               end;
               Sleep(1);
-            end
-            else
-              if j >= 100 then
-                Sleep(0);
-          {$ifdef FPC}
-            ThreadSwitch;
-          {$else}
-            Sleep(0);
-          {$endif FPC}
+            end;
+            if j and $3F = 0 then begin
+              Sleep(0);
+            end;
+            if j and $3 = 1 then
+              ThreadSwitch;
           end;
           if AbortThread then
             break;
@@ -156,7 +158,7 @@ end;
 procedure Run;
 var
   i, j, k, CmpCount: longint;
-  t, tt: TDateTime;
+  t: TDateTime;
   workers: array[0..TotalThreadCount - 1] of TWorker;
 begin
   Counter:=0;
@@ -218,14 +220,16 @@ begin
     Halt(2);
   end;
 
-  tt:=Now;
+  t:=Now - t;
+  if t = 0 then
+    t:=1/MSecsPerDay;
 
   CheckResult(Counter, 0, 1, 'Counter error:');
 
   CheckResult(Counter2, (k div 2)*CmpCount, 4, 'Counter2 error:');
 
   writeln('Test OK.');
-  writeln('InterLockedCompareExchange: ', Round(Counter2/((tt-t)*SecsPerDay)), ' ops/sec.');
+  writeln('InterLockedCompareExchange: ', Round(Counter2/(t*SecsPerDay)), ' ops/sec.');
 end;
 
 begin
