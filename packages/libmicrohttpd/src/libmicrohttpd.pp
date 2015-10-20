@@ -63,11 +63,12 @@ const
   {$ENDIF}
   MHD_SOCKET_DEFINED = 1;
 {$ENDIF}
-  MHD_VERSION = $00094300;
+  MHD_VERSION = $00094400;
   MHD_YES = 1;
   MHD_NO = 0;
   MHD_INVALID_NONCE = -1;
   MHD_ICY_FLAG = -2147483648;
+  MHD_LONG_LONG_PRINTF = 'll';
   MHD_UNSIGNED_LONG_LONG_PRINTF = '%llu';
 
   // HTTP codes
@@ -351,6 +352,8 @@ type
   MHD_socket = TSocket;
   {$ENDIF}
 {$ENDIF}
+  MHD_LONG_LONG = clonglong;
+  PMHD_LONG_LONG = ^MHD_LONG_LONG;
   MHD_UNSIGNED_LONG_LONG = culonglong;
   PMHD_UNSIGNED_LONG_LONG = ^MHD_UNSIGNED_LONG_LONG;
 
@@ -373,11 +376,11 @@ type
 
   MHD_ResponseOptions = LongInt;
 
-  MHD_ResponseMemoryMode =  LongInt;
+  MHD_ResponseMemoryMode = LongInt;
 
   MHD_CONNECTION_OPTION = LongInt;
 
-  MHD_FEATURE =  LongInt;
+  MHD_FEATURE = LongInt;
 
   MHD_Daemon = record
   end;
