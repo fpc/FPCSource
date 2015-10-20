@@ -17,14 +17,14 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.1.1';
-    P.Author := 'Library: GNU foundation, header: Silvio Clecio)';
-    P.License := 'Library: LGPL or later, header: LGPL with modification, ';
-    P.HomepageURL := 'www.gnu.org';
+    P.Author := 'Library: GNU foundation, header: Silvio Clecio';
+    P.License := 'Library: LGPL or later, header: LGPL with modification';
+    P.HomepageURL := 'https://www.gnu.org/software/libmicrohttpd/';
     P.Email := '';
-    P.Description := 'Event based micro-http server library interface';
+    P.Description := 'Event and threaded based micro-http server library interface';
     P.NeedLibC:= true;
     P.Dependencies.Add('rtl-extra');
-    P.OSes := [win32,win64,linux];
+    P.OSes := [android,freebsd,linux,netbsd,openbsd,os2,win32,win64,symbian];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     T:=P.Targets.AddUnit('libmicrohttpd.pp');
