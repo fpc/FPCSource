@@ -2359,7 +2359,7 @@ implementation
                     { compare the length with 0 }
                     result := caddnode.create(nodetype,
                       cinlinenode.create(in_length_x,false,left),
-                      cordconstnode.create(0,s32inttype,false))
+                      cordconstnode.create(0,s8inttype,false))
                   else
                     begin
                       (*
