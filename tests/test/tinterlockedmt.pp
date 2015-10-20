@@ -27,6 +27,8 @@ type
     constructor Create(ACount: longint; AOp: TOperation; AOption: longint = 0);
   end;
 
+//{$define TEST_BROKEN_IMPLEMENTATION}
+
 const
   TotalThreadCount = 100;
   TestCount = 1000000;
@@ -39,16 +41,27 @@ var
   LastCompareVal: longint;
 
 {$ifndef FPC}
+{$ifndef TEST_BROKEN_IMPLEMENTATION}
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
 begin
   Result:=longint(Windows.InterlockedCompareExchange(pointer(Target), pointer(NewValue), pointer(Comperand)));
 end;
+{$endif TEST_BROKEN_IMPLEMENTATION}
 
 procedure  ThreadSwitch;
 begin
   Sleep(0);
 end;
 {$endif FPC}
+
+{$ifdef TEST_BROKEN_IMPLEMENTATION}
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
+begin
+  Result:=Target;
+  if Result = Comperand then
+    Target:=NewValue;
+end;
+{$endif TEST_BROKEN_IMPLEMENTATION}
 
 procedure CheckResult(check, expected, code: longint; const Msg: string);
 begin
@@ -71,7 +84,7 @@ end;
 
 procedure TWorker.Execute;
 var
-  i, j: longint;
+  i, j, k, opt: longint;
   t: TDateTime;
 begin
   InterLockedIncrement(WorkingCount);
@@ -121,32 +134,37 @@ begin
       end;
     opCompareExchange:
       begin
+        opt:=FOption and 1;
         for i:=1 to FCount do begin
           t:=Now;
           j:=0;
-          while InterLockedCompareExchange(Counter3, FOption + 1, FOption) <> FOption do begin
-            if AbortThread then
+          while not AbortThread do begin
+            k:=InterLockedCompareExchange(Counter3, FOption, opt);
+            if k = opt then
               break;
+            if (k < 0) or (k >= LastCompareVal) then begin
+              writeln('InterLockedCompareExchange. Invalid return value (', k, ').');
+              Halt(10);
+            end;
             Inc(j);
-            if j and $FFF = 0 then begin
-              if Now - t >= 5/SecsPerDay then begin
+            if j and $F = 0 then
+              ThreadSwitch;
+            if j and $FFFF = 0 then begin
+              if Now - t >= 10/SecsPerDay then begin
                 writeln('InterLockedCompareExchange seems to be broken.');
-                Halt(10);
+                Halt(12);
               end;
               Sleep(1);
             end;
-            if j and $3F = 0 then begin
-              Sleep(0);
-            end;
-            if j and $3 = 1 then
-              ThreadSwitch;
           end;
           if AbortThread then
             break;
-          if FOption + 2 <> LastCompareVal then
-            InterLockedIncrement(Counter3)
-          else
-            InterLockedExchange(Counter3, 0);
+          ThreadSwitch;
+          k:=InterLockedExchange(Counter3, opt xor 1);
+          if k <> FOption then begin
+            writeln('InterLockedCompareExchange seems to be broken (', k, ').');
+            Halt(11);
+          end;
           InterLockedIncrement(Counter2);
         end;
       end;
@@ -164,10 +182,10 @@ begin
   Counter:=0;
   Counter2:=0;
   Counter3:=0;
-  CmpCount:=TestCount div 400;
+  CmpCount:=TestCount div 1000;
   writeln('Creating threads...');
   j:=0;
-  k:=0;
+  k:=2;
   repeat
     i:=j;
     workers[j]:=TWorker.Create(TestCount, opAdd);
@@ -182,7 +200,10 @@ begin
     Inc(j);
     workers[j]:=TWorker.Create(CmpCount, opCompareExchange, k);
     Inc(j);
-    Inc(k, 2);
+    Inc(k);
+    workers[j]:=TWorker.Create(CmpCount, opCompareExchange, k);
+    Inc(j);
+    Inc(k);
   until j + (j - i) > TotalThreadCount;
   LastCompareVal:=k;
   writeln('Created ',j ,' threads.');
@@ -226,7 +247,7 @@ begin
 
   CheckResult(Counter, 0, 1, 'Counter error:');
 
-  CheckResult(Counter2, (k div 2)*CmpCount, 4, 'Counter2 error:');
+  CheckResult(Counter2, (LastCompareVal - 2)*CmpCount, 4, 'Counter2 error:');
 
   writeln('Test OK.');
   writeln('InterLockedCompareExchange: ', Round(Counter2/(t*SecsPerDay)), ' ops/sec.');
