@@ -2419,7 +2419,7 @@ implementation
                 ccallparanode.create(right,ccallparanode.create(left,nil)));
               { and compare its result with 0 according to the original operator }
               result := caddnode.create(nodetype,result,
-                cordconstnode.create(0,s32inttype,false));
+                cordconstnode.create(0,s8inttype,false));
               left := nil;
               right := nil;
             end;
