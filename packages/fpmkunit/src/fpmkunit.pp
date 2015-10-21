@@ -1105,10 +1105,10 @@ Type
     FGeneralCriticalSection: TRTLCriticalSection;
 {$ifdef HAS_UNIT_ZIPPER}
     FZipper: TZipper;
+    FGZFileStream: TGZFileStream;
 {$endif HAS_UNIT_ZIPPER}
 {$ifdef HAS_TAR_SUPPORT}
     FTarWriter: TTarWriter;
-    FGZFileStream: TGZFileStream;
 {$endif HAS_TAR_SUPPORT}
     procedure AddFileToArchive(const APackage: TPackage; Const ASourceFileName, ADestFileName : String);
     procedure FinishArchive(Sender: TObject);
@@ -1383,7 +1383,11 @@ uses typinfo, rtlconsts;
 
 const
 {$ifdef CREATE_TAR_FILE}
+  {$ifdef HAS_UNIT_ZIPPER}
   ArchiveExtension = '.tar.gz';
+  {$else }
+  ArchiveExtension = '.tar';
+  {$endif HAS_UNIT_ZIPPER}
 {$else CREATE_TAR_FILE}
   ArchiveExtension = '.zip';
 {$endif CREATE_TAR_FILE}
@@ -5021,15 +5025,19 @@ begin
   {$ifdef HAS_TAR_SUPPORT}
   if not assigned(FTarWriter) then
     begin
+    {$ifdef HAS_UNIT_ZIPPER}
       FGZFileStream := TGZFileStream.create(GetArchiveName + ArchiveExtension, gzopenwrite);
       try
         FTarWriter := TTarWriter.Create(FGZFileStream);
-        FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
-        FTarWriter.UserName := 'root';
-        FTarWriter.GroupName := 'root';
       except
         FGZFileStream.Free;
       end;
+    {$else}
+    FTarWriter := TTarWriter.Create(GetArchiveName + ArchiveExtension);
+    {$endif HAS_UNIT_ZIPPER}
+    FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
+    FTarWriter.UserName := 'root';
+    FTarWriter.GroupName := 'root';
     end;
 {$ifdef unix}
   if (FpStat(ASourceFileName, FileStat) = 0) and (FileStat.st_mode and S_IXUSR = S_IXUSR) then
@@ -5066,7 +5074,9 @@ begin
   if assigned(FTarWriter) then
     begin
       FreeAndNil(FTarWriter);
+      {$ifdef HAS_UNIT_ZIPPER}
       FGZFileStream.Free;
+      {$endif HAS_UNIT_ZIPPER}
     end;
   {$endif HAS_TAR_SUPPORT}
   {$ifdef HAS_UNIT_ZIPPER}
