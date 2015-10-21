@@ -2066,7 +2066,7 @@ begin
                                   (taicpu(hp2).condition=C_None) and
                                   { real label and jump, no further references to the
                                     label are allowed }
-                                  (tasmlabel(taicpu(p).oper[0]^.ref^.symbol).getrefs=2) and
+                                  (tasmlabel(taicpu(p).oper[0]^.ref^.symbol).getrefs=1) and
                                   FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol),hp1) then
                                    begin
                                      l:=0;
