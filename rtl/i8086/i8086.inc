@@ -432,6 +432,38 @@ end;
 {$endif FPC_SYSTEM_HAS_COMPAREDWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+{$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+function fpc_pchar_length(p:pchar):sizeint;assembler;nostackframe;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
+asm
+  mov bx, sp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov ax, ss:[bx + 2 + extra_param_offset]  // p
+  test ax, ax
+  jz @@Done
+  xchg ax, di
+  mov ax, ds
+  mov es, ax
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[bx + 2 + extra_param_offset]  // p
+  mov ax, es
+  or ax, di
+  jz @@Done
+{$endif FPC_X86_DATA_NEAR}
+  mov cx, 0FFFFh
+  xor ax, ax
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  repne scasb
+  dec ax
+  dec ax
+  sub ax, cx
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+
+
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;nostackframe;
 asm
