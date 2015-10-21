@@ -32,6 +32,7 @@ begin
     D.Version:='3.1.1';
 
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('chmbase.pas');
     T:=P.Targets.AddUnit('chmfilewriter.pas');
@@ -75,6 +76,7 @@ begin
           AddUnit('chmspecialfiles');
           AddUnit('paslzxcomp');
           AddUnit('chmfiftimain');
+          AddInclude('chmobjinstconst.inc');
         end;
     T:=P.Targets.AddUnit('lzxcompressthread.pas');
       with T.Dependencies do
