@@ -144,7 +144,7 @@ begin
     int NearInt
     call near [bx]
 
-    { ambigous (that's why it's not supported by TP7), but FPC supports it by
+    { ambiguous (that's why it's not supported by TP7), but FPC supports it by
       extension from the 32-bit mode }
     int NearInt
     call [bx]
