@@ -72,7 +72,7 @@ begin
   if ((modrm shr 3) and 7) <> 3 then
     Error;
 
-  { 'call reg'? -> not an indirect call }
+  { 'call far reg'??? -> invalid instruction }
   if (modrm shr 6)=3 then
     Error;
 
