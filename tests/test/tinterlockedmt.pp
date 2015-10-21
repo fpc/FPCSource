@@ -150,7 +150,7 @@ begin
             if j and $F = 0 then
               ThreadSwitch;
             if j and $FFFF = 0 then begin
-              if Now - t >= 10/SecsPerDay then begin
+              if Now - t >= 30/SecsPerDay then begin
                 writeln('InterLockedCompareExchange seems to be broken.');
                 Halt(12);
               end;
