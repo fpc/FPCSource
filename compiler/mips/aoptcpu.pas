@@ -742,27 +742,29 @@ unit aoptcpu;
                                           GetNextInstruction(hp1, hp1);
                                         end;
                                       { hp1 points to yyy: }
-                                      if assigned(hp1) and
+                                      if assigned(hp1) and (l<=3) and
                                         FindLabel(tasmlabel(taicpu(hp2).oper[taicpu(hp2).ops-1]^.ref^.symbol),hp1) then
                                         begin
                                           condition:=inverse_cond(taicpu(p).condition);
                                           GetNextInstruction(p,hp1);
                                           hp3:=p;
                                           p:=hp1;
-                                          repeat
-                                            ChangeToCMOV(taicpu(hp1),condition,condreg);
-                                            GetNextInstruction(hp1,hp1);
-                                          until not CanBeCMOV(hp1,condreg);
+                                          while CanBeCMOV(hp1,condreg) do
+                                            begin
+                                              ChangeToCMOV(taicpu(hp1),condition,condreg);
+                                              GetNextInstruction(hp1,hp1);
+                                            end;
                                           { hp2 is still at b yyy }
                                           GetNextInstruction(hp2,hp1);
                                           { hp2 is now at xxx: }
                                           condition:=inverse_cond(condition);
                                           GetNextInstruction(hp1,hp1);
                                           { hp1 is now at <several movs 2> }
-                                          repeat
-                                            ChangeToCMOV(taicpu(hp1),condition,condreg);
-                                            GetNextInstruction(hp1,hp1);
-                                          until not CanBeCMOV(hp1,condreg);
+                                          while CanBeCMOV(hp1,condreg) do
+                                            begin
+                                              ChangeToCMOV(taicpu(hp1),condition,condreg);
+                                              GetNextInstruction(hp1,hp1);
+                                            end;
                                           { remove bCC }
                                           tasmlabel(taicpu(hp3).oper[taicpu(hp3).ops-1]^.ref^.symbol).decrefs;
                                           RemoveDelaySlot(hp3);
