@@ -34,6 +34,7 @@ interface
 
       ti8086pointerconstnode = class(tcgpointerconstnode)
         constructor create(v : TConstPtrUInt;def:tdef);override;
+        procedure printnodedata(var t: text);override;
         procedure pass_generate_code;override;
       end;
 
@@ -44,7 +45,8 @@ implementation
       symconst,symdef,symcpu,
       defutil,
       cpubase,
-      cga,cgx86,cgobj,cgbase,cgutils;
+      cga,cgx86,cgobj,cgbase,cgutils,
+      node;
 
     {*****************************************************************************
                                T8086POINTERCONSTNODE
@@ -57,6 +59,15 @@ implementation
         if (def.typ<>pointerdef) or not (tcpupointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
           v := Word(v);
         inherited create(v, def);
+      end;
+
+
+    procedure ti8086pointerconstnode.printnodedata(var t: text);
+      begin
+        if (typedef.typ=pointerdef) and (tcpupointerdef(typedef).x86pointertyp in [x86pt_far,x86pt_huge]) then
+          writeln(t,printnodeindention,'value = $',hexstr(word(value shr 16),4),':',hexstr(word(value),4))
+        else
+          inherited printnodedata(t);
       end;
 
 
