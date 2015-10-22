@@ -42,6 +42,7 @@ begin
           AddInclude('magick_type.inc');
           AddInclude('type.inc');
           AddInclude('cache_view.inc');
+          AddInclude('cache.inc');
           AddInclude('compare.inc');
           AddInclude('constitute.inc');
           AddInclude('draw.inc');
