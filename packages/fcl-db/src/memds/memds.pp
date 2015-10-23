@@ -132,6 +132,7 @@ type
     constructor Create(AOwner:TComponent); override;
     destructor Destroy; override;
     function BookmarkValid(ABookmark: TBookmark): Boolean; override;
+    function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): boolean; override;
     function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; override;
@@ -416,6 +417,14 @@ begin
   if ABookMark=nil then exit;
   ReqBookmark:=PInteger(ABookmark)^;
   Result := (ReqBookmark>=0) and (ReqBookmark<FRecCount);
+end;
+
+function TMemDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint;
+const r: array[Boolean, Boolean] of ShortInt = ((2,-1),(1,0));
+begin
+  Result := r[Bookmark1=nil, Bookmark2=nil];
+  if Result = 2 then
+    Result := PInteger(Bookmark1)^ - PInteger(Bookmark2)^;
 end;
 
 function TMemDataset.CreateBlobStream(Field: TField; Mode: TBlobStreamMode
