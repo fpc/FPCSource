@@ -3344,7 +3344,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 # Package loading and handling
 #
-# 13005 is the last used one
+# 13026 is the last used one
 #
 # BeginOfTeX
 % \section{Package loading messages.}
@@ -3366,6 +3366,61 @@ package_e_unit_deny_package=13004_E_Unit $1 can not be part of a package
 package_n_implicit_unit_import=13005_N_Unit $1 is implicitely imported into package $2
 % The unit was not specified as part of the \var{contains} section and is also not included in one of the
 % required packages. Add the unit to the \var{contains} section to increase compatibility with other packages.
+package_f_cant_create_pcp=13006_F_Failed to create PCP file $2 for package $1
+% The PCP file for the package could not be created.
+package_f_cant_read_pcp=13007_F_Failed to read PCP file for package $1
+% The PCP file for the package could not be read.
+package_t_pcp_loading=13008_T_PCP loading $1
+% When the \var{-vt} switch is used, the compiler tells you
+% what packages it loads.
+package_u_pcp_name=13009_U_PCP Name: $1
+% When you use the \var{-vu} flag, the package name is shown.
+package_u_pcp_flags=13010_U_PCP Flags: $1
+% When you use the \var{-vu} flag, the package flags are shown.
+package_u_pcp_crc=13011_U_PCP Crc: $1
+% When you use the \var{-vu} flag, the package CRC check is shown.
+package_u_pcp_time=13012_U_PCP Time: $1
+% When you use the \var{-vu} flag, the time the package was compiled is shown.
+package_u_pcp_file_too_short=13013_U_PCP File too short
+% The PCP file is too short, not all declarations are present.
+package_u_pcp_invalid_header=13014_U_PCP Invalid Header (no PCP at the begin)
+% A package file contains as the first three bytes the ASCII codes of the characters \var{PCP}.
+package_u_pcp_invalid_version=13015_U_PCP Invalid Version $1
+% This package file was compiled with a different version of the compiler, and
+% cannot be read.
+package_u_pcp_invalid_processor=13016_U_PCP is compiled for another processor
+% This package file was compiled for a different processor type, and
+% cannot be read.
+package_u_pcp_invalid_target=13017_U_PCP is compiled for another target
+% This package file was compiled for a different target, and
+% cannot be read.
+package_u_pcp_write=13018_U_Writing $1
+% When you specify the \var{-vu} switch, the compiler will tell you where it
+% writes the package file.
+package_f_pcp_cannot_write=13019_F_Can't Write PCP-File
+% An error occurred when writing the package file.
+package_f_pcp_read_error=13020_F_Error reading PCP-File
+% This means that the package file was corrupted, and contains invalid
+% information. Recompilation will be necessary.
+package_f_pcp_read_unexpected_end=13021_F_unexpected end of PCP-File
+% Unexpected end of file. This may mean that the PCP file is
+% corrupted.
+package_f_pcp_invalid_entry=13022_F_Invalid PCP-File entry: $1
+% The unit the compiler is trying to read is corrupted, or generated with a
+% newer version of the compiler.
+package_u_pcp_invalid_fpumode=13023_U_Trying to use a unit which was compiled with a different FPU mode
+% Trying to compile code while using units which were not compiled with
+% the same floating point format mode. Either all code should be compiled
+% with FPU emulation on, or with FPU emulation off.
+package_t_packagesearch=13024_T_Packagesearch: $1
+% When you use the \var{-vt} option, the compiler tells you where it tries to find
+% package files.
+package_u_required_package=13025_U_Required package $1
+% When you specify the \var{-vu} switch, the compiler will tell you which
+% packages a package requires.
+package_u_contained_unit=13026_U_Contained unit $1
+% When you specify the \var{-vu} switch, the compiler will tell you which
+% units a package contains.
 % \end{description}
 # EndOfTeX
 
