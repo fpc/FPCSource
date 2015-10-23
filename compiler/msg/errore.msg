@@ -3347,7 +3347,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 # 13005 is the last used one
 #
 # BeginOfTeX
-% \section{Unit loading messages.}
+% \section{Package loading messages.}
 % This section lists all messages that can occur when the compiler is
 % loading a package from disk into memory, saving a package from memory
 % to disk or when parsing packages in general. Many of these messages are
@@ -3367,6 +3367,7 @@ package_n_implicit_unit_import=13005_N_Unit $1 is implicitely imported into pack
 % The unit was not specified as part of the \var{contains} section and is also not included in one of the
 % required packages. Add the unit to the \var{contains} section to increase compatibility with other packages.
 % \end{description}
+# EndOfTeX
 
 
 #
