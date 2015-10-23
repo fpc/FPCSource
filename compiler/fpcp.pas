@@ -71,21 +71,19 @@ implementation
       pcpfiletime : longint;
     begin
       result:=false;
-      Writeln('Loading pcp ',pcpfilename);
-      //Message1(unit_t_ppu_loading,ppufilename,@queuecomment);
+      Message1(package_t_pcp_loading,pcpfilename);
       { Get pcpfile time (also check if the file exists) }
       pcpfiletime:=getnamedfiletime(pcpfilename);
       if pcpfiletime=-1 then
        exit;
     { Open the pcpfile }
-      //Message1(unit_u_ppu_name,ppufilename);
+      Message1(package_u_pcp_name,pcpfilename);
       pcpfile:=tpcpfile.create(pcpfilename);
       if not pcpfile.openfile then
        begin
          pcpfile.free;
          pcpfile:=nil;
-         //Message(unit_u_ppu_file_too_short);
-         Writeln('File to short');
+         Message(package_u_pcp_file_too_short);
          exit;
        end;
     { check for a valid PPU file }
@@ -93,15 +91,13 @@ implementation
        begin
          pcpfile.free;
          pcpfile:=nil;
-         //Message(unit_u_ppu_invalid_header);
-         Writeln('Invalid PCP header');
+         Message(package_u_pcp_invalid_header);
          exit;
        end;
     { check for allowed PCP versions }
       if not (pcpfile.getversion=CurrentPCPVersion) then
        begin
-         Writeln('Invalid PCP version: ',pcpfile.getversion);
-         //Message1(unit_u_ppu_invalid_version,tostr(ppufile.GetPPUVersion),@queuecomment);
+         Message1(package_u_pcp_invalid_version,tostr(pcpfile.getversion));
          pcpfile.free;
          pcpfile:=nil;
          exit;
@@ -111,8 +107,7 @@ implementation
        begin
          pcpfile.free;
          pcpfile:=nil;
-         Writeln('Invalid processor');
-         //Message(unit_u_ppu_invalid_processor,@queuecomment);
+         Message(package_u_pcp_invalid_processor);
          exit;
        end;
     { check target }
@@ -120,8 +115,7 @@ implementation
        begin
          pcpfile.free;
          pcpfile:=nil;
-         Writeln('Invalid target OS');
-         //Message(unit_u_ppu_invalid_target,@queuecomment);
+         Message(package_u_pcp_invalid_target);
          exit;
        end;
   {$ifdef cpufpemu}
@@ -132,8 +126,7 @@ implementation
        begin
          pcpfile.free;
          pcpfile:=nil;
-         Writeln('Invalid FPU mode');
-         //Message(unit_u_ppu_invalid_fpumode,@queuecomment);
+         Message(package_u_pcp_invalid_fpumode);
          exit;
        end;
   {$endif cpufpemu}
@@ -142,11 +135,11 @@ implementation
       //flags:=pcpfile.header.common.flags;
       //crc:=pcpfile.header.checksum;
     { Show Debug info }
-      (*Message1(unit_u_ppu_time,filetimestring(ppufiletime));
-      Message1(unit_u_ppu_flags,tostr(flags));
-      Message1(unit_u_ppu_crc,hexstr(ppufile.header.checksum,8));
-      Message1(unit_u_ppu_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
-      Message1(unit_u_ppu_crc,hexstr(ppufile.header.indirect_checksum,8)+' (indc)');
+      Message1(package_u_pcp_time,filetimestring(pcpfiletime));
+      Message1(package_u_pcp_flags,tostr(pcpfile.header.common.flags{flags}));
+      Message1(package_u_pcp_crc,hexstr(pcpfile.header.checksum,8));
+      (*Message1(package_u_pcp_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
+      Message1(package_u_pcp_crc,hexstr(ppufile.header.indirect_checksum,8)+' (indc)');
       Comment(V_used,'Number of definitions: '+tostr(ppufile.header.deflistsize));
       Comment(V_used,'Number of symbols: '+tostr(ppufile.header.symlistsize));
       do_compile:=false;*)
@@ -161,8 +154,7 @@ implementation
     function package_exists(const ext:string;var foundfile:TCmdStr):boolean;
       begin
         if CheckVerbosity(V_Tried) then
-          Writeln('Looking for package ',singlepathstring+filename+ext);
-          {Message1(unit_t_unitsearch,Singlepathstring+filename+ext)};
+          Message1(package_t_packagesearch,Singlepathstring+filename+ext);
         result:=FindFile(filename+ext,singlepathstring,true,foundfile);
       end;
 
@@ -277,7 +269,7 @@ implementation
     begin
       if pcpfile.readentry<>ibpackagefiles then
         begin
-          writeln('Error reading pcp file');
+          message(package_f_pcp_read_error);
           internalerror(424242);
         end;
       pplfilename:=pcpfile.getstring;
@@ -293,13 +285,13 @@ implementation
     begin
       if pcpfile.readentry<>ibstartcontained then
         begin
-          Writeln('Error reading pcp file');
+          message(package_f_pcp_read_error);
           internalerror(424242);
         end;
       cnt:=pcpfile.getlongint;
       if pcpfile.readentry<>ibendcontained then
         begin
-          Writeln('Error reading pcp file');
+          message(package_f_pcp_read_error);
           internalerror(424242);
         end;
       for i:=0 to cnt-1 do
@@ -310,7 +302,7 @@ implementation
           p^.module:=nil;
           p^.ppufile:=path;
           containedmodules.add(name,p);
-          Writeln('Found module ',name);
+          message1(package_u_contained_unit,name);
         end;
     end;
 
@@ -321,20 +313,20 @@ implementation
     begin
       if pcpfile.readentry<>ibstartrequireds then
         begin
-          Writeln('Error reading pcp file');
+          message(package_f_pcp_read_error);
           internalerror(2014110901);
         end;
       cnt:=pcpfile.getlongint;
       if pcpfile.readentry<>ibendrequireds then
         begin
-          Writeln('Error reading pcp file');
+          message(package_f_pcp_read_error);
           internalerror(2014110902);
         end;
       for i:=0 to cnt-1 do
         begin
           name:=pcpfile.getstring;
           requiredpackages.add(name,nil);
-          Writeln('Found required package ',name);
+          message1(package_u_required_package,name);
         end;
     end;
 
@@ -369,7 +361,7 @@ implementation
         internalerror(2013053101);
 
       if pcpfile.readentry<>ibpackagename then
-        Comment(V_Error,'Error reading package: '+realpackagename^);
+        Message1(package_f_cant_read_pcp,realpackagename^);
       newpackagename:=pcpfile.getstring;
       if upper(newpackagename)<>packagename^ then
         Comment(V_Error,'Package was renamed: '+realpackagename^);
@@ -386,8 +378,7 @@ implementation
       { create new ppufile }
       pcpfile:=tpcpfile.create(pcpfilename);
       if not pcpfile.createfile then
-        Writeln('Error creating PCP file');
-        //Message(unit_f_ppu_cannot_write);
+        Message2(package_f_cant_create_pcp,realpackagename^,pcpfilename);
 
       pcpfile.putstring(realpackagename^);
       pcpfile.writeentry(ibpackagename);
