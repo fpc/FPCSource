@@ -996,13 +996,34 @@ const
   package_e_duplicate_package=13003;
   package_e_unit_deny_package=13004;
   package_n_implicit_unit_import=13005;
+  package_f_cant_create_pcp=13006;
+  package_f_cant_read_pcp=13007;
+  package_t_pcp_loading=13008;
+  package_u_pcp_name=13009;
+  package_u_pcp_flags=13010;
+  package_u_pcp_crc=13011;
+  package_u_pcp_time=13012;
+  package_u_pcp_file_too_short=13013;
+  package_u_pcp_invalid_header=13014;
+  package_u_pcp_invalid_version=13015;
+  package_u_pcp_invalid_processor=13016;
+  package_u_pcp_invalid_target=13017;
+  package_u_pcp_write=13018;
+  package_f_pcp_cannot_write=13019;
+  package_f_pcp_read_error=13020;
+  package_f_pcp_read_unexpected_end=13021;
+  package_f_pcp_invalid_entry=13022;
+  package_u_pcp_invalid_fpumode=13023;
+  package_t_packagesearch=13024;
+  package_u_required_package=13025;
+  package_u_contained_unit=13026;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 72281;
+  MsgTxtSize = 72986;
 
   MsgIdxMax : array[1..20] of longint=(
     26,99,340,123,89,57,126,27,202,64,
-    58,20,6,1,1,1,1,1,1,1
+    58,20,27,1,1,1,1,1,1,1
   );
