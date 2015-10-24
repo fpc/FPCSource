@@ -11477,6 +11477,7 @@ tests/test/cpu16/i8086/tmml.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tmmm.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tmms.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tmmt.pp svneol=native#text/pascal
+tests/test/cpu16/i8086/tptrcon.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tptrsize.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/ttheap1.pp svneol=native#text/pascal
 tests/test/cpu16/taddint1.pp svneol=native#text/pascal

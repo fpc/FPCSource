@@ -42,7 +42,7 @@ interface
 implementation
 
 uses
-  ncnv,defcmp,defutil,aasmtai,symcpu;
+  ncon,ncnv,defcmp,defutil,aasmtai,symcpu;
 
     { ti8086typedconstbuilder }
 
@@ -60,7 +60,22 @@ uses
                 node.free;
                 node:=hp;
               end;
-        if node.nodetype=niln then
+        { const pointer ? }
+        if (node.nodetype = pointerconstn) then
+          begin
+            ftcb.queue_init(def);
+            if is_farpointer(def) or is_hugepointer(def) then
+              begin
+                ftcb.queue_typeconvn(s32inttype,def);
+                ftcb.queue_emit_ordconst(longint(tpointerconstnode(node).value),s32inttype);
+              end
+            else
+              begin
+                ftcb.queue_typeconvn(s16inttype,def);
+                ftcb.queue_emit_ordconst(smallint(tpointerconstnode(node).value),s16inttype);
+              end;
+          end
+        else if node.nodetype=niln then
           begin
             if is_farpointer(def) or is_hugepointer(def) then
               ftcb.emit_tai(Tai_const.Create_32bit(0),u32inttype)
