@@ -33,7 +33,7 @@ unit i_aros;
           (
             system       : system_i386_aros;
             name         : 'AROS for i386';
-            shortname    : 'aros';
+            shortname    : 'AROS';
             flags        : [tf_files_case_aware, tf_smartlink_library, tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'AROSUNITS';
@@ -96,7 +96,7 @@ unit i_aros;
           (
             system       : system_x86_64_aros;
             name         : 'AROS for x86_64';
-            shortname    : 'aros';
+            shortname    : 'AROS';
             flags        : [tf_files_case_aware, tf_smartlink_library, tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'AROSUNITS';
