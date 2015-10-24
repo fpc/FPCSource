@@ -732,10 +732,10 @@ Type
     Function AddExample(const AFiles : String) : TSource;
     Function AddExample(const AFiles : String; AInstallSourcePath : String) : TSource;
     Function AddTest(const AFiles : String) : TSource;
-    procedure AddDocFiles(const AFileMask: string; Recursive: boolean = False; AInstallSourcePath : String = '');
-    procedure AddSrcFiles(const AFileMask: string; Recursive: boolean = False);
-    procedure AddExampleFiles(const AFileMask: string; Recursive: boolean = False; AInstallSourcePath : String = '');
-    procedure AddTestFiles(const AFileMask: string; Recursive: boolean = False);
+    procedure AddDocFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False; AInstallSourcePath : String = '');
+    procedure AddSrcFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False);
+    procedure AddExampleFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False; AInstallSourcePath : String = '');
+    procedure AddTestFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False);
     Property SourceItems[Index : Integer] : TSource Read GetSourceItem Write SetSourceItem;default;
   end;
 
@@ -1374,7 +1374,7 @@ Function GetCustomFpmakeCommandlineOptionValue(const ACommandLineOption : string
 Function AddProgramExtension(const ExecutableName: string; AOS : TOS) : string;
 Function GetImportLibraryFilename(const UnitName: string; AOS : TOS) : string;
 
-procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
+procedure SearchFiles(AFileName, ASearchPathPrefix: string; Recursive: boolean; var List: TStrings);
 function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): string;
 
 Implementation
@@ -2402,7 +2402,7 @@ begin
 end;
 
 
-procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
+procedure SearchFiles(AFileName, ASearchPathPrefix: string; Recursive: boolean; var List: TStrings);
 
   procedure AddRecursiveFiles(const SearchDir, FileMask: string; Recursive: boolean);
   var
@@ -2425,12 +2425,16 @@ var
   BasePath: string;
   i: integer;
 begin
+  if IsRelativePath(AFileName) and (ASearchPathPrefix<>'') then
+    AFileName := IncludeTrailingPathDelimiter(ASearchPathPrefix) + AFileName;
+
   BasePath := ExtractFilePath(ExpandFileName(AFileName));
+
   AddRecursiveFiles(BasePath, ExtractFileName(AFileName), Recursive);
 
   CurrDir:=GetCurrentDir;
   for i := 0 to Pred(List.Count) do
-    List[i] := ExtractRelativepath(IncludeTrailingPathDelimiter(CurrDir), List[i]);
+    List[i] := ExtractRelativepath(IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(CurrDir)+ASearchPathPrefix), List[i]);
 end;
 
 Const
@@ -3166,53 +3170,52 @@ begin
   Result.FSourceType:=stTest;
 end;
 
-
-procedure TSources.AddDocFiles(const AFileMask: string; Recursive: boolean; AInstallSourcePath : String = '');
+procedure TSources.AddDocFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean; AInstallSourcePath: String);
 var
   List : TStrings;
   i: integer;
 begin
   List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
+  SearchFiles(AFileMask, ASearchPathPrefix, Recursive, List);
   for i:= 0 to Pred(List.Count) do
     AddDoc(List[i], AInstallSourcePath);
   List.Free;
 end;
 
 
-procedure TSources.AddSrcFiles(const AFileMask: string; Recursive: boolean);
+procedure TSources.AddSrcFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean);
 var
   List : TStrings;
   i: integer;
 begin
   List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
+  SearchFiles(AFileMask, ASearchPathPrefix, Recursive, List);
   for i:= 0 to Pred(List.Count) do
     AddSrc(List[i]);
   List.Free;
 end;
 
 
-procedure TSources.AddExampleFiles(const AFileMask: string; Recursive: boolean; AInstallSourcePath : String = '');
+procedure TSources.AddExampleFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean; AInstallSourcePath: String);
 var
   List : TStrings;
   i: integer;
 begin
   List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
+  SearchFiles(AFileMask, ASearchPathPrefix, Recursive, List);
   for i:= 0 to Pred(List.Count) do
     AddExample(List[i], AInstallSourcePath);
   List.Free;
 end;
 
 
-procedure TSources.AddTestFiles(const AFileMask: string; Recursive: boolean);
+procedure TSources.AddTestFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean);
 var
   List : TStrings;
   i: integer;
 begin
   List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
+  SearchFiles(AFileMask, ASearchPathPrefix, Recursive, List);
   for i:= 0 to Pred(List.Count) do
     AddTest(List[i]);
   List.Free;

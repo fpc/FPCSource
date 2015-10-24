@@ -88,7 +88,7 @@ begin
     P.Targets.AddExampleProgram('tree2.pas');
     P.Targets.AddExampleProgram('exutils.pas');
     P.Targets.AddExampleProgram('reader2.pas');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

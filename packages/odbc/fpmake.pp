@@ -34,7 +34,7 @@ begin
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testodbc.pp');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

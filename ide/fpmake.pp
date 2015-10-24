@@ -232,13 +232,13 @@ begin
       AddSrc('readme.txt');
       AddSrc('todo.txt');
       AddSrc('fp.ans');
-      AddSrcFiles('*.tdf');
-      AddSrcFiles('*.pas',true);
-      AddSrcFiles('*.inc',true);
-      AddSrcFiles('*.rc');
-      AddSrcFiles('*.ico');
-      AddSrcFiles('*.term');
-      AddSrcFiles('*.pt');
+      AddSrcFiles('*.tdf',P.Directory);
+      AddSrcFiles('*.pas',P.Directory,true);
+      AddSrcFiles('*.inc',P.Directory,true);
+      AddSrcFiles('*.rc',P.Directory);
+      AddSrcFiles('*.ico',P.Directory);
+      AddSrcFiles('*.term',P.Directory);
+      AddSrcFiles('*.pt',P.Directory);
      end;
 
     P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.ppu');
