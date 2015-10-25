@@ -1680,6 +1680,7 @@ unit cgcpu;
                 internalerror(2013123101);
             end;
             list.concat(Taicpu.op_const_reg(A_MOV, tmpopsize, 0, reg));
+            hl_skip:=nil;
             if f=F_FB then
               begin
                 current_asmdata.getjumplabel(hl_skip);
