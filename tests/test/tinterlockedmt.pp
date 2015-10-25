@@ -30,7 +30,7 @@ type
 //{$define TEST_BROKEN_IMPLEMENTATION}
 
 const
-  TotalThreadCount = 100;
+  TotalThreadCount = 50;
   TestCount = 1000000;
   WaitTime = 60;
 
