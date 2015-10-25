@@ -12,11 +12,6 @@
 
  **********************************************************************}
 
-{ contains the definition of the TExceptAddr type, which is required
-  by the compiler to generate code for any routine containing
-  implicit or explicit exceptions }
-{$i excepth.inc}
-
 { ObjpasInt is the integer type, equivalent to Objpas.Integer (the Integer
   type in ObjFpc and Delphi modes). It is defined here for use in the
   implementation part of the System unit. }

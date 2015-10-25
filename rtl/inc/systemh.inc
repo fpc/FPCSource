@@ -1579,6 +1579,16 @@ const
 
 {$i resh.inc}
 
+
+{*****************************************************************************
+                          Exception support
+*****************************************************************************}
+
+{ contains the definition of the TExceptAddr type, which is required
+  by the compiler to generate code for any routine containing
+  implicit or explicit exceptions }
+{$i excepth.inc}
+
 {*****************************************************************************
                    FPDoc phony declarations.
 *****************************************************************************}
