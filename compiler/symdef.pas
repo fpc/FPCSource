@@ -68,8 +68,6 @@ interface
           procedure writeentry(ppufile: tcompilerppufile; ibnr: byte);
        protected
           typesymderef  : tderef;
-          { whether this def is already registered in the unit's def list }
-          function registered : boolean;
           procedure ppuwrite_platform(ppufile:tcompilerppufile);virtual;
           procedure ppuload_platform(ppufile:tcompilerppufile);virtual;
        public
@@ -121,8 +119,10 @@ interface
           { same as above for specializations }
           function is_specialization:boolean;inline;
           { registers this def in the unit's deflist; no-op if already registered }
-          procedure register_def;
-          property is_registered: boolean read registered;
+          procedure register_def; override;
+          { add the def to the top of the symtable stack if it's not yet owned
+            by another symtable }
+          procedure maybe_put_in_symtable_stack;
        private
           savesize  : asizeuint;
        end;
@@ -1222,7 +1222,7 @@ implementation
         typ: ttypesym;
         name: string;
       begin
-        name:=internaltypeprefixName[itp_threadvar_record]+tostr(def.defid);
+        name:=internaltypeprefixName[itp_threadvar_record]+def.unique_id_str;
         typ:=try_search_current_module_type(name);
         if assigned(typ) then
           begin
@@ -1647,12 +1647,6 @@ implementation
       end;
 
 
-    function tstoreddef.registered: boolean;
-      begin
-        result:=defid<>defid_not_registered;
-      end;
-
-
     procedure tstoreddef.ppuwrite_platform(ppufile: tcompilerppufile);
       begin
         { by default: do nothing }
@@ -1679,9 +1673,9 @@ implementation
            end of an type block }
          if (dt=forwarddef) then
            exit;
-         { register the definition if wanted }
+         { Register in symtable stack }
          if doregister then
-           register_def;
+           maybe_put_in_symtable_stack;
       end;
 
 
@@ -1789,7 +1783,7 @@ implementation
            (owner.symtabletype in [staticsymtable,globalsymtable]) then
           result:=make_mangledname(prefix,typesym.owner,typesym.name)
         else
-          result:=make_mangledname(prefix,findunitsymtable(owner),'DEF'+tostr(DefId))
+          result:=make_mangledname(prefix,findunitsymtable(owner),'def'+unique_id_str)
       end;
 
 
@@ -1924,6 +1918,8 @@ implementation
         sym : tsym;
         symderef : pderef;
       begin
+        if not registered then
+          register_def;
         typesymderef.build(typesym);
         genericdefderef.build(genericdef);
         if assigned(genconstraintdata) then
@@ -2137,21 +2133,32 @@ implementation
 
 
    procedure tstoreddef.register_def;
-     var
-       insertstack : psymtablestackitem;
      begin
        if registered then
          exit;
        { Register in current_module }
        if assigned(current_module) then
          begin
-           current_module.deflist.Add(self);
-           DefId:=current_module.deflist.Count-1;
+           if defid<defid_not_registered then
+             defid:=deflist_index
+           else
+             begin
+               current_module.deflist.Add(self);
+               defid:=current_module.deflist.Count-1;
+             end;
+           maybe_put_in_symtable_stack;
          end
        else
          DefId:=defid_registered_nost;
-       { Register in symtable stack }
-       if assigned(symtablestack) then
+     end;
+
+
+   procedure tstoreddef.maybe_put_in_symtable_stack;
+     var
+       insertstack: psymtablestackitem;
+     begin
+       if assigned(symtablestack) and
+          not assigned(self.owner) then
          begin
            insertstack:=symtablestack.stack;
            while assigned(insertstack) and
@@ -2604,7 +2611,7 @@ implementation
             symtable:=basedef.symtable.getcopy;
           end
         else
-          tenumsymtable(symtable).deref;
+          tenumsymtable(symtable).deref(false);
       end;
 
 
@@ -3566,7 +3573,7 @@ implementation
     procedure tarraydef.deref;
       begin
         inherited deref;
-        tarraysymtable(symtable).deref;
+        tarraysymtable(symtable).deref(false);
         _elementdef:=tdef(_elementdefderef.resolve);
         rangedef:=tdef(rangedefderef.resolve);
       end;
@@ -3832,7 +3839,7 @@ implementation
       begin
         inherited derefimpl;
         if not (df_copied_def in defoptions) then
-          tstoredsymtable(symtable).derefimpl;
+          tstoredsymtable(symtable).derefimpl(false);
       end;
 
 
@@ -4337,7 +4344,7 @@ implementation
              symtable:=cloneddef.symtable.getcopy;
            end
          else
-           tstoredsymtable(symtable).deref;
+           tstoredsymtable(symtable).deref(false);
 
          { internal types, only load from the system unit }
          if assigned(owner) and
@@ -4611,7 +4618,7 @@ implementation
              has_paraloc_info:=callnoside;
            end;
          { parast }
-         tparasymtable(parast).deref;
+         tparasymtable(parast).deref(false);
          { recalculated parameters }
          calcparas;
       end;
@@ -5743,8 +5750,8 @@ implementation
             { Locals }
             if assigned(localst) then
               begin
-                tlocalsymtable(localst).deref;
-                tlocalsymtable(localst).derefimpl;
+                tlocalsymtable(localst).deref(false);
+                tlocalsymtable(localst).derefimpl(false);
               end;
 
             inlininginfo^.code.derefimpl;
@@ -6570,7 +6577,7 @@ implementation
              symtable:=cloneddef.symtable.getcopy;
            end
          else
-           tstoredsymtable(symtable).deref;
+           tstoredsymtable(symtable).deref(false);
          if objecttype=odt_helper then
            extendeddef:=tdef(extendeddefderef.resolve);
          for i:=0 to vmtentries.count-1 do

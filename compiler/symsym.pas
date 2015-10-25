@@ -43,7 +43,6 @@ interface
        { this class is the base for all symbol objects }
        tstoredsym = class(tsym)
        private
-          function registered : boolean;
           procedure writeentry(ppufile: tcompilerppufile; ibnr: byte);
        protected
           procedure ppuwrite_platform(ppufile: tcompilerppufile);virtual;
@@ -53,8 +52,8 @@ interface
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
-          procedure register_sym;
-          property is_registered:boolean read registered;
+          procedure buildderef; override;
+          procedure register_sym; override;
        end;
 
        tlabelsym = class(tstoredsym)
@@ -118,6 +117,7 @@ interface
 
        terrorsym = class(Tsym)
           constructor create;
+          procedure register_sym; override;
        end;
 
        { tprocsym }
@@ -548,8 +548,6 @@ implementation
     constructor tstoredsym.create(st:tsymtyp;const n : string;doregister:boolean);
       begin
          inherited create(st,n);
-         if doregister then
-           register_sym;
       end;
 
 
@@ -592,9 +590,11 @@ implementation
       end;
 
 
-    function tstoredsym.registered: boolean;
+    procedure tstoredsym.buildderef;
       begin
-        result:=symid<>symid_not_registered;
+        inherited;
+        if not registered then
+          register_sym;
       end;
 
 
@@ -1303,6 +1303,14 @@ implementation
         inherited create(errorsym,'');
       end;
 
+
+    procedure terrorsym.register_sym;
+      begin
+        { these should never be written to a ppu file, since they don't
+          derive from tstoredsym }
+        Internalerror(2015101801);
+      end;
+
 {****************************************************************************
                                 TPROPERTYSYM
 ****************************************************************************}
@@ -1399,7 +1407,7 @@ implementation
           end
         else
         if ppo_hasparameters in propoptions then
-          tparasymtable(parast).deref
+          tparasymtable(parast).deref(false)
       end;
 
 

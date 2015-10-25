@@ -1197,13 +1197,10 @@ var
              position in derefdata is not necessarily at the end }
             derefdata.seek(derefdata.size);
          tstoredsymtable(globalsymtable).buildderefimpl;
-         if (flags and uf_local_symtable)<>0 then
-           begin
-             tstoredsymtable(localsymtable).buildderef;
-             tstoredsymtable(localsymtable).buildderefimpl;
-           end;
          tunitwpoinfo(wpoinfo).buildderef;
          tunitwpoinfo(wpoinfo).buildderefimpl;
+         if (flags and uf_local_symtable)<>0 then
+           tstoredsymtable(localsymtable).buildderef_registered;
          writederefmap;
          writederefdata;
 
@@ -1477,9 +1474,12 @@ var
           end;
 
         { we can now derefence all pointers to the implementation parts }
-        tstoredsymtable(globalsymtable).derefimpl;
+        tstoredsymtable(globalsymtable).derefimpl(false);
+        { we've just loaded the localsymtable from the ppu file, so everything
+          in it was registered by definition (otherwise it wouldn't have been in
+          there) }
         if assigned(localsymtable) then
-            tstoredsymtable(localsymtable).derefimpl;
+          tstoredsymtable(localsymtable).derefimpl(false);
 
          { read whole program optimisation-related information }
          wpoinfo:=tunitwpoinfo.ppuload(ppufile);
@@ -1608,12 +1608,14 @@ var
                if interface_compiled then
                  begin
                    Message1(unit_u_reresolving_unit,modulename^);
-                   tstoredsymtable(globalsymtable).deref;
-                   tstoredsymtable(globalsymtable).derefimpl;
+                   tstoredsymtable(globalsymtable).deref(false);
+                   tstoredsymtable(globalsymtable).derefimpl(false);
                    if assigned(localsymtable) then
                     begin
-                      tstoredsymtable(localsymtable).deref;
-                      tstoredsymtable(localsymtable).derefimpl;
+                      { we have only builderef(impl)'d the registered symbols of
+                        the localsymtable -> also only deref those again }
+                      tstoredsymtable(localsymtable).deref(true);
+                      tstoredsymtable(localsymtable).derefimpl(true);
                     end;
                    if assigned(wpoinfo) then
                      begin

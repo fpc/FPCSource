@@ -146,15 +146,15 @@ const
   class_helper_prefix = 'CH$';
 
   { tsym.symid value in case the sym has not yet been registered }
-  symid_not_registered = -1;
+  symid_not_registered = -2;
   { tsym.symid value in case the sym has been registered, but not put in a
     symtable }
-  symid_registered_nost = -2;
+  symid_registered_nost = -1;
   { tdef.defid value in case the def has not yet been registered }
-  defid_not_registered = -1;
+  defid_not_registered = -2;
   { tdef.defid value in case the sym has been registered, but not put in a
     symtable }
-  defid_registered_nost = -2;
+  defid_registered_nost = -1;
 
 type
   { keep this in sync with TIntfFlag in rtl/objpas/typinfo.pp }

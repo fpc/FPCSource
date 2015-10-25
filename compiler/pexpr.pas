@@ -2818,7 +2818,7 @@ implementation
                       findwithsymtable then
                      begin
                        { create dummy symbol, it will be freed later on }
-                       srsym:=tsym.create(undefinedsym,'$undefinedsym');
+                       srsym:=tstoredsym.create(undefinedsym,'$undefinedsym',false);
                        srsymtable:=nil;
                      end
                    else

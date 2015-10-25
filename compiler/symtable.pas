@@ -58,10 +58,12 @@ interface
           { load/write }
           procedure ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
-          procedure buildderef;virtual;
-          procedure buildderefimpl;virtual;
-          procedure deref;virtual;
-          procedure derefimpl;virtual;
+          procedure buildderef;
+          procedure buildderefimpl;
+          { buildderef but only for (recursively) used symbols/defs }
+          procedure buildderef_registered;
+          procedure deref(only_registered: boolean);virtual;
+          procedure derefimpl(only_registered: boolean);virtual;
           function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
           procedure allsymbolsused;
           procedure allprivatesused;
@@ -570,18 +572,24 @@ implementation
 
     procedure tstoredsymtable.writedefs(ppufile:tcompilerppufile);
       var
+        defcount,
         i   : longint;
         def : tstoreddef;
       begin
+        defcount:=0;
+        for i:=0 to DefList.Count-1 do
+          if tstoreddef(DefList[i]).is_registered then
+            inc(defcount);
         { each definition get a number, write then the amount of defs to the
           ibstartdef entry }
-        ppufile.putlongint(DefList.count);
+        ppufile.putlongint(defcount);
         ppufile.writeentry(ibstartdefs);
         { now write the definition }
         for i:=0 to DefList.Count-1 do
           begin
             def:=tstoreddef(DefList[i]);
-            def.ppuwrite(ppufile);
+            if def.is_registered then
+              def.ppuwrite(ppufile);
           end;
         { write end of definitions }
         ppufile.writeentry(ibenddefs);
@@ -590,18 +598,24 @@ implementation
 
     procedure tstoredsymtable.writesyms(ppufile:tcompilerppufile);
       var
+        symcount,
         i   : longint;
         sym : Tstoredsym;
       begin
+        symcount:=0;
+        for i:=0 to SymList.Count-1 do
+          if tstoredsym(SymList[i]).is_registered then
+            inc(symcount);
         { each definition get a number, write then the amount of syms and the
           datasize to the ibsymdef entry }
-        ppufile.putlongint(SymList.count);
+        ppufile.putlongint(symcount);
         ppufile.writeentry(ibstartsyms);
         { foreach is used to write all symbols }
         for i:=0 to SymList.Count-1 do
           begin
             sym:=tstoredsym(SymList[i]);
-            sym.ppuwrite(ppufile);
+            if sym.is_registered then
+              sym.ppuwrite(ppufile);
           end;
         { end of symbols }
         ppufile.writeentry(ibendsyms);
@@ -643,7 +657,77 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.deref;
+    procedure tstoredsymtable.buildderef_registered;
+      var
+        def : tstoreddef;
+        sym : tstoredsym;
+        i   : longint;
+        defidmax,
+        symidmax: longint;
+        newbuiltdefderefs,
+        builtdefderefs,
+        builtsymderefs: array of boolean;
+      begin
+        { tdefs for which we already built the deref }
+        setlength(builtdefderefs,deflist.count);
+        { tdefs for which we built the deref in this iteration }
+        setlength(newbuiltdefderefs,deflist.count);
+        { syms for which we already built the deref }
+        setlength(builtsymderefs,symlist.count);
+        repeat
+          { we only have to store the defs (recursively) referred by wpo info
+            or inlined routines in the static symbtable }
+
+          { current number of registered defs/syms }
+          defidmax:=current_module.deflist.count;
+          symidmax:=current_module.symlist.count;
+
+          { build the derefs for the registered defs we haven't processed yet }
+          for i:=0 to DefList.Count-1 do
+            begin
+              if not builtdefderefs[i] then
+                begin
+                  def:=tstoreddef(DefList[i]);
+                  if def.is_registered then
+                    begin
+                      def.buildderef;
+                      newbuiltdefderefs[i]:=true;
+                      builtdefderefs[i]:=true;
+                    end;
+                end;
+            end;
+          { same for the syms }
+          for i:=0 to SymList.Count-1 do
+            begin
+              if not builtsymderefs[i] then
+                begin
+                  sym:=tstoredsym(SymList[i]);
+                  if sym.is_registered then
+                    begin
+                      sym.buildderef;
+                      builtsymderefs[i]:=true;
+                    end;
+                end;
+            end;
+          { now buildderefimpl for the defs we processed in this iteration }
+          for i:=0 to DefList.Count-1 do
+            begin
+              if newbuiltdefderefs[i] then
+                begin
+                  newbuiltdefderefs[i]:=false;
+                  tstoreddef(DefList[i]).buildderefimpl;
+                end;
+            end;
+        { stop when no new defs or syms have been registered while processing
+          the currently registered ones (defs/syms get added to the module's
+          deflist/symlist when they are registered) }
+        until
+          (defidmax=current_module.deflist.count) and
+          (symidmax=current_module.symlist.count);
+      end;
+
+
+    procedure tstoredsymtable.deref(only_registered: boolean);
       var
         i   : longint;
         def : tstoreddef;
@@ -656,26 +740,32 @@ implementation
         for i:=0 to SymList.Count-1 do
           begin
             sym:=tstoredsym(SymList[i]);
-            if sym.typ=typesym then
+            if (sym.typ=typesym) and
+               (not only_registered or
+                sym.is_registered) then
               sym.deref;
           end;
         { interface definitions }
         for i:=0 to DefList.Count-1 do
           begin
             def:=tstoreddef(DefList[i]);
-            def.deref;
+            if not only_registered or
+               def.is_registered then
+              def.deref;
           end;
         { interface symbols }
         for i:=0 to SymList.Count-1 do
           begin
             sym:=tstoredsym(SymList[i]);
-            if sym.typ<>typesym then
+            if (not only_registered or
+                sym.is_registered) and
+               (sym.typ<>typesym) then
               sym.deref;
           end;
       end;
 
 
-    procedure tstoredsymtable.derefimpl;
+    procedure tstoredsymtable.derefimpl(only_registered: boolean);
       var
         i   : longint;
         def : tstoreddef;
@@ -684,7 +774,9 @@ implementation
         for i:=0 to DefList.Count-1 do
           begin
             def:=tstoreddef(DefList[i]);
-            def.derefimpl;
+            if not only_registered or
+               def.is_registered then
+              def.derefimpl;
           end;
       end;
 
@@ -2277,7 +2369,7 @@ implementation
         inherited ppuload(ppufile);
 
         { now we can deref the syms and defs }
-        deref;
+        deref(false);
       end;
 
 
@@ -2324,7 +2416,7 @@ implementation
          inherited ppuload(ppufile);
 
          { now we can deref the syms and defs }
-         deref;
+         deref(false);
       end;
 
 

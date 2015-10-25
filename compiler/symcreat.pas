@@ -822,7 +822,7 @@ implementation
       callpd: tprocdef;
     begin
       callpd:=tprocdef(pd.skpara);
-      str:='var pv: __fpc_virtualclassmethod_pv_t'+tostr(pd.defid)+'; begin '
+      str:='var pv: __fpc_virtualclassmethod_pv_t'+pd.unique_id_str+'; begin '
         + 'pv:=@'+callpd.procsym.RealName+';';
       if (pd.proctypeoption<>potype_constructor) and
          not is_void(pd.returndef) then
@@ -1151,7 +1151,7 @@ implementation
       { create struct to hold local variables and parameters that are
         accessed from within nested routines (start with extra dollar to prevent
         the JVM from thinking this is a nested class in the unit) }
-      nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+tostr(pd.defid),
+      nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+pd.unique_id_str,
         current_settings.alignment.localalignmax,current_settings.alignment.localalignmin,current_settings.alignment.maxCrecordalign);
       nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst);
 {$ifdef jvm}

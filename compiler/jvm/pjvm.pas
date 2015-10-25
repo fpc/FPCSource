@@ -297,7 +297,7 @@ implementation
         { create new class (different internal name than enum to prevent name
           clash; at unit level because we don't want its methods to be nested
           inside a function in case its a local type) }
-        enumclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternEnum$'+tostr(def.defid),java_jlenum,true);
+        enumclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternEnum$'+def.unique_id_str,java_jlenum,true);
         tcpuenumdef(def).classdef:=enumclass;
         include(enumclass.objectoptions,oo_is_enum_class);
         include(enumclass.objectoptions,oo_is_sealed);
@@ -482,7 +482,7 @@ implementation
         { create new class (different internal name than pvar to prevent name
           clash; at unit level because we don't want its methods to be nested
           inside a function in case its a local type) }
-        pvclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternProcvar$'+tostr(def.defid),java_procvarbase,true);
+        pvclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternProcvar$'+def.unique_id_str,java_procvarbase,true);
         tcpuprocvardef(def).classdef:=pvclass;
         include(pvclass.objectoptions,oo_is_sealed);
         if df_generic in def.defoptions then
@@ -640,10 +640,10 @@ implementation
         wrapperpv.calcparas;
         { no use in creating a callback wrapper here, this procvar type isn't
           for public consumption }
-        jvm_create_procvar_class_intern('__fpc_virtualclassmethod_pv_t'+tostr(wrapperpd.defid),wrapperpv,true);
+        jvm_create_procvar_class_intern('__fpc_virtualclassmethod_pv_t'+wrapperpd.unique_id_str,wrapperpv,true);
         { create alias for the procvar type so we can use it in generated
           Pascal code }
-        typ:=ctypesym.create('__fpc_virtualclassmethod_pv_t'+tostr(wrapperpd.defid),wrapperpv,true);
+        typ:=ctypesym.create('__fpc_virtualclassmethod_pv_t'+wrapperpd.unique_id_str,wrapperpv,true);
         wrapperpv.classdef.typesym.visibility:=vis_strictprivate;
         symtablestack.top.insert(typ);
         symtablestack.pop(pd.owner);
@@ -836,8 +836,8 @@ implementation
         visname:=visibilityName[vis];
         replace(visname,' ','_');
         { create a name that is unique amongst all units (start with '$unitname$$') and
-          unique in this unit (result.defid) }
-        finish_copied_procdef(result,'$'+current_module.realmodulename^+'$$'+tostr(result.defid)+pd.procsym.realname+'$'+visname,obj.symtable,obj);
+          unique in this unit (result.unique_id_str) }
+        finish_copied_procdef(result,'$'+current_module.realmodulename^+'$$'+result.unique_id_str+pd.procsym.realname+'$'+visname,obj.symtable,obj);
         { in case the referred method is from an external class }
         exclude(result.procoptions,po_external);
         { not virtual/override/abstract/... }
