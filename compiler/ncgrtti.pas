@@ -593,7 +593,7 @@ implementation
               else
               if hp.value>def.maxval then
                 break;
-              tcb.next_field_name:='enumname'+tostr(hp.SymId);
+              tcb.next_field_name:=hp.name;
               tcb.emit_shortstring_const(hp.realname);
             end;
           { write unit name }
@@ -1325,7 +1325,7 @@ implementation
                     ['size_start_rec',
                       'min_max_rec',
                       'basetype_array_rec',
-                      'enumname'+tostr(tenumsym(syms[i]).symid)]
+                      tsym(syms[i]).Name]
                   );
                   tcb.queue_emit_asmsym(mainrtti,rttidef);
                 end;
@@ -1344,7 +1344,7 @@ implementation
                     ['size_start_rec',
                       'min_max_rec',
                       'basetype_array_rec',
-                      'enumname'+tostr(tenumsym(syms[i]).symid)]
+                      tsym(syms[i]).Name]
                   );
                   tcb.queue_emit_asmsym(mainrtti,rttidef);
                 end;
@@ -1390,7 +1390,7 @@ implementation
                 ['size_start_rec',
                   'min_max_rec',
                   'basetype_array_rec',
-                  'enumname'+tostr(tenumsym(syms[i]).SymId)]
+                  tsym(syms[i]).Name]
               );
               tcb.queue_emit_asmsym(mainrtti,rttidef);
             end;
