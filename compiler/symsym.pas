@@ -915,6 +915,7 @@ implementation
         pd : tprocdef;
         d  : tderef;
       begin
+        inherited;
         if not assigned(FProcdefDerefList) then
           FProcdefDerefList:=TFPList.Create
         else
@@ -1368,6 +1369,7 @@ implementation
       var
         pap : tpropaccesslisttypes;
       begin
+        inherited;
         propdefderef.build(propdef);
         indexdefderef.build(indexdef);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
@@ -1597,6 +1599,7 @@ implementation
 
     procedure tabstractvarsym.buildderef;
       begin
+        inherited;
         vardefderef.build(vardef);
       end;
 
@@ -2428,6 +2431,7 @@ implementation
 
     procedure tconstsym.buildderef;
       begin
+        inherited;
         if consttyp in [constord,constreal,constpointer,constset] then
           constdefderef.build(constdef);
       end;
@@ -2509,7 +2513,8 @@ implementation
 
     procedure tenumsym.buildderef;
       begin
-         definitionderef.build(definition);
+        inherited;
+        definitionderef.build(definition);
       end;
 
 
@@ -2561,6 +2566,7 @@ implementation
 
     procedure ttypesym.buildderef;
       begin
+        inherited;
         typedefderef.build(typedef);
       end;
 
