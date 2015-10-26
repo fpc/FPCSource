@@ -1242,7 +1242,7 @@ implementation
           to each other can improve cache behaviour) }
         result:=field2.vardef.alignment-field1.vardef.alignment;
         if result=0 then
-          result:=field1.symid-field2.symid;
+          result:=field1.fieldoffset-field2.fieldoffset;
       end;
 
 
@@ -1259,6 +1259,10 @@ implementation
         if maybereorder and
            (cs_opt_reorder_fields in current_settings.optimizerswitches) then
           begin
+            { assign dummy field offsets so we can know their order in the
+              sorting routine }
+            for i:=0 to list.count-1 do
+              tfieldvarsym(list[i]).fieldoffset:=i;
             { sort the non-class fields to minimise losses due to alignment }
             list.sort(@field_alignment_compare);
             { now fill up gaps caused by alignment skips with smaller fields
@@ -1352,6 +1356,9 @@ implementation
             { there may be small gaps left *before* inserted fields }
           until not changed;
         end;
+        { reset the dummy field offsets }
+        for i:=0 to list.count-1 do
+          tfieldvarsym(list[i]).fieldoffset:=-1;
         { finally, set the actual field offsets }
         for i:=0 to list.count-1 do
           begin
