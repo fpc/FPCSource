@@ -27,7 +27,10 @@ type
     constructor Create(ACount: longint; AOp: TOperation; AOption: longint = 0);
   end;
 
-//{$define TEST_BROKEN_IMPLEMENTATION}
+//{$define TEST_BROKEN_IncDec}
+//{$define TEST_BROKEN_Exchange}
+//{$define TEST_BROKEN_ExchangeAdd}
+//{$define TEST_BROKEN_CompareExchange}
 
 const
   TotalThreadCount = 50;
@@ -36,17 +39,17 @@ const
 
 var
   Counter, Counter2, Counter3: longint;
-  WorkingCount: longint;
+  WorkingCount, FinishedCount: longint;
   AbortThread: boolean;
   LastCompareVal: longint;
 
 {$ifndef FPC}
-{$ifndef TEST_BROKEN_IMPLEMENTATION}
+{$ifndef TEST_BROKEN_CompareExchange}
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
 begin
   Result:=longint(Windows.InterlockedCompareExchange(pointer(Target), pointer(NewValue), pointer(Comperand)));
 end;
-{$endif TEST_BROKEN_IMPLEMENTATION}
+{$endif TEST_BROKEN_CompareExchange}
 
 procedure  ThreadSwitch;
 begin
@@ -54,14 +57,44 @@ begin
 end;
 {$endif FPC}
 
-{$ifdef TEST_BROKEN_IMPLEMENTATION}
+{$ifdef TEST_BROKEN_CompareExchange}
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
 begin
   Result:=Target;
   if Result = Comperand then
     Target:=NewValue;
 end;
-{$endif TEST_BROKEN_IMPLEMENTATION}
+{$endif TEST_BROKEN_CompareExchange}
+
+{$ifdef TEST_BROKEN_IncDec}
+function InterlockedIncrement(var Target: longint): longint;
+begin
+  Result:=Target;
+  Inc(Target);
+end;
+
+function InterlockedDecrement(var Target: longint): longint;
+begin
+  Result:=Target;
+  Dec(Target);
+end;
+{$endif TEST_BROKEN_IncDec}
+
+{$ifdef TEST_BROKEN_Exchange}
+function InterLockedExchange(var Target: longint; Source: longint): longint;
+begin
+  Result:=Target;
+  Target:=Source;
+end;
+{$endif TEST_BROKEN_Exchange}
+
+{$ifdef TEST_BROKEN_ExchangeAdd}
+function InterLockedExchangeAdd(var Target: longint; Source: longint): longint;
+begin
+  Result:=Target;
+  Inc(Target, Source);
+end;
+{$endif TEST_BROKEN_ExchangeAdd}
 
 procedure CheckResult(check, expected, code: longint; const Msg: string);
 begin
@@ -170,12 +203,12 @@ begin
       end;
   end;
 
-  InterLockedDecrement(WorkingCount);
+  InterLockedIncrement(FinishedCount);
 end;
 
 procedure Run;
 var
-  i, j, k, CmpCount: longint;
+  i, j, k, CmpCount, ThreadCount: longint;
   t: TDateTime;
   workers: array[0..TotalThreadCount - 1] of TWorker;
 begin
@@ -205,23 +238,32 @@ begin
     Inc(j);
     Inc(k);
   until j + (j - i) > TotalThreadCount;
+  ThreadCount:=j;
   LastCompareVal:=k;
-  writeln('Created ',j ,' threads.');
+  writeln('Created ', ThreadCount ,' threads.');
 
   writeln('Starting threads...');
   t:=Now;
-  for i:=0 to j - 1 do begin
+  for i:=0 to ThreadCount - 1 do begin
     workers[i].Suspended:=False;
-    if Now -  t > 5/SecsPerDay then begin
+    if Now -  t > 30/SecsPerDay then begin
       writeln('Threads start takes too long to complete.');
       Halt(4);
     end;
   end;
 
-  writeln('Waiting for threads to complete...');
-  Sleep(10);
   t:=Now;
-  while WorkingCount <> 0 do begin
+  while WorkingCount <> ThreadCount do begin
+    if Now -  t > 30/SecsPerDay then begin
+      writeln('Not all threads have started: ', ThreadCount - WorkingCount);
+      Halt(5);
+    end;
+    Sleep(10);
+  end;
+
+  writeln('Waiting for threads to complete...');
+  t:=Now;
+  while FinishedCount <> ThreadCount do begin
     if Now -  t > WaitTime/SecsPerDay then begin
       if AbortThread then begin
         writeln('Unable to abort threads.');
@@ -229,7 +271,7 @@ begin
       end
       else begin
         AbortThread:=True;
-        writeln('Timeout has expired. Active threads left: ', WorkingCount);
+        writeln('Timeout has expired. Active threads left: ', ThreadCount - FinishedCount);
         t:=Now;
       end;
     end;
@@ -245,9 +287,9 @@ begin
   if t = 0 then
     t:=1/MSecsPerDay;
 
-  CheckResult(Counter, 0, 1, 'Counter error:');
+  CheckResult(Counter, 0, 20, 'Counter error:');
 
-  CheckResult(Counter2, (LastCompareVal - 2)*CmpCount, 4, 'Counter2 error:');
+  CheckResult(Counter2, (LastCompareVal - 2)*CmpCount, 21, 'Counter2 error:');
 
   writeln('Test OK.');
   writeln('InterLockedCompareExchange: ', Round(Counter2/(t*SecsPerDay)), ' ops/sec.');
