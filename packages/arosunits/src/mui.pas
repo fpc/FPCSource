@@ -1035,6 +1035,7 @@ const
   MUIA_Application_Sleep           = MUIB_MUI or $425711; // V4  .s. WordBool
   MUIA_Application_Title           = MUIB_MUI or $4281b8; // V4  i.g STRPTR
   MUIA_Application_UseCommodities  = MUIB_MUI or $425ee5; // V10 i.. WordBool
+  MUIA_Application_UsedClasses     = MUIB_MUI or $42e9a7; // V10 i.. STRPTR
   MUIA_Application_UseRexx         = MUIB_MUI or $422387; // V10 i.. WordBool
   MUIA_Application_SetWinPos       = MUIB_MUI or $432387;
   MUIA_Application_GetWinPos       = MUIB_MUI or $432388;
