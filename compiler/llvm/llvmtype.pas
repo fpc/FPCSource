@@ -66,6 +66,7 @@ interface
         procedure appenddef_procvar(list:TAsmList;def:tprocvardef);override;
         procedure appendprocdef(list:TAsmList;def:tprocdef);override;
         procedure appenddef_object(list:TAsmList;def: tobjectdef);override;
+        procedure appenddef_classref(list: TAsmList; def: tclassrefdef);override;
         procedure appenddef_variant(list:TAsmList;def: tvariantdef);override;
         procedure appenddef_file(list:TasmList;def:tfiledef);override;
 
@@ -669,6 +670,12 @@ implementation
     procedure TLLVMTypeInfo.appenddef_object(list:TAsmList;def: tobjectdef);
       begin
         appenddef_abstractrecord(list,def);
+      end;
+
+
+    procedure TLLVMTypeInfo.appenddef_classref(list: TAsmList; def: tclassrefdef);
+      begin
+        record_def(tobjectdef(tclassrefdef(def).pointeddef).vmt_def);
       end;
 
 
