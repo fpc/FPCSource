@@ -85,7 +85,7 @@ Unit Rax86int;
        { aasm }
        aasmtai,aasmdata,aasmcpu,
        { symtable }
-       symconst,symbase,symtype,symsym,symdef,symtable,
+       symconst,symbase,symtype,symsym,symdef,symtable,symcpu,
        { parser }
        scanner,pbase,
        { register allocator }
@@ -2072,6 +2072,17 @@ Unit Rax86int;
         else if (instr.opcode=A_POPA) then
           instr.opcode:=A_POPAW
 {$endif x86_64}
+{$ifdef i8086}
+        { ret is converted to retn or retf, depending on the call model of the
+          current procedure (BP7 compatible) }
+        else if (instr.opcode=A_RET) then
+          begin
+            if is_proc_far(current_procinfo.procdef) then
+              instr.opcode:=A_RETF
+            else
+              instr.opcode:=A_RETN;
+          end
+{$endif i8086}
         ;
         { We are reading operands, so opcode will be an AS_ID }
         { process operands backwards to get them in AT&T order }
