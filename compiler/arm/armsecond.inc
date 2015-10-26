@@ -290,7 +290,7 @@ in_arm_umaal
     current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg_reg(op,paraarray[1].location.register,paraarray[2].location.register,paraarray[3].location.register,paraarray[4].location.register),pf));
   end;
 in_arm_pkhbt_shift
-: //out rd:r32;rn:r32;rm:r32;ls:i32;
+: //out rd:r32;rn:r32;rm:r32;ls:lsl5;
   begin
     case inlinenumber of
       in_arm_pkhbt_shift: begin op:=A_pkhbt; pf:=PF_None; end;
@@ -304,10 +304,10 @@ in_arm_pkhbt_shift
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,u32inttype,true);
     location_reset(location,LOC_REGISTER,OS_32);
     location.register:=cg.getintregister(current_asmdata.CurrAsmList, OS_32);
-    current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg_const(op,location.register,paraarray[1].location.register,paraarray[2].location.register,GetConstInt(paraarray[3])),pf));
+    current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg_shifterop(op,location.register,paraarray[1].location.register,paraarray[2].location.register,GetShifterOp(sm_lsl,paraarray[3])),pf));
   end;
 in_arm_pkhtb_shift
-: //out rd:r32;rn:r32;rm:r32;rs:i32;
+: //out rd:r32;rn:r32;rm:r32;rs:asr5;
   begin
     case inlinenumber of
       in_arm_pkhtb_shift: begin op:=A_pkhtb; pf:=PF_None; end;
@@ -321,7 +321,7 @@ in_arm_pkhtb_shift
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,u32inttype,true);
     location_reset(location,LOC_REGISTER,OS_32);
     location.register:=cg.getintregister(current_asmdata.CurrAsmList, OS_32);
-    current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg_const(op,location.register,paraarray[1].location.register,paraarray[2].location.register,GetConstInt(paraarray[3])),pf));
+    current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg_shifterop(op,location.register,paraarray[1].location.register,paraarray[2].location.register,GetShifterOp(sm_asr,paraarray[3])),pf));
   end;
 in_arm_qadd
 ,in_arm_qadd16
@@ -438,7 +438,7 @@ in_arm_sxtab_ror
 ,in_arm_uxtab_ror
 ,in_arm_uxtab16_ror
 ,in_arm_uxtah_ror
-: //out rd:r32;rm:r32;rn:r32;ror:i32;
+: //out rd:r32;rm:r32;rn:r32;ror:ror3;
   begin
     case inlinenumber of
       in_arm_uxtah_ror: begin op:=A_uxtah; pf:=PF_None; end;
@@ -457,7 +457,7 @@ in_arm_sxtab_ror
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,u32inttype,true);
     location_reset(location,LOC_REGISTER,OS_32);
     location.register:=cg.getintregister(current_asmdata.CurrAsmList, OS_32);
-    current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg_const(op,location.register,paraarray[1].location.register,paraarray[2].location.register,GetConstInt(paraarray[3])),pf));
+    current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg_shifterop(op,location.register,paraarray[1].location.register,paraarray[2].location.register,GetShifterOp(sm_ror,paraarray[3])),pf));
   end;
 in_arm_sxtb
 ,in_arm_sxtb16
@@ -501,7 +501,7 @@ in_arm_sxtb_ror
 ,in_arm_uxtb_ror
 ,in_arm_uxtb16_ror
 ,in_arm_uxth_ror
-: //out rd:r32;rm:r32;ror:i32;
+: //out rd:r32;rm:r32;ror:ror3;
   begin
     case inlinenumber of
       in_arm_uxth_ror: begin op:=A_uxth; pf:=PF_None; end;
@@ -519,7 +519,7 @@ in_arm_sxtb_ror
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[1].location, paraarray[1].resultdef,u32inttype,true);
     location_reset(location,LOC_REGISTER,OS_32);
     location.register:=cg.getintregister(current_asmdata.CurrAsmList, OS_32);
-    current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_const(op,location.register,paraarray[1].location.register,GetConstInt(paraarray[2])),pf));
+    current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_shifterop(op,location.register,paraarray[1].location.register,GetShifterOp(sm_ror,paraarray[2])),pf));
   end;
 in_arm_sbfx
 ,in_arm_ubfx

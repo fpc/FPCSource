@@ -28,6 +28,9 @@ function GetPascalType(const ATyp: string): string;
       'r64':   exit('qword');
       'rs64':  exit('int64');
       'i32':   exit('longint');
+      'ror3':  exit('longint');
+      'lsl5':  exit('longint');
+      'asr5':  exit('longint');
       'ptr32': exit('pointer');
     else
       exit(ATyp);
@@ -56,6 +59,9 @@ function GetOper(const ATyp: string): string;
       'r64':   exit('_reg_reg');
       'rs64':  exit('_reg_reg');
       'i32':   exit('_const');
+      'ror3':  exit('_shifterop');
+      'asr5':  exit('_shifterop');
+      'lsl5':  exit('_shifterop');
       'ptr32': exit('_ref');
     else
       exit('');
@@ -71,6 +77,9 @@ function GetOperand(const ATyp: string; AIndex: longint): string;
       'rs64':  exit(format(',paraarray[%d].location.register64.reglo,paraarray[%d].location.register64.reghi', [AIndex,AIndex]));
       'i32':   exit(format(',GetConstInt(paraarray[%d])',[AIndex]));
       'ptr32': exit(format(',paraarray[%d].location.reference', [AIndex]));
+      'ror3':  exit(format(',GetShifterOp(sm_ror,paraarray[%d])',[AIndex]));
+      'lsl5':  exit(format(',GetShifterOp(sm_lsl,paraarray[%d])',[AIndex]));
+      'asr5':  exit(format(',GetShifterOp(sm_asr,paraarray[%d])',[AIndex]));
     else
       exit(ATyp);
     end;

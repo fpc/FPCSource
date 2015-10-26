@@ -432,6 +432,13 @@ implementation
             Message(type_e_constant_expr_expected);
         end;
 
+      function GetShifterOp(AShiftMode: tshiftmode; AAmount: tnode): tshifterop;
+        begin
+          result.shiftmode:=AShiftMode;
+          result.rs:=NR_NO;
+          Result.shiftimm:=GetConstInt(AAmount);
+        end;
+
       procedure GetParameters(count: longint);
         var
           i: longint;

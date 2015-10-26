@@ -121,13 +121,13 @@ in_arm_umaal
     result:=nil;
   end;
 in_arm_pkhbt_shift
-: //out rd:r32;rn:r32;rm:r32;ls:i32;
+: //out rd:r32;rn:r32;rm:r32;ls:lsl5;
   begin
     expectloc:=LOC_REGISTER;
     result:=nil;
   end;
 in_arm_pkhtb_shift
-: //out rd:r32;rn:r32;rm:r32;rs:i32;
+: //out rd:r32;rn:r32;rm:r32;rs:asr5;
   begin
     expectloc:=LOC_REGISTER;
     result:=nil;
@@ -190,7 +190,7 @@ in_arm_sxtab_ror
 ,in_arm_uxtab_ror
 ,in_arm_uxtab16_ror
 ,in_arm_uxtah_ror
-: //out rd:r32;rm:r32;rn:r32;ror:i32;
+: //out rd:r32;rm:r32;rn:r32;ror:ror3;
   begin
     expectloc:=LOC_REGISTER;
     result:=nil;
@@ -217,7 +217,7 @@ in_arm_sxtb_ror
 ,in_arm_uxtb_ror
 ,in_arm_uxtb16_ror
 ,in_arm_uxth_ror
-: //out rd:r32;rm:r32;ror:i32;
+: //out rd:r32;rm:r32;ror:ror3;
   begin
     expectloc:=LOC_REGISTER;
     result:=nil;
