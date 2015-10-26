@@ -815,13 +815,11 @@ implementation
               result:=operand_readwrite
             else
               result:=operand_read;
-          A_LDREX:
+          A_LDREX,A_STREX:
             if opnr in [0] then
               result:=operand_write
             else
               result:=operand_read;
-          A_STREX:
-            result:=operand_write;
           else
             internalerror(200403151);
         end;

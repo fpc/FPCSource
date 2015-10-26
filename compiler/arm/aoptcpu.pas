@@ -702,6 +702,18 @@ Implementation
                       end;
                     Result:=LookForPostindexedPattern(taicpu(p)) or Result;
                   end;
+                A_LDREX,A_LDREXB,A_LDREXH:
+                  begin
+                    if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                       RemoveSuperfluousMove(p, hp1, 'LdrMov2Ldr') then
+                      Result:=true;
+                  end;
+                A_STREX,A_STREXB,A_STREXH:
+                  begin
+                    if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                       RemoveSuperfluousMove(p, hp1, 'StrMov2Str') then
+                      Result:=true;
+                  end;
                 A_LDR:
                   begin
                     { change
@@ -1245,7 +1257,7 @@ Implementation
                        (taicpu(p).oper[1]^.typ = top_reg) and
                        (taicpu(p).oppostfix = PF_NONE) and
                        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                       MatchInstruction(hp1, [A_LDR, A_STR], [taicpu(p).condition], []) and
+                       MatchInstruction(hp1, [A_LDR, A_STR, A_LDREX,A_LDREXB,A_LDREXH], [taicpu(p).condition], []) and
                        (taicpu(hp1).oper[1]^.typ = top_ref) and
                        { We can change the base register only when the instruction uses AM_OFFSET }
                        ((taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg) or
@@ -1268,6 +1280,55 @@ Implementation
 
                         if taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg then
                           taicpu(hp1).oper[1]^.ref^.index := taicpu(p).oper[1]^.reg;
+
+                        dealloc:=FindRegDeAlloc(taicpu(p).oper[1]^.reg, taicpu(p.Next));
+                        if Assigned(dealloc) then
+                          begin
+                            asml.remove(dealloc);
+                            asml.InsertAfter(dealloc,hp1);
+                          end;
+
+                        GetNextInstruction(p, hp1);
+                        asml.remove(p);
+                        p.free;
+                        p:=hp1;
+                        result:=true;
+                      end;
+                    { Fold
+                        mov  regA, regB
+                        strex* regA, regC, [regA]
+                      to
+                        strex* regA, regC, [regB]
+                      CAUTION! If this one is successful p might not be a mov instruction anymore!
+                    }
+                    if (taicpu(p).opcode = A_MOV) and
+                       (taicpu(p).ops = 2) and
+                       (taicpu(p).oper[1]^.typ = top_reg) and
+                       (taicpu(p).oppostfix = PF_NONE) and
+                       GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                       MatchInstruction(hp1, [A_STREX, A_STREXB, A_STREXH], [taicpu(p).condition], []) and
+                       (taicpu(hp1).oper[2]^.typ = top_ref) and
+                       { We can change the base register only when the instruction uses AM_OFFSET }
+                       ((taicpu(hp1).oper[2]^.ref^.index = taicpu(p).oper[0]^.reg) or
+                         ((taicpu(hp1).oper[2]^.ref^.addressmode = AM_OFFSET) and
+                          (taicpu(hp1).oper[2]^.ref^.base = taicpu(p).oper[0]^.reg))
+                       ) and
+                       not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) and
+
+                       // Make sure that Thumb code doesn't propagate a high register into a reference
+                       ((GenerateThumbCode and
+                         (getsupreg(taicpu(p).oper[1]^.reg) < RS_R8)) or
+                        (not GenerateThumbCode)) and
+
+                       RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                      begin
+                        DebugMsg('Peephole MovStrex2Strex done', hp1);
+                        if (taicpu(hp1).oper[2]^.ref^.addressmode = AM_OFFSET) and
+                           (taicpu(hp1).oper[2]^.ref^.base = taicpu(p).oper[0]^.reg) then
+                          taicpu(hp1).oper[2]^.ref^.base := taicpu(p).oper[1]^.reg;
+
+                        if taicpu(hp1).oper[2]^.ref^.index = taicpu(p).oper[0]^.reg then
+                          taicpu(hp1).oper[2]^.ref^.index := taicpu(p).oper[1]^.reg;
 
                         dealloc:=FindRegDeAlloc(taicpu(p).oper[1]^.reg, taicpu(p.Next));
                         if Assigned(dealloc) then
