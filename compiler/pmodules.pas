@@ -550,6 +550,30 @@ implementation
       end;
 
 
+    procedure free_unregistered_localsymtable_elements;
+      var
+        i: longint;
+        def: tdef;
+        sym: tsym;
+      begin
+        { from high to low so we hopefully have moves of less data }
+        for i:=current_module.localsymtable.symlist.count-1 downto 0 do
+          begin
+            sym:=tsym(current_module.localsymtable.symlist[i]);
+            { this also frees sym, as the symbols are owned by the symtable }
+            if not sym.is_registered then
+              current_module.localsymtable.Delete(sym);
+          end;
+        for i:=current_module.localsymtable.deflist.count-1 downto 0 do
+          begin
+            def:=tdef(current_module.localsymtable.deflist[i]);
+            { this also frees def, as the defs are owned by the symtable }
+            if not def.is_registered then
+              current_module.localsymtable.deletedef(def);
+          end;
+      end;
+
+
     procedure setupglobalswitches;
       begin
         if (cs_create_pic in current_settings.moduleswitches) then
@@ -1256,6 +1280,8 @@ type
              Message1(unit_u_implementation_crc_changed,current_module.ppufilename);
 {$endif EXTDEBUG}
 
+         { release unregistered defs/syms from the localsymtable }
+         free_unregistered_localsymtable_elements;
          { release local symtables that are not needed anymore }
          free_localsymtables(current_module.globalsymtable);
          free_localsymtables(current_module.localsymtable);
