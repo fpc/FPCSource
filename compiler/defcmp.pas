@@ -1422,7 +1422,11 @@ implementation
                        this is not allowed for complex procvars }
                      if (is_void(tpointerdef(def_to).pointeddef) or
                          (m_mac_procvar in current_settings.modeswitches)) and
-                        tprocvardef(def_from).is_addressonly then
+                        tprocvardef(def_from).is_addressonly
+{$ifdef x86}
+                        and (tcpupointerdef(voidcodepointertype).x86pointertyp=tcpupointerdef(def_to).x86pointertyp)
+{$endif x86}
+                        then
                       begin
                         doconv:=tc_equal;
                         eq:=te_convert_l1;
@@ -1433,7 +1437,11 @@ implementation
                      { procedure variable can be assigned to an void pointer,
                        this not allowed for methodpointers }
                      if (m_mac_procvar in current_settings.modeswitches) and
-                        tprocdef(def_from).is_addressonly then
+                        tprocdef(def_from).is_addressonly
+{$ifdef x86}
+                        and (tcpupointerdef(voidcodepointertype).x86pointertyp=tcpupointerdef(def_to).x86pointertyp)
+{$endif x86}
+                        then
                       begin
                         doconv:=tc_proc_2_procvar;
                         eq:=te_convert_l2;
