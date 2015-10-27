@@ -1950,7 +1950,7 @@ end;
   Variant properties
   ---------------------------------------------------------------------}
 
-Procedure CheckVariantEvent(P : Pointer);
+Procedure CheckVariantEvent(P : CodePointer);
 
 begin
   If (P=Nil) then
@@ -1959,14 +1959,14 @@ end;
 
 Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
 begin
-  CheckVariantEvent(Pointer(OnGetVariantProp));
+  CheckVariantEvent(CodePointer(OnGetVariantProp));
   Result:=OnGetVariantProp(Instance,PropInfo);
 end;
 
 
 Procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo; const Value: Variant);
 begin
-   CheckVariantEvent(Pointer(OnSetVariantProp));
+   CheckVariantEvent(CodePointer(OnSetVariantProp));
    OnSetVariantProp(Instance,PropInfo,Value);
 end;
 
@@ -1996,14 +1996,14 @@ end;
 Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
 
 begin
-  CheckVariantEvent(Pointer(OnGetPropValue));
+  CheckVariantEvent(CodePointer(OnGetPropValue));
   Result:=OnGetPropValue(Instance,PropName,PreferStrings)
 end;
 
 Procedure SetPropValue(Instance: TObject; const PropName: string;  const Value: Variant);
 
 begin
-  CheckVariantEvent(Pointer(OnSetPropValue));
+  CheckVariantEvent(CodePointer(OnSetPropValue));
   OnSetPropValue(Instance,PropName,Value);
 end;
 
