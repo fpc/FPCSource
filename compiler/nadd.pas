@@ -2116,8 +2116,8 @@ implementation
               begin
                 if tprocvardef(rd).is_addressonly then
                   begin
-                    inserttypeconv_internal(right,voidpointertype);
-                    inserttypeconv_internal(left,voidpointertype);
+                    inserttypeconv_internal(right,voidcodepointertype);
+                    inserttypeconv_internal(left,voidcodepointertype);
                   end
                 else
                   begin
