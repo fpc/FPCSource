@@ -63,7 +63,7 @@ Unit Rax86int;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
          procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
-         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg:boolean);
+         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry:boolean);
          function BuildConstExpression:aint;
          function BuildRefConstExpression(startingminus:boolean=false):aint;
          procedure BuildReference(oper : tx86operand);
@@ -762,7 +762,7 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg:boolean);
+    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry:boolean);
       var
         tempstr,expr,hs,mangledname : string;
         parenlevel : longint;
@@ -782,6 +782,7 @@ Unit Rax86int;
         asmsym:='';
         asmsymtyp:=AT_DATA;
         isseg:=false;
+        is_farproc_entry:=FALSE;
         errorflag:=FALSE;
         tempstr:='';
         expr:='';
@@ -1023,6 +1024,9 @@ Unit Rax86int;
                                if Tprocsym(sym).ProcdefList.Count>1 then
                                 Message(asmr_w_calling_overload_func);
                                hs:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
+{$ifdef i8086}
+                               is_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]));
+{$endif i8086}
                                hssymtyp:=AT_FUNCTION;
                              end;
                            typesym :
@@ -1145,8 +1149,9 @@ Unit Rax86int;
         hs : string;
         hssymtyp : TAsmsymtype;
         isseg : boolean;
+        is_farproc_entry : boolean;
       begin
-        BuildConstSymbolExpression(false,false,false,l,hs,hssymtyp,isseg);
+        BuildConstSymbolExpression(false,false,false,l,hs,hssymtyp,isseg,is_farproc_entry);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildConstExpression:=l;
@@ -1159,8 +1164,9 @@ Unit Rax86int;
         hs : string;
         hssymtyp : TAsmsymtype;
         isseg : boolean;
+        is_farproc_entry : boolean;
       begin
-        BuildConstSymbolExpression(false,true,startingminus,l,hs,hssymtyp,isseg);
+        BuildConstSymbolExpression(false,true,startingminus,l,hs,hssymtyp,isseg,is_farproc_entry);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildRefConstExpression:=l;
@@ -1179,6 +1185,7 @@ Unit Rax86int;
         GotPlus,Negative : boolean;
         hl : tasmlabel;
         isseg: boolean;
+        is_farproc_entry : boolean;
       Begin
         Consume(AS_LBRACKET);
         if not(oper.opr.typ in [OPR_LOCAL,OPR_REFERENCE]) then
@@ -1491,7 +1498,7 @@ Unit Rax86int;
               begin
                 if not GotPlus and not GotStar then
                   Message(asmr_e_invalid_reference_syntax);
-                BuildConstSymbolExpression(true,true,GotPlus and negative,l,tempstr,tempsymtyp,isseg);
+                BuildConstSymbolExpression(true,true,GotPlus and negative,l,tempstr,tempsymtyp,isseg,is_farproc_entry);
                 { already handled by BuildConstSymbolExpression(); must be
                   handled there to avoid [reg-1+1] being interpreted as
                   [reg-(1+1)] }
@@ -1577,16 +1584,18 @@ Unit Rax86int;
         tempstr : string;
         tempsymtyp : tasmsymtype;
         isseg: boolean;
+        is_farproc_entry : boolean;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
-        BuildConstSymbolExpression(true,false,false,l,tempstr,tempsymtyp,isseg);
+        BuildConstSymbolExpression(true,false,false,l,tempstr,tempsymtyp,isseg,is_farproc_entry);
         if tempstr<>'' then
           begin
             oper.opr.typ:=OPR_SYMBOL;
             oper.opr.symofs:=l;
             oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr);
             oper.opr.symseg:=isseg;
+            oper.opr.sym_farproc_entry:=is_farproc_entry;
           end
         else
           if oper.opr.typ=OPR_NONE then
@@ -2178,12 +2187,10 @@ Unit Rax86int;
         for i:=1 to operandnum do
           with instr.operands[i].opr do
             begin
-              { convert 'call symbol' to 'call far symbol' for memory models with far code }
-              if (instr.opcode=A_CALL) and (typ=OPR_SYMBOL) and (symbol<>nil) and (symbol.typ<>AT_DATA) then
-                if current_settings.x86memorymodel in x86_far_code_models then
-                  begin
-                    instr.opsize:=S_FAR;
-                  end;
+              { convert 'call symbol' to 'call far symbol' for symbols that are an entry point of a far procedure }
+              if (instr.opcode=A_CALL) and (instr.opsize=S_NO) and
+                 (typ=OPR_SYMBOL) and sym_farproc_entry then
+                instr.opsize:=S_FAR;
               { convert 'call/jmp dword [something]' to 'call/jmp far [something]' (BP7 compatibility) }
               if (instr.opcode in [A_CALL,A_JMP]) and (instr.opsize=S_NO) and
                  (typ in [OPR_LOCAL,OPR_REFERENCE]) and (instr.operands[i].size=OS_32) then
@@ -2231,6 +2238,7 @@ Unit Rax86int;
         expr: string;
         value : aint;
         isseg: boolean;
+        is_farproc_entry : boolean;
       Begin
         Repeat
           Case actasmtoken of
@@ -2261,7 +2269,7 @@ Unit Rax86int;
             AS_INTNUM,
             AS_ID :
               Begin
-                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp,isseg);
+                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp,isseg,is_farproc_entry);
                 if asmsym<>'' then
                  begin
                    if constsize<>sizeof(pint) then

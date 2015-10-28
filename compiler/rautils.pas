@@ -28,7 +28,7 @@ Interface
 Uses
   cutils,cclasses,
   globtype,aasmbase,aasmtai,aasmdata,cpubase,cpuinfo,cgbase,cgutils,
-  symconst,symbase,symtype,symdef,symsym;
+  symconst,symbase,symtype,symdef,symsym,symcpu;
 
 Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
@@ -49,7 +49,7 @@ type
     case typ:TOprType of
       OPR_NONE      : ();
       OPR_CONSTANT  : (val:aint);
-      OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint;symseg:boolean);
+      OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint;symseg:boolean;sym_farproc_entry:boolean);
       OPR_REFERENCE : (varsize:asizeint; constoffset: asizeint; ref:treference);
       OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
       OPR_REGISTER  : (reg:tregister);
@@ -910,6 +910,9 @@ Begin
             begin
               opr.typ:=OPR_SYMBOL;
               opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+{$ifdef i8086}
+              opr.sym_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]));
+{$endif i8086}
               opr.symofs:=0;
             end;
         else
