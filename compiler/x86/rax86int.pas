@@ -2187,8 +2187,8 @@ Unit Rax86int;
         for i:=1 to operandnum do
           with instr.operands[i].opr do
             begin
-              { convert 'call symbol' to 'call far symbol' for symbols that are an entry point of a far procedure }
-              if (instr.opcode=A_CALL) and (instr.opsize=S_NO) and
+              { convert 'call/jmp symbol' to 'call/jmp far symbol' for symbols that are an entry point of a far procedure }
+              if (instr.opcode in [A_CALL,A_JMP]) and (instr.opsize=S_NO) and
                  (typ=OPR_SYMBOL) and sym_farproc_entry then
                 instr.opsize:=S_FAR;
               { convert 'call/jmp dword [something]' to 'call/jmp far [something]' (BP7 compatibility) }
