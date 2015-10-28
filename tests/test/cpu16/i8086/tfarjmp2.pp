@@ -89,6 +89,10 @@ begin
   asm
     int NearInt
     jmp word [a] { near }
+    int NearInt
+    jmp word ptr [a] { near }
+    int NearInt
+    jmp word ptr a { near }
 
     int FarInt
     jmp [a]      { far }
@@ -98,6 +102,10 @@ begin
 
     int FarInt
     jmp dword [b] { far }
+    int FarInt
+    jmp dword ptr [b] { far }
+    int FarInt
+    jmp dword ptr b { far }
 
     int NearInt
     jmp [b]       { near }
@@ -123,14 +131,48 @@ begin
     int NearInt
     jmp [g16] { near }
 
+    int NearInt
+    jmp word [g16] { near }
+    int NearInt
+    jmp word ptr [g16] { near }
+    int NearInt
+    jmp word ptr g16 { near }
+
+    int FarInt
+    jmp dword [g16] { far }
+    int FarInt
+    jmp dword ptr [g16] { far }
+    int FarInt
+    jmp dword ptr g16 { far }
+
     int FarInt
     jmp g32 { far }
 
     int FarInt
     jmp [g32] { far }
 
+    int NearInt
+    jmp word [g32] { near }
+    int NearInt
+    jmp word ptr [g32] { near }
+    int NearInt
+    jmp word ptr g32 { near }
+
+    int FarInt
+    jmp dword [g32] { far }
+    int FarInt
+    jmp dword ptr [g32] { far }
+    int FarInt
+    jmp dword ptr g32 { far }
+
+    int NearInt
+    jmp word [bx] { near }
+    int NearInt
+    jmp word ptr [bx] { near }
     int FarInt
     jmp dword [bx] { far }
+    int FarInt
+    jmp dword ptr [bx] { far }
 
 {$ifdef FPC}
     { these three are supported by Free Pascal only. They don't work with

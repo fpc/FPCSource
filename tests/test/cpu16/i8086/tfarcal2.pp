@@ -89,6 +89,10 @@ begin
   asm
     int NearInt
     call word [a] { near }
+    int NearInt
+    call word ptr [a] { near }
+    int NearInt
+    call word ptr a { near }
 
     int FarInt
     call [a]      { far }
@@ -98,6 +102,10 @@ begin
 
     int FarInt
     call dword [b] { far }
+    int FarInt
+    call dword ptr [b] { far }
+    int FarInt
+    call dword ptr b { far }
 
     int NearInt
     call [b]       { near }
@@ -123,14 +131,48 @@ begin
     int NearInt
     call [g16] { near }
 
+    int NearInt
+    call word [g16] { near }
+    int NearInt
+    call word ptr [g16] { near }
+    int NearInt
+    call word ptr g16 { near }
+
+    int FarInt
+    call dword [g16] { far }
+    int FarInt
+    call dword ptr [g16] { far }
+    int FarInt
+    call dword ptr g16 { far }
+
     int FarInt
     call g32 { far }
 
     int FarInt
     call [g32] { far }
 
+    int NearInt
+    call word [g32] { near }
+    int NearInt
+    call word ptr [g32] { near }
+    int NearInt
+    call word ptr g32 { near }
+
+    int FarInt
+    call dword [g32] { far }
+    int FarInt
+    call dword ptr [g32] { far }
+    int FarInt
+    call dword ptr g32 { far }
+
+    int NearInt
+    call word [bx] { near }
+    int NearInt
+    call word ptr [bx] { near }
     int FarInt
     call dword [bx] { far }
+    int FarInt
+    call dword ptr [bx] { far }
 
 {$ifdef FPC}
     { these three are supported by Free Pascal only. They don't work with
