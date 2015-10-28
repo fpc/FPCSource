@@ -82,6 +82,8 @@ procedure testproc5(Flags, CS, IP, AX, BX, CX, DX, SI, DI, DS, ES, BP: Word); in
 begin
 end;
 
+label
+  lbl;
 begin
   GetIntVec(NearInt, OldNearIntVec);
   SetIntVec(NearInt, @IntNearHandler);
@@ -109,6 +111,14 @@ begin
     call testproc5
     int NearInt
     call [testproc5]
+    int NearInt
+    call lbl
+    int NearInt
+    call [lbl]
+    int NearInt
+    call @@loc_lbl
+    int NearInt
+    call [@@loc_lbl]
 
     int NearInt
     call near ptr testproc1
@@ -130,7 +140,16 @@ begin
     call near ptr testproc5
     int NearInt
     call near ptr [testproc5]
+    int NearInt
+    call near ptr lbl
+    int NearInt
+    call near ptr [lbl]
+    int NearInt
+    call near ptr @@loc_lbl
+    int NearInt
+    call near ptr [@@loc_lbl]
 
+@@loc_lbl:
     int FarInt
     call far ptr testproc1
     int FarInt
@@ -151,6 +170,15 @@ begin
     call far ptr testproc5
     int FarInt
     call far ptr [testproc5]
+    int FarInt
+    call far ptr lbl
+    int FarInt
+    call far ptr [lbl]
+    int FarInt
+    call far ptr @@loc_lbl
+    int FarInt
+    call far ptr [@@loc_lbl]
+lbl:
   end;
   Writeln('Ok');
 
