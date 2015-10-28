@@ -44,14 +44,27 @@ type
     function getcopy: tstoreddef; override;
     function GetTypeName: string; override;
     class function default_x86_data_pointer_type: tx86pointertyp; virtual;
+    function compatible_with_pointerdef_size(ptr: tpointerdef): boolean; override;
   end;
   tx86pointerdefclass = class of tx86pointerdef;
+
+  tx86procvardef = class(tprocvardef)
+    function compatible_with_pointerdef_size(ptr: tpointerdef): boolean; override;
+  end;
+  tx86procvardefclass = class of tx86procvardef;
+
+  tx86procdef = class(tprocdef)
+    function compatible_with_pointerdef_size(ptr: tpointerdef): boolean; override;
+  end;
+  tx86procdefclass = class of tx86procdef;
+
 
 implementation
 
   uses
     globals, verbose,
     symbase, fmodule;
+
 
 {****************************************************************************
                              tx86pointerdef
@@ -177,6 +190,41 @@ implementation
     begin
       result:=x86pt_near;
     end;
+
+
+  function tx86pointerdef.compatible_with_pointerdef_size(ptr: tpointerdef): boolean;
+    begin
+      result:=
+        inherited and
+        (x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
+    end;
+
+
+{****************************************************************************
+                           tx86procvardef
+****************************************************************************}
+
+
+  function tx86procvardef.compatible_with_pointerdef_size(ptr: tpointerdef): boolean;
+    begin
+      result:=
+        inherited and
+        (tx86pointerdef(voidcodepointertype).x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
+    end;
+
+
+  {****************************************************************************
+                             tx86procdef
+  ****************************************************************************}
+
+
+    function tx86procdef.compatible_with_pointerdef_size(ptr: tpointerdef): boolean;
+      begin
+        result:=
+          inherited and
+          (tx86pointerdef(voidcodepointertype).x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
+      end;
+
 
 end.
 

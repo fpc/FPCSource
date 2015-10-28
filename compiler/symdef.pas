@@ -242,6 +242,7 @@ interface
              Normally, this is sinttype, except on i8086, where it takes into account the
              special i8086 pointer types (near, far, huge). }
           function pointer_subtraction_result_type:tdef;virtual;
+          function compatible_with_pointerdef_size(ptr: tpointerdef): boolean; virtual;
        end;
        tpointerdefclass = class of tpointerdef;
 
@@ -598,6 +599,7 @@ interface
           function  no_self_node:boolean;
           { get either a copy as a procdef or procvardef }
           function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef; virtual;
+          function  compatible_with_pointerdef_size(ptr: tpointerdef): boolean; virtual;
           procedure check_mark_as_nested;
           procedure init_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
@@ -3285,6 +3287,12 @@ implementation
       end;
 
 
+    function tpointerdef.compatible_with_pointerdef_size(ptr: tpointerdef): boolean;
+      begin
+        result:=true;
+      end;
+
+
 {****************************************************************************
                               TCLASSREFDEF
 ****************************************************************************}
@@ -4903,6 +4911,12 @@ implementation
            (newtyp=procvardef) and
            (owner.symtabletype=ObjectSymtable) then
           include(tprocvardef(result).procoptions,po_methodpointer);
+      end;
+
+
+    function tabstractprocdef.compatible_with_pointerdef_size(ptr: tpointerdef): boolean;
+      begin
+        result:=is_addressonly;
       end;
 
 
