@@ -75,6 +75,7 @@ Type
     Procedure TestCase2Cases;
     Procedure TestCaseBlock;
     Procedure TestCaseElseBlockEmpty;
+    procedure TestCaseOtherwiseBlockEmpty;
     Procedure TestCaseElseBlockAssignment;
     Procedure TestCaseElseBlock2Assignments;
     Procedure TestCaseIfCaseElse;
@@ -969,6 +970,23 @@ begin
   AssertEquals('Correct case for case label 1',TPasImplbeginBlock,TPasElement(S.Elements[0]).ClassType);
   B:=TPasImplbeginBlock(S.Elements[0]);
   AssertEquals('0 statements in block',0,B.Elements.Count);
+  AssertNotNull('Have else branch',C.ElseBranch);
+  AssertEquals('Correct else branch class',TPasImplCaseElse,C.ElseBranch.ClassType);
+  AssertEquals('Zero statements ',0,TPasImplCaseElse(C.ElseBranch).Elements.Count);
+end;
+
+procedure TTestStatementParser.TestCaseOtherwiseBlockEmpty;
+
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+  B : TPasImplbeginBlock;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1 : begin end;','otherwise',' end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertNotNull('Have case expression',C.CaseExpr);
   AssertNotNull('Have else branch',C.ElseBranch);
   AssertEquals('Correct else branch class',TPasImplCaseElse,C.ElseBranch.ClassType);
   AssertEquals('Zero statements ',0,TPasImplCaseElse(C.ElseBranch).Elements.Count);
