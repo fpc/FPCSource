@@ -73,24 +73,42 @@ begin
   asm
     int NearInt
     call testproc1
+    int NearInt
+    call [testproc1]
     int FarInt
     call testproc2
+    int FarInt
+    call [testproc2]
     int NearInt
     call testproc3
+    int NearInt
+    call [testproc3]
 
     int NearInt
     call near ptr testproc1
     int NearInt
+    call near ptr [testproc1]
+    int NearInt
     call near ptr testproc2
     int NearInt
+    call near ptr [testproc2]
+    int NearInt
     call near ptr testproc3
+    int NearInt
+    call near ptr [testproc3]
 
     int FarInt
     call far ptr testproc1
     int FarInt
+    call far ptr [testproc1]
+    int FarInt
     call far ptr testproc2
     int FarInt
+    call far ptr [testproc2]
+    int FarInt
     call far ptr testproc3
+    int FarInt
+    call far ptr [testproc3]
   end;
   Writeln('Ok');
 
