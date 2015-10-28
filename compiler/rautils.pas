@@ -922,6 +922,27 @@ Begin
         SetupVar:=TRUE;
         Exit;
       end;
+{$ifdef i8086}
+    labelsym :
+      begin
+        case opr.typ of
+          OPR_REFERENCE:
+            begin
+              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tlabelsym(sym).mangledname);
+              if opr.ref.segment=NR_NO then
+                opr.ref.segment:=NR_CS;
+            end;
+          else
+            begin
+              Message(asmr_e_unsupported_symbol_type);
+              exit;
+            end;
+        end;
+        hasvar:=true;
+        SetupVar:=TRUE;
+        Exit;
+      end
+{$endif i8086}
     else
       begin
         Message(asmr_e_unsupported_symbol_type);
