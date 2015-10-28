@@ -289,9 +289,7 @@ implementation
          if (cs_use_heaptrc in current_settings.globalswitches) and
             (cs_checkpointer in current_settings.localswitches) and
             not(cs_compilesystem in current_settings.moduleswitches) and
-{$ifdef x86}
-            (tcpupointerdef(left.resultdef).x86pointertyp = tcpupointerdefclass(cpointerdef).default_x86_data_pointer_type) and
-{$endif x86}
+            tpointerdef(left.resultdef).compatible_with_pointerdef_size(tpointerdef(voidpointertype)) and
             not(nf_no_checkpointer in flags) and
             { can be NR_NO in case of LOC_CONSTANT }
             (location.reference.base<>NR_NO) then
