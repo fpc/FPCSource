@@ -57,7 +57,17 @@ begin
 end;
 
 procedure testproc2; far;
+label
+  lp_lbl;
 begin
+  asm
+    int NearInt
+    call @@lp_loc_lbl
+lp_lbl:
+    int NearInt
+    call lp_lbl
+@@lp_loc_lbl:
+  end;
 end;
 
 procedure testproc3;
@@ -90,6 +100,7 @@ begin
   GetIntVec(FarInt, OldFarIntVec);
   SetIntVec(FarInt, @IntFarHandler);
 
+  testproc2;
   asm
     int NearInt
     call testproc1
