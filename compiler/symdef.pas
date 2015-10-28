@@ -1675,7 +1675,20 @@ implementation
            exit;
          { Register in symtable stack }
          if doregister then
-           maybe_put_in_symtable_stack;
+           begin
+             { immediately register interface defs, as they will always be
+               written to the ppu, their defid inlfuences the interface crc and
+               if we wait, depending on e.g. compiler defines they may get a
+               different defid (e.g. when a function is called, its procdef is
+               registered, so depending on whether or not, or when, an interface
+               procedure is called in the implementation, that may change its
+               defid otherwise) }
+             if assigned(current_module) and
+                current_module.in_interface then
+               register_def
+             else
+               maybe_put_in_symtable_stack;
+           end;
       end;
 
 
