@@ -126,6 +126,15 @@ begin
 
   asm
     int NearInt
+    call word ptr $1234
+    int NearInt
+    call word ptr [$1234]
+    int FarInt
+    call dword ptr $1234
+    int FarInt
+    call dword ptr [$1234]
+
+    int NearInt
     call g16 { near }
 
     int NearInt

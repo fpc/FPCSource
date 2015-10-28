@@ -126,6 +126,15 @@ begin
 
   asm
     int NearInt
+    jmp word ptr $1234
+    int NearInt
+    jmp word ptr [$1234]
+    int FarInt
+    jmp dword ptr $1234
+    int FarInt
+    jmp dword ptr [$1234]
+
+    int NearInt
     jmp g16 { near }
 
     int NearInt
