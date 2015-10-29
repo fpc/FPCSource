@@ -1517,7 +1517,9 @@ Unit Rax86int;
                        oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr);
 {$ifdef i8086}
                        if isseg then
-                         oper.opr.ref.refaddr:=addr_seg;
+                         oper.opr.ref.refaddr:=addr_seg
+                       else if (tempsymtyp=AT_FUNCTION) and (oper.opr.ref.segment=NR_NO) then
+                         oper.opr.ref.segment:=NR_CS;
 {$endif i8086}
                      end
                    else
