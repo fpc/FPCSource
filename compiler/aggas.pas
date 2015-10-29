@@ -133,6 +133,13 @@ implementation
         #9'.short'#9,#9'.long'#9,#9'.quad'#9
       );
 
+      ait_solaris_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[20]=(
+        #9'.fixme128'#9,#9'.8byte'#9,#9'.4byte'#9,#9'.2byte'#9,#9'.byte'#9,
+        #9'.sleb128'#9,#9'.uleb128'#9,
+        #9'.rva'#9,#9'.secrel32'#9,#9'.8byte'#9,#9'.4byte'#9,#9'.2byte'#9,#9'.2byte'#9,
+        #9'.2byte'#9,#9'.4byte'#9,#9'.8byte'#9
+      );
+
       ait_unaligned_consts = [aitconst_16bit_unaligned..aitconst_64bit_unaligned];
 
       { Sparc type of unaligned pseudo-instructions }
@@ -951,6 +958,8 @@ implementation
                            unaligned tai -> always use vbyte }
                          else if target_info.system in systems_aix then
                             writer.AsmWrite(#9'.vbyte'#9+tostr(tai_const(hp).size)+',')
+                         else if (asminfo^.id=as_solaris_as) then
+                           writer.AsmWrite(ait_solaris_const2str[constdef])
                          else
                            writer.AsmWrite(ait_const2str[constdef]);
                          l:=0;

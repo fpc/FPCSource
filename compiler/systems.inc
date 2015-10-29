@@ -221,6 +221,7 @@
              ,as_i8086_omf
              ,as_llvm
              ,as_clang
+             ,as_solaris_as
        );
 
        tlink = (ld_none,
