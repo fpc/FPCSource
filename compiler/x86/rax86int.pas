@@ -2007,6 +2007,14 @@ Unit Rax86int;
         if (oper.typesize<>0) and
            (oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL]) then
           oper.SetSize(oper.typesize,true);
+{$ifdef i8086}
+        { references to a procedure/function entry, without an explicit segment
+          override, are added an CS: override by default (this is Turbo Pascal 7
+          compatible) }
+        if (oper.opr.typ=OPR_REFERENCE) and assigned(oper.opr.ref.symbol) and
+           (oper.opr.ref.symbol.typ=AT_FUNCTION) and (oper.opr.ref.segment=NR_NO) then
+          oper.opr.ref.segment:=NR_CS;
+{$endif i8086}
       end;
 
 
