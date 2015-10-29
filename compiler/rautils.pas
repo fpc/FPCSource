@@ -908,7 +908,8 @@ Begin
             begin
               opr.ref.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
 {$ifdef i8086}
-              opr.ref_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]));
+              opr.ref_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
+                        and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
 {$endif i8086}
             end;
           OPR_NONE:
@@ -916,7 +917,8 @@ Begin
               opr.typ:=OPR_SYMBOL;
               opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
 {$ifdef i8086}
-              opr.sym_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]));
+              opr.sym_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
+                        and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
 {$endif i8086}
               opr.symofs:=0;
             end;

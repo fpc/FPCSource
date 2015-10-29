@@ -1025,7 +1025,8 @@ Unit Rax86int;
                                 Message(asmr_w_calling_overload_func);
                                hs:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
 {$ifdef i8086}
-                               is_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]));
+                               is_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
+                                    and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
 {$endif i8086}
                                hssymtyp:=AT_FUNCTION;
                              end;
@@ -2109,7 +2110,8 @@ Unit Rax86int;
           current procedure (BP7 compatible) }
         else if (instr.opcode=A_RET) then
           begin
-            if is_proc_far(current_procinfo.procdef) then
+            if is_proc_far(current_procinfo.procdef) and
+               not (po_interrupt in current_procinfo.procdef.procoptions) then
               instr.opcode:=A_RETF
             else
               instr.opcode:=A_RETN;
