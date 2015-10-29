@@ -1626,6 +1626,10 @@ Unit Rax86int;
            begin
              oper.InitRef;
              oper.opr.ref.symbol:=hl;
+{$ifdef i8086}
+             if oper.opr.ref.segment=NR_NO then
+               oper.opr.ref.segment:=NR_CS;
+{$endif i8086}
            end;
         end;
 
