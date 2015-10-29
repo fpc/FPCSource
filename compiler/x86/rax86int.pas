@@ -2164,12 +2164,16 @@ Unit Rax86int;
               begin
                 if actasmtoken = AS_NEAR then
                   begin
+{$ifndef i8086}
                     Message(asmr_w_near_ignored);
+{$endif not i8086}
                     instr.opsize:=S_NEAR;
                   end
                 else
                   begin
+{$ifndef i8086}
                     Message(asmr_w_far_ignored);
+{$endif not i8086}
                     instr.opsize:=S_FAR;
                   end;
                 Consume(actasmtoken);
