@@ -2035,6 +2035,7 @@ Unit Rax86int;
 {$ifdef i8086}
         hsymbol: TAsmSymbol;
         hoffset: ASizeInt;
+        href_farproc_entry: Boolean;
 {$endif i8086}
       begin
         PrefixOp:=A_None;
@@ -2217,11 +2218,12 @@ Unit Rax86int;
                 begin
                   hsymbol:=ref.symbol;
                   hoffset:=ref.offset;
+                  href_farproc_entry:=ref_farproc_entry;
                   typ:=OPR_SYMBOL;
                   symbol:=hsymbol;
                   symofs:=hoffset;
                   symseg:=False;
-                  sym_farproc_entry:=False; { todo: set this correctly }
+                  sym_farproc_entry:=href_farproc_entry;
                 end;
               { convert 'call/jmp symbol' to 'call/jmp far symbol' for symbols that are an entry point of a far procedure }
               if (instr.opcode in [A_CALL,A_JMP]) and (instr.opsize=S_NO) and

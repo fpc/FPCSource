@@ -50,7 +50,7 @@ type
       OPR_NONE      : ();
       OPR_CONSTANT  : (val:aint);
       OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint;symseg:boolean;sym_farproc_entry:boolean);
-      OPR_REFERENCE : (varsize:asizeint; constoffset: asizeint; ref:treference);
+      OPR_REFERENCE : (varsize:asizeint; constoffset: asizeint;ref_farproc_entry:boolean;ref:treference);
       OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
@@ -905,7 +905,12 @@ Begin
           Message(asmr_w_calling_overload_func);
         case opr.typ of
           OPR_REFERENCE:
-            opr.ref.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+            begin
+              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+{$ifdef i8086}
+              opr.ref_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]));
+{$endif i8086}
+            end;
           OPR_NONE:
             begin
               opr.typ:=OPR_SYMBOL;
@@ -965,6 +970,7 @@ var
   hsymofs : aint;
   hsymbol : tasmsymbol;
   reg : tregister;
+  hsym_farprocentry: Boolean;
 Begin
   case opr.typ of
     OPR_REFERENCE :
@@ -977,12 +983,14 @@ Begin
         opr.Ref.Offset:=l;
         opr.varsize:=0;
         opr.constoffset:=0;
+        opr.ref_farproc_entry:=false;
       end;
     OPR_NONE :
       begin
         opr.typ:=OPR_REFERENCE;
         opr.varsize:=0;
         opr.constoffset:=0;
+        opr.ref_farproc_entry:=false;
         Fillchar(opr.ref,sizeof(treference),0);
       end;
     OPR_REGISTER :
@@ -991,6 +999,7 @@ Begin
         opr.typ:=OPR_REFERENCE;
         opr.varsize:=0;
         opr.constoffset:=0;
+        opr.ref_farproc_entry:=false;
         Fillchar(opr.ref,sizeof(treference),0);
         opr.Ref.base:=reg;
       end;
@@ -998,12 +1007,14 @@ Begin
       begin
         hsymbol:=opr.symbol;
         hsymofs:=opr.symofs;
+        hsym_farprocentry:=opr.sym_farproc_entry;
         opr.typ:=OPR_REFERENCE;
         opr.varsize:=0;
         opr.constoffset:=0;
         Fillchar(opr.ref,sizeof(treference),0);
         opr.ref.symbol:=hsymbol;
         opr.ref.offset:=hsymofs;
+        opr.ref_farproc_entry:=hsym_farprocentry;
       end;
     else
       begin
@@ -1012,6 +1023,7 @@ Begin
         opr.typ:=OPR_REFERENCE;
         opr.varsize:=0;
         opr.constoffset:=0;
+        opr.ref_farproc_entry:=false;
         Fillchar(opr.ref,sizeof(treference),0);
       end;
   end;
