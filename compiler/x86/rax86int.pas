@@ -2032,6 +2032,10 @@ Unit Rax86int;
         is_far_const:boolean;
         i:byte;
         tmp: toperand;
+{$ifdef i8086}
+        hsymbol: TAsmSymbol;
+        hoffset: ASizeInt;
+{$endif i8086}
       begin
         PrefixOp:=A_None;
         OverrideOp:=A_None;
@@ -2205,6 +2209,20 @@ Unit Rax86int;
         for i:=1 to operandnum do
           with instr.operands[i].opr do
             begin
+              { convert 'call/jmp [proc/label]' to 'call/jmp proc/label'. Ugly,
+                but Turbo Pascal 7 compatible. }
+              if (instr.opcode in [A_CALL,A_JMP]) and (typ=OPR_REFERENCE) and
+                 assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL,AT_ADDR]) and
+                 (ref.base=NR_NO) and (ref.index=NR_NO) then
+                begin
+                  hsymbol:=ref.symbol;
+                  hoffset:=ref.offset;
+                  typ:=OPR_SYMBOL;
+                  symbol:=hsymbol;
+                  symofs:=hoffset;
+                  symseg:=False;
+                  sym_farproc_entry:=False; { todo: set this correctly }
+                end;
               { convert 'call/jmp symbol' to 'call/jmp far symbol' for symbols that are an entry point of a far procedure }
               if (instr.opcode in [A_CALL,A_JMP]) and (instr.opsize=S_NO) and
                  (typ=OPR_SYMBOL) and sym_farproc_entry then
