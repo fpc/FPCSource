@@ -1639,6 +1639,9 @@ implementation
 
 
    procedure ttai_typedconstbuilder.queue_emit_const(cs: tconstsym);
+     var
+       resourcestrrec: trecorddef;
+       ansiptr: tdef;
      begin
        if cs.consttyp<>constresourcestring then
          internalerror(2014062102);
@@ -1647,7 +1650,14 @@ implementation
        { warning: update if/when the type of resource strings changes }
        case cs.consttyp of
          constresourcestring:
-           emit_tai(Tai_const.Createname(make_mangledname('RESSTR',cs.owner,cs.name),AT_DATA,sizeof(pint)),cpointerdef.getreusable(cansistringtype));
+           begin
+             resourcestrrec:=trecorddef(search_system_type('TRESOURCESTRINGRECORD').typedef);
+             ansiptr:=cpointerdef.getreusable(cansistringtype);
+             queue_subscriptn_multiple_by_name(resourcestrrec,['CURRENTVALUE']);
+             queue_emit_asmsym(current_asmdata.RefAsmSymbol(
+               make_mangledname('RESSTR',cs.owner,cs.name),AT_DATA),cansistringtype
+             );
+           end;
          { can these occur? }
          constord,
          conststring,constreal,
