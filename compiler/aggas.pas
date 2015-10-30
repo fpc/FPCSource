@@ -602,7 +602,7 @@ implementation
                     writer.AsmWrite(','+tostr(fillop))
 {$ifdef x86}
                   { force NOP as alignment op code }
-                  else if LastSecType=sec_code then
+                  else if (LastSecType=sec_code) and (asminfo^.id<>as_solaris_as) then
                     writer.AsmWrite(',0x90');
 {$endif x86}
 {$ifdef m68k}
