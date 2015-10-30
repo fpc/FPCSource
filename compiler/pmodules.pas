@@ -2027,7 +2027,11 @@ type
               exportlib.preparelib(program_name);
 
               if tf_library_needs_pic in target_info.flags then
-                include(current_settings.moduleswitches,cs_create_pic);
+                begin
+                  include(current_settings.moduleswitches,cs_create_pic);
+                  { also set create_pic for all unit compilation }
+                  include(init_settings.moduleswitches,cs_create_pic);
+                end;
 
               { setup things using the switches, do this before the semicolon, because after the semicolon has been
                 read, all following directives are parsed as well }
