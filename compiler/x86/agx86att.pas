@@ -356,7 +356,7 @@ interface
            (op<>A_FLDCW) and
            (not fskipPopcountSuffix or
             (op<>A_POPCNT)) and
-           ((owner.asminfo^.id=as_solaris_as) and (op<>A_Jcc) and (op<>A_SETcc)) and
+           ((owner.asminfo^.id<>as_solaris_as) or (op<>A_Jcc) and (op<>A_SETcc)) and
            not(
                (taicpu(hp).ops<>0) and
                (taicpu(hp).oper[0]^.typ=top_reg) and
