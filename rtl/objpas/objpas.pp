@@ -313,17 +313,6 @@ begin
 end;
 
 Type
-  PResourceStringRecord = ^TResourceStringRecord;
-  TResourceStringRecord = Packed Record
-     Name,
-     CurrentValue,
-     DefaultValue : AnsiString;
-     HashValue    : LongWord;
-{$ifdef cpu64}
-     Dummy        : LongWord; // alignment
-{$endif cpu64}
-   end;
-
    TResourceStringTableList = Packed Record
      Count : sizeint;
      Tables : Array[{$ifdef cpu16}Byte{$else cpu16}Word{$endif cpu16}] of record

@@ -439,3 +439,20 @@
   const
     { for safe as operator support }
     IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}';
+
+
+{*****************************************************************************
+                              Resourcestring support
+*****************************************************************************}
+
+  type
+    PResourceStringRecord = ^TResourceStringRecord;
+    TResourceStringRecord = Packed Record
+       Name,
+       CurrentValue,
+       DefaultValue : AnsiString;
+       HashValue    : LongWord;
+  {$ifdef cpu64}
+       Dummy        : LongWord; // alignment
+  {$endif cpu64}
+     end;
