@@ -449,19 +449,23 @@ implementation
       var
         lab: tasmlabel;
         i: longint;
+        tcb: ttai_typedconstbuilder;
       begin
         current_asmdata.getglobaldatalabel(lab);
         result:=lab;
         lab_set:=lab;
-        maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,result.name,const_align(8));
-        current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lab));
+        tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
+        tcb.maybe_begin_aggregate(resultdef);
         if (source_info.endian=target_info.endian) then
           for i:=0 to resultdef.size-1 do
-            current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
+            tcb.emit_tai(tai_const.create_8bit(Psetbytes(value_set)^[i]),u8inttype)
         else
           for i:=0 to resultdef.size-1 do
-            current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));
+            tcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(value_set)^[i])),u8inttype);
+        tcb.maybe_end_aggregate(resultdef);
+        current_asmdata.asmlists[al_typedconsts].concatlist(tcb.get_final_asmlist(
+          result,resultdef,sec_rodata_norel,result.name,const_align(8)));
+        tcb.free;
       end;
 
 
