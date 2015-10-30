@@ -224,7 +224,11 @@ interface
       begin
         case o.typ of
           top_reg :
-            owner.writer.AsmWrite(gas_regname(o.reg));
+            { Solaris assembler does not accept %st instead of %st(0) }
+            if (owner.asminfo^.id=as_solaris_as) and (o.reg=NR_ST) then
+              owner.writer.AsmWrite(gas_regname(NR_ST0))
+            else
+              owner.writer.AsmWrite(gas_regname(o.reg));
           top_ref :
             if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got] then
               WriteReference(o.ref^)
