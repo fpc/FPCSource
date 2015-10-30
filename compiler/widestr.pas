@@ -334,7 +334,7 @@ unit widestr;
         p : punicodemap;
       begin
         Result:=0;
-        p:=getmap(s);
+        p:=getmap(lower(s));
         if (p<>nil) then
           Result:=p^.cp;
       end;
@@ -345,7 +345,7 @@ unit widestr;
       var
         p2: pchar;
         i, chars, codepointlen: sizeint;
-      {$ENDIF FPC_HAS_CPSTRING}
+      {$ENDIF FPC_HAS_CPSRING}
       begin
 {$IFDEF FPC_HAS_CPSTRING}
         if len=0 then
