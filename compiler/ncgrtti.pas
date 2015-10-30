@@ -1541,6 +1541,7 @@ implementation
         current_asmdata.AsmLists[al_rtti].concatList(
           tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,const_align(sizeof(pint))));
         write_rtti_extrasyms(def,rt,rttilab);
+        tcb.free;
       end;
 
 
