@@ -1115,10 +1115,13 @@ implementation
     procedure tcgarrayconstructornode.pass_generate_code;
       var
         hp    : tarrayconstructornode;
-        href  : treference;
+        href,
+        fref  : treference;
         lt    : tdef;
         realresult: tdef;
         paraloc : tcgparalocation;
+        varvtypefield,
+        varfield : tfieldvarsym;
         vtype : longint;
         eledef: tdef;
         elesize : longint;
@@ -1135,6 +1138,7 @@ implementation
         if dovariant then
           begin
             eledef:=search_system_type('TVARREC').typedef;
+            varvtypefield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VTYPE'));
             elesize:=eledef.size;
             { in this case, the elementdef is set to "void", so create an
               array of tvarrec instead }
@@ -1143,6 +1147,7 @@ implementation
         else
           begin
             eledef:=tarraydef(resultdef).elementdef;
+            varvtypefield:=nil;
             elesize:=tarraydef(resultdef).elesize;
             realresult:=resultdef;
           end;
@@ -1181,6 +1186,7 @@ implementation
                begin
                  { find the correct vtype value }
                  vtype:=$ff;
+                 varfield:=nil;
                  vaddr:=false;
                  lt:=hp.left.resultdef;
                  case lt.typ of
@@ -1191,38 +1197,65 @@ implementation
                          begin
                             case torddef(lt).ordtype of
                               scurrency:
-                                vtype:=vtCurrency;
+                                begin
+                                  vtype:=vtCurrency;
+                                  varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VCURRENCY'));
+                                end;
                               s64bit:
-                                vtype:=vtInt64;
+                                begin
+                                  vtype:=vtInt64;
+                                  varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VINT64'));
+                                end;
                               u64bit:
-                                vtype:=vtQWord;
+                                begin
+                                  vtype:=vtQWord;
+                                  varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VQWORD'));
+                                end;
                             end;
                             freetemp:=false;
                             vaddr:=true;
                          end
                        else if (lt.typ=enumdef) or
-                         is_integer(lt) then
-                         vtype:=vtInteger
+                           is_integer(lt) then
+                         begin
+                           vtype:=vtInteger;
+                           varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VINTEGER'));
+                         end
                        else
                          if is_boolean(lt) then
-                           vtype:=vtBoolean
+                           begin
+                             vtype:=vtBoolean;
+                             varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VBOOLEAN'));
+                           end
                          else
                            if (lt.typ=orddef) then
                              begin
                                case torddef(lt).ordtype of
                                  uchar:
-                                   vtype:=vtChar;
+                                   begin
+                                     vtype:=vtChar;
+                                     varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VCHAR'));
+                                   end;
                                  uwidechar:
-                                   vtype:=vtWideChar;
+                                   begin
+                                     vtype:=vtWideChar;
+                                     varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VWIDECHAR'));
+                                   end;
                                end;
                              end;
                      end;
                    floatdef :
                      begin
                        if is_currency(lt) then
-                         vtype:=vtCurrency
+                         begin
+                           vtype:=vtCurrency;
+                           varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VCURRENCY'));
+                         end
                        else
-                         vtype:=vtExtended;
+                         begin
+                           vtype:=vtExtended;
+                           varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VEXTENDED'));
+                         end;
                        freetemp:=false;
                        vaddr:=true;
                      end;
@@ -1230,26 +1263,45 @@ implementation
                    pointerdef :
                      begin
                        if is_pchar(lt) then
-                         vtype:=vtPChar
+                         begin
+                           vtype:=vtPChar;
+                           varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VPCHAR'));
+                         end
                        else if is_pwidechar(lt) then
-                         vtype:=vtPWideChar
+                         begin
+                           vtype:=vtPWideChar;
+                           varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VPWIDECHAR'));
+                         end
                        else
-                         vtype:=vtPointer;
+                         begin
+                           vtype:=vtPointer;
+                           varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VPOINTER'));
+                         end;
                      end;
                    variantdef :
                      begin
                         vtype:=vtVariant;
+                        varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VVARIANT'));
                         vaddr:=true;
                         freetemp:=false;
                      end;
                    classrefdef :
-                     vtype:=vtClass;
+                     begin
+                       vtype:=vtClass;
+                       varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VCLASS'));
+                     end;
                    objectdef :
                      if is_interface(lt) then
-                       vtype:=vtInterface
+                       begin
+                         vtype:=vtInterface;
+                         varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VINTERFACE'));
+                       end
                      { vtObject really means a class based on TObject }
                      else if is_class(lt) then
-                       vtype:=vtObject
+                       begin
+                         vtype:=vtObject;
+                         varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VOBJECT'));
+                       end
                      else
                        internalerror(200505171);
                    stringdef :
@@ -1257,6 +1309,7 @@ implementation
                        if is_shortstring(lt) then
                         begin
                           vtype:=vtString;
+                          varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VSTRING'));
                           vaddr:=true;
                           freetemp:=false;
                         end
@@ -1264,39 +1317,45 @@ implementation
                         if is_ansistring(lt) then
                          begin
                            vtype:=vtAnsiString;
+                           varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VANSISTRING'));
                            freetemp:=false;
                          end
                        else
                         if is_widestring(lt) then
                          begin
                            vtype:=vtWideString;
+                           varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VWIDESTRING'));
                            freetemp:=false;
                          end
                        else
                         if is_unicodestring(lt) then
                          begin
                            vtype:=vtUnicodeString;
+                           varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VUNICODESTRING'));
                            freetemp:=false;
                          end;
                      end;
                  end;
                  if vtype=$ff then
                    internalerror(14357);
+                 if not assigned(varfield) then
+                   internalerror(2015102901);
                  { write changing field update href to the next element }
-                 inc(href.offset,sizeof(pint));
+                 fref:=href;
+                 hlcg.g_set_addr_nonbitpacked_record_field_ref(current_asmdata.CurrAsmList,trecorddef(eledef),varfield,fref);
                  if vaddr then
                   begin
-                    hlcg.location_force_mem(current_asmdata.CurrAsmList,hp.left.location,hp.left.resultdef);
-                    tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
-                    hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hp.left.resultdef,voidpointertype,hp.left.location.reference,tmpreg);
-                    hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,tmpreg,href);
+                    hlcg.location_force_mem(current_asmdata.CurrAsmList,hp.left.location,lt);
+                    tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(lt));
+                    hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hp.left.resultdef,cpointerdef.getreusable(lt),hp.left.location.reference,tmpreg);
+                    hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(lt),cpointerdef.getreusable(varfield.vardef),tmpreg,fref);
                   end
                  else
-                  { todo: proper type information for hlcg }
-                  hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,{$ifdef cpu16bitaddr}u32inttype{$else}voidpointertype{$endif},hp.left.location,href);
+                    hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,cpointerdef.getreusable(varfield.vardef),hp.left.location,fref);
                  { update href to the vtype field and write it }
-                 dec(href.offset,sizeof(pint));
-                 cg.a_load_const_ref(current_asmdata.CurrAsmList, OS_INT,vtype,href);
+                 fref:=href;
+                 hlcg.g_set_addr_nonbitpacked_record_field_ref(current_asmdata.CurrAsmList,trecorddef(eledef),varvtypefield,fref);
+                 hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(varvtypefield.vardef),vtype,fref);
                  { goto next array element }
                  advancearrayoffset(href,elesize);
                end
