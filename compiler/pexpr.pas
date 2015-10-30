@@ -583,9 +583,13 @@ implementation
           in_addr_x :
             begin
               consume(_LKLAMMER);
-              in_args:=true;
-              p1:=comp_expr(true,false);
+              got_addrn:=true;
+              p1:=factor(true,false,false);
+              { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
+              if token<>_RKLAMMER then
+                p1:=sub_expr(opcompare,true,false,p1);
               p1:=caddrnode.create(p1);
+              got_addrn:=false;
               consume(_RKLAMMER);
               statement_syssym:=p1;
             end;

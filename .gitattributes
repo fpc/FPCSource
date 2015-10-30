@@ -11149,6 +11149,7 @@ tests/test/cg/taddint.pp svneol=native#text/plain
 tests/test/cg/taddlong.pp svneol=native#text/plain
 tests/test/cg/taddr1.pp svneol=native#text/plain
 tests/test/cg/taddr2.pp svneol=native#text/plain
+tests/test/cg/taddr3.pp svneol=native#text/plain
 tests/test/cg/taddreal1.pp svneol=native#text/plain
 tests/test/cg/taddreal2.pp svneol=native#text/plain
 tests/test/cg/taddreal3.pp svneol=native#text/plain
