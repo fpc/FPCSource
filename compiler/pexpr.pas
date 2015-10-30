@@ -599,12 +599,15 @@ implementation
               if target_info.system in systems_managed_vm then
                 message(parser_e_feature_unsupported_for_vm);
               consume(_LKLAMMER);
-              in_args:=true;
-              p1:=comp_expr(true,false);
+              got_addrn:=true;
+              p1:=factor(true,false,false);
+              { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
+              if token<>_RKLAMMER then
+                p1:=sub_expr(opcompare,true,false,p1);
               p1:=caddrnode.create(p1);
-              do_typecheckpass(p1);
+              got_addrn:=false;
               { Ofs() returns a cardinal/qword, not a pointer }
-              p1.resultdef:=uinttype;
+              inserttypeconv_internal(p1,uinttype);
               consume(_RKLAMMER);
               statement_syssym:=p1;
             end;

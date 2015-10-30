@@ -781,6 +781,15 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 node:=hp;
               end;
         { allows horrible ofs(typeof(TButton)^) code !! }
+        if (node.nodetype=typeconvn) then
+          with Ttypeconvnode(node) do
+            if (left.nodetype=addrn) and equal_defs(uinttype,node.resultdef) then
+              begin
+                hp:=left;
+                left:=nil;
+                node.free;
+                node:=hp;
+              end;
         if (node.nodetype=addrn) then
           with Taddrnode(node) do
             if left.nodetype=derefn then
