@@ -1235,6 +1235,17 @@ implementation
       recref:=thlcgllvm(hlcg).make_simple_ref(list,recref,recdef);
       list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,field.llvmfieldnr,true));
       reference_reset_base(recref,cpointerdef.getreusable(field.vardef),newbase,field.offsetfromllvmfield,newalignment(recref.alignment,field.fieldoffset+field.offsetfromllvmfield));
+      { in case of an 80 bits extended type, typecast from an array of 10
+        bytes (used because otherwise llvm will allocate the ABI-defined
+        size for extended, which is usually larger) into an extended }
+      if (llvmfielddef.typ=floatdef) and
+         (tfloatdef(llvmfielddef).floattype=s80real) then
+        g_ptrtypecast_ref(list,cpointerdef.getreusable(carraydef.getreusable(u8inttype,10)),cpointerdef.getreusable(s80floattype),recref);
+      { if it doesn't match the requested field exactly (variant record),
+        adjust the type of the pointer }
+      if (field.offsetfromllvmfield<>0) or
+         (llvmfielddef<>field.vardef) then
+        hlcg.g_ptrtypecast_ref(list,cpointerdef.getreusable(llvmfielddef),cpointerdef.getreusable(field.vardef),recref);
     end;
 
 
