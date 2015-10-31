@@ -1225,7 +1225,7 @@ implementation
                          if is_boolean(lt) then
                            begin
                              vtype:=vtBoolean;
-                             varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VBOOLEAN'));
+                             varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VINTEGER'));
                            end
                          else
                            if (lt.typ=orddef) then
@@ -1234,12 +1234,12 @@ implementation
                                  uchar:
                                    begin
                                      vtype:=vtChar;
-                                     varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VCHAR'));
+                                     varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VINTEGER'));
                                    end;
                                  uwidechar:
                                    begin
                                      vtype:=vtWideChar;
-                                     varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VWIDECHAR'));
+                                     varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VINTEGER'));
                                    end;
                                end;
                              end;
