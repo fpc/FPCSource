@@ -1355,7 +1355,7 @@ implementation
                  { update href to the vtype field and write it }
                  fref:=href;
                  hlcg.g_set_addr_nonbitpacked_record_field_ref(current_asmdata.CurrAsmList,trecorddef(eledef),varvtypefield,fref);
-                 hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(varvtypefield.vardef),vtype,fref);
+                 hlcg.a_load_const_ref(current_asmdata.CurrAsmList,varvtypefield.vardef,vtype,fref);
                  { goto next array element }
                  advancearrayoffset(href,elesize);
                end
