@@ -1351,7 +1351,7 @@ implementation
                     hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(lt),cpointerdef.getreusable(varfield.vardef),tmpreg,fref);
                   end
                  else
-                    hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,cpointerdef.getreusable(varfield.vardef),hp.left.location,fref);
+                    hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,varfield.vardef,hp.left.location,fref);
                  { update href to the vtype field and write it }
                  fref:=href;
                  hlcg.g_set_addr_nonbitpacked_record_field_ref(current_asmdata.CurrAsmList,trecorddef(eledef),varvtypefield,fref);
