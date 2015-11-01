@@ -2226,6 +2226,7 @@ implementation
          { check for method pointer and local procedure pointer:
              a) anything but procvars can be assigned to blocks
              b) if one is a procedure of object, the other also has to be one
+                ("object static procedure" is equal to procedure as well)
                 (except for block)
              c) if one is a pure address, the other also has to be one
                 except if def1 is a global proc and def2 is a nested procdef
@@ -2242,7 +2243,9 @@ implementation
            { can't explicitly check against procvars here, because
              def1 may already be a procvar due to a proc_to_procvar;
              this is checked in the type conversion node itself -> ok }
-         else if (def1.is_methodpointer<>def2.is_methodpointer) or  { b) }
+         else if
+            ((def1.is_methodpointer and not (po_staticmethod in def1.procoptions))<> { b) }
+             (def2.is_methodpointer and not (po_staticmethod in def2.procoptions))) or
             ((def1.is_addressonly<>def2.is_addressonly) and         { c) }
              (is_nested_pd(def1) or
               not is_nested_pd(def2))) or
@@ -2261,7 +2264,7 @@ implementation
          { check return value and options, methodpointer is already checked }
          po_comp:=[po_interrupt,po_iocheck,po_varargs];
          { check static only if we compare method pointers }
-         if def1.is_methodpointer then
+         if def1.is_methodpointer and def2.is_methodpointer then
            include(po_comp,po_staticmethod);
          if (m_delphi in current_settings.modeswitches) then
            exclude(po_comp,po_varargs);
