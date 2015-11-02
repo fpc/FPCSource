@@ -201,6 +201,10 @@ begin
     if CompilerTarget = mipsel then
       P.Options.Add('-Fu../compiler/mips');
 
+    { Handle SPECIALLINK environment variable if available }
+    s:=GetEnvironmentVariable('SPECIALLINK');
+    if s<>'' then
+      P.Options.Add(s);
     P.Options.Add('-Sg');
     P.IncludePath.Add('compiler');
 
