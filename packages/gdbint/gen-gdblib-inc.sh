@@ -387,6 +387,11 @@ BEGIN {
       print "echo dynamic linker " list[i] " skipped";
       continue
     }
+    if ( list[i] ~ /^-plugin$/ ) {
+      i++;
+      print "echo collect2 -plugin " list[i] " skipped";
+      continue
+    }
     if ( list[i] ~ /lib[^ ]*\.so/ ) {
       dynamiclib = gensub (/([^ ]*)(lib[^ ]*\.so)/,"\\1\\2 ","g",list[i]);
       print "echo " dynamiclib " found";
@@ -424,9 +429,13 @@ chmod u+x ./copy-libs.sh
 
 # Check if mingw executable contains
 # __cpu_features_init function
-has_cpu_features_init=`objdump -t gdb.exe | grep cpu_features_init `
-if [ "X$has_cpu_features_init" == "X" ] ; then
-  mingw_no_cpu_features_init=1
+if [ -f gdb.exe ] ; then
+  has_cpu_features_init=`objdump -t gdb.exe | grep cpu_features_init `
+  if [ "X$has_cpu_features_init" == "X" ] ; then
+    mingw_no_cpu_features_init=1
+  else
+    mingw_no_cpu_features_init=0
+  fi
 else
   mingw_no_cpu_features_init=0
 fi
@@ -470,6 +479,11 @@ BEGIN {
     if ( list[i] ~ /^-dynamic-linker$/ ) {
       i++;
       print "{ Dynamic linker found " list[i] " }";
+      continue
+    }
+    if ( list[i] ~ /^-plugin$/ ) {
+      i++;
+      print "{ collect2 -plugin " list[i] " ignored }";
       continue
     }
     if ( list[i] ~ /-D__USE_MINGW_/ ) {
