@@ -110,6 +110,7 @@ begin
   Writeln('  archive           Create archive of package');
   Writeln('  download          Download package');
   Writeln('  convertmk         Convert Makefile.fpc to fpmake.pp');
+  Writeln('  info              Show more information about a package');
   Writeln('  fixbroken         Recompile all (broken) packages with changed dependencies');
   Writeln('  listsettings      Show the values for all fppkg settings');
 //  Writeln('  addconfig          Add a compiler configuration for the supplied compiler');
