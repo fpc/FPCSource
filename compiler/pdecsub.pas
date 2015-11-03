@@ -973,6 +973,13 @@ implementation
                  Message(parser_e_only_methods_allowed);
 
                repeat
+                 { only 1 class constructor and destructor is allowed in the class and
+                   the check was already done with oo_has_class_constructor or
+                   oo_has_class_destructor -> skip searching
+                   (bug #28801) }
+                 if (potype in [potype_class_constructor,potype_class_destructor]) then
+                   break;
+
                  searchagain:=false;
                  current_tokenpos:=procstartfilepos;
 
