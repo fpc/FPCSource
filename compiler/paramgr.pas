@@ -560,7 +560,7 @@ implementation
             retloc.def:=tdef(p.owner.defowner);
             if not (is_implicit_pointer_object_type(retloc.def) or
                (retloc.def.typ<>objectdef)) then
-              retloc.def:=cpointerdef.getreusable(retloc.def);
+              retloc.def:=cpointerdef.getreusable_no_free(retloc.def);
           end;
         retcgsize:=def_cgsize(retloc.def);
         retloc.intsize:=retloc.def.size;
@@ -568,7 +568,7 @@ implementation
         { Return is passed as var parameter }
         if ret_in_param(retloc.def,p) then
           begin
-            retloc.def:=cpointerdef.getreusable(retloc.def);
+            retloc.def:=cpointerdef.getreusable_no_free(retloc.def);
             paraloc:=retloc.add_location;
             paraloc^.loc:=LOC_REFERENCE;
             paraloc^.size:=retcgsize;
@@ -621,7 +621,7 @@ implementation
         else if restlen in [1,2,4,8] then
           result:=cgsize_orddef(int_cgsize(restlen))
         else
-          result:=carraydef.getreusable(u8inttype,restlen);
+          result:=carraydef.getreusable_no_free(u8inttype,restlen);
       end;
 
 

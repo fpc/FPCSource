@@ -225,6 +225,11 @@ interface
           { returns a pointerdef for def, reusing an existing one in case it
             exists in the current module }
           class function getreusable(def: tdef): tpointerdef; virtual;
+          { same as above, but in case the def must never be freed after the
+            current module has been compiled -- even if the def was not written
+            to the ppu file (for defs in para locations, as we don't reset them
+            so we don't have to recalculate them all the time) }
+          class function getreusable_no_free(def: tdef): tpointerdef;
           function size:asizeint;override;
           function getcopy:tstoreddef;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -496,6 +501,11 @@ interface
           constructor create_from_pointer(def:tpointerdef);virtual;
           constructor create(l,h:asizeint;def:tdef);virtual;
           class function getreusable(def: tdef; elems: asizeint): tarraydef; virtual;
+          { same as above, but in case the def must never be freed after the
+            current module has been compiled -- even if the def was not written
+            to the ppu file (for defs in para locations, as we don't reset them
+            so we don't have to recalculate them all the time) }
+          class function getreusable_no_free(def: tdef; elems: asizeint): tarraydef;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy; override;
           function getcopy : tstoreddef;override;
@@ -616,6 +626,11 @@ interface
           constructor create(level:byte);virtual;
           { returns a procvardef that represents the address of a proc(var)def }
           class function getreusableprocaddr(def: tabstractprocdef): tprocvardef; virtual;
+          { same as above, but in case the def must never be freed after the
+            current module has been compiled -- even if the def was not written
+            to the ppu file (for defs in para locations, as we don't reset them
+            so we don't have to recalculate them all the time) }
+          class function getreusableprocaddr_no_free(def: tabstractprocdef): tprocvardef;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -2154,6 +2169,7 @@ implementation
        { Register in current_module }
        if assigned(current_module) then
          begin
+           exclude(defoptions,df_not_registered_no_free);
            if defid<defid_not_registered then
              defid:=deflist_index
            else
@@ -3224,6 +3240,14 @@ implementation
       end;
 
 
+    class function tpointerdef.getreusable_no_free(def: tdef): tpointerdef;
+      begin
+        result:=getreusable(def);
+        if not result.is_registered then
+          include(result.defoptions,df_not_registered_no_free);
+      end;
+
+
     function tpointerdef.size: asizeint;
       begin
         result:=sizeof(pint);
@@ -3538,6 +3562,13 @@ implementation
             symtablestack:=oldsymtablestack;
           end;
         result:=tarraydef(res^.Data);
+      end;
+
+    class function tarraydef.getreusable_no_free(def: tdef; elems: asizeint): tarraydef;
+      begin
+        result:=getreusable(def,elems);
+        if not result.is_registered then
+          include(result.defoptions,df_not_registered_no_free);
       end;
 
 
@@ -6083,6 +6114,14 @@ implementation
             symtablestack:=oldsymtablestack;
           end;
         result:=tprocvardef(res^.Data);
+      end;
+
+
+    class function tprocvardef.getreusableprocaddr_no_free(def: tabstractprocdef): tprocvardef;
+      begin
+        result:=getreusableprocaddr(def);
+        if not result.is_registered then
+          include(result.defoptions,df_not_registered_no_free);
       end;
 
 

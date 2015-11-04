@@ -568,7 +568,8 @@ implementation
           begin
             def:=tdef(current_module.localsymtable.deflist[i]);
             { this also frees def, as the defs are owned by the symtable }
-            if not def.is_registered then
+            if not def.is_registered and
+               not(df_not_registered_no_free in def.defoptions) then
               current_module.localsymtable.deletedef(def);
           end;
       end;

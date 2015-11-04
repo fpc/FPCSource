@@ -255,7 +255,7 @@ unit cpupara;
 
             if push_addr_param(hp.varspez,paradef,p.proccalloption) then
               begin
-                paradef:=cpointerdef.getreusable(paradef);
+                paradef:=cpointerdef.getreusable_no_free(paradef);
                 loc:=LOC_REGISTER;
                 paracgsize:=OS_ADDR;
                 paralen:=tcgsize2size[OS_ADDR];
@@ -353,7 +353,7 @@ unit cpupara;
                         if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                           begin
                             paraloc^.size:=OS_ADDR;
-                            paraloc^.def:=cpointerdef.getreusable(paradef);
+                            paraloc^.def:=cpointerdef.getreusable_no_free(paradef);
                             assignintreg
                           end
                         else

@@ -212,7 +212,13 @@ type
     { def has been copied from another def so symtable is not owned }
     df_copied_def,
     { def was created as a generic constraint and thus is only "shallow" }
-    df_genconstraint
+    df_genconstraint,
+    { don't free def after finishing the implementation section even if it
+      wasn't written to the ppu, as this def may still be referred (e.g. because
+      it was used to set the type of a paraloc, since paralocs are reused
+      across units) -- never stored to ppu, because in that case the def would
+      be registered }
+    df_not_registered_no_free
   );
   tdefoptions=set of tdefoption;
 

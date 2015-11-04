@@ -1420,7 +1420,9 @@ const
      (mask:df_generic;        str:'Generic'),
      (mask:df_specialization; str:'Specialization'),
      (mask:df_copied_def;     str:'Copied Typedef'),
-     (mask:df_genconstraint;  str:'Generic Constraint')
+     (mask:df_genconstraint;  str:'Generic Constraint'),
+     { this should never happen for defs stored to a ppu file }
+     (mask:df_not_registered_no_free;  str:'Unregistered/No free (invalid)')
   );
   defstate : array[1..ord(high(tdefstate))] of tdefstateinfo=(
      (mask:ds_vmt_written;           str:'VMT Written'),

@@ -196,7 +196,7 @@ implementation
             if push_addr_param(hp.varspez,paradef,p.proccalloption) then
               begin
                 paracgsize:=OS_ADDR;
-                paradef:=cpointerdef.getreusable(paradef);
+                paradef:=cpointerdef.getreusable_no_free(paradef);
               end
             else
               begin

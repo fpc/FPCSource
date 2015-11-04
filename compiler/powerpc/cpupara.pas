@@ -87,7 +87,7 @@ unit cpupara;
         psym:=tparavarsym(pd.paras[nr-1]);
         pdef:=psym.vardef;
         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=cpointerdef.getreusable(pdef);
+          pdef:=cpointerdef.getreusable_no_free(pdef);
         cgpara.reset;
         cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
@@ -389,7 +389,7 @@ unit cpupara;
 
               if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                 begin
-                  paradef:=cpointerdef.getreusable(paradef);
+                  paradef:=cpointerdef.getreusable_no_free(paradef);
                   loc:=LOC_REGISTER;
                   paracgsize := OS_ADDR;
                   paralen := tcgsize2size[OS_ADDR];
@@ -570,7 +570,7 @@ unit cpupara;
                              if paraloc^.size<>OS_NO then
                                paraloc^.def:=cgsize_orddef(paraloc^.size)
                              else
-                               paraloc^.def:=carraydef.getreusable(u8inttype,paralen);
+                               paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
                            end;
                          else
                            internalerror(2006011101);
