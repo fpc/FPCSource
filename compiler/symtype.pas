@@ -308,7 +308,8 @@ implementation
 
     function tdef.GetTypeName : string;
       begin
-         GetTypeName:='<unknown type>'      end;
+         GetTypeName:='<unknown type>'
+      end;
 
 
     function tdef.typesymbolprettyname:string;
