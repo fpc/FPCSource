@@ -345,7 +345,7 @@ unit widestr;
       var
         p2: pchar;
         i, chars, codepointlen: sizeint;
-      {$ENDIF FPC_HAS_CPSRING}
+      {$ENDIF FPC_HAS_CPSTRING}
       begin
 {$IFDEF FPC_HAS_CPSTRING}
         if len=0 then
