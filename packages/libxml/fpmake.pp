@@ -25,6 +25,7 @@ begin
   T:=P.Targets.AddUnit('xml2.pas');
   with T.Dependencies do
     begin
+      AddInclude('xml2.inc');
       AddInclude('xinclude.inc');
       AddInclude('xpointer.inc');
       AddInclude('HTMLparser.inc');

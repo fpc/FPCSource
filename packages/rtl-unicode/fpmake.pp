@@ -49,6 +49,12 @@ begin
     P.IncludePath.Add('src/collations');
 
     T:=P.Targets.AddUnit('unicodeducet.pas',CollationOSes);
+    with T.Dependencies do
+      begin
+        AddInclude('ucadata.inc');
+        AddInclude('ucadata_le.inc');
+        AddInclude('ucadata_be.inc');
+      end;
     T:=P.Targets.AddUnit('buildcollations.pas',CollationOSes);
     T.Install:=False;
     with T.Dependencies do

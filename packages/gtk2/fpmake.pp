@@ -170,6 +170,9 @@ begin
       with T.Dependencies do
         begin
           AddInclude('gdkincludes.inc');
+          AddInclude('gdkdisplaymanager.inc');
+          AddInclude('gdkspawn.inc');
+          AddInclude('gdkcairo.inc');
           AddInclude('gdkcolor.inc');
           AddInclude('gdkcursor.inc');
           AddInclude('gdkdnd.inc');
@@ -194,7 +197,6 @@ begin
           AddInclude('gdktypes.inc');
           AddInclude('gdkvisual.inc');
           AddInclude('gdkwindow.inc');
-          AddInclude('gdkincludes.inc');
           AddInclude('gdkcolor.inc');
           AddInclude('gdkcursor.inc');
           AddInclude('gdkdnd.inc');
@@ -219,7 +221,6 @@ begin
           AddInclude('gdktypes.inc');
           AddInclude('gdkvisual.inc');
           AddInclude('gdkwindow.inc');
-          AddInclude('gdkincludes.inc');
           AddInclude('gdkcolor.inc');
           AddInclude('gdkcursor.inc');
           AddInclude('gdkdnd.inc');
@@ -244,7 +245,6 @@ begin
           AddInclude('gdktypes.inc');
           AddInclude('gdkvisual.inc');
           AddInclude('gdkwindow.inc');
-          AddInclude('gdkincludes.inc');
           AddInclude('gdkcolor.inc');
           AddInclude('gdkcursor.inc');
           AddInclude('gdkdnd.inc');
@@ -439,6 +439,8 @@ begin
           AddInclude('gboxed.inc');
           AddInclude('gmodule.inc');
           AddInclude('gmarshal.inc');
+          AddInclude('gincludes.inc');
+          AddInclude('goption.inc');
         end;
     T:=P.Targets.AddImplicitUnit('src/gtk+/gtk/gtk2.pas');
       T.IncludePath.Add('src/gtk+/gtk');
@@ -1132,6 +1134,14 @@ begin
           AddInclude('gtkentrycompletion.inc');
           AddInclude('gtkuimanager.inc');
           AddInclude('gtktreemodelfilter.inc');
+
+          AddInclude('gtkseparatortoolitem.inc');
+          AddInclude('gtkaboutdialog.inc');
+          AddInclude('gtkcellrendererprogress.inc');
+          AddInclude('gtkfilechooserbutton.inc');
+          AddInclude('gtkcellview.inc');
+          AddInclude('gtkiconview.inc');
+          AddInclude('gtkmenutoolbutton.inc');
         end;
     T:=P.Targets.AddImplicitUnit('src/gtkglext/gtkglext.pas');
       T.IncludePath.Add('src/gtkglext');
@@ -1220,6 +1230,8 @@ begin
           AddInclude('pango-item.inc');
           AddInclude('pango-layout.inc');
           AddInclude('pango-tabs.inc');
+          AddInclude('pango-matrix.inc');
+          AddInclude('pango-renderer.inc');
         end;
     
     T:=P.Targets.AddImplicitUnit('src/pangocairo/pangocairo.pas');
