@@ -118,7 +118,7 @@ begin
       AddUnit('contnrs');
       end;
     // Additional sources
-    P.Sources.AddSrcFiles('src/win/fclel.*');
+    P.Sources.AddSrcFiles('src/win/fclel.*', P.Directory);
     // Install windows resources
     P.InstallFiles.Add('src/win/fclel.res',AllWindowsOSes,'$(unitinstalldir)');
 
