@@ -34,8 +34,10 @@ interface
        protected
         function first_get_frame: tnode; override;
         function first_abs_real: tnode; override;
+        function first_sqr_real: tnode; override;
        public
         procedure second_length; override;
+        procedure second_sqr_real; override;
       end;
 
 
@@ -48,7 +50,8 @@ implementation
        nutils,nadd,nbas,ncal,ncon,nflw,ninl,nld,nmat,
        pass_2,
        cgbase,cgutils,tgobj,hlcgobj,
-       cpubase;
+       cpubase,
+       llvmbase,aasmllvm;
 
 
      function tllvminlinenode.first_get_frame: tnode;
@@ -114,6 +117,16 @@ implementation
       end;
 
 
+    function tllvminlinenode.first_sqr_real: tnode;
+      begin
+        result:=nil;
+        if use_vectorfpu(left.resultdef) then
+          expectloc:=LOC_MMREGISTER
+        else
+          expectloc:=LOC_FPUREGISTER;
+      end;
+
+
     procedure tllvminlinenode.second_length;
       var
         lengthlab, nillab: tasmlabel;
@@ -168,6 +181,29 @@ implementation
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
            location.register:=hregister;
          end;
+      end;
+
+
+    procedure tllvminlinenode.second_sqr_real;
+      begin
+        secondpass(left);
+        location.loc:=expectloc;
+        if expectloc=LOC_MMREGISTER then
+          begin
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+            location.register:=hlcg.getmmregister(current_asmdata.CurrAsmList,resultdef);
+          end
+        else
+          begin
+            hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+            location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+          end;
+        current_asmdata.CurrAsmList.concat(
+          taillvm.op_reg_size_reg_reg(la_mul,
+            location.register,resultdef,
+            left.location.register,left.location.register
+          )
+        );
       end;
 
 begin
