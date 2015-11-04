@@ -2561,7 +2561,7 @@ var
 begin
   S:=TProcess.Create(Nil);
   S.Commandline:=ACompiler+' '+AOptions;
-  S.Options:=[poUsePipes];
+  S.Options:=[poUsePipes,poWaitOnExit];
   S.execute;
   Count:=s.output.read(buf,BufSize);
   if (count=0) and ReadStdErr then
