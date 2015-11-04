@@ -96,6 +96,7 @@ begin
       with T.Dependencies do
         begin
         AddUnit('db');
+        AddUnit('sqldb');
         AddUnit('bufdataset');
         end;
 
@@ -721,6 +722,7 @@ begin
           AddUnit('db');
           AddUnit('bufdataset');
           AddUnit('dbconst');
+          AddUnit('sqlscript');
         end;
     T:=P.Targets.AddUnit('sqldblib.pp');
       with T.Dependencies do

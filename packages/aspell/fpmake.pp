@@ -31,6 +31,7 @@ begin
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('aspell.pp');
+    T.Dependencies.AddInclude('src/aspelltypes.inc');
     T:=P.Targets.AddUnit('aspelldyn.pp');
     T:=P.Targets.AddUnit('spellcheck.pp');
     with T.Dependencies do

@@ -65,6 +65,7 @@ begin
     with T.Dependencies do
       begin
         AddInclude('varutilh.inc');
+        AddInclude('varerror.inc');
         AddInclude('varutils.inc',VarUtilsOSes-[win32,win64]);
         AddInclude('cvarutil.inc');
       end;
