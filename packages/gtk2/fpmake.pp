@@ -441,6 +441,7 @@ begin
           AddInclude('gmarshal.inc');
           AddInclude('gincludes.inc');
           AddInclude('goption.inc');
+          AddInclude('gwin32.inc',AllWindowsOSes);
         end;
     T:=P.Targets.AddImplicitUnit('src/gtk+/gtk/gtk2.pas');
       T.IncludePath.Add('src/gtk+/gtk');

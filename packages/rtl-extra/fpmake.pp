@@ -77,6 +77,7 @@ begin
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/darwin',[iphonesim]);
+    P.IncludePath.Add('src/win',AllWindowsOSes);
 
     T:=P.Targets.AddUnit('ucomplex.pp',UComplexOSes);
 
@@ -109,6 +110,7 @@ begin
      begin
        addinclude('osdefs.inc',AllUnixOSes);
        addinclude('socketsh.inc');
+       addinclude('fpwinsockh.inc',AllWindowsOSes);
        addinclude('sockets.inc');
        addinclude('sockovl.inc');
        addinclude('unxsockh.inc',UnixLikes);
