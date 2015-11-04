@@ -580,7 +580,7 @@ interface
 {$ifdef m68k}
           exp_funcretloc : tregister;   { explicit funcretloc for AmigaOS }
 {$endif}
-          funcretloc : array[tcallercallee] of TCGPara;
+          funcretloc : array[callerside..calleeside] of TCGPara;
           has_paraloc_info : tcallercallee; { paraloc info is available }
           { number of user visible parameters }
           maxparacount,
@@ -6121,7 +6121,7 @@ implementation
         tprocvardef(result).calleeargareasize:=calleeargareasize;
         tprocvardef(result).maxparacount:=maxparacount;
         tprocvardef(result).minparacount:=minparacount;
-        for i:=low(tcallercallee) to high(tcallercallee) do
+        for i:=low(funcretloc) to high(funcretloc) do
           tprocvardef(result).funcretloc[i]:=funcretloc[i].getcopy;
         tprocvardef(result).has_paraloc_info:=has_paraloc_info;
 {$ifdef m68k}

@@ -258,7 +258,7 @@ interface
       tlocalvarsymclass = class of tlocalvarsym;
 
       tparavarsym = class(tabstractnormalvarsym)
-          paraloc       : array[tcallercallee] of TCGPara;
+          paraloc       : array[callerside..calleeside] of TCGPara;
           paranr        : word; { position of this parameter }
           { in MacPas mode, "univ" parameters mean that type checking should
             be disabled, except that the size of the passed parameter must
