@@ -82,6 +82,7 @@ procedure TMakeTool.ShowUsage;
 begin
   Writeln('Usage: ',Paramstr(0),' [options] <action> <package>');
   Writeln('Options:');
+  Writeln('  -C --config-file   Specify the configuration file to use');
   Writeln('  -c --config        Set compiler configuration to use');
   Writeln('  -h --help          This help');
   Writeln('  -v --verbose       Show more information');
@@ -195,7 +196,12 @@ begin
     begin
       Inc(I);
       // Check options.
-      if CheckOption(I,'c','config') then
+      if CheckOption(I,'C','config-file') then
+        begin
+          // Do nothing, the config-file has already been read.
+          OptionArg(I);
+        end
+      else if CheckOption(I,'c','config') then
         GlobalOptions.CompilerConfig:=OptionArg(I)
       else if CheckOption(I,'v','verbose') then
         LogLevels:=AllLogLevels
