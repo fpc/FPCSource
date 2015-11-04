@@ -2563,6 +2563,8 @@ begin
              def:=TPpuFieldDef.Create(ParentDef);
              readabstractvarsym('Field Variable symbol ',varoptions,TPpuVarDef(def));
              writeln([space,'      Address : ',getaint]);
+             if vo_has_mangledname in varoptions then
+               writeln([space,' Mangled name : ',getstring]);
            end;
 
          ibstaticvarsym :
@@ -2572,11 +2574,10 @@ begin
              write  ([space,' DefaultConst : ']);
              readderef('');
              if (vo_has_mangledname in varoptions) then
-{$ifdef symansistr}
-               writeln([space,' Mangledname : ',getansistring]);
-{$else symansistr}
-               writeln([space,' Mangledname : ',getstring]);
-{$endif symansistr}
+               if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+                 writeln([space,'AMangledname : ',getansistring])
+               else
+                 writeln([space,'SMangledname : ',getstring]);
              if vo_has_section in varoptions then
                writeln(['Section name:',ppufile.getansistring]);
              write  ([space,' FieldVarSymDeref: ']);
@@ -2976,11 +2977,10 @@ begin
              readcommondef('Procedure definition',defoptions,def);
              read_abstract_proc_def(calloption,procoptions,TPpuProcDef(def));
              if (po_has_mangledname in procoptions) then
-{$ifdef symansistr}
-               writeln([space,'     Mangled name : ',getansistring]);
-{$else symansistr}
-               writeln([space,'     Mangled name : ',getstring]);
-{$endif symansistr}
+               if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+                 writeln([space,'     Mangled name : ',getansistring])
+               else
+                 writeln([space,'     Mangled name : ',getstring]);
              writeln([space,'           Number : ',getword]);
              writeln([space,'            Level : ',getbyte]);
              write  ([space,'            Class : ']);
@@ -3063,6 +3063,8 @@ begin
              { parast }
              readsymtable('parast',TPpuProcDef(def));
              delete(space,1,4);
+             if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+               readderef('');
            end;
 
          ibshortstringdef :
@@ -3306,10 +3308,6 @@ begin
              writeln([space,'  Largest element : ',enumdef.ElHigh]);
              enumdef.Size:=byte(getaint);
              writeln([space,'             Size : ',enumdef.Size]);
-{$ifdef jvm}
-             write([space,'        Class def : ']);
-             readderef('');
-{$endif}
              if df_copied_def in defoptions then
                begin
                  write([space,'Base enumeration type : ']);
@@ -3320,6 +3318,11 @@ begin
                  space:='    '+space;
                  readsymtable('elements',enumdef);
                  delete(space,1,4);
+               end;
+             if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+               begin
+                 write([space,'        Class def : ']);
+                 readderef('');
                end;
            end;
 
