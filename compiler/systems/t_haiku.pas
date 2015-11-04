@@ -251,7 +251,13 @@ begin
    begin
      linklibc:=true;
      cprtobj:='dllprt.o';
+   end
+  else if makelib then
+   begin
+     // Making a dll with libc linking. Should be always the case under Haiku.
+     cprtobj:='dllcprt0';
    end;
+   
 
   if linklibc then
    prtobj:=cprtobj;
