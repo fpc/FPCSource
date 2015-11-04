@@ -78,7 +78,11 @@ function tllvmtypeconvnode.first_int_to_bool: tnode;
   begin
     result:=inherited;
     if not assigned(result) then
-      expectloc:=LOC_JUMP;
+      begin
+        if not((nf_explicit in flags) and
+               not(left.location.loc in [LOC_FLAGS,LOC_JUMP])) then
+          expectloc:=LOC_JUMP;
+      end;
   end;
 
 
