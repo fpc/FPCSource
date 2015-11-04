@@ -1118,7 +1118,6 @@ implementation
         href,
         fref  : treference;
         lt    : tdef;
-        realresult: tdef;
         paraloc : tcgparalocation;
         varvtypefield,
         varfield : tfieldvarsym;
@@ -1135,22 +1134,12 @@ implementation
         dovariant:=
           ((nf_forcevaria in flags) or is_variant_array(resultdef)) and
           not(target_info.system in systems_managed_vm);
+        eledef:=tarraydef(resultdef).elementdef;
+        elesize:=eledef.size;
         if dovariant then
-          begin
-            eledef:=search_system_type('TVARREC').typedef;
-            varvtypefield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VTYPE'));
-            elesize:=eledef.size;
-            { in this case, the elementdef is set to "void", so create an
-              array of tvarrec instead }
-            realresult:=carraydef.getreusable(eledef,tarraydef(resultdef).highrange+1);
-          end
+          varvtypefield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VTYPE'))
         else
-          begin
-            eledef:=tarraydef(resultdef).elementdef;
-            varvtypefield:=nil;
-            elesize:=tarraydef(resultdef).elesize;
-            realresult:=resultdef;
-          end;
+          varvtypefield:=nil;
         { alignment is filled in by tg.gethltemp below }
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,0);
         fillchar(paraloc,sizeof(paraloc),0);
@@ -1161,12 +1150,9 @@ implementation
           of the proper length to avoid getting unexpected results later --
           allocating a temp of size 0 also forces it to be size 4 on regular
           targets }
-         if tarraydef(resultdef).highrange=-1 then
-           tg.gethltemp(current_asmdata.CurrAsmList,realresult,0,tt_normal,location.reference)
-         else
-           tg.gethltemp(current_asmdata.CurrAsmList,realresult,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
-         href:=location.reference;
-         makearrayref(href,eledef);
+        tg.gethltemp(current_asmdata.CurrAsmList,resultdef,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
+        href:=location.reference;
+        makearrayref(href,eledef);
         { Process nodes in array constructor }
         hp:=self;
         while assigned(hp) do
