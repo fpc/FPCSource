@@ -1330,14 +1330,14 @@ implementation
                  fref:=href;
                  hlcg.g_set_addr_nonbitpacked_record_field_ref(current_asmdata.CurrAsmList,trecorddef(eledef),varfield,fref);
                  if vaddr then
-                  begin
-                    hlcg.location_force_mem(current_asmdata.CurrAsmList,hp.left.location,lt);
-                    tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(lt));
-                    hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hp.left.resultdef,cpointerdef.getreusable(lt),hp.left.location.reference,tmpreg);
-                    hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(lt),varfield.vardef,tmpreg,fref);
-                  end
+                   begin
+                     hlcg.location_force_mem(current_asmdata.CurrAsmList,hp.left.location,lt);
+                     tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(lt));
+                     hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hp.left.resultdef,cpointerdef.getreusable(lt),hp.left.location.reference,tmpreg);
+                     hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(lt),varfield.vardef,tmpreg,fref);
+                   end
                  else
-                    hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,varfield.vardef,hp.left.location,fref);
+                   hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,varfield.vardef,hp.left.location,fref);
                  { update href to the vtype field and write it }
                  fref:=href;
                  hlcg.g_set_addr_nonbitpacked_record_field_ref(current_asmdata.CurrAsmList,trecorddef(eledef),varvtypefield,fref);
