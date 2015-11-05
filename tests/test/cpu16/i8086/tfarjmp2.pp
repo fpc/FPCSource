@@ -120,9 +120,9 @@ var
   g32: longint;
 begin
   GetIntVec(NearInt, OldNearIntVec);
-  SetIntVec(NearInt, @IntNearHandler);
+  SetIntVec(NearInt, Ptr(Seg(IntNearHandler),Ofs(IntNearHandler)));
   GetIntVec(FarInt, OldFarIntVec);
-  SetIntVec(FarInt, @IntFarHandler);
+  SetIntVec(FarInt, Ptr(Seg(IntFarHandler),Ofs(IntFarHandler)));
 
   asm
     int NearInt
