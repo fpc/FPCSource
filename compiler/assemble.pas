@@ -1861,6 +1861,11 @@ Implementation
                        internalerror(2015040601)
                      else
                        ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
+                   aitconst_seg:
+                     if assigned(tai_const(hp).sym) and (tai_const(hp).size=2) then
+                       ObjData.writereloc(0,2,Objdata.SymbolRef(tai_const(hp).sym),RELOC_SEG)
+                     else
+                       internalerror(2015110502);
 {$endif i8086}
 {$ifdef arm}
                    aitconst_got:
