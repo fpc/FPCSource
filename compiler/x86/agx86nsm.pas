@@ -763,6 +763,20 @@ interface
                                 tostr(hi(longint(tai_const(hp).value))));
                      writer.AsmLn;
                    end;
+                 aitconst_seg:
+                   begin
+                     writer.AsmWrite(ait_const2str[aitconst_16bit]);
+                     if assigned(tai_const(hp).sym) then
+                       begin
+                         if SmartAsm then
+                           AddSymbol(tai_const(hp).sym.name,false);
+                         writer.AsmWrite('SEG ');
+                         writer.AsmWrite(tai_const(hp).sym.name);
+                       end
+                     else
+                       internalerror(2015110501);
+                     writer.AsmLn;
+                   end;
 {$endif i8086}
                  aitconst_32bit,
                  aitconst_16bit,
