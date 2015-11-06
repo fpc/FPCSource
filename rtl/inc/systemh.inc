@@ -512,6 +512,7 @@ Type
   PPtrInt             = ^PtrInt;
   PPtrUInt            = ^PtrUInt;
   PSizeInt            = ^SizeInt;
+  PSizeUInt           = ^SizeUInt;
 
   PPByte              = ^PByte;
   PPLongint           = ^PLongint;
