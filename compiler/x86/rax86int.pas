@@ -2311,6 +2311,9 @@ Unit Rax86int;
             AS_LPAREN,
             AS_NOT,
             AS_INTNUM,
+{$ifdef i8086}
+            AS_SEG,
+{$endif i8086}
             AS_ID :
               Begin
                 BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp,isseg,is_farproc_entry);
