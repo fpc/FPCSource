@@ -747,6 +747,11 @@ implementation
                   repeat
                     hp:=tai(hp.next);
                   until (hp=nil) or (hp.typ=ait_instruction);
+
+                  { next instruction ... }
+                  fixed_opcode:=taicpu(hp).FixNonCommutativeOpcodes;
+                  taicpu(hp).SetOperandOrder(op_intel);
+
                   { this is theorically impossible... }
                   if hp=nil then
                    begin
