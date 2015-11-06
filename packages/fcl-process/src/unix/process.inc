@@ -416,7 +416,7 @@ begin
             if Assigned(FForkEvent) then
               FForkEvent(Self);
             if (poRunSuspended in Options) then
-              sigraise(SIGSTOP);
+              fpkill(fpgetpid,SIGSTOP);
             if FEnv<>Nil then
               fpexecve(PName,Argv,Fenv)
             else
