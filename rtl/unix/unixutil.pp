@@ -30,18 +30,9 @@ interface
 var
   Tzseconds : Longint;
 
-Type
-  ComStr  = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
-  PathStr = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
-  DirStr  = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
-  NameStr = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
-  ExtStr  = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
-
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
-Function GetFS(var T:Text):longint; deprecated;
-Function GetFS(Var F:File):longint; deprecated; // use sysutils.getfilehandle
 Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);
@@ -155,29 +146,6 @@ begin
    end;
 end;
 
-Function GetFS (var T:Text):longint;
-{
-  Get File Descriptor of a text file.
-}
-begin
-  if textrec(t).mode=fmclosed then
-   exit(-1)
-  else
-   GETFS:=textrec(t).Handle
-end;
-
-Function GetFS(Var F:File):longint;
-{
-  Get File Descriptor of an unTyped file.
-}
-begin
-  { Handle and mode are on the same place in textrec and filerec. }
-  if filerec(f).mode=fmclosed then
-   exit(-1)
-  else
-   GETFS:=filerec(f).Handle
-end;
-
 Const
 {Date Translation}
   C1970=2440588;
@@ -234,7 +202,6 @@ Begin
                 (LongInt(Hour)*3600)+(Longint(Minute)*60)+Second-TZSeconds;
 End;
 
-
 Function GregorianToJulian(Year,Month,Day:Longint):LongInt;
 Var
   Century,XYear: LongInt;
@@ -249,6 +216,5 @@ Begin
   XYear:=(longint(Year Mod 100)*D0) shr 2;
   GregorianToJulian:=((((Month*153)+2) div 5)+Day)+D2+XYear+Century;
 End;
-
 
 end.
