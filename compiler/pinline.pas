@@ -83,7 +83,7 @@ implementation
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
         consume(_LKLAMMER);
-        p:=comp_expr(true,false);
+        p:=comp_expr([ef_accept_equal]);
         { calc return type }
         if is_new then
           begin
@@ -167,7 +167,7 @@ implementation
             if is_typeparam(p.resultdef) then
               begin
                  p.free;
-                 p:=factor(false,false,false);
+                 p:=factor(false,[]);
                  p.free;
                  consume(_RKLAMMER);
                  new_dispose_statement:=cnothingnode.create;
@@ -178,7 +178,7 @@ implementation
               begin
                  Message1(type_e_pointer_type_expected,p.resultdef.typename);
                  p.free;
-                 p:=factor(false,false,false);
+                 p:=factor(false,[]);
                  p.free;
                  consume(_RKLAMMER);
                  new_dispose_statement:=cerrornode.create;
@@ -189,7 +189,7 @@ implementation
               begin
                  Message(parser_e_pointer_to_class_expected);
                  p.free;
-                 new_dispose_statement:=factor(false,false,false);
+                 new_dispose_statement:=factor(false,[]);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -199,7 +199,7 @@ implementation
             if is_class(classh) then
               begin
                  Message(parser_e_no_new_or_dispose_for_classes);
-                 new_dispose_statement:=factor(false,false,false);
+                 new_dispose_statement:=factor(false,[]);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -354,7 +354,7 @@ implementation
                          while (token=_COMMA) and assigned(variantdesc) do
                            begin
                              consume(_COMMA);
-                             p2:=factor(false,false,false);
+                             p2:=factor(false,[]);
                              do_typecheckpass(p2);
                              if p2.nodetype=ordconstn then
                                begin
@@ -421,7 +421,7 @@ implementation
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
         consume(_LKLAMMER);
-        p1:=factor(false,false,false);
+        p1:=factor(false,[]);
         if p1.nodetype<>typen then
          begin
            Message(type_e_type_id_expected);

@@ -85,7 +85,7 @@ implementation
         if orgname='' then
          internalerror(9584582);
         hp:=nil;
-        p:=comp_expr(true,false);
+        p:=comp_expr([ef_accept_equal]);
         nodetype:=p.nodetype;
         storetokenpos:=current_tokenpos;
         current_tokenpos:=filepos;
@@ -666,7 +666,7 @@ implementation
                       { check if it is an ansistirng(codepage) declaration }
                       if is_ansistring(hdef) and try_to_consume(_LKLAMMER) then
                         begin
-                          p:=comp_expr(true,false);
+                          p:=comp_expr([ef_accept_equal]);
                           consume(_RKLAMMER);
                           if not is_constintnode(p) then
                             begin
@@ -989,7 +989,7 @@ implementation
              _EQ:
                 begin
                    consume(_EQ);
-                   p:=comp_expr(true,false);
+                   p:=comp_expr([ef_accept_equal]);
                    storetokenpos:=current_tokenpos;
                    current_tokenpos:=filepos;
                    sym:=nil;

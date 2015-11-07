@@ -1030,11 +1030,11 @@ implementation
              if try_parse_structdef_nested_type(def,current_structdef,false) then
                exit;
            { we can't accept a equal in type }
-           pt1:=comp_expr(false,true);
+           pt1:=comp_expr([ef_type_only]);
            if try_to_consume(_POINTPOINT) then
              begin
                { get high value of range }
-               pt2:=comp_expr(false,false);
+               pt2:=comp_expr([]);
                { make both the same type or give an error. This is not
                  done when both are integer values, because typecasting
                  between -3200..3200 will result in a signed-unsigned
@@ -1610,7 +1610,7 @@ implementation
                     begin
                        oldlocalswitches:=current_settings.localswitches;
                        include(current_settings.localswitches,cs_allow_enum_calc);
-                       p:=comp_expr(true,false);
+                       p:=comp_expr([ef_accept_equal]);
                        current_settings.localswitches:=oldlocalswitches;
                        if (p.nodetype=ordconstn) then
                         begin

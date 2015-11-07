@@ -181,7 +181,7 @@ implementation
                          if def.typ=arraydef then
                           begin
                             idx:=0;
-                            p:=comp_expr(true,false);
+                            p:=comp_expr([ef_accept_equal]);
                             if (not codegenerror) then
                              begin
                                if (p.nodetype=ordconstn) then
@@ -284,7 +284,7 @@ implementation
 
               if try_to_consume(_DISPID) then
                 begin
-                  pt:=comp_expr(true,false);
+                  pt:=comp_expr([ef_accept_equal]);
                   if is_constintnode(pt) then
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
                       message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
@@ -448,7 +448,7 @@ implementation
               if (idtoken=_INDEX) then
                 begin
                    consume(_INDEX);
-                   pt:=comp_expr(true,false);
+                   pt:=comp_expr([ef_accept_equal]);
                    { Only allow enum and integer indexes. Convert all integer
                      values to objpas.integer (s32int on 32- and 64-bit targets,
                      s16int on 16- and 8-bit) to be compatible with delphi,
@@ -661,14 +661,14 @@ implementation
                 begin
                   Message(parser_e_property_cant_have_a_default_value);
                   { Error recovery }
-                  pt:=comp_expr(true,false);
+                  pt:=comp_expr([ef_accept_equal]);
                   pt.free;
                 end
               else
                 begin
                   { Get the result of the default, the firstpass is
                     needed to support values like -1 }
-                  pt:=comp_expr(true,false);
+                  pt:=comp_expr([ef_accept_equal]);
                   if (p.propdef.typ=setdef) and
                      (pt.nodetype=arrayconstructorn) then
                     begin
@@ -1773,12 +1773,12 @@ implementation
                 fillchar(variantdesc^^.branches[high(variantdesc^^.branches)],
                   sizeof(variantdesc^^.branches[high(variantdesc^^.branches)]),0);
                 repeat
-                  pt:=comp_expr(true,false);
+                  pt:=comp_expr([ef_accept_equal]);
                   if not(pt.nodetype=ordconstn) then
                     Message(parser_e_illegal_expression);
                   { iso pascal does not support ranges in variant record definitions }
                   if not(m_iso in current_settings.modeswitches) and try_to_consume(_POINTPOINT) then
-                    pt:=crangenode.create(pt,comp_expr(true,false))
+                    pt:=crangenode.create(pt,comp_expr([ef_accept_equal]))
                   else
                     begin
                       with variantdesc^^.branches[high(variantdesc^^.branches)] do

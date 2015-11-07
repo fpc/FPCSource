@@ -818,7 +818,7 @@ implementation
           var
             node : tnode;
           begin
-            node:=factor(false,true,true);
+            node:=factor(false,[ef_type_only,ef_had_specialize]);
             if node.nodetype=typen then
               begin
                 sp:=ttypenode(node).typedef.typesym.name;
@@ -1865,7 +1865,7 @@ var pt:Tnode;
 begin
   if pd.typ<>procdef then
     internalerror(200604301);
-  pt:=comp_expr(true,false);
+  pt:=comp_expr([ef_accept_equal]);
   if is_constintnode(pt) then
     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
       message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
@@ -1950,7 +1950,7 @@ begin
       if paracnt<>1 then
         Message(parser_e_ill_msg_param);
     end;
-  pt:=comp_expr(true,false);
+  pt:=comp_expr([ef_accept_equal]);
   { message is 1-character long }
   if is_constcharnode(pt) then
     begin
