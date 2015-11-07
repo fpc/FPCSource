@@ -60,8 +60,8 @@ type
     procedure WriteHeader(DictStart: DWord; DictBlocks: Word);
     procedure WriteFooter;
     procedure WriteLib;
-    function WriteDictionary: byte;
-    function TryWriteDictionaryWithSize(nblocks: Byte): Boolean;
+    function WriteDictionary: Word;
+    function TryWriteDictionaryWithSize(nblocks: Word): Boolean;
   public
     constructor createAr(const Aarfn:string);override;
     constructor createAr(const Aarfn:string;PageSize:Integer);
@@ -253,7 +253,7 @@ implementation
       var
         libf: TCCustomFileStream;
         DictStart: LongWord;
-        DictBlocks: Byte;
+        DictBlocks: Word;
       begin
         libf:=CFileStreamClass.Create(FLibName,fmCreate);
         if CStreamError<>0 then
@@ -269,9 +269,9 @@ implementation
         libf.Free;
       end;
 
-        function TOmfLibObjectWriter.WriteDictionary: byte;
+    function TOmfLibObjectWriter.WriteDictionary: Word;
       var
-        nb: Byte;
+        nb: Word;
       begin
         for nb in OmfLibDictionaryBlockCounts do
           if TryWriteDictionaryWithSize(nb) then
@@ -280,7 +280,8 @@ implementation
         internalerror(2015042202);
       end;
 
-    function TOmfLibObjectWriter.TryWriteDictionaryWithSize(nblocks: Byte): Boolean;
+        function TOmfLibObjectWriter.TryWriteDictionaryWithSize(nblocks: Word
+      ): Boolean;
       const
         nbuckets=37;
         freespace=nbuckets;
