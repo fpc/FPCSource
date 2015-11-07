@@ -1069,14 +1069,14 @@ end;
 
 function TStringHelper.Split(const Separators: array of Char): TStringArray;
 begin
-  Result:=SPlit(Separators,#0,#0,Length,TStringSplitOptions([]));
+  Result:=SPlit(Separators,#0,#0,Length,TStringSplitOptions.None);
 end;
 
 
 function TStringHelper.Split(const Separators: array of Char; ACount: Integer
   ): TStringArray;
 begin
-  Result:=SPlit(Separators,#0,#0,ACount,TStringSplitOptions([]));
+  Result:=SPlit(Separators,#0,#0,ACount,TStringSplitOptions.None);
 end;
 
 
@@ -1103,7 +1103,7 @@ end;
 function TStringHelper.Split(const Separators: array of string; ACount: Integer
   ): TStringArray;
 begin
-  Result:=Split(Separators,ACount,TStringSplitOptions([]));
+  Result:=Split(Separators,ACount,TStringSplitOptions.None);
 end;
 
 
@@ -1131,7 +1131,7 @@ end;
 function TStringHelper.Split(const Separators: array of Char; AQuoteStart,
   AQuoteEnd: Char): TStringArray;
 begin
-  Result:=Split(Separators,AQuoteStart,AQuoteEnd,TStringSplitOptions([]));
+  Result:=Split(Separators,AQuoteStart,AQuoteEnd,TStringSplitOptions.None);
 end;
 
 
@@ -1145,7 +1145,7 @@ end;
 function TStringHelper.Split(const Separators: array of Char; AQuoteStart,
   AQuoteEnd: Char; ACount: Integer): TStringArray;
 begin
-  Result:=Split(Separators,AQuoteStart,AQuoteEnd,ACount,TStringSplitOptions([]));
+  Result:=Split(Separators,AQuoteStart,AQuoteEnd,ACount,TStringSplitOptions.None);
 end;
 
 
@@ -1215,7 +1215,7 @@ end;
 function TStringHelper.Split(const Separators: array of string; AQuoteStart,
   AQuoteEnd: Char): TStringArray;
 begin
-  Result:=SPlit(Separators,AQuoteStart,AQuoteEnd,Length,TStringSplitOptions([]));
+  Result:=SPlit(Separators,AQuoteStart,AQuoteEnd,Length,TStringSplitOptions.None);
 end;
 
 
@@ -1229,7 +1229,7 @@ end;
 function TStringHelper.Split(const Separators: array of string; AQuoteStart,
   AQuoteEnd: Char; ACount: Integer): TStringArray;
 begin
-  Result:=SPlit(Separators,AQuoteStart,AQuoteEnd,ACount,TStringSplitOptions([]));
+  Result:=SPlit(Separators,AQuoteStart,AQuoteEnd,ACount,TStringSplitOptions.None);
 end;
 
 
