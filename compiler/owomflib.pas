@@ -277,7 +277,7 @@ implementation
           if TryWriteDictionaryWithSize(nb) then
             exit(nb);
         { could not write dictionary, even with the largest number of blocks }
-        internalerror(2015042201);
+        internalerror(2015042202);
       end;
 
     function TOmfLibObjectWriter.TryWriteDictionaryWithSize(nblocks: Byte): Boolean;
