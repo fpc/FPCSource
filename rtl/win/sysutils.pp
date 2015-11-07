@@ -21,6 +21,8 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 uses
   windows;
@@ -1249,10 +1251,25 @@ function DoCompareStringW(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): Ptr
       RaiseLastOSError;
   end;
 
-function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
-  begin
-    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
-  end;
+const
+  WinAPICompareFlags : array [TCompareOption] of LongWord 
+    = (LINGUISTIC_IGNORECASE,  LINGUISTIC_IGNOREDIACRITIC, NORM_IGNORECASE, 
+       NORM_IGNOREKANATYPE, NORM_IGNORENONSPACE, NORM_IGNORESYMBOLS, NORM_IGNOREWIDTH,
+       NORM_LINGUISTIC_CASING, SORT_DIGITSASNUMBERS, SORT_STRINGSORT);
+       
+function Win32CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
+
+Var
+  O : LongWord;              
+  CO : TCompareOption;
+   
+begin
+  O:=0;  
+  for CO in TCompareOption do
+    if CO in Options then
+      O:=O or WinAPICompareFlags[CO];
+  Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), O);
+end;
 
 
 function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
@@ -1338,10 +1355,19 @@ function Win32AnsiStrUpper(Str: PChar): PChar;
     result:=str;
   end;
 
-function Win32CompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
-  begin
-    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
-  end;
+function Win32CompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
+
+Var
+  O : LongWord;              
+  CO : TCompareOption;
+   
+begin
+  O:=0;  
+  for CO in TCompareOption do
+    if CO in Options then
+      O:=O or WinAPICompareFlags[CO];
+    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), O);
+end;
 
 
 function Win32CompareTextUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
@@ -1365,7 +1391,6 @@ procedure InitWin32Widestrings;
       > 0 if that's the length in bytes of the code point }
 //!!!!    CodePointLengthProc : function(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
     widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
-    widestringmanager.CompareTextWideStringProc:=@Win32CompareTextWideString;
     widestringmanager.UpperAnsiStringProc:=@Win32AnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@Win32AnsiLowerCase;
     widestringmanager.CompareStrAnsiStringProc:=@Win32AnsiCompareStr;
@@ -1377,7 +1402,6 @@ procedure InitWin32Widestrings;
     widestringmanager.StrLowerAnsiStringProc:=@Win32AnsiStrLower;
     widestringmanager.StrUpperAnsiStringProc:=@Win32AnsiStrUpper;
     widestringmanager.CompareUnicodeStringProc:=@Win32CompareUnicodeString;
-    widestringmanager.CompareTextUnicodeStringProc:=@Win32CompareTextUnicodeString;
   end;
 
 { Platform-specific exception support }

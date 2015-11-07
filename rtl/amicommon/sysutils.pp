@@ -27,6 +27,8 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 {$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
