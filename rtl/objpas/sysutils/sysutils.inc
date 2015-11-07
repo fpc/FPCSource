@@ -41,7 +41,9 @@
   {$i varerror.inc}
   
   { Type helpers}
+  {$IFNDEF VER2_6}
   {$i syshelp.inc}
+  {$ENDIF}
 
   {$ifndef OS_FILEISREADONLY}
   Function FileIsReadOnly(const FileName: RawByteString): Boolean;
