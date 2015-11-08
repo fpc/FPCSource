@@ -2953,7 +2953,7 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 #
 # Internal linker messages
 #
-# 09206 is the last used one
+# 09207 is the last used one
 #
 # BeginOfTeX
 % \section{Linker messages}
@@ -2976,6 +2976,12 @@ link_e_segment_too_large=09205_E_Segment "$1" too large (exceeds 64k by $2 bytes
 link_e_group_too_large=09206_E_Group "$1" too large (exceeds 64k by $2 bytes)
 % Error when a 16-bit program's object modules define a segment group that
 % exceeds 64k bytes
+link_e_com_program_uses_segment_relocations=09207_E_Cannot create a .COM file, because the program contains segment relocations
+% Error occurs, when creating a tiny model DOS .COM file, but at least one of
+% the program's object modules contains segment relocations. Segment relocations
+% might be caused by the use of the Seg() function or by the SEG assembler
+% directive (either in pascal's built-in inline assembler, or in an externally
+% linked assembly module).
 %\end{description}
 # EndOfTeX
 

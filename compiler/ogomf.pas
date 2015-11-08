@@ -2288,6 +2288,11 @@ implementation
         bytesread: LongWord;
       begin
         FillHeaderData;
+        if Length(Header.Relocations)>0 then
+          begin
+            Message(link_e_com_program_uses_segment_relocations);
+            exit(False);
+          end;
         ExeSec:=MZFlatContentSection;
         for i:=0 to ExeSec.ObjSectionList.Count-1 do
           begin
