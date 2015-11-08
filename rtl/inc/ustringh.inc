@@ -52,11 +52,14 @@ procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp 
 procedure DefaultAnsi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
 
 Type
-  TCompareOption = (coLingIgnoreCase, coLingIgnoreDiacritic, coIgnoreCase,
+  { please only enable options below after creating a test program for them that
+    passes on Windows and committing it, so it can be used to verify the
+    functionality on other platforms }
+  TCompareOption = ({coLingIgnoreCase, coLingIgnoreDiacritic, }coIgnoreCase{,
                     coIgnoreKanaType, coIgnoreNonSpace, coIgnoreSymbols, coIgnoreWidth,
-                    coLingCasing, coDigitAsNumbers, coStringSort);
+                    coLingCasing, coDigitAsNumbers, coStringSort});
   TCompareOptions = set of TCompareOption;
-                                              TStandardCodePageEnum = (
+  TStandardCodePageEnum = (
     scpAnsi,                 // system Ansi code page (GetACP on windows)
     scpConsoleInput,         // system console input code page (GetConsoleCP on windows)
     scpConsoleOutput,        // system console output code page (GetConsoleOutputCP on windows)
