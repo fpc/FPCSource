@@ -763,9 +763,12 @@ begin
 end;
 
 
-function WinCECompareWideString(const s1, s2 : WideString) : PtrInt;
+function WinCECompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
 begin
-  Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
+  if coIgnoreCase in Options then
+    Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE)
+  else  
+    Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
 end;
 
 
@@ -775,9 +778,12 @@ begin
 end;
 
 
-function WinCECompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+function WinCECompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
 begin
-  Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
+   if coIgnoreCase in Options then
+     Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE)
+   else  
+     Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
 end;
 
 
@@ -925,9 +931,7 @@ end;
 procedure InitWinCEWidestrings;
   begin
     widestringmanager.CompareWideStringProc:=@WinCECompareWideString;
-    widestringmanager.CompareTextWideStringProc:=@WinCECompareTextWideString;
     widestringmanager.CompareUnicodeStringProc:=@WinCECompareUnicodeString;
-    widestringmanager.CompareTextUnicodeStringProc:=@WinCECompareTextUnicodeString;
 
     widestringmanager.UpperAnsiStringProc:=@WinCEAnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@WinCEAnsiLowerCase;
