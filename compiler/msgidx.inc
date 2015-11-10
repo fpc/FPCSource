@@ -800,6 +800,7 @@ const
   asmr_e_invalid_ref_register=07125;
   asmr_e_seg_without_identifier=07126;
   asmr_e_CODE_or_DATA_without_SEG=07127;
+  asmr_e_const16bit_for_segment=07128;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -1022,9 +1023,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 76379;
+  MsgTxtSize = 76461;
 
   MsgIdxMax : array[1..20] of longint=(
-    27,99,344,124,96,58,128,32,208,64,
+    27,99,344,124,96,58,129,32,208,64,
     58,20,1,1,1,1,1,1,1,1
   );

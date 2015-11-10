@@ -2457,7 +2457,7 @@ cg_f_max_units_reached=06057_F_Maximum number of units ($1) reached for the curr
 #
 # Assembler reader
 #
-# 07127 is the last used one
+# 07128 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2763,6 +2763,10 @@ asmr_e_seg_without_identifier=07126_E_SEG used without identifier
 % supported
 asmr_e_CODE_or_DATA_without_SEG=07127_E_@CODE and @DATA can only be used with the SEG operator
 % You can only use @CODE and @DATA symbols together with the SEG operator
+asmr_e_const16bit_for_segment=07128_E_Not enough space (16 bits required) for the segment constant of symbol $1
+% Specifying a segment constant for a symbol via the SEG operator requires at
+% least 16 bits of space for the segment. This error occurs, if you specify
+% less, for example, if you use 'DB SEG symbol' instead of 'DW SEG symbol'.
 
 #
 # Assembler/binary writers

@@ -2351,26 +2351,40 @@ Unit Rax86int;
                 BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp,isseg,is_farproc_entry);
                 if asmsym<>'' then
                  begin
-                   if constsize<>sizeof(pint) then
+                   if (not isseg) and (constsize<>sizeof(pint)) then
                      Message1(asmr_w_const32bit_for_address,asmsym);
 {$ifdef i8086}
                    if asmsym='@DATA' then
                      begin
                        if not isseg then
                          Message(asmr_e_CODE_or_DATA_without_SEG);
+                       if constsize<2 then
+                         Message1(asmr_e_const16bit_for_segment,asmsym);
                        if current_settings.x86memorymodel=mm_huge then
                          curlist.concat(Tai_const.Create_fardataseg)
                        else
                          curlist.concat(Tai_const.Create_dgroup);
+                       if constsize>2 then
+                         ConcatConstant(curlist,0,constsize-2);
                      end
                    else if asmsym='@CODE' then
                      begin
                        if not isseg then
                          Message(asmr_e_CODE_or_DATA_without_SEG);
+                       if constsize<2 then
+                         Message1(asmr_e_const16bit_for_segment,asmsym);
                        curlist.concat(Tai_const.Create_seg_name(current_procinfo.procdef.mangledname));
+                       if constsize>2 then
+                         ConcatConstant(curlist,0,constsize-2);
                      end
                    else if isseg then
-                     curlist.concat(Tai_const.Create_seg_name(asmsym))
+                     begin
+                       if constsize<2 then
+                         Message1(asmr_e_const16bit_for_segment,asmsym);
+                       curlist.concat(Tai_const.Create_seg_name(asmsym));
+                       if constsize>2 then
+                         ConcatConstant(curlist,0,constsize-2);
+                     end
                    else
 {$endif i8086}
                      ConcatConstSymbol(curlist,asmsym,asmsymtyp,value);
