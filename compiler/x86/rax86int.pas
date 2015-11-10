@@ -1803,9 +1803,15 @@ Unit Rax86int;
                       Consume(AS_ID);
                     end
                    else
-                    if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
+                    if actasmpattern = '@CODE' then
                      begin
-                       Message(asmr_w_CODE_and_DATA_not_supported);
+                       oper.SetupCode;
+                       Consume(AS_ID);
+                     end
+                   else
+                    if actasmpattern = '@DATA' then
+                     begin
+                       oper.SetupData;
                        Consume(AS_ID);
                      end
                    else

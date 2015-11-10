@@ -45,6 +45,10 @@ type
     Procedure SetSize(_size:longint;force:boolean);override;
     Procedure SetCorrectSize(opcode:tasmop);override;
     Function CheckOperand: boolean; override;
+    { handles the @Code symbol }
+    Procedure SetupCode;
+    { handles the @Data symbol }
+    Procedure SetupData;
   end;
 
   { Operands are always in AT&T order.
@@ -281,6 +285,18 @@ begin
             end;
         end;
     end;
+end;
+
+
+procedure Tx86Operand.SetupCode;
+begin
+  Message(asmr_w_CODE_and_DATA_not_supported);
+end;
+
+
+procedure Tx86Operand.SetupData;
+begin
+  Message(asmr_w_CODE_and_DATA_not_supported);
 end;
 
 
