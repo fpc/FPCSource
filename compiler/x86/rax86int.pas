@@ -1616,6 +1616,12 @@ Unit Rax86int;
               Message(asmr_e_CODE_or_DATA_without_SEG);
             oper.SetupData;
           end
+        else if tempstr='@CODE' then
+          begin
+            if not isseg then
+              Message(asmr_e_CODE_or_DATA_without_SEG);
+            oper.SetupCode;
+          end
         else
 {$endif i8086}
         if tempstr<>'' then
@@ -2348,20 +2354,20 @@ Unit Rax86int;
                    if constsize<>sizeof(pint) then
                      Message1(asmr_w_const32bit_for_address,asmsym);
 {$ifdef i8086}
-                   if (asmsym='@CODE') or (asmsym='@DATA') then
+                   if asmsym='@DATA' then
                      begin
                        if not isseg then
                          Message(asmr_e_CODE_or_DATA_without_SEG);
-                       if asmsym='@DATA' then
-                         begin
-                           if current_settings.x86memorymodel=mm_huge then
-                             curlist.concat(Tai_const.Create_fardataseg)
-                           else
-                             curlist.concat(Tai_const.Create_dgroup);
-                         end
-                       else
-                         { todo: implement @CODE }
-                         internalerror(2015111001);
+                         if current_settings.x86memorymodel=mm_huge then
+                           curlist.concat(Tai_const.Create_fardataseg)
+                         else
+                           curlist.concat(Tai_const.Create_dgroup);
+                     end
+                   else if asmsym='@CODE' then
+                     begin
+                       if not isseg then
+                         Message(asmr_e_CODE_or_DATA_without_SEG);
+                       curlist.concat(Tai_const.Create_seg_name(current_procinfo.procdef.mangledname));
                      end
                    else if isseg then
                      curlist.concat(Tai_const.Create_seg_name(asmsym))

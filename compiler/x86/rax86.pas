@@ -290,7 +290,15 @@ end;
 
 procedure Tx86Operand.SetupCode;
 begin
+{$ifdef i8086}
+  opr.typ:=OPR_SYMBOL;
+  opr.symofs:=0;
+  opr.symbol:=current_asmdata.RefAsmSymbol(current_procinfo.procdef.mangledname);
+  opr.symseg:=true;
+  opr.sym_farproc_entry:=false;
+{$else i8086}
   Message(asmr_w_CODE_and_DATA_not_supported);
+{$endif i8086}
 end;
 
 
