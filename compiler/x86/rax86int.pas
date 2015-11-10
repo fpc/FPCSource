@@ -984,7 +984,17 @@ Unit Rax86int;
                    is_asmopcode(actasmpattern) then
                   break;
                 consume(AS_ID);
-                if SearchIConstant(tempstr,l) then
+                if (tempstr='@CODE') or (tempstr='@DATA') then
+                 begin
+                   if asmsym='' then
+                     begin
+                       asmsym:=tempstr;
+                       asmsymtyp:=AT_SECTION;
+                     end
+                   else
+                    Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                 end
+                else if SearchIConstant(tempstr,l) then
                  begin
                    str(l, tempstr);
                    expr:=expr + tempstr;
@@ -1518,7 +1528,10 @@ Unit Rax86int;
                        oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr);
 {$ifdef i8086}
                        if isseg then
-                         oper.opr.ref.refaddr:=addr_seg
+                         begin
+                           if not (oper.opr.ref.refaddr in [addr_fardataseg,addr_dgroup]) then
+                             oper.opr.ref.refaddr:=addr_seg;
+                         end
                        else if (tempsymtyp=AT_FUNCTION) and (oper.opr.ref.segment=NR_NO) then
                          oper.opr.ref.segment:=NR_CS;
 {$endif i8086}
@@ -1596,6 +1609,15 @@ Unit Rax86int;
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
         BuildConstSymbolExpression(true,false,false,l,tempstr,tempsymtyp,isseg,is_farproc_entry);
+{$ifdef i8086}
+        if tempstr='@DATA' then
+          begin
+            if not isseg then
+              Message(asmr_e_CODE_or_DATA_without_SEG);
+            oper.SetupData;
+          end
+        else
+{$endif i8086}
         if tempstr<>'' then
           begin
             oper.opr.typ:=OPR_SYMBOL;
@@ -1803,15 +1825,13 @@ Unit Rax86int;
                       Consume(AS_ID);
                     end
                    else
-                    if actasmpattern = '@CODE' then
+                    if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
                      begin
-                       oper.SetupCode;
-                       Consume(AS_ID);
-                     end
-                   else
-                    if actasmpattern = '@DATA' then
-                     begin
-                       oper.SetupData;
+{$ifdef i8086}
+                       Message(asmr_e_CODE_or_DATA_without_SEG);
+{$else i8086}
+                       Message(asmr_w_CODE_and_DATA_not_supported);
+{$endif i8086}
                        Consume(AS_ID);
                      end
                    else
@@ -2328,7 +2348,22 @@ Unit Rax86int;
                    if constsize<>sizeof(pint) then
                      Message1(asmr_w_const32bit_for_address,asmsym);
 {$ifdef i8086}
-                   if isseg then
+                   if (asmsym='@CODE') or (asmsym='@DATA') then
+                     begin
+                       if not isseg then
+                         Message(asmr_e_CODE_or_DATA_without_SEG);
+                       if asmsym='@DATA' then
+                         begin
+                           if current_settings.x86memorymodel=mm_huge then
+                             curlist.concat(Tai_const.Create_fardataseg)
+                           else
+                             curlist.concat(Tai_const.Create_dgroup);
+                         end
+                       else
+                         { todo: implement @CODE }
+                         internalerror(2015111001);
+                     end
+                   else if isseg then
                      curlist.concat(Tai_const.Create_seg_name(asmsym))
                    else
 {$endif i8086}

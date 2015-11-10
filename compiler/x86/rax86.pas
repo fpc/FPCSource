@@ -296,7 +296,15 @@ end;
 
 procedure Tx86Operand.SetupData;
 begin
+{$ifdef i8086}
+  InitRef;
+  if current_settings.x86memorymodel=mm_huge then
+    opr.ref.refaddr:=addr_fardataseg
+  else
+    opr.ref.refaddr:=addr_dgroup;
+{$else i8086}
   Message(asmr_w_CODE_and_DATA_not_supported);
+{$endif i8086}
 end;
 
 

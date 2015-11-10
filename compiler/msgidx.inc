@@ -799,6 +799,7 @@ const
   asmr_w_check_mem_operand_automap_multiple_size=07124;
   asmr_e_invalid_ref_register=07125;
   asmr_e_seg_without_identifier=07126;
+  asmr_e_CODE_or_DATA_without_SEG=07127;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -1021,9 +1022,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 76316;
+  MsgTxtSize = 76379;
 
   MsgIdxMax : array[1..20] of longint=(
-    27,99,344,124,96,58,127,32,208,64,
+    27,99,344,124,96,58,128,32,208,64,
     58,20,1,1,1,1,1,1,1,1
   );

@@ -777,6 +777,10 @@ interface
                        internalerror(2015110501);
                      writer.AsmLn;
                    end;
+                 aitconst_dgroup:
+                   writer.AsmWriteLn(#9'DW'#9'DGROUP');
+                 aitconst_fardataseg:
+                   writer.AsmWriteLn(#9'DW'#9+current_module.modulename^+'_DATA');
 {$endif i8086}
                  aitconst_32bit,
                  aitconst_16bit,

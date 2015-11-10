@@ -1866,6 +1866,10 @@ Implementation
                        ObjData.writereloc(0,2,Objdata.SymbolRef(tai_const(hp).sym),RELOC_SEG)
                      else
                        internalerror(2015110502);
+                   aitconst_dgroup:
+                     ObjData.writereloc(0,2,nil,RELOC_DGROUP);
+                   aitconst_fardataseg:
+                     ObjData.writereloc(0,2,nil,RELOC_FARDATASEG);
 {$endif i8086}
 {$ifdef arm}
                    aitconst_got:
