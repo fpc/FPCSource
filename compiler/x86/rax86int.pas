@@ -2358,10 +2358,10 @@ Unit Rax86int;
                      begin
                        if not isseg then
                          Message(asmr_e_CODE_or_DATA_without_SEG);
-                         if current_settings.x86memorymodel=mm_huge then
-                           curlist.concat(Tai_const.Create_fardataseg)
-                         else
-                           curlist.concat(Tai_const.Create_dgroup);
+                       if current_settings.x86memorymodel=mm_huge then
+                         curlist.concat(Tai_const.Create_fardataseg)
+                       else
+                         curlist.concat(Tai_const.Create_dgroup);
                      end
                    else if asmsym='@CODE' then
                      begin
