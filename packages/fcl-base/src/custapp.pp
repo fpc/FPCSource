@@ -18,12 +18,14 @@ unit CustApp;
 
 Interface
 
-uses SysUtils,Classes;
+uses SysUtils,Classes,singleinstance;
 
 Type
-  TStringArray = Array of string;
   TExceptionEvent = Procedure (Sender : TObject; E : Exception) Of Object;
   TEventLogTypes = Set of TEventType;
+
+  TCustomApplication = Class;
+  TCustomSingleInstance = Class;
 
   { TCustomApplication }
 
@@ -31,6 +33,7 @@ Type
   Private
     FEventLogFilter: TEventLogTypes;
     FOnException: TExceptionEvent;
+    FSingleInstance: TCustomSingleInstance;
     FTerminated : Boolean;
     FHelpFile,
     FTitle : String;
@@ -42,7 +45,6 @@ Type
     Function GetLocation : String;
     function GetTitle: string;
   Protected
-    function GetOptionAtIndex(AIndex: Integer; IsLong: Boolean): String;
     procedure SetTitle(const AValue: string); Virtual;
     Function GetConsoleApplication : boolean; Virtual;
     Procedure DoRun; Virtual;
@@ -59,10 +61,9 @@ Type
     procedure ShowException(E: Exception);virtual;
     procedure Terminate; virtual;
     // Extra methods.
-    function FindOptionIndex(Const S : String; Var Longopt : Boolean; StartAt : Integer = -1) : Integer;
+    function FindOptionIndex(Const S : String; Var Longopt : Boolean) : Integer;
     Function GetOptionValue(Const S : String) : String;
     Function GetOptionValue(Const C: Char; Const S : String) : String;
-    Function GetOptionValues(Const C: Char; Const S : String) : TStringArray;
     Function HasOption(Const S : String) : Boolean;
     Function HasOption(Const C : Char; Const S : String) : Boolean;
     Function CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; Opts,NonOpts : TStrings; AllErrors : Boolean = False) : String;
@@ -70,8 +71,6 @@ Type
     Function CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; AllErrors : Boolean = False) : String;
     Function CheckOptions(Const ShortOptions : String; Const LongOpts : Array of string; AllErrors : Boolean = False) : String;
     Function CheckOptions(Const ShortOptions : String; Const LongOpts : String; AllErrors : Boolean = False) : String;
-    Function GetNonOptions(Const ShortOptions : String; Const Longopts : Array of string) : TStringArray;
-    Procedure GetNonOptions(Const ShortOptions : String; Const Longopts : Array of string; NonOptions : TStrings);
     Procedure GetEnvironmentList(List : TStrings;NamesOnly : Boolean);
     Procedure GetEnvironmentList(List : TStrings);
     Procedure Log(EventType : TEventType; const Msg : String);
@@ -91,6 +90,15 @@ Type
     Property CaseSensitiveOptions : Boolean Read FCaseSensitiveOptions Write FCaseSensitiveOptions;
     Property StopOnException : Boolean Read FStopOnException Write FStopOnException;
     Property EventLogFilter : TEventLogTypes Read FEventLogFilter Write FEventLogFilter;
+    Property SingleInstance: TCustomSingleInstance read FSingleInstance;
+  end;
+
+  TCustomSingleInstance = class(TBaseSingleInstance)
+  private
+    FEnabled: Boolean;
+  public
+    //you must set Enabled before CustomApplication.Initialize
+    property Enabled: Boolean read FEnabled write FEnabled;
   end;
 
 var CustomApplication : TCustomApplication = nil;
@@ -233,7 +241,10 @@ end;
 
 procedure TCustomApplication.DoRun;
 begin
-  // Do nothing. Override in descendent classes.
+  if FSingleInstance.IsServer then
+    FSingleInstance.ServerCheckMessages;
+
+  // Override in descendent classes.
 end;
 
 procedure TCustomApplication.DoLog(EventType: TEventType; const Msg: String);
@@ -255,6 +266,7 @@ begin
   FOptionChar:='-';
   FCaseSensitiveOptions:=True;
   FStopOnException:=False;
+  FSingleInstance := TCustomSingleInstance.Create(Self);
 end;
 
 destructor TCustomApplication.Destroy;
@@ -281,6 +293,18 @@ end;
 procedure TCustomApplication.Initialize;
 begin
   FTerminated:=False;
+  if FSingleInstance.Enabled then
+  begin
+    case FSingleInstance.Start of
+      siClient:
+      begin
+        FSingleInstance.ClientPostParams;
+        FTerminated:=True;
+      end;
+      siNotResponding:
+        FTerminated:=True;
+    end;
+  end;
 end;
 
 procedure TCustomApplication.Run;
@@ -311,96 +335,37 @@ begin
   Result:=GetoptionValue(#255,S);
 end;
 
-function TCustomApplication.GetOptionAtIndex(AIndex : Integer; IsLong: Boolean): String;
-
-Var
-  P : Integer;
-  O : String;
-
-begin
-  Result:='';
-  If (AIndex=-1) then
-    Exit;
-  If IsLong then
-    begin // Long options have form --option=value
-    O:=Params[AIndex];
-    P:=Pos('=',O);
-    If (P=0) then
-      P:=Length(O);
-    Delete(O,1,P);
-    Result:=O;
-    end
-  else
-    begin // short options have form '-o value'
-    If (AIndex<ParamCount) then
-      if (Copy(Params[AIndex+1],1,1)<>'-') then
-        Result:=Params[AIndex+1];
-    end;
-  end;
-
 function TCustomApplication.GetOptionValue(const C: Char; const S: String
   ): String;
 
 Var
   B : Boolean;
-  I : integer;
+  I,P : integer;
+  O : String;
 
 begin
   Result:='';
   I:=FindOptionIndex(C,B);
   If (I=-1) then
-    I:=FindOptionIndex(S,B);
-  If I<>-1 then
-    Result:=GetOptionAtIndex(I,B);
-end;
-
-function TCustomApplication.GetOptionValues(const C: Char; const S: String): TStringArray;
-
-Var
-  I,Cnt : Integer;
-  B : Boolean;
-
-begin
-  SetLength(Result,ParamCount);
-  Cnt:=0;
-  Repeat
-    I:=FindOptionIndex(C,B,I);
-    If I<>-1 then
-      begin
-      Inc(Cnt);
-      Dec(I);
+    I:=FindoptionIndex(S,B);
+  If (I<>-1) then
+    begin
+    If B then
+      begin // Long options have form --option=value
+      O:=Params[I];
+      P:=Pos('=',O);
+      If (P=0) then
+        P:=Length(O);
+      Delete(O,1,P);
+      Result:=O;
+      end
+    else
+      begin // short options have form '-o value'
+      If (I<ParamCount) then
+        if (Copy(Params[I+1],1,1)<>'-') then
+          Result:=Params[I+1];
       end;
-  Until I=-1;
-  Repeat
-    I:=FindOptionIndex(S,B,I);
-    If I<>-1 then
-      begin
-      Inc(Cnt);
-      Dec(I);
-      end;
-  Until I=-1;
-  SetLength(Result,Cnt);
-  Cnt:=0;
-  I:=-1;
-  Repeat
-    I:=FindOptionIndex(C,B,I);
-    If (I<>-1) then
-      begin
-      Result[Cnt]:=GetOptionAtIndex(I,False);
-      Inc(Cnt);
-      Dec(i);
-      end;
-  Until (I=-1);
-  I:=-1;
-  Repeat
-    I:=FindOptionIndex(S,B,I);
-    If I<>-1 then
-      begin
-      Result[Cnt]:=GetOptionAtIndex(I,True);
-      Inc(Cnt);
-      Dec(i);
-      end;
-  Until (I=-1);
+    end;
 end;
 
 function TCustomApplication.HasOption(const S: String): Boolean;
@@ -413,7 +378,7 @@ begin
 end;
 
 function TCustomApplication.FindOptionIndex(const S: String;
-  var Longopt: Boolean; StartAt : Integer = -1): Integer;
+  var Longopt: Boolean): Integer;
 
 Var
   SO,O : String;
@@ -425,14 +390,11 @@ begin
   else
     SO:=S;
   Result:=-1;
-  I:=StartAt;
-  if (I=-1) then
-    I:=ParamCount;
+  I:=ParamCount;
   While (Result=-1) and (I>0) do
     begin
     O:=Params[i];
-    // - must be seen as an option value
-    If (Length(O)>1) and (O[1]=FOptionChar) then
+    If (Length(O)>0) and (O[1]=FOptionChar) then
       begin
       Delete(O,1,1);
       LongOpt:=(Length(O)>0) and (O[1]=FOptionChar);
@@ -509,11 +471,11 @@ Var
   end;
 
   Procedure AddToResult(Const Msg : string);
-  
+
   begin
     If (Result<>'') then
       Result:=Result+sLineBreak;
-    Result:=Result+Msg;  
+    Result:=Result+Msg;
   end;
 
 begin
@@ -681,37 +643,6 @@ begin
   Finally
     L.Free;
   end;
-end;
-
-function TCustomApplication.GetNonOptions(const ShortOptions: String;
-  const Longopts: array of string): TStringArray;
-
-Var
-  NO : TStrings;
-  I : Integer;
-
-begin
-  No:=TStringList.Create;
-  try
-    GetNonOptions(ShortOptions,LongOpts,No);
-    SetLength(Result,NO.Count);
-    For I:=0 to NO.Count-1 do
-      Result[I]:=NO[i];
-  finally
-    NO.Free;
-  end;
-end;
-
-procedure TCustomApplication.GetNonOptions(const ShortOptions: String;
-  const Longopts: array of string; NonOptions: TStrings);
-
-Var
-  S : String;
-
-begin
-  S:=CheckOptions(ShortOptions,LongOpts,Nil,NonOptions,true);
-  if (S<>'') then
-    Raise EListError.Create(S);
 end;
 
 end.
