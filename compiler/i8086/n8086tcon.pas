@@ -47,7 +47,8 @@ uses
   ncon,ncnv,ninl,nld,
   defcmp,defutil,
   aasmtai,
-  symconst,symtype,symsym,symcpu;
+  symconst,symtype,symsym,symcpu,
+  htypechk;
 
     { ti8086typedconstbuilder }
 
@@ -81,6 +82,37 @@ uses
                     ftcb.emit_tai(Tai_const.Create_seg_name(tstaticvarsym(srsym).mangledname),u16inttype);
                   labelsym :
                     ftcb.emit_tai(Tai_const.Create_seg_name(tlabelsym(srsym).mangledname),u16inttype);
+                  else
+                    Message(type_e_variable_id_expected);
+                end;
+              end
+            else
+              Message(parser_e_illegal_expression);
+          end
+        { support word/smallint constants, initialized with Ofs() or Word(@s) }
+        else if (def.ordtype in [u16bit,s16bit]) and (node.nodetype=typeconvn) and
+          ((Ttypeconvnode(node).left.nodetype=addrn) or
+             is_proc2procvar_load(Ttypeconvnode(node).left,pd)) then
+          begin
+            hp:=tunarynode(Ttypeconvnode(node).left).left;
+            if hp.nodetype=loadn then
+              begin
+                srsym:=tloadnode(hp).symtableentry;
+                case srsym.typ of
+                  procsym :
+                    begin
+                      pd:=tprocdef(tprocsym(srsym).ProcdefList[0]);
+                      if Tprocsym(srsym).ProcdefList.Count>1 then
+                        Message(parser_e_no_overloaded_procvars);
+                      if po_abstractmethod in pd.procoptions then
+                        Message(type_e_cant_take_address_of_abstract_method)
+                      else
+                        ftcb.emit_tai(Tai_const.Createname(pd.mangledname,0),u16inttype);
+                    end;
+                  staticvarsym :
+                    ftcb.emit_tai(Tai_const.Createname(tstaticvarsym(srsym).mangledname,0),u16inttype);
+                  labelsym :
+                    ftcb.emit_tai(Tai_const.Createname(tlabelsym(srsym).mangledname,0),u16inttype);
                   else
                     Message(type_e_variable_id_expected);
                 end;
