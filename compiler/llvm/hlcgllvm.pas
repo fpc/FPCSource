@@ -532,8 +532,12 @@ implementation
                 truncate it before storing. Unfortunately, we cannot truncate
                 records (nor bitcast them to integers), so we first have to
                 store them to memory and then bitcast the pointer to them
+
+                We can't truncate an integer to 3/5/6/7 bytes either, so also
+                pass via a temp in that case
               }
-              if fromsize.typ in [arraydef,recorddef] then
+              if (fromsize.typ in [arraydef,recorddef]) or
+                 (tosize.size in [3,5,6,7]) then
                 begin
                   { store struct/array-in-register to memory }
                   tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
