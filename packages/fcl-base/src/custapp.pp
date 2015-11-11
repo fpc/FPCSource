@@ -18,11 +18,14 @@ unit CustApp;
 
 Interface
 
-uses SysUtils,Classes;
+uses SysUtils,Classes,singleinstance;
 
 Type
   TExceptionEvent = Procedure (Sender : TObject; E : Exception) Of Object;
   TEventLogTypes = Set of TEventType;
+
+  TCustomApplication = Class;
+  TCustomSingleInstance = Class;
 
   { TCustomApplication }
 
@@ -30,6 +33,7 @@ Type
   Private
     FEventLogFilter: TEventLogTypes;
     FOnException: TExceptionEvent;
+    FSingleInstance: TCustomSingleInstance;
     FTerminated : Boolean;
     FHelpFile,
     FTitle : String;
@@ -86,6 +90,15 @@ Type
     Property CaseSensitiveOptions : Boolean Read FCaseSensitiveOptions Write FCaseSensitiveOptions;
     Property StopOnException : Boolean Read FStopOnException Write FStopOnException;
     Property EventLogFilter : TEventLogTypes Read FEventLogFilter Write FEventLogFilter;
+    Property SingleInstance: TCustomSingleInstance read FSingleInstance;
+  end;
+
+  TCustomSingleInstance = class(TBaseSingleInstance)
+  private
+    FEnabled: Boolean;
+  public
+    //you must set Enabled before CustomApplication.Initialize
+    property Enabled: Boolean read FEnabled write FEnabled;
   end;
 
 var CustomApplication : TCustomApplication = nil;
@@ -228,7 +241,10 @@ end;
 
 procedure TCustomApplication.DoRun;
 begin
-  // Do nothing. Override in descendent classes.
+  if FSingleInstance.IsServer then
+    FSingleInstance.ServerCheckMessages;
+
+  // Override in descendent classes.
 end;
 
 procedure TCustomApplication.DoLog(EventType: TEventType; const Msg: String);
@@ -250,6 +266,7 @@ begin
   FOptionChar:='-';
   FCaseSensitiveOptions:=True;
   FStopOnException:=False;
+  FSingleInstance := TCustomSingleInstance.Create(Self);
 end;
 
 destructor TCustomApplication.Destroy;
@@ -276,6 +293,18 @@ end;
 procedure TCustomApplication.Initialize;
 begin
   FTerminated:=False;
+  if FSingleInstance.Enabled then
+  begin
+    case FSingleInstance.Start of
+      siClient:
+      begin
+        FSingleInstance.ClientPostParams;
+        FTerminated:=True;
+      end;
+      siNotResponding:
+        FTerminated:=True;
+    end;
+  end;
 end;
 
 procedure TCustomApplication.Run;
@@ -442,11 +471,11 @@ Var
   end;
 
   Procedure AddToResult(Const Msg : string);
-  
+
   begin
     If (Result<>'') then
       Result:=Result+sLineBreak;
-    Result:=Result+Msg;  
+    Result:=Result+Msg;
   end;
 
 begin

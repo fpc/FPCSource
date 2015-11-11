@@ -52,8 +52,12 @@ begin
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('contnrs.pp');
       T.ResourceStrings:=true;
-    T:=P.Targets.AddUnit('custapp.pp');
+    T:=P.Targets.AddUnit('singleinstance.pp');
       T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('custapp.pp');
+    T.ResourceStrings:=true;
+    with T.Dependencies do
+      AddUnit('singleinstance');
     T:=P.Targets.AddUnit('eventlog.pp');
       T.ResourceStrings:=true;
       with T.Dependencies do
