@@ -90,7 +90,8 @@ implementation
       tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
       { do not use a ref. for calling conventions which allocate all registers, the reg. allocator cannot handle this, see
         also issue #28639, I were not able to create a simple example though to cause the resulting endless spilling }
-      result:=not(procdefinition.proccalloption in [pocall_far16,pocall_pascal,pocall_oldfpccall]);
+      result:=((ref.base=NR_NO) and (ref.index=NR_NO)) or
+              not(procdefinition.proccalloption in [pocall_far16,pocall_pascal,pocall_oldfpccall]);
     end;
 
 
