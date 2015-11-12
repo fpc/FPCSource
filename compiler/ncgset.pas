@@ -101,8 +101,8 @@ implementation
 
     procedure tcgsetelementnode.pass_generate_code;
       begin
-        { load first value in 32bit register }
-          secondpass(left);
+        { load the set element's value }
+        secondpass(left);
 
         { also a second value ? }
         if assigned(right) then
