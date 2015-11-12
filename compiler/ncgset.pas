@@ -103,8 +103,6 @@ implementation
       begin
         { load first value in 32bit register }
           secondpass(left);
-          if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,false);
 
         { also a second value ? }
         if assigned(right) then
