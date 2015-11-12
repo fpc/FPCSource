@@ -221,11 +221,13 @@ interface
                              { ELF: explicit addend }
         symbol     : TObjSymbol;
         objsection : TObjSection; { only used if symbol=nil }
+        group      : TObjSectionGroup; { only used if symbol=nil and objsection=nil }
         ftype      : byte;
         size       : byte;
         flags      : byte;
         constructor CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
         constructor CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
+        constructor CreateGroup(ADataOffset:aword;grp:TObjSectionGroup;Atyp:TObjRelocationType);
         constructor CreateRaw(ADataOffset:aword;s:TObjSymbol;ARawType:byte);
         function TargetName:TSymStr;
         property typ: TObjRelocationType read GetType write SetType;
@@ -777,6 +779,7 @@ implementation
         DataOffset:=ADataOffset;
         Symbol:=s;
         OrgSize:=0;
+        Group:=nil;
         ObjSection:=nil;
         ftype:=ord(Atyp);
       end;
@@ -789,7 +792,21 @@ implementation
         DataOffset:=ADataOffset;
         Symbol:=nil;
         OrgSize:=0;
+        Group:=nil;
         ObjSection:=aobjsec;
+        ftype:=ord(Atyp);
+      end;
+
+
+    constructor TObjRelocation.CreateGroup(ADataOffset:aword;grp:TObjSectionGroup;Atyp:TObjRelocationType);
+      begin
+        if not assigned(grp) then
+          internalerror(2015111201);
+        DataOffset:=ADataOffset;
+        Symbol:=nil;
+        ObjSection:=nil;
+        OrgSize:=0;
+        Group:=grp;
         ftype:=ord(Atyp);
       end;
 
@@ -800,6 +817,7 @@ implementation
         DataOffset:=ADataOffset;
         Symbol:=s;
         ObjSection:=nil;
+        Group:=nil;
         orgsize:=0;
         ftype:=ARawType;
         flags:=rf_raw;
@@ -3132,10 +3150,13 @@ implementation
         var
           objsym : TObjSymbol;
           refobjsec : TObjSection;
+          refgrp : TObjSectionGroup;
         begin
           { Disabled Relocation to 0  }
           if (objreloc.flags and rf_nosymbol)<>0 then
             exit;
+          refobjsec:=nil;
+          refgrp:=nil;
           if assigned(objreloc.symbol) then
             begin
               objsym:=objreloc.symbol;
@@ -3153,10 +3174,8 @@ implementation
             end
           else if assigned(objreloc.objsection) then
             refobjsec:=objreloc.objsection
-{$ifdef i8086}
-          else if objreloc.typ in [RELOC_DGROUP,RELOC_DGROUPREL] then
-            refobjsec:=nil
-{$endif i8086}
+          else if assigned(objreloc.group) then
+            refgrp:=objreloc.group
           else
             internalerror(200603316);
           if assigned(exemap) then
@@ -3167,10 +3186,8 @@ implementation
                   +refobjsec.fullname)
               else if assigned(refobjsec) then
                 exemap.Add('  References '+refobjsec.fullname)
-{$ifdef i8086}
-              else if objreloc.typ in [RELOC_DGROUP,RELOC_DGROUPREL] then
-                exemap.Add('  References DGROUP')
-{$endif i8086}
+              else if assigned(refgrp) then
+                exemap.Add('  References '+refgrp.Name)
               else
                 internalerror(200603316);
             end;

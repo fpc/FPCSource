@@ -57,7 +57,6 @@ interface
         FOmfFixup: TOmfSubRecord_FIXUP;
         function GetGroupIndex(const groupname: string): Integer;
       public
-        constructor CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
         destructor Destroy; override;
 
         procedure BuildOmfFixup;
@@ -344,17 +343,6 @@ implementation
           internalerror(2014040703);
       end;
 
-    constructor TOmfRelocation.CreateSection(ADataOffset: aword; aobjsec: TObjSection; Atyp: TObjRelocationType);
-      begin
-        if not (Atyp in [RELOC_DGROUP,RELOC_DGROUPREL]) and not assigned(aobjsec) then
-          internalerror(200603036);
-        DataOffset:=ADataOffset;
-        Symbol:=nil;
-        OrgSize:=0;
-        ObjSection:=aobjsec;
-        ftype:=ord(Atyp);
-      end;
-
     destructor TOmfRelocation.Destroy;
       begin
         FOmfFixup.Free;
@@ -430,21 +418,26 @@ implementation
             FOmfFixup.TargetDatum:=symbol.symidx;
             FOmfFixup.FrameMethod:=ffmTarget;
           end
-        else if typ in [RELOC_DGROUP,RELOC_DGROUPREL] then
+        else if group<>nil then
           begin
             FOmfFixup.LocationOffset:=DataOffset;
-            FOmfFixup.LocationType:=fltBase;
+            if typ in [RELOC_ABSOLUTE,RELOC_RELATIVE] then
+              FOmfFixup.LocationType:=fltOffset
+            else if typ in [RELOC_SEG,RELOC_SEGREL] then
+              FOmfFixup.LocationType:=fltBase
+            else
+              internalerror(2015041501);
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
-            if typ=RELOC_DGROUP then
+            if typ in [RELOC_ABSOLUTE,RELOC_SEG] then
               FOmfFixup.Mode:=fmSegmentRelative
-            else if typ=RELOC_DGROUPREL then
+            else if typ in [RELOC_RELATIVE,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
               internalerror(2015041401);
             FOmfFixup.FrameMethod:=ffmTarget;
             FOmfFixup.TargetMethod:=ftmGroupIndexNoDisp;
-            FOmfFixup.TargetDatum:=GetGroupIndex('DGROUP');
+            FOmfFixup.TargetDatum:=GetGroupIndex(group.Name);
           end
         else
          internalerror(2015040702);
@@ -508,6 +501,7 @@ implementation
         inherited create(n);
         CObjSymbol:=TOmfObjSymbol;
         CObjSection:=TOmfObjSection;
+        createsectiongroup('DGROUP');
       end;
 
     function TOmfObjData.sectiontype2options(atype: TAsmSectiontype): TObjSectionOptions;
@@ -622,7 +616,10 @@ implementation
           end
         else if Reloctype in [RELOC_DGROUP,RELOC_DGROUPREL] then
             begin
-              objreloc:=TOmfRelocation.CreateSection(CurrObjSec.Size,nil,Reloctype);
+              if Reloctype=RELOC_DGROUP then
+                objreloc:=TOmfRelocation.CreateGroup(CurrObjSec.Size,TObjSectionGroup(GroupsList.Find('DGROUP')),RELOC_SEG)
+              else
+                objreloc:=TOmfRelocation.CreateGroup(CurrObjSec.Size,TObjSectionGroup(GroupsList.Find('DGROUP')),RELOC_SEGREL);
               CurrObjSec.ObjRelocations.Add(objreloc);
             end;
         CurrObjSec.write(data,len);
@@ -1621,19 +1618,21 @@ implementation
         else if Fixup.TargetMethod in [ftmGroupIndex,ftmGroupIndexNoDisp] then
           begin
             target_group:=TObjSectionGroup(objdata.GroupsList[Fixup.TargetDatum-1]);
-            if target_group.Name<>'DGROUP' then
-              begin
-                InputError('Fixup target group other than "DGROUP" is not supported');
-                exit;
-              end;
             RelocType:=RELOC_NONE;
             case Fixup.LocationType of
+              fltOffset:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_ABSOLUTE;
+                  fmSelfRelative:
+                    RelocType:=RELOC_RELATIVE;
+                end;
               fltBase:
                 case Fixup.Mode of
                   fmSegmentRelative:
-                    RelocType:=RELOC_DGROUP;
+                    RelocType:=RELOC_SEG;
                   fmSelfRelative:
-                    RelocType:=RELOC_DGROUPREL;
+                    RelocType:=RELOC_SEGREL;
                 end;
             end;
             if RelocType=RELOC_NONE then
@@ -1641,7 +1640,7 @@ implementation
                 InputError('Unsupported fixup location type '+IntToStr(Ord(Fixup.LocationType))+'with mode '+tostr(Ord(Fixup.Mode))+' in reference to group '+target_group.Name);
                 exit;
               end;
-            reloc:=TOmfRelocation.CreateSection(Fixup.LocationOffset,nil,RelocType);
+            reloc:=TOmfRelocation.CreateGroup(Fixup.LocationOffset,target_group,RelocType);
             objsec.ObjRelocations.Add(reloc);
             case Fixup.FrameMethod of
               ffmTarget:
@@ -2442,28 +2441,31 @@ implementation
                     internalerror(2015082406);
                 end;
               end
-            else if objreloc.typ in [RELOC_DGROUP,RELOC_DGROUPREL] then
+            else if assigned(objreloc.group) then
               begin
-                target_group:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find('DGROUP'));
+                target_group:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.group.Name));
                 target:=target_group.MemPos;
                 if objreloc.FrameGroup<>'' then
                   framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.FrameGroup)).MemPos
                 else
                   framebase:=target_group.MemPos;
                 case objreloc.typ of
-                  RELOC_DGROUP:
+                  RELOC_ABSOLUTE,RELOC_SEG:
                     fixupamount:=target-framebase;
-                  RELOC_DGROUPREL:
+                  RELOC_RELATIVE,RELOC_SEGREL:
                     fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   else
-                    internalerror(2015082408);
+                    internalerror(2015111202);
                 end;
                 case objreloc.typ of
-                  RELOC_DGROUP,
-                  RELOC_DGROUPREL:
+                  RELOC_ABSOLUTE,
+                  RELOC_RELATIVE:
+                    FixupOffset;
+                  RELOC_SEG,
+                  RELOC_SEGREL:
                     FixupBase;
                   else
-                    internalerror(2015082406);
+                    internalerror(2015111203);
                 end;
               end
             else
