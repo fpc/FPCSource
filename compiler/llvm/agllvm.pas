@@ -745,7 +745,8 @@ implementation
               begin
                 writer.AsmWrite(defstr);
                 writer.AsmWrite(' ');
-                if tabstractrecordsymtable(tabstractrecorddef(hp.def).symtable).usefieldalignment<>C_alignment then
+                if (hp.def.typ in [objectdef,recorddef]) and
+                   (tabstractrecordsymtable(tabstractrecorddef(hp.def).symtable).usefieldalignment<>C_alignment) then
                   writer.AsmWrite('<{')
                 else
                   writer.AsmWrite('{');
@@ -758,7 +759,8 @@ implementation
                       first:=false;
                     WriteTypedConstData(p);
                   end;
-                if tabstractrecordsymtable(tabstractrecorddef(hp.def).symtable).usefieldalignment<>C_alignment then
+                if (hp.def.typ in [recorddef,objectdef]) and
+                   (tabstractrecordsymtable(tabstractrecorddef(hp.def).symtable).usefieldalignment<>C_alignment) then
                   writer.AsmWrite('}>')
                 else
                   writer.AsmWrite('}');
