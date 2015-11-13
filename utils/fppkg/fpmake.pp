@@ -28,7 +28,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.0.1';
+    P.Version:='3.0.0';
 
     P.SourcePath.Add('lnet',lnetOSes);
     P.IncludePath.Add('lnet/sys',lnetOSes);

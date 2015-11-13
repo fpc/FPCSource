@@ -26,7 +26,7 @@ begin
     P.ShortName:='fppk';
     P.Directory:=ADirectory;
 
-    P.Version:='3.0.1';
+    P.Version:='3.0.0';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process');

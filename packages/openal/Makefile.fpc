@@ -4,7 +4,7 @@
 
 [package]
 name=openal
-version=3.0.1
+version=3.0.0
 
 [require]
 packages=rtl fpmkunit
