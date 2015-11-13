@@ -198,6 +198,9 @@ interface
     pentryheader=^tentryheader;
 
     tentryfile=class
+    private
+      function getposition:longint;
+      procedure setposition(value:longint);
     protected
       buf      : pchar;
       bufstart,
@@ -236,6 +239,11 @@ interface
       procedure flush;
       procedure closefile;virtual;
       procedure newentry;
+      property position:longint read getposition write setposition;
+      { Warning: don't keep the stream open during a tempclose! }
+      function substream(ofs,len:longint):TCStream;
+      { Warning: don't use the put* or write* functions anymore when writing through this }
+      property stream:TCStream read f;
     {read}
       function  openfile:boolean;
       function  openstream(strm:TCStream):boolean;
@@ -369,6 +377,36 @@ implementation
          mode:=0;
          closed:=true;
        end;
+    end;
+
+
+  procedure tentryfile.setposition(value:longint);
+    begin
+      if assigned(f) then
+        f.Position:=value
+      else
+        if tempclosed then
+          closepos:=value;
+    end;
+
+
+  function tentryfile.getposition:longint;
+    begin
+      if assigned(f) then
+        result:=f.Position
+      else
+        if tempclosed then
+          result:=closepos
+        else
+          result:=0;
+    end;
+
+
+  function tentryfile.substream(ofs,len:longint):TCStream;
+    begin
+      result:=nil;
+      if assigned(f) then
+        result:=TCRangeStream.Create(f,ofs,len);
     end;
 
 
