@@ -67,6 +67,8 @@ interface
          RELOC_PLT32,
 {$endif i386}
 {$ifdef i8086}
+         RELOC_ABSOLUTE32,
+         RELOC_RELATIVE32,
          RELOC_FARPTR,
          RELOC_SEG,
          RELOC_SEGREL,
@@ -102,7 +104,7 @@ interface
          RELOC_RAW
       );
 
-{$ifndef x86_64}
+{$if not defined(x86_64) and not defined(i8086)}
     const
       RELOC_ABSOLUTE32 = RELOC_ABSOLUTE;
 {$endif x86_64}

@@ -3287,16 +3287,26 @@ implementation
                            currabsreloc:=RELOC_GOT32
                          else
 {$endif i386}
+{$ifdef i8086}
+                         if ea_data.bytes=2 then
+                           currabsreloc:=RELOC_ABSOLUTE
+                         else
+{$endif i8086}
                              currabsreloc:=RELOC_ABSOLUTE32;
 
-                           if (currabsreloc=RELOC_ABSOLUTE32) and
+                           if (currabsreloc in [RELOC_ABSOLUTE32{$ifdef i8086},RELOC_ABSOLUTE{$endif}]) and
                             (Assigned(oper[opidx]^.ref^.relsymbol)) then
                            begin
                              relsym:=objdata.symbolref(oper[opidx]^.ref^.relsymbol);
                              if relsym.objsection=objdata.CurrObjSec then
                                begin
                                  currval:=objdata.CurrObjSec.size+ea_data.bytes-relsym.offset+currval;
-                                 currabsreloc:=RELOC_RELATIVE;
+{$ifdef i8086}
+                                 if ea_data.bytes=4 then
+                                   currabsreloc:=RELOC_RELATIVE32
+                                 else
+{$endif i8086}
+                                   currabsreloc:=RELOC_RELATIVE;
                                end
                              else
                                begin
