@@ -211,8 +211,9 @@ interface
       tempclosed : boolean;
       closepos : integer;
     protected
-      f        : TCCustomFileStream;
+      f        : TCStream;
       mode     : byte; {0 - Closed, 1 - Reading, 2 - Writing}
+      fisfile  : boolean;
       fname    : string;
       fsize    : integer;
       procedure newheader;virtual;abstract;
@@ -237,6 +238,7 @@ interface
       procedure newentry;
     {read}
       function  openfile:boolean;
+      function  openstream(strm:TCStream):boolean;
       procedure reloadbuf;
       procedure readdata(out b;len:integer);
       procedure skipdata(len:integer);
@@ -264,6 +266,7 @@ interface
       function  skipuntilentry(untilb:byte):boolean;
     {write}
       function  createfile:boolean;virtual;
+      function  createstream(strm:TCStream):boolean;
       procedure writeheader;virtual;abstract;
       procedure writebuf;
       procedure writedata(const b;len:integer);
@@ -317,6 +320,7 @@ implementation
   constructor tentryfile.create(const fn:string);
     begin
       fname:=fn;
+      fisfile:=false;
       change_endian:=false;
       mode:=0;
       newheader;
@@ -325,7 +329,6 @@ implementation
       tempclosed:=false;
       getmem(buf,entryfilebufsize);
     end;
-
 
   destructor tentryfile.destroy;
     begin
@@ -361,7 +364,8 @@ implementation
       if mode<>0 then
        begin
          flush;
-         f.Free;
+         if fisfile then
+           f.Free;
          mode:=0;
          closed:=true;
        end;
@@ -375,13 +379,25 @@ implementation
   function tentryfile.openfile:boolean;
     var
       i      : integer;
+      strm : TCStream;
     begin
       openfile:=false;
       try
-        f:=CFileStreamClass.Create(fname,fmOpenRead)
+        strm:=CFileStreamClass.Create(fname,fmOpenRead)
       except
         exit;
       end;
+      openfile:=openstream(strm);
+      fisfile:=result;
+    end;
+
+
+  function tentryfile.openstream(strm:TCStream):boolean;
+    var
+      i : longint;
+    begin
+      openstream:=false;
+      f:=strm;
       closed:=false;
     {read ppuheader}
       fsize:=f.Size;
@@ -398,7 +414,7 @@ implementation
       entrystart:=0;
       entrybufstart:=0;
       error:=false;
-      openfile:=true;
+      openstream:=true;
     end;
 
 
@@ -892,8 +908,10 @@ implementation
   function tentryfile.createfile:boolean;
     var
       ok: boolean;
+      strm : TCStream;
     begin
       createfile:=false;
+      strm:=nil;
       if outputallowed then
         begin
           {$ifdef MACOS}
@@ -903,7 +921,7 @@ implementation
           {$endif}
           ok:=false;
           try
-            f:=CFileStreamClass.Create(fname,fmCreate);
+            strm:=CFileStreamClass.Create(fname,fmCreate);
             ok:=true;
           except
           end;
@@ -913,6 +931,17 @@ implementation
           {$endif}
           if not ok then
            exit;
+        end;
+      createfile:=createstream(strm);
+      fisfile:=result;
+    end;
+
+  function tentryfile.createstream(strm:TCStream):boolean;
+    begin
+      createstream:=false;
+      if outputallowed then
+        begin
+          f:=strm;
           mode:=2;
           {write header for sure}
           f.Write(getheaderaddr^,getheadersize);
@@ -927,7 +956,7 @@ implementation
       entrytyp:=mainentryid;
     {start}
       newentry;
-      createfile:=true;
+      createstream:=true;
     end;
 
 
