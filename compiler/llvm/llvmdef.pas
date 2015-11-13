@@ -750,6 +750,8 @@ implementation
                     { other types should not appear currently, add as needed }
                     internalerror(2014012008);
                   end;
+              pointerdef:
+                typename:='p'+tostr(hdef.deflist_index);
               else
                 { other types should not appear currently, add as needed }
                 internalerror(2014012009);
