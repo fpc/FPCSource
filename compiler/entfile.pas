@@ -38,6 +38,7 @@ interface
     subentryid          = 2;
     {special}
     iberror             = 0;
+    ibpputable          = 241;
     ibstartrequireds    = 242;
     ibendrequireds      = 243;
     ibstartcontained    = 244;

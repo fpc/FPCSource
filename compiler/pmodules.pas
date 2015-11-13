@@ -1656,15 +1656,6 @@ type
 
              pkg.initmoduleinfo(current_module);
 
-             { finally rewrite all units included into the package }
-             uu:=tused_unit(usedunits.first);
-             while assigned(uu) do
-               begin
-                 if not assigned(uu.u.package) then
-                   RewritePPU(uu.u.ppufilename,changefileext(uu.u.ppufilename,'.ppl.ppu'));
-                 uu:=tused_unit(uu.next);
-               end;
-
              { create the executable when we are at level 1 }
              if (compile_level=1) then
                begin
