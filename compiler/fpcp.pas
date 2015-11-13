@@ -301,6 +301,8 @@ implementation
           new(p);
           p^.module:=nil;
           p^.ppufile:=path;
+          p^.offset:=0;
+          p^.size:=0;
           containedmodules.add(name,p);
           message1(package_u_contained_unit,name);
         end;
@@ -426,6 +428,8 @@ implementation
       new(containedunit);
       containedunit^.module:=module;
       containedunit^.ppufile:=extractfilename(module.ppufilename);
+      containedunit^.offset:=0;
+      containedunit^.size:=0;
       containedmodules.add(module.modulename^,containedunit);
     end;
 
