@@ -36,7 +36,7 @@ interface
 
     uses
       cmsgs,verbose,
-      cutils,cclasses,
+      cutils,cclasses,cstreams,
       globtype,globals,finput,fmodule,
       symbase,ppu,symtype;
 
@@ -57,7 +57,8 @@ interface
           constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
           destructor destroy;override;
           procedure reset;override;
-          function  openppu:boolean;
+          function  openppufile:boolean;
+          function  openppustream(strm:TCStream):boolean;
           procedure getppucrc;
           procedure writeppu;
           procedure loadppu;
@@ -74,6 +75,7 @@ interface
            avoid endless resolving loops in case of cyclic dependencies. }
           defsgeneration : longint;
 
+          function  openppu:boolean;
           function  search_unit_files(onlysource:boolean):boolean;
           function  search_unit(onlysource,shortname:boolean):boolean;
           function  loadfrompackage:boolean;
@@ -190,11 +192,12 @@ var
       until false;
     end;
 
-    function tppumodule.openppu:boolean;
+
+    function tppumodule.openppufile:boolean;
       var
         ppufiletime : longint;
       begin
-        openppu:=false;
+        openppufile:=false;
         Message1(unit_t_ppu_loading,ppufilename,@queuecomment);
       { Get ppufile time (also check if the file exists) }
         ppufiletime:=getnamedfiletime(ppufilename);
@@ -210,6 +213,29 @@ var
            Message(unit_u_ppu_file_too_short);
            exit;
          end;
+        result:=openppu;
+      end;
+
+
+    function tppumodule.openppustream(strm:TCStream):boolean;
+      begin
+      { Open the ppufile }
+        Message1(unit_u_ppu_name,ppufilename);
+        ppufile:=tcompilerppufile.create(ppufilename);
+        if not ppufile.openstream(strm) then
+         begin
+           ppufile.free;
+           ppufile:=nil;
+           Message(unit_u_ppu_file_too_short);
+           exit;
+         end;
+        result:=openppu;
+      end;
+
+
+    function tppumodule.openppu:boolean;
+      begin
+        openppu:=false;
       { check for a valid PPU file }
         if not ppufile.CheckPPUId then
          begin
@@ -347,7 +373,7 @@ var
            if Found then
             Begin
               SetFileName(hs,false);
-              Found:=OpenPPU;
+              Found:=openppufile;
             End;
            PPUSearchPath:=Found;
          end;
@@ -511,7 +537,7 @@ var
             if Found then
              Begin
                SetFileName(hs,false);
-               Found:=OpenPPU;
+               Found:=openppufile;
              End;
             PPUSearchPath:=Found;
           end;
