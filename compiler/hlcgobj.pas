@@ -3921,10 +3921,61 @@ implementation
     end;
 
   procedure thlcgobj.location_force_mem(list: TAsmList; var l: tlocation; size: tdef);
+
+    procedure location_force_procvardef_mem(const href: treference; const fieldname: TIDString; first_field: boolean);
+      var
+        fref: treference;
+        field: tfieldvarsym;
+      begin
+        field:=tfieldvarsym(search_struct_member(trecorddef(methodpointertype),fieldname));
+        if not assigned(field) then
+          internalerror(2015111103);
+        fref:=href;
+        g_set_addr_nonbitpacked_record_field_ref(list,trecorddef(methodpointertype),field,fref);
+        case l.loc of
+          LOC_CONSTANT:
+            begin
+              { in this case, the constant needs to be loaded in both the
+                high and low location }
+              hlcg.a_load_const_ref(list,field.vardef,l.value,fref);
+            end;
+          LOC_REGISTER,LOC_CREGISTER:
+            begin
+              if (target_info.endian=endian_little)=first_field then
+                hlcg.a_load_reg_ref(list,cprocvardef.getreusableprocaddr(tprocvardef(size)),field.vardef,l.register,fref)
+              else
+                hlcg.a_load_reg_ref(list,cprocvardef.getreusableprocaddr(tprocvardef(size)),field.vardef,l.registerhi,fref)
+            end;
+          else
+            internalerror(2015111105);
+        end;
+      end;
+
     var
-      r : treference;
+      r, href: treference;
       forcesize: aint;
     begin
+      { on the JVM target, all procvars are represented by a class, so they
+        don't take up more than one register -> use regular code there }
+      if (size.typ=procvardef) and
+         not tprocvardef(size).is_addressonly and
+         not(target_info.system in systems_managed_vm) then
+        begin
+          if l.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+            exit;
+
+          tg.gethltemp(list,size,size.size,tt_normal,r);
+          href:=r;
+          g_ptrtypecast_ref(list,cpointerdef.getreusable(size),cpointerdef.getreusable(methodpointertype),href);
+
+          location_force_procvardef_mem(href,'proc',true);
+          location_force_procvardef_mem(href,'self',false);
+
+          location_reset_ref(l,LOC_REFERENCE,l.size,r.alignment);
+          l.reference:=r;
+          exit;
+        end;
+
       case l.loc of
         LOC_FPUREGISTER,
         LOC_CFPUREGISTER :
