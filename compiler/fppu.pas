@@ -75,7 +75,7 @@ interface
            avoid endless resolving loops in case of cyclic dependencies. }
           defsgeneration : longint;
 
-          function  openppu:boolean;
+          function  openppu(ppufiletime:longint):boolean;
           function  search_unit_files(onlysource:boolean):boolean;
           function  search_unit(onlysource,shortname:boolean):boolean;
           function  loadfrompackage:boolean;
@@ -213,7 +213,7 @@ var
            Message(unit_u_ppu_file_too_short);
            exit;
          end;
-        result:=openppu;
+        result:=openppu(ppufiletime);
       end;
 
 
@@ -229,11 +229,11 @@ var
            Message(unit_u_ppu_file_too_short);
            exit;
          end;
-        result:=openppu;
+        result:=openppu(-1);
       end;
 
 
-    function tppumodule.openppu:boolean;
+    function tppumodule.openppu(ppufiletime:longint):boolean;
       begin
         openppu:=false;
       { check for a valid PPU file }
@@ -322,7 +322,10 @@ var
         interface_crc:=ppufile.header.interface_checksum;
         indirect_crc:=ppufile.header.indirect_checksum;
       { Show Debug info }
-        Message1(unit_u_ppu_time,filetimestring(ppufiletime));
+        if ppufiletime<>-1 then
+          Message1(unit_u_ppu_time,filetimestring(ppufiletime))
+        else
+          Message1(unit_u_ppu_time,'unknown');
         Message1(unit_u_ppu_flags,tostr(flags));
         Message1(unit_u_ppu_crc,hexstr(ppufile.header.checksum,8));
         Message1(unit_u_ppu_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
