@@ -581,6 +581,7 @@ var
                 if not SearchPathList(unitsearchpath) then
                   exit;
                 package:=pkg^.package;
+                Message2(unit_u_loading_from_package,modulename^,pkg^.package.packagename^);
 
                 { now load the unit and all used units }
                 load_interface;
