@@ -517,7 +517,7 @@ var
       end;
 
     function tppumodule.loadfrompackage: boolean;
-      {var
+      (*var
         singlepathstring,
         filename : TCmdStr;
 
@@ -560,7 +560,7 @@ var
                hp:=TCmdStrListItem(hp.next);
              end;
             SearchPathList:=found;
-          end;}
+          end;*)
 
       var
         pkg : ppackageentry;
