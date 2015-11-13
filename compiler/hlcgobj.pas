@@ -5158,6 +5158,8 @@ implementation
     end;
 
   procedure thlcgobj.gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);
+    var
+      tmploc: tlocation;
     begin
       { Handle Floating point types differently
 
@@ -5170,6 +5172,18 @@ implementation
           (cgpara.Location^.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER])) then
         begin
           gen_loadfpu_loc_cgpara(list,vardef,l,cgpara,vardef.size);
+          exit;
+        end;
+
+      { in case of multiple locations, force the source to memory as only
+        a_load_ref_cgpara supports multiple locations }
+      if assigned(cgpara.location^.next) and
+         not(l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+        begin
+          tmploc:=l;
+          location_force_mem(list,tmploc,vardef);
+          a_load_loc_cgpara(list,vardef,tmploc,cgpara);
+          location_freetemp(list,tmploc);
           exit;
         end;
 
