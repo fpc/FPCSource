@@ -2902,7 +2902,7 @@ link_w_32bit_absolute_reloc=09201_W_Object file "$1" contains 32-bit absolute re
 #
 # Unit loading
 #
-# 10062 is the last used one
+# 10064 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -3104,10 +3104,12 @@ unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC cha
 % indirect CRC calculated for the unit (this is the CRC of all classes/objects/interfaces/$\ldots$
 % in the interfaces of units directly or indirectly used by this unit in the interface) has been changed after the
 % implementation has been parsed.
-% \end{description}
 unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory model
 % This unit file was compiled for a different i8086 memory model and
 % cannot be read.
+unit_u_loading_from_package=10064_U_Loading unit $1 from package $2
+% The unit is loaded from a package.
+% \end{description}
 # EndOfTeX
 
 #
