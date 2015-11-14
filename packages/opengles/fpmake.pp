@@ -30,7 +30,7 @@ begin
     T:=P.Targets.AddUnit('gles20.pas',[linux,win32,win64,wince,darwin]);
 
     P.Targets.AddExampleProgram('examples/es2example1.pas');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 
 {$ifndef ALLPACKAGES}

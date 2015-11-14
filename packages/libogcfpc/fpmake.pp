@@ -149,7 +149,7 @@ begin
        AddInclude('wpad.inc');
      end;
 
-     P.Sources.AddExampleFiles('examples/*',true,'.');
+     P.Sources.AddExampleFiles('examples/*',P.Directory,true,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

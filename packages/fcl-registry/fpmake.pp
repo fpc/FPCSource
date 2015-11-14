@@ -35,7 +35,8 @@ begin
       with T.Dependencies do
         begin
           AddInclude('regdef.inc');
-          AddInclude('xregreg.inc');
+          AddInclude('winreg.inc',AllWindowsOSes);
+          AddInclude('xregreg.inc',AllOSes-AllWindowsOSes);
           AddInclude('regini.inc');
           AddUnit('xmlreg');
         end;

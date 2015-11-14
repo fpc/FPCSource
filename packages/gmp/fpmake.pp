@@ -30,7 +30,7 @@ begin
 
     T:=P.Targets.AddUnit('gmp.pas');
 
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

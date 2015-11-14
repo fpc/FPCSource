@@ -77,12 +77,15 @@ begin
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/darwin',[iphonesim]);
+    P.IncludePath.Add('src/win',AllWindowsOSes);
 
     T:=P.Targets.AddUnit('ucomplex.pp',UComplexOSes);
 
     T:=P.Targets.AddUnit('objects.pp',ObjectsOSes);
 
     T:=P.Targets.AddUnit('printer.pp',PrinterOSes);
+    T.Dependencies.AddInclude('printerh.inc',PrinterOSes);
+    T.Dependencies.AddInclude('printer.inc',PrinterOSes);
 
     T:=P.Targets.AddUnit('matrix.pp',MatrixOSes);
     with T.Dependencies do
@@ -105,7 +108,9 @@ begin
     T:=P.Targets.AddUnit('sockets.pp',SocketsOSes);
     with T.Dependencies do
      begin
+       addinclude('osdefs.inc',AllUnixOSes);
        addinclude('socketsh.inc');
+       addinclude('fpwinsockh.inc',AllWindowsOSes);
        addinclude('sockets.inc');
        addinclude('sockovl.inc');
        addinclude('unxsockh.inc',UnixLikes);
@@ -116,6 +121,7 @@ begin
     T:=P.Targets.AddUnit('ipc.pp',IPCOSes);
     with T.Dependencies do
      begin
+       addinclude('osdefs.inc');
        addinclude('ipcbsd.inc',IPCBSDs);
        addinclude('ipcsys.inc',[Linux]);
        addinclude('ipccall.inc',[Linux]);

@@ -219,7 +219,7 @@ begin
     repeat
       _ReadOutput(p.Output, s);
       _ReadOutput(p.Stderr, err);
-    until not p.Running;
+    until not p.Running and (p.Output.NumBytesAvailable = 0) and (p.Stderr.NumBytesAvailable = 0);
     ec:=p.ExitStatus;
     if Copy(s, 1, 1) <> '[' then begin
       ec:=-1;

@@ -348,163 +348,163 @@ override FPCOPT+= -dHASUNIX -n -dFPC_USE_LIBC -Si
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i386-aros)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),x86_64-iphonesim)
 override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
@@ -513,76 +513,76 @@ ifeq ($(FULL_TARGET),x86_64-aros)
 override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
 endif
 ifeq ($(FULL_TARGET),x86_64-dragonfly)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),mipsel-android)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
+override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp fpwidestring
 endif
 ifeq ($(FULL_TARGET),i8086-win16)
 override TARGET_UNITS+=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings errors dos dl sysconst sysutils types charset cpall character typinfo classes fgl math cpu mmx getopts heaptrc lineinfo lnfodwrf rtlconsts syscall unix unixutil termio initc cmem dynlibs cwstring cthreads fpintres unixcp
@@ -840,163 +840,163 @@ ifeq ($(FULL_TARGET),aarch64-darwin)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i386-aros)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),x86_64-iphonesim)
 override TARGET_LOADERS+=prt0 cprt0 func dllprt
@@ -1005,76 +1005,76 @@ ifeq ($(FULL_TARGET),x86_64-aros)
 override TARGET_LOADERS+=prt0 cprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),x86_64-dragonfly)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),mipsel-android)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_LOADERS+=prt0 cprt0 func dllprt
+override TARGET_LOADERS+=prt0 cprt0 dllcprt0 func dllprt
 endif
 ifeq ($(FULL_TARGET),i8086-win16)
 override TARGET_LOADERS+=prt0 cprt0 func dllprt
@@ -3297,6 +3297,8 @@ prt0$(OEXT) : $(CPU_TARGET)/prt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/prt0.as
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+dllcprt0$(OEXT) : $(CPU_TARGET)/dllcprt0.as
+	$(AS) -o $(UNITTARGETDIRPREFIX)dllcprt0$(OEXT) $(CPU_TARGET)/dllcprt0.as
 func$(OEXT) : $(CPU_TARGET)/func.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)func$(OEXT) $(CPU_TARGET)/func.as
 dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
@@ -3352,6 +3354,12 @@ lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/iso7185.pp
+fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/fpintres.pp
+fpwidestring$(PPUEXT) : $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 termio$(PPUEXT) : baseunix$(PPUEXT)
 dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)

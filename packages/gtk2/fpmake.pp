@@ -170,6 +170,9 @@ begin
       with T.Dependencies do
         begin
           AddInclude('gdkincludes.inc');
+          AddInclude('gdkdisplaymanager.inc');
+          AddInclude('gdkspawn.inc');
+          AddInclude('gdkcairo.inc');
           AddInclude('gdkcolor.inc');
           AddInclude('gdkcursor.inc');
           AddInclude('gdkdnd.inc');
@@ -194,7 +197,6 @@ begin
           AddInclude('gdktypes.inc');
           AddInclude('gdkvisual.inc');
           AddInclude('gdkwindow.inc');
-          AddInclude('gdkincludes.inc');
           AddInclude('gdkcolor.inc');
           AddInclude('gdkcursor.inc');
           AddInclude('gdkdnd.inc');
@@ -219,7 +221,6 @@ begin
           AddInclude('gdktypes.inc');
           AddInclude('gdkvisual.inc');
           AddInclude('gdkwindow.inc');
-          AddInclude('gdkincludes.inc');
           AddInclude('gdkcolor.inc');
           AddInclude('gdkcursor.inc');
           AddInclude('gdkdnd.inc');
@@ -244,7 +245,6 @@ begin
           AddInclude('gdktypes.inc');
           AddInclude('gdkvisual.inc');
           AddInclude('gdkwindow.inc');
-          AddInclude('gdkincludes.inc');
           AddInclude('gdkcolor.inc');
           AddInclude('gdkcursor.inc');
           AddInclude('gdkdnd.inc');
@@ -439,6 +439,9 @@ begin
           AddInclude('gboxed.inc');
           AddInclude('gmodule.inc');
           AddInclude('gmarshal.inc');
+          AddInclude('gincludes.inc');
+          AddInclude('goption.inc');
+          AddInclude('gwin32.inc',AllWindowsOSes);
         end;
     T:=P.Targets.AddImplicitUnit('src/gtk+/gtk/gtk2.pas');
       T.IncludePath.Add('src/gtk+/gtk');
@@ -1132,6 +1135,14 @@ begin
           AddInclude('gtkentrycompletion.inc');
           AddInclude('gtkuimanager.inc');
           AddInclude('gtktreemodelfilter.inc');
+
+          AddInclude('gtkseparatortoolitem.inc');
+          AddInclude('gtkaboutdialog.inc');
+          AddInclude('gtkcellrendererprogress.inc');
+          AddInclude('gtkfilechooserbutton.inc');
+          AddInclude('gtkcellview.inc');
+          AddInclude('gtkiconview.inc');
+          AddInclude('gtkmenutoolbutton.inc');
         end;
     T:=P.Targets.AddImplicitUnit('src/gtkglext/gtkglext.pas');
       T.IncludePath.Add('src/gtkglext');
@@ -1220,6 +1231,8 @@ begin
           AddInclude('pango-item.inc');
           AddInclude('pango-layout.inc');
           AddInclude('pango-tabs.inc');
+          AddInclude('pango-matrix.inc');
+          AddInclude('pango-renderer.inc');
         end;
     
     T:=P.Targets.AddImplicitUnit('src/pangocairo/pangocairo.pas');
@@ -1266,15 +1279,15 @@ begin
            AddInclude('htmldocument.inc');
            AddInclude('htmlview.inc');
          end;}
-    P.Sources.AddExampleFiles('examples/*',false,'.');
-    P.Sources.AddExampleFiles('examples/filechooser/*',false,'filechooser');
-    P.Sources.AddExampleFiles('examples/gettingstarted/*',false,'gettingstarted');
-    P.Sources.AddExampleFiles('examples/gtk_demo/*',false,'gtk_demo');
-    P.Sources.AddExampleFiles('examples/gtkglext/*',false,'gtkglext');
-    P.Sources.AddExampleFiles('examples/helloworld/*',false,'helloworld');
-    P.Sources.AddExampleFiles('examples/helloworld2/*',false,'helloworld2');
-    P.Sources.AddExampleFiles('examples/plugins/*',false,'plugins');
-    P.Sources.AddExampleFiles('examples/scribble_simple/*',false,'scribble_simple');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
+    P.Sources.AddExampleFiles('examples/filechooser/*',P.Directory,false,'filechooser');
+    P.Sources.AddExampleFiles('examples/gettingstarted/*',P.Directory,false,'gettingstarted');
+    P.Sources.AddExampleFiles('examples/gtk_demo/*',P.Directory,false,'gtk_demo');
+    P.Sources.AddExampleFiles('examples/gtkglext/*',P.Directory,false,'gtkglext');
+    P.Sources.AddExampleFiles('examples/helloworld/*',P.Directory,false,'helloworld');
+    P.Sources.AddExampleFiles('examples/helloworld2/*',P.Directory,false,'helloworld2');
+    P.Sources.AddExampleFiles('examples/plugins/*',P.Directory,false,'plugins');
+    P.Sources.AddExampleFiles('examples/scribble_simple/*',P.Directory,false,'scribble_simple');
 
 
 {$ifndef ALLPACKAGES}

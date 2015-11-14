@@ -349,7 +349,7 @@ unit widestr;
         p : punicodemap;
       begin
         Result:=0;
-        p:=getmap(s);
+        p:=getmap(lower(s));
         if (p<>nil) then
           Result:=p^.cp;
       end;
