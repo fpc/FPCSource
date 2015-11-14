@@ -3838,11 +3838,11 @@ a*2Wb_Create a bundle instead of a library (Darwin)
 A*2Wb_Create a bundle instead of a library (Darwin)
 4*2Wb_Create a bundle instead of a library (Darwin)
 3*2WB_Create a relocatable image (Windows, Symbian)
-3*2WBxxxx_Set image base to xxxx (Windows, Symbian)
+3*2WB<x>_Set image base to <x> (Windows, Symbian)
 4*2WB_Create a relocatable image (Windows)
-4*2WBxxxx_Set image base to xxxx (Windows)
+4*2WB<x>_Set image base to <x> (Windows)
 A*2WB_Create a relocatable image (Windows, Symbian)
-A*2WBxxxx_Set image base to xxxx (Windows, Symbian)
+A*2WB<x>_Set image base to <x> (Windows, Symbian)
 3*2WC_Specify console type application (EMX, OS/2, Windows)
 4*2WC_Specify console type application (Windows)
 A*2WC_Specify console type application (Windows)
@@ -3884,9 +3884,9 @@ P*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 3*2WN_Do not generate relocation code, needed for debugging (Windows)
 4*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2WN_Do not generate relocation code, needed for debugging (Windows)
-A*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
-m*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
-V*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
+A*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
+m*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
+V*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
 3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)
 4*2WP<x>_Minimum iOS deployment version: 8.0, 8.0.2, ... (iphonesim)
 a*2WP<x>_Minimum iOS deployment version: 7.0, 7.1.2, ... (Darwin)
