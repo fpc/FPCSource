@@ -2486,6 +2486,16 @@ begin
                       begin
                         ForceStaticLinking;
                       end;
+                    'V' :
+                      begin
+                        If UnsetBool(More, j, opt, false) then
+                          exclude(init_settings.globalswitches,cs_link_vlink)
+                        else
+                          begin
+                            include(init_settings.globalswitches,cs_link_vlink);
+                            include(init_settings.globalswitches,cs_link_extern);
+                          end;
+                      end;
                     'X' :
                       begin
                         def_system_macro('FPC_LINK_SMART');
@@ -3686,7 +3696,14 @@ begin
   if not(cs_link_extern in init_settings.globalswitches) and
      ((target_info.link=ld_none) or
       (cs_link_nolink in init_settings.globalswitches)) then
-    include(init_settings.globalswitches,cs_link_extern);
+    begin
+      include(init_settings.globalswitches,cs_link_extern);
+{$ifdef hasamiga}
+      { enable vlink as default linker on Amiga/MorphOS, but not for cross compilers (for now) }
+      if target_info.system in [system_m68k_amiga,system_powerpc_amiga,system_powerpc_morphos] then
+        include(init_settings.globalswitches,cs_link_vlink);
+{$endif}
+    end;
 
   { turn off stripping if compiling with debuginfo or profile }
   if (

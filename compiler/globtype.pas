@@ -196,8 +196,9 @@ interface
          cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_extern,cs_link_opt_vtable,
          cs_link_opt_used_sections,cs_link_separate_dbg_file,
          cs_link_map,cs_link_pthread,cs_link_no_default_lib_order,
-	 cs_link_native,
-         cs_link_pre_binutils_2_19
+         cs_link_native,
+         cs_link_pre_binutils_2_19,
+         cs_link_vlink
        );
        tglobalswitches = set of tglobalswitch;
 
