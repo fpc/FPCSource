@@ -52,6 +52,7 @@ begin
     T:=P.Targets.AddUnit('kvm.pas');
     T:=P.Targets.AddUnit('get9.pas');
     T:=P.Targets.AddUnit('tinygl.pas');
+    T:=P.Targets.AddUnit('diskfont.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
