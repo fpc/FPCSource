@@ -2597,8 +2597,11 @@ implementation
             end;
           typeconvn:
             begin
-              n.resultdef:=todef;
               ttypeconvnode(n).totypedef:=todef;
+              { may change the type conversion, e.g. if the old conversion was
+                from 64 bit to a 64 bit, and now becomes 64 bit to 32 bit }
+              n.resultdef:=nil;
+              typecheckpass(n);
             end;
           else
             inserttypeconv_internal(n,todef);
