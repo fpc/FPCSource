@@ -1756,6 +1756,7 @@ const msgtxt : array[0..000318,1..240] of char=(
   '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
   '**2Xt_Link with static libraries (-static is passed to linker)'#010+
   '**2Xv_Generate table for Virtual Entry ca','lls'#010+
+  '**2XV_Use VLink as external linker       (default on Amiga, MorphOS)'#010+
   '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_Show this help'#010+
