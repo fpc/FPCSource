@@ -1001,7 +1001,7 @@ type
     function GetPosition: Int64; Override;
     procedure SetSize(NewSize: Longint); override;
   public
-    constructor Create(const AString: string);
+    constructor Create(const AString: string = '');
     function Read(var Buffer; Count: Longint): Longint; override;
     function ReadString(Count: Longint): string;
     function Seek(Offset: Longint; Origin: Word): Longint; override;

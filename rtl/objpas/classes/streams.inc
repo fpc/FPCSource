@@ -814,7 +814,7 @@ begin
 end;
 
 
-constructor TStringStream.Create(const AString: string);
+constructor TStringStream.Create(const AString: string = '');
 
 begin
   Inherited create;
