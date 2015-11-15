@@ -253,7 +253,7 @@ begin
     result:=Count1 - Count2;
 end;
 
-function CompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+function CompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
 begin
   if hlibICU = 0 then begin
     // fallback implementation
@@ -261,13 +261,16 @@ begin
     exit;
   end;
   InitThreadData;
-  if DefColl <> nil then
-    Result:=ucol_strcoll(DefColl, PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2))
-  else
-    Result:=u_strCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), True);
+  if (coIgnoreCase in Options) then
+    u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err);
+  else  
+    if DefColl <> nil then
+      Result:=ucol_strcoll(DefColl, PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2))
+    else
+      Result:=u_strCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), True);
 end;
 
-function CompareTextUnicodeString(const s1, s2 : UnicodeString): PtrInt;
+function CompareTextUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions): PtrInt;
 const
   U_COMPARE_CODE_POINT_ORDER = $8000;
 var
@@ -418,9 +421,9 @@ begin
   Result:=LowerUnicodeString(s);
 end;
 
-function CompareWideString(const s1, s2 : WideString) : PtrInt;
+function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
 begin
-  Result:=CompareUnicodeString(s1, s2);
+  Result:=CompareUnicodeString(s1, s2, Options);
 end;
 
 function CompareTextWideString(const s1, s2 : WideString): PtrInt;
@@ -440,7 +443,6 @@ begin
       UpperWideStringProc:=@UpperWideString;
       LowerWideStringProc:=@LowerWideString;
       CompareWideStringProc:=@CompareWideString;
-      CompareTextWideStringProc:=@CompareTextWideString;
 
       UpperAnsiStringProc:=@UpperAnsiString;
       LowerAnsiStringProc:=@LowerAnsiString;
@@ -458,7 +460,6 @@ begin
       UpperUnicodeStringProc:=@UpperUnicodeString;
       LowerUnicodeStringProc:=@LowerUnicodeString;
       CompareUnicodeStringProc:=@CompareUnicodeString;
-      CompareTextUnicodeStringProc:=@CompareTextUnicodeString;
 
       GetStandardCodePageProc:=@GetStandardCodePage;
       CodePointLengthProc:=@CodePointLength;
