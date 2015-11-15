@@ -70,6 +70,14 @@ interface
           typesymderef  : tderef;
           procedure ppuwrite_platform(ppufile:tcompilerppufile);virtual;
           procedure ppuload_platform(ppufile:tcompilerppufile);virtual;
+          { a (possibly) reusable def is always created on the basis of another
+            def, and contains a reference to this other def. If this other
+            def is in a non-persistent symboltable, the new def cannot actually
+            be safely reused everywhere in the current module. This routine
+            abtracts that checking, and also restores the symtable stack
+            (which had to be reset before creating the new def, so that the new
+             def did not automatically get added to its top) }
+          class procedure setup_reusable_def(origdef, newdef: tdef; res: PHashSetItem; oldsymtablestack: tsymtablestack);
        public
 {$ifdef EXTDEBUG}
           fileinfo   : tfileposinfo;
@@ -1676,6 +1684,23 @@ implementation
       end;
 
 
+    class procedure tstoreddef.setup_reusable_def(origdef, newdef: tdef; res: PHashSetItem; oldsymtablestack: tsymtablestack);
+      var
+        reusablesymtab: tsymtable;
+      begin
+        { must not yet belong to a symtable }
+        if assigned(newdef.owner) then
+          internalerror(2015111503);
+        reusablesymtab:=origdef.getreusablesymtab;
+        { exception symtable are freed while compiling the current module
+          -> don't reuse }
+        if reusablesymtab.symtabletype<>stt_excepTSymtable then
+          res^.Data:=newdef;
+        reusablesymtab.insertdef(newdef);
+        symtablestack:=oldsymtablestack;
+      end;
+
+
     constructor tstoreddef.create(dt:tdeftyp;doregister:boolean);
       begin
          inherited create(dt);
@@ -3232,9 +3257,10 @@ implementation
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
-            res^.Data:=cpointerdef.create(def);
-            def.getreusablesymtab.insertdef(tdef(res^.Data));
-            symtablestack:=oldsymtablestack;
+            result:=cpointerdef.create(def);
+            setup_reusable_def(def,result,res,oldsymtablestack);
+            { res^.Data may still be nil -> don't overwrite result }
+            exit;
           end;
         result:=tpointerdef(res^.Data);
       end;
@@ -3556,10 +3582,11 @@ implementation
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
-            res^.Data:=carraydef.create(0,elems-1,ptrsinttype);
-            tarraydef(res^.Data).elementdef:=def;
-            def.getreusablesymtab.insertdef(tdef(res^.Data));
-            symtablestack:=oldsymtablestack;
+            result:=carraydef.create(0,elems-1,ptrsinttype);
+            result.elementdef:=def;
+            setup_reusable_def(def,result,res,oldsymtablestack);
+            { res^.Data may still be nil -> don't overwrite result }
+            exit;
           end;
         result:=tarraydef(res^.Data);
       end;
@@ -6109,9 +6136,10 @@ implementation
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
-            res^.Data:=def.getcopyas(procvardef,pc_address_only);
-            def.getreusablesymtab.insertdef(tdef(res^.Data));
-            symtablestack:=oldsymtablestack;
+            result:=tprocvardef(def.getcopyas(procvardef,pc_address_only));
+            setup_reusable_def(def,result,res,oldsymtablestack);
+            { res^.Data may still be nil -> don't overwrite result }
+            exit;
           end;
         result:=tprocvardef(res^.Data);
       end;

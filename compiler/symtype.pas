@@ -400,9 +400,9 @@ implementation
           won't be saved to the ppu and as a result we can get unreachable
           defs when reloading the derived ones from the ppu }
         origowner:=owner;
-        while not(origowner.symtabletype in [localsymtable,staticsymtable,globalsymtable]) do
+        while not(origowner.symtabletype in [localsymtable,staticsymtable,globalsymtable,stt_excepTSymtable]) do
           origowner:=origowner.defowner.owner;
-        if origowner.symtabletype=localsymtable then
+        if origowner.symtabletype in [stt_excepTSymtable,localsymtable] then
           result:=origowner
         else if assigned(current_module.localsymtable) then
           result:=current_module.localsymtable
