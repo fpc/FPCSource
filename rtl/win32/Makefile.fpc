@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system uuchar objpas macpas iso7185 extpas buildrtl cpall lineinfo lnfodwrf
+units=system uuchar objpas macpas iso7185 buildrtl cpall lineinfo lnfodwrf
 implicitunits=sysinitpas sysinitcyg sysinitgprof \
       extpas \
       ctypes strings \
