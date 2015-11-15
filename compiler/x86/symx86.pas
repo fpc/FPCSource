@@ -124,9 +124,10 @@ implementation
           { do not simply push/pop current_module.localsymtable, because
             that can have side-effects (e.g., it removes helpers) }
           symtablestack:=nil;
-          res^.Data:=tx86pointerdefclass(cpointerdef).createx86(def,x86typ);
-          def.getreusablesymtab.insertdef(tdef(res^.Data));
-          symtablestack:=oldsymtablestack;
+          result:=tx86pointerdefclass(cpointerdef).createx86(def,x86typ);
+          setup_reusable_def(def,result,res,oldsymtablestack);
+          { res^.Data may still be nil -> don't overwrite result }
+          exit;
         end;
       result:=tpointerdef(res^.Data);
     end;
