@@ -1129,7 +1129,7 @@ begin
   If Index<FCount then
     System.Move (FList^[Index],FList^[Index+1],
                  (FCount-Index)*SizeOf(TStringItem));
-//  Pointer(Flist^[Index].Fstring):=Nil;  // Needed to initialize...
+  Pointer(Flist^[Index].Fstring):=Nil;  // Needed to initialize...
   Flist^[Index].FString:=S;
   Flist^[Index].FObject:=O;
   Inc(FCount);
