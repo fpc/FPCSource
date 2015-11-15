@@ -1076,20 +1076,14 @@ end;
 
 {$pop}
 
-function ExecuteProcess(Const Path: RawByteString; Const ComLine: RawByteString;Flags:TExecuteFlags=[]):integer;
-begin
-  result:=ExecuteProcess(Unicodestring(Path),UnicodeString(ComLine),Flags);
-end;
-
-
-function ExecuteProcess(Const Path: UnicodeString; Const ComLine: UnicodeString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 // win specific  function
 var
-  SI: TStartupInfoW;
+  SI: TStartupInfo;
   PI: TProcessInformation;
   Proc : THandle;
   l    : DWord;
-  CommandLine : unicodestring;
+  CommandLine : ansistring;
   e : EOSError;
   ExecInherits : longbool;
 begin
@@ -1112,7 +1106,7 @@ begin
 
   ExecInherits:=ExecInheritsHandles in Flags;
 
-  if not CreateProcessW(nil, pwidechar(CommandLine),
+  if not CreateProcessA(nil, pchar(CommandLine),
     Nil, Nil, ExecInherits,$20, Nil, Nil, SI, PI) then
     begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
@@ -1137,11 +1131,10 @@ begin
     end;
 end;
 
-
-function ExecuteProcess(Const Path: RawByteString; Const ComLine: Array of RawByteString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString;Flags:TExecuteFlags=[]):integer;
 
 var
-  CommandLine: UnicodeString;
+  CommandLine: AnsiString;
   I: integer;
 
 begin
@@ -1151,23 +1144,7 @@ begin
     CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
    else
     CommandLine := CommandLine + ' ' + Comline [I];
-  ExecuteProcess := ExecuteProcess (UnicodeString(Path), CommandLine,Flags);
-end;
-
-function ExecuteProcess(Const Path: UnicodeString; Const ComLine: Array of UnicodeString;Flags:TExecuteFlags=[]):integer;
-
-var
-  CommandLine: UnicodeString;
-  I: integer;
-
-begin
-  Commandline := '';
-  for I := 0 to High (ComLine) do
-   if Pos (' ', ComLine [I]) <> 0 then
-    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
-   else
-    CommandLine := CommandLine + ' ' + Comline [I];
-  ExecuteProcess := ExecuteProcess (Path,CommandLine,Flags);
+  ExecuteProcess := ExecuteProcess (Path, CommandLine,Flags);
 end;
 
 Procedure Sleep(Milliseconds : Cardinal);
