@@ -374,7 +374,7 @@ interface
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,
          { generic }
-         m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,
+         m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,m_extpas,
          {$ifdef fpc_mode}m_gpc,{$endif}
          { more specific }
          m_class,               { delphi class model }
@@ -412,12 +412,15 @@ interface
                                     ansistring; similarly, char becomes unicodechar rather than ansichar }
          m_type_helpers,        { allows the declaration of "type helper" (non-Delphi) or "record helper"
                                   (Delphi) for primitive types }
-         m_blocks               { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
+         m_blocks,              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
+         m_isolike_io,          { I/O as it required by an ISO compatible compiler }
+         m_isolike_program_para, { program parameters as it required by an ISO compatible compiler }
+         m_isolike_mod          { mod operation as it is required by an iso compatible compiler }
        );
        tmodeswitches = set of tmodeswitch;
 
     const
-       alllanguagemodes = [m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso];
+       alllanguagemodes = [m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,m_extpas];
 
     type
        { Application types (platform specific) }
@@ -545,7 +548,7 @@ interface
        cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal];
 
        modeswitchstr : array[tmodeswitch] of string[18] = ('',
-         '','','','','','',
+         '','','','','','','',
          {$ifdef fpc_mode}'',{$endif}
          { more specific }
          'CLASS',
@@ -578,7 +581,11 @@ interface
          'FINALFIELDS',
          'UNICODESTRINGS',
          'TYPEHELPERS',
-         'CBLOCKS');
+         'CBLOCKS',
+         'ISOIO',
+         'ISOPROGRAMPARAS',
+         'ISOMOD'
+         );
 
 
      type

@@ -1140,7 +1140,7 @@ implementation
                           internalerror(201008021);
 
                         { strip leading 0's in iso mode }
-                        if m_iso in current_settings.modeswitches then
+                        if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
                           while pattern[1]='0' do
                             delete(pattern,1,1);
 
@@ -1234,7 +1234,7 @@ implementation
                 try_to_consume(_COLON) then
               begin
                 { in iso mode, 0003: is equal to 3: }
-                if m_iso in current_settings.modeswitches then
+                if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
                   searchsym(tostr(tordconstnode(p).value),srsym,srsymtable)
                 else
                   searchsym(s,srsym,srsymtable);

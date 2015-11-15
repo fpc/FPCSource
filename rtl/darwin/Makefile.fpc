@@ -8,7 +8,7 @@ main=rtl
 # disabled units: serial
 [target]
 loaders=
-units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
+units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 extpas \
       strings sysctl baseunix unixutil \
       unix initc cmem dynlibs $(CPU_UNITS) \
       dos dl blockrtl \
@@ -130,6 +130,9 @@ fpintres$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT)
 fpextres$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
 
 iso7185$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT)
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
 
 objpas$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

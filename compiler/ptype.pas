@@ -1883,7 +1883,7 @@ implementation
                 end;
               end
             else
-              if (token=_KLAMMERAFFE) and (m_iso in current_settings.modeswitches) then
+              if (token=_KLAMMERAFFE) and (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
                 begin
                   consume(_KLAMMERAFFE);
                   single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);

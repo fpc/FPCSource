@@ -3,6 +3,7 @@ unit buildrtl;
   interface
 
     uses
+      extpas,
       ctypes, strings,
       heaptrc, 
       windows,  cmem, dynlibs,

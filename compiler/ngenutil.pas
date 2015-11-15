@@ -318,7 +318,7 @@ implementation
     begin
       result:=maybe_insert_trashing(pd,n);
 
-      if (m_iso in current_settings.modeswitches) and
+      if (m_isolike_program_para in current_settings.modeswitches) and
         (pd.proctypeoption=potype_proginit) then
         begin
           block:=internalstatements(stat);

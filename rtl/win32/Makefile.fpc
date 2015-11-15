@@ -7,8 +7,9 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system uuchar objpas macpas iso7185 buildrtl cpall lineinfo lnfodwrf
+units=system uuchar objpas macpas iso7185 extpas buildrtl cpall lineinfo lnfodwrf
 implicitunits=sysinitpas sysinitcyg sysinitgprof \
+      extpas \
       ctypes strings \
       heaptrc \
       windows initc cmem dynlibs signals \
@@ -20,7 +21,7 @@ implicitunits=sysinitpas sysinitcyg sysinitgprof \
       winsysut sharemem exeinfo fpintres windirs \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 \
-      unicodedata  unicodenumtable 
+      unicodedata  unicodenumtable
 
 # shared=$(DLLS)
 
@@ -119,6 +120,9 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
 
 iso7185$(PPUEXT) : $(INC)/iso7185.pp buildrtl$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/lineinfo.pp

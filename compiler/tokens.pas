@@ -443,8 +443,8 @@ const
       (str:'NOT'           ;special:false;keyword:alllanguagemodes;op:_OP_NOT),
       (str:'OUT'           ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'SET'           ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
-      (str:'SHL'           ;special:false;keyword:alllanguagemodes-[m_iso];op:_OP_SHL),
-      (str:'SHR'           ;special:false;keyword:alllanguagemodes-[m_iso];op:_OP_SHR),
+      (str:'SHL'           ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:_OP_SHL),
+      (str:'SHR'           ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:_OP_SHR),
       (str:'TRY'           ;special:false;keyword:[m_except];op:NOTOKEN),
       (str:'VAR'           ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'XOR'           ;special:false;keyword:alllanguagemodes;op:_OP_XOR),
@@ -463,9 +463,9 @@ const
       (str:'SYSV'          ;special:false;keyword:[m_none];op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'THEN'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'TYPE'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
-      (str:'UNIT'          ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'UNIT'          ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'UNIV'          ;special:false;keyword:[m_mac];op:NOTOKEN),
-      (str:'USES'          ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'USES'          ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'WITH'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'ALIAS'         ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'ARRAY'         ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
@@ -493,7 +493,7 @@ const
       (str:'INLINE'        ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'LEGACY'        ;special:false;keyword:[m_none];op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'NESTED'        ;special:false;keyword:[m_none];op:NOTOKEN),
-      (str:'OBJECT'        ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'OBJECT'        ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'PACKED'        ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'PASCAL'        ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'PUBLIC'        ;special:false;keyword:[m_none];op:NOTOKEN),
@@ -505,19 +505,19 @@ const
       (str:'STATIC'        ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'STORED'        ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'STRICT'        ;special:false;keyword:[m_none];op:NOTOKEN),
-      (str:'STRING'        ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'STRING'        ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'SYSTEM'        ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'WINAPI'        ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'ASMNAME'       ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'CPPDECL'       ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'DEFAULT'       ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'DYNAMIC'       ;special:false;keyword:[m_none];op:NOTOKEN),
-      (str:'EXPORTS'       ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'EXPORTS'       ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'FINALLY'       ;special:false;keyword:[m_except];op:NOTOKEN),
       (str:'FORWARD'       ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'GENERIC'       ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'IOCHECK'       ;special:false;keyword:[m_none];op:NOTOKEN),
-      (str:'LIBRARY'       ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'LIBRARY'       ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'MESSAGE'       ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'MODULUS'       ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'PACKAGE'       ;special:false;keyword:[m_none];op:NOTOKEN),
@@ -564,28 +564,28 @@ const
       (str:'SUBTRACT'      ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'SYSVBASE'      ;special:false;keyword:[m_none];op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'ASSEMBLER'     ;special:false;keyword:[m_none];op:NOTOKEN),
-      (str:'BITPACKED'     ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'BITPACKED'     ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'BITWISEOR'     ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
-      (str:'INHERITED'     ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'INHERITED'     ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'INTDIVIDE'     ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
-      (str:'INTERFACE'     ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'INTERFACE'     ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'INTERRUPT'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'LEFTSHIFT'     ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'LOGICALOR'     ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'NODEFAULT'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'OBJCCLASS'     ;special:false;keyword:[m_objectivec1];op:NOTOKEN),
-      (str:'OTHERWISE'     ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'OTHERWISE'     ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'PROCEDURE'     ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'PROTECTED'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'PUBLISHED'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'REFERENCE'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'SOFTFLOAT'     ;special:false;keyword:[m_none];op:NOTOKEN),
-      (str:'THREADVAR'     ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'THREADVAR'     ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'WRITEONLY'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'BITWISEAND'    ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'BITWISEXOR'    ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'DEPRECATED'    ;special:false;keyword:[m_none];op:NOTOKEN),
-      (str:'DESTRUCTOR'    ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'DESTRUCTOR'    ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'ENUMERATOR'    ;special:false;keyword:[m_none];op:_OP_ENUMERATOR),
       (str:'IMPLEMENTS'    ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'INTERNPROC'    ;special:false;keyword:[m_none];op:NOTOKEN),
@@ -596,7 +596,7 @@ const
       (str:'OPENSTRING'    ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'RIGHTSHIFT'    ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'SPECIALIZE'    ;special:false;keyword:[m_none];op:NOTOKEN),
-      (str:'CONSTRUCTOR'   ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'CONSTRUCTOR'   ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'GREATERTHAN'   ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'INTERNCONST'   ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'REINTRODUCE'   ;special:false;keyword:[m_none];op:NOTOKEN),
@@ -610,9 +610,9 @@ const
       (str:'WEAKEXTERNAL'  ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'DISPINTERFACE' ;special:false;keyword:[m_class];op:NOTOKEN),
       (str:'UNIMPLEMENTED' ;special:false;keyword:[m_none];op:NOTOKEN),
-      (str:'IMPLEMENTATION';special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'IMPLEMENTATION';special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'INITIALIZATION';special:false;keyword:[m_initfinal];op:NOTOKEN),
-      (str:'RESOURCESTRING';special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'RESOURCESTRING';special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'LESSTHANOREQUAL';special:false;keyword:[m_none];op:NOTOKEN),    { delphi operator name }
       (str:'GREATERTHANOREQUAL';special:false;keyword:[m_none];op:NOTOKEN)  { delphi operator name }
   );

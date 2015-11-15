@@ -539,7 +539,7 @@ implementation
           tfiledef(left.resultdef).typedfiledef.size,s32inttype,true),
           ccallparanode.create(left,nil));
         { create the correct call }
-        if m_iso in current_settings.modeswitches then
+        if m_isolike_io in current_settings.modeswitches then
           begin
             if inlinenumber=in_reset_typedfile then
               result := ccallnode.createintern('fpc_reset_typed_iso',left)
@@ -721,7 +721,7 @@ implementation
                     readfunctype:=pbestrealtype^;
                   end;
                 { iso pascal needs a different handler }
-                if (m_iso in current_settings.modeswitches) and do_read then
+                if (m_isolike_io in current_settings.modeswitches) and do_read then
                   name:=name+'_iso';
               end;
             enumdef:
@@ -743,14 +743,14 @@ implementation
                     begin
                       get_read_write_int_func(para.left.resultdef,func_suffix,readfunctype);
                       name := procprefixes[do_read]+func_suffix;
-                      if (m_iso in current_settings.modeswitches) and do_read then
+                      if (m_isolike_io in current_settings.modeswitches) and do_read then
                         name:=name+'_iso';
                     end;
                   uchar :
                     begin
                       name := procprefixes[do_read]+'char';
                       { iso pascal needs a different handler }
-                      if (m_iso in current_settings.modeswitches) and do_read then
+                      if (m_isolike_io in current_settings.modeswitches) and do_read then
                         name:=name+'_iso';
                       readfunctype:=cansichartype;
                     end;
@@ -763,7 +763,7 @@ implementation
                     begin
                       name := procprefixes[do_read]+'currency';
                       { iso pascal needs a different handler }
-                      if (m_iso in current_settings.modeswitches) and do_read then
+                      if (m_isolike_io in current_settings.modeswitches) and do_read then
                         name:=name+'_iso';
                       readfunctype:=s64currencytype;
                       is_real:=true;
@@ -817,7 +817,7 @@ implementation
           end;
 
           { iso pascal needs a different handler }
-          if (m_iso in current_settings.modeswitches) and not(do_read) then
+          if (m_isolike_io in current_settings.modeswitches) and not(do_read) then
             name:=name+'_iso';
 
           { check for length/fractional colon para's }
@@ -868,7 +868,7 @@ implementation
                     begin
                       if not assigned(lenpara) then
                         begin
-                          if m_iso in current_settings.modeswitches then
+                          if m_isolike_io in current_settings.modeswitches then
                             lenpara := ccallparanode.create(
                               cordconstnode.create(-1,s32inttype,false),nil)
                           else
@@ -1051,7 +1051,7 @@ implementation
             in_readln_x:
               begin
                 name:='fpc_readln_end';
-                if m_iso in current_settings.modeswitches then
+                if m_isolike_io in current_settings.modeswitches then
                   name:=name+'_iso';
               end;
             in_writeln_x:
@@ -1157,7 +1157,7 @@ implementation
           { since the parameters are in the correct order, we have to insert }
           { the statements always at the end of the current block            }
           addstatement(Tstatementnode(newstatement),
-            Ccallnode.createintern(procprefixes[m_iso in current_settings.modeswitches,do_read],para
+            Ccallnode.createintern(procprefixes[m_isolike_io in current_settings.modeswitches,do_read],para
           ));
 
           { if we used a temp, free it }

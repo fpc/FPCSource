@@ -352,6 +352,13 @@ implementation
         if m_iso in current_settings.modeswitches then
           AddUnit('iso7185');
 
+        if m_extpas in current_settings.modeswitches then
+          begin
+            { basic procedures for Extended Pascal are for now provided by the iso unit }
+            AddUnit('iso7185');
+            AddUnit('extpas');
+          end;
+
         { blocks support? }
         if m_blocks in current_settings.modeswitches then
           AddUnit('blockrtl');
@@ -2061,7 +2068,7 @@ type
                    consume(_LKLAMMER);
                    paramnum:=1;
                    repeat
-                     if m_iso in current_settings.modeswitches then
+                     if m_isolike_program_para in current_settings.modeswitches then
                        begin
                          if (pattern<>'INPUT') and (pattern<>'OUTPUT') then
                            begin

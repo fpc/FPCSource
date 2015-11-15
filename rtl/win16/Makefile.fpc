@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=prt0s prt0m prt0c prt0l prt0h 
-units=system uuchar objpas strings iso7185 dos \
+units=system uuchar objpas strings iso7185 extpas dos \
       wintypes winprocs win31 dynlibs \
       sysconst rtlconst
 
@@ -92,6 +92,10 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
 	$(EXECPPAS)
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
+        $(EXECPPAS)
 
 #
 # WinAPI Units

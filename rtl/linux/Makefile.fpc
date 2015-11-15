@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) \
-      uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
+      uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil \
       heaptrc lineinfo lnfodwrf \
       termio unix linux initc cmem $(CPU_UNITS) \
       linuxvcs \
@@ -387,6 +387,9 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 
 iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
 
 fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/fpintres.pp

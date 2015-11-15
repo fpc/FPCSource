@@ -499,6 +499,9 @@ implementation
          if s='ISO' then
           current_settings.modeswitches:=isomodeswitches
         else
+         if s='EXTENDEDPASCAL' then
+          current_settings.modeswitches:=extpasmodeswitches
+        else
          b:=false;
 
 {$ifdef jvm}
@@ -516,16 +519,16 @@ implementation
 
            HandleModeSwitches(m_none,changeinit);
 
-           { turn on bitpacking for mode macpas and iso pascal }
-           if ([m_mac,m_iso] * current_settings.modeswitches <> []) then
+           { turn on bitpacking for mode macpas and iso pascal as well as extended pascal }
+           if ([m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.localswitches,cs_bitpacking);
                if changeinit then
                  include(init_settings.localswitches,cs_bitpacking);
              end;
 
-           { support goto/label by default in delphi/tp7/mac modes }
-           if ([m_delphi,m_tp7,m_mac,m_iso] * current_settings.modeswitches <> []) then
+           { support goto/label by default in delphi/tp7/mac/iso/extpas modes }
+           if ([m_delphi,m_tp7,m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.moduleswitches,cs_support_goto);
                if changeinit then

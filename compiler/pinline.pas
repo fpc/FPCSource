@@ -154,7 +154,7 @@ implementation
             new_dispose_statement := p2;
           end
         { constructor,destructor specified }
-        else if (([m_mac,m_iso]*current_settings.modeswitches)=[]) and
+        else if (([m_mac,m_iso,m_extpas]*current_settings.modeswitches)=[]) and
                 try_to_consume(_COMMA) then
           begin
             { extended syntax of new and dispose }
@@ -340,7 +340,7 @@ implementation
 
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
-                       ((m_iso in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
+                       ((m_isolike_io in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
                        addstatement(newstatement,cnodeutils.initialize_data_node(cderefnode.create(ctemprefnode.create(temp)),false));
 
                      { copy the temp to the destination }
@@ -348,7 +348,7 @@ implementation
                          p,
                          ctemprefnode.create(temp)));
 
-                     if (m_iso in current_settings.modeswitches) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
+                     if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
                        begin
                          variantdesc:=trecorddef(tpointerdef(p.resultdef).pointeddef).variantrecdesc;
                          while (token=_COMMA) and assigned(variantdesc) do

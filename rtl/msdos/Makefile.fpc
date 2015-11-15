@@ -6,7 +6,7 @@ main=rtl
 [target]
 loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
 units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
-      math macpas iso7185 rtlconst typinfo types \
+      math macpas iso7185 extpas rtlconst typinfo types \
       getopts fgl classes \
       msmouse ports  \
       charset cpall ctypes lnfodwrf
@@ -101,6 +101,11 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 iso7185$(PPUEXT) : $(INC)/iso7185.pp system$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
 	$(EXECPPAS)
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
+        $(EXECPPAS)
+
 #
 # System Dependent Units
 #

@@ -1960,7 +1960,7 @@ implementation
                  end;
 
                { iso file buf access? }
-               if (m_iso in current_settings.modeswitches) and
+               if (m_isolike_io in current_settings.modeswitches) and
                  (p1.resultdef.typ=filedef) then
                  begin
                    case tfiledef(p1.resultdef).filetyp of
@@ -2857,7 +2857,7 @@ implementation
               (
                (token=_LKLAMMER) or
                (
-                (([m_tp7,m_delphi,m_mac,m_iso] * current_settings.modeswitches) <> []) and
+                (([m_tp7,m_delphi,m_mac,m_iso,m_extpas] * current_settings.modeswitches) <> []) and
                 (afterassignment or in_args)
                )
               ) then
@@ -4139,7 +4139,7 @@ implementation
                _OP_MOD :
                  begin
                    p1:=cmoddivnode.create(modn,p1,p2);
-                   if m_iso in current_settings.modeswitches then
+                   if m_isolike_mod in current_settings.modeswitches then
                      include(p1.flags,nf_isomod);
                  end;
                _OP_SHL :

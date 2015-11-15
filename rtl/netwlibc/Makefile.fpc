@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=nwplibc nwl_main nwl_dlle
-units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
+units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings \
       lineinfo lnfodwrf  heaptrc \
       nwsnut libc dos sysconst \
       initc sysutils types typinfo fgl classes \

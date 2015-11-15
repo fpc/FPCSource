@@ -10,7 +10,7 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0 dllprt0
-units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
+units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 extpas \
       strings syscall sysctl  baseunix unixutil character \
       unix rtlconsts initc cmem \
       dl termio \
