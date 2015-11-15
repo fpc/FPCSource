@@ -1129,7 +1129,7 @@ begin
   If Index<FCount then
     System.Move (FList^[Index],FList^[Index+1],
                  (FCount-Index)*SizeOf(TStringItem));
-  Pointer(Flist^[Index].Fstring):=Nil;  // Needed to initialize...
+//  Pointer(Flist^[Index].Fstring):=Nil;  // Needed to initialize...
   Flist^[Index].FString:=S;
   Flist^[Index].FObject:=O;
   Inc(FCount);
@@ -1251,7 +1251,7 @@ begin
       begin
       MSize:=FCapacity*Sizeof(TStringItem);
       System.Move (FList^,NewList^,MSize);
-      FillWord (Pchar(NewList)[MSize],(NewCapacity-FCapacity)*WordRatio, 0);
+      FillWord (Pchar(NewList)[MSize],(NewCapacity-FCapacity)*(SizeOf(TStringItem) div SizeOf(Word)), 0);
       FreeMem (Flist,MSize);
       end;
     Flist:=NewList;
