@@ -12942,6 +12942,7 @@ tests/test/units/classes/tvclcomobject.pp svneol=native#text/plain
 tests/test/units/cpu/tcpu1.pp svneol=native#text/pascal
 tests/test/units/crt/tcrt.pp svneol=native#text/plain
 tests/test/units/crt/tctrlc.pp svneol=native#text/plain
+tests/test/units/dateutil/testscandatetime.pas svneol=native#text/plain
 tests/test/units/dos/hello.pp svneol=native#text/plain
 tests/test/units/dos/tbreak.pp svneol=native#text/plain
 tests/test/units/dos/tdisk.pp svneol=native#text/plain
