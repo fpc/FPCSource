@@ -254,6 +254,10 @@ begin
 end;
 
 function CompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
+const
+  U_COMPARE_CODE_POINT_ORDER = $8000;
+var
+  err: UErrorCode;
 begin
   if hlibICU = 0 then begin
     // fallback implementation
@@ -262,7 +266,7 @@ begin
   end;
   InitThreadData;
   if (coIgnoreCase in Options) then
-    u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err);
+    u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err)
   else  
     if DefColl <> nil then
       Result:=ucol_strcoll(DefColl, PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2))
@@ -297,22 +301,22 @@ end;
 
 function CompareStrAnsiString(const s1, s2: ansistring): PtrInt;
 begin
-  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2));
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2),[]);
 end;
 
 function StrCompAnsi(s1,s2 : PChar): PtrInt;
 begin
-  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2));
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2),[]);
 end;
 
 function AnsiCompareText(const S1, S2: ansistring): PtrInt;
 begin
-  Result:=CompareTextUnicodeString(UnicodeString(s1), UnicodeString(s2));
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2),[coIgnoreCase]);
 end;
 
 function AnsiStrIComp(S1, S2: PChar): PtrInt;
 begin
-  Result:=CompareTextUnicodeString(UnicodeString(s1), UnicodeString(s2));
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2),[coIgnoreCase]);
 end;
 
 function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
@@ -321,7 +325,7 @@ var
 begin
   SetString(as1, S1, MaxLen);
   SetString(as2, S2, MaxLen);
-  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2));
+  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2),[]);
 end;
 
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
@@ -330,7 +334,7 @@ var
 begin
   SetString(as1, S1, MaxLen);
   SetString(as2, S2, MaxLen);
-  Result:=CompareTextUnicodeString(UnicodeString(as1), UnicodeString(as2));
+  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2),[coIgnoreCase]);
 end;
 
 function AnsiStrLower(Str: PChar): PChar;
@@ -428,7 +432,7 @@ end;
 
 function CompareTextWideString(const s1, s2 : WideString): PtrInt;
 begin
-  Result:=CompareTextUnicodeString(s1, s2);
+  Result:=CompareTextUnicodeString(s1, s2,[coIgnoreCase]);
 end;
 
 Procedure SetCWideStringManager;
