@@ -509,6 +509,7 @@ Type
   PCardinal           = ^Cardinal;
   PQWord              = ^QWord;
   PInt64              = ^Int64;
+  PUInt64             = ^UInt64;
   PPtrInt             = ^PtrInt;
   PPtrUInt            = ^PtrUInt;
   PSizeInt            = ^SizeInt;
