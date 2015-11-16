@@ -53,6 +53,8 @@ begin
     T:=P.Targets.AddUnit('get9.pas');
     T:=P.Targets.AddUnit('tinygl.pas');
     T:=P.Targets.AddUnit('diskfont.pas');
+    T:=P.Targets.AddUnit('cybergraphics.pas');
+    T:=P.Targets.AddUnit('cgxvideo.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
