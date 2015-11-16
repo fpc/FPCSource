@@ -1546,6 +1546,13 @@ implementation
                   fmSelfRelative:
                     RelocType:=RELOC_SEGREL;
                 end;
+              fltFarPointer:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_FARPTR;
+                  fmSelfRelative:
+                    RelocType:=RELOC_FARPTR_RELATIVEOFFSET;
+                end;
             end;
             if RelocType=RELOC_NONE then
               begin
@@ -1590,6 +1597,13 @@ implementation
                   fmSelfRelative:
                     RelocType:=RELOC_SEGREL;
                 end;
+              fltFarPointer:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_FARPTR;
+                  fmSelfRelative:
+                    RelocType:=RELOC_FARPTR_RELATIVEOFFSET;
+                end;
             end;
             if RelocType=RELOC_NONE then
               begin
@@ -1633,6 +1647,13 @@ implementation
                     RelocType:=RELOC_SEG;
                   fmSelfRelative:
                     RelocType:=RELOC_SEGREL;
+                end;
+              fltFarPointer:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_FARPTR;
+                  fmSelfRelative:
+                    RelocType:=RELOC_FARPTR_RELATIVEOFFSET;
                 end;
             end;
             if RelocType=RELOC_NONE then
@@ -2368,19 +2389,19 @@ implementation
             omfsec.Data.write(w,2);
           end;
 
-        procedure FixupBase;
+        procedure FixupBase(DataOffset: LongWord);
           var
             w: Word;
           begin
-            omfsec.Data.seek(objreloc.DataOffset);
+            omfsec.Data.seek(DataOffset);
             omfsec.Data.read(w,2);
             w:=LEtoN(w);
             Inc(w,framebase shr 4);
             w:=LEtoN(w);
-            omfsec.Data.seek(objreloc.DataOffset);
+            omfsec.Data.seek(DataOffset);
             omfsec.Data.write(w,2);
             Header.AddRelocation(omfsec.MZExeUnifiedLogicalSegment.MemBasePos shr 4,
-              omfsec.MemPos+objreloc.DataOffset-omfsec.MZExeUnifiedLogicalSegment.MemBasePos);
+              omfsec.MemPos+DataOffset-omfsec.MZExeUnifiedLogicalSegment.MemBasePos);
           end;
 
       begin
@@ -2397,9 +2418,9 @@ implementation
                 else
                   framebase:=TOmfObjSection(objreloc.symbol.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE,RELOC_SEG:
+                  RELOC_ABSOLUTE,RELOC_SEG,RELOC_FARPTR:
                     fixupamount:=target-framebase;
-                  RELOC_RELATIVE,RELOC_SEGREL:
+                  RELOC_RELATIVE,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
                     fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   else
                     internalerror(2015082402);
@@ -2410,7 +2431,13 @@ implementation
                     FixupOffset;
                   RELOC_SEG,
                   RELOC_SEGREL:
-                    FixupBase;
+                    FixupBase(objreloc.DataOffset);
+                  RELOC_FARPTR,
+                  RELOC_FARPTR_RELATIVEOFFSET:
+                    begin
+                      FixupOffset;
+                      FixupBase(objreloc.DataOffset+2);
+                    end;
                   else
                     internalerror(2015082403);
                 end;
@@ -2423,9 +2450,9 @@ implementation
                 else
                   framebase:=TOmfObjSection(objreloc.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE,RELOC_SEG:
+                  RELOC_ABSOLUTE,RELOC_SEG,RELOC_FARPTR:
                     fixupamount:=target-framebase;
-                  RELOC_RELATIVE,RELOC_SEGREL:
+                  RELOC_RELATIVE,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
                     fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   else
                     internalerror(2015082405);
@@ -2436,7 +2463,13 @@ implementation
                     FixupOffset;
                   RELOC_SEG,
                   RELOC_SEGREL:
-                    FixupBase;
+                    FixupBase(objreloc.DataOffset);
+                  RELOC_FARPTR,
+                  RELOC_FARPTR_RELATIVEOFFSET:
+                    begin
+                      FixupOffset;
+                      FixupBase(objreloc.DataOffset+2);
+                    end;
                   else
                     internalerror(2015082406);
                 end;
@@ -2450,9 +2483,9 @@ implementation
                 else
                   framebase:=target_group.MemPos;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE,RELOC_SEG:
+                  RELOC_ABSOLUTE,RELOC_SEG,RELOC_FARPTR:
                     fixupamount:=target-framebase;
-                  RELOC_RELATIVE,RELOC_SEGREL:
+                  RELOC_RELATIVE,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
                     fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   else
                     internalerror(2015111202);
@@ -2463,7 +2496,13 @@ implementation
                     FixupOffset;
                   RELOC_SEG,
                   RELOC_SEGREL:
-                    FixupBase;
+                    FixupBase(objreloc.DataOffset);
+                  RELOC_FARPTR,
+                  RELOC_FARPTR_RELATIVEOFFSET:
+                    begin
+                      FixupOffset;
+                      FixupBase(objreloc.DataOffset+2);
+                    end;
                   else
                     internalerror(2015111203);
                 end;
