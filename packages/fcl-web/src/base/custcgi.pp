@@ -353,7 +353,7 @@ procedure TCGIRequest.InitFromEnvironment;
 
 Var
   I : Integer;
-  V,OV : String;
+  R,V,OV : String;
   M : TMap;
   
 begin
@@ -373,7 +373,9 @@ begin
         end;
       end;
     end;
-  ReadContent;
+  R:=UpCase(Method);
+  if (R='POST') or (R='PUT') or (ContentLength>0) then
+    ReadContent;
 end;
 
 procedure TCGIRequest.ReadContent;
