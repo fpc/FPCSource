@@ -147,7 +147,7 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) objpas$(PPUEXT) rtlc
         $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
 
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) system$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
 

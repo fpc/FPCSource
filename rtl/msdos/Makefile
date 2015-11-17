@@ -2859,7 +2859,7 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc objpas$(PPUEXT) sysutil
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) system$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp $(OBJPASDIR)/rtlconst.inc objpas$(PPUEXT) system$(PPUEXT)
