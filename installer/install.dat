@@ -760,6 +760,8 @@ package=fcl-js.source.zip[ufcjssrc.zip],Free Component Library (FCL)-Javascript 
 package=units-ptc.source.zip[uptcsrc.zip],Free portable framebuffer library
 # Source-2 27
 package=units-x11.source.zip[ux11src.zip],X Window (X11) interface units
+# Source-2 28
+package=units-sdl.source.zip[usdlsrc.zip],SDL (Simple DirectMedia Layer) interface units sources
 
 
 #
