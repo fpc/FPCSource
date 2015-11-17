@@ -11073,6 +11073,7 @@ tests/test/cg/obj/linux/x86_64/tcext4.o -text
 tests/test/cg/obj/linux/x86_64/tcext5.o -text
 tests/test/cg/obj/linux/x86_64/tcext6.o -text
 tests/test/cg/obj/macos/powerpc/ctest.o -text
+tests/test/cg/obj/msdos/i8086/ttasm1.obj -text
 tests/test/cg/obj/netbsd/i386/cpptcl1.o -text
 tests/test/cg/obj/netbsd/i386/cpptcl2.o -text
 tests/test/cg/obj/netbsd/i386/ctest.o -text
@@ -11136,6 +11137,7 @@ tests/test/cg/obj/tcext3.c -text
 tests/test/cg/obj/tcext4.c -text
 tests/test/cg/obj/tcext5.c -text
 tests/test/cg/obj/tcext6.c svneol=native#text/plain
+tests/test/cg/obj/ttasm1.asm svneol=native#text/plain
 tests/test/cg/obj/win32/i386/cpptcl1.o -text
 tests/test/cg/obj/win32/i386/cpptcl2.o -text
 tests/test/cg/obj/win32/i386/ctest.o -text
@@ -11500,6 +11502,7 @@ tests/test/cpu16/i8086/tptrcon.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tptrsize.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tretf1.pp svneol=native#text/plain
 tests/test/cpu16/i8086/tretf2.pp svneol=native#text/plain
+tests/test/cpu16/i8086/ttasm1.pp svneol=native#text/plain
 tests/test/cpu16/i8086/ttheap1.pp svneol=native#text/pascal
 tests/test/cpu16/taddint1.pp svneol=native#text/pascal
 tests/test/dumpclass.pp svneol=native#text/plain

@@ -2202,6 +2202,7 @@ endif
 C_SOURCE_DIR=test/cg/obj
 C_SOURCES=ctest.c tcext3.c tcext4.c tcext5.c tcext6.c
 CPP_SOURCES=cpptcl1.cpp cpptcl2.cpp
+TASM_SOURCES=ttasm1.asm
 ifneq ($(TEST_ABI),)
 C_OBJECTS_DIR=$(C_SOURCE_DIR)/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)
 else
@@ -2209,6 +2210,7 @@ C_OBJECTS_DIR=$(C_SOURCE_DIR)/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)
 endif
 C_OBJECTS=$(addprefix $(C_OBJECTS_DIR)/, $(subst .c,.o, $(C_SOURCES)))
 CPP_OBJECTS=$(addprefix $(C_OBJECTS_DIR)/, $(subst .cpp,.o, $(CPP_SOURCES)))
+TASM_OBJECTS=$(addprefix $(C_OBJECTS_DIR)/, $(subst .asm,.obj, $(TASM_SOURCES)))
 create_c_objects:
 ifneq ($(TEST_CCOMPILER),)
 		-$(COPY) $(addprefix $(C_SOURCE_DIR)/, $(C_SOURCES)) $(C_OBJECTS_DIR)
@@ -2235,6 +2237,7 @@ copyfiles: $(TEST_OUTPUTDIR)
 	-$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/cg
 	-$(COPY) $(C_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
 	-$(COPY) $(CPP_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
+	-$(COPY) $(TASM_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
 	-$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
 testprep: testprep-stamp.$(TEST_FULL_TARGET)
 testprep-stamp.$(TEST_FULL_TARGET): utils tstunits copyfiles
