@@ -211,6 +211,13 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
         $(COMPILER) $(INC)/macpas.pp $(REDIR)
 
 #
+# Extended Pascal Model
+#
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp $(REDIR)
+
+#
 # Other system-independent RTL Units
 #
 

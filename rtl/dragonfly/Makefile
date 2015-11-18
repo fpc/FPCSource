@@ -3111,6 +3111,8 @@ character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/character.pas
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT)
+	$(COMPILER) $(INC)/extpas.pp $(REDIR)
 x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
 ifeq ($(ARCH),x86_64)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
