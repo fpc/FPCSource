@@ -175,6 +175,8 @@ begin
     P.Dependencies.Add('regexpr');
     if not (NoGDBOption) and not (GDBMIOption) then
       P.Dependencies.Add('gdbint',AllOSes-AllAmigaLikeOSes);
+    if GDBMIOption then
+      P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('graph',[go32v2]);
 
     P.SupportBuildModes:=[bmOneByOne];
