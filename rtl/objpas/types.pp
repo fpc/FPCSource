@@ -73,15 +73,19 @@ type
   PSmallPoint = Windows.PSmallPoint;
 
   TSize  = Windows.TSize;
+  TagSize  = Windows.tagSize deprecated;
   PSize  = Windows.PSize;
 
   TPoint = Windows.TPoint;
+  TagPoint = Windows.TagPoint deprecated;
   PPoint = Windows.PPoint;
 
   TRect  = Windows.TRect;
   PRect  = Windows.PRect;
 {$else}
   {$i typshrdh.inc}
+   TagSize = tSize deprecated;
+   TagPoint = TPoint deprecated;
 {$endif}
 
   { TPointF }
