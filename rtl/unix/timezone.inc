@@ -119,6 +119,19 @@ begin
   GetLocalTimezone(timer,lc,lh);
 end;
 
+Const
+  DefaultTimeZoneDir = '/usr/share/zoneinfo';
+
+function TimeZoneDir : ShortString;
+
+begin
+  // Observe TZDIR environment variable.
+  TimeZoneDir:=fpgetenv('TZDIR');
+  if TimeZoneDir='' then
+    TimeZoneDir:=DefaultTimeZoneDir;
+  if TimeZoneDir[length(TimeZoneDir)]<>'/' then
+    TimeZoneDir:=TimeZoneDir+'/';
+end;
 
 procedure ReadTimezoneFile(fn:shortstring);
 
@@ -192,14 +205,7 @@ begin
   if fn='' then
    fn:='localtime';
   if fn[1]<>'/' then
-   begin
-     tzdir:=fpgetenv('TZDIR');
-     if tzdir='' then
-      tzdir:='/usr/share/zoneinfo';
-     if tzdir[length(tzdir)]<>'/' then
-      tzdir:=tzdir+'/';
-     fn:=tzdir+fn;
-   end;
+    fn:=TimeZoneDir+fn;
   f:=fpopen(fn,Open_RdOnly);
   if f<0 then
    exit;
@@ -269,7 +275,7 @@ Const
   AltTimeZoneFile = '/usr/lib/zoneinfo/localtime';      // Other
   iOSTimeZoneFile = '/var/db/timezone/localtime';      // iOS
 {$ifdef BSD}
-  BSDTimeZonefile = '/usr/share/zoneinfo';      // BSD usually is POSIX
+  BSDTimeZonefile = DefaultTimeZoneDir;      // BSD usually is POSIX
                                                 // compliant though
 {$ENDIF}
 
@@ -278,10 +284,25 @@ Const
 function GetTimezoneFile:shortstring;
 var
   f,len : longint;
-  s : shortstring;
+  fn,s : shortstring;
   info : stat;
 begin
   GetTimezoneFile:='';
+  // Observe TZ variable.
+  fn:=fpgetenv('TZ');
+  if (fn<>'') then
+    if (fn[1]=':') then
+      begin
+      Delete(fn,1,1);
+      if (fn<>'') then
+        begin
+        if (fn[1]<>'/') then 
+          Exit(TimeZoneDir+fn);
+        Exit(fn);  
+        end;
+      end;
+  if (fn='') then
+    fn:=TimeZoneLocationFile;
   f:=fpopen(TimeZoneLocationFile,Open_RdOnly);
   if f>0 then
     begin
