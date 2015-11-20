@@ -33,10 +33,10 @@ var
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
-Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
-Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
-Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);
-Function GregorianToJulian(Year,Month,Day:Longint):LongInt;
+Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint; deprecated 'use DateUtils.DateTimeToUnix';
+Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word); deprecated 'use DateUtils.UnixToDateTime';
+Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word); deprecated 'use DateUtils.DateTimetoJulianDate';
+Function GregorianToJulian(Year,Month,Day:Longint):LongInt; deprecated 'use DateUtils.JulianDateToDateTime';
 
 implementation
 
