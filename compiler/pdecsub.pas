@@ -3004,7 +3004,9 @@ const
                   { but according to MacPas mode description
                     Cprefix should still be used PM }
                   if (m_mac in current_settings.modeswitches) then
-                    result:=target_info.Cprefix+tprocdef(pd).procsym.realname;
+                    result:=target_info.Cprefix+tprocdef(pd).procsym.realname
+                  else
+                    result:=pd.procsym.realname;
                 end;
             end;
           end;
