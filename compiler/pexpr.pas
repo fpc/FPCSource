@@ -4093,9 +4093,13 @@ implementation
                        { for now we're handling this as a generic declaration;
                          there could be cases though (because of operator
                          overloading) where this is the wrong decision... }
-                       { TODO : here the same note as in _LT applies as p2 could
-                                point to a variable, etc }
-                       gendef:=gettypedef(p2);
+                       if gensym.typ=typesym then
+                         gendef:=ttypesym(gensym).typedef
+                       else
+                         if gensym.typ=procsym then
+                           gendef:=tdef(tprocsym(gensym).procdeflist[0])
+                         else
+                           internalerror(2015072401);
 
                        ptmp:=generate_inline_specialization(gendef,p2,filepos,nil,nil,nil);
 
