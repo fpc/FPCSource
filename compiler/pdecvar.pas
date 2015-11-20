@@ -1292,7 +1292,7 @@ implementation
                  begin
                    case symtablestack.top.symtabletype of
                      localsymtable :
-                       vs:=clocalvarsym.create(orgpattern,vs_value,generrordef,[]);
+                       vs:=clocalvarsym.create(orgpattern,vs_value,generrordef,[],true);
                      staticsymtable,
                      globalsymtable :
                        begin

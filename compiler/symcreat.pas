@@ -1166,7 +1166,7 @@ implementation
       symtablestack.free;
       symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
       pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef);
-      nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[]);
+      nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[],true);
       pd.localst.insert(nestedvars);
       pd.parentfpstruct:=nestedvars;
       pd.parentfpstructptrtype:=pnestedvarsdef;

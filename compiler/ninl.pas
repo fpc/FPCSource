@@ -422,7 +422,7 @@ implementation
           if not assigned(srsym) then
             begin
               { no valid default variable found, so create it }
-              srsym:=clocalvarsym.create(defaultname,vs_const,def,[]);
+              srsym:=clocalvarsym.create(defaultname,vs_const,def,[],true);
               srsymtable.insert(srsym);
               { mark the staticvarsym as typedconst }
               include(tabstractvarsym(srsym).varoptions,vo_is_typed_const);
