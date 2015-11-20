@@ -842,6 +842,7 @@ Begin
           orddef,
           enumdef,
           pointerdef,
+          procvardef,
           floatdef :
             SetSize(tabstractvarsym(sym).getsize,false);
           arraydef :
