@@ -2709,7 +2709,9 @@ implementation
            allowspecialize,
            isspecialize,
            unit_found : boolean;
+           dummypos,
            tokenpos: tfileposinfo;
+           spezcontext : tspecializationcontext;
          begin
            { allow post fix operators }
            again:=true;
@@ -2717,6 +2719,7 @@ implementation
            { preinitalize tokenpos }
            tokenpos:=current_filepos;
            p1:=nil;
+           spezcontext:=nil;
 
            allowspecialize:=not (m_delphi in current_settings.modeswitches) and
                             not (ef_had_specialize in flags) and
@@ -2781,17 +2784,44 @@ implementation
                      end
                    else
                      begin
-                       hdef:=ttypesym(srsym).typedef;
-                       generate_specialization(hdef,false,'');
+                       {$push}
+                       {$warn 5036 off}
+                       hdef:=generate_specialization_phase1(spezcontext,nil,nil,orgstoredpattern,dummypos);
+                       {$pop}
                        if hdef=generrordef then
                          begin
+                           spezcontext.free;
+                           spezcontext:=nil;
                            srsym:=generrorsym;
                            srsymtable:=nil;
                          end
                        else
                          begin
-                           srsym:=hdef.typesym;
-                           srsymtable:=srsym.owner;
+                           if hdef.typ in [objectdef,recorddef,procvardef,arraydef] then
+                             begin
+                               hdef:=generate_specialization_phase2(spezcontext,tstoreddef(hdef),false,'');
+                               spezcontext.free;
+                               spezcontext:=nil;
+                               srsym:=hdef.typesym;
+                               srsymtable:=srsym.owner;
+                             end
+                           else
+                             if hdef.typ=procdef then
+                               begin
+                                 if block_type<>bt_body then
+                                   begin
+                                     message(parser_e_illegal_expression);
+                                     srsym:=generrorsym;
+                                     srsymtable:=nil;
+                                   end
+                                 else
+                                   begin
+                                     srsym:=tprocdef(hdef).procsym;
+                                     srsymtable:=srsym.owner;
+                                   end;
+                               end
+                             else
+                               internalerror(2015061204);
                          end;
                      end;
                  end;
@@ -2995,7 +3025,10 @@ implementation
                         { not srsymtable.symtabletype since that can be }
                         { withsymtable as well                          }
                         if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[],nil)
+                          begin
+                            do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[],spezcontext);
+                            spezcontext:=nil;
+                          end
                         else
                           { no procsyms in records (yet) }
                           internalerror(2007012006);
@@ -3009,7 +3042,8 @@ implementation
                           callflags:=[cnf_unit_specified];
                         do_proc_call(srsym,srsymtable,nil,
                                      (getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER])),
-                                     again,p1,callflags,nil);
+                                     again,p1,callflags,spezcontext);
+                        spezcontext:=nil;
                       end;
                   end;
 
@@ -3095,6 +3129,9 @@ implementation
                     Message(parser_e_illegal_expression);
                   end;
               end; { end case }
+
+              if assigned(spezcontext) then
+                internalerror(2015061207);
 
               if assigned(p1) and (p1.nodetype<>errorn) then
                 p1.fileinfo:=tokenpos;
