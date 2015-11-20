@@ -1512,7 +1512,7 @@ implementation
                sorg:=orgpattern;
                if token=_ID then
                  begin
-                   vs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                   vs:=cfieldvarsym.create(sorg,vs_value,generrordef,[],true);
 
                    { normally the visibility is set via addfield, but sometimes
                      we collect symbols so we can add them in a batch of
@@ -1739,7 +1739,7 @@ implementation
                 begin
                   consume(_ID);
                   consume(_COLON);
-                  fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                  fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[],true);
                   variantdesc^^.variantselector:=fieldvs;
                   symtablestack.top.insert(fieldvs);
                 end;

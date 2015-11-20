@@ -481,18 +481,18 @@ implementation
               type is not available. The rtti for pvmt will be written implicitly
               by thev tblarray below }
             systemunit.insert(ctypesym.create('$pvmt',pvmttype,true));
-            addfield(hrecst,cfieldvarsym.create('$length',vs_value,ptrsinttype,[]));
-            addfield(hrecst,cfieldvarsym.create('$mlength',vs_value,ptrsinttype,[]));
-            addfield(hrecst,cfieldvarsym.create('$parent',vs_value,pvmttype,[]));
+            addfield(hrecst,cfieldvarsym.create('$length',vs_value,ptrsinttype,[],true));
+            addfield(hrecst,cfieldvarsym.create('$mlength',vs_value,ptrsinttype,[],true));
+            addfield(hrecst,cfieldvarsym.create('$parent',vs_value,pvmttype,[],true));
             { it seems vmttype is used both for TP objects and Delphi classes,
               so the next entry could either be the first virtual method (vm1)
               (object) or the class name (class). We can't easily create separate
               vtable formats for both, as gdb is hard coded to search for
               __vtbl_ptr_type in all cases (JM) }
-            addfield(hrecst,cfieldvarsym.create('$vm1_or_classname',vs_value,cpointerdef.create(cshortstringtype),[]));
+            addfield(hrecst,cfieldvarsym.create('$vm1_or_classname',vs_value,cpointerdef.create(cshortstringtype),[],true));
             vmtarraytype:=carraydef.create(0,0,s32inttype);
             tarraydef(vmtarraytype).elementdef:=voidpointertype;
-            addfield(hrecst,cfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
+            addfield(hrecst,cfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[],true));
             addtype('$__vtbl_ptr_type',vmttype);
             vmtarraytype:=carraydef.create(0,1,s32inttype);
             tarraydef(vmtarraytype).elementdef:=pvmttype;
@@ -500,14 +500,14 @@ implementation
           end;
         { Add a type for methodpointers }
         hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
-        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
-        addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[]));
+        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[],true));
+        addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[],true));
         methodpointertype:=crecorddef.create('',hrecst);
         addtype('$methodpointer',methodpointertype);
         { Add a type for nested proc pointers }
         hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
-        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
-        addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
+        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[],true));
+        addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[],true));
         nestedprocpointertype:=crecorddef.create('',hrecst);
         addtype('$nestedprocpointer',nestedprocpointertype);
         symtablestack.pop(systemunit);

@@ -4299,7 +4299,7 @@ implementation
           end
         else
           pname:=@optionalname;
-        sym:=cfieldvarsym.create(pname^,vs_value,def,[]);
+        sym:=cfieldvarsym.create(pname^,vs_value,def,[],true);
         symtable.insert(sym);
         trecordsymtable(symtable).addfield(sym,vis_hidden);
         result:=sym;
@@ -6847,7 +6847,7 @@ implementation
                  tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(pint));
                  tObjectSymtable(symtable).alignrecord(tObjectSymtable(symtable).datasize,sizeof(pint));
                end;
-             vmt_field:=cfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
+             vmt_field:=cfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[],true);
              hidesym(vmt_field);
              tObjectSymtable(symtable).insert(vmt_field);
              tObjectSymtable(symtable).addfield(tfieldvarsym(vmt_field),vis_hidden);

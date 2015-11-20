@@ -179,7 +179,7 @@ interface
           { could also be part of tabstractnormalvarsym, but there's }
           { one byte left here till the next 4 byte alignment        }
           addr_taken     : boolean;
-          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
+          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
@@ -215,7 +215,7 @@ interface
 {$else symansistr}
           cachedmangledname: pshortstring; { mangled name for ObjC or Java }
 {$endif symansistr}
-          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
@@ -1583,9 +1583,9 @@ implementation
                             TABSTRACTVARSYM
 ****************************************************************************}
 
-    constructor tabstractvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
+    constructor tabstractvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
       begin
-         inherited create(st,n,true);
+         inherited create(st,n,doregister);
          vardef:=def;
          varspez:=vsp;
          varstate:=vs_declared;
@@ -1737,9 +1737,9 @@ implementation
                                TFIELDVARSYM
 ****************************************************************************}
 
-    constructor tfieldvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
+    constructor tfieldvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
       begin
-         inherited create(fieldvarsym,n,vsp,def,vopts);
+         inherited create(fieldvarsym,n,vsp,def,vopts,doregister);
          fieldoffset:=-1;
       end;
 
@@ -1829,7 +1829,7 @@ implementation
 
     constructor tabstractnormalvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(st,n,vsp,def,vopts);
+         inherited create(st,n,vsp,def,vopts,true);
          fillchar(localloc,sizeof(localloc),0);
          fillchar(currentregloc,sizeof(localloc),0);
          fillchar(initialloc,sizeof(initialloc),0);
@@ -2198,14 +2198,14 @@ implementation
 
     constructor tabsolutevarsym.create(const n : string;def:tdef);
       begin
-        inherited create(absolutevarsym,n,vs_value,def,[]);
+        inherited create(absolutevarsym,n,vs_value,def,[],true);
         ref:=nil;
       end;
 
 
     constructor tabsolutevarsym.create_ref(const n : string;def:tdef;_ref:tpropaccesslist);
       begin
-        inherited create(absolutevarsym,n,vs_value,def,[]);
+        inherited create(absolutevarsym,n,vs_value,def,[],true);
         ref:=_ref;
       end;
 

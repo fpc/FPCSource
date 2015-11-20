@@ -343,7 +343,7 @@ implementation
         { create static fields representing all enums }
         for i:=0 to tenumdef(def).symtable.symlist.count-1 do
           begin
-            fsym:=cfieldvarsym.create(tenumsym(tenumdef(def).symtable.symlist[i]).realname,vs_final,enumclass,[]);
+            fsym:=cfieldvarsym.create(tenumsym(tenumdef(def).symtable.symlist[i]).realname,vs_final,enumclass,[],true);
             enumclass.symtable.insert(fsym);
             sym:=make_field_static(enumclass.symtable,fsym);
             { add alias for the field representing ordinal(0), for use in
@@ -373,12 +373,12 @@ implementation
         if tenumdef(def).has_jumps then
           begin
             { add field for the value }
-            fsym:=cfieldvarsym.create('__fpc_fenumval',vs_final,s32inttype,[]);
+            fsym:=cfieldvarsym.create('__fpc_fenumval',vs_final,s32inttype,[],true);
             enumclass.symtable.insert(fsym);
             tobjectsymtable(enumclass.symtable).addfield(fsym,vis_strictprivate);
             { add class field with hash table that maps from FPC-declared ordinal value -> enum instance }
             juhashmap:=search_system_type('JUHASHMAP').typedef;
-            fsym:=cfieldvarsym.create('__fpc_ord2enum',vs_final,juhashmap,[]);
+            fsym:=cfieldvarsym.create('__fpc_ord2enum',vs_final,juhashmap,[],true);
             enumclass.symtable.insert(fsym);
             make_field_static(enumclass.symtable,fsym);
             { add custom constructor }
@@ -435,7 +435,7 @@ implementation
           "Values" instance method -- that's also the reason why we insert the
           field only now, because we cannot disable duplicate identifier
           checking when creating the "Values" method }
-        fsym:=cfieldvarsym.create('$VALUES',vs_final,arrdef,[]);
+        fsym:=cfieldvarsym.create('$VALUES',vs_final,arrdef,[],true);
         fsym.visibility:=vis_strictprivate;
         enumclass.symtable.insert(fsym,false);
         sym:=make_field_static(enumclass.symtable,fsym);

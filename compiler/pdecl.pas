@@ -266,7 +266,7 @@ implementation
                      to it from the structure or linking will fail }
                    if symtablestack.top.symtabletype in [recordsymtable,ObjectSymtable] then
                      begin
-                       sym:=cfieldvarsym.create(orgname,varspez,hdef,[]);
+                       sym:=cfieldvarsym.create(orgname,varspez,hdef,[],true);
                        symtablestack.top.insert(sym);
                        sym:=make_field_static(symtablestack.top,tfieldvarsym(sym));
                      end
