@@ -1790,6 +1790,8 @@ implementation
             RT_MODEND,RT_MODEND32:
               if not ReadModEnd(FRawRecord,objdata) then
                 exit;
+            RT_LINNUM,RT_LINNUM32:
+              ;
             else
               begin
                 InputError('Unsupported OMF record type $'+HexStr(FRawRecord.RecordType,2));
