@@ -174,7 +174,7 @@ implementation
       { find the type of the descriptor structure }
       descriptordef:=search_named_unit_globaltype('BLOCKRTL','FPC_BLOCK_DESCRIPTOR_SIMPLE',true).typedef;
       { create new static variable }
-      descriptor:=cstaticvarsym.create(name,vs_value,descriptordef,[]);
+      descriptor:=cstaticvarsym.create(name,vs_value,descriptordef,[],true);
       symtablestack.top.insert(descriptor);
       include(descriptor.symoptions,sp_internal);
       { create typed constant for the descriptor }
@@ -253,7 +253,7 @@ implementation
       result:=cstaticvarsym.create(
         '$'+literalname,
         vs_value,
-        blockliteraldef,[]);
+        blockliteraldef,[],true);
       include(result.symoptions,sp_internal);
       symtablestack.top.insert(result);
       { initialise it }

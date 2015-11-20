@@ -272,7 +272,7 @@ implementation
                      end
                    else
                      begin
-                       sym:=cstaticvarsym.create(orgname,varspez,hdef,[]);
+                       sym:=cstaticvarsym.create(orgname,varspez,hdef,[],true);
                        sym.visibility:=symtablestack.top.currentvisibility;
                        symtablestack.top.insert(sym);
                      end;
@@ -352,7 +352,7 @@ implementation
                       end
                     else
                       begin
-                        labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
+                        labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[],true);
                         symtablestack.top.insert(labelsym.jumpbuf);
                         cnodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;

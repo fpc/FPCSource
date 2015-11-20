@@ -1066,7 +1066,7 @@ implementation
           case vs.typ of
             localvarsym :
               begin
-                tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
+                tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[],true);
                 include(tcsym.symoptions,sp_internal);
                 vs.defaultconstsym:=tcsym;
                 symtablestack.top.insert(tcsym);
@@ -1296,7 +1296,7 @@ implementation
                      staticsymtable,
                      globalsymtable :
                        begin
-                         vs:=cstaticvarsym.create(orgpattern,vs_value,generrordef,[]);
+                         vs:=cstaticvarsym.create(orgpattern,vs_value,generrordef,[],true);
                          if vd_threadvar in options then
                            include(vs.varoptions,vo_is_thread_var);
                        end;

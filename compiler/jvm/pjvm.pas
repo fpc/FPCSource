@@ -350,7 +350,7 @@ implementation
               initialization code }
             if tenumsym(tenumdef(def).symtable.symlist[i]).value=0 then
               begin
-                aliassym:=cstaticvarsym.create('__FPC_Zero_Initializer',vs_final,enumclass,[vo_is_external]);
+                aliassym:=cstaticvarsym.create('__FPC_Zero_Initializer',vs_final,enumclass,[vo_is_external],true);
                 enumclass.symtable.insert(aliassym);
                 aliassym.set_raw_mangledname(sym.mangledname);
               end;
@@ -737,7 +737,7 @@ implementation
             begin
               { make sure we don't emit a definition for this field (we'll do
                 that for the constsym already) -> mark as external }
-              ssym:=cstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,csym.constdef,[vo_is_external]);
+              ssym:=cstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,csym.constdef,[vo_is_external],true);
               csym.owner.insert(ssym);
               { alias storage to the constsym }
               ssym.set_mangledname(csym.realname);
@@ -775,7 +775,7 @@ implementation
                 has been compiler -> insert a copy in the unit's staticsymtable
               }
               symtablestack.push(current_module.localsymtable);
-              ssym:=cstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,tsetdef(csym.constdef).getcopy,[vo_is_external,vo_has_local_copy]);
+              ssym:=cstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,tsetdef(csym.constdef).getcopy,[vo_is_external,vo_has_local_copy],true);
               symtablestack.top.insert(ssym);
               symtablestack.pop(current_module.localsymtable);
               { alias storage to the constsym }

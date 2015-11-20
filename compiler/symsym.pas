@@ -240,7 +240,7 @@ interface
           { the variable is not living at entry of the scope, so it does not need to be initialized if it is a reg. var
             (not written to ppu, because not important and would change interface crc) }
           noregvarinitneeded : boolean;
-          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
+          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           function globalasmsym: boolean;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -296,7 +296,7 @@ interface
             to the symbol of the corresponding class field }
           fieldvarsym : tfieldvarsym;
           fieldvarsymderef : tderef;
-          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);virtual;
           constructor create_dll(const n : string;vsp:tvarspez;def:tdef);virtual;
           constructor create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);virtual;
           constructor create_from_fieldvar(const n:string;fieldvar:tfieldvarsym);virtual;
@@ -1827,9 +1827,9 @@ implementation
                         TABSTRACTNORMALVARSYM
 ****************************************************************************}
 
-    constructor tabstractnormalvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
+    constructor tabstractnormalvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
       begin
-         inherited create(st,n,vsp,def,vopts,true);
+         inherited create(st,n,vsp,def,vopts,doregister);
          fillchar(localloc,sizeof(localloc),0);
          fillchar(currentregloc,sizeof(localloc),0);
          fillchar(initialloc,sizeof(initialloc),0);
@@ -1889,9 +1889,9 @@ implementation
                              Tstaticvarsym
 ****************************************************************************}
 
-    constructor tstaticvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
+    constructor tstaticvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
       begin
-         inherited create(staticvarsym,n,vsp,def,vopts);
+         inherited create(staticvarsym,n,vsp,def,vopts,doregister);
 {$ifdef symansistr}
          _mangledname:='';
 {$else symansistr}
@@ -1902,20 +1902,20 @@ implementation
 
     constructor tstaticvarsym.create_dll(const n : string;vsp:tvarspez;def:tdef);
       begin
-         tstaticvarsym(self).create(n,vsp,def,[vo_is_dll_var]);
+         tstaticvarsym(self).create(n,vsp,def,[vo_is_dll_var],true);
       end;
 
 
     constructor tstaticvarsym.create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);
       begin
-         tstaticvarsym(self).create(n,vsp,def,[]);
+         tstaticvarsym(self).create(n,vsp,def,[],true);
          set_mangledname(mangled);
       end;
 
 
     constructor tstaticvarsym.create_from_fieldvar(const n: string;fieldvar:tfieldvarsym);
       begin
-        create(internal_static_field_name(n),vs_value,fieldvar.vardef,[]);
+        create(internal_static_field_name(n),vs_value,fieldvar.vardef,[],true);
         fieldvarsym:=fieldvar;
       end;
 
@@ -2086,7 +2086,7 @@ implementation
 
     constructor tlocalvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(localvarsym,n,vsp,def,vopts);
+         inherited create(localvarsym,n,vsp,def,vopts,true);
       end;
 
 
@@ -2110,7 +2110,7 @@ implementation
 
     constructor tparavarsym.create(const n : string;nr:word;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(paravarsym,n,vsp,def,vopts);
+         inherited create(paravarsym,n,vsp,def,vopts,true);
          if (vsp in [vs_var,vs_value,vs_const,vs_constref]) and
             not(vo_is_funcret in vopts) then
            varstate := vs_initialised;
