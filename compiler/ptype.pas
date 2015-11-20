@@ -654,6 +654,7 @@ implementation
         pd : tprocdef;
         oldparse_only: boolean;
         member_blocktype : tblock_type;
+        hadgeneric,
         fields_allowed, is_classdef, classfields: boolean;
         vdoptions: tvar_dec_options;
       begin
@@ -672,6 +673,7 @@ implementation
         current_structdef.symtable.currentvisibility:=vis_public;
         fields_allowed:=true;
         is_classdef:=false;
+        hadgeneric:=false;
         classfields:=false;
         member_blocktype:=bt_general;
         repeat
@@ -779,7 +781,7 @@ implementation
                     else
                     if is_classdef and (idtoken=_OPERATOR) then
                       begin
-                        pd:=parse_record_method_dec(current_structdef,is_classdef);
+                        pd:=parse_record_method_dec(current_structdef,is_classdef,false);
                         fields_allowed:=false;
                         is_classdef:=false;
                       end
@@ -787,17 +789,33 @@ implementation
                       begin
                         if member_blocktype=bt_general then
                           begin
-                            if (not fields_allowed)and(idtoken<>_CASE) then
-                              Message(parser_e_field_not_allowed_here);
-                            vdoptions:=[vd_record];
-                            if classfields then
-                              include(vdoptions,vd_class);
-                            read_record_fields(vdoptions,nil,nil);
+                            if (idtoken=_GENERIC) and
+                                not (m_delphi in current_settings.modeswitches) and
+                                not fields_allowed then
+                              begin
+                                if hadgeneric then
+                                  Message(parser_e_procedure_or_function_expected);
+                                consume(_ID);
+                                hadgeneric:=true;
+                                if not (token in [_PROCEDURE,_FUNCTION,_CLASS]) then
+                                  Message(parser_e_procedure_or_function_expected);
+                              end
+                            else
+                              begin
+                                if (not fields_allowed)and(idtoken<>_CASE) then
+                                  Message(parser_e_field_not_allowed_here);
+                                vdoptions:=[vd_record];
+                                if classfields then
+                                  include(vdoptions,vd_class);
+                                if not (m_delphi in current_settings.modeswitches) then
+                                  include(vdoptions,vd_check_generic);
+                                read_record_fields(vdoptions,nil,nil,hadgeneric);
+                              end;
                           end
                         else if member_blocktype=bt_type then
-                          types_dec(true)
+                          types_dec(true,hadgeneric)
                         else if member_blocktype=bt_const then
-                          consts_dec(true,true)
+                          consts_dec(true,true,hadgeneric)
                         else
                           internalerror(201001110);
                       end;
@@ -818,8 +836,9 @@ implementation
                 consume(_CLASS);
                 { class modifier is only allowed for procedures, functions, }
                 { constructors, destructors, fields and properties          }
-                if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR,_OPERATOR]) and
-                   not((token=_ID) and (idtoken=_OPERATOR)) then
+                if (hadgeneric and not (token in [_FUNCTION,_PROCEDURE])) or
+                    (not hadgeneric and (not (token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR,_OPERATOR]) and
+                   not((token=_ID) and (idtoken=_OPERATOR)))) then
                   Message(parser_e_procedure_or_function_expected);
 
                 if IsAnonOrLocal then
@@ -832,7 +851,8 @@ implementation
               begin
                 if IsAnonOrLocal then
                   Message(parser_e_no_methods_in_local_anonymous_records);
-                pd:=parse_record_method_dec(current_structdef,is_classdef);
+                pd:=parse_record_method_dec(current_structdef,is_classdef,hadgeneric);
+                hadgeneric:=false;
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
@@ -909,6 +929,7 @@ implementation
          old_current_specializedef: tstoreddef;
          old_parse_generic: boolean;
          recst: trecordsymtable;
+         hadgendummy : boolean;
       begin
          old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
@@ -971,7 +992,7 @@ implementation
            end
          else
            begin
-             read_record_fields([vd_record],nil,nil);
+             read_record_fields([vd_record],nil,nil,hadgendummy);
 {$ifdef jvm}
              { we need a constructor to create temps, a deep copy helper, ... }
              add_java_default_record_methods_intf(trecorddef(current_structdef));

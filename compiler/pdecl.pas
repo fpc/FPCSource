@@ -37,15 +37,15 @@ interface
 
     function  readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
 
-    procedure const_dec;
-    procedure consts_dec(in_structure, allow_typed_const: boolean);
+    procedure const_dec(out had_generic:boolean);
+    procedure consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
     procedure label_dec;
-    procedure type_dec;
-    procedure types_dec(in_structure: boolean);
-    procedure var_dec;
-    procedure threadvar_dec;
+    procedure type_dec(out had_generic:boolean);
+    procedure types_dec(in_structure: boolean;out had_generic:boolean);
+    procedure var_dec(out had_generic:boolean);
+    procedure threadvar_dec(out had_generic:boolean);
     procedure property_dec;
-    procedure resourcestring_dec;
+    procedure resourcestring_dec(out had_generic:boolean);
 
 implementation
 
@@ -181,13 +181,13 @@ implementation
         readconstant:=hp;
       end;
 
-    procedure const_dec;
+    procedure const_dec(out had_generic:boolean);
       begin
         consume(_CONST);
-        consts_dec(false,true);
+        consts_dec(false,true,had_generic);
       end;
 
-    procedure consts_dec(in_structure, allow_typed_const: boolean);
+    procedure consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
       var
          orgname : TIDString;
          hdef : tdef;
@@ -197,15 +197,20 @@ implementation
          storetokenpos,filepos : tfileposinfo;
          nodetype : tnodetype;
          old_block_type : tblock_type;
+         first,
+         isgeneric,
          skipequal : boolean;
          tclist : tasmlist;
          varspez : tvarspez;
       begin
          old_block_type:=block_type;
          block_type:=bt_const;
+         had_generic:=false;
+         first:=true;
          repeat
            orgname:=orgpattern;
            filepos:=current_tokenpos;
+           isgeneric:=not (m_delphi in current_settings.modeswitches) and (token=_ID) and (idtoken=_GENERIC);
            consume(_ID);
            case token of
 
@@ -314,9 +319,17 @@ implementation
                 end;
 
               else
-                { generate an error }
-                consume(_EQ);
+                if not first and isgeneric and (token in [_PROCEDURE,_FUNCTION,_CLASS]) then
+                  begin
+                    had_generic:=true;
+                    break;
+                  end
+                else
+                  { generate an error }
+                  consume(_EQ);
            end;
+
+           first:=false;
          until (token<>_ID) or
                (in_structure and
                 ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
@@ -367,7 +380,7 @@ implementation
          consume(_SEMICOLON);
       end;
 
-    procedure types_dec(in_structure: boolean);
+    procedure types_dec(in_structure: boolean;out had_generic:boolean);
 
       function determine_generic_def(name:tidstring):tstoreddef;
         var
@@ -435,6 +448,7 @@ implementation
          old_block_type : tblock_type;
          old_checkforwarddefs: TFPObjectList;
          objecttype : tobjecttyp;
+         first,
          isgeneric,
          isunique,
          istyperenaming : boolean;
@@ -456,6 +470,7 @@ implementation
          current_module.checkforwarddefs:=TFPObjectList.Create(false);
          block_type:=bt_type;
          hdef:=nil;
+         first:=true;
          repeat
            defpos:=current_tokenpos;
            istyperenaming:=false;
@@ -463,7 +478,9 @@ implementation
            generictokenbuf:=nil;
 
            { fpc generic declaration? }
-           isgeneric:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_GENERIC);
+           if first then
+             had_generic:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_GENERIC);
+           isgeneric:=had_generic;
 
            typename:=pattern;
            orgtypename:=orgpattern;
@@ -897,6 +914,18 @@ implementation
                hdef.typesym:=newtype;
                generictypelist.free;
              end;
+
+           if not (m_delphi in current_settings.modeswitches) and
+               (token=_ID) and (idtoken=_GENERIC) then
+             begin
+               had_generic:=true;
+               consume(_ID);
+               if token in [_PROCEDURE,_FUNCTION,_CLASS] then
+                 break;
+             end
+           else
+             had_generic:=false;
+           first:=false;
          until (token<>_ID) or
                (in_structure and
                 ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
@@ -912,19 +941,19 @@ implementation
 
 
     { reads a type declaration to the symbol table }
-    procedure type_dec;
+    procedure type_dec(out had_generic:boolean);
       begin
         consume(_TYPE);
-        types_dec(false);
+        types_dec(false,had_generic);
       end;
 
 
-    procedure var_dec;
+    procedure var_dec(out had_generic:boolean);
     { parses variable declarations and inserts them in }
     { the top symbol table of symtablestack         }
       begin
         consume(_VAR);
-        read_var_decls([]);
+        read_var_decls([vd_check_generic],had_generic);
       end;
 
 
@@ -946,7 +975,7 @@ implementation
       end;
 
 
-    procedure threadvar_dec;
+    procedure threadvar_dec(out had_generic:boolean);
     { parses thread variable declarations and inserts them in }
     { the top symbol table of symtablestack                }
       begin
@@ -954,16 +983,16 @@ implementation
         if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
           message(parser_e_threadvars_only_sg);
         if f_threading in features then
-          read_var_decls([vd_threadvar])
+          read_var_decls([vd_threadvar,vd_check_generic],had_generic)
         else
           begin
             Message1(parser_f_unsupported_feature,featurestr[f_threading]);
-            read_var_decls([]);
+            read_var_decls([vd_check_generic],had_generic);
           end;
       end;
 
 
-    procedure resourcestring_dec;
+    procedure resourcestring_dec(out had_generic:boolean);
       var
          orgname : TIDString;
          p : tnode;
@@ -973,17 +1002,22 @@ implementation
          old_block_type : tblock_type;
          sp : pchar;
          sym : tsym;
+         first,
+         isgeneric : boolean;
       begin
          if target_info.system in systems_managed_vm then
            message(parser_e_feature_unsupported_for_vm);
          consume(_RESOURCESTRING);
          if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
            message(parser_e_resourcestring_only_sg);
+         first:=true;
+         had_generic:=false;
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat
            orgname:=orgpattern;
            filepos:=current_tokenpos;
+           isgeneric:=not (m_delphi in current_settings.modeswitches) and (token=_ID) and (idtoken=_GENERIC);
            consume(_ID);
            case token of
              _EQ:
@@ -1035,8 +1069,17 @@ implementation
                    consume(_SEMICOLON);
                    p.free;
                 end;
-              else consume(_EQ);
+              else
+                if not first and isgeneric and
+                    (token in [_PROCEDURE, _FUNCTION, _CLASS]) then
+                  begin
+                    had_generic:=true;
+                    break;
+                  end
+                else
+                  consume(_EQ);
            end;
+           first:=false;
          until token<>_ID;
          block_type:=old_block_type;
       end;

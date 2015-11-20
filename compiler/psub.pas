@@ -83,7 +83,7 @@ interface
     { reads any routine in the implementation, or a non-method routine
       declaration in the interface (depending on whether or not parse_only is
       true) }
-    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef);
+    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef;isgeneric:boolean);
 
     procedure generate_specialization_procs;
 
@@ -2033,7 +2033,7 @@ implementation
       end;
 
 
-    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef);
+    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef;isgeneric:boolean);
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -2062,7 +2062,7 @@ implementation
 
          if not assigned(usefwpd) then
            { parse procedure declaration }
-           pd:=parse_proc_dec(isclassmethod,old_current_structdef)
+           pd:=parse_proc_dec(isclassmethod,old_current_structdef,isgeneric)
          else
            pd:=usefwpd;
 
@@ -2225,23 +2225,51 @@ implementation
 
     procedure read_declarations(islibrary : boolean);
       var
+        hadgeneric : boolean;
+
+        procedure handle_unexpected_had_generic;
+          begin
+            if hadgeneric then
+              begin
+                Message(parser_e_procedure_or_function_expected);
+                hadgeneric:=false;
+              end;
+          end;
+
+      var
         is_classdef:boolean;
       begin
         is_classdef:=false;
+        hadgeneric:=false;
         repeat
            if not assigned(current_procinfo) then
              internalerror(200304251);
            case token of
               _LABEL:
-                label_dec;
+                begin
+                  handle_unexpected_had_generic;
+                  label_dec;
+                end;
               _CONST:
-                const_dec;
+                begin
+                  handle_unexpected_had_generic;
+                  const_dec(hadgeneric);
+                end;
               _TYPE:
-                type_dec;
+                begin
+                  handle_unexpected_had_generic;
+                  type_dec(hadgeneric);
+                end;
               _VAR:
-                var_dec;
+                begin
+                  handle_unexpected_had_generic;
+                  var_dec(hadgeneric);
+                end;
               _THREADVAR:
-                threadvar_dec;
+                begin
+                  handle_unexpected_had_generic;
+                  threadvar_dec(hadgeneric);
+                end;
               _CLASS:
                 begin
                   is_classdef:=false;
@@ -2266,11 +2294,18 @@ implementation
               _PROCEDURE,
               _OPERATOR:
                 begin
-                  read_proc(is_classdef,nil);
+                  if hadgeneric and not (token in [_PROCEDURE,_FUNCTION]) then
+                    begin
+                      Message(parser_e_procedure_or_function_expected);
+                      hadgeneric:=false;
+                    end;
+                  read_proc(is_classdef,nil,hadgeneric);
                   is_classdef:=false;
+                  hadgeneric:=false;
                 end;
               _EXPORTS:
                 begin
+                   handle_unexpected_had_generic;
                    if (current_procinfo.procdef.localst.symtablelevel>main_program_level) then
                      begin
                         Message(parser_e_syntax_error);
@@ -2287,6 +2322,7 @@ implementation
                 end;
               _PROPERTY:
                 begin
+                  handle_unexpected_had_generic;
                   if (m_fpc in current_settings.modeswitches) then
                     property_dec
                   else
@@ -2297,23 +2333,36 @@ implementation
                   case idtoken of
                     _RESOURCESTRING:
                       begin
+                        handle_unexpected_had_generic;
                         { m_class is needed, because the resourcestring
                           loading is in the ObjPas unit }
 {                        if (m_class in current_settings.modeswitches) then}
-                          resourcestring_dec
+                          resourcestring_dec(hadgeneric)
 {                        else
                           break;}
                       end;
                     _OPERATOR:
                       begin
+                        handle_unexpected_had_generic;
                         if is_classdef then
                           begin
-                            read_proc(is_classdef,nil);
+                            read_proc(is_classdef,nil,false);
                             is_classdef:=false;
                           end
                         else
                           break;
                       end;
+                    _GENERIC:
+                      begin
+                        handle_unexpected_had_generic;
+                        if not (m_delphi in current_settings.modeswitches) then
+                          begin
+                            consume(_ID);
+                            hadgeneric:=true;
+                          end
+                        else
+                          break;
+                      end
                     else
                       break;
                   end;
@@ -2335,33 +2384,81 @@ implementation
 
 
     procedure read_interface_declarations;
+      var
+        hadgeneric : boolean;
+
+        procedure handle_unexpected_had_generic;
+          begin
+            if hadgeneric then
+              begin
+                Message(parser_e_procedure_or_function_expected);
+                hadgeneric:=false;
+              end;
+          end;
+
       begin
+         hadgeneric:=false;
          repeat
            case token of
              _CONST :
-               const_dec;
+               begin
+                 handle_unexpected_had_generic;
+                 const_dec(hadgeneric);
+               end;
              _TYPE :
-               type_dec;
+               begin
+                 handle_unexpected_had_generic;
+                 type_dec(hadgeneric);
+               end;
              _VAR :
-               var_dec;
+               begin
+                 handle_unexpected_had_generic;
+                 var_dec(hadgeneric);
+               end;
              _THREADVAR :
-               threadvar_dec;
+               begin
+                 handle_unexpected_had_generic;
+                 threadvar_dec(hadgeneric);
+               end;
              _FUNCTION,
              _PROCEDURE,
              _OPERATOR :
-               read_proc(false,nil);
+               begin
+                 if hadgeneric and not (token in [_FUNCTION, _PROCEDURE]) then
+                   begin
+                     message(parser_e_procedure_or_function_expected);
+                     hadgeneric:=false;
+                   end;
+                 read_proc(false,nil,hadgeneric);
+                 hadgeneric:=false;
+               end;
              else
                begin
                  case idtoken of
                    _RESOURCESTRING :
-                     resourcestring_dec;
+                     begin
+                       handle_unexpected_had_generic;
+                       resourcestring_dec(hadgeneric);
+                     end;
                    _PROPERTY:
                      begin
+                       handle_unexpected_had_generic;
                        if (m_fpc in current_settings.modeswitches) then
                          property_dec
                        else
                          break;
                      end;
+                   _GENERIC:
+                     begin
+                       handle_unexpected_had_generic;
+                       if not (m_delphi in current_settings.modeswitches) then
+                         begin
+                           hadgeneric:=true;
+                           consume(_ID);
+                         end
+                       else
+                         break;
+                     end
                    else
                      break;
                  end;

@@ -207,9 +207,9 @@ implementation
           pd:=destructor_head;
         else if assigned(astruct) and
            (astruct.typ=recorddef) then
-          pd:=parse_record_method_dec(astruct,is_classdef)
+          pd:=parse_record_method_dec(astruct,is_classdef,false)
         else
-          pd:=method_dec(astruct,is_classdef);
+          pd:=method_dec(astruct,is_classdef,false);
       end;
       if assigned(pd) then
         result:=true;
@@ -247,7 +247,7 @@ implementation
       current_scanner.substitutemacro('meth_impl_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
       current_scanner.readtoken(false);
       { and parse it... }
-      read_proc(is_classdef,usefwpd);
+      read_proc(is_classdef,usefwpd,false);
       parse_only:=oldparse_only;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;

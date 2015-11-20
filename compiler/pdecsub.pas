@@ -78,11 +78,11 @@ interface
     procedure parse_object_proc_directives(pd:tabstractprocdef);
     procedure parse_record_proc_directives(pd:tabstractprocdef);
     function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;isgeneric:boolean;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
-    function  parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
+    function  parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef;isgeneric:boolean):tprocdef;
     procedure parse_proc_dec_finish(pd:tprocdef;isclassmethod:boolean);
 
     { parse a record method declaration (not a (class) constructor/destructor) }
-    function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
+    function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
 
     procedure insert_record_hidden_paras(astruct: trecorddef);
 
@@ -1457,7 +1457,7 @@ implementation
          end;
       end;
 
-    function parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
+    function parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef;isgeneric:boolean):tprocdef;
       var
         pd : tprocdef;
         old_block_type : tblock_type;
@@ -1480,7 +1480,7 @@ implementation
           _FUNCTION :
             begin
               consume(_FUNCTION);
-              if parse_proc_head(astruct,potype_function,false,nil,nil,pd) then
+              if parse_proc_head(astruct,potype_function,isgeneric,nil,nil,pd) then
                 begin
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
@@ -1500,7 +1500,7 @@ implementation
           _PROCEDURE :
             begin
               consume(_PROCEDURE);
-              if parse_proc_head(astruct,potype_procedure,false,nil,nil,pd) then
+              if parse_proc_head(astruct,potype_procedure,isgeneric,nil,nil,pd) then
                 begin
                   { pd=nil when it is an interface mapping }
                   if assigned(pd) then
@@ -1578,13 +1578,13 @@ implementation
       end;
 
 
-    function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
+    function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
       var
         oldparse_only: boolean;
       begin
         oldparse_only:=parse_only;
         parse_only:=true;
-        result:=parse_proc_dec(is_classdef,astruct);
+        result:=parse_proc_dec(is_classdef,astruct,hadgeneric);
 
         { this is for error recovery as well as forward }
         { interface mappings, i.e. mapping to a method  }
