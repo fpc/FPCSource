@@ -949,6 +949,7 @@ implementation
        customsecname: boolean;
      begin
        fvectorized_finalize_called:=true;
+       sym:=nil;
        customsecname:=get_vectorized_dead_strip_custom_section_name(basename,st,secname);
        if customsecname then
          sectype:=sec_user

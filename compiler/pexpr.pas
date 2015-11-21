@@ -2721,6 +2721,9 @@ implementation
            p1:=nil;
            spezcontext:=nil;
 
+           { avoid warning }
+           fillchar(dummypos,sizeof(dummypos),0);
+
            allowspecialize:=not (m_delphi in current_settings.modeswitches) and
                             not (ef_had_specialize in flags) and
                             (block_type in inline_specialization_block_types);

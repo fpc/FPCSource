@@ -471,6 +471,7 @@ implementation
          block_type:=bt_type;
          hdef:=nil;
          first:=true;
+         had_generic:=false;
          repeat
            defpos:=current_tokenpos;
            istyperenaming:=false;
