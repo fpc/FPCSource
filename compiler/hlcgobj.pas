@@ -5032,7 +5032,7 @@ implementation
                   else
                     internalerror(2011020507);
 //                      cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
-                  a_load_reg_loc(list,tparavarsym(p).vardef,tparavarsym(p).vardef,hreg,tparavarsym(p).initialloc);
+                  a_load_reg_loc(list,cpointerdef.getreusable(tparavarsym(p).vardef),cpointerdef.getreusable(tparavarsym(p).vardef),hreg,tparavarsym(p).initialloc);
                 end;
             end
           else
