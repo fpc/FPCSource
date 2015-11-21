@@ -402,9 +402,60 @@ begin
       ct_stm32f107vb,
       ct_stm32f107vc,
       
-      ct_stm32f429xe,
-      ct_stm32f429xg,
-      ct_stm32f429xi,
+      ct_stm32f401cb,
+      ct_stm32f401rb,
+      ct_stm32f401vb,
+      ct_stm32f401cc,
+      ct_stm32f401rc,
+      ct_stm32f401vc,
+      ct_discoveryf401vc,
+      ct_stm32f401cd,
+      ct_stm32f401rd,
+      ct_stm32f401vd,
+      ct_stm32f401ce,
+      ct_stm32f401re,
+      ct_nucleof401re,
+      ct_stm32f401ve,
+      ct_stm32f407vg,
+      ct_discoveryf407vg,
+      ct_stm32f407ig,
+      ct_stm32f407zg,
+      ct_stm32f407ve,
+      ct_stm32f407ze,
+      ct_stm32f407ie,
+      ct_stm32f411cc,
+      ct_stm32f411rc,
+      ct_stm32f411vc,
+      ct_stm32f411ce,
+      ct_stm32f411re,
+      ct_nucleof411re,
+      ct_stm32f411ve,
+      ct_discoveryf411ve,
+      ct_stm32f429vg,
+      ct_stm32f429zg,
+      ct_stm32f429ig,
+      ct_stm32f429vi,
+      ct_stm32f429zi,
+      ct_discoveryf429zi,
+      ct_stm32f429ii,
+      ct_stm32f429ve,
+      ct_stm32f429ze,
+      ct_stm32f429ie,
+      ct_stm32f429bg,
+      ct_stm32f429bi,
+      ct_stm32f429be,
+      ct_stm32f429ng,
+      ct_stm32f429ni,
+      ct_stm32f429ne,
+      ct_stm32f446mc,
+      ct_stm32f446rc,
+      ct_stm32f446vc,
+      ct_stm32f446zc,
+      ct_stm32f446me,
+      ct_stm32f446re,
+      ct_nucleof446re,
+      ct_stm32f446ve,
+      ct_stm32f446ze,
 
       ct_stm32f745xe,
       ct_stm32f745xg,
@@ -500,9 +551,54 @@ begin
       { Allwinner }
       ct_allwinner_a20,
 
-      ct_mk20dx128xxx7,
-      ct_mk20dx256xxx7,
-      ct_mk20dx64xxx7,
+      { Freescale }
+      ct_mk20dx128vfm5,
+      ct_mk20dx128vft5,
+      ct_mk20dx128vlf5,
+      ct_mk20dx128vlh5,
+      ct_teensy30,
+      ct_mk20dx128vmp5,
+
+      ct_mk20dx32vfm5,
+      ct_mk20dx32vft5,
+      ct_mk20dx32vlf5,
+      ct_mk20dx32vlh5,
+      ct_mk20dx32vmp5,
+
+      ct_mk20dx64vfm5,
+      ct_mk20dx64vft5,
+      ct_mk20dx64vlf5,
+      ct_mk20dx64vlh5,
+      ct_mk20dx64vmp5,
+
+      ct_mk20dx128vlh7,
+      ct_mk20dx128vlk7,
+      ct_mk20dx128vll7,
+      ct_mk20dx128vmc7,
+
+      ct_mk20dx256vlh7,
+      ct_mk20dx256vlk7,
+      ct_mk20dx256vll7,
+      ct_mk20dx256vmc7,
+      ct_teensy31,
+      ct_teensy32,
+
+      ct_mk20dx64vlh7,
+      ct_mk20dx64vlk7,
+      ct_mk20dx64vmc7,
+
+      ct_mk22fn512cap12,
+      ct_mk22fn512cbp12,
+      ct_mk22fn512vdc12,
+      ct_mk22fn512vlh12,
+      ct_mk22fn512vll12,
+      ct_mk22fn512vmp12,
+      ct_freedom_k22f,
+ 
+      { Atmel }
+      ct_sam3x8e,
+      ct_arduino_due,
+      ct_flip_n_click,
       
       ct_sc32442b,
       ct_thumb2bare:
@@ -548,7 +644,10 @@ begin
       Add('    {');
       Add('    _text_start = .;');
       Add('    KEEP(*(.init, .init.*))');
-      if embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7' then
+      if (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D5')
+         or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7')
+         or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK22F51212')
+         or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK64F12') then
         begin
           Add('    . = 0x400;');
           Add('    KEEP(*(.flash_config, *.flash_config.*))');

@@ -1,68 +1,93 @@
-unit mk20d7;
+unit mk22f51212;
 interface
 {$PACKRECORDS 2}
 {$GOTO ON}
 {$MODESWITCH ADVANCEDRECORDS}
 // ** ###################################################################
-// **     Processors:          MK20DX64VLH7
-// **                          MK20DX128VLH7
-// **                          MK20DX256VLH7
-// **                          MK20DX64VLK7
-// **                          MK20DX128VLK7
-// **                          MK20DX256VLK7
-// **                          MK20DX128VLL7
-// **                          MK20DX256VLL7
-// **                          MK20DX64VMB7
-// **                          MK20DX128VMB7
-// **                          MK20DX256VMB7
-// **                          MK20DX128VML7
-// **                          MK20DX256VML7
-// **
 // **     Compilers:           ARM Compiler
 // **                          Freescale C/C++ for Embedded ARM
 // **                          GNU C Compiler
+// **                          GNU C Compiler - CodeSourcery Sourcery G++
 // **                          IAR ANSI C/C++ Compiler for ARM
 // **
-// **     Reference manual:    Kxx (P1 silicon) Sub-Family Reference Manual Rev. 0, draft A Oct 2011
-// **     Version:             rev. 1.0, 2012-01-15
+// **     Reference manual:    K22P121M120SF7RM, Rev.0.61, Jan 10, 2014
+// **     Version:             rev. 2.3, 2014-01-13
 // **
 // **     Abstract:
-// **         CMSIS Peripheral Access Layer for MK20D7
+// **         CMSIS Peripheral Access Layer for MK22F51212
 // **
-// **     Copyright: 1997 - 2012 Freescale Semiconductor, Inc. All Rights Reserved.
+// **     Copyright: 1997 - 2014 Freescale, Inc. All Rights Reserved.
 // **
 // **     http:                 www.freescale.com
 // **     mail:                 support@freescale.com
 // **
 // **     Revisions:
-// **     - rev. 1.0 (2012-01-15)
-// **         Initial public version.
+// **     - rev. 1.0 (2013-07-23)
+// **         Initial version.
+// **     - rev. 1.1 (2013-09-17)
+// **         RM rev. 0.4 update.
+// **     - rev. 2.0 (2013-10-29)
+// **         Register accessor macros added to the memory map.
+// **         Symbols for Processor Expert memory map compatibility added to the memory map.
+// **         Startup file for gcc has been updated according to CMSIS 3.2.
+// **         System initialization updated.
+// **     - rev. 2.1 (2013-10-29)
+// **         Definition of BITBAND macros updated to support peripherals with 32-bit acces disabled.
+// **     - rev. 2.2 (2013-12-20)
+// **         Update according to reference manual rev. 0.6,
+// **     - rev. 2.3 (2014-01-13)
+// **         Update according to reference manual rev. 0.61,
 // **
 // ** ###################################################################
+// !
+// * @file MK22F51212.h
+// * @version 2.3
+// * @date 2014-01-13
+// CMSIS Peripheral Access Layer for MK22F51212
 // *
-// * @file MK20D7.h
-// * @version 1.0
-// * @date 2012-01-15
-// CMSIS Peripheral Access Layer for MK20D7
-// *
-// * CMSIS Peripheral Access Layer for MK20D7
+// * CMSIS Peripheral Access Layer for MK22F51212
+// ----------------------------------------------------------------------------
+// -- MCU activation
+// ----------------------------------------------------------------------------
+// Prevention from multiple including the same memory map
+// Check if another memory map has not been also included
 // * Memory map major version (memory maps with equal major version number are
 // * compatible)
 // * Memory map minor version
+// Macro to calculate address of an aliased word in the peripheral
+// *        bitband area for a peripheral register and bit (bit band region 0x40000000 to
+// *        0x400FFFFF).
+// * @param Reg Register to access.
+// * @param Bit Bit number to access.
+// * @return  Address of the aliased word in the peripheral bitband area.
 // Macro to access a single bit of a peripheral register (bit band region
-// *        0x40000000 to 0x400FFFFF) using the bit-band alias region access.
+// *        0x40000000 to 0x400FFFFF) using the bit-band alias region access. Can
+// *        be used for peripherals with 32bit access allowed.
+// * @param Reg Register to access.
+// * @param Bit Bit number to access.
+// * @return Value of the targeted bit in the bit band region.
+// Macro to access a single bit of a peripheral register (bit band region
+// *        0x40000000 to 0x400FFFFF) using the bit-band alias region access. Can
+// *        be used for peripherals with 16bit access allowed.
+// * @param Reg Register to access.
+// * @param Bit Bit number to access.
+// * @return Value of the targeted bit in the bit band region.
+// Macro to access a single bit of a peripheral register (bit band region
+// *        0x40000000 to 0x400FFFFF) using the bit-band alias region access. Can
+// *        be used for peripherals with 8bit access allowed.
 // * @param Reg Register to access.
 // * @param Bit Bit number to access.
 // * @return Value of the targeted bit in the bit band region.
 // ----------------------------------------------------------------------------
 // -- Interrupt vector numbers
 // ----------------------------------------------------------------------------
-// *
+// !
 // * Interrupt Number Definitions
 
 type
   TIRQn_Enum   = (
     NonMaskableInt_IRQn = -14,        // *< Non Maskable Interrupt
+    HardFault_IRQn = -13,             // *< Cortex-M4 SV Hard Fault Interrupt
     MemoryManagement_IRQn = -12,      // *< Cortex-M4 Memory Management Interrupt
     BusFault_IRQn = -11,              // *< Cortex-M4 Bus Fault Interrupt
     UsageFault_IRQn = -10,            // *< Cortex-M4 Usage Fault Interrupt
@@ -87,113 +112,104 @@ type
     DMA14_IRQn = 14,                  // *< DMA Channel 14 Transfer Complete
     DMA15_IRQn = 15,                  // *< DMA Channel 15 Transfer Complete
     DMA_Error_IRQn = 16,              // *< DMA Error Interrupt
-    MCM_IRQn   = 17,                  // *< Normal interrupt
-    FTFL_IRQn  = 18,                  // *< FTFL Interrupt
+    MCM_IRQn   = 17,                  // *< Normal Interrupt
+    FTF_IRQn   = 18,                  // *< FTFA Command complete interrupt
     Read_Collision_IRQn = 19,         // *< Read Collision Interrupt
     LVD_LVW_IRQn = 20,                // *< Low Voltage Detect, Low Voltage Warning
     LLW_IRQn   = 21,                  // *< Low Leakage Wakeup
     Watchdog_IRQn = 22,               // *< WDOG Interrupt
-    RESERVED39_IRQn = 23,             // *< Reserved Interrupt 39
+    RNG_IRQn   = 23,                  // *< RNG Interrupt
     I2C0_IRQn  = 24,                  // *< I2C0 interrupt
     I2C1_IRQn  = 25,                  // *< I2C1 interrupt
     SPI0_IRQn  = 26,                  // *< SPI0 Interrupt
     SPI1_IRQn  = 27,                  // *< SPI1 Interrupt
-    RESERVED44_IRQn = 28,             // *< Reserved interrupt 44
-    CAN0_ORed_Message_buffer_IRQn = 29, // *< CAN0 OR'd Message Buffers Interrupt
-    CAN0_Bus_Off_IRQn = 30,           // *< CAN0 Bus Off Interrupt
-    CAN0_Error_IRQn = 31,             // *< CAN0 Error Interrupt
-    CAN0_Tx_Warning_IRQn = 32,        // *< CAN0 Tx Warning Interrupt
-    CAN0_Rx_Warning_IRQn = 33,        // *< CAN0 Rx Warning Interrupt
-    CAN0_Wake_Up_IRQn = 34,           // *< CAN0 Wake Up Interrupt
-    I2S0_Tx_IRQn = 35,                // *< I2S0 transmit interrupt
-    I2S0_Rx_IRQn = 36,                // *< I2S0 receive interrupt
+    I2S0_Tx_IRQn = 28,                // *< I2S0 transmit interrupt
+    I2S0_Rx_IRQn = 29,                // *< I2S0 receive interrupt
+    LPUART0_IRQn = 30,                // *< LPUART0 status/error interrupt
+    UART0_RX_TX_IRQn = 31,            // *< UART0 Receive/Transmit interrupt
+    UART0_ERR_IRQn = 32,              // *< UART0 Error interrupt
+    UART1_RX_TX_IRQn = 33,            // *< UART1 Receive/Transmit interrupt
+    UART1_ERR_IRQn = 34,              // *< UART1 Error interrupt
+    UART2_RX_TX_IRQn = 35,            // *< UART2 Receive/Transmit interrupt
+    UART2_ERR_IRQn = 36,              // *< UART2 Error interrupt
     RESERVED53_IRQn = 37,             // *< Reserved interrupt 53
     RESERVED54_IRQn = 38,             // *< Reserved interrupt 54
-    RESERVED55_IRQn = 39,             // *< Reserved interrupt 55
-    RESERVED56_IRQn = 40,             // *< Reserved interrupt 56
-    RESERVED57_IRQn = 41,             // *< Reserved interrupt 57
-    RESERVED58_IRQn = 42,             // *< Reserved interrupt 58
-    RESERVED59_IRQn = 43,             // *< Reserved interrupt 59
-    UART0_LON_IRQn = 44,              // *< UART0 LON interrupt
-    UART0_RX_TX_IRQn = 45,            // *< UART0 Receive/Transmit interrupt
-    UART0_ERR_IRQn = 46,              // *< UART0 Error interrupt
-    UART1_RX_TX_IRQn = 47,            // *< UART1 Receive/Transmit interrupt
-    UART1_ERR_IRQn = 48,              // *< UART1 Error interrupt
-    UART2_RX_TX_IRQn = 49,            // *< UART2 Receive/Transmit interrupt
-    UART2_ERR_IRQn = 50,              // *< UART2 Error interrupt
-    UART3_RX_TX_IRQn = 51,            // *< UART3 Receive/Transmit interrupt
-    UART3_ERR_IRQn = 52,              // *< UART3 Error interrupt
-    UART4_RX_TX_IRQn = 53,            // *< UART4 Receive/Transmit interrupt
-    UART4_ERR_IRQn = 54,              // *< UART4 Error interrupt
+    ADC0_IRQn  = 39,                  // *< ADC0 interrupt
+    CMP0_IRQn  = 40,                  // *< CMP0 interrupt
+    CMP1_IRQn  = 41,                  // *< CMP1 interrupt
+    FTM0_IRQn  = 42,                  // *< FTM0 fault, overflow and channels interrupt
+    FTM1_IRQn  = 43,                  // *< FTM1 fault, overflow and channels interrupt
+    FTM2_IRQn  = 44,                  // *< FTM2 fault, overflow and channels interrupt
+    RESERVED61_IRQn = 45,             // *< Reserved interrupt 61
+    RTC_IRQn   = 46,                  // *< RTC interrupt
+    RTC_Seconds_IRQn = 47,            // *< RTC seconds interrupt
+    PIT0_IRQn  = 48,                  // *< PIT timer channel 0 interrupt
+    PIT1_IRQn  = 49,                  // *< PIT timer channel 1 interrupt
+    PIT2_IRQn  = 50,                  // *< PIT timer channel 2 interrupt
+    PIT3_IRQn  = 51,                  // *< PIT timer channel 3 interrupt
+    PDB0_IRQn  = 52,                  // *< PDB0 Interrupt
+    USB0_IRQn  = 53,                  // *< USB0 interrupt
+    RESERVED70_IRQn = 54,             // *< Reserved interrupt 70
     RESERVED71_IRQn = 55,             // *< Reserved interrupt 71
-    RESERVED72_IRQn = 56,             // *< Reserved interrupt 72
-    ADC0_IRQn  = 57,                  // *< ADC0 interrupt
-    ADC1_IRQn  = 58,                  // *< ADC1 interrupt
-    CMP0_IRQn  = 59,                  // *< CMP0 interrupt
-    CMP1_IRQn  = 60,                  // *< CMP1 interrupt
-    CMP2_IRQn  = 61,                  // *< CMP2 interrupt
-    FTM0_IRQn  = 62,                  // *< FTM0 fault, overflow and channels interrupt
-    FTM1_IRQn  = 63,                  // *< FTM1 fault, overflow and channels interrupt
-    FTM2_IRQn  = 64,                  // *< FTM2 fault, overflow and channels interrupt
-    CMT_IRQn   = 65,                  // *< CMT interrupt
-    RTC_IRQn   = 66,                  // *< RTC interrupt
-    RTC_Seconds_IRQn = 67,            // *< RTC seconds interrupt
-    PIT0_IRQn  = 68,                  // *< PIT timer channel 0 interrupt
-    PIT1_IRQn  = 69,                  // *< PIT timer channel 1 interrupt
-    PIT2_IRQn  = 70,                  // *< PIT timer channel 2 interrupt
-    PIT3_IRQn  = 71,                  // *< PIT timer channel 3 interrupt
-    PDB0_IRQn  = 72,                  // *< PDB0 Interrupt
-    USB0_IRQn  = 73,                  // *< USB0 interrupt
-    USBDCD_IRQn = 74,                 // *< USBDCD Interrupt
-    RESERVED91_IRQn = 75,             // *< Reserved interrupt 91
-    RESERVED92_IRQn = 76,             // *< Reserved interrupt 92
-    RESERVED93_IRQn = 77,             // *< Reserved interrupt 93
-    RESERVED94_IRQn = 78,             // *< Reserved interrupt 94
-    RESERVED95_IRQn = 79,             // *< Reserved interrupt 95
-    RESERVED96_IRQn = 80,             // *< Reserved interrupt 96
-    DAC0_IRQn  = 81,                  // *< DAC0 interrupt
-    RESERVED98_IRQn = 82,             // *< Reserved interrupt 98
-    TSI0_IRQn  = 83,                  // *< TSI0 Interrupt
-    MCG_IRQn   = 84,                  // *< MCG Interrupt
-    LPTimer_IRQn = 85,                // *< LPTimer interrupt
-    RESERVED102_IRQn = 86,            // *< Reserved interrupt 102
-    PORTA_IRQn = 87,                  // *< Port A interrupt
-    PORTB_IRQn = 88,                  // *< Port B interrupt
-    PORTC_IRQn = 89,                  // *< Port C interrupt
-    PORTD_IRQn = 90,                  // *< Port D interrupt
-    PORTE_IRQn = 91,                  // *< Port E interrupt
-    RESERVED108_IRQn = 92,            // *< Reserved interrupt 108
-    RESERVED109_IRQn = 93,            // *< Reserved interrupt 109
-    SWI_IRQn   = 94                   // *< Software interrupt
+    DAC0_IRQn  = 56,                  // *< DAC0 interrupt
+    MCG_IRQn   = 57,                  // *< MCG Interrupt
+    LPTimer_IRQn = 58,                // *< LPTimer interrupt
+    PORTA_IRQn = 59,                  // *< Port A interrupt
+    PORTB_IRQn = 60,                  // *< Port B interrupt
+    PORTC_IRQn = 61,                  // *< Port C interrupt
+    PORTD_IRQn = 62,                  // *< Port D interrupt
+    PORTE_IRQn = 63,                  // *< Port E interrupt
+    SWI_IRQn   = 64,                  // *< Software interrupt
+    RESERVED81_IRQn = 65,             // *< Reserved interrupt 81
+    RESERVED82_IRQn = 66,             // *< Reserved interrupt 82
+    RESERVED83_IRQn = 67,             // *< Reserved interrupt 83
+    RESERVED84_IRQn = 68,             // *< Reserved interrupt 84
+    RESERVED85_IRQn = 69,             // *< Reserved interrupt 85
+    RESERVED86_IRQn = 70,             // *< Reserved interrupt 86
+    FTM3_IRQn  = 71,                  // *< FTM3 fault, overflow and channels interrupt
+    DAC1_IRQn  = 72,                  // *< DAC1 interrupt
+    ADC1_IRQn  = 73,                  // *< ADC1 interrupt
+    RESERVED90_IRQn = 74,             // *< Reserved Interrupt 90
+    RESERVED91_IRQn = 75,             // *< Reserved Interrupt 91
+    RESERVED92_IRQn = 76,             // *< Reserved Interrupt 92
+    RESERVED93_IRQn = 77,             // *< Reserved Interrupt 93
+    RESERVED94_IRQn = 78,             // *< Reserved Interrupt 94
+    RESERVED95_IRQn = 79,             // *< Reserved Interrupt 95
+    RESERVED96_IRQn = 80,             // *< Reserved Interrupt 96
+    RESERVED97_IRQn = 81,             // *< Reserved Interrupt 97
+    RESERVED98_IRQn = 82,             // *< Reserved Interrupt 98
+    RESERVED99_IRQn = 83,             // *< Reserved Interrupt 99
+    RESERVED100_IRQn = 84,            // *< Reserved Interrupt 100
+    RESERVED101_IRQn = 85             // *< Reserved Interrupt 101
   );
 
   TADC_Registers = record
-    SC1        : array[0..1] of longword; // *< ADC status and control registers 1, array offset: 0x0, array step: 0x4
-    CFG1       : longword;            // *< ADC configuration register 1, offset: 0x8
-    CFG2       : longword;            // *< Configuration register 2, offset: 0xC
-    R          : array[0..1] of longword; // *< ADC data result register, array offset: 0x10, array step: 0x4
-    CV1        : longword;            // *< Compare value registers, offset: 0x18
-    CV2        : longword;            // *< Compare value registers, offset: 0x1C
-    SC2        : longword;            // *< Status and control register 2, offset: 0x20
-    SC3        : longword;            // *< Status and control register 3, offset: 0x24
-    OFS        : longword;            // *< ADC offset correction register, offset: 0x28
-    PG         : longword;            // *< ADC plus-side gain register, offset: 0x2C
-    MG         : longword;            // *< ADC minus-side gain register, offset: 0x30
-    CLPD       : longword;            // *< ADC plus-side general calibration value register, offset: 0x34
-    CLPS       : longword;            // *< ADC plus-side general calibration value register, offset: 0x38
-    CLP4       : longword;            // *< ADC plus-side general calibration value register, offset: 0x3C
-    CLP3       : longword;            // *< ADC plus-side general calibration value register, offset: 0x40
-    CLP2       : longword;            // *< ADC plus-side general calibration value register, offset: 0x44
-    CLP1       : longword;            // *< ADC plus-side general calibration value register, offset: 0x48
-    CLP0       : longword;            // *< ADC plus-side general calibration value register, offset: 0x4C
-    PGA        : longword;            // *< ADC PGA register, offset: 0x50
-    CLMD       : longword;            // *< ADC minus-side general calibration value register, offset: 0x54
-    CLMS       : longword;            // *< ADC minus-side general calibration value register, offset: 0x58
-    CLM4       : longword;            // *< ADC minus-side general calibration value register, offset: 0x5C
-    CLM3       : longword;            // *< ADC minus-side general calibration value register, offset: 0x60
-    CLM2       : longword;            // *< ADC minus-side general calibration value register, offset: 0x64
-    CLM1       : longword;            // *< ADC minus-side general calibration value register, offset: 0x68
-    CLM0       : longword;            // *< ADC minus-side general calibration value register, offset: 0x6C
+    SC1        : array[0..1] of longword; // *< ADC Status and Control Registers 1, array offset: 0x0, array step: 0x4
+    CFG1       : longword;            // *< ADC Configuration Register 1, offset: 0x8
+    CFG2       : longword;            // *< ADC Configuration Register 2, offset: 0xC
+    R          : array[0..1] of longword; // *< ADC Data Result Register, array offset: 0x10, array step: 0x4
+    CV1        : longword;            // *< Compare Value Registers, offset: 0x18
+    CV2        : longword;            // *< Compare Value Registers, offset: 0x1C
+    SC2        : longword;            // *< Status and Control Register 2, offset: 0x20
+    SC3        : longword;            // *< Status and Control Register 3, offset: 0x24
+    OFS        : longword;            // *< ADC Offset Correction Register, offset: 0x28
+    PG         : longword;            // *< ADC Plus-Side Gain Register, offset: 0x2C
+    MG         : longword;            // *< ADC Minus-Side Gain Register, offset: 0x30
+    CLPD       : longword;            // *< ADC Plus-Side General Calibration Value Register, offset: 0x34
+    CLPS       : longword;            // *< ADC Plus-Side General Calibration Value Register, offset: 0x38
+    CLP4       : longword;            // *< ADC Plus-Side General Calibration Value Register, offset: 0x3C
+    CLP3       : longword;            // *< ADC Plus-Side General Calibration Value Register, offset: 0x40
+    CLP2       : longword;            // *< ADC Plus-Side General Calibration Value Register, offset: 0x44
+    CLP1       : longword;            // *< ADC Plus-Side General Calibration Value Register, offset: 0x48
+    CLP0       : longword;            // *< ADC Plus-Side General Calibration Value Register, offset: 0x4C
+    RESERVED_0 : array[0..3] of byte;
+    CLMD       : longword;            // *< ADC Minus-Side General Calibration Value Register, offset: 0x54
+    CLMS       : longword;            // *< ADC Minus-Side General Calibration Value Register, offset: 0x58
+    CLM4       : longword;            // *< ADC Minus-Side General Calibration Value Register, offset: 0x5C
+    CLM3       : longword;            // *< ADC Minus-Side General Calibration Value Register, offset: 0x60
+    CLM2       : longword;            // *< ADC Minus-Side General Calibration Value Register, offset: 0x64
+    CLM1       : longword;            // *< ADC Minus-Side General Calibration Value Register, offset: 0x68
+    CLM0       : longword;            // *< ADC Minus-Side General Calibration Value Register, offset: 0x6C
   end;
 
 const
@@ -203,111 +219,10 @@ var
   ADC0         : TADC_Registers absolute ADC0_BASE;
 
 const
-  ADC1_BASE    = $400BB000;
+  ADC1_BASE    = $40027000;
 
 var
   ADC1         : TADC_Registers absolute ADC1_BASE;
-
-type
-  TAIPS_Registers = record
-    MPRA       : longword;            // *< Master Privilege Register A, offset: 0x0
-    RESERVED_0 : array[0..27] of byte;
-    PACRA      : longword;            // *< Peripheral Access Control Register, offset: 0x20
-    PACRB      : longword;            // *< Peripheral Access Control Register, offset: 0x24
-    PACRC      : longword;            // *< Peripheral Access Control Register, offset: 0x28
-    PACRD      : longword;            // *< Peripheral Access Control Register, offset: 0x2C
-    RESERVED_1 : array[0..15] of byte;
-    PACRE      : longword;            // *< Peripheral Access Control Register, offset: 0x40
-    PACRF      : longword;            // *< Peripheral Access Control Register, offset: 0x44
-    PACRG      : longword;            // *< Peripheral Access Control Register, offset: 0x48
-    PACRH      : longword;            // *< Peripheral Access Control Register, offset: 0x4C
-    PACRI      : longword;            // *< Peripheral Access Control Register, offset: 0x50
-    PACRJ      : longword;            // *< Peripheral Access Control Register, offset: 0x54
-    PACRK      : longword;            // *< Peripheral Access Control Register, offset: 0x58
-    PACRL      : longword;            // *< Peripheral Access Control Register, offset: 0x5C
-    PACRM      : longword;            // *< Peripheral Access Control Register, offset: 0x60
-    PACRN      : longword;            // *< Peripheral Access Control Register, offset: 0x64
-    PACRO      : longword;            // *< Peripheral Access Control Register, offset: 0x68
-    PACRP      : longword;            // *< Peripheral Access Control Register, offset: 0x6C
-  end;
-
-const
-  AIPS0_BASE   = $40000000;
-
-var
-  AIPS0        : TAIPS_Registers absolute AIPS0_BASE;
-
-const
-  AIPS1_BASE   = $40080000;
-
-var
-  AIPS1        : TAIPS_Registers absolute AIPS1_BASE;
-
-type
-  TAXBS_SLAVE  = record
-    PRS        : longword;            // *< Priority Registers Slave, array offset: 0x0, array step: 0x100
-    RESERVED_0 : array[0..11] of byte;
-    CRS        : longword;            // *< Control Register, array offset: 0x10, array step: 0x100
-    RESERVED_1 : array[0..235] of byte;
-  end;
-
-  TAXBS_Registers = record
-    SLAVE      : array[0..3] of TAXBS_SLAVE;
-    RESERVED_0 : array[0..1023] of byte;
-    MGPCR0     : longword;            // *< Master General Purpose Control Register, offset: 0x800
-    RESERVED_1 : array[0..251] of byte;
-    MGPCR1     : longword;            // *< Master General Purpose Control Register, offset: 0x900
-    RESERVED_2 : array[0..251] of byte;
-    MGPCR2     : longword;            // *< Master General Purpose Control Register, offset: 0xA00
-    RESERVED_3 : array[0..251] of byte;
-    MGPCR3     : longword;            // *< Master General Purpose Control Register, offset: 0xB00
-  end;
-
-const
-  AXBS_BASE    = $40004000;
-
-var
-  AXBS         : TAXBS_Registers absolute AXBS_BASE;
-
-type
-  TCAN_MB      = record
-    CS         : longword;            // *< Message Buffer 0 CS Register..Message Buffer 15 CS Register, array offset: 0x80, array step: 0x10
-    ID         : longword;            // *< Message Buffer 0 ID Register..Message Buffer 15 ID Register, array offset: 0x84, array step: 0x10
-    WORD0      : longword;            // *< Message Buffer 0 WORD0 Register..Message Buffer 15 WORD0 Register, array offset: 0x88, array step: 0x10
-    WORD1      : longword;            // *< Message Buffer 0 WORD1 Register..Message Buffer 15 WORD1 Register, array offset: 0x8C, array step: 0x10
-  end;
-
-  TCAN_Registers = record
-    MCR        : longword;            // *< Module Configuration Register, offset: 0x0
-    CTRL1      : longword;            // *< Control 1 Register, offset: 0x4
-    TIMER      : longword;            // *< Free Running Timer, offset: 0x8
-    RESERVED_0 : array[0..3] of byte;
-    RXMGMASK   : longword;            // *< Rx Mailboxes Global Mask Register, offset: 0x10
-    RX14MASK   : longword;            // *< Rx 14 Mask Register, offset: 0x14
-    RX15MASK   : longword;            // *< Rx 15 Mask Register, offset: 0x18
-    ECR        : longword;            // *< Error Counter, offset: 0x1C
-    ESR1       : longword;            // *< Error and Status 1 Register, offset: 0x20
-    IMASK2     : longword;            // *< Interrupt Masks 2 Register, offset: 0x24
-    IMASK1     : longword;            // *< Interrupt Masks 1 Register, offset: 0x28
-    IFLAG2     : longword;            // *< Interrupt Flags 2 Register, offset: 0x2C
-    IFLAG1     : longword;            // *< Interrupt Flags 1 Register, offset: 0x30
-    CTRL2      : longword;            // *< Control 2 Register, offset: 0x34
-    ESR2       : longword;            // *< Error and Status 2 Register, offset: 0x38
-    RESERVED_1 : array[0..7] of byte;
-    CRCR       : longword;            // *< CRC Register, offset: 0x44
-    RXFGMASK   : longword;            // *< Rx FIFO Global Mask Register, offset: 0x48
-    RXFIR      : longword;            // *< Rx FIFO Information Register, offset: 0x4C
-    RESERVED_2 : array[0..47] of byte;
-    MB         : array[0..15] of TCAN_MB;
-    RESERVED_3 : array[0..1791] of byte;
-    RXIMR      : array[0..15] of longword; // *< Rx Individual Mask Registers, array offset: 0x880, array step: 0x4
-  end;
-
-const
-  CAN0_BASE    = $40024000;
-
-var
-  CAN0         : TCAN_Registers absolute CAN0_BASE;
 
 type
   TCMP_Registers = record
@@ -331,39 +246,11 @@ const
 var
   CMP1         : TCMP_Registers absolute CMP1_BASE;
 
-const
-  CMP2_BASE    = $40073010;
-
-var
-  CMP2         : TCMP_Registers absolute CMP2_BASE;
-
-type
-  TCMT_Registers = record
-    CGH1       : byte;                // *< CMT Carrier Generator High Data Register 1, offset: 0x0
-    CGL1       : byte;                // *< CMT Carrier Generator Low Data Register 1, offset: 0x1
-    CGH2       : byte;                // *< CMT Carrier Generator High Data Register 2, offset: 0x2
-    CGL2       : byte;                // *< CMT Carrier Generator Low Data Register 2, offset: 0x3
-    OC         : byte;                // *< CMT Output Control Register, offset: 0x4
-    MSC        : byte;                // *< CMT Modulator Status and Control Register, offset: 0x5
-    CMD1       : byte;                // *< CMT Modulator Data Register Mark High, offset: 0x6
-    CMD2       : byte;                // *< CMT Modulator Data Register Mark Low, offset: 0x7
-    CMD3       : byte;                // *< CMT Modulator Data Register Space High, offset: 0x8
-    CMD4       : byte;                // *< CMT Modulator Data Register Space Low, offset: 0x9
-    PPS        : byte;                // *< CMT Primary Prescaler Register, offset: 0xA
-    DMA        : byte;                // *< CMT Direct Memory Access, offset: 0xB
-  end;
-
-const
-  CMT_BASE     = $40062000;
-
-var
-  CMT          : TCMT_Registers absolute CMT_BASE;
-
 type
   TCRC_Registers = record
-    CRC : longword;                   // *< CRC Data Register, offset: 0x0
-    GPOLY : longword;                 // *< CRC Polynomial Register, offset: 0x4
-    CTRL : longword;                  // *< CRC Control Register, offset: 0x8
+    DATA       : longword;  // *< CRC Data register, offset: 0x0
+    GPOLY      : longword;  // *< CRC Polynomial register, offset: 0x4
+    CTRL       : longword;  // *< CRC Control register, offset: 0x8
   end;
 
 const
@@ -373,7 +260,7 @@ var
   CRC0         : TCRC_Registers absolute CRC_BASE;
 
 type
-  TDAC_DAT     = record
+  TDAC_DAT         = record
     DATL       : byte;                // *< DAC Data Low Register, array offset: 0x0, array step: 0x2
     DATH       : byte;                // *< DAC Data High Register, array offset: 0x1, array step: 0x2
   end;
@@ -387,10 +274,19 @@ type
   end;
 
 const
-  DAC0_BASE    = $400CC000;
+  DAC0_BASE    = $4003F000;
+
+var
+  DAC0         : TDAC_Registers absolute DAC0_BASE;
+
+const
+  DAC1_BASE    = $40028000;
+
+var
+  DAC1         : TDAC_Registers absolute DAC1_BASE;
 
 type
-  TDMA_TCD     = record
+  TDMA_TCD         = record
     SADDR      : longword;            // *< TCD Source Address, array offset: 0x1000, array step: 0x20
     SOFF       : word;                // *< TCD Signed Source Address Offset, array offset: 0x1004, array step: 0x20
     ATTR       : word;                // *< TCD Transfer Attributes, array offset: 0x1006, array step: 0x20
@@ -425,7 +321,9 @@ type
     ERR        : longword;            // *< Error Register, offset: 0x2C
     RESERVED_4 : array[0..3] of byte;
     HRS        : longword;            // *< Hardware Request Status Register, offset: 0x34
-    RESERVED_5 : array[0..199] of byte;
+    RESERVED_5 : array[0..11] of byte;
+    EARS       : longword;            // *< Enable Asynchronous Request in Stop Register, offset: 0x44
+    RESERVED_6 : array[0..183] of byte;
     DCHPRI3    : byte;                // *< Channel n Priority Register, offset: 0x100
     DCHPRI2    : byte;                // *< Channel n Priority Register, offset: 0x101
     DCHPRI1    : byte;                // *< Channel n Priority Register, offset: 0x102
@@ -442,7 +340,7 @@ type
     DCHPRI14   : byte;                // *< Channel n Priority Register, offset: 0x10D
     DCHPRI13   : byte;                // *< Channel n Priority Register, offset: 0x10E
     DCHPRI12   : byte;                // *< Channel n Priority Register, offset: 0x10F
-    RESERVED_6 : array[0..3823] of byte;
+    RESERVED_7 : array[0..3823] of byte;
     TCD        : array[0..15] of TDMA_TCD;
   end;
 
@@ -454,7 +352,7 @@ var
 
 type
   TDMAMUX_Registers = record
-    CHCFG      : array[0..15] of byte; // *< Channel Configuration Register, array offset: 0x0, array step: 0x1
+    CHCFG      : array[0..15] of byte; // *< Channel Configuration register, array offset: 0x0, array step: 0x1
   end;
 
 const
@@ -469,6 +367,8 @@ type
     SERV       : byte;                // *< Service Register, offset: 0x1
     CMPL       : byte;                // *< Compare Low Register, offset: 0x2
     CMPH       : byte;                // *< Compare High Register, offset: 0x3
+    RESERVED_0 : array[0..0] of byte;
+    CLKPRESCALER : byte;              // *< Clock Prescaler Register, offset: 0x5
   end;
 
 const
@@ -479,15 +379,15 @@ var
 
 type
   TFB_CS       = record
-    CSAR       : longword;            // *< Chip select address register, array offset: 0x0, array step: 0xC
-    CSMR       : longword;            // *< Chip select mask register, array offset: 0x4, array step: 0xC
-    CSCR       : longword;            // *< Chip select control register, array offset: 0x8, array step: 0xC
+    CSAR       : longword;            // *< Chip Select Address Register, array offset: 0x0, array step: 0xC
+    CSMR       : longword;            // *< Chip Select Mask Register, array offset: 0x4, array step: 0xC
+    CSCR       : longword;            // *< Chip Select Control Register, array offset: 0x8, array step: 0xC
   end;
 
   TFB_Registers = record
     CS         : array[0..5] of TFB_CS;
     RESERVED_0 : array[0..23] of byte;
-    CSPMCR     : longword;            // *< Chip select port multiplexing control register, offset: 0x60
+    CSPMCR     : longword;            // *< Chip Select port Multiplexing Control Register, offset: 0x60
   end;
 
 const
@@ -507,7 +407,10 @@ type
     PFB0CR     : longword;            // *< Flash Bank 0 Control Register, offset: 0x4
     PFB1CR     : longword;            // *< Flash Bank 1 Control Register, offset: 0x8
     RESERVED_0 : array[0..243] of byte;
-    TAGVD      : array[0..3] of longword; // *< Cache Tag Storage, array offset: 0x100, array step: index*0x20, index2*0x4
+    TAGVDW0S   : array[0..7] of longword; // *< Cache Tag Storage, array offset: 0x100, array step: 0x4
+    TAGVDW1S   : array[0..7] of longword; // *< Cache Tag Storage, array offset: 0x120, array step: 0x4
+    TAGVDW2S   : array[0..7] of longword; // *< Cache Tag Storage, array offset: 0x140, array step: 0x4
+    TAGVDW3S   : array[0..7] of longword; // *< Cache Tag Storage, array offset: 0x160, array step: 0x4
     RESERVED_1 : array[0..127] of byte;
     &SET       : array[0..3] of TFMC_SET;
   end;
@@ -519,7 +422,7 @@ var
   FMC          : TFMC_Registers absolute FMC_BASE;
 
 type
-  TFTFL_Registers = record
+  TFTFA_Registers = record
     FSTAT      : byte;                // *< Flash Status Register, offset: 0x0
     FCNFG      : byte;                // *< Flash Configuration Register, offset: 0x1
     FSEC       : byte;                // *< Flash Security Register, offset: 0x2
@@ -540,42 +443,59 @@ type
     FPROT2     : byte;                // *< Program Flash Protection Registers, offset: 0x11
     FPROT1     : byte;                // *< Program Flash Protection Registers, offset: 0x12
     FPROT0     : byte;                // *< Program Flash Protection Registers, offset: 0x13
-    RESERVED_0 : array[0..1] of byte;
-    FEPROT     : byte;                // *< EEPROM Protection Register, offset: 0x16
-    FDPROT     : byte;                // *< Data Flash Protection Register, offset: 0x17
+    RESERVED_0 : array[0..3] of byte;
+    XACCH3     : byte;                // *< Execute-only Access Registers, offset: 0x18
+    XACCH2     : byte;                // *< Execute-only Access Registers, offset: 0x19
+    XACCH1     : byte;                // *< Execute-only Access Registers, offset: 0x1A
+    XACCH0     : byte;                // *< Execute-only Access Registers, offset: 0x1B
+    XACCL3     : byte;                // *< Execute-only Access Registers, offset: 0x1C
+    XACCL2     : byte;                // *< Execute-only Access Registers, offset: 0x1D
+    XACCL1     : byte;                // *< Execute-only Access Registers, offset: 0x1E
+    XACCL0     : byte;                // *< Execute-only Access Registers, offset: 0x1F
+    SACCH3     : byte;                // *< Supervisor-only Access Registers, offset: 0x20
+    SACCH2     : byte;                // *< Supervisor-only Access Registers, offset: 0x21
+    SACCH1     : byte;                // *< Supervisor-only Access Registers, offset: 0x22
+    SACCH0     : byte;                // *< Supervisor-only Access Registers, offset: 0x23
+    SACCL3     : byte;                // *< Supervisor-only Access Registers, offset: 0x24
+    SACCL2     : byte;                // *< Supervisor-only Access Registers, offset: 0x25
+    SACCL1     : byte;                // *< Supervisor-only Access Registers, offset: 0x26
+    SACCL0     : byte;                // *< Supervisor-only Access Registers, offset: 0x27
+    FACSS      : byte;                // *< Flash Access Segment Size Register, offset: 0x28
+    RESERVED_1 : array[0..1] of byte;
+    FACSN      : byte;                // *< Flash Access Segment Number Register, offset: 0x2B
   end;
 
 const
-  FTFL_BASE    = $40020000;
+  FTFA_BASE    = $40020000;
 
 var
-  FTFL         : TFTFL_Registers absolute FTFL_BASE;
+  FTFA         : TFTFA_Registers absolute FTFA_BASE;
 
 type
-  TFTM_CONTROLS= record
-    CnSC       : longword;            // *< Channel (n) Status and Control, array offset: 0xC, array step: 0x8
+  TFMT_CONTROLS    = record
+    CnSC       : longword;            // *< Channel (n) Status And Control, array offset: 0xC, array step: 0x8
     CnV        : longword;            // *< Channel (n) Value, array offset: 0x10, array step: 0x8
   end;
 
   TFTM_Registers = record
-    SC         : longword;            // *< Status and Control, offset: 0x0
+    SC         : longword;            // *< Status And Control, offset: 0x0
     CNT        : longword;            // *< Counter, offset: 0x4
     &MOD       : longword;            // *< Modulo, offset: 0x8
-    CONTROLS   : array[0..7] of TFTM_CONTROLS;
+    CONTROLS   : array[0..7] of TFMT_CONTROLS;
     CNTIN      : longword;            // *< Counter Initial Value, offset: 0x4C
-    STATUS     : longword;            // *< Capture and Compare Status, offset: 0x50
+    STATUS     : longword;            // *< Capture And Compare Status, offset: 0x50
     MODE       : longword;            // *< Features Mode Selection, offset: 0x54
     SYNC       : longword;            // *< Synchronization, offset: 0x58
-    OUTINIT    : longword;            // *< Initial State for Channels Output, offset: 0x5C
+    OUTINIT    : longword;            // *< Initial State For Channels Output, offset: 0x5C
     OUTMASK    : longword;            // *< Output Mask, offset: 0x60
-    COMBINE    : longword;            // *< Function for Linked Channels, offset: 0x64
+    COMBINE    : longword;            // *< Function For Linked Channels, offset: 0x64
     DEADTIME   : longword;            // *< Deadtime Insertion Control, offset: 0x68
     EXTTRIG    : longword;            // *< FTM External Trigger, offset: 0x6C
     POL        : longword;            // *< Channels Polarity, offset: 0x70
     FMS        : longword;            // *< Fault Mode Status, offset: 0x74
     FILTER     : longword;            // *< Input Capture Filter Control, offset: 0x78
     FLTCTRL    : longword;            // *< Fault Control, offset: 0x7C
-    QDCTRL     : longword;            // *< Quadrature Decoder Control and Status, offset: 0x80
+    QDCTRL     : longword;            // *< Quadrature Decoder Control And Status, offset: 0x80
     CONF       : longword;            // *< Configuration, offset: 0x84
     FLTPOL     : longword;            // *< FTM Fault Input Polarity, offset: 0x88
     SYNCONF    : longword;            // *< Synchronization Configuration, offset: 0x8C
@@ -597,10 +517,16 @@ var
   FTM1         : TFTM_Registers absolute FTM1_BASE;
 
 const
-  FTM2_BASE    = $400B8000;
+  FTM2_BASE    = $4003A000;
 
 var
   FTM2         : TFTM_Registers absolute FTM2_BASE;
+
+const
+  FTM3_BASE    = $40026000;
+
+var
+  FTM3         : TFTM_Registers absolute FTM3_BASE;
 
 type
   TGPIO_Registers = record
@@ -647,7 +573,7 @@ type
     A1         : byte;                // *< I2C Address Register 1, offset: 0x0
     F          : byte;                // *< I2C Frequency Divider register, offset: 0x1
     C1         : byte;                // *< I2C Control Register 1, offset: 0x2
-    S          : byte;                // *< I2C Status Register, offset: 0x3
+    S          : byte;                // *< I2C Status register, offset: 0x3
     D          : byte;                // *< I2C Data I/O register, offset: 0x4
     C2         : byte;                // *< I2C Control Register 2, offset: 0x5
     FLT        : byte;                // *< I2C Programmable Input Glitch Filter register, offset: 0x6
@@ -679,10 +605,10 @@ type
     TCR4       : longword;            // *< SAI Transmit Configuration 4 Register, offset: 0x10
     TCR5       : longword;            // *< SAI Transmit Configuration 5 Register, offset: 0x14
     RESERVED_0 : array[0..7] of byte;
-    TDR        : array[0..1] of longword; // *< SAI Transmit Data Register, array offset: 0x20, array step: 0x4
-    RESERVED_1 : array[0..23] of byte;
-    TFR        : array[0..1] of longword; // *< SAI Transmit FIFO Register, array offset: 0x40, array step: 0x4
-    RESERVED_2 : array[0..23] of byte;
+    TDR        : longWord;            // *< SAI Transmit Data Register, array offset: 0x20, array step: 0x4
+    RESERVED_1 : array[0..27] of byte;
+    TFR        : longWord;            // *< SAI Transmit FIFO Register, array offset: 0x40, array step: 0x4
+    RESERVED_2 : array[0..27] of byte;
     TMR        : longword;            // *< SAI Transmit Mask Register, offset: 0x60
     RESERVED_3 : array[0..27] of byte;
     RCSR       : longword;            // *< SAI Receive Control Register, offset: 0x80
@@ -692,14 +618,14 @@ type
     RCR4       : longword;            // *< SAI Receive Configuration 4 Register, offset: 0x90
     RCR5       : longword;            // *< SAI Receive Configuration 5 Register, offset: 0x94
     RESERVED_4 : array[0..7] of byte;
-    RDR        : array[0..1] of longword; // *< SAI Receive Data Register, array offset: 0xA0, array step: 0x4
-    RESERVED_5 : array[0..23] of byte;
-    RFR        : array[0..1] of longword; // *< SAI Receive FIFO Register, array offset: 0xC0, array step: 0x4
-    RESERVED_6 : array[0..23] of byte;
+    RDR        : longWord;            // *< SAI Receive Data Register, array offset: 0xA0, array step: 0x4
+    RESERVED_5 : array[0..27] of byte;
+    RFR        : longWord;            // *< SAI Receive FIFO Register, array offset: 0xC0, array step: 0x4
+    RESERVED_6 : array[0..27] of byte;
     RMR        : longword;            // *< SAI Receive Mask Register, offset: 0xE0
     RESERVED_7 : array[0..27] of byte;
     MCR        : longword;            // *< SAI MCLK Control Register, offset: 0x100
-    MDR        : longword;            // *< MCLK Divide Register, offset: 0x104
+    MDR        : longword;            // *< SAI MCLK Divide Register, offset: 0x104
   end;
 
 const
@@ -710,17 +636,16 @@ var
 
 type
   TLLWU_Registers = record
-    PE1        : byte;                // *< LLWU Pin Enable 1 Register, offset: 0x0
-    PE2        : byte;                // *< LLWU Pin Enable 2 Register, offset: 0x1
-    PE3        : byte;                // *< LLWU Pin Enable 3 Register, offset: 0x2
-    PE4        : byte;                // *< LLWU Pin Enable 4 Register, offset: 0x3
-    ME         : byte;                // *< LLWU Module Enable Register, offset: 0x4
-    F1         : byte;                // *< LLWU Flag 1 Register, offset: 0x5
-    F2         : byte;                // *< LLWU Flag 2 Register, offset: 0x6
-    F3         : byte;                // *< LLWU Flag 3 Register, offset: 0x7
-    FILT1      : byte;                // *< LLWU Pin Filter 1 Register, offset: 0x8
-    FILT2      : byte;                // *< LLWU Pin Filter 2 Register, offset: 0x9
-    RST        : byte;                // *< LLWU Reset Enable Register, offset: 0xA
+    PE1        : byte;                // *< LLWU Pin Enable 1 register, offset: 0x0
+    PE2        : byte;                // *< LLWU Pin Enable 2 register, offset: 0x1
+    PE3        : byte;                // *< LLWU Pin Enable 3 register, offset: 0x2
+    PE4        : byte;                // *< LLWU Pin Enable 4 register, offset: 0x3
+    ME         : byte;                // *< LLWU Module Enable register, offset: 0x4
+    F1         : byte;                // *< LLWU Flag 1 register, offset: 0x5
+    F2         : byte;                // *< LLWU Flag 2 register, offset: 0x6
+    F3         : byte;                // *< LLWU Flag 3 register, offset: 0x7
+    FILT1      : byte;                // *< LLWU Pin Filter 1 register, offset: 0x8
+    FILT2      : byte;                // *< LLWU Pin Filter 2 register, offset: 0x9
   end;
 
 const
@@ -742,6 +667,22 @@ const
 
 var
   LPTMR0       : TLPTMR_Registers absolute LPTMR0_BASE;
+
+type
+  TLPUART_Registers = record
+    BAUD       : longword;            // *< LPUART Baud Rate Register, offset: 0x0
+    STAT       : longword;            // *< LPUART Status Register, offset: 0x4
+    CTRL       : longword;            // *< LPUART Control Register, offset: 0x8
+    DATA       : longword;            // *< LPUART Data Register, offset: 0xC
+    MATCH      : longword;            // *< LPUART Match Address Register, offset: 0x10
+    MODIR      : longword;            // *< LPUART Modem IrDA Register, offset: 0x14
+  end;
+
+const
+  LPUART0_BASE = $4002A000;
+
+var
+  LPUART0      : TLPUART_Registers absolute LPUART0_BASE;
 
 type
   TMCG_Registers = record
@@ -770,9 +711,12 @@ var
 type
   TMCM_Registers = record
     RESERVED_0 : array[0..7] of byte;
-    PLASC      : word;                // *< Crossbar switch (AXBS) slave configuration, offset: 0x8
-    PLAMC      : word;                // *< Crossbar switch (AXBS) master configuration, offset: 0xA
-    CR         : longword;            // *< Control register, offset: 0xC
+    PLASC      : word;                // *< Crossbar Switch (AXBS) Slave Configuration, offset: 0x8
+    PLAMC      : word;                // *< Crossbar Switch (AXBS) Master Configuration, offset: 0xA
+    PLACR      : longword;            // *< Crossbar Switch (AXBS) Control Register, offset: 0xC
+    ISR        : longword;            // *< Interrupt Status and Control Register, offset: 0x10
+    RESERVED_1 : array[0..43] of byte;
+    CPO        : longword;            // *< Compute Operation Control Register, offset: 0x40
   end;
 
 const
@@ -797,19 +741,19 @@ type
     FPROT0     : byte;                // *< Non-volatile P-Flash Protection 0 - High Register, offset: 0xB
     FSEC       : byte;                // *< Non-volatile Flash Security Register, offset: 0xC
     FOPT       : byte;                // *< Non-volatile Flash Option Register, offset: 0xD
-    FEPROT     : byte;                // *< Non-volatile EERAM Protection Register, offset: 0xE
-    FDPROT     : byte;                // *< Non-volatile D-Flash Protection Register, offset: 0xF
   end;
 
 const
-  FTFL_FlashConfig_BASE = $400;
+  FTFA_FlashConfig_BASE = $400;
 
 var
-  FTFL_FlashConfig : TNV_Registers absolute FTFL_FlashConfig_BASE;
+  FTFA_FlashConfig : TNV_Registers absolute FTFA_FlashConfig_BASE;
 
 type
   TOSC_Registers = record
     CR         : byte;                // *< OSC Control Register, offset: 0x0
+    RESERVED_0 : array[0..0] of byte;
+    &DIV       : byte;                // *< OSC_DIV, offset: 0x2
   end;
 
 const
@@ -820,28 +764,27 @@ var
 
 type
   TPDB_CH      = record
-    C1         : longword;            // *< Channel n Control Register 1, array offset: 0x10, array step: 0x28
-    S          : longword;            // *< Channel n Status Register, array offset: 0x14, array step: 0x28
-    DLY        : array[0..1] of longword; // *< Channel n Delay 0 Register..Channel n Delay 1 Register, array offset: 0x18, array step: index*0x28, index2*0x4
+    C1         : longword;            // *< Channel n Control register 1, array offset: 0x10, array step: 0x28
+    S          : longword;            // *< Channel n Status register, array offset: 0x14, array step: 0x28
+    DLY        : array[0..1] of longword; // *< Channel n Delay 0 register..Channel n Delay 1 register, array offset: 0x18, array step: index*0x28, index2*0x4
     RESERVED_0 : array[0..23] of byte;
   end;
-
   TPDB_DAC     = record
-    INTC       : longword;            // *< DAC Interval Trigger n Control Register, array offset: 0x150, array step: 0x8
-    INT        : longword;            // *< DAC Interval n Register, array offset: 0x154, array step: 0x8
+    INTC       : longword;            // *< DAC Interval Trigger n Control register, array offset: 0x150, array step: 0x8
+    INT        : longword;            // *< DAC Interval n register, array offset: 0x154, array step: 0x8
   end;
 
   TPDB_Registers = record
-    SC         : longword;            // *< Status and Control Register, offset: 0x0
-    &MOD       : longword;            // *< Modulus Register, offset: 0x4
-    CNT        : longword;            // *< Counter Register, offset: 0x8
-    IDLY       : longword;            // *< Interrupt Delay Register, offset: 0xC
+    SC         : longword;            // *< Status and Control register, offset: 0x0
+    &MOD       : longword;            // *< Modulus register, offset: 0x4
+    CNT        : longword;            // *< Counter register, offset: 0x8
+    IDLY       : longword;            // *< Interrupt Delay register, offset: 0xC
     CH         : array[0..1] of TPDB_CH;
     RESERVED_0 : array[0..239] of byte;
-    DAC        : array[0..0] of TPDB_DAC;
-    RESERVED_1 : array[0..55] of byte;
-    POEN       : longword;            // *< Pulse-Out n Enable Register, offset: 0x190
-    PODLY      : array[0..2] of longword; // *< Pulse-Out n Delay Register, array offset: 0x194, array step: 0x4
+    DAC        : array[0..1] of TPDB_DAC;
+    RESERVED_1 : array[0..47] of byte;
+    POEN       : longword;            // *< Pulse-Out n Enable register, offset: 0x190
+    PODLY      : array[0..1] of longword; // *< Pulse-Out n Delay register, array offset: 0x194, array step: 0x4
   end;
 
 const
@@ -851,7 +794,7 @@ var
   PDB0         : TPDB_Registers absolute PDB0_BASE;
 
 type
-  TPIT_CHANNEL  = record
+  TPIT_CHANNEL     = record
     LDVAL      : longword;            // *< Timer Load Value Register, array offset: 0x100, array step: 0x10
     CVAL       : longword;            // *< Current Timer Value Register, array offset: 0x104, array step: 0x10
     TCTRL      : longword;            // *< Timer Control Register, array offset: 0x108, array step: 0x10
@@ -872,9 +815,9 @@ var
 
 type
   TPMC_Registers = record
-    LVDSC1     : byte;                // *< Low Voltage Detect Status and Control 1 Register, offset: 0x0
-    LVDSC2     : byte;                // *< Low Voltage Detect Status and Control 2 Register, offset: 0x1
-    REGSC      : byte;                // *< Regulator Status and Control Register, offset: 0x2
+    LVDSC1     : byte;                // *< Low Voltage Detect Status And Control 1 register, offset: 0x0
+    LVDSC2     : byte;                // *< Low Voltage Detect Status And Control 2 register, offset: 0x1
+    REGSC      : byte;                // *< Regulator Status And Control register, offset: 0x2
   end;
 
 const
@@ -931,10 +874,12 @@ type
     SRS0       : byte;                // *< System Reset Status Register 0, offset: 0x0
     SRS1       : byte;                // *< System Reset Status Register 1, offset: 0x1
     RESERVED_0 : array[0..1] of byte;
-    RPFC       : byte;                // *< Reset Pin Filter Control Register, offset: 0x4
-    RPFW       : byte;                // *< Reset Pin Filter Width Register, offset: 0x5
+    RPFC       : byte;                // *< Reset Pin Filter Control register, offset: 0x4
+    RPFW       : byte;                // *< Reset Pin Filter Width register, offset: 0x5
     RESERVED_1 : array[0..0] of byte;
     MR         : byte;                // *< Mode Register, offset: 0x7
+    SSRS0      : byte;                // *< Sticky System Reset Status Register 0, offset: 0x8
+    SSRS1      : byte;                // *< Sticky System Reset Status Register 1, offset: 0x9
   end;
 
 const
@@ -964,6 +909,20 @@ const
 
 var
   RFVBAT       : TRFVBAT_Registers absolute RFVBAT_BASE;
+
+type
+  TRNG_Registers = record
+    CR         : longword;            // *< RNGA Control Register, offset: 0x0
+    SR         : longword;            // *< RNGA Status Register, offset: 0x4
+    ER         : longword;            // *< RNGA Entropy Register, offset: 0x8
+    &OR        : longword;            // *< RNGA Output Register, offset: 0xC
+  end;
+
+const
+  RNG_BASE     = $40029000;
+
+var
+  RNG          : TRNG_Registers absolute RNG_BASE;
 
 type
   TRTC_Registers = record
@@ -997,11 +956,10 @@ type
     SOPT5      : longword;            // *< System Options Register 5, offset: 0x1010
     RESERVED_2 : array[0..3] of byte;
     SOPT7      : longword;            // *< System Options Register 7, offset: 0x1018
-    RESERVED_3 : array[0..7] of byte;
+    SOPT8      : longword;            // *< System Options Register 8, offset: 0x101C
+    RESERVED_3 : array[0..3] of byte;
     SDID       : longword;            // *< System Device Identification Register, offset: 0x1024
-    SCGC1      : longword;            // *< System Clock Gating Control Register 1, offset: 0x1028
-    SCGC2      : longword;            // *< System Clock Gating Control Register 2, offset: 0x102C
-    SCGC3      : longword;            // *< System Clock Gating Control Register 3, offset: 0x1030
+    RESERVED_4 : array[0..11] of byte;
     SCGC4      : longword;            // *< System Clock Gating Control Register 4, offset: 0x1034
     SCGC5      : longword;            // *< System Clock Gating Control Register 5, offset: 0x1038
     SCGC6      : longword;            // *< System Clock Gating Control Register 6, offset: 0x103C
@@ -1024,10 +982,10 @@ var
 
 type
   TSMC_Registers = record
-    PMPROT     : byte;                // *< Power Mode Protection Register, offset: 0x0
-    PMCTRL     : byte;                // *< Power Mode Control Register, offset: 0x1
-    VLLSCTRL   : byte;                // *< VLLS Control Register, offset: 0x2
-    PMSTAT     : byte;                // *< Power Mode Status Register, offset: 0x3
+    PMPROT     : byte;                // *< Power Mode Protection register, offset: 0x0
+    PMCTRL     : byte;                // *< Power Mode Control register, offset: 0x1
+    STOPCTRL   : byte;                // *< Stop Control Register, offset: 0x2
+    PMSTAT     : byte;                // *< Power Mode Status register, offset: 0x3
   end;
 
 const
@@ -1038,24 +996,24 @@ var
 
 type
   TSPI_Registers = record
-    MCR        : longword;            // *< DSPI Module Configuration Register, offset: 0x0
+    MCR        : longword;            // *< Module Configuration Register, offset: 0x0
     RESERVED_0 : array[0..3] of byte;
-    TCR        : longword;            // *< DSPI Transfer Count Register, offset: 0x8
-    CTAR       : array[0..1] of longword; // *< DSPI Clock and Transfer Attributes Register (In Master Mode), array offset: 0xC, array step: 0x4
+    TCR        : longword;            // *< Transfer Count Register, offset: 0x8
+    CTAR : array[0..1] of longword;   // *< Clock and Transfer Attributes Register (In Master Mode), array offset: 0xC, array step: 0x4
     RESERVED_1 : array[0..23] of byte;
-    SR         : longword;            // *< DSPI Status Register, offset: 0x2C
-    RSER       : longword;            // *< DSPI DMA/Interrupt Request Select and Enable Register, offset: 0x30
-    PUSHR      : longword;            // *< DSPI PUSH TX FIFO Register In Master Mode, offset: 0x34
-    POPR       : longword;            // *< DSPI POP RX FIFO Register, offset: 0x38
-    TXFR0      : longword;            // *< DSPI Transmit FIFO Registers, offset: 0x3C
-    TXFR1      : longword;            // *< DSPI Transmit FIFO Registers, offset: 0x40
-    TXFR2      : longword;            // *< DSPI Transmit FIFO Registers, offset: 0x44
-    TXFR3      : longword;            // *< DSPI Transmit FIFO Registers, offset: 0x48
+    SR         : longword;            // *< Status Register, offset: 0x2C
+    RSER       : longword;            // *< DMA/Interrupt Request Select and Enable Register, offset: 0x30
+    PUSHR      : longword;            // *< PUSH TX FIFO Register In Master Mode, offset: 0x34
+    POPR       : longword;            // *< POP RX FIFO Register, offset: 0x38
+    TXFR0      : longword;            // *< Transmit FIFO Registers, offset: 0x3C
+    TXFR1      : longword;            // *< Transmit FIFO Registers, offset: 0x40
+    TXFR2      : longword;            // *< Transmit FIFO Registers, offset: 0x44
+    TXFR3      : longword;            // *< Transmit FIFO Registers, offset: 0x48
     RESERVED_2 : array[0..47] of byte;
-    RXFR0      : longword;            // *< DSPI Receive FIFO Registers, offset: 0x7C
-    RXFR1      : longword;            // *< DSPI Receive FIFO Registers, offset: 0x80
-    RXFR2      : longword;            // *< DSPI Receive FIFO Registers, offset: 0x84
-    RXFR3      : longword;            // *< DSPI Receive FIFO Registers, offset: 0x88
+    RXFR0      : longword;            // *< Receive FIFO Registers, offset: 0x7C
+    RXFR1      : longword;            // *< Receive FIFO Registers, offset: 0x80
+    RXFR2      : longword;            // *< Receive FIFO Registers, offset: 0x84
+    RXFR3      : longword;            // *< Receive FIFO Registers, offset: 0x88
   end;
 
 const
@@ -1071,32 +1029,8 @@ var
   SPI1         : TSPI_Registers absolute SPI1_BASE;
 
 type
-  TTSI_Registers = record
-    GENCS      : longword;            // *< General Control and Status Register, offset: 0x0
-    SCANC      : longword;            // *< SCAN Control Register, offset: 0x4
-    PEN        : longword;            // *< Pin Enable Register, offset: 0x8
-    WUCNTR     : longword;            // *< Wake-Up Channel Counter Register, offset: 0xC
-    RESERVED_0 : array[0..239] of byte;
-    CNTR1      : longword;            // *< Counter Register, offset: 0x100
-    CNTR3      : longword;            // *< Counter Register, offset: 0x104
-    CNTR5      : longword;            // *< Counter Register, offset: 0x108
-    CNTR7      : longword;            // *< Counter Register, offset: 0x10C
-    CNTR9      : longword;            // *< Counter Register, offset: 0x110
-    CNTR11     : longword;            // *< Counter Register, offset: 0x114
-    CNTR13     : longword;            // *< Counter Register, offset: 0x118
-    CNTR15     : longword;            // *< Counter Register, offset: 0x11C
-    THRESHOLD  : longword;            // *< Low Power Channel Threshold Register, offset: 0x120
-  end;
-
-const
-  TSI0_BASE    = $40045000;
-
-var
-  TSI0         : TTSI_Registers absolute TSI0_BASE;
-
-type
   TUART_Registers = record
-    BDH        : byte;                // *< UART Baud Rate Registers:High, offset: 0x0
+    BDH        : byte;                // *< UART Baud Rate Registers: High, offset: 0x0
     BDL        : byte;                // *< UART Baud Rate Registers: Low, offset: 0x1
     C1         : byte;                // *< UART Control Register 1, offset: 0x2
     C2         : byte;                // *< UART Control Register 2, offset: 0x3
@@ -1123,11 +1057,18 @@ type
     C7816      : byte;                // *< UART 7816 Control Register, offset: 0x18
     IE7816     : byte;                // *< UART 7816 Interrupt Enable Register, offset: 0x19
     IS7816     : byte;                // *< UART 7816 Interrupt Status Register, offset: 0x1A
-    WP7816_T_TYPE0 : byte;            // *< UART 7816 Wait Parameter Register, offset: 0x1B
+    WP7816     : byte;                // *< UART 7816 Wait Parameter Register, offset: 0x1B
     WN7816     : byte;                // *< UART 7816 Wait N Register, offset: 0x1C
     WF7816     : byte;                // *< UART 7816 Wait FD Register, offset: 0x1D
     ET7816     : byte;                // *< UART 7816 Error Threshold Register, offset: 0x1E
     TL7816     : byte;                // *< UART 7816 Transmit Length Register, offset: 0x1F
+    RESERVED_2 : array[0..25] of byte;
+    AP7816A_T0 : byte;                // *< UART 7816 ATR Duration Timer Register A, offset: 0x3A
+    AP7816B_T0 : byte;                // *< UART 7816 ATR Duration Timer Register B, offset: 0x3B
+    WP7816A_T0 : byte;                // *< UART 7816 Wait Parameter Register A, offset: 0x3C
+    WP7816B_T0 : byte;                // *< UART 7816 Wait Parameter Register B, offset: 0x3D
+    WGP7816_T1 : byte;                // *< UART 7816 Wait and Guard Parameter Register, offset: 0x3E
+    WP7816C_T1 : byte;                // *< UART 7816 Wait Parameter Register C, offset: 0x3F
   end;
 
 const
@@ -1148,79 +1089,73 @@ const
 var
   UART2        : TUART_Registers absolute UART2_BASE;
 
-const
-  UART3_BASE   = $4006D000;
-
-var
-  UART3        : TUART_Registers absolute UART3_BASE;
-
-const
-  UART4_BASE   = $400EA000;
-
-var
-  UART4        : TUART_Registers absolute UART4_BASE;
-
 type
   TUSB_ENDPOINT= record
-    ENDPT      : byte;                // *< Endpoint Control Register, array offset: 0xC0, array step: 0x4
+    ENDPT      : byte;                // *< Endpoint Control register, array offset: 0xC0, array step: 0x4
     RESERVED_0 : array[0..2] of byte;
   end;
 
   TUSB_Registers = record
-    PERID      : byte;                // *< Peripheral ID Register, offset: 0x0
+    PERID      : byte;                // *< Peripheral ID register, offset: 0x0
     RESERVED_0 : array[0..2] of byte;
-    IDCOMP     : byte;                // *< Peripheral ID Complement Register, offset: 0x4
+    IDCOMP     : byte;                // *< Peripheral ID Complement register, offset: 0x4
     RESERVED_1 : array[0..2] of byte;
-    REV        : byte;                // *< Peripheral Revision Register, offset: 0x8
+    REV        : byte;                // *< Peripheral Revision register, offset: 0x8
     RESERVED_2 : array[0..2] of byte;
-    ADDINFO    : byte;                // *< Peripheral Additional Info Register, offset: 0xC
+    ADDINFO    : byte;                // *< Peripheral Additional Info register, offset: 0xC
     RESERVED_3 : array[0..2] of byte;
-    OTGISTAT   : byte;                // *< OTG Interrupt Status Register, offset: 0x10
+    OTGISTAT   : byte;                // *< OTG Interrupt Status register, offset: 0x10
     RESERVED_4 : array[0..2] of byte;
-    OTGICR     : byte;                // *< OTG Interrupt Control Register, offset: 0x14
+    OTGICR     : byte;                // *< OTG Interrupt Control register, offset: 0x14
     RESERVED_5 : array[0..2] of byte;
-    OTGSTAT    : byte;                // *< OTG Status Register, offset: 0x18
+    OTGSTAT    : byte;                // *< OTG Status register, offset: 0x18
     RESERVED_6 : array[0..2] of byte;
-    OTGCTL     : byte;                // *< OTG Control Register, offset: 0x1C
+    OTGCTL     : byte;                // *< OTG Control register, offset: 0x1C
     RESERVED_7 : array[0..98] of byte;
-    ISTAT      : byte;                // *< Interrupt Status Register, offset: 0x80
+    ISTAT      : byte;                // *< Interrupt Status register, offset: 0x80
     RESERVED_8 : array[0..2] of byte;
-    INTEN      : byte;                // *< Interrupt Enable Register, offset: 0x84
+    INTEN      : byte;                // *< Interrupt Enable register, offset: 0x84
     RESERVED_9 : array[0..2] of byte;
-    ERRSTAT    : byte;                // *< Error Interrupt Status Register, offset: 0x88
+    ERRSTAT    : byte;                // *< Error Interrupt Status register, offset: 0x88
     RESERVED_10 : array[0..2] of byte;
-    ERREN      : byte;                // *< Error Interrupt Enable Register, offset: 0x8C
+    ERREN      : byte;                // *< Error Interrupt Enable register, offset: 0x8C
     RESERVED_11 : array[0..2] of byte;
-    STAT       : byte;                // *< Status Register, offset: 0x90
+    STAT       : byte;                // *< Status register, offset: 0x90
     RESERVED_12 : array[0..2] of byte;
-    CTL        : byte;                // *< Control Register, offset: 0x94
+    CTL        : byte;                // *< Control register, offset: 0x94
     RESERVED_13 : array[0..2] of byte;
-    ADDR       : byte;                // *< Address Register, offset: 0x98
+    ADDR       : byte;                // *< Address register, offset: 0x98
     RESERVED_14 : array[0..2] of byte;
-    BDTPAGE1   : byte;                // *< BDT Page Register 1, offset: 0x9C
+    BDTPAGE1   : byte;                // *< BDT Page register 1, offset: 0x9C
     RESERVED_15 : array[0..2] of byte;
-    FRMNUML    : byte;                // *< Frame Number Register Low, offset: 0xA0
+    FRMNUML    : byte;                // *< Frame Number register Low, offset: 0xA0
     RESERVED_16 : array[0..2] of byte;
-    FRMNUMH    : byte;                // *< Frame Number Register High, offset: 0xA4
+    FRMNUMH    : byte;                // *< Frame Number register High, offset: 0xA4
     RESERVED_17 : array[0..2] of byte;
-    TOKEN      : byte;                // *< Token Register, offset: 0xA8
+    TOKEN      : byte;                // *< Token register, offset: 0xA8
     RESERVED_18 : array[0..2] of byte;
-    SOFTHLD    : byte;                // *< SOF Threshold Register, offset: 0xAC
+    SOFTHLD    : byte;                // *< SOF Threshold register, offset: 0xAC
     RESERVED_19 : array[0..2] of byte;
     BDTPAGE2   : byte;                // *< BDT Page Register 2, offset: 0xB0
     RESERVED_20 : array[0..2] of byte;
     BDTPAGE3   : byte;                // *< BDT Page Register 3, offset: 0xB4
     RESERVED_21 : array[0..10] of byte;
     ENDPOINT   : array[0..15] of TUSB_ENDPOINT;
-    USBCTRL    : byte;                // *< USB Control Register, offset: 0x100
+    USBCTRL    : byte;                // *< USB Control register, offset: 0x100
     RESERVED_22 : array[0..2] of byte;
-    OBSERVE    : byte;                // *< USB OTG Observe Register, offset: 0x104
+    OBSERVE    : byte;                // *< USB OTG Observe register, offset: 0x104
     RESERVED_23 : array[0..2] of byte;
-    CONTROL    : byte;                // *< USB OTG Control Register, offset: 0x108
+    CONTROL    : byte;                // *< USB OTG Control register, offset: 0x108
     RESERVED_24 : array[0..2] of byte;
-    USBTRC0    : byte;                // *< USB Transceiver Control Register 0, offset: 0x10C
+    USBTRC0    : byte;                // *< USB Transceiver Control register 0, offset: 0x10C
     RESERVED_25 : array[0..6] of byte;
     USBFRMADJUST : byte;              // *< Frame Adjust Register, offset: 0x114
+    RESERVED_26 : array[0..42] of byte;
+    CLK_RECOVER_CTRL : byte;          // *< USB Clock recovery control, offset: 0x140
+    RESERVED_27 : array[0..2] of byte;
+    CLK_RECOVER_IRC_EN : byte;        // *< IRC48M oscillator enable register, offset: 0x144
+    RESERVED_28 : array[0..22] of byte;
+    CLK_RECOVER_INT_STATUS : byte;    // *< Clock recovery separated interrupt status, offset: 0x15C
   end;
 
 const
@@ -1228,23 +1163,6 @@ const
 
 var
   USB0         : TUSB_Registers absolute USB0_BASE;
-
-type
-  TUSBDCD_Registers = record
-    CONTROL    : longword;            // *< Control Register, offset: 0x0
-    CLOCK      : longword;            // *< Clock Register, offset: 0x4
-    STATUS     : longword;            // *< Status Register, offset: 0x8
-    RESERVED_0 : array[0..3] of byte;
-    TIMER0     : longword;            // *< TIMER0 Register, offset: 0x10
-    TIMER1     : longword;            // *< , offset: 0x14
-    TIMER2     : longword;            // *< , offset: 0x18
-  end;
-
-const
-  USBDCD_BASE  = $40035000;
-
-var
-  USBDCD       : TUSBDCD_Registers absolute USBDCD_BASE;
 
 type
   TVREF_Registers = record
@@ -1266,12 +1184,12 @@ type
     TOVALL     : word;                // *< Watchdog Time-out Value Register Low, offset: 0x6
     WINH       : word;                // *< Watchdog Window Register High, offset: 0x8
     WINL       : word;                // *< Watchdog Window Register Low, offset: 0xA
-    REFRESH    : word;                // *< Watchdog Refresh Register, offset: 0xC
-    UNLOCK     : word;                // *< Watchdog Unlock Register, offset: 0xE
+    REFRESH    : word;                // *< Watchdog Refresh register, offset: 0xC
+    UNLOCK     : word;                // *< Watchdog Unlock register, offset: 0xE
     TMROUTH    : word;                // *< Watchdog Timer Output Register High, offset: 0x10
     TMROUTL    : word;                // *< Watchdog Timer Output Register Low, offset: 0x12
-    RSTCNT     : word;                // *< Watchdog Reset Count Register, offset: 0x14
-    PRESC      : word;                // *< Watchdog Prescaler Register, offset: 0x16
+    RSTCNT     : word;                // *< Watchdog Reset Count register, offset: 0x14
+    PRESC      : word;                // *< Watchdog Prescaler register, offset: 0x16
   end;
 
 const
@@ -1283,6 +1201,7 @@ var
 implementation
 
 procedure NonMaskableInt_interrupt; external name 'NonMaskableInt_interrupt';
+procedure HardFault_interrupt; external name 'HardFault_interrupt';
 procedure MemoryManagement_interrupt; external name 'MemoryManagement_interrupt';
 procedure BusFault_interrupt; external name 'BusFault_interrupt';
 procedure UsageFault_interrupt; external name 'UsageFault_interrupt';
@@ -1308,54 +1227,34 @@ procedure DMA14_interrupt; external name 'DMA14_interrupt';
 procedure DMA15_interrupt; external name 'DMA15_interrupt';
 procedure DMA_Error_interrupt; external name 'DMA_Error_interrupt';
 procedure MCM_interrupt; external name 'MCM_interrupt';
-procedure FTFL_interrupt; external name 'FTFL_interrupt';
+procedure FTF_interrupt; external name 'FTF_interrupt';
 procedure Read_Collision_interrupt; external name 'Read_Collision_interrupt';
 procedure LVD_LVW_interrupt; external name 'LVD_LVW_interrupt';
 procedure LLW_interrupt; external name 'LLW_interrupt';
 procedure Watchdog_interrupt; external name 'Watchdog_interrupt';
-procedure RESERVED39_interrupt; external name 'RESERVED39_interrupt';
+procedure RNG_interrupt; external name 'RNG_interrupt';
 procedure I2C0_interrupt; external name 'I2C0_interrupt';
 procedure I2C1_interrupt; external name 'I2C1_interrupt';
 procedure SPI0_interrupt; external name 'SPI0_interrupt';
 procedure SPI1_interrupt; external name 'SPI1_interrupt';
-procedure RESERVED44_interrupt; external name 'RESERVED44_interrupt';
-procedure CAN0_ORed_Message_buffer_interrupt; external name 'CAN0_ORed_Message_buffer_interrupt';
-procedure CAN0_Bus_Off_interrupt; external name 'CAN0_Bus_Off_interrupt';
-procedure CAN0_Error_interrupt; external name 'CAN0_Error_interrupt';
-procedure CAN0_Tx_Warning_interrupt; external name 'CAN0_Tx_Warning_interrupt';
-procedure CAN0_Rx_Warning_interrupt; external name 'CAN0_Rx_Warning_interrupt';
-procedure CAN0_Wake_Up_interrupt; external name 'CAN0_Wake_Up_interrupt';
 procedure I2S0_Tx_interrupt; external name 'I2S0_Tx_interrupt';
 procedure I2S0_Rx_interrupt; external name 'I2S0_Rx_interrupt';
-procedure RESERVED53_interrupt; external name 'RESERVED53_interrupt';
-procedure RESERVED54_interrupt; external name 'RESERVED54_interrupt';
-procedure RESERVED55_interrupt; external name 'RESERVED55_interrupt';
-procedure RESERVED56_interrupt; external name 'RESERVED56_interrupt';
-procedure RESERVED57_interrupt; external name 'RESERVED57_interrupt';
-procedure RESERVED58_interrupt; external name 'RESERVED58_interrupt';
-procedure RESERVED59_interrupt; external name 'RESERVED59_interrupt';
-procedure UART0_LON_interrupt; external name 'UART0_LON_interrupt';
+procedure LPUART0_interrupt; external name 'LPUART0_interrupt';
 procedure UART0_RX_TX_interrupt; external name 'UART0_RX_TX_interrupt';
 procedure UART0_ERR_interrupt; external name 'UART0_ERR_interrupt';
 procedure UART1_RX_TX_interrupt; external name 'UART1_RX_TX_interrupt';
 procedure UART1_ERR_interrupt; external name 'UART1_ERR_interrupt';
 procedure UART2_RX_TX_interrupt; external name 'UART2_RX_TX_interrupt';
 procedure UART2_ERR_interrupt; external name 'UART2_ERR_interrupt';
-procedure UART3_RX_TX_interrupt; external name 'UART3_RX_TX_interrupt';
-procedure UART3_ERR_interrupt; external name 'UART3_ERR_interrupt';
-procedure UART4_RX_TX_interrupt; external name 'UART4_RX_TX_interrupt';
-procedure UART4_ERR_interrupt; external name 'UART4_ERR_interrupt';
-procedure RESERVED71_interrupt; external name 'RESERVED71_interrupt';
-procedure RESERVED72_interrupt; external name 'RESERVED72_interrupt';
+procedure RESERVED53_interrupt; external name 'RESERVED53_interrupt';
+procedure RESERVED54_interrupt; external name 'RESERVED54_interrupt';
 procedure ADC0_interrupt; external name 'ADC0_interrupt';
-procedure ADC1_interrupt; external name 'ADC1_interrupt';
 procedure CMP0_interrupt; external name 'CMP0_interrupt';
 procedure CMP1_interrupt; external name 'CMP1_interrupt';
-procedure CMP2_interrupt; external name 'CMP2_interrupt';
 procedure FTM0_interrupt; external name 'FTM0_interrupt';
 procedure FTM1_interrupt; external name 'FTM1_interrupt';
 procedure FTM2_interrupt; external name 'FTM2_interrupt';
-procedure CMT_interrupt; external name 'CMT_interrupt';
+procedure RESERVED61_interrupt; external name 'RESERVED61_interrupt';
 procedure RTC_interrupt; external name 'RTC_interrupt';
 procedure RTC_Seconds_interrupt; external name 'RTC_Seconds_interrupt';
 procedure PIT0_interrupt; external name 'PIT0_interrupt';
@@ -1364,27 +1263,38 @@ procedure PIT2_interrupt; external name 'PIT2_interrupt';
 procedure PIT3_interrupt; external name 'PIT3_interrupt';
 procedure PDB0_interrupt; external name 'PDB0_interrupt';
 procedure USB0_interrupt; external name 'USB0_interrupt';
-procedure USBDCD_interrupt; external name 'USBDCD_interrupt';
+procedure RESERVED70_interrupt; external name 'RESERVED70_interrupt';
+procedure RESERVED71_interrupt; external name 'RESERVED71_interrupt';
+procedure DAC0_interrupt; external name 'DAC0_interrupt';
+procedure MCG_interrupt; external name 'MCG_interrupt';
+procedure LPTimer_interrupt; external name 'LPTimer_interrupt';
+procedure PORTA_interrupt; external name 'PORTA_interrupt';
+procedure PORTB_interrupt; external name 'PORTB_interrupt';
+procedure PORTC_interrupt; external name 'PORTC_interrupt';
+procedure PORTD_interrupt; external name 'PORTD_interrupt';
+procedure PORTE_interrupt; external name 'PORTE_interrupt';
+procedure SWI_interrupt; external name 'SWI_interrupt';
+procedure RESERVED81_interrupt; external name 'RESERVED81_interrupt';
+procedure RESERVED82_interrupt; external name 'RESERVED82_interrupt';
+procedure RESERVED83_interrupt; external name 'RESERVED83_interrupt';
+procedure RESERVED84_interrupt; external name 'RESERVED84_interrupt';
+procedure RESERVED85_interrupt; external name 'RESERVED85_interrupt';
+procedure RESERVED86_interrupt; external name 'RESERVED86_interrupt';
+procedure FTM3_interrupt; external name 'FTM3_interrupt';
+procedure DAC1_interrupt; external name 'DAC1_interrupt';
+procedure ADC1_interrupt; external name 'ADC1_interrupt';
+procedure RESERVED90_interrupt; external name 'RESERVED90_interrupt';
 procedure RESERVED91_interrupt; external name 'RESERVED91_interrupt';
 procedure RESERVED92_interrupt; external name 'RESERVED92_interrupt';
 procedure RESERVED93_interrupt; external name 'RESERVED93_interrupt';
 procedure RESERVED94_interrupt; external name 'RESERVED94_interrupt';
 procedure RESERVED95_interrupt; external name 'RESERVED95_interrupt';
 procedure RESERVED96_interrupt; external name 'RESERVED96_interrupt';
-procedure DAC0_interrupt; external name 'DAC0_interrupt';
+procedure RESERVED97_interrupt; external name 'RESERVED97_interrupt';
 procedure RESERVED98_interrupt; external name 'RESERVED98_interrupt';
-procedure TSI0_interrupt; external name 'TSI0_interrupt';
-procedure MCG_interrupt; external name 'MCG_interrupt';
-procedure LPTimer_interrupt; external name 'LPTimer_interrupt';
-procedure RESERVED102_interrupt; external name 'RESERVED102_interrupt';
-procedure PORTA_interrupt; external name 'PORTA_interrupt';
-procedure PORTB_interrupt; external name 'PORTB_interrupt';
-procedure PORTC_interrupt; external name 'PORTC_interrupt';
-procedure PORTD_interrupt; external name 'PORTD_interrupt';
-procedure PORTE_interrupt; external name 'PORTE_interrupt';
-procedure RESERVED108_interrupt; external name 'RESERVED108_interrupt';
-procedure RESERVED109_interrupt; external name 'RESERVED109_interrupt';
-procedure SWI_interrupt; external name 'SWI_interrupt';
+procedure RESERVED99_interrupt; external name 'RESERVED99_interrupt';
+procedure RESERVED100_interrupt; external name 'RESERVED100_interrupt';
+procedure RESERVED101_interrupt; external name 'RESERVED101_interrupt';
 
 {$i cortexm4f_start.inc}
 
@@ -1396,7 +1306,7 @@ asm
   .long _stack_top
   .long Startup
   .long NonMaskableInt_interrupt
-  .long 0
+  .long HardFault_interrupt
   .long MemoryManagement_interrupt
   .long BusFault_interrupt
   .long UsageFault_interrupt
@@ -1427,54 +1337,34 @@ asm
   .long DMA15_interrupt
   .long DMA_Error_interrupt
   .long MCM_interrupt
-  .long FTFL_interrupt
+  .long FTF_interrupt
   .long Read_Collision_interrupt
   .long LVD_LVW_interrupt
   .long LLW_interrupt
   .long Watchdog_interrupt
-  .long RESERVED39_interrupt
+  .long RNG_interrupt
   .long I2C0_interrupt
   .long I2C1_interrupt
   .long SPI0_interrupt
   .long SPI1_interrupt
-  .long RESERVED44_interrupt
-  .long CAN0_ORed_Message_buffer_interrupt
-  .long CAN0_Bus_Off_interrupt
-  .long CAN0_Error_interrupt
-  .long CAN0_Tx_Warning_interrupt
-  .long CAN0_Rx_Warning_interrupt
-  .long CAN0_Wake_Up_interrupt
   .long I2S0_Tx_interrupt
   .long I2S0_Rx_interrupt
-  .long RESERVED53_interrupt
-  .long RESERVED54_interrupt
-  .long RESERVED55_interrupt
-  .long RESERVED56_interrupt
-  .long RESERVED57_interrupt
-  .long RESERVED58_interrupt
-  .long RESERVED59_interrupt
-  .long UART0_LON_interrupt
+  .long LPUART0_interrupt
   .long UART0_RX_TX_interrupt
   .long UART0_ERR_interrupt
   .long UART1_RX_TX_interrupt
   .long UART1_ERR_interrupt
   .long UART2_RX_TX_interrupt
   .long UART2_ERR_interrupt
-  .long UART3_RX_TX_interrupt
-  .long UART3_ERR_interrupt
-  .long UART4_RX_TX_interrupt
-  .long UART4_ERR_interrupt
-  .long RESERVED71_interrupt
-  .long RESERVED72_interrupt
+  .long RESERVED53_interrupt
+  .long RESERVED54_interrupt
   .long ADC0_interrupt
-  .long ADC1_interrupt
   .long CMP0_interrupt
   .long CMP1_interrupt
-  .long CMP2_interrupt
   .long FTM0_interrupt
   .long FTM1_interrupt
   .long FTM2_interrupt
-  .long CMT_interrupt
+  .long RESERVED61_interrupt
   .long RTC_interrupt
   .long RTC_Seconds_interrupt
   .long PIT0_interrupt
@@ -1483,29 +1373,41 @@ asm
   .long PIT3_interrupt
   .long PDB0_interrupt
   .long USB0_interrupt
-  .long USBDCD_interrupt
+  .long RESERVED70_interrupt
+  .long RESERVED71_interrupt
+  .long DAC0_interrupt
+  .long MCG_interrupt
+  .long LPTimer_interrupt
+  .long PORTA_interrupt
+  .long PORTB_interrupt
+  .long PORTC_interrupt
+  .long PORTD_interrupt
+  .long PORTE_interrupt
+  .long SWI_interrupt
+  .long RESERVED81_interrupt
+  .long RESERVED82_interrupt
+  .long RESERVED83_interrupt
+  .long RESERVED84_interrupt
+  .long RESERVED85_interrupt
+  .long RESERVED86_interrupt
+  .long FTM3_interrupt
+  .long DAC1_interrupt
+  .long ADC1_interrupt
+  .long RESERVED90_interrupt
   .long RESERVED91_interrupt
   .long RESERVED92_interrupt
   .long RESERVED93_interrupt
   .long RESERVED94_interrupt
   .long RESERVED95_interrupt
   .long RESERVED96_interrupt
-  .long DAC0_interrupt
+  .long RESERVED97_interrupt
   .long RESERVED98_interrupt
-  .long TSI0_interrupt
-  .long MCG_interrupt
-  .long LPTimer_interrupt
-  .long RESERVED102_interrupt
-  .long PORTA_interrupt
-  .long PORTB_interrupt
-  .long PORTC_interrupt
-  .long PORTD_interrupt
-  .long PORTE_interrupt
-  .long RESERVED108_interrupt
-  .long RESERVED109_interrupt
-  .long SWI_interrupt
+  .long RESERVED99_interrupt
+  .long RESERVED100_interrupt
+  .long RESERVED101_interrupt
 
   .weak NonMaskableInt_interrupt
+  .weak HardFault_interrupt
   .weak MemoryManagement_interrupt
   .weak BusFault_interrupt
   .weak UsageFault_interrupt
@@ -1531,54 +1433,34 @@ asm
   .weak DMA15_interrupt
   .weak DMA_Error_interrupt
   .weak MCM_interrupt
-  .weak FTFL_interrupt
+  .weak FTF_interrupt
   .weak Read_Collision_interrupt
   .weak LVD_LVW_interrupt
   .weak LLW_interrupt
   .weak Watchdog_interrupt
-  .weak RESERVED39_interrupt
+  .weak RNG_interrupt
   .weak I2C0_interrupt
   .weak I2C1_interrupt
   .weak SPI0_interrupt
   .weak SPI1_interrupt
-  .weak RESERVED44_interrupt
-  .weak CAN0_ORed_Message_buffer_interrupt
-  .weak CAN0_Bus_Off_interrupt
-  .weak CAN0_Error_interrupt
-  .weak CAN0_Tx_Warning_interrupt
-  .weak CAN0_Rx_Warning_interrupt
-  .weak CAN0_Wake_Up_interrupt
   .weak I2S0_Tx_interrupt
   .weak I2S0_Rx_interrupt
-  .weak RESERVED53_interrupt
-  .weak RESERVED54_interrupt
-  .weak RESERVED55_interrupt
-  .weak RESERVED56_interrupt
-  .weak RESERVED57_interrupt
-  .weak RESERVED58_interrupt
-  .weak RESERVED59_interrupt
-  .weak UART0_LON_interrupt
+  .weak LPUART0_interrupt
   .weak UART0_RX_TX_interrupt
   .weak UART0_ERR_interrupt
   .weak UART1_RX_TX_interrupt
   .weak UART1_ERR_interrupt
   .weak UART2_RX_TX_interrupt
   .weak UART2_ERR_interrupt
-  .weak UART3_RX_TX_interrupt
-  .weak UART3_ERR_interrupt
-  .weak UART4_RX_TX_interrupt
-  .weak UART4_ERR_interrupt
-  .weak RESERVED71_interrupt
-  .weak RESERVED72_interrupt
+  .weak RESERVED53_interrupt
+  .weak RESERVED54_interrupt
   .weak ADC0_interrupt
-  .weak ADC1_interrupt
   .weak CMP0_interrupt
   .weak CMP1_interrupt
-  .weak CMP2_interrupt
   .weak FTM0_interrupt
   .weak FTM1_interrupt
   .weak FTM2_interrupt
-  .weak CMT_interrupt
+  .weak RESERVED61_interrupt
   .weak RTC_interrupt
   .weak RTC_Seconds_interrupt
   .weak PIT0_interrupt
@@ -1587,28 +1469,40 @@ asm
   .weak PIT3_interrupt
   .weak PDB0_interrupt
   .weak USB0_interrupt
-  .weak USBDCD_interrupt
+  .weak RESERVED70_interrupt
+  .weak RESERVED71_interrupt
+  .weak DAC0_interrupt
+  .weak MCG_interrupt
+  .weak LPTimer_interrupt
+  .weak PORTA_interrupt
+  .weak PORTB_interrupt
+  .weak PORTC_interrupt
+  .weak PORTD_interrupt
+  .weak PORTE_interrupt
+  .weak SWI_interrupt
+  .weak RESERVED81_interrupt
+  .weak RESERVED82_interrupt
+  .weak RESERVED83_interrupt
+  .weak RESERVED84_interrupt
+  .weak RESERVED85_interrupt
+  .weak RESERVED86_interrupt
+  .weak FTM3_interrupt
+  .weak DAC1_interrupt
+  .weak ADC1_interrupt
+  .weak RESERVED90_interrupt
   .weak RESERVED91_interrupt
   .weak RESERVED92_interrupt
   .weak RESERVED93_interrupt
   .weak RESERVED94_interrupt
   .weak RESERVED95_interrupt
   .weak RESERVED96_interrupt
-  .weak DAC0_interrupt
+  .weak RESERVED97_interrupt
   .weak RESERVED98_interrupt
-  .weak TSI0_interrupt
-  .weak MCG_interrupt
-  .weak LPTimer_interrupt
-  .weak RESERVED102_interrupt
-  .weak PORTA_interrupt
-  .weak PORTB_interrupt
-  .weak PORTC_interrupt
-  .weak PORTD_interrupt
-  .weak PORTE_interrupt
-  .weak RESERVED108_interrupt
-  .weak RESERVED109_interrupt
-  .weak SWI_interrupt
+  .weak RESERVED99_interrupt
+  .weak RESERVED100_interrupt
+  .weak RESERVED101_interrupt
   .set NonMaskableInt_interrupt, HaltProc
+  .set HardFault_interrupt, HaltProc
   .set MemoryManagement_interrupt, HaltProc
   .set BusFault_interrupt, HaltProc
   .set UsageFault_interrupt, HaltProc
@@ -1634,54 +1528,34 @@ asm
   .set DMA15_interrupt, HaltProc
   .set DMA_Error_interrupt, HaltProc
   .set MCM_interrupt, HaltProc
-  .set FTFL_interrupt, HaltProc
+  .set FTF_interrupt, HaltProc
   .set Read_Collision_interrupt, HaltProc
   .set LVD_LVW_interrupt, HaltProc
   .set LLW_interrupt, HaltProc
   .set Watchdog_interrupt, HaltProc
-  .set RESERVED39_interrupt, HaltProc
+  .set RNG_interrupt, HaltProc
   .set I2C0_interrupt, HaltProc
   .set I2C1_interrupt, HaltProc
   .set SPI0_interrupt, HaltProc
   .set SPI1_interrupt, HaltProc
-  .set RESERVED44_interrupt, HaltProc
-  .set CAN0_ORed_Message_buffer_interrupt, HaltProc
-  .set CAN0_Bus_Off_interrupt, HaltProc
-  .set CAN0_Error_interrupt, HaltProc
-  .set CAN0_Tx_Warning_interrupt, HaltProc
-  .set CAN0_Rx_Warning_interrupt, HaltProc
-  .set CAN0_Wake_Up_interrupt, HaltProc
   .set I2S0_Tx_interrupt, HaltProc
   .set I2S0_Rx_interrupt, HaltProc
-  .set RESERVED53_interrupt, HaltProc
-  .set RESERVED54_interrupt, HaltProc
-  .set RESERVED55_interrupt, HaltProc
-  .set RESERVED56_interrupt, HaltProc
-  .set RESERVED57_interrupt, HaltProc
-  .set RESERVED58_interrupt, HaltProc
-  .set RESERVED59_interrupt, HaltProc
-  .set UART0_LON_interrupt, HaltProc
+  .set LPUART0_interrupt, HaltProc
   .set UART0_RX_TX_interrupt, HaltProc
   .set UART0_ERR_interrupt, HaltProc
   .set UART1_RX_TX_interrupt, HaltProc
   .set UART1_ERR_interrupt, HaltProc
   .set UART2_RX_TX_interrupt, HaltProc
   .set UART2_ERR_interrupt, HaltProc
-  .set UART3_RX_TX_interrupt, HaltProc
-  .set UART3_ERR_interrupt, HaltProc
-  .set UART4_RX_TX_interrupt, HaltProc
-  .set UART4_ERR_interrupt, HaltProc
-  .set RESERVED71_interrupt, HaltProc
-  .set RESERVED72_interrupt, HaltProc
+  .set RESERVED53_interrupt, HaltProc
+  .set RESERVED54_interrupt, HaltProc
   .set ADC0_interrupt, HaltProc
-  .set ADC1_interrupt, HaltProc
   .set CMP0_interrupt, HaltProc
   .set CMP1_interrupt, HaltProc
-  .set CMP2_interrupt, HaltProc
   .set FTM0_interrupt, HaltProc
   .set FTM1_interrupt, HaltProc
   .set FTM2_interrupt, HaltProc
-  .set CMT_interrupt, HaltProc
+  .set RESERVED61_interrupt, HaltProc
   .set RTC_interrupt, HaltProc
   .set RTC_Seconds_interrupt, HaltProc
   .set PIT0_interrupt, HaltProc
@@ -1690,27 +1564,38 @@ asm
   .set PIT3_interrupt, HaltProc
   .set PDB0_interrupt, HaltProc
   .set USB0_interrupt, HaltProc
-  .set USBDCD_interrupt, HaltProc
+  .set RESERVED70_interrupt, HaltProc
+  .set RESERVED71_interrupt, HaltProc
+  .set DAC0_interrupt, HaltProc
+  .set MCG_interrupt, HaltProc
+  .set LPTimer_interrupt, HaltProc
+  .set PORTA_interrupt, HaltProc
+  .set PORTB_interrupt, HaltProc
+  .set PORTC_interrupt, HaltProc
+  .set PORTD_interrupt, HaltProc
+  .set PORTE_interrupt, HaltProc
+  .set SWI_interrupt, HaltProc
+  .set RESERVED81_interrupt, HaltProc
+  .set RESERVED82_interrupt, HaltProc
+  .set RESERVED83_interrupt, HaltProc
+  .set RESERVED84_interrupt, HaltProc
+  .set RESERVED85_interrupt, HaltProc
+  .set RESERVED86_interrupt, HaltProc
+  .set FTM3_interrupt, HaltProc
+  .set DAC1_interrupt, HaltProc
+  .set ADC1_interrupt, HaltProc
+  .set RESERVED90_interrupt, HaltProc
   .set RESERVED91_interrupt, HaltProc
   .set RESERVED92_interrupt, HaltProc
   .set RESERVED93_interrupt, HaltProc
   .set RESERVED94_interrupt, HaltProc
   .set RESERVED95_interrupt, HaltProc
   .set RESERVED96_interrupt, HaltProc
-  .set DAC0_interrupt, HaltProc
+  .set RESERVED97_interrupt, HaltProc
   .set RESERVED98_interrupt, HaltProc
-  .set TSI0_interrupt, HaltProc
-  .set MCG_interrupt, HaltProc
-  .set LPTimer_interrupt, HaltProc
-  .set RESERVED102_interrupt, HaltProc
-  .set PORTA_interrupt, HaltProc
-  .set PORTB_interrupt, HaltProc
-  .set PORTC_interrupt, HaltProc
-  .set PORTD_interrupt, HaltProc
-  .set PORTE_interrupt, HaltProc
-  .set RESERVED108_interrupt, HaltProc
-  .set RESERVED109_interrupt, HaltProc
-  .set SWI_interrupt, HaltProc
+  .set RESERVED99_interrupt, HaltProc
+  .set RESERVED100_interrupt, HaltProc
+  .set RESERVED101_interrupt, HaltProc
   .text
 end;
 end.
