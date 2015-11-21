@@ -1016,6 +1016,7 @@ implementation
                    retloc:=do_call_ref(href)
                  else
                    begin
+                     hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,vmt_entry.resultdef,cpointerdef.getreusable(procdefinition),pvreg);
                      retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg,paralocs);
                      unget_call_reg(current_asmdata.CurrAsmList,pvreg);
                    end;
