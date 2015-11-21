@@ -447,12 +447,9 @@
 
   type
     PResourceStringRecord = ^TResourceStringRecord;
-    TResourceStringRecord = Packed Record
+    TResourceStringRecord = Record
        Name,
        CurrentValue,
        DefaultValue : AnsiString;
        HashValue    : LongWord;
-  {$ifdef cpu64}
-       Dummy        : LongWord; // alignment
-  {$endif cpu64}
      end;
