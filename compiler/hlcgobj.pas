@@ -542,6 +542,12 @@ unit hlcgobj;
           { update a reference pointing to the start address of a record so it
             refers to the indicated field }
           procedure g_set_addr_nonbitpacked_record_field_ref(list: TAsmList; recdef: trecorddef; field: tfieldvarsym; var recref: treference); virtual;
+          { load a register/constant into a record field by name }
+         protected
+          procedure g_setup_load_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; const recref: treference; out fref: treference; out fielddef: tdef);
+         public
+          procedure g_load_reg_field_by_name(list: TAsmList; regsize: tdef; recdef: trecorddef; reg: tregister; const name: TIDString; const recref: treference);
+          procedure g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; a: tcgint; const recref: treference);
 
           { routines migrated from ncgutil }
 
@@ -3843,6 +3849,43 @@ implementation
       inc(recref.offset,field.fieldoffset);
       recref.alignment:=newalignment(recref.alignment,field.fieldoffset);
     end;
+
+
+  procedure thlcgobj.g_setup_load_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; const recref: treference; out fref: treference; out fielddef: tdef);
+    var
+      sym: tsym;
+      field: tfieldvarsym;
+    begin
+      sym:=search_struct_member(recdef,name);
+      if not assigned(sym) or
+         (sym.typ<>fieldvarsym) then
+        internalerror(2015111901);
+      field:=tfieldvarsym(sym);
+      fref:=recref;
+      fielddef:=field.vardef;
+      g_set_addr_nonbitpacked_record_field_ref(list,recdef,field,fref);
+    end;
+
+
+  procedure thlcgobj.g_load_reg_field_by_name(list: TAsmList; regsize: tdef; recdef: trecorddef; reg: tregister; const name: TIDString; const recref: treference);
+    var
+      fref: treference;
+      fielddef: tdef;
+    begin
+      g_setup_load_field_by_name(list,recdef,name,recref,fref,fielddef);
+      a_load_reg_ref(list,regsize,fielddef,reg,fref);
+    end;
+
+
+  procedure thlcgobj.g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; a: tcgint; const recref: treference);
+    var
+      fref: treference;
+      fielddef: tdef;
+    begin
+      g_setup_load_field_by_name(list,recdef,name,recref,fref,fielddef);
+      a_load_const_ref(list,fielddef,a,fref);
+    end;
+
 
   procedure thlcgobj.location_force_reg(list: TAsmList; var l: tlocation; src_size, dst_size: tdef; maybeconst: boolean);
     var
