@@ -1078,6 +1078,12 @@ implementation
             { push the parameter symtable so that constraint definitions are added
               there and not in the owner symtable }
             symtablestack.push(pd.parast);
+            { register the parameters }
+            for i:=0 to genericparams.count-1 do
+              begin
+                 ttypesym(genericparams[i]).register_sym;
+                 tstoreddef(ttypesym(genericparams[i]).typedef).register_def;
+              end;
             insert_generic_parameter_types(pd,nil,genericparams);
             symtablestack.pop(pd.parast);
             freegenericparams:=false;
