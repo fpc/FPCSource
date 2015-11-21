@@ -29,7 +29,7 @@ interface
 uses
   cclasses,globtype,constexp,
   aasmbase,aasmdata,aasmtai,
-  symconst,symtype,symdef,symsym;
+  symconst,symbase,symtype,symdef,symsym;
 
 type
    { typed const: integer/floating point/string/pointer/... const along with
@@ -296,6 +296,10 @@ type
      procedure mark_anon_aggregate_alignment; virtual; abstract;
      procedure insert_marked_aggregate_alignment(def: tdef); virtual; abstract;
     public
+     { get the start/end symbol for a dead stripable vectorized section, such
+       as the resourcestring data of a unit }
+     class function get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; start: boolean): tasmsymbol; virtual;
+
      class function get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): string;
      { the datalist parameter specifies where the data for the string constant
        will be emitted (via an internal data builder) }
@@ -443,7 +447,7 @@ implementation
    uses
      verbose,globals,systems,widestr,
      fmodule,
-     symbase,symtable,defutil;
+     symtable,defutil;
 
 {****************************************************************************
                        taggregateinformation
@@ -1253,6 +1257,15 @@ implementation
        info:=curagginfo;
        faggregateinformation.count:=faggregateinformation.count-1;
        info.free;
+     end;
+
+
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; start: boolean): tasmsymbol;
+     begin
+       if start then
+         result:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,'START'),AB_GLOBAL,AT_DATA)
+       else
+         result:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,'END'),AB_GLOBAL,AT_DATA);
      end;
 
 

@@ -970,8 +970,12 @@ implementation
         begin
           If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
             begin
-              ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'START'),AT_DATA,0));
-              ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'END'),AT_DATA,0));
+              ResourceStringTables.concat(Tai_const.Create_sym(
+                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol('RESSTR',hp.localsymtable,true))
+              );
+              ResourceStringTables.concat(Tai_const.Create_sym(
+                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol('RESSTR',hp.localsymtable,false))
+              );
               inc(count);
             end;
           hp:=tmodule(hp.next);

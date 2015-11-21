@@ -37,7 +37,7 @@ uses
 {$endif}
    cclasses,widestr,
    cutils,globtype,globals,systems,
-   symbase,symconst,symtype,symdef,symsym,
+   symbase,symconst,symtype,symdef,symsym,symtable,
    verbose,fmodule,ppu,
    aasmbase,aasmtai,aasmdata,aasmcnst,
    aasmcpu;
@@ -147,9 +147,8 @@ uses
 
         maybe_new_object_file(current_asmdata.asmlists[al_resourcestrings]);
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'1_START'),sizeof(pint));
-        current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
-          make_mangledname('RESSTR',current_module.localsymtable,'START'),AT_DATA,0));
-
+        current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.Create_Global(
+          ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol('RESSTR',current_module.localsymtable,true),0));
         { Write unitname entry }
         namelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^),getansistringcodepage);
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.Create_sym_offset(namelab.lab,namelab.ofs));
@@ -202,7 +201,7 @@ uses
         { nothing has been emited to the tcb itself }
         tcb.free;
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'3_END'),sizeof(pint));
-        endsymlab:=current_asmdata.DefineAsmSymbol(make_mangledname('RESSTR',current_module.localsymtable,'END'),AB_GLOBAL,AT_DATA);
+        endsymlab:=ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol('RESSTR',current_module.localsymtable,false);
         current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.create_global(endsymlab,0));
         { The darwin/ppc64 assembler or linker seems to have trouble       }
         { if a section ends with a global label without any data after it. }
