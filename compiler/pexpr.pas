@@ -3965,26 +3965,29 @@ implementation
             end
           else
             begin
-              result:=nil;
-              { check if it's a method/class method }
-              if is_member_read(gensym,gensym.owner,result,parseddef) then
+              if gensym.typ=procsym then
                 begin
-                  { if we are accessing a owner procsym from the nested }
-                  { class we need to call it as a class member }
-                  if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
-                      assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
+                  result:=nil;
+                  { check if it's a method/class method }
+                  if is_member_read(gensym,gensym.owner,result,parseddef) then
                     begin
-                      result:=cloadvmtaddrnode.create(ctypenode.create(parseddef));
-                      { not srsymtable.symtabletype since that can be }
-                      { withsymtable as well                          }
-                      if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                      { if we are accessing a owner procsym from the nested }
+                      { class we need to call it as a class member }
+                      if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
+                          assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
                         begin
-                          do_member_read(tabstractrecorddef(parseddef),getaddr,gensym,result,again,[],spezcontext);
-                          spezcontext:=nil;
-                        end
-                      else
-                        { no procsyms in records (yet) }
-                        internalerror(2015092704);
+                          result:=cloadvmtaddrnode.create(ctypenode.create(parseddef));
+                          { not srsymtable.symtabletype since that can be }
+                          { withsymtable as well                          }
+                          if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                            begin
+                              do_member_read(tabstractrecorddef(parseddef),getaddr,gensym,result,again,[],spezcontext);
+                              spezcontext:=nil;
+                            end
+                          else
+                            { no procsyms in records (yet) }
+                            internalerror(2015092704);
+                        end;
                     end
                   else
                     begin
