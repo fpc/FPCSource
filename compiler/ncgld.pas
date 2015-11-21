@@ -352,6 +352,8 @@ implementation
         hregister : tregister;
         vs   : tabstractnormalvarsym;
         gvs  : tstaticvarsym;
+        vmtdef : tpointerdef;
+        vmtentry: tfieldvarsym;
         pd   : tprocdef;
         href : treference;
         newsize : tcgsize;
@@ -475,8 +477,11 @@ implementation
 
                      { load class instance/classrefdef address }
                      if left.location.loc=LOC_CONSTANT then
-                       { todo: exact type for hlcg (can't use left.resultdef, because can be TP-style object, which is not pointer-sized) }
-                       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,voidpointertype,false);
+                       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                     { vd will contain the type of the self pointer (self in
+                       case of a class/classref, address of self in case of
+                       an object }
+                     vd:=nil;
                      case left.location.loc of
                         LOC_CREGISTER,
                         LOC_REGISTER:
@@ -485,6 +490,7 @@ implementation
                              if is_object(left.resultdef) then
                                internalerror(200304234);
                              location.registerhi:=left.location.register;
+                             vd:=left.resultdef;
                           end;
                         LOC_CREFERENCE,
                         LOC_REFERENCE:
@@ -492,13 +498,15 @@ implementation
                              if is_implicit_pointer_object_type(left.resultdef) or 
                                  (left.resultdef.typ=classrefdef) then
                                begin
+                                 vd:=left.resultdef;
                                  location.registerhi:=hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef);
                                  hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location.reference,location.registerhi)
                                end
                              else
                                begin
-                                 location.registerhi:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
-                                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,voidpointertype,left.location.reference,location.registerhi);
+                                 vd:=cpointerdef.getreusable(left.resultdef);
+                                 location.registerhi:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vd);
+                                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,vd,left.location.reference,location.registerhi);
                                end;
                              location_freetemp(current_asmdata.CurrAsmList,left.location);
                           end;
@@ -521,26 +529,40 @@ implementation
                              current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+procdef._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0));
                            end;
             {$endif vtentry}
-                         { a classrefdef already points to the VMT }
-                         if (left.resultdef.typ<>classrefdef) then
+                         { a classrefdef already points to the VMT, and
+                           so do interfaces }
+                         if (left.resultdef.typ<>classrefdef) and
+                            not is_any_interface_kind(left.resultdef) then
                            begin
-                             { load vmt pointer }
-                             hlcg.reference_reset_base(href,voidpointertype,location.registerhi,tobjectdef(left.resultdef).vmt_offset,voidpointertype.alignment);
-                             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
-                             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,hregister);
+                             { vmt pointer is a pointer to the vmt record }
+                             hlcg.reference_reset_base(href,vd,location.registerhi,0,vd.alignment);
+                             vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
+                             hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,tobjectdef(left.resultdef),tfieldvarsym(tobjectdef(left.resultdef).vmt_field),href);
+                             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
+                             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,tfieldvarsym(tobjectdef(left.resultdef).vmt_field).vardef,vmtdef,href,hregister);
                            end
                          else
-                           hregister:=location.registerhi;
+                           begin
+                             hregister:=location.registerhi;
+                             if left.resultdef.typ=classrefdef then
+                               vmtdef:=cpointerdef.getreusable(tobjectdef(tclassrefdef(left.resultdef).pointeddef).vmt_def)
+                             else
+                               vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
+                             hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,left.resultdef,vmtdef,hregister);
+                           end;
                          { load method address }
-                         hlcg.reference_reset_base(href,voidpointertype,hregister,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),voidpointertype.alignment);
-                         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdef.address_type);
-                         hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,procdef.address_type,cprocvardef.getreusableprocaddr(procdef),href,location.register);
+                         vmtentry:=tabstractrecordsymtable(trecorddef(vmtdef.pointeddef).symtable).findfieldbyoffset(
+                           tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber));
+                         hlcg.reference_reset_base(href,vmtdef,hregister,0,vmtdef.alignment);
+                         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtentry.vardef);
+                         hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,tabstractrecorddef(vmtdef.pointeddef),vmtentry,href);
+                         hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,vmtentry.vardef,vmtentry.vardef,href,location.register);
                        end
                      else
                        begin
                          { load address of the function }
                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,procdef.address_type.alignment);
-                         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdef.address_type);
+                         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef));
                          hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,procdef,cprocvardef.getreusableprocaddr(procdef),href,location.register);
                        end;
 
