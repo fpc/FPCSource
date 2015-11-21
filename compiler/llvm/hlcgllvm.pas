@@ -1649,6 +1649,7 @@ implementation
 
   procedure thlcgllvm.set_call_function_result(const list: TAsmList; const pd: tabstractprocdef; const llvmretdef, hlretdef: tdef; const resval: tregister; var retpara: tcgpara);
     var
+      hreg: tregister;
       rettemp: treference;
     begin
       if not is_void(hlretdef) and
@@ -1664,7 +1665,15 @@ implementation
                 everything to memory rather than potentially dealing with aggregates
                 in "registers" }
               tg.gethltemp(list, hlretdef, hlretdef.size, tt_normal, rettemp);
-              a_load_reg_ref(list, llvmretdef, hlretdef, resval, rettemp);
+              case def2regtyp(llvmretdef) of
+                R_INTREGISTER,
+                R_ADDRESSREGISTER:
+                  a_load_reg_ref(list,llvmretdef,hlretdef,resval,rettemp);
+                R_FPUREGISTER:
+                  a_loadfpu_reg_ref(list,llvmretdef,hlretdef,resval,rettemp);
+                R_MMREGISTER:
+                  a_loadmm_reg_ref(list,llvmretdef,hlretdef,resval,rettemp,mms_movescalar);
+              end;
               { the return parameter now contains a value whose type matches the one
                 that the high level code generator expects instead of the llvm shim
               }
@@ -1681,8 +1690,23 @@ implementation
             end
           else
             begin
+              if llvmretdef<>hlretdef then
+                begin
+                  hreg:=getregisterfordef(list,hlretdef);
+                  case def2regtyp(llvmretdef) of
+                    R_INTREGISTER,
+                    R_ADDRESSREGISTER:
+                      a_load_reg_reg(list,llvmretdef,hlretdef,resval,hreg);
+                    R_FPUREGISTER:
+                      a_loadfpu_reg_reg(list,llvmretdef,hlretdef,resval,hreg);
+                    R_MMREGISTER:
+                      a_loadmm_reg_reg(list,llvmretdef,hlretdef,resval,hreg,mms_movescalar);
+                  end;
+                  retpara.location^.llvmloc.reg:=hreg
+                end
+              else
+                retpara.location^.llvmloc.reg:=resval;
               retpara.Location^.llvmloc.loc:=retpara.location^.loc;
-              retpara.location^.llvmloc.reg:=resval;
               retpara.Location^.llvmvalueloc:=true;
             end;
         end
