@@ -1497,7 +1497,7 @@ implementation
                  result:=ctypenode.create(hdef);
                  ttypenode(result).typesym:=sym;
                  if not (m_delphi in current_settings.modeswitches) and
-                     (block_type in [bt_type,bt_var_type,bt_const_type]) and
+                     (block_type in inline_specialization_block_types) and
                      (token=_ID) and
                      (idtoken=_SPECIALIZE) then
                    begin
@@ -1538,7 +1538,7 @@ implementation
                 result:=ctypenode.create(hdef);
                 ttypenode(result).typesym:=sym;
                 if not (m_delphi in current_settings.modeswitches) and
-                    (block_type in [bt_type,bt_var_type,bt_const_type]) and
+                    (block_type in inline_specialization_block_types) and
                     (token=_ID) and
                     (idtoken=_SPECIALIZE) then
                   begin
@@ -2129,7 +2129,7 @@ implementation
           _POINT :
              begin
                consume(_POINT);
-               allowspecialize:=not (m_delphi in current_settings.modeswitches) and (block_type in [bt_type,bt_var_type,bt_const_type]);
+               allowspecialize:=not (m_delphi in current_settings.modeswitches) and (block_type in inline_specialization_block_types);
                if allowspecialize and (token=_ID) and (idtoken=_SPECIALIZE) then
                  begin
                    //consume(_ID);
@@ -2723,7 +2723,7 @@ implementation
 
            allowspecialize:=not (m_delphi in current_settings.modeswitches) and
                             not (ef_had_specialize in flags) and
-                            (block_type in [bt_type,bt_var_type,bt_const_type]);
+                            (block_type in inline_specialization_block_types);
            if allowspecialize and (token=_ID) and (idtoken=_SPECIALIZE) then
              begin
                consume(_ID);

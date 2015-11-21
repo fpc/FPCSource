@@ -27,7 +27,11 @@ interface
 
 uses
   cclasses,
+  globtype,
   symtype,symbase;
+
+const
+  inline_specialization_block_types = [bt_type,bt_var_type,bt_const_type];
 
 type
   tspecializationstate = record
@@ -51,9 +55,6 @@ type
 
 
 implementation
-
-uses
-  globtype;
 
 constructor tspecializationcontext.create;
 begin
