@@ -310,6 +310,7 @@ type
      procedure insert_marked_aggregate_alignment(def: tdef); virtual; abstract;
      class function get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; define, start: boolean): tasmsymbol; virtual;
     public
+     class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; out secname: TSymStr): boolean; virtual;
      { get the start/end symbol for a dead stripable vectorized section, such
        as the resourcestring data of a unit }
      class function get_vectorized_dead_strip_section_symbol_start(const basename: string; st: tsymtable; define: boolean): tasmsymbol; virtual;
@@ -943,17 +944,25 @@ implementation
      var
        sym: tasmsymbol;
        secname: TSymStr;
+       sectype: TAsmSectiontype;
+       customsecname,
        secend: boolean;
      begin
        fvectorized_finalize_called:=true;
        secend:=false;
+       customsecname:=get_vectorized_dead_strip_custom_section_name(basename,st,secname);
+       if customsecname then
+         sectype:=sec_user
+       else
+         sectype:=sec_data;
        if tcalo_vectorized_dead_strip_start in options then
          begin
            { the start and end names are predefined }
            if itemname<>'' then
              internalerror(2015110801);
            sym:=get_vectorized_dead_strip_section_symbol_start(basename,st,true);
-           secname:=make_mangledname(basename,st,'1_START');
+           if not customsecname then
+             secname:=make_mangledname(basename,st,'1_START');
          end
        else if tcalo_vectorized_dead_strip_end in options then
          begin
@@ -961,16 +970,18 @@ implementation
            if itemname<>'' then
              internalerror(2015110802);
            sym:=get_vectorized_dead_strip_section_symbol_end(basename,st,true);
-           make_mangledname(basename,st,'3_END');
+           if not customsecname then
+             make_mangledname(basename,st,'3_END');
            secend:=true;
          end
        else if tcalo_vectorized_dead_strip_item in options then
          begin
            sym:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,itemname),AB_GLOBAL,AT_DATA);
-           secname:=make_mangledname(basename,st,'2_'+itemname);
+           if not customsecname then
+             secname:=make_mangledname(basename,st,'2_'+itemname);
            exclude(options,tcalo_vectorized_dead_strip_item);
          end;
-       finalize_asmlist(sym,def,sec_data,secname,alignment,options);
+       finalize_asmlist(sym,def,sectype,secname,alignment,options);
        { The darwin/ppc64 assembler or linker seems to have trouble       }
        { if a section ends with a global label without any data after it. }
        { So for safety, just put a dummy value here.                      }
@@ -1348,6 +1359,12 @@ implementation
          result:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,'START'),AB_GLOBAL,AT_DATA)
        else
          result:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,'END'),AB_GLOBAL,AT_DATA);
+     end;
+
+
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; out secname: TSymStr): boolean;
+     begin
+       result:=false;
      end;
 
 
