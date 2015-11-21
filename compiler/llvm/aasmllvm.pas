@@ -433,7 +433,7 @@ uses
       begin
         case llvmopcode of
           la_ret, la_br, la_switch, la_indirectbr,
-          la_invoke, la_resume,
+          la_resume,
           la_unreachable,
           la_store,
           la_fence,
@@ -456,10 +456,17 @@ uses
           la_getelementptr,
           la_load,
           la_icmp, la_fcmp,
-          la_phi, la_select, la_call,
+          la_phi, la_select,
           la_va_arg, la_landingpad:
             begin
               if opnr=0 then
+                result:=operand_write
+              else
+                result:=operand_read;
+            end;
+          la_invoke, la_call:
+            begin
+              if opnr=1 then
                 result:=operand_write
               else
                 result:=operand_read;
@@ -503,8 +510,8 @@ uses
             end;
           la_invoke, la_call:
             begin
-              if opnr=0 then
-                result:=oper[1]^.def
+              if opnr=1 then
+                result:=oper[2]^.def
               else
                 internalerror(2013110102);
             end;
