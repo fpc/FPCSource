@@ -136,8 +136,7 @@ uses
         resstrlab : tasmsymbol;
         R : TResourceStringItem;
         resstrdef: tdef;
-        tcb,
-        datatcb : ttai_typedconstbuilder;
+        tcb : ttai_typedconstbuilder;
       begin
         resstrdef:=search_system_type('TRESOURCESTRINGRECORD').typedef;
 
@@ -155,7 +154,7 @@ uses
         tcb.maybe_end_aggregate(resstrdef);
         current_asmdata.asmlists[al_resourcestrings].concatList(
           tcb.get_final_asmlist_vectorized_dead_strip(
-            resstrdef,'RESSTR',current_module.localsymtable,sizeof(pint)
+            resstrdef,'RESSTR','',current_module.localsymtable,sizeof(pint)
           )
         );
         tcb.free;
@@ -164,19 +163,16 @@ uses
         R:=TResourceStringItem(List.First);
         while assigned(R) do
           begin
-            datatcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
-            { Write default value }
+            tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_vectorized_dead_strip_item]);
             if assigned(R.value) and (R.len<>0) then
-              valuelab:=datatcb.emit_ansistring_const(current_asmdata.asmlists[al_const],R.Value,R.Len,getansistringcodepage)
+              valuelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],R.Value,R.Len,getansistringcodepage)
             else
               begin
                 valuelab.lab:=nil;
                 valuelab.ofs:=0;
               end;
-            { Append the name as a ansistring. }
             current_asmdata.asmlists[al_const].concat(cai_align.Create(const_align(sizeof(pint))));
-            namelab:=datatcb.emit_ansistring_const(current_asmdata.asmlists[al_const],@R.Name[1],length(R.name),getansistringcodepage);
-
+            namelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],@R.Name[1],length(R.name),getansistringcodepage);
             {
               Resourcestring index:
                   TResourceStringRecord = Packed Record
@@ -186,20 +182,18 @@ uses
                      HashValue    : LongWord;
                    end;
             }
-            new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'2_'+r.name),sizeof(pint));
-            resstrlab:=current_asmdata.DefineAsmSymbol(make_mangledname('RESSTR',R.Sym.owner,R.Sym.name),AB_GLOBAL,AT_DATA);
-            current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol.Create_global(resstrlab,0));
-            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.Create_sym_offset(namelab.lab,namelab.ofs));
-            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.Create_sym_offset(valuelab.lab,valuelab.ofs));
-            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.Create_sym_offset(valuelab.lab,valuelab.ofs));
-            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(longint(R.Hash)));
-{$ifdef cpu64bitaddr}
-            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(0));
-{$endif cpu64bitaddr}
-            current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol_end.create(resstrlab));
+            tcb.maybe_begin_aggregate(resstrdef);
+            tcb.emit_string_offset(namelab,length(current_module.localsymtable.name^),st_ansistring,false,charpointertype);
+            tcb.emit_string_offset(valuelab,R.Len,st_ansistring,false,charpointertype);
+            tcb.emit_string_offset(valuelab,R.Len,st_ansistring,false,charpointertype);
+            tcb.emit_ord_const(R.hash,u32inttype);
+            tcb.maybe_end_aggregate(resstrdef);
+            current_asmdata.asmlists[al_resourcestrings].concatList(
+              tcb.get_final_asmlist_vectorized_dead_strip(
+                resstrdef,'RESSTR',R.Sym.Name,R.Sym.Owner,sizeof(pint))
+            );
             R:=TResourceStringItem(R.Next);
-            { nothing has been emited to the datatcb itself }
-            datatcb.free;
+            tcb.free;
           end;
         tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_vectorized_dead_strip_end]);
         tcb.begin_anonymous_record(internaltypeprefixName[itp_emptyrec],
@@ -208,7 +202,7 @@ uses
           targetinfos[target_info.system]^.alignment.maxCrecordalign);
         current_asmdata.AsmLists[al_resourcestrings].concatList(
           tcb.get_final_asmlist_vectorized_dead_strip(
-            tcb.end_anonymous_record,'RESSTR',current_module.localsymtable,sizeof(pint)
+            tcb.end_anonymous_record,'RESSTR','',current_module.localsymtable,sizeof(pint)
           )
         );
         tcb.free;

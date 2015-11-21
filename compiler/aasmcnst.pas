@@ -249,7 +249,7 @@ type
      { finalize the asmlist: add the necessary symbols etc }
      procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
      { functionality of the above for vectorized dead strippable sections }
-     procedure finalize_vectorized_dead_strip_asmlist(def: tdef; const basename: string; st: tsymtable; alignment: shortint; options: ttcasmlistoptions); virtual;
+     procedure finalize_vectorized_dead_strip_asmlist(def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions); virtual;
 
      { called by the public emit_tai() routines to actually add the typed
        constant data; the public ones also take care of adding extra padding
@@ -408,7 +408,7 @@ type
        contents to another list first. This property should only be accessed
        once all data has been added. }
      function get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint): tasmlist;
-     function get_final_asmlist_vectorized_dead_strip(def: tdef; const basename: string; st: TSymtable; alignment: longint): tasmlist;
+     function get_final_asmlist_vectorized_dead_strip(def: tdef; const basename, itemname: TSymStr; st: TSymtable; alignment: longint): tasmlist;
 
      { returns the offset of the string data relative to ansi/unicode/widestring
        constant labels. On most platforms, this is 0 (with the header at a
@@ -939,7 +939,7 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.finalize_vectorized_dead_strip_asmlist(def: tdef; const basename: string; st: tsymtable; alignment: shortint; options: ttcasmlistoptions);
+   procedure ttai_typedconstbuilder.finalize_vectorized_dead_strip_asmlist(def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions);
      var
        sym: tasmsymbol;
        secname: TSymStr;
@@ -949,18 +949,27 @@ implementation
        secend:=false;
        if tcalo_vectorized_dead_strip_start in options then
          begin
+           { the start and end names are predefined }
+           if itemname<>'' then
+             internalerror(2015110801);
            sym:=get_vectorized_dead_strip_section_symbol_start(basename,st,true);
            secname:=make_mangledname(basename,st,'1_START');
          end
        else if tcalo_vectorized_dead_strip_end in options then
          begin
+           { the start and end names are predefined }
+           if itemname<>'' then
+             internalerror(2015110802);
            sym:=get_vectorized_dead_strip_section_symbol_end(basename,st,true);
            make_mangledname(basename,st,'3_END');
            secend:=true;
          end
        else if tcalo_vectorized_dead_strip_item in options then
-         { todo }
-         internalerror(2015110601);
+         begin
+           sym:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,itemname),AB_GLOBAL,AT_DATA);
+           secname:=make_mangledname(basename,st,'2_'+itemname);
+           exclude(options,tcalo_vectorized_dead_strip_item);
+         end;
        finalize_asmlist(sym,def,sec_data,secname,alignment,options);
        { The darwin/ppc64 assembler or linker seems to have trouble       }
        { if a section ends with a global label without any data after it. }
@@ -995,11 +1004,11 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.get_final_asmlist_vectorized_dead_strip(def: tdef; const basename: string; st: TSymtable; alignment: longint): tasmlist;
+   function ttai_typedconstbuilder.get_final_asmlist_vectorized_dead_strip(def: tdef; const basename, itemname: TSymStr; st: TSymtable; alignment: longint): tasmlist;
      begin
        if not fasmlist_finalized then
          begin
-           finalize_vectorized_dead_strip_asmlist(def,basename,st,alignment,foptions);
+           finalize_vectorized_dead_strip_asmlist(def,basename,itemname,st,alignment,foptions);
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
