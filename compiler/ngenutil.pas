@@ -960,35 +960,44 @@ implementation
   class procedure tnodeutils.InsertResourceTablesTable;
     var
       hp : tmodule;
-      ResourceStringTables : tasmlist;
       count : longint;
+      tcb : ttai_typedconstbuilder;
+      countplaceholder : ttypedconstplaceholder;
     begin
-      ResourceStringTables:=tasmlist.Create;
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
       count:=0;
       hp:=tmodule(loaded_units.first);
+      tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
+        targetinfos[target_info.system]^.alignment.recordalignmin,
+        targetinfos[target_info.system]^.alignment.maxCrecordalign);
+      countplaceholder:=tcb.emit_placeholder(ptruinttype);
       while assigned(hp) do
         begin
           If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
             begin
-              ResourceStringTables.concat(Tai_const.Create_sym(
-                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',hp.localsymtable,false))
+              tcb.emit_tai(Tai_const.Create_sym(
+                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',hp.localsymtable,false)),
+                voidpointertype
               );
-              ResourceStringTables.concat(Tai_const.Create_sym(
-                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end('RESSTR',hp.localsymtable,false))
+              tcb.emit_tai(Tai_const.Create_sym(
+                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end('RESSTR',hp.localsymtable,false)),
+                voidpointertype
               );
               inc(count);
             end;
           hp:=tmodule(hp.next);
         end;
       { Insert TableCount at start }
-      ResourceStringTables.insert(Tai_const.Create_pint(count));
+      countplaceholder.replace(Tai_const.Create_pint(count),ptruinttype);
+      countplaceholder.free;
       { Add to data segment }
-      maybe_new_object_file(current_asmdata.AsmLists[al_globals]);
-      new_section(current_asmdata.AsmLists[al_globals],sec_data,'FPC_RESOURCESTRINGTABLES',const_align(sizeof(pint)));
-      current_asmdata.AsmLists[al_globals].concat(Tai_symbol.Createname_global('FPC_RESOURCESTRINGTABLES',AT_DATA,0));
-      current_asmdata.AsmLists[al_globals].concatlist(ResourceStringTables);
-      current_asmdata.AsmLists[al_globals].concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
-      ResourceStringTables.free;
+      current_asmdata.AsmLists[al_globals].concatList(
+        tcb.get_final_asmlist(
+          current_asmdata.DefineAsmSymbol('FPC_RESOURCESTRINGTABLES',AB_GLOBAL,AT_DATA),
+          tcb.end_anonymous_record,sec_rodata,'FPC_RESOURCESTRINGTABLES',sizeof(pint)
+        )
+      );
+      tcb.free;
     end;
 
 
