@@ -699,7 +699,10 @@ interface
                  hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
               end;
             LOC_REGISTER:
-              location.register:=left.location.register;
+              begin
+                location.register:=left.location.register;
+                hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,location.register);
+              end
             else
               internalerror(121120001);
          end;
