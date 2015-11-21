@@ -419,6 +419,16 @@ implementation
             sep:=' ';
             opstart:=2;
           end;
+        la_blockaddress:
+          begin
+            owner.writer.AsmWrite(getopstr(taillvm(hp).oper[0]^,false));
+            owner.writer.AsmWrite(' = blockaddress(');
+            owner.writer.AsmWrite(getopstr(taillvm(hp).oper[1]^,false));
+            owner.writer.AsmWrite(',');
+            owner.writer.AsmWrite(getopstr(taillvm(hp).oper[2]^,false));
+            owner.writer.AsmWrite(')');
+            done:=true;
+          end;
         la_alloca:
           begin
             owner.writer.AsmWrite(getreferencestring(taillvm(hp).oper[0]^.ref^,false)+' = ');

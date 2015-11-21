@@ -101,6 +101,8 @@ interface
         constructor getelementptr_reg_size_ref_size_const(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:ptrint;indirect:boolean);
         constructor getelementptr_reg_tai_size_const(dst:tregister;const ai:tai;indextype:tdef;index1:ptrint;indirect:boolean);
 
+        constructor blockaddress(dstreg: tregister; fun, lab: tasmsymbol);
+
         { e.g. dst = call retsize name (paras) }
         constructor call_size_name_paras(callpd: tdef; dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
         { e.g. dst = call retsize reg (paras) }
@@ -462,6 +464,12 @@ uses
               else
                 result:=operand_read;
             end;
+          la_blockaddress:
+            case opnr of
+              0: result:=operand_write
+              else
+                result:=operand_read;
+            end
           else
             internalerror(2013103101)
         end;
@@ -578,6 +586,12 @@ uses
                   internalerror(2013110110);
               end;
             end;
+          la_blockaddress:
+            case opnr of
+              0: result:=voidcodepointertype
+              else
+                internalerror(2015111904);
+            end
           else
             internalerror(2013103101)
         end;
@@ -921,6 +935,15 @@ uses
           index:=2;
         loaddef(index,indextype);
         loadconst(index+1,index1);
+      end;
+
+    constructor taillvm.blockaddress(dstreg: tregister; fun, lab: tasmsymbol);
+      begin
+        create_llvm(la_blockaddress);
+        ops:=3;
+        loadreg(0,dstreg);
+        loadsymbol(1,fun,0);
+        loadsymbol(2,lab,0);
       end;
 
 
