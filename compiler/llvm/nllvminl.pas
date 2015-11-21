@@ -199,7 +199,7 @@ implementation
             location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
           end;
         current_asmdata.CurrAsmList.concat(
-          taillvm.op_reg_size_reg_reg(la_mul,
+          taillvm.op_reg_size_reg_reg(la_fmul,
             location.register,resultdef,
             left.location.register,left.location.register
           )
