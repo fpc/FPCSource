@@ -827,7 +827,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               if node.nodetype=stringconstn then
                 varalign:=size_2_align(tstringconstnode(node).len)
               else
-                varalign:=0;
+                varalign:=1;
               varalign:=const_align(varalign);
               { represent the string data as an array }
               if node.nodetype=stringconstn then
