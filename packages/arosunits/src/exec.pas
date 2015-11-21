@@ -22,7 +22,7 @@ missing:
 defines:
   AROS_NEED_LONG_ALIGN    = ????
   AROS_FLAVOUR_BINCOMPAT  = Bincompat mode
-  AROS_MORPHOS_COMPATIBLE = ????       
+  AROS_MORPHOS_COMPATIBLE = ????
 }
 
 
@@ -41,7 +41,7 @@ type
   SIPTR        = NativeInt;
   PIPTR        = ^IPTR;
   STRPTR       = PChar;
-  CONST_STRPTR = PChar;  
+  CONST_STRPTR = PChar;
   BPTR         = Pointer;
   BSTR         = Pointer;
   BOOL         = SmallInt;
@@ -73,11 +73,11 @@ type
    ti_Data: IPTR;
  end;
  PPTagItem = ^PTagItem;
- 
+
 const
   TAG_USER = 1 shl 31;  // differentiates user tags from system tags
 // END of part from utility move
-  
+
 const
 // There is a problem with Boolean vaules in taglists, just use this for now instead
   LTrue : LongInt = 1;
@@ -85,8 +85,8 @@ const
 
 type
 // List Node Structure.  Each member in a list starts with a Node
-  PNode = ^TNode; 
-  
+  PNode = ^TNode;
+
 {$ifdef AROS_FLAVOUR_BINCOMPAT}
   TNode =  record
     ln_Succ,                // Pointer to next (successor)
@@ -113,7 +113,7 @@ type
     mln_Pred : PMinNode;
   End;
 
-{ 
+{
  Note: Newly initialized IORequests, and software interrupt structures
  used with Cause(), should have type NT_UNKNOWN.  The OS will assign a type
  when they are first used.
@@ -124,13 +124,13 @@ type
 Const
 
   NT_UNKNOWN      =  0; // Unknown Node
-  NT_TASK         =  1; // Exec task 
+  NT_TASK         =  1; // Exec task
   NT_INTERRUPT    =  2; // Interrupt
   NT_DEVICE       =  3; // Device
   NT_MSGPORT      =  4; // Message Port
   NT_MESSAGE      =  5; // Indicates message currently pending
   NT_FREEMSG      =  6;
-  NT_REPLYMSG     =  7; // Message has been replied 
+  NT_REPLYMSG     =  7; // Message has been replied
   NT_RESOURCE     =  8;
   NT_LIBRARY      =  9;
   NT_MEMORY       = 10;
@@ -144,7 +144,7 @@ Const
   NT_GRAPHICS     = 18;
   NT_DEATHMESSAGE = 19;
   NT_HIDD         = 20; // AROS Specific
-  
+
   NT_USER         = 254; // User node types work down from here
   NT_EXTENDED     = 255;
 
@@ -226,20 +226,20 @@ const
   ACPU_AddressErr = $80000003; // Illegal address access (ie: odd)
   ACPU_InstErr    = $80000004; // Illegal instruction
   ACPU_DivZero    = $80000005; // Divide by zero
-  ACPU_CHK        = $80000006; // Check instruction error 
-  ACPU_TRAPV      = $80000007; // TrapV instruction error 
-  ACPU_PrivErr    = $80000008; // Privilege violation error 
-  ACPU_Trace      = $80000009; // Trace error 
-  ACPU_LineA      = $8000000A; // Line 1010 Emulator error 
-  ACPU_LineF      = $8000000B; // Line 1111 Emulator error 
-  ACPU_Format     = $8000000E; // Stack frame format error 
-  ACPU_Spurious   = $80000018; // Spurious interrupt error 
-  ACPU_AutoVec1   = $80000019; // AutoVector Level 1 interrupt error 
-  ACPU_AutoVec2   = $8000001A; // AutoVector Level 2 interrupt error 
-  ACPU_AutoVec3   = $8000001B; // AutoVector Level 3 interrupt error 
-  ACPU_AutoVec4   = $8000001C; // AutoVector Level 4 interrupt error 
-  ACPU_AutoVec5   = $8000001D; // AutoVector Level 5 interrupt error 
-  ACPU_AutoVec6   = $8000001E; // AutoVector Level 6 interrupt error 
+  ACPU_CHK        = $80000006; // Check instruction error
+  ACPU_TRAPV      = $80000007; // TrapV instruction error
+  ACPU_PrivErr    = $80000008; // Privilege violation error
+  ACPU_Trace      = $80000009; // Trace error
+  ACPU_LineA      = $8000000A; // Line 1010 Emulator error
+  ACPU_LineF      = $8000000B; // Line 1111 Emulator error
+  ACPU_Format     = $8000000E; // Stack frame format error
+  ACPU_Spurious   = $80000018; // Spurious interrupt error
+  ACPU_AutoVec1   = $80000019; // AutoVector Level 1 interrupt error
+  ACPU_AutoVec2   = $8000001A; // AutoVector Level 2 interrupt error
+  ACPU_AutoVec3   = $8000001B; // AutoVector Level 3 interrupt error
+  ACPU_AutoVec4   = $8000001C; // AutoVector Level 4 interrupt error
+  ACPU_AutoVec5   = $8000001D; // AutoVector Level 5 interrupt error
+  ACPU_AutoVec6   = $8000001E; // AutoVector Level 6 interrupt error
   ACPU_AutoVec7   = $8000001F; // AutoVector Level 7 interrupt error
 
 // alert libraries
@@ -299,59 +299,59 @@ const
   AN_StackProbe   = $0100000E; // Stack appears to extend out of range
   AN_BadFreeAddr  = $0100000F; // Memory header not located. [ Usually an invalid address passed to FreeMem() ]
   AN_BadSemaphore = $01000010; // An attempt was made to use the old message semaphores.
-  
+
 // dos.library
   AN_DOSLib       = $07000000;
   AN_StartMem     = $07010001; // no memory at startup
-  AN_EndTask      = $07000002; // EndTask didn't 
-  AN_QPktFail     = $07000003; // Qpkt failure 
-  AN_AsyncPkt     = $07000004; // Unexpected packet received 
-  AN_FreeVec      = $07000005; // Freevec failed 
-  AN_DiskBlkSeq   = $07000006; // Disk block sequence error 
-  AN_BitMap       = $07000007; // Bitmap corrupt 
-  AN_KeyFree      = $07000008; // Key already free 
-  AN_BadChkSum    = $07000009; // Invalid checksum 
-  AN_DiskError    = $0700000A; // Disk Error 
-  AN_KeyRange     = $0700000B; // Key out of range 
-  AN_BadOverlay   = $0700000C; // Bad overlay 
-  AN_BadInitFunc  = $0700000D; // Invalid init packet for cli/shell 
-  AN_FileReclosed = $0700000E; // A filehandle was closed more than once 
+  AN_EndTask      = $07000002; // EndTask didn't
+  AN_QPktFail     = $07000003; // Qpkt failure
+  AN_AsyncPkt     = $07000004; // Unexpected packet received
+  AN_FreeVec      = $07000005; // Freevec failed
+  AN_DiskBlkSeq   = $07000006; // Disk block sequence error
+  AN_BitMap       = $07000007; // Bitmap corrupt
+  AN_KeyFree      = $07000008; // Key already free
+  AN_BadChkSum    = $07000009; // Invalid checksum
+  AN_DiskError    = $0700000A; // Disk Error
+  AN_KeyRange     = $0700000B; // Key out of range
+  AN_BadOverlay   = $0700000C; // Bad overlay
+  AN_BadInitFunc  = $0700000D; // Invalid init packet for cli/shell
+  AN_FileReclosed = $0700000E; // A filehandle was closed more than once
 
-// graphics.library 
+// graphics.library
   AN_GraphicsLib  = $02000000;
-  AN_GfxNoMem     = $82010000; // graphics out of memory 
-  AN_GfxNoMemMspc = $82010001; // MonitorSpec alloc, no memory 
-  AN_LongFrame    = $82010006; // long frame, no memory 
-  AN_ShortFrame   = $82010007; // short frame, no memory 
-  AN_TextTmpRas   = $02010009; // text, no memory for TmpRas 
-  AN_BltBitMap    = $8201000A; //  BltBitMap, no memory 
-  AN_RegionMemory = $8201000B; //  regions, memory not available 
-  AN_MakeVPort    = $82010030; //  MakeVPort, no memory 
+  AN_GfxNoMem     = $82010000; // graphics out of memory
+  AN_GfxNoMemMspc = $82010001; // MonitorSpec alloc, no memory
+  AN_LongFrame    = $82010006; // long frame, no memory
+  AN_ShortFrame   = $82010007; // short frame, no memory
+  AN_TextTmpRas   = $02010009; // text, no memory for TmpRas
+  AN_BltBitMap    = $8201000A; //  BltBitMap, no memory
+  AN_RegionMemory = $8201000B; //  regions, memory not available
+  AN_MakeVPort    = $82010030; //  MakeVPort, no memory
   AN_GfxNewError  = $0200000C;
   AN_GfxFreeError = $0200000D;
-  AN_GfxNoLCM     = $82011234; // emergency memory not available 
+  AN_GfxNoLCM     = $82011234; // emergency memory not available
   AN_ObsoleteFont = $02000401; // unsupported font description used
 
 // intuition.library
   AN_Intuition    = $04000000;
-  AN_GadgetType   = $84000001; // unknown gadget type 
-  AN_BadGadget    = $04000001; // Recovery form of AN_GadgetType 
-  AN_CreatePort   = $84010002; // create port, no memory 
-  AN_ItemAlloc    = $04010003; // item plane alloc, no memory 
-  AN_SubAlloc     = $04010004; // sub alloc, no memory 
-  AN_PlaneAlloc   = $84010005; // plane alloc, no memory 
-  AN_ItemBoxTop   = $84000006; // item box top < RelZero 
-  AN_OpenScreen   = $84010007; // open screen, no memory 
-  AN_OpenScrnRast = $84010008; // open screen, raster alloc, no memory 
-  AN_SysScrnType  = $84000009; // open sys screen, unknown type 
-  AN_AddSWGadget  = $8401000A; // add SW gadgets, no memory 
-  AN_OpenWindow   = $8401000B; // open window, no memory 
-  AN_BadState     = $8400000C; // Bad State Return entering Intuition 
-  AN_BadMessage   = $8400000D; // Bad Message received by IDCMP 
-  AN_WeirdEcho    = $8400000E; // Weird echo causing incomprehension 
-  AN_NoConsole    = $8400000F; // couldn't open the Console Device 
-  AN_NoISem       = $04000010; // Intuition skipped obtaining a sem 
-  AN_ISemOrder    = $04000011; // Intuition obtained a sem in bad order 
+  AN_GadgetType   = $84000001; // unknown gadget type
+  AN_BadGadget    = $04000001; // Recovery form of AN_GadgetType
+  AN_CreatePort   = $84010002; // create port, no memory
+  AN_ItemAlloc    = $04010003; // item plane alloc, no memory
+  AN_SubAlloc     = $04010004; // sub alloc, no memory
+  AN_PlaneAlloc   = $84010005; // plane alloc, no memory
+  AN_ItemBoxTop   = $84000006; // item box top < RelZero
+  AN_OpenScreen   = $84010007; // open screen, no memory
+  AN_OpenScrnRast = $84010008; // open screen, raster alloc, no memory
+  AN_SysScrnType  = $84000009; // open sys screen, unknown type
+  AN_AddSWGadget  = $8401000A; // add SW gadgets, no memory
+  AN_OpenWindow   = $8401000B; // open window, no memory
+  AN_BadState     = $8400000C; // Bad State Return entering Intuition
+  AN_BadMessage   = $8400000D; // Bad Message received by IDCMP
+  AN_WeirdEcho    = $8400000E; // Weird echo causing incomprehension
+  AN_NoConsole    = $8400000F; // couldn't open the Console Device
+  AN_NoISem       = $04000010; // Intuition skipped obtaining a sem
+  AN_ISemOrder    = $04000011; // Intuition obtained a sem in bad order
 
 // System utility library
   AN_UtilityLib   = $34000000;
@@ -373,7 +373,7 @@ const
 
 // diskfont.library
   AN_DiskfontLib  = $0B000000;
-  
+
 // icon.library
   AN_IconLib      = $09000000;
 
@@ -396,7 +396,7 @@ const
 // ------ trackdisk.device
   AN_TrackDiskDev = $14000000;
   AN_TDCalibSeek  = $14000001; // calibrate: seek error
-  AN_TDDelay      = $14000002; // delay: error on timer wait 
+  AN_TDDelay      = $14000002; // delay: error on timer wait
 
 // timer.device
   AN_TimerDev     = $15000000;
@@ -432,7 +432,7 @@ const
 // For use by any application that needs it
   AN_Unknown      = $35000000;
 
-// AROS Additions 
+// AROS Additions
   AN_Aros         = $40000000;
   AN_OOP          = $41000000;
 
@@ -446,7 +446,7 @@ const
   IOERR_NOCMD      = -3; // command not supported by device
   IOERR_BADLENGTH  = -4; // not a valid length (usually IO_LENGTH)
   IOERR_BADADDRESS = -5; // invalid address (misaligned or bad range)
-  IOERR_UNITBUSY   = -6; // device opens ok, but requested unit is busy 
+  IOERR_UNITBUSY   = -6; // device opens ok, but requested unit is busy
   IOERR_SELFTEST   = -7; // hardware failed self-test
 
 type
@@ -462,7 +462,7 @@ type
     rt_Name: CONST_STRPTR;    // pointer to node name
     rt_IdString: CONST_STRPTR;// pointer to ident string
     rt_Init: APTR;            // pointer to init code
-    rt_Revision: Word;        // Extension taken over from MorphOS. Only valid if RTF_EXTENDED is set 
+    rt_Revision: Word;        // Extension taken over from MorphOS. Only valid if RTF_EXTENDED is set
     rt_Tags: PTagItem;         // PTagItem
   end;
 
@@ -473,7 +473,7 @@ const
   RTF_SINGLETASK  = $02;
   RTF_AFTERDOS    = $04;
   RTF_AUTOINIT    = $80;
-  
+
   RTF_EXTENDED    = $40; // MorphOS extension: extended structure fields are valid
 
 // Compatibility:
@@ -482,7 +482,7 @@ const
   RTW_COLDSTART   = $01;
 
   RTT_STARTUP = TAG_USER + $04AF1234;
-  
+
 type
 //****** MemChunk ****************************************************
   PMemChunk = ^TMemChunk;
@@ -538,7 +538,7 @@ const
   MEMF_LARGEST       = 1 shl 17;
   MEMF_REVERSE       = 1 shl 18;
   MEMF_TOTAL         = 1 shl 19; // AvailMem: return total size of memory
-  MEMF_HWALIGNED     = 1 shl 20; // For AllocMem() - align address and size to physical page boundary 
+  MEMF_HWALIGNED     = 1 shl 20; // For AllocMem() - align address and size to physical page boundary
   MEMF_SEM_PROTECTED = 1 shl 20; // For CreatePool() - add semaphore protection to the pool
   MEMF_NO_EXPUNGE    = 1 shl 31; // AllocMem: Do not cause expunge on failure
 
@@ -564,10 +564,10 @@ type
 const
   MEMHF_RECYCLE   =  1; // 0 = First time, 1 = recycle
 //***** Low Memory handler return values **************************
-  MEM_ALL_DONE    = -1; // We did all we could do 
+  MEM_ALL_DONE    = -1; // We did all we could do
   MEM_DID_NOTHING =  0; // Nothing we could do...
   MEM_TRY_AGAIN   =  1; // We did some, try the allocation again
-    
+
 type
   PInterrupt = ^TInterrupt;
   TInterrupt = record
@@ -583,7 +583,7 @@ type
     iv_Code: Pointer;
     iv_Node: PNode;
   end;
-  
+
 // PRIVATE
   PSoftIntList = ^TSoftIntList;
   TSoftIntList = record    // For EXEC use ONLY!
@@ -600,7 +600,7 @@ const
   Usage:
     AddIntServer(INTB_KERNEL + irq, irq_handler);
     RemIntServer(INTB_KERNEL + irq, irq_handler); }
-  INTB_KERNEL = 16;   
+  INTB_KERNEL = 16;
 
 { This file defines ports and messages, which are used for inter-
   task communications using the routines defined toward the
@@ -615,7 +615,7 @@ type
     mp_SigTask: Pointer;   { task to be signalled (TaskPtr) }
     mp_MsgList: TList;     { message linked list  }
   end;
-    
+
 //****** Message *****************************************************
   PMessage = ^TMessage;
   TMessage = record
@@ -633,7 +633,7 @@ type
     mn_Magic: ULONG;        // can be used to figure out the message sender
     mn_Version: ULONG;      // version can be used to extend a message in later versions
   end;
-  
+
 { definition for entry Magic in Messages
   Magic is introduced to prevent Multiple Ports, for example if you´r using
   ScreenNotifications and DecorNotifications you must have two Ports as long
@@ -641,7 +641,7 @@ type
   problem.}
 const
   MAGIC_DECORATOR    = $8000001;
-  MAGIC_SCREENNOTIFY = $8000002;    
+  MAGIC_SCREENNOTIFY = $8000002;
 
 {   Every Amiga Task has one of these Task structures associated with it.
     To find yours, use FindTask(Nil).  AmigaDOS processes tack a few more
@@ -657,7 +657,7 @@ type
     tc_TDNestCnt: Shortint; // task disabled nesting
     tc_SigAlloc: ULONG;     // sigs allocated
     tc_SigWait: ULONG;      // sigs we are waiting for
-    tc_SigRecvd: ULONG;     // sigs we have received 
+    tc_SigRecvd: ULONG;     // sigs we have received
     tc_SigExcept: ULONG;    // sigs we will take excepts for
     tc_TrapAlloc: Word;     // traps allocated
     tc_TrapAble: Word;      // traps enabled
@@ -681,13 +681,13 @@ type
     stk_Upper: APTR;   // Upper end of stack (size + Lowest)
     stk_Pointer: APTR; // Stack pointer at switch point
   end;
-  
+
   PStackSwapArgs = ^TStackSwapArgs;
   TStackSwapArgs = record
     Args: array[0..7] of IPTR;
   end;
 
-const  
+const
 //----- Flag Bits ------------------------------------------
   TB_PROCTIME         = 0;
   TB_ETASK            = 3;
@@ -733,13 +733,13 @@ type
 {$ifdef AROS_MORPHOS_COMPATIBLE}
   TETask = record
     Message: TMessage;
-    Parent: PTask;	    // Pointer to task
+    Parent: PTask;      // Pointer to task
     UniqueID: ULONG;
     Children: TMinList; // List of children
     TrapAlloc: Word;
     TrapAble: Word;
-    Result1: ULONG;	    // First result
-    Result2: APTR;	    // Result data pointer (AllocVec)
+    Result1: ULONG;     // First result
+    Result2: APTR;      // Result data pointer (AllocVec)
     MsgPort: TMsgPort;
     MemPool: Pointer;
     Reserved: array[0..1] of Pointer;
@@ -750,16 +750,16 @@ type
 // Extended Task structure
   TETask = record
     et_Message: TMessage;
-    et_Parent: APTR;	     // Pointer to parent task
+    et_Parent: APTR;       // Pointer to parent task
     et_UniqueID: ULONG;
     et_Children: TMinList; // List of children
     et_TrapAlloc: Word;
     et_TrapAble: Word;
-    et_Result1: ULONG;	   // First result
-    et_Result2: APTR;	     // Result data pointer (AllocVec)
+    et_Result1: ULONG;     // First result
+    et_Result2: APTR;      // Result data pointer (AllocVec)
     et_TaskMsgPort: TMsgPort;
     et_Compatibility: array[0..3] of APTR;   // Reserve this space for compiled software to access iet_startup and iet_acpd
-    et_MemPool: Pointer;	            // Task's private memory pool
+    et_MemPool: Pointer;              // Task's private memory pool
 {$ifdef aros}
     et_Reserved: array[0..0] of IPTR; // MorphOS Private
     et_TaskStorage: Pointer;          // Task Storage Slots
@@ -804,7 +804,7 @@ const
 
   TASKERROR_OK = 0;
   TASKERROR_NOMEMORY = 1;
-// Actions for ShutdownA() 
+// Actions for ShutdownA()
   SD_ACTION_POWEROFF   = 0;
   SD_ACTION_COLDREBOOT = 1;
 
@@ -843,14 +843,14 @@ type
     ss_QueueCount: SmallInt;
   end;
 
-// Semaphore procure message for Procure/Vacate 
+// Semaphore procure message for Procure/Vacate
   PSemaphoreMessage = ^TSemaphoreMessage;
   TSemaphoreMessage = record
     ssm_Message: TMessage;
     ssm_Semaphore: PSignalSemaphore;
   end;
 
-{ not in aros? 
+{ not in aros?
   PSemaphore = ^TSemaphore;
   TSemaphore = record
     sm_MsgPort: TMsgPort;
@@ -863,7 +863,7 @@ const
 
 //------ Special Constants ---------------------------------------
   LIB_RESERVED =  4;   // Exec reserves the first 4 vectors
-  LIB_VECTSIZE =  6;   // Each library entry takes 6 bytes 
+  LIB_VECTSIZE =  6;   // Each library entry takes 6 bytes
   LIB_BASE     = (-LIB_VECTSIZE);
   LIB_USERDEF  = (LIB_BASE-(LIB_RESERVED*LIB_VECTSIZE));
   LIB_NONSTD   = (LIB_USERDEF);
@@ -885,15 +885,15 @@ type
     lib_Version,          // major
     lib_Revision: Word;   // minor
 {$ifdef AROS_NEED_LONG_ALIGN}
-    lib_pad1: Word; 
-{$endif}    
-    lib_IdString: STRPTR; // ASCII identification 
+    lib_pad1: Word;
+{$endif}
+    lib_IdString: STRPTR; // ASCII identification
     lib_Sum: ULONG;       // the checksum itself
     lib_OpenCnt: Word;    // number of current opens
 {$ifdef AROS_NEED_LONG_ALIGN}
-    lib_pad2: Word; 
-{$endif}    
-    
+    lib_pad2: Word;
+{$endif}
+
   end; // Warning: size is not a longword multiple!
 
 const
@@ -961,7 +961,7 @@ type
     io_Data: APTR;        // points to data area
     io_Offset: ULONG;     // offset for block structured devices
   end;
-  
+
 // library vector offsets for device reserved vectors
 const
     DEV_BEGINIO = -30;
@@ -998,10 +998,10 @@ type
 
   PExecBase = ^TExecBase;
   TExecBase = record
-// Standard Library Structure  
+// Standard Library Structure
     LibNode: TLibrary; // Standard library node
 { ******* Static System Variables ******* }
-    SoftVer: Word;          // kickstart release number (obs.) 
+    SoftVer: Word;          // kickstart release number (obs.)
     LowMemChkSum: SmallInt; // checksum of 68000 trap vectors
     ChkBase: ULONG;         // system base pointer complement
     ColdCapture,            // coldstart soft capture vector
@@ -1127,7 +1127,7 @@ const
   SFF_QuantumOver = 1 shl 13; // Task's time slice is over
 
 // AttnResched. AmigaOS(tm)-compatible, but private.
-  ARF_AttnSwitch  = 1 shl 7;  // Delayed task switch pending 
+  ARF_AttnSwitch  = 1 shl 7;  // Delayed task switch pending
 
 { ***** Selected flag definitions for Cache manipulation calls ********* }
 
@@ -1142,7 +1142,7 @@ const
   CACRF_WriteAllocate = 1 shl 13; // 68030 Write-Allocate mode (must always be set!)
   CACRF_InvalidateD   = 1 shl 15;
   CACRF_EnableE       = 1 shl 30;
-  CACRF_CopyBack      = 1 shl 31;                                            
+  CACRF_CopyBack      = 1 shl 31;
 
   DMA_Continue        = 1 shl 1;  // Continuation flag for CachePreDMA
   DMA_NoModify        = 1 shl 2;  // Set if DMA does not update memory
@@ -1152,15 +1152,15 @@ const
  * Runtime debug output flags, MorphOS-compatible.
  * Most of them are reserved for now.
  *}
-  EXECDEBUGF_INITRESIDENT     = $00000001;  // Single resident initialization       
-  EXECDEBUGF_INITCODE         = $00000002;  // Kickstart initialization             
-  EXECDEBUGF_FINDRESIDENT     = $00000004;  // Resident search                      
-  EXECDEBUGF_CREATELIBRARY    = $00000010;  // Library creation                     
-  EXECDEBUGF_SETfunction      = $00000020;  // Library function patching            
+  EXECDEBUGF_INITRESIDENT     = $00000001;  // Single resident initialization
+  EXECDEBUGF_INITCODE         = $00000002;  // Kickstart initialization
+  EXECDEBUGF_FINDRESIDENT     = $00000004;  // Resident search
+  EXECDEBUGF_CREATELIBRARY    = $00000010;  // Library creation
+  EXECDEBUGF_SETfunction      = $00000020;  // Library function patching
   EXECDEBUGF_NEWSETfunction   = $00000040;
   EXECDEBUGF_CHIPRAM          = $00000080;
-  EXECDEBUGF_ADDTASK          = $00000100;  // Task creation                        
-  EXECDEBUGF_REMTASK          = $00000200;  // Task removal                         
+  EXECDEBUGF_ADDTASK          = $00000100;  // Task creation
+  EXECDEBUGF_REMTASK          = $00000200;  // Task removal
   EXECDEBUGF_GETTASKATTR      = $00000400;
   EXECDEBUGF_SETTASKATTR      = $00000800;
   EXECDEBUGF_EXCEPTHANDLER    = $00001000;
@@ -1193,19 +1193,19 @@ type
     avl_balance: LONG;
   end;
   AVLKey = Pointer;
-  
+
   PAVLNODECOMP = ^AVLNODECOMP;
   AVLNODECOMP = APTR;
   PAVLKEYCOMP = ^AVLKEYCOMP;
   AVLKEYCOMP = APTR;
- 
+
 
 const
 // Magic constants for RawDoFmt() anv VNewRawDoFmt() to be given as PutChProc
   RAWFMTFUNC_STRING = 0; // Output to string given in PutChData
   RAWFMTFUNC_SERIAL = 1; // Output to debug log (usually serial port)
   RAWFMTFUNC_COUNT  = 2; // Just count characters, PutChData is a pointer to the counter (ULONG *)
-  
+
 // function headers
 function AbortIO(IORequest: PIORequest): LongInt; syscall AOS_ExecBase 80;
 procedure AddDevice(Device: PDevice); syscall AOS_ExecBase 72;
@@ -1224,7 +1224,7 @@ procedure Alert(AlertNum: ULONG); syscall AOS_ExecBase 18;
 function AllocAbs(ByteSize: ULONG; Location: APTR): APTR; syscall AOS_ExecBase 34;
 function Allocate(FreeList: PMemHeader; ByteSize: ULONG): PMemHeader; syscall AOS_ExecBase 31;
 function AllocEntry(Entry: PMemList): PMemList; syscall AOS_ExecBase 37;
-function AllocMem(ByteSize: ULONG; Requirements: ULONG): APTR; syscall AOS_ExecBase 33;
+function ExecAllocMem(ByteSize: ULONG; Requirements: ULONG): APTR; syscall AOS_ExecBase 33;
 function AllocPooled(PoolHeader: APTR; MemSize: ULONG): APTR; syscall AOS_ExecBase 118;
 function AllocSignal(SignalNum: LongInt): ShortInt; syscall AOS_ExecBase 55;
 function AllocTrap(TrapNum: LongInt): LongInt; syscall AOS_ExecBase 57;
@@ -1412,7 +1412,7 @@ begin
   begin
     if Assigned(List^.lh_Head^.ln_Succ) then
       GetHead := List^.lh_Head;
-  end;  
+  end;
 end;
 
 function GetTail(List: PList): PNode; inline;
@@ -1422,7 +1422,7 @@ begin
   begin
     if Assigned(List^.lh_TailPred^.ln_Pred) then
       GetTail := List^.lh_TailPred;
-  end;  
+  end;
 end;
 
 function GetSucc(Node: PNode): PNode; inline;
@@ -1431,7 +1431,7 @@ begin
   if Assigned(Node) then
     if Assigned(Node^.ln_Succ) then
       if Assigned(Node^.ln_Succ^.ln_Succ) then
-        GetSucc := Node^.ln_Succ;  
+        GetSucc := Node^.ln_Succ;
 end;
 
 function GetPred(Node: PNode): PNode; inline;
@@ -1450,13 +1450,13 @@ var
 begin
   if not Assigned(List) or not Assigned(NodeProc) then
     Exit;
-  Node := GetHead(List);  
+  Node := GetHead(List);
   for i := 0 to ListLength(List) do
   begin
     if not Assigned(Node) then
       Exit;
     NodeProc(Node);
-    Node := GetSucc(Node);  
+    Node := GetSucc(Node);
   end;
 end;
 
@@ -1468,14 +1468,14 @@ var
 begin
   if not Assigned(List) or not Assigned(NodeProc) then
     Exit;
-  Node := GetHead(List);  
+  Node := GetHead(List);
   if not Assigned(Node) then
     Exit;
   while Assigned(Node) do
   begin
     if not Assigned(Node) then
       Exit;
-    NextNode := GetSucc(Node);  
+    NextNode := GetSucc(Node);
     NodeProc(Node);
     Node := NextNode;
   end;
@@ -1496,7 +1496,7 @@ begin
       Next := Current^.ln_Succ;
       Inc(ListLength);
       if (not Assigned(Current)) or (not Assigned(Next)) then
-        Exit;  
+        Exit;
     end;
 end;
 
@@ -1511,7 +1511,7 @@ function IsMinListEmpty(List: PMinList): Boolean;
 begin
   IsMinListEmpty := True;
   if Assigned(List) then
-    IsMinListEmpty := List^.mlh_TailPred = PMinNode(List); 
+    IsMinListEmpty := List^.mlh_TailPred = PMinNode(List);
 end;
 
 function IsMsgPortEmpty(Mp: PMsgPort): Boolean;

@@ -175,6 +175,8 @@ begin
     P.Dependencies.Add('regexpr');
     if not (NoGDBOption) and not (GDBMIOption) then
       P.Dependencies.Add('gdbint',AllOSes-AllAmigaLikeOSes);
+    if GDBMIOption then
+      P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('graph',[go32v2]);
 
     P.SupportBuildModes:=[bmOneByOne];
@@ -201,10 +203,18 @@ begin
     if CompilerTarget = mipsel then
       P.Options.Add('-Fu../compiler/mips');
 
+    { Handle SPECIALLINK environment variable if available }
+    s:=GetEnvironmentVariable('SPECIALLINK');
+    if s<>'' then
+      P.Options.Add(s);
     P.Options.Add('-Sg');
+    P.IncludePath.Add('compiler');
 
     T:=P.Targets.AddProgram('fp.pas');
-    T.Dependencies.AddUnit('compunit');
+    with T.Dependencies do
+     begin
+      AddUnit('compunit');
+     end;
 
     T:=P.Targets.AddUnit('compunit.pas');
     T.Directory:='compiler';
@@ -222,7 +232,20 @@ begin
     P.InstallFiles.Add('tpgrep.tdf','$(bininstalldir)');
     P.InstallFiles.Add('fp32.ico', [win32, win64], '$(bininstalldir)');
 
-    P.Sources.AddDoc('readme.ide');
+    with P.Sources do
+     begin
+      AddDoc('readme.ide');
+      AddSrc('readme.txt');
+      AddSrc('todo.txt');
+      AddSrc('fp.ans');
+      AddSrcFiles('*.tdf',P.Directory);
+      AddSrcFiles('*.pas',P.Directory,true);
+      AddSrcFiles('*.inc',P.Directory,true);
+      AddSrcFiles('*.rc',P.Directory);
+      AddSrcFiles('*.ico',P.Directory);
+      AddSrcFiles('*.term',P.Directory);
+      AddSrcFiles('*.pt',P.Directory);
+     end;
 
     P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.ppu');
     P.CleanFiles.Add('$(UNITSOUTPUTDIR)compiler.ppu');

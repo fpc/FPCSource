@@ -33,7 +33,7 @@ interface
     function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
 
     { parses a (class) method declaration }
-    function method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
+    function method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
 
     function class_constructor_head(astruct: tabstractrecorddef):tprocdef;
     function class_destructor_head(astruct: tabstractrecorddef):tprocdef;
@@ -104,7 +104,7 @@ implementation
         result:=nil;
         consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parse_proc_head(current_structdef,potype_class_constructor,pd);
+        parse_proc_head(current_structdef,potype_class_constructor,false,nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -129,7 +129,7 @@ implementation
         result:=nil;
         consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parse_proc_head(current_structdef,potype_constructor,pd);
+        parse_proc_head(current_structdef,potype_constructor,false,nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -226,7 +226,7 @@ implementation
       begin
         result:=nil;
         consume(_DESTRUCTOR);
-        parse_proc_head(current_structdef,potype_class_destructor,pd);
+        parse_proc_head(current_structdef,potype_class_destructor,false,nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -250,7 +250,7 @@ implementation
       begin
         result:=nil;
         consume(_DESTRUCTOR);
-        parse_proc_head(current_structdef,potype_destructor,pd);
+        parse_proc_head(current_structdef,potype_destructor,false,nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -399,7 +399,7 @@ implementation
         p : tnode;
         valid : boolean;
       begin
-        p:=comp_expr(true,false);
+        p:=comp_expr([ef_accept_equal]);
         if p.nodetype=stringconstn then
           begin
             stringdispose(current_objectdef.iidstr);
@@ -810,7 +810,7 @@ implementation
       end;
 
 
-    function method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
+    function method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
 
       procedure chkobjc(pd: tprocdef);
         begin
@@ -874,7 +874,7 @@ implementation
 
               oldparse_only:=parse_only;
               parse_only:=true;
-              result:=parse_proc_dec(is_classdef,astruct);
+              result:=parse_proc_dec(is_classdef,astruct,hadgeneric);
 
               { this is for error recovery as well as forward }
               { interface mappings, i.e. mapping to a method  }
@@ -1019,6 +1019,7 @@ implementation
       var
         typedconstswritable: boolean;
         object_member_blocktype : tblock_type;
+        hadgeneric,
         fields_allowed, is_classdef, class_fields, is_final, final_fields: boolean;
         vdoptions: tvar_dec_options;
         fieldlist: tfpobjectlist;
@@ -1114,6 +1115,7 @@ implementation
         class_fields:=false;
         is_final:=false;
         final_fields:=false;
+        hadgeneric:=false;
         object_member_blocktype:=bt_general;
         fieldlist:=tfpobjectlist.create(false);
         repeat
@@ -1214,33 +1216,49 @@ implementation
                       begin
                         if object_member_blocktype=bt_general then
                           begin
-                            if is_interface(current_structdef) or
-                               is_objc_protocol_or_category(current_structdef) or
-                               (
-                                 is_objectpascal_helper(current_structdef) and
-                                 not class_fields
-                               ) or
-                               (is_javainterface(current_structdef) and
-                                not(class_fields and final_fields)) then
-                              Message(parser_e_no_vars_in_interfaces);
+                            if (idtoken=_GENERIC) and
+                                not (m_delphi in current_settings.modeswitches) and
+                                not fields_allowed then
+                              begin
+                                if hadgeneric then
+                                  Message(parser_e_procedure_or_function_expected);
+                                consume(_ID);
+                                hadgeneric:=true;
+                                if not (token in [_PROCEDURE,_FUNCTION,_CLASS]) then
+                                  Message(parser_e_procedure_or_function_expected);
+                              end
+                            else
+                              begin
+                                if is_interface(current_structdef) or
+                                   is_objc_protocol_or_category(current_structdef) or
+                                   (
+                                     is_objectpascal_helper(current_structdef) and
+                                     not class_fields
+                                   ) or
+                                   (is_javainterface(current_structdef) and
+                                    not(class_fields and final_fields)) then
+                                  Message(parser_e_no_vars_in_interfaces);
 
-                            if (current_structdef.symtable.currentvisibility=vis_published) and
-                               not(oo_can_have_published in current_structdef.objectoptions) then
-                              Message(parser_e_cant_have_published);
-                            if (not fields_allowed) then
-                              Message(parser_e_field_not_allowed_here);
+                                if (current_structdef.symtable.currentvisibility=vis_published) and
+                                   not(oo_can_have_published in current_structdef.objectoptions) then
+                                  Message(parser_e_cant_have_published);
+                                if (not fields_allowed) then
+                                  Message(parser_e_field_not_allowed_here);
 
-                            vdoptions:=[vd_object];
-                            if class_fields then
-                              include(vdoptions,vd_class);
-                            if is_class(current_structdef) then
-                              include(vdoptions,vd_canreorder);
-                            if final_fields then
-                              include(vdoptions,vd_final);
-                            read_record_fields(vdoptions,fieldlist,nil);
+                                vdoptions:=[vd_object];
+                                if not (m_delphi in current_settings.modeswitches) then
+                                  include(vdoptions,vd_check_generic);
+                                if class_fields then
+                                  include(vdoptions,vd_class);
+                                if is_class(current_structdef) then
+                                  include(vdoptions,vd_canreorder);
+                                if final_fields then
+                                  include(vdoptions,vd_final);
+                                read_record_fields(vdoptions,fieldlist,nil,hadgeneric);
+                              end;
                           end
                         else if object_member_blocktype=bt_type then
-                          types_dec(true)
+                          types_dec(true,hadgeneric)
                         else if object_member_blocktype=bt_const then
                           begin
                             typedconstswritable:=false;
@@ -1251,7 +1269,7 @@ implementation
                                 typedconstswritable:=cs_typed_const_writable in current_settings.localswitches;
                                 exclude(current_settings.localswitches,cs_typed_const_writable);
                               end;
-                            consts_dec(true,not is_javainterface(current_structdef));
+                            consts_dec(true,not is_javainterface(current_structdef),hadgeneric);
                             if final_fields and
                                typedconstswritable then
                               include(current_settings.localswitches,cs_typed_const_writable);
@@ -1276,9 +1294,10 @@ implementation
             _CONSTRUCTOR,
             _DESTRUCTOR :
               begin
-                method_dec(current_structdef,is_classdef);
+                method_dec(current_structdef,is_classdef,hadgeneric);
                 fields_allowed:=false;
                 is_classdef:=false;
+                hadgeneric:=false;
               end;
             _END :
               begin
@@ -1301,8 +1320,6 @@ implementation
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
         old_current_specializedef: tstoreddef;
-        hrecst: trecordsymtable;
-        fsym: tfieldvarsym;
         old_parse_generic: boolean;
         list: TFPObjectList;
         s: String;
@@ -1330,7 +1347,7 @@ implementation
               begin
                 Message(parser_e_forward_mismatch);
                 { recover }
-                current_structdef:=cobjectdef.create(current_objectdef.objecttype,n,nil);
+                current_structdef:=cobjectdef.create(current_objectdef.objecttype,n,nil,true);
                 include(current_structdef.objectoptions,oo_is_forward);
               end
             else
@@ -1343,7 +1360,7 @@ implementation
               Message(parser_f_no_anonym_objects);
 
             { create new class }
-            current_structdef:=cobjectdef.create(objecttype,n,nil);
+            current_structdef:=cobjectdef.create(objecttype,n,nil,true);
 
             { include always the forward flag, it'll be removed after the parent class have been
               added. This is to prevent circular childof loops }

@@ -1658,7 +1658,7 @@ implementation
                         llow:=rlow;
                         lhigh:=rhigh;
                       end;
-                    nd:=csetdef.create(tsetdef(ld).elementdef,min(llow,rlow).svalue,max(lhigh,rhigh).svalue);
+                    nd:=csetdef.create(tsetdef(ld).elementdef,min(llow,rlow).svalue,max(lhigh,rhigh).svalue,true);
                     inserttypeconv(left,nd);
                     if (rd.typ=setdef) then
                       inserttypeconv(right,nd)
@@ -2116,8 +2116,8 @@ implementation
               begin
                 if tprocvardef(rd).is_addressonly then
                   begin
-                    inserttypeconv_internal(right,voidpointertype);
-                    inserttypeconv_internal(left,voidpointertype);
+                    inserttypeconv_internal(right,voidcodepointertype);
+                    inserttypeconv_internal(left,voidcodepointertype);
                   end
                 else
                   begin
@@ -2359,7 +2359,7 @@ implementation
                     { compare the length with 0 }
                     result := caddnode.create(nodetype,
                       cinlinenode.create(in_length_x,false,left),
-                      cordconstnode.create(0,s32inttype,false))
+                      cordconstnode.create(0,s8inttype,false))
                   else
                     begin
                       (*
@@ -2419,7 +2419,7 @@ implementation
                 ccallparanode.create(right,ccallparanode.create(left,nil)));
               { and compare its result with 0 according to the original operator }
               result := caddnode.create(nodetype,result,
-                cordconstnode.create(0,s32inttype,false));
+                cordconstnode.create(0,s8inttype,false));
               left := nil;
               right := nil;
             end;
@@ -2964,25 +2964,25 @@ implementation
           begin
             case nodetype of
               addn:
-                procname:='ADD';
+                procname:='add';
               muln:
-                procname:='MUL';
+                procname:='mul';
               subn:
-                procname:='SUB';
+                procname:='sub';
               slashn:
-                procname:='DIV';
+                procname:='div';
               ltn:
-                procname:='LT';
+                procname:='lt';
               lten:
-                procname:='LE';
+                procname:='le';
               gtn:
-                procname:='GT';
+                procname:='gt';
               gten:
-                procname:='GE';
+                procname:='ge';
               equaln:
-                procname:='EQ';
+                procname:='eq';
               unequaln:
-                procname:='NE';
+                procname:='ne';
               else
                 begin
                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
@@ -2992,12 +2992,12 @@ implementation
             case tfloatdef(left.resultdef).floattype of
               s32real:
                 begin
-                  procname:=procname+'S';
+                  procname:=procname+'s';
                   if nodetype in [addn,muln,subn,slashn] then
                     procname:=lower(procname);
                 end;
               s64real:
-                procname:=procname+'D';
+                procname:=procname+'d';
               {!!! not yet implemented
               s128real:
               }

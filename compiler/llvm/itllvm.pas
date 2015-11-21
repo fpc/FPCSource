@@ -57,6 +57,7 @@ interface
         'icmp', 'fcmp',
         'phi', 'select', 'call',
         'va_arg', 'landingpad',
+        'blockaddress',
         { fpc pseudo opcodes }
         'type', { type definition }
         'invalid1', { la_x_to_inttoptr }

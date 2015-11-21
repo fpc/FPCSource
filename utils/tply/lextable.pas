@@ -77,7 +77,7 @@ type
 SymTable = array [1..max_keys] of record
              pname  : StrPtr;
                (* print name; empty entries are denoted by pname=nil *)
-             case sym_type : ( none, macro_sym, start_state_sym ) of
+             case sym_type : ( none_sym, macro_sym, start_state_sym ) of
              macro_sym : ( subst : StrPtr );
                (* macro substitution *)
              start_state_sym : ( start_state : Integer );
@@ -212,7 +212,7 @@ procedure entry(k : Integer; symbol : String);
     with sym_table^[k] do
       begin
         pname    := newStr(symbol);
-        sym_type := none;
+        sym_type := none_sym;
       end
   end(*entry*);
 

@@ -171,8 +171,6 @@ type
 
 procedure InsertLLItem(AsmL: TAsmList; prev, foll, new_one: TLinkedListItem);
 
-
-function RefsEqual(const R1, R2: TReference): Boolean;
 function isgp32reg(supreg: tsuperregister): Boolean;
 function reginref(supreg: tsuperregister; const ref: treference): boolean;
 function RegReadByInstruction(supreg: tsuperregister; hp: tai): boolean;
@@ -270,7 +268,8 @@ Uses
     {$endif}
   {$endif}
 {$endif}
-  globals, systems, verbose, symconst, cgobj,procinfo;
+  globals, systems, verbose, symconst, cgobj, procinfo,
+  aoptx86;
 
 Type
   TRefCompare = function(const r1, r2: treference; size1, size2: tcgsize): boolean;
@@ -675,17 +674,6 @@ begin
     RegsEquivalent(r1.index, r2.index, oldinst, newinst, reginfo, OpAct_Read) and
     (r1.segment = r2.segment) and (r1.scalefactor = r2.scalefactor) and
     (r1.symbol = r2.symbol) and (r1.refaddr = r2.refaddr) and
-    (r1.relsymbol = r2.relsymbol);
-end;
-
-
-function refsequal(const r1, r2: treference): boolean;
-begin
-  refsequal :=
-    (r1.offset = r2.offset) and
-    (r1.segment = r2.segment) and (r1.base = r2.base) and
-    (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
-    (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
     (r1.relsymbol = r2.relsymbol);
 end;
 

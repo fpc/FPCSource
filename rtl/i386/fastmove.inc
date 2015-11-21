@@ -869,16 +869,13 @@ asm
 end;
 
 {$asmmode att}
-{$ifdef FPC_HAS_VALGRINDBOOL}
 {$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}
 var
   valgrind_used : boolean;external name '__fpc_valgrind';
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-{$endif FPC_HAS_VALGRINDBOOL}
 
 procedure setup_fastmove;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-{$ifdef FPC_HAS_VALGRINDBOOL}
     { workaround valgrind bug }
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
     if EntryInformation.valgrind_used then
@@ -890,7 +887,6 @@ procedure setup_fastmove;{$ifdef SYSTEMINLINE}inline;{$endif}
         fastmoveproc_backward:=@Backwards_Valgrind;
       end
     else
-{$endif FPC_HAS_VALGRINDBOOL}
 
     if has_sse_support then
       begin

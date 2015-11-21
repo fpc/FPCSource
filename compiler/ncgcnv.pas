@@ -699,7 +699,10 @@ interface
                  hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
               end;
             LOC_REGISTER:
-              location.register:=left.location.register;
+              begin
+                location.register:=left.location.register;
+                hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,location.register);
+              end
             else
               internalerror(121120001);
          end;
@@ -714,10 +717,7 @@ interface
                      begin
                        current_asmdata.getjumplabel(l1);
                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_EQ,0,location.register,l1);
-                       { todo: consider adding far pointer support to hlcg.a_op_const_reg for i8086 (i.e. perform the
-                               arithmetic operation only on the offset), then the next line can be converted to the
-                               high level code generator as well }
-                       cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,ImplIntf.ioffset,location.register);
+                       hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,ImplIntf.ioffset,location.register);
                        break;
                      end;
                    else

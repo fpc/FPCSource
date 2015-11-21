@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=system uuchar strings objpas macpas iso7185 heaptrc getopts macostp macutils \
+units=system uuchar strings objpas macpas iso7185 extpas heaptrc getopts macostp macutils \
       unixutil dos cmem charset cpall ctypes
 #      exec  \
 #      printer \

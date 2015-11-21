@@ -1156,7 +1156,7 @@ Implementation
 
     procedure TInternalLinker.ParseScript_Handle;
       var
-        s, para, keyword : String;
+        s{, para}, keyword : String;
         hp : TCmdStrListItem;
         i : longint;
       begin
@@ -1172,7 +1172,7 @@ Implementation
                 continue;
               end;
             keyword:=Upper(GetToken(s,' '));
-            para:=GetToken(s,' ');
+            {para:=}GetToken(s,' ');
             if Trim(s)<>'' then
               Comment(V_Warning,'Unknown part "'+s+'" in "'+hp.str+'" internal linker script');
             if (keyword<>'SYMBOL') and

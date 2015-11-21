@@ -174,6 +174,7 @@ Implementation
   function TCpuAsmOptimizer.PostPeepHoleOptsCpu(var p: tai): boolean;
     begin
       result:=
+        (p.typ=ait_instruction) and
         RemoveLoadLoadSwap(p);
     end;
 

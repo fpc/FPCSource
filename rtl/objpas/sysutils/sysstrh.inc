@@ -19,7 +19,7 @@
 {==============================================================================}
 
 type
-   PString = ^String;
+   PString = ObjPas.PString;
 
    { For FloatToText }
    TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);

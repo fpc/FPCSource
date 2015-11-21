@@ -21,6 +21,8 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
@@ -422,10 +424,15 @@ Var
 Begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
   New(FS);
-  FillChar(FS, SizeOf(FS^), 0);
-  FS^.AttrFile:=Attr;
-  RC := DosSetPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^), 0);
-  if RC <> 0 then
+  RC := DosQueryPathInfo (PChar (SystemFileName), ilStandard, FS, SizeOf (FS^));
+  if RC = 0 then
+   begin
+    FS^.AttrFile:=Attr;
+    RC := DosSetPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^), 0);
+    if RC <> 0 then
+     OSErrorWatch (RC);
+   end
+  else
    OSErrorWatch (RC);
   Result := - longint (RC);
   Dispose(FS);

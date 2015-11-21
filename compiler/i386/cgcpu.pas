@@ -36,7 +36,6 @@ unit cgcpu;
     type
       tcg386 = class(tcgx86)
         procedure init_register_allocators;override;
-        procedure do_register_allocation(list:TAsmList;headertai:tai);override;
 
         { passing parameter using push instead of mov }
         procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
@@ -81,27 +80,13 @@ unit cgcpu;
     procedure tcg386.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-           (cs_create_pic in current_settings.moduleswitches) then
-          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP])
+        if (cs_useebp in current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer<>NR_EBP) then
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI,RS_EBP],first_int_imreg,[])
         else
-          if (cs_useebp in current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer<>NR_EBP) then
-            rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI,RS_EBP],first_int_imreg,[])
-          else
-            rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
         rg[R_MMXREGISTER]:=trgcpu.create(R_MMXREGISTER,R_SUBNONE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_mm_imreg,[]);
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBWHOLE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_mm_imreg,[]);
         rgfpu:=Trgx86fpu.create;
-      end;
-
-    procedure tcg386.do_register_allocation(list:TAsmList;headertai:tai);
-      begin
-        if (pi_needs_got in current_procinfo.flags) then
-          begin
-            if getsupreg(current_procinfo.got) < first_int_imreg then
-              include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
-          end;
-        inherited do_register_allocation(list,headertai);
       end;
 
 
@@ -310,13 +295,6 @@ unit cgcpu;
         end;
 
       begin
-        { Release PIC register }
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           (pi_needs_got in current_procinfo.flags) and
-           not(target_info.system in systems_darwin) then
-          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
-
         { MMX needs to call EMMS }
         if assigned(rg[R_MMXREGISTER]) and
            (rg[R_MMXREGISTER].uses_registers) then
@@ -548,26 +526,49 @@ unit cgcpu;
 
     procedure tcg386.g_maybe_got_init(list: TAsmList);
       var
-        notdarwin: boolean;
+        i: longint;
+        tmpreg: TRegister;
       begin
         { allocate PIC register }
         if (cs_create_pic in current_settings.moduleswitches) and
            (tf_pic_uses_got in target_info.flags) and
            (pi_needs_got in current_procinfo.flags) then
           begin
-            notdarwin:=not(target_info.system in [system_i386_darwin,system_i386_iphonesim]);
-            { on darwin, the got register is virtual (and allocated earlier
-              already) }
-            if notdarwin then
-              { ecx could be used in leaf procedures that don't use ecx to pass
-                aparameter }
-              current_procinfo.got:=NR_EBX;
-            if notdarwin { needs testing before it can be enabled for non-darwin platforms
-                and
-               (current_settings.optimizecputype in [cpu_Pentium2,cpu_Pentium3,cpu_Pentium4]) } then
+            if not (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
               begin
-                current_module.requires_ebx_pic_helper:=true;
-                a_call_name_static(list,'fpc_geteipasebx');
+                { Use ECX as a temp register by default }
+                tmpreg:=NR_ECX;
+                { Allocate registers used for parameters to make sure they
+                  never allocated during this PIC init code }
+                for i:=0 to current_procinfo.procdef.paras.Count - 1 do
+                  with tparavarsym(current_procinfo.procdef.paras[i]).paraloc[calleeside].Location^ do
+                    if Loc in [LOC_REGISTER, LOC_CREGISTER] then begin
+                      a_reg_alloc(list, register);
+                      { If ECX is used for a parameter, use EBX as temp }
+                      if getsupreg(register) = RS_ECX then
+                        tmpreg:=NR_EBX;
+                    end;
+
+                if tmpreg = NR_EBX then
+                  begin
+                    { Mark EBX as used in the proc }
+                    include(rg[R_INTREGISTER].used_in_proc,RS_EBX);
+                    current_module.requires_ebx_pic_helper:=true;
+                    a_call_name_static(list,'fpc_geteipasebx');
+                  end
+                else
+                  begin
+                    current_module.requires_ecx_pic_helper:=true;
+                    a_call_name_static(list,'fpc_geteipasecx');
+                  end;
+                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,tmpreg));
+                list.concat(taicpu.op_reg_reg(A_MOV,S_L,tmpreg,current_procinfo.got));
+
+                { Deallocate parameter registers }
+                for i:=0 to current_procinfo.procdef.paras.Count - 1 do
+                  with tparavarsym(current_procinfo.procdef.paras[i]).paraloc[calleeside].Location^ do
+                    if Loc in [LOC_REGISTER, LOC_CREGISTER] then
+                      a_reg_dealloc(list, register);
               end
             else
               begin
@@ -578,11 +579,6 @@ unit cgcpu;
                 a_call_name_static(list,current_procinfo.CurrGOTLabel.name);
                 a_label(list,current_procinfo.CurrGotLabel);
                 list.concat(taicpu.op_reg(A_POP,S_L,current_procinfo.got))
-              end;
-            if notdarwin then
-              begin
-                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
-                list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
               end;
           end;
       end;

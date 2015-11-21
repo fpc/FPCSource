@@ -286,7 +286,8 @@ implementation
                 resultreg:=cg.getintregister(current_asmdata.CurrAsmList,size);
               end;
 
-            if right.nodetype=ordconstn then
+            if (right.nodetype=ordconstn) and
+               (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) then
               begin
                 if nodetype=divn then
                   genOrdConstNodeDiv
@@ -392,7 +393,6 @@ implementation
 
     procedure tarmunaryminusnode.second_float;
       var
-        op: tasmop;
         pf: TOpPostfix;
       begin
         secondpass(left);

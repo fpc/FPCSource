@@ -933,7 +933,6 @@ implementation
     function tunaryminusnode.pass_1 : tnode;
       var
         procname: string[31];
-        fdef : tdef;
       begin
         result:=nil;
         firstpass(left);
@@ -951,9 +950,9 @@ implementation
               begin
                 case tfloatdef(resultdef).floattype of
                   s32real:
-                    procname:='NEGS';
+                    procname:='negs';
                   s64real:
-                    procname:='NEGD';
+                    procname:='negd';
                   {!!! not yet implemented
                   s128real:
                   }

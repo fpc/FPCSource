@@ -212,9 +212,6 @@ end;
 
 function TFPList.IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
 
-Var
-  C : Integer;
-
 begin
   if Direction=fromBeginning then
     Result:=IndexOf(Item)

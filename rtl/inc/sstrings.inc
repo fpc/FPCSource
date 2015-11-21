@@ -1061,7 +1061,7 @@ begin
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
 {$endif EXCLUDE_COMPLEX_PROCS}
-{$endif FPC_HAS_STR_CURRENCY}
+{$endif FPC_HAS_CHARARRAY_CURRENCY}
 
 {*****************************************************************************
                            Val() Functions

@@ -481,7 +481,7 @@ type
     Function Iterate(aMethod: TObjectIteratorMethod): TObject; virtual;
     Procedure Add(const aKey: string; AItem : TObject); virtual;
     property Items[const index: string]: TObject read GetData write SetData; default;
-    Property OwnsObjects : Boolean Read FOwnsObjects Write FOwnsObjects;
+    Property OwnsObjects : Boolean Read FOwnsObjects;
   end;
 
   EDuplicate = class(Exception);

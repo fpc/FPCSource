@@ -101,22 +101,16 @@ implementation
 
     procedure tcgsetelementnode.pass_generate_code;
       begin
-      { load first value in 32bit register }
+        { load the set element's value }
         secondpass(left);
-        if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,false);
 
-      { also a second value ? }
+        { also a second value ? }
         if assigned(right) then
-          begin
-            secondpass(right);
-            if codegenerror then
-              exit;
-            if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u32inttype,false);
-          end;
+          internalerror(2015111106);
 
-        { we doesn't modify the left side, we check only the type }
+        { we don't modify the left side, we only check the location type; our
+          parent node (an add-node) will use the resulting location to perform
+          the set operation without creating an intermediate set }
         location_copy(location,left.location);
       end;
 
@@ -202,7 +196,7 @@ implementation
              left.resultdef, opdef, true);
             register_maybe_adjust_setbase(current_asmdata.CurrAsmList, left.location,
              setbase);
-            hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList, left.resultdef,
+            hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList, opdef,
               right.resultdef, resultdef, left.location.register, right.location,
                location.register);
           end;
@@ -249,7 +243,6 @@ implementation
          uopsize    : tcgsize;
          uopdef     : tdef;
          orgopsize  : tcgsize;
-         orgopdef   : tdef;
          genjumps,
          use_small  : boolean;
          i,numparts : byte;
@@ -263,7 +256,6 @@ implementation
          genjumps := checkgenjumps(setparts,numparts,use_small);
 
          orgopsize := def_cgsize(left.resultdef);
-         orgopdef := left.resultdef;
          uopsize := OS_32;
          uopdef := u32inttype;
          if is_signed(left.resultdef) then

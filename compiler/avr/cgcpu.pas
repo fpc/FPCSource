@@ -308,16 +308,19 @@ unit cgcpu;
       var
         i : longint;
         hp : PCGParaLocation;
+        ref: treference;
       begin
         if not(tcgsize2size[paraloc.Size] in [1..4]) then
           internalerror(2014011101);
 
         hp:=paraloc.location;
 
-        for i:=1 to tcgsize2size[paraloc.Size] do
+        i:=1;
+        while i<=tcgsize2size[paraloc.Size] do
           begin
             if not(assigned(hp)) then
               internalerror(2014011105);
+             //paramanager.allocparaloc(list,hp);
              case hp^.loc of
                LOC_REGISTER,LOC_CREGISTER:
                  begin
@@ -325,10 +328,20 @@ unit cgcpu;
                      (hp^.shiftval<>0) then
                      internalerror(2015041101);
                    a_load_const_reg(list,hp^.size,(a shr (8*(i-1))) and $ff,hp^.register);
+
+                   inc(i,tcgsize2size[hp^.size]);
                    hp:=hp^.Next;
                  end;
                LOC_REFERENCE,LOC_CREFERENCE:
-                 list.concat(taicpu.op_const(A_PUSH,(a shr (8*(i-1))) and $ff));
+                 begin
+                   reference_reset(ref,paraloc.alignment);
+                   ref.base:=hp^.reference.index;
+                   ref.offset:=hp^.reference.offset;
+                   a_load_const_ref(list,hp^.size,a shr (8*(i-1)),ref);
+
+                   inc(i,tcgsize2size[hp^.size]);
+                   hp:=hp^.Next;
+                 end;
                else
                  internalerror(2002071004);
             end;
@@ -765,7 +778,8 @@ unit cgcpu;
              begin
                for i:=1 to tcgsize2size[size] do
                  begin
-                   list.concat(taicpu.op_reg_const(A_ORI,reg,(qword(a) and mask) shr shift));
+                   if ((qword(a) and mask) shr shift)<>0 then
+                     list.concat(taicpu.op_reg_const(A_ORI,reg,(qword(a) and mask) shr shift));
                    NextReg;
                    mask:=mask shl 8;
                    inc(shift,8);
@@ -775,7 +789,10 @@ unit cgcpu;
              begin
                for i:=1 to tcgsize2size[size] do
                  begin
-                   list.concat(taicpu.op_reg_const(A_ANDI,reg,(qword(a) and mask) shr shift));
+                   if ((qword(a) and mask) shr shift)=0 then
+                     list.concat(taicpu.op_reg_reg(A_MOV,reg,NR_R1))
+                   else
+                     list.concat(taicpu.op_reg_const(A_ANDI,reg,(qword(a) and mask) shr shift));
                    NextReg;
                    mask:=mask shl 8;
                    inc(shift,8);
@@ -783,7 +800,10 @@ unit cgcpu;
              end;
            OP_SUB:
              begin
-               list.concat(taicpu.op_reg_const(A_SUBI,reg,a and mask));
+               if ((a and mask)=1) and (tcgsize2size[size]=1) then
+                 list.concat(taicpu.op_reg(A_DEC,reg))
+               else
+                 list.concat(taicpu.op_reg_const(A_SUBI,reg,a and mask));
                if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
                  begin
                    for i:=2 to tcgsize2size[size] do
@@ -871,6 +891,8 @@ unit cgcpu;
                curvalue:=a and mask;
                if curvalue=0 then
                  list.concat(taicpu.op_reg_reg(A_ADD,reg,NR_R1))
+               else if (curvalue=1) and (tcgsize2size[size]=1) then
+                 list.concat(taicpu.op_reg(A_INC,reg))
                else
                  begin
                    tmpreg:=getintregister(list,OS_8);
@@ -946,7 +968,12 @@ unit cgcpu;
              if ((qword(a) and mask) shr shift)=0 then
                emit_mov(list,reg,NR_R1)
              else
-               list.concat(taicpu.op_reg_const(A_LDI,reg,(qword(a) and mask) shr shift));
+               begin
+                 getcpuregister(list,NR_R26);
+                 list.concat(taicpu.op_reg_const(A_LDI,NR_R26,(qword(a) and mask) shr shift));
+                 a_load_reg_reg(list,OS_8,OS_8,NR_R26,reg);
+                 ungetcpuregister(list,NR_R26);
+               end;
 
              mask:=mask shl 8;
              inc(shift,8);

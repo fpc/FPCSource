@@ -207,9 +207,9 @@ implementation
           pd:=destructor_head;
         else if assigned(astruct) and
            (astruct.typ=recorddef) then
-          pd:=parse_record_method_dec(astruct,is_classdef)
+          pd:=parse_record_method_dec(astruct,is_classdef,false)
         else
-          pd:=method_dec(astruct,is_classdef);
+          pd:=method_dec(astruct,is_classdef,false);
       end;
       if assigned(pd) then
         result:=true;
@@ -247,7 +247,7 @@ implementation
       current_scanner.substitutemacro('meth_impl_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
       current_scanner.readtoken(false);
       { and parse it... }
-      read_proc(is_classdef,usefwpd);
+      read_proc(is_classdef,usefwpd,false);
       parse_only:=oldparse_only;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;
@@ -822,7 +822,7 @@ implementation
       callpd: tprocdef;
     begin
       callpd:=tprocdef(pd.skpara);
-      str:='var pv: __fpc_virtualclassmethod_pv_t'+tostr(pd.defid)+'; begin '
+      str:='var pv: __fpc_virtualclassmethod_pv_t'+pd.unique_id_str+'; begin '
         + 'pv:=@'+callpd.procsym.RealName+';';
       if (pd.proctypeoption<>potype_constructor) and
          not is_void(pd.returndef) then
@@ -935,6 +935,32 @@ implementation
       str_parse_method_impl(str,pd,false);
     end;
 
+
+  procedure implement_interface_wrapper(pd: tprocdef);
+    var
+      wrapperinfo: pskpara_interface_wrapper;
+      callthroughpd: tprocdef;
+      str: ansistring;
+    begin
+      wrapperinfo:=pskpara_interface_wrapper(pd.skpara);
+      if not assigned(wrapperinfo) then
+        internalerror(2015090801);
+      callthroughpd:=tprocdef(wrapperinfo^.pd);
+      str:='begin ';
+      { self right now points to the VMT of interface inside the instance ->
+        adjust so it points to the start of the instance }
+      str:=str+'pointer(self):=pointer(self) - '+tostr(wrapperinfo^.offset)+';';
+      { now call through to the actual method }
+      if pd.returndef<>voidtype then
+        str:=str+'result:=';
+      str:=str+callthroughpd.procsym.realname+'(';
+      addvisibibleparameters(str,callthroughpd);
+      str:=str+') end;';
+      str_parse_method_impl(str,pd,false);
+      dispose(wrapperinfo);
+      pd.skpara:=nil;
+    end;
+
   procedure add_synthetic_method_implementations_for_st(st: tsymtable);
     var
       i   : longint;
@@ -1007,6 +1033,8 @@ implementation
               implement_field_setter(pd);
             tsk_block_invoke_procvar:
               implement_block_invoke_procvar(pd);
+            tsk_interface_wrapper:
+              implement_interface_wrapper(pd);
             else
               internalerror(2011032801);
           end;
@@ -1123,7 +1151,7 @@ implementation
       { create struct to hold local variables and parameters that are
         accessed from within nested routines (start with extra dollar to prevent
         the JVM from thinking this is a nested class in the unit) }
-      nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+tostr(pd.defid),
+      nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+pd.unique_id_str,
         current_settings.alignment.localalignmax,current_settings.alignment.localalignmin,current_settings.alignment.maxCrecordalign);
       nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst);
 {$ifdef jvm}
@@ -1138,7 +1166,7 @@ implementation
       symtablestack.free;
       symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
       pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef);
-      nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[]);
+      nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[],true);
       pd.localst.insert(nestedvars);
       pd.parentfpstruct:=nestedvars;
       pd.parentfpstructptrtype:=pnestedvarsdef;
@@ -1171,7 +1199,7 @@ implementation
             fieldvardef:=cpointerdef.getreusable(vardef)
           else
             fieldvardef:=vardef;
-          result:=cfieldvarsym.create(sym.realname,vs_value,fieldvardef,[]);
+          result:=cfieldvarsym.create(sym.realname,vs_value,fieldvardef,[],true);
           if nestedvarsst.symlist.count=0 then
             include(tfieldvarsym(result).varoptions,vo_is_first_field);
           nestedvarsst.insert(result);
@@ -1270,7 +1298,7 @@ implementation
          (def.typ=recorddef) and
          not assigned(def.typesym) then
         begin
-          ts:=ctypesym.create(trecorddef(def).symtable.realname^,def);
+          ts:=ctypesym.create(trecorddef(def).symtable.realname^,def,true);
           st.insert(ts);
           ts.visibility:=vis_strictprivate;
           { this typesym can't be used by any Pascal code, so make sure we don't

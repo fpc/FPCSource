@@ -28,7 +28,7 @@ Interface
 Uses
   cutils,cclasses,
   globtype,aasmbase,aasmtai,aasmdata,cpubase,cpuinfo,cgbase,cgutils,
-  symconst,symbase,symtype,symdef,symsym;
+  symconst,symbase,symtype,symdef,symsym,symcpu;
 
 Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
@@ -49,8 +49,8 @@ type
     case typ:TOprType of
       OPR_NONE      : ();
       OPR_CONSTANT  : (val:aint);
-      OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint;symseg:boolean);
-      OPR_REFERENCE : (varsize:asizeint; constoffset: asizeint; ref:treference);
+      OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint;symseg:boolean;sym_farproc_entry:boolean);
+      OPR_REFERENCE : (varsize:asizeint; constoffset: asizeint;ref_farproc_entry:boolean;ref:treference);
       OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
@@ -842,6 +842,7 @@ Begin
           orddef,
           enumdef,
           pointerdef,
+          procvardef,
           floatdef :
             SetSize(tabstractvarsym(sym).getsize,false);
           arraydef :
@@ -905,11 +906,21 @@ Begin
           Message(asmr_w_calling_overload_func);
         case opr.typ of
           OPR_REFERENCE:
-            opr.ref.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+            begin
+              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+{$ifdef i8086}
+              opr.ref_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
+                        and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
+{$endif i8086}
+            end;
           OPR_NONE:
             begin
               opr.typ:=OPR_SYMBOL;
               opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+{$ifdef i8086}
+              opr.sym_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
+                        and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
+{$endif i8086}
               opr.symofs:=0;
             end;
         else
@@ -919,6 +930,27 @@ Begin
         SetupVar:=TRUE;
         Exit;
       end;
+{$ifdef i8086}
+    labelsym :
+      begin
+        case opr.typ of
+          OPR_REFERENCE:
+            begin
+              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tlabelsym(sym).mangledname);
+              if opr.ref.segment=NR_NO then
+                opr.ref.segment:=NR_CS;
+            end;
+          else
+            begin
+              Message(asmr_e_unsupported_symbol_type);
+              exit;
+            end;
+        end;
+        hasvar:=true;
+        SetupVar:=TRUE;
+        Exit;
+      end
+{$endif i8086}
     else
       begin
         Message(asmr_e_unsupported_symbol_type);
@@ -941,6 +973,7 @@ var
   hsymofs : aint;
   hsymbol : tasmsymbol;
   reg : tregister;
+  hsym_farprocentry: Boolean;
 Begin
   case opr.typ of
     OPR_REFERENCE :
@@ -953,12 +986,14 @@ Begin
         opr.Ref.Offset:=l;
         opr.varsize:=0;
         opr.constoffset:=0;
+        opr.ref_farproc_entry:=false;
       end;
     OPR_NONE :
       begin
         opr.typ:=OPR_REFERENCE;
         opr.varsize:=0;
         opr.constoffset:=0;
+        opr.ref_farproc_entry:=false;
         Fillchar(opr.ref,sizeof(treference),0);
       end;
     OPR_REGISTER :
@@ -967,6 +1002,7 @@ Begin
         opr.typ:=OPR_REFERENCE;
         opr.varsize:=0;
         opr.constoffset:=0;
+        opr.ref_farproc_entry:=false;
         Fillchar(opr.ref,sizeof(treference),0);
         opr.Ref.base:=reg;
       end;
@@ -974,12 +1010,14 @@ Begin
       begin
         hsymbol:=opr.symbol;
         hsymofs:=opr.symofs;
+        hsym_farprocentry:=opr.sym_farproc_entry;
         opr.typ:=OPR_REFERENCE;
         opr.varsize:=0;
         opr.constoffset:=0;
         Fillchar(opr.ref,sizeof(treference),0);
         opr.ref.symbol:=hsymbol;
         opr.ref.offset:=hsymofs;
+        opr.ref_farproc_entry:=hsym_farprocentry;
       end;
     else
       begin
@@ -988,6 +1026,7 @@ Begin
         opr.typ:=OPR_REFERENCE;
         opr.varsize:=0;
         opr.constoffset:=0;
+        opr.ref_farproc_entry:=false;
         Fillchar(opr.ref,sizeof(treference),0);
       end;
   end;

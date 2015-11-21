@@ -33,7 +33,7 @@ unit i_embed;
             system       : system_arm_embedded;
             name         : 'Embedded';
             shortname    : 'embedded';
-            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections];
             cpu          : cpu_arm;
             unit_env     : '';

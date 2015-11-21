@@ -32,7 +32,7 @@ unit cgx86;
        cgbase,cgutils,cgobj,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,rgobj,rgx86,rgcpu,
-       symconst,symtype,symdef, cclasses;
+       symconst,symtype,symdef;
 
     type
 
@@ -185,7 +185,7 @@ unit cgx86;
        globals,verbose,systems,cutils,
        defutil,paramgr,procinfo,
        tgobj,ncgutil,
-       fmodule,symsym;
+       fmodule,symsym,symcpu;
 
     function UseAVX: boolean;
       begin
@@ -1703,12 +1703,8 @@ unit cgx86;
 
 
     procedure tcgx86.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);
-
-      var
-        opcode : tasmop;
-        power  : longint;
-        href : treference;
 {$ifdef x86_64}
+      var
         tmpreg : tregister;
 {$endif x86_64}
       begin
@@ -1812,8 +1808,6 @@ unit cgx86;
 
     procedure tcgx86.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
       var
-        opcode: tasmop;
-        power: longint;
 {$ifdef x86_64}
         tmpreg : tregister;
 {$endif x86_64}
@@ -2847,6 +2841,7 @@ unit cgx86;
         regsize: longint;
 {$ifdef i8086}
         dgroup: treference;
+        fardataseg: treference;
 {$endif i8086}
 
       procedure push_regs;
@@ -2864,8 +2859,61 @@ unit cgx86;
 
       begin
 {$ifdef i8086}
+        { Win16 callback/exported proc prologue support.
+          Since callbacks can be called from different modules, DS on entry may be
+          initialized with the data segment of a different module, so we need to
+          get ours. But we can't do
+
+                      push ds
+                      mov ax, dgroup
+                      mov ds, ax
+
+          because code segments are shared between different instances of the same
+          module (which have different instances of the current program's data segment),
+          so the same 'mov ax, dgroup' instruction will be used for all instances
+          of the program and it will load the same segment into ax.
+
+          So, the standard win16 prologue looks like this:
+
+                      mov ax, ds
+                      nop
+                      inc bp
+                      push bp
+                      mov bp, sp
+                      push ds
+                      mov ds, ax
+
+          By default, this does nothing, except wasting a few extra machine cycles and
+          destroying ax in the process. However, Windows checks the first three bytes
+          of every exported function and if they are 'mov ax,ds/nop', they are replaced
+          with nop/nop/nop. Then the MakeProcInstance api call should be used to create
+          a thunk that loads ds for the current program instance in ax before calling
+          the routine.
+
+          And now the fun part comes: somebody (Michael Geary) figured out that all this
+          crap was unnecessary, because in Win16 exe modules, we always have DS=SS, so we
+          can simply initialize DS from SS :) And then calling MakeProcInstance becomes
+          unnecessary. This is what "smart callbacks" (cs_win16_smartcallbacks) do. However,
+          this only works for exe files, not for dlls, because dlls run with DS<>SS. There's
+          another solution for dlls - since win16 dlls only have a single instance of their
+          data segment, we can initialize ds from dgroup. However, there's not a single
+          solution for both exe and dlls, so we don't know what to use e.g. in a unit. So,
+          that's why there's still an option to turn smart callbacks off and go the
+          MakeProcInstance way.
+
+          Additional details here: http://www.geary.com/fixds.html }
+        if (current_settings.x86memorymodel<>mm_huge) and
+           (po_exports in current_procinfo.procdef.procoptions) and
+           (target_info.system=system_i8086_win16) then
+          begin
+            if cs_win16_smartcallbacks in current_settings.moduleswitches then
+              list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_SS,NR_AX))
+            else
+              list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_DS,NR_AX));
+            list.concat(Taicpu.op_none(A_NOP));
+          end
         { interrupt support for i8086 }
-        if po_interrupt in current_procinfo.procdef.procoptions then
+        else if po_interrupt in current_procinfo.procdef.procoptions then
           begin
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_AX));
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_BX));
@@ -2891,6 +2939,13 @@ unit cgx86;
                     list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_CS,NR_AX));
                     list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
                   end;
+              end
+            else if current_settings.x86memorymodel=mm_huge then
+              begin
+                reference_reset(fardataseg,0);
+                fardataseg.refaddr:=addr_fardataseg;
+                list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,fardataseg,NR_AX));
+                list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
               end
             else
               begin
@@ -2938,6 +2993,13 @@ unit cgx86;
               end
             else
               begin
+{$ifdef i8086}
+                if ((ts_x86_far_procs_push_odd_bp in current_settings.targetswitches) or
+                    ((po_exports in current_procinfo.procdef.procoptions) and
+                     (target_info.system=system_i8086_win16))) and
+                    is_proc_far(current_procinfo.procdef) then
+                  cg.a_op_const_reg(list,OP_ADD,OS_ADDR,1,current_procinfo.framepointer);
+{$endif i8086}
                 { push <frame_pointer> }
                 inc(stackmisalignment,sizeof(pint));
                 include(rg[R_INTREGISTER].preserved_by_proc,RS_FRAME_POINTER_REG);
@@ -2974,6 +3036,36 @@ unit cgx86;
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;
               end;
+
+{$ifdef i8086}
+              { win16 exported proc prologue follow-up (see the huge comment above for details) }
+              if (current_settings.x86memorymodel<>mm_huge) and
+                 (po_exports in current_procinfo.procdef.procoptions) and
+                 (target_info.system=system_i8086_win16) then
+                begin
+                  list.concat(Taicpu.op_reg(A_PUSH,S_W,NR_DS));
+                  list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+                end
+              else if (current_settings.x86memorymodel=mm_huge) and
+                      not (po_interrupt in current_procinfo.procdef.procoptions) then
+                begin
+                  list.concat(Taicpu.op_reg(A_PUSH,S_W,NR_DS));
+                  reference_reset(fardataseg,0);
+                  fardataseg.refaddr:=addr_fardataseg;
+                  list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,fardataseg,NR_AX));
+                  list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+                end;
+            { SI and DI are volatile in the BP7 and FPC's pascal calling convention,
+              but must be preserved in Microsoft C's pascal calling convention, and
+              since Windows is compiled with Microsoft compilers, these registers
+              must be saved for exported procedures (BP7 for Win16 also does this). }
+            if (po_exports in current_procinfo.procdef.procoptions) and
+               (target_info.system=system_i8086_win16) then
+              begin
+                list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_SI));
+                list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_DI));
+              end;
+{$endif i8086}
 
 {$ifdef i386}
             if (not paramanager.use_fixed_stack) and

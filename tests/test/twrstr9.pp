@@ -6,7 +6,7 @@ uses
 {$endif}
 
 type
-  ts866 = type ansistring(866);
+  ts866 = type ansistring( {$ifdef android} 1251 {$else} 866 {$endif} );
 var
   u: unicodestring;
   s: utf8string;

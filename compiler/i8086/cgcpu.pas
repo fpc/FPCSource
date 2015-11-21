@@ -1660,55 +1660,124 @@ unit cgcpu;
         hl_skip: TAsmLabel;
         invf: TResFlags;
         tmpsize: TCgSize;
+        tmpopsize: topsize;
       begin
-        invf := f;
-        inverse_flags(invf);
-
-        case size of
-          OS_8,OS_S8:
-            begin
-              tmpsize:=OS_8;
-              list.concat(Taicpu.op_const_reg(A_MOV, S_B, 0, reg));
+        { optimized case for the carry flag, using ADC/RCL }
+        if f in [F_C,F_B,F_FB] then
+          begin
+            case size of
+              OS_8,OS_S8:
+                begin
+                  tmpsize:=OS_8;
+                  tmpopsize:=S_B;
+                end;
+              OS_16,OS_S16,OS_32,OS_S32:
+                begin
+                  tmpsize:=OS_16;
+                  tmpopsize:=S_W;
+                end;
+              else
+                internalerror(2013123101);
             end;
-          OS_16,OS_S16,OS_32,OS_S32:
-            begin
-              tmpsize:=OS_16;
-              list.concat(Taicpu.op_const_reg(A_MOV, S_W, 0, reg));
+            list.concat(Taicpu.op_const_reg(A_MOV, tmpopsize, 0, reg));
+            hl_skip:=nil;
+            if f=F_FB then
+              begin
+                current_asmdata.getjumplabel(hl_skip);
+                ai:=Taicpu.op_sym(A_Jcc,S_NO,hl_skip);
+                ai.SetCondition(C_P);
+                ai.is_jmp:=true;
+                list.concat(ai);
+              end;
+            { RCL is faster than ADC on 8086/8088. On the 80286, it is
+              equally fast and it also has the same size. In these cases,
+              we still prefer it over ADC, because it's a better choice in
+              case the register is spilled. }
+            if (cs_opt_size in current_settings.optimizerswitches) or
+               (current_settings.optimizecputype<=cpu_286) then
+              list.concat(Taicpu.op_const_reg(A_RCL, tmpopsize, 1, reg))
+            else
+              { ADC is much faster on the 386. }
+              list.concat(Taicpu.op_reg_reg(A_ADC, tmpopsize, reg, reg));
+            if f=F_FB then
+              a_label(list,hl_skip);
+            a_load_reg_reg(list,tmpsize,size,reg,reg);
+          end
+        { optimized case for the inverted carry flag, using SBB }
+        else if f in [F_NC,F_AE,F_FAE] then
+          begin
+            case size of
+              OS_8,OS_S8:
+                begin
+                  tmpsize:=OS_8;
+                  list.concat(Taicpu.op_const_reg(A_MOV, S_B, 1, reg));
+                  list.concat(Taicpu.op_const_reg(A_SBB, S_B, 0, reg));
+                end;
+              OS_16,OS_S16,OS_32,OS_S32:
+                begin
+                  tmpsize:=OS_16;
+                  list.concat(Taicpu.op_const_reg(A_MOV, S_W, 1, reg));
+                  list.concat(Taicpu.op_const_reg(A_SBB, S_W, 0, reg));
+                end;
+              else
+                internalerror(2013123101);
             end;
-          else
-            internalerror(2013123101);
-        end;
+            a_load_reg_reg(list,tmpsize,size,reg,reg);
+          end
+        else
+          begin
+            invf := f;
+            inverse_flags(invf);
 
-        current_asmdata.getjumplabel(hl_skip);
-        { we can't just forward invf to a_jmp_flags for FA,FAE,FB and FBE, because
-          in the case of NaNs:
-           not(F_FA )<>F_FBE
-           not(F_FAE)<>F_FB
-           not(F_FB )<>F_FAE
-           not(F_FBE)<>F_FA
-        }
-        case f of
-          F_FA,F_FAE:
-            invf:=FPUFlags2Flags[invf];
-          F_FB,F_FBE:
-            begin
-              ai:=Taicpu.op_sym(A_Jcc,S_NO,hl_skip);
-              ai.SetCondition(C_P);
-              ai.is_jmp:=true;
-              list.concat(ai);
-              invf:=FPUFlags2Flags[invf];
+            case size of
+              OS_8,OS_S8:
+                begin
+                  tmpsize:=OS_8;
+                  list.concat(Taicpu.op_const_reg(A_MOV, S_B, 0, reg));
+                end;
+              OS_16,OS_S16,OS_32,OS_S32:
+                begin
+                  tmpsize:=OS_16;
+                  list.concat(Taicpu.op_const_reg(A_MOV, S_W, 0, reg));
+                end;
+              else
+                internalerror(2013123101);
             end;
-        end;
-        a_jmp_flags(list,invf,hl_skip);
 
-        { 16-bit INC is shorter than 8-bit }
-        hreg16:=makeregsize(list,reg,OS_16);
-        list.concat(Taicpu.op_reg(A_INC, S_W, hreg16));
-        makeregsize(list,hreg16,tmpsize);
+            current_asmdata.getjumplabel(hl_skip);
+            { we can't just forward invf to a_jmp_flags for FA,FAE,FB and FBE, because
+              in the case of NaNs:
+               not(F_FA )<>F_FBE
+               not(F_FAE)<>F_FB
+               not(F_FB )<>F_FAE
+               not(F_FBE)<>F_FA
+            }
+            case f of
+              F_FA:
+                invf:=FPUFlags2Flags[invf];
+              F_FAE,F_FB:
+                { F_FAE and F_FB are handled above, using ADC/RCL/SBB }
+                internalerror(2015102101);
+              F_FBE:
+                begin
+                  ai:=Taicpu.op_sym(A_Jcc,S_NO,hl_skip);
+                  ai.SetCondition(C_P);
+                  ai.is_jmp:=true;
+                  list.concat(ai);
+                  invf:=FPUFlags2Flags[invf];
+                end;
+            end;
+            a_jmp_flags(list,invf,hl_skip);
 
-        a_label(list,hl_skip);
+            { 16-bit INC is shorter than 8-bit }
+            hreg16:=makeregsize(list,reg,OS_16);
+            list.concat(Taicpu.op_reg(A_INC, S_W, hreg16));
+            makeregsize(list,hreg16,tmpsize);
 
-        a_load_reg_reg(list,tmpsize,size,reg,reg);
+            a_label(list,hl_skip);
+
+            a_load_reg_reg(list,tmpsize,size,reg,reg);
+          end;
       end;
 
 
@@ -1762,6 +1831,17 @@ unit cgcpu;
         { remove stackframe }
         if not nostackframe then
           begin
+            if (po_exports in current_procinfo.procdef.procoptions) and
+               (target_info.system=system_i8086_win16) then
+              begin
+                list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DI));
+                list.concat(Taicpu.Op_reg(A_POP,S_W,NR_SI));
+              end;
+            if ((current_settings.x86memorymodel=mm_huge) and
+                not (po_interrupt in current_procinfo.procdef.procoptions)) or
+               ((po_exports in current_procinfo.procdef.procoptions) and
+                (target_info.system=system_i8086_win16)) then
+              list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 stacksize:=current_procinfo.calc_stackframe_size;
@@ -1776,7 +1856,14 @@ unit cgcpu;
                   cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
               end
             else
-              generate_leave(list);
+              begin
+                generate_leave(list);
+                if ((ts_x86_far_procs_push_odd_bp in current_settings.targetswitches) or
+                    ((po_exports in current_procinfo.procdef.procoptions) and
+                     (target_info.system=system_i8086_win16))) and
+                    is_proc_far(current_procinfo.procdef) then
+                  cg.a_op_const_reg(list,OP_SUB,OS_ADDR,1,current_procinfo.framepointer);
+              end;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 

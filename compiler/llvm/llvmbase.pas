@@ -65,6 +65,7 @@ interface
       la_icmp, la_fcmp,
       la_phi, la_select, la_call,
       la_va_arg, la_landingpad,
+      la_blockaddress,
       { fpc pseudo opcodes }
       la_type, { type definition }
       la_x_to_inttoptr, { have to convert something first to int before it can be converted to a pointer }

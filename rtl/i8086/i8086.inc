@@ -160,6 +160,310 @@ end;
 {$endif FPC_SYSTEM_HAS_MOVE}
 
 
+{$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
+{$define FPC_SYSTEM_HAS_INDEXBYTE}
+function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
+asm
+  mov bx, sp
+  mov cx, ss:[bx + 4 + extra_param_offset]  // len
+  jcxz @@NotFound
+{$ifdef FPC_X86_DATA_NEAR}
+  mov di, ss:[bx + 6 + extra_param_offset]  // @buf
+  mov ax, ds
+  mov es, ax
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[bx + 6 + extra_param_offset]  // @buf
+{$endif FPC_X86_DATA_NEAR}
+  mov si, di  // save the start of the buffer in si
+  mov al, ss:[bx + 2 + extra_param_offset]  // b
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  repne scasb
+  je @@Found
+@@NotFound:
+  mov ax, 0FFFFh  // return -1
+  jmp @@Done
+@@Found:
+  sub di, si
+  xchg ax, di
+  dec ax
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_INDEXBYTE}
+
+
+{$ifndef FPC_SYSTEM_HAS_INDEXWORD}
+{$define FPC_SYSTEM_HAS_INDEXWORD}
+function IndexWord(Const buf;len:SizeInt;b:word):SizeInt; assembler; nostackframe;
+asm
+  mov bx, sp
+  mov cx, ss:[bx + 4 + extra_param_offset]  // len
+  jcxz @@NotFound
+{$ifdef FPC_X86_DATA_NEAR}
+  mov di, ss:[bx + 6 + extra_param_offset]  // @buf
+  mov ax, ds
+  mov es, ax
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[bx + 6 + extra_param_offset]  // @buf
+{$endif FPC_X86_DATA_NEAR}
+  mov si, cx  // save the length of the buffer in si
+  mov ax, ss:[bx + 2 + extra_param_offset]  // b
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  repne scasw
+  je @@Found
+@@NotFound:
+  mov ax, 0FFFFh  // return -1
+  jmp @@Done
+@@Found:
+  sub si, cx
+  xchg ax, si
+  dec ax
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_INDEXWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
+{$define FPC_SYSTEM_HAS_INDEXDWORD}
+function IndexDWord(Const buf;len:SizeInt;b:DWord):SizeInt; assembler; nostackframe;
+asm
+  mov bx, sp
+  mov cx, ss:[bx + 6 + extra_param_offset]  // len
+  jcxz @@NotFound
+{$ifdef FPC_X86_DATA_NEAR}
+  mov di, ss:[bx + 8 + extra_param_offset]  // @buf
+  mov ax, ds
+  mov es, ax
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[bx + 8 + extra_param_offset]  // @buf
+{$endif FPC_X86_DATA_NEAR}
+  mov si, cx  // save the length of the buffer in si
+  mov ax, ss:[bx + 2 + extra_param_offset]  // b
+  mov bx, ss:[bx + 4 + extra_param_offset]
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  jmp @@LoopStart
+@@SkipWord:
+  scasw
+@@LoopStart:
+  scasw
+  loopne @@SkipWord
+  jne @@NotFound
+  xchg ax, bx
+  scasw
+  je @@Found
+  jcxz @@NotFound
+  xchg ax, bx
+  jmp @@LoopStart
+
+@@Found:
+  sub si, cx
+  xchg ax, si
+  dec ax
+  jmp @@Done
+
+@@NotFound:
+  mov ax, 0FFFFh  // return -1
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_INDEXDWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
+{$define FPC_SYSTEM_HAS_COMPAREBYTE}
+function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+asm
+  xor ax, ax  // initialize ax=0 (it's the result register, we never use it for anything else in this function)
+  mov bx, sp
+  mov cx, ss:[bx + 2 + extra_param_offset]  // len
+  jcxz @@Done
+
+  mov dx, ds  // for far data models, backup ds; for near data models, use to initialize es
+{$ifdef FPC_X86_DATA_NEAR}
+  mov es, dx
+  mov si, ss:[bx + 6 + extra_param_offset]  // @buf1
+  mov di, ss:[bx + 4 + extra_param_offset]  // @buf2
+{$else FPC_X86_DATA_NEAR}
+  lds si, ss:[bx + 8 + extra_param_offset]  // @buf1
+  les di, ss:[bx + 4 + extra_param_offset]  // @buf2
+{$endif FPC_X86_DATA_NEAR}
+
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  xor bx, bx
+  shr cx, 1
+  adc bx, bx  // remainder goes to bx
+  jcxz @@BytewiseComparison
+  repe cmpsw
+  je @@BytewiseComparison
+  // we found an unequal word
+  // let's go back and compare it bytewise
+  mov bl, 2
+  dec si
+  dec si
+  dec di
+  dec di
+@@BytewiseComparison:
+  mov cx, bx
+  jcxz @@Equal
+  repe cmpsb
+  je @@Equal
+  // ax is 0
+  sbb ax, ax
+  shl ax, 1
+  inc ax
+
+@@Equal:
+  // ax is 0
+
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, dx
+{$endif}
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_COMPAREBYTE}
+
+
+{$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
+{$define FPC_SYSTEM_HAS_COMPAREWORD}
+function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+asm
+  xor ax, ax  // initialize ax=0 (it's the result register, we never use it for anything else in this function)
+  mov bx, sp
+  mov cx, ss:[bx + 2 + extra_param_offset]  // len
+  jcxz @@Done
+
+  mov dx, ds  // for far data models, backup ds; for near data models, use to initialize es
+{$ifdef FPC_X86_DATA_NEAR}
+  mov es, dx
+  mov si, ss:[bx + 6 + extra_param_offset]  // @buf1
+  mov di, ss:[bx + 4 + extra_param_offset]  // @buf2
+{$else FPC_X86_DATA_NEAR}
+  lds si, ss:[bx + 8 + extra_param_offset]  // @buf1
+  les di, ss:[bx + 4 + extra_param_offset]  // @buf2
+{$endif FPC_X86_DATA_NEAR}
+
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  repe cmpsw
+  je @@Equal
+  // ax is 0
+  sbb ax, ax
+  shl ax, 1
+  inc ax
+
+@@Equal:
+  // ax is 0
+
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, dx
+{$endif}
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_COMPAREWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
+{$define FPC_SYSTEM_HAS_COMPAREDWORD}
+function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+asm
+  xor ax, ax  // initialize ax=0 (it's the result register, we never use it for anything else in this function)
+  mov bx, sp
+  mov cx, ss:[bx + 2 + extra_param_offset]  // len
+  jcxz @@Done
+  cmp cx, 4000h
+  jb @@NotTooBig
+  mov cx, 4000h
+@@NotTooBig:
+  shl cx, 1
+
+  mov dx, ds  // for far data models, backup ds; for near data models, use to initialize es
+{$ifdef FPC_X86_DATA_NEAR}
+  mov es, dx
+  mov si, ss:[bx + 6 + extra_param_offset]  // @buf1
+  mov di, ss:[bx + 4 + extra_param_offset]  // @buf2
+{$else FPC_X86_DATA_NEAR}
+  lds si, ss:[bx + 8 + extra_param_offset]  // @buf1
+  les di, ss:[bx + 4 + extra_param_offset]  // @buf2
+{$endif FPC_X86_DATA_NEAR}
+
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  repe cmpsw
+  je @@Equal
+
+  // ax is 0
+  sbb ax, ax
+  shl ax, 1
+  inc ax
+
+  shr cx, 1
+  jnc @@Skip
+
+  xchg ax, bx
+  xor ax, ax
+  cmpsw
+  je @@hi_equal
+  // ax is 0
+  sbb ax, ax
+  shl ax, 1
+  inc ax
+  jmp @@Skip
+
+@@hi_equal:
+  xchg ax, bx
+
+@@Equal:
+  // ax is 0
+@@Skip:
+
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, dx
+{$endif}
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_COMPAREDWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+{$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+function fpc_pchar_length(p:pchar):sizeint;assembler;nostackframe;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
+asm
+  mov bx, sp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov ax, ss:[bx + 2 + extra_param_offset]  // p
+  test ax, ax
+  jz @@Done
+  xchg ax, di
+  mov ax, ds
+  mov es, ax
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[bx + 2 + extra_param_offset]  // p
+  mov ax, es
+  or ax, di
+  jz @@Done
+{$endif FPC_X86_DATA_NEAR}
+  mov cx, 0FFFFh
+  xor ax, ax
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  repne scasb
+  dec ax
+  dec ax
+  sub ax, cx
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+
+
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;nostackframe;
 asm
@@ -225,22 +529,50 @@ asm
 {$endif FPC_X86_CODE_FAR}
 {$ifdef FPC_X86_DATA_NEAR}
   mov ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
+ {$ifdef WIN16}
+  mov cx, ax
+  and al, $FE
+ {$endif WIN16}
   or ax, ax
   jz @@Lg_a_null
   xchg ax, bx  // 1 byte shorter than a mov
   mov ax, [bx+2]
  {$ifdef FPC_X86_CODE_FAR}
-  mov dx, [bx+4]
+  {$ifdef WIN16}
+   test cl, 1
+   jnz @@farretaddr
+   mov dx, ss:[si + 2 + extra_param_offset + extra_param_offset]  // Seg(addr^)
+   jmp @@retsegdone
+@@farretaddr:
+   mov dx, [bx+4]
+@@retsegdone:
+  {$else WIN16}
+   mov dx, [bx+4]
+  {$endif WIN16}
  {$endif FPC_X86_CODE_FAR}
 {$else FPC_X86_DATA_NEAR}
   les ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
+ {$ifdef WIN16}
+  mov cx, ax
+  and al, $FE
+ {$endif WIN16}
   mov dx, es
   or dx, ax
   jz @@Lg_a_null
   xchg ax, bx  // 1 byte shorter than a mov
   mov ax, es:[bx+2]
  {$ifdef FPC_X86_CODE_FAR}
-  mov dx, es:[bx+4]
+  {$ifdef WIN16}
+   test cl, 1
+   jnz @@farretaddr
+   mov dx, ss:[si + 2 + extra_param_offset + extra_param_offset]  // Seg(addr^)
+   jmp @@retsegdone
+@@farretaddr:
+   mov dx, es:[bx+4]
+@@retsegdone:
+  {$else WIN16}
+   mov dx, es:[bx+4]
+  {$endif WIN16}
  {$endif FPC_X86_CODE_FAR}
 {$endif FPC_X86_DATA_NEAR}
 @@Lg_a_null:
@@ -252,6 +584,9 @@ asm
 {$ifdef FPC_X86_DATA_NEAR}
   mov si, sp
   mov ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
+ {$ifdef WIN16}
+  and al, $FE
+ {$endif WIN16}
   or ax, ax
   jz @@Lgnf_null
   xchg ax, si  // 1 byte shorter than a mov
@@ -260,6 +595,9 @@ asm
 {$else FPC_X86_DATA_NEAR}
   mov si, sp
   les ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
+ {$ifdef WIN16}
+  and al, $FE
+ {$endif WIN16}
   mov dx, es
   or dx, ax
   jz @@Lgnf_null

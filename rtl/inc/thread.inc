@@ -437,13 +437,13 @@ begin
   Result:=-1;
 end;
 
-procedure NoInitThreadvar(var offset : dword;size : dword);
+procedure NoInitThreadvar(var offset : {$ifdef cpu16}word{$else}dword{$endif};size : dword);
 
 begin
   NoThreadError;
 end;
 
-function NoRelocateThreadvar(offset : dword) : pointer;
+function NoRelocateThreadvar(offset : {$ifdef cpu16}word{$else}dword{$endif}) : pointer;
 
 begin
   NoThreadError;

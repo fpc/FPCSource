@@ -229,7 +229,8 @@ function GetTagData(TagValue: Tag; Default: IPTR; const TagList: PTagItem): IPTR
 function GetUniqueID: LongWord; syscall AOS_UtilityBase 45;
 procedure MapTags(TagList: PTagItem; const MapList: PTagItem; MapType: LongWord); syscall AOS_UtilityBase 10;
 function NamedObjectName(Object_: PNamedObject): STRPTR; syscall AOS_UtilityBase 42;
-function NextTagItem(var Item: PTagItem): PTagItem; syscall AOS_UtilityBase 8;
+function NextTagItem(var Item: PTagItem): PTagItem; overload; syscall AOS_UtilityBase 8;
+function NextTagItem(ItemPtr: PPTagItem): PTagItem; overload; syscall AOS_UtilityBase 8;
 function PackBoolTags(InitialFlags: LongWord; const TagList, BoolMap: PTagItem): IPTR; syscall AOS_UtilityBase 7;
 function PackStructureTags(Pack: APTR; PackTable: PLongWord; TagList: PTagItem): LongWord; syscall AOS_UtilityBase 35;
 procedure RefreshTagItemClones(Clone: PTagItem; const Original: PTagItem); syscall AOS_UtilityBase 14;

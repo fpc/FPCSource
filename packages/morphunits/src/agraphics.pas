@@ -2208,10 +2208,10 @@ SysCall GfxBase 042;
 procedure ClearScreen(rp : pRastPort location 'a1');
 SysCall GfxBase 048;
 
-function TextLength(rp : pRastPort location 'a1'; string1 : pSHORTINT location 'a0'; count : CARDINAL location 'd0') : INTEGER;
+function TextLength(rp : pRastPort location 'a1'; string1 : STRPTR location 'a0'; count : CARDINAL location 'd0') : INTEGER;
 SysCall GfxBase 054;
 
-function Text(rp : pRastPort location 'a1'; string1: pSHORTINT location 'a0'; count : CARDINAL location 'd0') : LongInt;
+function GfxText(rp : pRastPort location 'a1'; string1: STRPTR location 'a0'; count : CARDINAL location 'd0') : LongInt;
 SysCall GfxBase 060;
 
 function SetFont(rp : pRastPort location 'a1'; textFont : pTextFont location 'a0') : LongInt;
@@ -2346,7 +2346,7 @@ SysCall GfxBase 324;
 function Flood(rp : pRastPort location 'a1'; mode : CARDINAL location 'd2'; x : LongInt location 'd0'; y : LongInt location 'd1') : LongBool;
 SysCall GfxBase 330;
 
-procedure PolyDraw(rp : pRastPort location 'a1'; count : LongInt location 'd0'; VAR polyTable : INTEGER location 'a0');
+procedure PolyDraw(rp : pRastPort location 'a1'; count : LongInt location 'd0'; polyTable : PSmallInt location 'a0');
 SysCall GfxBase 336;
 
 procedure SetAPen(rp : pRastPort location 'a1'; pen : CARDINAL location 'd0');
@@ -2547,16 +2547,16 @@ SysCall GfxBase 756;
 procedure FontExtent(font : pTextFont location 'a0'; fontExtent : pTextExtent location 'a1');
 SysCall GfxBase 762;
 
-function ReadPixelLine8(rp : pRastPort location 'a0'; xstart : CARDINAL location 'd0'; ystart : CARDINAL location 'd1'; width : CARDINAL location 'd2'; array1 : pCHAR location 'a2'; tempRP : pRastPort location 'a1') : LongInt;
+function ReadPixelLine8(rp : pRastPort location 'a0'; xstart : CARDINAL location 'd0'; ystart : CARDINAL location 'd1'; width : CARDINAL location 'd2'; array1 : PByte location 'a2'; tempRP : pRastPort location 'a1') : LongInt;
 SysCall GfxBase 768;
 
-function WritePixelLine8(rp : pRastPort location 'a0'; xstart : CARDINAL location 'd0'; ystart : CARDINAL location 'd1'; width : CARDINAL location 'd2'; array1 : pCHAR location 'a2'; tempRP : pRastPort location 'a1') : LongInt;
+function WritePixelLine8(rp : pRastPort location 'a0'; xstart : CARDINAL location 'd0'; ystart : CARDINAL location 'd1'; width : CARDINAL location 'd2'; array1 : PByte location 'a2'; tempRP : pRastPort location 'a1') : LongInt;
 SysCall GfxBase 774;
 
-function ReadPixelArray8(rp : pRastPort location 'a0'; xstart : CARDINAL location 'd0'; ystart : CARDINAL location 'd1'; xstop : CARDINAL location 'd2'; ystop : CARDINAL location 'd3'; array1: pCHAR location 'a2'; temprp : pRastPort location 'a1') : LongInt;
+function ReadPixelArray8(rp : pRastPort location 'a0'; xstart : CARDINAL location 'd0'; ystart : CARDINAL location 'd1'; xstop : CARDINAL location 'd2'; ystop : CARDINAL location 'd3'; array1: PByte location 'a2'; temprp : pRastPort location 'a1') : LongInt;
 SysCall GfxBase 780;
 
-function WritePixelArray8(rp : pRastPort location 'a0'; xstart : CARDINAL location 'd0'; ystart : CARDINAL location 'd1'; xstop : CARDINAL location 'd2'; ystop : CARDINAL location 'd3'; array1: pCHAR location 'a2'; temprp : pRastPort location 'a1') : LongInt;
+function WritePixelArray8(rp : pRastPort location 'a0'; xstart : CARDINAL location 'd0'; ystart : CARDINAL location 'd1'; xstop : CARDINAL location 'd2'; ystop : CARDINAL location 'd3'; array1: PByte location 'a2'; temprp : pRastPort location 'a1') : LongInt;
 SysCall GfxBase 786;
 
 function GetVPModeID(vp : pViewPort location 'a0') : LongInt;
@@ -2679,7 +2679,7 @@ SysCall GfxBase 1044;
 function BestModeIDA(tags : pTagItem location 'a0') : CARDINAL;
 SysCall GfxBase 1050;
 
-procedure WriteChunkyPixels(rp : pRastPort location 'a0'; xstart : CARDINAL location 'd0'; ystart : CARDINAL location 'd1'; xstop : CARDINAL location 'd2'; ystop : CARDINAL location 'd3'; array1: pCHAR location 'a2'; bytesperrow : LongInt location 'd4');
+procedure WriteChunkyPixels(rp : pRastPort location 'a0'; xstart : CARDINAL location 'd0'; ystart : CARDINAL location 'd1'; xstop : CARDINAL location 'd2'; ystop : CARDINAL location 'd3'; array1: PByte location 'a2'; bytesperrow : LongInt location 'd4');
 SysCall GfxBase 1056;
 
 function OpenFontTagList(textattr : pTextAttr location 'a0'; tags : pTagItem location 'a1') : pTextFont;
@@ -2703,6 +2703,8 @@ procedure OFF_SPRITE (cust: pCustom);
 procedure ON_SPRITE (cust: pCustom);
 procedure OFF_VBLANK (cust: pCustom);
 procedure ON_VBLANK (cust: pCustom);
+
+function RasSize(w, h: Word): Integer;
 
 { unit/library initialization }
 function InitGraphicsLibrary : boolean;
@@ -2802,6 +2804,10 @@ begin
     cust^.intena := BITSET or INTF_VERTB;
 end;
 
+function RasSize(w, h: Word): Integer; inline;
+begin
+  RasSize := h * (((w + 15) shr 3) and $FFFE);
+end;
 
 const
   { Change VERSION and LIBVERSION to proper values }

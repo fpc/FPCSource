@@ -1,0 +1,141 @@
+#
+#   Makefile.fpc for Free Pascal Win16 RTL
+#
+[package]
+main=rtl
+[target]
+loaders=prt0s prt0m prt0c prt0l prt0h 
+units=system uuchar objpas strings iso7185 extpas dos \
+      wintypes winprocs win31 dynlibs \
+      sysconst rtlconst
+
+
+[require]
+nortl=y
+[install]
+fpcpackage=y
+[default]
+fpcdir=../..
+target=msdos
+cpu=i8086
+[compiler]
+includedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
+[prerules]
+RTL=..
+INC=../inc
+COMMON=$(RTL)/common
+PROCINC=../$(CPU_TARGET)
+UNITPREFIX=rtl
+SYSTEMUNIT=system
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+# Insert exception handler in system unit
+ifdef EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
+endif
+# Insert exception handler in system unit
+ifdef NO_EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
+endif
+[rules]
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+#
+# Loaders
+#
+prt0s$(OEXT) : prt0s.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0s$(OEXT) prt0s.asm
+prt0m$(OEXT) : prt0m.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0m$(OEXT) prt0m.asm
+prt0c$(OEXT) : prt0c.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0c$(OEXT) prt0c.asm
+prt0l$(OEXT) : prt0l.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0l$(OEXT) prt0l.asm
+prt0h$(OEXT) : prt0h.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0h$(OEXT) prt0h.asm
+#
+# System Units (System, Objpas, Strings)
+#
+system$(PPUEXT) : system.pp $(SYSDEPS) wintypes.inc winprocsh.inc winprocs.inc \
+                  glbheap.inc glbheaph.inc locheap.inc locheaph.inc \
+                  sysdl.inc sysdlh.inc
+        $(COMPILER) -Us -Sg system.pp
+	$(EXECPPAS)
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+	$(COMPILER) $(INC)/uuchar.pp
+	$(EXECPPAS)
+
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+	$(EXECPPAS)
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
+                   $(INC)/genstr.inc $(INC)/genstrs.inc \
+                   system$(PPUEXT)
+	$(COMPILER) $(INC)/strings.pp
+	$(EXECPPAS)
+
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
+	$(EXECPPAS)
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
+        $(EXECPPAS)
+
+#
+# WinAPI Units
+#
+
+wintypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) wintypes.pp wintypes.inc
+	$(COMPILER) wintypes.pp
+	$(EXECPPAS)
+
+winprocs$(PPUEXT) : wintypes$(PPUEXT) winprocs.pp winprocsh.inc winprocs.inc
+	$(COMPILER) winprocs.pp
+	$(EXECPPAS)
+
+win31$(PPUEXT) : wintypes$(PPUEXT) win31.pp
+	$(COMPILER) win31.pp
+	$(EXECPPAS)
+
+#
+# $(SYSTEMUNIT) Dependent Units
+#
+
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pas dynlibs.inc objpas$(PPUEXT)
+	$(COMPILER) $(INC)/dynlibs.pas
+
+#
+# TP7 Compatible RTL Units
+#
+dos$(PPUEXT) : dos.pp registers.inc \
+               $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc \
+               strings$(PPUEXT) wintypes$(PPUEXT) winprocs$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) dos.pp
+	$(EXECPPAS)
+
+#
+# Delphi Compatible Units
+#
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+	$(EXECPPAS)
+
+rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp $(OBJPASDIR)/rtlconst.inc objpas$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
+	$(EXECPPAS)

@@ -148,6 +148,7 @@ interface
           importlibfilename,        { fullname of the import libraryfile }
           staticlibfilename,        { fullname of the static libraryfile }
           sharedlibfilename,        { fullname of the shared libraryfile }
+          exportfilename,           { fullname of the export file }
           mapfilename,              { fullname of the mapfile }
           exefilename,              { fullname of the exefile }
           dbgfilename,              { fullname of the debug info file }
@@ -626,6 +627,7 @@ uses
          ppufilename:=p+n+target_info.unitext;
          importlibfilename:=p+target_info.importlibprefix+n+target_info.importlibext;
          staticlibfilename:=p+target_info.staticlibprefix+n+target_info.staticlibext;
+         exportfilename:=p+'exp'+n+target_info.objext;
 
          { output dir of exe can be specified separatly }
          if AllowOutput and (OutputExeDir<>'') then

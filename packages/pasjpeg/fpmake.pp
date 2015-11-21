@@ -19,7 +19,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.1.1';
-    P.OSes:=P.OSes-[embedded,msdos];
+    P.OSes:=P.OSes-[embedded,msdos,win16];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

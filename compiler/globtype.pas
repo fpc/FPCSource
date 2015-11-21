@@ -160,7 +160,8 @@ interface
          cs_support_c_operators,
          { generation }
          cs_profile,cs_debuginfo,cs_compilesystem,
-         cs_lineinfo,cs_implicit_exceptions,cs_explicit_codepage,
+         cs_lineinfo,cs_implicit_exceptions,
+         cs_explicit_codepage,cs_system_codepage,
          { linking }
          cs_create_smart,cs_create_dynamic,cs_create_pic,
          { browser switches are back }
@@ -168,7 +169,8 @@ interface
          { target specific }
          cs_executable_stack,
          { i8086 specific }
-         cs_huge_code
+         cs_huge_code,
+         cs_win16_smartcallbacks
        );
        tmoduleswitches = set of tmoduleswitch;
 
@@ -194,7 +196,9 @@ interface
          cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_extern,cs_link_opt_vtable,
          cs_link_opt_used_sections,cs_link_separate_dbg_file,
          cs_link_map,cs_link_pthread,cs_link_no_default_lib_order,
-	 cs_link_native
+         cs_link_native,
+         cs_link_pre_binutils_2_19,
+         cs_link_vlink
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -247,7 +251,18 @@ interface
            accidental uses of uninitialised values }
          ts_init_locals,
          { emit a CLD instruction before using the x86 string instructions }
-         ts_cld
+         ts_cld,
+         { increment BP before pushing it in the function prologue and decrement
+           it after popping it in the function epilogue, iff the function is
+           going to terminate with a far ret. Thus, the BP value pushed on the
+           stack becomes odd if the function is far and even if the function is
+           near. This allows walking the BP chain on the stack and e.g.
+           obtaining a stack trace even if the program uses a mixture of near
+           and far calls. This is also required for Win16 real mode, because it
+           allows Windows to move code segments around (in order to defragment
+           memory) and then walk through the stacks of all running programs and
+           update the segment values of the segment that has moved. }
+         ts_x86_far_procs_push_odd_bp
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -296,19 +311,13 @@ interface
        twpoptimizerswitches = set of twpoptimizerswitch;
 
     type
-       { Used by ARM / AVR / MIPSEL to differentiate between specific microcontrollers }
-       tcontrollerdatatype = record
-          controllertypestr, controllerunitstr: string[20];
-          flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize, bootbase, bootsize: dword;
-       end;
-
        ttargetswitchinfo = record
           name: string[22];
           { target switch can have an arbitratry value, not only on/off }
           hasvalue: boolean;
           { target switch can be used only globally }
           isglobal: boolean;
-          define: string[15];
+          define: string[25];
        end;
 
     const
@@ -338,7 +347,8 @@ interface
          (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true ; define: ''),
          (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true ; define: ''),
          (name: 'INITLOCALS';          hasvalue: false; isglobal: true ; define: ''),
-         (name: 'CLD';                 hasvalue: false; isglobal: true ; define: 'FPC_ENABLED_CLD')
+         (name: 'CLD';                 hasvalue: false; isglobal: true ; define: 'FPC_ENABLED_CLD'),
+         (name: 'FARPROCSPUSHODDBP';   hasvalue: false; isglobal: false; define: 'FPC_FAR_PROCS_PUSH_ODD_BP')
        );
 
        { switches being applied to all CPUs at the given level }
@@ -364,7 +374,7 @@ interface
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,
          { generic }
-         m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,
+         m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,m_extpas,
          {$ifdef fpc_mode}m_gpc,{$endif}
          { more specific }
          m_class,               { delphi class model }
@@ -402,12 +412,15 @@ interface
                                     ansistring; similarly, char becomes unicodechar rather than ansichar }
          m_type_helpers,        { allows the declaration of "type helper" (non-Delphi) or "record helper"
                                   (Delphi) for primitive types }
-         m_blocks               { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
+         m_blocks,              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
+         m_isolike_io,          { I/O as it required by an ISO compatible compiler }
+         m_isolike_program_para, { program parameters as it required by an ISO compatible compiler }
+         m_isolike_mod          { mod operation as it is required by an iso compatible compiler }
        );
        tmodeswitches = set of tmodeswitch;
 
     const
-       alllanguagemodes = [m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso];
+       alllanguagemodes = [m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,m_extpas];
 
     type
        { Application types (platform specific) }
@@ -535,7 +548,7 @@ interface
        cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal];
 
        modeswitchstr : array[tmodeswitch] of string[18] = ('',
-         '','','','','','',
+         '','','','','','','',
          {$ifdef fpc_mode}'',{$endif}
          { more specific }
          'CLASS',
@@ -568,7 +581,11 @@ interface
          'FINALFIELDS',
          'UNICODESTRINGS',
          'TYPEHELPERS',
-         'CBLOCKS');
+         'CBLOCKS',
+         'ISOIO',
+         'ISOPROGRAMPARAS',
+         'ISOMOD'
+         );
 
 
      type

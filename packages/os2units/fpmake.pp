@@ -46,7 +46,7 @@ begin
     P.Targets.AddExampleProgram('clktest.pas');
     P.Targets.AddExampleProgram('ftptest.pas');
     P.Targets.AddExampleProgram('lvmtest.pas');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

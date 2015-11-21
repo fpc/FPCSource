@@ -247,8 +247,8 @@ INTERFACE
 { Returns True if successful, False if Int Digits needed to be truncated }
   function NormalizeBCD ( const InBCD : tBCD;
                             var OutBCD : tBCD;
-                          const Prec,
-                                Scale : Word ) : Boolean;
+                          const Precision,
+                                Places : Integer ) : Boolean;
 
   procedure BCDAdd ( const BCDin1,
                            BCDin2 : tBCD;
@@ -2005,38 +2005,35 @@ IMPLEMENTATION
 { Returns True if successful, False if Int Digits needed to be truncated }
   function NormalizeBCD ( const InBCD : tBCD;
                             var OutBCD : tBCD;
-                          const Prec,
-                                Scale : Word ) : Boolean;
+                          const Precision,
+                                Places : Integer ) : Boolean;
 
     var
       bh : tBCD_helper;
       tm : {$ifopt r+} 1..maxfmtbcdfractionsize - 1 {$else} Integer {$endif};
 
     begin
-      NormalizeBCD := True;
 {$ifopt r+}
-      if ( Prec < 0 ) OR ( Prec > MaxFmtBCDFractionSize ) then RangeError;
-      if ( Scale < 0 ) OR ( Prec >= MaxFmtBCDFractionSize ) then RangeError;
+      if ( Precision < 0 ) OR ( Precision > MaxFmtBCDFractionSize ) then RangeError;
+      if ( Places < 0 ) OR ( Precision >= MaxFmtBCDFractionSize ) then RangeError;
 {$endif}
-      if BCDScale ( InBCD ) > Scale
-        then begin
-          unpack_BCD ( InBCD, bh );
-          WITH bh do
-            begin
-              tm := Plac - Scale;
-              Plac := Scale;
-{             dec ( prec, tm );   Dec/Inc error? }
-              Prec := Prec - tm;
-{             dec ( ldig, tm );   Dec/Inc error? }
-              LDig := LDig - tm;
-              NormalizeBCD := False;
-             end;
-          if NOT pack_BCD ( bh, OutBCD )
-            then begin
-              RAISE eBCDOverflowException.Create ( 'in NormalizeBCD' );
-             end;
-         end;
-     end;
+      NormalizeBCD := True;
+      if BCDScale ( InBCD ) > Places then
+        begin
+        unpack_BCD ( InBCD, bh );
+        tm := bh.Plac - Places;
+        bh.Plac := Places;
+{       dec ( prec, tm );   Dec/Inc error? }
+        bh.Prec := bh.Prec - tm;
+{       dec ( LDig, tm );   Dec/Inc error? }
+        bh.LDig := bh.LDig - tm;
+        NormalizeBCD := False;
+        if NOT pack_BCD ( bh, OutBCD ) then
+          RAISE eBCDOverflowException.Create ( 'in NormalizeBCD' );
+        end
+      else
+        OutBCD := InBCD;
+    end;
 
   procedure BCDMultiply ( const BCDin1,
                                 BCDin2 : tBCD;
@@ -2298,9 +2295,11 @@ if p > 3 then halt;
 {
 writeln ( 'p=', p, ' dd=', dd, ' lFdig=', lfdig, ' lldig=', lldig );
 }
+                                                                  
                                 for i2 := lLdig DOWNTO lFDig do
                                   begin
-                                    v3 := Singles[i2] - bh2.Singles[i2 - p] * dd - ue;
+                                    // Typecase needed on 64-bit because evaluation happens using qword... 
+                                    v3 := Longint(Singles[i2]) - Longint(bh2.Singles[i2 - p] * dd) - Longint(ue);
                                     ue := 0;
                                     while v3 < 0 do
                                       begin

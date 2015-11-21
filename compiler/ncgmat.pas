@@ -154,7 +154,14 @@ implementation
         }
         tg.gethltemp(current_asmdata.CurrAsmList,_size,_size.size,tt_normal,href);
         { store the floating point value in the temporary memory area }
-        hlcg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,_size,_size,r,href);
+        case getregtype(r) of
+          R_FPUREGISTER:
+            hlcg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,_size,_size,r,href);
+          R_MMREGISTER:
+            hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,_size,_size,r,href,mms_movescalar);
+          else
+            internalerror(2015091005);
+        end;
         { only single and double ieee are supported, for little endian
           the signed bit is in the second dword }
         href2:=href;
@@ -179,7 +186,14 @@ implementation
           longint($80000000),
 {$endif cpu64bitalu}
           href2);
-        hlcg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,_size,_size,href,r);
+        case getregtype(r) of
+          R_FPUREGISTER:
+            hlcg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,_size,_size,href,r);
+          R_MMREGISTER:
+            hlcg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,_size,_size,href,r,mms_movescalar);
+          else
+            internalerror(2015091006);
+        end;
         tg.ungetiftemp(current_asmdata.CurrAsmList,href);
       end;
 
@@ -237,23 +251,35 @@ implementation
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
-              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-              hlcg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                 left.resultdef,resultdef,
-                 left.location.reference,location.register);
+              location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+              case getregtype(location.register) of
+                R_FPUREGISTER:
+                  hlcg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
+                     left.resultdef,resultdef,
+                     left.location.reference,location.register);
+                R_MMREGISTER:
+                  hlcg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,
+                     left.resultdef,resultdef,
+                     left.location.reference,location.register,mms_movescalar);
+                else
+                  internalerror(2015091004);
+              end;
               emit_float_sign_change(location.register,left.resultdef);
             end;
-          LOC_FPUREGISTER:
-            begin
-               location.register:=left.location.register;
-               emit_float_sign_change(location.register,left.resultdef);
-            end;
+          LOC_FPUREGISTER,
           LOC_CFPUREGISTER:
             begin
-               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+               location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
                hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
                emit_float_sign_change(location.register,left.resultdef);
             end;
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER:
+            begin
+               location.register:=hlcg.getmmregister(current_asmdata.CurrAsmList,resultdef);
+               hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register,mms_movescalar);
+               emit_float_sign_change(location.register,left.resultdef);
+            end
           else
             internalerror(200306021);
         end;

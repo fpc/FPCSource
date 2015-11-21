@@ -267,7 +267,6 @@ procedure tmipsaddnode.second_cmpfloat;
 var
   op: tasmop;
   lreg,rreg: tregister;
-  ai: Taicpu;
 begin
   pass_left_right;
   if nf_swapped in flags then

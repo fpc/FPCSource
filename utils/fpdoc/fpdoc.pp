@@ -73,6 +73,8 @@ Var
 
 begin
   Writeln(Format(SCmdLineHelp,[ExtractFileName(Paramstr(0))]));
+  Writeln(SUsageOption008);
+  Writeln(SUsageOption009);
   Writeln(SUsageOption010);
   Writeln(SUsageOption020);
   Writeln(SUsageOption030);
@@ -311,6 +313,8 @@ begin
       AddToFileList(SelectedPackage.Descriptions, Arg)
     else if (Cmd = '--descr-dir') then
       AddDirToFileList(SelectedPackage.Descriptions, Arg, '*.xml')
+    else if (Cmd = '--base-descr-dir') then
+      FCreator.BaseDescrDir:=Arg
     else if (Cmd = '-f') or (Cmd = '--format') then
       begin
       Arg:=UpperCase(Arg);
@@ -323,6 +327,8 @@ begin
       FCreator.Options.Language := Arg
     else if (Cmd = '-i') or (Cmd = '--input') then
       AddToFileList(SelectedPackage.Inputs, Arg)
+    else if (Cmd = '--base-input-dir') then
+      FCreator.BaseInputDir:=Arg
     else if (Cmd = '--input-dir') then
       begin
       AddDirToFileList(SelectedPackage.Inputs, Arg,'*.pp');

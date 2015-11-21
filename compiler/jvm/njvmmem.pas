@@ -332,7 +332,7 @@ implementation
             if not assigned(vs) or
                (tsym(vs).typ<>procsym) then
               internalerror(2011041901);
-            result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[]);
+            result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[],nil);
             inserttypeconv_explicit(result,resultdef);
             { reused }
             left:=nil;
@@ -385,7 +385,7 @@ implementation
             { Pascal strings are 1-based, Java strings 0-based }
             result:=ccallnode.create(ccallparanode.create(
               caddnode.create(subn,right,genintconstnode(1)),nil),tprocsym(psym),
-              psym.owner,ctypeconvnode.create_explicit(left,stringclass),[]);
+              psym.owner,ctypeconvnode.create_explicit(left,stringclass),[],nil);
             left:=nil;
             right:=nil;
             exit;

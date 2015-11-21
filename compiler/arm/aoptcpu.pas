@@ -2500,13 +2500,16 @@ Implementation
               hp3:=tai(p.Previous);
               hp5:=tai(p.next);
               asml.Remove(p);
-              { if there is a reg. dealloc instruction associated with p, move it together with p }
+              { if there is a reg. dealloc instruction or address labels (e.g. for GOT-less PIC)
+                associated with p, move it together with p }
 
               { before the instruction? }
               while assigned(hp3) and (hp3.typ<>ait_instruction) do
                 begin
-                  if (hp3.typ=ait_regalloc) and (tai_regalloc(hp3).ratype in [ra_dealloc]) and
-                    RegInInstruction(tai_regalloc(hp3).reg,p) then
+                  if ( (hp3.typ=ait_regalloc) and (tai_regalloc(hp3).ratype in [ra_dealloc]) and
+                    RegInInstruction(tai_regalloc(hp3).reg,p) )
+                    or ( (hp3.typ=ait_label) and (tai_label(hp3).labsym.typ=AT_ADDR) )
+                  then
                     begin
                       hp4:=hp3;
                       hp3:=tai(hp3.Previous);
@@ -2552,7 +2555,7 @@ Implementation
 {$endif DEBUG_PREREGSCHEDULER}
               asml.InsertBefore(hp1,insertpos);
               asml.InsertListBefore(insertpos,list);
-              p:=tai(p.next)
+              p:=tai(p.next);
             end
           else if p.typ=ait_instruction then
             p:=hp1
@@ -2629,8 +2632,7 @@ Implementation
   function TCpuThumb2AsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       hp : taicpu;
-      hp1,hp2 : tai;
-      oldreg : TRegister;
+      //hp1,hp2 : tai;
     begin
       result:=false;
       if inherited PeepHoleOptPass1Cpu(p) then
@@ -2757,10 +2759,8 @@ Implementation
   procedure TCpuThumb2AsmOptimizer.PeepHoleOptPass2;
     var
       p,hp1,hp2: tai;
-      l,l2 : longint;
+      l : longint;
       condition : tasmcond;
-      hp3: tai;
-      WasLast: boolean;
       { UsedRegs, TmpUsedRegs: TRegSet; }
 
     begin

@@ -31,14 +31,14 @@ interface
       symtable,symsym,symdef;
 
     type
-      tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class,vd_final,vd_canreorder);
+      tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class,vd_final,vd_canreorder,vd_check_generic);
       tvar_dec_options=set of tvar_dec_option;
 
     function  read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
 
-    procedure read_var_decls(options:Tvar_dec_options);
+    procedure read_var_decls(options:Tvar_dec_options;out had_generic:boolean);
 
-    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc: ppvariantrecdesc);
+    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc: ppvariantrecdesc;out had_generic:boolean);
 
     procedure read_public_and_external(vs: tabstractvarsym);
 
@@ -181,7 +181,7 @@ implementation
                          if def.typ=arraydef then
                           begin
                             idx:=0;
-                            p:=comp_expr(true,false);
+                            p:=comp_expr([ef_accept_equal]);
                             if (not codegenerror) then
                              begin
                                if (p.nodetype=ordconstn) then
@@ -284,7 +284,7 @@ implementation
 
               if try_to_consume(_DISPID) then
                 begin
-                  pt:=comp_expr(true,false);
+                  pt:=comp_expr([ef_accept_equal]);
                   if is_constintnode(pt) then
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
                       message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
@@ -347,8 +347,8 @@ implementation
          { Generate temp procdefs to search for matching read/write
            procedures. the readprocdef will store all definitions }
          paranr:=0;
-         readprocdef:=cprocdef.create(normal_function_level);
-         writeprocdef:=cprocdef.create(normal_function_level);
+         readprocdef:=cprocdef.create(normal_function_level,true);
+         writeprocdef:=cprocdef.create(normal_function_level,true);
 
          readprocdef.struct:=astruct;
          writeprocdef.struct:=astruct;
@@ -448,7 +448,7 @@ implementation
               if (idtoken=_INDEX) then
                 begin
                    consume(_INDEX);
-                   pt:=comp_expr(true,false);
+                   pt:=comp_expr([ef_accept_equal]);
                    { Only allow enum and integer indexes. Convert all integer
                      values to objpas.integer (s32int on 32- and 64-bit targets,
                      s16int on 16- and 8-bit) to be compatible with delphi,
@@ -661,14 +661,14 @@ implementation
                 begin
                   Message(parser_e_property_cant_have_a_default_value);
                   { Error recovery }
-                  pt:=comp_expr(true,false);
+                  pt:=comp_expr([ef_accept_equal]);
                   pt.free;
                 end
               else
                 begin
                   { Get the result of the default, the firstpass is
                     needed to support values like -1 }
-                  pt:=comp_expr(true,false);
+                  pt:=comp_expr([ef_accept_equal]);
                   if (p.propdef.typ=setdef) and
                      (pt.nodetype=arrayconstructorn) then
                     begin
@@ -841,7 +841,7 @@ implementation
             (def.typesym=nil) and
             check_proc_directive(true) then
            begin
-              newtype:=ctypesym.create('unnamed',def);
+              newtype:=ctypesym.create('unnamed',def,true);
               parse_var_proc_directives(tsym(newtype));
               newtype.typedef:=nil;
               def.typesym:=nil;
@@ -1050,7 +1050,7 @@ implementation
     end;
 
 
-    procedure read_var_decls(options:Tvar_dec_options);
+    procedure read_var_decls(options:Tvar_dec_options;out had_generic:boolean);
 
         procedure read_default_value(sc : TFPObjectList);
         var
@@ -1066,7 +1066,7 @@ implementation
           case vs.typ of
             localvarsym :
               begin
-                tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
+                tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[],true);
                 include(tcsym.symoptions,sp_internal);
                 vs.defaultconstsym:=tcsym;
                 symtablestack.top.insert(tcsym);
@@ -1154,7 +1154,7 @@ implementation
                 abssym.addroffset:=Tordconstnode(pt).value.svalue;
 {$if defined(i386) or defined(i8086)}
               tcpuabsolutevarsym(abssym).absseg:=false;
-              if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos]) and
+              if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos,system_i8086_win16]) and
                   try_to_consume(_COLON) then
                 begin
                   pt.free;
@@ -1266,6 +1266,8 @@ implementation
          vs   : tabstractvarsym;
          hdef : tdef;
          i    : longint;
+         first,
+         isgeneric,
          semicoloneaten,
          allowdefaultvalue,
          hasdefaultvalue : boolean;
@@ -1273,6 +1275,8 @@ implementation
          deprecatedmsg   : pshortstring;
          old_block_type  : tblock_type;
          sectionname : ansistring;
+         tmp_filepos,
+         old_current_filepos     : tfileposinfo;
       begin
          old_block_type:=block_type;
          block_type:=bt_var;
@@ -1281,6 +1285,8 @@ implementation
            consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
+         first:=true;
+         had_generic:=false;
          while (token=_ID) do
            begin
              semicoloneaten:=false;
@@ -1290,13 +1296,16 @@ implementation
              repeat
                if (token = _ID) then
                  begin
+                   isgeneric:=(vd_check_generic in options) and
+                                not (m_delphi in current_settings.modeswitches) and
+                                (idtoken=_GENERIC);
                    case symtablestack.top.symtabletype of
                      localsymtable :
-                       vs:=clocalvarsym.create(orgpattern,vs_value,generrordef,[]);
+                       vs:=clocalvarsym.create(orgpattern,vs_value,generrordef,[],false);
                      staticsymtable,
                      globalsymtable :
                        begin
-                         vs:=cstaticvarsym.create(orgpattern,vs_value,generrordef,[]);
+                         vs:=cstaticvarsym.create(orgpattern,vs_value,generrordef,[],false);
                          if vd_threadvar in options then
                            include(vs.varoptions,vo_is_thread_var);
                        end;
@@ -1304,10 +1313,42 @@ implementation
                        internalerror(200411064);
                    end;
                    sc.add(vs);
-                   symtablestack.top.insert(vs);
-                 end;
+                   if isgeneric then
+                     tmp_filepos:=current_filepos;
+                 end
+               else
+                 isgeneric:=false;
                consume(_ID);
+               { when the first variable had been read the next declaration could be
+                 a "generic procedure", "generic function" or
+                 "generic class (function/procedure)" }
+               if not first
+                   and isgeneric
+                   and (sc.count=1)
+                   and (token in [_PROCEDURE,_FUNCTION,_CLASS]) then
+                 begin
+                   vs.free;
+                   sc.clear;
+                   had_generic:=true;
+                   break;
+                 end
+               else
+                 begin
+                   vs.register_sym;
+                   symtablestack.top.insert(vs);
+                   if isgeneric then
+                     begin
+                       { ensure correct error position }
+                       old_current_filepos:=current_filepos;
+                       current_filepos:=tmp_filepos;
+                       symtablestack.top.insert(vs);
+                       current_filepos:=old_current_filepos;
+                     end;
+                 end;
              until not try_to_consume(_COMMA);
+
+             if had_generic then
+               break;
 
              { read variable type def }
              block_type:=bt_var_type;
@@ -1445,6 +1486,8 @@ implementation
                     not(vo_is_external in vs.varoptions) then
                    cnodeutils.insertbssdata(tstaticvarsym(vs));
                end;
+
+             first:=false;
            end;
          block_type:=old_block_type;
          { free the list }
@@ -1452,7 +1495,7 @@ implementation
       end;
 
 
-    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc);
+    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean);
       var
          sc : TFPObjectList;
          i  : longint;
@@ -1478,6 +1521,7 @@ implementation
          uniondef : trecorddef;
          hintsymoptions : tsymoptions;
          deprecatedmsg : pshortstring;
+         hadgendummy,
          semicoloneaten,
          removeclassoption: boolean;
 {$if defined(powerpc) or defined(powerpc64)}
@@ -1498,6 +1542,7 @@ implementation
          { read vars }
          sc:=TFPObjectList.create(false);
          removeclassoption:=false;
+         had_generic:=false;
          while (token=_ID) and
             not(((vd_object in options) or
                  ((vd_record in options) and (m_advanced_records in current_settings.modeswitches))) and
@@ -1512,22 +1557,39 @@ implementation
                sorg:=orgpattern;
                if token=_ID then
                  begin
-                   vs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                   vs:=cfieldvarsym.create(sorg,vs_value,generrordef,[],false);
 
                    { normally the visibility is set via addfield, but sometimes
                      we collect symbols so we can add them in a batch of
                      potentially mixed visibility, and then the individual
                      symbols need to have their visibility already set }
                    vs.visibility:=visibility;
+                   if (vd_check_generic in options) and (idtoken=_GENERIC) then
+                     had_generic:=true;
+                 end
+               else
+                 vs:=nil;
+               consume(_ID);
+               if assigned(vs) and
+                  (
+                    not had_generic or
+                    not (token in [_PROCEDURE,_FUNCTION,_CLASS])
+                  ) then
+                 begin
+                   vs.register_sym;
                    sc.add(vs);
                    recst.insert(vs);
-                 end;
-               consume(_ID);
+                   had_generic:=false;
+                 end
+               else
+                 vs.free;
              until not try_to_consume(_COMMA);
              if m_delphi in current_settings.modeswitches then
                block_type:=bt_var_type
              else
                block_type:=old_block_type;
+             if had_generic and (sc.count=0) then
+               break;
              consume(_COLON);
 
              read_anon_type(hdef,false);
@@ -1739,7 +1801,7 @@ implementation
                 begin
                   consume(_ID);
                   consume(_COLON);
-                  fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                  fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[],true);
                   variantdesc^^.variantselector:=fieldvs;
                   symtablestack.top.insert(fieldvs);
                 end;
@@ -1773,12 +1835,12 @@ implementation
                 fillchar(variantdesc^^.branches[high(variantdesc^^.branches)],
                   sizeof(variantdesc^^.branches[high(variantdesc^^.branches)]),0);
                 repeat
-                  pt:=comp_expr(true,false);
+                  pt:=comp_expr([ef_accept_equal]);
                   if not(pt.nodetype=ordconstn) then
                     Message(parser_e_illegal_expression);
                   { iso pascal does not support ranges in variant record definitions }
-                  if not(m_iso in current_settings.modeswitches) and try_to_consume(_POINTPOINT) then
-                    pt:=crangenode.create(pt,comp_expr(true,false))
+                  if (([m_iso,m_extpas]*current_settings.modeswitches)=[]) and try_to_consume(_POINTPOINT) then
+                    pt:=crangenode.create(pt,comp_expr([ef_accept_equal]))
                   else
                     begin
                       with variantdesc^^.branches[high(variantdesc^^.branches)] do
@@ -1802,7 +1864,7 @@ implementation
                 consume(_LKLAMMER);
                 inc(variantrecordlevel);
                 if token<>_RKLAMMER then
-                  read_record_fields([vd_record],nil,@variantdesc^^.branches[high(variantdesc^^.branches)].nestedvariant);
+                  read_record_fields([vd_record],nil,@variantdesc^^.branches[high(variantdesc^^.branches)].nestedvariant,hadgendummy);
                 dec(variantrecordlevel);
                 consume(_RKLAMMER);
 

@@ -29,7 +29,7 @@ interface
 uses
   cclasses,globtype,constexp,
   aasmbase,aasmdata,aasmtai,
-  symconst,symtype,symdef,symsym;
+  symconst,symbase,symtype,symdef,symsym;
 
 type
    { typed const: integer/floating point/string/pointer/... const along with
@@ -92,6 +92,7 @@ type
      procedure addvalue(val: tai_abstracttypedconst);
      function valuecount: longint;
      procedure insertvaluebeforepos(val: tai_abstracttypedconst; pos: longint);
+     function replacevalueatpos(val: tai_abstracttypedconst; pos: longint): tai_abstracttypedconst;
      procedure finish;
      destructor destroy; override;
    end;
@@ -112,7 +113,17 @@ type
      { this symbol is the start of a block of data that should be
        dead-stripable/smartlinkable; may imply starting a new section, but
        not necessarily (depends on what the platform requirements are) }
-     tcalo_make_dead_strippable
+     tcalo_make_dead_strippable,
+     { this symbol should never be removed by the linker }
+     tcalo_no_dead_strip,
+     { start of a vectorized but individually dead strippable list of elements,
+       like the resource strings of a unit: they have to stay in this order,
+       but individual elements can be removed }
+     tcalo_vectorized_dead_strip_start,
+     { item in the above list }
+     tcalo_vectorized_dead_strip_item,
+     { end of the above list }
+     tcalo_vectorized_dead_strip_end
    );
    ttcasmlistoptions = set of ttcasmlistoption;
 
@@ -168,6 +179,14 @@ type
    end;
    taggregateinformationclass = class of taggregateinformation;
 
+   { information about a placeholder element that has been added, and which has
+     to be replaced later with a real data element }
+   ttypedconstplaceholder = class abstract
+     def: tdef;
+     constructor create(d: tdef);
+     procedure replace(ai: tai; d: tdef); virtual; abstract;
+   end;
+
    { Warning: never directly create a ttai_typedconstbuilder instance,
      instead create a cai_typedconstbuilder (this class can be overridden) }
    ttai_typedconstbuilder = class abstract
@@ -220,12 +239,17 @@ type
 
      { ensure that finalize_asmlist is called only once }
      fasmlist_finalized: boolean;
+     { ensure that if it's vectorized dead strippable data, we called
+       finalize_vectorized_dead_strip_asmlist instead of finalize_asmlist }
+     fvectorized_finalize_called: boolean;
 
      { returns whether def must be handled as an aggregate on the current
        platform }
      function aggregate_kind(def: tdef): ttypedconstkind; virtual;
      { finalize the asmlist: add the necessary symbols etc }
      procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
+     { functionality of the above for vectorized dead strippable sections }
+     procedure finalize_vectorized_dead_strip_asmlist(def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions); virtual;
 
      { called by the public emit_tai() routines to actually add the typed
        constant data; the public ones also take care of adding extra padding
@@ -284,7 +308,14 @@ type
        the anonymous record, and insert the alignment once it's finished }
      procedure mark_anon_aggregate_alignment; virtual; abstract;
      procedure insert_marked_aggregate_alignment(def: tdef); virtual; abstract;
+     class function get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; define, start: boolean): tasmsymbol; virtual;
     public
+     class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; out secname: TSymStr): boolean; virtual;
+     { get the start/end symbol for a dead stripable vectorized section, such
+       as the resourcestring data of a unit }
+     class function get_vectorized_dead_strip_section_symbol_start(const basename: string; st: tsymtable; define: boolean): tasmsymbol; virtual;
+     class function get_vectorized_dead_strip_section_symbol_end(const basename: string; st: tsymtable; define: boolean): tasmsymbol; virtual;
+
      class function get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): string;
      { the datalist parameter specifies where the data for the string constant
        will be emitted (via an internal data builder) }
@@ -327,6 +358,16 @@ type
      function begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin, maxcrecordalign: shortint): trecorddef; virtual;
      function end_anonymous_record: trecorddef; virtual;
 
+     { add a placeholder element at the current position that later can be
+       filled in with the actual data (via ttypedconstplaceholder.replace)
+
+       useful in case you have table preceded by the number of elements, and
+       you cound the elements while building the table }
+     function emit_placeholder(def: tdef): ttypedconstplaceholder; virtual; abstract;
+     { common code to check whether a placeholder can be added at the current
+       position }
+     procedure check_add_placeholder(def: tdef);
+
      { The next group of routines are for constructing complex expressions.
        While parsing a typed constant these operators are encountered from
        outer to inner, so that is also the order in which they should be
@@ -368,6 +409,7 @@ type
        contents to another list first. This property should only be accessed
        once all data has been added. }
      function get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint): tasmlist;
+     function get_final_asmlist_vectorized_dead_strip(def: tdef; const basename, itemname: TSymStr; st: TSymtable; alignment: longint): tasmlist;
 
      { returns the offset of the string data relative to ansi/unicode/widestring
        constant labels. On most platforms, this is 0 (with the header at a
@@ -397,13 +439,22 @@ type
      property anonrecmarker: tai read fanonrecmarker write fanonrecmarker;
    end;
 
+   tlowleveltypedconstplaceholder = class(ttypedconstplaceholder)
+     list: tasmlist;
+     insertpos: tai;
+     constructor create(l: tasmlist; pos: tai; d: tdef);
+     procedure replace(ai: tai; d: tdef); override;
+   end;
+
    ttai_lowleveltypedconstbuilder = class(ttai_typedconstbuilder)
     protected
      procedure mark_anon_aggregate_alignment; override;
      procedure insert_marked_aggregate_alignment(def: tdef); override;
+     procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); override;
     public
      { set the default value for caggregateinformation (= tlowlevelaggregateinformation) }
      class constructor classcreate;
+     function emit_placeholder(def: tdef): ttypedconstplaceholder; override;
    end;
 
    var
@@ -414,7 +465,7 @@ implementation
    uses
      verbose,globals,systems,widestr,
      fmodule,
-     symbase,symtable,defutil;
+     symtable,defutil;
 
 {****************************************************************************
                        taggregateinformation
@@ -507,6 +558,15 @@ implementation
         result:=nextoffset-currentoffset;
       end;
 
+
+{****************************************************************************
+                             ttypedconstplaceholder
+ ****************************************************************************}
+
+    constructor ttypedconstplaceholder.create(d: tdef);
+      begin
+        def:=d;
+      end;
 
 {****************************************************************************
                             tai_abstracttypedconst
@@ -685,6 +745,13 @@ implementation
      end;
 
 
+   function tai_aggregatetypedconst.replacevalueatpos(val: tai_abstracttypedconst; pos: longint): tai_abstracttypedconst;
+     begin
+       result:=tai_abstracttypedconst(fvalues[pos]);
+       fvalues[pos]:=val;
+     end;
+
+
    procedure tai_aggregatetypedconst.finish;
      begin
        if fisstring then
@@ -819,22 +886,45 @@ implementation
           { in case of syntax errors, the aggregate may not have been finished }
           (ErrorCount=0) then
          internalerror(2015072301);
+
+       { must call finalize_vectorized_dead_strip_asmlist() instead }
+       if (([tcalo_vectorized_dead_strip_start,
+             tcalo_vectorized_dead_strip_item,
+             tcalo_vectorized_dead_strip_end]*options)<>[]) and
+          not fvectorized_finalize_called then
+         internalerror(2015110602);
+
        prelist:=tasmlist.create;
        { only now add items based on the symbolname, because it may be
          modified by the "section" specifier in case of a typed constant }
-       if tcalo_make_dead_strippable in options then
+
+       { both in case the data should be dead strippable and never dead
+         stripped, it should be in a separate section (so this property doesn't
+         affect other data) }
+       if ([tcalo_no_dead_strip,tcalo_make_dead_strippable]*options)<>[] then
          begin
            maybe_new_object_file(prelist);
            { we always need a new section here, since if we started a new
              object file then we have to say what the section is, and otherwise
-             we need a new section because that's how the dead stripping works
-             (except on Darwin, but that will be addressed in a future commit) }
+             we need a new section because that's how the dead stripping works }
            new_section(prelist,section,secname,const_align(alignment));
          end
        else if tcalo_new_section in options then
          new_section(prelist,section,secname,const_align(alignment))
        else
          prelist.concat(cai_align.Create(const_align(alignment)));
+
+       { On Darwin, use .reference to ensure the data doesn't get dead stripped.
+         On other platforms, the data must be in the .fpc section (which is
+         kept via the linker script) }
+       if tcalo_no_dead_strip in options then
+         begin
+           if target_info.system in systems_darwin then
+             prelist.concat(tai_directive.Create(asd_reference,sym.name))
+           else if section<>sec_fpc then
+             internalerror(2015101402);
+         end;
+
        if not(tcalo_is_lab in options) then
          if sym.bind=AB_GLOBAL then
            prelist.concat(tai_symbol.Create_Global(sym,0))
@@ -851,6 +941,48 @@ implementation
      end;
 
 
+   procedure ttai_typedconstbuilder.finalize_vectorized_dead_strip_asmlist(def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions);
+     var
+       sym: tasmsymbol;
+       secname: TSymStr;
+       sectype: TAsmSectiontype;
+       customsecname: boolean;
+     begin
+       fvectorized_finalize_called:=true;
+       customsecname:=get_vectorized_dead_strip_custom_section_name(basename,st,secname);
+       if customsecname then
+         sectype:=sec_user
+       else
+         sectype:=sec_data;
+       if tcalo_vectorized_dead_strip_start in options then
+         begin
+           { the start and end names are predefined }
+           if itemname<>'' then
+             internalerror(2015110801);
+           sym:=get_vectorized_dead_strip_section_symbol_start(basename,st,true);
+           if not customsecname then
+             secname:=make_mangledname(basename,st,'1_START');
+         end
+       else if tcalo_vectorized_dead_strip_end in options then
+         begin
+           { the start and end names are predefined }
+           if itemname<>'' then
+             internalerror(2015110802);
+           sym:=get_vectorized_dead_strip_section_symbol_end(basename,st,true);
+           if not customsecname then
+             make_mangledname(basename,st,'3_END');
+         end
+       else if tcalo_vectorized_dead_strip_item in options then
+         begin
+           sym:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,itemname),AB_GLOBAL,AT_DATA);
+           if not customsecname then
+             secname:=make_mangledname(basename,st,'2_'+itemname);
+           exclude(options,tcalo_vectorized_dead_strip_item);
+         end;
+       finalize_asmlist(sym,def,sectype,secname,alignment,options);
+     end;
+
+
    procedure ttai_typedconstbuilder.do_emit_tai(p: tai; def: tdef);
      begin
        { by default we don't care about the type }
@@ -863,6 +995,17 @@ implementation
        if not fasmlist_finalized then
          begin
            finalize_asmlist(sym,def,section,secname,alignment,foptions);
+           fasmlist_finalized:=true;
+         end;
+       result:=fasmlist;
+     end;
+
+
+   function ttai_typedconstbuilder.get_final_asmlist_vectorized_dead_strip(def: tdef; const basename, itemname: TSymStr; st: TSymtable; alignment: longint): tasmlist;
+     begin
+       if not fasmlist_finalized then
+         begin
+           finalize_vectorized_dead_strip_asmlist(def,basename,itemname,st,alignment,foptions);
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
@@ -1196,6 +1339,33 @@ implementation
      end;
 
 
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; define, start: boolean): tasmsymbol;
+     begin
+       if start then
+         result:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,'START'),AB_GLOBAL,AT_DATA)
+       else
+         result:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,'END'),AB_GLOBAL,AT_DATA);
+     end;
+
+
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; out secname: TSymStr): boolean;
+     begin
+       result:=false;
+     end;
+
+
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start(const basename: string; st: tsymtable; define: boolean): tasmsymbol;
+     begin
+       result:=get_vectorized_dead_strip_section_symbol(basename,st,define,true);
+     end;
+
+
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end(const basename: string; st: tsymtable; define: boolean): tasmsymbol;
+     begin
+       result:=get_vectorized_dead_strip_section_symbol(basename,st,define,false);
+     end;
+
+
    class function ttai_typedconstbuilder.get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): string;
      begin
        case typ of
@@ -1245,7 +1415,6 @@ implementation
        string_symofs: asizeint;
        startlab: tasmlabel;
        datadef: tdef;
-       uniwidestrrecdef: trecorddef;
        datatcb: ttai_typedconstbuilder;
      begin
        start_internal_data_builder(datalist,sec_rodata_norel,'',datatcb,startlab);
@@ -1286,7 +1455,7 @@ implementation
            { ending #0 }
            datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
            datatcb.maybe_end_aggregate(datadef);
-           uniwidestrrecdef:=datatcb.end_anonymous_record;
+           datatcb.end_anonymous_record;
          end
        else
          { code generation for other sizes must be written }
@@ -1430,6 +1599,22 @@ implementation
      end;
 
 
+   procedure ttai_typedconstbuilder.check_add_placeholder(def: tdef);
+     begin
+       { it only makes sense to add a placeholder inside an aggregate
+         (otherwise there can be but one element)
+
+         we cannot add a placeholder in the middle of a queued expression
+         either
+
+         the placeholder cannot be an aggregate }
+       if not assigned(curagginfo) or
+          queue_is_active or
+          (aggregate_kind(def)<>tck_simple) then
+         internalerror(2015091001);
+     end;
+
+
    procedure ttai_typedconstbuilder.queue_init(todef: tdef);
      var
        info: taggregateinformation;
@@ -1564,13 +1749,32 @@ implementation
 
 
    procedure ttai_typedconstbuilder.queue_emit_const(cs: tconstsym);
+     var
+       resourcestrrec: trecorddef;
      begin
        if cs.consttyp<>constresourcestring then
          internalerror(2014062102);
        if fqueue_offset<>0 then
          internalerror(2014062103);
        { warning: update if/when the type of resource strings changes }
-       emit_tai(Tai_const.Createname(make_mangledname('RESSTR',cs.owner,cs.name),AT_DATA,sizeof(pint)),cansistringtype);
+       case cs.consttyp of
+         constresourcestring:
+           begin
+             resourcestrrec:=trecorddef(search_system_type('TRESOURCESTRINGRECORD').typedef);
+             queue_subscriptn_multiple_by_name(resourcestrrec,['CURRENTVALUE']);
+             queue_emit_asmsym(current_asmdata.RefAsmSymbol(
+               make_mangledname('RESSTR',cs.owner,cs.name),AT_DATA),cansistringtype
+             );
+           end;
+         { can these occur? }
+         constord,
+         conststring,constreal,
+         constset,constpointer,constnil,
+         constwstring,constguid:
+           internalerror(2015090903);
+         else
+           internalerror(2015090904);
+       end;
        fqueue_offset:=low(fqueue_offset);
      end;
 
@@ -1598,6 +1802,28 @@ implementation
      end;
 
 
+   {****************************************************************************
+                         tlowleveltypedconstplaceholder
+   ****************************************************************************}
+
+   constructor tlowleveltypedconstplaceholder.create(l: tasmlist; pos: tai; d: tdef);
+     begin
+       inherited create(d);
+       list:=l;
+       insertpos:=pos;
+     end;
+
+
+   procedure tlowleveltypedconstplaceholder.replace(ai: tai; d: tdef);
+     begin
+       if d<>def then
+         internalerror(2015091001);
+       list.insertafter(ai,insertpos);
+       list.remove(insertpos);
+       insertpos.free;
+     end;
+
+
 {****************************************************************************
                            tai_abstracttypedconst
  ****************************************************************************}
@@ -1605,6 +1831,17 @@ implementation
    class constructor ttai_lowleveltypedconstbuilder.classcreate;
      begin
        caggregateinformation:=tlowlevelaggregateinformation;
+     end;
+
+
+   function ttai_lowleveltypedconstbuilder.emit_placeholder(def: tdef): ttypedconstplaceholder;
+     var
+       p: tai;
+     begin
+       check_add_placeholder(def);
+       p:=tai_marker.Create(mark_position);
+       emit_tai(p,def);
+       result:=tlowleveltypedconstplaceholder.create(fasmlist,p,def);
      end;
 
 
@@ -1635,6 +1872,23 @@ implementation
        fasmlist.remove(info.anonrecmarker);
        info.anonrecmarker.free;
        info.anonrecmarker:=nil;
+     end;
+
+   procedure ttai_lowleveltypedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+     begin
+       inherited;
+       { The darwin/ppc64 assembler or linker seems to have trouble       }
+       { if a section ends with a global label without any data after it. }
+       { So for safety, just put a dummy value here.                      }
+       { Further, the regular linker also kills this symbol when turning  }
+       { on smart linking in case no value appears after it, so put the   }
+       { dummy byte there always                                          }
+       { Update: the Mac OS X 10.6 linker orders data that needs to be    }
+       { relocated before all other data, so make this data relocatable,  }
+       { otherwise the end label won't be moved with the rest             }
+       if (tcalo_vectorized_dead_strip_end in options) and
+          (target_info.system in (systems_darwin+systems_aix)) then
+         fasmlist.concat(Tai_const.create_sym(sym));
      end;
 
 

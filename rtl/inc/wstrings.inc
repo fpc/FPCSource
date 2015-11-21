@@ -881,7 +881,6 @@ begin
   s:=WideString(ss);
 end;
 
-{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_WideStr_Currency(c : Currency;len,fr : SizeInt;out s : WideString);compilerproc;
 var
   ss: ShortString;
@@ -889,7 +888,6 @@ begin
   str(c:len:fr,ss);
   s:=WideString(ss);
 end;
-{$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_WideStr_SInt(v : ValSint; Len : SizeInt; out S : WideString);compilerproc;
 Var

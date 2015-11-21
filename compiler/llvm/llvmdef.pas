@@ -478,10 +478,16 @@ implementation
                     encodedstr:=encodedstr+'*'
                 end;
               odt_interfacecom,
+              odt_interfacecorba,
+              odt_dispinterface:
+                begin
+                  { type is a pointer to the vmt }
+                  llvmaddencodedtype_intern(tobjectdef(def).vmt_def,flags,encodedstr);
+                  if ([lef_typedecl,lef_noimplicitderef]*flags=[]) then
+                    encodedstr:=encodedstr+'*';
+                end;
               odt_interfacecom_function,
               odt_interfacecom_property,
-              odt_interfacecorba,
-              odt_dispinterface,
               odt_objcprotocol:
                 begin
                   { opaque for now }
@@ -610,8 +616,22 @@ implementation
           { sret: hidden pointer for structured function result }
           if vo_is_funcret in hp.varoptions then
             begin
+              { "sret" is only valid for the firstparameter, while in FPC this
+                can sometimes be second one (self comes before). In general,
+                this is not a problem: we can just leave out sret, which means
+                the result will be a bit less well optimised), but it is for
+                AArch64: there, the sret parameter must be passed in a different
+                register (-> paranr_result is smaller than paranr_self for that
+                platform in symconst) }
+{$ifdef aarch64}
+              if not first then
+                internalerror(2015101404);
+{$endif aarch64}
               if withattributes then
-                encodedstr:=encodedstr+' sret'
+                 if first then
+                   encodedstr:=encodedstr+' sret'
+                 else { we can add some other attributes to optimise things,}
+                   encodedstr:=encodedstr+' noalias nocapture';
             end
           else if not paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) and
              llvmbyvalparaloc(paraloc) then
@@ -736,6 +756,8 @@ implementation
                     { other types should not appear currently, add as needed }
                     internalerror(2014012008);
                   end;
+              pointerdef:
+                typename:='p'+tostr(hdef.deflist_index);
               else
                 { other types should not appear currently, add as needed }
                 internalerror(2014012009);

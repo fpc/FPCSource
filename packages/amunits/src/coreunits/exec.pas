@@ -1191,7 +1191,7 @@ PROCEDURE Alert(alertNum : ULONG location 'd7'); syscall _ExecBase 108;
 FUNCTION AllocAbs(byteSize : ULONG location 'd0'; location : POINTER location 'a1') : POINTER; syscall _ExecBase 204;
 FUNCTION Allocate(freeList : pMemHeader location 'a0'; byteSize : ULONG location 'd0') : POINTER; syscall _ExecBase 186;
 FUNCTION AllocEntry(entry : pMemList location 'a0') : pMemList; syscall _ExecBase 222;
-FUNCTION AllocMem(byteSize : ULONG location 'd0'; requirements : ULONG location 'd1') : POINTER; syscall _ExecBase 198;
+FUNCTION ExecAllocMem(byteSize : ULONG location 'd0'; requirements : ULONG location 'd1') : POINTER; syscall _ExecBase 198;
 FUNCTION AllocPooled(poolHeader : POINTER location 'a0'; memSize : ULONG location 'd0') : POINTER; syscall _ExecBase 708;
 FUNCTION AllocSignal(signalNum : LONGINT location 'd0') : shortint; syscall _ExecBase 330;
 FUNCTION AllocTrap(trapNum : LONGINT location 'd0') : LONGINT; syscall _ExecBase 342;

@@ -57,7 +57,6 @@ interface
         FOmfFixup: TOmfSubRecord_FIXUP;
         function GetGroupIndex(const groupname: string): Integer;
       public
-        constructor CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
         destructor Destroy; override;
 
         procedure BuildOmfFixup;
@@ -100,8 +99,12 @@ interface
         class function CodeSectionName(const aname:string): string;
       public
         constructor create(const n:string);override;
+        function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
         function sectiontype2align(atype:TAsmSectiontype):shortint;override;
+        function sectiontype2class(atype:TAsmSectiontype):string;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
+        function createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;override;
+        function reffardatasection:TObjSection;
         procedure writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
       end;
 
@@ -132,6 +135,7 @@ interface
       public
         constructor create(AWriter:TObjectWriter);override;
         destructor Destroy;override;
+        procedure WriteDllImport(const dllname,afuncname,mangledname:string;ordnr:longint;isvar:boolean);
       end;
 
       { TOmfObjInput }
@@ -142,7 +146,7 @@ interface
         FExtDefs: TFPHashObjectList;
         FPubDefs: TFPHashObjectList;
         FRawRecord: TOmfRawRecord;
-        FCaseSensitive: Boolean;
+        FCaseSensitiveSegments: Boolean;
 
         function PeekNextRecordType: Byte;
 
@@ -161,7 +165,7 @@ interface
 
         { Specifies whether we're case sensitive in regards to segment, class, overlay and group names.
           Symbols (in EXTDEF and PUBDEF records) are always case sensitive, regardless of the value of this property. }
-        property CaseSensitive: Boolean read FCaseSensitive write FCaseSensitive;
+        property CaseSensitiveSegments: Boolean read FCaseSensitiveSegments write FCaseSensitiveSegments;
       public
         constructor create;override;
         destructor destroy;override;
@@ -299,7 +303,7 @@ interface
       end;
 
       TOmfAssembler = class(tinternalassembler)
-        constructor create(smart:boolean);override;
+        constructor create(info: pasminfo; smart:boolean);override;
       end;
 
 implementation
@@ -337,17 +341,6 @@ implementation
           Result:=1
         else
           internalerror(2014040703);
-      end;
-
-    constructor TOmfRelocation.CreateSection(ADataOffset: aword; aobjsec: TObjSection; Atyp: TObjRelocationType);
-      begin
-        if not (Atyp in [RELOC_DGROUP,RELOC_DGROUPREL]) and not assigned(aobjsec) then
-          internalerror(200603036);
-        DataOffset:=ADataOffset;
-        Symbol:=nil;
-        OrgSize:=0;
-        ObjSection:=aobjsec;
-        ftype:=ord(Atyp);
       end;
 
     destructor TOmfRelocation.Destroy;
@@ -425,21 +418,26 @@ implementation
             FOmfFixup.TargetDatum:=symbol.symidx;
             FOmfFixup.FrameMethod:=ffmTarget;
           end
-        else if typ in [RELOC_DGROUP,RELOC_DGROUPREL] then
+        else if group<>nil then
           begin
             FOmfFixup.LocationOffset:=DataOffset;
-            FOmfFixup.LocationType:=fltBase;
+            if typ in [RELOC_ABSOLUTE,RELOC_RELATIVE] then
+              FOmfFixup.LocationType:=fltOffset
+            else if typ in [RELOC_SEG,RELOC_SEGREL] then
+              FOmfFixup.LocationType:=fltBase
+            else
+              internalerror(2015041501);
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
-            if typ=RELOC_DGROUP then
+            if typ in [RELOC_ABSOLUTE,RELOC_SEG] then
               FOmfFixup.Mode:=fmSegmentRelative
-            else if typ=RELOC_DGROUPREL then
+            else if typ in [RELOC_RELATIVE,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
               internalerror(2015041401);
             FOmfFixup.FrameMethod:=ffmTarget;
             FOmfFixup.TargetMethod:=ftmGroupIndexNoDisp;
-            FOmfFixup.TargetDatum:=GetGroupIndex('DGROUP');
+            FOmfFixup.TargetDatum:=GetGroupIndex(group.Name);
           end
         else
          internalerror(2015040702);
@@ -467,56 +465,10 @@ implementation
 
     constructor TOmfObjSection.create(AList: TFPHashObjectList;
           const Aname: string; Aalign: shortint; Aoptions: TObjSectionOptions);
-      var
-        dgroup: Boolean;
       begin
         inherited create(AList, Aname, Aalign, Aoptions);
         FCombination:=scPublic;
         FUse:=suUse16;
-        if oso_executable in Aoptions then
-          begin
-            FClassName:='CODE';
-            dgroup:=(current_settings.x86memorymodel=mm_tiny);
-          end
-        else if Aname='stack' then
-          begin
-            FClassName:='STACK';
-            FCombination:=scStack;
-            dgroup:=current_settings.x86memorymodel in (x86_near_data_models-[mm_tiny]);
-          end
-        else if Aname='heap' then
-          begin
-            FClassName:='HEAP';
-            dgroup:=current_settings.x86memorymodel in x86_near_data_models;
-          end
-        else if Aname='bss' then
-          begin
-            FClassName:='BSS';
-            dgroup:=true;
-          end
-        else if Aname='data' then
-          begin
-            FClassName:='DATA';
-            dgroup:=true;
-          end
-        else if (Aname='debug_frame') or
-                (Aname='debug_info') or
-                (Aname='debug_line') or
-                (Aname='debug_abbrev') then
-          begin
-            FClassName:='DWARF';
-            FUse:=suUse32;
-            dgroup:=false;
-          end
-        else
-          begin
-            FClassName:='DATA';
-            dgroup:=true;
-          end;
-        if dgroup then
-          FPrimaryGroup:='DGROUP'
-        else
-          FPrimaryGroup:='';
       end;
 
     function TOmfObjSection.MemPosStr(AImageBase: qword): string;
@@ -541,7 +493,7 @@ implementation
           end
         else
 {$endif}
-          result:='text';
+          result:='_TEXT';
       end;
 
     constructor TOmfObjData.create(const n: string);
@@ -549,102 +501,65 @@ implementation
         inherited create(n);
         CObjSymbol:=TOmfObjSymbol;
         CObjSection:=TOmfObjSection;
+        createsectiongroup('DGROUP');
+      end;
+
+    function TOmfObjData.sectiontype2options(atype: TAsmSectiontype): TObjSectionOptions;
+      begin
+        Result:=inherited sectiontype2options(atype);
+        { in the huge memory model, BSS data is actually written in the regular
+          FAR_DATA segment of the module }
+        if sectiontype2class(atype)='FAR_DATA' then
+          Result:=Result+[oso_data,oso_sparse_data];
       end;
 
     function TOmfObjData.sectiontype2align(atype: TAsmSectiontype): shortint;
       begin
-        case atype of
-          sec_stabstr:
-            result:=1;
-          sec_code:
-            result:=1;
-          sec_data,
-          sec_rodata,
-          sec_rodata_norel,
-          sec_bss:
-            result:=2;
-          { For idata (at least idata2) it must be 4 bytes, because
-            an entry is always (also in win64) 20 bytes and aligning
-            on 8 bytes will insert 4 bytes between the entries resulting
-            in a corrupt idata section.
-            Same story with .pdata, it has 4-byte elements which should
-            be packed without gaps. }
-          sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_pdata:
-            result:=4;
-          sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev:
-            result:=4;
-          sec_stack,
-          sec_heap:
-            result:=16;
-          else
-            result:=1;
-        end;
+        Result:=omf_sectiontype2align(atype);
+      end;
+
+    function TOmfObjData.sectiontype2class(atype: TAsmSectiontype): string;
+      begin
+        Result:=omf_segclass(atype);
       end;
 
     function TOmfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
-      const
-        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
-          'text',
-          'data',
-          'data',
-          'rodata',
-          'bss',
-          'tbss',
-          'pdata',
-          'text','data','data','data','data',
-          'stab',
-          'stabstr',
-          'idata2','idata4','idata5','idata6','idata7','edata',
-          'eh_frame',
-          'debug_frame','debug_info','debug_line','debug_abbrev',
-          'fpc',
-          '',
-          'init',
-          'fini',
-          'objc_class',
-          'objc_meta_class',
-          'objc_cat_cls_meth',
-          'objc_cat_inst_meth',
-          'objc_protocol',
-          'objc_string_object',
-          'objc_cls_meth',
-          'objc_inst_meth',
-          'objc_cls_refs',
-          'objc_message_refs',
-          'objc_symbols',
-          'objc_category',
-          'objc_class_vars',
-          'objc_instance_vars',
-          'objc_module_info',
-          'objc_class_names',
-          'objc_meth_var_types',
-          'objc_meth_var_names',
-          'objc_selector_strs',
-          'objc_protocol_ext',
-          'objc_class_ext',
-          'objc_property',
-          'objc_image_info',
-          'objc_cstring_object',
-          'objc_sel_fixup',
-          '__DATA,__objc_data',
-          '__DATA,__objc_const',
-          'objc_superrefs',
-          '__DATA, __datacoal_nt,coalesced',
-          'objc_classlist',
-          'objc_nlclasslist',
-          'objc_catlist',
-          'obcj_nlcatlist',
-          'objc_protolist',
-          'stack',
-          'heap'
-        );
       begin
         if (atype=sec_user) then
           Result:=aname
-        else if secnames[atype]='text' then
+        else if omf_secnames[atype]=omf_secnames[sec_code] then
           Result:=CodeSectionName(aname)
+        else if omf_segclass(atype)='FAR_DATA' then
+          Result:=current_module.modulename^ + '_DATA'
         else
-          Result:=secnames[atype];
+          Result:=omf_secnames[atype];
+      end;
+
+    function TOmfObjData.createsection(atype: TAsmSectionType; const aname: string; aorder: TAsmSectionOrder): TObjSection;
+      begin
+        Result:=inherited createsection(atype, aname, aorder);
+        TOmfObjSection(Result).FClassName:=sectiontype2class(atype);
+        if atype=sec_stack then
+          TOmfObjSection(Result).FCombination:=scStack
+        else if atype in [sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev] then
+          TOmfObjSection(Result).FUse:=suUse32;
+        if section_belongs_to_dgroup(atype) then
+          TOmfObjSection(Result).FPrimaryGroup:='DGROUP';
+      end;
+
+    function TOmfObjData.reffardatasection: TObjSection;
+      var
+        secname: string;
+      begin
+        secname:=current_module.modulename^ + '_DATA';
+
+        result:=TObjSection(ObjSectionList.Find(secname));
+        if not assigned(result) then
+          begin
+            result:=CObjSection.create(ObjSectionList,secname,2,[oso_Data,oso_load,oso_write]);
+            result.ObjData:=self;
+            TOmfObjSection(Result).FClassName:='FAR_DATA';
+          end;
       end;
 
     procedure TOmfObjData.writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
@@ -665,7 +580,15 @@ implementation
         if CurrObjSec=nil then
           internalerror(200403072);
         objreloc:=nil;
-        if assigned(p) then
+        if Reloctype in [RELOC_FARDATASEG,RELOC_FARDATASEGREL] then
+          begin
+            if Reloctype=RELOC_FARDATASEG then
+              objreloc:=TOmfRelocation.CreateSection(CurrObjSec.Size,reffardatasection,RELOC_SEG)
+            else
+              objreloc:=TOmfRelocation.CreateSection(CurrObjSec.Size,reffardatasection,RELOC_SEGREL);
+            CurrObjSec.ObjRelocations.Add(objreloc);
+          end
+        else if assigned(p) then
           begin
             { real address of the symbol }
             symaddr:=p.address;
@@ -693,7 +616,10 @@ implementation
           end
         else if Reloctype in [RELOC_DGROUP,RELOC_DGROUPREL] then
             begin
-              objreloc:=TOmfRelocation.CreateSection(CurrObjSec.Size,nil,Reloctype);
+              if Reloctype=RELOC_DGROUP then
+                objreloc:=TOmfRelocation.CreateGroup(CurrObjSec.Size,TObjSectionGroup(GroupsList.Find('DGROUP')),RELOC_SEG)
+              else
+                objreloc:=TOmfRelocation.CreateGroup(CurrObjSec.Size,TObjSectionGroup(GroupsList.Find('DGROUP')),RELOC_SEGREL);
               CurrObjSec.ObjRelocations.Add(objreloc);
             end;
         CurrObjSec.write(data,len);
@@ -1071,6 +997,46 @@ implementation
         inherited Destroy;
       end;
 
+    procedure TOmfObjOutput.WriteDllImport(const dllname,afuncname,mangledname: string; ordnr: longint; isvar: boolean);
+      var
+        RawRecord: TOmfRawRecord;
+        Header: TOmfRecord_THEADR;
+        DllImport_COMENT: TOmfRecord_COMENT;
+        ModEnd: TOmfRecord_MODEND;
+      begin
+        { write header record }
+        RawRecord:=TOmfRawRecord.Create;
+        Header:=TOmfRecord_THEADR.Create;
+        Header.ModuleName:=mangledname;
+        Header.EncodeTo(RawRecord);
+        RawRecord.WriteTo(FWriter);
+        Header.Free;
+
+        { write IMPDEF record }
+        DllImport_COMENT:=TOmfRecord_COMENT.Create;
+        DllImport_COMENT.CommentClass:=CC_OmfExtension;
+        if ordnr <= 0 then
+          begin
+            if afuncname=mangledname then
+              DllImport_COMENT.CommentString:=#1#0+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+#0
+            else
+              DllImport_COMENT.CommentString:=#1#0+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+Chr(Length(afuncname))+afuncname;
+          end
+        else
+          DllImport_COMENT.CommentString:=#1#1+Chr(Length(mangledname))+mangledname+Chr(Length(dllname))+dllname+Chr(ordnr and $ff)+Chr((ordnr shr 8) and $ff);
+        DllImport_COMENT.EncodeTo(RawRecord);
+        RawRecord.WriteTo(FWriter);
+        DllImport_COMENT.Free;
+
+        { write MODEND record }
+        ModEnd:=TOmfRecord_MODEND.Create;
+        ModEnd.EncodeTo(RawRecord);
+        RawRecord.WriteTo(FWriter);
+        ModEnd.Free;
+
+        RawRecord.Free;
+      end;
+
 {****************************************************************************
                                TOmfObjInput
 ****************************************************************************}
@@ -1163,11 +1129,17 @@ implementation
               exit;
             end;
         end;
-        if not CaseSensitive then
+        if not CaseSensitiveSegments then
           begin
             SegmentName:=UpCase(SegmentName);
             SegClassName:=UpCase(SegClassName);
             OverlayName:=UpCase(OverlayName);
+          end;
+        { hack for supporting object modules, generated by Borland's BINOBJ tool }
+        if (SegClassName='') and (SegmentName='CODE') then
+          begin
+            SegmentName:=InputFileName;
+            SegClassName:='CODE';
           end;
         secoptions:=[];
         objsec:=TOmfObjSection(objdata.createsection(SegmentName+'||'+SegClassName,SecAlign,secoptions,false));
@@ -1208,7 +1180,7 @@ implementation
             exit;
           end;
         GroupName:=LNames[GrpDefRec.GroupNameIndex];
-        if not CaseSensitive then
+        if not CaseSensitiveSegments then
           GroupName:=UpCase(GroupName);
         SecGroup:=objdata.createsectiongroup(GroupName);
         SetLength(SecGroup.members,Length(GrpDefRec.SegmentList));
@@ -1564,6 +1536,7 @@ implementation
         if Fixup.TargetMethod in [ftmExternalIndex,ftmExternalIndexNoDisp] then
           begin
             sym:=objdata.symbolref(TOmfExternalNameElement(ExtDefs[Fixup.TargetDatum-1]).Name);
+            RelocType:=RELOC_NONE;
             case Fixup.LocationType of
               fltOffset:
                 case Fixup.Mode of
@@ -1579,12 +1552,19 @@ implementation
                   fmSelfRelative:
                     RelocType:=RELOC_SEGREL;
                 end;
-              else
-                begin
-                  InputError('Unsupported fixup location type '+IntToStr(Ord(Fixup.LocationType))+' in external reference to '+sym.Name);
-                  exit;
+              fltFarPointer:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_FARPTR;
+                  fmSelfRelative:
+                    RelocType:=RELOC_FARPTR_RELATIVEOFFSET;
                 end;
             end;
+            if RelocType=RELOC_NONE then
+              begin
+                InputError('Unsupported fixup location type '+tostr(Ord(Fixup.LocationType))+' with mode '+tostr(ord(Fixup.Mode))+' in external reference to '+sym.Name);
+                exit;
+              end;
             reloc:=TOmfRelocation.CreateSymbol(Fixup.LocationOffset,sym,RelocType);
             objsec.ObjRelocations.Add(reloc);
             case Fixup.FrameMethod of
@@ -1607,6 +1587,7 @@ implementation
         else if Fixup.TargetMethod in [ftmSegmentIndex,ftmSegmentIndexNoDisp] then
           begin
             target_section:=TOmfObjSection(objdata.ObjSectionList[Fixup.TargetDatum-1]);
+            RelocType:=RELOC_NONE;
             case Fixup.LocationType of
               fltOffset:
                 case Fixup.Mode of
@@ -1622,12 +1603,19 @@ implementation
                   fmSelfRelative:
                     RelocType:=RELOC_SEGREL;
                 end;
-              else
-                begin
-                  InputError('Unsupported fixup location type '+IntToStr(Ord(Fixup.LocationType))+' in reference to segment '+target_section.Name);
-                  exit;
+              fltFarPointer:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_FARPTR;
+                  fmSelfRelative:
+                    RelocType:=RELOC_FARPTR_RELATIVEOFFSET;
                 end;
             end;
+            if RelocType=RELOC_NONE then
+              begin
+                InputError('Unsupported fixup location type '+tostr(Ord(Fixup.LocationType))+' with location type '+tostr(ord(Fixup.LocationType))+' in reference to segment '+target_section.Name);
+                exit;
+              end;
             reloc:=TOmfRelocation.CreateSection(Fixup.LocationOffset,target_section,RelocType);
             objsec.ObjRelocations.Add(reloc);
             case Fixup.FrameMethod of
@@ -1650,26 +1638,36 @@ implementation
         else if Fixup.TargetMethod in [ftmGroupIndex,ftmGroupIndexNoDisp] then
           begin
             target_group:=TObjSectionGroup(objdata.GroupsList[Fixup.TargetDatum-1]);
-            if target_group.Name<>'DGROUP' then
-              begin
-                InputError('Fixup target group other than "DGROUP" is not supported');
-                exit;
-              end;
+            RelocType:=RELOC_NONE;
             case Fixup.LocationType of
+              fltOffset:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_ABSOLUTE;
+                  fmSelfRelative:
+                    RelocType:=RELOC_RELATIVE;
+                end;
               fltBase:
                 case Fixup.Mode of
                   fmSegmentRelative:
-                    RelocType:=RELOC_DGROUP;
+                    RelocType:=RELOC_SEG;
                   fmSelfRelative:
-                    RelocType:=RELOC_DGROUPREL;
+                    RelocType:=RELOC_SEGREL;
                 end;
-              else
-                begin
-                  InputError('Unsupported fixup location type '+IntToStr(Ord(Fixup.LocationType))+' in reference to group '+target_group.Name);
-                  exit;
+              fltFarPointer:
+                case Fixup.Mode of
+                  fmSegmentRelative:
+                    RelocType:=RELOC_FARPTR;
+                  fmSelfRelative:
+                    RelocType:=RELOC_FARPTR_RELATIVEOFFSET;
                 end;
             end;
-            reloc:=TOmfRelocation.CreateSection(Fixup.LocationOffset,nil,RelocType);
+            if RelocType=RELOC_NONE then
+              begin
+                InputError('Unsupported fixup location type '+IntToStr(Ord(Fixup.LocationType))+'with mode '+tostr(Ord(Fixup.Mode))+' in reference to group '+target_group.Name);
+                exit;
+              end;
+            reloc:=TOmfRelocation.CreateGroup(Fixup.LocationOffset,target_group,RelocType);
             objsec.ObjRelocations.Add(reloc);
             case Fixup.FrameMethod of
               ffmTarget:
@@ -1704,7 +1702,7 @@ implementation
         FExtDefs:=TFPHashObjectList.Create;
         FPubDefs:=TFPHashObjectList.Create;
         FRawRecord:=TOmfRawRecord.Create;
-        CaseSensitive:=False;
+        CaseSensitiveSegments:=False;
       end;
 
     destructor TOmfObjInput.destroy;
@@ -1792,6 +1790,8 @@ implementation
             RT_MODEND,RT_MODEND32:
               if not ReadModEnd(FRawRecord,objdata) then
                 exit;
+            RT_LINNUM,RT_LINNUM32:
+              ;
             else
               begin
                 InputError('Unsupported OMF record type $'+HexStr(FRawRecord.RecordType,2));
@@ -2316,6 +2316,11 @@ implementation
         bytesread: LongWord;
       begin
         FillHeaderData;
+        if Length(Header.Relocations)>0 then
+          begin
+            Message(link_e_com_program_uses_segment_relocations);
+            exit(False);
+          end;
         ExeSec:=MZFlatContentSection;
         for i:=0 to ExeSec.ObjSectionList.Count-1 do
           begin
@@ -2392,19 +2397,19 @@ implementation
             omfsec.Data.write(w,2);
           end;
 
-        procedure FixupBase;
+        procedure FixupBase(DataOffset: LongWord);
           var
             w: Word;
           begin
-            omfsec.Data.seek(objreloc.DataOffset);
+            omfsec.Data.seek(DataOffset);
             omfsec.Data.read(w,2);
             w:=LEtoN(w);
             Inc(w,framebase shr 4);
             w:=LEtoN(w);
-            omfsec.Data.seek(objreloc.DataOffset);
+            omfsec.Data.seek(DataOffset);
             omfsec.Data.write(w,2);
             Header.AddRelocation(omfsec.MZExeUnifiedLogicalSegment.MemBasePos shr 4,
-              omfsec.MemPos+objreloc.DataOffset-omfsec.MZExeUnifiedLogicalSegment.MemBasePos);
+              omfsec.MemPos+DataOffset-omfsec.MZExeUnifiedLogicalSegment.MemBasePos);
           end;
 
       begin
@@ -2421,9 +2426,9 @@ implementation
                 else
                   framebase:=TOmfObjSection(objreloc.symbol.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE,RELOC_SEG:
+                  RELOC_ABSOLUTE,RELOC_SEG,RELOC_FARPTR:
                     fixupamount:=target-framebase;
-                  RELOC_RELATIVE,RELOC_SEGREL:
+                  RELOC_RELATIVE,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
                     fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   else
                     internalerror(2015082402);
@@ -2434,7 +2439,13 @@ implementation
                     FixupOffset;
                   RELOC_SEG,
                   RELOC_SEGREL:
-                    FixupBase;
+                    FixupBase(objreloc.DataOffset);
+                  RELOC_FARPTR,
+                  RELOC_FARPTR_RELATIVEOFFSET:
+                    begin
+                      FixupOffset;
+                      FixupBase(objreloc.DataOffset+2);
+                    end;
                   else
                     internalerror(2015082403);
                 end;
@@ -2447,9 +2458,9 @@ implementation
                 else
                   framebase:=TOmfObjSection(objreloc.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE,RELOC_SEG:
+                  RELOC_ABSOLUTE,RELOC_SEG,RELOC_FARPTR:
                     fixupamount:=target-framebase;
-                  RELOC_RELATIVE,RELOC_SEGREL:
+                  RELOC_RELATIVE,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
                     fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   else
                     internalerror(2015082405);
@@ -2460,33 +2471,48 @@ implementation
                     FixupOffset;
                   RELOC_SEG,
                   RELOC_SEGREL:
-                    FixupBase;
+                    FixupBase(objreloc.DataOffset);
+                  RELOC_FARPTR,
+                  RELOC_FARPTR_RELATIVEOFFSET:
+                    begin
+                      FixupOffset;
+                      FixupBase(objreloc.DataOffset+2);
+                    end;
                   else
                     internalerror(2015082406);
                 end;
               end
-            else if objreloc.typ in [RELOC_DGROUP,RELOC_DGROUPREL] then
+            else if assigned(objreloc.group) then
               begin
-                target_group:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find('DGROUP'));
+                target_group:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.group.Name));
                 target:=target_group.MemPos;
                 if objreloc.FrameGroup<>'' then
                   framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.FrameGroup)).MemPos
                 else
                   framebase:=target_group.MemPos;
                 case objreloc.typ of
-                  RELOC_DGROUP:
+                  RELOC_ABSOLUTE,RELOC_SEG,RELOC_FARPTR:
                     fixupamount:=target-framebase;
-                  RELOC_DGROUPREL:
+                  RELOC_RELATIVE,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
                     fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   else
-                    internalerror(2015082408);
+                    internalerror(2015111202);
                 end;
                 case objreloc.typ of
-                  RELOC_DGROUP,
-                  RELOC_DGROUPREL:
-                    FixupBase;
+                  RELOC_ABSOLUTE,
+                  RELOC_RELATIVE:
+                    FixupOffset;
+                  RELOC_SEG,
+                  RELOC_SEGREL:
+                    FixupBase(objreloc.DataOffset);
+                  RELOC_FARPTR,
+                  RELOC_FARPTR_RELATIVEOFFSET:
+                    begin
+                      FixupOffset;
+                      FixupBase(objreloc.DataOffset+2);
+                    end;
                   else
-                    internalerror(2015082406);
+                    internalerror(2015111203);
                 end;
               end
             else
@@ -2565,9 +2591,9 @@ implementation
                                TOmfAssembler
 ****************************************************************************}
 
-    constructor TOmfAssembler.Create(smart:boolean);
+    constructor TOmfAssembler.Create(info: pasminfo; smart:boolean);
       begin
-        inherited Create(smart);
+        inherited;
         CObjOutput:=TOmfObjOutput;
         CInternalAr:=TOmfLibObjectWriter;
       end;

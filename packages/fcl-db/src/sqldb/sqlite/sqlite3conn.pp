@@ -152,16 +152,8 @@ begin
 end;
 
 procedure TSQLite3Cursor.checkerror(const aerror: integer);
-
-Var
-  S : String;
-
 begin
- if (aerror<>sqlite_ok) then 
-   begin
-   S:=strpas(sqlite3_errmsg(fhandle));
-   DatabaseError(S);
-   end;
+  fconnection.checkerror(aerror);
 end;
 
 Procedure TSQLite3Cursor.bindparams(AParams : TParams);
@@ -810,13 +802,15 @@ end;
 procedure TSQLite3Connection.checkerror(const aerror: integer);
 
 Var
-  S : String;
+  ErrMsg : String;
+  ErrCode : integer;
 
 begin
  if (aerror<>sqlite_ok) then 
    begin
-   S:=strpas(sqlite3_errmsg(fhandle));
-   DatabaseError(S,Self);
+   ErrMsg := strpas(sqlite3_errmsg(fhandle));
+   ErrCode := sqlite3_extended_errcode(fhandle);
+   raise ESQLDatabaseError.CreateFmt(ErrMsg, [], Self, ErrCode, '');
    end;
 end;
 

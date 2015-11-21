@@ -13,6 +13,7 @@ usage ()
   echo "should be copied."
   echo "Possible parameters for this script:"
   echo "--forcestatic, to convert all -lname into $LINKLIB libname.a"
+  echo "removedir=\"space separated list of directories to remove\""
   echo "implicitlibs=\"space separated list of used system libraries\""
   echo "libdir=\"space separated list of library directories\""
 }
@@ -146,11 +147,19 @@ if [ "${1#libdir=}" != "$1" ]; then
   opt_handled=1
 fi
 
-if [ "${1//=/ }" != "$1" ]; then
-  # Some variable set explicitly
-  echo "Evaluating $1"
-  export $1
+if [ "${1#removedir=}" != "$1" ]; then
+  removedir=${1#removedir=}
+  echo "removedir is set to \"$removedir\""
   opt_handled=1
+fi
+
+if [ $opt_handled -eq 0 ] ; then
+  if [ "${1//=/ }" != "$1" ]; then
+    # Some variable set explicitly
+    echo "Evaluating \"$1\""
+    export "$1"
+    opt_handled=1
+  fi
 fi
 }
 
@@ -168,6 +177,11 @@ if [ "$1" != "" ]; then
   echo "Unrecognized option \"$1\""
   usage
   exit
+fi
+
+if [ "x$FORCEAWK" != "x" ] ; then
+  echo "Forcing use of AWK=${FORCEAWK}"
+  AWK=${FORCEAWK}
 fi
 
 if [ "$OSTYPE" == "msys" ]; then
@@ -188,7 +202,7 @@ ${MAKE} gdb${EXEEXT} ${MAKEOPT} LDFLAGS="$LDFLAGS" 2>&1 | tee make.log
 # To avoid stdin macro expansion hell.
 
 cat > gdb_get_stdin.c <<EOF
-#include "stdio.h"
+#include "defs.h"
 
 /* Missing prototypes.  */
 
@@ -301,6 +315,27 @@ if [ "$gcccompiler" != "" ]; then
   fi
 fi
 
+newlibdir=
+for dir in $libdir ; do
+  echo "Handling dir $dir"
+  newdir=`cd $dir 2> /dev/null && pwd -P`
+  if [ "X$newdir" != "X" ] ; then
+    adddir=1
+    for rdir in $removedir ; do
+      if [ "$rdir" == "$newdir" ] ; then
+        adddir=0
+      fi
+    done
+    if [ $adddir -eq 1 ] ; then
+      newlibdir="$newlibdir $newdir"
+      echo "Adding $dir as $newdir"
+    fi
+  else
+    echo "$dir not found"
+  fi
+done
+libdir="$newlibdir"
+
 # Try to locate all libraries
 echo Creating ./copy-libs.sh script
 has_libgdb=`cat comp-cmd.log | grep "libgdb\.a"`
@@ -352,6 +387,11 @@ BEGIN {
       print "echo dynamic linker " list[i] " skipped";
       continue
     }
+    if ( list[i] ~ /^-plugin$/ ) {
+      i++;
+      print "echo collect2 -plugin " list[i] " skipped";
+      continue
+    }
     if ( list[i] ~ /lib[^ ]*\.so/ ) {
       dynamiclib = gensub (/([^ ]*)(lib[^ ]*\.so)/,"\\1\\2 ","g",list[i]);
       print "echo " dynamiclib " found";
@@ -389,9 +429,13 @@ chmod u+x ./copy-libs.sh
 
 # Check if mingw executable contains
 # __cpu_features_init function
-has_cpu_features_init=`objdump -t gdb.exe | grep cpu_features_init `
-if [ "X$has_cpu_features_init" == "X" ] ; then
-  mingw_no_cpu_features_init=1
+if [ -f gdb.exe ] ; then
+  has_cpu_features_init=`objdump -t gdb.exe | grep cpu_features_init `
+  if [ "X$has_cpu_features_init" == "X" ] ; then
+    mingw_no_cpu_features_init=1
+  else
+    mingw_no_cpu_features_init=0
+  fi
 else
   mingw_no_cpu_features_init=0
 fi
@@ -435,6 +479,11 @@ BEGIN {
     if ( list[i] ~ /^-dynamic-linker$/ ) {
       i++;
       print "{ Dynamic linker found " list[i] " }";
+      continue
+    }
+    if ( list[i] ~ /^-plugin$/ ) {
+      i++;
+      print "{ collect2 -plugin " list[i] " ignored }";
       continue
     }
     if ( list[i] ~ /-D__USE_MINGW_/ ) {

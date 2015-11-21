@@ -59,7 +59,7 @@ const
 {$endif beos}
   EsockEPROTONOSUPPORT  = ESysEProtoNoSupport;
   EsockEWOULDBLOCK      = ESysEWouldBlock;
-
+  EsockADDRINUSE        = ESysEADDRINUSE;
 
 { unix socket specific functions }
 Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint); deprecated;

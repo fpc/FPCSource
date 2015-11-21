@@ -1486,9 +1486,9 @@ begin
   Result:='';
   case Propinfo^.PropType^.Kind of
     tkWString:
-      Result:=GetWideStrProp(Instance,PropInfo);
+      Result:=AnsiString(GetWideStrProp(Instance,PropInfo));
     tkUString:
-      Result := GetUnicodeStrProp(Instance,PropInfo);
+      Result := AnsiString(GetUnicodeStrProp(Instance,PropInfo));
     tkSString:
       begin
         case (PropInfo^.PropProcs) and 3 of
@@ -1544,9 +1544,9 @@ var
 begin
   case Propinfo^.PropType^.Kind of
     tkWString:
-      SetWideStrProp(Instance,PropInfo,Value);
+      SetWideStrProp(Instance,PropInfo,WideString(Value));
     tkUString:
-       SetUnicodeStrProp(Instance,PropInfo,Value);
+       SetUnicodeStrProp(Instance,PropInfo,UnicodeString(Value));
     tkSString:
       begin
         case (PropInfo^.PropProcs shr 2) and 3 of
@@ -1625,7 +1625,7 @@ begin
   Result:='';
   case Propinfo^.PropType^.Kind of
     tkSString,tkAString:
-      Result:=GetStrProp(Instance,PropInfo);
+      Result:=WideString(GetStrProp(Instance,PropInfo));
     tkUString :
       Result := GetUnicodeStrProp(Instance,PropInfo);
     tkWString:
@@ -1661,7 +1661,7 @@ var
 begin
   case Propinfo^.PropType^.Kind of
     tkSString,tkAString:
-       SetStrProp(Instance,PropInfo,Value);
+       SetStrProp(Instance,PropInfo,AnsiString(Value));
     tkUString:
        SetUnicodeStrProp(Instance,PropInfo,Value);
     tkWString:
@@ -1709,7 +1709,7 @@ begin
   Result:='';
   case Propinfo^.PropType^.Kind of
     tkSString,tkAString:
-      Result:=GetStrProp(Instance,PropInfo);
+      Result:=UnicodeString(GetStrProp(Instance,PropInfo));
     tkWString:
       Result:=GetWideStrProp(Instance,PropInfo);
     tkUString:
@@ -1745,7 +1745,7 @@ var
 begin
   case Propinfo^.PropType^.Kind of
     tkSString,tkAString:
-       SetStrProp(Instance,PropInfo,Value);
+       SetStrProp(Instance,PropInfo,AnsiString(Value));
     tkWString:
        SetWideStrProp(Instance,PropInfo,Value);
     tkUString:
@@ -2004,7 +2004,7 @@ end;
   Variant properties
   ---------------------------------------------------------------------}
 
-Procedure CheckVariantEvent(P : Pointer);
+Procedure CheckVariantEvent(P : CodePointer);
 
 begin
   If (P=Nil) then
@@ -2013,14 +2013,14 @@ end;
 
 Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
 begin
-  CheckVariantEvent(Pointer(OnGetVariantProp));
+  CheckVariantEvent(CodePointer(OnGetVariantProp));
   Result:=OnGetVariantProp(Instance,PropInfo);
 end;
 
 
 Procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo; const Value: Variant);
 begin
-   CheckVariantEvent(Pointer(OnSetVariantProp));
+   CheckVariantEvent(CodePointer(OnSetVariantProp));
    OnSetVariantProp(Instance,PropInfo,Value);
 end;
 
@@ -2050,14 +2050,14 @@ end;
 Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
 
 begin
-  CheckVariantEvent(Pointer(OnGetPropValue));
+  CheckVariantEvent(CodePointer(OnGetPropValue));
   Result:=OnGetPropValue(Instance,PropName,PreferStrings)
 end;
 
 Procedure SetPropValue(Instance: TObject; const PropName: string;  const Value: Variant);
 
 begin
-  CheckVariantEvent(Pointer(OnSetPropValue));
+  CheckVariantEvent(CodePointer(OnSetPropValue));
   OnSetPropValue(Instance,PropName,Value);
 end;
 

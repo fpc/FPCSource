@@ -27,26 +27,31 @@ unit agx86nsm;
 interface
 
     uses
-      cpubase,globtype,
+      cclasses,cpubase,globtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,assemble,cgutils;
 
     type
 
-      { T386NasmAssembler }
+      { TX86NasmAssembler }
 
       TX86NasmAssembler = class(texternalassembler)
       private
+        FSectionsUsed: TFPHashList;
+        FSectionsInDGROUP: TFPHashList;
         using_relative : boolean;
         function CodeSectionName(const aname:string): string;
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; ai : taicpu);
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;alignment : byte);
+        procedure ResetSectionsList;
+        procedure WriteGroups;
       protected
         function single2str(d: single): string; override;
         function double2str(d: double): string; override;
         function extended2str(e: extended): string; override;
       public
+        destructor Destroy;override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
         procedure WriteExternals;
@@ -60,8 +65,8 @@ interface
   implementation
 
     uses
-      cutils,globals,systems,cclasses,
-      fmodule,finput,verbose,cpuinfo,cgbase
+      cutils,globals,systems,
+      fmodule,finput,verbose,cpuinfo,cgbase,omfbase
       ;
 
     const
@@ -138,6 +143,14 @@ interface
          if p>0 then
           delete(hs,p,1);
          extended2str:=lower(hs);
+      end;
+
+
+    destructor TX86NasmAssembler.Destroy;
+      begin
+        FSectionsUsed.Free;
+        FSectionsInDGROUP.Free;
+        inherited Destroy;
       end;
 
 
@@ -268,13 +281,15 @@ interface
         if current_settings.x86memorymodel in x86_far_code_models then
           begin
             if cs_huge_code in current_settings.moduleswitches then
-              result:=aname + '_TEXT use16 class=CODE'
+              result:=aname + '_TEXT'
             else
               result:=current_module.modulename^ + '_TEXT';
           end
         else
+          result:='_TEXT';
+{$else i8086}
+        result:='.text';
 {$endif}
-          result:='.text';
       end;
 
 
@@ -285,23 +300,23 @@ interface
       begin
         with ref do
          begin
-           AsmWrite('[');
+           writer.AsmWrite('[');
            first:=true;
            base_done:=false;
            if (segment<>NR_NO) then
-             AsmWrite(nasm_regname(segment)+':');
+             writer.AsmWrite(nasm_regname(segment)+':');
 {$ifdef x86_64}
           if (base=NR_RIP) then
             begin
               { nasm RIP is implicit for pic }
               if not (ref.refaddr in [addr_pic,addr_pic_no_got]) and not using_relative then
-                AsmWrite('$ + ');
+                writer.AsmWrite('$ + ');
               base_done:=true;
             end;
 {$endif x86_64}
            if assigned(symbol) then
             begin
-              AsmWrite(symbol.name);
+              writer.AsmWrite(symbol.name);
               if SmartAsm then
                 AddSymbol(symbol.name,false);
               first:=false;
@@ -309,34 +324,34 @@ interface
            if (base<>NR_NO) and not base_done then
             begin
               if not(first) then
-               AsmWrite('+')
+               writer.AsmWrite('+')
               else
                first:=false;
-              AsmWrite(nasm_regname(base))
+              writer.AsmWrite(nasm_regname(base))
             end;
            if (index<>NR_NO) then
              begin
                if not(first) then
-                 AsmWrite('+')
+                 writer.AsmWrite('+')
                else
                  first:=false;
-               AsmWrite(nasm_regname(index));
+               writer.AsmWrite(nasm_regname(index));
                if scalefactor<>0 then
-                 AsmWrite('*'+tostr(scalefactor));
+                 writer.AsmWrite('*'+tostr(scalefactor));
              end;
            if offset<0 then
              begin
-               AsmWrite(tostr(offset));
+               writer.AsmWrite(tostr(offset));
                first:=false;
              end
            else if (offset>0) then
              begin
-               AsmWrite('+'+tostr(offset));
+               writer.AsmWrite('+'+tostr(offset));
                first:=false;
              end;
            if first then
-             AsmWrite('0');
-           AsmWrite(']');
+             writer.AsmWrite('0');
+           writer.AsmWrite(']');
          end;
        end;
 
@@ -345,12 +360,12 @@ interface
       begin
         case o.typ of
           top_reg :
-            AsmWrite(nasm_regname(o.reg));
+            writer.AsmWrite(nasm_regname(o.reg));
           top_const :
             begin
               if (ops=1) and (opcode<>A_RET) then
-               AsmWrite(sizestr(s,dest));
-              AsmWrite(tostr(longint(o.val)));
+               writer.AsmWrite(sizestr(s,dest));
+              writer.AsmWrite(tostr(longint(o.val)));
             end;
           top_ref :
             begin
@@ -364,43 +379,47 @@ interface
                          // (opcode = A_SHR) or (opcode = A_SHL) or
                          // (opcode = A_SAR) or (opcode = A_SAL) or
                           (opcode = A_OUT) or (opcode = A_IN)) then
-                    AsmWrite(sizestr(s,dest));
+                    writer.AsmWrite(sizestr(s,dest));
                   WriteReference(o.ref^);
                 end
 {$ifdef i8086}
               else if o.ref^.refaddr=addr_dgroup then
                 begin
-                  AsmWrite('DGROUP');
+                  writer.AsmWrite('DGROUP');
+                end
+              else if o.ref^.refaddr=addr_fardataseg then
+                begin
+                  writer.AsmWrite(current_module.modulename^+'_DATA');
                 end
 {$endif i8086}
               else
                 begin
 {$ifdef x86_64}
                   if s=S_L then
-                    asmwrite('dword ')
+                    writer.AsmWrite('dword ')
                   else
-                    asmwrite('qword ');
+                    writer.AsmWrite('qword ');
 {$endif}
 {$ifdef i386}
-                  asmwrite('dword ');
+                  writer.AsmWrite('dword ');
 {$endif i386}
 {$ifdef i8086}
                   if o.ref^.refaddr=addr_seg then
-                    asmwrite('SEG ')
+                    writer.AsmWrite('SEG ')
                   else
-                    asmwrite('word ');
+                    writer.AsmWrite('word ');
 {$endif i8086}
                   if assigned(o.ref^.symbol) then
                    begin
                     if SmartAsm then
                       AddSymbol(o.ref^.symbol.name,false);
-                    asmwrite(o.ref^.symbol.name);
+                    writer.AsmWrite(o.ref^.symbol.name);
                     if o.ref^.offset=0 then
                       exit;
                    end;
                   if o.ref^.offset>0 then
-                   asmwrite('+');
-                  asmwrite(tostr(o.ref^.offset));
+                   writer.AsmWrite('+');
+                  writer.AsmWrite(tostr(o.ref^.offset));
                 end;
             end;
           else
@@ -413,33 +432,33 @@ interface
       begin
         case o.typ of
           top_reg :
-            AsmWrite(nasm_regname(o.reg));
+            writer.AsmWrite(nasm_regname(o.reg));
           top_ref :
             if o.ref^.refaddr=addr_no then
               begin
                 if ai.opsize=S_FAR then
-                  AsmWrite('far ');
+                  writer.AsmWrite('far ');
                 WriteReference(o.ref^);
               end
             else
               begin
                 if ai.opsize=S_FAR then
-                  AsmWrite('far ');
+                  writer.AsmWrite('far ');
                 { else
-                   AsmWrite('near ') just disables short branches, increasing code size. 
+                   writer.AsmWrite('near ') just disables short branches, increasing code size. 
                    Omitting it does not cause any bad effects, tested with nasm 2.11. }
 
-                AsmWrite(o.ref^.symbol.name);
+                writer.AsmWrite(o.ref^.symbol.name);
                 if SmartAsm then
                   AddSymbol(o.ref^.symbol.name,false);
                 if o.ref^.offset>0 then
-                 AsmWrite('+'+tostr(o.ref^.offset))
+                 writer.AsmWrite('+'+tostr(o.ref^.offset))
                 else
                  if o.ref^.offset<0 then
-                  AsmWrite(tostr(o.ref^.offset));
+                  writer.AsmWrite(tostr(o.ref^.offset));
               end;
           top_const :
-            AsmWrite(tostr(aint(o.val)));
+            writer.AsmWrite(tostr(aint(o.val)));
           else
             internalerror(10001);
         end;
@@ -513,49 +532,95 @@ interface
           '.stack',
           '.heap'
         );
+      var
+        secname: string;
       begin
-        AsmLn;
-        AsmWrite('SECTION ');
+        writer.AsmLn;
+        writer.AsmWrite('SECTION ');
         { go32v2 stub only loads .text and .data sections, and allocates space for .bss.
           Thus, data which normally goes into .rodata and .rodata_norel sections must
           end up in .data section }
         if (atype in [sec_rodata,sec_rodata_norel]) and
           (target_info.system=system_i386_go32v2) then
-          AsmWrite('.data')
+          writer.AsmWrite('.data')
         else if (atype=sec_user) then
-          AsmWrite(aname)
+          writer.AsmWrite(aname)
         else if (atype=sec_threadvar) and
           (target_info.system in (systems_windows+systems_wince)) then
-          AsmWrite('.tls'#9'bss')
+          writer.AsmWrite('.tls'#9'bss')
+        else if target_info.system in [system_i8086_msdos,system_i8086_win16] then
+          begin
+            if secnames[atype]='.text' then
+              secname:=CodeSectionName(aname)
+            else if omf_segclass(atype)='FAR_DATA' then
+              secname:=current_module.modulename^ + '_DATA'
+            else
+              secname:=omf_secnames[atype];
+            writer.AsmWrite(secname);
+            { first use of this section in the object file? }
+            if FSectionsUsed.FindIndexOf(secname)=-1 then
+              begin
+                { yes -> write the section attributes as well }
+                if atype=sec_stack then
+                  writer.AsmWrite(' stack');
+                if atype in [sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev] then
+                  writer.AsmWrite(' use32')
+                else
+                  writer.AsmWrite(' use16');
+                writer.AsmWrite(' class='+omf_segclass(atype)+
+                  ' align='+tostr(omf_sectiontype2align(atype)));
+                FSectionsUsed.Add(secname,Pointer(self));
+                if section_belongs_to_dgroup(atype) then
+                  FSectionsInDGROUP.Add(secname,Pointer(self));
+              end;
+          end
         else if secnames[atype]='.text' then
-          AsmWrite(CodeSectionName(aname))
-{$ifdef i8086}
-        else if (target_info.system=system_i8086_msdos) and
-                (atype=sec_stack) and
-                (current_settings.x86memorymodel in x86_far_data_models) then
-          AsmWrite('stack stack class=STACK align=16')
-        else if (target_info.system=system_i8086_msdos) and
-                (atype=sec_heap) and
-                (current_settings.x86memorymodel in x86_far_data_models) then
-          AsmWrite('heap class=HEAP align=16')
-{$endif i8086}
+          writer.AsmWrite(CodeSectionName(aname))
         else
-          AsmWrite(secnames[atype]);
+          writer.AsmWrite(secnames[atype]);
         if create_smartlink_sections and
            (atype<>sec_bss) and
            (aname<>'') then
           begin
-            AsmWrite('.');
-            AsmWrite(aname);
+            writer.AsmWrite('.');
+            writer.AsmWrite(aname);
             if atype in [sec_init, sec_fini, sec_stub, sec_code] then
-              AsmWrite(' code align='+tostr(alignment))
+              writer.AsmWrite(' code align='+tostr(alignment))
             else if  atype in [sec_rodata, sec_rodata_norel] then
-              AsmWrite(' rdata align='+tostr(alignment))
+              writer.AsmWrite(' rdata align='+tostr(alignment))
             else
-              AsmWrite(' data align='+tostr(alignment))
+              writer.AsmWrite(' data align='+tostr(alignment))
           end;
-        AsmLn;
+        writer.AsmLn;
         LastSecType:=atype;
+      end;
+
+    procedure TX86NasmAssembler.ResetSectionsList;
+      begin
+        FSectionsUsed.Free;
+        FSectionsUsed:=TFPHashList.Create;
+        FSectionsInDGROUP.Free;
+        FSectionsInDGROUP:=TFPHashList.Create;
+      end;
+
+    procedure TX86NasmAssembler.WriteGroups;
+      {$ifdef i8086}
+      var
+        i: Integer;
+      {$endif i8086}
+      begin
+{$ifdef i8086}
+        if target_info.system in [system_i8086_msdos,system_i8086_win16] then
+          begin
+            if current_settings.x86memorymodel=mm_huge then
+              WriteSection(sec_data,'',2);
+            writer.AsmLn;
+            writer.AsmWrite('GROUP DGROUP');
+            for i:=0 to FSectionsInDGROUP.Count-1 do
+              writer.AsmWrite(' '+FSectionsInDGROUP.NameOfIndex(i));
+            writer.AsmLn;
+          end;
+{$endif i8086}
       end;
 
     procedure TX86NasmAssembler.WriteTree(p:TAsmList);
@@ -573,12 +638,6 @@ interface
       consttype : taiconst_type;
       do_line, SkipNewLine,
       quoted   : boolean;
-      co       : comp;
-      sin      : single;
-      d        : double;
-{$ifdef cpuextended}
-      e        : extended;
-{$endif cpuextended}
       fixed_opcode: TAsmOp;
       prefix, LastSecName  : string;
       LastAlign : Byte;
@@ -605,15 +664,15 @@ interface
          case hp.typ of
            ait_comment :
              Begin
-               AsmWrite(target_asm.comment);
-               AsmWritePChar(tai_comment(hp).str);
-               AsmLn;
+               writer.AsmWrite(asminfo^.comment);
+               writer.AsmWritePChar(tai_comment(hp).str);
+               writer.AsmLn;
              End;
 
            ait_regalloc :
              begin
                if (cs_asm_regalloc in current_settings.globalswitches) then
-                 AsmWriteLn(#9#9+target_asm.comment+'Register '+nasm_regname(tai_regalloc(hp).reg)+' '+
+                 writer.AsmWriteLn(#9#9+asminfo^.comment+'Register '+nasm_regname(tai_regalloc(hp).reg)+' '+
                    regallocstr[tai_regalloc(hp).ratype]);
              end;
 
@@ -638,13 +697,13 @@ interface
                       (LastSecType=sec_threadvar) and
                       (target_info.system in (systems_windows+systems_wince))
                      ) then
-                      AsmWriteLn(#9'ALIGNB '+tostr(tai_align(hp).aligntype))
+                      writer.AsmWriteLn(#9'ALIGNB '+tostr(tai_align(hp).aligntype))
                     else if tai_align_abstract(hp).use_op then
-                      AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype)+',DB '+tostr(tai_align_abstract(hp).fillop))
+                      writer.AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype)+',DB '+tostr(tai_align_abstract(hp).fillop))
                     else if LastSecType in [sec_code,sec_stub,sec_init,sec_fini] then
-                      AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype))
+                      writer.AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype))
                     else
-                      AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype)+',DB 0');
+                      writer.AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype)+',DB 0');
                  end;
              end;
 
@@ -652,13 +711,13 @@ interface
              begin
                if tai_datablock(hp).is_global or SmartAsm then
                 begin
-                  AsmWrite(#9'GLOBAL ');
-                  AsmWriteLn(tai_datablock(hp).sym.name);
+                  writer.AsmWrite(#9'GLOBAL ');
+                  writer.AsmWriteLn(tai_datablock(hp).sym.name);
                 end;
-               AsmWrite(PadTabs(tai_datablock(hp).sym.name,':'));
+               writer.AsmWrite(PadTabs(tai_datablock(hp).sym.name,':'));
                if SmartAsm then
                  AddSymbol(tai_datablock(hp).sym.name,true);
-               AsmWriteLn('RESB'#9+tostr(tai_datablock(hp).size));
+               writer.AsmWriteLn('RESB'#9+tostr(tai_datablock(hp).size));
              end;
 
            ait_const:
@@ -670,40 +729,58 @@ interface
                     begin
                       if assigned(tai_const(hp).sym) then
                         internalerror(200404292);
-                      AsmWrite(ait_const2str[aitconst_32bit]);
-                      AsmWrite(tostr(longint(lo(tai_const(hp).value))));
-                      AsmWrite(',');
-                      AsmWrite(tostr(longint(hi(tai_const(hp).value))));
-                      AsmLn;
+                      writer.AsmWrite(ait_const2str[aitconst_32bit]);
+                      writer.AsmWrite(tostr(longint(lo(tai_const(hp).value))));
+                      writer.AsmWrite(',');
+                      writer.AsmWrite(tostr(longint(hi(tai_const(hp).value))));
+                      writer.AsmLn;
                     end;
                  aitconst_uleb128bit,
                  aitconst_sleb128bit,
                  aitconst_128bit:
                     begin
-                      AsmWriteLn(target_asm.comment+'Unsupported const type '+
+                      writer.AsmWriteLn(asminfo^.comment+'Unsupported const type '+
                         ait_const2str[consttype]);
                     end;
 {$ifdef i8086}
                  aitconst_farptr:
                    begin
-                     AsmWrite(ait_const2str[aitconst_16bit]);
+                     writer.AsmWrite(ait_const2str[aitconst_16bit]);
                      if assigned(tai_const(hp).sym) then
                        begin
                          if SmartAsm then
                            AddSymbol(tai_const(hp).sym.name,false);
-                         AsmWrite(tai_const(hp).sym.name);
+                         writer.AsmWrite(tai_const(hp).sym.name);
                          if tai_const(hp).value<>0 then
-                           AsmWrite(tostr_with_plus(tai_const(hp).value));
-                         AsmLn;
-                         AsmWrite(ait_const2str[aitconst_16bit]);
-                         AsmWrite('SEG ');
-                         AsmWrite(tai_const(hp).sym.name);
+                           writer.AsmWrite(tostr_with_plus(tai_const(hp).value));
+                         writer.AsmLn;
+                         writer.AsmWrite(ait_const2str[aitconst_16bit]);
+                         writer.AsmWrite('SEG ');
+                         writer.AsmWrite(tai_const(hp).sym.name);
                        end
                      else
-                       AsmWrite(tostr(lo(longint(tai_const(hp).value)))+','+
+                       writer.AsmWrite(tostr(lo(longint(tai_const(hp).value)))+','+
                                 tostr(hi(longint(tai_const(hp).value))));
-                     AsmLn;
+                     writer.AsmLn;
                    end;
+                 aitconst_seg:
+                   begin
+                     writer.AsmWrite(ait_const2str[aitconst_16bit]);
+                     if assigned(tai_const(hp).sym) then
+                       begin
+                         if SmartAsm then
+                           AddSymbol(tai_const(hp).sym.name,false);
+                         writer.AsmWrite('SEG ');
+                         writer.AsmWrite(tai_const(hp).sym.name);
+                       end
+                     else
+                       internalerror(2015110501);
+                     writer.AsmLn;
+                   end;
+                 aitconst_dgroup:
+                   writer.AsmWriteLn(#9'DW'#9'DGROUP');
+                 aitconst_fardataseg:
+                   writer.AsmWriteLn(#9'DW'#9+current_module.modulename^+'_DATA');
 {$endif i8086}
                  aitconst_32bit,
                  aitconst_16bit,
@@ -713,7 +790,7 @@ interface
                  aitconst_16bit_unaligned,
                  aitconst_32bit_unaligned:
                    begin
-                     AsmWrite(ait_const2str[tai_const(hp).consttype]);
+                     writer.AsmWrite(ait_const2str[tai_const(hp).consttype]);
                      l:=0;
                      repeat
                        if assigned(tai_const(hp).sym) then
@@ -733,7 +810,7 @@ interface
                          end
                        else
                          s:=tostr(tai_const(hp).value);
-                       AsmWrite(s);
+                       writer.AsmWrite(s);
                        inc(l,length(s));
                        if (l>line_length) or
                           (hp.next=nil) or
@@ -741,9 +818,9 @@ interface
                           (tai_const(hp.next).consttype<>consttype) then
                          break;
                        hp:=tai(hp.next);
-                       AsmWrite(',');
+                       writer.AsmWrite(',');
                      until false;
-                     AsmLn;
+                     writer.AsmLn;
                    end;
                  else
                    internalerror(200704252);
@@ -764,7 +841,7 @@ interface
                 Begin
                   for j := 0 to lines-1 do
                    begin
-                     AsmWrite(#9#9'DB'#9);
+                     writer.AsmWrite(#9#9'DB'#9);
                      quoted:=false;
                      for i:=counter to counter+line_length-1 do
                         begin
@@ -776,29 +853,29 @@ interface
                                 if not(quoted) then
                                     begin
                                       if i>counter then
-                                        AsmWrite(',');
-                                      AsmWrite('"');
+                                        writer.AsmWrite(',');
+                                      writer.AsmWrite('"');
                                     end;
-                                AsmWrite(tai_string(hp).str[i]);
+                                writer.AsmWrite(tai_string(hp).str[i]);
                                 quoted:=true;
                               end { if > 31 and < 128 and ord('"') }
                           else
                               begin
                                   if quoted then
-                                      AsmWrite('"');
+                                      writer.AsmWrite('"');
                                   if i>counter then
-                                      AsmWrite(',');
+                                      writer.AsmWrite(',');
                                   quoted:=false;
-                                  AsmWrite(tostr(ord(tai_string(hp).str[i])));
+                                  writer.AsmWrite(tostr(ord(tai_string(hp).str[i])));
                               end;
                        end; { end for i:=0 to... }
-                     if quoted then AsmWrite('"');
-                       AsmWrite(target_info.newline);
+                     if quoted then writer.AsmWrite('"');
+                       writer.AsmWrite(target_info.newline);
                      inc(counter,line_length);
                   end; { end for j:=0 ... }
                 { do last line of lines }
                 if counter<tai_string(hp).len then
-                  AsmWrite(#9#9'DB'#9);
+                  writer.AsmWrite(#9#9'DB'#9);
                 quoted:=false;
                 for i:=counter to tai_string(hp).len-1 do
                   begin
@@ -810,26 +887,26 @@ interface
                           if not(quoted) then
                               begin
                                 if i>counter then
-                                  AsmWrite(',');
-                                AsmWrite('"');
+                                  writer.AsmWrite(',');
+                                writer.AsmWrite('"');
                               end;
-                          AsmWrite(tai_string(hp).str[i]);
+                          writer.AsmWrite(tai_string(hp).str[i]);
                           quoted:=true;
                         end { if > 31 and < 128 and " }
                     else
                         begin
                           if quoted then
-                            AsmWrite('"');
+                            writer.AsmWrite('"');
                           if i>counter then
-                              AsmWrite(',');
+                              writer.AsmWrite(',');
                           quoted:=false;
-                          AsmWrite(tostr(ord(tai_string(hp).str[i])));
+                          writer.AsmWrite(tostr(ord(tai_string(hp).str[i])));
                         end;
                   end; { end for i:=0 to... }
                 if quoted then
-                  AsmWrite('"');
+                  writer.AsmWrite('"');
                 end;
-               AsmLn;
+               writer.AsmLn;
              end;
 
            ait_label :
@@ -838,10 +915,10 @@ interface
                  begin
                    if SmartAsm and (tai_label(hp).labsym.bind=AB_GLOBAL) then
                      begin
-                       AsmWrite(#9'GLOBAL ');
-                       AsmWriteLn(tai_label(hp).labsym.name);
+                       writer.AsmWrite(#9'GLOBAL ');
+                       writer.AsmWriteLn(tai_label(hp).labsym.name);
                      end;
-                   AsmWriteLn(tai_label(hp).labsym.name+':');
+                   writer.AsmWriteLn(tai_label(hp).labsym.name+':');
                  end;
                if SmartAsm then
                  AddSymbol(tai_label(hp).labsym.name,true);
@@ -853,15 +930,15 @@ interface
                  internalerror(2009090803);
                if tai_symbol(hp).is_global or SmartAsm then
                 begin
-                  AsmWrite(#9'GLOBAL ');
-                  AsmWriteLn(tai_symbol(hp).sym.name);
+                  writer.AsmWrite(#9'GLOBAL ');
+                  writer.AsmWriteLn(tai_symbol(hp).sym.name);
                 end;
-               AsmWrite(tai_symbol(hp).sym.name);
+               writer.AsmWrite(tai_symbol(hp).sym.name);
                if SmartAsm then
                  AddSymbol(tai_symbol(hp).sym.name,true);
                if assigned(hp.next) and not(tai(hp.next).typ in
                   [ait_const,ait_realconst,ait_string]) then
-                AsmWriteLn(':')
+                writer.AsmWriteLn(':')
              end;
 
            ait_symbol_end : ;
@@ -900,12 +977,12 @@ interface
                       assigned(taicpu(hp).oper[1]^.ref^.symbol) and
                       (taicpu(hp).oper[1]^.ref^.base=NR_NO)) then
                     begin
-                      AsmWrite(target_asm.comment);
-                      AsmWriteln('Converting LEA to MOV instruction');
+                      writer.AsmWrite(asminfo^.comment);
+                      writer.AsmWriteln('Converting LEA to MOV instruction');
                       taicpu(hp).opcode:=A_MOV;
                     end;
                if fixed_opcode=A_FWAIT then
-                AsmWriteln(#9#9'DB'#9'09bh')
+                writer.AsmWriteln(#9#9'DB'#9'09bh')
                else
                 begin
                   prefix:='';
@@ -918,14 +995,14 @@ interface
                       (fixed_opcode=A_POP)) and
                       (taicpu(hp).oper[0]^.typ=top_reg) and
                       (is_segment_reg(taicpu(hp).oper[0]^.reg)) then
-                    AsmWriteln(#9#9'DB'#9'066h');
+                    writer.AsmWriteln(#9#9'DB'#9'066h');
 {$endif not i8086}
-                  AsmWrite(#9#9+prefix+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]);
+                  writer.AsmWrite(#9#9+prefix+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]);
                   if taicpu(hp).ops<>0 then
                    begin
                      if is_calljmp(fixed_opcode) then
                       begin
-                        AsmWrite(#9);
+                        writer.AsmWrite(#9);
                         WriteOper_jmp(taicpu(hp).oper[0]^,taicpu(hp));
                       end
                      else
@@ -933,15 +1010,15 @@ interface
                         for i:=0 to taicpu(hp).ops-1 do
                          begin
                            if i=0 then
-                            AsmWrite(#9)
+                            writer.AsmWrite(#9)
                            else
-                            AsmWrite(',');
+                            writer.AsmWrite(',');
                            WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,fixed_opcode,taicpu(hp).ops,(i=2));
                          end;
                       end;
                    end;
                   if not SkipNewLine then
-                    AsmLn;
+                    writer.AsmLn;
                 end;
              end;
 
@@ -954,18 +1031,18 @@ interface
                if SmartAsm then
                 begin
                  { only reset buffer if nothing has changed }
-                 if AsmSize=AsmStartSize then
-                  AsmClear
-                 else
+                 if not writer.ClearIfEmpty then
                   begin
                     if SmartAsm then
                       begin
                         WriteSmartExternals;
                         FreeExternChainList;
                       end;
-                    AsmClose;
+                    WriteGroups;
+                    writer.AsmClose;
                     DoAssemble;
-                    AsmCreate(tai_cutobject(hp).place);
+                    writer.AsmCreate(tai_cutobject(hp).place);
+                    ResetSectionsList;
                     WriteHeader;
                   end;
                { avoid empty files }
@@ -984,7 +1061,7 @@ interface
                   end;
                  if LastSecType<>sec_none then
                    WriteSection(LastSecType,LastSecName,LastAlign);
-                 AsmStartSize:=AsmSize;
+                 writer.MarkEmpty;
                end;
              end;
 
@@ -998,9 +1075,9 @@ interface
              begin
                case tai_directive(hp).directive of
                  asd_nasm_import :
-                   AsmWrite('import ');
+                   writer.AsmWrite('import ');
                  asd_extern :
-                   AsmWrite('EXTERN ');
+                   writer.AsmWrite('EXTERN ');
                  else
                    internalerror(200509191);
                end;
@@ -1010,19 +1087,19 @@ interface
                    if SmartAsm then
                      AddSymbol(tai_directive(hp).name,false);
 
-                   AsmWrite(tai_directive(hp).name);
+                   writer.AsmWrite(tai_directive(hp).name);
                  end;
-               AsmLn;
+               writer.AsmLn;
              end;
            ait_seh_directive :
              { Ignore for now };
            ait_varloc:
              begin
                if tai_varloc(hp).newlocationhi<>NR_NO then
-                 AsmWriteLn(target_asm.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                 writer.AsmWriteLn(asminfo^.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
                    std_regname(tai_varloc(hp).newlocationhi)+':'+std_regname(tai_varloc(hp).newlocation))
                else
-                 AsmWriteLn(target_asm.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                 writer.AsmWriteLn(asminfo^.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
                    std_regname(tai_varloc(hp).newlocation));
              end;
            else
@@ -1042,7 +1119,7 @@ interface
           begin
             sym:=TAsmSymbol(current_asmdata.AsmSymbolDict[i]);
             if sym.bind=AB_EXTERNAL then
-              AsmWriteln('EXTERN'#9+sym.name);
+              writer.AsmWriteln('EXTERN'#9+sym.name);
           end;
       end;
 
@@ -1054,7 +1131,7 @@ interface
         while assigned(EC) do
           begin
             if not EC^.is_defined then
-              AsmWriteln('EXTERN'#9+EC^.psym^);
+              writer.AsmWriteln('EXTERN'#9+EC^.psym^);
             EC:=EC^.next;
           end;
       end;
@@ -1062,57 +1139,26 @@ interface
     procedure TX86NasmAssembler.WriteHeader;
       begin
 {$if defined(i8086)}
-      AsmWriteLn('BITS 16');
+      writer.AsmWriteLn('BITS 16');
       case current_settings.cputype of
-        cpu_8086: AsmWriteLn('CPU 8086');
-        cpu_186: AsmWriteLn('CPU 186');
-        cpu_286: AsmWriteLn('CPU 286');
-        cpu_386: AsmWriteLn('CPU 386');
-        cpu_Pentium: AsmWriteLn('CPU PENTIUM');
-        cpu_Pentium2: AsmWriteLn('CPU P2');
-        cpu_Pentium3: AsmWriteLn('CPU P3');
-        cpu_Pentium4: AsmWriteLn('CPU P4');
-        cpu_PentiumM: AsmWriteLn('CPU P4');
+        cpu_8086: writer.AsmWriteLn('CPU 8086');
+        cpu_186: writer.AsmWriteLn('CPU 186');
+        cpu_286: writer.AsmWriteLn('CPU 286');
+        cpu_386: writer.AsmWriteLn('CPU 386');
+        cpu_Pentium: writer.AsmWriteLn('CPU PENTIUM');
+        cpu_Pentium2: writer.AsmWriteLn('CPU P2');
+        cpu_Pentium3: writer.AsmWriteLn('CPU P3');
+        cpu_Pentium4: writer.AsmWriteLn('CPU P4');
+        cpu_PentiumM: writer.AsmWriteLn('CPU P4');
         else
           internalerror(2013050101);
       end;
-
-      if not (cs_huge_code in current_settings.moduleswitches) then
-        AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^) + ' use16 class=CODE');
-      { NASM complains if you put a missing section in the GROUP directive, so }
-      { we add empty declarations to make sure they exist, even if empty }
-      AsmWriteLn('SECTION .rodata class=DATA align=2');
-      AsmWriteLn('SECTION .data class=DATA align=2');
-      AsmWriteLn('SECTION .fpc class=DATA');
-      { WLINK requires class=bss in order to leave the BSS section out of the executable }
-      AsmWriteLn('SECTION .bss class=BSS align=2');
-      if (current_settings.x86memorymodel<>mm_tiny) and
-         (current_settings.x86memorymodel in x86_near_data_models) then
-        AsmWriteLn('SECTION stack stack class=STACK align=16');
-      if current_settings.x86memorymodel in x86_near_data_models then
-        AsmWriteLn('SECTION heap class=HEAP align=16');
-      { group these sections in the same segment }
-      if current_settings.x86memorymodel=mm_tiny then
-        AsmWriteLn('GROUP DGROUP text rodata data fpc bss heap')
-      else if current_settings.x86memorymodel in x86_near_data_models then
-        AsmWriteLn('GROUP DGROUP rodata data fpc bss stack heap')
-      else
-        AsmWriteLn('GROUP DGROUP rodata data fpc bss');
-      if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
-        begin
-          AsmWriteLn('SECTION .debug_frame  use32 class=DWARF align=4');
-          AsmWriteLn('SECTION .debug_info   use32 class=DWARF align=4');
-          AsmWriteLn('SECTION .debug_line   use32 class=DWARF align=4');
-          AsmWriteLn('SECTION .debug_abbrev use32 class=DWARF align=4');
-        end;
-      if not (cs_huge_code in current_settings.moduleswitches) then
-        AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^));
 {$elseif defined(i386)}
-      AsmWriteLn('BITS 32');
+      writer.AsmWriteLn('BITS 32');
       using_relative:=false;
 {$elseif defined(x86_64)}
-      AsmWriteLn('BITS 64');
-      AsmWriteLn('default rel');
+      writer.AsmWriteLn('BITS 64');
+      writer.AsmWriteLn('default rel');
       using_relative:=true;
 {$endif}
       end;
@@ -1126,8 +1172,9 @@ interface
       if current_module.mainsource<>'' then
        comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource);
 {$endif}
+      ResetSectionsList;
       WriteHeader;
-      AsmLn;
+      writer.AsmLn;
 
       WriteExternals;
 
@@ -1135,18 +1182,19 @@ interface
         begin
           if not (current_asmdata.asmlists[hal].empty) then
             begin
-              AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmListTypeStr[hal]);
+              writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
               writetree(current_asmdata.asmlists[hal]);
-              AsmWriteLn(target_asm.comment+'End asmlist '+AsmListTypeStr[hal]);
+              writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmListTypeStr[hal]);
             end;
         end;
 
-      AsmLn;
+      writer.AsmLn;
       if SmartAsm then
         begin
           WriteSmartExternals;
           FreeExternChainList;
         end;
+      WriteGroups;
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
        comment(v_info,'Done writing nasm-styled assembler output for '+current_module.mainsource);
@@ -1160,7 +1208,8 @@ interface
         result:=Inherited MakeCmdLine;
 {$ifdef i8086}
         case target_info.system of
-          system_i8086_msdos:
+          system_i8086_msdos,
+          system_i8086_win16:
             FormatName:='obj';
           else
             internalerror(2014082060);
@@ -1211,7 +1260,7 @@ interface
             idtxt  : 'NASM';
             asmbin : 'nasm';
             asmcmd : '-f $FORMAT -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
-            supported_targets : [system_i8086_msdos];
+            supported_targets : [system_i8086_msdos,system_i8086_win16];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
@@ -1223,7 +1272,7 @@ interface
             idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
-            supported_targets : [system_i8086_msdos];
+            supported_targets : [system_i8086_msdos,system_i8086_win16];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
@@ -1297,7 +1346,7 @@ interface
             comment : '; ';
             dollarsign: '$';
           );
-
+{
        as_i386_nasmdarwin_info : tasminfo =
           (
             id           : as_i386_nasmdarwin;
@@ -1310,7 +1359,7 @@ interface
             comment : '; ';
             dollarsign: '$';
           );
-
+}
        as_i386_nasmbeos_info : tasminfo =
           (
             id           : as_i386_nasmbeos;

@@ -446,7 +446,7 @@ unit cpupara;
               begin
                 paralen:=sizeof(aint);
                 paracgsize:=OS_ADDR;
-                paradef:=cpointerdef.getreusable(paradef);
+                paradef:=cpointerdef.getreusable_no_free(paradef);
               end
             else
               begin
@@ -598,7 +598,7 @@ unit cpupara;
                       begin
                         paralen:=sizeof(aint);
                         paracgsize:=OS_ADDR;
-                        paradef:=cpointerdef.getreusable(paradef);
+                        paradef:=cpointerdef.getreusable_no_free(paradef);
                       end
                     else
                       begin

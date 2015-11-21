@@ -509,9 +509,11 @@ Type
   PCardinal           = ^Cardinal;
   PQWord              = ^QWord;
   PInt64              = ^Int64;
+  PUInt64             = ^UInt64;
   PPtrInt             = ^PtrInt;
   PPtrUInt            = ^PtrUInt;
   PSizeInt            = ^SizeInt;
+  PSizeUInt           = ^SizeUInt;
 
   PPByte              = ^PByte;
   PPLongint           = ^PLongint;
@@ -1578,6 +1580,16 @@ const
 *****************************************************************************}
 
 {$i resh.inc}
+
+
+{*****************************************************************************
+                          Exception support
+*****************************************************************************}
+
+{ contains the definition of the TExceptAddr type, which is required
+  by the compiler to generate code for any routine containing
+  implicit or explicit exceptions }
+{$i excepth.inc}
 
 {*****************************************************************************
                    FPDoc phony declarations.

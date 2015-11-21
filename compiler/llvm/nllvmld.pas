@@ -29,10 +29,12 @@ interface
       globtype,
       cgutils,
       symtype,
-      ncgld, ncgnstld;
+      node,ncgld,ncgnstld;
 
     type
       tllvmloadnode = class(tcgnestloadnode)
+        function pass_1: tnode; override;
+        procedure pass_generate_code; override;
       end;
 
       { tllvmarrayconstructornode }
@@ -46,10 +48,68 @@ interface
 implementation
 
      uses
+       systems,
        aasmdata,
        nld,
-       symdef,
-       hlcgobj;
+       symtable,symconst,symdef,symsym,
+       tgobj,cgbase,hlcgobj;
+
+function tllvmloadnode.pass_1: tnode;
+  begin
+    result:=inherited;
+    if assigned(result) then
+      exit;
+    case symtableentry.typ of
+      procsym:
+        begin
+          if assigned(left) then
+            expectloc:=LOC_REFERENCE;
+        end;
+    end;
+  end;
+
+procedure tllvmloadnode.pass_generate_code;
+  var
+    pvdef: tprocvardef;
+    href, mpref: treference;
+    field: tfieldvarsym;
+    procreg, selfreg: tregister;
+  begin
+    inherited;
+    case symtableentry.typ of
+      procsym:
+        begin
+          { if the result is returned in two registers, force it to memory into
+            a single memory location, as we don't use the registerhi/register
+            location hack for llvm (llvm will put it back into registers itself)
+          }
+          if assigned(left) then
+            begin
+              pvdef:=tprocvardef(procdef.getcopyas(procvardef,pc_normal));
+              { on little endian, location.register contains proc and
+                location.registerhi contains self; on big endian, it's the
+                other way around }
+              tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,href);
+              if target_info.endian=endian_little then
+                begin
+                  procreg:=location.register;
+                  selfreg:=location.registerhi
+                end
+              else
+                begin
+                  procreg:=location.registerhi;
+                  selfreg:=location.register
+                end;
+              mpref:=href;
+              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(methodpointertype),mpref);
+              hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef),trecorddef(methodpointertype),procreg,'proc',mpref);
+              hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,left.resultdef,trecorddef(methodpointertype),selfreg,'self',mpref);
+              location_reset_ref(location,LOC_REFERENCE,location.size,href.alignment);
+              location.reference:=href;
+            end;
+        end;
+    end;
+  end;
 
 { tllvmarrayconstructornode }
 

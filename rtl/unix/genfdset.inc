@@ -28,7 +28,7 @@ function fpFD_CLR(fdno:cint;var nset : TFDSet): cint;
 Begin
    if (fdno<0) or (fdno >  FD_MAXFDSET) Then
        exit(-1);
-   nset[(fdno) shr ln2bitsinword]:=nset[(fdno) shr ln2bitsinword] AND Cardinal(NOT (culong(1) shl ((fdno) and ln2bitmask)));
+   nset[(fdno) shr ln2bitsinword]:=nset[(fdno) shr ln2bitsinword] AND cuLong(NOT (culong(1) shl ((fdno) and ln2bitmask)));
    fpFD_CLR:=0;
 End;
 
@@ -46,7 +46,7 @@ function fpfdfillset(var nset : TFDSet):cint;
 var i :longint;
 
 Begin
-  for i:=0 to wordsinfdset-1 DO nset[i]:=Cardinal(NOT 0);
+  for i:=0 to wordsinfdset-1 DO nset[i]:=Culong(NOT 0);
   fpfdfillset:=0;
 End;
 

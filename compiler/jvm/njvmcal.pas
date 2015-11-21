@@ -591,7 +591,7 @@ implementation
                   in theory do that, because the parameter nodes have already
                   been bound to the current procdef's parasyms }
                 remove_hidden_paras;
-                result:=ccallnode.create(left,tprocsym(sym),symtableproc,methodpointer,callnodeflags);
+                result:=ccallnode.create(left,tprocsym(sym),symtableproc,methodpointer,callnodeflags,nil);
                 result.flags:=flags;
                 left:=nil;
                 methodpointer:=nil;

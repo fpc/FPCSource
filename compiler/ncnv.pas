@@ -643,7 +643,7 @@ implementation
            p.free;
          end;
         { set the initial set type }
-        constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue);
+        constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue,true);
         { determine the resultdef for the tree }
         typecheckpass(buildp);
         { set the new tree }
@@ -1087,9 +1087,6 @@ implementation
         para : tcallparanode;
         hp : tstringconstnode;
         ws : pcompilerwidestring;
-        newblock : tblocknode;
-        newstat  : tstatementnode;
-        restemp  : ttempcreatenode;
         sa : ansistring;
         cw : tcompilerwidechar;
         l : SizeUInt;
@@ -1429,6 +1426,8 @@ implementation
         else
           begin
             result:=cinlinenode.create(in_round_real,false,left);
+            { Internal type cast to currency }
+            result:=ctypeconvnode.create_internal(result,s64currencytype);
             left:=nil;
           end;
       end;
@@ -2230,7 +2229,7 @@ implementation
                 begin
                   include(current_procinfo.flags,pi_do_call);
                   addsymref(aprocdef.procsym);
-                  hp:=ccallnode.create(ccallparanode.create(left,nil),Tprocsym(aprocdef.procsym),nil,nil,[]);
+                  hp:=ccallnode.create(ccallparanode.create(left,nil),Tprocsym(aprocdef.procsym),nil,nil,[],nil);
                   { tell explicitly which def we must use !! (PM) }
                   tcallnode(hp).procdefinition:=aprocdef;
                   left:=nil;
@@ -2598,8 +2597,12 @@ implementation
             end;
           typeconvn:
             begin
-              n.resultdef:=todef;
               ttypeconvnode(n).totypedef:=todef;
+              { may change the type conversion, e.g. if the old conversion was
+                from 64 bit to a 64 bit, and now becomes 64 bit to 32 bit }
+              n.resultdef:=nil;
+              ttypeconvnode(n).convtype:=tc_none;
+              typecheckpass(n);
             end;
           else
             inserttypeconv_internal(n,todef);
@@ -2955,23 +2958,23 @@ implementation
                 if is_currency(left.resultdef) then
                   left.resultdef := s64inttype;
                 if is_signed(left.resultdef) then
-                  fname:='I64TO'
+                  fname:='i64to'
                 else
-                  fname:='UI64TO';
+                  fname:='ui64to';
               end
             else
               { other integers are supposed to be 32 bit }
               begin
                 if is_signed(left.resultdef) then
-                  fname:='ITO'
+                  fname:='ito'
                 else
-                  fname:='UTO';
+                  fname:='uto';
                 firstpass(left);
               end;
             if tfloatdef(resultdef).floattype=s64real then
-              fname:=fname+'D'
+              fname:=fname+'d'
             else
-              fname:=fname+'S';
+              fname:=fname+'s';
             result:=ccallnode.createintern(fname,ccallparanode.create(
               left,nil));
             left:=nil;
@@ -3027,7 +3030,7 @@ implementation
                   s32real:
                     case tfloatdef(resultdef).floattype of
                       s64real:
-                        result:=ccallnode.createintern('STOD',ccallparanode.create(left,nil));
+                        result:=ccallnode.createintern('stod',ccallparanode.create(left,nil));
                       s32real:
                         begin
                           result:=left;
@@ -3039,7 +3042,7 @@ implementation
                   s64real:
                     case tfloatdef(resultdef).floattype of
                       s32real:
-                        result:=ccallnode.createintern('DTOS',ccallparanode.create(left,nil));
+                        result:=ccallnode.createintern('dtos',ccallparanode.create(left,nil));
                       s64real:
                         begin
                           result:=left;
@@ -3358,7 +3361,7 @@ implementation
                          { constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags); }
                          result:=ccallnode.create(nil,tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym),
                            tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym).owner,
-                           left,[]);
+                           left,[],nil);
                          addsymref(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym);
                          { if it is a class, process it further in a similar way }
                          if not is_interface(result.resultdef) then

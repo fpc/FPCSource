@@ -524,7 +524,7 @@ implementation
           with a single #0 }
         result:=ccallnode.create(ccallparanode.create(left,nil),tprocsym(ps),
           ps.owner,
-          cloadvmtaddrnode.create(ctypenode.create(java_ansistring)),[]);
+          cloadvmtaddrnode.create(ctypenode.create(java_ansistring)),[],nil);
         include(result.flags,nf_isproperty);
         result:=ctypeconvnode.create_explicit(result,resultdef);
         { reused }
@@ -863,7 +863,7 @@ implementation
           { call the (static class) method to get the raw bits }
           result:=ccallnode.create(ccallparanode.create(left,nil),
             tprocsym(psym),psym.owner,
-            cloadvmtaddrnode.create(ctypenode.create(csym.typedef)),[]);
+            cloadvmtaddrnode.create(ctypenode.create(csym.typedef)),[],nil);
           { convert the result to the result type of this type conversion node }
           inserttypeconv_explicit(result,resultdef);
           { left is reused }
@@ -882,7 +882,7 @@ implementation
             internalerror(2011062601);
           result:=ccallnode.create(ccallparanode.create(left,nil),
             tprocsym(psym),psym.owner,
-            cloadvmtaddrnode.create(ctypenode.create(todef.classdef)),[]);
+            cloadvmtaddrnode.create(ctypenode.create(todef.classdef)),[],nil);
           { convert the result to the result type of this type conversion node }
           inserttypeconv_explicit(result,resultdef);
           { left is reused }
@@ -899,7 +899,7 @@ implementation
           if not assigned(psym) or
              (psym.typ<>procsym) then
             internalerror(2011062602);
-          result:=ccallnode.create(nil,tprocsym(psym),psym.owner,left,[]);
+          result:=ccallnode.create(nil,tprocsym(psym),psym.owner,left,[],nil);
           { convert the result to the result type of this type conversion node }
           inserttypeconv_explicit(result,resultdef);
           { left is reused }
@@ -1120,6 +1120,24 @@ implementation
             end;
           result:=false;
         end;
+
+
+      function compatible_file_conversion(def1, def2: tdef): boolean;
+        begin
+          if def1.typ=filedef then
+            case tfiledef(def1).filetyp of
+              ft_text:
+                result:=def2=search_system_type('TEXTREC').typedef;
+              ft_typed,
+              ft_untyped:
+                result:=def2=search_system_type('FILEREC').typedef;
+              else
+                internalerror(2015091401);
+            end
+          else
+            result:=false;
+        end;
+
 
       var
         fromclasscompatible,
@@ -1380,6 +1398,15 @@ implementation
               float(intvalue) will convert rather than re-interpret the value) }
           end;
 
+        { files }
+        if compatible_file_conversion(left.resultdef,resultdef) or
+           compatible_file_conversion(resultdef,left.resultdef) then
+          begin
+            result:=true;
+            exit;
+          end;
+
+
         { anything not explicitly handled is a problem }
         result:=true;
         CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
@@ -1479,7 +1506,7 @@ implementation
               if not assigned(ps) or
                  (ps.typ<>procsym) then
                 internalerror(2011041910);
-              call:=ccallnode.create(ccallparanode.create(node.left,nil),tprocsym(ps),ps.owner,ctypeconvnode.create_explicit(node.right,jlclass),[]);
+              call:=ccallnode.create(ccallparanode.create(node.left,nil),tprocsym(ps),ps.owner,ctypeconvnode.create_explicit(node.right,jlclass),[],nil);
               node.left:=nil;
               node.right:=nil;
               firstpass(call);

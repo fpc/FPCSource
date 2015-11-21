@@ -104,7 +104,7 @@ interface
        end;
 
        TElfAssembler = class(tinternalassembler)
-         constructor create(smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean);override;
        end;
 
        PSectionRec=^TSectionRec;
@@ -1301,9 +1301,9 @@ implementation
                                TELFAssembler
 ****************************************************************************}
 
-    constructor TElfAssembler.Create(smart:boolean);
+    constructor TElfAssembler.Create(info: pasminfo; smart:boolean);
       begin
-        inherited Create(smart);
+        inherited;
         CObjOutput:=TElfObjectOutput;
         CInternalAr:=tarobjectwriter;
       end;
@@ -3275,7 +3275,9 @@ implementation
       pltreltags: array[boolean] of longword=(DT_REL,DT_RELA);
       relsztags:  array[boolean] of longword=(DT_RELSZ,DT_RELASZ);
       relenttags: array[boolean] of longword=(DT_RELENT,DT_RELAENT);
+      {$ifndef MIPS}
       relcnttags: array[boolean] of longword=(DT_RELCOUNT,DT_RELACOUNT);
+      {$endif MIPS}
 
     procedure TElfExeOutput.FinishDynamicTags;
       var

@@ -7,8 +7,8 @@ main=rtl
 
 [target]
 loaders=
-#units=system objpas macpas iso7185 buildrtl lineinfo lnfodwrf
-units=system uuchar objpas iso7185 cpall buildrtl
+#units=system objpas macpas iso7185 extpas buildrtl lineinfo lnfodwrf
+units=system uuchar objpas iso7185 extpas cpall buildrtl
 implicitunits=ndk ndkutils ddk \
       ctypes strings \
 #      heaptrc

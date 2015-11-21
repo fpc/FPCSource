@@ -155,10 +155,7 @@ implementation
 
       begin
          if p<>nil then
-          begin
-            freemem(p);
-            p:=nil;
-          end;
+           freemem(p);
       end;
 
 end.

@@ -51,7 +51,7 @@ uses
       procedure deallocallcpuregisters(list: TAsmList); override;
 
      protected
-      procedure a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out calldef: tdef; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
+      procedure a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
      public
       function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;override;
       function a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara; override;
@@ -94,8 +94,10 @@ uses
       procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
       procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
 
-      procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister); override;
-      procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference); override;
+      procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tdef; var reg: tregister); override;
+      procedure g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference); override;
+
+      procedure g_set_addr_nonbitpacked_field_ref(list: TAsmList; recdef: tabstractrecorddef; field: tfieldvarsym; var recref: treference); override;
 
       procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle); override;
       procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle); override;
@@ -151,7 +153,8 @@ implementation
     aasmllvm,llvmbase,tgllvm,
     symtable,symllvm,
     paramgr,llvmpara,
-    procinfo,cpuinfo,cgobj,cgllvm,cghlcpu;
+    procinfo,cpuinfo,cgobj,cgllvm,cghlcpu,
+    cgcpu,hlcgcpu;
 
   const
     topcg2llvmop: array[topcg] of tllvmop =
@@ -256,7 +259,8 @@ implementation
                    OS_F128:
                      a_loadmm_ref_reg(list,location^.def,location^.def,tmpref,location^.register,mms_movescalar);
                    OS_M8..OS_M128,
-                   OS_MS8..OS_MS128:
+                   OS_MS8..OS_MS128,
+                   OS_32..OS_128:
                      a_loadmm_ref_reg(list,location^.def,location^.def,tmpref,location^.register,nil);
                    else
                      internalerror(2010053101);
@@ -332,7 +336,7 @@ implementation
     end;
 
 
-  procedure thlcgllvm.a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out calldef: tdef; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
+  procedure thlcgllvm.a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
 
     procedure load_ref_anyreg(def: tdef; const ref: treference; reg: tregister; var callpara: pllvmcallpara);
       begin
@@ -428,16 +432,6 @@ implementation
     if (pd.typ=procvardef) and
        not pd.is_addressonly then
       pd:=tprocvardef(cprocvardef.getreusableprocaddr(pd));
-    { if the function returns a function pointer type or is varargs, we
-      must specify the full function signature, otherwise we can only
-      specify the return type }
-    if (po_varargs in pd.procoptions) or
-       ((pd.proccalloption in cdecl_pocalls) and
-        (pd.paras.count>0) and
-        is_array_of_const(tparavarsym(pd.paras[pd.paras.count-1]).vardef)) then
-      calldef:=get_call_pd(pd)
-    else
-      calldef:=llvmretdef;
   end;
 
 
@@ -445,12 +439,11 @@ implementation
     var
       callparas: tfplist;
       llvmretdef,
-      hlretdef,
-      calldef: tdef;
+      hlretdef: tdef;
       res: tregister;
     begin
-      a_call_common(list,pd,paras,forceresdef,res,calldef,hlretdef,llvmretdef,callparas);
-      list.concat(taillvm.call_size_name_paras(get_call_pd(pd),res,calldef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
+      a_call_common(list,pd,paras,forceresdef,res,hlretdef,llvmretdef,callparas);
+      list.concat(taillvm.call_size_name_paras(get_call_pd(pd),res,llvmretdef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
       result:=get_call_result_cgpara(pd,forceresdef);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;
@@ -460,12 +453,11 @@ implementation
     var
       callparas: tfplist;
       llvmretdef,
-      hlretdef,
-      calldef: tdef;
+      hlretdef: tdef;
       res: tregister;
     begin
-      a_call_common(list,pd,paras,nil,res,calldef,hlretdef,llvmretdef,callparas);
-      list.concat(taillvm.call_size_reg_paras(get_call_pd(pd),res,calldef,reg,callparas));
+      a_call_common(list,pd,paras,nil,res,hlretdef,llvmretdef,callparas);
+      list.concat(taillvm.call_size_reg_paras(get_call_pd(pd),res,llvmretdef,reg,callparas));
       result:=get_call_result_cgpara(pd,nil);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;
@@ -529,8 +521,12 @@ implementation
                 truncate it before storing. Unfortunately, we cannot truncate
                 records (nor bitcast them to integers), so we first have to
                 store them to memory and then bitcast the pointer to them
+
+                We can't truncate an integer to 3/5/6/7 bytes either, so also
+                pass via a temp in that case
               }
-              if fromsize.typ in [arraydef,recorddef] then
+              if (fromsize.typ in [arraydef,recorddef]) or
+                 (tosize.size in [3,5,6,7]) then
                 begin
                   { store struct/array-in-register to memory }
                   tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
@@ -1085,7 +1081,7 @@ implementation
             list.concat(taillvmalias.create(asmsym,item.str,current_procinfo.procdef,llv_default,lll_default));
           item:=TCmdStrListItem(item.next);
         end;
-      list.concat(taillvmdecl.create(asmsym,current_procinfo.procdef,nil,sec_code,current_procinfo.procdef.alignment));
+      list.concat(taillvmdecl.createdef(asmsym,current_procinfo.procdef,nil,sec_code,current_procinfo.procdef.alignment));
     end;
 
 
@@ -1140,11 +1136,6 @@ implementation
             LOC_FPUREGISTER,
             LOC_MMREGISTER:
               begin
-                { inline assembler routines contain a ret at the end and never
-                  get here, but we do need a return at the end -> return an
-                  undefined value in this case }
-                if po_assembler in current_procinfo.procdef.procoptions then
-                  gen_load_uninitialized_function_result(list,current_procinfo.procdef,retpara.def,retpara);
                 { sign/zeroextension of function results is handled implicitly
                   via the signext/zeroext modifiers of the result, rather than
                   in the code generator -> remove any explicit extensions here }
@@ -1204,20 +1195,90 @@ implementation
     end;
 
 
-  procedure thlcgllvm.g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister);
+  procedure thlcgllvm.g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tdef; var reg: tregister);
+    var
+      hreg: tregister;
     begin
       { will insert a bitcast if necessary }
-      a_load_reg_reg(list,fromdef,todef,reg,reg);
+      if fromdef<>todef then
+        begin
+          hreg:=getregisterfordef(list,todef);
+          a_load_reg_reg(list,fromdef,todef,reg,hreg);
+          reg:=hreg;
+        end;
     end;
 
 
-  procedure thlcgllvm.g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference);
+  procedure thlcgllvm.g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference);
     var
+      sref: treference;
       hreg: tregister;
     begin
       hreg:=getaddressregister(list,todef);
       a_loadaddr_ref_reg(list,fromdef.pointeddef,todef,ref,hreg);
       reference_reset_base(ref,todef,hreg,0,ref.alignment);
+    end;
+
+
+  procedure thlcgllvm.g_set_addr_nonbitpacked_field_ref(list: TAsmList; recdef: tabstractrecorddef; field: tfieldvarsym; var recref: treference);
+    var
+      parentdef,
+      subscriptdef,
+      currentstructdef,
+      llvmfielddef: tdef;
+      newbase: tregister;
+      implicitpointer: boolean;
+    begin
+      implicitpointer:=is_implicit_pointer_object_type(recdef);
+      currentstructdef:=recdef;
+      { in case the field is part of a parent of the current object,
+        index into the parents until we're at the parent containing the
+        field; if it's an implicit pointer type, these embedded parents
+        will be of the structure type of the class rather than of the
+        class time itself -> one indirection fewer }
+      while field.owner<>tabstractrecorddef(currentstructdef).symtable do
+        begin
+          { only objectdefs have parents and hence the owner of the
+            fieldvarsym can be different from the current def's owner }
+          parentdef:=tobjectdef(currentstructdef).childof;
+          if implicitpointer then
+            newbase:=getaddressregister(list,parentdef)
+          else
+            newbase:=getaddressregister(list,cpointerdef.getreusable(parentdef));
+          recref:=make_simple_ref(list,recref,recdef);
+          if implicitpointer then
+            subscriptdef:=currentstructdef
+          else
+            subscriptdef:=cpointerdef.getreusable(currentstructdef);
+          { recurse into the first field }
+          list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,0,true));
+          reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,newalignment(recref.alignment,field.fieldoffset));
+          { go to the parent }
+          currentstructdef:=parentdef;
+        end;
+      { get the type of the corresponding field in the llvm shadow
+        definition }
+      llvmfielddef:=tabstractrecordsymtable(tabstractrecorddef(currentstructdef).symtable).llvmst[field].def;
+      if implicitpointer then
+        subscriptdef:=currentstructdef
+      else
+        subscriptdef:=cpointerdef.getreusable(currentstructdef);
+      { load the address of that shadow field }
+      newbase:=getaddressregister(list,cpointerdef.getreusable(llvmfielddef));
+      recref:=make_simple_ref(list,recref,recdef);
+      list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,field.llvmfieldnr,true));
+      reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,newalignment(recref.alignment,field.fieldoffset+field.offsetfromllvmfield));
+      { in case of an 80 bits extended type, typecast from an array of 10
+        bytes (used because otherwise llvm will allocate the ABI-defined
+        size for extended, which is usually larger) into an extended }
+      if (llvmfielddef.typ=floatdef) and
+         (tfloatdef(llvmfielddef).floattype=s80real) then
+        g_ptrtypecast_ref(list,cpointerdef.getreusable(carraydef.getreusable(u8inttype,10)),cpointerdef.getreusable(s80floattype),recref);
+      { if it doesn't match the requested field exactly (variant record),
+        adjust the type of the pointer }
+      if (field.offsetfromllvmfield<>0) or
+         (llvmfielddef<>field.vardef) then
+        g_ptrtypecast_ref(list,cpointerdef.getreusable(llvmfielddef),cpointerdef.getreusable(field.vardef),recref);
     end;
 
 
@@ -1588,6 +1649,7 @@ implementation
 
   procedure thlcgllvm.set_call_function_result(const list: TAsmList; const pd: tabstractprocdef; const llvmretdef, hlretdef: tdef; const resval: tregister; var retpara: tcgpara);
     var
+      hreg: tregister;
       rettemp: treference;
     begin
       if not is_void(hlretdef) and
@@ -1603,7 +1665,15 @@ implementation
                 everything to memory rather than potentially dealing with aggregates
                 in "registers" }
               tg.gethltemp(list, hlretdef, hlretdef.size, tt_normal, rettemp);
-              a_load_reg_ref(list, llvmretdef, hlretdef, resval, rettemp);
+              case def2regtyp(llvmretdef) of
+                R_INTREGISTER,
+                R_ADDRESSREGISTER:
+                  a_load_reg_ref(list,llvmretdef,hlretdef,resval,rettemp);
+                R_FPUREGISTER:
+                  a_loadfpu_reg_ref(list,llvmretdef,hlretdef,resval,rettemp);
+                R_MMREGISTER:
+                  a_loadmm_reg_ref(list,llvmretdef,hlretdef,resval,rettemp,mms_movescalar);
+              end;
               { the return parameter now contains a value whose type matches the one
                 that the high level code generator expects instead of the llvm shim
               }
@@ -1620,8 +1690,23 @@ implementation
             end
           else
             begin
+              if llvmretdef<>hlretdef then
+                begin
+                  hreg:=getregisterfordef(list,hlretdef);
+                  case def2regtyp(llvmretdef) of
+                    R_INTREGISTER,
+                    R_ADDRESSREGISTER:
+                      a_load_reg_reg(list,llvmretdef,hlretdef,resval,hreg);
+                    R_FPUREGISTER:
+                      a_loadfpu_reg_reg(list,llvmretdef,hlretdef,resval,hreg);
+                    R_MMREGISTER:
+                      a_loadmm_reg_reg(list,llvmretdef,hlretdef,resval,hreg,mms_movescalar);
+                  end;
+                  retpara.location^.llvmloc.reg:=hreg
+                end
+              else
+                retpara.location^.llvmloc.reg:=resval;
               retpara.Location^.llvmloc.loc:=retpara.location^.loc;
-              retpara.location^.llvmloc.reg:=resval;
               retpara.Location^.llvmvalueloc:=true;
             end;
         end
@@ -1719,8 +1804,19 @@ implementation
 
   procedure create_hlcodegen;
     begin
-      hlcg:=thlcgllvm.create;
-      cgllvm.create_codegen
+      if not assigned(current_procinfo) or
+         not(po_assembler in current_procinfo.procdef.procoptions) then
+        begin
+          tgobjclass:=ttgllvm;
+          hlcg:=thlcgllvm.create;
+          cgllvm.create_codegen
+        end
+      else
+        begin
+          tgobjclass:=orgtgclass;
+          hlcgcpu.create_hlcodegen;
+          { todo: handle/remove chlcgobj }
+        end;
     end;
 
 begin

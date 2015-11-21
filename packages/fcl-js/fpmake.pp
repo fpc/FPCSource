@@ -23,7 +23,7 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := 'michael@freepascal.org';
     P.Description := 'Javascript scanner/parser/syntax tree units';
-    P.OSes:=AllOSes-[embedded,msdos];
+    P.OSes:=AllOSes-[embedded,msdos,win16];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

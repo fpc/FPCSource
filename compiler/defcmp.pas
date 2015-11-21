@@ -45,7 +45,9 @@ interface
           cpo_ignorevarspez,          // ignore parameter access type
           cpo_ignoreframepointer,     // ignore frame pointer parameter (for assignment-compatibility of global procedures to nested procvars)
           cpo_compilerproc,
-          cpo_rtlproc
+          cpo_rtlproc,
+          cpo_generic                 // two different undefined defs (or a constraint in the forward) alone or in open arrays are
+                                      // treated as exactly equal (also in open arrays) if they are owned by their respective procdefs
        );
 
        tcompare_paras_options = set of tcompare_paras_option;
@@ -1337,18 +1339,16 @@ implementation
                    end;
                  pointerdef :
                    begin
-{$ifdef x86}
                      { check for far pointers }
-                     if (tcpupointerdef(def_from).x86pointertyp<>tcpupointerdef(def_to).x86pointertyp) then
+                     if not tpointerdef(def_from).compatible_with_pointerdef_size(tpointerdef(def_to)) then
                        begin
                          if fromtreetype=niln then
                            eq:=te_equal
                          else
                            eq:=te_incompatible;
                        end
+                     { the types can be forward type, handle before normal type check !! }
                      else
-{$endif x86}
-                      { the types can be forward type, handle before normal type check !! }
                       if assigned(def_to.typesym) and
                          ((tpointerdef(def_to).pointeddef.typ=forwarddef) or
                           (tpointerdef(def_from).pointeddef.typ=forwarddef)) then
@@ -1420,7 +1420,7 @@ implementation
                        this is not allowed for complex procvars }
                      if (is_void(tpointerdef(def_to).pointeddef) or
                          (m_mac_procvar in current_settings.modeswitches)) and
-                        tprocvardef(def_from).is_addressonly then
+                        tprocvardef(def_from).compatible_with_pointerdef_size(tpointerdef(def_to)) then
                       begin
                         doconv:=tc_equal;
                         eq:=te_convert_l1;
@@ -1431,7 +1431,7 @@ implementation
                      { procedure variable can be assigned to an void pointer,
                        this not allowed for methodpointers }
                      if (m_mac_procvar in current_settings.modeswitches) and
-                        tprocdef(def_from).is_addressonly then
+                        tprocdef(def_from).compatible_with_pointerdef_size(tpointerdef(def_to)) then
                       begin
                         doconv:=tc_proc_2_procvar;
                         eq:=te_convert_l2;
@@ -1955,9 +1955,27 @@ implementation
 
 
     function compare_paras(para1,para2 : TFPObjectList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
+
       var
         currpara1,
         currpara2 : tparavarsym;
+
+        function equal_genfunc_paradefs(def1,def2:tdef):boolean;
+          begin
+            result:=false;
+            if (sp_generic_para in def1.typesym.symoptions) and
+                (sp_generic_para in def2.typesym.symoptions) and
+                (def1.owner=currpara1.owner) and
+                (def2.owner=currpara2.owner) then
+              begin
+                { the forward declaration may have constraints }
+                if not (df_genconstraint in def2.defoptions) and (def2.typ=undefineddef) and
+                    ((def1.typ=undefineddef) or (df_genconstraint in def1.defoptions)) then
+                  result:=true;
+              end
+          end;
+
+      var
         eq,lowesteq : tequaltype;
         hpd       : tprocdef;
         convtype  : tconverttype;
@@ -2096,8 +2114,31 @@ implementation
                             Message2(type_w_procvar_univ_conflicting_para,currpara1.vardef.typename,currpara2.vardef.typename)
                         end;
                     end
+                  else if (cpo_generic in cpoptions) then
+                    begin
+                      if equal_genfunc_paradefs(currpara1.vardef,currpara2.vardef) then
+                        eq:=te_exact
+                      else
+                        exit;
+                    end
                   else
                     exit;
+                end;
+              if (eq=te_equal) and
+                  (cpo_generic in cpoptions) then
+                begin
+                  if is_open_array(currpara1.vardef) and
+                      is_open_array(currpara2.vardef) then
+                    begin
+                      if equal_genfunc_paradefs(tarraydef(currpara1.vardef).elementdef,tarraydef(currpara2.vardef).elementdef) then
+                        eq:=te_exact;
+                    end
+                  else
+                    { for the purpose of forward declarations two equal specializations
+                      are considered as exactly equal }
+                    if tstoreddef(currpara1.vardef).is_specialization and
+                        tstoreddef(currpara2.vardef).is_specialization then
+                      eq:=te_exact;
                 end;
               { open strings can never match exactly, since you cannot define }
               { a separate "open string" type -> we have to be able to        }
@@ -2185,6 +2226,7 @@ implementation
          { check for method pointer and local procedure pointer:
              a) anything but procvars can be assigned to blocks
              b) if one is a procedure of object, the other also has to be one
+                ("object static procedure" is equal to procedure as well)
                 (except for block)
              c) if one is a pure address, the other also has to be one
                 except if def1 is a global proc and def2 is a nested procdef
@@ -2201,7 +2243,9 @@ implementation
            { can't explicitly check against procvars here, because
              def1 may already be a procvar due to a proc_to_procvar;
              this is checked in the type conversion node itself -> ok }
-         else if (def1.is_methodpointer<>def2.is_methodpointer) or  { b) }
+         else if
+            ((def1.is_methodpointer and not (po_staticmethod in def1.procoptions))<> { b) }
+             (def2.is_methodpointer and not (po_staticmethod in def2.procoptions))) or
             ((def1.is_addressonly<>def2.is_addressonly) and         { c) }
              (is_nested_pd(def1) or
               not is_nested_pd(def2))) or
@@ -2220,7 +2264,7 @@ implementation
          { check return value and options, methodpointer is already checked }
          po_comp:=[po_interrupt,po_iocheck,po_varargs];
          { check static only if we compare method pointers }
-         if def1.is_methodpointer then
+         if def1.is_methodpointer and def2.is_methodpointer then
            include(po_comp,po_staticmethod);
          if (m_delphi in current_settings.modeswitches) then
            exclude(po_comp,po_varargs);

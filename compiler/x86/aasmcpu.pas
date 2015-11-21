@@ -1161,10 +1161,7 @@ implementation
 {$ifdef i386}
                      or (
                          (ref^.refaddr in [addr_pic]) and
-                         { allow any base for assembler blocks }
-                        ((assigned(current_procinfo) and
-                         (pi_has_assembler_block in current_procinfo.flags) and
-                         (ref^.base<>NR_NO)) or (ref^.base=NR_EBX))
+                         (ref^.base<>NR_NO)
                         )
 {$endif i386}
 {$ifdef x86_64}
@@ -2563,6 +2560,12 @@ implementation
                       currabsreloc:=RELOC_DGROUP;
                       currabsreloc32:=RELOC_DGROUP;
                     end
+                  else if oper[opidx]^.ref^.refaddr=addr_fardataseg then
+                    begin
+                      currrelreloc:=RELOC_FARDATASEGREL;
+                      currabsreloc:=RELOC_FARDATASEG;
+                      currabsreloc32:=RELOC_FARDATASEG;
+                    end
                   else
 {$endif i8086}
 {$ifdef i386}
@@ -2914,7 +2917,7 @@ implementation
 {$endif i8086}
                 if assigned(currsym)
 {$ifdef i8086}
-                   or (currabsreloc=RELOC_DGROUP)
+                   or (currabsreloc in [RELOC_DGROUP,RELOC_FARDATASEG])
 {$endif i8086}
                 then
                  objdata_writereloc(currval,2,currsym,currabsreloc)
@@ -3284,16 +3287,26 @@ implementation
                            currabsreloc:=RELOC_GOT32
                          else
 {$endif i386}
+{$ifdef i8086}
+                         if ea_data.bytes=2 then
+                           currabsreloc:=RELOC_ABSOLUTE
+                         else
+{$endif i8086}
                              currabsreloc:=RELOC_ABSOLUTE32;
 
-                           if (currabsreloc=RELOC_ABSOLUTE32) and
+                           if (currabsreloc in [RELOC_ABSOLUTE32{$ifdef i8086},RELOC_ABSOLUTE{$endif}]) and
                             (Assigned(oper[opidx]^.ref^.relsymbol)) then
                            begin
                              relsym:=objdata.symbolref(oper[opidx]^.ref^.relsymbol);
                              if relsym.objsection=objdata.CurrObjSec then
                                begin
                                  currval:=objdata.CurrObjSec.size+ea_data.bytes-relsym.offset+currval;
-                                 currabsreloc:=RELOC_RELATIVE;
+{$ifdef i8086}
+                                 if ea_data.bytes=4 then
+                                   currabsreloc:=RELOC_RELATIVE32
+                                 else
+{$endif i8086}
+                                   currabsreloc:=RELOC_RELATIVE;
                                end
                              else
                                begin

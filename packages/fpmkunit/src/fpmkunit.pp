@@ -120,7 +120,8 @@ Type
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
-    aix,java,android,nativent,msdos,wii,aros,dragonfly
+    aix,java,android,nativent,msdos,wii,aros,dragonfly,
+    win16
   );
   TOSes = Set of TOS;
 
@@ -177,10 +178,10 @@ Const
   AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim,dragonfly];
   AllWindowsOSes  = [Win32,Win64,WinCE];
   AllAmigaLikeOSes = [Amiga,MorphOS,AROS];
-  AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos];
+  AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos,win16];
 
-  AllSmartLinkLibraryOSes = [Linux,msdos,amiga,morphos,aros]; // OSes that use .a library files for smart-linking
-  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos];
+  AllSmartLinkLibraryOSes = [Linux,msdos,amiga,morphos,aros,win16]; // OSes that use .a library files for smart-linking
+  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos,win16];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
   OSCPUSupported : array[TOS,TCpu] of boolean = (
@@ -222,7 +223,8 @@ Const
     { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false),
     { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false, false),
     { aros }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false),
-    { dragonfly}( false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false)
+    { dragonfly}( false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false),
+    { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false)
   );
 
   // Useful
@@ -730,10 +732,10 @@ Type
     Function AddExample(const AFiles : String) : TSource;
     Function AddExample(const AFiles : String; AInstallSourcePath : String) : TSource;
     Function AddTest(const AFiles : String) : TSource;
-    procedure AddDocFiles(const AFileMask: string; Recursive: boolean = False; AInstallSourcePath : String = '');
-    procedure AddSrcFiles(const AFileMask: string; Recursive: boolean = False);
-    procedure AddExampleFiles(const AFileMask: string; Recursive: boolean = False; AInstallSourcePath : String = '');
-    procedure AddTestFiles(const AFileMask: string; Recursive: boolean = False);
+    procedure AddDocFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False; AInstallSourcePath : String = '');
+    procedure AddSrcFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False);
+    procedure AddExampleFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False; AInstallSourcePath : String = '');
+    procedure AddTestFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False);
     Property SourceItems[Index : Integer] : TSource Read GetSourceItem Write SetSourceItem;default;
   end;
 
@@ -1103,10 +1105,10 @@ Type
     FGeneralCriticalSection: TRTLCriticalSection;
 {$ifdef HAS_UNIT_ZIPPER}
     FZipper: TZipper;
+    FGZFileStream: TGZFileStream;
 {$endif HAS_UNIT_ZIPPER}
 {$ifdef HAS_TAR_SUPPORT}
     FTarWriter: TTarWriter;
-    FGZFileStream: TGZFileStream;
 {$endif HAS_TAR_SUPPORT}
     procedure AddFileToArchive(const APackage: TPackage; Const ASourceFileName, ADestFileName : String);
     procedure FinishArchive(Sender: TObject);
@@ -1149,6 +1151,7 @@ Type
 
     property Verbose : boolean read FVerbose write FVerbose;
     Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true; WarnIfNotFound:boolean=true);
+    Procedure ClearResolvedFileNames(APackage : TPackage);
 
     // Public Copy/delete/Move/Archive/Mkdir Commands.
     Procedure ExecuteCommand(const Cmd,Args : String; const Env: TStrings = nil; IgnoreError : Boolean = False); virtual;
@@ -1371,7 +1374,7 @@ Function GetCustomFpmakeCommandlineOptionValue(const ACommandLineOption : string
 Function AddProgramExtension(const ExecutableName: string; AOS : TOS) : string;
 Function GetImportLibraryFilename(const UnitName: string; AOS : TOS) : string;
 
-procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
+procedure SearchFiles(AFileName, ASearchPathPrefix: string; Recursive: boolean; var List: TStrings);
 function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): string;
 
 Implementation
@@ -1380,7 +1383,11 @@ uses typinfo, rtlconsts;
 
 const
 {$ifdef CREATE_TAR_FILE}
+  {$ifdef HAS_UNIT_ZIPPER}
   ArchiveExtension = '.tar.gz';
+  {$else }
+  ArchiveExtension = '.tar';
+  {$endif HAS_UNIT_ZIPPER}
 {$else CREATE_TAR_FILE}
   ArchiveExtension = '.zip';
 {$endif CREATE_TAR_FILE}
@@ -2395,7 +2402,7 @@ begin
 end;
 
 
-procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
+procedure SearchFiles(AFileName, ASearchPathPrefix: string; Recursive: boolean; var List: TStrings);
 
   procedure AddRecursiveFiles(const SearchDir, FileMask: string; Recursive: boolean);
   var
@@ -2418,12 +2425,16 @@ var
   BasePath: string;
   i: integer;
 begin
+  if IsRelativePath(AFileName) and (ASearchPathPrefix<>'') then
+    AFileName := IncludeTrailingPathDelimiter(ASearchPathPrefix) + AFileName;
+
   BasePath := ExtractFilePath(ExpandFileName(AFileName));
+
   AddRecursiveFiles(BasePath, ExtractFileName(AFileName), Recursive);
 
   CurrDir:=GetCurrentDir;
   for i := 0 to Pred(List.Count) do
-    List[i] := ExtractRelativepath(IncludeTrailingPathDelimiter(CurrDir), List[i]);
+    List[i] := ExtractRelativepath(IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(CurrDir)+ASearchPathPrefix), List[i]);
 end;
 
 Const
@@ -2550,7 +2561,7 @@ var
 begin
   S:=TProcess.Create(Nil);
   S.Commandline:=ACompiler+' '+AOptions;
-  S.Options:=[poUsePipes];
+  S.Options:=[poUsePipes,poWaitOnExit];
   S.execute;
   Count:=s.output.read(buf,BufSize);
   if (count=0) and ReadStdErr then
@@ -2605,6 +2616,13 @@ function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): stri
 {$ifdef HAS_UNIT_PROCESS}
       ExecResult:=GetCompilerInfo(GccExecutable,'-v '+GCCParams, True);
       libgccFilename:=Get4thWord(ExecResult);
+      // Use IsRelativePath to check if the 4th word is an (absolute) path.
+      // This depends on the language settings. In English the 4th word is
+      // empty, if this particular gcc version does not return the libgcc-
+      // filename on -v. But in other languages (e.g. Dutch) it may be another
+      // word.
+      if IsRelativePath(libgccFilename) then
+        libgccFilename:='';
       if libgccFilename='' then
         libgccFilename:=GetCompilerInfo(GccExecutable,'--print-libgcc-file-name '+GCCParams, False);
       result := ExtractFileDir(libgccFilename);
@@ -3152,53 +3170,52 @@ begin
   Result.FSourceType:=stTest;
 end;
 
-
-procedure TSources.AddDocFiles(const AFileMask: string; Recursive: boolean; AInstallSourcePath : String = '');
+procedure TSources.AddDocFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean; AInstallSourcePath: String);
 var
   List : TStrings;
   i: integer;
 begin
   List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
+  SearchFiles(AFileMask, ASearchPathPrefix, Recursive, List);
   for i:= 0 to Pred(List.Count) do
     AddDoc(List[i], AInstallSourcePath);
   List.Free;
 end;
 
 
-procedure TSources.AddSrcFiles(const AFileMask: string; Recursive: boolean);
+procedure TSources.AddSrcFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean);
 var
   List : TStrings;
   i: integer;
 begin
   List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
+  SearchFiles(AFileMask, ASearchPathPrefix, Recursive, List);
   for i:= 0 to Pred(List.Count) do
     AddSrc(List[i]);
   List.Free;
 end;
 
 
-procedure TSources.AddExampleFiles(const AFileMask: string; Recursive: boolean; AInstallSourcePath : String = '');
+procedure TSources.AddExampleFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean; AInstallSourcePath: String);
 var
   List : TStrings;
   i: integer;
 begin
   List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
+  SearchFiles(AFileMask, ASearchPathPrefix, Recursive, List);
   for i:= 0 to Pred(List.Count) do
     AddExample(List[i], AInstallSourcePath);
   List.Free;
 end;
 
 
-procedure TSources.AddTestFiles(const AFileMask: string; Recursive: boolean);
+procedure TSources.AddTestFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean);
 var
   List : TStrings;
   i: integer;
 begin
   List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
+  SearchFiles(AFileMask, ASearchPathPrefix, Recursive, List);
   for i:= 0 to Pred(List.Count) do
     AddTest(List[i]);
   List.Free;
@@ -3771,7 +3788,8 @@ begin
       Values[KeyName]:=Name;
       Values[KeyVersion]:=Version;
       // TODO Generate checksum based on PPUs
-      Values[KeyChecksum]:=IntToStr(DateTimeToFileDate(Now));
+      InstalledChecksum:=DateTimeToFileDate(Now);
+      Values[KeyChecksum]:=IntToStr(InstalledChecksum);
       Values[KeyCPU]:=CPUToString(ACPU);
       Values[KeyOS]:=OSToString(AOS);
       //Installer;
@@ -5010,15 +5028,19 @@ begin
   {$ifdef HAS_TAR_SUPPORT}
   if not assigned(FTarWriter) then
     begin
+    {$ifdef HAS_UNIT_ZIPPER}
       FGZFileStream := TGZFileStream.create(GetArchiveName + ArchiveExtension, gzopenwrite);
       try
         FTarWriter := TTarWriter.Create(FGZFileStream);
-        FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
-        FTarWriter.UserName := 'root';
-        FTarWriter.GroupName := 'root';
       except
         FGZFileStream.Free;
       end;
+    {$else}
+    FTarWriter := TTarWriter.Create(GetArchiveName + ArchiveExtension);
+    {$endif HAS_UNIT_ZIPPER}
+    FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
+    FTarWriter.UserName := 'root';
+    FTarWriter.GroupName := 'root';
     end;
 {$ifdef unix}
   if (FpStat(ASourceFileName, FileStat) = 0) and (FileStat.st_mode and S_IXUSR = S_IXUSR) then
@@ -5055,7 +5077,9 @@ begin
   if assigned(FTarWriter) then
     begin
       FreeAndNil(FTarWriter);
+      {$ifdef HAS_UNIT_ZIPPER}
       FGZFileStream.Free;
+      {$endif HAS_UNIT_ZIPPER}
     end;
   {$endif HAS_TAR_SUPPORT}
   {$ifdef HAS_UNIT_ZIPPER}
@@ -5852,6 +5876,34 @@ begin
     If DoChangeDir and (APackage.Directory<>'') then
       GPathPrefix := '';
   end;
+end;
+
+procedure TBuildEngine.ClearResolvedFileNames(APackage: TPackage);
+
+  procedure ClearResolvedFileNamesForDependencies(ADependencies: TDependencies);
+  var
+    I: Integer;
+    D: TDependency;
+  begin
+    For I:=0 to ADependencies.Count-1 do
+      begin
+        D := ADependencies[I];
+        D.TargetFileName:='';
+      end;
+  end;
+
+var
+  T : TTarget;
+  I : Integer;
+begin
+  APackage.FAllFilesResolved:=false;
+  ClearResolvedFileNamesForDependencies(APackage.Dependencies);
+  For I:=0 to APackage.Targets.Count-1 do
+    begin
+      T:=APackage.FTargets.TargetItems[I];
+      T.FTargetSourceFileName:='';
+      ClearResolvedFileNamesForDependencies(T.Dependencies);
+    end;
 end;
 
 
@@ -7173,8 +7225,8 @@ begin
         for IOS:=Low(TOS) to high(TOS) do
           if OSCPUSupported[IOS,ICPU] then
             begin
-              // Make sure that the package is resolved for each targbet
-              APackage.FAllFilesResolved:=false;
+              // Make sure that the package is resolved for each target
+              ClearResolvedFileNames(APackage);
               ResolveFileNames(APackage,ICPU,IOS,false);
               APackage.GetArchiveFiles(L, ICPU, IOS);
             end;
@@ -7838,7 +7890,7 @@ end;
 
 function TTarget.GetUnitLibFileName(AOS : TOS): String;
 begin
-  if AOS in [atari,netwlibc,go32v2,watcom,wdosx,msdos] then
+  if AOS in [atari,netwlibc,go32v2,watcom,wdosx,msdos,win16] then
     Result := Name+LibExt
   else if AOS in [java] then
     Result:=Name+'.jar'

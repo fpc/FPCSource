@@ -160,9 +160,9 @@ implementation
       { must be a valid Pascal identifier, because we will reference it when
         constructing the block initialiser }
       { we don't have to include the moduleid in this mangledname, because
-        the invokepd is a local procedure in the current unit -> defid by
-        itself is unique }
-      name:='__FPC_BLOCK_DESCRIPTOR_SIMPLE_'+tostr(invokepd.defid);
+        the invokepd is a local procedure in the current unit -> unique_id_str
+        by itself is unique }
+      name:='__FPC_BLOCK_DESCRIPTOR_SIMPLE_'+invokepd.unique_id_str;
       { already exists -> return }
       if searchsym(name,srsym,srsymtable) then
         begin
@@ -174,7 +174,7 @@ implementation
       { find the type of the descriptor structure }
       descriptordef:=search_named_unit_globaltype('BLOCKRTL','FPC_BLOCK_DESCRIPTOR_SIMPLE',true).typedef;
       { create new static variable }
-      descriptor:=cstaticvarsym.create(name,vs_value,descriptordef,[]);
+      descriptor:=cstaticvarsym.create(name,vs_value,descriptordef,[],true);
       symtablestack.top.insert(descriptor);
       include(descriptor.symoptions,sp_internal);
       { create typed constant for the descriptor }
@@ -196,7 +196,7 @@ implementation
     begin
       { the copy() is to ensure we don't overflow the maximum identifier length;
         the combination of owner.moduleid and defid will make the name unique }
-      wrappername:='__FPC_BLOCK_INVOKE_'+upper(copy(orgpd.procsym.realname,1,60))+'_'+tostr(orgpd.owner.moduleid)+'_'+tostr(orgpd.defid);
+      wrappername:='__FPC_BLOCK_INVOKE_'+upper(copy(orgpd.procsym.realname,1,60))+'_'+tostr(orgpd.owner.moduleid)+'_'+orgpd.unique_id_str;
       { already an invoke wrapper for this procsym -> reuse }
       if searchsym(wrappername,srsym,srsymtable) then
         begin
@@ -227,7 +227,7 @@ implementation
         begin
           { alias for the type to invoke the procvar, used in the symcreat
             handling of tsk_block_invoke_procvar }
-          result.localst.insert(ctypesym.create('__FPC_BLOCK_INVOKE_PV_TYPE',orgpv));
+          result.localst.insert(ctypesym.create('__FPC_BLOCK_INVOKE_PV_TYPE',orgpv,true));
           result.synthetickind:=tsk_block_invoke_procvar;
         end;
     end;
@@ -253,7 +253,7 @@ implementation
       result:=cstaticvarsym.create(
         '$'+literalname,
         vs_value,
-        blockliteraldef,[]);
+        blockliteraldef,[],true);
       include(result.symoptions,sp_internal);
       symtablestack.top.insert(result);
       { initialise it }

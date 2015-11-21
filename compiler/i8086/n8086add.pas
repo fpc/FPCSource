@@ -88,6 +88,11 @@ interface
             (rt = pointerconstn) and is_farpointer(rd) and
             is_constintnode(left) and
             (nodetype=addn)
+           ) or
+           (
+            (lt in [pointerconstn,niln]) and is_farpointer(ld) and
+            (rt in [pointerconstn,niln]) and is_farpointer(rd) and
+            (nodetype in [ltn,lten,gtn,gten,equaln,unequaln])
            ) then
           begin
             t:=nil;
@@ -143,6 +148,18 @@ interface
                   else
                     internalerror(2014040606);
                 end;
+              ltn:
+                t:=cordconstnode.create(ord(word(qword(lv))<word(qword(rv))),pasbool8type,true);
+              lten:
+                t:=cordconstnode.create(ord(word(qword(lv))<=word(qword(rv))),pasbool8type,true);
+              gtn:
+                t:=cordconstnode.create(ord(word(qword(lv))>word(qword(rv))),pasbool8type,true);
+              gten:
+                t:=cordconstnode.create(ord(word(qword(lv))>=word(qword(rv))),pasbool8type,true);
+              equaln:
+                t:=cordconstnode.create(ord(lv=rv),pasbool8type,true);
+              unequaln:
+                t:=cordconstnode.create(ord(lv<>rv),pasbool8type,true);
               else
                 internalerror(2014040605);
             end;
@@ -886,10 +903,18 @@ interface
                end;
              LOC_CONSTANT :
                begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value shr 16) and $FFFF),GetNextReg(left.location.register)));
-                 firstjmp32bitcmp;
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint(right.location.value and $FFFF),left.location.register));
-                 secondjmp32bitcmp;
+                 if (right.location.value=0) and (nodetype in [equaln,unequaln]) and (left.location.loc=LOC_REGISTER) then
+                   begin
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_W,GetNextReg(left.location.register),left.location.register));
+                     secondjmp32bitcmp;
+                   end
+                 else
+                   begin
+                     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value shr 16) and $FFFF),GetNextReg(left.location.register)));
+                     firstjmp32bitcmp;
+                     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint(right.location.value and $FFFF),left.location.register));
+                     secondjmp32bitcmp;
+                   end;
                end;
              else
                internalerror(200203282);

@@ -33,7 +33,7 @@ begin
     P.Email := '';
     P.Description := 'Database library of Free Component Libraries(FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos];
+    P.OSes:=AllOSes-[embedded,msdos,win16];
 
     P.Directory:=ADirectory;
     P.Version:='3.1.1';
@@ -96,6 +96,7 @@ begin
       with T.Dependencies do
         begin
         AddUnit('db');
+        AddUnit('sqldb');
         AddUnit('bufdataset');
         end;
 
@@ -661,6 +662,17 @@ begin
           AddUnit('dbconst');
         end;
 
+    T:=P.Targets.AddUnit('mysql57conn.pas', SqldbConnectionOSes);
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddInclude('mysqlconn.inc');
+          AddUnit('bufdataset');
+          AddUnit('sqldb');
+          AddUnit('db');
+          AddUnit('dbconst');
+        end;
+
     T:=P.Targets.AddUnit('odbcconn.pas', SqldbConnectionOSes);
       with T.Dependencies do
         begin
@@ -721,6 +733,7 @@ begin
           AddUnit('db');
           AddUnit('bufdataset');
           AddUnit('dbconst');
+          AddUnit('sqlscript');
         end;
     T:=P.Targets.AddUnit('sqldblib.pp');
       with T.Dependencies do

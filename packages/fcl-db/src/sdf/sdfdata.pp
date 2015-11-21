@@ -209,8 +209,8 @@ type
     procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
     procedure ClearCalcFields(Buffer: TRecordBuffer); override;
-    function GetRecordCount: Integer; override;
-    function GetRecNo: Integer; override;
+    function GetRecordCount: Longint; override;
+    function GetRecNo: Longint; override;
     procedure SetRecNo(Value: Integer); override;
     function GetCanModify: boolean; override;
     function RecordFilter(RecBuf: TRecordBuffer): Boolean;
@@ -222,6 +222,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
     function  BookmarkValid(ABookmark: TBookmark): Boolean; override;
+    function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; override;
     function  GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
     procedure RemoveBlankRecords; dynamic;
     procedure RemoveExtraColumns; dynamic;
@@ -778,6 +779,14 @@ end;
 function TFixedFormatDataSet.BookmarkValid(ABookmark: TBookmark): Boolean;
 begin
   Result := Assigned(ABookmark) and (FData.IndexOfObject(TObject(PPtrInt(ABookmark)^)) <> -1);
+end;
+
+function TFixedFormatDataSet.CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint;
+const r: array[Boolean, Boolean] of ShortInt = ((2,-1),(1,0));
+begin
+  Result := r[Bookmark1=nil, Bookmark2=nil];
+  if Result = 2 then
+    Result := PPtrInt(Bookmark1)^ - PPtrInt(Bookmark2)^;
 end;
 
 procedure TFixedFormatDataSet.InternalGotoBookmark(ABookmark: Pointer);

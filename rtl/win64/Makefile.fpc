@@ -9,6 +9,7 @@ main=rtl
 loaders=$(LOADERS)
 units=system uuchar objpas macpas iso7185 buildrtl cpall lineinfo lnfodwrf
 implicitunits=ctypes strings \
+      extpas \
       heaptrc \
       dos messages \
       windows cmem dynlibs \

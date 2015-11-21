@@ -101,6 +101,8 @@ interface
         constructor getelementptr_reg_size_ref_size_const(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:ptrint;indirect:boolean);
         constructor getelementptr_reg_tai_size_const(dst:tregister;const ai:tai;indextype:tdef;index1:ptrint;indirect:boolean);
 
+        constructor blockaddress(dstreg: tregister; fun, lab: tasmsymbol);
+
         { e.g. dst = call retsize name (paras) }
         constructor call_size_name_paras(callpd: tdef; dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
         { e.g. dst = call retsize reg (paras) }
@@ -147,6 +149,14 @@ interface
       constructor create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _vis: tllvmvisibility; _linkage: tllvmlinkage);
     end;
 
+    taillvmdeclflag =
+    (
+      ldf_definition,   { definition as opposed to (an external) declaration }
+      ldf_tls,          { tls definition }
+      ldf_unnamed_addr  { address doesn't matter, only content }
+    );
+    taillvmdeclflags = set of taillvmdeclflag;
+
     { declarations/definitions of symbols (procedures, variables), both defined
       here and external }
     taillvmdecl = class(tai)
@@ -156,9 +166,12 @@ interface
       def: tdef;
       sec: TAsmSectiontype;
       alignment: shortint;
-      tls: boolean;
-      constructor create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+      flags: taillvmdeclflags;
+      secname: TSymStr;
+      constructor createdecl(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+      constructor createdef(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       constructor createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
+      procedure setsecname(const name: TSymStr);
       destructor destroy; override;
     end;
 
@@ -184,7 +197,7 @@ uses
 
     { taillvmprocdecl }
 
-    constructor taillvmdecl.create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+    constructor taillvmdecl.createdecl(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       begin
         inherited create;
         typ:=ait_llvmdecl;
@@ -194,13 +207,29 @@ uses
         sec:=_sec;
         alignment:=_alignment;
         _namesym.declared:=true;
+        flags:=[];
+      end;
+
+
+    constructor taillvmdecl.createdef(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+      begin
+        createdecl(_namesym,_def,_initdata,_sec,_alignment);
+        include(flags,ldf_definition);
       end;
 
 
     constructor taillvmdecl.createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
       begin
-        create(_namesym,_def,nil,sec_data,_alignment);
-        tls:=true;
+        createdef(_namesym,_def,nil,sec_data,_alignment);
+        include(flags,ldf_tls);
+      end;
+
+
+    procedure taillvmdecl.setsecname(const name: TSymStr);
+      begin
+        if sec<>sec_user then
+          internalerror(2015111501);
+        secname:=name;
       end;
 
 
@@ -404,7 +433,7 @@ uses
       begin
         case llvmopcode of
           la_ret, la_br, la_switch, la_indirectbr,
-          la_invoke, la_resume,
+          la_resume,
           la_unreachable,
           la_store,
           la_fence,
@@ -427,7 +456,7 @@ uses
           la_getelementptr,
           la_load,
           la_icmp, la_fcmp,
-          la_phi, la_select, la_call,
+          la_phi, la_select,
           la_va_arg, la_landingpad:
             begin
               if opnr=0 then
@@ -435,6 +464,19 @@ uses
               else
                 result:=operand_read;
             end;
+          la_invoke, la_call:
+            begin
+              if opnr=1 then
+                result:=operand_write
+              else
+                result:=operand_read;
+            end;
+          la_blockaddress:
+            case opnr of
+              0: result:=operand_write
+              else
+                result:=operand_read;
+            end
           else
             internalerror(2013103101)
         end;
@@ -468,10 +510,18 @@ uses
             end;
           la_invoke, la_call:
             begin
-              if opnr=0 then
-                result:=oper[1]^.def
-              else
-                internalerror(2013110102);
+              case opnr of
+                1: result:=oper[0]^.def;
+                3:
+                  begin
+                    if oper[3]^.typ=top_reg then
+                      result:=oper[2]^.def
+                    else
+                      internalerror(2015112001)
+                  end
+                else
+                  internalerror(2013110102);
+              end;
             end;
           la_br,
           la_unreachable:
@@ -551,6 +601,12 @@ uses
                   internalerror(2013110110);
               end;
             end;
+          la_blockaddress:
+            case opnr of
+              0: result:=voidcodepointertype
+              else
+                internalerror(2015111904);
+            end
           else
             internalerror(2013103101)
         end;
@@ -896,6 +952,15 @@ uses
         loadconst(index+1,index1);
       end;
 
+    constructor taillvm.blockaddress(dstreg: tregister; fun, lab: tasmsymbol);
+      begin
+        create_llvm(la_blockaddress);
+        ops:=3;
+        loadreg(0,dstreg);
+        loadsymbol(1,fun,0);
+        loadsymbol(2,lab,0);
+      end;
+
 
     constructor taillvm.call_size_name_paras(callpd: tdef; dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
       begin
@@ -906,9 +971,9 @@ uses
           have to insert a type conversion later from the alias def to the
           call def here; we can't always do that at the point the call itself
           is generated, because the alias declaration may occur anywhere }
-        loaddef(0,callpd);
+        loaddef(0,retsize);
         loadreg(1,dst);
-        loaddef(2,retsize);
+        loaddef(2,callpd);
         loadsymbol(3,name,0);
         loadparas(4,paras);
       end;
@@ -918,9 +983,9 @@ uses
       begin
         create_llvm(la_call);
         ops:=5;
-        loaddef(0,callpd);
+        loaddef(0,retsize);
         loadreg(1,dst);
-        loaddef(2,retsize);
+        loaddef(2,callpd);
         loadreg(3,reg);
         loadparas(4,paras);
       end;

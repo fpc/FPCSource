@@ -142,7 +142,7 @@ function tjvmassignmentnode.pass_1: tnode;
           ccallnode.create(
             ccallparanode.create(right,
               ccallparanode.create(tvecnode(target).right,nil)),
-            tprocsym(psym),psym.owner,tvecnode(target).left,[]);
+            tprocsym(psym),psym.owner,tvecnode(target).left,[],nil);
         right:=nil;
         tvecnode(target).left:=nil;
         tvecnode(target).right:=nil;

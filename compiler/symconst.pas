@@ -116,8 +116,18 @@ const
   paranr_blockselfpara = 1;
   paranr_parentfp = 2;
   paranr_parentfp_delphi_cc_leftright = 2;
+{$ifndef aarch64}
   paranr_self = 3;
   paranr_result = 4;
+{$else aarch64}
+  { on AArch64, the result parameter is passed in a special register, so its
+    order doesn't really matter -- except for LLVM, where the "sret" parameter
+    must always be the first -> give it a higher number; can't do it for other
+    platforms, because that would change the register assignment/parameter order
+    and the current one is presumably Delphi-compatible }
+  paranr_result = 3;
+  paranr_self = 4;
+{$endif aarch64}
   paranr_vmt = 5;
 
   { the implicit parameters for Objective-C methods need to come
@@ -135,6 +145,16 @@ const
   { prefix for names of class helper procsyms added to regular symtables }
   class_helper_prefix = 'CH$';
 
+  { tsym.symid value in case the sym has not yet been registered }
+  symid_not_registered = -2;
+  { tsym.symid value in case the sym has been registered, but not put in a
+    symtable }
+  symid_registered_nost = -1;
+  { tdef.defid value in case the def has not yet been registered }
+  defid_not_registered = -2;
+  { tdef.defid value in case the sym has been registered, but not put in a
+    symtable }
+  defid_registered_nost = -1;
 
 type
   { keep this in sync with TIntfFlag in rtl/objpas/typinfo.pp }
@@ -192,7 +212,13 @@ type
     { def has been copied from another def so symtable is not owned }
     df_copied_def,
     { def was created as a generic constraint and thus is only "shallow" }
-    df_genconstraint
+    df_genconstraint,
+    { don't free def after finishing the implementation section even if it
+      wasn't written to the ppu, as this def may still be referred (e.g. because
+      it was used to set the type of a paraloc, since paralocs are reused
+      across units) -- never stored to ppu, because in that case the def would
+      be registered }
+    df_not_registered_no_free
   );
   tdefoptions=set of tdefoption;
 
@@ -266,7 +292,8 @@ type
     potype_class_destructor,  { class destructor  }
     potype_propgetter,        { Dispinterface property accessors }
     potype_propsetter,
-    potype_exceptfilter       { SEH exception filter or termination handler }
+    potype_exceptfilter,      { SEH exception filter or termination handler }
+    potype_mainstub           { "main" function that calls through to FPC_SYSTEMMAIN }
   );
   tproctypeoptions=set of tproctypeoption;
 
@@ -401,8 +428,16 @@ type
     tsk_jvm_virtual_clmethod,  // Java wrapper for virtual class method
     tsk_field_getter,          // getter for a field (callthrough property is passed in skpara)
     tsk_field_setter,          // Setter for a field (callthrough property is passed in skpara)
-    tsk_block_invoke_procvar   // Call a procvar to invoke inside a block
+    tsk_block_invoke_procvar,  // Call a procvar to invoke inside a block
+    tsk_interface_wrapper      // Call through to a method from an interface wrapper
   );
+
+  { synthetic procdef supplementary information (tprocdef.skpara) }
+  tskpara_interface_wrapper = record
+    pd: pointer;
+    offset: longint;
+  end;
+  pskpara_interface_wrapper = ^tskpara_interface_wrapper;
 
   { options for objects and classes }
   tobjecttyp = (odt_none,
@@ -633,6 +668,7 @@ type
     accidental collisions) }
   tinternaltypeprefix = (
     itp_1byte,
+    itp_emptyrec,
     itp_llvmstruct,
     itp_vmtdef,
     itp_vmt_tstringmesssagetable,
@@ -650,7 +686,8 @@ type
     itp_rtti_ord_64bit,
     itp_rtti_normal_array,
     itp_rtti_dyn_array,
-    itp_rtti_proc_param
+    itp_rtti_proc_param,
+    itp_threadvar_record
   );
 
   { The order is from low priority to high priority,
@@ -754,6 +791,7 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
 
      internaltypeprefixName : array[tinternaltypeprefix] of TSymStr = (
        '$1byte$',
+       '$emptyrec',
        '$llvmstruct$',
        '$vmtdef$',
        '$vmt_TStringMesssageTable$',
@@ -771,7 +809,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$rtti_ord_64bit$',
        '$rtti_normal_array$',
        '$rtti_dyn_array$',
-       '$rtti_proc_param$'
+       '$rtti_proc_param$',
+       '$threadvar_record$'
      );
 
 

@@ -13,7 +13,7 @@
 
  **********************************************************************}
 
-{$ifndef CPUTHUMB}
+{$if (not defined(CPUTHUMB)) and defined(CPUARM_HAS_UMULL)}
 {$define FPC_SYSTEM_HAS_MUL_QWORD}
 function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;assembler;nostackframe;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
 asm
@@ -62,5 +62,5 @@ asm
 .Lexit:
   ldmfd sp!,{r4,r5,r6,r15}
 end;
-{$endif CPUTHUMB}
+{$endif (not defined(CPUTHUMB)) and defined(CPUARM_HAS_UMULL)}
 

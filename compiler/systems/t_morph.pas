@@ -53,17 +53,12 @@ implementation
 
 Constructor TLinkerMorphOS.Create;
 begin
+  UseVLink:=(cs_link_vlink in current_settings.globalswitches);
+
   Inherited Create;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
-  { TODO: always use vlink on MorphOS for now, but allow ld for cross compiling,
-    we need a command line switch to switch between vlink and ld later. (KB) }
-{$IFDEF MORPHOS}
-  UseVLink:=true;
-{$ELSE}
-  UseVLink:=(cs_link_on_target in current_settings.globalswitches);
-{$ENDIF}
 end;
 
 
@@ -78,7 +73,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='fpcvlink -b elf32amiga $OPT $STRIP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b elf32amiga $OPT $STRIP -o $EXE -T $RES';
      end;
    end;
 end;

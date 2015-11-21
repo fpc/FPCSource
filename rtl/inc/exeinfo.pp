@@ -732,6 +732,16 @@ type
       sh_addralign      : longword;
       sh_entsize        : longword;
     end;
+  telfproghdr=packed record
+    p_type            : longword;
+    p_offset          : longword;
+    p_vaddr           : longword;
+    p_paddr           : longword;
+    p_filesz          : longword;
+    p_memsz           : longword;
+    p_flags           : longword;
+    p_align           : longword;
+  end;
 {$endif ELF32 or BEOS}
 {$ifdef ELF64}
 type
@@ -768,6 +778,17 @@ type
       sh_addralign      : int64;
       sh_entsize        : int64;
     end;
+
+  telfproghdr=packed record
+    p_type            : longword;
+    p_flags           : longword;
+    p_offset          : qword;
+    p_vaddr           : qword;
+    p_paddr           : qword;
+    p_filesz          : qword;
+    p_memsz           : qword;
+    p_align           : qword;
+  end;
 {$endif ELF64}
 
 
@@ -776,6 +797,8 @@ function OpenElf(var e:TExeFile):boolean;
 var
   elfheader : telfheader;
   elfsec    : telfsechdr;
+  phdr      : telfproghdr;
+  i         : longint;
 begin
   OpenElf:=false;
   { read and check header }
@@ -792,6 +815,20 @@ begin
   e.secstrofs:=elfsec.sh_offset;
   e.sechdrofs:=elfheader.e_shoff;
   e.nsects:=elfheader.e_shnum;
+
+  { scan program headers to find the image base address }
+  e.processaddress:=High(e.processaddress);
+  seek(e.f,elfheader.e_phoff);
+  for i:=1 to elfheader.e_phnum do
+    begin
+      blockread(e.f,phdr,sizeof(phdr));
+      if (phdr.p_type = 1 {PT_LOAD}) and (ptruint(phdr.p_vaddr) < e.processaddress) then
+        e.processaddress:=phdr.p_vaddr;
+    end;
+
+  if e.processaddress = High(e.processaddress) then
+    e.processaddress:=0;
+
   OpenElf:=true;
 end;
 

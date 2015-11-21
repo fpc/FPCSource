@@ -33,6 +33,7 @@ interface
          protected
           function first_int_to_real: tnode; override;
           function first_int_to_bool: tnode; override;
+          function first_nil_to_methodprocvar: tnode; override;
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
@@ -44,7 +45,8 @@ interface
          procedure second_int_to_real;override;
          { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
-         { procedure second_proc_to_procvar;override; }
+         procedure second_proc_to_procvar;override;
+         procedure second_nil_to_methodprocvar; override;
          procedure second_bool_to_int;override;
          procedure second_int_to_bool;override;
          { procedure second_load_smallset;override;  }
@@ -63,7 +65,7 @@ uses
   llvmbase,aasmllvm,
   procinfo,
   symconst,symtype,symdef,defutil,
-  cgbase,cgutils,hlcgobj,pass_2;
+  cgbase,cgutils,tgobj,hlcgobj,pass_2;
 
 { tllvmtypeconvnode }
 
@@ -78,7 +80,20 @@ function tllvmtypeconvnode.first_int_to_bool: tnode;
   begin
     result:=inherited;
     if not assigned(result) then
-      expectloc:=LOC_JUMP;
+      begin
+        if not((nf_explicit in flags) and
+               not(left.location.loc in [LOC_FLAGS,LOC_JUMP])) then
+          expectloc:=LOC_JUMP;
+      end;
+  end;
+
+
+function tllvmtypeconvnode.first_nil_to_methodprocvar: tnode;
+  begin
+    result:=inherited;
+    if assigned(result) then
+      exit;
+    expectloc:=LOC_REFERENCE;
   end;
 
 
@@ -122,15 +137,50 @@ procedure tllvmtypeconvnode.second_pointer_to_array;
 procedure tllvmtypeconvnode.second_int_to_real;
   var
     op: tllvmop;
+    llvmtodef: tdef;
   begin
     if is_signed(left.resultdef) then
       op:=la_sitofp
     else
       op:=la_uitofp;
-    location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-    location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+    { see comment about currency in thlcgllvm.a_loadfpu_ref_reg }
+    if not is_currency(resultdef) then
+      llvmtodef:=resultdef
+    else
+      llvmtodef:=s80floattype;
+    location_reset(location,LOC_FPUREGISTER,def_cgsize(llvmtodef));
+    location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,llvmtodef);
     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-    current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_size(op,location.register,left.resultdef,left.location.register,resultdef));
+    current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_size(op,location.register,left.resultdef,left.location.register,llvmtodef));
+  end;
+
+
+procedure tllvmtypeconvnode.second_proc_to_procvar;
+  begin
+    inherited;
+    if not tabstractprocdef(resultdef).is_addressonly and
+       not tabstractprocdef(left.resultdef).is_addressonly then
+      begin
+        if location.loc<>LOC_REFERENCE then
+          internalerror(2015111902);
+        hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
+          cpointerdef.getreusable(left.resultdef),
+          cpointerdef.getreusable(resultdef),
+          location.reference);
+      end;
+  end;
+
+
+procedure tllvmtypeconvnode.second_nil_to_methodprocvar;
+  var
+    href: treference;
+  begin
+    tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,href);
+    location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),href.alignment);
+    location.reference:=href;
+    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(methodpointertype),href);
+    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),'proc',0,href);
+    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),'self',0,href);
   end;
 
 

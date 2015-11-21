@@ -98,8 +98,8 @@ interface
       end;
       TVMTWriterClass = class of TVMTWriter;
 
-    { generate persistent type information like VMT, RTTI and inittables }
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
+    { generate VMTs }
+    procedure write_vmts(st:tsymtable;is_global:boolean);
 
   var
     CVMTWriter: TVMTWriterClass = TVMTWriter;
@@ -110,15 +110,14 @@ implementation
       cutils,cclasses,
       globtype,globals,verbose,constexp,
       systems,fmodule,
-      symsym,symtable,defutil,
+      symsym,symtable,symcreat,defutil,
+{$ifdef cpuhighleveltarget}
+      pparautl,
+{$endif cpuhighleveltarget}
       aasmtai,
       wpobase,
       nobj,
       cgbase,parabase,paramgr,cgobj,cgcpu,hlcgobj,hlcgcpu,
-{$ifdef llvm}
-      { override create_hlcodegen from hlcgcpu }
-      hlcgllvm,
-{$endif}
       ncgrtti;
 
 
@@ -874,9 +873,7 @@ implementation
         srsym: tsym;
         srsymtable: tsymtable;
         i: longint;
-        name: TIDString;
       begin
-        name:=internaltypeprefixName[prefix];
         if searchsym_type(copy(internaltypeprefixName[prefix],2,length(internaltypeprefixName[prefix])),srsym,srsymtable) then
           begin
             result:=trecorddef(ttypesym(srsym).typedef);
@@ -1035,7 +1032,9 @@ implementation
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel,
          fieldtablelabel : tasmlabel;
+{$ifdef vtentry}
          hs: string;
+{$endif vtentry}
 {$ifdef WITHDMT}
          dmtlabel : tasmlabel;
 {$endif WITHDMT}
@@ -1083,7 +1082,6 @@ implementation
           begin
             { write class name }
             tcb.start_internal_data_builder(current_asmdata.asmlists[al_const],sec_rodata_norel,'',datatcb,classnamelabel);
-            hs:=_class.RttiName;
             classnamedef:=datatcb.emit_shortstring_const(_class.RttiName);
             tcb.finish_internal_data_builder(datatcb,classnamelabel,classnamedef,sizeof(pint));
 
@@ -1239,6 +1237,10 @@ implementation
         tmps : string;
         pd   : TProcdef;
         ImplIntf : TImplementedInterface;
+{$ifdef cpuhighleveltarget}
+        wrapperpd: tprocdef;
+        wrapperinfo: pskpara_interface_wrapper;
+{$endif cpuhighleveltarget}
       begin
         for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
@@ -1257,18 +1259,41 @@ implementation
                       tobjectdef(tprocdef(pd).struct).register_vmt_call(tprocdef(pd).extnumber);
                     tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+
                       ImplIntf.IntfDef.objname^+'_$_'+tostr(j)+'_$_'+pd.mangledname);
+{$ifdef cpuhighleveltarget}
+                    { bare copy so we don't copy the aliasnames }
+                    wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc));
+                    { set the mangled name to the wrapper name }
+                    wrapperpd.setmangledname(tmps);
+                    { insert the wrapper procdef in the current unit's local
+                      symbol table, but set the owning "struct" to the current
+                      class (so self will have the correct type) }
+                    finish_copied_procdef(wrapperpd,tmps,current_module.localsymtable,_class);
+                    { now insert self/vmt }
+                    insert_self_and_vmt_para(wrapperpd);
+                    { and the function result }
+                    insert_funcret_para(wrapperpd);
+                    { recalculate the parameters now that we've added the above }
+                    wrapperpd.calcparas;
+                    { set the info required to generate the implementation }
+                    wrapperpd.synthetickind:=tsk_interface_wrapper;
+                    new(wrapperinfo);
+                    wrapperinfo^.pd:=pd;
+                    wrapperinfo^.offset:=ImplIntf.ioffset;
+                    wrapperpd.skpara:=wrapperinfo;
+{$else cpuhighleveltarget}
                     { create wrapper code }
                     new_section(list,sec_code,tmps,target_info.alignment.procalign);
                     hlcg.init_register_allocators;
                     hlcg.g_intf_wrapper(list,pd,tmps,ImplIntf.ioffset);
                     hlcg.done_register_allocators;
+{$endif cpuhighleveltarget}
                   end;
               end;
           end;
       end;
 
 
-    procedure do_write_persistent_type_info(st:tsymtable;is_global:boolean);
+    procedure do_write_vmts(st:tsymtable;is_global:boolean);
       var
         i : longint;
         def : tdef;
@@ -1281,14 +1306,14 @@ implementation
             def:=tdef(st.DefList[i]);
             case def.typ of
               recorddef :
-                do_write_persistent_type_info(trecorddef(def).symtable,is_global);
+                do_write_vmts(trecorddef(def).symtable,is_global);
               objectdef :
                 begin
                   { Skip generics and forward defs }
                   if ([df_generic,df_genconstraint]*def.defoptions<>[]) or
                      (oo_is_forward in tobjectdef(def).objectoptions) then
                     continue;
-                  do_write_persistent_type_info(tobjectdef(def).symtable,is_global);
+                  do_write_vmts(tobjectdef(def).symtable,is_global);
                   { Write also VMT if not done yet }
                   if not(ds_vmt_written in def.defstates) then
                     begin
@@ -1307,37 +1332,18 @@ implementation
                 begin
                   if assigned(tprocdef(def).localst) and
                      (tprocdef(def).localst.symtabletype=localsymtable) then
-                    do_write_persistent_type_info(tprocdef(def).localst,false);
+                    do_write_vmts(tprocdef(def).localst,false);
                   if assigned(tprocdef(def).parast) then
-                    do_write_persistent_type_info(tprocdef(def).parast,false);
+                    do_write_vmts(tprocdef(def).parast,false);
                 end;
             end;
-            { generate always persistent tables for types in the interface so it can
-              be reused in other units and give always the same pointer location. }
-            { Init }
-            if (
-                assigned(def.typesym) and
-                is_global and
-                not is_objc_class_or_protocol(def)
-               ) or
-               is_managed_type(def) or
-               (ds_init_table_used in def.defstates) then
-              RTTIWriter.write_rtti(def,initrtti);
-            { RTTI }
-            if (
-                assigned(def.typesym) and
-                is_global and
-                not is_objc_class_or_protocol(def)
-               ) or
-               (ds_rtti_table_used in def.defstates) then
-              RTTIWriter.write_rtti(def,fullrtti);
           end;
       end;
 
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
+    procedure write_vmts(st:tsymtable;is_global:boolean);
       begin
         create_hlcodegen;
-        do_write_persistent_type_info(st,is_global);
+        do_write_vmts(st,is_global);
         destroy_hlcodegen;
       end;
 

@@ -595,7 +595,6 @@ Function TStrings.GetNextLineBreak (Const Value : String; Var S : String; Var P 
 
 Var
   PS,PC,PP : PChar;
-  IP,L : Integer;
 
 begin
   S:='';
@@ -1238,7 +1237,7 @@ end;
 Procedure TStringList.SetCapacity(NewCapacity: Integer);
 
 Var NewList : Pointer;
-    I,MSize : Longint;
+    MSize : Longint;
 
 begin
   If (NewCapacity<0) then
@@ -1252,7 +1251,7 @@ begin
       begin
       MSize:=FCapacity*Sizeof(TStringItem);
       System.Move (FList^,NewList^,MSize);
-      FillWord (Pchar(NewList)[MSize],(NewCapacity-FCapacity)*WordRatio, 0);
+      FillWord (Pchar(NewList)[MSize],(NewCapacity-FCapacity)*(SizeOf(TStringItem) div SizeOf(Word)), 0);
       FreeMem (Flist,MSize);
       end;
     Flist:=NewList;
@@ -1391,6 +1390,8 @@ var
   CompareRes: PtrInt;
 begin
   Result := false;
+  if Not Sorted then 
+    exit;
   // Use binary search.
   L := 0;
   R := Count - 1;

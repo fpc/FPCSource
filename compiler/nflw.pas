@@ -29,7 +29,6 @@ interface
     uses
       cclasses,
       node,cpubase,
-      symnot,
       symtype,symbase,symdef,symsym,
       optloop;
 
@@ -102,7 +101,6 @@ interface
           loopiteration : tnode;
           loopvar_notid:cardinal;
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;reintroduce;
-          procedure loop_var_access(not_type:Tnotification_flag;symbol:Tsym);
           function wrap_to_value:tnode;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
@@ -402,7 +400,7 @@ implementation
          if not assigned(sym) or
             (sym.typ<>procsym) then
            internalerror(2010061901);
-         hp:=ccallnode.create(hp,tprocsym(sym),sym.owner,ctemprefnode.create(expressiontemp),[]);
+         hp:=ccallnode.create(hp,tprocsym(sym),sym.owner,ctemprefnode.create(expressiontemp),[],nil);
          addstatement(outerloopbodystatement,cassignmentnode.create(
            ctemprefnode.create(currentamount),hp));
          { if currentamount = 0, bail out (use copy of hloopvar, because we
@@ -750,12 +748,12 @@ implementation
         if enumerator_get.proctypeoption=potype_operator then
           begin
             enum_get_params:=ccallparanode.create(expr.getcopy,nil);
-            enum_get:=ccallnode.create(enum_get_params, tprocsym(enumerator_get.procsym), nil, nil, []);
+            enum_get:=ccallnode.create(enum_get_params, tprocsym(enumerator_get.procsym), nil, nil, [],nil);
             tcallnode(enum_get).procdefinition:=enumerator_get;
             addsymref(enumerator_get.procsym);
           end
         else
-          enum_get:=ccallnode.create(nil, tprocsym(enumerator_get.procsym), enumerator_get.owner, expr.getcopy, []);
+          enum_get:=ccallnode.create(nil, tprocsym(enumerator_get.procsym), enumerator_get.owner, expr.getcopy, [],nil);
 
         addstatement(loopstatement,
           cassignmentnode.create(
@@ -778,7 +776,7 @@ implementation
                procsym :
                  begin
                    { generate the method call }
-                   enum_current:=ccallnode.create(nil,tprocsym(propaccesslist.firstsym^.sym),enumerator_current.owner,ctemprefnode.create(enumvar),[]);
+                   enum_current:=ccallnode.create(nil,tprocsym(propaccesslist.firstsym^.sym),enumerator_current.owner,ctemprefnode.create(enumvar),[],nil);
                    include(enum_current.flags,nf_isproperty);
                  end
                else
@@ -797,7 +795,7 @@ implementation
         { add the actual statement to the loop }
         addstatement(loopbodystatement,hloopbody);
 
-        enum_move:=ccallnode.create(nil, tprocsym(enumerator_move.procsym), enumerator_move.owner, ctemprefnode.create(enumvar), []);
+        enum_move:=ccallnode.create(nil, tprocsym(enumerator_move.procsym), enumerator_move.owner, ctemprefnode.create(enumvar), [],nil);
         whileloopnode:=cwhilerepeatnode.create(enum_move,loopbody,true,false);
 
         if enumerator_is_class then
@@ -809,7 +807,7 @@ implementation
                 whileloopnode:=ctryfinallynode.create(
                   whileloopnode, // try node
                   ccallnode.create(nil,tprocsym(enumerator_destructor.procsym), // finally node
-                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[]));
+                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[],nil));
               end;
             { if getenumerator <> nil then do the loop }
             whileloopnode:=cifnode.create(
@@ -828,7 +826,7 @@ implementation
               begin
                 addstatement(loopstatement,
                   ccallnode.create(nil,tprocsym(enumerator_destructor.procsym),
-                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[]));
+                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[],nil));
               end;
           end;
 
@@ -1442,26 +1440,6 @@ implementation
            include(loopflags,lnf_backward);
          include(loopflags,lnf_testatbegin);
       end;
-
-    procedure Tfornode.loop_var_access(not_type:Tnotification_flag;
-                                       symbol:Tsym);
-
-    begin
-      {If there is a read access, the value of the loop counter is important;
-       at the end of the loop the loop variable should contain the value it
-       had in the last iteration.}
-      if not_type=vn_onwrite then
-        begin
-          writeln('Loopvar does not matter on exit');
-        end
-      else
-        begin
-          exclude(loopflags,lnf_dont_mind_loopvar_on_exit);
-          writeln('Loopvar does matter on exit');
-        end;
-      Tabstractvarsym(symbol).unregister_notification(loopvar_notid);
-    end;
-
 
     function tfornode.simplify(forinline : boolean) : tnode;
       begin
@@ -2206,7 +2184,7 @@ implementation
           destroyed before procsym, leaving invalid pointers). }
         oldsymtablestack:=symtablestack;
         symtablestack:=nil;
-        result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1);
+        result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1,true);
         symtablestack:=oldsymtablestack;
         st.insertdef(result);
         result.struct:=current_procinfo.procdef.struct;

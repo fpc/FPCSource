@@ -3270,6 +3270,7 @@ begin
     If Assigned(FProxy) then
       FreeProxy;
     FConnectorType:=AValue;
+    CreateProxy;
     end;
 end;
 
@@ -3287,7 +3288,7 @@ Var
 
 begin
   inherited DoInternalConnect;
-  CreateProxy;
+  CheckProxy;
   FProxy.CharSet:=Self.CharSet;
   FProxy.DatabaseName:=Self.DatabaseName;
   FProxy.HostName:=Self.HostName;
@@ -3327,6 +3328,7 @@ begin
     DatabaseErrorFmt(SErrUnknownConnectorType,[ConnectorType],Self);
   FProxy:=D.ConnectionClass.Create(Self);
   FFieldNameQuoteChars := FProxy.FieldNameQuoteChars;
+  FConnOptions := FProxy.ConnOptions;
 end;
 
 procedure TSQLConnector.FreeProxy;

@@ -201,6 +201,7 @@ unit widestr;
          Result := getascii(c,getmap(current_settings.sourcecodepage))[1];
       end;
 
+
     procedure ascii2unicode(p : pchar;l : SizeInt;cp : tstringencoding;r : pcompilerwidestring;codepagetranslation : boolean = true);
       var
          source : pchar;
@@ -212,15 +213,25 @@ unit widestr;
          setlengthwidestring(r,l);
          source:=p;
          dest:=tcompilerwidecharptr(r^.data);
-         if (current_settings.sourcecodepage <> CP_UTF8) and
-            codepagetranslation then
+         if codepagetranslation then
            begin
-             for i:=1 to l do
-                begin
-                  dest^:=getunicode(source^,m);
-                  inc(dest);
-                  inc(source);
-                end;
+             if cp<>CP_UTF8 then
+               begin
+                 for i:=1 to l do
+                    begin
+                      dest^:=getunicode(source^,m);
+                      inc(dest);
+                      inc(source);
+                    end;
+               end
+             else
+               begin
+                 r^.len:=Utf8ToUnicode(punicodechar(r^.data),r^.maxlen,p,l);
+                 { -1, because utf8tounicode includes room for a terminating 0 in
+                   its result count }
+                 if r^.len>0 then
+                   dec(r^.len);
+               end;
            end
          else
            begin
@@ -233,6 +244,7 @@ unit widestr;
            end;
       end;
 
+
     procedure unicode2ascii(r : pcompilerwidestring;p:pchar;cp : tstringencoding);
       var
         m : punicodemap;
@@ -240,11 +252,15 @@ unit widestr;
         dest   : pchar;
         i      : longint;
       begin
+        { can't implement that here, because the memory size for p() cannot
+          be changed here, and we may need more bytes than have been allocated }
+        if cp=CP_UTF8 then
+          internalerrorproc(2015092701);
+
         if (cp = 0) or (cp=CP_NONE) then
           m:=getmap(current_settings.sourcecodepage)
         else
           m:=getmap(cp);
-         // !!!! MBCS
         source:=tcompilerwidecharptr(r^.data);
         dest:=p;
         for i:=1 to r^.len do
@@ -254,28 +270,7 @@ unit widestr;
            inc(source);
          end;
       end;
-(*
-      var
-        source : tcompilerwidecharptr;
-        dest   : pchar;
-        i      : longint;
-      begin
-        { This routine must work the same as the
-          the routine in the RTL to have the same compile time (for constant strings)
-          and runtime conversion (for variables) }
-        source:=tcompilerwidecharptr(r^.data);
-        dest:=p;
-        for i:=1 to r^.len do
-         begin
-           if word(source^)<128 then
-            dest^:=char(word(source^))
-           else
-            dest^:='?';
-           inc(dest);
-           inc(source);
-         end;
-      end;
-*)
+
 
     function hasnonasciichars(const p: pcompilerwidestring): boolean;
       var
@@ -339,16 +334,18 @@ unit widestr;
         p : punicodemap;
       begin
         Result:=0;
-        p:=getmap(s);
+        p:=getmap(lower(s));
         if (p<>nil) then
           Result:=p^.cp;
       end;
 
 
     function charlength(p: pchar; len: sizeint): sizeint;
+      {$IFDEF FPC_HAS_CPSTRING}
       var
         p2: pchar;
         i, chars, codepointlen: sizeint;
+      {$ENDIF FPC_HAS_CPSTRING}
       begin
 {$IFDEF FPC_HAS_CPSTRING}
         if len=0 then

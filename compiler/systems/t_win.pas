@@ -111,6 +111,7 @@ implementation
           resourcefileclass : nil;
           resflags : [];
         );
+{$ifdef x86_64}
     res_win64_gorc_info : tresinfo =
         (
           id     : res_win64_gorc;
@@ -121,6 +122,7 @@ implementation
           resourcefileclass : nil;
           resflags : [];
         );
+{$endif x86_64}
 
 
   Procedure GlobalInitSysInitUnitName(Linker : TLinker);

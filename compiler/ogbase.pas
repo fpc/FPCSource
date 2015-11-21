@@ -67,11 +67,16 @@ interface
          RELOC_PLT32,
 {$endif i386}
 {$ifdef i8086}
+         RELOC_ABSOLUTE32,
+         RELOC_RELATIVE32,
          RELOC_FARPTR,
+         RELOC_FARPTR_RELATIVEOFFSET,
          RELOC_SEG,
          RELOC_SEGREL,
          RELOC_DGROUP,
          RELOC_DGROUPREL,
+         RELOC_FARDATASEG,
+         RELOC_FARDATASEGREL,
 {$endif i8086}
 {$ifdef arm}
          RELOC_RELATIVE_24,
@@ -100,7 +105,7 @@ interface
          RELOC_RAW
       );
 
-{$ifndef x86_64}
+{$if not defined(x86_64) and not defined(i8086)}
     const
       RELOC_ABSOLUTE32 = RELOC_ABSOLUTE;
 {$endif x86_64}
@@ -157,7 +162,9 @@ interface
        { Must be cloned when writing separate debug file }
        oso_debug_copy,
        { Has relocations with explicit addends (ELF-specific) }
-       oso_rela_relocs
+       oso_rela_relocs,
+       { Supports bss-like allocation of data, even though it is written in file (i.e. also has oso_Data) }
+       oso_sparse_data
      );
 
      TObjSectionOptions = set of TObjSectionOption;
@@ -217,11 +224,13 @@ interface
                              { ELF: explicit addend }
         symbol     : TObjSymbol;
         objsection : TObjSection; { only used if symbol=nil }
+        group      : TObjSectionGroup; { only used if symbol=nil and objsection=nil }
         ftype      : byte;
         size       : byte;
         flags      : byte;
         constructor CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
         constructor CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
+        constructor CreateGroup(ADataOffset:aword;grp:TObjSectionGroup;Atyp:TObjRelocationType);
         constructor CreateRaw(ADataOffset:aword;s:TObjSymbol;ARawType:byte);
         function TargetName:TSymStr;
         property typ: TObjRelocationType read GetType write SetType;
@@ -322,7 +331,7 @@ interface
        function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;abstract;
        function  sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;virtual;
        function  sectiontype2align(atype:TAsmSectiontype):shortint;virtual;
-       function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;
+       function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;virtual;
        function  createsection(const aname:string;aalign:shortint;aoptions:TObjSectionOptions;DiscardDuplicate:boolean=true):TObjSection;virtual;
        function  createsectiongroup(const aname:string):TObjSectionGroup;
        procedure CreateDebugSections;virtual;
@@ -773,6 +782,7 @@ implementation
         DataOffset:=ADataOffset;
         Symbol:=s;
         OrgSize:=0;
+        Group:=nil;
         ObjSection:=nil;
         ftype:=ord(Atyp);
       end;
@@ -785,7 +795,21 @@ implementation
         DataOffset:=ADataOffset;
         Symbol:=nil;
         OrgSize:=0;
+        Group:=nil;
         ObjSection:=aobjsec;
+        ftype:=ord(Atyp);
+      end;
+
+
+    constructor TObjRelocation.CreateGroup(ADataOffset:aword;grp:TObjSectionGroup;Atyp:TObjRelocationType);
+      begin
+        if not assigned(grp) then
+          internalerror(2015111201);
+        DataOffset:=ADataOffset;
+        Symbol:=nil;
+        ObjSection:=nil;
+        OrgSize:=0;
+        Group:=grp;
         ftype:=ord(Atyp);
       end;
 
@@ -796,6 +820,7 @@ implementation
         DataOffset:=ADataOffset;
         Symbol:=s;
         ObjSection:=nil;
+        Group:=nil;
         orgsize:=0;
         ftype:=ARawType;
         flags:=rf_raw;
@@ -919,15 +944,23 @@ implementation
       var
         empty : array[0..1023] of byte;
       begin
+        result:=Size;
         if l>sizeof(empty) then
-          internalerror(200404082);
-        if l>0 then
+          begin
+            fillchar(empty,sizeof(empty),0);
+            while l>sizeof(empty) do
+              begin
+                Write(empty,sizeof(empty));
+                Dec(l,sizeof(empty));
+              end;
+            if l>0 then
+              Write(empty,l);
+          end
+        else if l>0 then
           begin
             fillchar(empty,l,0);
-            result:=Write(empty,l);
-          end
-        else
-          result:=Size;
+            Write(empty,l);
+          end;
       end;
 
 
@@ -968,7 +1001,10 @@ implementation
         if (qword(size)+l)>high(size) then
           SectionTooLargeError;
 {$endif}
-        inc(size,l);
+        if oso_sparse_data in SecOptions then
+          WriteZeros(l)
+        else
+          inc(size,l);
       end;
 
 
@@ -1366,6 +1402,8 @@ implementation
             Size:=0;
             Datapos:=0;
             mempos:=0;
+            if assigned(Data) then
+              Data.reset;
           end;
       end;
 
@@ -3115,10 +3153,13 @@ implementation
         var
           objsym : TObjSymbol;
           refobjsec : TObjSection;
+          refgrp : TObjSectionGroup;
         begin
           { Disabled Relocation to 0  }
           if (objreloc.flags and rf_nosymbol)<>0 then
             exit;
+          refobjsec:=nil;
+          refgrp:=nil;
           if assigned(objreloc.symbol) then
             begin
               objsym:=objreloc.symbol;
@@ -3136,10 +3177,8 @@ implementation
             end
           else if assigned(objreloc.objsection) then
             refobjsec:=objreloc.objsection
-{$ifdef i8086}
-          else if objreloc.typ in [RELOC_DGROUP,RELOC_DGROUPREL] then
-            refobjsec:=nil
-{$endif i8086}
+          else if assigned(objreloc.group) then
+            refgrp:=objreloc.group
           else
             internalerror(200603316);
           if assigned(exemap) then
@@ -3150,10 +3189,8 @@ implementation
                   +refobjsec.fullname)
               else if assigned(refobjsec) then
                 exemap.Add('  References '+refobjsec.fullname)
-{$ifdef i8086}
-              else if objreloc.typ in [RELOC_DGROUP,RELOC_DGROUPREL] then
-                exemap.Add('  References DGROUP')
-{$endif i8086}
+              else if assigned(refgrp) then
+                exemap.Add('  References '+refgrp.Name)
               else
                 internalerror(200603316);
             end;

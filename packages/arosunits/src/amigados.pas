@@ -2361,7 +2361,7 @@ function PathPart(const Path: STRPTR): STRPTR; syscall AOS_DOSBase 146;
 function Pipe(const Name: STRPTR; var Reader: BPTR; var Writer: BPTR): LongInt; syscall AOS_DOSBase 160;
 function PrintFault(Code: LongInt; const Header: STRPTR): LongBool; syscall AOS_DOSBase 79;
 function PutStr(const String_: STRPTR): LongInt; syscall AOS_DOSBase 158;
-function ReadArgs(const Template: STRPTR; var Array_: IPTR; RdArgs: PRDArgs): PRDArgs; syscall AOS_DOSBase 133;
+function ReadArgs(const Template: STRPTR; Array_: PIPTR; RdArgs: PRDArgs): PRDArgs; syscall AOS_DOSBase 133;
 function ReadItem(const Buffer: STRPTR; MaxChars: LongInt; CSource: PCSource): LongInt; syscall AOS_DOSBase 135;
 function ReadLink(Port: PMsgPort; Lock: LongInt; const Path: STRPTR; Buffer: STRPTR; Size: LongWord): LongInt; syscall AOS_DOSBase 73;
 function Relabel(const Drive: STRPTR; const NewName: STRPTR): LongInt; syscall AOS_DOSBase 120;

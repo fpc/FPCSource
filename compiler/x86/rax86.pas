@@ -45,6 +45,10 @@ type
     Procedure SetSize(_size:longint;force:boolean);override;
     Procedure SetCorrectSize(opcode:tasmop);override;
     Function CheckOperand: boolean; override;
+    { handles the @Code symbol }
+    Procedure SetupCode;
+    { handles the @Data symbol }
+    Procedure SetupData;
   end;
 
   { Operands are always in AT&T order.
@@ -281,6 +285,34 @@ begin
             end;
         end;
     end;
+end;
+
+
+procedure Tx86Operand.SetupCode;
+begin
+{$ifdef i8086}
+  opr.typ:=OPR_SYMBOL;
+  opr.symofs:=0;
+  opr.symbol:=current_asmdata.RefAsmSymbol(current_procinfo.procdef.mangledname);
+  opr.symseg:=true;
+  opr.sym_farproc_entry:=false;
+{$else i8086}
+  Message(asmr_w_CODE_and_DATA_not_supported);
+{$endif i8086}
+end;
+
+
+procedure Tx86Operand.SetupData;
+begin
+{$ifdef i8086}
+  InitRef;
+  if current_settings.x86memorymodel=mm_huge then
+    opr.ref.refaddr:=addr_fardataseg
+  else
+    opr.ref.refaddr:=addr_dgroup;
+{$else i8086}
+  Message(asmr_w_CODE_and_DATA_not_supported);
+{$endif i8086}
 end;
 
 
@@ -1187,7 +1219,10 @@ begin
                      asize:=OT_BITS16;
                    OS_32,OS_S32 :
 {$ifdef i8086}
-                     asize:=OT_BITS16;
+                     if siz=S_FAR then
+                       asize:=OT_FAR
+                     else
+                       asize:=OT_BITS16;
 {$else i8086}
                      asize:=OT_BITS32;
 {$endif i8086}

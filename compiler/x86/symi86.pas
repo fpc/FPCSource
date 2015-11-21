@@ -26,19 +26,19 @@ unit symi86;
 interface
 
 uses
-  symtype,symdef,symsym;
+  symtype,symdef,symsym,symx86;
 
 type
 
   { ti86procvardef }
 
-  ti86procvardef = class(tprocvardef)
+  ti86procvardef = class(tx86procvardef)
     function is_pushleftright: boolean; override;
   end;
 
   { ti86procdef }
 
-  ti86procdef = class(tprocdef)
+  ti86procdef = class(tx86procdef)
     function is_pushleftright: boolean; override;
   end;
 

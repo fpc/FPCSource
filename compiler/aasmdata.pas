@@ -46,6 +46,8 @@ interface
       TAsmListType=(
         al_start,
         al_stabs,
+        { pure assembler routines }
+        al_pure_assembler,
         al_procedures,
         al_globals,
         al_const,
@@ -97,6 +99,7 @@ interface
       AsmListTypeStr : array[TAsmListType] of string[24] =(
         'al_begin',
         'al_stabs',
+        'al_pure_assembler',
         'al_procedures',
         'al_globals',
         'al_const',

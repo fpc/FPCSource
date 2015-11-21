@@ -49,7 +49,7 @@
 #
 # General
 #
-# 01023 is the last used one
+# 01026 is the last used one
 #
 # BeginOfTeX
 % \section{General compiler messages}
@@ -132,6 +132,8 @@ general_f_ioerror=01024_F_I/O error: $1
 % During compilation an I/O error happened which allows no further compilation.
 general_f_oserror=01025_F_Operating system error: $1
 % During compilation an operating system error happened which allows no further compilation.
+general_e_exception_raised=01026_E_Compilation raised exception internally
+% Compilation was aborted, due to an exception generation.
 % \end{description}
 #
 # Scanner
@@ -411,7 +413,7 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegal argument for HUGEPOINTER
 #
 # Parser
 #
-# 03339 is the last used one
+# 03343 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1536,6 +1538,12 @@ parser_u_already_compiled=03340_UL_Unit $1 has been already compiled meanwhile.
 % a compilation of the current unit, so the current compilation can be aborted.
 parser_e_explicit_method_implementation_for_specializations_not_allowed=03341_E_Explicit implementation of methods for specializations of generics is not allowed
 % Methods introduced in a generic must be implemented for the generic. It is not possible to implement them only for specializations.
+parser_e_no_genfuncs_in_interfaces=03342_E_Generic methods are not allowed in interfaces
+% Generic methods are not allowed in interfaces, because there is no way to specialize a suitable
+% implementation.
+parser_e_genfuncs_cannot_be_virtual=03343_E_Generic methods can not be virtual
+% Generic methods can not be declared as virtual as there'd need to be a VMT entry for each
+% specialization. This is however not possible with a static VMT.
 %
 %
 % \end{description}
@@ -2449,7 +2457,7 @@ cg_f_max_units_reached=06057_F_Maximum number of units ($1) reached for the curr
 #
 # Assembler reader
 #
-# 07126 is the last used one
+# 07128 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2753,6 +2761,12 @@ asmr_e_invalid_ref_register=07125_E_Invalid register used in memory reference ex
 asmr_e_seg_without_identifier=07126_E_SEG used without identifier
 % You can only use SEG with an identifier. Other syntaxes are not
 % supported
+asmr_e_CODE_or_DATA_without_SEG=07127_E_@CODE and @DATA can only be used with the SEG operator
+% You can only use @CODE and @DATA symbols together with the SEG operator
+asmr_e_const16bit_for_segment=07128_E_Not enough space (16 bits required) for the segment constant of symbol $1
+% Specifying a segment constant for a symbol via the SEG operator requires at
+% least 16 bits of space for the segment. This error occurs, if you specify
+% less, for example, if you use 'DB SEG symbol' instead of 'DW SEG symbol'.
 
 #
 # Assembler/binary writers
@@ -2945,7 +2959,7 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 #
 # Internal linker messages
 #
-# 09206 is the last used one
+# 09207 is the last used one
 #
 # BeginOfTeX
 % \section{Linker messages}
@@ -2968,6 +2982,12 @@ link_e_segment_too_large=09205_E_Segment "$1" too large (exceeds 64k by $2 bytes
 link_e_group_too_large=09206_E_Group "$1" too large (exceeds 64k by $2 bytes)
 % Error when a 16-bit program's object modules define a segment group that
 % exceeds 64k bytes
+link_e_com_program_uses_segment_relocations=09207_E_Cannot create a .COM file, because the program contains segment relocations
+% Error occurs, when creating a tiny model DOS .COM file, but at least one of
+% the program's object modules contains segment relocations. Segment relocations
+% might be caused by the use of the Seg() function or by the SEG assembler
+% directive (either in pascal's built-in inline assembler, or in an externally
+% linked assembly module).
 %\end{description}
 # EndOfTeX
 
@@ -3590,6 +3610,7 @@ J*3CTautosetterprefix=X_  Automatically create setters for properties with prefi
 8*3CTcld_                 Emit a CLD instruction before using the x86 string instructions
 3*3CTcld_                 Emit a CLD instruction before using the x86 string instructions
 4*3CTcld_                 Emit a CLD instruction before using the x86 string instructions
+8*3CTfarprocspushoddbp_       Increment BP before pushing it in the prologue of far functions
 J*3CTcompactintarrayinit_ Generate smaller (but potentially slower) code for initializing integer array constants
 J*3CTenumfieldinit_       Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
 J*3CTinitlocals_          Initialize local variables that trigger a JVM bytecode verification error if used uninitialized (slows down code)
@@ -3817,11 +3838,11 @@ a*2Wb_Create a bundle instead of a library (Darwin)
 A*2Wb_Create a bundle instead of a library (Darwin)
 4*2Wb_Create a bundle instead of a library (Darwin)
 3*2WB_Create a relocatable image (Windows, Symbian)
-3*2WBxxxx_Set image base to xxxx (Windows, Symbian)
+3*2WB<x>_Set image base to <x> (Windows, Symbian)
 4*2WB_Create a relocatable image (Windows)
-4*2WBxxxx_Set image base to xxxx (Windows)
+4*2WB<x>_Set image base to <x> (Windows)
 A*2WB_Create a relocatable image (Windows, Symbian)
-A*2WBxxxx_Set image base to xxxx (Windows, Symbian)
+A*2WB<x>_Set image base to <x> (Windows, Symbian)
 3*2WC_Specify console type application (EMX, OS/2, Windows)
 4*2WC_Specify console type application (Windows)
 A*2WC_Specify console type application (Windows)
@@ -3855,6 +3876,7 @@ A*2WI_Turn on/off the usage of import sections (Windows)
 8*3WmMedium_Medium memory model
 8*3WmCompact_Compact memory model
 8*3WmLarge_Large memory model
+8*3WmHuge_Huge memory model
 3*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 4*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 p*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
@@ -3862,9 +3884,9 @@ P*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 3*2WN_Do not generate relocation code, needed for debugging (Windows)
 4*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2WN_Do not generate relocation code, needed for debugging (Windows)
-A*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
-m*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
-V*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
+A*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
+m*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
+V*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
 3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)
 4*2WP<x>_Minimum iOS deployment version: 8.0, 8.0.2, ... (iphonesim)
 a*2WP<x>_Minimum iOS deployment version: 7.0, 7.1.2, ... (Darwin)
@@ -3878,6 +3900,7 @@ A*2WR_Generate relocation code (Windows)
 P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2WX_Enable executable stack (Linux)
 **1X_Executable options:
+**2X9_Generate linkerscript for GNU Binutils ld older than version 2.19.1 (Linux)
 **2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Do not search default library path (sometimes required for cross-compiling when not using -XR)
 **2Xe_Use external linker
@@ -3899,6 +3922,7 @@ F*2Xp<x>_First search for the compiler binary in the directory <x>
 **2XS_Try to link units statically (default, defines FPC_LINK_STATIC)
 **2Xt_Link with static libraries (-static is passed to linker)
 **2Xv_Generate table for Virtual Entry calls
+**2XV_Use VLink as external linker       (default on Amiga, MorphOS)
 **2XX_Try to smartlink units             (defines FPC_LINK_SMART)
 **1*_
 **1?_Show this help

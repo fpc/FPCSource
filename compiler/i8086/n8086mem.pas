@@ -36,6 +36,9 @@ interface
         protected
          procedure set_absvarsym_resultdef; override;
          function typecheck_non_proc(realsource: tnode; out res: tnode): boolean; override;
+         procedure pass_generate_code;override;
+        public
+         get_offset_only: boolean;
        end;
 
        ti8086derefnode = class(tx86derefnode)
@@ -89,6 +92,23 @@ implementation
           end
         else
           result:=inherited;
+      end;
+
+
+    procedure ti8086addrnode.pass_generate_code;
+      begin
+        if get_offset_only then
+          begin
+            secondpass(left);
+
+            location_reset(location,LOC_REGISTER,OS_16);
+            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidnearpointertype);
+            if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+              internalerror(2015103001);
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,voidnearpointertype,left.location.reference,location.register);
+          end
+        else
+          inherited;
       end;
 
 {*****************************************************************************

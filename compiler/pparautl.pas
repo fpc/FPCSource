@@ -282,7 +282,7 @@ implementation
            if (df_generic in pd.defoptions) or
                not paramanager.ret_in_param(pd.returndef,pd) then
             begin
-              vs:=clocalvarsym.create('$result',vs_value,pd.returndef,[vo_is_funcret]);
+              vs:=clocalvarsym.create('$result',vs_value,pd.returndef,[vo_is_funcret],true);
               pd.localst.insert(vs);
               pd.funcretsym:=vs;
             end;

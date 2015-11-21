@@ -25,6 +25,7 @@ end;
 procedure testBCDDivide(bcd1,bcd2,bcd3: TBCD);
 var bcddiv: TBCD;
 begin
+  bcddiv:=0;
   BCDDivide(bcd1,bcd2,bcddiv);
   if (BCDCompare(bcd3,bcddiv) <> 0) or
      (bcdtostr(bcd3) <> bcdtostr(bcddiv)) then
@@ -104,9 +105,23 @@ begin
   end;
 end;
 
+procedure testNormalizeBCD(const input, expected: string; Precision,Places: integer; res: boolean);
+var outBcd: TBCD;
+begin
+  if NormalizeBCD(StrToBCD(input,FS), outBcd, Precision, Places) <> res then
+  begin
+    writeln('NormalizeBCD for ', input, ' returned ', not res, ' but expected ', res);
+    inc(ErrorCount);
+  end;
+  if StrToBCD(expected,FS) <> outBcd then
+  begin
+    writeln('NormalizeBCD for ', input, ' returned ', BCDToStr(outBcd,FS), ' but expected ', expected);
+    inc(ErrorCount);
+  end;
+end;
+
 procedure testVariantOp(v1, v2: variant);
 var v: variant;
-    i: integer;
     d: double;
     s1: shortstring;
     s2: ansistring;
@@ -265,6 +280,18 @@ begin
   testBCDCompare(-100.1, -100.2, 1);
   testBCDCompare(100, 100.1, -1);
 
+  // test NormalizeBCD:
+  testNormalizeBCD('100.17', '100.17', 5, 3, True);
+  testNormalizeBCD('100.17', '100.17', 5, 2, True);
+  testNormalizeBCD('100.17', '100.1' , 5, 1, False);
+
+  // test NormalizeBCD:
+  
+
+  testNormalizeBCD('100.17', '100.17', 5, 3, True);
+  testNormalizeBCD('100.17', '100.17', 5, 2, True);
+  testNormalizeBCD('100.17', '100.1' , 5, 1, False);
+
   // test Variant support:
   testVariantOp(varFmtBcdCreate(100), varFmtBcdCreate(-100));
   testVariantOp(double(2.5), varFmtBcdCreate(100)); //double on left side
@@ -272,7 +299,6 @@ begin
   testVariantOp(varFmtBcdCreate(-100), shortstring(floattostr(10.2)));
   testVariantOp(varFmtBcdCreate(-100), ansistring(floattostr(0.2)));
   testVariantOp(varFmtBcdCreate(-100), unicodestring(floattostr(-0.2)));
-
 
   if ErrorCount<>0 then
   begin

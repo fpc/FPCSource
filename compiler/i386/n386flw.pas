@@ -100,7 +100,7 @@ procedure ti386onnode.pass_generate_code;
     location_reset(location,LOC_VOID,OS_NO);
 
     oldflowcontrol:=flowcontrol;
-    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
+    flowcontrol:=[fc_inflowcontrol];
 
     { RTL will put exceptobject into EAX when jumping here }
     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
@@ -241,7 +241,7 @@ function ti386tryfinallynode.simplify(forinline: boolean): tnode;
       begin
         finalizepi.code:=right;
         foreachnodestatic(right,@copy_parasize,finalizepi);
-        right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[]);
+        right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[],nil);
         firstpass(right);
         { For implicit frames, no actual code is available at this time,
           it is added later in assembler form. So store the nested procinfo

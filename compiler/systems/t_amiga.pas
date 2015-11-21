@@ -34,6 +34,7 @@ type
   PLinkerAmiga = ^TLinkerAmiga;
   TLinkerAmiga = class(texternallinker)
     private
+      UseVLink: boolean;
       function WriteResponseFile(isdll: boolean): boolean;
       procedure SetAmiga68kInfo;
       procedure SetAmigaPPCInfo;
@@ -61,17 +62,28 @@ implementation
 
 constructor TLinkerAmiga.Create;
 begin
+  UseVLink:=(cs_link_vlink in current_settings.globalswitches);
+
   Inherited Create;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
 end;
 
+
 procedure TLinkerAmiga.SetAmiga68kInfo;
 begin
-  with Info do begin
-    ExeCmd[1]:='ld $DYNLINK $OPT -d -n -o $EXE $RES';
-  end;
+  with Info do
+   begin
+    if not UseVLink then
+     begin
+      ExeCmd[1]:='ld $DYNLINK $OPT -d -n -o $EXE $RES';
+     end
+    else
+     begin
+      ExeCmd[1]:='vlink -b amigahunk $OPT $STRIP -o $EXE -T $RES';
+     end;
+   end;
 end;
 
 procedure TLinkerAmiga.SetAmigaPPCInfo;
@@ -131,6 +143,9 @@ begin
     s:=ObjectFiles.GetFirst;
     if s<>'' then
      begin
+      { vlink doesn't use SEARCH_DIR for object files }
+      if UseVLink then
+       s:=FindObjectFile(s,'',false);
       LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
      end;
    end;
@@ -138,8 +153,12 @@ begin
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
    begin
-    LinkRes.Add(')');
-    LinkRes.Add('GROUP(');
+     { vlink doesn't need, and doesn't support GROUP }
+    if not UseVLink then
+     begin
+      LinkRes.Add(')');
+      LinkRes.Add('GROUP(');
+     end;
     while not StaticLibFiles.Empty do
      begin
       S:=StaticLibFiles.GetFirst;
@@ -147,7 +166,7 @@ begin
      end;
    end;
 
-  if (cs_link_on_target in current_settings.globalswitches) then
+  if not UseVLink then
    begin
     LinkRes.Add(')');
 

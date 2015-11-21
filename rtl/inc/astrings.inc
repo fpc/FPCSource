@@ -1242,7 +1242,6 @@ end;
 {$endif FPC_STR_ENUM_INTERN}
 
 
-{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[public,alias:'FPC_ANSISTR_CURRENCY']; compilerproc; inline;
 var
   ss: ShortString;
@@ -1253,7 +1252,6 @@ begin
   SetCodePage(s,cp,false);
   {$endif FPC_HAS_CPSTRING}
 end;
-{$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc; inline;
 Var
@@ -1386,7 +1384,10 @@ begin
    index := LS+1;
   Dec(Index);
   SetLength(Temp,Length(Source)+LS);
-  cp:=TranslatePlaceholderCP(StringCodePage(S));
+  if length(S)<>0 then
+    cp:=TranslatePlaceholderCP(StringCodePage(S))
+  else
+    cp:=TranslatePlaceholderCP(StringCodePage(Source));
   SetCodePage(Temp,cp,false);
   If Index>0 then
     fpc_pchar_ansistr_intern_charmove(pchar(S),0,Temp,0,Index);
@@ -1529,14 +1530,20 @@ procedure InternalSetCodePage(var s : RawByteString; CodePage : TSystemCodePage;
   extra exception frames }
 procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
   var
+    OrgCodePage,
     TranslatedCodePage,
     TranslatedCurrentCodePage: TSystemCodePage;
   begin
     if (S='') then
       exit;
+    { if the codepage are identical, we don't have to do anything (even if the
+      string has multiple references) }
+    OrgCodePage:=PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage;
+    if OrgCodePage=CodePage then
+      exit;
     { if we're just replacing a placeholder code page with its actual value or
       vice versa, we don't have to perform any conversion }
-    TranslatedCurrentCodePage:=TranslatePlaceholderCP(PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage);
+    TranslatedCurrentCodePage:=TranslatePlaceholderCP(OrgCodePage);
     TranslatedCodePage:=TranslatePlaceholderCP(CodePage);
     Convert:=Convert and
       (TranslatedCurrentCodePage<>TranslatedCodePage);

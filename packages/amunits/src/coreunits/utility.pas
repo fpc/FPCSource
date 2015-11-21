@@ -356,7 +356,8 @@ function GetTagData(tagval : Tag location 'd0';default : ULONG location 'd1';con
 function GetUniqueID : ULONG; syscall _UtilityBase 270;
 procedure MapTags(TagList : pTagItem location 'a0';const maplist : pTagItem location 'a1';IncludeMiss : ULONG location 'd0'); syscall _UtilityBase 060;
 function NamedObjectName(Obj : pNamedObject location 'a0') : STRPTR; syscall _UtilityBase 252;
-function NextTagItem(Item : ppTagItem location 'a0') : pTagItem; syscall _UtilityBase 048;
+function NextTagItem(ItemPtr : ppTagItem location 'a0') : pTagItem; overload; syscall _UtilityBase 048;
+function NextTagItem(var Item : pTagItem location 'a0') : pTagItem; overload; syscall _UtilityBase 048;
 function PackBoolTags(InitialFlags : ULONG location 'd0';const TagList: PTagItem location 'a0'; const boolmap : pTagItem location 'a1') : ULONG; syscall _UtilityBase 042;
 function PackStructureTags(packk: APTR location 'a0';const packTable : pULONG location 'a1';const TagList : pTagItem location 'a2') : ULONG; syscall _UtilityBase 210;
 procedure RefreshTagItemClones(cloneTagItem : pTagItem location 'a0'; const OriginalTagItems : pTagItem location 'a1'); syscall _UtilityBase 084;

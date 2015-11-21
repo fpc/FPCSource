@@ -1699,6 +1699,8 @@ CONST
     SELECTDOWN          = IECODE_LBUTTON;
     MENUUP              = IECODE_RBUTTON + IECODE_UP_PREFIX;
     MENUDOWN            = IECODE_RBUTTON;
+    MIDDLEUP            = IECODE_MBUTTON + IECODE_UP_PREFIX;
+    MIDDLEDOWN          = IECODE_MBUTTON;
     ALTLEFT             = IEQUALIFIER_LALT;
     ALTRIGHT            = IEQUALIFIER_RALT;
     AMIGALEFT           = IEQUALIFIER_LCOMMAND;
@@ -2725,6 +2727,7 @@ Type
 Type
  Object_ = Cardinal;
  pObject_ = ^Object_;
+ ppObject_ = ^pObject_;
  ClassID = ^Byte;
 
 {
@@ -4355,7 +4358,10 @@ SysCall IntuitionBase 642;
 function SetAttrsA(object1 : POINTER location 'a0'; tagList : pTagItem location 'a1') : CARDINAL;
 SysCall IntuitionBase 648;
 
-function GetAttr(attrID : CARDINAL location 'd0'; object1 : POINTER location 'a0'; VAR storagePtr : CARDINAL location 'a1') : CARDINAL;
+function GetAttr(attrID : CARDINAL location 'd0'; object1 : POINTER location 'a0'; storagePtr : pCARDINAL location 'a1') : CARDINAL; overload;
+SysCall IntuitionBase 654;
+
+function GetAttr(attrID : CARDINAL location 'd0'; object1 : POINTER location 'a0'; VAR storage : CARDINAL location 'a1') : CARDINAL; overload;
 SysCall IntuitionBase 654;
 
 function SetGadgetAttrsA(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'; tagList : pTagItem location 'a3') : CARDINAL;

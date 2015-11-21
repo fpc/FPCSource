@@ -1233,7 +1233,6 @@ begin
 {$endif EXCLUDE_COMPLEX_PROCS}
 end;
 
-{$ifdef FPC_HAS_STR_CURRENCY}
 Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Currency); iocheck; compilerproc;
 {$ifdef EXCLUDE_COMPLEX_PROCS}
       begin
@@ -1249,8 +1248,6 @@ Begin
   Write_Str(Len,t,s);
 End;
 {$endif EXCLUDE_COMPLEX_PROCS}
-
-{$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); iocheck; compilerproc;
 Begin
@@ -2324,10 +2321,8 @@ end;
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 function EndOfLastCompleteUTF8CodePoint(var t: textrec): SizeInt;
 var
-  i, lenfound, codepointlen: sizeint;
-  b: byte;
+  i, codepointlen: sizeint;
 begin
-  lenfound:=0;
   for i:=t.bufpos-1 downto 0 do
     begin
       { we don't care about combining diacritical marks here: we just want a

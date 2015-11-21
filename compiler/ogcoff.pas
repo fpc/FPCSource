@@ -243,11 +243,11 @@ interface
        TObjSectionArray = array[0..high(smallint)] of TObjSection;
 
        TDJCoffAssembler = class(tinternalassembler)
-         constructor create(smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean);override;
        end;
 
        TPECoffassembler = class(tinternalassembler)
-         constructor create(smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean);override;
        end;
 
 
@@ -2182,9 +2182,7 @@ const pemagic : array[0..3] of byte = (
         textExeSec,
         dataExeSec,
         bssExeSec,
-        idataExeSec,
-        tlsExeSec : TExeSection;
-        tlsdir : TlsDirectory;
+        idataExeSec : TExeSection;
         hassymbols,
         writeDbgStrings : boolean;
 
@@ -2249,7 +2247,7 @@ const pemagic : array[0..3] of byte = (
           tlsexesymbol: TExeSymbol;
           tlssymbol: TObjSymbol;
           callbackexesymbol: TExeSymbol;
-          callbacksymbol: TObjSymbol;
+          //callbacksymbol: TObjSymbol;
         begin
           { according to GNU ld,
             the callback routines should be placed into .CRT$XL*
@@ -2275,7 +2273,7 @@ const pemagic : array[0..3] of byte = (
                                         '__FPC_tls_callbacks'));
                   if assigned (callbackexesymbol) then
                     begin
-                      callbacksymbol:=callbackexesymbol.ObjSymbol;
+                      //callbacksymbol:=callbackexesymbol.ObjSymbol;
 
                     end;
                 end;
@@ -2289,7 +2287,6 @@ const pemagic : array[0..3] of byte = (
         textExeSec:=FindExeSection('.text');
         dataExeSec:=FindExeSection('.data');
         bssExeSec:=FindExeSection('.bss');
-        tlsExeSec:=FindExeSection('.tls');
         if not assigned(TextExeSec) or
            not assigned(DataExeSec) then
           internalerror(200602231);
@@ -2504,7 +2501,6 @@ const pemagic : array[0..3] of byte = (
       var
         exesec:TExeSection;
         objsec,textsec:TObjSection;
-        objsym:TObjSymbol;
         objreloc:TObjRelocation;
         i,j:longint;
       begin
@@ -2843,9 +2839,9 @@ const pemagic : array[0..3] of byte = (
                                  TDJCoffAssembler
 ****************************************************************************}
 
-    constructor TDJCoffAssembler.Create(smart:boolean);
+    constructor TDJCoffAssembler.Create(info: pasminfo; smart:boolean);
       begin
-        inherited Create(smart);
+        inherited;
         CObjOutput:=TDJCoffObjOutput;
         CInternalAr:=tarobjectwriter;
       end;
@@ -2855,9 +2851,9 @@ const pemagic : array[0..3] of byte = (
                                TPECoffAssembler
 ****************************************************************************}
 
-    constructor TPECoffAssembler.Create(smart:boolean);
+    constructor TPECoffAssembler.Create(info: pasminfo; smart:boolean);
       begin
-        inherited Create(smart);
+        inherited;
         CObjOutput:=TPECoffObjOutput;
         CInternalAr:=tarobjectwriter;
       end;

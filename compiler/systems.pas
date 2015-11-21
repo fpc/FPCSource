@@ -70,7 +70,7 @@ interface
           id          : tasm;
           idtxt       : string[12];
           asmbin      : string[8];
-          asmcmd      : string[50];
+          asmcmd      : string[70];
           supported_targets : set of tsystem;
           flags        : set of tasmflags;
           labelprefix : string[3];
@@ -146,7 +146,9 @@ interface
               this is usefull for architectures which require a small code footprint }
             tf_no_objectfiles_when_smartlinking,
             { indicates that the default value of the ts_cld target switch is 'on' for this target }
-            tf_cld
+            tf_cld,
+            { indicates that the default value of the ts_x86_far_procs_push_odd_bp target switch is 'on' for this target }
+            tf_x86_far_procs_push_odd_bp
        );
 
        psysteminfo = ^tsysteminfo;
@@ -240,12 +242,13 @@ interface
 
        systems_aix = [system_powerpc_aix,system_powerpc64_aix];
 
-       { all real windows systems, no cripple ones like wince, wdosx et. al. }
+       { all real windows systems, no cripple ones like win16, wince, wdosx et. al. }
        systems_windows = [system_i386_win32,system_x86_64_win64];
 
        { all windows systems }
        systems_all_windows = [system_i386_win32,system_x86_64_win64,
-                             system_arm_wince,system_i386_wince];
+                             system_arm_wince,system_i386_wince,
+                             system_i8086_win16];
 
        { all darwin systems }
        systems_darwin = [system_powerpc_darwin,system_i386_darwin,
@@ -305,7 +308,8 @@ interface
                                          system_i386_Netware,
                                          system_i386_netwlibc,
                                          system_arm_wince,
-                                         system_x86_64_win64]+systems_linux+systems_android;
+                                         system_x86_64_win64,
+                                         system_i8086_win16]+systems_linux+systems_android;
 
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
@@ -353,7 +357,7 @@ interface
 
        { all systems where a value parameter passed by reference must be copied
          on the caller side rather than on the callee side }
-       systems_caller_copy_addr_value_para = [system_aarch64_darwin];
+       systems_caller_copy_addr_value_para = [system_aarch64_darwin,system_aarch64_linux];
 
        { pointer checking (requires special code in FPC_CHECKPOINTER,
          and can never work for libc-based targets or any other program

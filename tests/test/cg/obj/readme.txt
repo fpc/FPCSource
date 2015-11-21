@@ -61,3 +61,5 @@ linux-x86_64 : GCC: (GNU) 3.3.5 (Debian 1:3.3.5-8)
 Data retrieved from Dwarf producer information:
 darwin-x86_64 : GNU C 4.0.1 (Apple Inc. build 5465)
 
+linux-aarch64 : gcc (Ubuntu/Linaro 4.8.4-2ubuntu1~14.04) 4.8.4
+

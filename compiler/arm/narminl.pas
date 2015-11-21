@@ -380,7 +380,6 @@ implementation
     procedure tarminlinenode.second_abs_long;
       var
         opsize : tcgsize;
-        hp : taicpu;
       begin
         if GenerateThumbCode then
           begin

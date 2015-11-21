@@ -35,7 +35,8 @@ interface
        {$ifdef state_tracking}
        nstate,
        {$endif state_tracking}
-       symbase,symtype,symsym,symdef,symtable;
+       symbase,symtype,symsym,symdef,symtable,
+       pgentype;
 
     type
        tcallnodeflag = (
@@ -153,9 +154,11 @@ interface
           typedef: tdef;
           callnodeflags : tcallnodeflags;
 
+          spezcontext : tspecializationcontext;
+
           { only the processor specific nodes need to override this }
           { constructor                                             }
-          constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags);virtual;
+          constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext);virtual;
           constructor create_procvar(l,r:tnode);
           constructor createintern(const name: string; params: tnode);
           constructor createinternfromunit(const fromunit, procname: string; params: tnode);
@@ -622,7 +625,7 @@ implementation
         if (parasym.varspez=vs_out) and
            is_managed_type(orgparadef) and
            (not is_open_array(resultdef) or
-            is_managed_type(orgparadef)) and
+            is_managed_type(tarraydef(resultdef).elementdef)) and
            not(target_info.system in systems_garbage_collected_managed_types) then
           begin
             paraaddrtype:=cpointerdef.getreusable(orgparadef);
@@ -1001,7 +1004,6 @@ implementation
 
         if assigned(parasym) and
            (parasym.varspez in [vs_var,vs_out,vs_constref]) and
-           (parasym.vardef.typ<>formaldef) and
            { for record constructors }
            (left.nodetype<>nothingn) then
           handlemanagedbyrefpara(left.resultdef);
@@ -1272,9 +1274,7 @@ implementation
                        vs_out :
                          begin
                            if not valid_for_formal_var(left,true) then
-                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list)
-                           else if (target_info.system in systems_managed_vm) then
-                             handlemanagedbyrefpara(left.resultdef);
+                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
                          end;
                        vs_const :
                          begin
@@ -1306,7 +1306,12 @@ implementation
                         { uninitialized warnings (tbs/tb0542)         }
                         set_varstate(left,vs_written,[]);
                         set_varstate(left,vs_readwritten,[]);
-                        make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
+                        { compilerprocs never capture the address of their
+                          parameters }
+                        if not(po_compilerproc in aktcallnode.procdefinition.procoptions) then
+                          make_not_regable(left,[ra_addr_regable,ra_addr_taken])
+                        else
+                          make_not_regable(left,[ra_addr_regable])
                       end;
                     vs_var,
                     vs_constref:
@@ -1315,7 +1320,12 @@ implementation
                         { constref takes also the address, but storing it is actually the compiler
                           is not supposed to expect }
                         if parasym.varspez=vs_var then
-                          make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
+                          { compilerprocs never capture the address of their
+                            parameters }
+                          if not(po_compilerproc in aktcallnode.procdefinition.procoptions) then
+                            make_not_regable(left,[ra_addr_regable,ra_addr_taken])
+                          else
+                            make_not_regable(left,[ra_addr_regable])
                       end;
                     else
                       set_varstate(left,vs_read,[vsf_must_be_valid]);
@@ -1405,9 +1415,10 @@ implementation
                                  TCALLNODE
  ****************************************************************************}
 
-    constructor tcallnode.create(l:tnode;v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags);
+    constructor tcallnode.create(l:tnode;v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext);
       begin
          inherited create(calln,l,nil);
+         spezcontext:=sc;
          symtableprocentry:=v;
          symtableproc:=st;
          callnodeflags:=callflags+[cnf_return_value_used];
@@ -1433,7 +1444,7 @@ implementation
 
     constructor tcallnode.create_procvar(l,r:tnode);
       begin
-         create(l,nil,nil,nil,[]);
+         create(l,nil,nil,nil,[],nil);
          right:=r;
       end;
 
@@ -1443,13 +1454,17 @@ implementation
          srsym: tsym;
        begin
          srsym := tsym(systemunit.Find(name));
+         { in case we are looking for a non-external compilerproc of which we
+           only have parsed the declaration until now (the symbol name will
+           still be uppercased, because it needs to be matched when we
+           encounter the implementation) }
          if not assigned(srsym) and
             (cs_compilesystem in current_settings.moduleswitches) then
            srsym := tsym(systemunit.Find(upper(name)));
          if not assigned(srsym) or
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,name);
-         create(params,tprocsym(srsym),srsym.owner,nil,[]);
+         create(params,tprocsym(srsym),srsym.owner,nil,[],nil);
        end;
 
 
@@ -1462,7 +1477,7 @@ implementation
          if not searchsym_in_named_module(fromunit,procname,srsym,srsymtable) or
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,fromunit+'.'+procname);
-         create(params,tprocsym(srsym),srsymtable,nil,[]);
+         create(params,tprocsym(srsym),srsymtable,nil,[],nil);
        end;
 
 
@@ -1519,7 +1534,7 @@ implementation
         if not assigned(ps) or
            (ps.typ<>procsym) then
           internalerror(2011062806);
-        create(params,tprocsym(ps),ps.owner,mp,[]);
+        create(params,tprocsym(ps),ps.owner,mp,[],nil);
       end;
 
 
@@ -2881,21 +2896,28 @@ implementation
            (procdefinition.parast.symtablelevel=normal_function_level) and
            { must be a local variable, a value para or a hidden function result }
            { parameter (which can be passed by address, but in that case it got }
-           { through these same checks at the caller side and is thus safe      }
-           (
-            (tloadnode(realassignmenttarget).symtableentry.typ=localvarsym) or
+           { through these same checks at the caller side and is thus safe )    }
+           { other option: we're calling a compilerproc, because those don't
+             rely on global state
+           }
+           ((po_compilerproc in procdefinition.procoptions) or
             (
-             (tloadnode(realassignmenttarget).symtableentry.typ=paravarsym) and
-             ((tparavarsym(tloadnode(realassignmenttarget).symtableentry).varspez = vs_value) or
-              (vo_is_funcret in tparavarsym(tloadnode(realassignmenttarget).symtableentry).varoptions))
+             (
+              (tloadnode(realassignmenttarget).symtableentry.typ=localvarsym) or
+              (
+               (tloadnode(realassignmenttarget).symtableentry.typ=paravarsym) and
+               ((tparavarsym(tloadnode(realassignmenttarget).symtableentry).varspez = vs_value) or
+                (vo_is_funcret in tparavarsym(tloadnode(realassignmenttarget).symtableentry).varoptions))
+              )
+             ) and
+             { the address may not have been taken of the variable/parameter, because }
+             { otherwise it's possible that the called function can access it via a   }
+             { global variable or other stored state                                  }
+             (
+              not(tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).addr_taken) and
+              (tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).varregable in [vr_none,vr_addr])
+             )
             )
-           ) and
-           { the address may not have been taken of the variable/parameter, because }
-           { otherwise it's possible that the called function can access it via a   }
-           { global variable or other stored state                                  }
-           (
-            not(tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).addr_taken) and
-            (tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).varregable in [vr_none,vr_addr])
            ) then
           begin
             { If the funcret is also used as a parameter we can't optimize because the funcret
@@ -3424,7 +3446,7 @@ implementation
                                       ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
                     candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility,
                       not(nf_isproperty in flags),cnf_objc_id_call in callnodeflags,cnf_unit_specified in callnodeflags,
-                      callnodeflags*[cnf_anon_inherited,cnf_inherited]=[],cnf_anon_inherited in callnodeflags);
+                      callnodeflags*[cnf_anon_inherited,cnf_inherited]=[],cnf_anon_inherited in callnodeflags,spezcontext);
 
                      { no procedures found? then there is something wrong
                        with the parameter size or the procedures are
@@ -3525,6 +3547,10 @@ implementation
                         exit;
                       end;
 
+                     { if the final procedure definition is not yet owned,
+                       ensure that it is }
+                     procdefinition.register_def;
+
                      candidates.free;
                  end; { end of procedure to call determination }
              end;
@@ -3576,7 +3602,7 @@ implementation
             is_const:=(po_internconst in procdefinition.procoptions) and
                       ((block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
                        (assigned(left) and ((tcallparanode(left).left.nodetype in [realconstn,ordconstn])
-                        and (not assigned(tcallparanode(left).right) or (tcallparanode(left).right.nodetype in [realconstn,ordconstn])))));
+                        and (not assigned(tcallparanode(left).right) or (tcallparanode(tcallparanode(left).right).left.nodetype in [realconstn,ordconstn])))));
             if (procdefinition.proccalloption=pocall_internproc) or is_const then
              begin
                if assigned(left) then
@@ -4046,7 +4072,8 @@ implementation
                   function result" is not something which can be stored
                   persistently by the callee (it becomes invalid when the callee
                   returns)                                                       }
-                if not(vo_is_funcret in hp.parasym.varoptions) then
+                if not(vo_is_funcret in hp.parasym.varoptions) and
+                   not(po_compilerproc in procdefinition.procoptions) then
                   make_not_regable(hp.left,[ra_addr_regable,ra_addr_taken])
                 else
                   make_not_regable(hp.left,[ra_addr_regable]);
@@ -4409,7 +4436,8 @@ implementation
       var
         para: tcallparanode;
         tempnode: ttempcreatenode;
-        n: tnode;
+        n,
+        realtarget: tnode;
         paracomplexity: longint;
         pushconstaddr: boolean;
         trytotakeaddress : Boolean;
@@ -4452,6 +4480,7 @@ implementation
                 paracomplexity:=node_complexity(para.left);
                 if para.parasym.varspez=vs_const then
                   pushconstaddr:=paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption);
+                realtarget:=actualtargetnode(@para.left)^;
 
                 { if the parameter is "complex", try to take the address
                   of the parameter expression, store it in a temp and replace
@@ -4460,11 +4489,16 @@ implementation
                 }
                 trytotakeaddress:=
                   { don't create a temp. for function results }
-                  not(nf_is_funcret in para.left.flags) and
+                  not(nf_is_funcret in realtarget.flags) and
                   { this makes only sense if the parameter is reasonable complex else inserting directly is a better solution }
-                  ((paracomplexity>2) or
-                  { don't create a temp. for the often seen case that p^ is passed to a var parameter }
-                  ((paracomplexity>1) and not((para.left.nodetype=derefn) and (para.parasym.varspez = vs_var))));
+                  (
+                   (paracomplexity>2) or
+                   { don't create a temp. for the often seen case that p^ is passed to a var parameter }
+                   ((paracomplexity>1) and
+                    not((realtarget.nodetype=derefn) and (para.parasym.varspez in [vs_var,vs_out,vs_constref])) and
+                    not((realtarget.nodetype=loadn) and tloadnode(realtarget).is_addr_param_load)
+                   )
+                  );
 
                 { check if we have to create a temp, assign the parameter's
                   contents to that temp and then substitute the parameter

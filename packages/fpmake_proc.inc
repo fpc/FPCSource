@@ -403,6 +403,11 @@ begin
   with Installer do
 {$include libvlc/fpmake.pp}
 end;
+procedure add_libmicrohttpd(const ADirectory: string);
+begin
+  with Installer do
+{$include libmicrohttpd/fpmake.pp}
+end;
 
 procedure add_libxml(const ADirectory: string);
 begin

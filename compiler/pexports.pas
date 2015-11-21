@@ -136,7 +136,7 @@ implementation
                      end;
                     if try_to_consume(_INDEX) then
                      begin
-                       pt:=comp_expr(true,false);
+                       pt:=comp_expr([ef_accept_equal]);
                        if pt.nodetype=ordconstn then
                         if (Tordconstnode(pt).value<int64(low(index))) or
                            (Tordconstnode(pt).value>int64(high(index))) then
@@ -160,7 +160,7 @@ implementation
                      end;
                     if try_to_consume(_NAME) then
                      begin
-                       pt:=comp_expr(true,false);
+                       pt:=comp_expr([ef_accept_equal]);
                        if pt.nodetype=stringconstn then
                          hpname:=strpas(tstringconstnode(pt).value_str)
                        else if is_constcharnode(pt) then

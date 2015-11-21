@@ -208,7 +208,10 @@ function PackBoolTags(initialFlags: Cardinal location 'd0';
                       boolMap     : PTagItem location 'a1'): Cardinal;
 SysCall MOS_UtilityBase 042;
 
-function NextTagItem(tagListPtr: pPTagItem location 'a0'): PTagItem;
+function NextTagItem(tagListPtr: pPTagItem location 'a0'): PTagItem; overload;
+SysCall MOS_UtilityBase 048;
+
+function NextTagItem(var tagList: PTagItem location 'a0'): PTagItem; overload;
 SysCall MOS_UtilityBase 048;
 
 procedure FilterTagChanges(changeList  : PTagItem location 'a0';

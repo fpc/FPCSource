@@ -70,7 +70,7 @@ begin
        AddInclude('mm_types.inc');
      end;
 
-    P.Sources.AddExampleFiles('examples/*',true,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,true,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

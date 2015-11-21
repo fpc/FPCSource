@@ -108,25 +108,25 @@ function UnicodeLowerCase(const s : UnicodeString) : UnicodeString;{$ifdef SYSUT
 
 function UnicodeCompareStr(const s1, s2 : UnicodeString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareUnicodeStringProc(s1,s2);
+    result:=widestringmanager.CompareUnicodeStringProc(s1,s2,[]);
   end;
 
 
 function UnicodeSameStr(const s1, s2 : UnicodeString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareUnicodeStringProc(s1,s2)=0;
+    result:=widestringmanager.CompareUnicodeStringProc(s1,s2,[])=0;
   end;
 
 
 function UnicodeCompareText(const s1, s2 : UnicodeString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareTextUnicodeStringProc(s1,s2);
+    result:=widestringmanager.CompareUnicodeStringProc(s1,s2,[coIgnoreCase]);
   end;
   
   
 function UnicodeSameText(const s1, s2 : UnicodeString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareTextUnicodeStringProc(s1,s2)=0;
+    result:=widestringmanager.CompareUnicodeStringProc(s1,s2,[coIgnoreCase])=0;
   end;
   
 

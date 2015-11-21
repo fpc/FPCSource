@@ -29,24 +29,27 @@ unit agarmgas;
   interface
 
     uses
-       globtype,
+       globtype,systems,
        aasmtai,
        aggas,
        cpubase,cpuinfo;
 
     type
       TARMGNUAssembler=class(TGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
         function MakeCmdLine: TCmdStr; override;
         procedure WriteExtraHeader; override;
       end;
 
       TArmInstrWriter=class(TCPUInstrWriter)
+        unified_syntax: boolean;
+
         procedure WriteInstruction(hp : tai);override;
       end;
 
       TArmAppleGNUAssembler=class(TAppleGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
+        procedure WriteExtraHeader; override;
       end;
 
 
@@ -79,7 +82,6 @@ unit agarmgas;
 
     uses
        cutils,globals,verbose,
-       systems,
        assemble,
        aasmcpu,
        itcpugas,
@@ -89,10 +91,12 @@ unit agarmgas;
 {                         GNU Arm Assembler writer                           }
 {****************************************************************************}
 
-    constructor TArmGNUAssembler.create(smart: boolean);
+    constructor TArmGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TArmInstrWriter.create(self);
+        if GenerateThumb2Code then
+          TArmInstrWriter(InstrWriter).unified_syntax:=true;
       end;
 
 
@@ -127,18 +131,27 @@ unit agarmgas;
     procedure TArmGNUAssembler.WriteExtraHeader;
       begin
         inherited WriteExtraHeader;
-        if GenerateThumb2Code then
-          AsmWriteLn(#9'.syntax unified');
+        if TArmInstrWriter(InstrWriter).unified_syntax then
+          writer.AsmWriteLn(#9'.syntax unified');
       end;
 
 {****************************************************************************}
 {                      GNU/Apple ARM Assembler writer                        }
 {****************************************************************************}
 
-    constructor TArmAppleGNUAssembler.create(smart: boolean);
+    constructor TArmAppleGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TArmInstrWriter.create(self);
+        TArmInstrWriter(InstrWriter).unified_syntax:=true;
+      end;
+
+
+    procedure TArmAppleGNUAssembler.WriteExtraHeader;
+      begin
+        inherited WriteExtraHeader;
+        if TArmInstrWriter(InstrWriter).unified_syntax then
+          writer.AsmWriteLn(#9'.syntax unified');
       end;
 
 
@@ -320,12 +333,14 @@ unit agarmgas;
         sep: string[3];
     begin
       op:=taicpu(hp).opcode;
+      postfix:='';
       if GenerateThumb2Code then
         begin
-          postfix:='';
           if taicpu(hp).wideformat then
             postfix:='.w';
-
+        end;
+      if unified_syntax then
+        begin
           if taicpu(hp).ops = 0 then
             s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
           else if taicpu(hp).oppostfix in [PF_8..PF_U32F64] then
@@ -376,7 +391,7 @@ unit agarmgas;
                sep:=',';
             end;
         end;
-      owner.AsmWriteLn(s);
+      owner.writer.AsmWriteLn(s);
     end;
 
 
@@ -399,7 +414,7 @@ unit agarmgas;
        as_arm_gas_darwin_info : tasminfo =
           (
             id     : as_darwin;
-            idtxt  : 'AS-Darwin';
+            idtxt  : 'AS-DARWIN';
             asmbin : 'as';
             asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch $ARCH';
             supported_targets : [system_arm_darwin];
@@ -410,7 +425,22 @@ unit agarmgas;
           );
 
 
+       as_arm_clang_darwin_info : tasminfo =
+          (
+            id     : as_clang;
+            idtxt  : 'CLANG';
+            asmbin : 'clang';
+            asmcmd : '-c -o $OBJ $EXTRAOPT -arch $ARCH $DARWINVERSION -x assembler $ASM';
+            supported_targets : [system_arm_darwin];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : 'L';
+            comment : '# ';
+            dollarsign: '$';
+          );
+
+
 begin
   RegisterAssembler(as_arm_gas_info,TARMGNUAssembler);
   RegisterAssembler(as_arm_gas_darwin_info,TArmAppleGNUAssembler);
+  RegisterAssembler(as_arm_clang_darwin_info,TArmAppleGNUAssembler);
 end.

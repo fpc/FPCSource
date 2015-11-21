@@ -29,7 +29,7 @@ unit agcpugas;
   interface
 
     uses
-       globtype,
+       globtype,systems,
        aasmtai,
        aggas,
        cpubase,cpuinfo;
@@ -40,12 +40,11 @@ unit agcpugas;
       end;
 
       TAArch64Assembler=class(TGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
       end;
 
       TAArch64AppleAssembler=class(TAppleGNUassembler)
-        constructor create(smart: boolean); override;
-        function MakeCmdLine: TCmdStr; override;
+        constructor create(info: pasminfo; smart: boolean); override;
       end;
 
 
@@ -65,7 +64,6 @@ unit agcpugas;
 
     uses
        cutils,globals,verbose,
-       systems,
        assemble,
        aasmcpu,
        itcpugas,
@@ -76,9 +74,9 @@ unit agcpugas;
 {                      AArch64 Assembler writer                              }
 {****************************************************************************}
 
-    constructor TAArch64Assembler.create(smart: boolean);
+    constructor TAArch64Assembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TAArch64InstrWriter.create(self);
       end;
 
@@ -86,22 +84,10 @@ unit agcpugas;
 {                      Apple AArch64 Assembler writer                        }
 {****************************************************************************}
 
-    constructor TAArch64AppleAssembler.create(smart: boolean);
+    constructor TAArch64AppleAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TAArch64InstrWriter.create(self);
-      end;
-
-    function TAArch64AppleAssembler.MakeCmdLine: TCmdStr;
-      begin
-        { 'as' calls through to clang for aarch64, and that one only supports
-          reading from standard input in case "-" is specified as input file
-          (in which case you also have to specify the language via -x) }
-        result:=inherited;
-{$ifdef hasunix}
-        if DoPipe then
-          result:=result+' -x assembler -'
-{$endif}
       end;
 
 
@@ -109,7 +95,7 @@ unit agcpugas;
 {                  Helper routines for Instruction Writer                    }
 {****************************************************************************}
 
-    function getreferencestring(var ref : treference) : string;
+    function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
       const
         darwin_addrpage2str: array[addr_page..addr_gotpageoffset] of string[11] =
            ('@PAGE','@PAGEOFF','@GOTPAGE','@GOTPAGEOFF');
@@ -130,7 +116,7 @@ unit agcpugas;
                      (ref.shiftmode<>SM_None) or
                      (ref.offset<>0) then
                     internalerror(2014121501);
-                  if target_asm.id=as_darwin then
+                  if target_info.system in systems_darwin then
                     result:=ref.symbol.name+darwin_addrpage2str[ref.refaddr]
                   else
                     result:=linux_addrpage2str[ref.refaddr]+ref.symbol.name
@@ -172,7 +158,7 @@ unit agcpugas;
                       addr_gotpageoffset,
                       addr_pageoffset:
                         begin
-                          if target_asm.id=as_darwin then
+                          if target_info.system in systems_darwin then
                             result:=result+', '+ref.symbol.name+darwin_addrpage2str[ref.refaddr]
                           else
                             result:=result+', '+linux_addrpage2str[ref.refaddr]+ref.symbol.name
@@ -200,7 +186,7 @@ unit agcpugas;
       end;
 
 
-    function getopstr(hp: taicpu; opnr: longint; const o: toper): string;
+    function getopstr(asminfo: pasminfo; hp: taicpu; opnr: longint; const o: toper): string;
       begin
         case o.typ of
           top_reg:
@@ -248,7 +234,7 @@ unit agcpugas;
                 getopstr:=o.ref^.symbol.name;
               end
             else
-              getopstr:=getreferencestring(o.ref^);
+              getopstr:=getreferencestring(asminfo,o.ref^);
           else
             internalerror(2014121507);
         end;
@@ -274,11 +260,11 @@ unit agcpugas;
                  // debug code
                  // writeln(s);
                  // writeln(taicpu(hp).fileinfo.line);
-                 s:=s+sep+getopstr(taicpu(hp),i,taicpu(hp).oper[i]^);
+                 s:=s+sep+getopstr(owner.asminfo,taicpu(hp),i,taicpu(hp).oper[i]^);
                  sep:=',';
               end;
           end;
-        owner.AsmWriteLn(s);
+        owner.writer.AsmWriteLn(s);
       end;
 
 
@@ -296,14 +282,14 @@ unit agcpugas;
             dollarsign: '$';
           );
 
-       as_aarch64_gas_darwin_info : tasminfo =
+       as_aarch64_clang_darwin_info : tasminfo =
           (
-            id     : as_darwin;
-            idtxt  : 'AS-Darwin';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch arm64';
+            id     : as_clang;
+            idtxt  : 'CLANG';
+            asmbin : 'clang';
+            asmcmd : '-c -o $OBJ $EXTRAOPT -arch arm64 $DARWINVERSION -x assembler $ASM';
             supported_targets : [system_aarch64_darwin];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
@@ -312,5 +298,5 @@ unit agcpugas;
 
 begin
   RegisterAssembler(as_aarch64_gas_info,TAArch64Assembler);
-  RegisterAssembler(as_aarch64_gas_darwin_info,TAArch64AppleAssembler);
+  RegisterAssembler(as_aarch64_clang_darwin_info,TAArch64AppleAssembler);
 end.

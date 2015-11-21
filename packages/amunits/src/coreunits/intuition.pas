@@ -1725,6 +1725,8 @@ CONST
     SELECTDOWN          = IECODE_LBUTTON;
     MENUUP              = IECODE_RBUTTON + IECODE_UP_PREFIX;
     MENUDOWN            = IECODE_RBUTTON;
+    MIDDLEUP            = IECODE_MBUTTON + IECODE_UP_PREFIX;
+    MIDDLEDOWN          = IECODE_MBUTTON;
     ALTLEFT             = IEQUALIFIER_LALT;
     ALTRIGHT            = IEQUALIFIER_RALT;
     AMIGALEFT           = IEQUALIFIER_LCOMMAND;
@@ -2751,6 +2753,7 @@ Type
 Type
  Object_ = ULONG;
  pObject_ = ^Object_;
+ ppObject_ = ^pObject_;
  ClassID = ^Byte;
 
 {
@@ -4100,7 +4103,8 @@ PROCEDURE FreeScreenBuffer(sc : pScreen location 'a0'; sb : pScreenBuffer locati
 PROCEDURE FreeScreenDrawInfo(screen : pScreen location 'a0'; drawInfo : pDrawInfo location 'a1'); syscall _IntuitionBase 696;
 PROCEDURE FreeSysRequest(window : pWindow location 'a0'); syscall _IntuitionBase 372;
 PROCEDURE GadgetMouse(gadget : pGadget location 'a0'; gInfo : pGadgetInfo location 'a1'; mousePoint : psmallint location 'a2'); syscall _IntuitionBase 570;
-FUNCTION GetAttr(attrID : ULONG location 'd0'; obj : POINTER location 'a0'; storagePtr : pULONG location 'a1') : ULONG; syscall _IntuitionBase 654;
+FUNCTION GetAttr(attrID : ULONG location 'd0'; obj : POINTER location 'a0'; storagePtr : pULONG location 'a1') : ULONG; overload; syscall _IntuitionBase 654;
+FUNCTION GetAttr(attrID : ULONG location 'd0'; obj : POINTER location 'a0'; var storage : ULONG location 'a1') : ULONG; overload; syscall _IntuitionBase 654;
 PROCEDURE GetDefaultPubScreen(nameBuffer : pCHAR location 'a0'); syscall _IntuitionBase 582;
 FUNCTION GetDefPrefs(preferences : pPreferences location 'a0'; size : LONGINT location 'd0') : pPreferences; syscall _IntuitionBase 126;
 FUNCTION GetPrefs(preferences : pPreferences location 'a0'; size : LONGINT location 'd0') : pPreferences; syscall _IntuitionBase 132;

@@ -66,6 +66,7 @@ interface
         procedure appenddef_procvar(list:TAsmList;def:tprocvardef);override;
         procedure appendprocdef(list:TAsmList;def:tprocdef);override;
         procedure appenddef_object(list:TAsmList;def: tobjectdef);override;
+        procedure appenddef_classref(list: TAsmList; def: tclassrefdef);override;
         procedure appenddef_variant(list:TAsmList;def: tvariantdef);override;
         procedure appenddef_file(list:TasmList;def:tfiledef);override;
 
@@ -180,7 +181,7 @@ implementation
         for opidx:=0 to p.ops-1 do
           case p.oper[opidx]^.typ of
             top_def:
-              appenddef(deftypelist,p.oper[opidx]^.def);
+              record_def(p.oper[opidx]^.def);
             top_tai:
               collect_tai_info(deftypelist,p.oper[opidx]^.ai);
             top_ref:
@@ -191,7 +192,7 @@ implementation
                   begin
                     if (opidx=3) and
                        (p.llvmopcode=la_call) then
-                      record_asmsym_def(p.oper[opidx]^.ref^.symbol,tpointerdef(p.oper[0]^.def).pointeddef,false)
+                      record_asmsym_def(p.oper[opidx]^.ref^.symbol,tpointerdef(p.oper[2]^.def).pointeddef,false)
                     { not a named register }
                     else if (p.oper[opidx]^.ref^.refaddr<>addr_full) then
                       record_asmsym_def(p.oper[opidx]^.ref^.symbol,p.spilling_get_reg_type(opidx),false);
@@ -201,7 +202,7 @@ implementation
               for paraidx:=0 to p.oper[opidx]^.paras.count-1 do
                 begin
                   callpara:=pllvmcallpara(p.oper[opidx]^.paras[paraidx]);
-                  appenddef(deftypelist,callpara^.def);
+                  record_def(callpara^.def);
                 end;
           end;
       end;
@@ -212,19 +213,21 @@ implementation
         case p.typ of
           ait_llvmalias:
             begin
-              appenddef(deftypelist,taillvmalias(p).def);
+              record_def(taillvmalias(p).def);
               record_asmsym_def(taillvmalias(p).newsym,taillvmalias(p).def,true);
             end;
           ait_llvmdecl:
             begin
-              appenddef(deftypelist,taillvmdecl(p).def);
+              if taillvmdecl(p).namesym.Name='\01_U_$OBJPAS_$$_EXCEPTIONCLASS' then
+                writeln('here');
+              record_def(taillvmdecl(p).def);
               record_asmsym_def(taillvmdecl(p).namesym,taillvmdecl(p).def,true);
               collect_asmlist_info(deftypelist,taillvmdecl(p).initdata);
             end;
           ait_llvmins:
             collect_llvmins_info(deftypelist,taillvm(p));
           ait_typedconst:
-            appenddef(deftypelist,tai_abstracttypedconst(p).def);
+            record_def(tai_abstracttypedconst(p).def);
         end;
       end;
 
@@ -274,11 +277,11 @@ implementation
           la_call:
             if p.oper[3]^.typ=top_ref then
               begin
-                maybe_insert_extern_sym_decl(toplevellist,p.oper[3]^.ref^.symbol,tpointerdef(p.oper[0]^.def).pointeddef);
+                maybe_insert_extern_sym_decl(toplevellist,p.oper[3]^.ref^.symbol,tpointerdef(p.oper[2]^.def).pointeddef);
                 symdef:=get_asmsym_def(p.oper[3]^.ref^.symbol);
                 { the type used in the call is different from the type used to
                   declare the symbol -> insert a typecast }
-                if not equal_llvm_defs(symdef,p.oper[0]^.def) then
+                if not equal_llvm_defs(symdef,p.oper[2]^.def) then
                   begin
                     if symdef.typ=procdef then
                       { ugly, but can't use getcopyas(procvardef) due to the
@@ -287,7 +290,7 @@ implementation
                         symtable) and "pointer to procedure" results in the
                         correct llvm type }
                       symdef:=cpointerdef.getreusable(tprocdef(symdef));
-                    cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,symdef,p.oper[3]^.ref^.symbol,p.oper[0]^.def);
+                    cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,symdef,p.oper[3]^.ref^.symbol,p.oper[2]^.def);
                     p.loadtai(3,cnv);
                   end;
               end;
@@ -420,7 +423,7 @@ implementation
               sec:=sec_code
             else
               sec:=sec_data;
-            toplevellist.Concat(taillvmdecl.create(sym,def,nil,sec,def.alignment));
+            toplevellist.Concat(taillvmdecl.createdecl(sym,def,nil,sec,def.alignment));
             record_asmsym_def(sym,def,true);
           end;
       end;
@@ -472,7 +475,7 @@ implementation
       begin
         symdeflist:=tabstractrecordsymtable(def.symtable).llvmst.symdeflist;
         for i:=0 to symdeflist.Count-1 do
-          appenddef(list,tllvmshadowsymtableentry(symdeflist[i]).def);
+          record_def(tllvmshadowsymtableentry(symdeflist[i]).def);
         if assigned(def.typesym) then
           list.concat(taillvm.op_size(LA_TYPE,record_def(def)));
       end;
@@ -666,7 +669,16 @@ implementation
 
     procedure TLLVMTypeInfo.appenddef_object(list:TAsmList;def: tobjectdef);
       begin
-        appenddef_abstractrecord(list,def);
+        if is_any_interface_kind(def) then
+          record_def(def.vmt_def)
+        else
+          appenddef_abstractrecord(list,def);
+      end;
+
+
+    procedure TLLVMTypeInfo.appenddef_classref(list: TAsmList; def: tclassrefdef);
+      begin
+        record_def(tobjectdef(tclassrefdef(def).pointeddef).vmt_def);
       end;
 
 

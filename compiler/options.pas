@@ -215,7 +215,7 @@ const
   procedure SplitLine (var OrigString: TCmdStr; const Placeholder: TCmdStr;
                                                  var RemainderString: TCmdStr);
   var
-    I, L: longint;
+    I: longint;
     HS2: TCmdStr;
   begin
     RemainderString := '';
@@ -1456,6 +1456,10 @@ begin
                    autoloadunits:=more;
                  'c' :
                    begin
+                     { if we first specify that the system code page should be
+                       used and then explicitly specify a code page, unset the
+                       flag that we're using the system code page again }
+                     SetCompileModeSwitch('SYSTEMCODEPAGE-',true);
                      if (upper(more)='UTF8') or (upper(more)='UTF-8') then
                        init_settings.sourcecodepage:=CP_UTF8
                      else if not(cpavailable(more)) then
@@ -2221,7 +2225,7 @@ begin
                     'm':
                       begin
 {$if defined(i8086)}
-                        if (target_info.system in [system_i8086_msdos]) then
+                        if (target_info.system in [system_i8086_msdos,system_i8086_win16]) then
                           begin
                             case Upper(Copy(More,j+1,255)) of
                               'TINY':    init_settings.x86memorymodel:=mm_tiny;
@@ -2229,7 +2233,7 @@ begin
                               'MEDIUM':  init_settings.x86memorymodel:=mm_medium;
                               'COMPACT': init_settings.x86memorymodel:=mm_compact;
                               'LARGE':   init_settings.x86memorymodel:=mm_large;
-                              'HUGE': IllegalPara(opt); { these are not implemented yet }
+                              'HUGE':    init_settings.x86memorymodel:=mm_huge;
                               else
                                 IllegalPara(opt);
                             end;
@@ -2347,6 +2351,18 @@ begin
                while j<=length(more) do
                 begin
                   case More[j] of
+                    '9' :
+                      begin
+                        if target_info.system in systems_linux then
+                          begin
+                            if UnsetBool(More, j, opt, false) then
+                              exclude(init_settings.globalswitches,cs_link_pre_binutils_2_19)
+                            else
+                              include(init_settings.globalswitches,cs_link_pre_binutils_2_19);
+                          end
+                        else
+                          IllegalPara(opt);
+                      end;
                     'c' : Cshared:=TRUE;
                     'd' : Dontlinkstdlibpath:=TRUE;
                     'e' :
@@ -2469,6 +2485,16 @@ begin
                     'S' :
                       begin
                         ForceStaticLinking;
+                      end;
+                    'V' :
+                      begin
+                        If UnsetBool(More, j, opt, false) then
+                          exclude(init_settings.globalswitches,cs_link_vlink)
+                        else
+                          begin
+                            include(init_settings.globalswitches,cs_link_vlink);
+                            include(init_settings.globalswitches,cs_link_extern);
+                          end;
                       end;
                     'X' :
                       begin
@@ -3236,16 +3262,6 @@ begin
   def_system_macro('VER'+version_nr+'_'+release_nr+'_'+patch_nr);
 
 { Temporary defines, until things settle down }
-  def_system_macro('RESSTRSECTIONS');
-  def_system_macro('FPC_HASFIXED64BITVARIANT');
-  def_system_macro('FPC_HASINTERNALOLEVARIANT2VARIANTCAST');
-  def_system_macro('FPC_HAS_VARSETS');
-  def_system_macro('FPC_HAS_VALGRINDBOOL');
-  def_system_macro('FPC_HAS_STR_CURRENCY');
-  def_system_macro('FPC_REAL2REAL_FIXED');
-  def_system_macro('FPC_STRTOCHARARRAYPROC');
-  def_system_macro('FPC_STRTOSHORTSTRINGPROC');
-  def_system_macro('FPC_OBJFPC_EXTENDED_IF');
   def_system_macro('FPC_HAS_OPERATOR_ENUMERATOR');
   def_system_macro('FPC_HAS_CONSTREF');
   def_system_macro('FPC_STATICRIPFIXED');
@@ -3448,6 +3464,9 @@ begin
 
   if tf_cld in target_info.flags then
     if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
+      InternalError(2013092801);
+  if tf_x86_far_procs_push_odd_bp in target_info.flags then
+    if not UpdateTargetSwitchStr('FARPROCSPUSHODDBP', init_settings.targetswitches, true) then
       InternalError(2013092801);
 
   { Set up a default prefix for binutils when cross-compiling }
@@ -3678,7 +3697,14 @@ begin
   if not(cs_link_extern in init_settings.globalswitches) and
      ((target_info.link=ld_none) or
       (cs_link_nolink in init_settings.globalswitches)) then
-    include(init_settings.globalswitches,cs_link_extern);
+    begin
+      include(init_settings.globalswitches,cs_link_extern);
+{$ifdef hasamiga}
+      { enable vlink as default linker on Amiga/MorphOS, but not for cross compilers (for now) }
+      if target_info.system in [system_m68k_amiga,system_powerpc_amiga,system_powerpc_morphos] then
+        include(init_settings.globalswitches,cs_link_vlink);
+{$endif}
+    end;
 
   { turn off stripping if compiling with debuginfo or profile }
   if (
@@ -3804,8 +3830,6 @@ if (target_info.abi = abi_eabihf) then
 {$ifdef llvm}
   { standard extension for llvm bitcode files }
   target_info.asmext:='.ll';
-  { always use section threadvars for now }
-  include(target_info.flags,tf_section_threadvars);
   { don't generate dwarf cfi, llvm will do that }
   exclude(target_info.flags,tf_needs_dwarf_cfi);
 {$endif llvm}

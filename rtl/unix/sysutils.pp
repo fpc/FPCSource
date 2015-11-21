@@ -20,6 +20,8 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 {$if (defined(BSD) or defined(SUNOS)) and defined(FPC_USE_LIBC)}
 {$define USE_VFORK}
@@ -236,7 +238,6 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
   var
     act: SigActionRec;
     lowsig, highsig, i: Integer;
-    state: TSignalState;
   begin
     if not signalinfoinited then
       initsignalinfo;
@@ -1484,7 +1485,14 @@ begin
     If (Result='') Then
       Result:=GetEnvironmentVariable('TMPDIR');
     if (Result='') then
-      Result:='/tmp/' // fallback.
+      begin
+      // fallback.
+      {$ifdef android}
+        Result:='/data/local/tmp/';
+      {$else}
+        Result:='/tmp/';
+      {$endif android}
+      end;
     end;
   if (Result<>'') then
     Result:=IncludeTrailingPathDelimiter(Result);

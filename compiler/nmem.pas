@@ -293,7 +293,7 @@ implementation
                 (vs.typ<>procsym) then
                internalerror(2011080601);
              { can't reuse "self", because it will be freed when we return }
-             result:=ccallnode.create(nil,tprocsym(vs),vs.owner,self.getcopy,[]);
+             result:=ccallnode.create(nil,tprocsym(vs),vs.owner,self.getcopy,[],nil);
            end;
       end;
 
@@ -961,7 +961,8 @@ implementation
                        newordtyp:=torddef(ptrsinttype).ordtype;
                      inserttypeconv(right,corddef.create(newordtyp,
                                                          int64(Tarraydef(left.resultdef).lowrange),
-                                                         int64(Tarraydef(left.resultdef).highrange)
+                                                         int64(Tarraydef(left.resultdef).highrange),
+                                                         true
                                                         ))
                    end
                  else
@@ -972,7 +973,7 @@ implementation
                  inserttypeconv(right,u8inttype)
                else if is_shortstring(left.resultdef) then
                  {Convert shortstring indexes to 0..length.}
-                 inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len)))
+                 inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len),true))
                else
                  {Convert indexes into dynamically allocated strings to aword.}
                  inserttypeconv(right,uinttype);

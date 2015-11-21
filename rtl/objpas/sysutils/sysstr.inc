@@ -1062,9 +1062,6 @@ Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue; Const For
 Var
   E,P : Integer;
   S : String;
-{$ifndef FPC_HAS_STR_CURRENCY}
-  TempValue: extended;
-{$endif FPC_HAS_STR_CURRENCY}
 
 Begin
   S:=StrPas(Buffer);
@@ -1088,15 +1085,7 @@ Begin
   try
     case ValueType of
       fvCurrency:
-{$ifdef FPC_HAS_STR_CURRENCY}
         Val(S,Currency(Value),E);
-{$else FPC_HAS_STR_CURRENCY}
-        begin
-          // needed for platforms where Currency = Int64
-          Val(S,TempValue,E);
-          Currency(Value) := TempValue;
-        end;
-{$endif FPC_HAS_STR_CURRENCY}
       fvExtended:
         Val(S,Extended(Value),E);
       fvDouble:
@@ -1219,11 +1208,7 @@ Begin
           fvSingle:
             Str(Single(Extended(Aligned(Value))):precision+6, Result);
           fvCurrency:
-{$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Aligned(Value)):precision+6, Result);
-{$else}
-            Str(Extended(Currency(Aligned(Value))):precision+8, Result);
-{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Aligned(Value)):precision+8, Result);
         end;
@@ -1316,11 +1301,7 @@ Begin
           fvSingle:
             Str(Single(Extended(Aligned(Value))):Precision+6, Result);
           fvCurrency:
-{$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Aligned(Value)):Precision+6, Result);
-{$else}
-            Str(Extended(Currency(Aligned(Value))):Precision+8, Result);
-{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Aligned(Value)):Precision+8, Result);
         end;
@@ -1369,11 +1350,7 @@ Begin
           fvSingle:
             Str(Single(Extended(Aligned(Value))):0:Digits, Result);
           fvCurrency:
-{$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Aligned(Value)):0:Digits, Result);
-{$else}
-            Str(Extended(Currency(Aligned(Value))):0:Digits, Result);
-{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Aligned(Value)):0:Digits, Result);
         end;
@@ -1394,11 +1371,7 @@ Begin
           fvSingle:
             Str(Single(Extended(Aligned(Value))):0:Digits, Result);
           fvCurrency:
-{$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Aligned(Value)):0:Digits, Result);
-{$else}
-            Str(Extended(Currency(Aligned(Value))):0:Digits, Result);
-{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Aligned(Value)):0:Digits, Result);
         end;
@@ -1428,11 +1401,7 @@ Begin
           fvSingle:
             Str(Single(Extended(Aligned(Value))):0:Digits, Result);
           fvCurrency:
-{$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Aligned(Value)):0:Digits, Result);
-{$else}
-            Str(Extended(Currency(Aligned(Value))):0:Digits, Result);
-{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Aligned(Value)):0:Digits, Result);
         end;
@@ -1909,7 +1878,6 @@ Var
   UnexpectedDigits: Integer;                  { Number Of unexpected Digits that }
                                               { have To be inserted before the   }
                                               { First placeholder.               }
-  UnexpectedDigitsStart: Integer;             { Location in Digits where first unexpected Digit is located }
   DigitExponent: Integer;                     { Exponent Of First digit In       }
                                               { Digits Array.                    }
 
@@ -2854,6 +2822,7 @@ cd    it is better to not use those, since most implementation are not 100%
 
 
 const
+{$if defined(MSDOS) or defined(GO32V2) or defined(WATCOM) }
    { upper case translation table for character set 850 }
    CP850UCT: array[128..255] of char =
    (#128,#154,#144,#182,#142,#182,#143,#128,#210,#211,#212,#216,#215,#222,#142,#143,
@@ -2875,6 +2844,7 @@ const
     #208,#209,#136,#137,#138,#213,#161,#140,#139,#217,#218,#219,#220,#221,#141,#223,
     #162,#225,#147,#149,#228,#228,#230,#237,#232,#163,#150,#151,#236,#236,#238,#239,
     #240,#241,#242,#243,#244,#245,#246,#247,#248,#249,#250,#251,#252,#253,#254,#255);
+{$endif}
 
    { upper case translation table for character set ISO 8859/1  Latin 1  }
    CPISO88591UCT: array[192..255] of char =

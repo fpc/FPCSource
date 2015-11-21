@@ -532,13 +532,27 @@ unit hlcgobj;
           procedure g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation); virtual;
 
           { typecasts the pointer in reg to a new pointer. By default it does
-            nothing, only required for type-aware platforms like LLVM }
-          procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister); virtual;
+            nothing, only required for type-aware platforms like LLVM.
+            fromdef/todef are not typed as pointerdef, because they may also be
+            a procvardef or classrefdef. Replaces reg with a new register if
+            necessary }
+          procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tdef; var reg: tregister); virtual;
           { same but for a treference (considers the reference itself, not the
             value stored at that place in memory). Replaces ref with a new
-            reference if necessary }
-          procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference); virtual;
+            reference if necessary. fromdef needs to be a pointerdef because
+            it may have to be passed as fromdef to a_loadaddr_ref_reg, which
+            needs the "pointeddef" of fromdef }
+          procedure g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference); virtual;
 
+          { update a reference pointing to the start address of a record/object/
+            class (contents) so it refers to the indicated field }
+          procedure g_set_addr_nonbitpacked_field_ref(list: TAsmList; recdef: tabstractrecorddef; field: tfieldvarsym; var recref: treference); virtual;
+          { load a register/constant into a record field by name }
+         protected
+          procedure g_setup_load_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; const recref: treference; out fref: treference; out fielddef: tdef);
+         public
+          procedure g_load_reg_field_by_name(list: TAsmList; regsize: tdef; recdef: trecorddef; reg: tregister; const name: TIDString; const recref: treference);
+          procedure g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; a: tcgint; const recref: treference);
 
           { routines migrated from ncgutil }
 
@@ -3825,15 +3839,58 @@ implementation
       end;
     end;
 
-  procedure thlcgobj.g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister);
+  procedure thlcgobj.g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tdef; var reg: tregister);
     begin
       { nothing to do }
     end;
 
-  procedure thlcgobj.g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference);
+  procedure thlcgobj.g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference);
     begin
       { nothing to do }
     end;
+
+  procedure thlcgobj.g_set_addr_nonbitpacked_field_ref(list: TAsmList; recdef: tabstractrecorddef; field: tfieldvarsym; var recref: treference);
+    begin
+      inc(recref.offset,field.fieldoffset);
+      recref.alignment:=newalignment(recref.alignment,field.fieldoffset);
+    end;
+
+
+  procedure thlcgobj.g_setup_load_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; const recref: treference; out fref: treference; out fielddef: tdef);
+    var
+      sym: tsym;
+      field: tfieldvarsym;
+    begin
+      sym:=search_struct_member(recdef,name);
+      if not assigned(sym) or
+         (sym.typ<>fieldvarsym) then
+        internalerror(2015111901);
+      field:=tfieldvarsym(sym);
+      fref:=recref;
+      fielddef:=field.vardef;
+      g_set_addr_nonbitpacked_field_ref(list,recdef,field,fref);
+    end;
+
+
+  procedure thlcgobj.g_load_reg_field_by_name(list: TAsmList; regsize: tdef; recdef: trecorddef; reg: tregister; const name: TIDString; const recref: treference);
+    var
+      fref: treference;
+      fielddef: tdef;
+    begin
+      g_setup_load_field_by_name(list,recdef,name,recref,fref,fielddef);
+      a_load_reg_ref(list,regsize,fielddef,reg,fref);
+    end;
+
+
+  procedure thlcgobj.g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; a: tcgint; const recref: treference);
+    var
+      fref: treference;
+      fielddef: tdef;
+    begin
+      g_setup_load_field_by_name(list,recdef,name,recref,fref,fielddef);
+      a_load_const_ref(list,fielddef,a,fref);
+    end;
+
 
   procedure thlcgobj.location_force_reg(list: TAsmList; var l: tlocation; src_size, dst_size: tdef; maybeconst: boolean);
     var
@@ -4389,22 +4446,6 @@ implementation
           { setinitname may generate a new section -> don't add to the
             current list, because we assume this remains a text section }
           exportlib.setinitname(current_asmdata.AsmLists[al_exports],current_procinfo.procdef.mangledname);
-
-      if (current_procinfo.procdef.proctypeoption=potype_proginit) then
-        begin
-         if (target_info.system in (systems_darwin+[system_powerpc_macos]+systems_aix)) and
-            not(current_module.islibrary) then
-           begin
-            new_section(list,sec_code,'',4);
-            list.concat(tai_symbol.createname_global(
-              target_info.cprefix+mainaliasname,AT_FUNCTION,0));
-            { keep argc, argv and envp properly on the stack }
-            if not(target_info.system in systems_aix) then
-              cg.a_jmp_name(list,target_info.cprefix+'FPC_SYSTEMMAIN')
-            else
-              cg.a_call_name(list,target_info.cprefix+'FPC_SYSTEMMAIN',false)
-           end;
-        end;
     end;
 
 
@@ -4991,7 +5032,7 @@ implementation
                   else
                     internalerror(2011020507);
 //                      cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
-                  a_load_reg_loc(list,tparavarsym(p).vardef,tparavarsym(p).vardef,hreg,tparavarsym(p).initialloc);
+                  a_load_reg_loc(list,cpointerdef.getreusable(tparavarsym(p).vardef),cpointerdef.getreusable(tparavarsym(p).vardef),hreg,tparavarsym(p).initialloc);
                 end;
             end
           else
@@ -5114,6 +5155,8 @@ implementation
     end;
 
   procedure thlcgobj.gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);
+    var
+      tmploc: tlocation;
     begin
       { Handle Floating point types differently
 
@@ -5126,6 +5169,18 @@ implementation
           (cgpara.Location^.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER])) then
         begin
           gen_loadfpu_loc_cgpara(list,vardef,l,cgpara,vardef.size);
+          exit;
+        end;
+
+      { in case of multiple locations, force the source to memory as only
+        a_load_ref_cgpara supports multiple locations }
+      if assigned(cgpara.location^.next) and
+         not(l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+        begin
+          tmploc:=l;
+          location_force_mem(list,tmploc,vardef);
+          a_load_loc_cgpara(list,vardef,tmploc,cgpara);
+          location_freetemp(list,tmploc);
           exit;
         end;
 
@@ -5228,15 +5283,21 @@ implementation
     end;
 
   procedure thlcgobj.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
+    var
+      alt: TAsmListType;
     begin
+      if not(po_assembler in pd.procoptions) then
+        alt:=al_procedures
+      else
+        alt:=al_pure_assembler;
       { add the procedure to the al_procedures }
-      maybe_new_object_file(current_asmdata.asmlists[al_procedures]);
-      new_section(current_asmdata.asmlists[al_procedures],sec_code,lower(pd.mangledname),getprocalign);
-      current_asmdata.asmlists[al_procedures].concatlist(code);
+      maybe_new_object_file(current_asmdata.asmlists[alt]);
+      new_section(current_asmdata.asmlists[alt],sec_code,lower(pd.mangledname),getprocalign);
+      current_asmdata.asmlists[alt].concatlist(code);
       { save local data (casetable) also in the same file }
       if assigned(data) and
          (not data.empty) then
-        current_asmdata.asmlists[al_procedures].concatlist(data);
+        current_asmdata.asmlists[alt].concatlist(data);
     end;
 
   function thlcgobj.g_call_system_proc(list: TAsmList; const procname: string; const paras: array of pcgpara; forceresdef: tdef): tcgpara;

@@ -33,8 +33,11 @@ interface
       tllvminlinenode = class(tcginlinenode)
        protected
         function first_get_frame: tnode; override;
+        function first_abs_real: tnode; override;
+        function first_sqr_real: tnode; override;
        public
         procedure second_length; override;
+        procedure second_sqr_real; override;
       end;
 
 
@@ -44,10 +47,11 @@ implementation
        verbose,globtype,constexp,
        aasmbase, aasmdata,
        symtype,symdef,defutil,
-       ncal,ncon,ninl,
+       nutils,nadd,nbas,ncal,ncon,nflw,ninl,nld,nmat,
        pass_2,
        cgbase,cgutils,tgobj,hlcgobj,
-       cpubase;
+       cpubase,
+       llvmbase,aasmllvm;
 
 
      function tllvminlinenode.first_get_frame: tnode;
@@ -55,6 +59,72 @@ implementation
          result:=ccallnode.createintern('llvm_frameaddress',
            ccallparanode.create(genintconstnode(0),nil));
        end;
+
+    { in general, generate regular expression rather than intrinsics: according
+      to the "Performance Tips for Frontend Authors", "The optimizer is quite
+      good at reasoning about general control flow and arithmetic, it is not
+      anywhere near as strong at reasoning about the various intrinsics. If
+      profitable for code generation purposes, the optimizer will likely form
+      the intrinsics itself late in the optimization pipeline." }
+
+    function tllvminlinenode.first_abs_real: tnode;
+      var
+        lefttemp,
+        resulttemp: ttempcreatenode;
+        stat: tstatementnode;
+      begin
+        result:=internalstatements(stat);
+        lefttemp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+        { assigned twice -> will be spilled if put in register }
+        resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+
+        addstatement(stat,lefttemp);
+        addstatement(stat,resulttemp);
+
+        { lefttemp:=left }
+        addstatement(stat,
+          cassignmentnode.create(ctemprefnode.create(lefttemp),left)
+        );
+
+        { if lefttemp>=0 then
+            resulttemp:=lefttemp
+          else
+            resulttemp:=-lefttemp
+        }
+        addstatement(stat,
+          cifnode.create(
+            caddnode.create(
+              gten,
+              ctemprefnode.create(lefttemp),
+              crealconstnode.create(0.0,left.resultdef)
+            ),
+            cassignmentnode.create(
+              ctemprefnode.create(resulttemp),
+              ctemprefnode.create(lefttemp)
+            ),
+            cassignmentnode.create(
+              ctemprefnode.create(resulttemp),
+              cunaryminusnode.create(ctemprefnode.create(lefttemp))
+            )
+          )
+        );
+        addstatement(stat,ctempdeletenode.create(lefttemp));
+        addstatement(stat,ctempdeletenode.create_normal_temp(resulttemp));
+        { return resulttemp }
+        addstatement(stat,ctemprefnode.create(resulttemp));
+        { reused }
+        left:=nil;
+      end;
+
+
+    function tllvminlinenode.first_sqr_real: tnode;
+      begin
+        result:=nil;
+        if use_vectorfpu(left.resultdef) then
+          expectloc:=LOC_MMREGISTER
+        else
+          expectloc:=LOC_FPUREGISTER;
+      end;
 
 
     procedure tllvminlinenode.second_length;
@@ -111,6 +181,29 @@ implementation
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
            location.register:=hregister;
          end;
+      end;
+
+
+    procedure tllvminlinenode.second_sqr_real;
+      begin
+        secondpass(left);
+        location.loc:=expectloc;
+        if expectloc=LOC_MMREGISTER then
+          begin
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+            location.register:=hlcg.getmmregister(current_asmdata.CurrAsmList,resultdef);
+          end
+        else
+          begin
+            hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+            location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+          end;
+        current_asmdata.CurrAsmList.concat(
+          taillvm.op_reg_size_reg_reg(la_fmul,
+            location.register,resultdef,
+            left.location.register,left.location.register
+          )
+        );
       end;
 
 begin

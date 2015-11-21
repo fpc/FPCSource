@@ -74,6 +74,8 @@ interface
       procedure a_load_loc_ref(list : TAsmList;fromsize, tosize: tdef; const loc: tlocation; const ref : treference);override;
       procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
 
+      procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister); override;
+
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
 
@@ -377,6 +379,22 @@ implementation
           else
             internalerror(2014032801);
         end;
+    end;
+
+
+  procedure thlcgcpu.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
+    begin
+      { implicit pointer types on i8086 follow the default data pointer size for
+        the current memory model }
+      if is_implicit_pointer_object_type(size) or is_implicit_array_pointer(size) then
+        size:=voidpointertype;
+
+      if is_hugepointer(size) then
+        internalerror(2015111201)
+      else if is_farpointer(size) then
+        cg.a_op_const_reg(list,Op,OS_16,a,reg)
+      else
+        inherited a_op_const_reg(list,Op,size,a,reg);
     end;
 
 

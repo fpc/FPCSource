@@ -1577,7 +1577,6 @@ begin
   s:=UnicodeString(ss);
 end;
 
-{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_UnicodeStr_Currency(c : Currency;len,fr : SizeInt;out s : UnicodeString);compilerproc;
 var
   ss: shortstring;
@@ -1585,7 +1584,6 @@ begin
   str(c:len:fr,ss);
   s:=UnicodeString(ss);
 end;
-{$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_UnicodeStr_SInt(v : ValSint; Len : SizeInt; out S : UnicodeString);compilerproc;
 Var
@@ -2195,7 +2193,7 @@ begin
   for i:=0 to length(s)-2 do  { -2 because s contains explicit terminating #0 }
     begin
       nc:=s[i];
-      if (nc<$ffff) then
+      if (nc<=$ffff) then
         dest^:=widechar(nc)
       else if (dword(nc)<=$10ffff) then
         begin
@@ -2291,7 +2289,7 @@ function StubUnicodeCase(const s : UnicodeString) : UnicodeString;
     unimplementedunicodestring;
   end;
 
-function StubCompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+function StubCompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
   begin
     unimplementedunicodestring;
   end;
@@ -2301,7 +2299,7 @@ function StubWideCase(const s: WideString): WideString;
     unimplementedunicodestring;
   end;
 
-function StubCompareWideString(const s1, s2 : WideString) : PtrInt;
+function StubCompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
   begin
     unimplementedunicodestring;
   end;
@@ -2324,9 +2322,8 @@ procedure initunicodestringmanager;
     widestringmanager.LowerUnicodeStringProc:=@StubUnicodeCase;
 {$endif HAS_WIDESTRINGMANAGER}
     widestringmanager.CompareWideStringProc:=@StubCompareWideString;
-    widestringmanager.CompareTextWideStringProc:=@StubCompareWideString;
+//    widestringmanager.CompareTextWideStringProc:=@StubCompareWideString;
     widestringmanager.CompareUnicodeStringProc:=@StubCompareUnicodeString;
-    widestringmanager.CompareTextUnicodeStringProc:=@StubCompareUnicodeString;
     widestringmanager.CharLengthPCharProc:=@DefaultCharLengthPChar;
     widestringmanager.CodePointLengthProc:=@DefaultCodePointLength;
     widestringmanager.GetStandardCodePageProc:=@DefaultGetStandardCodePage;

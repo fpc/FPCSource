@@ -330,8 +330,8 @@ interface
               else
                 op:=A_VCMPE;
 
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
-                left.location.register,right.location.register));
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(op,
+                left.location.register,right.location.register),PF_F32));
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_VMRS, NR_APSR_nzcv, NR_FPSCR));
             end;

@@ -859,8 +859,6 @@ Unit AoptObj;
 
 
       procedure TAOptObj.UpdateUsedRegs(p : Tai);
-        var
-          i : TRegisterType;
         begin
           { this code is based on TUsedRegs.Update to avoid multiple passes through the asmlist,
             the code is duplicated here }
@@ -1176,7 +1174,9 @@ Unit AoptObj;
       end;
 {$pop}
 
-    function IsJumpToLabel(hp: taicpu): boolean;
+
+    { Returns True if hp is an unconditional jump to a label }
+    function IsJumpToLabelUncond(hp: taicpu): boolean;
       begin
 {$if defined(avr)}
         result:=(hp.opcode in aopt_uncondjmp) and
@@ -1186,6 +1186,16 @@ Unit AoptObj;
 {$if defined(arm) or defined(aarch64)}
           (hp.condition=c_None) and
 {$endif arm or aarch64}
+          (hp.ops>0) and
+          (JumpTargetOp(hp)^.typ = top_ref) and
+          (JumpTargetOp(hp)^.ref^.symbol is TAsmLabel);
+      end;
+
+
+    { Returns True if hp is any jump to a label }
+    function IsJumpToLabel(hp: taicpu): boolean;
+      begin
+        result:=hp.is_jmp and
           (hp.ops>0) and
           (JumpTargetOp(hp)^.typ = top_ref) and
           (JumpTargetOp(hp)^.ref^.symbol is TAsmLabel);
@@ -1223,8 +1233,11 @@ Unit AoptObj;
        the level parameter denotes how deeep we have already followed the jump,
        to avoid endless loops with constructs such as "l5: ; jmp l5"           }
 
-      var p1, p2: tai;
+      var p1: tai;
+          {$if not defined(MIPS) and not defined(JVM)}
+          p2: tai;
           l: tasmlabel;
+          {$endif}
 
       begin
         GetfinalDestination := false;
@@ -1238,7 +1251,7 @@ Unit AoptObj;
                (taicpu(p1).is_jmp) then
               if { the next instruction after the label where the jump hp arrives}
                  { is unconditional or of the same type as hp, so continue       }
-                 IsJumpToLabel(taicpu(p1))
+                 IsJumpToLabelUncond(taicpu(p1))
 {$if not defined(MIPS) and not defined(JVM)}
 { for MIPS, it isn't enough to check the condition; first operands must be same, too. }
                  or
@@ -1253,7 +1266,7 @@ Unit AoptObj;
                   SkipLabels(p1,p2) and
                   (p2.typ = ait_instruction) and
                   (taicpu(p2).is_jmp) and
-                   (IsJumpToLabel(taicpu(p2)) or
+                   (IsJumpToLabelUncond(taicpu(p2)) or
                    (conditions_equal(taicpu(p2).condition,hp.condition))) and
                   SkipLabels(p1,p1))
 {$endif not MIPS and not JVM}
@@ -1353,7 +1366,7 @@ Unit AoptObj;
                         { the following if-block removes all code between a jmp and the next label,
                           because it can never be executed
                         }
-                        if IsJumpToLabel(taicpu(p)) then
+                        if IsJumpToLabelUncond(taicpu(p)) then
                           begin
                             hp2:=p;
                             while GetNextInstruction(hp2, hp1) and
@@ -1386,11 +1399,11 @@ Unit AoptObj;
                                 end
                               else break;
                             end;
-                        { remove jumps to a label coming right after them }
                         if GetNextInstruction(p, hp1) then
                           begin
                             SkipEntryExitMarker(hp1,hp1);
-                            if IsJumpToLabel(taicpu(p)) and
+                            { remove unconditional jumps to a label coming right after them }
+                            if IsJumpToLabelUncond(taicpu(p)) and
                               FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp1) and
           { TODO: FIXME removing the first instruction fails}
                                 (p<>blockstart) then
@@ -1408,10 +1421,17 @@ Unit AoptObj;
                               end
                             else if assigned(hp1) then
                               begin
+                                { change the following jumps:
+                                    jmp<cond> lab_1         jmp<cond_inverted> lab_2
+                                    jmp       lab_2  >>>    <code>
+                                  lab_1:                  lab_2:
+                                    <code>
+                                  lab_2:
+                                }
                                 if hp1.typ = ait_label then
                                   SkipLabels(hp1,hp1);
                                 if (tai(hp1).typ=ait_instruction) and
-                                  IsJumpToLabel(taicpu(hp1)) and
+                                  IsJumpToLabelUncond(taicpu(hp1)) and
                                   GetNextInstruction(hp1, hp2) and
                                   IsJumpToLabel(taicpu(p)) and
                                   FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp2) then

@@ -36,12 +36,8 @@ interface
      strict protected
       class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint); override;
      public
-      class procedure InsertInitFinalTable; override;
-      class procedure InsertWideInitsTablesTable; override;
-      class procedure InsertWideInits; override;
       class procedure InsertResourceTablesTable; override;
       class procedure InsertResourceInfo(ResourcesUsed : boolean); override;
-      class procedure InsertMemorySizes; override;
       class procedure InsertObjectInfo; override;
     end;
 
@@ -49,7 +45,7 @@ interface
 implementation
 
     uses
-      verbose,cutils,globals,fmodule,
+      verbose,cutils,globals,fmodule,systems,
       aasmbase,aasmtai,cpubase,llvmbase,aasmllvm,
       symbase,symtable,defutil,
       llvmtype;
@@ -57,33 +53,20 @@ implementation
   class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
     var
       asmsym: tasmsymbol;
+      field1, field2: tsym;
     begin
       if sym.globalasmsym then
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,AT_DATA)
       else
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,AT_DATA);
       if not(vo_is_thread_var in sym.varoptions) then
-        list.concat(taillvmdecl.create(asmsym,sym.vardef,nil,sec_data,varalign))
-      else
+        list.concat(taillvmdecl.createdef(asmsym,sym.vardef,nil,sec_data,varalign))
+      else if tf_section_threadvars in target_info.flags then
         list.concat(taillvmdecl.createtls(asmsym,sym.vardef,varalign))
-    end;
-
-
-  class procedure tllvmnodeutils.InsertInitFinalTable;
-    begin
-      { todo }
-    end;
-
-
-  class procedure tllvmnodeutils.InsertWideInitsTablesTable;
-    begin
-      { not required }
-    end;
-
-
-  class procedure tllvmnodeutils.InsertWideInits;
-    begin
-      { not required }
+      else
+        list.concat(taillvmdecl.createdef(asmsym,
+          get_threadvar_record(sym.vardef,field1,field2),
+          nil,sec_data,varalign));
     end;
 
 
@@ -96,12 +79,6 @@ implementation
   class procedure tllvmnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
     begin
       { not supported }
-    end;
-
-
-  class procedure tllvmnodeutils.InsertMemorySizes;
-    begin
-      { not required }
     end;
 
 

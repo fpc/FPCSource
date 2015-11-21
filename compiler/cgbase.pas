@@ -101,6 +101,7 @@ interface
          {$ENDIF}
          {$IFDEF i8086}
          ,addr_dgroup      // the data segment group
+         ,addr_fardataseg  // the far data segment of the current pascal module (unit or program)
          ,addr_seg         // used for getting the segment of an object, e.g. 'mov ax, SEG symbol'
          {$ENDIF}
          {$IFDEF AARCH64}

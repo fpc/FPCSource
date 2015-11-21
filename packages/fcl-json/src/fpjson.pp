@@ -430,6 +430,7 @@ Type
     procedure Insert(Index: Integer; AnObject: TJSONObject);
     procedure Move(CurIndex, NewIndex: Integer);
     Procedure Remove(Item : TJSONData);
+    Procedure Sort(Compare: TListSortCompare);
     // Easy Access Properties.
     property Items;default;
     Property Types[Index : Integer] : TJSONType Read GetTypes;
@@ -2336,6 +2337,11 @@ end;
 procedure TJSONArray.Remove(Item: TJSONData);
 begin
   FList.Remove(Item);
+end;
+
+procedure TJSONArray.Sort(Compare: TListSortCompare);
+begin
+  FList.Sort(Compare);
 end;
 
 { TJSONObject }

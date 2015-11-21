@@ -23,7 +23,7 @@ begin
     P.Email := '';
     P.Description := 'Expression parser with support for fast evaluation';
     P.NeedLibC:= false;
-    P.OSes:=P.OSes-[embedded,msdos];
+    P.OSes:=P.OSes-[embedded,msdos,win16];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

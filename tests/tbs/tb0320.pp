@@ -8,6 +8,7 @@ const
 type
   trec=record
     a,b : longint;
+    c: longint;
   end;
 
 var
@@ -27,5 +28,5 @@ begin
     mov fs:[0468+trec.b],eax
     mov fs:[046ch],eax
 {$endif}
-  end;
+  end ['eax','esi'];
 end.

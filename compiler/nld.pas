@@ -174,7 +174,7 @@ implementation
 
     uses
       verbose,globtype,globals,systems,constexp,
-      symnot,symtable,
+      symtable,
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
       cpuinfo,
@@ -417,10 +417,6 @@ implementation
                 { call to get address of threadvar }
                 if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
                   include(current_procinfo.flags,pi_do_call);
-                if nf_write in flags then
-                  Tabstractvarsym(symtableentry).trigger_notifications(vn_onwrite)
-                else
-                  Tabstractvarsym(symtableentry).trigger_notifications(vn_onread);
               end;
             procsym :
                 begin
@@ -1147,9 +1143,8 @@ implementation
                 hp:=tarrayconstructornode(hp.right);
               end;
           end;
-        { set the elementdef to the correct type in case of a managed
-          variant array }
-        if do_managed_variant then
+        { set the elementdef to the correct type in case of a variant array }
+        if do_variant then
           tarraydef(resultdef).elementdef:=search_system_type('TVARREC').typedef;
         expectloc:=LOC_CREFERENCE;
       end;

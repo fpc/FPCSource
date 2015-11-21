@@ -28,13 +28,77 @@ unit aoptcpu;
   Interface
 
     uses
-      cpubase, aoptobj, aoptcpub, aopt;
+      cpubase, aoptobj, aoptcpub, aopt,
+      aasmtai;
 
     Type
       TCpuAsmOptimizer = class(TAsmOptimizer)
+        function PeepHoleOptPass1Cpu(var p : tai) : boolean; override;
       End;
 
   Implementation
+
+    uses
+      verbose,
+      aoptx86,
+      aasmcpu;
+
+    function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p : tai) : boolean;
+      var
+        hp1 : tai;
+        hp2 : tai;
+      begin
+        result:=false;
+        case p.typ of
+          ait_instruction:
+            begin
+              case taicpu(p).opcode of
+                A_MOV:
+                  begin
+                    if MatchInstruction(p,A_MOV,[S_W]) and
+                      MatchOpType(p,top_ref,top_reg) and
+
+                      GetNextInstruction(p, hp1) and
+                      MatchInstruction(hp1,A_MOV,[S_W]) and
+                      MatchOpType(hp1,top_ref,top_reg) and
+
+                      GetNextInstruction(hp1, hp2) and
+                      MatchInstruction(hp2,A_MOV,[S_W]) and
+                      MatchOpType(hp2,top_reg,top_reg) and
+
+                      not(OpsEqual(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^)) and
+
+                      OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp2).oper[0]^) and
+
+                      (MatchOperand(taicpu(hp2).oper[1]^,NR_ES) or MatchOperand(taicpu(hp2).oper[1]^,NR_DS)) and
+
+                      (taicpu(p).oper[0]^.ref^.base=taicpu(hp1).oper[0]^.ref^.base) and
+                      (taicpu(p).oper[0]^.ref^.index=taicpu(hp1).oper[0]^.ref^.index) and
+                      (taicpu(p).oper[0]^.ref^.segment=taicpu(hp1).oper[0]^.ref^.segment) and
+                      (taicpu(p).oper[0]^.ref^.symbol=taicpu(hp1).oper[0]^.ref^.symbol) and
+                      (taicpu(p).oper[0]^.ref^.relsymbol=taicpu(hp1).oper[0]^.ref^.relsymbol) and
+                      (taicpu(p).oper[0]^.ref^.offset+2=taicpu(hp1).oper[0]^.ref^.offset) and
+                      assigned(FindRegDealloc(taicpu(hp2).oper[0]^.reg,tai(hp2.Next)))  then
+                      begin
+                        case taicpu(hp2).oper[1]^.reg of
+                          NR_DS:
+                            taicpu(p).opcode:=A_LDS;
+                          NR_ES:
+                            taicpu(p).opcode:=A_LES;
+                          else
+                            internalerror(2015092601);
+                        end;
+                        asml.remove(hp1);
+                        hp1.free;
+                        asml.remove(hp2);
+                        hp2.free;
+                        result:=true;
+                      end;
+                  end;
+              end
+            end
+        end;
+      end;
 
 begin
   casmoptimizer:=TCpuAsmOptimizer;

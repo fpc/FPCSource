@@ -28,6 +28,9 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
+
 {$DEFINE HAS_OSERROR}
 {$DEFINE HAS_SLEEP}
 { used OS file system APIs use ansistring }

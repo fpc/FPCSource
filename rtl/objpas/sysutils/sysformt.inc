@@ -44,7 +44,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
       While (ChPos<=Len) and
             (Fmt[ChPos]<='9') and (Fmt[ChPos]>='0') do inc(ChPos);
       If ChPos>len then
-        DoFormatError(feInvalidFormat,Fmt);
+        DoFormatError(feInvalidFormat,ansistring(Fmt));
       If Fmt[ChPos]='*' then
         begin
 
@@ -57,7 +57,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
         end;
 
         If (ChPos>OldPos) or (ArgN>High(Args)) then
-          DoFormatError(feInvalidFormat,Fmt);
+          DoFormatError(feInvalidFormat,ansistring(Fmt));
 
         ArgPos:=ArgN+1;
 
@@ -66,7 +66,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
           vtInt64: Value := Args[ArgN].VInt64^;
           vtQWord: Value := Args[ArgN].VQWord^;
         else
-          DoFormatError(feInvalidFormat,Fmt);
+          DoFormatError(feInvalidFormat,ansistring(Fmt));
         end;
         Inc(ChPos);
         end
@@ -76,7 +76,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
           begin
           Val (Copy(Fmt,OldPos,ChPos-OldPos),value,code);
           // This should never happen !!
-          If Code>0 then DoFormatError (feInvalidFormat,Fmt);
+          If Code>0 then DoFormatError (feInvalidFormat,ansistring(Fmt));
           end
         else
           Value:=-1;
@@ -92,7 +92,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
         value:=0; // Delphi undocumented behaviour, assume 0, #11099
       If Fmt[ChPos]=':' then
         begin
-        If Value=-1 then DoFormatError(feMissingArgument,fmt);
+        If Value=-1 then DoFormatError(feMissingArgument,ansistring(Fmt));
         Index:=Value;
         Value:=-1;
         Inc(ChPos);
@@ -214,7 +214,7 @@ begin
   If (Doarg>High(Args)) or (Args[Doarg].Vtype<>AT) then
    begin
      if err then
-      DoFormatError(feInvalidArgindex,Fmt);
+      DoFormatError(feInvalidArgindex,ansistring(Fmt));
      dec(ArgPos);
      exit;
    end;
@@ -250,10 +250,10 @@ begin
               Width:=Abs(width);
               Index:=Prec-Length(ToAdd);
               If ToAdd[1]<>'-' then
-                ToAdd:=StringOfChar('0',Index)+ToAdd
+                ToAdd:=TFormatString(StringOfChar('0',Index))+ToAdd
               else
                 // + 1 to accomodate for - sign in length !!
-                Insert(StringOfChar('0',Index+1),toadd,2);
+                Insert(TFormatString(StringOfChar('0',Index+1)),toadd,2);
               end;
         'U' : begin
               if Checkarg(vtinteger,false) then
@@ -264,38 +264,38 @@ begin
                 Str(Args[DoArg].VQWord^,toadd);
               Width:=Abs(width);
               Index:=Prec-Length(ToAdd);
-              ToAdd:=StringOfChar('0',Index)+ToAdd
+              ToAdd:=TFormatString(StringOfChar('0',Index))+ToAdd
               end;
 {$ifndef FPUNONE}
         'E' : begin
               if CheckArg(vtCurrency,false) then
-                ToAdd:=FloatToStrF(Args[doarg].VCurrency^,ffexponent,Prec,3,FormatSettings)
+                ToAdd:=TFormatString(FloatToStrF(Args[doarg].VCurrency^,ffexponent,Prec,3,FormatSettings))
               else if CheckArg(vtExtended,true) then
-                ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffexponent,Prec,3,FormatSettings);
+                ToAdd:=TFormatString(FloatToStrF(Args[doarg].VExtended^,ffexponent,Prec,3,FormatSettings));
               end;
         'F' : begin
               if CheckArg(vtCurrency,false) then
-                ToAdd:=FloatToStrF(Args[doarg].VCurrency^,ffFixed,9999,Prec,FormatSettings)
+                ToAdd:=TFormatString(FloatToStrF(Args[doarg].VCurrency^,ffFixed,9999,Prec,FormatSettings))
               else if CheckArg(vtExtended,true) then
-                ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffFixed,9999,Prec,FormatSettings);
+                ToAdd:=TFormatString(FloatToStrF(Args[doarg].VExtended^,ffFixed,9999,Prec,FormatSettings));
               end;
         'G' : begin
               if CheckArg(vtCurrency,false) then
-                ToAdd:=FloatToStrF(Args[doarg].VCurrency^,ffGeneral,Prec,3,FormatSettings)
+                ToAdd:=TFormatString(FloatToStrF(Args[doarg].VCurrency^,ffGeneral,Prec,3,FormatSettings))
               else if CheckArg(vtExtended,true) then
-                ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffGeneral,Prec,3,FormatSettings);
+                ToAdd:=TFormatString(FloatToStrF(Args[doarg].VExtended^,ffGeneral,Prec,3,FormatSettings));
               end;
         'N' : begin
               if CheckArg(vtCurrency,false) then
-                ToAdd:=FloatToStrF(Args[doarg].VCurrency^,ffNumber,9999,Prec,FormatSettings)
+                ToAdd:=TFormatString(FloatToStrF(Args[doarg].VCurrency^,ffNumber,9999,Prec,FormatSettings))
               else if CheckArg(vtExtended,true) then
-                ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffNumber,9999,Prec,FormatSettings);
+                ToAdd:=TFormatString(FloatToStrF(Args[doarg].VExtended^,ffNumber,9999,Prec,FormatSettings));
               end;
         'M' : begin
               if CheckArg(vtExtended,false) then
-                ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffCurrency,9999,Prec,FormatSettings)
+                ToAdd:=TFormatString(FloatToStrF(Args[doarg].VExtended^,ffCurrency,9999,Prec,FormatSettings))
               else if CheckArg(vtCurrency,true) then
-                ToAdd:=FloatToStrF(Args[doarg].VCurrency^,ffCurrency,9999,Prec,FormatSettings);
+                ToAdd:=TFormatString(FloatToStrF(Args[doarg].VCurrency^,ffCurrency,9999,Prec,FormatSettings));
               end;
 {$else}
         'E','F','G','N','M':
@@ -303,28 +303,28 @@ begin
 {$endif}
         'S' : begin
                 if CheckArg(vtString,false) then
-                  hs:=Args[doarg].VString^
+                  hs:=TFormatString(Args[doarg].VString^)
                 else
                   if CheckArg(vtChar,false) then
-                    hs:=Args[doarg].VChar
+                    hs:=TFormatString(Args[doarg].VChar)
                 else
                   if CheckArg(vtPChar,false) then
-                    hs:=Args[doarg].VPChar
+                    hs:=TFormatString(Args[doarg].VPChar)
                 else
                   if CheckArg(vtPWideChar,false) then
-                    hs:=WideString(Args[doarg].VPWideChar)
+                    hs:=TFormatString(WideString(Args[doarg].VPWideChar))
                 else
                   if CheckArg(vtWideChar,false) then
-                    hs:=WideString(Args[doarg].VWideChar)
+                    hs:=TFormatString(WideString(Args[doarg].VWideChar))
                 else
                   if CheckArg(vtWidestring,false) then
-                    hs:=WideString(Args[doarg].VWideString)
+                    hs:=TFormatString(WideString(Args[doarg].VWideString))
                 else
                   if CheckArg(vtAnsiString,false) then
-                    hs:=ansistring(Args[doarg].VAnsiString)
+                    hs:=TFormatString(ansistring(Args[doarg].VAnsiString))
                 else
                   if CheckArg(vtUnicodeString,false) then
-                    hs:=UnicodeString(Args[doarg].VUnicodeString)
+                    hs:=TFormatString(UnicodeString(Args[doarg].VUnicodeString))
                 else
                   if CheckArg(vtVariant,true) then
                     hs:=Args[doarg].VVariant^;
@@ -335,7 +335,7 @@ begin
               end;
         'P' : Begin
               CheckArg(vtpointer,true);
-              ToAdd:=HexStr(ptruint(Args[DoArg].VPointer),sizeof(Ptruint)*2);
+              ToAdd:=TFormatString(HexStr(ptruint(Args[DoArg].VPointer),sizeof(Ptruint)*2));
               // Insert ':'. Is this needed in 32 bit ? No it isn't.
               // Insert(':',ToAdd,5);
               end;
@@ -358,7 +358,7 @@ begin
                    index:=31;
                  end;
               If Prec>index then
-                ToAdd:=HexStr(int64(vq),index)
+                ToAdd:=TFormatString(HexStr(int64(vq),index))
               else
                 begin
                 // determine minimum needed number of hex digits.
@@ -367,7 +367,7 @@ begin
                   inc(Index);
                 If Index>Prec then
                   Prec:=Index;
-                ToAdd:=HexStr(int64(vq),Prec);
+                ToAdd:=TFormatString(HexStr(int64(vq),Prec));
                 end;
               end;
         '%': ToAdd:='%';
@@ -375,9 +375,9 @@ begin
       If Width<>-1 then
         If Length(ToAdd)<Width then
           If not Left then
-            ToAdd:=Space(Width-Length(ToAdd))+ToAdd
+            ToAdd:=TFormatString(Space(Width-Length(ToAdd)))+ToAdd
           else
-            ToAdd:=ToAdd+space(Width-Length(ToAdd));
+            ToAdd:=ToAdd+TFormatString(space(Width-Length(ToAdd)));
       Result:=Result+ToAdd;
       end;
     inc(ChPos);

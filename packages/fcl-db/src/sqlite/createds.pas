@@ -4,9 +4,6 @@ program createds;
 {$H+}
 {$define DEBUGHEAP}
 
-//To test the sqlite3 version replace sqliteds by sqlite3ds
-//  and TSqliteDataset by TSqlite3Dataset
-
 uses 
 {$ifdef DEBUGHEAP}
   Heaptrc,
@@ -14,7 +11,7 @@ uses
 {$ifdef Linux}
   cmem,
 {$endif}
-  sqliteds,
+  sqlite3ds,
   sysutils,db,inifiles;
 
 const
@@ -23,14 +20,14 @@ const
   DEFAULT_FILENAME = 'test.db';
   
 var 
-  dsTest:TSqliteDataset;
+  dsTest: TSqlite3Dataset;
   ini: TIniFile;
 
 begin 
   {$ifdef DEBUGHEAP}
   SetHeapTraceOutput(ExtractFileName(ParamStr(0))+'.heap.log');
   {$endif}
-  dsTest:=TSqliteDataset.Create(nil);
+  dsTest:=TSqlite3Dataset.Create(nil);
   with dsTest do
   begin
     //Load Database properties from a inifile
@@ -58,8 +55,15 @@ begin
       Add('LargeInt',ftLargeint);
       Add('Currency',ftCurrency);
     end; 
-    CreateTable;
-    writeln('ReturnString after CreateTable: ',ReturnString);
+    if CreateTable then
+	begin
+	  WriteLn('Table created successfully');
+	  if not TableExists then
+	    WriteLn('TableExists check failed with error: ', ReturnString);
+	end  
+	else
+      WriteLn('Error creating table');
+    WriteLn('ReturnString after CreateTable: ',ReturnString);
     Destroy;
   end;
 end.

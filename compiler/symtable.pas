@@ -58,10 +58,12 @@ interface
           { load/write }
           procedure ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
-          procedure buildderef;virtual;
-          procedure buildderefimpl;virtual;
-          procedure deref;virtual;
-          procedure derefimpl;virtual;
+          procedure buildderef;
+          procedure buildderefimpl;
+          { buildderef but only for (recursively) used symbols/defs }
+          procedure buildderef_registered;
+          procedure deref(only_registered: boolean);virtual;
+          procedure derefimpl(only_registered: boolean);virtual;
           function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
           procedure allsymbolsused;
           procedure allprivatesused;
@@ -173,11 +175,17 @@ interface
        end;
 {$endif llvm}
 
-       { tabstractlocalsymtable }
+       { tabstractsubsymtable }
 
-       tabstractlocalsymtable = class(tstoredsymtable)
+       tabstractsubsymtable = class(tstoredsymtable)
        public
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+       end;
+
+       { tabstractlocalsymtable }
+
+       tabstractlocalsymtable = class(tabstractsubsymtable)
+       public
           function count_locals:longint;
           function iscurrentunit: boolean; override;
        end;
@@ -250,7 +258,7 @@ interface
 
        { tenumsymtable }
 
-       tenumsymtable = class(tstoredsymtable)
+       tenumsymtable = class(tabstractsubsymtable)
        public
           procedure insert(sym: TSymEntry; checkdup: boolean = true); override;
           constructor create(adefowner:tdef);
@@ -258,7 +266,7 @@ interface
 
        { tarraysymtable }
 
-       tarraysymtable = class(tstoredsymtable)
+       tarraysymtable = class(tabstractsubsymtable)
        public
           procedure insertdef(def:TDefEntry);override;
           constructor create(adefowner:tdef);
@@ -564,18 +572,24 @@ implementation
 
     procedure tstoredsymtable.writedefs(ppufile:tcompilerppufile);
       var
+        defcount,
         i   : longint;
         def : tstoreddef;
       begin
+        defcount:=0;
+        for i:=0 to DefList.Count-1 do
+          if tstoreddef(DefList[i]).is_registered then
+            inc(defcount);
         { each definition get a number, write then the amount of defs to the
           ibstartdef entry }
-        ppufile.putlongint(DefList.count);
+        ppufile.putlongint(defcount);
         ppufile.writeentry(ibstartdefs);
         { now write the definition }
         for i:=0 to DefList.Count-1 do
           begin
             def:=tstoreddef(DefList[i]);
-            def.ppuwrite(ppufile);
+            if def.is_registered then
+              def.ppuwrite(ppufile);
           end;
         { write end of definitions }
         ppufile.writeentry(ibenddefs);
@@ -584,18 +598,24 @@ implementation
 
     procedure tstoredsymtable.writesyms(ppufile:tcompilerppufile);
       var
+        symcount,
         i   : longint;
         sym : Tstoredsym;
       begin
+        symcount:=0;
+        for i:=0 to SymList.Count-1 do
+          if tstoredsym(SymList[i]).is_registered then
+            inc(symcount);
         { each definition get a number, write then the amount of syms and the
           datasize to the ibsymdef entry }
-        ppufile.putlongint(SymList.count);
+        ppufile.putlongint(symcount);
         ppufile.writeentry(ibstartsyms);
         { foreach is used to write all symbols }
         for i:=0 to SymList.Count-1 do
           begin
             sym:=tstoredsym(SymList[i]);
-            sym.ppuwrite(ppufile);
+            if sym.is_registered then
+              sym.ppuwrite(ppufile);
           end;
         { end of symbols }
         ppufile.writeentry(ibendsyms);
@@ -637,7 +657,77 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.deref;
+    procedure tstoredsymtable.buildderef_registered;
+      var
+        def : tstoreddef;
+        sym : tstoredsym;
+        i   : longint;
+        defidmax,
+        symidmax: longint;
+        newbuiltdefderefs,
+        builtdefderefs,
+        builtsymderefs: array of boolean;
+      begin
+        { tdefs for which we already built the deref }
+        setlength(builtdefderefs,deflist.count);
+        { tdefs for which we built the deref in this iteration }
+        setlength(newbuiltdefderefs,deflist.count);
+        { syms for which we already built the deref }
+        setlength(builtsymderefs,symlist.count);
+        repeat
+          { we only have to store the defs (recursively) referred by wpo info
+            or inlined routines in the static symbtable }
+
+          { current number of registered defs/syms }
+          defidmax:=current_module.deflist.count;
+          symidmax:=current_module.symlist.count;
+
+          { build the derefs for the registered defs we haven't processed yet }
+          for i:=0 to DefList.Count-1 do
+            begin
+              if not builtdefderefs[i] then
+                begin
+                  def:=tstoreddef(DefList[i]);
+                  if def.is_registered then
+                    begin
+                      def.buildderef;
+                      newbuiltdefderefs[i]:=true;
+                      builtdefderefs[i]:=true;
+                    end;
+                end;
+            end;
+          { same for the syms }
+          for i:=0 to SymList.Count-1 do
+            begin
+              if not builtsymderefs[i] then
+                begin
+                  sym:=tstoredsym(SymList[i]);
+                  if sym.is_registered then
+                    begin
+                      sym.buildderef;
+                      builtsymderefs[i]:=true;
+                    end;
+                end;
+            end;
+          { now buildderefimpl for the defs we processed in this iteration }
+          for i:=0 to DefList.Count-1 do
+            begin
+              if newbuiltdefderefs[i] then
+                begin
+                  newbuiltdefderefs[i]:=false;
+                  tstoreddef(DefList[i]).buildderefimpl;
+                end;
+            end;
+        { stop when no new defs or syms have been registered while processing
+          the currently registered ones (defs/syms get added to the module's
+          deflist/symlist when they are registered) }
+        until
+          (defidmax=current_module.deflist.count) and
+          (symidmax=current_module.symlist.count);
+      end;
+
+
+    procedure tstoredsymtable.deref(only_registered: boolean);
       var
         i   : longint;
         def : tstoreddef;
@@ -650,26 +740,32 @@ implementation
         for i:=0 to SymList.Count-1 do
           begin
             sym:=tstoredsym(SymList[i]);
-            if sym.typ=typesym then
+            if (sym.typ=typesym) and
+               (not only_registered or
+                sym.is_registered) then
               sym.deref;
           end;
         { interface definitions }
         for i:=0 to DefList.Count-1 do
           begin
             def:=tstoreddef(DefList[i]);
-            def.deref;
+            if not only_registered or
+               def.is_registered then
+              def.deref;
           end;
         { interface symbols }
         for i:=0 to SymList.Count-1 do
           begin
             sym:=tstoredsym(SymList[i]);
-            if sym.typ<>typesym then
+            if (not only_registered or
+                sym.is_registered) and
+               (sym.typ<>typesym) then
               sym.deref;
           end;
       end;
 
 
-    procedure tstoredsymtable.derefimpl;
+    procedure tstoredsymtable.derefimpl(only_registered: boolean);
       var
         i   : longint;
         def : tstoreddef;
@@ -678,7 +774,9 @@ implementation
         for i:=0 to DefList.Count-1 do
           begin
             def:=tstoreddef(DefList[i]);
-            def.derefimpl;
+            if not only_registered or
+               def.is_registered then
+              def.derefimpl;
           end;
       end;
 
@@ -1144,7 +1242,7 @@ implementation
           to each other can improve cache behaviour) }
         result:=field2.vardef.alignment-field1.vardef.alignment;
         if result=0 then
-          result:=field1.symid-field2.symid;
+          result:=field1.fieldoffset-field2.fieldoffset;
       end;
 
 
@@ -1161,6 +1259,10 @@ implementation
         if maybereorder and
            (cs_opt_reorder_fields in current_settings.optimizerswitches) then
           begin
+            { assign dummy field offsets so we can know their order in the
+              sorting routine }
+            for i:=0 to list.count-1 do
+              tfieldvarsym(list[i]).fieldoffset:=i;
             { sort the non-class fields to minimise losses due to alignment }
             list.sort(@field_alignment_compare);
             { now fill up gaps caused by alignment skips with smaller fields
@@ -1254,6 +1356,9 @@ implementation
             { there may be small gaps left *before* inserted fields }
           until not changed;
         end;
+        { reset the dummy field offsets }
+        for i:=0 to list.count-1 do
+          tfieldvarsym(list[i]).fieldoffset:=-1;
         { finally, set the actual field offsets }
         for i:=0 to list.count-1 do
           begin
@@ -1956,7 +2061,7 @@ implementation
             { find the last shadowfield whose offset <= the current field's offset }
             while (tllvmshadowsymtableentry(symdeflist[shadowindex]).fieldoffset<tfieldvarsym(equivst.symlist[i]).fieldoffset) and
                   (shadowindex<symdeflist.count-1) and
-                  (tllvmshadowsymtableentry(symdeflist[shadowindex+1]).fieldoffset>=tfieldvarsym(equivst.symlist[i]).fieldoffset) do
+                  (tllvmshadowsymtableentry(symdeflist[shadowindex+1]).fieldoffset<=tfieldvarsym(equivst.symlist[i]).fieldoffset) do
               inc(shadowindex);
             { set the field number and potential offset from that field (in case }
             { of overlapping variants)                                           }
@@ -1992,10 +2097,10 @@ implementation
 {$endif llvm}
 
 {****************************************************************************
-                          TAbstractLocalSymtable
+                          TAbstractSubSymtable
 ****************************************************************************}
 
-   procedure tabstractlocalsymtable.ppuwrite(ppufile:tcompilerppufile);
+   procedure tabstractsubsymtable.ppuwrite(ppufile:tcompilerppufile);
       var
         oldtyp : byte;
       begin
@@ -2007,6 +2112,10 @@ implementation
          ppufile.entrytyp:=oldtyp;
       end;
 
+
+{****************************************************************************
+                          TAbstractLocalSymtable
+****************************************************************************}
 
     function tabstractlocalsymtable.count_locals:longint;
       var
@@ -2130,6 +2239,7 @@ implementation
         if not(m_duplicate_names in current_settings.modeswitches) and
            assigned(defowner) and (defowner.typ=procdef) and
            assigned(tprocdef(defowner).struct) and
+           assigned(tprocdef(defowner).owner) and
            (tprocdef(defowner).owner.defowner=tprocdef(defowner).struct) and
            (
             not(m_delphi in current_settings.modeswitches) or
@@ -2195,8 +2305,8 @@ implementation
               end
             { iso mode program parameters: staticvarsyms might have the same name as a program parameters,
               in this case, copy the isoindex and make the original symbol invisible }
-            else if (m_iso in current_settings.modeswitches) and (hsym.typ=programparasym) and (sym.typ=staticvarsym)
-              and (tstaticvarsym(hsym).isoindex<>0) then
+            else if (m_isolike_program_para in current_settings.modeswitches) and (hsym.typ=programparasym) and (sym.typ=staticvarsym)
+              and (tprogramparasym(hsym).isoindex<>0) then
               begin
                 HideSym(hsym);
                 tstaticvarsym(sym).isoindex:=tprogramparasym(hsym).isoindex;
@@ -2266,7 +2376,7 @@ implementation
         inherited ppuload(ppufile);
 
         { now we can deref the syms and defs }
-        deref;
+        deref(false);
       end;
 
 
@@ -2313,7 +2423,7 @@ implementation
          inherited ppuload(ppufile);
 
          { now we can deref the syms and defs }
-         deref;
+         deref(false);
       end;
 
 

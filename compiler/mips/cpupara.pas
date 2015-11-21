@@ -273,7 +273,7 @@ implementation
               begin
                 paracgsize := OS_ADDR;
                 paralen := tcgsize2size[paracgsize];
-                paradef := cpointerdef.getreusable(paradef);
+                paradef := cpointerdef.getreusable_no_free(paradef);
               end
             else
               begin

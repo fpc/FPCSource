@@ -291,8 +291,9 @@ implementation
   class function thlcgjvm.def2regtyp(def: tdef): tregistertype;
     begin
       case def.typ of
-        { records and enums are implemented via classes }
+        { records (including files) and enums are implemented via classes }
         recorddef,
+        filedef,
         enumdef,
         setdef:
           result:=R_ADDRESSREGISTER;

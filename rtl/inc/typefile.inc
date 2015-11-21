@@ -150,8 +150,6 @@ End;
 
 
 Procedure fpc_typed_read_iso(TypeSize : Longint;var f : TypedFile;out Buf);[IOCheck, Public, Alias :'FPC_TYPED_READ_ISO']; compilerproc;
-var
-  Result : Longint;
 Begin
   move((pbyte(@f)+sizeof(TypedFile))^,Buf,TypeSize);
   if not(eof(f)) then

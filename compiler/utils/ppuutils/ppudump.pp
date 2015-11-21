@@ -171,7 +171,8 @@ const
   { 85 }  'DragonFly-x86-64',
   { 86 }  'Darwin-AArch64',
   { 87 }  'iPhoneSim-x86-64',
-  { 88 }  'Linux-AArch64'
+  { 88 }  'Linux-AArch64',
+  { 89 }  'Win16'
   );
 
 const
@@ -538,7 +539,8 @@ const
       'jvm enum fpcvalueof', 'jvm enum long2set',
       'jvm enum bitset2set', 'jvm enum set2set',
       'jvm procvar invoke', 'jvm procvar intf constructor',
-      'jvm virtual class method', 'jvm field getter', 'jvm field setter', 'block invoke');
+      'jvm virtual class method', 'jvm field getter', 'jvm field setter',
+      'block invoke','interface wrapper');
 begin
   if w<=ord(high(syntheticName)) then
     result:=syntheticName[tsynthetickind(w)]
@@ -1373,13 +1375,13 @@ var
   i: integer;
   n: string;
 begin
+  n:=ppufile.getstring;
+  if Def <> nil then
+    Def.Name:=n;
   i:=ppufile.getlongint;
   if Def <> nil then
     Def.SetSymId(i);
   writeln([space,'** Symbol Id ',i,' **']);
-  n:=ppufile.getstring;
-  if Def <> nil then
-    Def.Name:=n;
   writeln([space,s,n]);
   write  ([space,'     File Pos : ']);
   readposinfo(Def);
@@ -1418,7 +1420,9 @@ const
      (mask:df_generic;        str:'Generic'),
      (mask:df_specialization; str:'Specialization'),
      (mask:df_copied_def;     str:'Copied Typedef'),
-     (mask:df_genconstraint;  str:'Generic Constraint')
+     (mask:df_genconstraint;  str:'Generic Constraint'),
+     { this should never happen for defs stored to a ppu file }
+     (mask:df_not_registered_no_free;  str:'Unregistered/No free (invalid)')
   );
   defstate : array[1..ord(high(tdefstate))] of tdefstateinfo=(
      (mask:ds_vmt_written;           str:'VMT Written'),
@@ -1781,7 +1785,8 @@ const
      { Dispinterface property accessors }
      (mask:potype_propgetter;        str:'Property Getter'),
      (mask:potype_propsetter;        str:'Property Setter'),
-     (mask:potype_exceptfilter;      str:'SEH filter')
+     (mask:potype_exceptfilter;      str:'SEH filter'),
+     (mask:potype_mainstub;          str:'main stub')
   );
   procopt : array[1..ord(high(tprocoption))] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),
@@ -2560,6 +2565,8 @@ begin
              def:=TPpuFieldDef.Create(ParentDef);
              readabstractvarsym('Field Variable symbol ',varoptions,TPpuVarDef(def));
              writeln([space,'      Address : ',getaint]);
+             if vo_has_mangledname in varoptions then
+               writeln([space,' Mangled name : ',getstring]);
            end;
 
          ibstaticvarsym :
@@ -2569,11 +2576,10 @@ begin
              write  ([space,' DefaultConst : ']);
              readderef('');
              if (vo_has_mangledname in varoptions) then
-{$ifdef symansistr}
-               writeln([space,' Mangledname : ',getansistring]);
-{$else symansistr}
-               writeln([space,' Mangledname : ',getstring]);
-{$endif symansistr}
+               if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+                 writeln([space,'AMangledname : ',getansistring])
+               else
+                 writeln([space,'SMangledname : ',getstring]);
              if vo_has_section in varoptions then
                writeln(['Section name:',ppufile.getansistring]);
              write  ([space,' FieldVarSymDeref: ']);
@@ -2715,7 +2721,8 @@ procedure readdefinitions(const s:string; ParentDef: TPpuContainerDef);
 { type tvarianttype is in symconst unit }
 var
   b : byte;
-  l,j : longint;
+  l,j,tokenbufsize : longint;
+  tokenbuf : pbyte;
   calloption : tproccalloption;
   procoptions : tprocoptions;
   implprocoptions: timplprocoptions;
@@ -2972,11 +2979,10 @@ begin
              readcommondef('Procedure definition',defoptions,def);
              read_abstract_proc_def(calloption,procoptions,TPpuProcDef(def));
              if (po_has_mangledname in procoptions) then
-{$ifdef symansistr}
-               writeln([space,'     Mangled name : ',getansistring]);
-{$else symansistr}
-               writeln([space,'     Mangled name : ',getstring]);
-{$endif symansistr}
+               if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+                 writeln([space,'     Mangled name : ',getansistring])
+               else
+                 writeln([space,'     Mangled name : ',getstring]);
              writeln([space,'           Number : ',getword]);
              writeln([space,'            Level : ',getbyte]);
              write  ([space,'            Class : ']);
@@ -3026,6 +3032,14 @@ begin
                    end;
                  writeln;
                end;
+             tokenbufsize:=ppufile.getlongint;
+             if tokenbufsize<>0 then
+               begin
+                 write  ([space,'      Declaration token buffer : TODO']);
+                 tokenbuf:=allocmem(tokenbufsize);
+                 ppufile.getdata(tokenbuf^,tokenbufsize);
+                 freemem(tokenbuf);
+               end;
              if not EndOfEntry then
                HasMoreInfos;
              space:='    '+space;
@@ -3051,6 +3065,8 @@ begin
              { parast }
              readsymtable('parast',TPpuProcDef(def));
              delete(space,1,4);
+             if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+               readderef('');
            end;
 
          ibshortstringdef :
@@ -3294,10 +3310,6 @@ begin
              writeln([space,'  Largest element : ',enumdef.ElHigh]);
              enumdef.Size:=byte(getaint);
              writeln([space,'             Size : ',enumdef.Size]);
-{$ifdef jvm}
-             write([space,'        Class def : ']);
-             readderef('');
-{$endif}
              if df_copied_def in defoptions then
                begin
                  write([space,'Base enumeration type : ']);
@@ -3308,6 +3320,11 @@ begin
                  space:='    '+space;
                  readsymtable('elements',enumdef);
                  delete(space,1,4);
+               end;
+             if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+               begin
+                 write([space,'        Class def : ']);
+                 readderef('');
                end;
            end;
 
@@ -3428,7 +3445,7 @@ end;
                            Read General Part
 ****************************************************************************}
 
-procedure readinterface;
+procedure readinterface(silent : boolean);
 var
   b : byte;
   sourcenumber, i : longint;
@@ -3442,76 +3459,90 @@ begin
          ibmodulename :
            begin
              CurUnit.Name:=getstring;
-             Writeln(['Module Name: ',CurUnit.Name]);
+             if not silent then
+               Writeln(['Module Name: ',CurUnit.Name]);
            end;
 
          ibmoduleoptions:
-           readmoduleoptions('  ');
+           if not silent then
+             readmoduleoptions('  ');
 
          ibsourcefiles :
            begin
              sourcenumber:=1;
-             while not EndOfEntry do
-              begin
-                with TPpuSrcFile.Create(CurUnit.SourceFiles) do begin
-                  Name:=getstring;
-                  i:=getlongint;
-                  if i >= 0 then
-                    FileTime:=FileDateToDateTime(i);
-                  Writeln(['Source file ',sourcenumber,' : ',Name,' ',filetimestring(i)]);
-                end;
+             if not silent then
+               while not EndOfEntry do
+                 begin
+                   with TPpuSrcFile.Create(CurUnit.SourceFiles) do begin
+                     Name:=getstring;
+                     i:=getlongint;
+                     if i >= 0 then
+                       FileTime:=FileDateToDateTime(i);
+                     Writeln(['Source file ',sourcenumber,' : ',Name,' ',filetimestring(i)]);
+                   end;
 
-                inc(sourcenumber);
-              end;
+                   inc(sourcenumber);
+                 end;
            end;
 {$IFDEF MACRO_DIFF_HINT}
          ibusedmacros :
            begin
-             while not EndOfEntry do
-              begin
-                Write('Conditional ',getstring);
-                b:=getbyte;
-                if boolean(b)=true then
-                  write(' defined at startup')
-                else
-                  write(' not defined at startup');
-                b:=getbyte;
-                if boolean(b)=true then
-                  writeln(' was used')
-                else
-                  writeln;
-              end;
-           end;
+             if not silent then
+               while not EndOfEntry do
+                 begin
+                    Write('Conditional ',getstring);
+                    b:=getbyte;
+                    if boolean(b)=true then
+                      write(' defined at startup')
+                    else
+                      write(' not defined at startup');
+                    b:=getbyte;
+                    if boolean(b)=true then
+                      writeln(' was used')
+                    else
+                      writeln;
+                  end;
+                end;
 {$ENDIF}
          ibloadunit :
-           ReadLoadUnit;
+           if not silent then
+             ReadLoadUnit;
 
          iblinkunitofiles :
-           ReadLinkContainer('Link unit object file: ');
+           if not silent then
+             ReadLinkContainer('Link unit object file: ');
 
          iblinkunitstaticlibs :
-           ReadLinkContainer('Link unit static lib: ');
+           if not silent then
+             ReadLinkContainer('Link unit static lib: ');
 
          iblinkunitsharedlibs :
-           ReadLinkContainer('Link unit shared lib: ');
+           if not silent then
+             ReadLinkContainer('Link unit shared lib: ');
 
          iblinkotherofiles :
-           ReadLinkContainer('Link other object file: ');
+           if not silent then
+             ReadLinkContainer('Link other object file: ');
 
          iblinkotherstaticlibs :
-           ReadLinkContainer('Link other static lib: ');
+           if not silent then
+             ReadLinkContainer('Link other static lib: ');
 
          iblinkothersharedlibs :
-           ReadLinkContainer('Link other shared lib: ');
+           if not silent then
+             ReadLinkContainer('Link other shared lib: ');
 
          iblinkotherframeworks:
-           ReadLinkContainer('Link framework: ');
+           if not silent then
+             ReadLinkContainer('Link framework: ');
 
          ibmainname:
-           Writeln(['Specified main program symbol name: ',getstring]);
+           if not silent then
+             Writeln(['Specified main program symbol name: ',getstring]);
 
          ibImportSymbols :
-           ReadImportSymbols;
+           if not silent then
+             ReadImportSymbols;
 
          ibderefdata :
            ReadDerefData;
@@ -3520,10 +3551,12 @@ begin
            ReadDerefMap;
 
          ibwpofile :
-           ReadWpoFileInfo;
+           if not silent then
+             ReadWpoFileInfo;
 
          ibresources :
-           ReadLinkContainer('Resource file: ');
+           if not silent then
+             ReadLinkContainer('Resource file: ');
 
          iberror :
            begin
@@ -3656,8 +3689,11 @@ begin
      Writeln;
      Writeln('Interface section');
      Writeln('------------------');
-     readinterface;
+     readinterface(false);
    end
+  { We need derefdata from Interface }
+  else if verbose and (v_defs or v_syms or v_implementation)<>0 then
+     readinterface(true)
   else
    ppufile.skipuntilentry(ibendinterface);
   Writeln;

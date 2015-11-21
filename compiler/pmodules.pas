@@ -46,7 +46,7 @@ implementation
        pexports,
        objcgutl,
        wpobase,
-       scanner,pbase,pexpr,psystem,psub,pdecsub,ncgvmt,
+       scanner,pbase,pexpr,psystem,psub,pdecsub,ncgvmt,ncgrtti,
        cpuinfo;
 
 
@@ -352,6 +352,13 @@ implementation
         if m_iso in current_settings.modeswitches then
           AddUnit('iso7185');
 
+        if m_extpas in current_settings.modeswitches then
+          begin
+            { basic procedures for Extended Pascal are for now provided by the iso unit }
+            AddUnit('iso7185');
+            AddUnit('extpas');
+          end;
+
         { blocks support? }
         if m_blocks in current_settings.modeswitches then
           AddUnit('blockrtl');
@@ -544,7 +551,33 @@ implementation
                     pd.localst.free;
                     pd.localst:=nil;
                   end;
+                pd.freeimplprocdefinfo;
               end;
+          end;
+      end;
+
+
+    procedure free_unregistered_localsymtable_elements;
+      var
+        i: longint;
+        def: tdef;
+        sym: tsym;
+      begin
+        { from high to low so we hopefully have moves of less data }
+        for i:=current_module.localsymtable.symlist.count-1 downto 0 do
+          begin
+            sym:=tsym(current_module.localsymtable.symlist[i]);
+            { this also frees sym, as the symbols are owned by the symtable }
+            if not sym.is_registered then
+              current_module.localsymtable.Delete(sym);
+          end;
+        for i:=current_module.localsymtable.deflist.count-1 downto 0 do
+          begin
+            def:=tdef(current_module.localsymtable.deflist[i]);
+            { this also frees def, as the defs are owned by the symtable }
+            if not def.is_registered and
+               not(df_not_registered_no_free in def.defoptions) then
+              current_module.localsymtable.deletedef(def);
           end;
       end;
 
@@ -575,8 +608,13 @@ implementation
         pd:=tprocdef(cnodeutils.create_main_procdef(target_info.cprefix+name,potype,ps));
         { We don't need is a local symtable. Change it into the static
           symtable }
-        pd.localst.free;
-        pd.localst:=st;
+        if potype<>potype_mainstub then
+          begin
+            pd.localst.free;
+            pd.localst:=st;
+          end
+        else
+          pd.proccalloption:=pocall_cdecl;
         handle_calling_convention(pd);
         { set procinfo and current_procinfo.procdef }
         result:=tcgprocinfo(cprocinfo.create(nil));
@@ -612,7 +650,7 @@ implementation
            begin
              { insert symbol for got access in assembler code}
              gotvarsym:=cstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',
-                          vs_value,voidpointertype,[vo_is_external]);
+                          vs_value,voidpointertype,[vo_is_external],true);
              gotvarsym.set_mangledname('_GLOBAL_OFFSET_TABLE_');
              current_module.localsymtable.insert(gotvarsym);
              { avoid unnecessary warnings }
@@ -719,11 +757,11 @@ implementation
           { java_jlobject may not have been parsed yet (system unit); in any
             case, we only use this to refer to the class type, so inheritance
             does not matter }
-          def:=cobjectdef.create(odt_javaclass,'__FPC_JVM_Module_Class_Alias$',nil);
+          def:=cobjectdef.create(odt_javaclass,'__FPC_JVM_Module_Class_Alias$',nil,true);
           include(def.objectoptions,oo_is_external);
           include(def.objectoptions,oo_is_sealed);
           def.objextname:=stringdup(current_module.realmodulename^);
-          typesym:=ctypesym.create('__FPC_JVM_Module_Class_Alias$',def);
+          typesym:=ctypesym.create('__FPC_JVM_Module_Class_Alias$',def,true);
           symtablestack.top.insert(typesym);
         end;
 {$endif jvm}
@@ -1070,6 +1108,13 @@ type
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
 
+         { Generate VMTs }
+         if Errorcount=0 then
+           begin
+             write_vmts(current_module.globalsymtable,true);
+             write_vmts(current_module.localsymtable,false);
+           end;
+
          { add implementations for synthetic method declarations added by
            the compiler }
          add_synthetic_method_implementations(current_module.globalsymtable);
@@ -1243,6 +1288,8 @@ type
              Message1(unit_u_implementation_crc_changed,current_module.ppufilename);
 {$endif EXTDEBUG}
 
+         { release unregistered defs/syms from the localsymtable }
+         free_unregistered_localsymtable_elements;
          { release local symtables that are not needed anymore }
          free_localsymtables(current_module.globalsymtable);
          free_localsymtables(current_module.localsymtable);
@@ -1988,7 +2035,11 @@ type
               exportlib.preparelib(program_name);
 
               if tf_library_needs_pic in target_info.flags then
-                include(current_settings.moduleswitches,cs_create_pic);
+                begin
+                  include(current_settings.moduleswitches,cs_create_pic);
+                  { also set create_pic for all unit compilation }
+                  include(init_settings.moduleswitches,cs_create_pic);
+                end;
 
               { setup things using the switches, do this before the semicolon, because after the semicolon has been
                 read, all following directives are parsed as well }
@@ -2017,7 +2068,7 @@ type
                    consume(_LKLAMMER);
                    paramnum:=1;
                    repeat
-                     if m_iso in current_settings.modeswitches then
+                     if m_isolike_program_para in current_settings.modeswitches then
                        begin
                          if (pattern<>'INPUT') and (pattern<>'OUTPUT') then
                            begin
@@ -2130,6 +2181,17 @@ type
           end
          else if (target_info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macos]+systems_darwin+systems_aix)) then
            begin
+             { create a stub with the name of the desired main routine, with
+               the same signature as the C "main" function, and call through to
+               FPC_SYSTEMMAIN, which will initialise everything based on its
+               parameters. This function cannot be in the system unit, because
+               its name can be configured on the command line (for use with e.g.
+               SDL, where the main function should be called SDL_main) }
+             main_procinfo:=create_main_proc(mainaliasname,potype_mainstub,current_module.localsymtable);
+             call_through_new_name(main_procinfo.procdef,target_info.cprefix+'FPC_SYSTEMMAIN');
+             main_procinfo.free;
+             { now create the PASCALMAIN routine (which will be called from
+               FPC_SYSTEMMAIN) }
              main_procinfo:=create_main_proc('PASCALMAIN',potype_proginit,current_module.localsymtable);
            end
          else
@@ -2143,6 +2205,10 @@ type
 
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
+
+         { Generate VMTs }
+         if Errorcount=0 then
+           write_vmts(current_module.localsymtable,false);
 
          { add implementations for synthetic method declarations added by
            the compiler }

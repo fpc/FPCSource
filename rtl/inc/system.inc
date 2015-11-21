@@ -12,11 +12,6 @@
 
  **********************************************************************}
 
-{ contains the definition of the TExceptAddr type, which is required
-  by the compiler to generate code for any routine containing
-  implicit or explicit exceptions }
-{$i excepth.inc}
-
 { ObjpasInt is the integer type, equivalent to Objpas.Integer (the Integer
   type in ObjFpc and Delphi modes). It is defined here for use in the
   implementation part of the System unit. }
@@ -73,13 +68,9 @@ Const
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
-  {$ifdef FPC_OBJFPC_EXTENDED_IF}
-    {$if High(errorcode)<>maxExitCode}
-      {$define FPC_LIMITED_EXITCODE}
-    {$endif}
-  {$else}
+  {$if High(errorcode)<>maxExitCode}
     {$define FPC_LIMITED_EXITCODE}
-  {$endif FPC_OBJFPC_EXTENDED_IF}
+  {$endif}
 {$endif FPC_HAS_FEATURE_EXITCODE}
 
 Procedure HandleError (Errno : Longint); external name 'FPC_HANDLEERROR';
@@ -1124,7 +1115,7 @@ end;
 
 Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
 begin
-  If pointer(ErrorProc)<>Nil then
+  If codepointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);
   errorcode:=word(Errno);
   erroraddr:=addr;
@@ -1438,7 +1429,7 @@ end;
 
 procedure fpc_AbstractErrorIntern;compilerproc;[public,alias : 'FPC_ABSTRACTERROR'];
 begin
-  If pointer(AbstractErrorProc)<>nil then
+  If codepointer(AbstractErrorProc)<>nil then
     AbstractErrorProc();
   HandleErrorAddrFrameInd(211,get_pc_addr,get_frame);
 end;
@@ -1447,7 +1438,7 @@ end;
 Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;
    ErrorAddr:Pointer); [Public,Alias : 'FPC_ASSERT']; compilerproc;
 begin
-  if pointer(AssertErrorProc)<>nil then
+  if codepointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
   else
     HandleErrorAddrFrameInd(227,get_pc_addr,get_frame);
@@ -1881,7 +1872,7 @@ var
   s: rawbytestring;
 begin
   Do_getdir(drivenr,s);
-  dir:=s;
+  dir:=unicodestring(s);
 end;
 {$endif FPCRTL_FILESYSTEM_TWO_BYTE_API}
 

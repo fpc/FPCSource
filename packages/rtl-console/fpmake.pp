@@ -13,7 +13,7 @@ Const
   UnixLikes = AllUnixOSes -[QNX];
  
   WinEventOSes = [win32,win64];
-  KVMAll       = [emx,go32v2,netware,netwlibc,os2,win32,win64]+UnixLikes+AllAmigaLikeOSes;
+  KVMAll       = [emx,go32v2,netware,netwlibc,os2,win32,win64,win16]+UnixLikes+AllAmigaLikeOSes;
   
   // all full KVMers have crt too, except Amigalikes
   CrtOSes      = KVMALL+[msdos,WatCom]-[aros,morphos];
@@ -73,6 +73,7 @@ begin
         AddInclude('keyscan.inc',AllUnixOSes);
         AddUnit   ('winevent',[win32,win64]);
         AddInclude('nwsys.inc',[netware]);
+        AddUnit   ('video',[win16]);
       end;
 
     T:=P.Targets.AddUnit('mouse.pp',MouseOSes);
@@ -99,6 +100,8 @@ begin
        AddInclude('crth.inc');
        AddInclude('crt.inc');
        AddInclude('nwsys.inc',[netware]);
+       AddUnit   ('video',[win16]);
+       AddUnit   ('keyboard',[win16]);
      end;
 
     T:=P.Targets.AddUnit('vesamode.pp',[go32v2]);

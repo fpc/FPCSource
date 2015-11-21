@@ -27,7 +27,7 @@
      THREAD_PRIORITY_ABOVE_NORMAL       = 70;
      THREAD_PRIORITY_HIGHEST            = 80;
      THREAD_PRIORITY_TIME_CRITICAL      = 99;
-     PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP : array [0..5]of Integer = (0, 0, 0, 1, 0, 0);
+     //PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP : array [0..5]of Integer = (0, 0, 0, 1, 0, 0);
 
 Type
    psem_t = ^sem_t;
@@ -43,14 +43,14 @@ Type
 {$endif not FPC_USE_LIBC}
 
      TThreadPriority = (tpIdle, tpLowest, tpLower, tpNormal, tpHigher, tpHighest, tpTimeCritical);
-
+{
   const
      Priorities: array [TThreadPriority] of Integer = (
        THREAD_PRIORITY_IDLE, THREAD_PRIORITY_LOWEST, THREAD_PRIORITY_BELOW_NORMAL,
        THREAD_PRIORITY_NORMAL, THREAD_PRIORITY_ABOVE_NORMAL,
        THREAD_PRIORITY_HIGHEST, THREAD_PRIORITY_TIME_CRITICAL
      );
-
+}
   const
      _POSIX_THREAD_THREADS_MAX = 64;
      PTHREAD_THREADS_MAX = 512;

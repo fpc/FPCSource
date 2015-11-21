@@ -32,8 +32,8 @@ type
 
   TLoadLibraryUHandler = function(const Name: UnicodeString): TLibHandle;
   TLoadLibraryAHandler = function(const Name: RawByteString): TLibHandle;
-  TGetProcAddressHandler = function(Lib: TLibHandle; const ProcName: AnsiString): Pointer;
-  TGetProcAddressOrdinalHandler = function(Lib: TLibHandle; Ordinal: TOrdinalEntry): Pointer;
+  TGetProcAddressHandler = function(Lib: TLibHandle; const ProcName: AnsiString): {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
+  TGetProcAddressOrdinalHandler = function(Lib: TLibHandle; Ordinal: TOrdinalEntry): {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
   TUnloadLibraryHandler = function(Lib: TLibHandle): Boolean;
   TGetLoadErrorStrHandler = function: String;
 
@@ -51,15 +51,15 @@ Function LoadLibrary(const Name : RawByteString) : TLibHandle;
 Function SafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
 Function LoadLibrary(const Name : UnicodeString) : TLibHandle;
 
-Function GetProcedureAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
-Function GetProcedureAddress(Lib : TLibHandle; Ordinal: TOrdinalEntry) : Pointer;
+Function GetProcedureAddress(Lib : TlibHandle; const ProcName : AnsiString) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
+Function GetProcedureAddress(Lib : TLibHandle; Ordinal: TOrdinalEntry) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
 Function GetLoadErrorStr: string;
 
 // Kylix/Delphi compability
 
 Function FreeLibrary(Lib : TLibHandle) : Boolean; inline;
-Function GetProcAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer; inline;
+Function GetProcAddress(Lib : TlibHandle; const ProcName : AnsiString) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif}; inline;
 
 Procedure GetDynLibsManager (Var Manager : TDynLibsManager);
 Procedure SetDynLibsManager (Const New : TDynLibsManager);

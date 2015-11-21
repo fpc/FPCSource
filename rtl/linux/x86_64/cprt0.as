@@ -63,8 +63,8 @@ _start:
 	pushq %rsp
 
 	/* Pass address of our own entry points to .fini and .init.  */
-	movq _init_dummy@GOTPCREL(%rip), %rcx
-	movq _fini_dummy@GOTPCREL(%rip), %r8
+	movq __libc_csu_init@GOTPCREL(%rip), %rcx
+	movq __libc_csu_fini@GOTPCREL(%rip), %r8
 
 	movq main_stub@GOTPCREL(%rip), %rdi
 
@@ -114,18 +114,6 @@ _haltproc:
         pushq    %rdx
 	ret
 	.size   _haltproc,.-_haltproc
-
-	.globl _init_dummy
-        .type   _init_dummy, @function
-_init_dummy:
-        ret
-	.size   _init_dummy,.-_init_dummy
-
-	.globl  _fini_dummy
-        .type   _fini_dummy, @function
-_fini_dummy:
-        ret
-	.size   _fini_dummy,.-_fini_dummy
 
 /* Define a symbol for the first piece of initialized data.  */
 	.data

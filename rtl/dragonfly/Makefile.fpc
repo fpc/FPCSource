@@ -10,7 +10,7 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0 gprt0 dllprt0
-units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
+units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 extpas \
       strings syscall sysctl baseunix unixutil character \
       unix rtlconsts initc cmem  \
       dl termio \
@@ -209,6 +209,13 @@ character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT)
 
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
         $(COMPILER) $(INC)/macpas.pp $(REDIR)
+
+#
+# Extended Pascal Model
+#
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp $(REDIR)
 
 #
 # Other system-independent RTL Units

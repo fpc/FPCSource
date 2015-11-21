@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
+units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings \
 #      dos \
       sysutils \
       classes math typinfo ctypes \
@@ -108,6 +108,9 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 
 iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
 
 #
 # System Dependent Units

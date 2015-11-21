@@ -337,7 +337,7 @@ begin
       if Dll_Process_Detach_Hook <> Nil then
         Dll_Process_Detach_Hook(aDllParam);
       // finalize units
-      do_exit;
+      internal_do_exit;
     end;
   end;
 end;
