@@ -51,7 +51,7 @@ uses
       procedure deallocallcpuregisters(list: TAsmList); override;
 
      protected
-      procedure a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out calldef: tdef; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
+      procedure a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
      public
       function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;override;
       function a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara; override;
@@ -336,7 +336,7 @@ implementation
     end;
 
 
-  procedure thlcgllvm.a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out calldef: tdef; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
+  procedure thlcgllvm.a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
 
     procedure load_ref_anyreg(def: tdef; const ref: treference; reg: tregister; var callpara: pllvmcallpara);
       begin
@@ -432,16 +432,6 @@ implementation
     if (pd.typ=procvardef) and
        not pd.is_addressonly then
       pd:=tprocvardef(cprocvardef.getreusableprocaddr(pd));
-    { if the function returns a function pointer type or is varargs, we
-      must specify the full function signature, otherwise we can only
-      specify the return type }
-    if (po_varargs in pd.procoptions) or
-       ((pd.proccalloption in cdecl_pocalls) and
-        (pd.paras.count>0) and
-        is_array_of_const(tparavarsym(pd.paras[pd.paras.count-1]).vardef)) then
-      calldef:=get_call_pd(pd)
-    else
-      calldef:=llvmretdef;
   end;
 
 
@@ -449,12 +439,11 @@ implementation
     var
       callparas: tfplist;
       llvmretdef,
-      hlretdef,
-      calldef: tdef;
+      hlretdef: tdef;
       res: tregister;
     begin
-      a_call_common(list,pd,paras,forceresdef,res,calldef,hlretdef,llvmretdef,callparas);
-      list.concat(taillvm.call_size_name_paras(get_call_pd(pd),res,calldef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
+      a_call_common(list,pd,paras,forceresdef,res,hlretdef,llvmretdef,callparas);
+      list.concat(taillvm.call_size_name_paras(get_call_pd(pd),res,llvmretdef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
       result:=get_call_result_cgpara(pd,forceresdef);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;
@@ -464,12 +453,11 @@ implementation
     var
       callparas: tfplist;
       llvmretdef,
-      hlretdef,
-      calldef: tdef;
+      hlretdef: tdef;
       res: tregister;
     begin
-      a_call_common(list,pd,paras,nil,res,calldef,hlretdef,llvmretdef,callparas);
-      list.concat(taillvm.call_size_reg_paras(get_call_pd(pd),res,calldef,reg,callparas));
+      a_call_common(list,pd,paras,nil,res,hlretdef,llvmretdef,callparas);
+      list.concat(taillvm.call_size_reg_paras(get_call_pd(pd),res,llvmretdef,reg,callparas));
       result:=get_call_result_cgpara(pd,nil);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;

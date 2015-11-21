@@ -510,10 +510,18 @@ uses
             end;
           la_invoke, la_call:
             begin
-              if opnr=1 then
-                result:=oper[2]^.def
-              else
-                internalerror(2013110102);
+              case opnr of
+                1: result:=oper[0]^.def;
+                3:
+                  begin
+                    if oper[3]^.typ=top_reg then
+                      result:=oper[2]^.def
+                    else
+                      internalerror(2015112001)
+                  end
+                else
+                  internalerror(2013110102);
+              end;
             end;
           la_br,
           la_unreachable:
@@ -963,9 +971,9 @@ uses
           have to insert a type conversion later from the alias def to the
           call def here; we can't always do that at the point the call itself
           is generated, because the alias declaration may occur anywhere }
-        loaddef(0,callpd);
+        loaddef(0,retsize);
         loadreg(1,dst);
-        loaddef(2,retsize);
+        loaddef(2,callpd);
         loadsymbol(3,name,0);
         loadparas(4,paras);
       end;
@@ -975,9 +983,9 @@ uses
       begin
         create_llvm(la_call);
         ops:=5;
-        loaddef(0,callpd);
+        loaddef(0,retsize);
         loadreg(1,dst);
-        loaddef(2,retsize);
+        loaddef(2,callpd);
         loadreg(3,reg);
         loadparas(4,paras);
       end;

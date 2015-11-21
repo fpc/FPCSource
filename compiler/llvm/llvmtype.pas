@@ -192,7 +192,7 @@ implementation
                   begin
                     if (opidx=3) and
                        (p.llvmopcode=la_call) then
-                      record_asmsym_def(p.oper[opidx]^.ref^.symbol,tpointerdef(p.oper[0]^.def).pointeddef,false)
+                      record_asmsym_def(p.oper[opidx]^.ref^.symbol,tpointerdef(p.oper[2]^.def).pointeddef,false)
                     { not a named register }
                     else if (p.oper[opidx]^.ref^.refaddr<>addr_full) then
                       record_asmsym_def(p.oper[opidx]^.ref^.symbol,p.spilling_get_reg_type(opidx),false);
@@ -277,11 +277,11 @@ implementation
           la_call:
             if p.oper[3]^.typ=top_ref then
               begin
-                maybe_insert_extern_sym_decl(toplevellist,p.oper[3]^.ref^.symbol,tpointerdef(p.oper[0]^.def).pointeddef);
+                maybe_insert_extern_sym_decl(toplevellist,p.oper[3]^.ref^.symbol,tpointerdef(p.oper[2]^.def).pointeddef);
                 symdef:=get_asmsym_def(p.oper[3]^.ref^.symbol);
                 { the type used in the call is different from the type used to
                   declare the symbol -> insert a typecast }
-                if not equal_llvm_defs(symdef,p.oper[0]^.def) then
+                if not equal_llvm_defs(symdef,p.oper[2]^.def) then
                   begin
                     if symdef.typ=procdef then
                       { ugly, but can't use getcopyas(procvardef) due to the
@@ -290,7 +290,7 @@ implementation
                         symtable) and "pointer to procedure" results in the
                         correct llvm type }
                       symdef:=cpointerdef.getreusable(tprocdef(symdef));
-                    cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,symdef,p.oper[3]^.ref^.symbol,p.oper[0]^.def);
+                    cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,symdef,p.oper[3]^.ref^.symbol,p.oper[2]^.def);
                     p.loadtai(3,cnv);
                   end;
               end;
