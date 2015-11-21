@@ -798,15 +798,17 @@ procedure ReadDependencyBarrier;
 procedure ReadWriteBarrier;
 procedure WriteBarrier;
 
-{$ifdef ARM}
-  {$i armprocs.inc}
-{$endif ARM}
-{$ifdef i386}
-  {$i x86procs.inc}
-{$endif i386}
-{$ifdef x86_64}
-  {$i x86procs.inc}
-{$endif x86_64}
+{$ifdef FPC_HAS_INTRINSICS}
+  {$ifdef ARM}
+    {$i armprocs.inc}
+  {$endif ARM}
+  {$ifdef i386}
+    {$i x86procs.inc}
+  {$endif i386}
+  {$ifdef x86_64}
+    {$i x86procs.inc}
+  {$endif x86_64}
+{$endif}
 
 
 {****************************************************************************

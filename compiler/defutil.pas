@@ -1081,6 +1081,7 @@ implementation
       begin
         result:=(p.typ=arraydef) and
                 not(is_special_array(p)) and
+                assigned(tarraydef(p).elementdef) and
                 (tarraydef(p).elementdef.typ in [floatdef,orddef]) {and
                 (tarraydef(p).elementdef.typ=floatdef) and
                 (tfloatdef(tarraydef(p).elementdef).floattype in [s32real,s64real])};

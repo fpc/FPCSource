@@ -4001,6 +4001,8 @@ if (target_info.abi = abi_eabihf) then
       include (cdecl_pocalls, pocall_safecall);
       include (clearstack_pocalls, pocall_safecall)
     end;
+
+  def_system_macro('FPC_HAS_INTRINSICS');
 end;
 
 
