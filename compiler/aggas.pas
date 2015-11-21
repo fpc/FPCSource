@@ -1603,6 +1603,11 @@ implementation
       begin
         if (target_info.system in systems_darwin) then
           case atype of
+            sec_user:
+              begin
+                result:='.section '+aname;
+                exit;
+              end;
             sec_bss:
               { all bss (lcomm) symbols are automatically put in the right }
               { place by using the lcomm assembler directive               }
