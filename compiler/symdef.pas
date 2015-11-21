@@ -1692,10 +1692,7 @@ implementation
         if assigned(newdef.owner) then
           internalerror(2015111503);
         reusablesymtab:=origdef.getreusablesymtab;
-        { exception symtable are freed while compiling the current module
-          -> don't reuse }
-        if reusablesymtab.symtabletype<>stt_excepTSymtable then
-          res^.Data:=newdef;
+        res^.Data:=newdef;
         reusablesymtab.insertdef(newdef);
         symtablestack:=oldsymtablestack;
       end;
@@ -2217,8 +2214,11 @@ implementation
           not assigned(self.owner) then
          begin
            insertstack:=symtablestack.stack;
+           { don't insert defs in exception symtables, as they are freed before
+             the module is compiled, so we can get crashes on high level targets
+             if they still need it while e.g. writing assembler code }
            while assigned(insertstack) and
-                 (insertstack^.symtable.symtabletype=withsymtable) do
+                 (insertstack^.symtable.symtabletype in [stt_exceptsymtable,withsymtable]) do
              insertstack:=insertstack^.next;
            if not assigned(insertstack) then
              internalerror(200602044);

@@ -402,7 +402,12 @@ implementation
         origowner:=owner;
         while not(origowner.symtabletype in [localsymtable,staticsymtable,globalsymtable,stt_excepTSymtable]) do
           origowner:=origowner.defowner.owner;
-        if origowner.symtabletype in [stt_excepTSymtable,localsymtable] then
+        { if the def is in an exceptionsymtable, we can't create a reusable
+          def because the original one will be freed when the (always
+          temprary) exceptionsymtable is freed }
+        if origowner.symtabletype=stt_excepTSymtable then
+          internalerror(2015111701)
+        else if origowner.symtabletype=localsymtable then
           result:=origowner
         else if assigned(current_module.localsymtable) then
           result:=current_module.localsymtable
