@@ -45,7 +45,7 @@ interface
          procedure second_int_to_real;override;
          { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
-         { procedure second_proc_to_procvar;override; }
+         procedure second_proc_to_procvar;override;
          procedure second_nil_to_methodprocvar; override;
          procedure second_bool_to_int;override;
          procedure second_int_to_bool;override;
@@ -152,6 +152,22 @@ procedure tllvmtypeconvnode.second_int_to_real;
     location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,llvmtodef);
     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
     current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_size(op,location.register,left.resultdef,left.location.register,llvmtodef));
+  end;
+
+
+procedure tllvmtypeconvnode.second_proc_to_procvar;
+  begin
+    inherited;
+    if not tabstractprocdef(resultdef).is_addressonly and
+       not tabstractprocdef(left.resultdef).is_addressonly then
+      begin
+        if location.loc<>LOC_REFERENCE then
+          internalerror(2015111902);
+        hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
+          cpointerdef.getreusable(left.resultdef),
+          cpointerdef.getreusable(resultdef),
+          location.reference);
+      end;
   end;
 
 
