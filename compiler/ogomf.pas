@@ -147,6 +147,7 @@ interface
         FPubDefs: TFPHashObjectList;
         FRawRecord: TOmfRawRecord;
         FCaseSensitiveSegments: Boolean;
+        FCaseSensitiveSymbols: Boolean;
 
         function PeekNextRecordType: Byte;
 
@@ -163,9 +164,10 @@ interface
         property ExtDefs: TFPHashObjectList read FExtDefs;
         property PubDefs: TFPHashObjectList read FPubDefs;
 
-        { Specifies whether we're case sensitive in regards to segment, class, overlay and group names.
-          Symbols (in EXTDEF and PUBDEF records) are always case sensitive, regardless of the value of this property. }
+        { Specifies whether we're case sensitive in regards to segment, class, overlay and group names. }
         property CaseSensitiveSegments: Boolean read FCaseSensitiveSegments write FCaseSensitiveSegments;
+        { Specifies whether symbol names (in EXTDEF and PUBDEF records) are case sensitive. }
+        property CaseSensitiveSymbols: Boolean read FCaseSensitiveSymbols write FCaseSensitiveSymbols;
       public
         constructor create;override;
         destructor destroy;override;
@@ -1205,6 +1207,7 @@ implementation
         ExtDefElem: TOmfExternalNameElement;
         OldCount,NewCount,i: Integer;
         objsym: TObjSymbol;
+        symname: TSymStr;
       begin
         Result:=False;
         ExtDefRec:=TOmfRecord_EXTDEF.Create;
@@ -1215,7 +1218,10 @@ implementation
         for i:=OldCount to NewCount-1 do
           begin
             ExtDefElem:=TOmfExternalNameElement(ExtDefs[i]);
-            objsym:=objdata.CreateSymbol(ExtDefElem.Name);
+            symname:=ExtDefElem.Name;
+            if not CaseSensitiveSymbols then
+              symname:=UpCase(symname);
+            objsym:=objdata.CreateSymbol(symname);
             objsym.bind:=AB_EXTERNAL;
             objsym.typ:=AT_FUNCTION;
             objsym.objsection:=nil;
@@ -1234,6 +1240,7 @@ implementation
         basegroup: TObjSectionGroup;
         objsym: TObjSymbol;
         objsec: TOmfObjSection;
+        symname: TSymStr;
       begin
         Result:=False;
         PubDefRec:=TOmfRecord_PUBDEF.Create;
@@ -1267,7 +1274,10 @@ implementation
         for i:=OldCount to NewCount-1 do
           begin
             PubDefElem:=TOmfPublicNameElement(PubDefs[i]);
-            objsym:=objdata.CreateSymbol(PubDefElem.Name);
+            symname:=PubDefElem.Name;
+            if not CaseSensitiveSymbols then
+              symname:=UpCase(symname);
+            objsym:=objdata.CreateSymbol(symname);
             objsym.bind:=AB_GLOBAL;
             objsym.typ:=AT_FUNCTION;
             objsym.group:=basegroup;
@@ -1703,6 +1713,7 @@ implementation
         FPubDefs:=TFPHashObjectList.Create;
         FRawRecord:=TOmfRawRecord.Create;
         CaseSensitiveSegments:=False;
+        CaseSensitiveSymbols:=True;
       end;
 
     destructor TOmfObjInput.destroy;
