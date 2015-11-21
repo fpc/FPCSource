@@ -450,6 +450,7 @@ type
     protected
      procedure mark_anon_aggregate_alignment; override;
      procedure insert_marked_aggregate_alignment(def: tdef); override;
+     procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); override;
     public
      { set the default value for caggregateinformation (= tlowlevelaggregateinformation) }
      class constructor classcreate;
@@ -945,11 +946,9 @@ implementation
        sym: tasmsymbol;
        secname: TSymStr;
        sectype: TAsmSectiontype;
-       customsecname,
-       secend: boolean;
+       customsecname: boolean;
      begin
        fvectorized_finalize_called:=true;
-       secend:=false;
        customsecname:=get_vectorized_dead_strip_custom_section_name(basename,st,secname);
        if customsecname then
          sectype:=sec_user
@@ -972,7 +971,6 @@ implementation
            sym:=get_vectorized_dead_strip_section_symbol_end(basename,st,true);
            if not customsecname then
              make_mangledname(basename,st,'3_END');
-           secend:=true;
          end
        else if tcalo_vectorized_dead_strip_item in options then
          begin
@@ -982,18 +980,6 @@ implementation
            exclude(options,tcalo_vectorized_dead_strip_item);
          end;
        finalize_asmlist(sym,def,sectype,secname,alignment,options);
-       { The darwin/ppc64 assembler or linker seems to have trouble       }
-       { if a section ends with a global label without any data after it. }
-       { So for safety, just put a dummy value here.                      }
-       { Further, the regular linker also kills this symbol when turning  }
-       { on smart linking in case no value appears after it, so put the   }
-       { dummy byte there always                                          }
-       { Update: the Mac OS X 10.6 linker orders data that needs to be    }
-       { relocated before all other data, so make this data relocatable,  }
-       { otherwise the end label won't be moved with the rest             }
-       if secend and
-          (target_info.system in (systems_darwin+systems_aix)) then
-         fasmlist.concat(Tai_const.create_sym(sym));
      end;
 
 
@@ -1886,6 +1872,23 @@ implementation
        fasmlist.remove(info.anonrecmarker);
        info.anonrecmarker.free;
        info.anonrecmarker:=nil;
+     end;
+
+   procedure ttai_lowleveltypedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+     begin
+       inherited;
+       { The darwin/ppc64 assembler or linker seems to have trouble       }
+       { if a section ends with a global label without any data after it. }
+       { So for safety, just put a dummy value here.                      }
+       { Further, the regular linker also kills this symbol when turning  }
+       { on smart linking in case no value appears after it, so put the   }
+       { dummy byte there always                                          }
+       { Update: the Mac OS X 10.6 linker orders data that needs to be    }
+       { relocated before all other data, so make this data relocatable,  }
+       { otherwise the end label won't be moved with the rest             }
+       if (tcalo_vectorized_dead_strip_end in options) and
+          (target_info.system in (systems_darwin+systems_aix)) then
+         fasmlist.concat(Tai_const.create_sym(sym));
      end;
 
 
