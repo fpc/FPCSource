@@ -2986,11 +2986,41 @@ implementation
                      end
                     else
                      begin
-                       { We need to know if this unit uses Variants }
-                       if ((hdef=cvarianttype) or (hdef=colevarianttype)) and
-                          not(cs_compilesystem in current_settings.moduleswitches) then
-                         current_module.flags:=current_module.flags or uf_uses_variants;
-                       p1:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
+                       if (m_delphi in current_settings.modeswitches) and
+                           (sp_generic_dummy in srsym.symoptions) and
+                           (token in [_LT,_LSHARPBRACKET]) then
+                         begin
+                           if block_type in [bt_type,bt_const_type,bt_var_type] then
+                             begin
+                               if not handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) or (srsym.typ=procsym) then
+                                 begin
+                                   spezcontext.free;
+                                   p1:=cerrornode.create;
+                                   if try_to_consume(_LKLAMMER) then
+                                    begin
+                                      parse_paras(false,false,_RKLAMMER);
+                                      consume(_RKLAMMER);
+                                    end;
+                                 end
+                               else
+                                 begin
+                                   if srsym.typ<>typesym then
+                                     internalerror(2015071705);
+                                   hdef:=ttypesym(srsym).typedef;
+                                   p1:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
+                                 end;
+                             end
+                           else
+                             p1:=cspecializenode.create(nil,getaddr,srsym)
+                         end
+                       else
+                         begin
+                           { We need to know if this unit uses Variants }
+                           if ((hdef=cvarianttype) or (hdef=colevarianttype)) and
+                              not(cs_compilesystem in current_settings.moduleswitches) then
+                             current_module.flags:=current_module.flags or uf_uses_variants;
+                           p1:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
+                         end;
                      end;
                   end;
 
