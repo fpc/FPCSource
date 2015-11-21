@@ -534,14 +534,14 @@ implementation
                          { load method address }
                          hlcg.reference_reset_base(href,voidpointertype,hregister,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),voidpointertype.alignment);
                          location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdef.address_type);
-                         hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,procdef.address_type,procdef.address_type,href,location.register);
+                         hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,procdef.address_type,cprocvardef.getreusableprocaddr(procdef),href,location.register);
                        end
                      else
                        begin
                          { load address of the function }
                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,procdef.address_type.alignment);
                          location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdef.address_type);
-                         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,procdef,procdef.address_type,href,location.register);
+                         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,procdef,cprocvardef.getreusableprocaddr(procdef),href,location.register);
                        end;
 
                      { to get methodpointers stored correctly, code and self register must be swapped on
