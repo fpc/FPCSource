@@ -137,15 +137,21 @@ procedure tllvmtypeconvnode.second_pointer_to_array;
 procedure tllvmtypeconvnode.second_int_to_real;
   var
     op: tllvmop;
+    llvmtodef: tdef;
   begin
     if is_signed(left.resultdef) then
       op:=la_sitofp
     else
       op:=la_uitofp;
-    location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-    location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+    { see comment about currency in thlcgllvm.a_loadfpu_ref_reg }
+    if not is_currency(resultdef) then
+      llvmtodef:=resultdef
+    else
+      llvmtodef:=s80floattype;
+    location_reset(location,LOC_FPUREGISTER,def_cgsize(llvmtodef));
+    location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,llvmtodef);
     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-    current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_size(op,location.register,left.resultdef,left.location.register,resultdef));
+    current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_size(op,location.register,left.resultdef,left.location.register,llvmtodef));
   end;
 
 
