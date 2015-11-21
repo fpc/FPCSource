@@ -971,7 +971,7 @@ implementation
              internalerror(2015110802);
            sym:=get_vectorized_dead_strip_section_symbol_end(basename,st,true);
            if not customsecname then
-             make_mangledname(basename,st,'3_END');
+             secname:=make_mangledname(basename,st,'3_END');
          end
        else if tcalo_vectorized_dead_strip_item in options then
          begin
