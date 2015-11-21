@@ -2104,11 +2104,11 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                (((recsize <= sizeof(asizeint)*2) and
+                (((recsize <= sizeof(aint)*2) and
                  { records cannot go into registers on 16 bit targets for now }
-                  (sizeof(asizeint)>2) and
+                  (sizeof(aint)>2) and
                   not trecorddef(self).contains_float_field) or
-                  (recsize <= sizeof(asizeint))) and
+                  (recsize <= sizeof(aint))) and
                 not needs_inittable;
 {$endif llvm}
             end;
