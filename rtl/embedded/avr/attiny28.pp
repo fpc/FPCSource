@@ -107,7 +107,7 @@ label
    rjmp TIMER0_OVF_ISR
    rjmp ANA_COMP_ISR
 
-   {$i start.inc}
+   {$i start_noram.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

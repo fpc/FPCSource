@@ -8524,6 +8524,7 @@ rtl/embedded/avr/attiny9.pp svneol=native#text/plain
 rtl/embedded/avr/avrcommon.inc svneol=native#text/plain
 rtl/embedded/avr/avrsim.pp svneol=native#text/plain
 rtl/embedded/avr/start.inc svneol=native#text/plain
+rtl/embedded/avr/start_noram.inc svneol=native#text/pascal
 rtl/embedded/buildrtl.lpi svneol=native#text/plain
 rtl/embedded/buildrtl.pp svneol=native#text/plain
 rtl/embedded/check.inc svneol=native#text/plain
