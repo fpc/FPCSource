@@ -196,7 +196,7 @@ implementation
              left.resultdef, opdef, true);
             register_maybe_adjust_setbase(current_asmdata.CurrAsmList, left.location,
              setbase);
-            hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList, left.resultdef,
+            hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList, opdef,
               right.resultdef, resultdef, left.location.register, right.location,
                location.register);
           end;
