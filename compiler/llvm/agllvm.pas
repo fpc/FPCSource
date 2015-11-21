@@ -1001,6 +1001,13 @@ implementation
                         end;
                       dec(fdecllevel);
                     end;
+                  { custom section name? }
+                  if taillvmdecl(hp).sec=sec_user then
+                    begin
+                      writer.AsmWrite(', section "');
+                      writer.AsmWrite(taillvmdecl(hp).secname);
+                      writer.AsmWrite('"');
+                    end;
                   { alignment }
                   writer.AsmWrite(', align ');
                   writer.AsmWriteln(tostr(taillvmdecl(hp).alignment));

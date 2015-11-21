@@ -165,9 +165,11 @@ interface
       sec: TAsmSectiontype;
       alignment: shortint;
       flags: taillvmdeclflags;
+      secname: TSymStr;
       constructor createdecl(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       constructor createdef(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       constructor createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
+      procedure setsecname(const name: TSymStr);
       destructor destroy; override;
     end;
 
@@ -218,6 +220,14 @@ uses
       begin
         createdef(_namesym,_def,nil,sec_data,_alignment);
         include(flags,ldf_tls);
+      end;
+
+
+    procedure taillvmdecl.setsecname(const name: TSymStr);
+      begin
+        if sec<>sec_user then
+          internalerror(2015111501);
+        secname:=name;
       end;
 
 

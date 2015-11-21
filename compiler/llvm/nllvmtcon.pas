@@ -162,13 +162,12 @@ implementation
       newasmlist: tasmlist;
       decl: taillvmdecl;
     begin
-      { todo }
-      if section = sec_user then
-        internalerror(2014052904);
       newasmlist:=tasmlist.create;
       { llvm declaration with as initialisation data all the elements from the
         original asmlist }
       decl:=taillvmdecl.createdef(sym,def,fasmlist,section,alignment);
+      if section=sec_user then
+        decl.setsecname(secname);
       if tcalo_is_lab in options then
         include(decl.flags,ldf_unnamed_addr);
       { TODO: tcalo_no_dead_strip: add to @llvm.user meta-variable }
