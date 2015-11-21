@@ -2817,6 +2817,8 @@ implementation
       var
         symownerdef : tabstractrecorddef;
         nonlocalst : tsymtable;
+        isspezproc : boolean;
+        def : tstoreddef;
       begin
         result:=false;
 
@@ -2830,6 +2832,13 @@ implementation
         if tstoreddef(symst.defowner).is_specialization then
           while nonlocalst.symtabletype in [localsymtable,parasymtable] do
             nonlocalst:=nonlocalst.defowner.owner;
+        isspezproc:=false;
+        if assigned(current_procinfo) then
+          begin
+            if current_procinfo.procdef.is_specialization and
+                assigned(current_procinfo.procdef.struct) then
+              isspezproc:=true;
+          end;
         case symvisibility of
           vis_private :
             begin
@@ -2851,6 +2860,12 @@ implementation
                        (
                          not assigned(current_structdef) and
                          (symownerdef.owner.iscurrentunit)
+                       ) or
+                       { access from a generic method that belongs to the class
+                         but that is specialized elsewere }
+                       (
+                         isspezproc and
+                         (current_procinfo.procdef.struct=current_structdef)
                        )
                       );
             end;
@@ -2919,6 +2934,12 @@ implementation
                           is_objectpascal_helper(contextobjdef) and
                           def_is_related(tobjectdef(contextobjdef).extendeddef,symownerdef)
                         )
+                       ) or
+                       { access from a generic method that belongs to the class
+                         but that is specialized elsewere }
+                       (
+                         isspezproc and
+                         (current_procinfo.procdef.struct=current_structdef)
                        )
                       );
             end;
