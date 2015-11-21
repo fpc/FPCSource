@@ -65,12 +65,7 @@ implementation
 
     function tllvmsubscriptnode.handle_platform_subscript: boolean;
       var
-        parentdef,
-        subscriptdef,
-        currentstructdef,
-        llvmfielddef: tdef;
         newbase: tregister;
-        implicitpointer: boolean;
       begin
         if not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
           internalerror(2014011905);
@@ -85,56 +80,7 @@ implementation
           end
         else
           begin
-            implicitpointer:=is_implicit_pointer_object_type(left.resultdef);
-            currentstructdef:=left.resultdef;
-            { in case the field is part of a parent of the current object,
-              index into the parents until we're at the parent containing the
-              field; if it's an implicit pointer type, these embedded parents
-              will be of the structure type of the class rather than of the
-              class time itself -> one indirection fewer }
-            while vs.owner<>tabstractrecorddef(currentstructdef).symtable do
-              begin
-                { only objectdefs have parents and hence the owner of the
-                  fieldvarsym can be different from the current def's owner }
-                parentdef:=tobjectdef(currentstructdef).childof;
-                if implicitpointer then
-                  newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,parentdef)
-                else
-                  newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(parentdef));
-                location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
-                if implicitpointer then
-                  subscriptdef:=currentstructdef
-                else
-                  subscriptdef:=cpointerdef.getreusable(currentstructdef);
-                { recurse into the first field }
-                current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,location.reference,s32inttype,0,true));
-                reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset));
-                { go to the parent }
-                currentstructdef:=parentdef;
-              end;
-            { get the type of the corresponding field in the llvm shadow
-              definition }
-            llvmfielddef:=tabstractrecordsymtable(tabstractrecorddef(currentstructdef).symtable).llvmst[vs].def;
-            if implicitpointer then
-              subscriptdef:=currentstructdef
-            else
-              subscriptdef:=cpointerdef.getreusable(currentstructdef);
-            { load the address of that shadow field }
-            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(llvmfielddef));
-            location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
-            current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,location.reference,s32inttype,vs.llvmfieldnr,true));
-            reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset+vs.offsetfromllvmfield));
-            { in case of an 80 bits extended type, typecast from an array of 10
-              bytes (used because otherwise llvm will allocate the ABI-defined
-              size for extended, which is usually larger) into an extended }
-            if (llvmfielddef.typ=floatdef) and
-               (tfloatdef(llvmfielddef).floattype=s80real) then
-              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(carraydef.getreusable(u8inttype,10)),cpointerdef.getreusable(s80floattype),location.reference);
-            { if it doesn't match the requested field exactly (variant record),
-              adjust the type of the pointer }
-            if (vs.offsetfromllvmfield<>0) or
-               (llvmfielddef<>resultdef) then
-              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(llvmfielddef),cpointerdef.getreusable(resultdef),location.reference);
+            hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,tabstractrecorddef(left.resultdef),vs,location.reference);
             location.size:=def_cgsize(resultdef);
             result:=true;
           end;

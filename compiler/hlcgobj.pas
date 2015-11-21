@@ -539,9 +539,9 @@ unit hlcgobj;
             reference if necessary }
           procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference); virtual;
 
-          { update a reference pointing to the start address of a record so it
-            refers to the indicated field }
-          procedure g_set_addr_nonbitpacked_record_field_ref(list: TAsmList; recdef: trecorddef; field: tfieldvarsym; var recref: treference); virtual;
+          { update a reference pointing to the start address of a record/object/
+            class (contents) so it refers to the indicated field }
+          procedure g_set_addr_nonbitpacked_field_ref(list: TAsmList; recdef: tabstractrecorddef; field: tfieldvarsym; var recref: treference); virtual;
           { load a register/constant into a record field by name }
          protected
           procedure g_setup_load_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; const recref: treference; out fref: treference; out fielddef: tdef);
@@ -3844,7 +3844,7 @@ implementation
       { nothing to do }
     end;
 
-  procedure thlcgobj.g_set_addr_nonbitpacked_record_field_ref(list: TAsmList; recdef: trecorddef; field: tfieldvarsym; var recref: treference);
+  procedure thlcgobj.g_set_addr_nonbitpacked_field_ref(list: TAsmList; recdef: tabstractrecorddef; field: tfieldvarsym; var recref: treference);
     begin
       inc(recref.offset,field.fieldoffset);
       recref.alignment:=newalignment(recref.alignment,field.fieldoffset);
@@ -3863,7 +3863,7 @@ implementation
       field:=tfieldvarsym(sym);
       fref:=recref;
       fielddef:=field.vardef;
-      g_set_addr_nonbitpacked_record_field_ref(list,recdef,field,fref);
+      g_set_addr_nonbitpacked_field_ref(list,recdef,field,fref);
     end;
 
 

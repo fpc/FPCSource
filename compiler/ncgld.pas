@@ -309,7 +309,7 @@ implementation
              else
                reference_reset_symbol(tvref,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
              href:=tvref;
-             hlcg.g_set_addr_nonbitpacked_record_field_ref(current_asmdata.CurrAsmList,
+             hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,
                tv_rec,
                tfieldvarsym(tv_index_field),href);
              hlcg.a_load_ref_cgpara(current_asmdata.CurrAsmList,tfieldvarsym(tv_index_field).vardef,href,paraloc1);
@@ -334,7 +334,7 @@ implementation
                  sizeof(pint) - Threadvar value in single threading }
              hlcg.a_label(current_asmdata.CurrAsmList,norelocatelab);
              href:=tvref;
-             hlcg.g_set_addr_nonbitpacked_record_field_ref(current_asmdata.CurrAsmList,
+             hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,
                tv_rec,
                tfieldvarsym(tv_non_mt_data_field),href);
              { load in the same "hregister" as above, so after this sequence
@@ -381,7 +381,7 @@ implementation
                      location_reset_ref(location,LOC_CREFERENCE,def_cgsize(cansistringtype),cansistringtype.size);
                      location.reference.symbol:=current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name),AT_DATA);
                      vd:=search_system_type('TRESOURCESTRINGRECORD').typedef;
-                     hlcg.g_set_addr_nonbitpacked_record_field_ref(
+                     hlcg.g_set_addr_nonbitpacked_field_ref(
                        current_asmdata.CurrAsmList,
                        trecorddef(vd),
                        tfieldvarsym(search_struct_member(trecorddef(vd),'CURRENTVALUE')),
@@ -1325,7 +1325,7 @@ implementation
                    internalerror(2015102901);
                  { write changing field update href to the next element }
                  fref:=href;
-                 hlcg.g_set_addr_nonbitpacked_record_field_ref(current_asmdata.CurrAsmList,trecorddef(eledef),varfield,fref);
+                 hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,trecorddef(eledef),varfield,fref);
                  if vaddr then
                    begin
                      hlcg.location_force_mem(current_asmdata.CurrAsmList,hp.left.location,lt);
@@ -1337,7 +1337,7 @@ implementation
                    hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,varfield.vardef,hp.left.location,fref);
                  { update href to the vtype field and write it }
                  fref:=href;
-                 hlcg.g_set_addr_nonbitpacked_record_field_ref(current_asmdata.CurrAsmList,trecorddef(eledef),varvtypefield,fref);
+                 hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,trecorddef(eledef),varvtypefield,fref);
                  hlcg.a_load_const_ref(current_asmdata.CurrAsmList,varvtypefield.vardef,vtype,fref);
                  { goto next array element }
                  advancearrayoffset(href,elesize);

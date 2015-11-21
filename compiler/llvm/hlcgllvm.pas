@@ -97,7 +97,7 @@ uses
       procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister); override;
       procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference); override;
 
-      procedure g_set_addr_nonbitpacked_record_field_ref(list: TAsmList; recdef: trecorddef; field: tfieldvarsym; var recref: treference); override;
+      procedure g_set_addr_nonbitpacked_field_ref(list: TAsmList; recdef: tabstractrecorddef; field: tfieldvarsym; var recref: treference); override;
 
       procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle); override;
       procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle); override;
@@ -1224,22 +1224,54 @@ implementation
     end;
 
 
-  procedure thlcgllvm.g_set_addr_nonbitpacked_record_field_ref(list: TAsmList; recdef: trecorddef; field: tfieldvarsym; var recref: treference);
+  procedure thlcgllvm.g_set_addr_nonbitpacked_field_ref(list: TAsmList; recdef: tabstractrecorddef; field: tfieldvarsym; var recref: treference);
     var
-      llvmfielddef,
-      llvmfieldptrdef,
-      subscriptdef: tdef;
+      parentdef,
+      subscriptdef,
+      currentstructdef,
+      llvmfielddef: tdef;
       newbase: tregister;
+      implicitpointer: boolean;
     begin
+      implicitpointer:=is_implicit_pointer_object_type(recdef);
+      currentstructdef:=recdef;
+      { in case the field is part of a parent of the current object,
+        index into the parents until we're at the parent containing the
+        field; if it's an implicit pointer type, these embedded parents
+        will be of the structure type of the class rather than of the
+        class time itself -> one indirection fewer }
+      while field.owner<>tabstractrecorddef(currentstructdef).symtable do
+        begin
+          { only objectdefs have parents and hence the owner of the
+            fieldvarsym can be different from the current def's owner }
+          parentdef:=tobjectdef(currentstructdef).childof;
+          if implicitpointer then
+            newbase:=getaddressregister(list,parentdef)
+          else
+            newbase:=getaddressregister(list,cpointerdef.getreusable(parentdef));
+          recref:=make_simple_ref(list,recref,recdef);
+          if implicitpointer then
+            subscriptdef:=currentstructdef
+          else
+            subscriptdef:=cpointerdef.getreusable(currentstructdef);
+          { recurse into the first field }
+          list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,0,true));
+          reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,newalignment(recref.alignment,field.fieldoffset));
+          { go to the parent }
+          currentstructdef:=parentdef;
+        end;
       { get the type of the corresponding field in the llvm shadow
         definition }
-      llvmfielddef:=tabstractrecordsymtable(recdef.symtable).llvmst[field].def;
-      subscriptdef:=cpointerdef.getreusable(recdef);
+      llvmfielddef:=tabstractrecordsymtable(tabstractrecorddef(currentstructdef).symtable).llvmst[field].def;
+      if implicitpointer then
+        subscriptdef:=currentstructdef
+      else
+        subscriptdef:=cpointerdef.getreusable(currentstructdef);
       { load the address of that shadow field }
-      newbase:=hlcg.getaddressregister(list,cpointerdef.getreusable(llvmfielddef));
-      recref:=thlcgllvm(hlcg).make_simple_ref(list,recref,recdef);
+      newbase:=getaddressregister(list,cpointerdef.getreusable(llvmfielddef));
+      recref:=make_simple_ref(list,recref,recdef);
       list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,field.llvmfieldnr,true));
-      reference_reset_base(recref,cpointerdef.getreusable(field.vardef),newbase,field.offsetfromllvmfield,newalignment(recref.alignment,field.fieldoffset+field.offsetfromllvmfield));
+      reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,newalignment(recref.alignment,field.fieldoffset+field.offsetfromllvmfield));
       { in case of an 80 bits extended type, typecast from an array of 10
         bytes (used because otherwise llvm will allocate the ABI-defined
         size for extended, which is usually larger) into an extended }
@@ -1250,7 +1282,7 @@ implementation
         adjust the type of the pointer }
       if (field.offsetfromllvmfield<>0) or
          (llvmfielddef<>field.vardef) then
-        hlcg.g_ptrtypecast_ref(list,cpointerdef.getreusable(llvmfielddef),cpointerdef.getreusable(field.vardef),recref);
+        g_ptrtypecast_ref(list,cpointerdef.getreusable(llvmfielddef),cpointerdef.getreusable(field.vardef),recref);
     end;
 
 
