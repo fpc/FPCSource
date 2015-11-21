@@ -146,7 +146,7 @@ interface
         FExtDefs: TFPHashObjectList;
         FPubDefs: TFPHashObjectList;
         FRawRecord: TOmfRawRecord;
-        FCaseSensitive: Boolean;
+        FCaseSensitiveSegments: Boolean;
 
         function PeekNextRecordType: Byte;
 
@@ -165,7 +165,7 @@ interface
 
         { Specifies whether we're case sensitive in regards to segment, class, overlay and group names.
           Symbols (in EXTDEF and PUBDEF records) are always case sensitive, regardless of the value of this property. }
-        property CaseSensitive: Boolean read FCaseSensitive write FCaseSensitive;
+        property CaseSensitiveSegments: Boolean read FCaseSensitiveSegments write FCaseSensitiveSegments;
       public
         constructor create;override;
         destructor destroy;override;
@@ -1129,7 +1129,7 @@ implementation
               exit;
             end;
         end;
-        if not CaseSensitive then
+        if not CaseSensitiveSegments then
           begin
             SegmentName:=UpCase(SegmentName);
             SegClassName:=UpCase(SegClassName);
@@ -1180,7 +1180,7 @@ implementation
             exit;
           end;
         GroupName:=LNames[GrpDefRec.GroupNameIndex];
-        if not CaseSensitive then
+        if not CaseSensitiveSegments then
           GroupName:=UpCase(GroupName);
         SecGroup:=objdata.createsectiongroup(GroupName);
         SetLength(SecGroup.members,Length(GrpDefRec.SegmentList));
@@ -1702,7 +1702,7 @@ implementation
         FExtDefs:=TFPHashObjectList.Create;
         FPubDefs:=TFPHashObjectList.Create;
         FRawRecord:=TOmfRawRecord.Create;
-        CaseSensitive:=False;
+        CaseSensitiveSegments:=False;
       end;
 
     destructor TOmfObjInput.destroy;
