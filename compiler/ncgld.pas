@@ -380,15 +380,12 @@ implementation
                   begin
                      location_reset_ref(location,LOC_CREFERENCE,def_cgsize(cansistringtype),cansistringtype.size);
                      location.reference.symbol:=current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name),AT_DATA);
-                     { Resourcestring layout:
-                         TResourceStringRecord = Packed Record
-                            Name,
-                            CurrentValue,
-                            DefaultValue : AnsiString;
-                            HashValue    : LongWord;
-                          end;
-                     }
-                     location.reference.offset:=cansistringtype.size;
+                     vd:=search_system_type('TRESOURCESTRINGRECORD').typedef;
+                     hlcg.g_set_addr_nonbitpacked_record_field_ref(
+                       current_asmdata.CurrAsmList,
+                       trecorddef(vd),
+                       tfieldvarsym(search_struct_member(trecorddef(vd),'CURRENTVALUE')),
+                       location.reference);
                   end
                 else
                   internalerror(22798);
