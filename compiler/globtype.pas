@@ -106,7 +106,7 @@ interface
 {$ifdef i8086}
        TConstPtrUInt = LongWord;  { 32-bit for far pointers support }
 {$else i8086}
-       TConstPtrUInt = AWord;
+       TConstPtrUInt = PUint;
 {$endif i8086}
 
        { Use a variant record to be sure that the array if aligned correctly }

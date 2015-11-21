@@ -810,8 +810,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               {$if sizeof(TConstPtrUInt)=4}
                 ftcb.queue_emit_ordconst(longint(tpointerconstnode(node).value),ptrsinttype);
               {$else}
-                internalerror(200404122);
-            {$endif} {$endif}
+                {$if sizeof(TConstPtrUInt)=2}
+                  ftcb.queue_emit_ordconst(smallint(tpointerconstnode(node).value),ptrsinttype);
+                {$else}
+                  {$if sizeof(TConstPtrUInt)=1}
+                    ftcb.queue_emit_ordconst(shortint(tpointerconstnode(node).value),ptrsinttype);
+                  {$else}
+                    internalerror(200404122);
+            {$endif} {$endif} {$endif} {$endif}
           end
         { nil pointer ? }
         else if node.nodetype=niln then
