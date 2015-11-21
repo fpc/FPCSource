@@ -478,10 +478,16 @@ implementation
                     encodedstr:=encodedstr+'*'
                 end;
               odt_interfacecom,
+              odt_interfacecorba,
+              odt_dispinterface:
+                begin
+                  { type is a pointer to the vmt }
+                  llvmaddencodedtype_intern(tobjectdef(def).vmt_def,flags,encodedstr);
+                  if ([lef_typedecl,lef_noimplicitderef]*flags=[]) then
+                    encodedstr:=encodedstr+'*';
+                end;
               odt_interfacecom_function,
               odt_interfacecom_property,
-              odt_interfacecorba,
-              odt_dispinterface,
               odt_objcprotocol:
                 begin
                   { opaque for now }

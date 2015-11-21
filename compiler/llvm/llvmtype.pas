@@ -669,7 +669,10 @@ implementation
 
     procedure TLLVMTypeInfo.appenddef_object(list:TAsmList;def: tobjectdef);
       begin
-        appenddef_abstractrecord(list,def);
+        if is_any_interface_kind(def) then
+          record_def(def.vmt_def)
+        else
+          appenddef_abstractrecord(list,def);
       end;
 
 
