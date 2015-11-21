@@ -668,6 +668,7 @@ type
     accidental collisions) }
   tinternaltypeprefix = (
     itp_1byte,
+    itp_emptyrec,
     itp_llvmstruct,
     itp_vmtdef,
     itp_vmt_tstringmesssagetable,
@@ -790,6 +791,7 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
 
      internaltypeprefixName : array[tinternaltypeprefix] of TSymStr = (
        '$1byte$',
+       '$emptyrec',
        '$llvmstruct$',
        '$vmtdef$',
        '$vmt_TStringMesssageTable$',

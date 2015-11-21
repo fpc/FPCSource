@@ -115,7 +115,15 @@ type
        not necessarily (depends on what the platform requirements are) }
      tcalo_make_dead_strippable,
      { this symbol should never be removed by the linker }
-     tcalo_no_dead_strip
+     tcalo_no_dead_strip,
+     { start of a vectorized but individually dead strippable list of elements,
+       like the resource strings of a unit: they have to stay in this order,
+       but individual elements can be removed }
+     tcalo_vectorized_dead_strip_start,
+     { item in the above list }
+     tcalo_vectorized_dead_strip_item,
+     { end of the above list }
+     tcalo_vectorized_dead_strip_end
    );
    ttcasmlistoptions = set of ttcasmlistoption;
 
@@ -231,12 +239,17 @@ type
 
      { ensure that finalize_asmlist is called only once }
      fasmlist_finalized: boolean;
+     { ensure that if it's vectorized dead strippable data, we called
+       finalize_vectorized_dead_strip_asmlist instead of finalize_asmlist }
+     fvectorized_finalize_called: boolean;
 
      { returns whether def must be handled as an aggregate on the current
        platform }
      function aggregate_kind(def: tdef): ttypedconstkind; virtual;
      { finalize the asmlist: add the necessary symbols etc }
      procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
+     { functionality of the above for vectorized dead strippable sections }
+     procedure finalize_vectorized_dead_strip_asmlist(def: tdef; const basename: string; st: tsymtable; alignment: shortint; options: ttcasmlistoptions); virtual;
 
      { called by the public emit_tai() routines to actually add the typed
        constant data; the public ones also take care of adding extra padding
@@ -295,10 +308,12 @@ type
        the anonymous record, and insert the alignment once it's finished }
      procedure mark_anon_aggregate_alignment; virtual; abstract;
      procedure insert_marked_aggregate_alignment(def: tdef); virtual; abstract;
+     class function get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; define, start: boolean): tasmsymbol; virtual;
     public
      { get the start/end symbol for a dead stripable vectorized section, such
        as the resourcestring data of a unit }
-     class function get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; start: boolean): tasmsymbol; virtual;
+     class function get_vectorized_dead_strip_section_symbol_start(const basename: string; st: tsymtable; define: boolean): tasmsymbol; virtual;
+     class function get_vectorized_dead_strip_section_symbol_end(const basename: string; st: tsymtable; define: boolean): tasmsymbol; virtual;
 
      class function get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): string;
      { the datalist parameter specifies where the data for the string constant
@@ -393,6 +408,7 @@ type
        contents to another list first. This property should only be accessed
        once all data has been added. }
      function get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint): tasmlist;
+     function get_final_asmlist_vectorized_dead_strip(def: tdef; const basename: string; st: TSymtable; alignment: longint): tasmlist;
 
      { returns the offset of the string data relative to ansi/unicode/widestring
        constant labels. On most platforms, this is 0 (with the header at a
@@ -868,6 +884,14 @@ implementation
           { in case of syntax errors, the aggregate may not have been finished }
           (ErrorCount=0) then
          internalerror(2015072301);
+
+       { must call finalize_vectorized_dead_strip_asmlist() instead }
+       if (([tcalo_vectorized_dead_strip_start,
+             tcalo_vectorized_dead_strip_item,
+             tcalo_vectorized_dead_strip_end]*options)<>[]) and
+          not fvectorized_finalize_called then
+         internalerror(2015110602);
+
        prelist:=tasmlist.create;
        { only now add items based on the symbolname, because it may be
          modified by the "section" specifier in case of a typed constant }
@@ -915,6 +939,44 @@ implementation
      end;
 
 
+   procedure ttai_typedconstbuilder.finalize_vectorized_dead_strip_asmlist(def: tdef; const basename: string; st: tsymtable; alignment: shortint; options: ttcasmlistoptions);
+     var
+       sym: tasmsymbol;
+       secname: TSymStr;
+       secend: boolean;
+     begin
+       fvectorized_finalize_called:=true;
+       secend:=false;
+       if tcalo_vectorized_dead_strip_start in options then
+         begin
+           sym:=get_vectorized_dead_strip_section_symbol_start(basename,st,true);
+           secname:=make_mangledname(basename,st,'1_START');
+         end
+       else if tcalo_vectorized_dead_strip_end in options then
+         begin
+           sym:=get_vectorized_dead_strip_section_symbol_end(basename,st,true);
+           make_mangledname(basename,st,'3_END');
+           secend:=true;
+         end
+       else if tcalo_vectorized_dead_strip_item in options then
+         { todo }
+         internalerror(2015110601);
+       finalize_asmlist(sym,def,sec_data,secname,alignment,options);
+       { The darwin/ppc64 assembler or linker seems to have trouble       }
+       { if a section ends with a global label without any data after it. }
+       { So for safety, just put a dummy value here.                      }
+       { Further, the regular linker also kills this symbol when turning  }
+       { on smart linking in case no value appears after it, so put the   }
+       { dummy byte there always                                          }
+       { Update: the Mac OS X 10.6 linker orders data that needs to be    }
+       { relocated before all other data, so make this data relocatable,  }
+       { otherwise the end label won't be moved with the rest             }
+       if secend and
+          (target_info.system in (systems_darwin+systems_aix)) then
+         fasmlist.concat(Tai_const.create_sym(sym));
+     end;
+
+
    procedure ttai_typedconstbuilder.do_emit_tai(p: tai; def: tdef);
      begin
        { by default we don't care about the type }
@@ -927,6 +989,17 @@ implementation
        if not fasmlist_finalized then
          begin
            finalize_asmlist(sym,def,section,secname,alignment,foptions);
+           fasmlist_finalized:=true;
+         end;
+       result:=fasmlist;
+     end;
+
+
+   function ttai_typedconstbuilder.get_final_asmlist_vectorized_dead_strip(def: tdef; const basename: string; st: TSymtable; alignment: longint): tasmlist;
+     begin
+       if not fasmlist_finalized then
+         begin
+           finalize_vectorized_dead_strip_asmlist(def,basename,st,alignment,foptions);
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
@@ -1260,12 +1333,24 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; start: boolean): tasmsymbol;
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; define, start: boolean): tasmsymbol;
      begin
        if start then
          result:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,'START'),AB_GLOBAL,AT_DATA)
        else
          result:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,'END'),AB_GLOBAL,AT_DATA);
+     end;
+
+
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start(const basename: string; st: tsymtable; define: boolean): tasmsymbol;
+     begin
+       result:=get_vectorized_dead_strip_section_symbol(basename,st,define,true);
+     end;
+
+
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end(const basename: string; st: tsymtable; define: boolean): tasmsymbol;
+     begin
+       result:=get_vectorized_dead_strip_section_symbol(basename,st,define,false);
      end;
 
 

@@ -971,10 +971,10 @@ implementation
           If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
             begin
               ResourceStringTables.concat(Tai_const.Create_sym(
-                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol('RESSTR',hp.localsymtable,true))
+                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',hp.localsymtable,false))
               );
               ResourceStringTables.concat(Tai_const.Create_sym(
-                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol('RESSTR',hp.localsymtable,false))
+                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end('RESSTR',hp.localsymtable,false))
               );
               inc(count);
             end;
