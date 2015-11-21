@@ -822,13 +822,14 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-{$if defined(cpu64bitaddr)}
-  result:=getint64;
-{$elseif defined(cpu32bitaddr)}
-  result:=getlongint;
-{$elseif defined(cpu16bitaddr)}
-  result:=getword;
-{$endif}
+  case sizeof(asizeint) of
+    8: result:=getqword;
+    4: result:=getdword;
+    2: result:=getword;
+    1: result:=getbyte;
+    else
+      result:=0;
+  end;
 {$endif not generic_cpu}
 end;
 
