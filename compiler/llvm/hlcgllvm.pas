@@ -94,8 +94,8 @@ uses
       procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
       procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
 
-      procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister); override;
-      procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference); override;
+      procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tdef; var reg: tregister); override;
+      procedure g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference); override;
 
       procedure g_set_addr_nonbitpacked_field_ref(list: TAsmList; recdef: tabstractrecorddef; field: tfieldvarsym; var recref: treference); override;
 
@@ -1195,15 +1195,23 @@ implementation
     end;
 
 
-  procedure thlcgllvm.g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister);
+  procedure thlcgllvm.g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tdef; var reg: tregister);
+    var
+      hreg: tregister;
     begin
       { will insert a bitcast if necessary }
-      a_load_reg_reg(list,fromdef,todef,reg,reg);
+      if fromdef<>todef then
+        begin
+          hreg:=getregisterfordef(list,todef);
+          a_load_reg_reg(list,fromdef,todef,reg,hreg);
+          reg:=hreg;
+        end;
     end;
 
 
-  procedure thlcgllvm.g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference);
+  procedure thlcgllvm.g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference);
     var
+      sref: treference;
       hreg: tregister;
     begin
       hreg:=getaddressregister(list,todef);

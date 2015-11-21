@@ -532,12 +532,17 @@ unit hlcgobj;
           procedure g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation); virtual;
 
           { typecasts the pointer in reg to a new pointer. By default it does
-            nothing, only required for type-aware platforms like LLVM }
-          procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister); virtual;
+            nothing, only required for type-aware platforms like LLVM.
+            fromdef/todef are not typed as pointerdef, because they may also be
+            a procvardef or classrefdef. Replaces reg with a new register if
+            necessary }
+          procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tdef; var reg: tregister); virtual;
           { same but for a treference (considers the reference itself, not the
             value stored at that place in memory). Replaces ref with a new
-            reference if necessary }
-          procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference); virtual;
+            reference if necessary. fromdef needs to be a pointerdef because
+            it may have to be passed as fromdef to a_loadaddr_ref_reg, which
+            needs the "pointeddef" of fromdef }
+          procedure g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference); virtual;
 
           { update a reference pointing to the start address of a record/object/
             class (contents) so it refers to the indicated field }
@@ -3834,12 +3839,12 @@ implementation
       end;
     end;
 
-  procedure thlcgobj.g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister);
+  procedure thlcgobj.g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tdef; var reg: tregister);
     begin
       { nothing to do }
     end;
 
-  procedure thlcgobj.g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference);
+  procedure thlcgobj.g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference);
     begin
       { nothing to do }
     end;
