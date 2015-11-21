@@ -31,7 +31,7 @@ uses
   symtype,symbase;
 
 const
-  inline_specialization_block_types = [bt_type,bt_var_type,bt_const_type];
+  inline_specialization_block_types = [bt_type,bt_var_type,bt_const_type,bt_body];
 
 type
   tspecializationstate = record
