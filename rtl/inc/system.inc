@@ -272,19 +272,19 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$Error Can't determine processor type !}
 {$endif}
 
-procedure fillchar(var x;count : SizeInt;value : boolean);
+procedure fillchar(var x;count : {$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};value : boolean);
 begin
   fillchar(x,count,byte(value));
 end;
 
 
-procedure fillchar(var x;count : SizeInt;value : char);
+procedure fillchar(var x;count : {$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};value : char);
 begin
   fillchar(x,count,byte(value));
 end;
 
 
-procedure FillByte (var x;count : SizeInt;value : byte );
+procedure FillByte (var x;count : {$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};value : byte );
 begin
   FillChar (X,Count,VALUE);
 end;

@@ -153,6 +153,9 @@ Type
     ValReal = Extended;
   {$endif}
 
+  {$define MOVE_HAS_SIZEUINT_COUNT}
+  {$define FILLCHAR_HAS_SIZEUINT_COUNT}
+
   {$if defined(FPC_MM_TINY)}
     {$define FPC_X86_CODE_NEAR}
     {$define FPC_X86_DATA_NEAR}
@@ -774,11 +777,11 @@ function StackTop: Pointer;
   {$endif}
 {$endif}
 
-Procedure Move(const source;var dest;count:SizeInt);
-Procedure FillChar(var x;count:SizeInt;Value:Byte);
-Procedure FillChar(var x;count:SizeInt;Value:Boolean);
-Procedure FillChar(var x;count:SizeInt;Value:Char);
-procedure FillByte(var x;count:SizeInt;value:byte);
+Procedure Move(const source;var dest;count:{$ifdef MOVE_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif});
+Procedure FillChar(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};Value:Byte);
+Procedure FillChar(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};Value:Boolean);
+Procedure FillChar(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};Value:Char);
+procedure FillByte(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};value:byte);
 Procedure FillWord(var x;count:SizeInt;Value:Word);
 procedure FillDWord(var x;count:SizeInt;value:DWord);
 procedure FillQWord(var x;count:SizeInt;value:QWord);
