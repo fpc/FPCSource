@@ -64,7 +64,11 @@ interface
 
        tstoreddef = class(tdef)
        private
+{$ifdef symansistr}
+          _fullownerhierarchyname : ansistring;
+{$else symansistr}
           _fullownerhierarchyname : pshortstring;
+{$endif symansistr}
           procedure writeentry(ppufile: tcompilerppufile; ibnr: byte);
        protected
           typesymderef  : tderef;
@@ -110,7 +114,7 @@ interface
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  OwnerHierarchyName: string; override;
-          function  fullownerhierarchyname:string;override;
+          function  fullownerhierarchyname:TSymStr;override;
           function  needs_separate_initrtti:boolean;override;
           function  in_currentunit: boolean;
           { regvars }
@@ -1749,7 +1753,9 @@ implementation
             dispose(pderef(genericparaderefs[i]));
         genericparaderefs.free;
         genconstraintdata.free;
+{$ifndef symansistr}
         stringdispose(_fullownerhierarchyname);
+{$endif not symansistr}
         inherited destroy;
       end;
 
@@ -1856,15 +1862,17 @@ implementation
         until tmp=nil;
       end;
 
-    function tstoreddef.fullownerhierarchyname: string;
+    function tstoreddef.fullownerhierarchyname: TSymStr;
       var
         tmp: tdef;
       begin
+{$ifdef symansistr}
+        if _fullownerhierarchyname<>'' then
+          exit(_fullownerhierarchyname);
+{$else symansistr}
         if assigned(_fullownerhierarchyname) then
-          begin
-            result:=_fullownerhierarchyname^;
-            exit;
-          end;
+          exit(_fullownerhierarchyname^);
+{$endif symansistr}
         { the def can only reside inside structured types or
           procedures/functions/methods }
         tmp:=self;
@@ -1883,7 +1891,11 @@ implementation
             if tmp.typ=procdef then
               result:=tprocdef(tmp).customprocname([pno_paranames,pno_proctypeoption])+'.'+result;
         until tmp=nil;
+{$ifdef symansistr}
+        _fullownerhierarchyname:=result;
+{$else symansistr}
         _fullownerhierarchyname:=stringdup(result);
+{$endif symansistr}
       end;
 
 

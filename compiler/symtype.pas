@@ -75,7 +75,7 @@ interface
          function  getmangledparaname:TSymStr;virtual;
          function  rtti_mangledname(rt:trttitype):TSymStr;virtual;abstract;
          function  OwnerHierarchyName: string; virtual; abstract;
-         function  fullownerhierarchyname:string;virtual;abstract;
+         function  fullownerhierarchyname:TSymStr;virtual;abstract;
          function  unique_id_str: string;
          function  size:asizeint;virtual;abstract;
          function  packedbitsize:asizeint;virtual;
