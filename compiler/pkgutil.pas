@@ -258,13 +258,6 @@ implementation
          Comment(V_Error,'Wrong PPU Version '+tostr(ppuversion)+' in '+PPUFn);
          Exit;
        end;
-    { No .o file generated for this ppu, just skip }
-      if (inppu.header.common.flags and uf_no_link)<>0 then
-       begin
-         inppu.free;
-         Result:=true;
-         Exit;
-       end;
     { Already a lib? }
       if (inppu.header.common.flags and uf_in_library)<>0 then
        begin
@@ -272,8 +265,8 @@ implementation
          Comment(V_Error,'PPU is already in a library : '+PPUFn);
          Exit;
        end;
-    { We need a static linked unit }
-      if (inppu.header.common.flags and uf_static_linked)=0 then
+    { We need a static linked unit, but we also accept those without .o file }
+      if (inppu.header.common.flags and (uf_static_linked or uf_no_link))=0 then
        begin
          inppu.free;
          Comment(V_Error,'PPU is not static linked : '+PPUFn);
