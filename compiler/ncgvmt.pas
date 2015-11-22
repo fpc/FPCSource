@@ -38,7 +38,7 @@ interface
       end;
 
       TVMTWriter=class
-      private
+      protected
         _Class : tobjectdef;
         { message tables }
         root : pprocdeftree;
@@ -83,7 +83,7 @@ interface
         procedure genintmsgtab(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out msginttabledef: trecorddef);
         procedure genpublishedmethodstable(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out pubmethodsdef: trecorddef);
         procedure generate_field_table(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out fieldtabledef: trecorddef);
-        procedure generate_abstract_stub(list:TAsmList;pd:tprocdef);
+        procedure generate_abstract_stub(list:TAsmList;pd:tprocdef); virtual;
 {$ifdef WITHDMT}
         { generates a DMT for _class }
         function  gendmt : tasmlabel;
