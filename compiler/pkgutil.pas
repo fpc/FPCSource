@@ -461,7 +461,7 @@ implementation
       i : longint;
       pkgname : tpathstr;
     begin
-      if target_info.system in systems_packages_need_exports then
+      if not (target_info.system in systems_indirect_var_imports) then
         exit;
       for i:=0 to packagelist.count-1 do
         begin
