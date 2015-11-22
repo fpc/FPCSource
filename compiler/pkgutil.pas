@@ -176,7 +176,7 @@ implementation
           end;
         else
           begin
-            writeln('unknown: ',ord(TSym(sym).typ));
+            writeln('unknown: ',TSym(sym).typ);
           end;
       end;
     end;
