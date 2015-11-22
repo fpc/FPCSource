@@ -36,5 +36,17 @@ type
     end;
   end;
 
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$define HAS_ENTRYINFORMATION_PLATFORM}
+  THaltProcProcedure = procedure(e: LongInt);cdecl;
+
+  TPlatformEntryInformation = record
+    argc: longint;
+    argv: ppchar;
+    envp: ppchar;
+    stkptr: pointer;
+    haltproc: THaltProcProcedure;
+  end;
+{$endif}
 
 

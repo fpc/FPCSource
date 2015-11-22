@@ -75,11 +75,41 @@ const calculated_cmdline:Pchar=nil;
 
 {$endif defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+var
+  EntryInformation : TEntryInformation;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
 {$I system.inc}
 
 {*****************************************************************************
-                       Misc. System Dependent Functions
+                       Indirect Entry Point
 *****************************************************************************}
+
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+var
+  FPCResStrInitTables : Pointer;public name '_FPC_ResStrInitTables';
+  FPCResourceStringTables : Pointer;public name '_FPC_ResourceStringTables';
+  initialstkptr : Pointer;
+
+procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
+begin
+  EntryInformation := info;
+  argc := EntryInformation.Platform.argc;
+  argv := EntryInformation.Platform.argv;
+  envp := EntryInformation.Platform.envp;
+  initialstkptr := EntryInformation.Platform.stkptr;
+  FPCResStrInitTables := EntryInformation.ResStrInitTables;
+  FPCResourceStringTables := EntryInformation.ResourceStringTables;
+{$ifdef cpui386}
+  Set8087CW(Default8087CW);
+{$endif cpui386}
+  EntryInformation.PascalMain();
+end;
+
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+var
+  initialstkptr : Pointer;external name '__stkptr';
 
 {$if defined(CPUARM) and defined(FPC_ABI_EABI)}
 procedure haltproc(e:longint);cdecl;external name '_haltproc_eabi';
@@ -87,13 +117,24 @@ procedure haltproc(e:longint);cdecl;external name '_haltproc_eabi';
 procedure haltproc(e:longint);cdecl;external name '_haltproc';
 {$endif}
 
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
+
+{*****************************************************************************
+                       Misc. System Dependent Functions
+*****************************************************************************}
+
 {$ifdef FPC_USE_LIBC}
 function  FpPrCtl(options : cInt; const args : ptruint) : cint; cdecl; external clib name 'prctl';
 {$endif}
 
 procedure System_exit;
 begin
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  EntryInformation.Platform.haltproc(ExitCode);
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
   haltproc(ExitCode);
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 End;
 
 
@@ -333,8 +374,6 @@ begin
     result := stklen;
 end;
 
-var
-  initialstkptr : Pointer;external name '__stkptr';
 begin
 {$if defined(i386) and not defined(FPC_USE_LIBC)}
   InitSyscallIntf;
