@@ -1147,7 +1147,7 @@ implementation
                 end;
               asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));
               { write the indirect symbol }
-              rttilabind:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt,true)+'_o2s',AB_GLOBAL,AT_DATA);
+              rttilabind:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt,false)+'_o2s'+indirect_suffix,AB_GLOBAL,AT_DATA);
               current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_Global(rttilabind,0));
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(rttilab.name,AT_DATA,0));
               current_asmdata.asmlists[al_rtti].concat(tai_symbol_end.Create(rttilabind));
@@ -1184,7 +1184,7 @@ implementation
                 end;
               asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));
               { write the indirect symbol }
-              rttilabind:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt,true)+'_s2o',AB_GLOBAL,AT_DATA);
+              rttilabind:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt,false)+'_s2o'+indirect_suffix,AB_GLOBAL,AT_DATA);
               current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_Global(rttilabind,0));
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(rttilab.name,AT_DATA,0));
               current_asmdata.asmlists[al_rtti].concat(tai_symbol_end.Create(rttilabind));
