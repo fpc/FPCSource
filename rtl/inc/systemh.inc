@@ -670,7 +670,7 @@ const
   ModuleIsCpp : Boolean = FALSE;
 
 var
-  ExitCode    : Longint; public name 'operatingsystem_result';
+  ExitCode    : Longint;
   RandSeed    : Cardinal;
   { Delphi compatibility }
 

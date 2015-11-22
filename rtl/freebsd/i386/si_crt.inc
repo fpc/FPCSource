@@ -137,7 +137,7 @@ end;
 procedure _FPC_libc_haltproc; assembler; nostackframe; public name '_haltproc';
 asm
            mov $1,%eax  
-           movzwl operatingsystem_result,%ebx
+           movzwl ExitCode,%ebx
            pushl %ebx
            call .Lactualsyscall
            addl  $4,%esp
