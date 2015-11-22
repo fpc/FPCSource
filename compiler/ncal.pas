@@ -4168,6 +4168,9 @@ implementation
              calln to a loadn (PFV) }
            if assigned(methodpointer) then
              maybe_load_in_temp(methodpointer);
+           if assigned(right) and (right.resultdef.typ=procvardef) and
+              not tabstractprocdef(right.resultdef).is_addressonly then
+             maybe_load_in_temp(right);
 
            { Create destination (temp or assignment-variable reuse) for function result if it not yet set }
            maybe_create_funcret_node;
