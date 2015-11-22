@@ -1387,16 +1387,26 @@ implementation
       end;
 
     function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+      var
+        name : tsymstr;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt,indirect)+'_o2s',AT_DATA);
+        name:=def.rtti_mangledname(rt,false)+'_o2s';
+        if indirect then
+          name:=name+indirect_suffix;
+        result:=current_asmdata.RefAsmSymbol(name,AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
       end;
 
     function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+      var
+        name : tsymstr;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt,indirect)+'_s2o',AT_DATA);
+        name:=def.rtti_mangledname(rt,false)+'_s2o';
+        if indirect then
+          name:=name+indirect_suffix;
+        result:=current_asmdata.RefAsmSymbol(name,AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
