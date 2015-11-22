@@ -1664,21 +1664,21 @@ implementation
               { to ease the handling of aggregate types here, we just store
                 everything to memory rather than potentially dealing with aggregates
                 in "registers" }
-              tg.gethltemp(list, hlretdef, hlretdef.size, tt_normal, rettemp);
+              tg.gethltemp(list, llvmretdef, llvmretdef.size, tt_normal, rettemp);
               case def2regtyp(llvmretdef) of
                 R_INTREGISTER,
                 R_ADDRESSREGISTER:
-                  a_load_reg_ref(list,llvmretdef,hlretdef,resval,rettemp);
+                  a_load_reg_ref(list,llvmretdef,llvmretdef,resval,rettemp);
                 R_FPUREGISTER:
-                  a_loadfpu_reg_ref(list,llvmretdef,hlretdef,resval,rettemp);
+                  a_loadfpu_reg_ref(list,llvmretdef,llvmretdef,resval,rettemp);
                 R_MMREGISTER:
-                  a_loadmm_reg_ref(list,llvmretdef,hlretdef,resval,rettemp,mms_movescalar);
+                  a_loadmm_reg_ref(list,llvmretdef,llvmretdef,resval,rettemp,mms_movescalar);
               end;
               { the return parameter now contains a value whose type matches the one
                 that the high level code generator expects instead of the llvm shim
               }
-              retpara.def:=hlretdef;
-              retpara.location^.def:=hlretdef;
+              retpara.def:=llvmretdef;
+              retpara.location^.def:=llvmretdef;
               { for llvm-specific code:  }
               retpara.location^.llvmvalueloc:=false;
               retpara.location^.llvmloc.loc:=LOC_REGISTER;
@@ -1690,22 +1690,9 @@ implementation
             end
           else
             begin
-              if llvmretdef<>hlretdef then
-                begin
-                  hreg:=getregisterfordef(list,hlretdef);
-                  case def2regtyp(llvmretdef) of
-                    R_INTREGISTER,
-                    R_ADDRESSREGISTER:
-                      a_load_reg_reg(list,llvmretdef,hlretdef,resval,hreg);
-                    R_FPUREGISTER:
-                      a_loadfpu_reg_reg(list,llvmretdef,hlretdef,resval,hreg);
-                    R_MMREGISTER:
-                      a_loadmm_reg_reg(list,llvmretdef,hlretdef,resval,hreg,mms_movescalar);
-                  end;
-                  retpara.location^.llvmloc.reg:=hreg
-                end
-              else
-                retpara.location^.llvmloc.reg:=resval;
+              retpara.def:=llvmretdef;
+              retpara.Location^.def:=llvmretdef;
+              retpara.location^.llvmloc.reg:=resval;
               retpara.Location^.llvmloc.loc:=retpara.location^.loc;
               retpara.Location^.llvmvalueloc:=true;
             end;
