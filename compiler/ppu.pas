@@ -823,10 +823,10 @@ begin
     end;
 {$else not generic_cpu}
   case sizeof(asizeint) of
-    8: result:=getqword;
-    4: result:=getdword;
-    2: result:=getword;
-    1: result:=getbyte;
+    8: result:=asizeint(getint64);
+    4: result:=asizeint(getlongint);
+    2: result:=asizeint(getword);
+    1: result:=asizeint(getbyte);
     else
       result:=0;
   end;
