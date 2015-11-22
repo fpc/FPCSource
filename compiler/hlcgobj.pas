@@ -1768,7 +1768,7 @@ implementation
     begin
       href:=ref;
       g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize),cpointerdef.getreusable(u8inttype),href);
-      a_load_const_subsetref(list,u8inttype,ord(doset),get_bit_reg_ref_sref(list,fromsize,tosize,bitnumber,ref));
+      a_load_const_subsetref(list,u8inttype,ord(doset),get_bit_reg_ref_sref(list,fromsize,tosize,bitnumber,href));
     end;
 
   procedure thlcgobj.a_bit_set_reg_loc(list: TAsmList; doset: boolean; regsize, tosize: tdef; bitnumber: tregister; const loc: tlocation);

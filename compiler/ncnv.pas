@@ -1606,13 +1606,12 @@ implementation
       begin
         { a dynamic array is a pointer to an array, so to convert it to }
         { an open array, we have to dereference it (JM)                 }
-        result := ctypeconvnode.create_internal(left,voidpointertype);
+        result := ctypeconvnode.create_internal(left,cpointerdef.getreusable(resultdef));
         typecheckpass(result);
         { left is reused }
         left := nil;
         result := cderefnode.create(result);
         include(result.flags,nf_no_checkpointer);
-        result.resultdef := resultdef;
       end;
 
 
