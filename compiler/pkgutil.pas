@@ -80,10 +80,14 @@ implementation
       for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
         begin
           if not(tprocdef(tprocsym(sym).ProcdefList[i]).proccalloption in [pocall_internproc]) and
-            ((tprocdef(tprocsym(sym).ProcdefList[i]).procoptions*[po_external])=[]) and
-            ((symtable.symtabletype in [globalsymtable,recordsymtable,objectsymtable]) or
-             ((symtable.symtabletype=staticsymtable) and (po_public in tprocdef(tprocsym(sym).ProcdefList[i]).procoptions))
-            ) then
+              ((tprocdef(tprocsym(sym).ProcdefList[i]).procoptions*[po_external])=[]) and
+              (
+                (symtable.symtabletype in [globalsymtable,recordsymtable,objectsymtable]) or
+                (
+                  (symtable.symtabletype=staticsymtable) and
+                  ([po_public,po_has_public_name]*tprocdef(tprocsym(sym).ProcdefList[i]).procoptions<>[])
+                )
+              ) then
             begin
               exportallprocdefnames(tprocsym(sym),tprocdef(tprocsym(sym).ProcdefList[i]),[]);
             end;
