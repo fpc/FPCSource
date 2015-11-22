@@ -4605,7 +4605,11 @@ implementation
        begin
          { initialize units }
          if not(current_module.islibrary) then
+{$ifdef AVR}
+           cg.a_call_name(list,'FPC_INIT_FUNC_TABLE',false)
+{$else AVR}
            g_call_system_proc(list,'fpc_initializeunits',[],nil)
+{$endif AVR}
          else
            g_call_system_proc(list,'fpc_libinitializeunits',[],nil);
        end;

@@ -121,6 +121,7 @@ compiler/avr/itcpugas.pas svneol=native#text/plain
 compiler/avr/navradd.pas svneol=native#text/plain
 compiler/avr/navrcnv.pas svneol=native#text/plain
 compiler/avr/navrmat.pas svneol=native#text/plain
+compiler/avr/navrutil.pas svneol=native#text/pascal
 compiler/avr/raavr.pas svneol=native#text/plain
 compiler/avr/raavrgas.pas svneol=native#text/plain
 compiler/avr/ravrcon.inc svneol=native#text/plain

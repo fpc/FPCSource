@@ -17,14 +17,8 @@
 
 {$asmmode gas}
 
-Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-  end;
-
-
-procedure fpc_cpuinit;
-  begin
-    SysInitFPU;
   end;
 
 

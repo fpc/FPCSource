@@ -402,11 +402,18 @@ unit cgcpu;
 
 
     procedure tcgavr.a_call_name(list : TAsmList;const s : string; weak: boolean);
+      var
+        sym: TAsmSymbol;
       begin
-        if CPUAVR_HAS_JMP_CALL in cpu_capabilities[current_settings.cputype] then
-          list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(s)))
+        if weak then
+          sym:=current_asmdata.WeakRefAsmSymbol(s)
         else
-          list.concat(taicpu.op_sym(A_RCALL,current_asmdata.RefAsmSymbol(s)));
+          sym:=current_asmdata.RefAsmSymbol(s);
+
+        if CPUAVR_HAS_JMP_CALL in cpu_capabilities[current_settings.cputype] then
+          list.concat(taicpu.op_sym(A_CALL,sym))
+        else
+          list.concat(taicpu.op_sym(A_RCALL,sym));
 
         include(current_procinfo.flags,pi_do_call);
       end;

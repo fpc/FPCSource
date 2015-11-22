@@ -915,6 +915,10 @@ begin
 end;
 
 
+{$ifdef CPUAVR}
+procedure FinalizeUnits; external name 'FPC_FINALIZE_FUNC_TABLE';
+
+{$else CPUAVR}
 procedure FinalizeUnits;[public,alias:'FPC_FINALIZEUNITS'];
 begin
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
@@ -933,6 +937,7 @@ begin
       end;
    end;
 end;
+{$endif CPUAVR}
 
 {*****************************************************************************
                           Error / Exit / ExitProc
@@ -974,6 +979,7 @@ Begin
 {$ifdef SYSTEMDEBUG}
   writeln('InternalExit');
 {$endif SYSTEMDEBUG}
+{$ifndef CPUAVR}
   while exitProc<>nil Do
    Begin
      InOutRes:=0;
@@ -981,6 +987,7 @@ Begin
      exitProc:=nil;
      current_exit();
    End;
+{$endif CPUAVR}
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { the embedded system unit itself contains no routines for console i/o
