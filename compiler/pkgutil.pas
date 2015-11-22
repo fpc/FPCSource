@@ -154,7 +154,7 @@ implementation
                   if (def.typ=objectdef) and (oo_has_vmt in tobjectdef(def).objectoptions) then
                     begin
                       hp:=texported_item.create;
-                      hp.name:=stringdup(tobjectdef(def).vmt_mangledname);
+                      hp.name:=stringdup(tobjectdef(def).vmt_mangledname(not (target_info.system in systems_indirect_var_imports)));
                       hp.options:=hp.options+[eo_name];
                       exportlib.exportvar(hp);
                     end;
@@ -169,7 +169,10 @@ implementation
           begin
             if publiconly and not (vo_is_public in tstaticvarsym(sym).varoptions) then
               exit;
-            varexport(tsym(sym).mangledname);
+            if target_info.system in systems_indirect_var_imports then
+              varexport(tsym(sym).mangledname)
+            else
+              varexport(tsym(sym).mangledname+indirect_suffix);
           end;
         else
           begin
@@ -182,7 +185,13 @@ implementation
   procedure export_unit(u: tmodule);
     var
       i : longint;
+      isindirect : boolean;
     begin
+      { For targets that need indirect variable exports we export the direct symbol
+        and an indirect symbol will be generated in the consuming library/program.
+        On systems that don't have indirect exports we directly export only the
+        indirect symbols }
+
       u.globalsymtable.symlist.ForEachCall(@insert_export,u.globalsymtable);
       { check localsymtable for exports too to get public symbols }
       u.localsymtable.symlist.ForEachCall(@insert_export,u.localsymtable);
@@ -196,7 +205,9 @@ implementation
                 procexport(name);
               AT_DATA:
                 begin
-                  if pos(indirect_suffix,name)=length(name)-length(indirect_suffix)+1 then
+                  isindirect := pos(indirect_suffix,name)=length(name)-length(indirect_suffix)+1;
+                  if (isindirect and (target_info.system in systems_indirect_var_imports)) or
+                      (not isindirect and not (target_info.system in systems_indirect_var_imports)) then
                     continue;
                   varexport(name);
                 end;
