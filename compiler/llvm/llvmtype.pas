@@ -218,8 +218,6 @@ implementation
             end;
           ait_llvmdecl:
             begin
-              if taillvmdecl(p).namesym.Name='\01_U_$OBJPAS_$$_EXCEPTIONCLASS' then
-                writeln('here');
               record_def(taillvmdecl(p).def);
               record_asmsym_def(taillvmdecl(p).namesym,taillvmdecl(p).def,true);
               collect_asmlist_info(deftypelist,taillvmdecl(p).initdata);
