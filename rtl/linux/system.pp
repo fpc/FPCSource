@@ -90,6 +90,7 @@ var
 var
   FPCResStrInitTables : Pointer;public name '_FPC_ResStrInitTables';
   FPCResourceStringTables : Pointer;public name '_FPC_ResourceStringTables';
+  FPCResLocation : Pointer;public name '_FPC_ResLocation';
   initialstkptr : Pointer;
 
 procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
@@ -101,6 +102,7 @@ begin
   initialstkptr := EntryInformation.Platform.stkptr;
   FPCResStrInitTables := EntryInformation.ResStrInitTables;
   FPCResourceStringTables := EntryInformation.ResourceStringTables;
+  FPCResLocation := EntryInformation.ResLocation;
 {$ifdef cpui386}
   Set8087CW(Default8087CW);
 {$endif cpui386}

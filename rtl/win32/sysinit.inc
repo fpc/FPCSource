@@ -63,6 +63,7 @@
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
         WideInitTables : @WideInitTables;
 {$endif}
+        ResLocation : nil;
         asm_exit : @asm_exit;
         PascalMain : @PascalMain;
         valgrind_used : false;

@@ -562,6 +562,7 @@ type
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     WideInitTables : Pointer;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    ResLocation: Pointer;
     asm_exit : Procedure;stdcall;
     PascalMain : Procedure;
     valgrind_used : boolean;

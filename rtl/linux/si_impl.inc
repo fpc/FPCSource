@@ -27,6 +27,7 @@ var
   ResStrInitTables : record end; external name 'FPC_RESSTRINITTABLES';
   {$endif}
   ResourceStringTables : record end; external name 'FPC_RESOURCESTRINGTABLES';
+  ResLocation : Pointer; external name 'FPC_RESLOCATION';
 
 const
   SysInitEntryInformation : TEntryInformation = (
@@ -41,6 +42,7 @@ const
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     WideInitTables : @WideInitTables;
 {$endif}
+    ResLocation : @ResLocation;
     asm_exit : nil;
     PascalMain : @PascalMain;
     valgrind_used : false;

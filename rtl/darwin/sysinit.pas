@@ -32,6 +32,7 @@ var
   {$ifdef FPC_HAS_RESSTRINITS}
   ResStrInitTables : record end; external name 'FPC_RESSTRINITTABLES';
   {$endif}
+  ResLocation: record end; external name 'FPC_RESLOCATION';
   ResourceStringTables : record end; external name 'FPC_RESOURCESTRINGTABLES';
   StkLen: SizeUInt; external name '__stklen';
 
@@ -48,6 +49,7 @@ const
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     WideInitTables : @WideInitTables;
 {$endif}
+    ResLocation : @ResLocation;
     asm_exit : nil;
     PascalMain : @PascalMain;
     valgrind_used : false;

@@ -121,6 +121,7 @@ const
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     WideInitTables : nil;
 {$endif}
+    ResLocation : nil;
     asm_exit : nil;
     PascalMain : nil;
     valgrind_used : false;
