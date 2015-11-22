@@ -301,12 +301,18 @@ Type
      Dummy        : LongWord; // alignment
 {$endif cpu64}
    end;
+  PPResourceStringRecord = ^PResourceStringRecord;
 
    TResourceStringTableList = Packed Record
      Count : sizeint;
      Tables : Array[{$ifdef cpu16}Byte{$else cpu16}Word{$endif cpu16}] of record
+{$ifndef ver2_6}
+       TableStart,
+       TableEnd   : PPResourceStringRecord;
+{$else ver2_6}
        TableStart,
        TableEnd   : PResourceStringRecord;
+{$endif ver2_6}
      end;
    end;
    PResourceStringTableList = ^TResourceStringTableList;
@@ -372,10 +378,10 @@ begin
     begin
       For i:=0 to Count-1 do
         begin
-          ResStr:=Tables[I].TableStart;
+          ResStr:=Tables[I].TableStart{$ifndef ver2_6}^{$endif};
           { Skip first entry (name of the Unit) }
           inc(ResStr);
-          while ResStr<Tables[I].TableEnd do
+          while ResStr<Tables[I].TableEnd{$ifndef ver2_6}^{$endif} do
             begin
               s:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,Longint(ResStr^.HashValue),arg);
               if s<>'' then
@@ -402,12 +408,12 @@ begin
       UpUnitName:=UpCase(UnitName);
       For i:=0 to Count-1 do
         begin
-          ResStr:=Tables[I].TableStart;
+          ResStr:=Tables[I].TableStart{$ifndef ver2_6}^{$endif};
           { Check name of the Unit }
           if ResStr^.Name<>UpUnitName then
             continue;
           inc(ResStr);
-          while ResStr<Tables[I].TableEnd do
+          while ResStr<Tables[I].TableEnd{$ifndef ver2_6}^{$endif} do
             begin
               s:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,Longint(ResStr^.HashValue),arg);
               if s<>'' then
@@ -433,10 +439,10 @@ begin
     begin
       For i:=0 to Count-1 do
         begin
-          ResStr:=Tables[I].TableStart;
+          ResStr:=Tables[I].TableStart{$ifndef ver2_6}^{$endif};
           { Skip first entry (name of the Unit) }
           inc(ResStr);
-          while ResStr<Tables[I].TableEnd do
+          while ResStr<Tables[I].TableEnd{$ifndef ver2_6}^{$endif} do
             begin
               ResStr^.CurrentValue:=ResStr^.DefaultValue;
               inc(ResStr);
@@ -455,10 +461,10 @@ begin
     begin
       For i:=0 to Count-1 do
         begin
-          ResStr:=Tables[I].TableStart;
+          ResStr:=Tables[I].TableStart{$ifndef ver2_6}^{$endif};
           { Skip first entry (name of the Unit) }
           inc(ResStr);
-          while ResStr<Tables[I].TableEnd do
+          while ResStr<Tables[I].TableEnd{$ifndef ver2_6}^{$endif} do
             begin
               ResStr^.CurrentValue:='';
               inc(ResStr);

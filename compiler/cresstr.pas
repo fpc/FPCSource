@@ -134,6 +134,8 @@ uses
       Var
         namelab,
         valuelab : tasmlabofs;
+        s : tsymstr;
+        labind,
         resstrlab : tasmsymbol;
         endsymlab : tasmsymbol;
         R : TResourceStringItem;
@@ -146,8 +148,14 @@ uses
 
         maybe_new_object_file(current_asmdata.asmlists[al_resourcestrings]);
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'1_START'),sizeof(pint));
+        s:=make_mangledname('RESSTR',current_module.localsymtable,'START');
         current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
-          make_mangledname('RESSTR',current_module.localsymtable,'START'),AT_DATA,0));
+          s,AT_DATA,0));
+        { indirect symbol }
+        labind:=current_asmdata.DefineAsmSymbol(s+indirect_suffix,AB_GLOBAL,AT_DATA);
+        current_asmdata.asmlists[al_resourcestrings].concat(Tai_symbol.Create_Global(labind,0));
+        current_asmdata.asmlists[al_resourcestrings].concat(Tai_const.Createname(s,AT_DATA,0));
+        current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol_end.Create(labind));
 
         { Write unitname entry }
         namelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^),getansistringcodepage,False);
@@ -201,6 +209,11 @@ uses
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'3_END'),sizeof(pint));
         endsymlab:=current_asmdata.DefineAsmSymbol(make_mangledname('RESSTR',current_module.localsymtable,'END'),AB_GLOBAL,AT_DATA);
         current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.create_global(endsymlab,0));
+        { indirect symbol }
+        labind:=current_asmdata.DefineAsmSymbol(endsymlab.name+indirect_suffix,AB_GLOBAL,AT_DATA);
+        current_asmdata.asmlists[al_resourcestrings].concat(Tai_symbol.Create_Global(labind,0));
+        current_asmdata.asmlists[al_resourcestrings].concat(Tai_const.Create_sym(endsymlab));
+        current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol_end.Create(labind));
         { The darwin/ppc64 assembler or linker seems to have trouble       }
         { if a section ends with a global label without any data after it. }
         { So for safety, just put a dummy value here.                      }
