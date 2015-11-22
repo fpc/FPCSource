@@ -13,6 +13,7 @@
  **********************************************************************}
 {$asmmode att}
 
+procedure _FPC_shared_lib_haltproc(e: longint); cdecl; forward;
 
 {******************************************************************************
                         Shared library start/halt
@@ -20,13 +21,22 @@
 
 procedure _FPC_shared_lib_start(argc : dword;argv,envp : pointer); cdecl; public name 'FPC_SHARED_LIB_START'; public name '_start';
 begin
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  SysInitEntryInformation.Platform.argc:=argc;
+  SysInitEntryInformation.Platform.argv:=argv;
+  SysInitEntryInformation.Platform.envp:=envp;
+  SysInitEntryInformation.Platform.stkptr:=get_frame;
+  SysInitEntryInformation.Platform.haltproc:=@_FPC_shared_lib_haltproc;
 
+  SysEntry(SysInitEntryInformation);
+{$else}
   operatingsystem_parameter_argc:=argc;    { Copy the argument count      }
   operatingsystem_parameter_argv:=argv;    { Copy the argument pointer    }
   operatingsystem_parameter_envp:=envp;    { Copy the environment pointer }
   initialstkptr:=get_frame;
 
   PASCALMAIN;
+{$endif}
 end;
 
 { this routine is only called when the halt() routine of the RTL embedded in

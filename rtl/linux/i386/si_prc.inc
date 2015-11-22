@@ -34,6 +34,8 @@
          argc <--- esp
 }
 
+procedure _FPC_proc_haltproc(e: longint); cdecl; forward;
+
 {******************************************************************************
                           Process start/halt
  ******************************************************************************}
@@ -55,6 +57,7 @@ asm
   leal    4(%esp,%ecx,4),%eax     { The start of the environment is: esp+4*eax+4 }
   andl    $0xfffffff0,%esp        { Align stack to 16 bytes }
 
+  {$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}
   {$ifdef FPC_PIC}
         pushl %ebx
         pushl %ecx
@@ -93,8 +96,48 @@ asm
   	movl    %esp,initialstkptr
   {$endif FPC_PIC}
 
-  xorl    %ebp,%ebp
-  call    PASCALMAIN
+        xorl    %ebp,%ebp
+        call    PASCALMAIN
+  {$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  {$ifdef FPC_PIC}
+        pushl   %ebx
+        pushl   %ecx
+
+        call    fpc_geteipasebxlocal
+        addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+
+        movl    SysInitEntryInformation@GOT(%ebx),%ecx
+        movl    %eax,SysInitEntryInformation.Platform.envp(%ebx)
+
+        popl    %eax
+        movl    %eax,SysInitEntryInformation.Platform.argc(%ebx)
+
+        popl    %eax
+        movl    %eax,SysInitEntryInformation.Platform.argv(%ebx)
+
+        leal    _FPC_proc_haltproc,%eax
+        movl    %eax,SysInitEntryInformation.Platform.haltproc(%ebx)
+
+        call    SysResetFPU
+
+        movl    %esp,SysInitEntryInformation.Platform.stkptr(%ebx)
+
+        movl    %ebx,%eax
+  {$else FPC_PIC}
+        movl    %eax,SysInitEntryInformation.Platform.envp
+        movl    %ecx,SysInitEntryInformation.Platform.argc
+        movl    %ebx,SysInitEntryInformation.Platform.argv
+        leal    _FPC_proc_haltproc,%eax
+        movl    %eax,SysInitEntryInformation.Platform.haltproc;
+
+        call    SysResetFPU
+
+        movl    %esp,SysInitEntryInformation.Platform.stkptr
+        lea     SysInitEntryInformation,%eax
+  {$endif FPC_PIC}
+        xorl    %ebp,%ebp
+        call    SysEntry
+  {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 end;
 
 procedure _FPC_dynamic_proc_start; assembler; nostackframe; public name '_dynamic_start';
