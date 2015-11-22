@@ -964,14 +964,17 @@ implementation
     var
       ResourceInfo : TAsmList;
     begin
-      if (target_res.id in [res_elf,res_macho,res_xcoff]) then
+      if (target_res.id in [res_elf,res_macho,res_xcoff]) or
+         { generate the FPC_RESLOCATION symbol even when using external resources,
+           because in SysInit we can only reference it unconditionally }
+         ((target_res.id=res_ext) and (target_info.system in systems_darwin)) then
         begin
         ResourceInfo:=TAsmList.Create;
 
         maybe_new_object_file(ResourceInfo);
         new_section(ResourceInfo,sec_data,'FPC_RESLOCATION',sizeof(aint));
         ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
-        if ResourcesUsed then
+        if ResourcesUsed and (target_res.id<>res_ext) then
           { Valid pointer to resource information }
           ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',0))
         else
