@@ -376,7 +376,7 @@ implementation
            until not assigned(hpropsym);
            if not(assigned(propaccesslist) and assigned(propaccesslist.firstsym))  then
              begin
-               tcb.emit_tai(Tai_const.Create_int_codeptr(unsetvalue),voidcodepointertype);
+               tcb.emit_tai(Tai_const.Create_int_codeptr(unsetvalue),codeptruinttype);
                typvalue:=3;
              end
            else if propaccesslist.firstsym^.sym.typ=fieldvarsym then
@@ -416,7 +416,7 @@ implementation
                      end;
                      hp:=hp^.next;
                   end;
-                tcb.emit_tai(Tai_const.Create_int_codeptr(address),voidcodepointertype);
+                tcb.emit_tai(Tai_const.Create_int_codeptr(address),codeptruinttype);
                 typvalue:=0;
              end
            else
@@ -436,7 +436,7 @@ implementation
                     extnumber:=tprocdef(propaccesslist.procdef).extnumber;
                     tcb.emit_tai(Tai_const.Create_int_codeptr(
                       tobjectdef(tprocdef(propaccesslist.procdef).struct).vmtmethodoffset(extnumber)),
-                      voidcodepointertype);
+                      codeptruinttype);
                     { register for wpo }
                     tobjectdef(tprocdef(propaccesslist.procdef).struct).register_vmt_call(extnumber);
                     {$ifdef vtentry}
@@ -478,7 +478,7 @@ implementation
                 if not(ppo_stored in tpropertysym(sym).propoptions) then
                   begin
                     { no, so put a constant zero }
-                    tcb.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
+                    tcb.emit_tai(Tai_const.Create_nil_codeptr,codeptruinttype);
                     proctypesinfo:=proctypesinfo or (3 shl 4);
                   end
                 else
