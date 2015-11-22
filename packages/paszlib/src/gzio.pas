@@ -136,6 +136,7 @@ var
   doseek,
   exists,
   writing : boolean;
+  old_file_mode: byte;
 begin
 
   if (path='') or (mode='') then begin
@@ -227,20 +228,22 @@ begin
     GetFAttr(s^.gzfile, Attr);
     exists:=(DosError= 0);
   {$endif}
-  
+
   doseek:=false;
   if ((s^.mode='a') and not exists) or (s^.mode='w') then
     begin
-   
-    ReWrite (s^.gzfile,1)  
+    ReWrite (s^.gzfile,1)
     end
   else
     begin
-      Reset (s^.gzfile,1);  
+      old_file_mode := FileMode;
+      FileMode := 0;
+      Reset (s^.gzfile,1);
+      FileMode := old_file_mode;
       if s^.mode='a' then
         doseek:=true;      // seek AFTER I/O check.
     end;
-    
+
   {$POP}
   if (IOResult <> 0) then begin
     destroy(s);
