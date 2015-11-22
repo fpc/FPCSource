@@ -107,22 +107,23 @@ asm
         addl    $_GLOBAL_OFFSET_TABLE_,%ebx
 
         movl    SysInitEntryInformation@GOT(%ebx),%ecx
-        movl    %eax,SysInitEntryInformation.Platform.envp(%ebx)
+
+        movl    %eax,TEntryInformation.Platform.envp(%ecx)
 
         popl    %eax
-        movl    %eax,SysInitEntryInformation.Platform.argc(%ebx)
+        movl    %eax,TEntryInformation.Platform.argc(%ecx)
 
         popl    %eax
-        movl    %eax,SysInitEntryInformation.Platform.argv(%ebx)
+        movl    %eax,TEntryInformation.Platform.argv(%ecx)
 
-        leal    _FPC_proc_haltproc,%eax
-        movl    %eax,SysInitEntryInformation.Platform.haltproc(%ebx)
+        movl    _FPC_proc_haltproc@GOT(%ebx),%eax
+        movl    %eax,TEntryInformation.Platform.haltproc(%ecx)
 
         call    SysResetFPU
 
-        movl    %esp,SysInitEntryInformation.Platform.stkptr(%ebx)
+        movl    %esp,TEntryInformation.Platform.stkptr(%ecx)
 
-        movl    %ebx,%eax
+        movl    %ecx,%eax
   {$else FPC_PIC}
         movl    %eax,SysInitEntryInformation.Platform.envp
         movl    %ecx,SysInitEntryInformation.Platform.argc
