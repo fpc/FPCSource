@@ -154,21 +154,10 @@ implementation
 
 
     procedure tcgcallparanode.push_addr_para;
-      var
-        valuedef: tdef;
       begin
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
-        { see the call to keep_para_array_range in ncal: if that call returned
-          true, we overwrite the resultdef of left with its original resultdef
-          (to keep track of the range of the original arrat); we inserted a type
-          conversion to parasym.vardef, so that is the type this value actually
-          has }
-        if paramanager.keep_para_array_range(parasym.varspez,parasym.vardef,aktcallnode.procdefinition.proccalloption) then
-          valuedef:=parasym.vardef
-        else
-          valuedef:=left.resultdef;
-        hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,valuedef,left.location.reference,tempcgpara);
+        hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location.reference,tempcgpara);
       end;
 
 
