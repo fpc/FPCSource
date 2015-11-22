@@ -773,7 +773,7 @@ begin
           Add('  lock      (rw!x) : ORIGIN = 0x830000, LENGTH = 1K');
           Add('  signature (rw!x) : ORIGIN = 0x840000, LENGTH = 1K');
           Add('}');
-          Add('_stack_top = 0x' + IntToHex(sramsize-1,4) + ';');
+          Add('_stack_top = 0x' + IntToHex(srambase+sramsize-1,4) + ';');
         end;
       Add('SECTIONS');
       Add('{');
