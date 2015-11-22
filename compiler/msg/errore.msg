@@ -3423,6 +3423,9 @@ package_u_required_package=13025_U_Required package $1
 package_u_contained_unit=13026_U_Contained unit $1
 % When you specify the \var{-vu} switch, the compiler will tell you which
 % units a package contains.
+package_e_unit_already_contained_in_package=13027_E_Unit $1 is already contained in package $2
+% A unit specified in a contains sections must not be part of a required package. Note that
+% a unit might have become part of another package by indirectly including it.
 % \end{description}
 # EndOfTeX
 
