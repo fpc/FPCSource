@@ -1765,7 +1765,7 @@ implementation
              resourcestrrec:=trecorddef(search_system_type('TRESOURCESTRINGRECORD').typedef);
              queue_subscriptn_multiple_by_name(resourcestrrec,['CURRENTVALUE']);
              queue_emit_asmsym(current_asmdata.RefAsmSymbol(
-               make_mangledname('RESSTR',cs.owner,cs.name),AT_DATA),cansistringtype
+               make_mangledname('RESSTR',cs.owner,cs.name),AT_DATA),resourcestrrec
              );
            end;
          { can these occur? }
