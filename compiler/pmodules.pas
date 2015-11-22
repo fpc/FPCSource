@@ -1644,15 +1644,16 @@ type
 
          if (not current_module.is_unit) then
            begin
-             { add all contained units to the package }
-             { TODO : handle implicitly imported units }
-             uu:=tused_unit(current_module.used_units.first);
-             while assigned(uu) do
-               begin
-                 if not assigned(uu.u.package) then
-                   pkg.addunit(uu.u);
-                 uu:=tused_unit(uu.next);
-               end;
+             { we add all loaded units that are not part of a package to the
+               package; this includes units in the "contains" section as well
+               as implicitely imported ones }
+             hp:=tmodule(loaded_units.first);
+             while assigned(hp) do
+              begin
+                if (hp<>current_module) and not assigned(hp.package) then
+                  pkg.addunit(hp);
+                hp:=tmodule(hp.next);
+              end;
 
              pkg.initmoduleinfo(current_module);
 
