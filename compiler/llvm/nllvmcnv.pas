@@ -144,7 +144,7 @@ procedure tllvmtypeconvnode.second_int_to_real;
     else
       op:=la_uitofp;
     { see comment about currency in thlcgllvm.a_loadfpu_ref_reg }
-    if not is_currency(resultdef) then
+    if not(tfloatdef(resultdef).floattype in [s64comp,s64currency]) then
       llvmtodef:=resultdef
     else
       llvmtodef:=s80floattype;
