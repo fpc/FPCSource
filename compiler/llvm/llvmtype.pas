@@ -116,6 +116,7 @@ implementation
       var
         res: PHashSetItem;
       begin
+        record_def(def);
         res:=asmsymtypes.FindOrAdd(@sym,sizeof(sym));
         { due to internal aliases with different signatures, we may end up with
           multiple defs for the same symbol -> use the one from the declaration,
@@ -209,23 +210,32 @@ implementation
 
 
     procedure TLLVMTypeInfo.collect_tai_info(deftypelist: tasmlist; p: tai);
+      var
+        value: tai_abstracttypedconst;
       begin
         case p.typ of
           ait_llvmalias:
             begin
-              record_def(taillvmalias(p).def);
               record_asmsym_def(taillvmalias(p).newsym,taillvmalias(p).def,true);
             end;
           ait_llvmdecl:
             begin
-              record_def(taillvmdecl(p).def);
               record_asmsym_def(taillvmdecl(p).namesym,taillvmdecl(p).def,true);
               collect_asmlist_info(deftypelist,taillvmdecl(p).initdata);
             end;
           ait_llvmins:
             collect_llvmins_info(deftypelist,taillvm(p));
           ait_typedconst:
-            record_def(tai_abstracttypedconst(p).def);
+            begin
+              record_def(tai_abstracttypedconst(p).def);
+              case tai_abstracttypedconst(p).adetyp of
+                tck_simple:
+                  collect_tai_info(deftypelist,tai_simpletypedconst(p).val);
+                tck_array,tck_record:
+                  for value in tai_aggregatetypedconst(p) do
+                    collect_tai_info(deftypelist,value);
+              end;
+            end;
         end;
       end;
 
