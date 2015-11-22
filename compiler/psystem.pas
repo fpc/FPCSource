@@ -163,6 +163,25 @@ implementation
         voidcodepointertype:=voidpointertype;
         voidstackpointertype:=voidpointertype;
 {$endif i8086}
+        case voidcodepointertype.size of
+          2:
+            begin
+              codeptruinttype:=u16inttype;
+              codeptrsinttype:=s16inttype;
+            end;
+          4:
+            begin
+              codeptruinttype:=u32inttype;
+              codeptrsinttype:=s32inttype;
+            end;
+          8:
+            begin
+              codeptruinttype:=u64inttype;
+              codeptrsinttype:=s64inttype;
+            end;
+          else
+            Internalerror(2015112106);
+        end;
       end;
 
     procedure create_intern_types;

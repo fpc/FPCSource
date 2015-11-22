@@ -1065,6 +1065,9 @@ interface
        { unsigned and signed ord type with the same size as a pointer }
        ptruinttype,
        ptrsinttype,
+       { unsigned and signed ord type with the same size as a codepointer }
+       codeptruinttype,
+       codeptrsinttype,
        { several types to simulate more or less C++ objects for GDB }
        vmttype,
        vmtarraytype,
