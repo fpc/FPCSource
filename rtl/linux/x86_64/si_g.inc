@@ -51,7 +51,6 @@ procedure libc_start_main; external name '__libc_start_main';
 procedure gmon_monstartup; external name 'monstartup';
 procedure gmon_mcleanup; external name '_mcleanup';
 
-procedure PASCALMAIN; external name 'PASCALMAIN';
 procedure main_stub; forward;
 
 procedure ini_dummy;

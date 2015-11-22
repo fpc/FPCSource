@@ -54,7 +54,6 @@ procedure gmon_mcleanup; cdecl; external name '_mcleanup';
 procedure gmon_monstartup (main,etext : pointer);cdecl;external name 'monstartup';
 
 procedure libc_start_main; external name '__libc_start_main';
-procedure PASCALMAIN; external name 'PASCALMAIN';
 
 var
   dlexitproc: pointer; { atexit from loader }
