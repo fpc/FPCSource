@@ -563,7 +563,7 @@ type
     WideInitTables : Pointer;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
     asm_exit : Procedure;stdcall;
-    PascalMain : Procedure;{$ifndef windows}cdecl;{$else}stdcall;{$endif}
+    PascalMain : Procedure;
     valgrind_used : boolean;
 {$ifdef HAS_ENTRYINFORMATION_PLATFORM}
     platform: TPlatformEntryInformation;
