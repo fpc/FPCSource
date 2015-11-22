@@ -1417,6 +1417,7 @@ implementation
        startlab: tasmlabel;
        datadef: tdef;
        datatcb: ttai_typedconstbuilder;
+       unicodestrrecdef: trecorddef;
      begin
        start_internal_data_builder(datalist,sec_rodata_norel,'',datatcb,startlab);
        strlength:=getlengthwidestring(pcompilerwidestring(data));
@@ -1456,12 +1457,12 @@ implementation
            { ending #0 }
            datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
            datatcb.maybe_end_aggregate(datadef);
-           datatcb.end_anonymous_record;
+           unicodestrrecdef:=datatcb.end_anonymous_record;
          end
        else
          { code generation for other sizes must be written }
          internalerror(200904271);
-       finish_internal_data_builder(datatcb,startlab,datadef,const_align(sizeof(pint)));
+       finish_internal_data_builder(datatcb,startlab,unicodestrrecdef,const_align(sizeof(pint)));
      end;
 
 
