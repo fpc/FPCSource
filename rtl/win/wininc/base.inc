@@ -624,7 +624,7 @@
 
      LPTHREAD_START_ROUTINE = PTHREAD_START_ROUTINE;
 
-     EDITSTREAMCALLBACK = function (_para1:DWORD_PTR; _para2:LPBYTE; _para3:LONG; _para4:LONG):DWORD;stdcall;
+     EDITSTREAMCALLBACK = function (_para1:DWORD_PTR; _para2:LPBYTE; _para3:LONG; _para4:PLONG):DWORD;stdcall;
 
      LPFRHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT_PTR;stdcall;
 
@@ -672,9 +672,9 @@
 
      DRAWSTATEPROC = function (_para1:HDC; _para2:LPARAM; _para3:WPARAM; _para4:longint; _para5:longint):WINBOOL;stdcall;
 
-     PROPENUMPROCEXA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE; _para4:DWORD_PTR):WINBOOL;stdcall;
-     PROPENUMPROCEXW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE; _para4:DWORD_PTR):WINBOOL;stdcall;
-     PROPENUMPROCEX  = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE; _para4:DWORD_PTR):WINBOOL;stdcall;
+     PROPENUMPROCEXA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE; _para4:ULONG_PTR):WINBOOL;stdcall;
+     PROPENUMPROCEXW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE; _para4:ULONG_PTR):WINBOOL;stdcall;
+     PROPENUMPROCEX  = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE; _para4:ULONG_PTR):WINBOOL;stdcall;
 
      PROPENUMPROCA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE):WINBOOL;stdcall;
      PROPENUMPROCW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE):WINBOOL;stdcall;
