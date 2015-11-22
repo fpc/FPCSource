@@ -40,6 +40,9 @@ var
 
 procedure libc_start_main; external name '__libc_start_main';
 
+procedure _FPC_libc21_haltproc(e: longint); cdecl; forward;
+
+
 { Some helpers }
 
 procedure _init_fini_dummy; compilerproc; nostackframe; assembler;
@@ -50,6 +53,25 @@ end;
 {******************************************************************************
                        glibc 2.1 lib + profiling start/halt
  ******************************************************************************}
+
+procedure SysEntryStub; cdecl; assembler; nostackframe;
+asm
+{$ifdef FPC_PIC}
+  pushl %ebx
+
+  call .Lpiclab
+.Lpiclab:
+  popl %ebx
+  addl  $_GLOBAL_OFFSET_TABLE_+1,%ebx
+
+  movl  SysInitEntryInformation@GOT(%ebx),%eax
+
+  popl %ebx
+{$else FPC_PIC}
+  lea  SysInitEntryInformation,%eax
+{$endif FPC_PIC}
+  call SysEntry
+end;
 
 procedure _FPC_libc21_start; assembler; nostackframe; public name '_start';
 asm
@@ -107,6 +129,60 @@ asm
   	movl    %esp,initialstkptr
   {$endif FPC_PIC}
 
+  {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  {$ifdef FPC_PIC}
+        pushl %ebx
+        pushl %ecx
+        pushl %edx
+
+        call .Lpiclab3
+     .Lpiclab3:
+        popl  %ebx
+        addl  $_GLOBAL_OFFSET_TABLE_+1,%ebx
+
+        movl  SysInitEntryInformation@GOT(%ebx),%edx
+
+	movl  operatingsystem_parameter_envp@GOT(%ebx),%ecx
+	movl  (%ecx),%eax
+        movl  %eax,TEntryInformation.Platform.envp(%edx)
+
+	movl  operatingsystem_parameter_argc@GOT(%ebx),%ecx
+	movl  (%ecx),%eax
+        movl  %eax,TEntryInformation.Platform.argc(%edx)
+
+	movl  operatingsystem_parameter_argv@GOT(%ebx),%ecx
+	movl  (%ecx),%eax
+        movl  %eax,TEntryInformation.Platform.argv(%edx)
+
+	movl  initialstkptr@GOT(%ebx),%ecx
+	movl  (%ecx),%eax
+        movl  %eax,TEntryInformation.Platform.stkptr(%edx)
+
+        movl  _FPC_libc21_haltproc@GOT(%ebx),%ecx
+        movl  (%ecx),%eax
+        movl  %eax,TEntryInformation.Platform.haltproc(%edx)
+
+        popl  %edx
+        popl  %ecx
+        popl  %ebx
+  {$else FPC_PIC}
+        movl    operatingsystem_parameter_envp,%eax
+        movl    %eax,SysInitEntryInformation.Platform.envp
+
+        movl    operatingsystem_parameter_argc,%eax
+        movl    %eax,SysInitEntryInformation.Platform.argc
+
+        movl    operatingsystem_parameter_argv,%eax
+        movl    %eax,SysInitEntryInformation.Platform.argv
+
+        leal    _FPC_libc21_haltproc,%eax
+        movl    %eax,SysInitEntryInformation.Platform.haltproc;
+
+        movl    initialstkptr,%eax
+        movl    %eax,SysInitEntryInformation.Platform.stkptr
+  {$endif FPC_PIC}
+  {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
         { int __libc_start_main(
 		int *(main) (int, char * *, char * *), 
 		int argc, 
@@ -125,7 +201,11 @@ asm
 	pushl %ebx             		{ Push second argument: argv.  }
 	pushl %ecx             		{ Push first argument: argc.  }
 
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+        pushl $SysEntryStub
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
 	pushl $PASCALMAIN
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 
   	call  libc_start_main
 	hlt
