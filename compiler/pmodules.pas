@@ -1494,6 +1494,19 @@ type
                  if not assigned(uu) then
                    message2(package_n_implicit_unit_import,hp.realmodulename^,current_module.realmodulename^);
                end;
+             { was this unit listed as a contained unit? If so => error }
+             if (hp<>current_module) and assigned(hp.package) then
+               begin
+                 uu:=tused_unit(current_module.used_units.first);
+                 while assigned(uu) do
+                   begin
+                     if uu.u=hp then
+                       break;
+                     uu:=tused_unit(uu.next);
+                   end;
+                 if assigned(uu) then
+                   message2(package_e_unit_already_contained_in_package,hp.realmodulename^,hp.package.realpackagename^);
+               end;
              hp:=tmodule(hp.next);
            end;
 
