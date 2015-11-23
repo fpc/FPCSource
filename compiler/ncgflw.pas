@@ -1284,9 +1284,7 @@ implementation
          if tf_supports_packages in target_info.flags then
            begin
              reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname(true),AT_DATA),0,sizeof(pint));
-             hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvmttype);
-             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,getpointerdef(pvmttype),pvmttype,href2,hreg);
-             hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,pvmttype,hreg,paraloc1);
+             hlcg.a_load_ref_cgpara(current_asmdata.CurrAsmList,pvmttype,href2,paraloc1);
            end
          else
            begin
