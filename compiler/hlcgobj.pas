@@ -3091,15 +3091,21 @@ implementation
           paramanager.getintparaloc(pd,2,cgpara2);
           if is_open_array(t) then
             InternalError(201103054);
-          reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,false),0,sizeof(pint));
+          reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,tf_supports_packages in target_info.flags),0,sizeof(pint));
           if pd.is_pushleftright then
             begin
               a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
-              a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+              if tf_supports_packages in target_info.flags then
+                a_load_ref_cgpara(list,voidpointertype,href,cgpara2)
+              else
+                a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
             end
           else
             begin
-              a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+              if tf_supports_packages in target_info.flags then
+                a_load_ref_cgpara(list,voidpointertype,href,cgpara2)
+              else
+                a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
               a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
             end;
           paramanager.freecgpara(list,cgpara1);
@@ -3139,15 +3145,21 @@ implementation
             pd:=search_system_proc('fpc_initialize');
             paramanager.getintparaloc(pd,1,cgpara1);
             paramanager.getintparaloc(pd,2,cgpara2);
-            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,false),0,sizeof(pint));
+            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,tf_supports_packages in target_info.flags),0,sizeof(pint));
             if pd.is_pushleftright then
               begin
                 a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
-                a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+                if tf_supports_packages in target_info.flags then
+                  a_load_ref_cgpara(list,voidpointertype,href,cgpara2)
+                else
+                  a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
               end
             else
               begin
-                a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+                if tf_supports_packages in target_info.flags then
+                  a_load_ref_cgpara(list,voidpointertype,href,cgpara2)
+                else
+                  a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
                 a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
               end;
             paramanager.freecgpara(list,cgpara1);
@@ -3189,15 +3201,21 @@ implementation
             pd:=search_system_proc('fpc_finalize');
           paramanager.getintparaloc(pd,1,cgpara1);
           paramanager.getintparaloc(pd,2,cgpara2);
-          reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,false),0,sizeof(pint));
+          reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,tf_supports_packages in target_info.flags),0,sizeof(pint));
           if pd.is_pushleftright then
             begin
               a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
-              a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+              if tf_supports_packages in target_info.flags then
+                a_load_ref_cgpara(list,voidpointertype,href,cgpara2)
+              else
+                a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
             end
           else
             begin
-              a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+              if tf_supports_packages in target_info.flags then
+                a_load_ref_cgpara(list,voidpointertype,href,cgpara2)
+              else
+                a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
               a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
             end;
           paramanager.freecgpara(list,cgpara1);
@@ -3231,12 +3249,15 @@ implementation
       paramanager.getintparaloc(pd,2,cgpara2);
       paramanager.getintparaloc(pd,3,cgpara3);
 
-      reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,false),0,sizeof(pint));
+      reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,tf_supports_packages in target_info.flags),0,sizeof(pint));
       { if calling convention is left to right, push parameters 1 and 2 }
       if pd.is_pushleftright then
         begin
           a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
-          a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+          if tf_supports_packages in target_info.flags then
+            a_load_ref_cgpara(list,voidpointertype,href,cgpara2)
+          else
+            a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
         end;
 
       { push parameter 3 }
@@ -3260,7 +3281,10 @@ implementation
       { if calling convention is right to left, push parameters 2 and 1 }
       if not pd.is_pushleftright then
         begin
-          a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+          if tf_supports_packages in target_info.flags then
+            a_load_ref_cgpara(list,voidpointertype,href,cgpara2)
+          else
+            a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
           a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
         end;
       paramanager.freecgpara(list,cgpara1);
