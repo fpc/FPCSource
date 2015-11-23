@@ -345,6 +345,7 @@ override LOADERS+=cprt21 gprt21
 endif
 CPU_UNITS=x86 ports cpu mmx
 SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
+override FPCOPT+=-dFPC_HAS_INDIRECT_MAIN_INFORMATION
 endif
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
