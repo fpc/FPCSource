@@ -27,7 +27,7 @@ unit pkgutil;
 interface
 
   uses
-    fmodule,fpkg,link,cstreams;
+    fmodule,fpkg,link,cstreams,cclasses;
 
   procedure createimportlibfromexternals;
   Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
@@ -36,13 +36,14 @@ interface
   procedure add_package(const name:string;ignoreduplicates:boolean;direct:boolean);
   procedure add_package_unit_ref(package:tpackage);
   procedure add_package_libs(l:tlinker);
+  procedure check_for_indirect_package_usages(modules:tlinkedlist);
 
 implementation
 
   uses
     sysutils,
     globtype,systems,
-    cutils,cclasses,
+    cutils,
     globals,verbose,
     aasmbase,aasmdata,aasmtai,
     symtype,symconst,symsym,symdef,symbase,symtable,
@@ -516,6 +517,27 @@ implementation
             end
           else
             {writeln('ignoring package: ',pkgentry^.realpkgname)};
+        end;
+    end;
+
+  procedure check_for_indirect_package_usages(modules:tlinkedlist);
+    var
+      uu : tused_unit;
+      pentry : ppackageentry;
+    begin
+      uu:=tused_unit(modules.first);
+      while assigned(uu) do
+        begin
+          if assigned(uu.u.package) then
+            begin
+              pentry:=ppackageentry(packagelist.find(uu.u.package.packagename^));
+              if not assigned(pentry) then
+                internalerror(2015112304);
+              if not pentry^.direct then
+                Message2(package_w_unit_from_indirect_package,uu.u.realmodulename^,uu.u.package.realpackagename^);
+            end;
+
+          uu:=tused_unit(uu.Next);
         end;
     end;
 

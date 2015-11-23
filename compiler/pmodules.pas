@@ -1667,7 +1667,10 @@ type
                 if (hp<>current_module) then
                   begin
                     if not assigned(hp.package) then
-                      pkg.addunit(hp)
+                      begin
+                        pkg.addunit(hp);
+                        check_for_indirect_package_usages(hp.used_units);
+                      end
                     else
                       begin
                         pentry:=ppackageentry(packagelist.find(hp.package.packagename^));
