@@ -139,6 +139,7 @@ uses
         resstrlab : tasmsymbol;
         endsymlab : tasmsymbol;
         R : TResourceStringItem;
+        listind : TAsmList;
       begin
         { Put resourcestrings in a new objectfile. Putting it in multiple files
           makes the linking too dependent on the linker script requiring a SORT(*) for
@@ -168,6 +169,7 @@ uses
 {$endif cpu64bitaddr}
 
         { Add entries }
+        listind:=TAsmList.create_without_marker;
         R:=TResourceStringItem(List.First);
         while assigned(R) do
           begin
@@ -204,6 +206,16 @@ uses
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(0));
 {$endif cpu64bitaddr}
             current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol_end.create(resstrlab));
+
+            if tf_supports_packages in target_info.flags then
+              begin
+                { indirect symbol }
+                labind:=current_asmdata.DefineAsmSymbol(resstrlab.name+indirect_suffix,AB_GLOBAL,AT_DATA);
+                listind.concat(Tai_symbol.Create_Global(labind,0));
+                listind.concat(Tai_const.Create_sym(resstrlab));
+                listind.concat(tai_symbol_end.Create(labind));
+              end;
+
             R:=TResourceStringItem(R.Next);
           end;
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'3_END'),sizeof(pint));
@@ -214,6 +226,10 @@ uses
         current_asmdata.asmlists[al_resourcestrings].concat(Tai_symbol.Create_Global(labind,0));
         current_asmdata.asmlists[al_resourcestrings].concat(Tai_const.Create_sym(endsymlab));
         current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol_end.Create(labind));
+        { append the list of indirect resource string symbols }
+        if tf_supports_packages in target_info.flags then
+          current_asmdata.asmlists[al_resourcestrings].concatList(listind);
+        listind.free;
         { The darwin/ppc64 assembler or linker seems to have trouble       }
         { if a section ends with a global label without any data after it. }
         { So for safety, just put a dummy value here.                      }

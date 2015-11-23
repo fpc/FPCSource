@@ -288,7 +288,17 @@ implementation
                 if tconstsym(symtableentry).consttyp=constresourcestring then
                   begin
                      location_reset_ref(location,LOC_CREFERENCE,def_cgsize(cansistringtype),cansistringtype.size);
-                     location.reference.symbol:=current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name),AT_DATA);
+                     if tf_supports_packages in target_info.flags then
+                       begin
+                         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                         location.reference.symbol:=current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name)+indirect_suffix,AT_DATA);
+                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,location.reference,hregister);
+                         reference_reset_base(location.reference,hregister,0,location.reference.alignment);
+                       end
+                     else
+                       begin
+                         location.reference.symbol:=current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name),AT_DATA);
+                       end;
                      { Resourcestring layout:
                          TResourceStringRecord = Packed Record
                             Name,
