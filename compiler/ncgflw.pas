@@ -1260,6 +1260,7 @@ implementation
          oldflowcontrol : tflowcontrol;
          excepttemps : texceptiontemps;
          href2: treference;
+         hreg : tregister;
          paraloc1 : tcgpara;
          exceptvarsym : tlocalvarsym;
          pd : tprocdef;
@@ -1279,9 +1280,19 @@ implementation
 
          { send the vmt parameter }
          pd:=search_system_proc('fpc_catches');
-         reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname,AT_DATA),0,sizeof(pint));
          paramanager.getintparaloc(pd,1,paraloc1);
-         cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc1);
+         if tf_supports_packages in target_info.flags then
+           begin
+             reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname(true),AT_DATA),0,sizeof(pint));
+             hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvmttype);
+             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,getpointerdef(pvmttype),pvmttype,href2,hreg);
+             hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,pvmttype,hreg,paraloc1);
+           end
+         else
+           begin
+             reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname(false),AT_DATA),0,sizeof(pint));
+             hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,pvmttype,href2,paraloc1);
+           end;
          paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
          fpc_catches_res:=hlcg.g_call_system_proc(current_asmdata.CurrAsmList,pd,nil);
          location_reset(fpc_catches_resloc,LOC_REGISTER,def_cgsize(fpc_catches_res.def));
