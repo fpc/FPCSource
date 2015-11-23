@@ -499,7 +499,11 @@ begin
                  begin
                    i:=Pos(target_info.sharedlibext,S);
                    if i>0 then
-                    Delete(S,i,255);
+                    Delete(S,i,255)
+                   else
+                     if Pos('.',s)>0 then
+                       { enforce the filename }
+                       s:=':'+s;
                    Add('-l'+s);
                  end
                 else
