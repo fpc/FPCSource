@@ -415,7 +415,7 @@ implementation
           entry:=ppackageentry(packagelist[i]);
           if assigned(entry^.package) then
             internalerror(2013053104);
-          Comment(V_Info,'Loading package: '+entry^.realpkgname);
+          //Comment(V_Info,'Loading package: '+entry^.realpkgname);
           pcp:=tpcppackage.create(entry^.realpkgname);
           pcp.loadpcp;
           entry^.package:=pcp;
@@ -622,7 +622,7 @@ implementation
                     break;
                 end;
               if found then begin
-                writeln('asm symbol ', symname, ' is already imported');
+                //writeln('asm symbol ', symname, ' is already imported');
                 { add a dummy entry }
                 new(cacheentry);
                 cacheentry^.pkg:=nil;
@@ -682,7 +682,7 @@ implementation
                 continue;
               if alreadyloaded.indexof(sym)>=0 then
                 begin
-                  writeln('symbol ', sym.name, ' already imported');
+                  //writeln('symbol ', sym.name, ' already imported');
                   continue;
                 end;
               { determine the unit of the symbol }
@@ -701,7 +701,7 @@ implementation
               if (uf_in_library and module.flags)=0 then
                 { unit is not part of a package, so no need to handle it }
                 continue;
-              writeln('found symbol ', sym.name, ' in package unit ', module.modulename^);
+              //writeln('found symbol ', sym.name, ' in package unit ', module.modulename^);
               { loaded by a package? }
               for j:=0 to packagelist.count-1 do
                 begin
@@ -711,7 +711,7 @@ implementation
                       unitentry:=pcontainedunit(pkgentry^.package.containedmodules[k]);
                       if unitentry^.module=module then
                         begin
-                          writeln('symbol ', sym.name, ' is part of package ', pkgentry^.package.packagename^);
+                          //writeln('symbol ', sym.name, ' is part of package ', pkgentry^.package.packagename^);
                           case sym.typ of
                             staticvarsym:
                               begin
@@ -753,7 +753,7 @@ implementation
       module:=tmodule(loaded_units.first);
       while assigned(module) do
         begin
-          writeln('processing imported symbols of unit ', module.modulename^);
+          //writeln('processing imported symbols of unit ', module.modulename^);
           if not assigned(module.package) then
             begin
               processimportedsyms(module.unitimportsyms);
@@ -765,8 +765,8 @@ implementation
                 { this is an ordinary unit }
                 processasmsyms(module.globalasmsyms);*)
             end
-          else
-            writeln(module.modulename^, ' is a package unit; ignoring');
+          {else
+            writeln(module.modulename^, ' is a package unit; ignoring')};
           module:=tmodule(module.next);
         end;
 
@@ -776,7 +776,7 @@ implementation
         begin
           if not assigned(module.package) then
             begin
-              writeln('processing assembler symbols of unit ', module.modulename^);
+              //writeln('processing assembler symbols of unit ', module.modulename^);
               if module=current_module then
                 { this is the main file, which does not fill globalasmsyms }
                 processasmsyms(tasmdata(module.asmdata).asmsymboldict)
