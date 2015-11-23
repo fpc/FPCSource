@@ -57,6 +57,7 @@ interface
       function getmodulestream(module:tmodulebase):tcstream;
       procedure initmoduleinfo(module:tmodulebase);
       procedure addunit(module:tmodulebase);
+      procedure add_required_package(pkg:tpackage);
     end;
 
 implementation
@@ -550,6 +551,20 @@ implementation
       containedunit^.size:=0;
       containedmodules.add(module.modulename^,containedunit);
     end;
+
+
+  procedure tpcppackage.add_required_package(pkg:tpackage);
+    var
+      p : tpackage;
+    begin
+      p:=tpackage(requiredpackages.find(pkg.packagename^));
+      if not assigned(p) then
+        requiredpackages.Add(pkg.packagename^,pkg)
+      else
+        if p<>pkg then
+          internalerror(2015112302);
+    end;
+
 
 end.
 
