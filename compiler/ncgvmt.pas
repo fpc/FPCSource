@@ -554,7 +554,7 @@ implementation
             if (tf_requires_proper_alignment in target_info.flags) then
               list.concat(cai_align.Create(sizeof(TConstPtrUInt)));
             for i:=0 to classtablelist.Count-1 do
-              list.concat(Tai_const.Createname(tobjectdef(classtablelist[i]).vmt_mangledname,AT_DATA,0));
+              list.concat(Tai_const.Createname(tobjectdef(classtablelist[i]).vmt_mangledname(true),AT_DATA,0));
             result:=fieldtable;
           end
         else
