@@ -1424,7 +1424,7 @@ type
                          module_name:=module_name+'.'+orgpattern;
                          consume(_ID);
                        end;
-                     add_package(module_name,false);
+                     add_package(module_name,false,true);
                    end
                  else
                    consume(_ID);

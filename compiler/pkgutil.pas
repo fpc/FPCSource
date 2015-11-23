@@ -33,7 +33,7 @@ interface
   Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
   procedure export_unit(u:tmodule);
   procedure load_packages;
-  procedure add_package(const name:string;ignoreduplicates:boolean);
+  procedure add_package(const name:string;ignoreduplicates:boolean;direct:boolean);
   procedure add_package_unit_ref(package:tpackage);
   procedure add_package_libs(l:tlinker);
 
@@ -419,7 +419,7 @@ implementation
     end;
 
 
-  procedure add_package(const name:string;ignoreduplicates:boolean);
+  procedure add_package(const name:string;ignoreduplicates:boolean;direct:boolean);
     var
       entry : ppackageentry;
       i : longint;
@@ -437,6 +437,7 @@ implementation
       entry^.package:=nil;
       entry^.realpkgname:=name;
       entry^.usedunits:=0;
+      entry^.direct:=direct;
       packagelist.add(upper(name),entry);
     end;
 
