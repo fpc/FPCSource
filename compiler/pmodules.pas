@@ -1326,6 +1326,7 @@ type
         force_init_final : boolean;
         uu : tused_unit;
         module_name: ansistring;
+        pentry: ppackageentry;
       begin
          Status.IsPackage:=true;
          Status.IsExe:=true;
@@ -1663,8 +1664,18 @@ type
              hp:=tmodule(loaded_units.first);
              while assigned(hp) do
               begin
-                if (hp<>current_module) and not assigned(hp.package) then
-                  pkg.addunit(hp);
+                if (hp<>current_module) then
+                  begin
+                    if not assigned(hp.package) then
+                      pkg.addunit(hp)
+                    else
+                      begin
+                        pentry:=ppackageentry(packagelist.find(hp.package.packagename^));
+                        if not assigned(pentry) then
+                          internalerror(2015112301);
+                        pkg.add_required_package(hp.package);
+                      end;
+                  end;
                 hp:=tmodule(hp.next);
               end;
 
