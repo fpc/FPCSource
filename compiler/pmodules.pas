@@ -552,6 +552,7 @@ implementation
                     pd.localst:=nil;
                   end;
                 pd.freeimplprocdefinfo;
+                pd.done_paraloc_info(calleeside);
               end;
           end;
       end;

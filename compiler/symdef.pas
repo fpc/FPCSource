@@ -624,6 +624,7 @@ interface
           function  compatible_with_pointerdef_size(ptr: tpointerdef): boolean; virtual;
           procedure check_mark_as_nested;
           procedure init_paraloc_info(side: tcallercallee);
+          procedure done_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
           function is_pushleftright: boolean;virtual;
           function address_type:tdef;virtual;
@@ -5022,6 +5023,36 @@ implementation
               has_paraloc_info:=callbothsides
             else
               has_paraloc_info:=calleeside;
+          end;
+      end;
+
+
+    procedure tabstractprocdef.done_paraloc_info(side: tcallercallee);
+      var
+        i: longint;
+      begin
+        if (side in [callerside,callbothsides]) and
+           (has_paraloc_info in [callerside,callbothsides]) then
+          begin
+            funcretloc[callerside].done;
+            for i:=0 to paras.count-1 do
+              tparavarsym(paras[i]).paraloc[callerside].done;
+            if has_paraloc_info=callerside then
+              has_paraloc_info:=callnoside
+            else
+              has_paraloc_info:=calleeside;
+          end;
+
+        if (side in [calleeside,callbothsides]) and
+           (has_paraloc_info in [calleeside,callbothsides]) then
+          begin
+            funcretloc[calleeside].done;
+            for i:=0 to paras.count-1 do
+              tparavarsym(paras[i]).paraloc[calleeside].done;
+            if has_paraloc_info=calleeside then
+              has_paraloc_info:=callnoside
+            else
+              has_paraloc_info:=callerside;
           end;
       end;
 
