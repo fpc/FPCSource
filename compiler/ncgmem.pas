@@ -963,8 +963,10 @@ implementation
            begin
               { may happen in case of function results }
               case left.location.loc of
+                LOC_CSUBSETREG,
                 LOC_CREGISTER,
                 LOC_CMMREGISTER,
+                LOC_SUBSETREG,
                 LOC_REGISTER,
                 LOC_MMREGISTER:
                   hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
