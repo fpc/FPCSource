@@ -143,10 +143,14 @@ implementation
     function TLLVMTypeInfo.record_def(def:tdef): tdef;
       begin
         result:=def;
-        if def.dbg_state<>dbg_state_unused then
+        if def.stab_number<>0 then
           exit;
-        def.dbg_state:=dbg_state_used;
-        deftowritelist.Add(def);
+        def.stab_number:=1;
+        if def.dbg_state=dbg_state_unused then
+          begin
+            def.dbg_state:=dbg_state_used;
+            deftowritelist.Add(def);
+          end;
         defnumberlist.Add(def);
       end;
 
@@ -472,6 +476,7 @@ implementation
 
     procedure TLLVMTypeInfo.appenddef_array(list:TAsmList;def:tarraydef);
       begin
+        record_def(def);
         appenddef(list,def.elementdef);
       end;
 
@@ -481,6 +486,7 @@ implementation
         symdeflist: tfpobjectlist;
         i: longint;
       begin
+        record_def(def);
         symdeflist:=tabstractrecordsymtable(def.symtable).llvmst.symdeflist;
         for i:=0 to symdeflist.Count-1 do
           record_def(tllvmshadowsymtableentry(symdeflist[i]).def);
@@ -497,6 +503,7 @@ implementation
 
     procedure TLLVMTypeInfo.appenddef_pointer(list:TAsmList;def:tpointerdef);
       begin
+        record_def(def);
         appenddef(list,def.pointeddef);
       end;
 
@@ -505,6 +512,7 @@ implementation
       var
         i: longint;
       begin
+        record_def(def);
         { todo: handle mantis #25551; there is no way to create a symbolic
           la_type for a procvardef (unless it's a procedure of object/record),
           which means that recursive references should become plain "procedure"
@@ -659,11 +667,9 @@ implementation
         { reset all def labels }
         for i:=0 to defnumberlist.count-1 do
           begin
-            def := tdef(defnumberlist[i]);
-            if assigned(def) then
-              begin
-                def.dbg_state:=dbg_state_unused;
-              end;
+            def:=tdef(defnumberlist[i]);
+            def.dbg_state:=dbg_state_unused;
+            def.stab_number:=0;
           end;
 
         defnumberlist.free;
@@ -678,7 +684,10 @@ implementation
     procedure TLLVMTypeInfo.appenddef_object(list:TAsmList;def: tobjectdef);
       begin
         if is_any_interface_kind(def) then
-          record_def(def.vmt_def)
+          begin
+            record_def(def);
+            record_def(def.vmt_def);
+          end
         else
           appenddef_abstractrecord(list,def);
       end;
@@ -686,18 +695,21 @@ implementation
 
     procedure TLLVMTypeInfo.appenddef_classref(list: TAsmList; def: tclassrefdef);
       begin
+        record_def(def);
         record_def(tobjectdef(tclassrefdef(def).pointeddef).vmt_def);
       end;
 
 
     procedure TLLVMTypeInfo.appenddef_variant(list:TAsmList;def: tvariantdef);
       begin
+        record_def(def);
         appenddef(list,tabstractrecorddef(search_system_type('TVARDATA').typedef));
       end;
 
 
     procedure TLLVMTypeInfo.appenddef_file(list:TAsmList;def:tfiledef);
       begin
+        record_def(def);
         case tfiledef(def).filetyp of
           ft_text    :
             appenddef(list,tabstractrecorddef(search_system_type('TEXTREC').typedef));
