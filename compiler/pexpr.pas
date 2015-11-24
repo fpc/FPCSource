@@ -1194,7 +1194,7 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         if not handle_staticfield_access(sym,false,p1) then
+                         if not handle_staticfield_access(sym,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          consume(_ASSIGNMENT);
@@ -1224,7 +1224,7 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         if not handle_staticfield_access(sym,false,p1) then
+                         if not handle_staticfield_access(sym,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          { catch expressions like "(propx):=1;" }
@@ -1331,7 +1331,7 @@ implementation
                    end;
                  fieldvarsym:
                    begin
-                      if not handle_staticfield_access(sym,true,p1) then
+                      if not handle_staticfield_access(sym,p1) then
                         begin
                           if isclassref then
                             if assigned(p1) and
