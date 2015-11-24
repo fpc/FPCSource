@@ -375,12 +375,14 @@ implementation
           { either add to the current typed const aggregate (if nested), or
             emit to the asmlist (if top level) }
           curagg:=tllvmaggregateinformation(curagginfo);
+          { create aggregate information for this new aggregate }
+          inherited;
+          { only add the new aggregate to the previous aggregate now, because
+            the inherited call may have had to add padding bytes first }
           if assigned(curagg) then
             curagg.aggai.addvalue(agg)
           else
             fasmlist.concat(agg);
-          { create aggregate information for this new aggregate }
-          inherited;
           { set new current typed const aggregate }
           tllvmaggregateinformation(curagginfo).aggai:=agg
         end
