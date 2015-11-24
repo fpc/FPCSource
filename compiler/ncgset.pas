@@ -449,7 +449,7 @@ implementation
                          current_asmdata.getjumplabel(l2);
                          needslabel := True;
 
-                         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, left.resultdef, OC_BE, tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase, pleftreg, l);
+                         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opdef, OC_BE, tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase, pleftreg, l);
 
                          hlcg.a_load_const_reg(current_asmdata.CurrAsmList, uopdef, 0, location.register);
                          hlcg.a_jmp_always(current_asmdata.CurrAsmList, l2);
