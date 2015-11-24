@@ -955,7 +955,7 @@ implementation
                   else
                     begin
                       writer.AsmWrite('define');
-                      writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), '', lpd_decl));
+                      writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), '', lpd_def));
                       WriteFunctionFlags(tprocdef(taillvmdecl(hp).def));
                       writer.AsmWriteln(' {');
                     end;

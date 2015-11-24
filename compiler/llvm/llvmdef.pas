@@ -35,16 +35,17 @@ interface
 
    type
      { there are three different circumstances in which procdefs are used:
-        a) definition of a procdef that's implemented in the current module or
-           declaration of an external routine that's called in the current one
-        b) alias declaration of a procdef implemented in the current module
-        c) defining a procvar type
+        a) definition of a procdef that's implemented in the current module
+        b) declaration of an external routine that's called in the current one
+        c) alias declaration of a procdef implemented in the current module
+        d) defining a procvar type
        The main differences between the contexts are:
         a) information about sign extension of result type, proc name, parameter names & sign-extension info & types
-        b) no information about sign extension of result type, proc name, no parameter names, no information about sign extension of parameters, parameter types
-        c) no information about sign extension of result type, no proc name, no parameter names, no information about sign extension of parameters, parameter types
+        b) information about sign extension of result type, proc name, no parameter names, with parameter sign-extension info & types
+        c) no information about sign extension of result type, proc name, no parameter names, no information about sign extension of parameters, parameter types
+        d) no information about sign extension of result type, no proc name, no parameter names, no information about sign extension of parameters, parameter types
       }
-     tllvmprocdefdecltype = (lpd_decl,lpd_alias,lpd_procvar);
+     tllvmprocdefdecltype = (lpd_def,lpd_decl,lpd_alias,lpd_procvar);
 
     { returns the identifier to use as typename for a def in llvm (llvm only
       allows naming struct types) -- only supported for defs with a typesym, and
@@ -598,7 +599,10 @@ implementation
             encodedstr:=encodedstr+'...';
             exit
           end;
-        paraloc:=hp.paraloc[calleeside].location;
+        if withparaname then
+          paraloc:=hp.paraloc[calleeside].location
+        else
+          paraloc:=hp.paraloc[callerside].location;
         repeat
           usedef:=paraloc^.def;
           llvmextractvalueextinfo(hp.vardef,usedef,signext);
@@ -665,18 +669,26 @@ implementation
         paranr: longint;
         hp: tparavarsym;
         signext: tllvmvalueextension;
+        useside: tcallercallee;
         first: boolean;
       begin
-        def.init_paraloc_info(calleeside);
+        { when writing a definition, we have to write the parameter names, and
+          those are only available on the callee side. In all other cases,
+          we are at the callerside }
+        if pddecltype=lpd_def then
+          useside:=calleeside
+        else
+          useside:=callerside;
+        def.init_paraloc_info(useside);
         first:=true;
         { function result (return-by-ref is handled explicitly) }
         if not paramanager.ret_in_param(def.returndef,def) then
           begin
-            usedef:=llvmgetcgparadef(def.funcretloc[calleeside],false);
+            usedef:=llvmgetcgparadef(def.funcretloc[useside],false);
             llvmextractvalueextinfo(def.returndef,usedef,signext);
             { specifying result sign extention information for an alias causes
               an error for some reason }
-            if pddecltype in [lpd_decl] then
+            if pddecltype in [lpd_decl,lpd_def] then
               encodedstr:=encodedstr+llvmvalueextension2str[signext];
             encodedstr:=encodedstr+' ';
             llvmaddencodedtype_intern(usedef,[],encodedstr);
@@ -688,7 +700,7 @@ implementation
           end;
         encodedstr:=encodedstr+' ';
         { add procname? }
-        if (pddecltype in [lpd_decl]) and
+        if (pddecltype in [lpd_decl,lpd_def]) and
            (def.typ=procdef) then
           if customname='' then
             encodedstr:=encodedstr+llvmmangledname(tprocdef(def).mangledname)
@@ -700,7 +712,7 @@ implementation
         for paranr:=0 to def.paras.count-1 do
           begin
             hp:=tparavarsym(def.paras[paranr]);
-            llvmaddencodedparaloctype(hp,def.proccalloption,pddecltype in [lpd_decl],not(pddecltype in [lpd_procvar,lpd_alias]),first,encodedstr);
+            llvmaddencodedparaloctype(hp,def.proccalloption,pddecltype in [lpd_def],not(pddecltype in [lpd_procvar,lpd_alias]),first,encodedstr);
           end;
         if po_varargs in def.procoptions then
           begin
