@@ -529,10 +529,8 @@ implementation
                              current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+procdef._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0));
                            end;
             {$endif vtentry}
-                         { a classrefdef already points to the VMT, and
-                           so do interfaces }
-                         if (left.resultdef.typ<>classrefdef) and
-                            not is_any_interface_kind(left.resultdef) then
+                         if (left.resultdef.typ=objectdef) and
+                            assigned(tobjectdef(left.resultdef).vmt_field) then
                            begin
                              { vmt pointer is a pointer to the vmt record }
                              hlcg.reference_reset_base(href,vd,location.registerhi,0,vd.alignment);
@@ -541,15 +539,23 @@ implementation
                              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
                              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,tfieldvarsym(tobjectdef(left.resultdef).vmt_field).vardef,vmtdef,href,hregister);
                            end
-                         else
+                         else if left.resultdef.typ=classrefdef then
                            begin
+                             { classrefdef is a pointer to the vmt already }
                              hregister:=location.registerhi;
-                             if left.resultdef.typ=classrefdef then
-                               vmtdef:=cpointerdef.getreusable(tobjectdef(tclassrefdef(left.resultdef).pointeddef).vmt_def)
-                             else
-                               vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
+                             vmtdef:=cpointerdef.getreusable(tobjectdef(tclassrefdef(left.resultdef).pointeddef).vmt_def);
                              hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,left.resultdef,vmtdef,hregister);
-                           end;
+                           end
+                         else if is_any_interface_kind(left.resultdef) then
+                           begin
+                             { an interface is a pointer to a pointer to a vmt }
+                             hlcg.reference_reset_base(href,vd,location.registerhi,0,vd.alignment);
+                             vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
+                             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
+                             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,vmtdef,vmtdef,href,hregister);
+                           end
+                         else
+                           internalerror(2015112501);
                          { load method address }
                          vmtentry:=tabstractrecordsymtable(trecorddef(vmtdef.pointeddef).symtable).findfieldbyoffset(
                            tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber));

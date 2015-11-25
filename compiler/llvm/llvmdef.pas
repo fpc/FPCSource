@@ -482,10 +482,10 @@ implementation
               odt_interfacecorba,
               odt_dispinterface:
                 begin
-                  { type is a pointer to the vmt }
+                  { type is a pointer to a pointer to the vmt }
                   llvmaddencodedtype_intern(tobjectdef(def).vmt_def,flags,encodedstr);
                   if ([lef_typedecl,lef_noimplicitderef]*flags=[]) then
-                    encodedstr:=encodedstr+'*';
+                    encodedstr:=encodedstr+'**';
                 end;
               odt_interfacecom_function,
               odt_interfacecom_property,
