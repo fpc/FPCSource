@@ -932,20 +932,20 @@ implementation
       sizepara.init;
       alignpara.init;
       volatilepara.init;
-      paramanager.getintparaloc(list,pd,1,sourcepara);
-      paramanager.getintparaloc(list,pd,2,destpara);
+      paramanager.getintparaloc(list,pd,1,destpara);
+      paramanager.getintparaloc(list,pd,2,sourcepara);
       paramanager.getintparaloc(list,pd,3,sizepara);
       paramanager.getintparaloc(list,pd,4,alignpara);
       paramanager.getintparaloc(list,pd,5,volatilepara);
-      a_loadaddr_ref_cgpara(list,size,source,sourcepara);
       a_loadaddr_ref_cgpara(list,size,dest,destpara);
+      a_loadaddr_ref_cgpara(list,size,source,sourcepara);
       a_load_const_cgpara(list,u64inttype,size.size,sizepara);
       maxalign:=newalignment(source.alignment,dest.alignment);
       a_load_const_cgpara(list,u32inttype,maxalign,alignpara);
       { we don't know anything about volatility here, should become an extra
         parameter to g_concatcopy }
       a_load_const_cgpara(list,pasbool8type,0,volatilepara);
-      g_call_system_proc(list,pd,[@sourcepara,@destpara,@sizepara,@alignpara,@volatilepara],nil).resetiftemp;
+      g_call_system_proc(list,pd,[@destpara,@sourcepara,@sizepara,@alignpara,@volatilepara],nil).resetiftemp;
       sourcepara.done;
       destpara.done;
       sizepara.done;
