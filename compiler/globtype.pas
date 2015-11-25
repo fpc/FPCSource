@@ -92,8 +92,16 @@ interface
        PAInt = ^AInt;
 
        { target cpu specific type used to store data sizes }
+{$ifdef cpu16bitaddr}
+       { on small CPUs such as i8086, we use LongInt to support data structures
+         larger than 32767 bytes and up to 65535 bytes in size. Since asizeint
+         must be signed, we use LongInt/LongWord. }
+       ASizeInt = LongInt;
+       ASizeUInt = LongWord;
+{$else cpu16bitaddr}
        ASizeInt = PInt;
        ASizeUInt = PUInt;
+{$endif cpu16bitaddr}
 
        { type used for handling constants etc. in the code generator }
        TCGInt = Int64;

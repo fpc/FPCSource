@@ -3781,6 +3781,13 @@ implementation
         if (ado_IsBitPacked in arrayoptions) then
           { can't just add 7 and divide by 8, because that may overflow }
           result:=result div 8 + ord((result mod 8)<>0);
+{$ifdef cpu16bitaddr}
+        if result>65535 then
+          begin
+            result:=-1;
+            exit;
+          end;
+{$endif cpu16bitaddr}
       end;
 
 
