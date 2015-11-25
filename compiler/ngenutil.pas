@@ -1004,24 +1004,28 @@ implementation
   class procedure tnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
     var
       ResourceInfo : TAsmList;
+      tcb: ttai_typedconstbuilder;
     begin
       if (target_res.id in [res_elf,res_macho,res_xcoff]) then
         begin
-        ResourceInfo:=current_asmdata.asmlists[al_globals];
+          tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
 
-        maybe_new_object_file(ResourceInfo);
-        new_section(ResourceInfo,sec_data,'FPC_RESLOCATION',sizeof(aint));
-        ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
-        if ResourcesUsed then
-          { Valid pointer to resource information }
-          ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',0))
-        else
-          { Nil pointer to resource information }
-          {$IFNDEF cpu64bitaddr}
-          ResourceInfo.Concat(Tai_const.Create_32bit(0));
-          {$ELSE}
-          ResourceInfo.Concat(Tai_const.Create_64bit(0));
-          {$ENDIF}
+          if ResourcesUsed then
+            tcb.emit_tai(Tai_const.Createname('FPC_RESSYMBOL',0),voidpointertype)
+          else
+            { Nil pointer to resource information }
+            tcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype);
+          current_asmdata.asmlists[al_globals].concatList(
+            tcb.get_final_asmlist(
+              current_asmdata.DefineAsmSymbol('FPC_RESLOCATION',AB_GLOBAL,AT_DATA),
+              voidpointertype,
+              sec_rodata,
+              'FPC_RESLOCATION',
+              sizeof(puint)
+            )
+          );
+
+          tcb.free;
         end;
     end;
 

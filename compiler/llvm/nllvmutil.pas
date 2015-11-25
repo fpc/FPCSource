@@ -36,7 +36,6 @@ interface
      strict protected
       class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint); override;
      public
-      class procedure InsertResourceInfo(ResourcesUsed : boolean); override;
       class procedure InsertObjectInfo; override;
     end;
 
@@ -66,12 +65,6 @@ implementation
         list.concat(taillvmdecl.createdef(asmsym,
           get_threadvar_record(sym.vardef,field1,field2),
           nil,sec_data,varalign));
-    end;
-
-
-  class procedure tllvmnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
-    begin
-      { not supported }
     end;
 
 
