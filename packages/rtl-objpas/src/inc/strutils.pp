@@ -94,6 +94,9 @@ Function SearchBuf(Buf: PChar; BufLen: Integer; SelStart, SelLength: Integer; Se
 Function PosEx(const SubStr, S: string; Offset: Cardinal): Integer;
 Function PosEx(const SubStr, S: string): Integer;inline; // Offset: Cardinal = 1
 Function PosEx(c:char; const S: string; Offset: Cardinal): Integer;
+Function PosEx(const SubStr, S: UnicodeString; Offset: Cardinal): Integer;
+Function PosEx(c: WideChar; const S: UnicodeString; Offset: Cardinal): Integer;
+Function PosEx(const SubStr, S: UnicodeString): Integer;inline; // Offset: Cardinal = 1
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
 
 { ---------------------------------------------------------------------
@@ -696,6 +699,56 @@ Function PosEx(const SubStr, S: string): Integer;inline; // Offset: Cardinal = 1
 begin
   posex:=posex(substr,s,1);
 end;
+
+Function PosEx(const SubStr, S: UnicodeString; Offset: Cardinal): Integer;
+var
+  i,MaxLen, SubLen : SizeInt;
+  SubFirst: WideChar;
+  pc : pwidechar;
+begin
+  PosEx:=0;
+  SubLen := Length(SubStr);
+  if (SubLen > 0) and (Offset > 0) and (Offset <= Cardinal(Length(S))) then
+   begin
+    MaxLen := Length(S)- SubLen;
+    SubFirst := SubStr[1];
+    i := indexword(S[Offset],Length(S) - Offset + 1, Word(SubFirst));
+    while (i >= 0) and ((i + sizeint(Offset) - 1) <= MaxLen) do
+    begin
+      pc := @S[i+SizeInt(Offset)];
+      //we know now that pc^ = SubFirst, because indexbyte returned a value > -1
+      if (CompareWord(Substr[1],pc^,SubLen) = 0) then
+      begin
+        PosEx := i + SizeInt(Offset);
+        Exit;
+      end;
+      //point Offset to next char in S
+      Offset := sizeuint(i) + Offset + 1;
+      i := indexword(S[Offset],Length(S) - Offset + 1, Word(SubFirst));
+    end;
+  end;
+end;
+
+Function PosEx(c: WideChar; const S: UnicodeString; Offset: Cardinal): Integer;
+var
+  Len : longint;
+  p: SizeInt;
+begin
+  Len := length(S);
+  if (Offset < 1) or (Offset > SizeUInt(Length(S))) then exit(0);
+  Len := length(S);
+  p := indexword(S[Offset],Len-offset+1,Word(c));
+  if (p < 0) then
+    PosEx := 0
+  else
+    PosEx := p + sizeint(Offset);
+end;
+
+Function PosEx(const SubStr, S: UnicodeString): Integer;inline; // Offset: Cardinal = 1
+begin
+  PosEx:=PosEx(SubStr,S,1);
+end;
+
 
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
 
