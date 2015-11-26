@@ -1342,16 +1342,16 @@ implementation
 
    class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; define, start: boolean): tasmsymbol;
      var
-       bind: tasmsymbind;
+       name: TSymStr;
      begin
-       if define then
-         bind:=AB_GLOBAL
-       else
-         bind:=AB_EXTERNAL;
        if start then
-         result:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,'START'),bind,AT_DATA)
+         name:=make_mangledname(basename,st,'START')
        else
-         result:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,'END'),bind,AT_DATA);
+         name:=make_mangledname(basename,st,'END');
+       if define then
+         result:=current_asmdata.DefineAsmSymbol(name,AB_GLOBAL,AT_DATA)
+       else
+         result:=current_asmdata.RefAsmSymbol(name,AT_DATA)
      end;
 
 
