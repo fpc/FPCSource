@@ -133,7 +133,6 @@ uses
       Var
         namelab,
         valuelab : tasmlabofs;
-        resstrlab : tasmsymbol;
         R : TResourceStringItem;
         resstrdef: tdef;
         tcb : ttai_typedconstbuilder;

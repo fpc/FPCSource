@@ -1003,7 +1003,6 @@ implementation
 
   class procedure tnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
     var
-      ResourceInfo : TAsmList;
       tcb: ttai_typedconstbuilder;
     begin
       if (target_res.id in [res_elf,res_macho,res_xcoff]) then

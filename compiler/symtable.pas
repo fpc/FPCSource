@@ -2818,7 +2818,6 @@ implementation
         symownerdef : tabstractrecorddef;
         nonlocalst : tsymtable;
         isspezproc : boolean;
-        def : tstoreddef;
       begin
         result:=false;
 

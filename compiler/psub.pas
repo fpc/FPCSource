@@ -2479,7 +2479,6 @@ implementation
 
     procedure specialize_objectdefs(p:TObject;arg:pointer);
       var
-        oldcurrent_filepos : tfileposinfo;
         specobj : tabstractrecorddef;
         state : tspecializationstate;
 
