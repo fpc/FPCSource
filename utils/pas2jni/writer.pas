@@ -2135,7 +2135,7 @@ begin
     Fps.WriteLn('end;');
 
     Fps.WriteLn;
-    Fps.WriteLn('function _AllocMemory(env: PJNIEnv; jobj: jobject; size: jint): jlong;');
+    Fps.WriteLn('function _AllocMemory(env: PJNIEnv; jobj: jobject; size: jint): jlong;' + JniCaliing);
     Fps.WriteLn('var p: pointer;');
     Fps.WriteLn('begin');
     Fps.WriteLn('GetMem(p, size);', 1);
